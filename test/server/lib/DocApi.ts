@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
@@ -2103,7 +2104,10 @@ function testDocApi() {
   });
 
   it("GET /docs/{did}/download/xlsx returns 404 if tableId is invalid", async function() {
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=MissingTableId`, chimpy);
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=MissingTableId`,
+      chimpy
+    );
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
   });

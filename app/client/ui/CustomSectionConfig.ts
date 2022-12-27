@@ -73,7 +73,9 @@ class ColumnPicker extends Disposable {
           properValue,
           options,
           {
-            defaultLabel: this._column.typeDesc != "any" ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc}) : t("Pick a column")
+            defaultLabel: this._column.typeDesc != "any"
+              ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc})
+              : t("Pick a column")
           }
         ),
         testId('mapping-for-' + this._column.name),
@@ -117,7 +119,11 @@ class ColumnListPicker extends Disposable {
                 col.label.peek(),
               )),
               wrongTypeCount > 0 ? menuText(
-                t("{{wrongTypeCount}} non-{{columnType}} columns are not shown", {wrongTypeCount, columnType: this._column.type.toLowerCase(), count: wrongTypeCount}),
+                t("{{wrongTypeCount}} non-{{columnType}} columns are not shown", {
+                  wrongTypeCount,
+                  columnType: this._column.type.toLowerCase(),
+                  count: wrongTypeCount
+                }),
                 testId('map-message-' + this._column.name)
               ) : null
             ];
@@ -371,8 +377,12 @@ export class CustomSectionConfig extends Disposable {
       }
       switch(level) {
         case AccessLevel.none: return cssConfirmLine(t("Widget does not require any permissions."));
-        case AccessLevel.read_table: return cssConfirmLine(t("Widget needs to {{read}} the current table.", {read: dom("b", "read")})); // TODO i18next
-        case AccessLevel.full: return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {fullAccess: dom("b", "full access")})); // TODO i18next
+        case AccessLevel.read_table:
+          return cssConfirmLine(t("Widget needs to {{read}} the current table.", {read: dom("b", "read")}));
+        case AccessLevel.full:
+          return cssConfirmLine(t("Widget needs {{fullAccess}} to this document.", {
+            fullAccess: dom("b", "full access")
+          }));
         default: throw new Error(`Unsupported ${level} access level`);
       }
     }

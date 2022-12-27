@@ -100,11 +100,11 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
   const removePage = () => [['RemoveRecord', '_grist_Views', viewId]];
   const removeAll = () => [
     ...removePage(),
-    ...notVisibleTables.map(t => ['RemoveTable', t.tableId.peek()])
+    ...notVisibleTables.map(tb => ['RemoveTable', tb.tableId.peek()])
   ];
 
   if (notVisibleTables.length) {
-    const tableNames = notVisibleTables.map(t => t.tableNameDef.peek());
+    const tableNames = notVisibleTables.map(tb => tb.tableNameDef.peek());
     buildPrompt(tableNames, async (option) => {
       // Errors are handled in the dialog.
       if (option === 'data') {
@@ -174,7 +174,7 @@ function buildOption(value: Observable<RemoveOption>, id: RemoveOption, content:
 
 function buildWarning(tables: string[]) {
   return cssWarning(
-    dom.forEach(tables, (t) => cssTableName(t, testId('table')))
+    dom.forEach(tables, (tb) => cssTableName(tb, testId('table')))
   );
 }
 

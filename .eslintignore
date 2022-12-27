@@ -4,8 +4,8 @@
 !/test
 !/plugins
 !/buildtools
+!/stubs
 !/.eslintrc.js
 
 # And exclude some things within those (generated files)
-/_build
 /plugins/**/dist

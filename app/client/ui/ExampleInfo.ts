@@ -1,4 +1,4 @@
-import {makeT} from 'app/client/lib/localization'
+import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('ExampleInfo');
 

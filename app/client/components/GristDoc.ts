@@ -986,7 +986,7 @@ export class GristDoc extends DisposableWithEvents {
    * Renames table. Method exposed primarily for tests.
    */
   public async renameTable(tableId: string, newTableName: string) {
-    const tableRec = this.docModel.visibleTables.all().find(t => t.tableId.peek() === tableId);
+    const tableRec = this.docModel.visibleTables.all().find(tb => tb.tableId.peek() === tableId);
     if (!tableRec) {
       throw new UserError(`No table with id ${tableId}`);
     }

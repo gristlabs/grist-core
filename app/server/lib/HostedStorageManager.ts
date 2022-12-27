@@ -923,7 +923,7 @@ export async function backupSqliteDatabase(src: string, dest: string,
   } finally {
     if (testProgress) { testProgress({action: 'close', phase: 'before'}); }
     try {
-      if (db) { await fromCallback(cb => db!.close(cb)); }
+      if (db) { await fromCallback(cb => db.close(cb)); }
     } catch (err) {
       _log.debug(null, `problem stopping copy of ${src} (${label}): ${err}`);
     }

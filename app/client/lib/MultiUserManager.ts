@@ -1,11 +1,12 @@
 import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
-import {cssModalBody, cssModalButtons, cssModalTitle, IModalControl, modal, cssAnimatedModal} from 'app/client/ui2018/modals';
+import {cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
+        IModalControl, modal} from 'app/client/ui2018/modals';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {UserManagerModel, IOrgMemberSelectOption} from 'app/client/models/UserManagerModel';
+import {IOrgMemberSelectOption, UserManagerModel} from 'app/client/models/UserManagerModel';
 import {icon} from 'app/client/ui2018/icons';
 import {textarea} from "app/client/ui/inputs";
-import {BasicRole, VIEWER, NonGuestRole, isBasicRole} from "app/common/roles";
+import {BasicRole, isBasicRole, NonGuestRole, VIEWER} from "app/common/roles";
 import {menu, menuItem} from 'app/client/ui2018/menus';
 
 function parseEmailList(emailListRaw: string): Array<string> {
@@ -28,9 +29,11 @@ export function buildMultiUserManagerModal(
   const emailListObs = Observable.create(owner, "");
   const rolesObs = Observable.create<BasicRole>(owner, VIEWER);
   const isValidObs = Observable.create(owner, true);
-  
-  const enableAdd: Computed<boolean> = computed((use) => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs)));
-  
+
+  const enableAdd: Computed<boolean> = computed(
+    (use) => Boolean(use(emailListObs) && use(rolesObs) && use(isValidObs))
+  );
+
   const save = (ctl: IModalControl) => {
     const emailList = parseEmailList(emailListObs.get());
     const role = rolesObs.get();
@@ -40,7 +43,7 @@ export function buildMultiUserManagerModal(
       emailList.forEach(email => onAdd(email, role));
       ctl.close();
     }
-  }
+  };
 
   return modal(ctl => [
     { style: 'padding: 0;' },
@@ -63,7 +66,7 @@ export function buildMultiUserManagerModal(
       { style: 'margin: 32px 64px; display: flex;' },
       bigPrimaryButton('Confirm',
         dom.boolAttr('disabled', (use) => !use(enableAdd)),
-        dom.on('click', () => {save(ctl)}),
+        dom.on('click', () => { save(ctl); }),
         testId('um-confirm')
       ),
       bigBasicButton(

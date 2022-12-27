@@ -955,8 +955,8 @@ export class DocWorkerApi {
     const options: DownloadOptions = {
       ...params,
       filename: name + (params.tableId === name ? '' : '-' + params.tableId),
-    }
-    return options
+    };
+    return options;
   }
 
   private _getActiveDoc(req: RequestWithLogin): Promise<ActiveDoc> {

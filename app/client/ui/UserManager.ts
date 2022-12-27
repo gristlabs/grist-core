@@ -39,8 +39,8 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
-import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, IModalControl,
-        modal, cssAnimatedModal} from 'app/client/ui2018/modals';
+import {confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
+        IModalControl, modal} from 'app/client/ui2018/modals';
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;

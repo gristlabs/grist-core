@@ -239,7 +239,7 @@ export function buildUpgradeMessage(
 ) {
   if (!canUpgrade) { return t("Contact the site owner to upgrade the plan to raise limits."); }
 
-  const upgradeLinkText = t("start your 30-day free trial of the Pro plan.")
+  const upgradeLinkText = t("start your 30-day free trial of the Pro plan.");
   // TODO i18next
   return [
     variant === 'short' ? null : t("For higher limits, "),

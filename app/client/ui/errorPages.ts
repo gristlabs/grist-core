@@ -73,7 +73,10 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
   document.title = t("Page not found{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
 
   return pagePanelsError(appModel, t("Page not found{{suffix}}", {suffix: ''}), [
-    cssErrorText(message || t("The requested page could not be found.{{separator}}Please check the URL and try again.", {separator: dom('br')})),  // TODO: i18next
+    cssErrorText(message ||
+      t("The requested page could not be found.{{separator}}Please check the URL and try again.", {
+        separator: dom('br')
+    })),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: 'https://getgrist.com/contact'})),

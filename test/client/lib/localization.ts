@@ -2,14 +2,14 @@ import {makeT, t} from 'app/client/lib/localization';
 import {assert} from 'chai';
 import i18next, {i18n} from 'i18next';
 import {Disposable, dom, DomContents, observable} from "grainjs";
-import {popGlobals, pushGlobals, G} from 'grainjs/dist/cjs/lib/browserGlobals';
+import {G, popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
 import {JSDOM} from 'jsdom';
 
 describe('localization', function() {
   let instance: i18n;
   before(() => {
     instance = i18next.createInstance();
-    instance.init({
+    void instance.init({
       lng: 'en',
       resources: {
         en: {

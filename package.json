@@ -21,8 +21,8 @@
     "test:docker": "./test/test_under_docker.sh",
     "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"}",
     "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
+    "lint": "eslint --cache --cache-strategy content .",
+    "lint:fix": "eslint  --cache --cache-strategy content --fix .",
     "generate:translation": "NODE_PATH=_build:_build/stubs:_build/ext node buildtools/generate_translation_keys.js"
   },
   "keywords": [
