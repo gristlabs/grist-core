@@ -14,6 +14,7 @@ import {cssButtonRow} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {testId} from 'app/client/ui2018/cssVars';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {ColumnRec} from 'app/client/models/DocModel';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
@@ -30,6 +31,7 @@ const t = makeT('components.TypeTransformation');
 export class TypeTransform extends ColumnTransform {
   private _reviseTypeChange = Observable.create(this, false);
   private _transformWidget: Computed<NewAbstractWidget|null>;
+  private _convertColumn: ColumnRec;                 // Set in prepare()
 
   constructor(gristDoc: GristDoc, fieldBuilder: FieldBuilder) {
     super(gristDoc, fieldBuilder);
@@ -96,29 +98,37 @@ export class TypeTransform extends ColumnTransform {
    */
   protected async addTransformColumn(toType: string) {
     const docModel = this.gristDoc.docModel;
-    const colInfo = await TypeConversion.prepTransformColInfo(docModel, this.origColumn, this.origDisplayCol, toType);
+    const newColInfos = await this._tableData.sendTableActions([
+      ['AddColumn', 'gristHelper_Converted', {type: 'Any'}],
+      ['AddColumn', 'gristHelper_Transform', {type: 'Any'}],
+    ]);
+    const gristHelper_ConvertedRef = newColInfos[0].colRef;
+    const gristHelper_TransformRef = newColInfos[1].colRef;
+    this.transformColumn = docModel.columns.getRowModel(gristHelper_TransformRef);
+    this._convertColumn = docModel.columns.getRowModel(gristHelper_ConvertedRef);
+    const colInfo = await TypeConversion.prepTransformColInfo(
+      docModel, this.origColumn,
+      this.origDisplayCol, toType, this._convertColumn.colId.peek());
     // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
     const rules = colInfo.rules;
     delete (colInfo as any).rules;
-    const newColInfos = await this._tableData.sendTableActions([
-      ['AddColumn', 'gristHelper_Converted', {...colInfo, isFormula: false, formula: ''}],
-      ['AddColumn', 'gristHelper_Transform', colInfo],
+    await this._tableData.sendTableActions([
+      ['ModifyColumn', this._convertColumn.colId.peek(), {...colInfo, isFormula: false, formula: ''}],
+      ['ModifyColumn', this.transformColumn.colId.peek(), colInfo],
     ]);
-    const transformColRef = newColInfos[1].colRef;
     if (rules) {
       await this.gristDoc.docData.sendActions([
-        ['UpdateRecord', '_grist_Tables_column', transformColRef, { rules }]
+        ['UpdateRecord', '_grist_Tables_column', gristHelper_TransformRef, { rules }]
       ]);
     }
-    this.transformColumn = docModel.columns.getRowModel(transformColRef);
     await this.convertValues();
-    return transformColRef;
+    return gristHelper_TransformRef;
   }
 
   protected convertValuesActions(): UserAction[] {
     const tableId = this._tableData.tableId;
     const srcColId = this.origColumn.colId.peek();
-    const dstColId = "gristHelper_Converted";
+    const dstColId = this._convertColumn.colId.peek();
     const type = this.transformColumn.type.peek();
     const widgetOptions = this.transformColumn.widgetOptions.peek();
     const visibleColRef = this.transformColumn.visibleCol.peek();
@@ -153,7 +163,7 @@ export class TypeTransform extends ColumnTransform {
    * Overrides parent method to delete extra column
    */
   protected cleanup() {
-    void this._tableData.sendTableAction(['RemoveColumn', 'gristHelper_Converted']);
+    void this._tableData.sendTableAction(['RemoveColumn', this._convertColumn.colId.peek()]);
   }
 
   /**
@@ -161,7 +171,9 @@ export class TypeTransform extends ColumnTransform {
    */
   public async setType(toType: string) {
     const docModel = this.gristDoc.docModel;
-    const colInfo = await TypeConversion.prepTransformColInfo(docModel, this.origColumn, this.origDisplayCol, toType);
+    const colInfo = await TypeConversion.prepTransformColInfo(
+      docModel, this.origColumn, this.origDisplayCol,
+      toType, this._convertColumn.colId.peek());
     const tcol = this.transformColumn;
     await tcol.updateColValues(colInfo as any);
   }

@@ -84,7 +84,7 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
 // will be set to the expression to compute the new values from the old ones.
 // @param toTypeMaybeFull: Type to convert the column to, either full ('Ref:Foo') or pure ('Ref').
 export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRec, origDisplayCol: ColumnRec,
-                                           toTypeMaybeFull: string): Promise<ColInfo> {
+                                           toTypeMaybeFull: string, convertedRef: string): Promise<ColInfo> {
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
 
@@ -117,7 +117,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     type: addColTypeSuffix(toTypeMaybeFull, origCol, docModel),
     isFormula: true,
     visibleCol: 0,
-    formula: "CURRENT_CONVERSION(rec)",
+    formula: `rec.${convertedRef}`,
     rules: origCol.rules(),
   };
 

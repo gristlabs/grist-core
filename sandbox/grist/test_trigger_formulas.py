@@ -357,7 +357,7 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
     ])
 
     # ModifyColumn doesn't trigger recalcs.
-    out_actions = self.apply_user_action(["ModifyColumn", "Creatures", "Size", {type: 'Numeric'}])
+    out_actions = self.apply_user_action(["ModifyColumn", "Creatures", "Size", {"type": 'Numeric'}])
     self.assertEqual(out_actions.calls, {})
 
 

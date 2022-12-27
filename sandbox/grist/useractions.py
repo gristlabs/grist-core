@@ -40,10 +40,8 @@ _action_types = {}
 # requested.
 DIRECT_ACTION = 0
 
-# Fields of _grist_Tables_column table that may be modified using ModifyColumns useraction.
-_modifiable_col_fields = {'type', 'widgetOptions', 'formula', 'isFormula', 'label',
-                          'untieColIdFromLabel'}
-
+# Fields of _grist_Tables_column table that can't be modified using ModifyColumn useraction.
+_unmodifiable_col_fields = {'colId', 'id', 'parentId'}
 # Fields of _grist_Tables_column table that are inherited by group-by columns from their source.
 _inherited_groupby_col_fields = {'colId', 'widgetOptions', 'label', 'untieColIdFromLabel'}
 
@@ -1302,11 +1300,6 @@ class UserActions(object):
         ))
     )
 
-    if transform:
-      # Delete any currently existing transform columns with the same id
-      if self._engine.tables[table_id].has_column(col_id):
-        self.RemoveColumn(table_id, col_id)
-
     ret = self.doAddColumn(table_id, col_id, col_info)
 
     if not transform and table_rec.rawViewSectionRef:
@@ -1469,7 +1462,7 @@ class UserActions(object):
     # metadata record. We implement the former interface by forwarding to the latter.
     col = self._docmodel.get_column_rec(table_id, col_id)
 
-    update_values = {k: v for k, v in six.iteritems(col_info) if k in _modifiable_col_fields}
+    update_values = {k: v for k, v in six.iteritems(col_info) if k not in _unmodifiable_col_fields}
     if '_position' in col_info:
       update_values['parentPos'] = col_info['_position']
     self._docmodel.update([col], **update_values)

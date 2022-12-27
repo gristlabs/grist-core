@@ -141,11 +141,11 @@ export class ColumnTransform extends Disposable {
     // started doing something else, and we should finalize the transform.
     return actions.every(action => (
       // ['AddColumn', USER_TABLE, 'gristHelper_Transform', colInfo]
-      (action[2] === 'gristHelper_Transform') ||
+      (action[2]?.toString().startsWith('gristHelper_Transform')) ||
       // ['AddColumn', USER_TABLE, 'gristHelper_Converted', colInfo]
-      (action[2] === 'gristHelper_Converted') ||
+      (action[2]?.toString().startsWith('gristHelper_Converted')) ||
       // ['ConvertFromColumn', USER_TABLE, SOURCE_COLUMN, 'gristHelper_Converted']
-      (action[3] === 'gristHelper_Converted') ||
+      (action[3]?.toString().startsWith('gristHelper_Converted')) ||
       // ["SetDisplayFormula", USER_TABLE, ...]
       (action[0] === 'SetDisplayFormula') ||
       // ['UpdateRecord', '_grist_Table_column', transformColId, ...]

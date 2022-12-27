@@ -504,14 +504,6 @@ def N(value):
   return 0
 
 
-def CURRENT_CONVERSION(rec):
-  """
-  Internal function used by Grist during column type conversions. Not available for use in
-  formulas.
-  """
-  return rec.gristHelper_Converted
-
-
 def NA():
   """
   Returns the "value not available" error, `#N/A`.
