@@ -46,6 +46,9 @@ jobs:
       - name: Build Node.js code
         run: yarn run build:prod
 
+      - name: Run eslint
+        run: yarn run lint:ci
+
       - name: Run smoke test
         run: VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:smoke
 
