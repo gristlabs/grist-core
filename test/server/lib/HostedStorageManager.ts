@@ -394,7 +394,7 @@ describe('HostedStorageManager', function() {
         function requireStorage<T>(storage: T|undefined): T {
           if (storage === undefined) { throw new Error('storage not found'); }
           return storage;
-        };
+        }
         switch (storage) {
           case 'cached': {
             // Make an in-memory store that is slow and aggressively cached.
@@ -898,7 +898,7 @@ describe('HostedStorageManager', function() {
         const doc = await store.docManager.fetchDoc(docSession, docId);
         await doc.waitForInitialization();
         const rec = await doc.fetchTable(makeExceptionalDocSession('system'), '_grist_DocInfo');
-        const tz = rec[3].timezone[0];
+        const tz = rec.tableData[3].timezone[0];
         const h = (await doc.getRecentStates(makeExceptionalDocSession('system')))[0].h;
         await store.docManager.makeBackup(doc, 'hello');
         await store.end();
