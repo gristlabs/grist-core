@@ -3534,7 +3534,6 @@ function testDocApi() {
         // Ok, we can return success now.
         probeStatus = 200;
         controller.abort();
-        now = Date.now();
         await longFinished.waitAndReset();
         // After releasing the hook, we are not 100% sure stats are updated, so we will wait a bit.
         // If we are checking stats while we are holding the hook (in the probe endpoint) it is safe
@@ -3545,10 +3544,10 @@ function testDocApi() {
         }, 1000, 200);
         assert.equal(stats[0].usage?.numWaiting, 0);
         assert.equal(stats[0].usage?.status, 'idle');
-        assert.isAbove(stats[0].usage?.updatedTime ?? 0, now);
+        assert.isAtLeast(stats[0].usage?.updatedTime ?? 0, now);
         assert.isNull(stats[0].usage?.lastErrorMessage);
         assert.isNull(stats[0].usage?.lastFailureTime);
-        assert.isAbove(stats[0].usage?.lastSuccessTime ?? 0, now);
+        assert.isAtLeast(stats[0].usage?.lastSuccessTime ?? 0, now);
         assert.equal(stats[0].usage?.lastHttpStatus, 200);
         assert.deepEqual(stats[0].usage?.lastEventBatch, {
           status: 'success',
@@ -3575,11 +3574,11 @@ function testDocApi() {
         stats = await readStats(docId);
         assert.equal(stats[0].usage?.numWaiting, 1);
         assert.equal(stats[0].usage?.status, 'retrying');
-        assert.isAbove(stats[0].usage?.updatedTime ?? 0, now);
+        assert.isAtLeast(stats[0].usage?.updatedTime ?? 0, now);
         // There was no body in the response yet.
         assert.isNull(stats[0].usage?.lastErrorMessage);
         // Now we have a failure, and the success was before.
-        assert.isAbove(stats[0].usage?.lastFailureTime ?? 0, now);
+        assert.isAtLeast(stats[0].usage?.lastFailureTime ?? 0, now);
         assert.isBelow(stats[0].usage?.lastSuccessTime ?? 0, now);
         assert.equal(stats[0].usage?.lastHttpStatus, 404);
         // Batch contains info about last attempt.
@@ -3623,8 +3622,8 @@ function testDocApi() {
         assert.equal(stats[0].usage?.status, 'idle');
         assert.equal(stats[0].usage?.lastHttpStatus, 200);
         assert.equal(stats[0].usage?.lastErrorMessage, probeMessage);
-        assert.isAbove(stats[0].usage?.lastFailureTime ?? 0, now);
-        assert.isAbove(stats[0].usage?.lastSuccessTime ?? 0, now);
+        assert.isAtLeast(stats[0].usage?.lastFailureTime ?? 0, now);
+        assert.isAtLeast(stats[0].usage?.lastSuccessTime ?? 0, now);
         assert.deepEqual(stats[0].usage?.lastEventBatch, {
           status: 'success',
           attempts: 3,

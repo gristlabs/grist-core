@@ -656,7 +656,6 @@ export class DocTriggers {
   private async _sendWebhookWithRetries(id: string, url: string, body: string, size: number, signal: AbortSignal) {
     const maxWait = 64;
     let wait = 1;
-    let now = Date.now();
     for (let attempt = 0; attempt < this._maxWebhookAttempts; attempt++) {
       if (this._shuttingDown) {
         return false;
@@ -673,12 +672,11 @@ export class DocTriggers {
           },
           signal,
         });
-        now = Date.now();
         if (response.status === 200) {
-          await this._stats.logBatch(id, 'success', now, { size, httpStatus: 200, error: null, attempts: attempt + 1 });
+          await this._stats.logBatch(id, 'success', { size, httpStatus: 200, error: null, attempts: attempt + 1 });
           return true;
         }
-        await this._stats.logBatch(id, 'failure', now, {
+        await this._stats.logBatch(id, 'failure', {
           httpStatus: response.status,
           error: await response.text(),
           attempts: attempt + 1,
@@ -686,7 +684,7 @@ export class DocTriggers {
         });
         this._log(`Webhook responded with non-200 status`, {level: 'warn', status: response.status, attempt});
       } catch (e) {
-        await this._stats.logBatch(id, 'failure', now, {
+        await this._stats.logBatch(id, 'failure', {
           httpStatus: null,
           error: (e.message || 'Unrecognized error during fetch'),
           attempts: attempt + 1,
@@ -874,7 +872,6 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
   public async logBatch(
     id: string,
     status: WebhookBatchStatus,
-    now?: number|null,
     stats?: {
       httpStatus?: number|null,
       error?: string|null,
@@ -882,7 +879,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
       attempts?: number|null,
     }
   ) {
-    now ??= Date.now();
+    const now = Date.now();
 
     // Update batchStats.
     const batchStats: [StatsKey, string][] = [

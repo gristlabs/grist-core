@@ -37,9 +37,11 @@ export function checkMinIOExternalStorage() {
   }).getAsBool();
   const accessKey = settings.flag('accessKey').requireString({
     envVar: ['GRIST_DOCS_MINIO_ACCESS_KEY'],
+    censor: true,
   });
   const secretKey = settings.flag('secretKey').requireString({
     envVar: ['GRIST_DOCS_MINIO_SECRET_KEY'],
+    censor: true,
   });
   settings.flag('url').set(`minio://${bucket}/${prefix}`);
   settings.flag('active').set(true);
