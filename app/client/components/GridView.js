@@ -84,8 +84,13 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   this.isScrolledTop = this.autoDispose(ko.computed(() => this.scrollTop() > 0));
 
   this.cellSelector = selector.CellSelector.create(this, this);
-  this.selectionSummary = SelectionSummary.create(this,
-    this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
+
+  if (!isPreview) {
+    // Disable summaries in import previews, for now.
+    this.selectionSummary = SelectionSummary.create(this,
+      this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
+  }
+
   this.colMenuTargets = {}; // Reference from column ref to its menu target dom
 
   this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
