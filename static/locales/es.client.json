@@ -1,1 +1,59 @@
-{}
+{
+    "AccountPage": {
+        "Name": "Nombre",
+        "API": "API",
+        "Edit": "Editar",
+        "Save": "Guardar",
+        "PasswordSecurity": "Contraseña y seguridad",
+        "LoginMethod": "Método de inicio de sesión",
+        "ChangePassword": "Cambiar contraseña",
+        "AllowGoogleSigning": "Permite iniciar sesión en esta cuenta con Google",
+        "TwoFactorAuth": "Autenticación de dos factores",
+        "Theme": "Tema",
+        "APIKey": "Clave de API",
+        "WarningUsername": "Los nombres solo permiten letras, números y ciertos caracteres especiales",
+        "AccountSettings": "Configuraciones de cuenta",
+        "Email": "Email",
+        "TwoFactorAuthDescription": "La autenticación de dos factores provee seguridad adicional para su cuenta Grist, diseñada para garantizar que usted sea la única persona que pueda acceder a su cuenta, incluso si alguien conoce su contraseña."
+    },
+    "AccountWidget": {
+        "Pricing": "Precios",
+        "Accounts": "Cuentas",
+        "SignOut": "Cerrar Sesión",
+        "SwitchAccounts": "Cambiar de Cuenta",
+        "AccessDetails": "Detalles de Acceso",
+        "ManageTeam": "Administrar Equipo",
+        "ToggleMobileMode": "Alternar Modo Móvil",
+        "SignIn": "Iniciar Sesión",
+        "AddAccount": "Agregar Cuenta",
+        "ProfileSettings": "Configuración de Perfil",
+        "DocumentSettings": "Configuración del Documento"
+    },
+    "AddNewButton": {
+        "AddNew": "Agregar Nuevo"
+    },
+    "AppHeader": {
+        "HomePage": "Portada",
+        "Legacy": "Legado",
+        "PersonalSite": "Sitio Personal",
+        "TeamSite": "Sitio de Equipo"
+    },
+    "ApiKey": {
+        "AboutToDeleteAPIKey": "Estás a punto de eliminar una clave de API. Esto hará que se rechacen todas las solicitudes futuras que utilicen esta clave. ¿Aún quieres eliminar?",
+        "AnonymousAPIKey": "Esta clave de API se puede utilizar para acceder a esta cuenta de forma anónima a través de la API.",
+        "ByGenerating": "Al generar una clave de API, podrás hacer llamadas API para tu propia cuenta.",
+        "ClickToShow": "Haga clic para mostrar",
+        "Create": "Crear",
+        "OwnAPIKey": "Esta clave de API se puede utilizar para acceder a su cuenta a través de la API. No compartas tu clave de API con nadie.",
+        "Remove": "Quitar",
+        "RemoveAPIKey": "Quitar clave de API"
+    },
+    "App": {
+        "Description": "Descripción"
+    },
+    "CellContextMenu": {
+        "ClearValues": "Borrar valores",
+        "DeleteRows_other": "Eliminar {{count}} filas",
+        "DeleteRows_one": "Eliminar fila"
+    }
+}
