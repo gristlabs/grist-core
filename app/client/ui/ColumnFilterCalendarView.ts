@@ -161,4 +161,5 @@ const cssLinkRow = styled('div', `
 
 const cssDatepickerContainer = styled('div', `
   padding-top: 16px;
+  background-color: white;
 `);
