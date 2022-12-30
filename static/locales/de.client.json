@@ -1,1 +1,23 @@
-{}
+{
+    "AccountPage": {
+        "AllowGoogleSigning": "Anmeldung bei diesem Konto mit Google zulassen",
+        "TwoFactorAuth": "Zwei-Faktor-Authentifizierung",
+        "TwoFactorAuthDescription": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt.",
+        "AccountSettings": "Kontoeinstellungen",
+        "API": "API",
+        "Edit": "Bearbeiten",
+        "Name": "Name",
+        "Save": "Speichern",
+        "LoginMethod": "Anmeldemethode",
+        "ChangePassword": "Passwort ändern",
+        "APIKey": "API-Schlüssel",
+        "Theme": "Thema",
+        "WarningUsername": "Bei den Namen sind nur Buchstaben, Zahlen und bestimmte Sonderzeichen erlaubt"
+    },
+    "AccountWidget": {
+        "SignIn": "Anmelden",
+        "DocumentSettings": "Dokument-Einstellungen",
+        "ToggleMobileMode": "Mobilmodus umschalten",
+        "Pricing": "Preisgestaltung"
+    }
+}
