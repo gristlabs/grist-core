@@ -7,7 +7,7 @@
         "PasswordSecurity": "Contraseña y seguridad",
         "LoginMethod": "Método de inicio de sesión",
         "ChangePassword": "Cambiar contraseña",
-        "AllowGoogleSigning": "Permite iniciar sesión en esta cuenta con Google",
+        "AllowGoogleSigning": "Permitir iniciar sesión en esta cuenta con Google",
         "TwoFactorAuth": "Autenticación de dos factores",
         "Theme": "Tema",
         "APIKey": "Clave de API",
