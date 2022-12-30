@@ -49,11 +49,68 @@
         "RemoveAPIKey": "Quitar clave de API"
     },
     "App": {
-        "Description": "Descripción"
+        "Description": "Descripción",
+        "Key": "Clave",
+        "MemoryError": "Error de memoria"
     },
     "CellContextMenu": {
         "ClearValues": "Borrar valores",
         "DeleteRows_other": "Eliminar {{count}} filas",
-        "DeleteRows_one": "Eliminar fila"
+        "DeleteRows_one": "Eliminar fila",
+        "ResetEntireColumns_one": "Restablecer columna completa",
+        "ResetEntireColumns_other": "Restablecer {{count}} columnas completa",
+        "ResetColumns_one": "Restablecer columna",
+        "ResetColumns_other": "Restablecer {{count}} columnas",
+        "DeleteColumns_one": "Eliminar columna",
+        "DeleteColumns_other": "Eliminar {{count}} columnas",
+        "ClearCell": "Borrar celda",
+        "CopyAnchorLink": "Copiar enlace de anclaje",
+        "FilterByValue": "Filtrar por este valor",
+        "InsertRow": "Insertar fila",
+        "InsertRowAbove": "Insertar fila arriba",
+        "InsertRowBelow": "Insertar fila debajo",
+        "DuplicateRows_one": "Duplicar fila",
+        "InsertColumnRight": "Insertar columna a la derecha",
+        "InsertColumnLeft": "Insertar columna a la izquierda",
+        "DuplicateRows_other": "Duplicar filas"
+    },
+    "ColumnFilterMenu": {
+        "Search": "Buscar",
+        "SearchValues": "Buscar valores",
+        "All": "Todo",
+        "AllShown": "Todos Mostrados",
+        "AllExcept": "Todos Excepto",
+        "None": "Ninguno",
+        "OtherNonMatching": "Otros no coincidentes",
+        "OtherMatching": "Otros coincidentes",
+        "OtherValues": "Otros valores",
+        "FutureValues": "Valores futuros",
+        "RangeMin": "Min",
+        "RangeMax": "Max",
+        "DateRangeMin": "Inicio",
+        "DateRangeMax": "Fin",
+        "NoMatchingValues": "No hay valores coincidentes",
+        "Others": "Otros"
+    },
+    "CustomSectionConfig": {
+        "Add": "Agregar",
+        "EnterCustomURL": "Introduzca su URL personalizada",
+        "FullDocumentAccess": "Acceso completo al documento",
+        "LearnMore": "Más información sobre los widgets personalizados",
+        "PickAColumn": "Elige una columna",
+        "NoDocumentAccess": "Sin accesso al documento",
+        "OpenConfiguration": "Abrir configuración",
+        "Optional": " (opcional)",
+        "ReadSelectedTable": "Leer tabla seleccionada",
+        "SelectCustomWidget": "Seleccionar widget personalizado",
+        "WidgetNeedRead": "El widget necesita {{read}} la tabla actual.",
+        "WidgetNoPermissison": "El widget no requiere permisos.",
+        "WrongTypesMenuText_one": "{{wrongTypeCount}} columna no {{columnType}} no se muestra",
+        "PickAColumnWithType": "Elige una columna {{columnType}}",
+        "WrongTypesMenuText_others": "{{wrongTypeCount}} columnas no {{columnType}} no se muestran",
+        "WidgetNeedFullAccess": "El widget necesita {{fullAccess}} para este documento."
+    },
+    "DocHistory": {
+        "Activity": "Actividad"
     }
 }
