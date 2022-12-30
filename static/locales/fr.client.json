@@ -584,7 +584,8 @@
             "Everyone": "Tout le monde",
             "EveryoneElse": "Tous les autres",
             "EnterCondition": "Entrer la condition",
-            "RemoveRulesMentioningTable": "Supprimer les règles {{- tableId }}"
+            "RemoveRulesMentioningTable": "Supprimer les règles {{- tableId }}",
+            "MemoEditorPlaceholder": "Écrivez un message…"
         },
         "PermissionsWidget": {
             "AllowAll": "Tout autoriser",
