@@ -1,1 +1,50 @@
-{}
+{
+    "AccountPage": {
+        "ChangePassword": "Endre passord",
+        "API": "API",
+        "Edit": "Rediger",
+        "AccountSettings": "Kontoinnstillinger",
+        "Email": "E-post",
+        "Name": "Navn",
+        "Save": "Lagre"
+    },
+    "AccountWidget": {
+        "ProfileSettings": "Profilinnstillinger",
+        "ManageTeam": "Håndter lag",
+        "AccessDetails": "Tilgangsdetaljer",
+        "SwitchAccounts": "Bytt konto",
+        "Accounts": "Kontoer",
+        "AddAccount": "Legg til konto",
+        "SignOut": "Logg ut"
+    },
+    "AddNewButton": {
+        "AddNew": "Legg til ny"
+    },
+    "App": {
+        "Description": "Beskrivelse",
+        "Key": "Nøkkel",
+        "MemoryError": "Minnefeil"
+    },
+    "ApiKey": {
+        "Create": "Opprett",
+        "Remove": "Fjern",
+        "ClickToShow": "Klikk for å vise"
+    },
+    "DocHistory": {
+        "Beta": "Beta"
+    },
+    "CustomSectionConfig": {
+        "Add": "Legg til"
+    },
+    "DocMenu": {
+        "AllDocuments": "Alle dokumenter",
+        "ExamplesAndTemplates": "Eksempler og maler",
+        "MoreExamplesAndTemplates": "Flere eksempler ogmaler",
+        "ServiceNotAvailable": "Denne tjenesten er ikke tilgjengelig akkurat nå",
+        "PinnedDocuments": "Festede dokumenter",
+        "DeleteDoc": "Slett {{name}}",
+        "Deleted": "Slettet {{at}}",
+        "DiscoverMoreTemplates": "Oppdag flere maler",
+        "Edited": "Redigert {{at}}"
+    }
+}
