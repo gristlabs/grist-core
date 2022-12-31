@@ -12,7 +12,9 @@
         "ChangePassword": "Passwort ändern",
         "APIKey": "API-Schlüssel",
         "Theme": "Thema",
-        "WarningUsername": "Bei den Namen sind nur Buchstaben, Zahlen und bestimmte Sonderzeichen erlaubt"
+        "WarningUsername": "Bei den Namen sind nur Buchstaben, Zahlen und bestimmte Sonderzeichen erlaubt",
+        "Email": "Email",
+        "PasswordSecurity": "Passwort & Sicherheit"
     },
     "AccountWidget": {
         "SignIn": "Anmelden",
