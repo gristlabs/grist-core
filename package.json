@@ -24,7 +24,7 @@
     "lint": "eslint --cache --cache-strategy content .",
     "lint:fix": "eslint  --cache --cache-strategy=content --fix .",
     "lint:ci": "eslint --max-warnings=0 .",
-    "generate:translation": "NODE_PATH=_build:_build/stubs:_build/ext node buildtools/generate_translation_keys.js",
+    "generate:translation": "NODE_PATH=_build:_build/stubs:_build/ext node buildtools/generate_translation_keys.js"
   },
   "keywords": [
     "grist",
