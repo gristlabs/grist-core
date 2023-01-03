@@ -21,7 +21,8 @@ export async function startDocTour(docData: DocData, docComm: DocComm, onFinishC
 
 const invalidDocTour: IOnBoardingMsg[] = [{
   title: t("No valid document tour"),
-  body: t("Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."),
+  body: t("Cannot construct a document tour from the data in this document. " +
+          "Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."),
   selector: 'document',
   showHasModal: true,
 }];

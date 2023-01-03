@@ -36,7 +36,8 @@ export const buildExamples = (): IExampleInfo[] => [{
   tutorialUrl: 'https://support.getgrist.com/investment-research/',
   welcomeCard: {
     title: t("Welcome to the Investment Research template"),
-    text: t("Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically."),
+    text: t("Check out our related tutorial to learn how to create " +
+            "summary tables and charts, and to link charts dynamically."),
     tutorialName: t("Tutorial: Analyze & Visualize"),
   },
 }, {

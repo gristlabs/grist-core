@@ -149,7 +149,9 @@ export class DocumentUsage extends Disposable {
     return dom.domComputed((use) => {
       const isAccessDenied = use(this._isAccessDenied);
       if (isAccessDenied === null) { return null; }
-      if (isAccessDenied) { return buildMessage(t("Usage statistics are only available to users with full access to the document data.")); }
+      if (isAccessDenied) {
+        return buildMessage(t("Usage statistics are only available to users with full access to the document data."));
+      }
 
       const org = use(this._currentOrg);
       const product = use(this._currentProduct);

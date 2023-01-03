@@ -395,7 +395,10 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         const newName = tableRename[1];
         if (!newName) {
           // TODO - find a better way to send informative notifications.
-          gristNotify(t("Table {{tableId}} was subsequently removed in action #{{actionNum}}", {tableId:tableId, actionNum: action.actionNum}));
+          gristNotify(t(
+            "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
+            {tableId:tableId, actionNum: action.actionNum}
+          ));
           return;
         }
         tableId = newName;
@@ -416,7 +419,10 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         const newName = columnRename[1];
         if (!newName) {
           // TODO - find a better way to send informative notifications.
-          gristNotify(t("Column {{colId}} was subsequently removed in action #{{action.actionNum}}", {colId, actionNum: action.actionNum}));
+          gristNotify(t(
+            "Column {{colId}} was subsequently removed in action #{{action.actionNum}}",
+            {colId, actionNum: action.actionNum}
+          ));
           return;
         }
         colId = newName;
