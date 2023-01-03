@@ -6,7 +6,14 @@
         "AccountSettings": "Kontoinnstillinger",
         "Email": "E-post",
         "Name": "Navn",
-        "Save": "Lagre"
+        "Save": "Lagre",
+        "AllowGoogleSigning": "Tillat innlogging på denne kontoen med Google",
+        "TwoFactorAuth": "To-faktoridentitetsbekreftelse",
+        "TwoFactorAuthDescription": "To-faktoridentitetsbekreftelse er et ekstra sikkerhetslag for din Grist-konto, designet for å forsikre at kun du har tilgang til kontoen din, selv om noen tar rede på passordet.",
+        "Theme": "Drakt",
+        "APIKey": "API-nøkkel",
+        "PasswordSecurity": "Passord og sikkerhet",
+        "LoginMethod": "Innloggingsmetode"
     },
     "AccountWidget": {
         "ProfileSettings": "Profilinnstillinger",
@@ -15,7 +22,11 @@
         "SwitchAccounts": "Bytt konto",
         "Accounts": "Kontoer",
         "AddAccount": "Legg til konto",
-        "SignOut": "Logg ut"
+        "SignOut": "Logg ut",
+        "Pricing": "Prissetting",
+        "SignIn": "Logg inn",
+        "DocumentSettings": "Dokument-innstillinger",
+        "ToggleMobileMode": "Slå av/på mobilmodus"
     },
     "AddNewButton": {
         "AddNew": "Legg til ny"
@@ -28,13 +39,25 @@
     "ApiKey": {
         "Create": "Opprett",
         "Remove": "Fjern",
-        "ClickToShow": "Klikk for å vise"
+        "ClickToShow": "Klikk for å vise",
+        "RemoveAPIKey": "Fjern API-nøkkel"
     },
     "DocHistory": {
-        "Beta": "Beta"
+        "Beta": "Beta",
+        "Activity": "Aktivitet"
     },
     "CustomSectionConfig": {
-        "Add": "Legg til"
+        "Add": "Legg til",
+        "NoDocumentAccess": "Ingen dokumenttilgang",
+        "EnterCustomURL": "Skriv inn egendefinert nettadresse",
+        "FullDocumentAccess": "Full dokumenttilgang",
+        "LearnMore": "Lær mer om egendefinerte miniprogrammer",
+        "PickAColumn": "Velg en kolonne",
+        "PickAColumnWithType": "Velg en {{columnType}}-kolonne",
+        "OpenConfiguration": "Åpne oppsett",
+        "Optional": " (valgfritt)",
+        "ReadSelectedTable": "Les valgt tabell",
+        "SelectCustomWidget": "Velg egendefinert miniprogram"
     },
     "DocMenu": {
         "AllDocuments": "Alle dokumenter",
@@ -46,5 +69,49 @@
         "Deleted": "Slettet {{at}}",
         "DiscoverMoreTemplates": "Oppdag flere maler",
         "Edited": "Redigert {{at}}"
+    },
+    "ColumnFilterMenu": {
+        "FutureValues": "Fremtidige verdier",
+        "Others": "Andre",
+        "Search": "Søk",
+        "SearchValues": "Søk etter verdier",
+        "All": "Alle",
+        "AllShown": "Alle viste",
+        "AllExcept": "Alle unntatt",
+        "None": "Ingen",
+        "NoMatchingValues": "Ingen samsvarende verdier",
+        "OtherMatching": "Andre som samsvarer",
+        "OtherNonMatching": "Andre som ikke samsvarer",
+        "OtherValues": "Andre verdier",
+        "RangeMin": "Min.",
+        "RangeMax": "Maks.",
+        "DateRangeMin": "Start",
+        "DateRangeMax": "Slutt"
+    },
+    "AppHeader": {
+        "HomePage": "Hjemmeside",
+        "PersonalSite": "Personlig side",
+        "TeamSite": "Lagside"
+    },
+    "CellContextMenu": {
+        "ResetEntireColumns_one": "Tilbakestill hele kolonnen",
+        "ResetEntireColumns_other": "Tilbakestill {{count}} hele kolonner",
+        "ResetColumns_one": "Tilbakestill kolonne",
+        "ResetColumns_other": "Tilbakestill {{count}} kolonner",
+        "DeleteColumns_one": "Slett kolonne",
+        "DeleteColumns_other": "Slett {{count}} kolonner",
+        "DeleteRows_one": "Slett rad",
+        "DeleteRows_other": "Slett {{count}} rader",
+        "ClearValues": "Tøm verdier",
+        "ClearCell": "Tøm celle",
+        "CopyAnchorLink": "Kopier ankerlenke",
+        "FilterByValue": "Filtrer etter denne verdien",
+        "InsertRow": "Sett inn rad",
+        "InsertRowAbove": "Sett inn rad ovenfor",
+        "InsertRowBelow": "Sett inn rad under",
+        "DuplicateRows_one": "Dupliser rad",
+        "DuplicateRows_other": "Dupliser rader",
+        "InsertColumnRight": "Sett inn kolonne til høyre",
+        "InsertColumnLeft": "Sett inn kolonne til venstre"
     }
 }
