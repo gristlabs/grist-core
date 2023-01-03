@@ -625,7 +625,7 @@ class CommentEntry extends Disposable {
         dom.onKeyDown({
           Enter$: async (e) => {
             // Save on ctrl+enter
-            if (e.ctrlKey && text.get().trim()) {
+            if ((e.ctrlKey || e.metaKey) && text.get().trim()) {
               await onSave?.();
               e.preventDefault();
               e.stopPropagation();
