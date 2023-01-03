@@ -7,9 +7,9 @@ import {JSDOM} from 'jsdom';
 
 describe('localization', function() {
   let instance: i18n;
-  before(() => {
+  before(async () => {
     instance = i18next.createInstance();
-    void instance.init({
+    await instance.init({
       lng: 'en',
       resources: {
         en: {

@@ -66,7 +66,7 @@ export function buildMultiUserManagerModal(
       { style: 'margin: 32px 64px; display: flex;' },
       bigPrimaryButton('Confirm',
         dom.boolAttr('disabled', (use) => !use(enableAdd)),
-        dom.on('click', () => { save(ctl); }),
+        dom.on('click', () => save(ctl)),
         testId('um-confirm')
       ),
       bigBasicButton(
