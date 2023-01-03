@@ -31,7 +31,7 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>): boole
     async function onConfirm() {
       const selected = choices.filter((c, i) => selection[i].get()).map(c => t(c.textKey));
       const use_cases = ['L', ...selected];   // Format to populate a ChoiceList column
-      const use_other = selected.includes(t('Other')) ? otherText.get() : '';
+      const use_other = selected.includes(t("Other")) ? otherText.get() : '';
 
       const submitUrl = new URL(window.location.href);
       submitUrl.pathname = '/welcome/info';
@@ -51,7 +51,7 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>): boole
     });
 
     return {
-      title: [cssLogo(), dom('div', t('WelcomeToGrist'))],
+      title: [cssLogo(), dom('div', t("Welcome to Grist!"))],
       body: buildInfoForm(selection, otherText),
       saveLabel: 'Start using Grist',
       saveFunc: onConfirm,
@@ -65,21 +65,21 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>): boole
 }
 
 const choices: Array<{icon: IconName, color: string, textKey: string}> = [
-  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'ProductDevelopment' },
-  {icon: 'UseFinance', color: '#0075A2',              textKey: 'FinanceAccounting'  },
-  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'MediaProduction'    },
-  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'ITTechnology'       },
-  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'          },
-  {icon: 'UseScience', color: '#231942',              textKey: 'Research'           },
-  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'              },
-  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'          },
-  {icon: 'UseHr',      color: '#688047',              textKey: 'HRManagement'       },
-  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'              },
+  {icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'Product Development'  },
+  {icon: 'UseFinance', color: '#0075A2',              textKey: 'Finance & Accounting' },
+  {icon: 'UseMedia',   color: '#F7B32B',              textKey: 'Media Production'     },
+  {icon: 'UseMonitor', color: '#F2545B',              textKey: 'IT & Technology'      },
+  {icon: 'UseChart',   color: '#7141F9',              textKey: 'Marketing'            },
+  {icon: 'UseScience', color: '#231942',              textKey: 'Research'             },
+  {icon: 'UseSales',   color: '#885A5A',              textKey: 'Sales'                },
+  {icon: 'UseEducate', color: '#4A5899',              textKey: 'Education'            },
+  {icon: 'UseHr',      color: '#688047',              textKey: 'HR & Management'      },
+  {icon: 'UseOther',   color: '#929299',              textKey: 'Other'                },
 ];
 
 function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<string>) {
   return [
-    dom('span', t('WhatBringsYouToGrist')),
+    dom('span', t("What brings you to Grist? Please help us serve you better.")),
     cssChoices(
       choices.map((item, i) => cssChoice(
         cssIcon(icon(item.icon), {style: `--icon-color: ${item.color}`}),
@@ -89,7 +89,7 @@ function buildInfoForm(selection: Observable<boolean>[], otherText: Observable<s
           t(item.textKey) :
           [
             cssOtherLabel(t(item.textKey)),
-            cssOtherInput(otherText, {}, {type: 'text', placeholder: t('TypeHere')},
+            cssOtherInput(otherText, {}, {type: 'text', placeholder: t("Type here")},
               // The following subscribes to changes to selection observable, and focuses the input when
               // this item is selected.
               (elem) => subscribeElem(elem, selection[i], val => val && setTimeout(() => elem.focus(), 0)),

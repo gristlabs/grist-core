@@ -55,7 +55,7 @@ import {
 import {makeT} from 'app/client/lib/localization';
 import isEqual = require('lodash/isEqual');
 
-const t = makeT('aclui.AccessRules');
+const t = makeT('AccessRules');
 
 // tslint:disable:max-classes-per-file no-console
 
@@ -329,21 +329,21 @@ export class AccessRules extends Disposable {
         bigBasicButton({disabled: true}, dom.hide(this._savingEnabled),
           dom.text((use) => {
             const s = use(this._ruleStatus);
-            return s === RuleStatus.CheckPending ? t('Checking') :
-              s === RuleStatus.Unchanged ? t('Saved') : t('Invalid');
+            return s === RuleStatus.CheckPending ? t("Checking...") :
+              s === RuleStatus.Unchanged ? t("Saved") : t("Invalid");
           }),
           testId('rules-non-save')
         ),
-        bigPrimaryButton(t('Save'), dom.show(this._savingEnabled),
+        bigPrimaryButton(t("Save"), dom.show(this._savingEnabled),
           dom.on('click', () => this.save()),
           testId('rules-save'),
         ),
-        bigBasicButton(t('Reset'), dom.show(use => use(this._ruleStatus) !== RuleStatus.Unchanged),
+        bigBasicButton(t("Reset"), dom.show(use => use(this._ruleStatus) !== RuleStatus.Unchanged),
           dom.on('click', () => this.update()),
           testId('rules-revert'),
         ),
 
-        bigBasicButton(t('AddTableRules'), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
+        bigBasicButton(t("Add Table Rules"), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
           menu(() =>
             this.allTableIds.map((tableId) =>
               // Add the table on a timeout, to avoid disabling the clicked menu item
@@ -355,8 +355,8 @@ export class AccessRules extends Disposable {
             ),
           ),
         ),
-        bigBasicButton(t('AddUserAttributes'), dom.on('click', () => this._addUserAttributes())),
-        bigBasicButton(t('ViewAs'), cssDropdownIcon('Dropdown'),
+        bigBasicButton(t('Add User Attributes'), dom.on('click', () => this._addUserAttributes())),
+        bigBasicButton(t('View As'), cssDropdownIcon('Dropdown'),
           elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end'}),
           dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
       ),
@@ -375,15 +375,15 @@ export class AccessRules extends Disposable {
       shadowScroll(
         dom.maybe(use => use(this._userAttrRules).length, () =>
           cssSection(
-            cssSectionHeading(t('UserAttributes')),
+            cssSectionHeading(t("User Attributes")),
             cssTableRounded(
               cssTableHeaderRow(
                 cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Name')),
                 cssCell4(
                   cssColumnGroup(
-                    cssCell1(cssColHeaderCell(t('AttributeToLookUp'))),
-                    cssCell1(cssColHeaderCell(t('LookupTable'))),
-                    cssCell1(cssColHeaderCell(t('LookupColumn'))),
+                    cssCell1(cssColHeaderCell(t("Attribute to Look Up"))),
+                    cssCell1(cssColHeaderCell(t("Lookup Table"))),
+                    cssCell1(cssColHeaderCell(t("Lookup Column"))),
                     cssCellIcon(),
                   ),
                 ),
@@ -394,7 +394,7 @@ export class AccessRules extends Disposable {
         ),
         dom.forEach(this._tableRules, (tableRules) => tableRules.buildDom()),
         cssSection(
-          cssSectionHeading(t("DefaultRules"), testId('rule-table-header')),
+          cssSectionHeading(t("Default Rules"), testId('rule-table-header')),
           cssTableRounded(
             cssTableHeaderRow(
               cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Columns')),
@@ -520,7 +520,7 @@ export class AccessRules extends Disposable {
     for (const tableId of tableIds) {
       // We don't know what the table's name was, just its tableId.
       // Hopefully, the user will understand.
-      const title = t('RemoveRulesMentioningTable', { tableId });
+      const title = t('Remove {{- tableId }} rules', { tableId });
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
         await Promise.all(this._tableRules.get()
           .filter(rules => rules.tableId === tableId)
@@ -546,7 +546,7 @@ export class AccessRules extends Disposable {
     };
     for (const colId of colIds) {
       // TODO: we could translate tableId to table name in this case.
-      const title = t('RemoveRulesMentioningColumn', { tableId, colId });
+      const title = t('Remove column {{- colId }} from {{- tableId }} rules', { tableId, colId });
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
         await Promise.all(this._tableRules.get()
           .filter(rules => rules.tableId === tableId)
@@ -562,7 +562,7 @@ export class AccessRules extends Disposable {
     names: string[]
   ) {
     for (const name of names) {
-      const title = t('RemoveUserAttribute', {name});
+      const title = t('Remove {{- name }} user attribute', {name});
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
         await Promise.all(this._userAttrRules.get()
           .filter(rule => rule.name.get() === name)
@@ -628,13 +628,13 @@ class TableRules extends Disposable {
   public buildDom() {
     return cssSection(
       cssSectionHeading(
-        dom('span', t('RulesForTable'), cssTableName(this._accessRules.getTableTitle(this.tableId))),
+        dom('span', t("Rules for table "), cssTableName(this._accessRules.getTableTitle(this.tableId))),
         cssIconButton(icon('Dots'), {style: 'margin-left: auto'},
           menu(() => [
-            menuItemAsync(() => this._addColumnRuleSet(), t('AddColumnRule')),
-            menuItemAsync(() => this._addDefaultRuleSet(), t('AddDefaultRule'),
+            menuItemAsync(() => this._addColumnRuleSet(), t("Add Column Rule")),
+            menuItemAsync(() => this._addDefaultRuleSet(), t("Add Default Rule"),
               dom.cls('disabled', use => Boolean(use(this._defaultRuleSet)))),
-            menuItemAsync(() => this.remove(), t('DeleteTableRules')),
+            menuItemAsync(() => this._accessRules.removeTableRules(this), t("Delete Table Rules")),
           ]),
           testId('rule-table-menu-btn'),
         ),
@@ -762,7 +762,7 @@ class TableRules extends Disposable {
 class SpecialRules extends TableRules {
   public buildDom() {
     return cssSection(
-      cssSectionHeading(t('SpecialRules'), testId('rule-table-header')),
+      cssSectionHeading(t("Special Rules"), testId('rule-table-header')),
       this.buildColumnRuleSets(),
       this.buildErrors(),
       testId('rule-table'),
@@ -1009,17 +1009,18 @@ class DefaultObsRuleSet extends ObsRuleSet {
 function getSpecialRuleDescription(type: string): string {
   switch (type) {
     case 'AccessRules':
-      return t('AccessRulesDescription');
+      return t("Allow everyone to view Access Rules.");
     case 'FullCopies':
-      return t('FullCopiesDescription');
+      return t(`Allow everyone to copy the entire document, or view it in full in fiddle mode.
+Useful for examples and templates, but not for sensitive data.`);
     default: return type;
   }
 }
 
 function getSpecialRuleName(type: string): string {
   switch (type) {
-    case 'AccessRules': return t('AccessRulesName');
-    case 'FullCopies': return t('FullCopies');
+    case 'AccessRules': return t("Permission to view Access Rules");
+    case 'FullCopies': return t("Permission to access the document in full when needed");
     default: return type;
   }
 }
@@ -1157,7 +1158,7 @@ class ObsUserAttributeRule extends Disposable {
       cssCell1(cssCell.cls('-rborder'),
         cssCellContent(
           cssInput(this._name, async (val) => this._name.set(val),
-            {placeholder: t('AttributeNamePlaceholder')},
+            {placeholder: t("Attribute name")},
             (this._options.focus ? (elem) => { setTimeout(() => elem.focus(), 0); } : null),
             testId('rule-userattr-name'),
           ),
@@ -1395,7 +1396,7 @@ class ObsRulePart extends Disposable {
             placeholder: dom.text((use) => {
               return (
                 this._ruleSet.isSoleCondition(use, this) ? t('Everyone') :
-                this._ruleSet.isLastCondition(use, this) ? t('EveryoneElse') :
+                this._ruleSet.isLastCondition(use, this) ? t('Everyone Else') :
                 t('EnterCondition')
               );
             }),
@@ -1444,7 +1445,7 @@ class ObsRulePart extends Disposable {
             wide ? cssCell4.cls('') : null,
             this._memoEditor = aclMemoEditor(this._memo,
               {
-                placeholder: t('MemoEditorPlaceholder'),
+                placeholder: t("Type a message..."),
               },
               dom.onKeyDown({
                 // Match the behavior of the formula editor.

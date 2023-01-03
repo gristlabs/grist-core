@@ -273,7 +273,7 @@ class NotificationAdapter extends Disposable implements Notification {
   }
   public showUndoDiscard() {
     const notifier = this._doc.app.topAppModel.notifier;
-    const notification = notifier.createUserMessage(t("UndoDiscard"), {
+    const notification = notifier.createUserMessage(t("Undo discard"), {
       message: () =>
         discardNotification(
           dom.on("click", () => {
@@ -421,7 +421,7 @@ const styledTooltip = styled('div', `
 function cellTooltip(clb: () => any) {
   return function (ctl: ITooltipControl) {
     return styledTooltip(
-      cssLink(t('RestoreLastEdit'),
+      cssLink(t("Restore last edit"),
         dom.on('mousedown', (ev) => { ev.preventDefault(); ctl.close(); clb(); }),
         testId('draft-tooltip'),
       ),
@@ -440,7 +440,7 @@ const styledNotification = styled('div', `
 `);
 function discardNotification(...args: IDomArgs<TagElem<"div">>) {
   return styledNotification(
-    t("UndoDiscard"),
+    t("Undo discard"),
     testId("draft-notification"),
     ...args
   );

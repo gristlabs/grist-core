@@ -42,14 +42,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "all"),
         cssPageLink(cssPageIcon('Home'),
-          cssLinkText(t('AllDocuments')),
+          cssLinkText(t("All Documents")),
           urlState().setLinkUrl({ws: undefined, homePage: undefined}),
           testId('dm-all-docs'),
         ),
       ),
       dom.maybe(use => !use(home.singleWorkspace), () =>
         cssSectionHeader(
-          t('Workspaces'),
+          t("Workspaces"),
           // Give it a testId, because it's a good element to simulate "click-away" in tests.
           testId('dm-ws-label')
         ),
@@ -108,7 +108,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         cssPageEntry(
           dom.hide(shouldHideUiElement("templates")),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
-          cssPageLink(cssPageIcon('FieldTable'), cssLinkText(t("ExamplesAndTemplates")),
+          cssPageLink(cssPageIcon('FieldTable'), cssLinkText(t("Examples & Templates")),
             urlState().setLinkUrl({homePage: "templates"}),
             testId('dm-templates-page'),
           ),
@@ -176,11 +176,11 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
   const needUpgrade = home.app.currentFeatures.maxWorkspacesPerOrg === 1;
 
   return [
-    menuItem(() => createDocAndOpen(home), menuIcon('Page'), t("CreateEmptyDocument"),
+    menuItem(() => createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-new-doc")
     ),
-    menuItem(() => importDocAndOpen(home), menuIcon('Import'), t("ImportDocument"),
+    menuItem(() => importDocAndOpen(home), menuIcon('Import'), t("Import Document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-import")
     ),
@@ -195,7 +195,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     ])),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
-    upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("CreateWorkspace"),
+    upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("Create Workspace"),
              dom.cls('disabled', (use) => !roles.canEdit(orgAccess) || !use(home.available)),
              testId("dm-new-workspace")
     ),
@@ -205,9 +205,9 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
 
 function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Workspace|null>) {
   function deleteWorkspace() {
-    confirmModal(t('WorkspaceDeleteTitle', {workspace: ws.name}), t('Delete'),
+    confirmModal(t("Delete {{workspace}} and all included documents?", {workspace: ws.name}), t("Delete"),
       () => home.deleteWorkspace(ws.id, false),
-      t('WorkspaceDeleteText'));
+      t("Workspace will be moved to Trash."));
   }
 
   async function manageWorkspaceUsers() {
@@ -235,7 +235,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     // should formally be documented and defined in `Features`, with this check updated
     // to look there instead.
     home.app.isPersonal ? null : upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
-      roles.canEditAccess(ws.access) ? t("ManageUsers") : t("AccessDetails"),
+      roles.canEditAccess(ws.access) ? t("Manage Users") : t("Access Details"),
       testId('dm-workspace-access')),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];

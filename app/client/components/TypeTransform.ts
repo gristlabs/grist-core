@@ -20,7 +20,7 @@ import {UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.TypeTransformation');
+const t = makeT('TypeTransformation');
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -74,7 +74,7 @@ export class TypeTransform extends ColumnTransform {
             return basicButton(dom.on('click', () => this.editor.writeObservable()),
               t('Preview'), testId("type-transform-update"),
               dom.cls('disabled', (use) => use(disableButtons) || use(this.formulaUpToDate)),
-              { title: t('UpdateFormula') }
+              { title: t('Update formula (Shift+Enter)') }
             );
           } else {
             return basicButton(dom.on('click', () => { this._reviseTypeChange.set(true); }),

@@ -10,6 +10,7 @@
 /landing.db
 /docs/
 /sandbox_venv*
+/.vscode/
 
 # Build helper files.
 /.build*

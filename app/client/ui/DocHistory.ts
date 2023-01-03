@@ -28,8 +28,8 @@ export class DocHistory extends Disposable implements IDomComponent {
 
   public buildDom() {
     const tabs = [
-      {value: 'activity', label: t('Activity')},
-      {value: 'snapshots', label: t('Snapshots')},
+      {value: 'activity', label: t("Activity")},
+      {value: 'snapshots', label: t("Snapshots")},
     ];
     return [
       cssSubTabs(
@@ -79,7 +79,7 @@ export class DocHistory extends Disposable implements IDomComponent {
     return dom(
       'div',
       dom.maybe(snapshotsDenied, () => cssSnapshotDenied(
-        t('SnapshotsUnavailable'),
+        t("Snapshots are unavailable."),
         testId('doc-history-error'))),
       // Note that most recent snapshots are first.
       dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
@@ -98,11 +98,11 @@ export class DocHistory extends Disposable implements IDomComponent {
             ),
             cssMenuDots(icon('Dots'),
               menu(() => [
-                  menuItemLink(setLink(snapshot), t('OpenSnapshot')),
-                  menuItemLink(setLink(snapshot, origUrlId), t('CompareToCurrent'),
-                    menuAnnotate(t('Beta'))),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t('CompareToPrevious'),
-                    menuAnnotate(t('Beta'))),
+                  menuItemLink(setLink(snapshot), t("Open Snapshot")),
+                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to Current"),
+                    menuAnnotate(t("Beta"))),
+                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to Previous"),
+                    menuAnnotate(t("Beta"))),
                 ],
                 {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
               ),

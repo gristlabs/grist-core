@@ -24,7 +24,7 @@ import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/comm
 import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
-const t = makeT('models.AppModel');
+const t = makeT('AppModel');
 
 // Reexported for convenience.
 export {reportError} from 'app/client/models/errors';
@@ -199,7 +199,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
         if (org.billingAccount && org.billingAccount.product &&
             org.billingAccount.product.name === 'suspended') {
           this.notifier.createUserMessage(
-            t('TeamSiteSuspended'),
+            t("This team site is suspended. Documents can be read, but not modified."),
             {actions: ['renew', 'personal']}
           );
         }

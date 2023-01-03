@@ -26,13 +26,13 @@ interface IViewSection {
  */
 export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
   return [
-    menuItem(() => gridView.addNewColumn(), t('AddColumn')),
+    menuItem(() => gridView.addNewColumn(), t("Add Column")),
     menuDivider(),
     ...viewSection.hiddenColumns().map((col: any) => menuItem(
       () => {
         gridView.showColumn(col.id(), viewSection.viewFields().peekLength);
         // .then(() => gridView.scrollPaneRight());
-      }, t('ShowColumn', {label: col.label()})))
+      }, t("Show column {{- label}}", {label: col.label()})))
   ];
 }
 export interface IMultiColumnContextMenu {
@@ -68,13 +68,13 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
   const addToSortLabel = getAddToSortLabel(sortSpec, colId);
 
   return [
-    menuItemCmd(allCommands.fieldTabOpen, t('ColumnOptions')),
-    menuItem(filterOpenFunc, t('FilterData')),
+    menuItemCmd(allCommands.fieldTabOpen, t("Column Options")),
+    menuItem(filterOpenFunc, t("Filter Data")),
     menuDivider({style: 'margin-bottom: 0;'}),
     cssRowMenuItem(
       customMenuItem(
         allCommands.sortAsc.run,
-        dom('span', t('Sort'), {style: 'flex: 1  0 auto; margin-right: 8px;'},
+        dom('span', t("Sort"), {style: 'flex: 1  0 auto; margin-right: 8px;'},
             testId('sort-label')),
         icon('Sort', dom.style('transform', 'scaley(-1)')),
         'A-Z',
@@ -112,9 +112,9 @@ export function ColumnContextMenu(options: IColumnContextMenu) {
       ),
     ] : null,
     menuDivider({style: 'margin-bottom: 0; margin-top: 0;'}),
-    menuItem(allCommands.sortFilterTabOpen.run, t('MoreSortOptions'), testId('more-sort-options')),
+    menuItem(allCommands.sortFilterTabOpen.run, t("More sort options ..."), testId('more-sort-options')),
     menuDivider({style: 'margin-top: 0;'}),
-    menuItemCmd(allCommands.renameField, t('RenameColumn'), disableForReadonlyColumn),
+    menuItemCmd(allCommands.renameField, t("Rename column"), disableForReadonlyColumn),
     freezeMenuItemCmd(options),
     menuDivider(),
     MultiColumnMenu((options.disableFrozenMenu = true, options)),
@@ -135,29 +135,29 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
   const disableForReadonlyView = dom.cls('disabled', options.isReadonly);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
-    t('ResetEntireColumns', {count: num}) :
-    t('ResetColumns', {count: num});
-  const nameDeleteColumns = t('DeleteColumns', {count: num});
-  const nameHideColumns = t('HideColumns', {count: num});
+    t('Reset {{count}} entire columns', {count: num}) :
+    t('Reset {{count}} columns', {count: num});
+  const nameDeleteColumns = t('Delete {{count}} columns', {count: num});
+  const nameHideColumns = t('Hide {{count}} columns', {count: num});
   const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);
   return [
     frozenMenu ? [frozenMenu, menuDivider()]: null,
     // Offered only when selection includes formula columns, and converts only those.
     (options.isFormula ?
-      menuItemCmd(allCommands.convertFormulasToData, t('ConvertFormulaToData'),
+      menuItemCmd(allCommands.convertFormulasToData, t("Convert formula to data"),
         disableForReadonlyColumn) : null),
 
     // With data columns selected, offer an additional option to clear out selected cells.
     (options.isFormula !== true ?
-      menuItemCmd(allCommands.clearValues, t('ClearValues'), disableForReadonlyColumn) : null),
+      menuItemCmd(allCommands.clearValues, t("Clear values"), disableForReadonlyColumn) : null),
 
     (!options.isRaw ? menuItemCmd(allCommands.hideFields, nameHideColumns, disableForReadonlyView) : null),
     menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t('InsertColumn', {to: 'left'}), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t('InsertColumn', {to: 'right'}), disableForReadonlyView)
+    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the {{to}}", {to: 'left'}), disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the {{to}}", {to: 'right'}), disableForReadonlyView)
   ];
 }
 
@@ -206,12 +206,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
 
       // if user clicked the first column or a column just after frozen set
       if (firstColumnIndex === 0 || firstColumnIndex === numFrozen) {
-        text = t('FreezeColumn', {count: 1});
+        text = t('Freeze {{count}} columns', {count: 1});
       } else {
         // else user clicked any other column that is farther, offer to freeze
         // proper number of column
         const properNumber = firstColumnIndex - numFrozen + 1;
-        text = t('FreezeColumn', {count: properNumber, context: numFrozen ? 'more' : '' });
+        text = numFrozen ?
+          t('Freeze {{count}} more columns', {count: properNumber}) :
+          t('Freeze {{count}} columns', {count: properNumber});
       }
       return {
         text,
@@ -220,12 +222,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
     } else if (isFrozenColumn) {
       // when user clicked last column in frozen set - offer to unfreeze this column
       if (firstColumnIndex + 1 === numFrozen) {
-        text = t('UnfreezeColumn', {count: 1});
+        text = t('Unfreeze {{count}} columns', {count: 1});
       } else {
         // else user clicked column that is not the last in a frozen set
         // offer to unfreeze proper number of columns
         const properNumber = numFrozen - firstColumnIndex;
-        text = t('UnfreezeColumn', {count: properNumber, context: properNumber === numFrozen ? 'all' : '' });
+        text = properNumber === numFrozen ?
+          t('Unfreeze all columns') :
+          t('Unfreeze {{count}} columns', {count: properNumber});
       }
       return {
         text,
@@ -236,20 +240,20 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
     }
   } else {
     if (isLastFrozenSet) {
-      text = t('UnfreezeColumn', {count: length});
+      text = t('Unfreeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen - length
       };
     } else if (isFirstNormalSet) {
-      text = t('FreezeColumn', {count: length});
+      text = t('Freeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen + length
       };
     } else if (isSpanSet) {
       const toFreeze = lastColumnIndex + 1 - numFrozen;
-      text = t('FreezeColumn', {count: toFreeze, context: 'more'});
+      text = t('Freeze {{count}} more columns', {count: toFreeze});
       return {
         text,
         numFrozen : numFrozen + toFreeze
@@ -278,9 +282,9 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {
-      return t('AddToSort', {count: index + 1, context: 'added'});
+      return t("Sorted (#{{count}})", {count: index + 1});
     } else {
-      return t('AddToSort');
+      return t("Add to sort");
     }
   }
 }

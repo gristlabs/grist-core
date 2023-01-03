@@ -26,29 +26,29 @@ export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, a
   const trunkAccess = (await app.api.getDoc(origUrlId)).access;
   if (!roles.canEdit(trunkAccess)) {
     modal((ctl) => [
-      cssModalBody(t('CannotEditOriginal')),
+      cssModalBody(t("Replacing the original requires editing rights on the original document.")),
       cssModalButtons(
-        bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close())),
+        bigBasicButton(t("Cancel"), dom.on('click', () => ctl.close())),
       )
     ]);
     return;
   }
   const docApi = app.api.getDocAPI(origUrlId);
   const cmp = await docApi.compareDoc(doc.id);
-  let titleText = t('UpdateOriginal');
-  let buttonText = t('Update');
-  let warningText = t('WarningOriginalWillBeUpdated');
+  let titleText = t("Update Original");
+  let buttonText = t("Update");
+  let warningText = t("The original version of this document will be updated.");
   if (cmp.summary === 'left' || cmp.summary === 'both') {
-    titleText = t('OriginalHasModifications');
-    buttonText = t('Overwrite');
-    warningText = `${warningText} ${t('WarningOverwriteOriginalChanges')}`;
+    titleText = t("Original Has Modifications");
+    buttonText = t("Overwrite");
+    warningText = `${warningText} ${t("Be careful, the original has changes not in this document. Those changes will be overwritten.")}`;
   } else if (cmp.summary === 'unrelated') {
-    titleText = t('OriginalLooksUnrelated');
-    buttonText = t('Overwrite');
-    warningText = `${warningText} ${t('WarningWillBeOverwritten')}`;
+    titleText = t("Original Looks Unrelated");
+    buttonText = t("Overwrite");
+    warningText = `${warningText} ${t("It will be overwritten, losing any content not in this document.")}`;
   } else if (cmp.summary === 'same') {
-    titleText = 'Original Looks Identical';
-    warningText = `${warningText} ${t('WarningAlreadyIdentical')}`;
+    titleText = t('Original Looks Identical');
+    warningText = `${warningText} ${t("However, it appears to be already identical.")}`;
   }
   confirmModal(titleText, buttonText,
     async () => {
@@ -66,8 +66,8 @@ function signupModal(message: string) {
   return modal((ctl) => [
     cssModalBody(message),
     cssModalButtons(
-      bigPrimaryButtonLink(t('SignUp'), {href: getLoginOrSignupUrl(), target: '_blank'}, testId('modal-signup')),
-      bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close())),
+      bigPrimaryButtonLink(t("Sign up"), {href: getLoginOrSignupUrl(), target: '_blank'}, testId('modal-signup')),
+      bigBasicButton(t("Cancel"), dom.on('click', () => ctl.close())),
     ),
     cssModalWidth('normal'),
   ]);
@@ -96,7 +96,7 @@ function allowOtherOrgs(doc: Document, app: AppModel): boolean {
  */
 export async function makeCopy(doc: Document, app: AppModel, modalTitle: string): Promise<void> {
   if (!app.currentValidUser) {
-    signupModal(t('ToSaveSignUpAndReload'));
+    signupModal(t("To save your changes, please sign up, then reload this page."));
     return;
   }
   let orgs = allowOtherOrgs(doc, app) ? await app.api.getOrgs(true) : null;
@@ -150,7 +150,7 @@ class SaveCopyModal extends Disposable {
 
   public async save() {
     const ws = this._destWS.get();
-    if (!ws) { throw new Error(t('NoDestinationWorkspace')); }
+    if (!ws) { throw new Error(t("No destination workspace")); }
     const api = this._app.api;
     const org = this._destOrg.get();
     const docWorker = await api.getWorkerAPI('import');
@@ -173,7 +173,7 @@ class SaveCopyModal extends Disposable {
     return [
       cssField(
         cssLabel(t("Name")),
-        input(this._destName, {onInput: true}, {placeholder: t('EnterDocumentName')},  dom.cls(cssInput.className),
+        input(this._destName, {onInput: true}, {placeholder: t("Enter document name")},  dom.cls(cssInput.className),
           // modal dialog grabs focus after 10ms delay; so to focus this input, wait a bit longer
           // (see the TODO in app/client/ui2018/modals.ts about weasel.js and focus).
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
@@ -181,8 +181,8 @@ class SaveCopyModal extends Disposable {
           testId('copy-dest-name'))
       ),
       cssField(
-        cssLabel(t("AsTemplate")),
-        cssCheckbox(this._asTemplate, t('IncludeStructureWithoutData'),
+        cssLabel(t("As Template")),
+        cssCheckbox(this._asTemplate, t("Include the structure without any of the data."),
           testId('save-as-template'))
       ),
       // Show the team picker only when saving to other teams is allowed and there are other teams
@@ -199,7 +199,7 @@ class SaveCopyModal extends Disposable {
       // Show the workspace picker only when destOrg is a team site, because personal orgs do not have workspaces.
       dom.domComputed((use) => use(this._showWorkspaces) && use(this._workspaces), (wss) =>
         wss === false ? null :
-        wss && wss.length === 0 ? cssWarningText(t("NoWriteAccessToSite"),
+        wss && wss.length === 0 ? cssWarningText(t("You do not have write access to this site"),
           testId('copy-warning')) :
         [
           cssField(
@@ -216,7 +216,7 @@ class SaveCopyModal extends Disposable {
           ),
           wss ? dom.domComputed(this._destWS, (destWs) =>
             destWs && !roles.canEdit(destWs.access) ?
-              cssWarningText(t("NoWriteAccessToWorkspace"),
+              cssWarningText(t("You do not have write access to the selected workspace"),
                 testId('copy-warning')
               ) : null
           ) : null

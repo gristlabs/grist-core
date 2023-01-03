@@ -19,7 +19,7 @@ const t = makeT('ViewSectionMenu');
 
 // Handler for [Save] button.
 async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<void> {
-  await docModel.docData.bundleActions(t("UpdateSortFilterSettings"), () => Promise.all([
+  await docModel.docData.bundleActions(t("Update Sort&Filter settings"), () => Promise.all([
     viewSection.activeSortJson.save(),      // Save sort
     viewSection.saveFilters(),              // Save filter
     viewSection.activeCustomOptions.save(), // Save widget options
@@ -73,7 +73,7 @@ export function viewSectionMenu(
       // [Save] [Revert] buttons when there are unsaved options.
       dom.maybe(displaySaveObs, () => cssSectionSaveButtonsWrapper(
         cssSaveTextButton(
-          t('Save'),
+          t("Save"),
           cssSaveTextButton.cls('-accent'),
           dom.on('click', save),
           hoverTooltip('Save sort & filter settings', {key: 'sortFilterBtnTooltip'}),
@@ -99,10 +99,10 @@ export function viewSectionMenu(
         // [Save] [Revert] buttons
         dom.domComputed(displaySaveObs, displaySave => [
           displaySave ? cssSaveButtonsRow(
-            cssSaveButton(t('Save'), testId('btn-save'),
+            cssSaveButton(t("Save"), testId('btn-save'),
                           dom.on('click', () => { ctl.close(); save(); }),
                           dom.boolAttr('disabled', isReadonly)),
-            basicButton(t('Revert'), testId('btn-revert'),
+            basicButton(t("Revert"), testId('btn-revert'),
                         dom.on('click', () => { ctl.close(); revert(); }))
           ) : null,
         ]),
@@ -142,7 +142,7 @@ export function viewSectionMenu(
 
 function makeSortPanel(section: ViewSectionRec, gristDoc: GristDoc) {
   return [
-    cssLabel(t('Sort'), testId('heading-sort')),
+    cssLabel(t("SORT"), testId('heading-sort')),
     dom.create(SortConfig, section, gristDoc, {
       // Attach content to triggerElem's parent, which is needed to prevent view
       // section menu to close when clicking an item in the advanced sort menu.
@@ -153,7 +153,7 @@ function makeSortPanel(section: ViewSectionRec, gristDoc: GristDoc) {
 
 function makeFilterPanel(section: ViewSectionRec) {
   return [
-    cssLabel(t('Filter'), testId('heading-filter')),
+    cssLabel(t("FILTER"), testId('heading-filter')),
     dom.create(FilterConfig, section, {
       // Attach content to triggerElem's parent, which is needed to prevent view
       // section menu to close when clicking an item of the add filter menu.
@@ -168,13 +168,13 @@ function makeCustomOptions(section: ViewSectionRec) {
   const color = Computed.create(null, use => use(section.activeCustomOptions.isSaved) ? "-normal" : "-accent");
   const text = Computed.create(null, use => {
     if (use(section.activeCustomOptions)) {
-      return use(section.activeCustomOptions.isSaved) ? t("Customized") : t("Modified");
+      return use(section.activeCustomOptions.isSaved) ? t("(customized)") : t("(modified)");
     } else {
-      return t("Empty");
+      return t("(empty)");
     }
   });
   return [
-    cssMenuInfoHeader(t('CustomOptions'), testId('heading-widget-options')),
+    cssMenuInfoHeader(t("Custom options"), testId('heading-widget-options')),
     cssMenuText(
       dom.autoDispose(text),
       dom.autoDispose(color),

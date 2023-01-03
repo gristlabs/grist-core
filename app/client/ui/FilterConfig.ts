@@ -87,7 +87,7 @@ export class FilterConfig extends Disposable {
         dom.domComputed((use) => {
           const filters = use(this._section.filters);
           return cssTextBtn(
-            t('AddColumn'),
+            t("Add Column"),
             addFilterMenu(filters, this._popupControls, {
               menuOptions: {
                 placement: 'bottom-end',

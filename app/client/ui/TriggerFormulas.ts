@@ -73,7 +73,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
   const docModel = column._table.docModel;
   const summaryText = Computed.create(owner, use => {
     if (use(column.recalcWhen) === RecalcWhen.MANUAL_UPDATES) {
-      return t('AnyField');
+      return t("Any field");
     }
     const deps = decodeObject(use(column.recalcDeps)) as number[]|null;
     if (!deps || deps.length === 0) { return ''; }
@@ -98,7 +98,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
     cssRow(
       labeledSquareCheckbox(
         applyToNew,
-        t('NewRecords'),
+        t("Apply to new records"),
         dom.boolAttr('disabled', newRowsDisabled),
         testId('field-formula-apply-to-new'),
       ),
@@ -107,8 +107,8 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
       labeledSquareCheckbox(
         applyOnChanges,
         dom.text(use => use(applyOnChanges) ?
-          t('ChangesTo') :
-          t('RecordChanges')
+          t("Apply on changes to:") :
+          t("Apply on record changes")
         ),
         dom.boolAttr('disabled', changesDisabled),
         testId('field-formula-apply-on-changes'),
@@ -200,14 +200,14 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
     cssItemsFixed(
       cssSelectorItem(
         labeledSquareCheckbox(current,
-          [t('CurrentField'), cssSelectorNote('(data cleaning)')],
+          [t("Current field "), cssSelectorNote('(data cleaning)')],
           dom.boolAttr('disabled', allUpdates),
         ),
       ),
       menuDivider(),
       cssSelectorItem(
         labeledSquareCheckbox(allUpdates,
-          [`${t('AnyField')} `, cssSelectorNote('(except formulas)')]
+          [`${t("Any field")} `, cssSelectorNote('(except formulas)')]
         ),
       ),
     ),
@@ -224,12 +224,12 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
     cssItemsFixed(
       cssSelectorFooter(
         dom.maybe(isChanged, () =>
-          primaryButton(t('OK'),
+          primaryButton(t("OK"),
             dom.on('click', () => close(true)),
             testId('trigger-deps-apply')
           ),
         ),
-        basicButton(dom.text(use => use(isChanged) ? t('Cancel') : t('Close')),
+        basicButton(dom.text(use => use(isChanged) ? t("Cancel") : t("Close")),
           dom.on('click', () => close(false)),
           testId('trigger-deps-cancel')
         ),

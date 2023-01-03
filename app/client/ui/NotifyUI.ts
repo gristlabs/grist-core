@@ -24,10 +24,10 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
   switch (action) {
     case 'upgrade':
       if (appModel) {
-        return cssToastAction(t('UpgradePlan'), dom.on('click', () =>
+        return cssToastAction(t("Upgrade Plan"), dom.on('click', () =>
           appModel.showUpgradeModal()));
       } else {
-        return dom('a', cssToastAction.cls(''), t('UpgradePlan'), {target: '_blank'},
+        return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), {target: '_blank'},
           {href: commonUrls.plans});
       }
     case 'renew':
@@ -37,22 +37,22 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       if (appModel && appModel.currentOrg && appModel.currentOrg.billingAccount &&
           !appModel.currentOrg.billingAccount.isManager) { return null; }
       // Otherwise return a link to the billing page.
-      return dom('a', cssToastAction.cls(''), t('Renew'), {target: '_blank'},
+      return dom('a', cssToastAction.cls(''), t("Renew"), {target: '_blank'},
                  {href: urlState().makeUrl({billing: 'billing'})});
 
     case 'personal':
       if (!appModel) { return null; }
-      return cssToastAction(t('GoToPersonalSite'), dom.on('click', async () => {
+      return cssToastAction(t("Go to your free personal site"), dom.on('click', async () => {
         const info = await appModel.api.getSessionAll();
         const orgs = info.orgs.filter(org => org.owner && org.owner.id === appModel.currentUser?.id);
         if (orgs.length !== 1) {
-          throw new Error(t('ErrorCannotFindPersonalSite'));
+          throw new Error(t("Cannot find personal site, sorry!"));
         }
         window.location.assign(urlState().makeUrl({org: orgs[0].domain || undefined}));
       }));
 
     case 'report-problem':
-      return cssToastAction(t('ReportProblem'), testId('toast-report-problem'),
+      return cssToastAction(t("Report a problem"), testId('toast-report-problem'),
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true})));
 
     case 'ask-for-help': {
@@ -60,7 +60,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
         error: new Error(item.options.message as string),
         timestamp: item.options.timestamp,
       }];
-      return cssToastAction(t('AskForHelp'),
+      return cssToastAction(t("Ask for help"),
         dom.on('click', () => beaconOpenMessage({...options, includeAppErrors: true, errors})));
     }
 
@@ -154,11 +154,11 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
 
     cssDropdownContent(
       cssDropdownHeader(
-        cssDropdownHeaderTitle(t('Notifications')),
+        cssDropdownHeaderTitle(t("Notifications")),
         shouldHideUiElement("helpCenter") ? null :
         cssDropdownFeedbackLink(
           cssDropdownFeedbackIcon('Feedback'),
-          t('GiveFeedback'),
+          t("Give feedback"),
           dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
           testId('feedback'),
         )
@@ -171,7 +171,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
       ),
       dom.maybe((use) => use(dropdownItems).length === 0 && !use(disconnectMsg), () =>
         cssDropdownStatus(
-          dom('div', cssDropdownStatusText(t('NoNotifications'))),
+          dom('div', cssDropdownStatusText(t("No notifications"))),
         )
       ),
       dom.forEach(dropdownItems, item =>

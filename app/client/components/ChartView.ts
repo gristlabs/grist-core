@@ -50,7 +50,7 @@ const DONUT_DEFAULT_TEXT_SIZE = 24;
 
 const testId = makeTestId('test-chart-');
 
-const t = makeT('components.ChartView');
+const t = makeT('ChartView');
 
 function isPieLike(chartType: string) {
   return ['pie', 'donut'].includes(chartType);
@@ -655,8 +655,8 @@ export class ChartConfig extends GrainJSDisposable {
           testId('error-bars'),
         ),
         dom.domComputed(this._optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
-          value === 'symmetric' ? cssRowHelp(t('EachYFollowedByOne')) :
-          value === 'separate' ? cssRowHelp(t('EachYFollowedByTwo')) :
+          value === 'symmetric' ? cssRowHelp(t("Each Y series is followed by a series for the length of error bars.")) :
+          value === 'separate' ? cssRowHelp(t("Each Y series is followed by two series, for top and bottom error bars.")) :
           null
         ),
       ]),
@@ -669,7 +669,7 @@ export class ChartConfig extends GrainJSDisposable {
           select(this._groupDataColId, this._groupDataOptions),
           testId('group-by-column'),
         ),
-        cssHintRow(t('CreateSeparateSeries')),
+        cssHintRow(t("Create separate series for each value of the selected column.")),
       ]),
 
       // TODO: user should select x axis before widget reach page
@@ -677,7 +677,7 @@ export class ChartConfig extends GrainJSDisposable {
       cssRow(
         select(
           this._xAxis, this._columnsOptions,
-          { defaultLabel: t('PickColumn') }
+          { defaultLabel: t("Pick a column") }
         ),
         testId('x-axis'),
       ),
@@ -773,7 +773,7 @@ export class ChartConfig extends GrainJSDisposable {
   private async _setGroupDataColumn(colId: string) {
     const viewFields = this._section.viewFields.peek().peek();
 
-    await this._gristDoc.docData.bundleActions(t('SelectedNewGroupDataColumns'), async () => {
+    await this._gristDoc.docData.bundleActions(t("selected new group data columns"), async () => {
       this._freezeXAxis.set(true);
       this._freezeYAxis.set(true);
       try {
@@ -872,7 +872,7 @@ export class ChartConfig extends GrainJSDisposable {
   private async _setAggregation(val: boolean) {
     try {
       this._freezeXAxis.set(true);
-      await this._gristDoc.docData.bundleActions(t("ToggleChartAggregation"), async () => {
+      await this._gristDoc.docData.bundleActions(t("Toggle chart aggregation"), async () => {
         if (val) {
           await this._doAggregation();
         } else {

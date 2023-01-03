@@ -175,7 +175,7 @@ export const GristLight: ThemeColors = {
   'control-disabled-fg': '#FFFFFF',
   'control-disabled-bg': '#929299',
   'control-primary-disabled': '#A2E1C9',
-  'control-border': '#11B683',
+  'control-border': '1px solid #11B683',
 
   /* Checkboxes */
   'checkbox-bg': '#FFFFFF',

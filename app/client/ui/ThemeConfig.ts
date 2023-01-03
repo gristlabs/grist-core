@@ -26,7 +26,7 @@ export class ThemeConfig extends Disposable {
 
   public buildDom() {
     return dom('div',
-      css.subHeader(t('Appearance'), css.betaTag('Beta')),
+      css.subHeader(t("Appearance "), css.betaTag('Beta')),
       css.dataRow(
         cssAppearanceSelect(
           select(
@@ -42,7 +42,7 @@ export class ThemeConfig extends Disposable {
       css.dataRow(
         labeledSquareCheckbox(
           this._syncWithOS,
-          t('SyncWithOS'),
+          t("Switch appearance automatically to match system"),
           testId('sync-with-os'),
         ),
       ),

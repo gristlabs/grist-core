@@ -175,7 +175,7 @@ export const GristDark: ThemeColors = {
   'control-disabled-fg': '#A4A4A4',
   'control-disabled-bg': '#69697D',
   'control-primary-disabled': '#5F8C7B',
-  'control-border': '#11B683',
+  'control-border': '1px solid #1DA270',
 
   /* Checkboxes */
   'checkbox-bg': '#32323F',

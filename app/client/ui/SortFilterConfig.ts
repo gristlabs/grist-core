@@ -51,7 +51,7 @@ export class SortFilterConfig extends Disposable {
   }
 
   private async _save() {
-    await this._docModel.docData.bundleActions(t('UpdateSortFilterSettings'), () => Promise.all([
+    await this._docModel.docData.bundleActions(t('Update Sort & Filter settings'), () => Promise.all([
       this._section.activeSortJson.save(),
       this._section.saveFilters(),
     ]));

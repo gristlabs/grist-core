@@ -10,7 +10,7 @@ import {BindableValue, Computed, Disposable, dom, Observable, onKeyDown, styled}
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('ui2018.ColorSelect');
+const t = makeT('ColorSelect');
 
 export interface StyleOptions {
   textColor: ColorOption,
@@ -64,7 +64,7 @@ export function colorSelect(
     onSave,
     onOpen,
     onRevert,
-    placeholder = t('DefaultCellStyle'),
+    placeholder = t("Default cell style"),
   } = options;
   const selectBtn = cssSelectBtn(
     cssContent(
@@ -188,12 +188,12 @@ function buildColorPicker(ctl: IOpenController,
     }),
 
     cssButtonRow(
-      primaryButton(t('Apply'),
+      primaryButton(t("Apply"),
         dom.on('click', () => ctl.close()),
         dom.boolAttr("disabled", notChanged),
         testId('colors-save')
       ),
-      basicButton(t('Cancel'),
+      basicButton(t("Cancel"),
         dom.on('click', () => revert()),
         testId('colors-cancel')
       )

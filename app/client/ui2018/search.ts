@@ -17,7 +17,7 @@ import debounce = require('lodash/debounce');
 
 export * from 'app/client/models/SearchModel';
 
-const t = makeT('ui2018.search');
+const t = makeT('search');
 
 const EXPAND_TIME = .5;
 
@@ -146,7 +146,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
     model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
   }, 100);
   const inputElem: HTMLInputElement = searchInput(model.value, {onInput: true},
-    {type: 'text', placeholder: t('SearchInDocument')},
+    {type: 'text', placeholder: t("Search in document")},
     dom.on('blur', () => (
       keepExpanded ?
         setTimeout(() => inputElem.focus(), 0) :
@@ -187,7 +187,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
         const noMatch = use(model.noMatch);
         const isEmpty = use(model.isEmpty);
         if (isEmpty) { return null; }
-        if (noMatch) { return cssLabel(t("NoResults")); }
+        if (noMatch) { return cssLabel(t("No results")); }
         return [
           cssArrowBtn(
             icon('Dropdown'),
@@ -197,7 +197,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             dom.on('click', () => model.findNext()),
             hoverTooltip(
               [
-                t('FindNext'),
+                t("Find Next "),
                 cssShortcut(`(${['Enter', allCommands.findNext.humanKeys].join(', ')})`),
               ],
               {key: 'searchArrowBtnTooltip'}
@@ -211,7 +211,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             dom.on('click', () => model.findPrev()),
             hoverTooltip(
               [
-                t('FindPrevious'),
+                t("Find Previous "),
                 cssShortcut(allCommands.findPrev.getKeysDesc()),
               ],
               {key: 'searchArrowBtnTooltip'}
