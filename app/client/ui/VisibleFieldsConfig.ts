@@ -163,8 +163,8 @@ export class VisibleFieldsConfig extends Disposable {
       options.hiddenFields.itemCreateFunc,
       {
         itemClass: cssDragRow.className,
-        reorder() { throw new Error(t('NoReorderHiddenField')); },
-        receive() { throw new Error(t('NoDropInHiddenField')); },
+        reorder() { throw new Error(t("Hidden Fields cannot be reordered")); },
+        receive() { throw new Error(t("Cannot drop items into Hidden Fields")); },
         remove(item: ColumnRec) {
           // Return the column object. This value is passed to the viewFields
           // receive function as its respective item parameter
@@ -204,7 +204,7 @@ export class VisibleFieldsConfig extends Disposable {
           () => (
             cssControlLabel(
               icon('Tick'),
-              t('SelectAll'),
+              t("Select All"),
               dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, true)),
               testId('visible-fields-select-all'),
             )
@@ -219,7 +219,7 @@ export class VisibleFieldsConfig extends Disposable {
             dom.on('click', () => this._removeSelectedFields()),
           ),
           basicButton(
-            t('Clear'),
+            t("Clear"),
             dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, false)),
           ),
           testId('visible-batch-buttons')
@@ -240,7 +240,7 @@ export class VisibleFieldsConfig extends Disposable {
           () => (
             cssControlLabel(
               icon('Tick'),
-              t('SelectAll'),
+              t("Select All"),
               dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
               testId('hidden-fields-select-all'),
             )
@@ -261,7 +261,7 @@ export class VisibleFieldsConfig extends Disposable {
               dom.on('click', () => this._addSelectedFields()),
             ),
             basicButton(
-              t('Clear'),
+              t("Clear"),
               dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
             ),
             testId('hidden-batch-buttons')

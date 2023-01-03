@@ -14,7 +14,7 @@ import { cssLink } from 'app/client/ui2018/links';
 import { BindableValue, dom, Observable, styled } from 'grainjs';
 import { tooltip } from 'popweasel';
 
-const t = makeT('ui2018.breadcrumbs');
+const t = makeT('breadcrumbs');
 
 export const cssBreadcrumbs = styled('div', `
   color: ${theme.lightText};
@@ -138,19 +138,20 @@ export function docBreadcrumbs(
       dom.maybe(options.isPublic, () => cssPublicIcon('PublicFilled', testId('bc-is-public'))),
       dom.domComputed((use) => {
         if (options.isSnapshot && use(options.isSnapshot)) {
-          return cssTag(t('Snapshot'), testId('snapshot-tag'));
+          return cssTag(t("snapshot"), testId('snapshot-tag'));
         }
         if (use(options.isFork)) {
-          return cssTag(t('Unsaved'), testId('unsaved-tag'));
+          return cssTag(t("unsaved"), testId('unsaved-tag'));
         }
         if (use(options.isRecoveryMode)) {
-          return cssAlertTag(t('RecoveryMode'),
+          return cssAlertTag(t("recovery mode"),
                              dom('a', dom.on('click', () => options.cancelRecoveryMode()),
                                  icon('CrossSmall')),
                              testId('recovery-mode-tag'));
         }
         if (use(options.isFiddle)) {
-          return cssTag(t('Fiddle'), tooltip({title: t('FiddleExplanation')}), testId('fiddle-tag'));
+          return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
+not affect the original document.`)}), testId('fiddle-tag'));
         }
       }),
       separator(' / ',

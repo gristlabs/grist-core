@@ -15,7 +15,7 @@ import {makeT} from 'app/client/lib/localization';
 // One of the strings 'read', 'update', etc.
 export type PermissionKey = keyof PartialPermissionSet;
 
-const t = makeT('aclui.PermissionsWidget');
+const t = makeT('PermissionsWidget');
 
 /**
  * Renders a box for each of availableBits, and a dropdown with a description and some shortcuts.
@@ -64,13 +64,13 @@ export function permissionsWidget(
           null
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
-        cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t('AllowAll'),
+        cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow All"),
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t('DenyAll'),
+        cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny All"),
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t('ReadOnly'),
+        cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read Only"),
           dom.cls('disabled', options.disabled)
         ),
         cssMenuItem(() => setPermissions(empty),

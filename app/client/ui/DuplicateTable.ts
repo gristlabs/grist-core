@@ -74,7 +74,7 @@ class DuplicateTableModal extends Disposable {
         input(
           this._newTableName,
           {onInput: true},
-          {placeholder: t('NewName')},
+          {placeholder: t("Name for new table")},
           (elem) => { setTimeout(() => { elem.focus(); }, 20); },
           dom.on('focus', (_ev, elem) => { elem.select(); }),
           dom.cls(cssInput.className),
@@ -85,19 +85,19 @@ class DuplicateTableModal extends Disposable {
         cssWarningIcon('Warning'),
 
         dom('div',
-         t("AdviceWithLink", {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')})
+         t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}", {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')})
         ), //TODO: i18next
       ),
       cssField(
         cssCheckbox(
           this._includeData,
-          t('CopyAllData'),
+          t("Copy all data in addition to the table structure."),
           testId('copy-all-data'),
         ),
       ),
       dom.maybe(this._includeData, () => cssWarning(
         cssWarningIcon('Warning'),
-        dom('div', t('WarningACL')),
+        dom('div', t("Only the document default access rules will apply to the copy.")),
         testId('acl-warning'),
       )),
     ];

@@ -16,7 +16,7 @@ import {makeT} from 'app/client/lib/localization';
 
 const testId = makeTestId('test-raw-data-');
 
-const t = makeT('components.DataTables');
+const t = makeT('DataTables');
 
 export class DataTables extends Disposable {
   private _tables: Observable<TableRec[]>;
@@ -45,7 +45,7 @@ export class DataTables extends Disposable {
       cssTableList(
         /***************  List section **********/
         testId('list'),
-        cssHeader(t('RawDataTables')),
+        cssHeader(t("Raw Data Tables")),
         cssList(
           dom.forEach(this._tables, tableRec =>
             cssItem(
@@ -65,11 +65,11 @@ export class DataTables extends Disposable {
                       testId('table-id'),
                       dom.text(tableRec.tableId),
                     ),
-                    { title : t('ClickToCopy') },
+                    { title : t("Click to copy") },
                     dom.on('click', async (e, d) => {
                       e.stopImmediatePropagation();
                       e.preventDefault();
-                      showTransientTooltip(d, t('TableIDCopied'), {
+                      showTransientTooltip(d, t("Table ID copied to clipboard"), {
                         key: 'copy-table-id'
                       });
                       await copyToClipboard(tableRec.tableId.peek());
@@ -127,7 +127,7 @@ export class DataTables extends Disposable {
     return [
       menuItem(
         () => this._duplicateTable(table),
-        t('DuplicateTable'),
+        t("Duplicate Table"),
         testId('menu-duplicate-table'),
         dom.cls('disabled', use =>
           use(isReadonly) ||
@@ -144,7 +144,7 @@ export class DataTables extends Disposable {
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
         ))
       ),
-      dom.maybe(isReadonly, () => menuText(t("NoEditAccess"))),
+      dom.maybe(isReadonly, () => menuText(t("You do not have edit access to this document"))),
     ];
   }
 
@@ -160,7 +160,7 @@ export class DataTables extends Disposable {
     function doRemove() {
       return docModel.docData.sendAction(['RemoveTable', r.tableId()]);
     }
-    confirmModal(t("DeleteData", {formattedTableName : r.formattedTableName()}), 'Delete', doRemove);
+    confirmModal(t("Delete {{formattedTableName}} data, and remove it from all pages?", {formattedTableName : r.formattedTableName()}), 'Delete', doRemove);
   }
 
   private _tableRows(table: TableRec) {

@@ -137,12 +137,12 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
     const saveDisabled = Computed.create(owner, use => use(selected) === '');
     const saveFunc = () => onSave(selected.get());
     return {
-      title: t('TableWillNoLongerBeVisible', { count: tableNames.length }),
+      title: t('The following tables will no longer be visible', { count: tableNames.length }),
       body: dom('div',
         testId('popup'),
         buildWarning(tableNames),
         cssOptions(
-          buildOption(selected, 'data', t('DeleteDataAndPage')),
+          buildOption(selected, 'data', t("Delete data and this page.")),
           buildOption(selected, 'page',
             [ // TODO i18n
               `Keep data and delete page. `,
@@ -153,7 +153,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
         )
       ),
       saveDisabled,
-      saveLabel: t('Delete'),
+      saveLabel: t("Delete"),
       saveFunc,
       width: 'fixed-wide',
       extraButtons: [],

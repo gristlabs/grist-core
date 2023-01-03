@@ -34,7 +34,7 @@ export function createHelpTools(appModel: AppModel): DomContents {
   return cssSplitPageEntry(
     cssPageEntryMain(
       cssPageLink(cssPageIcon('Help'),
-        cssLinkText(t('HelpCenter')),
+        cssLinkText(t("Help Center")),
         dom.cls('tour-help-center'),
         dom.on('click', (ev) => beaconOpenMessage({appModel})),
         testId('left-feedback'),

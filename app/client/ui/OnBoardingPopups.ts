@@ -299,7 +299,7 @@ class OnBoardingPopupsCtl extends Disposable {
           {style: `margin-right: 8px; visibility: ${isFirstStep ? 'hidden' : 'visible'}`},
         ),
         bigPrimaryButton(
-          isLastStep ? t('Finish') : t('Next'), testId('next'),
+          isLastStep ? t("Finish") : t("Next"), testId('next'),
           dom.on('click', () => this._move(+1, true)),
         ),
       )

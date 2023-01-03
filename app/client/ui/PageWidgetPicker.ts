@@ -183,7 +183,7 @@ export function buildPageWidgetPicker(
       // should be handle by the caller.
       if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
         const label = getWidgetTypes(type).label;
-        await spinnerModal(t('BuildingWidget', { label }), savePromise);
+        await spinnerModal(t("Building {{- label}} widget", { label }), savePromise);
       }
     }
   }
@@ -285,7 +285,7 @@ export class PageWidgetSelect extends Disposable {
       testId('container'),
       cssBody(
         cssPanel(
-          header(t('SelectWidget')),
+          header(t("Select Widget")),
           sectionTypes.map((value) => {
             const {label, icon: iconName} = getWidgetTypes(value);
             const disabled = computed(this._value.table, (use, tid) => this._isTypeDisabled(value, tid));
@@ -302,7 +302,7 @@ export class PageWidgetSelect extends Disposable {
         ),
         cssPanel(
           testId('data'),
-          header(t('SelectData')),
+          header(t("Select Data")),
           cssEntry(
             cssIcon('TypeTable'), 'New Table',
             // prevent the selection of 'New Table' if it is disabled
@@ -336,7 +336,7 @@ export class PageWidgetSelect extends Disposable {
           )),
         ),
         cssPanel(
-          header(t('GroupBy')),
+          header(t("Group by")),
           dom.hide((use) => !use(this._value.summarize)),
           domComputed(
             (use) => use(this._columns)
@@ -378,7 +378,7 @@ export class PageWidgetSelect extends Disposable {
           bigPrimaryButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when
             // there are no changes.
-            this._options.buttonLabel || t('AddToPage'),
+            this._options.buttonLabel || t("Add to Page"),
             dom.prop('disabled', (use) => !isValidSelection(
               use(this._value.table), use(this._value.type), this._options.isNewPage)
             ),

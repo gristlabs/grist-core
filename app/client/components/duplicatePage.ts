@@ -15,7 +15,7 @@ import zip = require('lodash/zip');
 import zipObject = require('lodash/zipObject');
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.duplicatePage');
+const t = makeT('duplicatePage');
 
 // Duplicate page with pageId. Starts by prompting user for a new name.
 export async function duplicatePage(gristDoc: GristDoc, pageId: number) {
@@ -30,7 +30,7 @@ export async function duplicatePage(gristDoc: GristDoc, pageId: number) {
         cssLabel("Name"),
         inputEl = cssInput({value: pageName + ' (copy)'}),
       ),
-      t("DoesNotCopyData"),
+      t("Note that this does not copy data, but creates another view of the same data."),
     ])
   ));
 }
@@ -41,7 +41,7 @@ async function makeDuplicate(gristDoc: GristDoc, pageId: number, pageName: strin
   const viewSections = sourceView.viewSections.peek().peek();
   let viewRef = 0;
   await gristDoc.docData.bundleActions(
-    t("DuplicatePageName", {pageName}),
+    t("Duplicate page {{pageName}}", {pageName}),
     async () => {
       // create new view and new sections
       const results = await createNewViewSections(gristDoc.docData, viewSections);

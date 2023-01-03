@@ -149,9 +149,9 @@ export class SortConfig extends Disposable {
       });
       return {computed, allowedTypes, flag, label};
     };
-    const orderByChoice = computedFlag('orderByChoice', ['Choice'], t('UseChoicePosition'));
-    const naturalSort   = computedFlag('naturalSort', ['Text'], t('NaturalSort'));
-    const emptyLast     = computedFlag('emptyLast', null, t('EmptyValuesLast'));
+    const orderByChoice = computedFlag('orderByChoice', ['Choice'], t("Use choice position"));
+    const naturalSort   = computedFlag('naturalSort', ['Text'], t("Natural sort"));
+    const emptyLast     = computedFlag('emptyLast', null, t("Empty values last"));
     const flags = [orderByChoice, emptyLast, naturalSort];
 
     const column = columns.get().find(c => c.value === Sort.getColRef(colRef));
@@ -222,7 +222,7 @@ export class SortConfig extends Disposable {
       dom.domComputed(use => {
         const cols = use(available);
         return cssTextBtn(
-          t('AddColumn'),
+          t("Add Column"),
           menu((ctl) => [
             ...cols.map((col) => (
               menuItem(
@@ -249,7 +249,7 @@ export class SortConfig extends Disposable {
   private _buildUpdateDataButton() {
     return dom.maybe(this._section.isSorted, () =>
       cssButtonRow(
-        cssTextBtn(t('UpdateData'),
+        cssTextBtn(t("Update Data"),
           dom.on('click', () => updatePositions(this._gristDoc, this._section)),
           testId('update'),
           dom.show((use) => (

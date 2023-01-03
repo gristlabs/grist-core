@@ -30,14 +30,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   updateCanViewAccessRules();
   return cssTools(
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
-    cssSectionHeader(t("Tools")),
+    cssSectionHeader(t("TOOLS")),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
       dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
         return cssPageLink(
           cssPageIcon('EyeShow'),
-          cssLinkText(t('AccessRules'),
+          cssLinkText(t("Access Rules"),
             menuAnnotate('Beta', cssBetaTag.cls(''))
           ),
           _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
@@ -49,25 +49,25 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
       cssPageLink(
         cssPageIcon('Database'),
-        cssLinkText(t('RawData')),
+        cssLinkText(t("Raw Data")),
         testId('raw'),
         urlState().setLinkUrl({docPage: 'data'})
       )
     ),
     cssPageEntry(
-      cssPageLink(cssPageIcon('Log'), cssLinkText(t('DocumentHistory')), testId('log'),
+      cssPageLink(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     // TODO: polish validation and add it back
     dom.maybe((use) => use(gristDoc.app.features).validationsTool, () =>
       cssPageEntry(
-        cssPageLink(cssPageIcon('Validation'), cssLinkText(t('ValidateData')), testId('validate'),
+        cssPageLink(cssPageIcon('Validation'), cssLinkText(t("Validate Data")), testId('validate'),
           dom.on('click', () => gristDoc.showTool('validations'))))
     ),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
-        cssLinkText(t('CodeView')),
+        cssLinkText(t("Code View")),
         urlState().setLinkUrl({docPage: 'code'})
       ),
       testId('code'),
@@ -77,7 +77,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       const ex = buildExamples().find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
-        cssPageLink(cssPageIcon('Page'), cssLinkText(t('HowToTutorial')), testId('tutorial'),
+        cssPageLink(cssPageIcon('Page'), cssLinkText(t("How-to Tutorial")), testId('tutorial'),
           {href: ex.tutorialUrl, target: '_blank'},
           cssExampleCardOpener(
             icon('TypeDetails'),
@@ -97,14 +97,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssSplitPageEntry(
         cssPageEntryMain(
           cssPageLink(cssPageIcon('Page'),
-            cssLinkText(t('DocumentTour')),
+            cssLinkText(t("Tour of this Document")),
             urlState().setLinkUrl({docTour: true}),
             testId('doctour'),
           ),
         ),
         !isDocOwner ? null : cssPageEntrySmall(
           cssPageLink(cssPageIcon('Remove'),
-            dom.on('click', () => confirmModal(t('DeleteDocumentTour'), t('Delete'), () =>
+            dom.on('click', () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
               gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
             ),
             testId('remove-doctour')

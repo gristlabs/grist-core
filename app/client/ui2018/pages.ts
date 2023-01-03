@@ -8,7 +8,7 @@ import { hoverTooltip } from 'app/client/ui/tooltips';
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
-const t = makeT('ui2018.pages');
+const t = makeT('pages');
 
 const testId = makeTestId('test-docpage-');
 
@@ -37,11 +37,11 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
   const pageMenu = () => [
     menuItem(() => isRenaming.set(true), t("Rename"), testId('rename'),
             dom.cls('disabled', actions.isReadonly)),
-    menuItem(actions.onRemove, t('Remove'), testId('remove'),
+    menuItem(actions.onRemove, t("Remove"), testId('remove'),
              dom.cls('disabled', (use) => use(actions.isReadonly) || actions.isRemoveDisabled())),
-    menuItem(actions.onDuplicate, t('DuplicatePage'), testId('duplicate'),
+    menuItem(actions.onDuplicate, t("Duplicate Page"), testId('duplicate'),
              dom.cls('disabled', actions.isReadonly)),
-    dom.maybe(actions.isReadonly, () => menuText(t('NoEditAccess'))),
+    dom.maybe(actions.isReadonly, () => menuText(t("You do not have edit access to this document"))),
   ];
   let pageElem: HTMLElement;
 

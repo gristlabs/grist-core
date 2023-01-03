@@ -14,7 +14,7 @@ import ko from 'knockout';
 import {menu, menuItem} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.RefSelect');
+const t = makeT('RefSelect');
 
 interface Item {
   label: string;
@@ -97,7 +97,7 @@ export class RefSelect extends Disposable {
           testId('ref-select-item'),
         )
       ),
-      cssAddLink(cssAddIcon('Plus'), t('AddColumn'),
+      cssAddLink(cssAddIcon('Plus'), t("Add Column"),
         menu(() => [
           ...this._validCols.peek()
             .filter((col) => !this._addedSet.peek().has(col.colId.peek()))
@@ -105,7 +105,7 @@ export class RefSelect extends Disposable {
               menuItem(() => this._addFormulaField({ label: col.label(), value: col.colId() }),
                 col.label.peek())
             ),
-          cssEmptyMenuText(t("NoColumnsAdd")),
+          cssEmptyMenuText(t("No columns to add")),
           testId('ref-select-menu'),
         ]),
         testId('ref-select-add'),

@@ -112,7 +112,7 @@ describe("Localization", function() {
     });
 
     it("loads correct languages from file system", async function() {
-      modifyByCode(tempLocale, "en", {HomeIntro: {Welcome: 'TestMessage'}});
+      modifyByCode(tempLocale, "en", {HomeIntro: {'Welcome to Grist!': 'TestMessage'}});
       await driver.navigate().refresh();
       assert.equal(await driver.findWait('.test-welcome-title', 3000).getText(), 'TestMessage');
       const gristConfig: any = await driver.executeScript("return window.gristConfig");

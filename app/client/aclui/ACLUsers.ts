@@ -15,7 +15,7 @@ import {cssMenu, cssMenuWrap, defaultMenuOptions, IPopupOptions, setPopupToCreat
 import {getUserRoleText} from 'app/common/UserAPI';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('aclui.ViewAsDropdown');
+const t = makeT("ACLUsers");
 
 function isSpecialEmail(email: string) {
   return email === ANONYMOUS_USER_EMAIL || email === EVERYONE_EMAIL;
@@ -54,15 +54,15 @@ export class ACLUsersPopup extends Disposable {
       return cssMenuWrap(cssMenu(
         dom.cls(menuCssClass),
         cssUsers.cls(''),
-        cssHeader(t('ViewAs'), dom.show(this._shareUsers.length > 0)),
+        cssHeader(t('View As'), dom.show(this._shareUsers.length > 0)),
         dom.forEach(this._shareUsers, buildRow),
-        (this._attributeTableUsers.length > 0) ? cssHeader(t('UsersFrom')) : null,
+        (this._attributeTableUsers.length > 0) ? cssHeader(t("Users from table")) : null,
         dom.forEach(this._attributeTableUsers, buildExampleUserRow),
         // Include example users only if there are not many "real" users.
         // It might be better to have an expandable section with these users, collapsed
         // by default, but that's beyond my UI ken.
         (this._shareUsers.length + this._attributeTableUsers.length < 5) ? [
-          (this._exampleUsers.length > 0) ? cssHeader(t('ExampleUsers')) : null,
+          (this._exampleUsers.length > 0) ? cssHeader(t("Example Users")) : null,
           dom.forEach(this._exampleUsers, buildExampleUserRow)
         ] : null,
         (el) => { setTimeout(() => el.focus(), 0); },

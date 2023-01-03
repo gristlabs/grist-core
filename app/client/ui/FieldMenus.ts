@@ -13,10 +13,10 @@ const t = makeT('FieldMenus');
 export function FieldSettingsMenu(useColOptions: boolean, disableSeparate: boolean, actions: IFieldOptions) {
   useColOptions = useColOptions || disableSeparate;
   return [
-    menuSubHeader(t('UsingSettings', {context: useColOptions ? 'common' : 'separate'})),
-    useColOptions ? menuItem(actions.useSeparate, t('Settings', {context: 'useseparate'}), dom.cls('disabled', disableSeparate)) : [
-      menuItem(actions.saveAsCommon, t('Settings', {context: 'savecommon'})),
-      menuItem(actions.revertToCommon, t('Settings', {context: 'revertcommon'})),
+    menuSubHeader(useColOptions ? t("Using common settings") : t("Using separate settings")),
+    useColOptions ? menuItem(actions.useSeparate, t("Use separate settings"), dom.cls('disabled', disableSeparate)) : [
+      menuItem(actions.saveAsCommon, t("Save as common settings")),
+      menuItem(actions.revertToCommon, t("Revert to common settings")),
     ]
   ];
 }

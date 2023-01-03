@@ -29,7 +29,7 @@ export function createTopBarHome(appModel: AppModel) {
     (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
       [
         basicButton(
-          t('ManageTeam'),
+          t("Manage Team"),
           dom.on('click', () => manageTeamUsersApp(appModel)),
           testId('topbar-manage-team')
         ),

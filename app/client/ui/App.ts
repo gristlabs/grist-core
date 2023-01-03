@@ -93,8 +93,8 @@ export class App extends DisposableWithEvents {
         dom('table.g-help-table',
           dom('thead',
             dom('tr',
-              dom('th', t('Key')),
-              dom('th', t('Description'))
+              dom('th', t("Key")),
+              dom('th', t("Description"))
             )
           ),
           dom.forEach(commandList.groups, (group: any) => {
@@ -234,7 +234,7 @@ export class App extends DisposableWithEvents {
     if (message.match(/MemoryError|unmarshallable object/)) {
       if (err.message.length > 30) {
         // TLDR
-        err.message = t('MemoryError');
+        err.message = t("Memory Error");
       }
       this._mostRecentDocPageModel?.offerRecovery(err);
     }

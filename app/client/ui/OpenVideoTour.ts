@@ -28,7 +28,7 @@ const testId = makeTestId('test-video-tour-');
           cssVideo(
             {
               src: commonUrls.videoTour,
-              title: t('YouTubeVideoPlayer'),
+              title: t("YouTube video player"),
               frameborder: '0',
               allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
               allowfullscreen: '',
@@ -51,7 +51,7 @@ const testId = makeTestId('test-video-tour-');
 export function createVideoTourTextButton(): HTMLDivElement {
   const elem: HTMLDivElement = cssVideoTourTextButton(
     cssVideoIcon('Video'),
-    t('GristVideoTour'),
+    t("Grist Video Tour"),
     dom.on('click', () => openVideoTour(elem)),
     testId('text-button'),
   );
@@ -77,7 +77,7 @@ export function createVideoTourToolsButton(): HTMLDivElement | null {
     dom.autoDispose(commandsGroup),
     cssPageLink(
       iconElement = cssPageIcon('Video'),
-      cssLinkText(t('VideoTour')),
+      cssLinkText(t("Video Tour")),
       dom.cls('tour-help-center'),
       dom.on('click', () => openVideoTour(iconElement)),
       testId('tools-button'),

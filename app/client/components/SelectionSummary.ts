@@ -16,7 +16,7 @@ import ko from 'knockout';
 import {Computed, Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('components.SelectionSummary');
+const t = makeT('SelectionSummary');
 
 /**
  * A beginning and end index for a range of columns or rows.
@@ -266,7 +266,7 @@ export class SelectionSummary extends Disposable {
 
 async function doCopy(value: string, elem: Element) {
   await copyToClipboard(value);
-  showTransientTooltip(elem, t('CopiedClipboard'), {key: 'copy-selection-summary'});
+  showTransientTooltip(elem, t("Copied to clipboard"), {key: 'copy-selection-summary'});
 }
 
 const cssSummary = styled('div', `

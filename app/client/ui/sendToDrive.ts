@@ -24,7 +24,7 @@ export async function sendToDrive(doc: Document, pageModel: DocPageModel) {
   // Create send to google drive handler (it will return a spreadsheet url).
   const send = (code: string) =>
     // Decorate it with a spinner
-    spinnerModal(t('SendingToGoogleDrive'),
+    spinnerModal(t("Sending file to Google Drive"),
       pageModel.appModel.api.getDocAPI(doc.id)
         .sendToDrive(code, pageModel.currentDocTitle.get())
     );

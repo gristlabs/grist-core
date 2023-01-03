@@ -19,7 +19,7 @@ const {makeT} = require('app/client/lib/localization');
 
 const testId = makeTestId('test-vconfigtab-');
 
-const t = makeT('components.ViewConfigTab');
+const t = makeT('ViewConfigTab');
 
 /**
  * Helper class that combines one ViewSection's data for building dom.
@@ -124,9 +124,9 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
     const table = sectionData.section.table();
     const isCollapsed = ko.observable(true);
     return [
-      kf.collapserLabel(isCollapsed, t('AdvancedSettings'), dom.testId('ViewConfig_advanced')),
+      kf.collapserLabel(isCollapsed, t("Advanced settings"), dom.testId('ViewConfig_advanced')),
       kf.helpRow(kd.hide(isCollapsed),
-        t('BigTablesMayBeMarked'),
+        t("Big tables may be marked as \"on-demand\" to avoid loading them into the data engine."),
         kd.style('text-align', 'left'),
         kd.style('margin-top', '1.5rem')
       ),
@@ -135,7 +135,7 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
       ),
       kf.row(kd.hide(isCollapsed),
         kf.buttonGroup(kf.button(() => this._makeOnDemand(table),
-          kd.text(() => table.onDemand() ? t('UnmarkOnDemandButton') : t('MakeOnDemandButton')),
+          kd.text(() => table.onDemand() ? t("Unmark On-Demand") : t("Make On-Demand")),
           dom.testId('ViewConfig_onDemandBtn')
         ))
       ),
@@ -152,9 +152,9 @@ ViewConfigTab.prototype._buildThemeDom = function() {
       return cssRow(
         dom.autoDispose(theme),
         select(theme, [
-          {label: t('Form'),        value: 'form'   },
-          {label: t('Compact'),     value: 'compact'},
-          {label: t('Blocks'),      value: 'blocks'  },
+          {label: t("Form"),        value: 'form'   },
+          {label: t("Compact"),     value: 'compact'},
+          {label: t("Blocks"),      value: 'blocks'  },
         ]),
         testId('detail-theme')
       );
@@ -173,7 +173,7 @@ ViewConfigTab.prototype._buildLayoutDom = function() {
       const layoutEditorObs = ko.computed(() => view && view.recordLayout && view.recordLayout.layoutEditor());
       return cssRow({style: 'margin-top: 16px;'},
         kd.maybe(layoutEditorObs, (editor) => editor.buildFinishButtons()),
-        primaryButton(t('EditCardLayout'),
+        primaryButton(t("Edit Card Layout"),
           dom.autoDispose(layoutEditorObs),
           dom.on('click', () => commands.allCommands.editLayout.run()),
           grainjsDom.hide(layoutEditorObs),
@@ -222,8 +222,8 @@ ViewConfigTab.prototype._buildCustomTypeItems = function() {
     // 3)
     showObs: () => activeSection().customDef.mode() === "plugin",
     buildDom: () => kd.scope(activeSection, ({customDef}) => dom('div',
-      kf.row(5, t("PluginColon"), 13, kf.text(customDef.pluginId, {}, {list: "list_plugin"}, dom.testId('ViewConfigTab_customView_pluginId'))),
-      kf.row(5, t("SectionColon"), 13, kf.text(customDef.sectionId, {}, {list: "list_section"},  dom.testId('ViewConfigTab_customView_sectionId'))),
+      kf.row(5, t("Plugin: "), 13, kf.text(customDef.pluginId, {}, {list: "list_plugin"}, dom.testId('ViewConfigTab_customView_pluginId'))),
+      kf.row(5, t("Section: "), 13, kf.text(customDef.sectionId, {}, {list: "list_section"},  dom.testId('ViewConfigTab_customView_sectionId'))),
       // For both `customPlugin` and `selectedSection` it is possible for the value not to be in the
       // list of options. Combining <datalist> and <input> allows both to freely edit the value with
       // keyboard and to select it from a list. Although the content of the list seems to be

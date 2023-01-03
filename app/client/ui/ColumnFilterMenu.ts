@@ -141,7 +141,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         rangeInput(
           columnFilter.min, {
             isDateFilter,
-            placeholder: isDateFilter ? t('DateRangeMin') : t('RangeMin'),
+            placeholder: isDateFilter ? t("Start") : t("Min"),
             valueParser,
             valueFormatter,
             isSelected: isMinSelected,
@@ -154,7 +154,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         rangeInput(
           columnFilter.max, {
             isDateFilter,
-            placeholder: isDateFilter ? t('DateRangeMax') : t('RangeMax'),
+            placeholder: isDateFilter ? t("End") : t("Max"),
             valueParser,
             valueFormatter,
             isSelected: isMaxSelected,
@@ -216,7 +216,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         searchInput = cssSearch(
           searchValueObs, { onInput: true },
           testId('search-input'),
-          { type: 'search', placeholder: t('SearchValues') },
+          { type: 'search', placeholder: t('Search values') },
           dom.onKeyDown({
             Enter: () => {
               if (searchValueObs.get()) {
@@ -252,14 +252,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           const state = use(columnFilter.state);
           return [
             cssSelectAll(
-              dom.text(searchValue ? t('AllShown') : t('All')),
+              dom.text(searchValue ? t('All Shown') : t('All')),
               dom.prop('disabled', isEquivalentFilter(state, allSpec)),
               dom.on('click', () => columnFilter.setState(allSpec)),
               testId('bulk-action'),
             ),
             cssDotSeparator('•'),
             cssSelectAll(
-              searchValue ? t('AllExcept') : t('None'),
+              searchValue ? t('All Except') : t('None'),
               dom.prop('disabled', isEquivalentFilter(state, noneSpec)),
               dom.on('click', () => columnFilter.setState(noneSpec)),
               testId('bulk-action'),
@@ -274,7 +274,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
       ),
       cssItemList(
         testId('list'),
-        dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(t('NoMatchingValues'))),
+        dom.maybe(use => use(filteredValues).length === 0, () => cssNoResults(t("No matching values"))),
         dom.domComputed(filteredValues, (values) => values.slice(0, model.limitShown).map(([key, value]) => (
           cssMenuItem(
             cssLabel(
@@ -310,17 +310,17 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           }
           if (isAboveLimit) {
             return searchValue ? [
-              buildSummary(t('OtherMatching'), valuesBeyondLimit, false, model),
-              buildSummary(t('OtherNonMatching'), otherValues, true, model),
+              buildSummary(t("Other Matching"), valuesBeyondLimit, false, model),
+              buildSummary(t("Other Non-Matching"), otherValues, true, model),
             ] : [
-              buildSummary(t('OtherValues'), concat(otherValues, valuesBeyondLimit), false, model),
-              buildSummary(t('FutureValues'), [], true, model),
+              buildSummary(t("Other Values"), concat(otherValues, valuesBeyondLimit), false, model),
+              buildSummary(t("Future Values"), [], true, model),
             ];
           } else {
             return anyOtherValues ? [
               buildSummary(t('Others'), otherValues, true, model)
             ] : [
-              buildSummary(t('FutureValues'), [], true, model)
+              buildSummary(t("Future Values"), [], true, model)
             ];
           }
         }),

@@ -24,11 +24,11 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
 
   const contextMenu = [
     menuItemCmd(allCommands.deleteRecords,
-      t('DeleteRecord'),
+      t("Delete record"),
       testId('section-delete-card'),
       dom.cls('disabled', isReadonly || isAddRow)),
     menuItemCmd(allCommands.copyLink,
-      t('CopyAnchorLink'),
+      t("Copy anchor link"),
       testId('section-card-link'),
     ),
     menuDivider(),
@@ -39,30 +39,30 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   return [
     dom.maybe((use) => ['single'].includes(use(viewSection.parentKey)), () => contextMenu),
     dom.maybe((use) => !use(viewSection.isRaw) && !isLight,
-      () => menuItemCmd(allCommands.showRawData, t('ShowRawData'), testId('show-raw-data')),
+      () => menuItemCmd(allCommands.showRawData, t("Show raw data"), testId('show-raw-data')),
     ),
-    menuItemCmd(allCommands.printSection, t('PrintWidget'), testId('print-section')),
+    menuItemCmd(allCommands.printSection, t("Print widget"), testId('print-section')),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
-      t('DownloadCSV'), testId('download-section')),
+      t("Download as CSV"), testId('download-section')),
     menuItemLink({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''},
-    t('DownloadXLSX'), testId('download-section')),
+    t("Download as XLSX"), testId('download-section')),
     dom.maybe((use) => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
-      menuItemCmd(allCommands.editLayout, t('EditCardLayout'),
+      menuItemCmd(allCommands.editLayout, t("Edit Card Layout"),
         dom.cls('disabled', isReadonly))),
 
     dom.maybe(!isLight, () => [
       menuDivider(),
-      menuItemCmd(allCommands.viewTabOpen, t('WidgetOptions'), testId('widget-options')),
-      menuItemCmd(allCommands.sortFilterTabOpen, t('AdvancedSortFilter')),
-      menuItemCmd(allCommands.dataSelectionTabOpen, t('DataSelection')),
+      menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId('widget-options')),
+      menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter")),
+      menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection")),
     ]),
 
     menuDivider(),
     dom.maybe((use) => use(viewSection.parentKey) === 'custom' && use(viewSection.hasCustomOptions), () =>
-      menuItemCmd(allCommands.openWidgetConfiguration, t('OpenConfiguration'),
+      menuItemCmd(allCommands.openWidgetConfiguration, t("Open configuration"),
         testId('section-open-configuration')),
     ),
-    menuItemCmd(allCommands.deleteSection, t('DeleteWidget'),
+    menuItemCmd(allCommands.deleteSection, t("Delete widget"),
       dom.cls('disabled', !viewRec.getRowId() || viewRec.viewSections().peekLength <= 1 || isReadonly),
       testId('section-delete')),
   ];

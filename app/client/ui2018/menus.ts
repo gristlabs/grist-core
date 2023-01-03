@@ -11,7 +11,7 @@ import { BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs
          MaybeObsArray, MutableObsArray, Observable, styled } from 'grainjs';
 import * as weasel from 'popweasel';
 
-const t = makeT('ui2018.menus');
+const t = makeT('menus');
 
 export interface IOptionFull<T> {
   value: T;
@@ -189,7 +189,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
 
   const selectedOptionsText = Computed.create(null, selectedOptionsSet, (use, selectedOpts) => {
     if (selectedOpts.size === 0) {
-      return options.placeholder ?? t('SelectFields');
+      return options.placeholder ?? t("Select fields");
     }
 
     const optionArray = Array.isArray(availableOptions) ? availableOptions : use(availableOptions);
@@ -323,8 +323,8 @@ export function upgradableMenuItem(needUpgrade: boolean, action: () => void, ...
 
 export function upgradeText(needUpgrade: boolean, onClick: () => void) {
   if (!needUpgrade) { return null; }
-  return menuText(dom('span', t('WorkspacesAvailableOnTeamPlans'),
-    cssUpgradeTextButton(t('UpgradeNow'), dom.on('click', () => onClick()))));
+  return menuText(dom('span', t("* Workspaces are available on team plans. "),
+    cssUpgradeTextButton(t("Upgrade now"), dom.on('click', () => onClick()))));
 }
 
 /**
