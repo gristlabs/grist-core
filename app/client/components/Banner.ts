@@ -16,7 +16,7 @@ export interface BannerOptions {
    * Warning banners have a yellow background. Error banners have a red
    * background.
    */
-  style: 'warning' | 'error';
+  style: 'warning' | 'error' | 'info';
 
   /**
    * Optional variant of `content` to display when screen width becomes narrow.
@@ -41,6 +41,11 @@ export interface BannerOptions {
   showExpandButton?: boolean;
 
   /**
+   * If provided, applies the css class to the banner container.
+   */
+   bannerCssClass?: string;
+
+  /**
    * Function that is called when the banner close button is clicked.
    *
    * Should be used to handle disposal of the Banner.
@@ -59,7 +64,7 @@ export class Banner extends Disposable {
   }
 
   public buildDom() {
-    return cssBanner(
+    return cssBanner({class: this._options.bannerCssClass || ''},
       cssBanner.cls(`-${this._options.style}`),
       this._buildContent(),
       this._buildButtons(),
@@ -113,6 +118,11 @@ const cssBanner = styled('div', `
   padding: 10px;
   gap: 16px;
   color: white;
+
+  &-info {
+    color: black;
+    background: #FFFACD;
+  }
 
   &-warning {
     background: #E6A117;

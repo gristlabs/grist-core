@@ -1,5 +1,5 @@
 import {ActionSummary} from 'app/common/ActionSummary';
-import {ApplyUAResult, QueryFilters} from 'app/common/ActiveDocAPI';
+import {ApplyUAResult, PermissionDataWithExtraUsers, QueryFilters} from 'app/common/ActiveDocAPI';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
@@ -197,6 +197,16 @@ export interface UserAccessData {
 export function getRealAccess(user: UserAccessData, permissionData: PermissionData): roles.Role|null {
   const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, permissionData.maxInheritedRole || null);
   return roles.getStrongestRole(user.access, inheritedAccess);
+}
+
+const roleNames: {[role: string]: string} = {
+  [roles.OWNER]: 'Owner',
+  [roles.EDITOR]: 'Editor',
+  [roles.VIEWER]: 'Viewer',
+};
+
+export function getUserRoleText(user: UserAccessData) {
+  return roleNames[user.access!] || user.access || 'no access';
 }
 
 export interface ActiveSessionInfo {
@@ -401,6 +411,9 @@ export interface DocAPI {
   // Upload a single attachment and return the resulting metadata row ID.
   // The arguments are passed to FormData.append.
   uploadAttachment(value: string | Blob, filename?: string): Promise<number>;
+
+  // Get users that are worth proposing to "View As" for access control purposes.
+  getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 }
 
 // Operations that are supported by a doc worker.
@@ -831,6 +844,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       method: 'POST',
       body: JSON.stringify(body)
     });
+  }
+
+  public async getUsersForViewAs(): Promise<PermissionDataWithExtraUsers> {
+    return this.requestJson(`${this._url}/usersForViewAs`);
   }
 
   public async forceReload(): Promise<void> {

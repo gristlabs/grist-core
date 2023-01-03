@@ -9,7 +9,9 @@ import {transition, TransitionWatcher} from 'app/client/ui/transitions';
 import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {dom, DomElementArg, MultiHolder, noTestId, Observable, styled, subscribe, TestId} from "grainjs";
+import {
+  dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId
+} from "grainjs";
 import noop from 'lodash/noop';
 import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
@@ -36,6 +38,7 @@ export interface PageContents {
 
   headerMain: DomElementArg;
   contentMain: DomElementArg;
+  banner?: DomElementArg;
 
   onResize?: () => void;          // Callback for when either pane is opened, closed, or resized.
   testId?: TestId;
@@ -50,12 +53,15 @@ export function pagePanels(page: PageContents) {
   const onResize = page.onResize || (() => null);
   const leftOverlap = Observable.create(null, false);
   const dragResizer = Observable.create(null, false);
+  const bannerHeight = Observable.create(null, 0);
   const isScreenResizingObs = isScreenResizing();
 
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
   let rightPaneDom: HTMLElement;
+  let mainHeaderDom: HTMLElement;
+  let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
@@ -107,13 +113,30 @@ export function pagePanels(page: PageContents) {
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
-    page.contentTop,
+    dom('div', page.contentTop, elem => { contentTopDom = elem; }),
+    dom.maybe(page.banner, () => {
+      let elem: HTMLElement;
+      const updateTop = () => {
+        const height = mainHeaderDom.getBoundingClientRect().bottom;
+        elem.style.top = height + 'px';
+      };
+      setTimeout(() => watchHeightElem(contentTopDom, updateTop));
+      const lis = isScreenResizingObs.addListener(val => val || updateTop());
+      return elem = cssBannerContainer(
+        page.banner,
+        watchHeight(h => bannerHeight.set(h)),
+        dom.autoDispose(lis),
+      );
+    }),
     cssContentMain(
       leftPaneDom = cssLeftPane(
         testId('left-panel'),
         cssOverflowContainer(
           contentWrapper = cssLeftPanelContainer(
-            cssLeftPaneHeader(left.header),
+            cssLeftPaneHeader(
+              left.header,
+              dom.style('margin-bottom', use => use(bannerHeight) + 'px')
+            ),
             left.content,
           ),
         ),
@@ -242,7 +265,7 @@ export function pagePanels(page: PageContents) {
         cssHideForNarrowScreen.cls('')),
 
       cssMainPane(
-        cssTopHeader(
+        mainHeaderDom = cssTopHeader(
           testId('top-header'),
           (left.hideOpener ? null :
             cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
@@ -260,6 +283,7 @@ export function pagePanels(page: PageContents) {
               dom.on('click', () => toggleObs(right.panelOpen)),
               cssHideForNarrowScreen.cls(''))
           ),
+          dom.style('margin-bottom', use => use(bannerHeight) + 'px'),
         ),
         page.contentMain,
         cssMainPane.cls('-left-overlap', leftOverlap),
@@ -275,7 +299,10 @@ export function pagePanels(page: PageContents) {
 
         rightPaneDom = cssRightPane(
           testId('right-panel'),
-          cssRightPaneHeader(right.header),
+          cssRightPaneHeader(
+            right.header,
+            dom.style('margin-bottom', use => use(bannerHeight) + 'px')
+          ),
           right.content,
 
           dom.style('width', (use) => use(right.panelOpen) ? use(right.panelWidth) + 'px' : ''),
@@ -606,7 +633,11 @@ const cssHiddenInput = styled('input', `
   font-size: 1;
   z-index: -1;
 `);
-
+const cssBannerContainer = styled('div', `
+  position: absolute;
+  z-index: 11;
+  width: 100%;
+`);
 // watchElementForBlur does not work if focus is on body. Which never happens when running in Grist
 // because focus is constantly given to the copypasteField. But it does happen when running inside a
 // projects test. For that latter case we had a hidden <input> field to the dom and give it focus.
@@ -616,4 +647,16 @@ function maybePatchDomAndChangeFocus() {
     document.body.appendChild(hiddenInput);
     hiddenInput.focus();
   }
+}
+// Watch for changes in dom subtree and call callback with element height;
+function watchHeight(callback: (height: number) => void): DomElementMethod {
+  return elem => watchHeightElem(elem, callback);
+}
+
+function watchHeightElem(elem: HTMLElement, callback: (height: number) => void) {
+  const onChange = () => callback(elem.getBoundingClientRect().height);
+  const observer = new MutationObserver(onChange);
+  observer.observe(elem, {childList: true, subtree: true, attributes: true});
+  dom.onDisposeElem(elem, () => observer.disconnect());
+  onChange();
 }

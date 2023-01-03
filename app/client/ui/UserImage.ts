@@ -1,6 +1,7 @@
 import {colors, theme} from 'app/client/ui2018/cssVars';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {dom, DomElementArg, styled} from 'grainjs';
+import {icon} from 'app/client/ui2018/icons';
 
 export type Size = 'small' | 'medium' | 'large';
 
@@ -8,10 +9,11 @@ export type Size = 'small' | 'medium' | 'large';
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
  * picture is missing. Also varies the color of the circle when using initials.
  */
-export function createUserImage(user: FullUser|null, size: Size, ...args: DomElementArg[]): HTMLElement {
+export function createUserImage(user: FullUser|'exampleUser'|null, size: Size, ...args: DomElementArg[]): HTMLElement {
   let initials: string;
   return cssUserImage(
     cssUserImage.cls('-' + size),
+    (user === 'exampleUser') ? [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')] :
     (!user || user.anonymous) ? cssUserImage.cls('-anon') :
     [
       (user.picture ? cssUserPicture({src: user.picture}, dom.on('error', (ev, el) => dom.hideElem(el, true))) : null),
@@ -113,6 +115,11 @@ export const cssUserImage = styled('div', `
   &-reduced {
     font-size: var(--reduced-font-size);
   }
+
+  &-example {
+    background-color: ${colors.slate};
+    border: 1px solid ${colors.slate};
+  }
 `);
 
 const cssUserPicture = styled('img', `
@@ -123,4 +130,11 @@ const cssUserPicture = styled('img', `
   background-color: ${theme.menuBg};
   border-radius: 100px;
   box-sizing: content-box;    /* keep the border outside of the size of the image */
+`);
+
+const cssExampleUserIcon = styled(icon, `
+  background-color: white;
+  width: 45px;
+  height: 45px;
+  transform: scaleY(0.75);
 `);

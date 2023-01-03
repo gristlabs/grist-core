@@ -1,27 +1,21 @@
-import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberImage, cssMemberListItem, cssMemberPrimary,
         cssMemberSecondary, cssMemberText} from 'app/client/ui/UserItem';
-import {basicButton, basicButtonLink} from 'app/client/ui2018/buttons';
-import {testId, theme} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {menuCssClass, menuDivider} from 'app/client/ui2018/menus';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {menuCssClass} from 'app/client/ui2018/menus';
 import {PermissionDataWithExtraUsers} from 'app/common/ActiveDocAPI';
 import {userOverrideParams} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
-import * as roles from 'app/common/roles';
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL} from 'app/common/UserAPI';
 import {getRealAccess, UserAccessData} from 'app/common/UserAPI';
 import {Disposable, dom, Observable, styled} from 'grainjs';
-import {cssMenu, cssMenuWrap, defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
+import {cssMenu, cssMenuWrap, defaultMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
+import {getUserRoleText} from 'app/common/UserAPI';
+import {makeT} from 'app/client/lib/localization';
 
-const roleNames: {[role: string]: string} = {
-  [roles.OWNER]: 'Owner',
-  [roles.EDITOR]: 'Editor',
-  [roles.VIEWER]: 'Viewer',
-};
+const t = makeT('aclui.ViewAsDropdown');
 
 function isSpecialEmail(email: string) {
   return email === ANONYMOUS_USER_EMAIL || email === EVERYONE_EMAIL;
@@ -43,57 +37,53 @@ export class ACLUsersPopup extends Disposable {
         ...user,
         access: getRealAccess(user, permissionData),
       }))
-      .filter(user => user.access && !isSpecialEmail(user.email));
+        .filter(user => user.access && !isSpecialEmail(user.email))
+        .filter(user => this._currentUser?.id !== user.id);
       this._attributeTableUsers = permissionData.attributeTableUsers;
       this._exampleUsers = permissionData.exampleUsers;
       this.isInitialized.set(true);
     }
   }
 
-  public attachPopup(elem: Element) {
+  public attachPopup(elem: Element, options: IPopupOptions) {
     setPopupToCreateDom(elem, (ctl) => {
-      const buildRow = (user: UserAccessData) => this._buildUserRow(user, this._currentUser, ctl);
+      const buildRow =
+        (user: UserAccessData) => this._buildUserRow(user);
+      const buildExampleUserRow =
+        (user: UserAccessData) => this._buildUserRow(user, {isExampleUser: true});
       return cssMenuWrap(cssMenu(
         dom.cls(menuCssClass),
         cssUsers.cls(''),
+        cssHeader(t('ViewAs'), dom.show(this._shareUsers.length > 0)),
         dom.forEach(this._shareUsers, buildRow),
-        // Add a divider between users-from-shares and users from attribute tables.
-        (this._attributeTableUsers.length > 0) ? menuDivider() : null,
-        dom.forEach(this._attributeTableUsers, buildRow),
+        (this._attributeTableUsers.length > 0) ? cssHeader(t('UsersFrom')) : null,
+        dom.forEach(this._attributeTableUsers, buildExampleUserRow),
         // Include example users only if there are not many "real" users.
         // It might be better to have an expandable section with these users, collapsed
         // by default, but that's beyond my UI ken.
         (this._shareUsers.length + this._attributeTableUsers.length < 5) ? [
-          (this._exampleUsers.length > 0) ? menuDivider() : null,
-          dom.forEach(this._exampleUsers, buildRow)
+          (this._exampleUsers.length > 0) ? cssHeader(t('ExampleUsers')) : null,
+          dom.forEach(this._exampleUsers, buildExampleUserRow)
         ] : null,
         (el) => { setTimeout(() => el.focus(), 0); },
         dom.onKeyDown({Escape: () => ctl.close()}),
       ));
-    }, {...defaultMenuOptions, placement: 'bottom-end'});
+    }, {...defaultMenuOptions, ...options});
   }
 
-  private _buildUserRow(user: UserAccessData, currentUser: FullUser|null, ctl: IOpenController) {
-    const isCurrentUser = Boolean(currentUser && user.id === currentUser.id);
-    return cssUserItem(
+  private _buildUserRow(user: UserAccessData, opt: {isExampleUser?: boolean} = {}) {
+    return dom('a',
+      {class: cssMemberListItem.className + ' ' + cssUserItem.className},
       cssMemberImage(
-        createUserImage(user, 'large')
+        createUserImage(opt.isExampleUser ? 'exampleUser' : user, 'large')
       ),
       cssMemberText(
         cssMemberPrimary(user.name || dom('span', user.email),
-          cssRole('(', roleNames[user.access!] || user.access || 'no access', ')', testId('acl-user-access')),
+          cssRole('(', getUserRoleText(user), ')', testId('acl-user-access')),
         ),
         user.name ? cssMemberSecondary(user.email) : null
       ),
-      basicButton(cssUserButton.cls(''), icon('Copy'), 'Copy Email',
-        testId('acl-user-copy'),
-        dom.on('click', async (ev, elem) => { await copyToClipboard(user.email); ctl.close(); }),
-      ),
-      basicButtonLink(cssUserButton.cls(''), cssUserButton.cls('-disabled', isCurrentUser),
-        testId('acl-user-view-as'),
-          icon('FieldLink'), 'View As',
-          this._viewAs(user),
-        ),
+      this._viewAs(user),
       testId('acl-user-item'),
     );
   }
@@ -132,6 +122,9 @@ const cssUserItem = styled(cssMemberListItem, `
   &:hover {
     background-color: ${theme.lightHover};
   }
+  &, &:hover, &:focus {
+    text-decoration: none;
+  }
 `);
 
 const cssRole = styled('span', `
@@ -139,18 +132,10 @@ const cssRole = styled('span', `
   font-weight: normal;
 `);
 
-const cssUserButton = styled('div', `
-  margin: 0 8px;
-  border: none;
-  display: inline-flex;
-  white-space: nowrap;
-  gap: 4px;
-  &:hover {
-    --icon-color: ${theme.controlFg};
-    color: ${theme.controlFg};
-    background-color: ${theme.hover};
-  }
-  &-disabled {
-    visibility: hidden;
-  }
+const cssHeader = styled('div', `
+  margin: 11px 24px 14px 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: ${vars.xsmallFontSize};
+  color: ${theme.darkText};
 `);

@@ -11,8 +11,6 @@ import { cssHideForNarrowScreen, mediaNotSmall, testId, theme } from 'app/client
 import { editableLabel } from 'app/client/ui2018/editableLabel';
 import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
-import { UserOverride } from 'app/common/DocListAPI';
-import { userOverrideParams } from 'app/common/gristUrls';
 import { BindableValue, dom, Observable, styled } from 'grainjs';
 import { tooltip } from 'popweasel';
 
@@ -99,7 +97,6 @@ export function docBreadcrumbs(
     isBareFork: Observable<boolean>,
     isFiddle: Observable<boolean>,
     isRecoveryMode: Observable<boolean>,
-    userOverride: Observable<UserOverride|null>,
     isSnapshot?: Observable<boolean>,
     isPublic?: Observable<boolean>,
   }
@@ -151,16 +148,6 @@ export function docBreadcrumbs(
                              dom('a', dom.on('click', () => options.cancelRecoveryMode()),
                                  icon('CrossSmall')),
                              testId('recovery-mode-tag'));
-        }
-        const userOverride = use(options.userOverride);
-        if (userOverride) {
-          return cssAlertTag(userOverride.user?.email || t('Override'),
-            dom('a',
-              urlState().setHref(userOverrideParams(null)),
-              icon('CrossSmall')
-            ),
-            testId('user-override-tag')
-          );
         }
         if (use(options.isFiddle)) {
           return cssTag(t('Fiddle'), tooltip({title: t('FiddleExplanation')}), testId('fiddle-tag'));

@@ -673,6 +673,11 @@ export class DocWorkerApi {
       res.json({snapshots});
     }));
 
+    this._app.get('/api/docs/:docId/usersForViewAs', isOwner, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      res.json(await activeDoc.getUsersForViewAs(docSession));
+    }));
+
     this._app.post('/api/docs/:docId/snapshots/remove', isOwner, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
       const snapshotIds = req.body.snapshotIds as string[];

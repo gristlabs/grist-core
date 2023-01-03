@@ -82,7 +82,6 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isFork: pageModel.isFork,
           isBareFork: pageModel.isBareFork,
           isRecoveryMode: pageModel.isRecoveryMode,
-          userOverride: pageModel.userOverride,
           isFiddle: Computed.create(owner, (use) => use(pageModel.isPrefork)),
           isSnapshot: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.idParts.snapshotId)),
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),

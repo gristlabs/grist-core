@@ -1,4 +1,5 @@
 import {buildDocumentBanners, buildHomeBanners} from 'app/client/components/Banners';
+import {ViewAsBanner} from 'app/client/components/ViewAsBanner';
 import {domAsync} from 'app/client/lib/domAsync';
 import {loadBillingPage} from 'app/client/lib/imports';
 import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
@@ -161,5 +162,6 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     testId,
     contentTop: buildDocumentBanners(pageModel),
     contentBottom: dom.create(createBottomBarDoc, pageModel, leftPanelOpen, rightPanelOpen),
+    banner: dom.create(ViewAsBanner, pageModel),
   });
 }

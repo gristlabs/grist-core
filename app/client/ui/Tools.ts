@@ -7,13 +7,10 @@ import {buildExamples} from 'app/client/ui/ExampleInfo';
 import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
         cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
         cssTools} from 'app/client/ui/LeftPanelCommon';
-import {hoverTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {cssLink} from 'app/client/ui2018/links';
 import {menuAnnotate} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {userOverrideParams} from 'app/common/gristUrls';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 
@@ -44,7 +41,6 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
             menuAnnotate('Beta', cssBetaTag.cls(''))
           ),
           _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
-          isOverridden ? addRevertViewAsUI() : null,
         );
       }),
       testId('access-rules'),
@@ -178,49 +174,6 @@ export interface AutomaticHelpToolInfo {
   markAsSeen: () => void;
 }
 
-// When viewing a page as another user, the "Access Rules" page link includes a button to revert
-// the user and open the page, and a click on the page link shows a tooltip to revert.
-function addRevertViewAsUI() {
-  return [
-    // A button that allows reverting back to yourself.
-    dom('a',
-      cssExampleCardOpener.cls(''),
-      cssRevertViewAsButton.cls(''),
-      icon('Convert'),
-      urlState().setHref(userOverrideParams(null, {docPage: 'acl'})),
-      dom.on('click', (ev) => ev.stopPropagation()),    // Avoid refreshing the tooltip.
-      testId('revert-view-as'),
-    ),
-
-    // A tooltip that allows reverting back to yourself.
-    hoverTooltip((ctl) =>
-      cssConvertTooltip(icon('Convert'),
-        cssLink(t('ViewingAsYourself'),
-          urlState().setHref(userOverrideParams(null, {docPage: 'acl'})),
-        ),
-        tooltipCloseButton(ctl),
-      ),
-      {
-        openOnClick: true,
-        closeOnClick: false,
-        openDelay: 100,
-        closeDelay: 400,
-        placement: 'top',
-      }
-    ),
-  ];
-}
-
-const cssConvertTooltip = styled('div', `
-  display: flex;
-  align-items: center;
-  --icon-color: ${theme.controlFg};
-
-  & > .${cssLink.className} {
-    margin-left: 8px;
-  }
-`);
-
 const cssExampleCardOpener = styled('div', `
   cursor: pointer;
   margin-right: 4px;
@@ -238,13 +191,6 @@ const cssExampleCardOpener = styled('div', `
   }
   .${cssTools.className}-collapsed & {
     display: none;
-  }
-`);
-
-const cssRevertViewAsButton = styled(cssExampleCardOpener, `
-  background-color: ${theme.iconButtonSecondaryBg};
-  &:hover {
-    background-color: ${theme.iconButtonSecondaryHoverBg};
   }
 `);
 

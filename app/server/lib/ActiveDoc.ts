@@ -1504,7 +1504,7 @@ export class ActiveDoc extends EventEmitter {
    *
    * Example users are always included.
    */
-  public async getUsersForViewAs(docSession: DocSession): Promise<PermissionDataWithExtraUsers> {
+  public async getUsersForViewAs(docSession: OptDocSession): Promise<PermissionDataWithExtraUsers> {
     // Make sure we have rights to view access rules.
     const db = this.getHomeDbManager();
     if (!db || !await this._granularAccess.hasAccessRulesPermission(docSession)) {

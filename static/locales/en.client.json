@@ -567,7 +567,6 @@
       "Reset": "Reset",
       "AddTableRules": "Add Table Rules",
       "AddUserAttributes": "Add User Attributes",
-      "Users": "Users",
       "UserAttributes": "User Attributes",
       "AttributeToLookUp": "Attribute to Look Up",
       "LookupTable": "Lookup Table",
@@ -591,7 +590,13 @@
       "RemoveRulesMentioningTable": "Remove {{- tableId }} rules",
       "RemoveRulesMentioningColumn": "Remove column {{- colId }} from {{- tableId }} rules",
       "RemoveUserAttribute": "Remove {{- name }} user attribute",
-      "MemoEditorPlaceholder": "Type a message..."
+      "MemoEditorPlaceholder": "Type a message...",
+      "ViewAs": "View As"
+    },
+    "ViewAsDropdown": {
+      "ViewAs": "View As",
+      "UsersFrom": "Users from table",
+      "ExampleUsers": "Example Users"
     },
     "PermissionsWidget": {
       "AllowAll": "Allow All",
@@ -729,7 +734,7 @@
       "PluginColon": "Plugin: ",
       "SectionColon": "Section: "
     },
-    "Drafts": { 
+    "Drafts": {
       "UndoDiscard":"Undo discard",
       "RestoreLastEdit":"Restore last edit"
     },
@@ -777,6 +782,9 @@
     "ValidationPanel": {
       "RuleLength":"Rule {{length}}",
       "UpdateFormula":"Update formula (Shift+Enter)"
+    },
+    "ViewAsBanner": {
+      "UnknownUser": "Unknown User"
     }
   }
 }
