@@ -3960,7 +3960,7 @@ i18next-http-middleware@3.2.1:
   resolved "https://registry.npmjs.org/i18next-http-middleware/-/i18next-http-middleware-3.2.1.tgz"
   integrity sha512-zBwXxDChT0YLoTXIR6jRuqnUUhXW0Iw7egoTnNXyaDRtTbfWNXwU0a53ThyuRPQ+k+tXu3ZMNKRzfLuononaRw==
 
-i18next-scanner@^4.1.0:
+i18next-scanner@4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/i18next-scanner/-/i18next-scanner-4.1.0.tgz#15979dcfd6eca494e08c8a8ff784e8740ab7d318"
   integrity sha512-KAZRc6ZBqtn/Qa5fRRTn7D8effB84K9m3g9SQcKD+tocMajEVW2zfFP397qNxROad1VFjUGT8aw1Y6ZcfnIzlg==

@@ -104,7 +104,9 @@ export class ApiKey extends Disposable {
 
   private _getDescription(): string {
     return t(
-      !this._anonymous ? 'OwnAPIKey' : 'AnonymousAPIkey'
+      !this._anonymous ?
+        'This API key can be used to access your account via the API. Don’t share your API key with anyone.' :
+        'This API key can be used to access this account anonymously via the API.'
     );
   }
 
