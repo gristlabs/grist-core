@@ -33,9 +33,8 @@ export const cssButton = styled('button', `
   color:            ${theme.controlFg};
   --icon-color:     ${theme.controlFg};
 
-  border:        ${vars.controlBorder};
+  border:        ${theme.controlBorder};
   border-radius: ${vars.controlBorderRadius};
-  border-color:  ${theme.controlBorder};
 
   cursor: pointer;
 

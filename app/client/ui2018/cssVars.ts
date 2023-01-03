@@ -359,7 +359,7 @@ export const theme = {
   controlDisabledBg: new CustomProp('theme-control-disabled-bg', undefined, colors.slate),
   controlPrimaryDisabled: new CustomProp('theme-control-primary-disabled', undefined,
     colors.inactiveCursor),
-  controlBorder: new CustomProp('theme-control-border', undefined, '#11B683'),
+  controlBorder: new CustomProp('theme-control-border', undefined, vars.controlBorder),
 
   /* Checkboxes */
   checkboxBg: new CustomProp('theme-checkbox-bg', undefined, colors.light),
