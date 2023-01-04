@@ -227,8 +227,13 @@ export function getSection(sectionOrTitle: string|WebElement): WebElement|WebEle
  * Click into a section without disrupting cursor positions.
  */
 export async function selectSectionByTitle(title: string) {
-  // .test-viewsection is a special 1px width element added for tests only.
-  await driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
+  try {
+    // .test-viewsection is a special 1px width element added for tests only.
+    await driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
+  } catch (e) {
+    // We might be in mobile view.
+    await driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
+  }
 }
 
 
@@ -2319,9 +2324,8 @@ export function bigScreen() {
 /**
  * Shrinks browser window dimensions to trigger mobile mode for a test suite.
  */
- export function narrowScreen() {
+export function narrowScreen() {
   resizeWindowForSuite(400, 750);
-
 }
 
 export async function addSupportUserIfPossible() {

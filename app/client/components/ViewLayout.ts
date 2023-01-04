@@ -15,13 +15,14 @@ import {reportError} from 'app/client/models/errors';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {colors, isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {colors, isNarrowScreen, isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
 import {Observable} from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
+import debounce from 'lodash/debounce';
 import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, subscribe} from 'grainjs';
 
 // tslint:disable:no-console
@@ -133,6 +134,23 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     // (See https://stackoverflow.com/questions/2381336/detect-click-into-iframe-using-javascript).
     this.listenTo(this.gristDoc.app, 'clipboard_blur', this._maybeFocusInSection);
 
+    // On narrow screens (e.g. mobile), we need to resize the section after a transition.
+    // There will two transition events (one from section one from row), so we debounce them after a tick.
+    const handler = debounce((e: TransitionEvent) => {
+      // We work only on the transition of the flex-grow property, and only on narrow screens.
+      if (e.propertyName !== 'flex-grow' || !isNarrowScreen()) { return; }
+      // Make sure the view is still active.
+      if (this.viewModel.isDisposed() || !this.viewModel.activeSection) { return; }
+      const section = this.viewModel.activeSection.peek();
+      if (!section || section.isDisposed()) { return; }
+      const view = section.viewInstance.peek();
+      if (!view || view.isDisposed()) { return; }
+      // Make resize.
+      view.onResize();
+    }, 0);
+    this._layout.rootElem.addEventListener('transitionend', handler);
+    // Don't need to dispose the listener, as the rootElem is disposed with the layout.
+
     const classActive = cssLayoutBox.className + '-active';
     const classInactive = cssLayoutBox.className + '-inactive';
     this.autoDispose(subscribe(fromKo(this.viewModel.activeSection), (use, section) => {
@@ -140,6 +158,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       this._layout.forEachBox((box: {dom: Element}) => {
         box.dom.classList.add(classInactive);
         box.dom.classList.remove(classActive);
+        box.dom.classList.remove("transition");
       });
       let elem: Element|null = this._layout.getLeafBox(id)?.dom;
       while (elem?.matches('.layout_box')) {
@@ -147,7 +166,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         elem.classList.add(classActive);
         elem = elem.parentElement;
       }
-      section.viewInstance.peek()?.onResize();
+      if (!isNarrowScreen()) {
+        section.viewInstance.peek()?.onResize();
+      }
     }));
 
     const commandGroup = {
@@ -406,7 +427,7 @@ const cssViewLeafInactive = styled('div', `
 const cssLayoutBox = styled('div', `
   @media screen and ${mediaSmall} {
     &-active, &-inactive {
-      transition: flex-grow 0.4s;
+      transition: flex-grow var(--grist-layout-animation-duration, 0.4s); // Exposed for tests
     }
     &-active > &-inactive,
     &-active > &-inactive.layout_hbox .layout_hbox,

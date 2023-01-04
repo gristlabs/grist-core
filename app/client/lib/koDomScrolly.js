@@ -274,9 +274,9 @@ Scrolly.prototype.addPane = function(containerElem, options, itemCreateFunc) {
 /**
  * Tells Scrolly to call updateSize after things have had a chance to render.
  */
-Scrolly.prototype.scheduleUpdateSize = function() {
+Scrolly.prototype.scheduleUpdateSize = function(overrideHeight) {
   if (!this.isDisposed() && !this.delayedUpdateSize.isPending()) {
-    this.delayedUpdateSize.schedule(0, this.updateSize, this);
+    this.delayedUpdateSize.schedule(0, this.updateSize.bind(this, overrideHeight), this);
   }
 };
 
@@ -284,15 +284,16 @@ Scrolly.prototype.scheduleUpdateSize = function() {
  * Measures the size of the panes and adjusts Scrolly parameters for how many rows to render.
  * This should be called as soon as all Scrolly panes have been attached to the Document, and any
  * time their outer size changes.
+ * Pass in an overrideHeight to use instead of the current height of the panes.
  */
-Scrolly.prototype.updateSize = function() {
+Scrolly.prototype.updateSize = function(overrideHeight) {
   this.resetHeights();
   this.shownHeight = Math.max(0, Math.max.apply(null, this.panes.map(function(pane) {
     return pane.container.clientHeight;
   })));
 
   // Update counts of rows that are shown.
-  var numVisible = Math.max(1, Math.ceil(this.shownHeight / this.minRowHeight));
+  var numVisible = Math.max(1, Math.ceil((overrideHeight ?? this.shownHeight) / this.minRowHeight));
   this.numBuffered = 5;
   this.numRendered = numVisible + 2 * this.numBuffered;
 

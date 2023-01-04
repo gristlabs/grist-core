@@ -1,4 +1,4 @@
-/* globals $ */
+/* globals $, window */
 
 const _         = require('underscore');
 const ko        = require('knockout');
@@ -40,7 +40,7 @@ const {RowContextMenu} = require('../ui/RowContextMenu');
 
 const {setPopupToCreateDom} = require('popweasel');
 const {CellContextMenu} = require('app/client/ui/CellContextMenu');
-const {testId} = require('app/client/ui2018/cssVars');
+const {testId, isNarrowScreen} = require('app/client/ui2018/cssVars');
 const {contextMenu} = require('app/client/ui/contextMenu');
 const {mouseDragMatchElem} = require('app/client/ui/mouseDrag');
 const {menuToggle} = require('app/client/ui/MenuToggle');
@@ -1306,14 +1306,18 @@ GridView.prototype.buildDom = function() {
 /** @inheritdoc */
 GridView.prototype.onResize = function() {
   const activeFieldBuilder = this.activeFieldBuilder();
+  let height = null;
+  if (isNarrowScreen()) {
+    height = window.outerHeight;
+  }
   if (activeFieldBuilder && activeFieldBuilder.isEditorActive()) {
     // When the editor is active, the common case for a resize is if the virtual keyboard is being
     // shown on mobile device. In that case, we need to scroll active cell into view, and need to
     // do it synchronously, to allow repositioning the editor to it in response to the same event.
-    this.scrolly.updateSize();
+    this.scrolly.updateSize(height);
     this.scrolly.scrollRowIntoView(this.cursor.rowIndex.peek());
   } else {
-    this.scrolly.scheduleUpdateSize();
+    this.scrolly.scheduleUpdateSize(height);
   }
   this.width(this.scrollPane.clientWidth)
 };
