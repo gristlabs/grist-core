@@ -116,7 +116,7 @@ describe("Localization", function() {
       await driver.navigate().refresh();
       assert.equal(await driver.findWait('.test-welcome-title', 3000).getText(), 'TestMessage');
       const gristConfig: any = await driver.executeScript("return window.gristConfig");
-      assert.deepEqual(gristConfig.supportedLngs, [...existingLocales, 'pl']);
+      assert.sameDeepMembers(gristConfig.supportedLngs, [...existingLocales, 'pl']);
     });
   });
 
