@@ -113,7 +113,9 @@ export class AccountPage extends Disposable {
           ),
           css.subHeader(t("Two-factor authentication")),
           css.description(
-            t("Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.")
+            t("Two-factor authentication is an extra layer of security for your Grist account " +
+              "designed to ensure that you're the only person who can access your account, " +
+              "even if someone knows your password.")
           ),
           dom.create(MFAConfig, user),
         ),

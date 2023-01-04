@@ -101,7 +101,7 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
   // If there are any DomElements in args, handle it with missingInterpolationHandler.
   const domElements = !args ? [] : Object.entries(args).filter(([_, value]) => isLikeDomContents(value));
   if (!args || !domElements.length) {
-    return tImpl(key, args || undefined) as any;
+    return tImpl(key, args || undefined);
   } else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
@@ -171,5 +171,5 @@ export function makeT(scope: string, instance?: typeof i18next) {
       reportError(error);
     }
     return domT(key, args, scopedResolver!);
-  }
+  };
 }

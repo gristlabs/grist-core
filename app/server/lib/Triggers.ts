@@ -376,7 +376,7 @@ export class DocTriggers {
 
   private async _pushToRedisQueue(events: WebHookEvent[]) {
     const strings = events.map(e => JSON.stringify(e));
-    await this._redisClient!.rpushAsync(this._redisQueueKey, ...strings);
+    await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
   }
 
   private async _getRedisQueue(redisClient: RedisClient) {

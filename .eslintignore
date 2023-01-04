@@ -1,0 +1,11 @@
+# Exclude everything, and use an allowlist to include just the folders we want checked.
+/*
+!/app
+!/test
+!/plugins
+!/buildtools
+!/stubs
+!/.eslintrc.js
+
+# And exclude some things within those (generated files)
+/plugins/**/dist

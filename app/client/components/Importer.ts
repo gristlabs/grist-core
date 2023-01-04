@@ -380,7 +380,7 @@ export class Importer extends DisposableWithEvents {
   }
 
   private _getHiddenTableIds(): string[] {
-    return this._sourceInfoArray.get().map((t: SourceInfo) => t.hiddenTableId);
+    return this._sourceInfoArray.get().map((si: SourceInfo) => si.hiddenTableId);
   }
 
   private async _reImport(upload: UploadResult) {

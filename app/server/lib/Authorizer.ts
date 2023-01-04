@@ -18,7 +18,7 @@ import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {AccessTokenInfo} from 'app/server/lib/AccessTokens';
-import {allowHost, isEnvironmentAllowedHost, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
+import {allowHost, getOriginUrl, isEnvironmentAllowedHost, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';

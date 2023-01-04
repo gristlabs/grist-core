@@ -108,7 +108,9 @@ export function allowHost(req: Request, allowedHost: string|URL) {
     // For requests to a native subdomains, only the base domain needs to match.
     const allowedDomain = parseSubdomain(allowedUrl.hostname);
     const actualDomain = parseSubdomain(actualUrl.hostname);
-    return (!_.isEmpty(actualDomain) ? actualDomain.base === allowedDomain.base : allowedUrl.hostname === actualUrl.hostname);
+    return (!_.isEmpty(actualDomain) ?
+      actualDomain.base === allowedDomain.base :
+      allowedUrl.hostname === actualUrl.hostname);
   }
 }
 

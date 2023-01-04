@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {createFormatter} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {ExportData, exportSection, exportTable, Filter, DownloadOptions} from 'app/server/lib/Export';
+import {DownloadOptions, ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
 import * as bluebird from 'bluebird';
 import contentDisposition from 'content-disposition';

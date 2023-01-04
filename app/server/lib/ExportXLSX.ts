@@ -1,6 +1,6 @@
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
-import {ExportData, exportDoc, DownloadOptions, exportSection, exportTable, Filter} from 'app/server/lib/Export';
+import {DownloadOptions, ExportData, exportDoc, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import {Alignment, Border, Fill, Workbook} from 'exceljs';
 import * as express from 'express';
 import log from 'app/server/lib/log';

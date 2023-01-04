@@ -1,5 +1,5 @@
 import { createGroup } from 'app/client/components/commands';
-import { ACItem, ACResults, normalizeText, HighlightFunc } from 'app/client/lib/ACIndex';
+import { ACItem, ACResults, HighlightFunc, normalizeText } from 'app/client/lib/ACIndex';
 import { IAutocompleteOptions } from 'app/client/lib/autocomplete';
 import { IToken, TokenField, tokenFieldStyles } from 'app/client/lib/TokenField';
 import { reportError } from 'app/client/models/errors';

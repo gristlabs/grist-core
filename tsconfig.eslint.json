@@ -1,0 +1,15 @@
+{
+  "extends": "./buildtools/tsconfig-base.json",
+  "include": [
+    "app/**/*.js",
+    "app/**/*.ts",
+    "stubs/**/*.ts",
+    "stubs/**/*.ts",
+    "test/**/*.js",
+    "test/**/*.ts",
+    "plugins/**/*.js",
+    "plugins/**/*.ts",
+    "buildtools/**/*.js",
+    "buildtools/**/*.ts",
+  ]
+}
