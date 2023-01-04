@@ -1,0 +1,781 @@
+{
+    "AccountPage": {
+        "AllowGoogleSigning": "Anmeldung bei diesem Konto mit Google zulassen",
+        "TwoFactorAuth": "Zwei-Faktor-Authentifizierung",
+        "TwoFactorAuthDescription": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt.",
+        "AccountSettings": "Kontoeinstellungen",
+        "API": "API",
+        "Edit": "Bearbeiten",
+        "Name": "Name",
+        "Save": "Speichern",
+        "LoginMethod": "Anmeldemethode",
+        "ChangePassword": "Passwort ändern",
+        "APIKey": "API-Schlüssel",
+        "Theme": "Thema",
+        "WarningUsername": "Bei den Namen sind nur Buchstaben, Zahlen und bestimmte Sonderzeichen erlaubt",
+        "Email": "E-mail",
+        "PasswordSecurity": "Passwort und Sicherheit"
+    },
+    "AccountWidget": {
+        "SignIn": "Anmelden",
+        "DocumentSettings": "Dokument-Einstellungen",
+        "ToggleMobileMode": "Mobilmodus umschalten",
+        "Pricing": "Preisgestaltung",
+        "AccessDetails": "Zugangsdetails",
+        "ProfileSettings": "Profil-Einstellungen",
+        "ManageTeam": "Team verwalten",
+        "SwitchAccounts": "Konten wechseln",
+        "Accounts": "Konten",
+        "AddAccount": "Konto hinzufügen",
+        "SignOut": "Abmelden"
+    },
+    "CellContextMenu": {
+        "InsertRowBelow": "Zeile unten einfügen",
+        "DeleteRows_one": "Zeile löschen",
+        "DeleteRows_other": "{{count}} Zeilen löschen",
+        "ResetEntireColumns_one": "Gesamte Spalte zurücksetzen",
+        "ResetEntireColumns_other": "{{count}} ganze Spalten zurücksetzen",
+        "ResetColumns_one": "Spalte zurücksetzen",
+        "ResetColumns_other": "{{count}} Spalten zurücksetzen",
+        "DeleteColumns_one": "Spalte löschen",
+        "DeleteColumns_other": "{{count}} Spalten löschen",
+        "ClearValues": "Werte auflösen",
+        "ClearCell": "Zelle löschen",
+        "CopyAnchorLink": "Ankerlink kopieren",
+        "FilterByValue": "Nach diesem Wert filtern",
+        "InsertRow": "Zeile einfügen",
+        "InsertRowAbove": "Zeile oben einfügen",
+        "DuplicateRows_one": "Zeile duplizieren",
+        "DuplicateRows_other": "Zeilen duplizieren",
+        "InsertColumnRight": "Spalte rechts einfügen",
+        "InsertColumnLeft": "Spalte links einfügen"
+    },
+    "components": {
+        "PluginScreen": {
+            "ImportFailed": "Der Import ist fehlgeschlagen: "
+        },
+        "RecordLayoutEditor": {
+            "AddField": "Feld hinzufügen",
+            "ShowField": "Feld anzeigen {{- label}}",
+            "CreateNewField": "Neues Feld erstellen",
+            "Cancel": "Abbrechen",
+            "SaveLayout": "Layout speichern"
+        },
+        "RefSelect": {
+            "NoColumnsAdd": "Keine Spalten zum Hinzufügen",
+            "AddColumn": "Spalte hinzufügen"
+        },
+        "SelectionSummary": {
+            "CopiedClipboard": "In die Zwischenablage kopiert"
+        },
+        "TypeTransformation": {
+            "Cancel": "Abbrechen",
+            "Preview": "Vorschau",
+            "UpdateFormula": "Formel aktualisieren (Umschalttaste+Eingabetaste)",
+            "Revise": "Überarbeiten",
+            "Apply": "Anwenden"
+        },
+        "ActionLog": {
+            "RowRemovedInAction": "Diese Zeile wurde anschließend in Aktion entfernt {{action.actionNum}}",
+            "ActionLogFailed": "Aktionsprotokoll konnte nicht geladen werden",
+            "TableRemovedInAction": "Tabelle {{tableId}} wurde anschließend in Aktion #{{actionNum}} entfernt",
+            "ColumnRemovedInAction": "Spalte {{colId}} wurde anschließend in Aktion #{{action.actionNum}} entfernt"
+        },
+        "CodeEditorPanel": {
+            "CodeViewOnlyFullAccess": "Die Codeansicht ist nur verfügbar, wenn Sie über vollständigen Dokumentzugriff verfügen.",
+            "AccessDenied": "Zugriff verweigert"
+        },
+        "ChartView": {
+            "EachYFollowedByTwo": "Auf jede Y-Reihe folgen zwei Reihen für die oberen und unteren Fehlerbalken.",
+            "EachYFollowedByOne": "Auf jede Y-Reihe folgt eine Reihe für die Länge der Fehlerbalken.",
+            "CreateSeparateSeries": "Erstellen Sie separate Datenreihen für jeden Wert der ausgewählten Spalte.",
+            "PickColumn": "Wählen Sie eine Spalte",
+            "SelectedNewGroupDataColumns": "ausgewählte neue Gruppendaten-Spalten",
+            "ToggleChartAggregation": "Diagramm-Aggregation umschalten"
+        },
+        "DocumentUsage": {
+            "UsageStatisticsOnlyFullAccess": "Nutzungsstatistiken stehen nur Benutzern mit vollem Zugriff auf die Belegdaten zur Verfügung.",
+            "StatusMessageApproachingLimit": "Dieses Dokument ist {{- link}} kostenloser Plan Grenzen.",
+            "StatusMessageGracePeriodElse": "Dokumentgrenzen {{- link}}. In {{gracePeriodDays}} Tagen wird dieses Dokument schreibgeschützt sein.",
+            "TotalSize": "Die Gesamtgröße aller Daten in diesem Dokument, ohne Anhänge.",
+            "Updates": "Aktualisiert alle 5 Minuten.",
+            "AttachmentsSize": "Anhänge Größe",
+            "DataSize": "Daten Größe",
+            "Usage": "Verwendung",
+            "LimitContactSiteOwner": "Wenden Sie sich an den Eigentümer der Seite, um den Plan zu aktualisieren und die Grenzwerte zu erhöhen.",
+            "UpgradeLinkText": "Starten Sie Ihre kostenlose 30-Tage-Testversion des Pro-Plans.",
+            "ForHigherLimits": "Für höhere Grenzwerte, ",
+            "StatusMessageGracePeriod": "Dokumentgrenzwerte {{- link}}.",
+            "StatusMessageDeleteOnly": "Dieses Dokument {{- link}} die kostenlosen Plan Grenzen und ist jetzt schreibgeschützt, aber Sie können Zeilen löschen.",
+            "Rows": "Zeilen"
+        },
+        "ViewConfigTab": {
+            "UnmarkOnDemandText": "Wenn Sie die Markierung der Tabelle {{- table}}' als \"auf-Befehl\" aufheben, werden die Daten in die Berechnungsmaschine geladen und stehen für die Verwendung in Formeln zur Verfügung. Bei einer großen Tabelle kann dies die Ladezeiten erheblich verlängern.{{- br}}{{-br}}Wenn Sie diese Einstellung ändern, wird das Dokument für alle Benutzer neu geladen.",
+            "MakeOnDemandButton": "Auf-Befehl machen",
+            "MakeOnDemandText": "Wenn Sie die Tabelle {{table}} auf-Befehl machen, werden ihre Daten nicht mehr in die Berechnungsmaschine geladen und können nicht mehr in Formeln verwendet werden. Sie bleibt jedoch für die Anzeige und Bearbeitung verfügbar.",
+            "UnmarkOnDemandButton": "Markierung auf-Befehl aufheben",
+            "MakeOnDemandTitle": "Tabelle als auf-Befehl machen?",
+            "UnmarkOnDemandTitle": "Markierung der Tabelle auf-Befehl aufheben?",
+            "AdvancedSettings": "Erweiterte Einstellungen",
+            "BigTablesMayBeMarked": "Große Tabellen können als \"auf-Befehl\" markiert werden, damit sie nicht in die Datenmaschine geladen werden müssen.",
+            "Form": "Formular",
+            "Compact": "Kompakt",
+            "Blocks": "Blöcke",
+            "EditCardLayout": "Kartenlayout bearbeiten",
+            "PluginColon": "Plugin: ",
+            "SectionColon": "Abschnitt: "
+        },
+        "GristDoc": {
+            "SavedLinkedSectionIn": "Gespeicherter verlinkter Abschnitt {{title}} in Ansicht {{name}}",
+            "AddedNewLinkedSection": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
+            "ImportFromFile": "Aus Datei importieren"
+        },
+        "RecordLayout": {
+            "UpdatingRecordLayout": "Aktualisieren des Datensatzlayouts."
+        },
+        "DataTables": {
+            "RawDataTables": "Rohdaten-Tabellen",
+            "ClickToCopy": "Zum Kopieren anklicken",
+            "TableIDCopied": "Tabellen-ID in die Zwischenablage kopiert",
+            "DuplicateTable": "Tabelle duplizieren",
+            "NoEditAccess": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument",
+            "DeleteData": "{{formattedTableName}} Daten löschen und von allen Seiten entfernen?"
+        },
+        "Drafts": {
+            "UndoDiscard": "Verwerfen rückgängig machen",
+            "RestoreLastEdit": "Letzte Bearbeitung wiederherstellen"
+        },
+        "duplicatePage": {
+            "DoesNotCopyData": "Beachten Sie, dass dabei keine Daten kopiert werden, sondern eine andere Ansicht der gleichen Daten erstellt wird.",
+            "DuplicatePageName": "Seite duplizieren {{pageName}}"
+        },
+        "Importer": {
+            "UpdateExistingRecords": "Vorhandene Datensätze aktualisieren",
+            "MergeRowsThatMatch": "Zeilen zusammenführen, die mit diesen Feldern übereinstimmen:",
+            "SelectFieldsToMatch": "Wählen Sie Felder zum Abgleichen aus"
+        },
+        "ValidationPanel": {
+            "RuleLength": "Regel {{length}}",
+            "UpdateFormula": "Formel aktualisieren (Umschalttaste+Eingabetaste)"
+        }
+    },
+    "ViewLayoutMenu": {
+        "CopyAnchorLink": "Ankerlink kopieren",
+        "DeleteRecord": "Datensatz löschen",
+        "DeleteWidget": "Widget löschen",
+        "DownloadXLSX": "Als XLSX herunterladen",
+        "ShowRawData": "Rohdaten anzeigen",
+        "PrintWidget": "Widget drucken",
+        "DownloadCSV": "Als CSV herunterladen",
+        "EditCardLayout": "Kartenlayout bearbeiten",
+        "WidgetOptions": "Widget Optionen",
+        "AdvancedSortFilter": "Erweitertes Sortieren und Filtern",
+        "DataSelection": "Datenauswahl",
+        "OpenConfiguration": "Konfiguration öffnen"
+    },
+    "PageWidgetPicker": {
+        "AddToPage": "Zur Seite hinzufügen",
+        "BuildingWidget": "{{- label}}-Widget erstellen",
+        "SelectWidget": "Widget auswählen",
+        "SelectData": "Daten auswählen",
+        "GroupBy": "Gruppieren nach"
+    },
+    "RightPanel": {
+        "GroupedBy": "GRUPPIERT NACH",
+        "Field_other": "Felder",
+        "Series_other": "Serie",
+        "Filter": "FILTER",
+        "Custom": "ANGEPASST",
+        "SelectBy": "AUSWÄHLEN NACH",
+        "ColumnType": "SPALTENTYP",
+        "ChartType": "DIAGRAMMTYP",
+        "SourceData": "QUELLENDATEN",
+        "SelectorFor": "SELEKTOR FÜR",
+        "Save": "Speichern",
+        "EditDataSelection": "Datenauswahl bearbeiten",
+        "SelectWidget": "Widget auswählen",
+        "DataTable": "DATENTABELLE",
+        "Detach": "Ablösen",
+        "Column_one": "Spalte",
+        "Column_other": "Spalten",
+        "Field_one": "Feld",
+        "Series_one": "Serie",
+        "Transform": "UMWANDELN",
+        "Widget": "Widget",
+        "SortAndFilter": "Sortieren & Filtern",
+        "Data": "Daten",
+        "DataTableName": "NAME DER DATENTABELLE",
+        "WidgetTitle": "WIDGET-TITEL",
+        "ChangeWidget": "Widget ändern",
+        "Theme": "Thema",
+        "RowStyleUpper": "ZEILENSTIL",
+        "RowStyle": "Zeilenstil",
+        "Sort": "SORTIEREN",
+        "NoEditAccess": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument"
+    },
+    "ShareMenu": {
+        "Original": "Original",
+        "CurrentVersion": "Aktuelle Version",
+        "ExportCSV": "CSV exportieren",
+        "ExportXLSX": "XLSX exportieren",
+        "BackToCurrent": "Zurück zu Aktuell",
+        "SaveDocument": "Dokument speichern",
+        "SaveCopy": "Kopie speichern",
+        "Unsaved": "Ungespeichert",
+        "DuplicateDocument": "Dokument duplizieren",
+        "ManageUsers": "Benutzer verwalten",
+        "AccessDetails": "Zugangsdetails",
+        "ReturnToTermToUse": "Zurück zu {{termToUse}}",
+        "ReplaceTermToUse": "Ersetzen Sie {{termToUse}}…",
+        "CompareTermToUse": "Vergleichen mit {{termToUse}}",
+        "WorkOnCopy": "Arbeiten an einer Kopie",
+        "EditWithoutAffecting": "Bearbeiten, ohne das Original zu beeinflussen",
+        "ShowInFolder": "Im Ordner anzeigen",
+        "Download": "Herunterladen",
+        "SendToGoogleDrive": "An Google Drive senden"
+    },
+    "Pages": {
+        "TableWillNoLongerBeVisible_other": "Die folgenden Tabellen werden nicht mehr sichtbar sein",
+        "TableWillNoLongerBeVisible_one": "Die folgende Tabelle wird nicht mehr angezeigt",
+        "DeleteDataAndPage": "Daten und diese Seite löschen.",
+        "Delete": "Löschen"
+    },
+    "ColumnFilterMenu": {
+        "FutureValues": "Zukünftige Werte",
+        "RangeMin": "Min",
+        "Others": "Andere",
+        "RangeMax": "Max",
+        "DateRangeMin": "Start",
+        "OtherNonMatching": "Andere nicht übereinstimmende",
+        "Search": "Suchen",
+        "SearchValues": "Werte suchen",
+        "All": "Alles",
+        "AllShown": "Alle angezeigt",
+        "AllExcept": "Alle außer",
+        "None": "Keine",
+        "NoMatchingValues": "Keine übereinstimmenden Werte",
+        "OtherMatching": "Andere übereinstimmende",
+        "OtherValues": "Andere Werte",
+        "DateRangeMax": "Ende"
+    },
+    "DocMenu": {
+        "Featured": "Hervorgehoben",
+        "OtherSitesWelcome_personal": "Sie sind auf Ihrer persönlichen Seite. Sie haben auch Zugriff auf die folgenden Seiten:",
+        "AllDocuments": "Alle Dokumente",
+        "PinnedDocuments": "Angeheftete Dokumente",
+        "MoreExamplesAndTemplates": "Weitere Beispiele und Vorlagen",
+        "ServiceNotAvailable": "Dieser Dienst ist im Moment nicht verfügbar",
+        "DocStayInTrash": "Dokumente bleiben 30 Tage lang im Papierkorb, danach werden sie endgültig gelöscht.",
+        "NeedPaidPlan": "(Die Organisation benötigt einen bezahlten Plan)",
+        "Delete": "Löschen",
+        "OtherSites": "Andere Seiten",
+        "ExamplesAndTemplates": "Beispiele und Vorlagen",
+        "Trash": "Papierkorb",
+        "EmptyTrash": "Der Papierkorb ist leer.",
+        "WorkspaceNotFound": "Arbeitsbereich nicht gefunden",
+        "DeleteDoc": "{{name}} löschen",
+        "Edited": "Bearbeitet {{at}}",
+        "Examples&Templates": "Beispiele und Vorlagen",
+        "Remove": "Entfernen",
+        "PinDocument": "Dokument anheften",
+        "ByName": "Nach Name",
+        "DocumentMoveToTrash": "Das Dokument wird in den Papierkorb verschoben.",
+        "AccessDetails": "Zugangsdetails",
+        "DeleteDocPerma": "Das Dokument wird endgültig gelöscht.",
+        "DiscoverMoreTemplates": "Mehr Vorlagen entdecken",
+        "ByDateModified": "Nach Änderungsdatum",
+        "Rename": "Umbenennen",
+        "Move": "Verschieben",
+        "UnpinDocument": "Dokument lösen",
+        "ManageUsers": "Benutzer verwalten",
+        "DeleteForever": "Für immer löschen",
+        "DeleteForeverDoc": "\"{{name}}\" dauerhaft löschen?",
+        "Restore": "Wiederherstellen",
+        "RestoreThisDocument": "Um dieses Dokument wiederherzustellen, stellen Sie zuerst den Arbeitsbereich wieder her.",
+        "CurrentWorkspace": "Aktueller Arbeitsbereich",
+        "RequiresEditPermissions": "Erfordert Bearbeitungsrechte",
+        "DeleteWorkspaceForever": "Sie können einen Arbeitsbereich für immer löschen, sobald er keine Dokumente enthält.",
+        "MoveDocToWorkspace": "{{name}} in den Arbeitsbereich verschieben",
+        "OtherSitesWelcome": "Sie sind auf der {{siteName}} Seite. Sie haben auch Zugriff auf die folgenden Seiten:",
+        "Deleted": "Gelöscht {{at}}"
+    },
+    "DocHistory": {
+        "OpenSnapshot": "Schnappschuss öffnen",
+        "CompareToCurrent": "Mit Aktuell vergleichen",
+        "SnapshotsUnavailable": "Schnappschüsse sind nicht verfügbar.",
+        "Beta": "Beta",
+        "Snapshots": "Schnappschüsse",
+        "Activity": "Aktivität",
+        "CompareToPrevious": "Mit vorherigem vergleichen"
+    },
+    "CustomSectionConfig": {
+        "WrongTypesMenuText_others": "{{wrongTypeCount}} nicht{{columnType}} Spalte wird nicht angezeigt",
+        "Add": "Hinzufügen",
+        "EnterCustomURL": "Benutzerdefinierte URL eingeben",
+        "FullDocumentAccess": "Vollständiger Dokumentenzugriff",
+        "LearnMore": "Erfahren Sie mehr über benutzerdefinierte Widgets",
+        "PickAColumn": "Wählen Sie eine Spalte",
+        "PickAColumnWithType": "Wählen Sie eine {{columnType}} Spalte",
+        "NoDocumentAccess": "Kein Dokumentenzugriff",
+        "OpenConfiguration": "Konfiguration öffnen",
+        "Optional": " (Optional)",
+        "ReadSelectedTable": "Ausgewählte Tabelle lesen",
+        "SelectCustomWidget": "Benutzerdefiniertes Widget auswählen",
+        "WidgetNeedFullAccess": "Das Widget benötigt {{fullAccess}} zu diesem Dokument.",
+        "WidgetNeedRead": "Das Widget muss {{read}} die aktuelle Tabelle.",
+        "WidgetNoPermissison": "Das Widget benötigt keine Berechtigungen.",
+        "WrongTypesMenuText_one": "{{wrongTypeCount}} nicht{{columnType}} Spalte wird nicht angezeigt"
+    },
+    "GridOptions": {
+        "GridOptions": "Raster-Optionen",
+        "VerticalGridlines": "Vertikale Rasterlinien",
+        "ZebraStripes": "Zebra-Streifen",
+        "HorizontalGridlines": "Horizontale Rasterlinien"
+    },
+    "DuplicateTable": {
+        "CopyAllData": "Kopieren Sie alle Daten zusätzlich zur Tabellenstruktur.",
+        "AdviceWithLink": "Anstatt Tabellen zu duplizieren, ist es in der Regel besser, Daten mithilfe verknüpfter Ansichten zu segmentieren. {{link}}",
+        "WarningACL": "Für die Kopie gelten nur die Standardzugriffsregeln des Dokuments.",
+        "NewName": "Name für neue Tabelle"
+    },
+    "GridViewMenus": {
+        "ShowColumn": "Spalte {{- label}} anzeigen",
+        "HideColumns_other": "{{count}} Spalten ausblenden",
+        "AddColumn": "Spalte hinzufügen",
+        "MoreSortOptions": "Weitere Sortieroptionen…",
+        "RenameColumn": "Spalte umbenennen",
+        "ResetEntireColumns_other": "{{count}} ganze Spalten zurücksetzen",
+        "ResetColumns_other": "{{count}} Spalten zurücksetzen",
+        "DeleteColumns_other": "{{count}} Spalten löschen",
+        "FilterData": "Daten filtern",
+        "ColumnOptions": "Spalten-Optionen",
+        "Sort": "Sortieren",
+        "ResetEntireColumns_one": "Gesamte Spalte zurücksetzen",
+        "ResetColumns_one": "Spalte zurücksetzen",
+        "DeleteColumns_one": "Spalte löschen",
+        "HideColumns_one": "Spalte ausblenden",
+        "ConvertFormulaToData": "Formel in Daten umwandeln",
+        "FreezeColumn_one": "Diese Spalte fixieren",
+        "FreezeColumn_more_one": "Eine weitere Spalte fixieren",
+        "ClearValues": "Werte auflösen",
+        "InsertColumn": "Spalte in {{to}} einfügen",
+        "FreezeColumn_other": "{{count}} Spalten fixieren",
+        "AddToSort_added": "Sortiert (#{{count}})",
+        "FreezeColumn_more_other": "{{count}} weitere Spalten fixieren",
+        "UnfreezeColumn_one": "Diese Spalte entsperren",
+        "UnfreezeColumn_other": "{{count}} Spalten entsperren",
+        "UnfreezeColumn_all_other": "Alle Spalten entsperren",
+        "AddToSort": "Zum Sortieren hinzufügen"
+    },
+    "errorPages": {
+        "DeniedOrganizationDocuments": "Sie haben keinen Zugriff auf die Dokumente dieser Organisation.",
+        "SignInWithDifferentAccount": "Sie sind als {{email}} angemeldet. Sie können sich mit einem anderen Konto anmelden oder einen Administrator um Zugriff bitten.",
+        "SignInToAccess": "Melden Sie sich an, um auf die Dokumente dieser Organisation zuzugreifen.",
+        "SignedOut": "Abgemeldet{{suffix}}",
+        "GenericError": "Fehler{{suffix}}",
+        "AccessDenied": "Zugriff verweigert{{suffix}}",
+        "GoToMainPage": "Zur Hauptseite gehen",
+        "SignedOutNow": "Sie sind jetzt abgemeldet.",
+        "ErrorHappened_message": "Fehler aufgetreten: {{message}}",
+        "AddAcount": "Konto hinzufügen",
+        "SomethingWentWrong": "Etwas ist schief gelaufen",
+        "SignedInAgain": "Erneut anmelden",
+        "PageNotFound": "Seite nicht gefunden{{suffix}}",
+        "ContactSupport": "Kontaktieren Sie Support",
+        "ErrorHappened_unknown": "Es ist ein unbekannter Fehler aufgetreten.",
+        "SignIn": "Anmelden",
+        "NotFoundMainText": "Die angeforderte Seite konnte nicht gefunden werden.{{separator}}Bitte überprüfen Sie die URL und versuchen Sie es erneut."
+    },
+    "FieldConfig": {
+        "ConvertColumn_data": "Spalte in Daten umwandeln",
+        "ColumnType_empty_one": "Leere Spalte",
+        "ColumnType_formula_other": "Formel-Spalten",
+        "ColumnLabel": "SPALTENBEZEICHNUNG UND ID",
+        "ColumnOptionsLimited": "Spaltenoptionen sind in Übersichtstabellen eingeschränkt.",
+        "ColumnType_formula_one": "Formel-Spalte",
+        "ConvertColumn_triggerformula": "In Auslöserformel umwandeln",
+        "ClearAndReset": "Löschen und zurücksetzen",
+        "ColumnType_data_one": "Daten-Spalte",
+        "ColumnType_data_other": "Daten-Spalten",
+        "ColumnType_empty_other": "Leere Spalten",
+        "ColumnType_mixed_other": "Gemischtes Verhalten",
+        "EnterFormula": "Formel eingeben",
+        "ConvertColumn_formula": "Löschen und in Formel umwandeln",
+        "ColumnBehavior": "SPALTENVERHALTEN",
+        "SetFormula": "Formel festlegen",
+        "TriggerFormula": "AUSLÖSEFORMEL",
+        "SetTriggerFormula": "Auslöseformel festlegen",
+        "MakeIntoDataColumn": "In Datenspalte umwandeln"
+    },
+    "ExampleInfo": {
+        "WelcomeTitle_afterschool": "Willkommen in der Nachschulprogrammvorlage",
+        "WelcomeTitle_CRM": "Willkommen beim Leichtes CRM-Vorlage",
+        "WelcomeTutorialName_CRM": "Lernprogramm: Erstellen Sie ein CRM",
+        "WelcomeTitle_investmentResearch": "Willkommen bei der Investitionsforschungsvorlage",
+        "Title_CRM": "Leichtes CRM",
+        "WelcomeTutorialName_investmentResearch": "Tutorial: Analysieren und Visualisieren",
+        "Title_afterschool": "Nachschulprogramm",
+        "WelcomeText_CRM": "In unserem zugehörigen Tutorial erfahren Sie, wie Sie Daten verknüpfen und hochproduktive Layouts erstellen können.",
+        "Title_investmentResearch": "Investitionsforschung",
+        "WelcomeText_investmentResearch": "In unserem zugehörigen Tutorial erfahren Sie, wie Sie Übersichtstabellen und Diagramme erstellen und Diagramme dynamisch verknüpfen können.",
+        "WelcomeText_afterschool": "In unserem zugehörigen Tutorial erfahren Sie, wie Sie Geschäftsdaten modellieren, Formeln verwenden und Komplexität bewältigen können.",
+        "WelcomeTutorialName_afterschool": "Tutorial: Geschäftsdaten verwalten"
+    },
+    "FieldMenus": {
+        "Settings_savecommon": "Als allgemeine Einstellungen speichern",
+        "UsingSettings_separate": "Separate Einstellungen verwenden",
+        "Settings_revertcommon": "Gemeinsame Einstellungen wiederherstellen",
+        "UsingSettings_common": "Gemeinsame Einstellungen verwenden",
+        "Settings_useseparate": "Verwenden Sie separate Einstellungen"
+    },
+    "FilterConfig": {
+        "AddColumn": "Spalte hinzufügen"
+    },
+    "HomeIntro": {
+        "SignUp": "Registrieren Sie sich",
+        "SproutsProgram": "Sprossen-Programm",
+        "WelcomeInfoNoDocuments": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
+        "OrFindAndExpert": ", oder finden Sie einen Experten über unseren ",
+        "VisitHelpCenter": "Besuchen Sie unser {{link}}, um mehr zu erfahren.",
+        "InviteTeamMembers": "Teammitglieder einladen",
+        "AnonIntroGetStarted": "Beginnen Sie mit der Erkundung von Vorlagen oder erstellen Sie Ihr erstes Grist-Dokument.",
+        "Welcome": "Willkommen bei Grist!",
+        "HelpCenter": "Hilfe-Center",
+        "WelcomeTo": "Willkommen bei {{orgName}}",
+        "BrowseTemplates": "Vorlagen durchsuchen",
+        "EmptyWorkspace": "Dieser Arbeitsbereich ist leer.",
+        "PersonalSite": "persönliche Seite",
+        "WelcomeInfoAppearHere": "Alle Dokumente, die auf dieser Seite erstellt wurden, werden hier angezeigt.",
+        "WelcomeTextVistGrist": "Sind Sie daran interessiert, Grist auch außerhalb Ihres Teams zu nutzen? Besuchen Sie Ihr kostenloses ",
+        "WelcomeUser": "Willkommen bei Grist, {{name}}!",
+        "TeamSiteIntroGetStarted": "Beginnen Sie, indem Sie Ihr Team einladen und Ihr erstes Grist-Dokument erstellen.",
+        "PersonalIntroGetStarted": "Beginnen Sie mit der Erstellung Ihres ersten Grist-Dokuments.",
+        "CreateEmptyDocument": "Leeres Dokument erstellen",
+        "ImportDocument": "Dokument importieren"
+    },
+    "HomeLeftPane": {
+        "WorkspaceDeleteText": "Der Arbeitsbereich wird in den Papierkorb verschoben.",
+        "AllDocuments": "Alle Dokumente",
+        "ImportDocument": "Dokument importieren",
+        "ExamplesAndTemplates": "Beispiele und Vorlagen",
+        "CreateEmptyDocument": "Leeres Dokument erstellen",
+        "AccessDetails": "Zugangsdetails",
+        "CreateWorkspace": "Arbeitsbereich erstellen",
+        "Trash": "Papierkorb",
+        "Rename": "Umbenennen",
+        "Delete": "Löschen",
+        "Workspaces": "Arbeitsbereiche",
+        "WorkspaceDeleteTitle": "{{workspace}} und alle enthaltenen Dokumente löschen?",
+        "ManageUsers": "Benutzer verwalten"
+    },
+    "MakeCopyMenu": {
+        "CannotEditOriginal": "Das Original zu ersetzen erfordert Bearbeitungsrechte auf dem Originaldokument.",
+        "WarningOriginalWillBeUpdated": "Die Originalversion dieses Dokuments wird aktualisiert.",
+        "OriginalLooksUnrelated": "Original sieht nicht verwandt aus",
+        "Cancel": "Abbrechen",
+        "UpdateOriginal": "Original aktualisieren",
+        "Update": "Aktualisieren",
+        "Overwrite": "Überschreiben",
+        "WarningAlreadyIdentical": "Es scheint jedoch bereits identisch zu sein.",
+        "ToSaveSignUpAndReload": "Um Ihre Änderungen zu speichern, melden Sie sich bitte an und laden Sie diese Seite neu.",
+        "NoDestinationWorkspace": "Kein Zielarbeitsbereich",
+        "Name": "Name",
+        "WarningOverwriteOriginalChanges": "Seien Sie vorsichtig, das Original hat Änderungen, die nicht in diesem Dokument enthalten sind. Diese Änderungen werden überschrieben.",
+        "OriginalLooksIdentical": "Original sieht identisch aus",
+        "OriginalHasModifications": "Original hat Änderungen",
+        "Organization": "Organisation",
+        "Workspace": "Arbeitsbereich",
+        "WarningWillBeOverwritten": "Es wird überschrieben und verliert alle Inhalte, die nicht in diesem Dokument enthalten sind.",
+        "EnterDocumentName": "Geben Sie den Dokumentnamen ein",
+        "AsTemplate": "Als Vorlage",
+        "IncludeStructureWithoutData": "Nehmen Sie die Struktur ohne die Daten auf.",
+        "NoWriteAccessToSite": "Sie haben keinen Schreibzugriff auf diese Seite",
+        "NoWriteAccessToWorkspace": "Sie haben keinen Schreibzugriff auf den ausgewählten Arbeitsbereich",
+        "SignUp": "Registrieren Sie sich"
+    },
+    "LeftPanelCommon": {
+        "HelpCenter": "Hilfe-Center"
+    },
+    "NotifyUI": {
+        "UpgradePlan": "Upgrade-Plan",
+        "Renew": "Erneuern",
+        "ErrorCannotFindPersonalSite": "Ich kann die persönliche Seite nicht finden, tut mir leid!",
+        "GiveFeedback": "Feedback geben",
+        "GoToPersonalSite": "Gehen Sie zu Ihrer kostenlosen persönlichen Seite",
+        "AskForHelp": "Bitte um Hilfe",
+        "ReportProblem": "Ein Problem melden",
+        "Notifications": "Benachrichtigungen",
+        "NoNotifications": "Keine Benachrichtigungen"
+    },
+    "OnBoardingPopups": {
+        "Next": "Weiter",
+        "Finish": "Beenden"
+    },
+    "WidgetTitle": {
+        "OverrideTitle": "Widget-Titel überschreiben",
+        "Save": "Speichern",
+        "DataTableName": "NAME DER DATENTABELLE",
+        "NewTableName": "Geben Sie einen Tabellennamen an",
+        "Cancel": "Abbrechen",
+        "WidgetTitle": "WIDGET TITEL"
+    },
+    "NTextBox": {
+        "false": "falsch",
+        "true": "wahr"
+    },
+    "WelcomeQuestions": {
+        "WelcomeToGrist": "Willkommen bei Grist!",
+        "ProductDevelopment": "Produktentwicklung",
+        "FinanceAccounting": "Finanzbuchhaltung",
+        "MediaProduction": "Medienproduktion",
+        "ITTechnology": "IT und Technologie",
+        "Research": "Forschung",
+        "Sales": "Umsatz",
+        "Education": "Bildung",
+        "HRManagement": "Personal und Management",
+        "Other": "Sonstiges",
+        "WhatBringsYouToGrist": "Was bringt Sie zu Grist? Bitte helfen Sie uns, Sie besser zu bedienen.",
+        "TypeHere": "Hier tippen",
+        "Marketing": "Vermarktung"
+    },
+    "VisibleFieldsConfig": {
+        "SelectAll": "Alle auswählen",
+        "NoReorderHiddenField": "Ausgeblendete Felder können nicht neu sortiert werden",
+        "NoDropInHiddenField": "Elemente können nicht in ausgeblendeten Feldern abgelegt werden",
+        "Clear": "Klären"
+    },
+    "ViewSectionMenu": {
+        "Customized": "(angepasst)",
+        "UpdateSortFilterSettings": "Sortier- und Filtereinstellungen aktualisieren",
+        "Save": "Speichern",
+        "Revert": "Zurücksetzen",
+        "SortedBy": "Sortiert nach",
+        "AddFilter": "Filter hinzufügen",
+        "ToggleFilterBar": "Filterleiste ein-/ausblenden",
+        "FilteredBy": "Gefiltert nach",
+        "Modified": "(modifiziert)",
+        "Empty": "(leer)",
+        "CustomOptions": "Benutzerdefinierte Optionen",
+        "Sort": "SORTIEREN",
+        "Filter": "FILTER"
+    },
+    "aclui": {
+        "AccessRules": {
+            "Invalid": "Ungültig",
+            "DefaultRules": "Standardregeln",
+            "AddColumnRule": "Spaltenregel hinzufügen",
+            "FullCopiesDescription": "Erlauben Sie es jedem, das gesamte Dokument zu kopieren oder es im Fiddle-Modus vollständig anzuzeigen.\nNützlich für Beispiele und Vorlagen, aber nicht für sensible Daten.",
+            "EveryoneElse": "Alle Anderen",
+            "RemoveRulesMentioningTable": "{{- tableId }} Regeln entfernen",
+            "Checking": "Überprüfung…",
+            "Saved": "Gespeichert",
+            "Save": "Speichern",
+            "Reset": "Zurücksetzen",
+            "AddTableRules": "Tabellenregeln hinzufügen",
+            "AddUserAttributes": "Benutzerattribute hinzufügen",
+            "Users": "Benutzer",
+            "UserAttributes": "Benutzer-Attribute",
+            "AttributeToLookUp": "Attribut zum Nachschlagen",
+            "LookupTable": "Nachschlagetabelle",
+            "LookupColumn": "Nachschlagespalte",
+            "Condition": "Bedingung",
+            "Permissions": "Berechtigungen",
+            "RulesForTable": "Regeln für die Tabelle ",
+            "AddDefaultRule": "Standard-Regel hinzufügen",
+            "DeleteTableRules": "Tabellenregeln löschen",
+            "SpecialRules": "Besondere Regeln",
+            "AccessRulesDescription": "Erlauben Sie allen, die Zugangsregeln einzusehen.",
+            "AccessRulesName": "Erlaubnis zum Anzeigen von Zugriffsregeln",
+            "FullCopies": "Erlaubnis zum vollständigen Zugriff auf das Dokument bei Bedarf",
+            "AttributeNamePlaceholder": "Name des Attributs",
+            "Everyone": "Jeder",
+            "EnterCondition": "Bedingung eingeben",
+            "RemoveRulesMentioningColumn": "Spalte {{- colId }} aus {{- tableId }} Regeln entfernen",
+            "RemoveUserAttribute": "{{- name }} Benutzerattribut entfernen",
+            "MemoEditorPlaceholder": "Geben Sie eine Nachricht ein…"
+        },
+        "PermissionsWidget": {
+            "AllowAll": "Alle zulassen",
+            "DenyAll": "Alle ablehnen",
+            "ReadOnly": "Schreibgeschützt"
+        }
+    },
+    "lib": {
+        "ACUserManager": {
+            "InviteNewMember": "Neues Mitglied einladen",
+            "InviteEmail": "Wir schicken eine Einladung zu {{email}}",
+            "EmailInputPlaceholder": "E-Mail Adresse eingeben"
+        }
+    },
+    "ui2018": {
+        "modals": {
+            "Save": "Speichern",
+            "Cancel": "Abbrechen",
+            "Ok": "Ok"
+        },
+        "pages": {
+            "DuplicatePage": "Seite duplizieren",
+            "Rename": "Umbenennen",
+            "Remove": "Entfernen",
+            "NoEditAccess": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument"
+        },
+        "breadcrumbs": {
+            "FiddleExplanation": "Sie können Änderungen vornehmen, die jedoch eine neue Kopie erstellen und\ndas Originaldokument nicht beeinflussen.",
+            "Snapshot": "Schnappschuss",
+            "Unsaved": "ungespeichert",
+            "RecoveryMode": "Wiederherstellungsmodus",
+            "Override": "überschreiben",
+            "Fiddle": "spielen"
+        },
+        "search": {
+            "SearchInDocument": "Suche im Dokument",
+            "NoResults": "Keine Ergebnisse",
+            "FindNext": "Nächstes finden ",
+            "FindPrevious": "Vorheriges finden "
+        },
+        "ColorSelect": {
+            "DefaultCellStyle": "Standard-Zellenstil",
+            "Apply": "Anwenden",
+            "Cancel": "Abbrechen"
+        },
+        "menus": {
+            "SelectFields": "Felder auswählen",
+            "WorkspacesAvailableOnTeamPlans": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
+            "UpgradeNow": "Jetzt aktualisieren"
+        }
+    },
+    "models": {
+        "DocPageModel": {
+            "ReloadingOrRecoveryMode": "Sie können versuchen, das Dokument neu zu laden oder den Wiederherstellungsmodus zu verwenden. Im Wiederherstellungsmodus wird das Dokument so geöffnet, dass es für den Besitzer vollständig zugänglich ist, für andere jedoch nicht. Außerdem werden die Formeln deaktiviert. [{{error}}]",
+            "ErrorAccessingDocument": "Fehler beim Zugriff auf das Dokument",
+            "Reload": "Neu laden",
+            "AccessError_denied": "Leider wurde der Zugriff auf dieses Dokument verweigert. [{{error}}]",
+            "AccessError_recover": "Dokumentbesitzer können versuchen, das Dokument wiederherzustellen. [{{error}}]",
+            "EnterRecoveryMode": "Wiederherstellungsmodus aktivieren",
+            "AddPage": "Seite hinzufügen",
+            "AddWidgetToPage": "Widget zur Seite hinzufügen",
+            "AddEmptyTable": "Leere Tabelle hinzufügen",
+            "NoEditAccess": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument"
+        },
+        "AppModel": {
+            "TeamSiteSuspended": "Diese Teamseite ist gesperrt. Die Dokumente können gelesen, aber nicht geändert werden."
+        },
+        "UserManagerModel": {
+            "Owner": "Eigentümer",
+            "Editor": "Redakteur",
+            "Viewer": "Betrachter",
+            "NoDefaultAccess": "Kein Standardzugriff",
+            "InFull": "Vollständig",
+            "ViewAndEdit": "Anzeigen & Bearbeiten",
+            "ViewOnly": "Nur anzeigen",
+            "None": "Keine"
+        }
+    },
+    "SiteSwitcher": {
+        "SwitchSites": "Seiten wechseln",
+        "CreateNewTeamSite": "Neue Teamseite erstellen"
+    },
+    "SortConfig": {
+        "AddColumn": "Spalte hinzufügen",
+        "UseChoicePosition": "Auswahlposition verwenden",
+        "UpdateData": "Daten aktualisieren",
+        "NaturalSort": "Natürlich Sortieren",
+        "EmptyValuesLast": "Leere Werte zuletzt"
+    },
+    "RowContextMenu": {
+        "InsertRowAbove": "Zeile oben einfügen",
+        "InsertRowBelow": "Zeile unten einfügen",
+        "DuplicateRows_one": "Zeile duplizieren",
+        "DuplicateRows_other": "Zeilen duplizieren",
+        "Delete": "Löschen",
+        "CopyAnchorLink": "Ankerlink kopieren",
+        "InsertRow": "Zeile einfügen"
+    },
+    "DocumentSettings": {
+        "DocumentSettings": "Dokument-Einstellungen",
+        "ThisDocumentID": "Die ID dieses Dokuments (für API-Verwendung):",
+        "TimeZone": "Zeitzone:",
+        "Locale": "Lokale:",
+        "Currency": "Währung:",
+        "LocalCurrency": "Lokale Währung ({{currency}})",
+        "EngineRisk": "Motor (experimental {{span}} auf eigene Gefahr ändern):",
+        "Save": "Speichern",
+        "SaveAndReload": "Speichern und neu laden"
+    },
+    "AddNewButton": {
+        "AddNew": "Neu hinzufügen"
+    },
+    "AppHeader": {
+        "HomePage": "Startseite",
+        "Legacy": "Hinterlassenschaft",
+        "PersonalSite": "Persönliche Seite",
+        "TeamSite": "Teamseite"
+    },
+    "ApiKey": {
+        "AboutToDeleteAPIKey": "Sie sind dabei, einen API-Schlüssel zu löschen. Dadurch werden alle zukünftigen Anfragen, die diesen API-Schlüssel verwenden, abgelehnt. Möchten Sie trotzdem löschen?",
+        "AnonymousAPIKey": "Mit diesem API-Schlüssel kann anonym über die API auf dieses Konto zugegriffen werden.",
+        "ByGenerating": "Durch das Generieren eines API-Schlüssels können Sie API-Aufrufe für Ihr eigenes Konto durchführen.",
+        "ClickToShow": "Zum Anzeigen klicken",
+        "Create": "Erstellen",
+        "OwnAPIKey": "Dieser API-Schlüssel kann verwendet werden, um über die API auf Ihr Konto zuzugreifen. Geben Sie Ihren API-Schlüssel mit niemandem weiter.",
+        "Remove": "Entfernen",
+        "RemoveAPIKey": "API-Schlüssel entfernen"
+    },
+    "App": {
+        "Description": "Beschreibung",
+        "Key": "Schlüssel",
+        "MemoryError": "Speicherfehler"
+    },
+    "DocTour": {
+        "InvalidDocTourTitle": "Kein gültiges Dokument Tour",
+        "InvalidDocTourBody": "Aus den Daten in diesem Dokument kann keine Dokumenttour erstellt werden. Stellen Sie sicher, dass eine Tabelle mit dem Namen GristDocTour mit den Spalten Title, Body, Placement und Location vorhanden ist."
+    },
+    "OpenVideoTour": {
+        "YouTubeVideoPlayer": "YouTube-Video-Player",
+        "GristVideoTour": "Grist Video Tour",
+        "VideoTour": "Video-Tour"
+    },
+    "sendToDrive": {
+        "SendingToGoogleDrive": "Datei an Google Drive senden"
+    },
+    "SortFilterConfig": {
+        "Save": "Speichern",
+        "Revert": "Zurücksetzen",
+        "Sort": "SORTIEREN",
+        "Filter": "FILTER",
+        "UpdateSortFilterSettings": "Sortier- und Filtereinstellungen aktualisieren"
+    },
+    "ThemeConfig": {
+        "Appearance": "Aussehen ",
+        "SyncWithOS": "Schalten Sie das Aussehen automatisch auf das System"
+    },
+    "Tools": {
+        "Tools": "WERKZEUGE",
+        "AccessRules": "Zugriffsregeln",
+        "Data": "Rohdaten",
+        "DocumentHistory": "Dokumentenverlauf",
+        "ValidateData": "Daten validieren",
+        "CodeView": "Code-Ansicht",
+        "HowToTutorial": "Anleitungs-Tutorial",
+        "DocumentTour": "Tour durch dieses Dokument",
+        "DeleteDocumentTour": "Dokument-Tour löschen?",
+        "Delete": "Löschen",
+        "ViewingAsYourself": "Zurück zur Selbstdarstellung",
+        "RawData": "Rohdaten"
+    },
+    "TopBar": {
+        "ManageTeam": "Team verwalten"
+    },
+    "TriggerFormulas": {
+        "AnyField": "Beliebiges Feld",
+        "NewRecords": "Auf neue Datensätze anwenden",
+        "ChangesTo": "Übernehmen bei Änderungen an:",
+        "RecordChanges": "Auf Datensatzänderungen anwenden",
+        "CurrentField": "Aktuelles Feld ",
+        "DataCleaning": "(Datenreinigung)",
+        "ExceptFormulas": "(außer Formeln)",
+        "OK": "OK",
+        "Cancel": "Abbrechen",
+        "Close": "Schließen"
+    }
+}
