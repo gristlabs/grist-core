@@ -9,7 +9,6 @@ import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEnt
         cssTools} from 'app/client/ui/LeftPanelCommon';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menuAnnotate} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
@@ -37,9 +36,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
         return cssPageLink(
           cssPageIcon('EyeShow'),
-          cssLinkText(t("Access Rules"),
-            menuAnnotate('Beta', cssBetaTag.cls(''))
-          ),
+          cssLinkText(t("Access Rules")),
           _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
         );
       }),
@@ -191,11 +188,5 @@ const cssExampleCardOpener = styled('div', `
   }
   .${cssTools.className}-collapsed & {
     display: none;
-  }
-`);
-
-const cssBetaTag = styled('div', `
-  .${cssPageEntry.className}-disabled & {
-    opacity: 0.4;
   }
 `);
