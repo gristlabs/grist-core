@@ -1,5 +1,5 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
-import {dom, IDomArgs, DomElementArg, IInputOptions, Observable, styled, subscribe} from 'grainjs';
+import {dom, DomElementArg, IDomArgs, IInputOptions, Observable, styled, subscribe} from 'grainjs';
 
 export const cssInput = styled('input', `
   font-size: ${vars.mediumFontSize};

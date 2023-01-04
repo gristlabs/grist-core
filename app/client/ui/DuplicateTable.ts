@@ -83,10 +83,9 @@ class DuplicateTableModal extends Disposable {
       ),
       cssWarning(
         cssWarningIcon('Warning'),
-
-        dom('div',
-         t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}", {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')})
-        ), //TODO: i18next
+        dom('div', t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
+          {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')}
+        )),
       ),
       cssField(
         cssCheckbox(

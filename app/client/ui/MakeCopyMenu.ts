@@ -41,7 +41,8 @@ export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, a
   if (cmp.summary === 'left' || cmp.summary === 'both') {
     titleText = t("Original Has Modifications");
     buttonText = t("Overwrite");
-    warningText = `${warningText} ${t("Be careful, the original has changes not in this document. Those changes will be overwritten.")}`;
+    warningText = `${warningText} ${t("Be careful, the original has changes " +
+                                      "not in this document. Those changes will be overwritten.")}`;
   } else if (cmp.summary === 'unrelated') {
     titleText = t("Original Looks Unrelated");
     buttonText = t("Overwrite");

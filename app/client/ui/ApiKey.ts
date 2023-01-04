@@ -78,7 +78,8 @@ export class ApiKey extends Disposable {
       dom.maybe((use) => !(use(this._apiKey) || this._anonymous), () => [
         basicButton(t("Create"), dom.on('click', () => this._onCreate()), testId('create'),
           dom.boolAttr('disabled', this._loading)),
-        description(t("By generating an API key, you will be able to make API calls for your own account."), testId('description')),
+        description(t("By generating an API key, you will be able to " +
+                      "make API calls for your own account."), testId('description')),
       ]),
     );
   }
@@ -114,7 +115,8 @@ export class ApiKey extends Disposable {
     confirmModal(
       t("Remove API Key"), t("Remove"),
       () => this._onDelete(),
-      t("You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?")
+      t("You're about to delete an API key. This will cause all future requests " +
+        "using this API key to be rejected. Do you still want to delete?")
     );
   }
 }

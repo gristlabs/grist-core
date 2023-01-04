@@ -160,7 +160,10 @@ export class DataTables extends Disposable {
     function doRemove() {
       return docModel.docData.sendAction(['RemoveTable', r.tableId()]);
     }
-    confirmModal(t("Delete {{formattedTableName}} data, and remove it from all pages?", {formattedTableName : r.formattedTableName()}), 'Delete', doRemove);
+    confirmModal(t(
+      "Delete {{formattedTableName}} data, and remove it from all pages?",
+      {formattedTableName : r.formattedTableName()}
+    ), 'Delete', doRemove);
   }
 
   private _tableRows(table: TableRec) {

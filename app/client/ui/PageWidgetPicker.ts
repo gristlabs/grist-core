@@ -268,8 +268,8 @@ export class PageWidgetSelect extends Disposable {
     }) :
     null;
 
-  private _isNewTableDisabled = Computed.create(this, this._value.type, (use, t) => !isValidSelection(
-    'New Table', t, this._options.isNewPage));
+  private _isNewTableDisabled = Computed.create(this, this._value.type, (use, type) => !isValidSelection(
+    'New Table', type, this._options.isNewPage));
 
   constructor(
     private _value: IWidgetValueObs,
@@ -399,8 +399,8 @@ export class PageWidgetSelect extends Disposable {
     this._value.summarize.set(true);
   }
 
-  private _selectType(t: IWidgetType) {
-    this._value.type.set(t);
+  private _selectType(type: IWidgetType) {
+    this._value.type.set(type);
   }
 
   private _selectTable(tid: TableId) {

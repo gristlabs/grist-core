@@ -134,7 +134,7 @@ export class AccessRules extends Disposable {
         // there were only removals, then length will be reduced.
         getChangedStatus(tableRules.length < this._ruleCollection.getAllTableIds().length),
         getChangedStatus(userAttr.length < this._ruleCollection.getUserAttributeRules().size),
-        ...tableRules.map(t => use(t.ruleStatus)),
+        ...tableRules.map(tr => use(tr.ruleStatus)),
         ...userAttr.map(u => use(u.ruleStatus)),
         specialRules ? use(specialRules.ruleStatus) : RuleStatus.Unchanged,
       );
@@ -239,7 +239,7 @@ export class AccessRules extends Disposable {
     const newResources: MetaRowRecord<'_grist_ACLResources'>[] = flatten(
       [{tableId: '*', colIds: '*'}],
       this._specialRules.get()?.getResources() || [],
-      ...this._tableRules.get().map(t => t.getResources()))
+      ...this._tableRules.get().map(tr => tr.getResources()))
       .map(r => ({id: -1, ...r}));
 
     // Prepare userActions and a mapping of serializedResource to rowIds.
@@ -350,7 +350,7 @@ export class AccessRules extends Disposable {
               // synchronously, which prevents the menu from closing on click.
               menuItemAsync(() => this._addTableRules(tableId),
                 this.getTableTitle(tableId),
-                dom.cls('disabled', (use) => use(this._tableRules).some(t => t.tableId === tableId)),
+                dom.cls('disabled', (use) => use(this._tableRules).some(tr => tr.tableId === tableId)),
               )
             ),
           ),
@@ -442,7 +442,7 @@ export class AccessRules extends Disposable {
    */
   public getRules(): RuleRec[] {
     return flatten(
-      ...this._tableRules.get().map(t => t.getRules()),
+      ...this._tableRules.get().map(tr => tr.getRules()),
       this._specialRules.get()?.getRules() || [],
       this._docDefaultRuleSet.get()?.getRules('*') || []
     );
@@ -484,7 +484,7 @@ export class AccessRules extends Disposable {
   }
 
   private _addTableRules(tableId: string) {
-    if (this._tableRules.get().some(t => t.tableId === tableId)) {
+    if (this._tableRules.get().some(tr => tr.tableId === tableId)) {
       throw new Error(`Trying to add TableRules for existing table ${tableId}`);
     }
     const defRuleSet: RuleSet = {tableId, colIds: '*', body: []};

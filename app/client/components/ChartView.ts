@@ -656,8 +656,9 @@ export class ChartConfig extends GrainJSDisposable {
         ),
         dom.domComputed(this._optionsObj.prop('errorBars'), (value: ChartOptions["errorBars"]) =>
           value === 'symmetric' ? cssRowHelp(t("Each Y series is followed by a series for the length of error bars.")) :
-          value === 'separate' ? cssRowHelp(t("Each Y series is followed by two series, for top and bottom error bars.")) :
-          null
+          value === 'separate' ? cssRowHelp(t("Each Y series is followed by two series, for " +
+                                              "top and bottom error bars."))
+          : null
         ),
       ]),
 

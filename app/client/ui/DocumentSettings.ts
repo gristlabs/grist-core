@@ -58,7 +58,7 @@ export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: Do
         canChangeEngine ? [
           // Small easter egg: you can click on the skull-and-crossbones to
           // force a reload of the document.
-          cssDataRow(t("Engine (experimental {{span}} change at own risk):", {span: 
+          cssDataRow(t("Engine (experimental {{span}} change at own risk):", {span:
             dom('span', '☠',
               dom.style('cursor', 'pointer'),
               dom.on('click', async () => {

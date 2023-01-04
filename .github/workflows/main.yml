@@ -37,6 +37,9 @@ jobs:
       - name: Install Node.js packages
         run: yarn install
 
+      - name: Run eslint
+        run: yarn run lint:ci
+
       - name: Make sure bucket is versioned
         env:
           AWS_ACCESS_KEY_ID: administrator
@@ -45,6 +48,7 @@ jobs:
 
       - name: Build Node.js code
         run: yarn run build:prod
+
 
       - name: Run smoke test
         run: VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:smoke

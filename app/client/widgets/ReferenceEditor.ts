@@ -1,4 +1,4 @@
-import { ACResults, buildHighlightedDom, normalizeText, HighlightFunc } from 'app/client/lib/ACIndex';
+import { ACResults, buildHighlightedDom, HighlightFunc, normalizeText } from 'app/client/lib/ACIndex';
 import { Autocomplete } from 'app/client/lib/autocomplete';
 import { ICellItem } from 'app/client/models/ColumnACIndexes';
 import { reportError } from 'app/client/models/errors';
