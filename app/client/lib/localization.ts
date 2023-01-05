@@ -8,10 +8,11 @@ export async function setupLocale() {
   const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
   let lng = window.navigator.language || 'en';
   // If user agent language is not in the list of supported languages, use the default one.
+  lng = lng.replace(/-/g, '_');
   if (!supportedLngs.includes(lng)) {
     // Test if server supports general language.
-    if (lng.includes("-") && supportedLngs.includes(lng.split("-")[0])) {
-      lng = lng.split("-")[0]!;
+    if (lng.includes("_") && supportedLngs.includes(lng.split("_")[0])) {
+      lng = lng.split("_")[0]!;
     } else {
       lng = 'en';
     }

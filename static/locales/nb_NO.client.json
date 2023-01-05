@@ -1,0 +1,117 @@
+{
+  "AccountPage": {
+    "API": "API",
+    "API Key": "API-nøkkel",
+    "Account settings": "Kontoinnstillinger",
+    "Allow signing in to this account with Google": "Tillat innlogging på denne kontoen med Google",
+    "Change Password": "Endre passord",
+    "Edit": "Rediger",
+    "Email": "E-post",
+    "Login Method": "Innloggingsmetode",
+    "Name": "Navn",
+    "Password & Security": "Passord og sikkerhet",
+    "Save": "Lagre",
+    "Theme": "Drakt",
+    "Two-factor authentication": "To-faktoridentitetsbekreftelse",
+    "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "To-faktoridentitetsbekreftelse er et ekstra sikkerhetslag for din Grist-konto, designet for å forsikre at kun du har tilgang til kontoen din, selv om noen tar rede på passordet."
+  },
+  "AccountWidget": {
+    "Access Details": "Tilgangsdetaljer",
+    "Accounts": "Kontoer",
+    "Add Account": "Legg til konto",
+    "Document Settings": "Dokument-innstillinger",
+    "Manage Team": "Håndter lag",
+    "Pricing": "Prissetting",
+    "Profile Settings": "Profilinnstillinger",
+    "Sign Out": "Logg ut",
+    "Sign in": "Logg inn",
+    "Switch Accounts": "Bytt konto",
+    "Toggle Mobile Mode": "Slå av/på mobilmodus"
+  },
+  "AddNewButton": {
+    "Add New": "Legg til ny"
+  },
+  "ApiKey": {
+    "Click to show": "Klikk for å vise",
+    "Create": "Opprett",
+    "Remove": "Fjern",
+    "Remove API Key": "Fjern API-nøkkel"
+  },
+  "App": {
+    "Description": "Beskrivelse",
+    "Key": "Nøkkel",
+    "Memory Error": "Minnefeil"
+  },
+  "AppHeader": {
+    "Home Page": "Hjemmeside",
+    "Personal Site": "Personlig side",
+    "Team Site": "Lagside"
+  },
+  "CellContextMenu": {
+    "Clear cell": "Tøm celle",
+    "Clear values": "Tøm verdier",
+    "Copy anchor link": "Kopier ankerlenke",
+    "Delete column": "Slett kolonne",
+    "Delete row": "Slett rad",
+    "Delete {{count}} columns": "Slett {{count}} kolonner",
+    "Delete {{count}} rows": "Slett {{count}} rader",
+    "Duplicate row": "Dupliser rad",
+    "Duplicate rows": "Dupliser rader",
+    "Filter by this value": "Filtrer etter denne verdien",
+    "Insert column to the left": "Sett inn kolonne til venstre",
+    "Insert column to the right": "Sett inn kolonne til høyre",
+    "Insert row": "Sett inn rad",
+    "Insert row above": "Sett inn rad ovenfor",
+    "Insert row below": "Sett inn rad under",
+    "Reset column": "Tilbakestill kolonne",
+    "Reset entire column": "Tilbakestill hele kolonnen",
+    "Reset {{count}} columns": "Tilbakestill {{count}} kolonner",
+    "Reset {{count}} entire columns": "Tilbakestill {{count}} hele kolonner"
+  },
+  "ColumnFilterMenu": {
+    "All": "Alle",
+    "All Except": "Alle unntatt",
+    "All Shown": "Alle viste",
+    "End": "Slutt",
+    "Future Values": "Fremtidige verdier",
+    "Max": "Maks.",
+    "Min": "Min.",
+    "No matching values": "Ingen samsvarende verdier",
+    "None": "Ingen",
+    "Other Matching": "Andre som samsvarer",
+    "Other Non-Matching": "Andre som ikke samsvarer",
+    "Other Values": "Andre verdier",
+    "Others": "Andre",
+    "Search": "Søk",
+    "Search values": "Søk etter verdier",
+    "Start": "Start"
+  },
+  "CustomSectionConfig": {
+    " (optional)": "(valgfritt)",
+    "Add": "Legg til",
+    "Enter Custom URL": "Skriv inn egendefinert nettadresse",
+    "Full document access": "Full dokumenttilgang",
+    "Learn more about custom widgets": "Lær mer om egendefinerte miniprogrammer",
+    "No document access": "Ingen dokumenttilgang",
+    "Open configuration": "Åpne oppsett",
+    "Pick a column": "Velg en kolonne",
+    "Pick a {{columnType}} column": "Velg en {{columnType}}-kolonne",
+    "Read selected table": "Les valgt tabell",
+    "Select Custom Widget": "Velg egendefinert miniprogram"
+  },
+  "DocHistory": {
+    "Activity": "Aktivitet",
+    "Beta": "Beta"
+  },
+  "DocMenu": {
+    "All Documents": "Alle dokumenter",
+    "Delete {{name}}": "Slett {{name}}",
+    "Deleted {{at}}": "Slettet {{at}}",
+    "Discover More Templates": "Oppdag flere maler",
+    "Edited {{at}}": "Redigert {{at}}",
+    "Examples and Templates": "Eksempler og maler",
+    "More Examples and Templates": "Flere eksempler ogmaler",
+    "Pinned Documents": "Festede dokumenter",
+    "This service is not available right now": "Denne tjenesten er ikke tilgjengelig akkurat nå"
+  }
+}
