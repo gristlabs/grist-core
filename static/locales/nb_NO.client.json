@@ -1,117 +1,117 @@
 {
-    "AccountPage": {
-        "ChangePassword": "Endre passord",
-        "API": "API",
-        "Edit": "Rediger",
-        "AccountSettings": "Kontoinnstillinger",
-        "Email": "E-post",
-        "Name": "Navn",
-        "Save": "Lagre",
-        "AllowGoogleSigning": "Tillat innlogging på denne kontoen med Google",
-        "TwoFactorAuth": "To-faktoridentitetsbekreftelse",
-        "TwoFactorAuthDescription": "To-faktoridentitetsbekreftelse er et ekstra sikkerhetslag for din Grist-konto, designet for å forsikre at kun du har tilgang til kontoen din, selv om noen tar rede på passordet.",
-        "Theme": "Drakt",
-        "APIKey": "API-nøkkel",
-        "PasswordSecurity": "Passord og sikkerhet",
-        "LoginMethod": "Innloggingsmetode"
-    },
-    "AccountWidget": {
-        "ProfileSettings": "Profilinnstillinger",
-        "ManageTeam": "Håndter lag",
-        "AccessDetails": "Tilgangsdetaljer",
-        "SwitchAccounts": "Bytt konto",
-        "Accounts": "Kontoer",
-        "AddAccount": "Legg til konto",
-        "SignOut": "Logg ut",
-        "Pricing": "Prissetting",
-        "SignIn": "Logg inn",
-        "DocumentSettings": "Dokument-innstillinger",
-        "ToggleMobileMode": "Slå av/på mobilmodus"
-    },
-    "AddNewButton": {
-        "AddNew": "Legg til ny"
-    },
-    "App": {
-        "Description": "Beskrivelse",
-        "Key": "Nøkkel",
-        "MemoryError": "Minnefeil"
-    },
-    "ApiKey": {
-        "Create": "Opprett",
-        "Remove": "Fjern",
-        "ClickToShow": "Klikk for å vise",
-        "RemoveAPIKey": "Fjern API-nøkkel"
-    },
-    "DocHistory": {
-        "Beta": "Beta",
-        "Activity": "Aktivitet"
-    },
-    "CustomSectionConfig": {
-        "Add": "Legg til",
-        "NoDocumentAccess": "Ingen dokumenttilgang",
-        "EnterCustomURL": "Skriv inn egendefinert nettadresse",
-        "FullDocumentAccess": "Full dokumenttilgang",
-        "LearnMore": "Lær mer om egendefinerte miniprogrammer",
-        "PickAColumn": "Velg en kolonne",
-        "PickAColumnWithType": "Velg en {{columnType}}-kolonne",
-        "OpenConfiguration": "Åpne oppsett",
-        "Optional": " (valgfritt)",
-        "ReadSelectedTable": "Les valgt tabell",
-        "SelectCustomWidget": "Velg egendefinert miniprogram"
-    },
-    "DocMenu": {
-        "AllDocuments": "Alle dokumenter",
-        "ExamplesAndTemplates": "Eksempler og maler",
-        "MoreExamplesAndTemplates": "Flere eksempler ogmaler",
-        "ServiceNotAvailable": "Denne tjenesten er ikke tilgjengelig akkurat nå",
-        "PinnedDocuments": "Festede dokumenter",
-        "DeleteDoc": "Slett {{name}}",
-        "Deleted": "Slettet {{at}}",
-        "DiscoverMoreTemplates": "Oppdag flere maler",
-        "Edited": "Redigert {{at}}"
-    },
-    "ColumnFilterMenu": {
-        "FutureValues": "Fremtidige verdier",
-        "Others": "Andre",
-        "Search": "Søk",
-        "SearchValues": "Søk etter verdier",
-        "All": "Alle",
-        "AllShown": "Alle viste",
-        "AllExcept": "Alle unntatt",
-        "None": "Ingen",
-        "NoMatchingValues": "Ingen samsvarende verdier",
-        "OtherMatching": "Andre som samsvarer",
-        "OtherNonMatching": "Andre som ikke samsvarer",
-        "OtherValues": "Andre verdier",
-        "RangeMin": "Min.",
-        "RangeMax": "Maks.",
-        "DateRangeMin": "Start",
-        "DateRangeMax": "Slutt"
-    },
-    "AppHeader": {
-        "HomePage": "Hjemmeside",
-        "PersonalSite": "Personlig side",
-        "TeamSite": "Lagside"
-    },
-    "CellContextMenu": {
-        "ResetEntireColumns_one": "Tilbakestill hele kolonnen",
-        "ResetEntireColumns_other": "Tilbakestill {{count}} hele kolonner",
-        "ResetColumns_one": "Tilbakestill kolonne",
-        "ResetColumns_other": "Tilbakestill {{count}} kolonner",
-        "DeleteColumns_one": "Slett kolonne",
-        "DeleteColumns_other": "Slett {{count}} kolonner",
-        "DeleteRows_one": "Slett rad",
-        "DeleteRows_other": "Slett {{count}} rader",
-        "ClearValues": "Tøm verdier",
-        "ClearCell": "Tøm celle",
-        "CopyAnchorLink": "Kopier ankerlenke",
-        "FilterByValue": "Filtrer etter denne verdien",
-        "InsertRow": "Sett inn rad",
-        "InsertRowAbove": "Sett inn rad ovenfor",
-        "InsertRowBelow": "Sett inn rad under",
-        "DuplicateRows_one": "Dupliser rad",
-        "DuplicateRows_other": "Dupliser rader",
-        "InsertColumnRight": "Sett inn kolonne til høyre",
-        "InsertColumnLeft": "Sett inn kolonne til venstre"
-    }
+  "AccountPage": {
+    "API": "API",
+    "API Key": "API-nøkkel",
+    "Account settings": "Kontoinnstillinger",
+    "Allow signing in to this account with Google": "Tillat innlogging på denne kontoen med Google",
+    "Change Password": "Endre passord",
+    "Edit": "Rediger",
+    "Email": "E-post",
+    "Login Method": "Innloggingsmetode",
+    "Name": "Navn",
+    "Password & Security": "Passord og sikkerhet",
+    "Save": "Lagre",
+    "Theme": "Drakt",
+    "Two-factor authentication": "To-faktoridentitetsbekreftelse",
+    "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "To-faktoridentitetsbekreftelse er et ekstra sikkerhetslag for din Grist-konto, designet for å forsikre at kun du har tilgang til kontoen din, selv om noen tar rede på passordet."
+  },
+  "AccountWidget": {
+    "Access Details": "Tilgangsdetaljer",
+    "Accounts": "Kontoer",
+    "Add Account": "Legg til konto",
+    "Document Settings": "Dokument-innstillinger",
+    "Manage Team": "Håndter lag",
+    "Pricing": "Prissetting",
+    "Profile Settings": "Profilinnstillinger",
+    "Sign Out": "Logg ut",
+    "Sign in": "Logg inn",
+    "Switch Accounts": "Bytt konto",
+    "Toggle Mobile Mode": "Slå av/på mobilmodus"
+  },
+  "AddNewButton": {
+    "Add New": "Legg til ny"
+  },
+  "ApiKey": {
+    "Click to show": "Klikk for å vise",
+    "Create": "Opprett",
+    "Remove": "Fjern",
+    "Remove API Key": "Fjern API-nøkkel"
+  },
+  "App": {
+    "Description": "Beskrivelse",
+    "Key": "Nøkkel",
+    "Memory Error": "Minnefeil"
+  },
+  "AppHeader": {
+    "Home Page": "Hjemmeside",
+    "Personal Site": "Personlig side",
+    "Team Site": "Lagside"
+  },
+  "CellContextMenu": {
+    "Clear cell": "Tøm celle",
+    "Clear values": "Tøm verdier",
+    "Copy anchor link": "Kopier ankerlenke",
+    "Delete column": "Slett kolonne",
+    "Delete row": "Slett rad",
+    "Delete {{count}} columns": "Slett {{count}} kolonner",
+    "Delete {{count}} rows": "Slett {{count}} rader",
+    "Duplicate row": "Dupliser rad",
+    "Duplicate rows": "Dupliser rader",
+    "Filter by this value": "Filtrer etter denne verdien",
+    "Insert column to the left": "Sett inn kolonne til venstre",
+    "Insert column to the right": "Sett inn kolonne til høyre",
+    "Insert row": "Sett inn rad",
+    "Insert row above": "Sett inn rad ovenfor",
+    "Insert row below": "Sett inn rad under",
+    "Reset column": "Tilbakestill kolonne",
+    "Reset entire column": "Tilbakestill hele kolonnen",
+    "Reset {{count}} columns": "Tilbakestill {{count}} kolonner",
+    "Reset {{count}} entire columns": "Tilbakestill {{count}} hele kolonner"
+  },
+  "ColumnFilterMenu": {
+    "All": "Alle",
+    "All Except": "Alle unntatt",
+    "All Shown": "Alle viste",
+    "End": "Slutt",
+    "Future Values": "Fremtidige verdier",
+    "Max": "Maks.",
+    "Min": "Min.",
+    "No matching values": "Ingen samsvarende verdier",
+    "None": "Ingen",
+    "Other Matching": "Andre som samsvarer",
+    "Other Non-Matching": "Andre som ikke samsvarer",
+    "Other Values": "Andre verdier",
+    "Others": "Andre",
+    "Search": "Søk",
+    "Search values": "Søk etter verdier",
+    "Start": "Start"
+  },
+  "CustomSectionConfig": {
+    " (optional)": "(valgfritt)",
+    "Add": "Legg til",
+    "Enter Custom URL": "Skriv inn egendefinert nettadresse",
+    "Full document access": "Full dokumenttilgang",
+    "Learn more about custom widgets": "Lær mer om egendefinerte miniprogrammer",
+    "No document access": "Ingen dokumenttilgang",
+    "Open configuration": "Åpne oppsett",
+    "Pick a column": "Velg en kolonne",
+    "Pick a {{columnType}} column": "Velg en {{columnType}}-kolonne",
+    "Read selected table": "Les valgt tabell",
+    "Select Custom Widget": "Velg egendefinert miniprogram"
+  },
+  "DocHistory": {
+    "Activity": "Aktivitet",
+    "Beta": "Beta"
+  },
+  "DocMenu": {
+    "All Documents": "Alle dokumenter",
+    "Delete {{name}}": "Slett {{name}}",
+    "Deleted {{at}}": "Slettet {{at}}",
+    "Discover More Templates": "Oppdag flere maler",
+    "Edited {{at}}": "Redigert {{at}}",
+    "Examples and Templates": "Eksempler og maler",
+    "More Examples and Templates": "Flere eksempler ogmaler",
+    "Pinned Documents": "Festede dokumenter",
+    "This service is not available right now": "Denne tjenesten er ikke tilgjengelig akkurat nå"
+  }
 }
