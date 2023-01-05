@@ -153,7 +153,7 @@ Thanks to everyone who is pitching in. Thanks especially to the ANCT developers 
 did the hard work of making a good chunk of the application localizable. Merci bien!
 
 <a href="https://hosted.weblate.org/engage/grist/">
-<img src="https://hosted.weblate.org/widgets/grist/-/open-graph.png" alt="Translation status" />
+<img src="https://hosted.weblate.org/widgets/grist/-/open-graph.png" alt="Translation status" width=480 />
 </a>
 
 ## Why free and open source software
