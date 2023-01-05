@@ -127,4 +127,9 @@ describe('localization', function() {
     const scoped = makeT('Parent', instance);
     assert.equal(scoped('Not.Valid:Characters'), 'Works');
   });
+
+  it('makeT helper fallbacks to an argument', function() {
+    const scoped = makeT('Parent', instance);
+    assert.equal(scoped("I'm not there"), "I'm not there");
+  });
 });

@@ -161,9 +161,16 @@ export function makeT(scope: string, instance?: typeof i18next) {
       scopedInstance = (instance ?? i18next).cloneInstance({
         keySeparator: false,
         nsSeparator: false,
+        saveMissing: true,
+        missingKeyHandler: (lng, ns, _key) => console.warn(`Missing translation for key: ${_key}`)
       });
+
       // Create a version of `t` function that will use the provided prefix as default.
-      scopedResolver = scopedInstance.getFixedT(null, null, scope);
+      const fixedResolver = scopedInstance.getFixedT(null, null, scope);
+
+      // Override the resolver with a custom one, that will use the argument as a default.
+      // This will remove all the overloads from the function, but we don't need them.
+      scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, {defaultValue: _key, ..._args});
     }
     // If the key has interpolation or we did pass some arguments, make sure that
     // the key exists.
