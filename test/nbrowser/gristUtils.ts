@@ -2476,8 +2476,8 @@ export async function openProfileSettingsPage() {
 
 export async function openDocumentSettings() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu li', 'Document Settings').click();
-  await driver.findWait('.test-modal-title', 5000);
+  await driver.findContent('.grist-floating-menu a', 'Document Settings').click();
+  await waitForUrl(/settings/, 5000);
 }
 
 /**

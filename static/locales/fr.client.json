@@ -260,7 +260,8 @@
         "Local currency ({{currency}})": "Devise locale ({{currency}})",
         "Engine (experimental {{span}} change at own risk):": "Moteur (expérimental {{span}} changez à vos risques et périls):",
         "Save": "Enregistrer",
-        "Save and Reload": "Enregistrer et recharger"
+        "Save and Reload": "Enregistrer et recharger",
+        "Document ID copied to clipboard": "Identifiant de document copié"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",

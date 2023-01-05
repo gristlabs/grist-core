@@ -3,110 +3,107 @@
  * (new settings to be added here ...).
  */
 import {makeT} from 'app/client/lib/localization';
-import {dom, IDisposableOwner, styled} from 'grainjs';
-import {Computed, Observable} from 'grainjs';
-
-
+import {Computed, Disposable, dom, fromKo, IDisposableOwner, styled} from 'grainjs';
 import {ACSelectItem, buildACSelect} from "app/client/lib/ACSelect";
+import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {ACIndexImpl} from "app/client/lib/ACIndex";
-import {loadMomentTimezone} from 'app/client/lib/imports';
-import {DocInfoRec} from 'app/client/models/DocModel';
-import {DocPageModel} from 'app/client/models/DocPageModel';
-import {testId, vars} from 'app/client/ui2018/cssVars';
+import {docListHeader} from "app/client/ui/DocMenuCss";
+import {showTransientTooltip} from 'app/client/ui/tooltips';
+import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {select} from 'app/client/ui2018/menus';
-import {saveModal} from 'app/client/ui2018/modals';
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {propertyCompare} from "app/common/gutil";
 import {getCurrency, locales} from "app/common/Locales";
+import {GristDoc} from 'app/client/components/GristDoc';
+import * as moment from "moment-timezone";
+import {KoSaveableObservable} from 'app/client/models/modelUtil';
+import {reportError} from 'app/client/models/AppModel';
+import {confirmModal} from 'app/client/ui2018/modals';
 
 const t = makeT('DocumentSettings');
 
-/**
- * Builds a simple saveModal for saving settings.
- */
-export async function showDocSettingsModal(docInfo: DocInfoRec, docPageModel: DocPageModel): Promise<void> {
-  const moment = await loadMomentTimezone();
-  return saveModal((ctl, owner) => {
-    const timezoneObs = Observable.create(owner, docInfo.timezone.peek());
+export class DocSettingsPage extends Disposable {
+  private _docInfo = this._gristDoc.docInfo;
 
-    const docSettings = docInfo.documentSettingsJson.peek();
-    const {locale, currency, engine} = docSettings;
-    const localeObs = Observable.create(owner, locale);
-    const currencyObs = Observable.create(owner, currency);
-    const engineObs = Observable.create(owner, engine);
+  private _timezone = this._docInfo.timezone;
+  private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
+  private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  private _engine: Computed<EngineCode|undefined> = Computed.create(this, (
+    use => use(this._docInfo.documentSettingsJson.prop('engine'))
+  ))
+    .onWrite(val => this._setEngine(val));
 
-    // Check if server supports engine choices - if so, we will allow user to pick.
+  constructor(private _gristDoc: GristDoc) {
+    super();
+  }
+
+  public buildDom() {
     const canChangeEngine = getSupportedEngineChoices().length > 0;
+    const docPageModel = this._gristDoc.docPageModel;
 
-    return {
-      title: t("Document Settings"),
-      body: [
-        cssDataRow(t("This document's ID (for API use):")),
-        cssDataRow(dom('tt', docPageModel.currentDocId.get())),
-        cssDataRow(t("Time Zone:")),
-        cssDataRow(dom.create(buildTZAutocomplete, moment, timezoneObs, (val) => timezoneObs.set(val))),
-        cssDataRow(t("Locale:")),
-        cssDataRow(dom.create(buildLocaleSelect, localeObs)),
-        cssDataRow(t("Currency:")),
-        cssDataRow(dom.domComputed(localeObs, (l) =>
-          dom.create(buildCurrencyPicker, currencyObs, (val) => currencyObs.set(val),
-            {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
-        )),
-        canChangeEngine ? [
-          // Small easter egg: you can click on the skull-and-crossbones to
-          // force a reload of the document.
-          cssDataRow(t("Engine (experimental {{span}} change at own risk):", {span:
-            dom('span', '☠',
-              dom.style('cursor', 'pointer'),
-              dom.on('click', async () => {
-                await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
-                document.location.reload();
-              }))
+    return cssContainer(
+      cssHeader(t('Document Settings')),
+      cssDataRow(t("Time Zone:")),
+      cssDataRow(
+        dom.create(buildTZAutocomplete, moment, fromKo(this._timezone), (val) => this._timezone.saveOnly(val))
+      ),
+      cssDataRow(t("Locale:")),
+      cssDataRow(dom.create(buildLocaleSelect, this._locale)),
+      cssDataRow(t("Currency:")),
+      cssDataRow(dom.domComputed(fromKo(this._locale), (l) =>
+        dom.create(buildCurrencyPicker, fromKo(this._currency), (val) => this._currency.saveOnly(val),
+          {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
+      )),
+      canChangeEngine ? [
+        // Small easter egg: you can click on the skull-and-crossbones to
+        // force a reload of the document.
+        cssDataRow(t("Engine (experimental {{span}} change at own risk):", {span:
+          dom('span', '☠',
+            dom.style('cursor', 'pointer'),
+            dom.on('click', async () => {
+              await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+              document.location.reload();
+            }))
           })),
-          select(engineObs, getSupportedEngineChoices()),
-        ] : null,
-      ],
-      // Modal label is "Save", unless engine is changed. If engine is changed, the document will
-      // need a reload to switch engines, so we replace the label with "Save and Reload".
-      saveLabel: dom.text((use) => (use(engineObs) === docSettings.engine) ? t("Save") : t("Save and Reload")),
-      saveFunc: async () => {
-        await docInfo.updateColValues({
-          timezone: timezoneObs.get(),
-          documentSettings: JSON.stringify({
-            ...docInfo.documentSettingsJson.peek(),
-            locale: localeObs.get(),
-            currency: currencyObs.get(),
-            engine: engineObs.get()
-          })
-        });
-        // Reload the document if the engine is changed.
-        if (engineObs.get() !== docSettings.engine) {
-          await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
-        }
-      },
-      // If timezone, locale, or currency hasn't changed, disable the Save button.
-      saveDisabled: Computed.create(owner,
-        (use) => {
-          return (
-            use(timezoneObs) === docInfo.timezone.peek() &&
-            use(localeObs) === docSettings.locale &&
-            use(currencyObs) === docSettings.currency &&
-            use(engineObs) === docSettings.engine
-          );
-        })
-    };
-  });
-}
+        select(this._engine, getSupportedEngineChoices()),
+      ] : null,
+      cssHeader(t('API')),
+      cssDataRow(t("This document's ID (for API use):")),
+      cssDataRow(cssHoverWrapper(
+        dom('tt', docPageModel.currentDocId.get()),
+        dom.on('click', async (e, d) => {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          showTransientTooltip(d, t("Document ID copied to clipboard"), {
+            key: 'copy-document-id'
+          });
+          await copyToClipboard(docPageModel.currentDocId.get()!);
+        }),
+      )),
+    );
+  }
 
+  private async _setEngine(val: EngineCode|undefined) {
+    confirmModal(t('Save and Reload'), t('Ok'), () => this._doSetEngine(val));
+  }
+
+  private async _doSetEngine(val: EngineCode|undefined) {
+    const docPageModel = this._gristDoc.docPageModel;
+    if (this._engine.get() !== val) {
+      await this._docInfo.documentSettingsJson.prop('engine').saveOnly(val);
+      await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+    }
+  }
+}
 
 type LocaleItem = ACSelectItem & {locale?: string};
 
 function buildLocaleSelect(
   owner: IDisposableOwner,
-  locale: Observable<string>
+  locale: KoSaveableObservable<string>,
 ) {
   const localeList: LocaleItem[] = locales.map(l => ({
     value: l.name, // Use name as a value, we will translate the name into the locale on save
@@ -118,26 +115,58 @@ function buildLocaleSelect(
   // AC select will show the value (in this case locale) not a label when something is selected.
   // To show the label - create another observable that will be in sync with the value, but
   // will contain text.
-  const localeCode = locale.get();
-  const localeName = locales.find(l => l.code === localeCode)?.name || localeCode;
-  const textObs = Observable.create(owner, localeName);
+  const textObs = Computed.create(owner, use => {
+    const localeCode = use(locale);
+    const localeName = locales.find(l => l.code === localeCode)?.name || localeCode;
+    return localeName;
+  });
   return buildACSelect(owner,
     {
       acIndex, valueObs: textObs,
-      save(value, item: LocaleItem | undefined) {
+      save(_value, item: LocaleItem | undefined) {
         if (!item) { throw new Error("Invalid locale"); }
-        textObs.set(value);
-        locale.set(item.locale!);
+        locale.saveOnly(item.locale!).catch(reportError);
       },
     },
     testId("locale-autocomplete")
   );
 }
 
+const cssHeader = styled(docListHeader, `
+  margin-bottom: 0;
+  &:not(:first-of-type) {
+    margin-top: 40px;
+  }
+`);
+
+const cssContainer = styled('div', `
+  overflow-y: auto;
+  position: relative;
+  height: 100%;
+  padding: 32px 64px 24px 64px;
+  max-width: 487px;
+  @media ${mediaSmall} {
+    & {
+      padding: 32px 24px 24px 24px;
+    }
+  }
+`);
+
+const cssHoverWrapper = styled('div', `
+  display: inline-block;
+  cursor: default;
+  color: ${theme.lightText};
+  transition: background 0.05s;
+  &:hover {
+    background: ${theme.lightHover};
+  }
+`);
+
 // This matches the style used in showProfileModal in app/client/ui/AccountWidget.
 const cssDataRow = styled('div', `
   margin: 16px 0px;
   font-size: ${vars.largeFontSize};
+  color: ${theme.text};
 `);
 
 // Check which engines can be selected in the UI, if any.

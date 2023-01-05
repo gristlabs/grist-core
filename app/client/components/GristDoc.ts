@@ -19,6 +19,7 @@ import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
+import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -42,7 +43,6 @@ import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/mode
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
-import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
@@ -92,7 +92,7 @@ const t = makeT('GristDoc');
 const G = getBrowserGlobals('document', 'window');
 
 // Re-export some tools to move them from main webpack bundle to the one with GristDoc.
-export {DocComm, showDocSettingsModal, startDocTour};
+export {DocComm, startDocTour};
 
 export interface TabContent {
   showObs?: any;
@@ -446,7 +446,7 @@ export class GristDoc extends DisposableWithEvents {
   public buildDom() {
     const isMaximized = Computed.create(this, use => use(this.sectionInPopup) !== null);
     const isPopup = Computed.create(this, use => {
-      return use(this.activeViewId) === 'data' // On Raw data page
+      return ['data', 'settings'].includes(use(this.activeViewId) as any) // On Raw data or doc settings pages
         || use(isMaximized) // Layout has a maximized section visible
         || typeof use(this._activeContent) === 'object'; // We are on show raw data popup
     });
@@ -458,6 +458,7 @@ export class GristDoc extends DisposableWithEvents {
           content === 'code' ? dom.create(CodeEditorPanel, this) :
           content === 'acl' ? dom.create(AccessRules, this) :
           content === 'data' ? dom.create(RawDataPage, this) :
+          content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'GristDocTour' ? null :
           (typeof content === 'object') ? dom.create(owner => {
             // In case user changes a page, close the popup.

@@ -1,4 +1,3 @@
-import {loadGristDoc} from 'app/client/lib/imports';
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
@@ -52,14 +51,13 @@ export class AccountWidget extends Disposable {
    */
   private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
     const currentOrg = this._appModel.currentOrg;
-    const gristDoc = this._docPageModel ? this._docPageModel.gristDoc.get() : null;
 
     // The 'Document Settings' item, when there is an open document.
-    const documentSettingsItem = (gristDoc ?
-      menuItem(async () => (await loadGristDoc()).showDocSettingsModal(gristDoc.docInfo, this._docPageModel!),
-        t("Document Settings"),
-        testId('dm-doc-settings')) :
-      null);
+    const documentSettingsItem = this._docPageModel ? menuItemLink(
+      urlState().setLinkUrl({docPage: 'settings'}),
+      t("Document Settings"),
+      testId('dm-doc-settings')
+    ) : null;
 
     // The item to toggle mobile mode (presence of viewport meta tag).
     const mobileModeToggle = menuItem(viewport.toggleViewport,

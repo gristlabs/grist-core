@@ -91,6 +91,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       ),
       testId('code'),
     ),
+    cssPageEntry(
+      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'settings'),
+      cssPageLink(cssPageIcon('Settings'),
+        cssLinkText(t("Settings")),
+        urlState().setLinkUrl({docPage: 'settings'})
+      ),
+      testId('settings'),
+    ),
     cssSpacer(),
     dom.maybe(docPageModel.currentDoc, (doc) => {
       const ex = buildExamples().find(e => e.urlId === doc.urlId);

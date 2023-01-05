@@ -266,7 +266,10 @@
         "Save": "Save",
         "Save and Reload": "Save and Reload",
         "This document's ID (for API use):": "This document's ID (for API use):",
-        "Time Zone:": "Time Zone:"
+        "Time Zone:": "Time Zone:",
+        "API": "API",
+        "Document ID copied to clipboard": "Document ID copied to clipboard",
+        "Ok": "Ok"
     },
     "DocumentUsage": {
         "Attachments Size": "Attachments Size",
