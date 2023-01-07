@@ -1,6 +1,6 @@
 {
     "AccessRules": {
-        "Add Table Rules": "Añadir reglas de tabla",
+        "Add Table Rules": "Agregar reglas de tabla",
         "Add User Attributes": "Agregar atributos de usuario",
         "Attribute to Look Up": "Atributo para buscar",
         "Checking...": "Comprobando…",
@@ -278,7 +278,7 @@
         "Using separate settings": "Utilizando ajustes separados"
     },
     "FilterConfig": {
-        "Add Column": "Añadir columna"
+        "Add Column": "Agregar columna"
     },
     "GridOptions": {
         "Grid Options": "Opciones de cuadrícula",
@@ -287,7 +287,7 @@
         "Zebra Stripes": "Rayas de cebra"
     },
     "GridViewMenus": {
-        "Add Column": "Añadir columna",
+        "Add Column": "Agregar columna",
         "Add to sort": "Agregar a ordenar",
         "Clear values": "Borrar valores",
         "Column Options": "Opciones de columna",
@@ -421,7 +421,7 @@
         "YouTube video player": "Reproductor de vídeo de YouTube"
     },
     "PageWidgetPicker": {
-        "Add to Page": "Añadir a la página",
+        "Add to Page": "Agregar a la página",
         "Building {{- label}} widget": "Creación de widget {{- label}}",
         "Group by": "Agrupar por",
         "Select Data": "Seleccionar datos",
@@ -510,7 +510,7 @@
         "Switch Sites": "Cambiar de sitio"
     },
     "SortConfig": {
-        "Add Column": "Añadir columna",
+        "Add Column": "Agregar columna",
         "Empty values last": "Valores vacíos en último lugar",
         "Natural sort": "Clasificación natural",
         "Update Data": "Actualizar datos",
@@ -647,9 +647,9 @@
         "Click to copy": "Haga clic para copiar"
     },
     "DocPageModel": {
-        "Add Empty Table": "Añadir tabla vacía",
-        "Add Widget to Page": "Añadir Widget a la página",
-        "Add Page": "Añadir página",
+        "Add Empty Table": "Agregar tabla vacía",
+        "Add Widget to Page": "Agregar Widget a la página",
+        "Add Page": "Agregar página",
         "Document owners can attempt to recover the document. [{{error}}]": "Los propietarios de documentos pueden intentar recuperar el documento. [{{error}}]",
         "Enter recovery mode": "Entrar en modo de recuperación",
         "Error accessing document": "Error al acceder al documento",
