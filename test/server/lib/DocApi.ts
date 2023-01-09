@@ -198,6 +198,47 @@ describe('DocApi', function() {
 
 // Contains the tests. This is where you want to add more test.
 function testDocApi() {
+  it("creator should be owner of a created ws", async () => {
+    const kiwiEmail = 'kiwi@getgrist.com';
+    const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+    // Make sure kiwi isn't allowed here.
+    await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+    await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
+    // Add kiwi as an editor for the org.
+    await assert.isRejected(kiwiApi.getOrgAccess(ORG_NAME), /Forbidden/);
+    await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: 'editors'}});
+    // Make a workspace as Kiwi, he should be owner of it.
+    const kiwiWs = await kiwiApi.newWorkspace({name: 'kiwiWs'}, ORG_NAME);
+    const kiwiWsAccess = await kiwiApi.getWorkspaceAccess(kiwiWs);
+    assert.equal(kiwiWsAccess.users.find(u => u.email === kiwiEmail)?.access, 'owners');
+    // Delete workspace.
+    await kiwiApi.deleteWorkspace(kiwiWs);
+    // Remove kiwi from the org.
+    await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
+  });
+
+  it("creator should be owner of a created doc", async () => {
+    const kiwiEmail = 'kiwi@getgrist.com';
+    const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+    await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
+    // Make sure kiwi isn't allowed here.
+    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+    await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
+    // Add kiwi as an editor of this workspace.
+    await userApi.updateWorkspacePermissions(ws1, {users: {[kiwiEmail]: 'editors'}});
+    await assert.isFulfilled(kiwiApi.getWorkspaceAccess(ws1));
+    // Create a document as kiwi.
+    const kiwiDoc = await kiwiApi.newDoc({name: 'kiwiDoc'}, ws1);
+    // Make sure kiwi is an owner of the document.
+    const kiwiDocAccess = await kiwiApi.getDocAccess(kiwiDoc);
+    assert.equal(kiwiDocAccess.users.find(u => u.email === kiwiEmail)?.access, 'owners');
+    await kiwiApi.deleteDoc(kiwiDoc);
+    // Remove kiwi from the workspace.
+    await userApi.updateWorkspacePermissions(ws1, {users: {[kiwiEmail]: null}});
+    await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
+  });
+
   it("should allow only owners to remove a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdeleteme1'}, ws1);
@@ -226,6 +267,8 @@ function testDocApi() {
     // Kiwi is owner of the document - now he can rename it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'owners'}});
     await assert.isFulfilled(kiwiApi.renameDoc(doc1, "testrenameme2"));
+
+    await userApi.deleteDoc(doc1);
   });
 
   it("guesses types of new columns", async () => {
@@ -3551,8 +3594,8 @@ function testDocApi() {
         assert.isAtLeast(stats[0].usage?.updatedTime ?? 0, now);
         assert.isNull(stats[0].usage?.lastErrorMessage);
         assert.isNull(stats[0].usage?.lastFailureTime);
-        assert.isAtLeast(stats[0].usage?.lastSuccessTime ?? 0, now);
         assert.equal(stats[0].usage?.lastHttpStatus, 200);
+        assert.isAtLeast(stats[0].usage?.lastSuccessTime ?? 0, now);
         assert.deepEqual(stats[0].usage?.lastEventBatch, {
           status: 'success',
           attempts: 1,

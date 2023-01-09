@@ -251,6 +251,12 @@ export interface DocumentMetadata {
   usage?: DocumentUsage|null;
 }
 
+interface CreateWorkspaceOptions {
+  org: Organization,
+  props: Partial<WorkspaceProperties>,
+  ownerId?: number
+}
+
 /**
  * HomeDBManager handles interaction between the ApiServer and the Home database,
  * encapsulating the typeorm logic.
@@ -1418,7 +1424,7 @@ export class HomeDBManager extends EventEmitter {
       }
       // Add a starter workspace to the org.  Any limits on org workspace
       // count are not checked, this will succeed unconditionally.
-      await this._doAddWorkspace(savedOrg, {name: 'Home'}, manager);
+      await this._doAddWorkspace({org: savedOrg, props: {name: 'Home'}}, manager);
 
       if (!options.setUserAsOwner) {
         // This user just made a team site (once this transaction is applied).
@@ -1619,7 +1625,7 @@ export class HomeDBManager extends EventEmitter {
           });
         }
       }
-      const workspace = await this._doAddWorkspace(org, props, manager);
+      const workspace = await this._doAddWorkspace({org, props, ownerId: scope.userId}, manager);
       return {
         status: 200,
         data: workspace.id
@@ -1766,7 +1772,7 @@ export class HomeDBManager extends EventEmitter {
       }
       doc.workspace = workspace;
       // Create the special initial permission groups for the new workspace.
-      const groupMap = this._createGroups(workspace);
+      const groupMap = this._createGroups(workspace, scope.userId);
       doc.aclRules = this.defaultCommonGroups.map(_grpDesc => {
         // Get the special group with the name needed for this ACL Rule
         const group = groupMap[_grpDesc.name];
@@ -1780,6 +1786,15 @@ export class HomeDBManager extends EventEmitter {
       // Saves the document as well as its new ACL Rules and Group.
       const groups = doc.aclRules.map(rule => rule.group);
       const result = await manager.save([doc, ...doc.aclRules, ...doc.aliases, ...groups]);
+      // Ensure that the creator is in the ws and org's guests group. Creator already has
+      // access to the workspace (he is at least an editor), but we need to be sure that
+      // even if he is removed from the workspace, he will still have access to this doc.
+      // Guest groups are updated after any access is changed, so even if we won't add creator
+      // now, he will be added later. NOTE: those functions would normally fail in transaction
+      // as those groups might by already fixed (when there is another doc created in the same
+      // time), but they are ignoring any unique constraints errors.
+      await this._repairWorkspaceGuests(scope, workspace.id, manager);
+      await this._repairOrgGuests(scope, workspace.org.id, manager);
       return {
         status: 200,
         data: (result[0] as Document).id
@@ -2939,6 +2954,9 @@ export class HomeDBManager extends EventEmitter {
     if (toAdd.length > 0) {
       await manager.createQueryBuilder()
         .insert()
+        // Since we are adding new records in group_users, we may get a duplicate key error if two documents
+        // are added at the same time (even in transaction, since we are not blocking the whole table).
+        .orIgnore()
         .into('group_users')
         .values(toAdd.map(id => ({user_id: id, group_id: groupId})))
         .execute();
@@ -2968,8 +2986,10 @@ export class HomeDBManager extends EventEmitter {
    * Creates, initializes and saves a workspace in the given org with the given properties.
    * Product limits on number of workspaces allowed in org are not checked.
    */
-  private async _doAddWorkspace(org: Organization, props: Partial<WorkspaceProperties>,
-                                transaction?: EntityManager): Promise<Workspace> {
+  private async _doAddWorkspace(
+    {org, props, ownerId}: CreateWorkspaceOptions,
+    transaction?: EntityManager
+  ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
     return await this._runInTransaction(transaction, async manager => {
       // Create a new workspace.
@@ -2978,7 +2998,8 @@ export class HomeDBManager extends EventEmitter {
       workspace.updateFromProperties(props);
       workspace.org = org;
       // Create the special initial permission groups for the new workspace.
-      const groupMap = this._createGroups(org);
+      // Optionally add the owner to the workspace.
+      const groupMap = this._createGroups(org, ownerId);
       workspace.aclRules = this.defaultCommonGroups.map(_grpDesc => {
         // Get the special group with the name needed for this ACL Rule
         const group = groupMap[_grpDesc.name];
@@ -2992,6 +3013,11 @@ export class HomeDBManager extends EventEmitter {
       // Saves the workspace as well as its new ACL Rules and Group.
       const groups = workspace.aclRules.map(rule => rule.group);
       const result = await manager.save([workspace, ...workspace.aclRules, ...groups]);
+      if (ownerId) {
+        // If we modified direct access to the workspace, we need to update the
+        // guest group to include the owner.
+        await this._repairOrgGuests({userId: ownerId}, org.id, manager);
+      }
       return result[0];
     });
   }
@@ -3586,7 +3612,7 @@ export class HomeDBManager extends EventEmitter {
    * Returns a name to group mapping for the standard groups. Useful when adding a new child
    * entity. Finds and includes the correct parent groups as member groups.
    */
-  private _createGroups(inherit?: Organization|Workspace): {[name: string]: Group} {
+  private _createGroups(inherit?: Organization|Workspace, ownerId?: number): {[name: string]: Group} {
     const groupMap: {[name: string]: Group} = {};
     this.defaultGroups.forEach(groupProps => {
       if (!groupProps.orgOnly || !inherit) {
@@ -3599,6 +3625,13 @@ export class HomeDBManager extends EventEmitter {
         groupMap[groupProps.name] = group;
       }
     });
+    // Add the owner explicitly to the owner group.
+    if (ownerId) {
+      const ownerGroup = groupMap[roles.OWNER];
+      const user = new User();
+      user.id = ownerId;
+      ownerGroup.memberUsers = [user];
+    }
     return groupMap;
   }
 
