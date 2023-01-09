@@ -15,6 +15,9 @@ import {makeT} from 'app/client/lib/localization';
 // One of the strings 'read', 'update', etc.
 export type PermissionKey = keyof PartialPermissionSet;
 
+// Canonical order of permission bits when rendered in a permissionsWidget.
+const PERMISSION_BIT_ORDER = 'RUCDS';
+
 const t = makeT('PermissionsWidget');
 
 /**
@@ -26,6 +29,7 @@ export function permissionsWidget(
   options: {disabled: boolean, sanityCheck?: (p: PartialPermissionSet) => void},
   ...args: DomElementArg[]
 ) {
+  availableBits = sortBits(availableBits);
   // These are the permission sets available to set via the dropdown.
   const empty: PartialPermissionSet = emptyPermissionSet();
   const allowAll: PartialPermissionSet = makePermissionSet(availableBits, () => 'allow');
@@ -123,6 +127,20 @@ function psetDescription(permissionSet: PartialPermissionSet): string {
   if (allow.length) { parts.push(`Allow ${allow.join(", ")}.`); }
   if (deny.length) { parts.push(`Deny ${deny.join(", ")}.`); }
   return parts.join(' ');
+}
+
+/**
+ * Sort the bits in a standard way for viewing, since they could be in any order
+ * in the underlying rule store. And in fact ACLPermissions.permissionSetToText
+ * uses an order (CRUDS) that is different from how things have been historically
+ * rendered in the UI (RUCDS).
+ */
+function sortBits(bits: PermissionKey[]) {
+  return bits.sort((a, b) => {
+    const aIndex = PERMISSION_BIT_ORDER.indexOf(a.slice(0, 1).toUpperCase());
+    const bIndex = PERMISSION_BIT_ORDER.indexOf(b.slice(0, 1).toUpperCase());
+    return aIndex - bIndex;
+  });
 }
 
 const cssPermissions = styled('div', `

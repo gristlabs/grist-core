@@ -20,7 +20,7 @@ import {UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('TypeTransformation');
+const t = makeT('TypeTransform');
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */

@@ -134,7 +134,13 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public isFatalError(err: any) {
-    return err.code !== 'NotFound' && err.code !== 'NoSuchKey';
+    // ECONNRESET should not count as fatal:
+    //   https://github.com/aws/aws-sdk-js/pull/3739
+    // Likewise for "We encountered an internal error. Please try again."
+    // These are errors associated with the AWS S3 backend, and which
+    // the AWS S3 SDK would typically handle.
+    return err.code !== 'NotFound' && err.code !== 'NoSuchKey' &&
+      err.code !== 'ECONNRESET' && err.code !== 'InternalError';
   }
 
   public async close() {

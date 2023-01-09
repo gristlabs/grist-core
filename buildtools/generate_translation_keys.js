@@ -18,11 +18,13 @@ const parser = new Parser({
   nsSeparator: null,
 });
 
-async function* walk(dir) {
-  for await (const d of await fs.promises.opendir(dir)) {
-    const entry = path.join(dir, d.name);
-    if (d.isDirectory()) yield* walk(entry);
-    else if (d.isFile()) yield entry;
+async function* walk(dirs) {
+  for (const dir of dirs) {
+    for await (const d of await fs.promises.opendir(dir)) {
+      const entry = path.join(dir, d.name);
+      if (d.isDirectory()) yield* walk([entry]);
+      else if (d.isFile()) yield entry;
+    }
   }
 }
 
@@ -37,6 +39,15 @@ const customHandler = (fileName) => (key, options) => {
     parser.set(keyWithFile, key);
   }
 };
+
+function sort(obj) {
+  if (typeof obj !== "object" || Array.isArray(obj))
+    return obj;
+  const sortedObject = {};
+  const keys = Object.keys(obj).sort();
+  keys.forEach(key => sortedObject[key] = sort(obj[key]));
+  return sortedObject;
+}
 
 const getKeysFromFile = (filePath, fileName) => {
   const content = fs.readFileSync(filePath, "utf-8");
@@ -54,19 +65,20 @@ const getKeysFromFile = (filePath, fileName) => {
   return keys;
 };
 
-async function walkTranslation(dirPath) {
-  for await (const p of walk(dirPath)) {
+async function walkTranslation(dirs) {
+  for await (const p of walk(dirs)) {
     const { name } = path.parse(p);
+    if (p.endsWith('.map')) { continue; }
     getKeysFromFile(p, name);
   }
   const keys = parser.get({ sort: true });
   const newTranslations = _.merge(keys.en.translation, englishKeys);
   await fs.promises.writeFile(
     "static/locales/en.client.json",
-    JSON.stringify(newTranslations, null, 2),
+    JSON.stringify(sort(newTranslations), null, 2),
     "utf-8"
   );
   return keys;
 }
 
-walkTranslation("app/client");
+walkTranslation(["_build/app/client", ...process.argv.slice(2)]);

@@ -64,6 +64,11 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
       permissions: parsePermissions('-R'),
       permissionsText: '-R',
     }],
+  },
+  SeedRule: {
+    tableId: SPECIAL_RULES_TABLE_ID,
+    colIds: ['SeedRule'],
+    body: [],
   }
 };
 
@@ -179,9 +184,13 @@ export class ACLRuleCollection {
         const specialType = String(ruleSet.colIds);
         const specialDefault = specialRuleSets.get(specialType);
         if (!specialDefault) {
-          throw new Error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
+          // Log that we are seeing an invalid rule, but don't fail.
+          // (Historically, older versions of the Grist app will attempt to
+          // open newer documents).
+          options.log.error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
+        } else {
+          specialRuleSets.set(specialType, {...ruleSet, body: [...ruleSet.body, ...specialDefault.body]});
         }
-        specialRuleSets.set(specialType, {...ruleSet, body: [...ruleSet.body, ...specialDefault.body]});
       }
     }
 
