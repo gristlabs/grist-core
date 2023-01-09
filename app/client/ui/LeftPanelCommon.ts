@@ -185,3 +185,23 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
     display: none;
   }
 `);
+
+export const cssMenuTrigger = styled('div', `
+  margin: 0 4px 0 auto;
+  height: 24px;
+  width: 24px;
+  padding: 4px;
+  line-height: 0px;
+  border-radius: 3px;
+  cursor: default;
+  display: none;
+  .${cssPageLink.className}:hover > &, &.weasel-popup-open {
+    display: block;
+  }
+  &:hover, &.weasel-popup-open {
+    background-color: ${theme.pageOptionsHoverBg};
+  }
+  .${cssPageEntry.className}-selected &:hover, .${cssPageEntry.className}-selected &.weasel-popup-open {
+    background-color: ${theme.pageOptionsSelectedHoverBg};
+  }
+`);

@@ -21,7 +21,7 @@ const t = makeT('components.ViewAsBanner');
 export class ViewAsBanner extends Disposable {
 
   private _userOverride = this._docPageModel.userOverride;
-  private _usersPopup = ACLUsersPopup.create(this);
+  private _usersPopup = ACLUsersPopup.create(this, this._docPageModel, this._getUsersForViewAs.bind(this));
 
   constructor (private _docPageModel: DocPageModel) {
     super();
@@ -73,8 +73,7 @@ export class ViewAsBanner extends Disposable {
 
   private async _initViewAsUsers() {
     await waitGrainObs(this._docPageModel.gristDoc);
-    const permissionData = await this._getUsersForViewAs();
-    this._usersPopup.init(this._docPageModel, permissionData);
+    await this._usersPopup.load();
   }
 
   private _getUsersForViewAs(): Promise<PermissionDataWithExtraUsers> {

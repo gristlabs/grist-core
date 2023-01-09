@@ -9,5 +9,5 @@ export default function getCurrentTime(): moment.Moment {
   if (typeof window === 'undefined' || !window) { return getDefault(); }
   const searchParams = new URLSearchParams(window.location.search);
 
-  return searchParams.has('currentTime') ? moment(searchParams.get('currentTime')) : getDefault();
+  return searchParams.has('currentTime') ? moment(searchParams.get('currentTime') || undefined) : getDefault();
 }

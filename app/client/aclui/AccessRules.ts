@@ -122,7 +122,7 @@ export class AccessRules extends Disposable {
   // Map of tableId to basic metadata for all tables in the document.
   private _aclResources = new Map<string, AclTableDescription>();
 
-  private _aclUsersPopup = ACLUsersPopup.create(this);
+  private _aclUsersPopup = ACLUsersPopup.create(this, this._gristDoc.docPageModel);
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -531,13 +531,7 @@ export class AccessRules extends Disposable {
   }
 
   private async _updateDocAccessData() {
-    const pageModel = this._gristDoc.docPageModel;
-    const doc = pageModel.currentDoc.get();
-
-    const permissionData = doc && await this._gristDoc.docComm.getUsersForViewAs();
-    if (this.isDisposed()) { return; }
-
-    this._aclUsersPopup.init(pageModel, permissionData);
+    await this._aclUsersPopup.load();
   }
 
   private _addButtonsForMissingTables(buttons: Array<HTMLAnchorElement | HTMLButtonElement>, tableIds: string[]) {
@@ -625,7 +619,7 @@ class TableRules extends Disposable {
     } else if (this._defRuleSet) {
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules,
         this._defRuleSet);
-    }
+   }
 
     this.ruleStatus = Computed.create(this, (use) => {
       const columnRuleSets = use(this._columnRuleSets);

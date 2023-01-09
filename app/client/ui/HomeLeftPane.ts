@@ -7,7 +7,9 @@ import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
 import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
-import {cssLinkText, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer} from 'app/client/ui/LeftPanelCommon';
+import {
+  cssLinkText, cssMenuTrigger, cssPageEntry, cssPageIcon, cssPageLink, cssSpacer
+} from 'app/client/ui/LeftPanelCommon';
 import {createVideoTourToolsButton} from 'app/client/ui/OpenVideoTour';
 import {transientInput} from 'app/client/ui/transientInput';
 import {testId, theme} from 'app/client/ui2018/cssVars';
@@ -254,24 +256,4 @@ export const cssEditorInput = styled(transientInput, `
   background-color: ${theme.inputBg};
   margin-right: 16px;
   font-size: inherit;
-`);
-
-const cssMenuTrigger = styled('div', `
-  margin: 0 4px 0 auto;
-  height: 24px;
-  width: 24px;
-  padding: 4px;
-  line-height: 0px;
-  border-radius: 3px;
-  cursor: default;
-  display: none;
-  .${cssPageLink.className}:hover > &, &.weasel-popup-open {
-    display: block;
-  }
-  &:hover, &.weasel-popup-open {
-    background-color: ${theme.pageOptionsHoverBg};
-  }
-  .${cssPageEntry.className}-selected &:hover, .${cssPageEntry.className}-selected &.weasel-popup-open {
-    background-color: ${theme.pageOptionsSelectedHoverBg};
-  }
 `);

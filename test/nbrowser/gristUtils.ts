@@ -1667,6 +1667,14 @@ export async function openDocDropdown(docNameOrRow: string|WebElement): Promise<
   await docRow.find('.test-dm-doc-options,.test-dm-pinned-doc-options').mouseMove().click();
 }
 
+ /**
+  * Open ⋮ dropdown menu for doc access rules.
+  */
+export async function openAccessRulesDropdown(): Promise<void> {
+  await driver.find('.test-tools-access-rules').mouseMove();
+  await driver.find('.test-tools-access-rules-trigger').mouseMove().click();
+}
+
 export async function editOrgAcls(): Promise<void> {
   // To prevent a common flakiness problem, wait for a potentially open modal dialog
   // to close before attempting to open the account menu.

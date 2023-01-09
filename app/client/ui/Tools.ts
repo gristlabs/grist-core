@@ -1,10 +1,11 @@
+import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
 import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getUserOrgPrefObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {showExampleCard} from 'app/client/ui/ExampleCard';
 import {buildExamples} from 'app/client/ui/ExampleInfo';
-import {createHelpTools, cssLinkText, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
+import {createHelpTools, cssLinkText, cssMenuTrigger, cssPageEntry, cssPageEntryMain, cssPageEntrySmall,
         cssPageIcon, cssPageLink, cssSectionHeader, cssSpacer, cssSplitPageEntry,
         cssTools} from 'app/client/ui/LeftPanelCommon';
 import {theme} from 'app/client/ui2018/cssVars';
@@ -12,6 +13,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
+import noop from 'lodash/noop';
 
 const testId = makeTestId('test-tools-');
 const t = makeT('Tools');
@@ -33,11 +35,31 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),
       cssPageEntry.cls('-disabled', (use) => !use(canViewAccessRules)),
-      dom.domComputed(canViewAccessRules, (_canViewAccessRules) => {
+      dom.domComputedOwned(canViewAccessRules, (computedOwner, _canViewAccessRules) => {
+        const aclUsers = ACLUsersPopup.create(computedOwner, docPageModel);
+        if (_canViewAccessRules) {
+          aclUsers.load()
+          // getUsersForViewAs() could fail for couple good reasons (access deny to anon user,
+          // `document not found` when anon creates a new empty document, ...), users can have more
+          // info by opening acl page, so let's silently fail here.
+            .catch(noop);
+        }
         return cssPageLink(
           cssPageIcon('EyeShow'),
           cssLinkText(t("Access Rules")),
           _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          cssMenuTrigger(
+            icon('Dots'),
+            aclUsers.menu({
+              placement: 'bottom-start',
+              parentSelectorToMark: '.' + cssPageEntry.className
+            }),
+
+            // Clicks on the menu trigger shouldn't follow the link that it's contained in.
+            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+            testId('access-rules-trigger'),
+            dom.show(use => use(aclUsers.isInitialized) && _canViewAccessRules),
+          ),
         );
       }),
       testId('access-rules'),
