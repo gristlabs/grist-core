@@ -59,6 +59,8 @@ export const ThemeColors = t.iface([], {
   "toast-text": "string",
   "toast-text-light": "string",
   "toast-bg": "string",
+  "toast-memo-text": "string",
+  "toast-memo-bg": "string",
   "toast-error-icon": "string",
   "toast-error-bg": "string",
   "toast-success-icon": "string",

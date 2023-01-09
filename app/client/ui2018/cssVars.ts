@@ -208,6 +208,8 @@ export const theme = {
   toastText: new CustomProp('theme-toast-text', undefined, colors.light),
   toastLightText: new CustomProp('theme-toast-text-light', undefined, colors.slate),
   toastBg: new CustomProp('theme-toast-bg', undefined, vars.toastBg),
+  toastMemoText: new CustomProp('theme-toast-memo-text', undefined, colors.light),
+  toastMemoBg: new CustomProp('theme-toast-memo-bg', undefined, colors.dark),
   toastErrorIcon: new CustomProp('theme-toast-error-icon', undefined, colors.error),
   toastErrorBg: new CustomProp('theme-toast-error-bg', undefined, colors.error),
   toastSuccessIcon: new CustomProp('theme-toast-success-icon', undefined, colors.darkGreen),

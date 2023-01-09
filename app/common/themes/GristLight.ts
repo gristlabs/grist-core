@@ -48,6 +48,8 @@ export const GristLight: ThemeColors = {
   'toast-text': '#FFFFFF',
   'toast-text-light': '#929299',
   'toast-bg': '#040404',
+  'toast-memo-text': '#FFFFFF',
+  'toast-memo-bg': '#262633',
   'toast-error-icon': '#D0021B',
   'toast-error-bg': '#D0021B',
   'toast-success-icon': '#009058',

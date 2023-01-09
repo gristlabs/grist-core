@@ -87,6 +87,7 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
   return cssToastWrapper(testId('toast-wrapper'),
     cssToastWrapper.cls(use => `-${use(item.status)}`),
     cssToastWrapper.cls(`-${item.options.level}`),
+    cssToastWrapper.cls('-memo', item.options.memos.length > 0),
     cssToastWrapper.cls(hasLeftIcon ? '-left-icon' : ''),
     item.options.title ? null : iconElement,
     cssToastBody(
@@ -98,7 +99,10 @@ function buildNotificationDom(item: Notification, options: IBeaconOpenOptions) {
         item.options.actions.map((action) => buildAction(action, item, options))
       ) : null,
       item.options.memos.length ? cssToastMemos(
-        item.options.memos.map(memo => cssToastMemo(memo, testId('toast-memo')))
+        item.options.memos.map(memo => cssToastMemo(
+          cssToastMemoIcon('Memo'),
+          dom('div', memo, testId('toast-memo')),
+        ))
       ) : null,
     ),
     dom.maybe(item.options.canUserClose, () =>
@@ -310,12 +314,15 @@ const cssToastWrapper = styled('div', `
   opacity: 1;
   transition: opacity ${Expirable.fadeDelay}ms;
 
+  &-memo {
+    color: ${theme.toastMemoText};
+    background-color: ${theme.toastMemoBg};
+  }
   &-error {
     border-left: 6px solid ${theme.toastErrorBg};
     padding-left: 6px;
     --icon-color: ${theme.toastErrorIcon};
   }
-
   &-success {
     border-left: 6px solid ${theme.toastSuccessBg};
     padding-left: 6px;
@@ -360,6 +367,9 @@ const cssToastWrapper = styled('div', `
 
 
 const cssToastText = styled('div', `
+  .${cssToastWrapper.className}-memo & {
+    font-weight: 700;
+  }
 `);
 
 const cssToastTitle = styled(cssToastText, `
@@ -392,16 +402,20 @@ const cssToastAction = styled('div', `
 `);
 
 const cssToastMemos = styled('div', `
-  margin-top: 16px;
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
 `);
 
 const cssToastMemo = styled('div', `
-  margin: 3px;
-  color: ${theme.text};
-  background: ${theme.notificationsPanelBodyBg};
-  padding: 3px;
+  display: flex;
+  column-gap: 8px;
+  align-items: center;
+`);
+
+const cssToastMemoIcon = styled(icon, `
+  --icon-color: ${theme.toastMemoText};
+  flex-shrink: 0;
 `);
 
 const cssProgressBarWrapper = styled('div', `

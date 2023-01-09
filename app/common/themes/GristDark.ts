@@ -48,6 +48,8 @@ export const GristDark: ThemeColors = {
   'toast-text': '#FFFFFF',
   'toast-text-light': '#929299',
   'toast-bg': '#040404',
+  'toast-memo-text': '#EFEFEF',
+  'toast-memo-bg': '#555563',
   'toast-error-icon': '#D0021B',
   'toast-error-bg': '#D0021B',
   'toast-success-icon': '#009058',
