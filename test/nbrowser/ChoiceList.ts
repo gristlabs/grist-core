@@ -467,7 +467,7 @@ describe('ChoiceList', function() {
     await convertColumn(/Choice List/);
 
     // Check that choices got populated.
-    await driver.find('.test-right-tab-field').click(); 
+    await driver.find('.test-right-tab-field').click();
     assert.deepEqual(await getChoiceLabels(), ['Hello', 'World', 'Foo', 'Bar;Baz!', 'Qux']);
     assert.deepEqual(
       await getChoiceColors(),
