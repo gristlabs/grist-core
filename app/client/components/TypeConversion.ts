@@ -177,7 +177,8 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
           value = String(decodeObject(value)).trim();
           const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
           for (const tag of tags) {
-            choices.add(String(tag).trim());
+            // Remove double quote at the begging and at the end of the tag if exists
+            choices.add(String(tag).trim().replace(/^"(.+?)"$/, '$1'));
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
           }
         }
