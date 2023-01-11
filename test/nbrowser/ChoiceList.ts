@@ -447,7 +447,7 @@ describe('ChoiceList', function() {
 
   it('should allow reasonable conversions between ChoiceList and other types', async function() {
     await gu.enterGridRows({rowNum: 1, col: 'A'},
-      [['Hello'], ['World'], [' Foo,Bar;Baz!,"Qux",']]);
+      [['Hello'], ['World'], [' Foo,Bar;Baz!,"Qux, quux corge", "80\'s",']]);
     await testTextChoiceListConversions();
   });
 
@@ -468,17 +468,17 @@ describe('ChoiceList', function() {
 
     // Check that choices got populated.
     await driver.find('.test-right-tab-field').click();
-    assert.deepEqual(await getChoiceLabels(), ['Hello', 'World', 'Foo', 'Bar;Baz!', 'Qux']);
+    assert.deepEqual(await getChoiceLabels(), ['Hello', 'World', 'Foo', 'Bar;Baz!', 'Qux, quux corge', '80\'s']);
     assert.deepEqual(
       await getChoiceColors(),
-      [UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL]
+      [UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL, UNSET_FILL]
     );
 
     // Check that the result contains the right tags.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
       'Hello',
       'World',
-      'Foo\nBar;Baz!\nQux'
+      'Foo\nBar;Baz!\nQux, quux corge\n80\'s'
     ]);
     await gu.checkForErrors();
 
@@ -495,17 +495,19 @@ describe('ChoiceList', function() {
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
+        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
       ]
     );
 
     // Open a cell to see the actual tags.
     await gu.getCell({rowNum: 3, col: 'A'}).click();
     await driver.sendKeys(Key.ENTER);
-    assert.deepEqual(await getEditorTokens(), ['Foo', 'Bar;Baz!', 'Qux']);
-    assert.deepEqual(await getEditorTokensIsInvalid(), [ false, false, false ]);
+    assert.deepEqual(await getEditorTokens(), ['Foo', 'Bar;Baz!', 'Qux, quux corge', '80\'s']);
+    assert.deepEqual(await getEditorTokensIsInvalid(), [ false, false, false, false ]);
     assert.deepEqual(
       await getEditorTokenStyles(),
       [
+        {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE},
         {fillColor: DEFAULT_FILL, textColor: DEFAULT_TEXT, ...VALID_CHOICE}
@@ -522,7 +524,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
       'Hello',
       'World',
-      'Foo, Bar;Baz!, Qux, hooray'
+      'Foo, Bar;Baz!, "Qux, quux corge", 80\'s, hooray'
     ]);
 
     // Undo the cell change and both conversions (back to ChoiceList, back to Text), and check
@@ -531,7 +533,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
       'Hello',
       'World',
-      ' Foo,Bar;Baz!,"Qux",',   // That's the text originally entered into this Text cell.
+      ' Foo,Bar;Baz!,"Qux, quux corge", "80\'s",',   // That's the text originally entered into this Text cell.
     ]);
   }
 
