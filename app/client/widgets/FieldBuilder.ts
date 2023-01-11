@@ -9,6 +9,7 @@ import { KoArray } from 'app/client/lib/koArray';
 import * as kd from 'app/client/lib/koDom';
 import * as kf from 'app/client/lib/koForm';
 import * as koUtil from 'app/client/lib/koUtil';
+import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ColumnRec, DocModel, ViewFieldRec } from 'app/client/models/DocModel';
@@ -38,7 +39,7 @@ import * as ko from 'knockout';
 import * as _ from 'underscore';
 
 const testId = makeTestId('test-fbuilder-');
-
+const t = makeT('FieldBuilder');
 
 
 // Creates a FieldBuilder object for each field in viewFields
@@ -228,7 +229,7 @@ export class FieldBuilder extends Disposable {
       defaultWidget.onWrite((value) => this.field.config.widget(value));
       const disabled = Computed.create(null, use => !use(this.field.config.sameWidgets));
       return [
-        cssLabel('CELL FORMAT'),
+        cssLabel(t('CELL FORMAT')),
         cssRow(
           grainjsDom.autoDispose(defaultWidget),
           widgetOptions.length <= 2 ?
@@ -242,7 +243,7 @@ export class FieldBuilder extends Disposable {
               widgetOptions,
               {
                 disabled,
-                defaultLabel: 'Mixed format'
+                defaultLabel: t('Mixed format')
               }
             ),
           testId('widget-select')
@@ -286,7 +287,7 @@ export class FieldBuilder extends Disposable {
             // If we are waiting for a server response
             use(this.isCallPending),
           menuCssClass: cssTypeSelectMenu.className,
-          defaultLabel: 'Mixed types',
+          defaultLabel: t('Mixed types'),
           renderOptionArgs: (op) => {
             if (['Ref', 'RefList'].includes(selectType.get())) {
               // Don't show tip if a reference column type is already selected.
@@ -340,7 +341,7 @@ export class FieldBuilder extends Disposable {
       // If we selected multiple empty/formula columns, make the change for all of them.
       if (this.field.viewSection.peek().selectedFields.peek().length > 1 &&
           ['formula', 'empty'].indexOf(this.field.viewSection.peek().columnsBehavior.peek())) {
-        return this.gristDoc.docData.bundleActions("Changing multiple column types", () =>
+        return this.gristDoc.docData.bundleActions(t("Changing multiple column types"), () =>
           Promise.all(this.field.viewSection.peek().selectedFields.peek().map(f =>
             f.column.peek().type.setAndSave(calculatedType)
         ))).catch(reportError);
@@ -369,7 +370,7 @@ export class FieldBuilder extends Disposable {
       return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
     });
     return [
-      cssLabel('DATA FROM TABLE',
+      cssLabel(t('DATA FROM TABLE'),
         !this._showRefConfigPopup.peek() ? null : this.gristDoc.behavioralPromptsManager.attachTip(
           'referenceColumnsConfig',
           {
@@ -417,7 +418,7 @@ export class FieldBuilder extends Disposable {
                  }
                }),
                kf.row(
-                 15, kf.label('Apply Formula to Data'),
+                 15, kf.label(t('Apply Formula to Data')),
                  3, kf.buttonGroup(
                    kf.checkButton(transformButton,
                      dom('span.glyphicon.glyphicon-flash'),
@@ -498,7 +499,7 @@ export class FieldBuilder extends Disposable {
 
   public fieldSettingsUseSeparate() {
     return this.gristDoc.docData.bundleActions(
-      `Use separate field settings for ${this.origColumn.colId()}`, () => {
+      t("Use separate field settings for {{colId}}", { colId: this.origColumn.colId() }), () => {
         return Promise.all([
           setSaveValue(this.field.widgetOptions, this.field.column().widgetOptions()),
           setSaveValue(this.field.visibleCol, this.field.column().visibleCol()),
@@ -510,7 +511,7 @@ export class FieldBuilder extends Disposable {
 
   public fieldSettingsSaveAsCommon() {
     return this.gristDoc.docData.bundleActions(
-      `Save field settings for ${this.origColumn.colId()} as common`, () => {
+      t("Save field settings for {{colId}} as common", { colId: this.origColumn.colId() }), () => {
         return Promise.all([
           setSaveValue(this.field.column().widgetOptions, this.field.widgetOptions()),
           setSaveValue(this.field.column().visibleCol, this.field.visibleCol()),
@@ -525,7 +526,7 @@ export class FieldBuilder extends Disposable {
 
   public fieldSettingsRevertToCommon() {
     return this.gristDoc.docData.bundleActions(
-      `Revert field settings for ${this.origColumn.colId()} to common`, () => {
+      t("Revert field settings for {{colId}} to common", { colId: this.origColumn.colId() }), () => {
         return Promise.all([
           setSaveValue(this.field.widgetOptions, ''),
           setSaveValue(this.field.visibleCol, 0),

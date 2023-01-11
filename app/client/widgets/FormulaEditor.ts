@@ -1,5 +1,6 @@
 import * as AceEditor from 'app/client/components/AceEditor';
 import {createGroup} from 'app/client/components/commands';
+import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {colors, testId, theme} from 'app/client/ui2018/cssVars';
@@ -20,6 +21,7 @@ import debounce = require('lodash/debounce');
 
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
+const t = makeT('FormulaEditor');
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
@@ -293,7 +295,7 @@ export function openFormulaEditor(options: {
   const column = options.column ?? options.field?.column();
 
   if (!column) {
-    throw new Error('Column or field is required');
+    throw new Error(t('Column or field is required'));
   }
 
   // AsyncOnce ensures it's called once even if triggered multiple times.
@@ -338,7 +340,7 @@ export function openFormulaEditor(options: {
   const editingFormula = options.editingFormula ?? options?.field?.editingFormula;
 
   if (!editingFormula) {
-    throw new Error('editingFormula is required');
+    throw new Error(t('editingFormula is required'));
   }
 
   // When formula is empty enter formula-editing mode (highlight formula icons; click on a column inserts its ID).
@@ -393,9 +395,9 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
       const numErrors = tableData.countErrors(colId) || 0;
       errorMessage.set(
         (numErrors === 0) ? '' :
-        (numCells === 1) ? `Error in the cell` :
-        (numErrors === numCells) ? `Errors in all ${numErrors} cells` :
-        `Errors in ${numErrors} of ${numCells} cells`
+        (numCells === 1) ? t(`Error in the cell`) :
+        (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
+        t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells})
       );
     } else {
       errorMessage.set('');

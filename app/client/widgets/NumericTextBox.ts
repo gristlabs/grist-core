@@ -1,6 +1,7 @@
 /**
  * See app/common/NumberFormat for description of options we support.
  */
+import {makeT} from 'app/client/lib/localization';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
@@ -16,6 +17,7 @@ import {BindableValue, Computed, dom, DomContents, DomElementArg,
 import * as LocaleCurrency from 'locale-currency';
 
 
+const t = makeT('NumericTextBox');
 const modeOptions: Array<ISelectorOption<NumMode>> = [
   {value: 'currency', label: '$'},
   {value: 'decimal', label: ','},
@@ -85,23 +87,23 @@ export class NumericTextBox extends NTextBox {
 
     return [
       super.buildConfigDom(),
-      cssLabel('Number Format'),
+      cssLabel(t('Number Format')),
       cssRow(
         dom.autoDispose(holder),
         makeButtonSelect(numMode, modeOptions, setMode, disabledStyle, cssModeSelect.cls(''), testId('numeric-mode')),
         makeButtonSelect(numSign, signOptions, setSign, disabledStyle, cssSignSelect.cls(''), testId('numeric-sign')),
       ),
       dom.maybe((use) => use(numMode) === 'currency', () => [
-        cssLabel('Currency'),
+        cssLabel(t('Currency')),
         cssRow(
           dom.domComputed(docCurrency, (defaultCurrency) =>
             buildCurrencyPicker(holder, currency, setCurrency,
-              {defaultCurrencyLabel: `Default currency (${defaultCurrency})`, disabled})
+              {defaultCurrencyLabel: t(`Default currency ({{defaultCurrency}})`, {defaultCurrency}), disabled})
           ),
           testId("numeric-currency")
         )
       ]),
-      cssLabel('Decimals'),
+      cssLabel(t('Decimals')),
       cssRow(
         decimals('min', minDecimals, defaultMin, setMinDecimals, disabled, testId('numeric-min-decimals')),
         decimals('max', maxDecimals, defaultMax, setMaxDecimals, disabled, testId('numeric-max-decimals')),

@@ -1,8 +1,11 @@
+import { makeT } from 'app/client/lib/localization';
 import {ACSelectItem, buildACSelect} from "app/client/lib/ACSelect";
 import {Computed, IDisposableOwner, Observable} from "grainjs";
 import {ACIndexImpl} from "app/client/lib/ACIndex";
 import {testId} from 'app/client/ui2018/cssVars';
 import {currencies} from 'app/common/Locales';
+
+const t = makeT('CurrencyPicker');
 
 interface CurrencyPickerOptions {
   // The label to use in the select menu for the default option.
@@ -40,7 +43,7 @@ export function buildCurrencyPicker(
       save(_, item: ACSelectItem | undefined) {
         // Save only if we have found a match
         if (!item) {
-          throw new Error("Invalid currency");
+          throw new Error(t("Invalid currency"));
         }
         // For default value, return undefined to use default currency for document.
         onSave(item.value === defaultCurrencyLabel ? undefined : item.value);

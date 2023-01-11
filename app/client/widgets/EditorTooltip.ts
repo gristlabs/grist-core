@@ -1,13 +1,16 @@
+import {makeT} from 'app/client/lib/localization';
 import {ITooltipControl, showTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
 import {colors, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, styled} from 'grainjs';
 
+const t = makeT('DiscussionEditor');
+
 export function showTooltipToCreateFormula(editorDom: HTMLElement, convert: () => void) {
   function buildTooltip(ctl: ITooltipControl) {
     return cssConvertTooltip(icon('Convert'),
-      cssLink('Convert column to formula',
+      cssLink(t('Convert column to formula'),
         dom.on('mousedown', (ev) => { ev.preventDefault(); convert(); }),
         testId('editor-tooltip-convert'),
       ),
