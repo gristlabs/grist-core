@@ -36,7 +36,9 @@
         "Special Rules": "Special Rules",
         "Type a message...": "Type a message...",
         "User Attributes": "User Attributes",
-        "View As": "View As"
+        "View As": "View As",
+        "Seed rules": "Seed rules",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access."
     },
     "AccountPage": {
         "API": "API",
@@ -332,7 +334,8 @@
         "Add Column": "Add Column"
     },
     "FilterBar": {
-        "SearchColumns": "Search columns"
+        "SearchColumns": "Search columns",
+        "Search Columns": "Search Columns"
     },
     "GridOptions": {
         "Grid Options": "Grid Options",
@@ -761,5 +764,17 @@
     "NTextBox": {
         "false": "false",
         "true": "true"
+    },
+    "ACLUsers": {
+        "Example Users": "Example Users",
+        "Users from table": "Users from table",
+        "View As": "View As"
+    },
+    "TypeTransform": {
+        "Apply": "Apply",
+        "Cancel": "Cancel",
+        "Preview": "Preview",
+        "Revise": "Revise",
+        "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
     }
 }

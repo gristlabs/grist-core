@@ -11,7 +11,6 @@ const fs = require("fs");
 const path = require("path");
 const Parser = require("i18next-scanner").Parser;
 const englishKeys = require("../static/locales/en.client.json");
-const _ = require("lodash");
 
 const parser = new Parser({
   keySeparator: "/",
@@ -65,6 +64,20 @@ const getKeysFromFile = (filePath, fileName) => {
   return keys;
 };
 
+// It is highly desirable to retain existing order, to not generate
+// unnecessary merges/conflicts, so we do a specialized merge.
+function merge(target, scanned) {
+  for (const key of Object.keys(scanned)) {
+    if (!(key in target)) {
+      target[key] = scanned[key];
+    } else if (typeof target[key] === 'object') {
+      merge(target[key], scanned[key]);
+    } else {
+      scanned[key] = target[key];
+    }
+  }
+}
+
 async function walkTranslation(dirs) {
   for await (const p of walk(dirs)) {
     const { name } = path.parse(p);
@@ -72,10 +85,10 @@ async function walkTranslation(dirs) {
     getKeysFromFile(p, name);
   }
   const keys = parser.get({ sort: true });
-  const newTranslations = _.merge(keys.en.translation, englishKeys);
+  merge(englishKeys, sort(keys.en.translation));
   await fs.promises.writeFile(
     "static/locales/en.client.json",
-    JSON.stringify(sort(newTranslations), null, 2),
+    JSON.stringify(englishKeys, null, 4) + '\n',  // match weblate's default
     "utf-8"
   );
   return keys;
