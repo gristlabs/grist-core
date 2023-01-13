@@ -6,7 +6,6 @@
 import {AccessRules} from 'app/client/aclui/AccessRules';
 import {ActionLog} from 'app/client/components/ActionLog';
 import BaseView from 'app/client/components/BaseView';
-import {BehavioralPrompts} from 'app/client/components/BehavioralPrompts';
 import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
 import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
@@ -166,7 +165,7 @@ export class GristDoc extends DisposableWithEvents {
   // If the doc has a docTour. Used also to enable the UI button to restart the tour.
   public readonly hasDocTour: Computed<boolean>;
 
-  public readonly behavioralPrompts = BehavioralPrompts.create(this, this.docPageModel.appModel);
+  public readonly behavioralPromptsManager = this.docPageModel.appModel.behavioralPromptsManager;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -1100,7 +1099,7 @@ export class GristDoc extends DisposableWithEvents {
       // Don't show the tip if a non-card widget was selected.
       !['single', 'detail'].includes(selectedWidgetType) ||
       // Or if we've already seen it.
-      this.behavioralPrompts.hasSeenTip('editCardLayout')
+      this.behavioralPromptsManager.hasSeenTip('editCardLayout')
     ) {
       return;
     }
@@ -1114,7 +1113,7 @@ export class GristDoc extends DisposableWithEvents {
     const editLayoutButton = document.querySelector('.behavioral-prompt-edit-card-layout');
     if (!editLayoutButton) { throw new Error('GristDoc failed to find edit card layout button'); }
 
-    this.behavioralPrompts.showTip(editLayoutButton, 'editCardLayout', {
+    this.behavioralPromptsManager.showTip(editLayoutButton, 'editCardLayout', {
       popupOptions: {
         placement: 'left-start',
       }

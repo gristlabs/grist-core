@@ -294,7 +294,7 @@ export class FieldBuilder extends Disposable {
             }
 
             if (op.label === 'Reference') {
-              return this.gristDoc.behavioralPrompts.attachTip('referenceColumns', {
+              return this.gristDoc.behavioralPromptsManager.attachTip('referenceColumns', {
                 popupOptions: {
                   attach: `.${cssTypeSelectMenu.className}`,
                   placement: 'left-start',
@@ -370,7 +370,7 @@ export class FieldBuilder extends Disposable {
     });
     return [
       cssLabel('DATA FROM TABLE',
-        !this._showRefConfigPopup.peek() ? null : this.gristDoc.behavioralPrompts.attachTip(
+        !this._showRefConfigPopup.peek() ? null : this.gristDoc.behavioralPromptsManager.attachTip(
           'referenceColumnsConfig',
           {
             onDispose: () => this._showRefConfigPopup(false),

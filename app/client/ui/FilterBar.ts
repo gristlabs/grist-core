@@ -24,7 +24,7 @@ export function filterBar(
     dom.forEach(viewSection.activeFilters, (filterInfo) => makeFilterField(filterInfo, popupControls)),
     dom.maybe(viewSection.showNestedFilteringPopup, () => {
       return dom('div',
-        gristDoc.behavioralPrompts.attachTip('nestedFiltering', {
+        gristDoc.behavioralPromptsManager.attachTip('nestedFiltering', {
           onDispose: () => viewSection.showNestedFilteringPopup.set(false),
         }),
       );

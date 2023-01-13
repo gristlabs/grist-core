@@ -1,10 +1,11 @@
 import {showBehavioralPrompt} from 'app/client/components/modals';
 import {AppModel} from 'app/client/models/AppModel';
+import {getUserPrefObs} from 'app/client/models/UserPrefs';
 import {GristBehavioralPrompts} from 'app/client/ui/GristTooltips';
 import {isNarrowScreen} from 'app/client/ui2018/cssVars';
-import {BehavioralPrompt} from 'app/common/Prefs';
+import {BehavioralPrompt, BehavioralPromptPrefs} from 'app/common/Prefs';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom} from 'grainjs';
+import {Computed, Disposable, dom, Observable} from 'grainjs';
 import {IPopupOptions} from 'popweasel';
 
 export interface AttachOptions {
@@ -25,12 +26,15 @@ interface QueuedTip {
  *
  * Tips are shown in the order that they are attached.
  */
-export class BehavioralPrompts extends Disposable {
-  private _prefs = this._appModel.behavioralPrompts;
+export class BehavioralPromptsManager extends Disposable {
+  private readonly _prefs = getUserPrefObs(this._appModel.userPrefsObs, 'behavioralPrompts',
+    { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
+
   private _dismissedTips: Computed<Set<BehavioralPrompt>> = Computed.create(this, use => {
     const {dismissedTips} = use(this._prefs);
     return new Set(dismissedTips.filter(BehavioralPrompt.guard));
   });
+
   private _queuedTips: QueuedTip[] = [];
 
   constructor(private _appModel: AppModel) {

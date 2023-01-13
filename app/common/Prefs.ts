@@ -77,6 +77,7 @@ export const BehavioralPrompt = StringUnion(
   'pageWidgetPicker',
   'pageWidgetPickerSelectBy',
   'editCardLayout',
+  'addNew',
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;
 

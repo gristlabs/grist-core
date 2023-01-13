@@ -1,4 +1,4 @@
-import { BehavioralPrompts } from 'app/client/components/BehavioralPrompts';
+import { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
 import { GristDoc } from 'app/client/components/GristDoc';
 import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
@@ -138,7 +138,7 @@ export function buildPageWidgetPicker(
   onSave: ISaveFunc,
   options: IOptions = {}
 ) {
-  const {behavioralPrompts, docModel} = gristDoc;
+  const {behavioralPromptsManager, docModel} = gristDoc;
   const tables = fromKo(docModel.visibleTables.getObservable());
   const columns = fromKo(docModel.columns.createAllRowsModel('parentPos').getObservable());
 
@@ -207,7 +207,8 @@ export function buildPageWidgetPicker(
 
   // dom
   return cssPopupWrapper(
-    dom.create(PageWidgetSelect, value, tables, columns, onSaveCB, behavioralPrompts, options),
+    dom.create(PageWidgetSelect,
+      value, tables, columns, onSaveCB, behavioralPromptsManager, options),
 
     // gives focus and binds keydown events
     (elem: any) => { setTimeout(() => elem.focus(), 0); },
@@ -276,7 +277,7 @@ export class PageWidgetSelect extends Disposable {
     private _tables: Observable<TableRec[]>,
     private _columns: Observable<ColumnRec[]>,
     private _onSave: () => Promise<void>,
-    private _behavioralPrompts: BehavioralPrompts,
+    private _behavioralPromptsManager: BehavioralPromptsManager,
     private _options: ISelectOptions = {}
   ) { super(); }
 
@@ -307,7 +308,7 @@ export class PageWidgetSelect extends Disposable {
             cssIcon('TypeTable'), 'New Table',
             // prevent the selection of 'New Table' if it is disabled
             dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
-            this._behavioralPrompts.attachTip('pageWidgetPicker', {
+            this._behavioralPromptsManager.attachTip('pageWidgetPicker', {
               popupOptions: {
                 attach: null,
                 placement: 'right-start',
@@ -365,7 +366,7 @@ export class PageWidgetSelect extends Disposable {
               ),
               GristTooltips.selectBy(),
               {tooltipMenuOptions: {attach: null}, domArgs: [
-                this._behavioralPrompts.attachTip('pageWidgetPickerSelectBy', {
+                this._behavioralPromptsManager.attachTip('pageWidgetPickerSelectBy', {
                   popupOptions: {
                     attach: null,
                     placement: 'bottom',

@@ -1,3 +1,4 @@
+import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeT} from 'app/client/lib/localization';
 import {error} from 'app/client/lib/log';
@@ -12,9 +13,8 @@ import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
-import {BehavioralPromptPrefs, DeprecationWarning, DismissedPopup, DismissedReminder,
-        UserPrefs} from 'app/common/Prefs';
-import {isOwner} from 'app/common/roles';
+import {DeprecationWarning, DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
+import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
 import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
         ThemePrefsChecker} from 'app/common/ThemePrefs';
@@ -99,12 +99,13 @@ export interface AppModel {
    */
   deprecatedWarnings: Observable<DeprecationWarning[]>;
   dismissedWelcomePopups: Observable<DismissedReminder[]>;
-  behavioralPrompts: Observable<BehavioralPromptPrefs>;
 
   pageType: Observable<PageType>;
 
   notifier: Notifier;
   planName: string|null;
+
+  behavioralPromptsManager: BehavioralPromptsManager;
 
   refreshOrgUsage(): Promise<void>;
   showUpgradeModal(): void;
@@ -112,6 +113,7 @@ export interface AppModel {
   isBillingManager(): boolean;          // If user is a billing manager for this org
   isSupport(): boolean;                 // If user is a Support user
   isOwner(): boolean;                   // If user is an owner of this org
+  isOwnerOrEditor(): boolean;           // If user is an owner or editor of this org
 }
 
 export class TopAppModelImpl extends Disposable implements TopAppModel {
@@ -246,14 +248,15 @@ export class AppModelImpl extends Disposable implements AppModel {
     { defaultValue: [] }) as Observable<DeprecationWarning[]>;
   public readonly dismissedWelcomePopups = getUserPrefObs(this.userPrefsObs, 'dismissedWelcomePopups',
     { defaultValue: [] }) as Observable<DismissedReminder[]>;
-  public readonly behavioralPrompts = getUserPrefObs(this.userPrefsObs, 'behavioralPrompts',
-    { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,
     (use, state) => (state.doc ? "doc" : (state.billing ? "billing" : (state.welcome ? "welcome" : "home"))));
 
   public readonly notifier = this.topAppModel.notifier;
+
+  public readonly behavioralPromptsManager: BehavioralPromptsManager =
+    BehavioralPromptsManager.create(this, this);
 
   constructor(
     public readonly topAppModel: TopAppModel,
@@ -312,6 +315,10 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public isOwner() {
     return Boolean(this.currentOrg && isOwner(this.currentOrg));
+  }
+
+  public isOwnerOrEditor() {
+    return Boolean(this.currentOrg && isOwnerOrEditor(this.currentOrg));
   }
 
   /**

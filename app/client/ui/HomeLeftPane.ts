@@ -38,7 +38,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         // "Add New" menu should have the same width as the "Add New" button that opens it.
         stretchToSelector: `.${cssAddNewButton.className}`
       }),
-      testId('dm-add-new')
+      dom.cls('behavioral-prompt-add-new'),
+      testId('dm-add-new'),
     ),
     cssScrollPane(
       cssPageEntry(

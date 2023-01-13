@@ -188,4 +188,12 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ...args,
     ),
   },
+  addNew: {
+    title: 'Add New',
+    content: (...args: DomElementArg[]) => cssTooltipContent(
+      dom('div', 'Click the Add New button to create new documents or workspaces, '
+       + 'or import data.'),
+      ...args,
+    ),
+  },
 };

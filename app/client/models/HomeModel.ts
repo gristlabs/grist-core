@@ -75,6 +75,8 @@ export interface HomeModel {
   // user isn't allowed to create a doc.
   newDocWorkspace: Observable<Workspace|null|"unsaved">;
 
+  shouldShowAddNewTip: Observable<boolean>;
+
   createWorkspace(name: string): Promise<void>;
   renameWorkspace(id: number, name: string): Promise<void>;
   deleteWorkspace(id: number, forever: boolean): Promise<void>;
@@ -153,6 +155,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   // Whether to show intro: no docs (other than examples).
   public readonly showIntro = Computed.create(this, this.workspaces, (use, wss) => (
     wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0)));
+
+  public readonly shouldShowAddNewTip = Observable.create(this,
+    !this._app.behavioralPromptsManager.hasSeenTip('addNew'));
 
   private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
 

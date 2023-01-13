@@ -4,18 +4,19 @@
  * Orgs, workspaces and docs are fetched asynchronously on build via the passed in API.
  */
 import {loadUserManager} from 'app/client/lib/imports';
-import {AppModel, reportError} from 'app/client/models/AppModel';
+import {reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
+import {attachAddNewTip} from 'app/client/ui/AddNewTip';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro, buildWorkspaceIntro} from 'app/client/ui/HomeIntro';
 import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
-import {showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
-import {showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
+import {shouldShowWelcomeCoachingCall, showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
+import {shouldShowWelcomeQuestions, showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
 import {createVideoTourTextButton} from 'app/client/ui/OpenVideoTour';
 import {buttonSelect, cssButtonSelect} from 'app/client/ui2018/buttonSelect';
 import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
@@ -47,7 +48,7 @@ const testId = makeTestId('test-dm-');
  */
 export function createDocMenu(home: HomeModel): DomElementArg[] {
   return [
-    attachWelcomePopups(home.app),
+    attachWelcomePopups(home),
     dom.domComputed(home.loading, loading => (
       loading === 'slow' ? css.spinner(loadingSpinner()) :
       loading ? null :
@@ -56,12 +57,14 @@ export function createDocMenu(home: HomeModel): DomElementArg[] {
   ];
 }
 
-function attachWelcomePopups(app: AppModel): (el: Element) => void {
+function attachWelcomePopups(home: HomeModel): (el: Element) => void {
   return (element: Element) => {
-    const isShowingPopup = showWelcomeQuestions(app.userPrefsObs);
-    if (isShowingPopup) { return; }
-
-    showWelcomeCoachingCall(element, app);
+    const {app, app: {userPrefsObs}} = home;
+    if (shouldShowWelcomeQuestions(userPrefsObs)) {
+      showWelcomeQuestions(userPrefsObs);
+    } else if (shouldShowWelcomeCoachingCall(app)) {
+      showWelcomeCoachingCall(element, app);
+    }
   };
 }
 
@@ -70,6 +73,8 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
   const upgradeButton = buildUpgradeButton(owner, home.app);
   return css.docList(
     css.docMenu(
+      attachAddNewTip(home),
+
       dom.maybe(!home.app.currentFeatures.workspaces, () => [
         css.docListHeader(t("This service is not available right now")),
         dom('span', t("(The organization needs a paid plan)")),

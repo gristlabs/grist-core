@@ -45,6 +45,10 @@ export function isOwner(resource: {access: Role}|null): resource is {access: Rol
   return resource?.access === OWNER;
 }
 
+export function isOwnerOrEditor(resource: {access: Role}|null): resource is {access: Role} {
+  return canEdit(resource?.access ?? null);
+}
+
 export function canUpgradeOrg(org: Organization|null): org is Organization {
   // TODO: Need to consider billing managers and support user.
   return isOwner(org);
