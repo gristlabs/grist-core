@@ -7,6 +7,7 @@
 import {isString} from 'app/client/lib/sessionObs';
 import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
+import {csvDecodeRow} from 'app/common/csvFormat';
 import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
@@ -175,7 +176,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         for (let value of tableData.getColValues(sourceCol.colId()) || []) {
           if (value === null) { continue; }
           value = String(decodeObject(value)).trim();
-          const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || value.split(",");
+          const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || csvDecodeRow(value);
           for (const tag of tags) {
             choices.add(String(tag).trim());
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
