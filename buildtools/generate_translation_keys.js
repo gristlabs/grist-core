@@ -65,20 +65,66 @@ const getKeysFromFile = (filePath, fileName) => {
   return keys;
 };
 
+// It is highly desirable to retain existing order, to not generate
+// unnecessary merges/conflicts, so we do a specialized merge.
+function merge(target, scanned) {
+  let merges = 0;
+  for (const key of Object.keys(scanned)) {
+    if (!(key in target)) {
+      console.log("Merging key", {key});
+      target[key] = scanned[key];
+      merges++;
+    } else if (typeof target[key] === 'object') {
+      merges += merge(target[key], scanned[key]);
+    } else if (scanned[key] !== target[key]) {
+      if (!key.endsWith('_one')) {
+        console.log("Value difference", {key, value: target[key]});
+      }
+    }
+  }
+  return merges;
+}
+
+// Look for keys that are listed in json file but not found in source
+// code. These may be stale and need deleting in weblate.
+function reportUnrecognizedKeys(originalKeys, foundKeys) {
+  let unknowns = 0;
+  for (const section of Object.keys(originalKeys)) {
+    if (!(section in foundKeys)) {
+      console.log("Unknown section found", {section});
+      unknowns++;
+    } else {
+      for (const key of Object.keys(originalKeys[section])) {
+        if (!(key in foundKeys[section])) {
+          console.log("Unknown key found", {section, key});
+          unknowns++;
+        }
+      }
+    }
+  }
+  return unknowns;
+}
+
 async function walkTranslation(dirs) {
+  const originalKeys = _.cloneDeep(englishKeys);
   for await (const p of walk(dirs)) {
     const { name } = path.parse(p);
     if (p.endsWith('.map')) { continue; }
     getKeysFromFile(p, name);
   }
   const keys = parser.get({ sort: true });
-  const newTranslations = _.merge(keys.en.translation, englishKeys);
+  const foundKeys = _.cloneDeep(keys.en.translation);
+  const mergeCount = merge(englishKeys, sort(keys.en.translation));
   await fs.promises.writeFile(
     "static/locales/en.client.json",
-    JSON.stringify(sort(newTranslations), null, 2),
+    JSON.stringify(englishKeys, null, 4) + '\n',  // match weblate's default
     "utf-8"
   );
-  return keys;
+  // Now, print a report of unrecognized keys - candidates
+  // for deletion in weblate.
+  const unknownCount = reportUnrecognizedKeys(originalKeys, foundKeys);
+  console.log(`Found ${unknownCount} unknown key(s).`);
+  console.log(`Make ${mergeCount} merge(s).`);
 }
 
 walkTranslation(["_build/app/client", ...process.argv.slice(2)]);
