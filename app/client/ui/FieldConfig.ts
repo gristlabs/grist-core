@@ -18,6 +18,7 @@ import {sanitizeIdent} from 'app/common/gutil';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
+import { textarea } from './inputs';
 
 const t = makeT('FieldConfig');
 
@@ -85,6 +86,22 @@ export function buildNameConfig(
     ),
     dom.maybe(isSummaryTable,
       () => cssRow(t("Column options are limited in summary tables.")))
+  ];
+}
+
+export function buildDescriptionConfig(
+  owner: MultiHolder,
+  origColumn: ColumnRec,
+  cursor: ko.Computed<CursorPos>,
+) {
+  const editedDescription = Observable.create(owner, '');
+
+  return [
+    cssLabel(t("DESCRIPTION")),
+    cssRow(
+      cssTextArea(editedDescription, {})
+    ),
+
   ];
 }
 
@@ -484,6 +501,22 @@ const cssInput = styled(textInput, `
   color: ${theme.inputFg};
   background-color: ${theme.mainPanelBg};
   border: 1px solid ${theme.inputBorder};
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+
+  &[readonly] {
+    background-color: ${theme.inputDisabledBg};
+    color: ${theme.inputDisabledFg};
+  }
+`);
+
+const cssTextArea = styled(textarea, `
+  color: ${theme.inputFg};
+  background-color: ${theme.mainPanelBg};
+  border: 1px solid ${theme.inputBorder};
+  width: 100%;
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
