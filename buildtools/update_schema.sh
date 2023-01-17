@@ -39,7 +39,7 @@ fi
 PYTHONPATH=sandbox/grist:sandbox/thirdparty $PYTHON -B sandbox/gen_js_schema.py > $schema_ts.tmp
 
 # Prepare new version of sql file.
-export NODE_PATH=_build:_build/core:_build/ext
+export NODE_PATH=_build:_build/core:_build/stub:_build/ext
 BUILD=$(test -e _build/core && echo "_build/core" || echo "_build")
 node $BUILD/app/server/generateInitialDocSql.js $sql_ts.tmpdoc > $sql_ts.tmp
 
