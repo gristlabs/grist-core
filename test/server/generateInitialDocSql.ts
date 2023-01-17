@@ -21,7 +21,7 @@ describe('generateInitialDocSql', function() {
     tmpDir = await createTmpDir();
   });
 
-  it('confirms schema and sql files are up to date (run "./build schema" on failure)', async function() {
+  it('confirms schema and sql files are up to date (run "yarn run generate:schema:ts" on failure)', async function() {
     let root = getAppRoot();
     if (await fse.pathExists(path.join(root, 'core'))) {
       root = path.join(root, 'core');
