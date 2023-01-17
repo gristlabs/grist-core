@@ -1,5 +1,11 @@
 import {
-  CURRENT_DATE, diffUnit, formatRelBounds, IPeriod, IRelativeDateSpec, isEquivalentRelativeDate, toUnixTimestamp
+  CURRENT_DATE,
+  diffUnit,
+  formatRelBounds,
+  IPeriod,
+  IRelativeDateSpec,
+  isEquivalentRelativeDate,
+  relativeDateToUnixTimestamp
 } from "app/common/RelativeDates";
 import { IRangeBoundType, isRelativeBound } from "app/common/FilterState";
 import getCurrentTime from "app/common/getCurrentTime";
@@ -55,7 +61,7 @@ function relativeDateOptionsSpec(value: IRangeBoundType): Array<IRangeBoundType>
   if (value === undefined) {
     return DEFAULT_OPTION_LIST;
   } else if (isRelativeBound(value)) {
-    value = toUnixTimestamp(value);
+    value = relativeDateToUnixTimestamp(value);
   }
 
   const date = moment.utc(value * 1000);

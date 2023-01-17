@@ -3,7 +3,7 @@ import {CellValue} from 'app/common/DocActions';
 import {
   FilterSpec, FilterState, IRelativeDateSpec, isRangeFilter, isRelativeBound, makeFilterState
 } from "app/common/FilterState";
-import {toUnixTimestamp} from "app/common/RelativeDates";
+import {relativeDateToUnixTimestamp} from "app/common/RelativeDates";
 import {nativeCompare} from 'app/common/gutil';
 import {Computed, Disposable, Observable} from 'grainjs';
 
@@ -124,9 +124,11 @@ export class ColumnFilter extends Disposable {
     return this.makeFilterJson() !== this._initialFilterJson;
   }
 
-  public getBoundsValue(minMax: 'min' | 'max'): number | undefined {
+  // Retuns min or max as a numeric value.
+  public getBoundsValue(minMax: 'min' | 'max'): number {
     const value = this[minMax].get();
-    return isRelativeBound(value) ? toUnixTimestamp(value) : value;
+    if (value === undefined) { return minMax === 'min' ? -Infinity : +Infinity; }
+    return isRelativeBound(value) ? relativeDateToUnixTimestamp(value) : value;
   }
 
 

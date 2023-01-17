@@ -1,11 +1,10 @@
 import {CellValue} from "app/common/DocActions";
-import {
-  FilterState, IRangeBoundType, isRangeFilter, isRelativeBound, makeFilterState
-} from "app/common/FilterState";
+import {FilterState, IRangeBoundType, isRangeFilter, makeFilterState} from "app/common/FilterState";
 import {decodeObject} from "app/plugin/objtypes";
-import moment from "moment-timezone";
-import {isDateLikeType, isList, isListType, isNumberType} from "./gristTypes";
-import {toUnixTimestamp} from "app/common/RelativeDates";
+import moment, { Moment } from "moment-timezone";
+import {extractInfoFromColType, isDateLikeType, isList, isListType, isNumberType} from "app/common/gristTypes";
+import {isRelativeBound, relativeDateToUnixTimestamp} from "app/common/RelativeDates";
+import {noop} from "lodash";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 
@@ -18,8 +17,12 @@ export function makeFilterFunc(state: FilterState,
     let {min, max} = state;
     if (isNumberType(columnType) || isDateLikeType(columnType)) {
 
-      min = getBoundsValue(state, 'min');
-      max = getBoundsValue(state, 'max');
+      if (isDateLikeType(columnType)) {
+        const info = extractInfoFromColType(columnType);
+        const timezone = (info.type === 'DateTime' && info.timezone) || 'utc';
+        min = changeTimezone(min, timezone, m => m.startOf('day'));
+        max = changeTimezone(max, timezone, m => m.endOf('day'));
+      }
 
       return (val) => {
         if (typeof val !== 'number') { return false; }
@@ -59,18 +62,14 @@ export function buildColFilter(filterJson: string | undefined,
   return filterJson ? makeFilterFunc(makeFilterState(filterJson), columnType) : null;
 }
 
-
-function getBoundsValue(state: {min?: IRangeBoundType, max?: IRangeBoundType}, minMax: 'min'|'max') {
-  const value = state[minMax];
-  if (isRelativeBound(value)) {
-    const val = toUnixTimestamp(value);
-    const m = moment.utc(val * 1000);
-    if (minMax === 'min') {
-      m.startOf('day');
-    } else {
-      m.endOf('day');
-    }
-    return Math.floor(m.valueOf() / 1000);
-  }
-  return value;
+// Returns the unix timestamp for date in timezone. Function support relative date. Also support
+// optional mod argument that let you modify date as a moment instance.
+function changeTimezone(date: IRangeBoundType,
+                        timezone: string,
+                        mod: (m: Moment) => void = noop): number|undefined {
+  if (date === undefined) { return undefined; }
+  const val = isRelativeBound(date) ? relativeDateToUnixTimestamp(date) : date;
+  const m = moment.tz(val * 1000, timezone);
+  mod(m);
+  return Math.floor(m.valueOf() / 1000);
 }
