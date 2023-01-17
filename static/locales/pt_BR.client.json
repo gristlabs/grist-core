@@ -37,7 +37,9 @@
         "Type a message...": "Escreva uma mensagem…",
         "User Attributes": "Atributos de Usuário",
         "Users": "Usuários",
-        "View As": "Ver como"
+        "View As": "Ver como",
+        "Seed rules": "Regras de propagação",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Ao adicionar regras de tabela, adicione automaticamente uma regra para conceder ao PROPRIETÁRIO acesso total."
     },
     "AccountPage": {
         "API": "API",
@@ -819,11 +821,24 @@
         "UnknownUser": "Usuário desconhecido"
     },
     "FilterBar": {
-        "SearchColumns": "Procurar colunas"
+        "SearchColumns": "Procurar colunas",
+        "Search Columns": "Procurar colunas"
     },
     "ViewAsDropdown": {
         "View As": "Ver como",
         "Users from table": "Usuários da tabela",
         "Example Users": "Usuários de exemplo"
+    },
+    "ACLUsers": {
+        "Users from table": "Usuários da tabela",
+        "View As": "Ver como",
+        "Example Users": "Usuários de exemplo"
+    },
+    "TypeTransform": {
+        "Apply": "Aplicar",
+        "Cancel": "Cancelar",
+        "Preview": "Pré-visualização",
+        "Revise": "Revisar",
+        "Update formula (Shift+Enter)": "Atualizar a fórmula (Shift+Enter)"
     }
 }
