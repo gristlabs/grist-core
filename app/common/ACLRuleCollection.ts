@@ -1,9 +1,9 @@
-import {parsePermissions} from 'app/common/ACLPermissions';
+import {parsePermissions, permissionSetToText, splitSchemaEditPermissionSet} from 'app/common/ACLPermissions';
 import {AclRuleProblem} from 'app/common/ActiveDocAPI';
 import {ILogger} from 'app/common/BaseAPI';
 import {DocData} from 'app/common/DocData';
 import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
-import {getSetMapValue} from 'app/common/gutil';
+import {getSetMapValue, isNonNullish} from 'app/common/gutil';
 import {MetaRowRecord} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 import sortBy = require('lodash/sortBy');
@@ -34,7 +34,28 @@ const DEFAULT_RULE_SET: RuleSet = {
   }],
 };
 
+// Check if the given resource is the special "SchemaEdit" resource, which only exists as a
+// frontend representation.
+export function isSchemaEditResource(resource: {tableId: string, colIds: string}): boolean {
+  return resource.tableId === SPECIAL_RULES_TABLE_ID && resource.colIds === 'SchemaEdit';
+}
+
 const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
+  SchemaEdit: {
+    tableId: SPECIAL_RULES_TABLE_ID,
+    colIds: ['SchemaEdit'],
+    body: [{
+      aclFormula: "user.Access in [EDITOR, OWNER]",
+      matchFunc:  (input) => ['editors', 'owners'].includes(String(input.user.Access)),
+      permissions: parsePermissions('+S'),
+      permissionsText: '+S',
+    }, {
+      aclFormula: "",
+      matchFunc: defaultMatchFunc,
+      permissions: parsePermissions('-S'),
+      permissionsText: '-S',
+    }],
+  },
   AccessRules: {
     tableId: SPECIAL_RULES_TABLE_ID,
     colIds: ['AccessRules'],
@@ -191,6 +212,21 @@ export class ACLRuleCollection {
         } else {
           specialRuleSets.set(specialType, {...ruleSet, body: [...ruleSet.body, ...specialDefault.body]});
         }
+      } else if (options.pullOutSchemaEdit && ruleSet.tableId === '*' && ruleSet.colIds === '*') {
+        // If pullOutSchemaEdit is requested, we move out rules with SchemaEdit permissions from
+        // the default resource into the ficticious "*SPECIAL:SchemaEdit" resource. This is used
+        // in the frontend only, to present those rules in a separate section.
+        const schemaParts = ruleSet.body.map(part => splitSchemaEditRulePart(part).schemaEdit).filter(isNonNullish);
+
+        if (schemaParts.length > 0) {
+          const specialType = 'SchemaEdit';
+          const specialDefault = specialRuleSets.get(specialType)!;
+          specialRuleSets.set(specialType, {
+            tableId: SPECIAL_RULES_TABLE_ID,
+            colIds: ['SchemaEdit'],
+            body: [...schemaParts, ...specialDefault.body]
+          });
+        }
       }
     }
 
@@ -203,9 +239,15 @@ export class ACLRuleCollection {
     for (const ruleSet of ruleSets) {
       if (ruleSet.tableId === '*') {
         if (ruleSet.colIds === '*') {
+          // If pullOutSchemaEdit is requested, skip the SchemaEdit rules for the default resource;
+          // those got pulled out earlier into the fictitious "*SPECIAL:SchemaEdit" resource.
+          const body = options.pullOutSchemaEdit ?
+            ruleSet.body.map(part => splitSchemaEditRulePart(part).nonSchemaEdit).filter(isNonNullish) :
+            ruleSet.body;
+
           defaultRuleSet = {
             ...ruleSet,
-            body: [...ruleSet.body, ...DEFAULT_RULE_SET.body],
+            body: [...body, ...DEFAULT_RULE_SET.body],
           };
         } else {
           // tableId of '*' cannot list particular columns.
@@ -341,6 +383,11 @@ export interface ReadAclOptions {
   // 1. They would show in the UI
   // 2. They would be saved back after editing, causing them to accumulate
   includeHelperCols?: boolean;
+
+  // If true, rules with 'schemaEdit' permission are moved out of the '*:*' resource into a
+  // fictitious '*SPECIAL:SchemaEdit' resource. This is used only on the client, to present
+  // schemaEdit as a separate checkbox. Such rules are saved back to the '*:*' resource.
+  pullOutSchemaEdit?: boolean;
 }
 
 export interface ReadAclResults {
@@ -473,4 +520,38 @@ function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadA
     ruleSets.push(ruleSet);
   }
   return {ruleSets, userAttributes};
+}
+
+
+/**
+ * In the UI, we present SchemaEdit rules in a separate section, even though in reality they live
+ * as schemaEdit permission bits among the rules for the default resource. This function splits a
+ * RulePart into two: one containing the schemaEdit permission bit, and the other containing the
+ * other bits. If either part is empty, it will be returned as undefined, but if both are empty,
+ * nonSchemaEdit will be included as a rule with empty permission bits.
+ *
+ * It's possible for both parts to be non-empty (for rules created before the updated UI), in
+ * which case the schemaEdit one will have a fake origRecord, to cause it to be saved as a new
+ * record when saving.
+ */
+function splitSchemaEditRulePart(rulePart: RulePart): {schemaEdit?: RulePart, nonSchemaEdit?: RulePart} {
+  const p = splitSchemaEditPermissionSet(rulePart.permissions);
+  let schemaEdit: RulePart|undefined;
+  let nonSchemaEdit: RulePart|undefined;
+  if (p.schemaEdit) {
+    schemaEdit = {...rulePart,
+      permissions: p.schemaEdit,
+      permissionsText: permissionSetToText(p.schemaEdit),
+    };
+  }
+  if (p.nonSchemaEdit) {
+    nonSchemaEdit = {...rulePart,
+      permissions: p.nonSchemaEdit,
+      permissionsText: permissionSetToText(p.nonSchemaEdit),
+    };
+  }
+  if (schemaEdit && nonSchemaEdit) {
+    schemaEdit.origRecord = {id: -1} as MetaRowRecord<'_grist_ACLRules'>;
+  }
+  return {schemaEdit, nonSchemaEdit};
 }

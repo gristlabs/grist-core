@@ -121,10 +121,12 @@ export function startsWith(value: string): RegExp {
 }
 
 /**
- * Helper to scroll an element into view.
+ * Helper to scroll an element into view. Returns the passed-in element.
  */
-export function scrollIntoView(elem: WebElement): Promise<void> {
-  return driver.executeScript((el: any) => el.scrollIntoView({behavior: 'auto'}), elem);
+export function scrollIntoView(elem: WebElement): WebElementPromise {
+  return new WebElementPromise(driver,
+    driver.executeScript((el: any) => el.scrollIntoView({behavior: 'auto'}), elem)
+    .then(() => elem));
 }
 
 /**
