@@ -1,7 +1,7 @@
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, hideInPrintView, testId} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
@@ -103,7 +103,7 @@ export class Reference extends NTextBox {
       cssRef.cls('-blank', use => use(formattedValue).hasBlankReference),
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      cssRefIcon('FieldReference', testId('ref-link-icon')),
+      cssRefIcon('FieldReference', testId('ref-link-icon'), hideInPrintView()),
       dom.text(use => {
         if (use(referenceId) === 0) { return ''; }
         if (use(formattedValue).hasBlankReference) { return '[Blank]'; }

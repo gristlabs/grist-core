@@ -10,7 +10,7 @@ import {getStorage} from 'app/client/lib/storage';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {Theme, ThemeAppearance} from 'app/common/ThemePrefs';
-import {dom, makeTestId, Observable, styled, TestId} from 'grainjs';
+import {dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
 import debounce = require('lodash/debounce');
 import values = require('lodash/values');
 
@@ -893,3 +893,16 @@ function getOrCreateStyleElement(id: string) {
   document.head.append(style);
   return style;
 }
+
+// A dom method to hide element in print view
+export function hideInPrintView(): DomElementMethod {
+  return cssHideInPrint.cls('');
+}
+
+const cssHideInPrint = styled('div', `
+  @media print {
+    & {
+      display: none !important;
+    }
+  }
+`);

@@ -1,5 +1,5 @@
 import { sameDocumentUrlState, urlState } from 'app/client/models/gristUrlState';
-import { theme } from 'app/client/ui2018/cssVars';
+import { hideInPrintView, theme } from 'app/client/ui2018/cssVars';
 import { CellValue } from 'app/plugin/GristData';
 import { dom, IDomArgs, Observable, styled } from 'grainjs';
 
@@ -30,6 +30,7 @@ export function gristLink(href: string|Observable<string>, ...args: IDomArgs<HTM
     // from running on the same process as Grist:
     // https://developers.google.com/web/tools/lighthouse/audits/noopener
     dom.attr("rel", "noopener noreferrer"),
+    hideInPrintView(),
     args
   );
 }
