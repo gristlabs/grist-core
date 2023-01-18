@@ -605,6 +605,11 @@ export const theme = {
   menuToggleBg: new CustomProp('theme-menu-toggle-bg', undefined, 'white'),
   menuToggleBorder: new CustomProp('theme-menu-toggle-border', undefined, colors.slate),
 
+  /* Info Toggles */
+  infoToggleFg: new CustomProp('theme-info-toggle-fg', undefined, "#8F8F8F"),
+  infoToggleHoverFg: new CustomProp('theme-info-toggle-hover-fg', undefined, "#707070"),
+  infoToggleActiveFg: new CustomProp('theme-info-toggle-active-fg', undefined, "#5C5C5C"),
+
   /* Button Groups */
   buttonGroupFg: new CustomProp('theme-button-group-fg', undefined, colors.dark),
   buttonGroupLightFg: new CustomProp('theme-button-group-light-fg', undefined, colors.slate),

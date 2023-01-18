@@ -228,6 +228,7 @@ DetailView.prototype.buildFieldDom = function(field, row) {
     return dom('div.g_record_detail_el.flexitem',
       kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
       dom('div.g_record_detail_label', field.label),
+      dom('div.g_record_detail_description', field.description),
       dom('div.g_record_detail_value', field.value)
     );
   }
@@ -258,6 +259,8 @@ DetailView.prototype.buildFieldDom = function(field, row) {
     dom.autoDispose(isCellActive),
     kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
     dom('div.g_record_detail_label', kd.text(field.displayLabel)),
+    // TODO : show the real description
+    dom('div.g_record_detail_description', kd.text("Description testing")),
     dom('div.g_record_detail_value',
       kd.toggleClass('scissors', isCopyActive),
       kd.toggleClass('record-add', row._isAddRow),
