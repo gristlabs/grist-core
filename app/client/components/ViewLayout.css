@@ -5,6 +5,11 @@
 
 .viewsection_buttons {
   margin-left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-top: -1px;
 }
 
 .viewsection_title {
@@ -98,6 +103,19 @@
   box-shadow: none;
   border-left: 1px solid var(--grist-theme-widget-border, var(--grist-color-dark-grey));
 }
+
+/* Used by full screen section. Removes the green box-shadow and restores normal color of the border.
+   It still leaves the indicator for the cardlist selection (the green box shadow in card) which looks nice.
+*/
+.layout_box_maximized .active_section > .view_data_pane_container{
+  box-shadow: none;
+  border: 1px solid var(--grist-theme-widget-border, var(--grist-color-dark-grey));
+}
+/* Remove the drag indicator */
+.layout_box_maximized .active_section .viewsection_drag_indicator {
+  visibility: hidden !important;
+}
+
 
 .disable_viewpane {
   justify-content: center;

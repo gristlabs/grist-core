@@ -24,8 +24,10 @@ declare class KoArray<T> {
   public clampIndex(index: number): number|null;
   public makeLiveIndex(index?: number): ko.Observable<number> & {setLive(live: boolean): void};
   public setAutoDisposeValues(): this;
+  public arraySplice(start: number, deleteCount: number, items: T[]): T[];
 }
 
 declare function syncedKoArray(...args: any[]): any;
 
 export default function koArray<T>(initialValue?: T[]): KoArray<T>;
+export function isKoArray(obj: any): obj is KoArray<any>;

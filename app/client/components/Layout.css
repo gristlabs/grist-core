@@ -88,3 +88,7 @@
 .layout_leaf_test_big {
   min-height: 7rem;
 }
+
+.layout_hidden {
+  display: none;
+}

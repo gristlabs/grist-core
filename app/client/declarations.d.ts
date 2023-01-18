@@ -4,7 +4,6 @@ declare module "app/client/components/CodeEditorPanel";
 declare module "app/client/components/DetailView";
 declare module "app/client/components/DocConfigTab";
 declare module "app/client/components/GridView";
-declare module "app/client/components/Layout";
 declare module "app/client/components/LayoutEditor";
 declare module "app/client/components/commandList";
 declare module "app/client/lib/Mousetrap";
@@ -30,6 +29,7 @@ declare module "app/client/components/BaseView" {
 
   import {Cursor, CursorPos} from 'app/client/components/Cursor';
   import {GristDoc} from 'app/client/components/GristDoc';
+  import {IGristUrlState} from 'app/common/gristUrls';
   import {SelectionSummary} from 'app/client/components/SelectionSummary';
   import {Disposable} from 'app/client/lib/dispose';
   import BaseRowModel from "app/client/models/BaseRowModel";
@@ -77,6 +77,7 @@ declare module "app/client/components/BaseView" {
     public prepareToPrint(onOff: boolean): void;
     public moveEditRowToCursor(): DataRowModel;
     public scrollToCursor(sync: boolean): Promise<void>;
+    public getAnchorLinkForSection(sectionId: number): IGristUrlState;
   }
   export = BaseView;
 }

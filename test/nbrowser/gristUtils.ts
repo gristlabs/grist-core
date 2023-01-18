@@ -238,6 +238,19 @@ export async function selectSectionByTitle(title: string) {
   }
 }
 
+export async function expandSection(title?: string) {
+  const select = title
+    ? driver.findContent(`.test-viewsection-title`, exactMatch(title)).findClosest(".viewsection_title")
+    : driver.find(".active_section");
+  await select.find(".test-section-menu-expandSection").click();
+}
+
+export async function getSectionId() {
+  const classList = await driver.find(".active_section").getAttribute("class");
+  const match = classList.match(/test-viewlayout-section-(\d+)/);
+  if (!match) { throw new Error("Could not find section id"); }
+  return parseInt(match[1]);
+}
 
 /**
  * Returns visible cells of the GridView from a single column and one or more rows. Options may be

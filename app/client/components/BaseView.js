@@ -243,8 +243,6 @@ BaseView.commonCommands = {
 
   copyLink: function() { this.copyLink().catch(reportError); },
 
-  showRawData: function() { this.showRawData().catch(reportError); },
-
   deleteRecords: function(source) { this.deleteRecords(source); },
 
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
@@ -400,13 +398,6 @@ BaseView.prototype.copyLink = async function() {
     throw new Error('cannot copy to clipboard');
   }
 };
-
-BaseView.prototype.showRawData = async function() {
-  const sectionId = this.schemaModel.rawViewSectionRef.peek();
-  const anchorUrlState = this.getAnchorLinkForSection(sectionId);
-  anchorUrlState.hash.popup = true;
-  await urlState().pushUrl(anchorUrlState, {replace: true, avoidReload: true});
-}
 
 BaseView.prototype.filterByThisCellValue = function() {
   const rowId = this.viewData.getRowId(this.cursor.rowIndex());
