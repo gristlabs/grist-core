@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+require('./setupPaths');
+require('test/upgradeDocumentImpl').main().catch(e => console.error(String(e)));

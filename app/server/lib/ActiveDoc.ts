@@ -1644,7 +1644,17 @@ export class ActiveDoc extends EventEmitter {
       const action: BulkRemoveRecord = ["BulkRemoveRecord", "_grist_Attachments", rowIds];
       await this.applyUserActions(makeExceptionalDocSession('system'), [action]);
     }
-    await this.docStorage.removeUnusedAttachments();
+    try {
+      await this.docStorage.removeUnusedAttachments();
+    } catch (e) {
+      // If document doesn't have _gristsys_Files, don't worry about it;
+      // if this is an error it will have already been reported, and the
+      // document can be in this state when updating initial SQL code after
+      // a schema change.
+      if (!String(e).match(/no such table: _gristsys_Files/)) {
+        throw e;
+      }
+    }
   }
 
   // Needed for test/server/migrations.js tests
