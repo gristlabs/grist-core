@@ -5,7 +5,7 @@ import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
+import { withQuestionMarkTooltip } from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
 import {testId, theme} from 'app/client/ui2018/cssVars';
@@ -371,7 +371,7 @@ export function buildFormulaConfig(
           dom.prop("disabled", disableOtherActions),
           testId("field-set-formula")
         )),
-        cssRow(withInfoTooltip(
+        cssRow(withQuestionMarkTooltip(
           textButton(
             t("Set trigger formula"),
             dom.on("click", setTrigger),
@@ -424,7 +424,7 @@ export function buildFormulaConfig(
         // Else offer a way to convert to trigger formula.
         dom.maybe((use) => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
           cssEmptySeparator(),
-          cssRow(withInfoTooltip(
+          cssRow(withQuestionMarkTooltip(
             textButton(
               t("Set trigger formula"),
               dom.on("click", convertDataColumnToTriggerColumn),

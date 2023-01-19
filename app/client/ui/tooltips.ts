@@ -9,7 +9,7 @@ import {prepareForTransition} from 'app/client/ui/transitions';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass} from 'app/client/ui2018/menus';
-import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
+import { dom, DomContents, DomElementArg, DomElementMethod, IDomArgs, styled } from 'grainjs';
 import Popper from 'popper.js';
 import {cssMenu, defaultMenuOptions, IMenuOptions, setPopupToCreateDom} from 'popweasel';
 
@@ -240,43 +240,59 @@ export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
 }
 
 /**
- * Renders an info icon that shows a tooltip with the specified `content` on click.
+ * Renders an icon that shows a tooltip with the specified `content` on click.
  */
-function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
-  return cssInfoTooltipButton('?',
-    (elem) => {
-      setPopupToCreateDom(
-        elem,
-        (ctl) => {
-          return cssInfoTooltipPopup(
-            cssInfoTooltipPopupCloseButton(
-              icon('CrossSmall'),
-              dom.on('click', () => ctl.close()),
-              testId('info-tooltip-close'),
-            ),
-            cssInfoTooltipPopupBody(
-              content,
-              testId('info-tooltip-popup-body'),
-            ),
-            dom.cls(menuCssClass),
-            dom.cls(cssMenu.className),
-            dom.onKeyDown({
-              Enter: () => ctl.close(),
-              Escape: () => ctl.close(),
-            }),
-            (popup) => { setTimeout(() => popup.focus(), 0); },
-            testId('info-tooltip-popup'),
-          );
-        },
-        {...defaultMenuOptions, ...{placement: 'bottom-end'}, ...menuOptions},
-      );
-    },
-    testId('info-tooltip'),
-    ...domArgs,
-  );
+function iconTooltip(
+  cssStyledFunc: (...args: IDomArgs<HTMLElement>) => HTMLElement,
+  tooltipButtonContent: HTMLElement,
+  content: DomContents,
+  menuOptions?: IMenuOptions,
+  ...domArgs: DomElementArg[]
+) {
+  return cssStyledFunc(tooltipButtonContent, (elem) => {
+    setPopupToCreateDom(
+      elem,
+      (ctl) => {
+        return cssInfoTooltipPopup(
+          cssInfoTooltipPopupCloseButton(
+            icon("CrossSmall"),
+            dom.on("click", () => ctl.close()),
+            testId("info-tooltip-close")
+          ),
+          cssInfoTooltipPopupBody(content, testId("info-tooltip-popup-body")),
+          dom.cls(menuCssClass),
+          dom.cls(cssMenu.className),
+          dom.onKeyDown({
+            Enter: () => ctl.close(),
+            Escape: () => ctl.close(),
+          }),
+          (popup) => {
+            setTimeout(() => popup.focus(), 0);
+          },
+          testId("info-tooltip-popup")
+        );
+      },
+      { ...defaultMenuOptions, ...{ placement: "bottom-end" }, ...menuOptions }
+    );
+  });
 }
 
-export interface WithInfoTooltipOptions {
+function questionMarkTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
+  return iconTooltip(
+    cssQuestionMarkTooltipButton,
+    cssQuestionMark('?', testId('info-tooltip'), ...domArgs),
+    content,
+    menuOptions);
+}
+
+function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
+  return iconTooltip(
+    cssInfoTooltipButton,
+    icon('Info', dom.cls('info_toggle_icon'), testId('info-tooltip'), ...domArgs),
+    content, menuOptions);
+}
+
+export interface WithIconTooltipOptions {
   domArgs?: DomElementArg[];
   tooltipButtonDomArgs?: DomElementArg[];
   tooltipMenuOptions?: IMenuOptions;
@@ -296,17 +312,30 @@ export interface WithInfoTooltipOptions {
  *
  * Usage:
  *
- *   withInfoTooltip(
+ *   withQuestionMarkTooltip(
  *     dom('div', 'Hello World!'),
  *     dom('p', 'This is some text to show inside the tooltip.'),
  *   )
  */
+export function withQuestionMarkTooltip(
+  domContents: DomContents,
+  tooltipContent: DomContents,
+  options: WithIconTooltipOptions = {},
+) {
+  const { domArgs, tooltipButtonDomArgs, tooltipMenuOptions } = options;
+  return cssDomWithTooltip(
+    domContents,
+    questionMarkTooltip(tooltipContent, tooltipMenuOptions, tooltipButtonDomArgs),
+    ...(domArgs ?? [])
+  );
+}
+
 export function withInfoTooltip(
   domContents: DomContents,
   tooltipContent: DomContents,
-  options: WithInfoTooltipOptions = {},
+  options: WithIconTooltipOptions = {},
 ) {
-  const {domArgs, tooltipButtonDomArgs, tooltipMenuOptions} = options;
+  const { domArgs, tooltipButtonDomArgs, tooltipMenuOptions } = options;
   return cssDomWithTooltip(
     domContents,
     infoTooltip(tooltipContent, tooltipMenuOptions, tooltipButtonDomArgs),
@@ -347,7 +376,7 @@ const cssTooltipCloseButton = styled('div', `
   }
 `);
 
-const cssInfoTooltipButton = styled('div', `
+const cssQuestionMark = styled('div', `
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -363,6 +392,25 @@ const cssInfoTooltipButton = styled('div', `
   &:hover {
     border: 1px solid ${theme.controlSecondaryHoverFg};
     color: ${theme.controlSecondaryHoverFg};
+  }
+`);
+
+const cssQuestionMarkTooltipButton = styled('div', `
+  cursor: pointer;
+`);
+
+const cssInfoTooltipButton = styled('div', `
+  cursor: pointer;
+  --icon-color: ${theme.infoButtonFg};
+  border-radius: 50%;
+  &:hover  {
+    --icon-color: ${theme.infoButtonHoverFg};
+  }
+  &:active  {
+    --icon-color: ${theme.infoButtonActiveFg};
+  }
+  & > .info_toggle_icon {
+    display: block; /* don't create a line */
   }
 `);
 

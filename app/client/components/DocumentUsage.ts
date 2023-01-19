@@ -2,7 +2,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {GristTooltips, TooltipContentFunc} from 'app/client/ui/GristTooltips';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
+import { withQuestionMarkTooltip } from 'app/client/ui/tooltips';
 import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
@@ -284,7 +284,7 @@ function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
   return cssUsageMetric(
     cssMetricName(
       tooltipContentFunc
-        ? withInfoTooltip(
+        ? withQuestionMarkTooltip(
             cssOverflowableText(name, testId('name')),
             tooltipContentFunc()
           )

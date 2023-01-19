@@ -37,13 +37,6 @@
   font-weight: bold;
 }
 
-.g_record_detail_description {
-  min-height: 1rem;
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: normal;
-  margin-bottom: 2px;
-}
 .g_record_detail_value {
   position: relative;
   min-height: 16px;
@@ -237,7 +230,7 @@
   padding: 1px 1px 1px 5px;
 }
 
-.detail_theme_field_form > .g_record_detail_label {
+.detail_theme_field_form>.g_record_detail_label {
   font-size: var(--grist-small-font-size);
   color: var(--grist-theme-card-form-label, var(--grist-color-slate));
   font-weight: bold;
@@ -248,16 +241,11 @@
   margin-right: -8px;
 }
 
-.detail_theme_field_form>.g_record_detail_description {
-  font-size: var(--grist-small-font-size);
-  color: var(--grist-theme-card-form-label, var(--grist-color-slate));
-  font-weight: normal;
-  min-height: 0px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-right: -8px;
+.detail_theme_field_form .info_toggle_icon {
+  width: 13px;
+  height: 13px;
 }
+
 /* TODO want to style better the values themselves (e.g. more padding, rounded corners, move label
  * inside value box for compact view for better cursor looks, etc), but first the cell editor
  * needs to learn to match the value box's style. Right now, the cell editor style is hard-coded.
