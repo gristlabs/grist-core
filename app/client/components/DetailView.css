@@ -11,7 +11,12 @@
 
   background: var(--grist-theme-page-panels-main-panel-bg, white);
   z-index: 1;
-  margin-top: -3px;
+  margin-top: -6px;
+}
+
+.layout_box_maximized .record-layout-editor {
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .g_record_detail_inner > .layout_root {

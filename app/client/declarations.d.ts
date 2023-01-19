@@ -4,7 +4,6 @@ declare module "app/client/components/CodeEditorPanel";
 declare module "app/client/components/DetailView";
 declare module "app/client/components/DocConfigTab";
 declare module "app/client/components/GridView";
-declare module "app/client/components/LayoutEditor";
 declare module "app/client/components/commandList";
 declare module "app/client/lib/Mousetrap";
 declare module "app/client/lib/browserGlobals";

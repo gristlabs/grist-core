@@ -63,15 +63,20 @@ import * as ko from 'knockout';
 import {computed, isObservable, observable, utils} from 'knockout';
 import {identity, last, uniqueId} from 'underscore';
 
+export interface ContentBox {
+  leafId: ko.Observable<any>;
+  leafContent: ko.Observable<Element|null>;
+}
+
 /**
  * A LayoutBox is the node in the hierarchy of boxes comprising the layout. This class is used for
  * rendering as well as for the code editor. Since it may be rendered many times on a page, it's
  * important for it to be efficient.
  * @param {Layout} layout: The Layout object that manages this LayoutBox.
  */
-export class LayoutBox extends Disposable {
+export class LayoutBox extends Disposable implements ContentBox {
   public layout: Layout;
-  public dom: Element | null = null;
+  public dom: HTMLElement | null = null;
   public leafId: ko.Observable<any>; // probably number for section id
   public parentBox: ko.Observable<LayoutBox|null>;
   public childBoxes: KoArray<LayoutBox>;
@@ -171,7 +176,7 @@ export class LayoutBox extends Disposable {
   /**
    * Moves the leaf id and content from another layoutBox, unsetting them in the source one.
    */
-  public takeLeafFrom(sourceLayoutBox: LayoutBox) {
+  public takeLeafFrom(sourceLayoutBox: ContentBox) {
     this.leafId(sourceLayoutBox.leafId.peek());
     // Note that we detach the node, so that the old box doesn't destroy its DOM.
     this.leafContent(detachNode(sourceLayoutBox.leafContent.peek()));
