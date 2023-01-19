@@ -1188,3 +1188,11 @@ def migration35(tdset):
     ))
 
   return tdset.apply_doc_actions(doc_actions)
+
+
+@migration(schema_version=36)
+def migration36(tdset):
+  """
+  Add description to column
+  """
+  return tdset.apply_doc_actions([add_column('_grist_Tables_column', 'description', 'Text')])

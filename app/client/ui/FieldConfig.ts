@@ -95,11 +95,34 @@ export function buildDescriptionConfig(
   cursor: ko.Computed<CursorPos>,
 ) {
   const editedDescription = Observable.create(owner, '');
+  const saveDescription = async (val: string) => {
+    await origColumn.description.saveOnly(val);
+    editedDescription.set('');
+  }
+
+  // We will listen to cursor position and force a blur event on
+  // the text input, which will trigger save before the column observable
+  // will change its value.
+  // Otherwise, blur will be invoked after column change and save handler will
+  // update a different column.
+  let editor: HTMLTextAreaElement | undefined;
+  owner.autoDispose(
+    cursor.subscribe(() => {
+      editor?.blur();
+    })
+  );
 
   return [
     cssLabel(t("DESCRIPTION")),
     cssRow(
-      cssTextArea(editedDescription, {})
+      editor = cssTextArea(fromKo(origColumn.description),
+        { onInput: false },
+        { placeholder: t("If necesary, describe the column") },
+        dom.on('input', (e, elem) => {
+          editedDescription.set(elem.value);
+          saveDescription(elem.value)
+        }),
+      )
     ),
 
   ];

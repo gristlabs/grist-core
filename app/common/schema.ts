@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 35;
+export const SCHEMA_VERSION = 36;
 
 export const schema = {
 
@@ -34,6 +34,7 @@ export const schema = {
     isFormula           : "Bool",
     formula             : "Text",
     label               : "Text",
+    description: "Text",
     untieColIdFromLabel : "Bool",
     summarySourceCol    : "Ref:_grist_Tables_column",
     displayCol          : "Ref:_grist_Tables_column",
@@ -239,6 +240,7 @@ export interface SchemaTypes {
     isFormula: boolean;
     formula: string;
     label: string;
+    description: string;
     untieColIdFromLabel: boolean;
     summarySourceCol: number;
     displayCol: number;

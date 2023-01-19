@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 35
+SCHEMA_VERSION = 36
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -70,6 +70,7 @@ def schema_create_actions():
       make_column("isFormula",    "Bool"),
       make_column("formula",      "Text"),
       make_column("label",        "Text"),
+      make_column("description",  "Text"),
 
       # Normally a change to label changes colId as well, unless untieColIdFromLabel is True.
       # (We intentionally pick a variable whose default value is false.)
