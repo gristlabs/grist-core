@@ -95,10 +95,6 @@ export function buildDescriptionConfig(
   cursor: ko.Computed<CursorPos>,
 ) {
   const editedDescription = Observable.create(owner, '');
-  const saveDescription = async (val: string) => {
-    await origColumn.description.saveOnly(val);
-    editedDescription.set('');
-  }
 
   // We will listen to cursor position and force a blur event on
   // the text input, which will trigger save before the column observable
@@ -118,9 +114,10 @@ export function buildDescriptionConfig(
       editor = cssTextArea(fromKo(origColumn.description),
         { onInput: false },
         { placeholder: t("If necesary, describe the column") },
-        dom.on('input', (e, elem) => {
+        dom.on('input', async (e, elem) => {
           editedDescription.set(elem.value);
-          saveDescription(elem.value)
+          await origColumn.description.saveOnly(elem.value);
+          editedDescription.set('');
         }),
       )
     ),
