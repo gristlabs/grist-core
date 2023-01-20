@@ -42,10 +42,12 @@ export class RawDataPage extends Disposable {
 
   public buildDom() {
     return cssContainer(
-      dom('div', this._gristDoc.behavioralPromptsManager.attachTip('rawDataPage', {hideArrow: true})),
-      dom('div',
-        dom.create(DataTables, this._gristDoc),
-        dom.create(DocumentUsage, this._gristDoc.docPageModel),
+      cssPage(
+        dom('div', this._gristDoc.behavioralPromptsManager.attachTip('rawDataPage', {hideArrow: true})),
+        dom('div',
+          dom.create(DataTables, this._gristDoc),
+          dom.create(DocumentUsage, this._gristDoc.docPageModel)
+        ),
         // We are hiding it, because overlay doesn't have a z-index (it conflicts with a searchbar and list buttons)
         dom.hide(this._lightboxVisible)
       ),
@@ -101,8 +103,13 @@ export class RawDataPopup extends Disposable {
 }
 
 const cssContainer = styled('div', `
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
   position: relative;
+`);
+
+const cssPage = styled('div', `
+  overflow-y: auto;
   height: 100%;
   padding: 32px 64px 24px 64px;
   @media ${mediaSmall} {
