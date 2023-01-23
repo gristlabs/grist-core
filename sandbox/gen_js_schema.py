@@ -32,7 +32,10 @@ import { GristObjCode } from "app/plugin/GristData";
 export const SCHEMA_VERSION = %d;
 
 export const schema = {
-""" % (__file__, schema.SCHEMA_VERSION))
+""" % ('core/sandbox/gen_js_schema.py', schema.SCHEMA_VERSION))
+  # The script name is hardcoded since the Grist sandbox can be
+  # at different paths depending on how Grist is installed, and
+  # we don't want unnecessary changes to generated files.
 
   for table in schema.schema_create_actions():
     print('  "%s": {' % table.table_id)

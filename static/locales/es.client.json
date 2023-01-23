@@ -32,7 +32,9 @@
         "Remove {{- name }} user attribute": "Eliminar el atributo de usuario {{- name }}",
         "Rules for table ": "Reglas para la tabla ",
         "Special Rules": "Reglas especiales",
-        "View As": "Ver como"
+        "View As": "Ver como",
+        "Seed rules": "Reglas de semillas",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Al agregar reglas de tabla, agregue automáticamente una regla para otorgar acceso completo al PROPIETARIO."
     },
     "AccountPage": {
         "API": "API",
@@ -733,7 +735,8 @@
         "Unmark On-Demand": "Desmarcar bajo demanda"
     },
     "FilterBar": {
-        "SearchColumns": "Buscar columnas"
+        "SearchColumns": "Buscar columnas",
+        "Search Columns": "Buscar columnas"
     },
     "Importer": {
         "Merge rows that match these fields:": "Combinar filas que coincidan con estos campos:",
@@ -815,5 +818,17 @@
         "Find Previous ": "Buscar anterior ",
         "No results": "Sin resultados",
         "Search in document": "Buscar en el documento"
+    },
+    "ACLUsers": {
+        "Users from table": "Usuarios de la tabla",
+        "View As": "Ver como",
+        "Example Users": "Usuarios de ejemplo"
+    },
+    "TypeTransform": {
+        "Apply": "Aplicar",
+        "Cancel": "Cancelar",
+        "Revise": "Revisar",
+        "Update formula (Shift+Enter)": "Actualizar fórmula (Mayús+Intro)",
+        "Preview": "Vista previa"
     }
 }

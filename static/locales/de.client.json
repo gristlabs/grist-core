@@ -37,7 +37,9 @@
         "Type a message...": "Geben Sie eine Nachricht ein…",
         "User Attributes": "Benutzer-Attribute",
         "Users": "Benutzer",
-        "View As": "Anzeigen als"
+        "View As": "Anzeigen als",
+        "Seed rules": "Saatgut-Regeln",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Beim Hinzufügen von Tabellenregeln wird automatisch eine Regel hinzugefügt, um BESITZER vollen Zugriff zu gewähren."
     },
     "AccountPage": {
         "API": "API",
@@ -824,6 +826,19 @@
         "Example Users": "Beispiel Benutzer"
     },
     "FilterBar": {
-        "SearchColumns": "Spalten suchen"
+        "SearchColumns": "Spalten suchen",
+        "Search Columns": "Spalten suchen"
+    },
+    "ACLUsers": {
+        "Example Users": "Beispiel Benutzer",
+        "Users from table": "Benutzer aus der Tabelle",
+        "View As": "Anzeigen als"
+    },
+    "TypeTransform": {
+        "Apply": "Anwenden",
+        "Cancel": "Abbrechen",
+        "Preview": "Vorschau",
+        "Update formula (Shift+Enter)": "Formel aktualisieren (Umschalttaste+Eingabetaste)",
+        "Revise": "Überarbeiten"
     }
 }
