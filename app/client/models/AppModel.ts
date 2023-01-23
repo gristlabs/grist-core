@@ -1,4 +1,5 @@
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
+import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeT} from 'app/client/lib/localization';
 import {sessionStorageObs} from 'app/client/lib/localStorageObs';
@@ -131,7 +132,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
 
   constructor(
     window: {gristConfig?: GristLoadConfig},
-    public readonly api: UserAPI = new UserAPIImpl(getHomeUrl()),
+    public readonly api: UserAPI = newUserAPIImpl(),
   ) {
     super();
     setErrorNotifier(this.notifier);
@@ -434,6 +435,12 @@ export function getHomeUrl(): string {
   const {host, protocol} = window.location;
   const gristConfig: any = (window as any).gristConfig;
   return (gristConfig && gristConfig.homeUrl) || `${protocol}//${host}`;
+}
+
+export function newUserAPIImpl(): UserAPIImpl {
+  return new UserAPIImpl(getHomeUrl(), {
+    fetch: hooks.fetch,
+  });
 }
 
 export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {

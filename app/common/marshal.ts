@@ -33,6 +33,13 @@ import * as util from 'util';
 export interface MarshalOptions {
   stringToBuffer?: boolean;
   version?: number;
+
+  // True if we want keys in dicts to be buffers.
+  // It is convenient to have some freedom here to simplify implementation
+  // of marshaling for some SQLite wrappers. This flag was initially
+  // introduced for a fork of Grist using better-sqlite3, and I don't
+  // remember exactly what the issues were.
+  keysAreBuffers?: boolean;
 }
 
 export interface UnmarshalOptions {
@@ -129,11 +136,13 @@ export class Marshaller {
   private _memBuf: MemBuffer;
   private readonly _floatCode: number;
   private readonly _stringCode: number;
+  private readonly _keysAreBuffers: boolean;
 
   constructor(options?: MarshalOptions) {
     this._memBuf = new MemBuffer(undefined);
     this._floatCode = options && options.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
     this._stringCode = options && options.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
+    this._keysAreBuffers = Boolean(options?.keysAreBuffers);
   }
 
   public dump(): Uint8Array {
@@ -261,7 +270,7 @@ export class Marshaller {
     const keys = Object.keys(obj);
     keys.sort();
     for (const key of keys) {
-      this.marshal(key);
+      this.marshal(this._keysAreBuffers ? Buffer.from(key) : key);
       this.marshal(obj[key]);
     }
     this._memBuf.writeUint8(marshalCodes.NULL);

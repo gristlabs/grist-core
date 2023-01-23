@@ -9,7 +9,7 @@ export class Group extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
+  @Column({type: String})
   public name: string;
 
   @ManyToMany(type => User)

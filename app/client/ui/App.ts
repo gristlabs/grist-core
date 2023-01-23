@@ -84,7 +84,7 @@ export class App extends DisposableWithEvents {
 
     const isHelpPaneVisible = ko.observable(false);
 
-    G.document.querySelector('#grist-logo-wrapper').remove();
+    G.document.querySelector('#grist-logo-wrapper')?.remove();
 
     // Help pop-up pane
     const helpDiv = document.body.appendChild(

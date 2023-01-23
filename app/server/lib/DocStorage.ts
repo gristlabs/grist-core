@@ -7,7 +7,6 @@
  */
 
 
-import * as sqlite3 from '@gristlabs/sqlite3';
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
@@ -23,12 +22,12 @@ import log from 'app/server/lib/log';
 import assert from 'assert';
 import * as bluebird from 'bluebird';
 import * as fse from 'fs-extra';
-import {RunResult} from 'sqlite3';
 import * as _ from 'underscore';
 import * as util from 'util';
 import uuidv4 from "uuid/v4";
 import {OnDemandStorage} from './OnDemandActions';
-import {ISQLiteDB, MigrationHooks, OpenMode, quoteIdent, ResultRow, SchemaInfo, SQLiteDB} from './SQLiteDB';
+import {ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
+        ResultRow, RunResult, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import chunk = require('lodash/chunk');
 import cloneDeep = require('lodash/cloneDeep');
 import groupBy = require('lodash/groupBy');
@@ -447,7 +446,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Converts an array of columns to an array of rows (suitable to use as sqlParams), encoding all
    * values as needed, according to an array of Grist type strings (must be parallel to columns).
    */
-  private static _encodeColumnsToRows(types: string[], valueColumns: any[]): any[] {
+  private static _encodeColumnsToRows(types: string[], valueColumns: any[]): any[][] {
     const marshaller = new marshal.Marshaller({version: 2});
     const rows = _.unzip(valueColumns);
     for (const row of rows) {
@@ -734,8 +733,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       })
       .catch(err => {
         // This replicates previous logic for _updateMetadata.
-        if (err.message.startsWith('SQLITE_ERROR: no such table')) {
+        // It matches errors from node-sqlite3 and better-sqlite3
+        if (err.message.startsWith('SQLITE_ERROR: no such table') ||
+          err.message.startsWith('no such table:')) {
           err.message = `NO_METADATA_ERROR: ${this.docName} has no metadata`;
+          if (!err.cause) { err.cause = {}; }
           err.cause.code = 'NO_METADATA_ERROR';
         }
         throw err;
@@ -781,7 +783,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         .then(() => true)
       // If UNIQUE constraint failed, this ident must already exists, so return false.
         .catch(err => {
-          if (/^SQLITE_CONSTRAINT: UNIQUE constraint failed/.test(err.message)) {
+          if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
             return false;
           }
           throw err;
@@ -879,7 +881,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
     whereParts = whereParts.concat(query.wheres ?? []);
     const sql = this._getSqlForQuery(query, whereParts);
-    return this._getDB().allMarshal(sql, params);
+    return this._getDB().allMarshal(sql, ...params);
   }
 
   /**
@@ -1125,16 +1127,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     if (numChunks > 0) {
       debuglog("DocStorage.BulkRemoveRecord: splitting " + rowIds.length +
                " deletes into chunks of size " + chunkSize);
-      await this.prepare(preSql + chunkParams + postSql)
-        .then(function(stmt) {
-          return bluebird.Promise.each(_.range(0, numChunks * chunkSize, chunkSize), function(index: number) {
-            debuglog("DocStorage.BulkRemoveRecord: chunk delete " + index + "-" + (index + chunkSize - 1));
-            return bluebird.Promise.fromCallback((cb: any) => stmt.run(rowIds.slice(index, index + chunkSize), cb));
-          })
-            .then(function() {
-              return bluebird.Promise.fromCallback((cb: any) => stmt.finalize(cb));
-            });
-        });
+      const stmt = await this.prepare(preSql + chunkParams + postSql);
+      for (const index of _.range(0, numChunks * chunkSize, chunkSize)) {
+        debuglog("DocStorage.BulkRemoveRecord: chunk delete " + index + "-" + (index + chunkSize - 1));
+        await stmt.run(rowIds.slice(index, index + chunkSize));
+      }
+      await stmt.finalize();
     }
 
     if (numLeftovers > 0) {
@@ -1433,8 +1431,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._markAsChanged(this._getDB().exec(sql));
   }
 
-  public prepare(sql: string, ...args: any[]): Promise<sqlite3.Statement> {
-    return this._getDB().prepare(sql, ...args);
+  public prepare(sql: string): Promise<PreparedStatement> {
+    return this._getDB().prepare(sql);
   }
 
   public get(sql: string, ...args: any[]): Promise<ResultRow|undefined> {
@@ -1545,7 +1543,16 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         name LIKE 'sqlite_%' OR
         name LIKE '_gristsys_%'
       );
-    `);
+    `).catch(e => {
+      if (String(e).match(/no such table: dbstat/)) {
+        // We are using a version of SQLite that doesn't have
+        // dbstat compiled in. But it would be sad to disable
+        // Grist entirely just because we can't track byte-count.
+        // So return NaN in this case.
+        return {totalSize: NaN};
+      }
+      throw e;
+    });
     return result!.totalSize;
   }
 
@@ -1576,19 +1583,15 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   /**
    * Internal helper for applying Bulk Update or Add Record sql
    */
-  private async _applyMaybeBulkUpdateOrAddSql(sql: string, sqlParams: any[]): Promise<void> {
+  private async _applyMaybeBulkUpdateOrAddSql(sql: string, sqlParams: any[][]): Promise<void> {
     if (sqlParams.length === 1) {
-      await this.run(sql, sqlParams[0]);
+      await this.run(sql, ...sqlParams[0]);
     } else {
-      return this.prepare(sql)
-        .then(function(stmt) {
-          return bluebird.Promise.each(sqlParams, function(param: string) {
-            return bluebird.Promise.fromCallback((cb: any) => stmt.run(param, cb));
-          })
-            .then(function() {
-              return bluebird.Promise.fromCallback((cb: any) => stmt.finalize(cb));
-            });
-        });
+      const stmt = await this.prepare(sql);
+      for (const param of sqlParams) {
+        await stmt.run(...param);
+      }
+      await stmt.finalize();
     }
   }
 
@@ -1613,9 +1616,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
     const oldGristType = this._getGristType(tableId, colId);
     const oldSqlType = colInfo.type || 'BLOB';
-    const oldDefault = colInfo.dflt_value;
+    const oldDefault = fixDefault(colInfo.dflt_value);
     const newSqlType = newColType ? DocStorage._getSqlType(newColType) : oldSqlType;
-    const newDefault = newColType ? DocStorage._formattedDefault(newColType) : oldDefault;
+    const newDefault = fixDefault(newColType ? DocStorage._formattedDefault(newColType) : oldDefault);
     const newInfo = {name: newColId, type: newSqlType, dflt_value: newDefault};
     // Check if anything actually changed, and only rebuild the table then.
     if (Object.keys(newInfo).every(p => ((newInfo as any)[p] === colInfo[p]))) {
@@ -1831,4 +1834,11 @@ export interface IndexInfo extends IndexColumns {
  */
 export async function createAttachmentsIndex(db: ISQLiteDB) {
   await db.exec(`CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent)`);
+}
+
+// Old docs may have incorrect quotes in their schema for default values
+// that node-sqlite3 may tolerate but not other wrappers. Patch such
+// material as we run into it.
+function fixDefault(def: string) {
+  return (def === '""') ? "''" : def;
 }

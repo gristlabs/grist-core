@@ -1,11 +1,12 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {guessTimezone} from 'app/client/lib/guessTimezone';
 import {getSessionStorage} from 'app/client/lib/storage';
+import {newUserAPIImpl} from 'app/client/models/AppModel';
 import {getWorker} from 'app/client/models/gristConfigCache';
 import {CommResponseBase} from 'app/common/CommTypes';
 import * as gutil from 'app/common/gutil';
 import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
-import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
+import {UserAPI} from 'app/common/UserAPI';
 import {Events as BackboneEvents} from 'backbone';
 import {Disposable} from 'grainjs';
 
@@ -25,7 +26,7 @@ async function getDocWorkerUrl(assignmentId: string|null): Promise<string|null> 
   // never changes.
   if (assignmentId === null) { return docUrl(null); }
 
-  const api: UserAPI = new UserAPIImpl(getGristConfig().homeUrl!);
+  const api: UserAPI = newUserAPIImpl();
   return getWorker(api, assignmentId);
 }
 
