@@ -27,22 +27,19 @@
         "Permission to view Access Rules": "Permission to view Access Rules",
         "Permissions": "Permissions",
         "Remove column {{- colId }} from {{- tableId }} rules": "Remove column {{- colId }} from {{- tableId }} rules",
-        "Remove {{- name }} user attribute": "Remove {{- name }} user attribute",
         "Remove {{- tableId }} rules": "Remove {{- tableId }} rules",
+        "Remove {{- name }} user attribute": "Remove {{- name }} user attribute",
         "Reset": "Reset",
         "Rules for table ": "Rules for table ",
         "Save": "Save",
         "Saved": "Saved",
-        "Seed rules": "Seed rules",
         "Special Rules": "Special Rules",
         "Type a message...": "Type a message…",
         "User Attributes": "User Attributes",
         "View As": "View As",
-<<<<<<< HEAD
         "Seed rules": "Seed rules",
-=======
->>>>>>> trad: make the widgets and the Welcome Tour translatable
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access."
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access.",
+        "Permission to edit document structure": "Permission to edit document structure"
     },
     "AccountPage": {
         "API": "API",
@@ -73,6 +70,11 @@
         "Sign in": "Sign in",
         "Switch Accounts": "Switch Accounts",
         "Toggle Mobile Mode": "Toggle Mobile Mode"
+    },
+    "ViewAsDropdown": {
+        "View As": "View As",
+        "Users from table": "Users from table",
+        "Example Users": "Example Users"
     },
     "ActionLog": {
         "Action Log failed to load": "Action Log failed to load",
@@ -128,13 +130,6 @@
         "Reset {{count}} entire columns_one": "Reset entire column",
         "Reset {{count}} entire columns_other": "Reset {{count}} entire columns"
     },
-    "CellStyle": {
-        "CELL STYLE": "CELL STYLE",
-        "Cell Style": "Cell Style",
-        "Default cell style": "Default cell style",
-        "Mixed style": "Mixed style",
-        "Open row styles": "Open row styles"
-    },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Create separate series for each value of the selected column.",
         "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
@@ -142,9 +137,6 @@
         "Pick a column": "Pick a column",
         "Toggle chart aggregation": "Toggle chart aggregation",
         "selected new group data columns": "selected new group data columns"
-    },
-    "ChoiceTextBox": {
-        "CHOICES": "CHOICES"
     },
     "CodeEditorPanel": {
         "Access denied": "Access denied",
@@ -159,30 +151,20 @@
         "All": "All",
         "All Except": "All Except",
         "All Shown": "All Shown",
-        "End": "End",
         "Filter by Range": "Filter by Range",
         "Future Values": "Future Values",
-        "Max": "Max",
-        "Min": "Min",
         "No matching values": "No matching values",
         "None": "None",
+        "Min": "Min",
+        "Max": "Max",
+        "Start": "Start",
+        "End": "End",
         "Other Matching": "Other Matching",
         "Other Non-Matching": "Other Non-Matching",
         "Other Values": "Other Values",
         "Others": "Others",
         "Search": "Search",
-        "Search values": "Search values",
-        "Start": "Start"
-    },
-    "ConditionalStyle": {
-        "Add another rule": "Add another rule",
-        "Add conditional style": "Add conditional style",
-        "Error in style rule": "Error in style rule",
-        "Row Style": "Row Style",
-        "Rule must return True or False": "Rule must return True or False"
-    },
-    "CurrencyPicker": {
-        "Invalid currency": "Invalid currency"
+        "Search values": "Search values"
     },
     "CustomSectionConfig": {
         " (optional)": " (optional)",
@@ -209,24 +191,6 @@
         "Raw Data Tables": "Raw Data Tables",
         "Table ID copied to clipboard": "Table ID copied to clipboard",
         "You do not have edit access to this document": "You do not have edit access to this document"
-    },
-    "DiscussionEditor": {
-        "Cancel": "Cancel",
-        "Comment": "Comment",
-        "Edit": "Edit",
-        "Marked as resolved": "Marked as resolved",
-        "Only current page": "Only current page",
-        "Only my threads": "Only my threads",
-        "Open": "Open",
-        "Remove": "Remove",
-        "Reply": "Reply",
-        "Reply to a comment": "Reply to a comment",
-        "Resolve": "Resolve",
-        "Save": "Save",
-        "Show resolved comments": "Show resolved comments",
-        "Showing last {{nb}} comments": "Showing last {{nb}} comments",
-        "Started discussion": "Started discussion",
-        "Write a comment": "Write a comment"
     },
     "DocHistory": {
         "Activity": "Activity",
@@ -328,9 +292,6 @@
         "Name for new table": "Name for new table",
         "Only the document default access rules will apply to the copy.": "Only the document default access rules will apply to the copy."
     },
-    "EditorTooltip": {
-        "Convert column to formula": "Convert column to formula"
-    },
     "ExampleInfo": {
         "Afterschool Program": "Afterschool Program",
         "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Check out our related tutorial for how to link data, and create high-productivity layouts.",
@@ -344,17 +305,6 @@
         "Welcome to the Afterschool Program template": "Welcome to the Afterschool Program template",
         "Welcome to the Investment Research template": "Welcome to the Investment Research template",
         "Welcome to the Lightweight CRM template": "Welcome to the Lightweight CRM template"
-    },
-    "FieldBuilder": {
-        "Apply Formula to Data": "Apply Formula to Data",
-        "CELL FORMAT": "CELL FORMAT",
-        "Changing multiple column types": "Changing multiple column types",
-        "DATA FROM TABLE": "DATA FROM TABLE",
-        "Mixed format": "Mixed format",
-        "Mixed types": "Mixed types",
-        "Revert field settings for {{colId}} to common": "Revert field settings for {{colId}} to common",
-        "Save field settings for {{colId}} as common": "Save field settings for {{colId}} as common",
-        "Use separate field settings for {{colId}}": "Use separate field settings for {{colId}}"
     },
     "FieldConfig": {
         "COLUMN BEHAVIOR": "COLUMN BEHAVIOR",
@@ -377,10 +327,6 @@
         "Set trigger formula": "Set trigger formula",
         "TRIGGER FORMULA": "TRIGGER FORMULA"
     },
-    "FieldEditor": {
-        "It should be impossible to save a plain data value into a formula column": "It should be impossible to save a plain data value into a formula column",
-        "Unable to finish saving edited cell": "Unable to finish saving edited cell"
-    },
     "FieldMenus": {
         "Revert to common settings": "Revert to common settings",
         "Save as common settings": "Save as common settings",
@@ -394,13 +340,6 @@
     "FilterBar": {
         "SearchColumns": "Search columns",
         "Search Columns": "Search Columns"
-    },
-    "FormulaEditor": {
-        "Column or field is required": "Column or field is required",
-        "Error in the cell": "Error in the cell",
-        "Errors in all {{numErrors}} cells": "Errors in all {{numErrors}} cells",
-        "Errors in {{numErrors}} of {{numCells}} cells": "Errors in {{numErrors}} of {{numCells}} cells",
-        "editingFormula is required": "editingFormula is required"
     },
     "GridOptions": {
         "Grid Options": "Grid Options",
@@ -479,9 +418,6 @@
         "Workspace will be moved to Trash.": "Workspace will be moved to Trash.",
         "Workspaces": "Workspaces"
     },
-    "HyperLinkEditor": {
-        "[link label] url": "[link label] url"
-    },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
         "Select fields to match on": "Select fields to match on",
@@ -502,8 +438,8 @@
         "No destination workspace": "No destination workspace",
         "Organization": "Organization",
         "Original Has Modifications": "Original Has Modifications",
-        "Original Looks Identical": "Original Looks Identical",
         "Original Looks Unrelated": "Original Looks Unrelated",
+        "Original Looks Identical": "Original Looks Identical",
         "Overwrite": "Overwrite",
         "Replacing the original requires editing rights on the original document.": "Replacing the original requires editing rights on the original document.",
         "Sign up": "Sign up",
@@ -525,12 +461,6 @@
         "Renew": "Renew",
         "Report a problem": "Report a problem",
         "Upgrade Plan": "Upgrade Plan"
-    },
-    "NumericTextBox": {
-        "Currency": "Currency",
-        "Decimals": "Decimals",
-        "Default currency ({{defaultCurrency}})": "Default currency ({{defaultCurrency}})",
-        "Number Format": "Number Format"
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
@@ -567,19 +497,14 @@
     },
     "RecordLayoutEditor": {
         "Add Field": "Add Field",
-        "Cancel": "Cancel",
         "Create New Field": "Create New Field",
+        "Show field {{- label}}": "Show field {{- label}}",
         "Save Layout": "Save Layout",
-        "Show field {{- label}}": "Show field {{- label}}"
+        "Cancel": "Cancel"
     },
     "RefSelect": {
         "Add Column": "Add Column",
         "No columns to add": "No columns to add"
-    },
-    "Reference": {
-        "CELL FORMAT": "CELL FORMAT",
-        "Row ID": "Row ID",
-        "SHOW COLUMN": "SHOW COLUMN"
     },
     "RightPanel": {
         "CHART TYPE": "CHART TYPE",
@@ -653,9 +578,9 @@
         "Add Column": "Add Column",
         "Empty values last": "Empty values last",
         "Natural sort": "Natural sort",
-        "Search Columns": "Search columns",
         "Update Data": "Update Data",
-        "Use choice position": "Use choice position"
+        "Use choice position": "Use choice position",
+        "Search Columns": "Search columns"
     },
     "SortFilterConfig": {
         "Filter": "FILTER",
@@ -679,7 +604,8 @@
         "Return to viewing as yourself": "Return to viewing as yourself",
         "TOOLS": "TOOLS",
         "Tour of this Document": "Tour of this Document",
-        "Validate Data": "Validate Data"
+        "Validate Data": "Validate Data",
+        "Settings": "Settings"
     },
     "TopBar": {
         "Manage Team": "Manage Team"
@@ -693,6 +619,13 @@
         "Close": "Close",
         "Current field ": "Current field ",
         "OK": "OK"
+    },
+    "TypeTransformation": {
+        "Apply": "Apply",
+        "Cancel": "Cancel",
+        "Preview": "Preview",
+        "Revise": "Revise",
+        "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
     },
     "UserManagerModel": {
         "Editor": "Editor",
@@ -710,11 +643,6 @@
     },
     "ViewAsBanner": {
         "UnknownUser": "Unknown User"
-    },
-    "ViewAsDropdown": {
-        "Example Users": "Example Users",
-        "Users from table": "Users from table",
-        "View As": "View As"
     },
     "ViewConfigTab": {
         "Advanced settings": "Advanced settings",
@@ -853,6 +781,94 @@
         "Preview": "Preview",
         "Revise": "Revise",
         "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
+    },
+    "CellStyle": {
+        "CELL STYLE": "CELL STYLE",
+        "Cell Style": "Cell Style",
+        "Default cell style": "Default cell style",
+        "Mixed style": "Mixed style",
+        "Open row styles": "Open row styles"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "CHOICES"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "COLUMN DESCRIPTION",
+        "COLUMN LABEL": "COLUMN LABEL"
+    },
+    "ColumnInfo": {
+        "COLUMN DESCRIPTION": "COLUMN DESCRIPTION",
+        "COLUMN ID: ": "COLUMN ID: ",
+        "COLUMN LABEL": "COLUMN LABEL",
+        "Cancel": "Cancel",
+        "Save": "Save"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Add another rule",
+        "Add conditional style": "Add conditional style",
+        "Error in style rule": "Error in style rule",
+        "Row Style": "Row Style",
+        "Rule must return True or False": "Rule must return True or False"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Invalid currency"
+    },
+    "DiscussionEditor": {
+        "Cancel": "Cancel",
+        "Comment": "Comment",
+        "Edit": "Edit",
+        "Marked as resolved": "Marked as resolved",
+        "Only current page": "Only current page",
+        "Only my threads": "Only my threads",
+        "Open": "Open",
+        "Remove": "Remove",
+        "Reply": "Reply",
+        "Reply to a comment": "Reply to a comment",
+        "Resolve": "Resolve",
+        "Save": "Save",
+        "Show resolved comments": "Show resolved comments",
+        "Showing last {{nb}} comments": "Showing last {{nb}} comments",
+        "Started discussion": "Started discussion",
+        "Write a comment": "Write a comment"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Convert column to formula"
+    },
+    "FieldBuilder": {
+        "Apply Formula to Data": "Apply Formula to Data",
+        "CELL FORMAT": "CELL FORMAT",
+        "Changing multiple column types": "Changing multiple column types",
+        "DATA FROM TABLE": "DATA FROM TABLE",
+        "Mixed format": "Mixed format",
+        "Mixed types": "Mixed types",
+        "Revert field settings for {{colId}} to common": "Revert field settings for {{colId}} to common",
+        "Save field settings for {{colId}} as common": "Save field settings for {{colId}} as common",
+        "Use separate field settings for {{colId}}": "Use separate field settings for {{colId}}"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "It should be impossible to save a plain data value into a formula column",
+        "Unable to finish saving edited cell": "Unable to finish saving edited cell"
+    },
+    "FormulaEditor": {
+        "Column or field is required": "Column or field is required",
+        "Error in the cell": "Error in the cell",
+        "Errors in all {{numErrors}} cells": "Errors in all {{numErrors}} cells",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Errors in {{numErrors}} of {{numCells}} cells",
+        "editingFormula is required": "editingFormula is required"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label] url"
+    },
+    "NumericTextBox": {
+        "Currency": "Currency",
+        "Decimals": "Decimals",
+        "Default currency ({{defaultCurrency}})": "Default currency ({{defaultCurrency}})",
+        "Number Format": "Number Format"
+    },
+    "Reference": {
+        "CELL FORMAT": "CELL FORMAT",
+        "Row ID": "Row ID",
+        "SHOW COLUMN": "SHOW COLUMN"
     },
     "welcomeTour": {
         "Add New": "Add New",
