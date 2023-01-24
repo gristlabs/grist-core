@@ -68,3 +68,17 @@ try {
 }
 
 currencies = [...currencies].sort((a, b) => nativeCompare(a.code, b.code));
+
+
+export function getCountryCode(locale: string) {
+  // We have some defaults defined.
+  if (locale === 'en') { return 'US'; }
+  let countryCode = locale.split(/[-_]/)[1];
+  if (countryCode) { return countryCode.toUpperCase(); }
+  countryCode = locale.toUpperCase();
+  // Test if we can use language as a country code.
+  if (localeCodes.map(code => code.split(/[-_]/)[1]).includes(countryCode)) {
+    return countryCode;
+  }
+  return null;
+}

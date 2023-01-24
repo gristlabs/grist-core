@@ -4509,11 +4509,6 @@ i18n-iso-countries@6.1.0:
   dependencies:
     diacritics "1.3.0"
 
-i18next-fs-backend@1.1.5:
-  version "1.1.5"
-  resolved "https://registry.npmjs.org/i18next-fs-backend/-/i18next-fs-backend-1.1.5.tgz"
-  integrity sha512-raTel3EfshiUXxR0gvmIoqp75jhkj8+7R1LjB006VZKPTFBbXyx6TlUVhb8Z9+7ahgpFbcQg1QWVOdf/iNzI5A==
-
 i18next-http-middleware@3.2.1:
   version "3.2.1"
   resolved "https://registry.npmjs.org/i18next-http-middleware/-/i18next-http-middleware-3.2.1.tgz"

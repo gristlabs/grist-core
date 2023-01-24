@@ -585,6 +585,9 @@ export interface GristLoadConfig {
 
   // Email address of the support user.
   supportEmail?: string;
+
+  // Current user locale, read from the user options;
+  userLocale?: string;
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");

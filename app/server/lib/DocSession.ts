@@ -122,7 +122,7 @@ export function getDocSessionUser(docSession: OptDocSession): FullUser|null {
     const user = getUser(docSession.req);
     const email = user.loginEmail;
     if (email) {
-      return {id: user.id, name: user.name, email, ref: user.ref};
+      return {id: user.id, name: user.name, email, ref: user.ref, locale: user.options?.locale};
     }
   }
   if (docSession.client) {

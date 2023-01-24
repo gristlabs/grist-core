@@ -373,6 +373,14 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     mreq.users = [dbManager.makeFullUser(anon)];
   }
 
+  if (mreq.userId) {
+    if (mreq.user?.options?.locale) {
+      mreq.language = mreq.user.options.locale;
+      // This is a synchronous call (as it was configured with initImmediate: false).
+      mreq.i18n.changeLanguage(mreq.language).catch(() => {});
+    }
+  }
+
   const meta = {
     customHostSession,
     method: mreq.method,

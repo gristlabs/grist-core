@@ -35,6 +35,8 @@ namespace gristUtils {
 // Allow overriding the global 'driver' to use in gristUtil.
 let driver: WebDriver;
 
+export function currentDriver() { return driver; }
+
 // Substitute a custom driver to use with gristUtils functions. Omit argument to restore to default.
 export function setDriver(customDriver: WebDriver = driverOrig) { driver = customDriver; }
 
@@ -2470,7 +2472,7 @@ export async function openAccountMenu() {
 
 export async function openProfileSettingsPage() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu a', 'Profile Settings').click();
+  await driver.find('.grist-floating-menu .test-dm-account-settings').click();
   await driver.findWait('.test-account-page-login-method', 5000);
 }
 
