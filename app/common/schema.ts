@@ -34,7 +34,7 @@ export const schema = {
     isFormula           : "Bool",
     formula             : "Text",
     label               : "Text",
-    description: "Text",
+    description         : "Text",
     untieColIdFromLabel : "Bool",
     summarySourceCol    : "Ref:_grist_Tables_column",
     displayCol          : "Ref:_grist_Tables_column",
