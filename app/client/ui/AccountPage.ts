@@ -60,7 +60,7 @@ export class AccountPage extends Disposable {
       css.container(css.accountPage(
         css.header(t("Account settings")),
         css.dataRow(
-          css.inlineSubHeader(t("Email")),
+          css.inlineSubHeader(t("Email"), t('Jarek')),
           css.email(user.email),
         ),
         css.dataRow(
