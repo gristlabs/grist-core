@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
@@ -7,6 +8,9 @@ import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
 import {Computed, dom, styled} from 'grainjs';
+
+
+const t = makeT('Reference');
 
 /**
  * Reference - The widget for displaying references to another table's records.
@@ -33,14 +37,14 @@ export class Reference extends NTextBox {
           icon: 'FieldColumn',
           disabled: isFullReferencingType(use(col.type)) || use(col.isTransforming)
         }))
-        .concat([{label: 'Row ID', value: 0, icon: 'FieldColumn'}]);
+        .concat([{label: t('Row ID'), value: 0, icon: 'FieldColumn'}]);
     });
   }
 
   public buildConfigDom() {
     return [
       this.buildTransformConfigDom(),
-      cssLabel('CELL FORMAT'),
+      cssLabel(t('CELL FORMAT')),
       super.buildConfigDom()
     ];
   }
@@ -48,7 +52,7 @@ export class Reference extends NTextBox {
   public buildTransformConfigDom() {
     const disabled = Computed.create(null, use => use(this.field.config.multiselect));
     return [
-      cssLabel('SHOW COLUMN'),
+      cssLabel(t('SHOW COLUMN')),
       cssRow(
         dom.autoDispose(disabled),
         select(this._visibleColRef, this._validCols, {

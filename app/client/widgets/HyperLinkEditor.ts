@@ -1,5 +1,8 @@
+import {makeT} from 'app/client/lib/localization';
 import {FieldOptions} from 'app/client/widgets/NewBaseEditor';
 import {NTextEditor} from 'app/client/widgets/NTextEditor';
+
+const t = makeT('HyperLinkEditor');
 
 /**
  * HyperLinkEditor - Is the same NTextEditor but with some placeholder text to help explain
@@ -8,6 +11,6 @@ import {NTextEditor} from 'app/client/widgets/NTextEditor';
 export class HyperLinkEditor extends NTextEditor {
   constructor(options: FieldOptions) {
     super(options);
-    this.textInput.setAttribute('placeholder', '[link label] url');
+    this.textInput.setAttribute('placeholder', t('[link label] url'));
   }
 }

@@ -1,3 +1,4 @@
+import { makeT } from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import { urlState } from 'app/client/models/gristUrlState';
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
@@ -6,25 +7,26 @@ import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { dom, styled } from "grainjs";
 
+const t = makeT('WelcomeTour');
+
 export const welcomeTour: IOnBoardingMsg[] = [
   {
-    title: 'Editing Data',
+    title: t('Editing Data'),
     body: () => [
       dom('p',
-          'Double-click or hit ', Key(KeyContent('Enter')), ' on a cell to edit it. ',
-          'Start with ', Key(KeyStrong('=')), ' to enter a formula.'
-         )
+        t('Double-click or hit {{enter}} on a cell to edit it. ', {enter: Key(KeyContent(t('Enter')))}),
+        t('Start with {{equal}} to enter a formula.', { equal: Key(KeyStrong('=')) }))
     ],
     selector: '.field_clip',
     placement: 'bottom',
   },
   {
     selector: '.tour-creator-panel',
-    title: 'Configuring your document',
+    title: t('Configuring your document'),
     body: () => [
       dom('p',
-          'Toggle the ', dom('em', 'creator panel'), ' to format columns, ',
-          'convert to card view, select data, and more.'
+          t('Toggle the {{creatorPanel}} to format columns, ', {creatorPanel: dom('em', t('creator panel'))}),
+          t('convert to card view, select data, and more.')
          )
     ],
     placement: 'left',
@@ -32,50 +34,53 @@ export const welcomeTour: IOnBoardingMsg[] = [
   },
   {
     selector: '.tour-type-selector',
-    title: 'Customizing columns',
+    title: t('Customizing columns'),
     body: () => [
       dom('p',
-          'Set formatting options, formulas, or column types, such as dates, choices, or attachments. '),
+          t('Set formatting options, formulas, or column types, such as dates, choices, or attachments. ')),
       dom('p',
-          'Make it relational! Use the ', Key('Reference'), ' type to link tables. '
+          t('Make it relational! Use the {{ref}} type to link tables. ', {ref: Key(t('Reference'))}),
          )
     ],
     placement: 'right',
   },
   {
     selector: '.tour-add-new',
-    title: 'Building up',
+    title: t('Building up'),
     body: () => [
-      dom('p', 'Use ', Key('Add New'), ' to add widgets, pages, or import more data. ')
+      dom('p', t('Use {{addNew}} to add widgets, pages, or import more data. ', {addNew: Key(t('Add New'))}))
     ],
     placement: 'right',
   },
   {
     selector: '.tour-share-icon',
-    title: 'Sharing',
+    title: t('Sharing'),
     body: () => [
-      dom('p', 'Use the Share button (', TopBarButtonIcon('Share'), ') to share the document or export data.')
+      dom('p', t('Use the Share button ({{share}}) to share the document or export data.',
+      {share: TopBarButtonIcon(t('Share'))}))
     ],
     placement: 'bottom',
     cropPadding: true,
   },
   {
     selector: '.tour-help-center',
-    title: 'Flying higher',
+    title: t('Flying higher'),
     body: () => [
-      dom('p', 'Use ', Key(GreyIcon('Help'), 'Help Center'), ' for documentation or questions.'),
+      dom('p', t('Use {{helpCenter}} for documentation or questions.',
+      {helpCenter: Key(GreyIcon('Help'), t('Help Center'))})),
     ],
     placement: 'right',
   },
   {
     selector: '.tour-welcome',
-    title: 'Welcome to Grist!',
+    title: t('Welcome to Grist!'),
     body: () => [
-      dom('p', 'Browse our ',
-        cssLink({target: '_blank', href: urlState().makeUrl({homePage: "templates"})},
-          'template library', cssInlineIcon('FieldLink')),
-        "to discover what's possible and get inspired."
-      ),
+      dom('p', t("Browse our {{templateLibrary}} to discover what's possible and get inspired.",
+        {
+          templateLibrary: cssLink({ target: '_blank', href: urlState().makeUrl({ homePage: "templates" }) },
+            t('template library'), cssInlineIcon('FieldLink'))
+        }
+      )),
     ],
     showHasModal: true,
   }

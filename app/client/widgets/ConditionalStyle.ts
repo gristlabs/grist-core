@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ColumnRec} from 'app/client/models/DocModel';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
@@ -18,6 +19,7 @@ import {Computed, Disposable, dom, DomContents, makeTestId, Observable, styled} 
 import debounce = require('lodash/debounce');
 
 const testId = makeTestId('test-widget-style-');
+const t = makeT('ConditionalStyle');
 
 export class ConditionalStyle extends Disposable {
   // Holds data from currently selected record (holds data only when this field has conditional styles).
@@ -71,12 +73,12 @@ export class ConditionalStyle extends Disposable {
         { style: 'margin-top: 16px' },
         withInfoTooltip(
           textButton(
-            'Add conditional style',
+            t('Add conditional style'),
             testId('add-conditional-style'),
             dom.on('click', () => this._ruleOwner.addEmptyRule()),
             dom.prop('disabled', this._disabled),
           ),
-          (this._label === 'Row Style'
+          (this._label === t('Row Style')
             ? GristTooltips.addRowConditionalStyle()
             : GristTooltips.addColumnConditionalStyle()
           ),
@@ -113,8 +115,8 @@ export class ConditionalStyle extends Disposable {
               const errorMessage = Computed.create(owner, use => {
                 const value = use(currentValue);
                 return (!use(hasError) ? '' :
-                  isRaisedException(value) ? 'Error in style rule' :
-                    'Rule must return True or False');
+                  isRaisedException(value) ? t('Error in style rule') :
+                    t('Rule must return True or False'));
               });
               return dom('div',
                 testId(`conditional-rule-${ruleIndex}`),
@@ -153,7 +155,7 @@ export class ConditionalStyle extends Disposable {
           )
       ),
       cssRow(
-        textButton('Add another rule',
+        textButton(t('Add another rule'),
           dom.on('click', () => this._ruleOwner.addEmptyRule()),
           testId('add-another-rule'),
           dom.prop('disabled', use => this._disabled && use(this._disabled))

@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
@@ -12,6 +13,8 @@ import {Computed, dom, styled} from 'grainjs';
 export type IChoiceOptions = Style
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
 export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
+
+const t = makeT('ChoiceTextBox');
 
 export function getRenderFillColor(choiceOptions?: IChoiceOptions) {
   return choiceOptions?.fillColor ?? DEFAULT_FILL_COLOR;
@@ -78,7 +81,7 @@ export class ChoiceTextBox extends NTextBox {
       );
     return [
       super.buildConfigDom(),
-      cssLabel('CHOICES'),
+      cssLabel(t('CHOICES')),
       cssRow(
         dom.autoDispose(disabled),
         dom.autoDispose(mixed),
