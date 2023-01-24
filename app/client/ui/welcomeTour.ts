@@ -57,7 +57,7 @@ export const welcomeTour: IOnBoardingMsg[] = [
     title: t('Sharing'),
     body: () => [
       dom('p', t('Use the Share button ({{share}}) to share the document or export data.',
-      {share:TopBarButtonIcon(t('Share'))}))
+      {share: TopBarButtonIcon(t('Share'))}))
     ],
     placement: 'bottom',
     cropPadding: true,

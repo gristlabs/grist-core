@@ -5,7 +5,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, styled} from 'grainjs';
 
-const t = makeT('DiscussionEditor');
+const t = makeT('EditorTooltip');
 
 export function showTooltipToCreateFormula(editorDom: HTMLElement, convert: () => void) {
   function buildTooltip(ctl: ITooltipControl) {
