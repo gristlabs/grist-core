@@ -22,6 +22,8 @@ export const cssHelp = styled('div', `
 
 export const cssRow = styled('div', `
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 5px;
   margin: 8px 16px;
   align-items: center;
   color: ${theme.text};
