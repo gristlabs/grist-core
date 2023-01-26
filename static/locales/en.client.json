@@ -325,7 +325,8 @@
         "Mixed Behavior": "Mixed Behavior",
         "Set formula": "Set formula",
         "Set trigger formula": "Set trigger formula",
-        "TRIGGER FORMULA": "TRIGGER FORMULA"
+        "TRIGGER FORMULA": "TRIGGER FORMULA",
+        "DESCRIPTION": "DESCRIPTION"
     },
     "FieldMenus": {
         "Revert to common settings": "Revert to common settings",
