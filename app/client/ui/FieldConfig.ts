@@ -8,7 +8,7 @@ import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles
 import { withQuestionMarkTooltip } from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
-import {testId, theme} from 'app/client/ui2018/cssVars';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -113,8 +113,8 @@ export function buildDescriptionConfig(
     cssRow(
       editor = cssTextArea(fromKo(origColumn.description),
         { onInput: false },
-        { placeholder: t("If necesary, describe the column") },
-        dom.on('input', async (e, elem) => {
+        { rows: '3' },
+        dom.on('blur', async (e, elem) => {
           editedDescription.set(elem.value);
           await origColumn.description.saveOnly(elem.value);
           editedDescription.set('');
@@ -544,6 +544,15 @@ const cssTextArea = styled(textarea, `
 
   &[readonly] {
     background-color: ${theme.inputDisabledBg};
-    color: ${theme.inputDisabledFg};
+    padding: 3px 7px;
+    border-radius: 3px;
+    resize: vertical;
+    border: 1px solid ${theme.inputBorder};
+    color: ${theme.inputFg};
+    background-color: ${theme.inputBg};
+    flex: 1 1 0;
+    font-size: ${vars.mediumFontSize};
+    font-family: ${vars.fontFamily};
+    outline: none;
   }
 `);
