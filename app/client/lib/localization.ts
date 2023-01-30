@@ -95,11 +95,6 @@ type InferResult<T> = T extends Record<string, string | number | boolean>|undefi
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
 export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
-  if (!instance.exists(key, args || undefined)) {
-    const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
-    reportError(error);
-  }
-  // Don't need to bind `t` function.
   return domT(key, args, instance.t);
 }
 
@@ -176,12 +171,6 @@ export function makeT(scope: string, instance?: typeof i18next) {
       // Override the resolver with a custom one, that will use the argument as a default.
       // This will remove all the overloads from the function, but we don't need them.
       scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, {defaultValue: _key, ..._args});
-    }
-    // If the key has interpolation or we did pass some arguments, make sure that
-    // the key exists.
-    if ((args || key.includes("{{")) && !scopedInstance.exists(`${scope}.${key}`, args || undefined)) {
-      const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
-      reportError(error);
     }
     return domT(key, args, scopedResolver!);
   };
