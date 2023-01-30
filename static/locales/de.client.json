@@ -39,7 +39,8 @@
         "Users": "Benutzer",
         "View As": "Anzeigen als",
         "Seed rules": "Saatgut-Regeln",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "Beim Hinzufügen von Tabellenregeln wird automatisch eine Regel hinzugefügt, um BESITZER vollen Zugriff zu gewähren."
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Beim Hinzufügen von Tabellenregeln wird automatisch eine Regel hinzugefügt, um BESITZER vollen Zugriff zu gewähren.",
+        "Permission to edit document structure": "Berechtigung zur Bearbeitung der Dokumentenstruktur"
     },
     "AccountPage": {
         "API": "API",
@@ -274,7 +275,10 @@
         "Save": "Speichern",
         "Save and Reload": "Speichern und neu laden",
         "This document's ID (for API use):": "Die ID dieses Dokuments (für API-Verwendung):",
-        "Time Zone:": "Zeitzone:"
+        "Time Zone:": "Zeitzone:",
+        "API": "API",
+        "Document ID copied to clipboard": "Dokument-ID in die Zwischenablage kopiert",
+        "Ok": "Ok"
     },
     "DocumentUsage": {
         "Attachments Size": "Anhänge Größe",
@@ -649,7 +653,8 @@
         "Return to viewing as yourself": "Zurück zur Selbstdarstellung",
         "TOOLS": "WERKZEUGE",
         "Tour of this Document": "Tour durch dieses Dokument",
-        "Validate Data": "Daten validieren"
+        "Validate Data": "Daten validieren",
+        "Settings": "Einstellungen"
     },
     "TopBar": {
         "Manage Team": "Team verwalten"
@@ -666,12 +671,12 @@
         "Current field ": "Aktuelles Feld ",
         "OK": "OK"
     },
-    "TypeTransformation": {
+    "TypeTransform": {
         "Apply": "Anwenden",
         "Cancel": "Abbrechen",
         "Preview": "Vorschau",
-        "Revise": "Überarbeiten",
-        "Update formula (Shift+Enter)": "Formel aktualisieren (Umschalttaste+Eingabetaste)"
+        "Update formula (Shift+Enter)": "Formel aktualisieren (Umschalttaste+Eingabetaste)",
+        "Revise": "Überarbeiten"
     },
     "UserManagerModel": {
         "Editor": "Redakteur",
@@ -834,11 +839,125 @@
         "Users from table": "Benutzer aus der Tabelle",
         "View As": "Anzeigen als"
     },
-    "TypeTransform": {
-        "Apply": "Anwenden",
-        "Cancel": "Abbrechen",
-        "Preview": "Vorschau",
+    "TypeTransformation": {
         "Update formula (Shift+Enter)": "Formel aktualisieren (Umschalttaste+Eingabetaste)",
-        "Revise": "Überarbeiten"
+        "Cancel": "Abbrechen",
+        "Revise": "Überarbeiten",
+        "Preview": "Vorschau",
+        "Apply": "Anwenden"
+    },
+    "CellStyle": {
+        "CELL STYLE": "ZELLENSTIL",
+        "Open row styles": "Zeilenstile öffnen",
+        "Cell Style": "Zellenstil",
+        "Default cell style": "Standard-Zellenstil",
+        "Mixed style": "Gemischter Stil"
+    },
+    "DiscussionEditor": {
+        "Resolve": "Beschließen",
+        "Save": "Speichern",
+        "Show resolved comments": "Gelöste Kommentare anzeigen",
+        "Only my threads": "Nur meine Fäden",
+        "Open": "Öffnen",
+        "Remove": "Entfernen",
+        "Reply to a comment": "Auf einen Kommentar antworten",
+        "Reply": "Antwort",
+        "Comment": "Kommentar",
+        "Edit": "Bearbeiten",
+        "Only current page": "Nur aktuelle Seite",
+        "Started discussion": "Begonnene Diskussion",
+        "Write a comment": "Schreiben Sie einen Kommentar",
+        "Marked as resolved": "Markiert als gelöst",
+        "Cancel": "Abbrechen",
+        "Showing last {{nb}} comments": "Letzte {{nb}} Kommentare anzeigen"
+    },
+    "ColumnInfo": {
+        "COLUMN DESCRIPTION": "SPALTENBESCHREIBUNG",
+        "COLUMN ID: ": "SPALTEN-ID: ",
+        "Save": "Speichern",
+        "COLUMN LABEL": "SPALTENBEZEICHNUNG",
+        "Cancel": "Abbrechen"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "WAHLEN"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "SPALTENBESCHREIBUNG",
+        "COLUMN LABEL": "SPALTENBEZEICHNUNG"
+    },
+    "ConditionalStyle": {
+        "Add conditional style": "Bedingten Stil hinzufügen",
+        "Error in style rule": "Fehler in der Stilregel",
+        "Rule must return True or False": "Regel muss wahr oder falsch zurückgeben",
+        "Add another rule": "Eine weitere Regel hinzufügen",
+        "Row Style": "Zeilenstil"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Ungültige Währung"
+    },
+    "FieldBuilder": {
+        "Changing multiple column types": "Mehrere Spaltentypen ändern",
+        "Mixed format": "Gemischtes Format",
+        "Mixed types": "Gemischte Typen",
+        "Revert field settings for {{colId}} to common": "Feldeinstellungen für {{colId}} auf \"Allgemein\" zurücksetzen",
+        "Apply Formula to Data": "Formel auf Daten anwenden",
+        "CELL FORMAT": "ZELLENFORMAT",
+        "DATA FROM TABLE": "DATEN AUS TABELLE",
+        "Save field settings for {{colId}} as common": "Feldeinstellungen für {{colId}} als Algemein speichern",
+        "Use separate field settings for {{colId}}": "Verwenden Sie separate Feldeinstellungen für {{colId}}"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Spalte in Formel umwandeln"
+    },
+    "FormulaEditor": {
+        "Column or field is required": "Spalte oder Feld ist erforderlich",
+        "Error in the cell": "Fehler in der Zelle",
+        "Errors in all {{numErrors}} cells": "Fehler in allen {{numErrors}} Zellen",
+        "editingFormula is required": "Bearbeitungsformel ist erforderlich",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Fehler in {{numErrors}} von {{numCells}} Zellen"
+    },
+    "Reference": {
+        "SHOW COLUMN": "SPALTE ANZEIGEN",
+        "CELL FORMAT": "ZELLENFORMAT",
+        "Row ID": "Zeilen-ID"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[Linklabel]-URL"
+    },
+    "welcomeTour": {
+        "Add New": "Neu hinzufügen",
+        "Building up": "Zubauend",
+        "Configuring your document": "Konfigurieren Ihres Dokuments",
+        "Help Center": "Hilfe-Center",
+        "Sharing": "Teilen",
+        "Welcome to Grist!": "Willkommen bei Grist!",
+        "Enter": "Eingabe",
+        "Customizing columns": "Anpassen von Spalten",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Durchsuchen Sie unsere {{templateLibrary}}, um zu entdecken, was möglich ist und sich inspirieren lassen.",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Doppelklicken oder {{enter}} auf eine Zelle drücken, um sie zu bearbeiten. ",
+        "Editing Data": "Bearbeiten von Daten",
+        "Flying higher": "Höher fliegen",
+        "Share": "Teilen",
+        "Reference": "Referenz",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Machen Sie es relativ! Verwenden Sie den {{ref}}-Typ, um Tabellen zu verlinken. ",
+        "Start with {{equal}} to enter a formula.": "Beginnen Sie mit {{equal}}, um eine Formel einzugeben.",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Legen Sie Formatierungsoptionen, Formeln oder Spaltentypen fest, z. B. Daten, Auswahlmöglichkeiten oder Anhänge. ",
+        "Toggle the {{creatorPanel}} to format columns, ": "Schalten Sie die {{creatorPanel}} an, um Spalten zu formatieren, ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Verwenden Sie die Schaltfläche Teilen ({{share}}), um das Dokument zu teilen oder Daten zu exportieren.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Verwenden Sie {{addNew}}, um Widgets und Seiten hinzuzufügen oder weitere Daten zu importieren. ",
+        "Use {{helpCenter}} for documentation or questions.": "Verwenden Sie {{helpCenter}} für Dokumentation oder Fragen.",
+        "convert to card view, select data, and more.": "in die Kartenansicht konvertieren, Daten auswählen und vieles mehr.",
+        "creator panel": "Ersteller-Panel",
+        "template library": "Vorlagenbibliothek"
+    },
+    "NumericTextBox": {
+        "Currency": "Währung",
+        "Decimals": "Dezimalstellen",
+        "Default currency ({{defaultCurrency}})": "Standardwährung ({{defaultCurrency}})",
+        "Number Format": "Zahlenformat"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "Es sollte unmöglich sein, einen einfachen Datenwert in eine Formelspalte zu speichern",
+        "Unable to finish saving edited cell": "Speichern der bearbeiteten Zelle kann nicht abgeschlossen werden"
     }
 }

@@ -1,3 +1,4 @@
+import { makeT } from 'app/client/lib/localization';
 import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -6,6 +7,8 @@ import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {ConditionalStyle} from 'app/client/widgets/ConditionalStyle';
 import {Computed, Disposable, dom, DomContents, fromKo, styled} from 'grainjs';
+
+const t = makeT('CellStyle');
 
 export class CellStyle extends Disposable {
 
@@ -20,8 +23,8 @@ export class CellStyle extends Disposable {
   public buildDom(): DomContents {
     return [
       cssLine(
-        cssLabel('CELL STYLE'),
-        cssButton('Open row styles', dom.on('click', allCommands.viewTabOpen.run)),
+        cssLabel(t('CELL STYLE')),
+        cssButton(t('Open row styles'), dom.on('click', allCommands.viewTabOpen.run)),
       ),
       cssRow(
         dom.domComputedOwned(fromKo(this._field.config.style), (holder, options) => {
@@ -58,12 +61,12 @@ export class CellStyle extends Disposable {
             }, {
               onSave: () => options.save(),
               onRevert: () => options.revert(),
-              placeholder: use => use(hasMixedStyle) ? 'Mixed style' : 'Default cell style'
+              placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default cell style')
             }
           );
         }),
       ),
-      dom.create(ConditionalStyle, "Cell Style", this._field, this._gristDoc, fromKo(this._field.config.multiselect))
+      dom.create(ConditionalStyle, t("Cell Style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect))
     ];
   }
 }

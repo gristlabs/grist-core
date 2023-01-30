@@ -34,7 +34,8 @@
         "Special Rules": "Reglas especiales",
         "View As": "Ver como",
         "Seed rules": "Reglas de semillas",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "Al agregar reglas de tabla, agregue automáticamente una regla para otorgar acceso completo al PROPIETARIO."
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Al agregar reglas de tabla, agregue automáticamente una regla para otorgar acceso completo al PROPIETARIO.",
+        "Permission to edit document structure": "Permiso para editar la estructura del documento"
     },
     "AccountPage": {
         "API": "API",
@@ -223,7 +224,10 @@
         "Save": "Guardar",
         "Save and Reload": "Guardar y recargar",
         "This document's ID (for API use):": "ID de este documento (para uso de API):",
-        "Time Zone:": "Zona horaria:"
+        "Time Zone:": "Zona horaria:",
+        "Ok": "Ok",
+        "Document ID copied to clipboard": "ID de documento copiado al portapapeles",
+        "API": "API"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -543,7 +547,8 @@
         "Return to viewing as yourself": "Volver a ver como usted mismo",
         "TOOLS": "HERRAMIENTAS",
         "Tour of this Document": "Recorrido por este documento",
-        "Validate Data": "Validar datos"
+        "Validate Data": "Validar datos",
+        "Settings": "Ajustes"
     },
     "TopBar": {
         "Manage Team": "Administrar equipo"
@@ -768,12 +773,12 @@
     "SelectionSummary": {
         "Copied to clipboard": "Copiado al portapapeles"
     },
-    "TypeTransformation": {
+    "TypeTransform": {
         "Apply": "Aplicar",
         "Cancel": "Cancelar",
-        "Preview": "Vista previa",
         "Revise": "Revisar",
-        "Update formula (Shift+Enter)": "Actualizar fórmula (Mayús+Intro)"
+        "Update formula (Shift+Enter)": "Actualizar fórmula (Mayús+Intro)",
+        "Preview": "Vista previa"
     },
     "UserManagerModel": {
         "Editor": "Editor",
@@ -824,11 +829,125 @@
         "View As": "Ver como",
         "Example Users": "Usuarios de ejemplo"
     },
-    "TypeTransform": {
-        "Apply": "Aplicar",
+    "TypeTransformation": {
+        "Update formula (Shift+Enter)": "Actualizar fórmula (Mayús+Intro)",
         "Cancel": "Cancelar",
         "Revise": "Revisar",
-        "Update formula (Shift+Enter)": "Actualizar fórmula (Mayús+Intro)",
+        "Apply": "Aplicar",
         "Preview": "Vista previa"
+    },
+    "CellStyle": {
+        "Cell Style": "Estilo de celda",
+        "Default cell style": "Estilo de celda predeterminado",
+        "CELL STYLE": "ESTILO DE CELDA",
+        "Open row styles": "Abrir estilos de fila",
+        "Mixed style": "Estilo mixto"
+    },
+    "ColumnInfo": {
+        "Cancel": "Cancelar",
+        "Save": "Guardar",
+        "COLUMN DESCRIPTION": "DESCRIPCIÓN DE LA COLUMNA",
+        "COLUMN ID: ": "ID DE COLUMNA: ",
+        "COLUMN LABEL": "ETIQUETA DE COLUMNA"
+    },
+    "FieldBuilder": {
+        "Revert field settings for {{colId}} to common": "Revertir la configuración de campo de {{colId}} a común",
+        "Use separate field settings for {{colId}}": "Utilice configuraciones de campo separadas para {{colId}}",
+        "Save field settings for {{colId}} as common": "Guardar configuración de campo de {{colId}} como común",
+        "DATA FROM TABLE": "DATOS DE LA TABLA",
+        "Mixed types": "Tipos mixtos",
+        "Apply Formula to Data": "Aplicar Fórmula a Datos",
+        "CELL FORMAT": "FORMATO DE CELDA",
+        "Changing multiple column types": "Cambiar varios tipos de columna",
+        "Mixed format": "Formato mixto"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Moneda inválida"
+    },
+    "DiscussionEditor": {
+        "Cancel": "Cancelar",
+        "Edit": "Editar",
+        "Only current page": "Sólo página actual",
+        "Remove": "Quitar",
+        "Resolve": "Resolver",
+        "Save": "Guardar",
+        "Started discussion": "Discusión iniciada",
+        "Show resolved comments": "Mostrar comentarios resueltos",
+        "Write a comment": "Escribe un comentario",
+        "Marked as resolved": "Marcado como resuelto",
+        "Only my threads": "Sólo mis hilos",
+        "Reply": "Respuesta",
+        "Comment": "Comentario",
+        "Open": "Abrir",
+        "Reply to a comment": "Responder a un comentario",
+        "Showing last {{nb}} comments": "Mostrando los últimos {{nb}} comentarios"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Convertir columna en fórmula"
+    },
+    "FormulaEditor": {
+        "Errors in {{numErrors}} of {{numCells}} cells": "Errores en {{numErrors}} de {{numCells}} celdas",
+        "Column or field is required": "Se requiere columna o campo",
+        "Error in the cell": "Error en la celda",
+        "Errors in all {{numErrors}} cells": "Errores en todas las {{numErrors}} celdas",
+        "editingFormula is required": "ediciónFórmula es necesaria"
+    },
+    "welcomeTour": {
+        "Add New": "Agregar Nuevo",
+        "Configuring your document": "Configurando tu documento",
+        "Enter": "Intro",
+        "Flying higher": "Volando más alto",
+        "Reference": "Referencia",
+        "Start with {{equal}} to enter a formula.": "Comience con {{equal}} para introducir una fórmula.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Active {{creatorPanel}} para dar formato a las columnas, ",
+        "Welcome to Grist!": "¡Bienvenido a Grist!",
+        "template library": "biblioteca de plantillas",
+        "creator panel": "panel creador",
+        "Sharing": "Compartiendo",
+        "Help Center": "Centro de ayuda",
+        "Building up": "Construyendo",
+        "Customizing columns": "Personalizando columnas",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Haga doble clic o pulse {{enter}} en una celda para editarla. ",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Explore nuestro {{templateLibrary}} para descubrir lo que es posible y sentirse inspirado.",
+        "Editing Data": "Editando datos",
+        "Make it relational! Use the {{ref}} type to link tables. ": "¡Hazlo relacional! Utilice el tipo {{ref}} para vincular tablas. ",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Establezca opciones de formato, fórmulas o tipos de columnas, como fechas, opciones o anexos. ",
+        "Share": "Compartir",
+        "Use the Share button ({{share}}) to share the document or export data.": "Utilice el botón Compartir ({{share}}) para compartir el documento o exportar los datos.",
+        "Use {{helpCenter}} for documentation or questions.": "Utilice {{helpCenter}} para documentación o preguntas.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Utilice {{addNew}} para añadir widgets, páginas o importar más datos. ",
+        "convert to card view, select data, and more.": "convertir a la vista de la tarjeta, seleccionar datos y más."
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[etiqueta de enlace] url"
+    },
+    "NumericTextBox": {
+        "Currency": "Moneda",
+        "Default currency ({{defaultCurrency}})": "Moneda predeterminada ({{defaultCurrency}})",
+        "Number Format": "Formato de número",
+        "Decimals": "Decimales"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "OPCIONES"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "DESCRIPCIÓN DE LA COLUMNA",
+        "COLUMN LABEL": "ETIQUETA DE COLUMNA"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "No se puede terminar de guardar la celda editada",
+        "It should be impossible to save a plain data value into a formula column": "Debería ser imposible guardar un valor de datos plano en una columna de fórmulas"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Añadir otra regla",
+        "Error in style rule": "Error en la regla de estilo",
+        "Rule must return True or False": "La regla debe regresar Verdadera o Falsa",
+        "Add conditional style": "Añadir estilo condicional",
+        "Row Style": "Estilo de fila"
+    },
+    "Reference": {
+        "SHOW COLUMN": "MOSTRAR COLUMNA",
+        "CELL FORMAT": "FORMATO DE CELDA",
+        "Row ID": "ID de fila"
     }
 }

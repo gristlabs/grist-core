@@ -1,0 +1,61 @@
+name: Translation keys
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  build:
+    if: github.repository_owner == 'gristlabs'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Let's get all the branches
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Install Node.js packages
+        run: yarn install
+
+      - name: Build code
+        run: yarn run build:prod
+
+      - name: Scan for keys
+        id: scan-keys
+        run: |
+          git checkout -b translation-keys
+          yarn run generate:translation
+          git status --porcelain
+          if [[ $(git status --porcelain | wc -l) -eq "0" ]]; then
+            echo "No changes"
+            echo "CHANGED=false" >> $GITHUB_ENV
+          else
+            echo "Changes detected"
+            echo "CHANGED=true" >> $GITHUB_ENV
+          fi
+
+      - name: setup git config
+        run: |
+          git config user.name "Paul's Grist Bot"
+          git config user.email "<paul+bot@getgrist.com>"
+
+      - name: Prepare PR
+        if: env.CHANGED == 'true'
+        run: |
+          git commit -m "automated update to translation keys" -a
+          git push --set-upstream origin HEAD:translation-keys -f
+          num=$(gh pr list --search "automated update to translation keys" --json number -q ".[].number")
+          if [[ "$num" = "" ]]; then
+            gh pr create --fill
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

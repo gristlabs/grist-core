@@ -36,6 +36,7 @@ export function mergeOptions(options: any, type: string) {
 // The names of widgets are used, instead of the actual classes needed, in order to limit
 // the spread of dependencies.  See ./UserTypeImpl for actual classes.
 export const typeDefs: any = {
+  // TODO : translate labels (can not use classic makeT function)
   Any: {
     label: 'Any',
     icon: 'FieldAny',
