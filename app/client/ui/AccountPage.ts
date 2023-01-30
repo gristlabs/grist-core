@@ -141,7 +141,7 @@ export class AccountPage extends Disposable {
         enableCustomCss ? null : [
           css.header(t("Theme")),
           dom.create(ThemeConfig, this._appModel),
-          css.subHeader(t("Language ")),
+          css.subHeader(t("Language")),
           css.dataRow({ style: 'width: 300px'},
             select(userLocale, languageOptions, {
               renderOptionArgs: () => {
