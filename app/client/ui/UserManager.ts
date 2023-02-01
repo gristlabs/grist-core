@@ -28,7 +28,7 @@ import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserMana
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
-import { hoverTooltip, ITooltipControl, showTransientTooltip, withQuestionMarkTooltip } from 'app/client/ui/tooltips';
+import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberBtn, cssMemberImage, cssMemberListItem,
         cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
@@ -169,7 +169,7 @@ function buildUserManagerModal(
             testId('um-cancel')
           ),
           (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
-            ? withQuestionMarkTooltip(
+            ? withInfoTooltip(
                 cssLink({href: urlState().makeUrl({docPage: 'acl'})},
                   dom.text(use => use(model.isAnythingChanged) ? 'Save & ' : ''),
                   'Open Access Rules',

@@ -6,7 +6,7 @@ import {RuleOwner} from 'app/client/models/RuleOwner';
 import {Style} from 'app/client/models/Styles';
 import {cssFieldFormula} from 'app/client/ui/FieldConfig';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
-import { withQuestionMarkTooltip } from 'app/client/ui/tooltips';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
 import {theme, vars} from 'app/client/ui2018/cssVars';
@@ -71,7 +71,7 @@ export class ConditionalStyle extends Disposable {
     return [
       cssRow(
         { style: 'margin-top: 16px' },
-        withQuestionMarkTooltip(
+        withInfoTooltip(
           textButton(
             t('Add conditional style'),
             testId('add-conditional-style'),

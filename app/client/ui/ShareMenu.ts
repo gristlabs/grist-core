@@ -5,7 +5,7 @@ import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
-import { hoverTooltip, withQuestionMarkTooltip } from 'app/client/ui/tooltips';
+import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
@@ -207,7 +207,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
   return [
     menuItem(makeUnsavedCopy, t("Work on a Copy"), testId('work-on-copy')),
     menuText(
-      withQuestionMarkTooltip(
+      withInfoTooltip(
         t("Edit without affecting the original"),
         GristTooltips.workOnACopy(),
         {tooltipMenuOptions: {attach: null}}

@@ -244,6 +244,7 @@
 .detail_theme_field_form .info_toggle_icon {
   width: 13px;
   height: 13px;
+  margin-bottom: 3px;
 }
 
 /* TODO want to style better the values themselves (e.g. more padding, rounded corners, move label
