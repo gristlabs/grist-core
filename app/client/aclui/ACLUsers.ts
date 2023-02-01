@@ -6,7 +6,7 @@ import {cssMemberImage, cssMemberListItem, cssMemberPrimary,
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {PermissionDataWithExtraUsers} from 'app/common/ActiveDocAPI';
 import {menu, menuCssClass, menuItemLink} from 'app/client/ui2018/menus';
-import {userOverrideParams} from 'app/common/gristUrls';
+import {IGristUrlState, userOverrideParams} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL} from 'app/common/UserAPI';
 import {getRealAccess, UserAccessData} from 'app/common/UserAPI';
@@ -66,12 +66,14 @@ export class ACLUsersPopup extends Disposable {
     }
   }
 
-  public attachPopup(elem: Element, options: IPopupOptions) {
+  // Optionnally have document page reverts to the default page upon activation of the view as mode
+  // by setting `options.resetDocPage` to true.
+  public attachPopup(elem: Element, options: IPopupOptions & {resetDocPage?: boolean}) {
     setPopupToCreateDom(elem, (ctl) => {
       const buildRow =
-        (user: UserAccessData) => this._buildUserRow(user);
+        (user: UserAccessData) => this._buildUserRow(user, options);
       const buildExampleUserRow =
-        (user: UserAccessData) => this._buildUserRow(user, {isExampleUser: true});
+        (user: UserAccessData) => this._buildUserRow(user, {isExampleUser: true, ...options});
       return cssMenuWrap(cssMenu(
         dom.cls(menuCssClass),
         cssUsers.cls(''),
@@ -92,6 +94,7 @@ export class ACLUsersPopup extends Disposable {
     }, {...defaultMenuOptions, ...options});
   }
 
+  // See 'attachPopup' for more info on the 'resetDocPage' option.
   public menu(options: IMenuOptions) {
     return menu(() => {
       this.load().catch(noop);
@@ -116,7 +119,7 @@ export class ACLUsersPopup extends Disposable {
     return this._shareUsers.length + this._attributeTableUsers.length < 5;
   }
 
-  private _buildUserRow(user: UserAccessData, opt: {isExampleUser?: boolean} = {}) {
+  private _buildUserRow(user: UserAccessData, opt: {isExampleUser?: boolean, resetDocPage?: boolean} = {}) {
     return dom('a',
       {class: cssMemberListItem.className + ' ' + cssUserItem.className},
       cssMemberImage(
@@ -128,12 +131,14 @@ export class ACLUsersPopup extends Disposable {
         ),
         user.name ? cssMemberSecondary(user.email) : null
       ),
-      this._viewAs(user),
+      this._viewAs(user, opt.resetDocPage),
       testId('acl-user-item'),
     );
   }
 
-  private _viewAs(user: UserAccessData) {
+  private _viewAs(user: UserAccessData, resetDocPage: boolean = false) {
+    const extraState: IGristUrlState = {};
+    if (resetDocPage) { extraState.docPage = undefined; }
     if (this.pageModel?.isPrefork.get() &&
         this.pageModel?.currentDoc.get()?.access !== 'owners') {
       // "View As" is restricted to document owners on the back-end. Non-owners can be
@@ -145,13 +150,12 @@ export class ACLUsersPopup extends Disposable {
         const forkResult = await this.pageModel?.gristDoc.get()?.docComm.fork();
         if (!forkResult) { throw new Error('Failed to create fork'); }
         window.location.assign(urlState().makeUrl(userOverrideParams(user.email,
-                                                                     {doc: forkResult.urlId,
-                                                                      docPage: undefined})));
+                                                                     {...extraState, doc: forkResult.urlId})));
       });
     } else {
       // When forking isn't needed, we return a direct link to be maximally transparent
       // about where button will go.
-      return urlState().setHref(userOverrideParams(user.email, {docPage: undefined}));
+      return urlState().setHref(userOverrideParams(user.email, extraState));
     }
   }
 }

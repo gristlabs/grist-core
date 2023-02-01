@@ -56,7 +56,8 @@
         "Save": "Save",
         "Theme": "Theme",
         "Two-factor authentication": "Two-factor authentication",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.",
+        "Language": "Language"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -896,5 +897,8 @@
         "convert to card view, select data, and more.": "convert to card view, select data, and more.",
         "creator panel": "creator panel",
         "template library": "template library"
+    },
+    "LanguageMenu": {
+        "Language": "Language"
     }
 }

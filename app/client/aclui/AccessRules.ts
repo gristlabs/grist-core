@@ -381,7 +381,7 @@ export class AccessRules extends Disposable {
         ),
         bigBasicButton(t('Add User Attributes'), dom.on('click', () => this._addUserAttributes())),
         bigBasicButton(t('View As'), cssDropdownIcon('Dropdown'),
-          elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end'}),
+          elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end', resetDocPage: true}),
           dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
       ),
       cssConditionError({style: 'margin-left: 16px'},

@@ -61,6 +61,7 @@ export type IconName = "ChartArea" |
   "Filter" |
   "FilterSimple" |
   "Fireworks" |
+  "Flag" |
   "Folder" |
   "FontBold" |
   "FontItalic" |
@@ -195,6 +196,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Filter",
   "FilterSimple",
   "Fireworks",
+  "Flag",
   "Folder",
   "FontBold",
   "FontItalic",

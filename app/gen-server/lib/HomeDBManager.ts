@@ -490,6 +490,7 @@ export class HomeDBManager extends EventEmitter {
       name: user.name,
       picture: user.picture,
       ref: user.ref,
+      locale: user.options?.locale
     };
     if (this.getAnonymousUserId() === user.id) {
       result.anonymous = true;
@@ -2663,7 +2664,8 @@ export class HomeDBManager extends EventEmitter {
         email: login.displayEmail,
         name: login.user.name,
         picture: login.user.picture,
-        anonymous: login.user.id === this.getAnonymousUserId()
+        anonymous: login.user.id === this.getAnonymousUserId(),
+        locale: login.user.options?.locale
       };
     }
     return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])

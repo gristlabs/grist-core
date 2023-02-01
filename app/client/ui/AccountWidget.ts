@@ -86,7 +86,7 @@ export class AccountWidget extends Disposable {
           cssEmail(user.email, testId('usermenu-email'))
         )
       ),
-      menuItemLink(urlState().setLinkUrl({account: 'account'}), t("Profile Settings")),
+      menuItemLink(urlState().setLinkUrl({account: 'account'}), t("Profile Settings"), testId('dm-account-settings')),
 
       documentSettingsItem,
 

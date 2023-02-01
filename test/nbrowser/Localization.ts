@@ -41,7 +41,7 @@ describe("Localization", function() {
     const namespaces: Set<string> = new Set();
     for (const file of fs.readdirSync(localeDirectory)) {
       if (file.endsWith(".json")) {
-        const lang = file.split('.')[0];
+        const lang = file.split('.')[0]?.replace(/_/g, '-');
         const ns = file.split('.')[1];
         langs.add(lang);
         namespaces.add(ns);

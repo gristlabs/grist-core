@@ -6,18 +6,7 @@ import {G} from 'grainjs/dist/cjs/lib/browserGlobals';
 export async function setupLocale() {
   const now = Date.now();
   const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
-  let lng = window.navigator.language || 'en';
-  // If user agent language is not in the list of supported languages, use the default one.
-  lng = lng.replace(/-/g, '_');
-  if (!supportedLngs.includes(lng)) {
-    // Test if server supports general language.
-    if (lng.includes("_") && supportedLngs.includes(lng.split("_")[0])) {
-      lng = lng.split("_")[0]!;
-    } else {
-      lng = 'en';
-    }
-  }
-
+  const lng = detectCurrentLang();
   const ns = getGristConfig().namespaces ?? ['client'];
   // Initialize localization plugin
   try {
@@ -25,8 +14,6 @@ export async function setupLocale() {
     i18next.init({
       // By default we use english language.
       fallbackLng: 'en',
-      // Fallback from en-US, en-GB, etc to en.
-      nonExplicitSupportedLngs: true,
       // We will load resources ourselves.
       initImmediate: false,
       // Read language from navigator object.
@@ -38,8 +25,7 @@ export async function setupLocale() {
       // for now just import all what server offers.
       // We can fallback to client namespace for any addons.
       fallbackNS: 'client',
-      ns,
-      supportedLngs
+      ns
     }).catch((err: any) => {
       // This should not happen, the promise should be resolved synchronously, without
       // any errors reported.
@@ -51,14 +37,14 @@ export async function setupLocale() {
     const loadPath = `${document.baseURI}locales/{{lng}}.{{ns}}.json`;
     const pathsToLoad: Promise<any>[] = [];
     async function load(lang: string, n: string) {
-      const resourceUrl = loadPath.replace('{{lng}}', lang).replace('{{ns}}', n);
+      const resourceUrl = loadPath.replace('{{lng}}', lang.replace("-", "_")).replace('{{ns}}', n);
       const response = await fetch(resourceUrl);
       if (!response.ok) {
         throw new Error(`Failed to load ${resourceUrl}`);
       }
       i18next.addResourceBundle(lang, n, await response.json());
     }
-    for (const lang of languages) {
+    for (const lang of languages.filter((l) => supportedLngs.includes(l))) {
       for (const n of ns) {
         pathsToLoad.push(load(lang, n));
       }
@@ -68,6 +54,25 @@ export async function setupLocale() {
   } catch (error: any) {
     reportError(error);
   }
+}
+
+export function detectCurrentLang() {
+  const { userLocale, supportedLngs } = getGristConfig();
+  const detected = userLocale
+    || document.cookie.match(/grist_user_locale=([^;]+)/)?.[1]
+    || window.navigator.language
+    || 'en';
+  const supportedList = supportedLngs ?? ['en'];
+  // If we have this language in the list (or more general version) mark it as selected.
+  // Compare languages in lower case, as navigator.language can return en-US, en-us (for older Safari).
+  const selected = supportedList.find(supported => supported.toLowerCase() === detected.toLowerCase()) ??
+    supportedList.find(supported => supported === detected.split(/[-_]/)[0]) ?? 'en';
+  return selected;
+}
+
+export function setAnonymousLocale(lng: string) {
+  document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000`
+                        : 'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
 }
 
 /**
@@ -90,11 +95,6 @@ type InferResult<T> = T extends Record<string, string | number | boolean>|undefi
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
 export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
-  if (!instance.exists(key, args || undefined)) {
-    const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
-    reportError(error);
-  }
-  // Don't need to bind `t` function.
   return domT(key, args, instance.t);
 }
 
@@ -171,12 +171,6 @@ export function makeT(scope: string, instance?: typeof i18next) {
       // Override the resolver with a custom one, that will use the argument as a default.
       // This will remove all the overloads from the function, but we don't need them.
       scopedResolver = (_key: string, _args?: any) => fixedResolver(_key, {defaultValue: _key, ..._args});
-    }
-    // If the key has interpolation or we did pass some arguments, make sure that
-    // the key exists.
-    if ((args || key.includes("{{")) && !scopedInstance.exists(`${scope}.${key}`, args || undefined)) {
-      const error = new Error(`Missing translation for key: ${key} and language: ${i18next.language}`);
-      reportError(error);
     }
     return domT(key, args, scopedResolver!);
   };

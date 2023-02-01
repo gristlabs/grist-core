@@ -98,6 +98,7 @@ export const dataRow = styled('div', `
   margin: 8px 0px;
   display: flex;
   align-items: baseline;
+  gap: 2px;
 `);
 
 export const betaTag = styled('span', `

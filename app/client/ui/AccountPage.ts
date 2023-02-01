@@ -13,10 +13,12 @@ import {transientInput} from 'app/client/ui/transientInput';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {cssLink} from 'app/client/ui2018/links';
+import {select} from 'app/client/ui2018/menus';
 import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/UserAPI';
+import {detectCurrentLang, makeT} from 'app/client/lib/localization';
+import {translateLocale} from 'app/client/ui/LanguageMenu';
 import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
 
 const testId = makeTestId('test-account-page-');
 const t = makeT('AccountPage');
@@ -56,6 +58,22 @@ export class AccountPage extends Disposable {
 
   private _buildContentMain() {
     const {enableCustomCss} = getGristConfig();
+    const supportedLngs = getGristConfig().supportedLngs ?? ['en'];
+    const languageOptions = supportedLngs
+      .map((lng) => ({value: lng, label: translateLocale(lng)!}))
+      .sort((a, b) => a.value.localeCompare(b.value));
+
+    const userLocale = Computed.create(this, use => {
+      const selected = detectCurrentLang();
+      if (!supportedLngs.includes(selected)) { return 'en'; }
+      return selected;
+    });
+    userLocale.onWrite(async value => {
+      await this._appModel.api.updateUserLocale(value || null);
+      // Reload the page to apply the new locale.
+      window.location.reload();
+    });
+
     return domComputed(this._userObs, (user) => user && (
       css.container(css.accountPage(
         css.header(t("Account settings")),
@@ -73,7 +91,7 @@ export class AccountPage extends Disposable {
                   save: (val) => this._isNameValid.get() && this._updateUserName(val),
                   close: () => { this._isEditingName.set(false); this._nameEdit.set(''); },
                 },
-                { size: '5' }, // Lower size so that input can shrink below ~152px.
+                {size: '5'}, // Lower size so that input can shrink below ~152px.
                 dom.on('input', (_ev, el) => this._nameEdit.set(el.value)),
                 css.flexGrow.cls(''),
               ),
@@ -92,7 +110,7 @@ export class AccountPage extends Disposable {
           testId('username'),
         ),
         // show warning for invalid name but not for the empty string
-        dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), cssWarnings),
+        dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), this._buildNameWarningsDom.bind(this)),
         css.header(t("Password & Security")),
         css.dataRow(
           css.inlineSubHeader(t("Login Method")),
@@ -123,6 +141,15 @@ export class AccountPage extends Disposable {
         enableCustomCss ? null : [
           css.header(t("Theme")),
           dom.create(ThemeConfig, this._appModel),
+          css.subHeader(t("Language")),
+          css.dataRow({ style: 'width: 300px'},
+            select(userLocale, languageOptions, {
+              renderOptionArgs: () => {
+                return dom.cls(cssFirstUpper.className);
+              }
+            }),
+            testId('language'),
+          )
         ],
         css.header(t("API")),
         css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
@@ -131,7 +158,7 @@ export class AccountPage extends Disposable {
             onCreate: () => this._createApiKey(),
             onDelete: () => this._deleteApiKey(),
             anonymous: false,
-            inputArgs: [{ size: '5' }], // Lower size so that input can shrink below ~152px.
+            inputArgs: [{size: '5'}], // Lower size so that input can shrink below ~152px.
           })
         )),
       ),
@@ -141,7 +168,7 @@ export class AccountPage extends Disposable {
 
   private _buildHeaderMain() {
     return dom.frag(
-      cssBreadcrumbs({ style: 'margin-left: 16px;' },
+      cssBreadcrumbs({style: 'margin-left: 16px;'},
         cssLink(
           urlState().setLinkUrl({}),
           'Home',
@@ -194,6 +221,16 @@ export class AccountPage extends Disposable {
   private _showChangePasswordDialog() {
     return buildChangePasswordDialog();
   }
+
+  /**
+  * Builds dom to show marning messages to the user.
+  */
+  private _buildNameWarningsDom() {
+    return cssWarnings(
+      t("Names only allow letters, numbers and certain special characters"),
+      testId('username-warning'),
+    );
+  }
 }
 
 /**
@@ -211,16 +248,14 @@ export function checkName(name: string): boolean {
   return VALID_NAME_REGEXP.test(name);
 }
 
-/**
- * Builds dom to show marning messages to the user.
- */
-function buildNameWarningsDom() {
-  return css.warning(
-    t("Names only allow letters, numbers and certain special characters"),
-    testId('username-warning'),
-  );
-}
 
-const cssWarnings = styled(buildNameWarningsDom, `
+
+const cssWarnings = styled(css.warning, `
   margin: -8px 0 0 110px;
+`);
+
+const cssFirstUpper = styled('div', `
+  & > div::first-letter {
+    text-transform: capitalize;
+  }
 `);

@@ -31,6 +31,8 @@ export interface UserPrefs extends Prefs {
   behavioralPrompts?: BehavioralPromptPrefs;
   // Welcome popups a user has dismissed.
   dismissedWelcomePopups?: DismissedReminder[];
+  // Localization support.
+  locale?: string;
 }
 
 // A collection of preferences related to a combination of user and org.

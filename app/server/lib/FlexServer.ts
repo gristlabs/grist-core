@@ -59,7 +59,7 @@ import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRepository';
-import {readLoadedLngs, readLoadedNamespaces, setupLocale} from 'app/server/localization';
+import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
 import express from 'express';
@@ -1278,10 +1278,7 @@ export class FlexServer implements GristServer {
   }
 
   public getGristConfig(): GristLoadConfig {
-    return makeGristConfig(this.getDefaultHomeUrl(), {
-      supportedLngs: readLoadedLngs(this.i18Instance),
-      namespaces: readLoadedNamespaces(this.i18Instance),
-    }, this._defaultBaseDomain);
+    return makeGristConfig(this.getDefaultHomeUrl(), {}, this._defaultBaseDomain);
   }
 
   /**

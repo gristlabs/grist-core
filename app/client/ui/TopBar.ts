@@ -11,6 +11,7 @@ import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {buildShareMenuButton} from 'app/client/ui/ShareMenu';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
+import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {cssHideForNarrowScreen, testId, theme} from 'app/client/ui2018/cssVars';
@@ -38,6 +39,7 @@ export function createTopBarHome(appModel: AppModel) {
       null
     ),
 
+    buildLanguageMenu(appModel),
     buildNotifyMenuButton(appModel.notifier, appModel),
     dom('div', dom.create(AccountWidget, appModel)),
   ];

@@ -6,6 +6,7 @@ export interface UserProfile {
   anonymous?: boolean;   // when present, asserts whether user is anonymous (not authorized).
   connectId?: string|null, // used by GristConnect to identify user in external provider.
   loginMethod?: 'Google'|'Email + Password'|'External';
+  locale?: string|null;
 }
 
 // User profile including user id and user ref.  All information in it should

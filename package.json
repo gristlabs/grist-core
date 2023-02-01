@@ -144,7 +144,6 @@
     "https-proxy-agent": "5.0.1",
     "i18n-iso-countries": "6.1.0",
     "i18next": "21.9.1",
-    "i18next-fs-backend": "1.1.5",
     "i18next-http-middleware": "3.2.1",
     "image-size": "0.6.3",
     "jquery": "3.5.0",

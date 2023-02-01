@@ -330,10 +330,10 @@ export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) =
  * See saveModal() for error handling notes that here apply to the onConfirm callback.
  */
 export function confirmModal(
-  title: string,
-  btnText: string,
+  title: DomElementArg,
+  btnText: DomElementArg,
   onConfirm: () => Promise<void>,
-  explanation?: Element|string,
+  explanation?: DomElementArg,
   {hideCancel, extraButtons}: {hideCancel?: boolean, extraButtons?: DomContents} = {},
 ): void {
   return saveModal((ctl, owner): ISaveModalOptions => ({
