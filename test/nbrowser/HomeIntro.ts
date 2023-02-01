@@ -51,8 +51,11 @@ describe('HomeIntro', function() {
         freshAccount: true,
       });
 
-      // Open doc-menu
+      // Open doc-menu and dismiss the welcome questions popup
       await session.loadDocMenu('/', 'skipWelcomeQuestions');
+
+      // Reload the doc-menu and dismiss the coaching call popup
+      await session.loadDocMenu('/');
       await gu.dismissCardPopups();
 
       // Check message specific to logged-in user
