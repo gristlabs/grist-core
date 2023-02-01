@@ -57,7 +57,8 @@
         "Save": "Speichern",
         "Theme": "Thema",
         "Two-factor authentication": "Zwei-Faktor-Authentifizierung",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt.",
+        "Language": "Sprache"
     },
     "AccountWidget": {
         "Access Details": "Zugangsdetails",
@@ -959,5 +960,8 @@
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Es sollte unmöglich sein, einen einfachen Datenwert in eine Formelspalte zu speichern",
         "Unable to finish saving edited cell": "Speichern der bearbeiteten Zelle kann nicht abgeschlossen werden"
+    },
+    "LanguageMenu": {
+        "Language": "Sprache"
     }
 }
