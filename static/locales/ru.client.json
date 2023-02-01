@@ -1,1 +1,176 @@
-{}
+{
+    "AccessRules": {
+        "Allow everyone to view Access Rules.": "Разрешить всем просматривать правила доступа.",
+        "Attribute name": "Имя атрибута",
+        "Add Default Rule": "Добавить правило по умолчанию",
+        "Add Column Rule": "Добавить правило столбца",
+        "View As": "Посмотреть как",
+        "Seed rules": "Наследуемые правила",
+        "Add User Attributes": "Добавить атрибуты пользователя",
+        "Add Table Rules": "Добавить правила таблицы",
+        "Everyone": "Остальные",
+        "Delete Table Rules": "Удалить правила таблицы",
+        "Enter Condition": "Введите условие",
+        "Lookup Column": "Столбец поиска",
+        "Everyone Else": "Все остальные",
+        "Remove {{- name }} user attribute": "Удалить атрибут пользователя {{- name }}",
+        "Invalid": "Недействительный",
+        "Permission to access the document in full when needed": "Разрешение на полный доступ к документу при необходимости",
+        "Remove {{- tableId }} rules": "Удалить правила {{- tableId }}",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Разрешить всем копировать весь документ, или посмотреть его полностью в режиме Форк (fiddle).\nПолезно для примеров и шаблонов, но не для конфиденциальных данных.",
+        "Attribute to Look Up": "Атрибут для поиска (Look Up)",
+        "Condition": "Условие",
+        "Checking...": "Проверка…",
+        "Default Rules": "Правила по умолчанию",
+        "Lookup Table": "Таблица поиска",
+        "Permission to view Access Rules": "Разрешение на просмотр правил доступа",
+        "Permissions": "Разрешения",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Удалить столбец {{- colId }} из правил {{- tableId }}",
+        "Reset": "Сброс",
+        "Rules for table ": "Правила для таблицы ",
+        "Save": "Сохранить",
+        "Special Rules": "Специальные правила",
+        "User Attributes": "Пользовательские атрибуты",
+        "Type a message...": "Введите сообщение…",
+        "Saved": "Сохранено",
+        "Permission to edit document structure": "Разрешение на редактирование структуры документа",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "При добавлении правил таблицы, автоматически добавить правило для предоставления ВЛАДЕЛЬЦУ полного доступа."
+    },
+    "ACUserManager": {
+        "Enter email address": "Введите адрес электронной почты",
+        "Invite new member": "Пригласить нового участника",
+        "We'll email an invite to {{email}}": "Мы вышлем приглашение на {{email}}"
+    },
+    "AccountPage": {
+        "API": "API",
+        "Allow signing in to this account with Google": "Разрешить вход в этот аккаунт с помощью Google",
+        "Theme": "Тема",
+        "Change Password": "Изменить пароль",
+        "API Key": "API Ключ",
+        "Account settings": "Настройки аккаунта",
+        "Edit": "Редактировать",
+        "Name": "Имя",
+        "Email": "Email",
+        "Login Method": "Способ входа в систему",
+        "Names only allow letters, numbers and certain special characters": "В именах допускаются только буквы, цифры и определенные специальные символы",
+        "Save": "Сохранить",
+        "Password & Security": "Пароль & Безопасность",
+        "Two-factor authentication": "Двухфакторная аутентификация",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двухфакторная аутентификация - это дополнительный уровень безопасности для вашей учетной записи Grist, предназначенный для идентификации вас как единственного человека, который может получить доступ к вашей учетной записи, даже если кто-то знает ваш пароль.",
+        "Language": "Язык"
+    },
+    "App": {
+        "Memory Error": "Ошибка памяти",
+        "Description": "Описание",
+        "Key": "Ключ"
+    },
+    "ColorSelect": {
+        "Apply": "Применить",
+        "Cancel": "Отменить",
+        "Default cell style": "Стиль ячейки по умолчанию"
+    },
+    "ColumnFilterMenu": {
+        "Max": "Max",
+        "Start": "Начинается",
+        "End": "Оканчивается",
+        "Other Non-Matching": "Другие несоответствующие",
+        "None": "None",
+        "All Except": "Все, кроме",
+        "All": "Все",
+        "All Shown": "Все отображенное",
+        "Filter by Range": "Фильтровать по диапазону",
+        "Future Values": "Будущие значения",
+        "No matching values": "Нет совпадающих значений",
+        "Min": "Min",
+        "Other Values": "Другие значения",
+        "Other Matching": "Другие соответствующие",
+        "Others": "Другие",
+        "Search": "Поиск",
+        "Search values": "Поиск значений"
+    },
+    "AppHeader": {
+        "Personal Site": "Личный сайт",
+        "Home Page": "Домашняя страница",
+        "Legacy": "Устаревший",
+        "Team Site": "Сайт группы"
+    },
+    "ApiKey": {
+        "Remove API Key": "Удалить ключ API",
+        "This API key can be used to access this account anonymously via the API.": "Этот ключ API можно использовать для анонимного доступа к этой учетной записи через API.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Вы собираетесь удалить ключ API. Это приведет к отклонению всех будущих запросов, использующих этот ключ API. Вы все еще хотите удалить?",
+        "Create": "Создать",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Этот ключ API можно использовать для доступа к вашей учетной записи через API. Никому не сообщайте свой ключ API.",
+        "Remove": "Удалить",
+        "By generating an API key, you will be able to make API calls for your own account.": "Сгенерировав ключ API, вы сможете выполнять вызовы API для своей собственной учетной записи.",
+        "Click to show": "Нажмите, чтобы показать"
+    },
+    "CellContextMenu": {
+        "Clear cell": "Очистить ячейку",
+        "Delete {{count}} rows_one": "Удалить строку",
+        "Clear values": "Очистить значения",
+        "Copy anchor link": "Скопировать якорную ссылку",
+        "Delete {{count}} rows_other": "Удалить {{count}} строки",
+        "Delete {{count}} columns_one": "Удалить столбец",
+        "Delete {{count}} columns_other": "Удалить {{count}} столбцы",
+        "Duplicate rows_one": "Дублировать строку",
+        "Insert column to the left": "Вставить столбец слева",
+        "Duplicate rows_other": "Дублировать строки",
+        "Filter by this value": "Фильтровать по этому значению",
+        "Insert column to the right": "Вставить столбец справа",
+        "Insert row": "Вставить строку",
+        "Insert row above": "Вставить строку выше",
+        "Insert row below": "Вставить строку ниже",
+        "Reset {{count}} columns_one": "Сбросить столбец",
+        "Reset {{count}} columns_other": "Сброс {{count}} столбцов",
+        "Reset {{count}} entire columns_one": "Сбросить весь столбец",
+        "Reset {{count}} entire columns_other": "Сброс всех {{count}} столбцов"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Этот сайт группы приостановлен. Документы можно читать, но не изменять."
+    },
+    "ChartView": {
+        "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
+        "Create separate series for each value of the selected column.": "Создайте отдельные ряды для каждого значения выбранного столбца.",
+        "selected new group data columns": "выбранные новые группы столбцов данных",
+        "Pick a column": "Выберите столбец",
+        "Toggle chart aggregation": "Переключение агрегации диаграмм"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Доступ запрещен",
+        "Code View is available only when you have full document access.": "Просмотр кода доступен, только если у вас есть полный доступ к документу."
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (опционально)",
+        "Add": "Добавить",
+        "Enter Custom URL": "Введите пользовательский URL",
+        "Full document access": "Полный доступ к документу"
+    },
+    "AccountWidget": {
+        "Access Details": "Сведения о доступе",
+        "Accounts": "Аккаунты",
+        "Document Settings": "Настройки документа",
+        "Profile Settings": "Настройки профиля",
+        "Switch Accounts": "Переключить аккаунты",
+        "Add Account": "Добавить аккаунт",
+        "Manage Team": "Управление командой",
+        "Sign in": "Войти",
+        "Toggle Mobile Mode": "Переключить мобильный режим",
+        "Pricing": "Цены",
+        "Sign Out": "Выход"
+    },
+    "ActionLog": {
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблица {{tableId}} впоследствии была удалена в действии #{{actionNum}}",
+        "Action Log failed to load": "Не удалось загрузить журнал действий",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Столбец {{colId}} впоследствии был удален в действии #{{action.actionNum}}",
+        "This row was subsequently removed in action {{action.actionNum}}": "Эта строка впоследствии была удалена в действии {{action.actionNum}}"
+    },
+    "ViewAsDropdown": {
+        "Example Users": "Пользователи для примеров",
+        "View As": "Посмотреть как",
+        "Users from table": "Пользователи из таблицы"
+    },
+    "AddNewButton": {
+        "Add New": "Добавить"
+    }
+}
