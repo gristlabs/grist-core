@@ -137,20 +137,18 @@ export class AccountPage extends Disposable {
           ),
           dom.create(MFAConfig, user),
         ),
+        css.header(t("Theme")),
         // Custom CSS is incompatible with custom themes.
-        enableCustomCss ? null : [
-          css.header(t("Theme")),
-          dom.create(ThemeConfig, this._appModel),
-          css.subHeader(t("Language")),
-          css.dataRow({ style: 'width: 300px'},
-            select(userLocale, languageOptions, {
-              renderOptionArgs: () => {
-                return dom.cls(cssFirstUpper.className);
-              }
-            }),
-            testId('language'),
-          )
-        ],
+        enableCustomCss ? null : dom.create(ThemeConfig, this._appModel),
+        css.subHeader(t("Language")),
+        css.dataRow({ style: 'width: 300px'},
+          select(userLocale, languageOptions, {
+            renderOptionArgs: () => {
+              return dom.cls(cssFirstUpper.className);
+            }
+          }),
+          testId('language'),
+        ),
         css.header(t("API")),
         css.dataRow(css.inlineSubHeader(t("API Key")), css.content(
           dom.create(ApiKey, {
