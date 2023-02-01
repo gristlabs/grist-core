@@ -323,7 +323,7 @@ const cssBehavioralPromptModal = styled('div', `
   border-radius: 4px;
 
   animation-duration: 0.4s;
-  position: relative;
+  position: absolute;
 
   &[x-placement^=top] {
     animation-name: ${cssFadeInFromTop};
