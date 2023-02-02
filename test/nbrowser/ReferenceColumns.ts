@@ -11,7 +11,7 @@ describe('ReferenceColumns', function() {
   describe('rendering', function() {
     before(async function() {
       session = await gu.session().teamSite.login();
-      await session.tempDoc(cleanup, 'Favorite_Films.grist');
+      await session.tempDoc(cleanup, 'Favorite_Films_With_Linked_Ref.grist');
 
       await gu.toggleSidePanel('right');
       await driver.find('.test-config-data').click();
@@ -146,6 +146,23 @@ describe('ReferenceColumns', function() {
           'Alien'
         ]
       );
+    });
+
+    it('should have linked card for friends', async () => {
+      // Open the All page.
+      await driver.findContentWait('.test-treeview-itemHeader', /Linked Friends/, 2000).click();
+      await gu.waitForDocToLoad();
+
+      await driver.findContentWait('.field_clip', /Mary/, 2000).click();
+      await gu.waitForServer();
+      await driver.findContentWait('.g_record_detail_label', /Title/, 2000).click();
+      assert.equal(await gu.getActiveCell().getText(), 'Alien');
+
+      await driver.findContentWait('.field_clip', /Jarek/, 2000).click();
+      await gu.waitForServer();
+      await driver.findContentWait('.g_record_detail_label', /Title/, 2000).click();
+      assert.equal(await gu.getActiveCell().getText(), '');
+
     });
   });
 
