@@ -107,11 +107,11 @@
   "dependencies": {
     "@googleapis/drive": "0.3.1",
     "@googleapis/oauth2": "0.2.0",
-    "@gristlabs/connect-sqlite3": "0.9.11-grist.4",
+    "@gristlabs/connect-sqlite3": "0.9.11-grist.5",
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/moment-guess": "1.2.4-grist.1",
     "@gristlabs/pidusage": "2.0.17",
-    "@gristlabs/sqlite3": "4.1.1-grist.6",
+    "@gristlabs/sqlite3": "5.1.4-grist.7",
     "@popperjs/core": "2.3.3",
     "accept-language-parser": "1.5.0",
     "async-mutex": "0.2.4",
@@ -181,6 +181,7 @@
   },
   "resolutions": {
     "jquery": "3.5.0",
-    "ts-interface-checker": "1.0.2"
+    "ts-interface-checker": "1.0.2",
+    "@gristlabs/sqlite3": "5.1.4-grist.7"
   }
 }
