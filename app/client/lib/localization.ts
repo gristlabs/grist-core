@@ -44,7 +44,7 @@ export async function setupLocale() {
         if (lang === i18next.options.fallbackLng && n === i18next.options.defaultNS) {
           throw new Error(`Failed to load ${resourceUrl}`);
         } else {
-          console.warn(`Failed to load ${resourceUrl}`)
+          console.warn(`Failed to load ${resourceUrl}`);
           return;
         }
       }
