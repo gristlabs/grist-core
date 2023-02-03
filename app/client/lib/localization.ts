@@ -40,7 +40,13 @@ export async function setupLocale() {
       const resourceUrl = loadPath.replace('{{lng}}', lang.replace("-", "_")).replace('{{ns}}', n);
       const response = await fetch(resourceUrl);
       if (!response.ok) {
-        throw new Error(`Failed to load ${resourceUrl}`);
+        // Throw only if we don't have any fallbacks.
+        if (lang === i18next.options.fallbackLng && n === i18next.options.defaultNS) {
+          throw new Error(`Failed to load ${resourceUrl}`);
+        } else {
+          console.warn(`Failed to load ${resourceUrl}`)
+          return;
+        }
       }
       i18next.addResourceBundle(lang, n, await response.json());
     }
