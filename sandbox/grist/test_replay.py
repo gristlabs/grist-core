@@ -44,7 +44,7 @@ import unittest
 
 from main import run
 from sandbox import Sandbox
-
+import six
 
 def marshal_load_all(path):
   result = []
@@ -65,6 +65,7 @@ class TestReplay(unittest.TestCase):
     root = os.environ.get("RECORD_SANDBOX_BUFFERS_DIR")
     if not root:
       self.skipTest("RECORD_SANDBOX_BUFFERS_DIR not set")
+
     for dirpath, dirnames, filenames in os.walk(root):
       if "input" not in filenames:
         continue
@@ -76,8 +77,17 @@ class TestReplay(unittest.TestCase):
       new_output_path = os.path.join(dirpath, "new_output")
       with open(input_path, "rb") as external_input:
         with open(new_output_path, "wb") as external_output:
+          if six.PY3:
+            import tracemalloc          # pylint: disable=import-error
+            tracemalloc.reset_peak()
+
           sandbox = Sandbox(external_input, external_output)
           run(sandbox)
+
+          # Run with env PYTHONTRACEMALLOC=1 to trace and print peak memory (runs much slower).
+          if six.PY3 and tracemalloc.is_tracing():
+            mem_size, mem_peak = tracemalloc.get_traced_memory()
+            print("mem_size {}, mem_peak {}".format(mem_size, mem_peak))
 
       original_output = marshal_load_all(output_path)
 

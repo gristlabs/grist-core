@@ -26,8 +26,9 @@ View = namedtuple('View', 'id sections')
 Section = namedtuple('Section', 'id parentKey tableRef fields')
 Field = namedtuple('Field', 'id colRef')
 
-unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
-unittest.TestCase.assertRegex = unittest.TestCase.assertRegexpMatches
+if six.PY2:
+  unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
+  unittest.TestCase.assertRegex = unittest.TestCase.assertRegexpMatches
 
 class EngineTestCase(unittest.TestCase):
   """

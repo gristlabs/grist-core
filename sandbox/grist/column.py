@@ -60,6 +60,7 @@ class BaseColumn(object):
   """
   def __init__(self, table, col_id, col_info):
     self.type_obj = col_info.type_obj
+    self._is_right_type = self.type_obj.is_right_type
     self._data = []
     self.col_id = col_id
     self.table_id = table.table_id
@@ -154,10 +155,14 @@ class BaseColumn(object):
       else:
         raise objtypes.CellError(self.table_id, self.col_id, row_id, raw.error)
 
-    return self._convert_raw_value(raw)
+    # Inline _convert_raw_value here because this is particularly hot code, called on every access
+    # of any data field in a formula.
+    if self._is_right_type(raw):
+      return self._make_rich_value(raw)
+    return self._alt_text(raw)
 
   def _convert_raw_value(self, raw):
-    if self.type_obj.is_right_type(raw):
+    if self._is_right_type(raw):
       return self._make_rich_value(raw)
     return self._alt_text(raw)
 
