@@ -119,6 +119,7 @@ export function buildDescriptionConfig(
           await origColumn.description.saveOnly(elem.value);
           editedDescription.set('');
         }),
+        testId('column-description'),
       )
     ),
 
