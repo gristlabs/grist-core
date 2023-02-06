@@ -141,7 +141,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   }).extend({deferred: true}));
 
   // Update the cursor whenever linkedRowId() changes.
-  this.autoDispose(this.linkedRowId.subscribe(rowId => this.setCursorPos({rowId})));
+  this.autoDispose(this.linkedRowId.subscribe(rowId => this.setCursorPos({rowId: rowId || 'new'})));
 
   // Indicated whether editing the section should be disabled given the current linking state.
   this.disableEditing = this.autoDispose(ko.computed(() => {

@@ -1,1 +1,667 @@
-{}
+{
+    "AccessRules": {
+        "Allow everyone to view Access Rules.": "Разрешить всем просматривать правила доступа.",
+        "Attribute name": "Имя атрибута",
+        "Add Default Rule": "Добавить правило по умолчанию",
+        "Add Column Rule": "Добавить правило столбца",
+        "View As": "Посмотреть как",
+        "Seed rules": "Наследуемые правила",
+        "Add User Attributes": "Добавить атрибуты пользователя",
+        "Add Table Rules": "Добавить правила таблицы",
+        "Everyone": "Остальные",
+        "Delete Table Rules": "Удалить правила таблицы",
+        "Enter Condition": "Введите условие",
+        "Lookup Column": "Столбец поиска",
+        "Everyone Else": "Все остальные",
+        "Remove {{- name }} user attribute": "Удалить атрибут пользователя {{- name }}",
+        "Invalid": "Недействительный",
+        "Permission to access the document in full when needed": "Разрешение на полный доступ к документу при необходимости",
+        "Remove {{- tableId }} rules": "Удалить правила {{- tableId }}",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Разрешить всем копировать весь документ, или посмотреть его полностью в режиме Форк (fiddle).\nПолезно для примеров и шаблонов, но не для конфиденциальных данных.",
+        "Attribute to Look Up": "Атрибут для поиска (Look Up)",
+        "Condition": "Условие",
+        "Checking...": "Проверка…",
+        "Default Rules": "Правила по умолчанию",
+        "Lookup Table": "Таблица поиска",
+        "Permission to view Access Rules": "Разрешение на просмотр правил доступа",
+        "Permissions": "Разрешения",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Удалить столбец {{- colId }} из правил {{- tableId }}",
+        "Reset": "Сброс",
+        "Rules for table ": "Правила для таблицы ",
+        "Save": "Сохранить",
+        "Special Rules": "Специальные правила",
+        "User Attributes": "Пользовательские атрибуты",
+        "Type a message...": "Введите сообщение…",
+        "Saved": "Сохранено",
+        "Permission to edit document structure": "Разрешение на редактирование структуры документа",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "При добавлении правил таблицы, автоматически добавить правило для предоставления ВЛАДЕЛЬЦУ полного доступа."
+    },
+    "ACUserManager": {
+        "Enter email address": "Введите адрес электронной почты",
+        "Invite new member": "Пригласить нового участника",
+        "We'll email an invite to {{email}}": "Мы вышлем приглашение на {{email}}"
+    },
+    "AccountPage": {
+        "API": "API",
+        "Allow signing in to this account with Google": "Разрешить вход в этот аккаунт с помощью Google",
+        "Theme": "Тема",
+        "Change Password": "Изменить пароль",
+        "API Key": "API Ключ",
+        "Account settings": "Настройки аккаунта",
+        "Edit": "Редактировать",
+        "Name": "Имя",
+        "Email": "Email",
+        "Login Method": "Способ входа в систему",
+        "Names only allow letters, numbers and certain special characters": "В именах допускаются только буквы, цифры и определенные специальные символы",
+        "Save": "Сохранить",
+        "Password & Security": "Пароль & Безопасность",
+        "Two-factor authentication": "Двухфакторная аутентификация",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двухфакторная аутентификация - это дополнительный уровень безопасности для вашей учетной записи Grist, предназначенный для идентификации вас как единственного человека, который может получить доступ к вашей учетной записи, даже если кто-то знает ваш пароль.",
+        "Language": "Язык"
+    },
+    "App": {
+        "Memory Error": "Ошибка памяти",
+        "Description": "Описание",
+        "Key": "Ключ"
+    },
+    "ColorSelect": {
+        "Apply": "Применить",
+        "Cancel": "Отменить",
+        "Default cell style": "Стиль ячейки по умолчанию"
+    },
+    "ColumnFilterMenu": {
+        "Max": "Max",
+        "Start": "Начинается",
+        "End": "Оканчивается",
+        "Other Non-Matching": "Другие несоответствующие",
+        "None": "Нет",
+        "All Except": "Все, кроме",
+        "All": "Все",
+        "All Shown": "Все отображенное",
+        "Filter by Range": "Фильтровать по диапазону",
+        "Future Values": "Будущие значения",
+        "No matching values": "Нет совпадающих значений",
+        "Min": "Min",
+        "Other Values": "Другие значения",
+        "Other Matching": "Другие соответствующие",
+        "Others": "Другие",
+        "Search": "Поиск",
+        "Search values": "Поиск значений"
+    },
+    "AppHeader": {
+        "Personal Site": "Личный сайт",
+        "Home Page": "Домашняя страница",
+        "Legacy": "Устаревший",
+        "Team Site": "Сайт группы"
+    },
+    "ApiKey": {
+        "Remove API Key": "Удалить ключ API",
+        "This API key can be used to access this account anonymously via the API.": "Этот ключ API можно использовать для анонимного доступа к этой учетной записи через API.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Вы собираетесь удалить ключ API. Это приведет к отклонению всех будущих запросов, использующих этот ключ API. Вы все еще хотите удалить?",
+        "Create": "Создать",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Этот ключ API можно использовать для доступа к вашей учетной записи через API. Никому не сообщайте свой ключ API.",
+        "Remove": "Удалить",
+        "By generating an API key, you will be able to make API calls for your own account.": "Сгенерировав ключ API, вы сможете выполнять вызовы API для своей собственной учетной записи.",
+        "Click to show": "Нажмите, чтобы показать"
+    },
+    "CellContextMenu": {
+        "Clear cell": "Очистить ячейку",
+        "Delete {{count}} rows_one": "Удалить строку",
+        "Clear values": "Очистить значения",
+        "Copy anchor link": "Скопировать якорную ссылку",
+        "Delete {{count}} rows_other": "Удалить {{count}} строки",
+        "Delete {{count}} columns_one": "Удалить столбец",
+        "Delete {{count}} columns_other": "Удалить {{count}} столбцы",
+        "Duplicate rows_one": "Дублировать строку",
+        "Insert column to the left": "Вставить столбец слева",
+        "Duplicate rows_other": "Дублировать строки",
+        "Filter by this value": "Фильтровать по этому значению",
+        "Insert column to the right": "Вставить столбец справа",
+        "Insert row": "Вставить строку",
+        "Insert row above": "Вставить строку выше",
+        "Insert row below": "Вставить строку ниже",
+        "Reset {{count}} columns_one": "Сбросить столбец",
+        "Reset {{count}} columns_other": "Сброс {{count}} столбцов",
+        "Reset {{count}} entire columns_one": "Сбросить весь столбец",
+        "Reset {{count}} entire columns_other": "Сброс всех {{count}} столбцов"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Этот сайт группы приостановлен. Документы можно читать, но не изменять."
+    },
+    "ChartView": {
+        "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
+        "Create separate series for each value of the selected column.": "Создайте отдельные ряды для каждого значения выбранного столбца.",
+        "selected new group data columns": "выбранные новые группы столбцов данных",
+        "Pick a column": "Выберите столбец",
+        "Toggle chart aggregation": "Переключение агрегации диаграмм"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Доступ запрещен",
+        "Code View is available only when you have full document access.": "Просмотр кода доступен, только если у вас есть полный доступ к документу."
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (опционально)",
+        "Add": "Добавить",
+        "Enter Custom URL": "Введите пользовательский URL",
+        "Full document access": "Полный доступ к документу",
+        "Widget needs to {{read}} the current table.": "Виджет должен {{read}} текущую таблицу.",
+        "Widget needs {{fullAccess}} to this document.": "Виджет должен {{fullAccess}} для этого документа.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} не-{{columnType}} столбец не отображается",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} не-{{columnType}} столбец не отображается",
+        "Learn more about custom widgets": "Узнайте больше о пользовательских виджетах",
+        "Pick a {{columnType}} column": "Выберать {{columnType}} столбец",
+        "No document access": "Нет доступа к документу",
+        "Open configuration": "Открыть конфигурацию",
+        "Select Custom Widget": "Выбор пользовательского виджета",
+        "Pick a column": "Выберать столбец",
+        "Read selected table": "Просмотр выбранной таблицы",
+        "Widget does not require any permissions.": "Виджет не требует никаких разрешений."
+    },
+    "AccountWidget": {
+        "Access Details": "Сведения о доступе",
+        "Accounts": "Аккаунты",
+        "Document Settings": "Настройки документа",
+        "Profile Settings": "Настройки профиля",
+        "Switch Accounts": "Переключить аккаунты",
+        "Add Account": "Добавить аккаунт",
+        "Manage Team": "Управление командой",
+        "Sign in": "Войти",
+        "Toggle Mobile Mode": "Переключить мобильный режим",
+        "Pricing": "Цены",
+        "Sign Out": "Выход"
+    },
+    "ActionLog": {
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблица {{tableId}} впоследствии была удалена в действии #{{actionNum}}",
+        "Action Log failed to load": "Не удалось загрузить журнал действий",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Столбец {{colId}} впоследствии был удален в действии #{{action.actionNum}}",
+        "This row was subsequently removed in action {{action.actionNum}}": "Эта строка впоследствии была удалена в действии {{action.actionNum}}"
+    },
+    "ViewAsDropdown": {
+        "Example Users": "Пользователи для примеров",
+        "View As": "Посмотреть как",
+        "Users from table": "Пользователи из таблицы"
+    },
+    "AddNewButton": {
+        "Add New": "Добавить"
+    },
+    "ValidationPanel": {
+        "Rule {{length}}": "Правило {{length}}",
+        "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
+    },
+    "FieldBuilder": {
+        "Apply Formula to Data": "Применить формулу к данным"
+    },
+    "FieldConfig": {
+        "TRIGGER FORMULA": "ТРИГГЕРНАЯ ФОРМУЛА",
+        "Column options are limited in summary tables.": "Параметры столбцов в сводных таблицах ограничены.",
+        "Clear and reset": "Очистка и сброс",
+        "COLUMN BEHAVIOR": "ПОВЕДЕНИЕ СТОЛБЦА",
+        "COLUMN LABEL AND ID": "ЯРЛЫК И ID СТОЛБЦА",
+        "Clear and make into formula": "Очистить и преобразовать в формулу",
+        "Convert column to data": "Преобразовать столбец в данные",
+        "Data Columns_one": "Столбец данных",
+        "Convert to trigger formula": "Преобразовать в триггерную формулу",
+        "Set trigger formula": "Задать триггерную формулу",
+        "Formula Columns_other": "Столбцы формул",
+        "Data Columns_other": "Столбцы данных",
+        "Empty Columns_one": "Пустой столбец",
+        "Empty Columns_other": "Пустые столбцы",
+        "Formula Columns_one": "Столбец формулы",
+        "Make into data column": "Преобразовать в столбец данных",
+        "Enter formula": "Введите формулу",
+        "Mixed Behavior": "Смешанное поведение",
+        "Set formula": "Задать формулу"
+    },
+    "MakeCopyMenu": {
+        "Update Original": "Обновить оригинал",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Будьте осторожны, в оригинале есть изменения, которых нет в этом документе. Эти изменения будут перезаписаны.",
+        "Enter document name": "Введите название документа",
+        "Name": "Наименование",
+        "As Template": "Как шаблон",
+        "Cancel": "Отмена",
+        "However, it appears to be already identical.": "Однако, похоже он уже идентичен.",
+        "Organization": "Организация",
+        "Original Has Modifications": "Оригинал Имеет Модификации",
+        "Include the structure without any of the data.": "Включите структуру без каких-либо данных.",
+        "Sign up": "Регистрация",
+        "Original Looks Identical": "Оригинал выглядит идентично",
+        "Workspace": "Рабочее пространство",
+        "It will be overwritten, losing any content not in this document.": "Он будет перезаписан, потеряв все содержимое, не входящее в этот документ.",
+        "Original Looks Unrelated": "Оригинал выглядит несвязанным",
+        "Update": "Обновить",
+        "No destination workspace": "Нет целевого рабочего пространства",
+        "The original version of this document will be updated.": "Первоначальная версия этого документа будет обновлена.",
+        "Overwrite": "Перезаписать",
+        "Replacing the original requires editing rights on the original document.": "Для замены оригинала требуются права на редактирование исходного документа.",
+        "To save your changes, please sign up, then reload this page.": "Чтобы сохранить изменения, пожалуйста зарегистрируйтесь, а затем перезагрузите эту страницу.",
+        "You do not have write access to the selected workspace": "У вас нет прав на запись в выбранное рабочее пространство",
+        "You do not have write access to this site": "У вас нет права записи для этого сайта"
+    },
+    "ShareMenu": {
+        "Back to Current": "Вернуться к текущему",
+        "Show in folder": "Показать в папке",
+        "Return to {{termToUse}}": "Вернуться к {{termToUse}}",
+        "Unsaved": "Несохраненный",
+        "Export XLSX": "Экспорт XLSX",
+        "Access Details": "Детали доступа",
+        "Current Version": "Текущая версия",
+        "Replace {{termToUse}}...": "Заменить {{termToUse}}…",
+        "Duplicate Document": "Дублировать документ",
+        "Original": "Оригинал",
+        "Compare to {{termToUse}}": "Сравнить с {{termToUse}}",
+        "Download": "Скачать",
+        "Edit without affecting the original": "Редактировать, не затрагивая оригинал",
+        "Export CSV": "Экспорт CSV",
+        "Manage Users": "Управление пользователями",
+        "Save Copy": "Сохранить копию",
+        "Send to Google Drive": "Отправить в Google Диск",
+        "Save Document": "Сохранить документ",
+        "Work on a Copy": "Работа над копией"
+    },
+    "SortConfig": {
+        "Search Columns": "Search columns",
+        "Add Column": "Добавить столбец",
+        "Empty values last": "Empty values last",
+        "Natural sort": "Natural sort",
+        "Update Data": "Обновить данные",
+        "Use choice position": "Use choice position"
+    },
+    "SortFilterConfig": {
+        "Filter": "ФИЛЬТР",
+        "Revert": "Revert",
+        "Save": "Сохранить",
+        "Sort": "СОРТИРОВКА",
+        "Update Sort & Filter settings": "Обновить настройки Сортировки & Фильтра"
+    },
+    "Tools": {
+        "Access Rules": "Правила доступа",
+        "Delete": "Удалить",
+        "Delete document tour?": "Удалить тур по документу?",
+        "Code View": "Просмотр кода",
+        "Document History": "История документа",
+        "How-to Tutorial": "Учебное пособие",
+        "Raw Data": "Исходные данные",
+        "Return to viewing as yourself": "Возврат к просмотру от своего имени",
+        "TOOLS": "ИНСТРУМЕНТЫ",
+        "Tour of this Document": "Тур по этому документу",
+        "Validate Data": "Проверка данных",
+        "Settings": "Настройки"
+    },
+    "TypeTransformation": {
+        "Cancel": "Отмена",
+        "Revise": "Revise",
+        "Apply": "Применить",
+        "Preview": "Предпросмотр",
+        "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
+    },
+    "DataTables": {
+        "Click to copy": "Нажмите для копирования",
+        "Raw Data Tables": "Необработанные данные таблиц",
+        "Duplicate Table": "Дублировать таблицу",
+        "Table ID copied to clipboard": "Идентификатор таблицы скопирован в буфер обмена",
+        "You do not have edit access to this document": "У вас нет доступа к редактированию этого документа",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Удалить {{formattedTableName}} данные, и удалить их со всех страниц?"
+    },
+    "DocHistory": {
+        "Snapshots": "Снимки",
+        "Activity": "Активность",
+        "Compare to Previous": "Сравните с предыдущим",
+        "Beta": "Beta",
+        "Compare to Current": "Сравните с текущим",
+        "Snapshots are unavailable.": "Снимки недоступны.",
+        "Open Snapshot": "Открыть Снимок"
+    },
+    "DocMenu": {
+        "By Name": "По имени",
+        "(The organization needs a paid plan)": "(Организации необходим платный тариф)",
+        "Access Details": "Детали доступа",
+        "All Documents": "Все документы",
+        "By Date Modified": "По дате изменения",
+        "Delete Forever": "Удалить навсегда",
+        "Move {{name}} to workspace": "Переместить {{name}} в рабочее пространство",
+        "Delete": "Удалить",
+        "Current workspace": "Текущее рабочее пространство",
+        "Delete {{name}}": "Удалить {{name}}",
+        "Deleted {{at}}": "Удалено {{at}}",
+        "Examples and Templates": "Примеры и Шаблоны",
+        "Discover More Templates": "Поиск большего числа шаблонов",
+        "Edited {{at}}": "Отредактировано {{at}}",
+        "Document will be permanently deleted.": "Документ будет удален навсегда.",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Документы остаются в Корзине в течение 30 дней, после чего удаляются навсегда.",
+        "Examples & Templates": "Примеры & Шаблоны",
+        "Featured": "Рекомендуемые",
+        "Manage Users": "Управление пользователями",
+        "Move": "Переместить",
+        "Other Sites": "Другие сайты",
+        "Permanently Delete \"{{name}}\"?": "Удалить навсегда \"{{name}}\"?",
+        "More Examples and Templates": "Больше Примеров и Шаблонов",
+        "Pinned Documents": "Закрепленные документы",
+        "Pin Document": "Закрепить документ",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Вы находитесь на {{siteName}} сайте. У вас также есть доступ к следующим сайтам:",
+        "Remove": "Удалить",
+        "Rename": "Переименовать",
+        "Requires edit permissions": "Требуются разрешения на редактирование",
+        "This service is not available right now": "Эта услуга сейчас недоступна",
+        "Restore": "Восстановить",
+        "To restore this document, restore the workspace first.": "Чтобы восстановить этот документ, сначала восстановите рабочую область.",
+        "Trash is empty.": "Корзина пуста.",
+        "Unpin Document": "Открепить документ",
+        "Workspace not found": "Рабочее пространство не найдено",
+        "You are on your personal site. You also have access to the following sites:": "Вы находитесь на своем личном сайте. У вас также есть доступ к следующим сайтам:",
+        "You may delete a workspace forever once it has no documents in it.": "Вы можете навсегда удалить рабочую область, если в ней нет документов.",
+        "Trash": "Корзина",
+        "Document will be moved to Trash.": "Документ будет перемещен в Корзину."
+    },
+    "DocTour": {
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Не удается создать тур по документу на основе данных в этом документе. Убедитесь, что существует таблица с именем GristDocTour со столбцами Title, Body, Placement и Location.",
+        "No valid document tour": "Нет действительного тура по документу"
+    },
+    "DocumentSettings": {
+        "Document Settings": "Настройки документа",
+        "Currency:": "Валюта:",
+        "Ok": "Ok",
+        "Locale:": "Регион:",
+        "Save and Reload": "Сохранить и Перезагрузить",
+        "Save": "Сохранить",
+        "Time Zone:": "Часовой пояс:",
+        "API": "API",
+        "Engine (experimental {{span}} change at own risk):": "Engine (экспериментальный {{span}} менять на свой страх и риск):",
+        "Local currency ({{currency}})": "Местная валюта ({{currency}})",
+        "This document's ID (for API use):": "Идентификатор этого документа (для использования API):",
+        "Document ID copied to clipboard": "Идентификатор документа скопирован в буфер обмена"
+    },
+    "DocPageModel": {
+        "Add Widget to Page": "Добавить виджет на страницу",
+        "You do not have edit access to this document": "У вас нет доступа к редактированию этого документа",
+        "Add Empty Table": "Добавить пустую таблицу",
+        "Reload": "Перезагрузить",
+        "Add Page": "Добавить страницу",
+        "Document owners can attempt to recover the document. [{{error}}]": "Владельцы документов могут попытаться восстановить документ. [{{error}}]",
+        "Enter recovery mode": "Войти в режим восстановления",
+        "Error accessing document": "Ошибка доступа к документу",
+        "Sorry, access to this document has been denied. [{{error}}]": "Извините, в доступе к этому документу было отказано. [{{error}}]",
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Вы можете попробовать перезагрузить документ или использовать режим восстановления. Режим восстановления открывает документ, чтобы он был полностью доступен для владельцев и недоступен для других. Это также отключает формулы. [{{error}}]"
+    },
+    "DocumentUsage": {
+        "Data Size": "Размер данных",
+        "Attachments Size": "Размер вложений",
+        "For higher limits, ": "Для более высоких пределов, ",
+        "Rows": "Строки",
+        "Contact the site owner to upgrade the plan to raise limits.": "Свяжитесь с владельцем сайта для обновления тарифа и увеличения лимитов.",
+        "Usage": "Использование",
+        "Usage statistics are only available to users with full access to the document data.": "Статистика использования доступна только пользователям, имеющим полный доступ к данным документа.",
+        "start your 30-day free trial of the Pro plan.": "начните свою 30-дневную бесплатную пробную версию тарифа Pro."
+    },
+    "Drafts": {
+        "Restore last edit": "Восстановить последнее редактирование",
+        "Undo discard": "Отменить сброс"
+    },
+    "DuplicateTable": {
+        "Copy all data in addition to the table structure.": "Скопируйте все данные в дополнение к структуре таблицы.",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Вместо дублирования таблиц обычно лучше сегментировать данные, используя связанные представления. {{link}}",
+        "Name for new table": "Имя для новой таблицы",
+        "Only the document default access rules will apply to the copy.": "К копии будут применяться только правила доступа к документу по умолчанию."
+    },
+    "ExampleInfo": {
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Ознакомьтесь с нашим соответствующим учебником, чтобы узнать, как моделировать бизнес-данные, использовать формулы и управлять сложными представлениями данных.",
+        "Investment Research": "Инвестиционные исследования",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Ознакомьтесь с нашим соответствующим учебником, чтобы узнать, как связывать данные и создавать высокопроизводительные макеты.",
+        "Lightweight CRM": "Легкая CRM",
+        "Tutorial: Analyze & Visualize": "Учебник: Анализ и визуализация",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Ознакомьтесь с нашим соответствующим учебником, чтобы узнать, как создавать сводные таблицы и графики, а также динамически связывать графики.",
+        "Tutorial: Create a CRM": "Учебник: Создание CRM",
+        "Tutorial: Manage Business Data": "Учебник: Управление бизнес-данными",
+        "Welcome to the Investment Research template": "Добро пожаловать в шаблон \"Инвестиционные исследования\"",
+        "Welcome to the Afterschool Program template": "Добро пожаловать в шаблон \"Внеклассная работа\"",
+        "Welcome to the Lightweight CRM template": "Добро пожаловать в шаблон \"Легкая CRM\"",
+        "Afterschool Program": "Внеклассная работа"
+    },
+    "FieldMenus": {
+        "Save as common settings": "Сохранить как общие настройки",
+        "Using separate settings": "Использование раздельных настроек",
+        "Revert to common settings": "Возврат к общим настройкам",
+        "Using common settings": "Использование общих настроек",
+        "Use separate settings": "Использовать раздельные настройки"
+    },
+    "GridOptions": {
+        "Grid Options": "Параметры сетки",
+        "Vertical Gridlines": "Вертикальные линии сетки",
+        "Horizontal Gridlines": "Горизонтальные линии сетки",
+        "Zebra Stripes": "Полосы зебры"
+    },
+    "HomeIntro": {
+        "Interested in using Grist outside of your team? Visit your free ": "Заинтересованы в использовании Grist вне вашей команды? Попробуйте бесплатно ",
+        "Any documents created in this site will appear here.": "Любые документы, созданные на этом сайте, появятся здесь.",
+        "Browse Templates": "Просмотр шаблонов",
+        "Create Empty Document": "Создать пустой документ",
+        "Import Document": "Импорт документа",
+        "Get started by creating your first Grist document.": "Начните с создания вашего первого документа Grist.",
+        "Get started by exploring templates, or creating your first Grist document.": "Начните с изучения шаблонов или создания своего первого документа Grist.",
+        "Invite Team Members": "Пригласить членов команды",
+        "Get started by inviting your team and creating your first Grist document.": "Начните с приглашения своей команды и создания вашего первого документа Grist.",
+        "Help Center": "Справочный центр",
+        "Welcome to Grist, {{name}}!": "Добро пожаловать в Grist, {{name}}!",
+        "Sign up": "Регистрация",
+        "Sprouts Program": "Программа Внедрения",
+        "This workspace is empty.": "Эта рабочая область пуста.",
+        "Visit our {{link}} to learn more.": "Посетите наш {{link}} чтобы узнать больше.",
+        "Welcome to Grist!": "Добро пожаловать в Grist!",
+        "Welcome to {{orgName}}": "Добро пожаловать в {{orgName}}",
+        "personal site": "личный сайт",
+        "You have read-only access to this site. Currently there are no documents.": "Вы имеете доступ к этому сайту только для просмотра. В настоящее время документов нет."
+    },
+    "HomeLeftPane": {
+        "Import Document": "Импорт документа",
+        "All Documents": "Все документы",
+        "Manage Users": "Управление пользователями",
+        "Create Workspace": "Создать рабочее пространство",
+        "Access Details": "Детали доступа",
+        "Create Empty Document": "Создать пустой документ",
+        "Delete": "Удалить",
+        "Examples & Templates": "Примеры & Шаблоны",
+        "Rename": "Переименовать",
+        "Delete {{workspace}} and all included documents?": "Удалить {{workspace}} и все прилагаемые документы?",
+        "Trash": "Корзина",
+        "Workspaces": "Рабочие пространства",
+        "Workspace will be moved to Trash.": "Рабочее пространство будет перемещено в корзину."
+    },
+    "GridViewMenus": {
+        "Add to sort": "Добавить в сортировку",
+        "Column Options": "Параметры столбца",
+        "Add Column": "Добавить столбец",
+        "Clear values": "Очистить значения",
+        "Delete {{count}} columns_one": "Удалить столбец",
+        "Filter Data": "Фильтровать данные",
+        "Convert formula to data": "Преобразование формулы в данные",
+        "Freeze {{count}} columns_one": "Закрепить этот столбец",
+        "Freeze {{count}} columns_other": "Закрепить {{count}} столбцы",
+        "Freeze {{count}} more columns_one": "Закрепить еще одну колонку",
+        "Delete {{count}} columns_other": "Удалить {{count}} столбцы",
+        "Hide {{count}} columns_one": "Скрыть столбец",
+        "Freeze {{count}} more columns_other": "Закрепить ещё {{count}} столбцов",
+        "Insert column to the {{to}}": "Вставьте столбец в {{to}}",
+        "More sort options ...": "Больше параметров сортировки…",
+        "Hide {{count}} columns_other": "Скрыть {{count}} столбцы",
+        "Rename column": "Переименовать столбец",
+        "Reset {{count}} entire columns_one": "Сбросить весь столбец целиком",
+        "Reset {{count}} columns_other": "Сбросить {{count}} столбцов",
+        "Reset {{count}} columns_one": "Сброс столбца",
+        "Sorted (#{{count}})_one": "Отсортировано (#{{count}})",
+        "Reset {{count}} entire columns_other": "Сбросить {{count}} столбцов целиком",
+        "Sorted (#{{count}})_other": "Отсортировано (#{{count}})",
+        "Unfreeze all columns": "Открепить все столбцы",
+        "Show column {{- label}}": "Показать столбец {{- label}}",
+        "Sort": "Сортировать",
+        "Unfreeze {{count}} columns_other": "Открепить {{count}} столбцов",
+        "Unfreeze {{count}} columns_one": "Открепить этот столбец"
+    },
+    "FilterBar": {
+        "SearchColumns": "Столбцы поиска",
+        "Search Columns": "Столбцы поиска"
+    },
+    "FilterConfig": {
+        "Add Column": "Добавить столбец"
+    },
+    "GristDoc": {
+        "Import from file": "Импорт из файла",
+        "Added new linked section to view {{viewName}}": "Добавлен новый связанный раздел в представление {{viewName}}",
+        "Saved linked section {{title}} in view {{name}}": "Сохраненный связанный раздел {{title}} в представлении {{name}}"
+    },
+    "Importer": {
+        "Merge rows that match these fields:": "Объедините строки, соответствующие этим полям:",
+        "Select fields to match on": "Выберите поля для сопоставления",
+        "Update existing records": "Обновите существующие записи"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Справочный центр"
+    },
+    "RowContextMenu": {
+        "Duplicate rows_other": "Дублировать строки",
+        "Duplicate rows_one": "Дублировать строку",
+        "Copy anchor link": "Скопировать якорную ссылку",
+        "Insert row below": "Вставить строку ниже",
+        "Insert row": "Вставить строку",
+        "Insert row above": "Вставить строку выше",
+        "Delete": "Удалить"
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Обновление макета записи."
+    },
+    "NotifyUI": {
+        "Cannot find personal site, sorry!": "Не могу найти личный сайт, извините!",
+        "Report a problem": "Сообщить о проблеме",
+        "Give feedback": "Дайте отзыв",
+        "Ask for help": "Попросить помощи",
+        "No notifications": "Нет уведомлений",
+        "Notifications": "Уведомления",
+        "Renew": "Продлить",
+        "Go to your free personal site": "Перейдите на свой бесплатный личный сайт",
+        "Upgrade Plan": "Обновить тариф"
+    },
+    "OpenVideoTour": {
+        "Grist Video Tour": "Видео-тур по Grist",
+        "YouTube video player": "Видеоплеер YouTube",
+        "Video Tour": "Видео-тур"
+    },
+    "OnBoardingPopups": {
+        "Finish": "Закончить",
+        "Next": "Дальше"
+    },
+    "PageWidgetPicker": {
+        "Group by": "Группировать по",
+        "Building {{- label}} widget": "Создание {{- label}} виджета",
+        "Add to Page": "Добавить на страницу",
+        "Select Data": "Выбор данных",
+        "Select Widget": "Выбор виджета"
+    },
+    "RightPanel": {
+        "SOURCE DATA": "ИСТОЧНИК ДАННЫХ",
+        "Theme": "Тема",
+        "Data": "Данные",
+        "Fields_other": "Поля",
+        "Detach": "Отсоединить",
+        "GROUPED BY": "СГРУППИРОВАННЫЕ ПО",
+        "CHART TYPE": "ТИП ДИАГРАММЫ",
+        "COLUMN TYPE": "ТИП СТОЛБЦА",
+        "Columns_one": "Столбец",
+        "Change Widget": "Изменить виджет",
+        "CUSTOM": "ПЕРСОНАЛЬНО",
+        "DATA TABLE": "ТАБЛИЦА ДАННЫХ",
+        "Fields_one": "Поле",
+        "Columns_other": "Столбцы",
+        "DATA TABLE NAME": "НАЗВАНИЕ ТАБЛИЦЫ ДАННЫХ",
+        "Edit Data Selection": "Редактировать выборку данных",
+        "Row Style": "Стиль строки",
+        "ROW STYLE": "СТИЛЬ СТРОКИ",
+        "SELECT BY": "ВЫБОР ПО",
+        "Series_other": "Ряды",
+        "SELECTOR FOR": "СЕЛЕКТОР ДЛЯ",
+        "Save": "Сохранить",
+        "Select Widget": "Выберите виджет",
+        "Series_one": "Ряд",
+        "Sort & Filter": "Сортировка & Фильтрация",
+        "TRANSFORM": "ПРЕОБРАЗОВАНИЕ",
+        "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА",
+        "You do not have edit access to this document": "У вас нет прав на редактирование этого документа",
+        "Widget": "Виджет"
+    },
+    "PermissionsWidget": {
+        "Allow All": "Разрешить все",
+        "Deny All": "Запретить все",
+        "Read Only": "Только чтение"
+    },
+    "Pages": {
+        "Delete": "Удалить",
+        "Delete data and this page.": "Удалить данные и эту страницу.",
+        "The following tables will no longer be visible_other": "Следующие таблицы больше не будут видны",
+        "The following tables will no longer be visible_one": "Следующая таблица больше не будет видна"
+    },
+    "RecordLayoutEditor": {
+        "Save Layout": "Сохранить макет",
+        "Add Field": "Добавить поле",
+        "Cancel": "Отмена",
+        "Create New Field": "Создать новое поле",
+        "Show field {{- label}}": "Показать поле {{- label}}"
+    },
+    "RefSelect": {
+        "No columns to add": "Нет столбцов для добавления",
+        "Add Column": "Добавить столбец"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Сбой импорта: "
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Скопировано в буфер обмена"
+    },
+    "SiteSwitcher": {
+        "Create new team site": "Создать новый сайт группы",
+        "Switch Sites": "Переключить сайты"
+    },
+    "TopBar": {
+        "Manage Team": "Управление командой"
+    },
+    "TriggerFormulas": {
+        "Any field": "Любое поле",
+        "Apply on changes to:": "Вычислять при изменениях в:",
+        "Current field ": "Текущее поле ",
+        "Apply on record changes": "Вычислять при изменениях записи",
+        "Apply to new records": "Вычислять при создании записей",
+        "Cancel": "Отмена",
+        "OK": "OK",
+        "Close": "Закрыть"
+    },
+    "ThemeConfig": {
+        "Appearance ": "Оформление ",
+        "Switch appearance automatically to match system": "Автоматическое переключение оформления в соответствии с системной настройкой"
+    },
+    "UserManagerModel": {
+        "In Full": "Полный",
+        "None": "Без доступа",
+        "View & Edit": "Просмотр & Редактирование",
+        "Viewer": "Наблюдатель",
+        "Owner": "Владелец",
+        "No Default Access": "Нет доступа по умолчанию",
+        "Editor": "Редактор",
+        "View Only": "Только просмотр"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Неизвестный пользователь"
+    },
+    "ViewConfigTab": {
+        "Advanced settings": "Расширенные настройки",
+        "Make On-Demand": "Преобразовать в Хранилище",
+        "Unmark On-Demand": "Убрать Хранилище",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Большие таблицы могут быть помечены как \"Хранилище\", чтобы избежать перегрузки сервера при вычислениях."
+    },
+    "ViewLayoutMenu": {
+        "Advanced Sort & Filter": "Расширенная Сортировка & Фильтр",
+        "Delete record": "Удалить запись",
+        "Delete widget": "Удалить виджет",
+        "Download as XLSX": "Скачать как XLSX",
+        "Download as CSV": "Скачать как CSV"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы"
+    }
+}

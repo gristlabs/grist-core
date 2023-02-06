@@ -51,8 +51,8 @@ describe("Localization", function() {
     assert.deepEqual(gristConfig.namespaces.sort(), [...namespaces].sort());
   });
 
-  // Now make a Polish language file, and test that it is used.
-  describe("with Polish language file", function() {
+  // Now make a uz-UZ language file, and test that it is used.
+  describe("with uz-UZ language file", function() {
     let oldEnv: testUtils.EnvironmentSnapshot;
     let tempLocale: string;
     let existingLocales: string[];
@@ -65,7 +65,7 @@ describe("Localization", function() {
       oldEnv = new testUtils.EnvironmentSnapshot();
       // Add another language to the list of supported languages.
       tempLocale = makeCopy();
-      createLanguage(tempLocale, "pl");
+      createLanguage(tempLocale, "uz");
       process.env.GRIST_LOCALES_DIR = tempLocale;
       await server.restart();
     });
@@ -79,7 +79,7 @@ describe("Localization", function() {
       const homeUrl = `${server.getHost()}/o/docs`;
       // Read response from server, and check that it contains the correct language.
       const enResponse = await (await fetch(homeUrl)).text();
-      const plResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "pl-PL,pl;q=1"}})).text();
+      const uzResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "uz-UZ,uz;q=1"}})).text();
       const ptResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "pt-PR,pt;q=1"}})).text();
 
       function present(response: string, ...langs: string[]) {
@@ -96,19 +96,19 @@ describe("Localization", function() {
 
       // English locale is preloaded always.
       present(enResponse, "en");
-      present(plResponse, "en");
+      present(uzResponse, "en");
       present(ptResponse, "en");
 
       // Other locales are not preloaded for English.
-      notPresent(enResponse, "pl", "pl-PL", "en-US");
+      notPresent(enResponse, "uz", "un-UZ", "en-US");
 
-      // For Polish we have additional pl locale.
-      present(plResponse, "pl");
-      // But only pl code is preloaded.
-      notPresent(plResponse, "pl-PL");
+      // For uz-UZ we have additional uz locale.
+      present(uzResponse, "uz");
+      // But only uz code is preloaded.
+      notPresent(uzResponse, "uz-UZ");
 
       // For Portuguese we have only en.
-      notPresent(ptResponse, "pt", "pt-PR", "pl", "en-US");
+      notPresent(ptResponse, "pt", "pt-PR", "uz", "en-US");
     });
 
     it("loads correct languages from file system", async function() {
@@ -116,7 +116,7 @@ describe("Localization", function() {
       await driver.navigate().refresh();
       assert.equal(await driver.findWait('.test-welcome-title', 3000).getText(), 'TestMessage');
       const gristConfig: any = await driver.executeScript("return window.gristConfig");
-      assert.sameDeepMembers(gristConfig.supportedLngs, [...existingLocales, 'pl']);
+      assert.sameDeepMembers(gristConfig.supportedLngs, [...existingLocales, 'uz']);
     });
   });
 

@@ -52,7 +52,8 @@
         "Save": "Guardar",
         "Theme": "Tema",
         "Two-factor authentication": "Autenticación de dos factores",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "La autenticación de dos factores provee seguridad adicional para su cuenta Grist, diseñada para garantizar que usted sea la única persona que pueda acceder a su cuenta, incluso si alguien conoce su contraseña."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "La autenticación de dos factores provee seguridad adicional para su cuenta Grist, diseñada para garantizar que usted sea la única persona que pueda acceder a su cuenta, incluso si alguien conoce su contraseña.",
+        "Language": "Idioma"
     },
     "AccountWidget": {
         "Access Details": "Detalles de Acceso",
@@ -949,5 +950,8 @@
         "SHOW COLUMN": "MOSTRAR COLUMNA",
         "CELL FORMAT": "FORMATO DE CELDA",
         "Row ID": "ID de fila"
+    },
+    "LanguageMenu": {
+        "Language": "Idioma"
     }
 }

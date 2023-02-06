@@ -57,7 +57,8 @@
         "Save": "Salvar",
         "Theme": "Tema",
         "Two-factor authentication": "Autenticação de dois fatores",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A autenticação de dois fatores é uma camada extra de segurança para sua conta Grist projetada para garantir que você seja a única pessoa que pode acessar sua conta, mesmo que alguém saiba sua senha."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A autenticação de dois fatores é uma camada extra de segurança para sua conta Grist projetada para garantir que você seja a única pessoa que pode acessar sua conta, mesmo que alguém saiba sua senha.",
+        "Language": "Idioma"
     },
     "AccountWidget": {
         "Access Details": "Detalhes de Acesso",
@@ -242,8 +243,8 @@
         "Restore": "Restaurar",
         "This service is not available right now": "Este serviço não está disponível no momento",
         "To restore this document, restore the workspace first.": "Para restaurar esse documento, restaure a área de trabalho primeiro.",
-        "Trash": "Lixo",
-        "Trash is empty.": "O lixo está vazio.",
+        "Trash": "Lixeira",
+        "Trash is empty.": "O lixeira está vazia.",
         "Unpin Document": "Desafixar o Documento",
         "Workspace not found": "Área de trabalho não encontrada",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Você está no site {{siteName}}. Você também tem acesso aos seguintes sites:",
@@ -446,7 +447,7 @@
         "Import Document": "Importar Documento",
         "Manage Users": "Gerenciar Usuários",
         "Rename": "Renomear",
-        "Trash": "Lixo",
+        "Trash": "Lixeira",
         "Workspace will be moved to Trash.": "A Área de Trabalho será movida à Lixeira.",
         "Workspaces": "Áreas de Trabalho"
     },
@@ -959,5 +960,8 @@
     },
     "ChoiceTextBox": {
         "CHOICES": "ESCOLHAS"
+    },
+    "LanguageMenu": {
+        "Language": "Idioma"
     }
 }

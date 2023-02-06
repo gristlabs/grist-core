@@ -5,7 +5,7 @@
         "We'll email an invite to {{email}}": "Nous allons envoyer une invitation à {{email}}"
     },
     "AccessRules": {
-        "Checking...": "Vérification en cours…",
+        "Checking...": "Vérification…",
         "Saved": "Enregistré",
         "Invalid": "Invalide",
         "Save": "Enregistrer",
@@ -32,12 +32,15 @@
         "Attribute name": "Nom de l’attribut",
         "Everyone": "Tout le monde",
         "Everyone Else": "Tous les autres",
-        "Type a message...": "Type a message...",
+        "Type a message...": "Ajouter un message…",
         "Enter Condition": "Entrer la condition",
         "Remove {{- name }} user attribute": "Supprimer l'attribut utilisateur {{-name}}",
         "Remove {{- tableId }} rules": "Supprimer les règles pour la table {{-tableId}}",
         "View As": "Voir en tant que",
-        "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}"
+        "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}",
+        "Seed rules": "Règles par défaut",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
+        "Permission to edit document structure": "Droits d'édition de la structure"
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -54,7 +57,8 @@
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "L'authentification à double facteur est une couche additionnelle de sécurité pour votre compte Grist qui permet de s'assurer que vous êtes la seule personne qui peut accéder à votre compte, même si quelqu'un d'autre connaît votre mot de passe.",
         "Theme": "Thème",
         "API Key": "Clé d’API",
-        "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateurs ne doivent contenir que des lettres, des chiffres, et certains caractères spéciaux"
+        "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateurs ne doivent contenir que des lettres, des chiffres, et certains caractères spéciaux",
+        "Language": "Langue"
     },
     "AccountWidget": {
         "Sign in": "Connexion",
@@ -261,7 +265,9 @@
         "Engine (experimental {{span}} change at own risk):": "Moteur (expérimental {{span}} changez à vos risques et périls):",
         "Save": "Enregistrer",
         "Save and Reload": "Enregistrer et recharger",
-        "Document ID copied to clipboard": "Identifiant de document copié"
+        "Document ID copied to clipboard": "Identifiant de document copié",
+        "API": "API",
+        "Ok": "Ok"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -330,7 +336,8 @@
     },
     "FilterBar": {
         "SearchColuns": "Rechercher",
-        "SearchColumns": "Colonnes"
+        "SearchColumns": "Colonnes",
+        "Search Columns": "Chercher des colonnes"
     },
     "GridOptions": {
         "Grid Options": "Options de la grille",
@@ -551,7 +558,7 @@
         "Current Version": "Version actuelle",
         "Original": "Original",
         "Return to {{termToUse}}": "Revenir à {{termToUse}}",
-        "Replace {{termToUse}}...": "Remplacer {{termToUse}}...",
+        "Replace {{termToUse}}...": "Remplacer {{termToUse}}…",
         "Compare to {{termToUse}}": "Comparer avec {{termToUse}}",
         "Work on a Copy": "Travailler sur une copie",
         "Edit without affecting the original": "Éditer sans affecter l'original",
@@ -595,7 +602,8 @@
         "Delete document tour?": "Delete document tour?",
         "Delete": "Supprimer",
         "Return to viewing as yourself": "Revenir à une vue en propre",
-        "Raw Data": "Données source"
+        "Raw Data": "Données source",
+        "Settings": "Paramètres"
     },
     "TopBar": {
         "Manage Team": "Gestion de l'équipe"
@@ -764,5 +772,115 @@
     },
     "ViewAsBanner": {
         "UnknownUser": "Utilisateur inconnu"
+    },
+    "CellStyle": {
+        "Open row styles": "Ouvrir les styles de ligne",
+        "Cell Style": "Style de cellule",
+        "CELL STYLE": "STYLE de CELLULE",
+        "Default cell style": "Style par défaut",
+        "Mixed style": "Style composite"
+    },
+    "DiscussionEditor": {
+        "Comment": "Commentaire",
+        "Save": "Enregistrer",
+        "Open": "Ouvrir",
+        "Write a comment": "Écrire un commentaire",
+        "Cancel": "Annuler",
+        "Edit": "Modifier",
+        "Reply to a comment": "Répondre à un commentaire",
+        "Only current page": "Page actuelle uniquement",
+        "Remove": "Supprimer",
+        "Marked as resolved": "Marquer comme résolu",
+        "Only my threads": "Seulement mes fils",
+        "Reply": "Répondre",
+        "Show resolved comments": "Montrer les commentaires résolus",
+        "Resolve": "Résoudre",
+        "Showing last {{nb}} comments": "Montrer les {{nb}} commentaires",
+        "Started discussion": "Discussion commencée"
+    },
+    "FieldBuilder": {
+        "Apply Formula to Data": "Appliquer une formule",
+        "DATA FROM TABLE": "DONNÉES DE LA TABLE",
+        "CELL FORMAT": "FORMAT DE CELLULE",
+        "Mixed types": "Types composites",
+        "Changing multiple column types": "Changer plusieurs types",
+        "Mixed format": "Format composite"
+    },
+    "welcomeTour": {
+        "Customizing columns": "Personnaliser les colonnes",
+        "template library": "Bibliothèque de modèles",
+        "Share": "Partager",
+        "Add New": "Nouveau",
+        "Building up": "En construction",
+        "Configuring your document": "Configuration de votre document",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Double-cliquer ou appuyer sur {{enter}} sur une cellule pour la modifier ",
+        "Editing Data": "Modification des données",
+        "Welcome to Grist!": "Bienvenue sur Grist!",
+        "Start with {{equal}} to enter a formula.": "Commencer par {{equal}} pour ajouter une formule.",
+        "Sharing": "Partager",
+        "Reference": "Référence",
+        "Help Center": "Centre d'aide"
+    },
+    "TypeTransformation": {
+        "Cancel": "Annuler",
+        "Apply": "Ok",
+        "Revise": "Amender",
+        "Preview": "Aperçu",
+        "Update formula (Shift+Enter)": "Modifier la formule (MAJ+Entrée)"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "DESCRIPTION",
+        "COLUMN LABEL": "LIBELLÉ"
+    },
+    "ACLUsers": {
+        "Example Users": "Utilisateurs tests",
+        "Users from table": "Utilisateurs de la table",
+        "View As": "Voir en tant que"
+    },
+    "ConditionalStyle": {
+        "Add conditional style": "Ajouter un style conditionnel",
+        "Add another rule": "Ajouter une autre règle",
+        "Error in style rule": "Erreur dans la règle de style",
+        "Row Style": "Style de ligne",
+        "Rule must return True or False": "La règle doit retourner Vrai ou Faux"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Devise invalide"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "CHOIX"
+    },
+    "ColumnInfo": {
+        "COLUMN DESCRIPTION": "DESCRIPTION",
+        "COLUMN ID: ": "ID: ",
+        "COLUMN LABEL": "LIBELLÉ",
+        "Cancel": "Annuler",
+        "Save": "Enregistrer"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Convertir en formule"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "Impossible de terminer l'enregistrement"
+    },
+    "FormulaEditor": {
+        "Errors in all {{numErrors}} cells": "Erreur dans toutes les {{numErrors}} cellules",
+        "Error in the cell": "Erreur dans la cellule",
+        "Column or field is required": "Colonne ou champ requis",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Erreur dans {{numErrors}} des {{numCells}} cellules"
+    },
+    "NumericTextBox": {
+        "Decimals": "Décimales",
+        "Currency": "Devise",
+        "Default currency ({{defaultCurrency}})": "Devise par défaut ({{defaultCurrency}})",
+        "Number Format": "Format de nombre"
+    },
+    "LanguageMenu": {
+        "Language": "Langue"
+    },
+    "Reference": {
+        "Row ID": "Id de ligne",
+        "CELL FORMAT": "FORMAT DE CELLULE",
+        "SHOW COLUMN": "MONTRER LA COLONNE"
     }
 }
