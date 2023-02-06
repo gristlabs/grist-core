@@ -3,7 +3,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 function getDescriptionInput() {
-  return driver.find('.test-right-panel .test-column-description')
+  return driver.find('.test-right-panel .test-column-description');
 }
 
 describe('DescriptionColumn', function() {
@@ -29,8 +29,6 @@ describe('DescriptionColumn', function() {
 
     assert.equal(await getDescriptionInput().value(), 'This is the column description \nI am in two lines');
 
-    await getDescriptionInput().click()
-
     // Remove the description
     await api.applyUserActions(docId, [
       [ 'ModifyColumn', 'Table1', 'C', {
@@ -39,5 +37,5 @@ describe('DescriptionColumn', function() {
     ]);
 
     assert.equal(await getDescriptionInput().value(), '');
-  })
-})
+  });
+});
