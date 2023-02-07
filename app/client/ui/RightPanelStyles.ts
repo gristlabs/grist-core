@@ -22,8 +22,6 @@ export const cssHelp = styled('div', `
 
 export const cssRow = styled('div', `
   display: flex;
-  flex-wrap: wrap;
-  row-gap: 5px;
   margin: 8px 16px;
   align-items: center;
   color: ${theme.text};
@@ -33,6 +31,11 @@ export const cssRow = styled('div', `
   &-disabled {
     color: ${theme.disabledText};
   }
+`);
+
+export const cssRowWrapped = styled(cssRow, `
+  flex-wrap: wrap;
+  row-gap: 5px;
 `);
 
 export const cssSortFilterColumn = styled('div', `
@@ -53,7 +56,7 @@ export const cssBlockedCursor = styled('span', `
   }
 `);
 
-export const cssButtonRow = styled(cssRow, `
+export const cssButtonRow = styled(cssRowWrapped, `
   margin-left: 0;
   margin-right: 0;
   & > button {
