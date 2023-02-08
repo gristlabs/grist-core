@@ -319,6 +319,11 @@ export interface ActiveDocAPI {
   getFormulaError(tableId: string, colId: string, rowId: number): Promise<CellValue>;
 
   /**
+   * Generates a formula code based on the AI suggestions, it also modifies the column and sets it type to a formula.
+   */
+  getAssistance(tableId: string, colId: string, description: string): Promise<void>;
+
+  /**
    * Fetch content at a url.
    */
   fetchURL(url: string, options?: FetchUrlOptions): Promise<UploadResult>;

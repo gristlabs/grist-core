@@ -14,6 +14,7 @@ import {
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
+import {Prompt, Suggestion} from "app/common/AssistancePrompts";
 import {
   AclResources,
   AclTableDescription,
@@ -80,6 +81,7 @@ import {parseUserAction} from 'app/common/ValueParser';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
+import {sendForCompletion} from 'app/server/lib/Assistance';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -1311,6 +1313,24 @@ export class ActiveDoc extends EventEmitter {
     await this.waitForInitialization();
     const user = await this._granularAccess.getCachedUser(docSession);
     return this._pyCall('autocomplete', txt, tableId, columnId, rowId, user.toJSON());
+  }
+
+  public async getAssistance(docSession: DocSession, userPrompt: Prompt): Promise<Suggestion> {
+    // Making a prompt can leak names of tables and columns.
+    if (!await this._granularAccess.canScanData(docSession)) {
+      throw new Error("Permission denied");
+    }
+    await this.waitForInitialization();
+    const { tableId, colId, description } = userPrompt;
+    const prompt = await this._pyCall('get_formula_prompt', tableId, colId, description);
+    this._log.debug(docSession, 'getAssistance prompt', {prompt});
+    const completion = await sendForCompletion(prompt);
+    this._log.debug(docSession, 'getAssistance completion', {completion});
+    const formula = await this._pyCall('convert_formula_completion', completion);
+    const action: DocAction = ["ModifyColumn", tableId, colId, {formula}];
+    return {
+      suggestedActions: [action],
+    };
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
