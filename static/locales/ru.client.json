@@ -195,7 +195,10 @@
         "CELL FORMAT": "ФОРМАТ ЯЧЕЙКИ",
         "Changing multiple column types": "Изменение нескольких типов столбцов",
         "Mixed format": "Смешанный формат",
-        "Mixed types": "Смешанные типы"
+        "Mixed types": "Смешанные типы",
+        "Revert field settings for {{colId}} to common": "Вернуть настройки полей для {{colId}} к общим",
+        "Save field settings for {{colId}} as common": "Сохранить настройки полей для {{colId}} как общие",
+        "Use separate field settings for {{colId}}": "Использовать отдельные настройки полей для {{colId}}"
     },
     "FieldConfig": {
         "TRIGGER FORMULA": "ТРИГГЕРНАЯ ФОРМУЛА",
@@ -274,7 +277,7 @@
     },
     "SortFilterConfig": {
         "Filter": "ФИЛЬТР",
-        "Revert": "Revert",
+        "Revert": "Возврат",
         "Save": "Сохранить",
         "Sort": "СОРТИРОВКА",
         "Update Sort & Filter settings": "Обновить настройки Сортировки & Фильтра"
@@ -295,7 +298,7 @@
     },
     "TypeTransformation": {
         "Cancel": "Отмена",
-        "Revise": "Revise",
+        "Revise": "Ревизировать",
         "Apply": "Применить",
         "Preview": "Предпросмотр",
         "Update formula (Shift+Enter)": "Обновить формулу (Shift+Enter)"
@@ -661,7 +664,9 @@
         "Section: ": "Раздел: ",
         "Form": "Форма",
         "Plugin: ": "Плагин: ",
-        "Edit Card Layout": "Редактирование шаблона карточки"
+        "Edit Card Layout": "Редактирование шаблона карточки",
+        "Blocks": "Блоками",
+        "Compact": "Компактная"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Расширенная Сортировка & Фильтр",
@@ -678,7 +683,8 @@
         "Widget options": "Параметры виджета"
     },
     "FieldEditor": {
-        "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы"
+        "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы",
+        "Unable to finish saving edited cell": "Не удается завершить сохранение отредактированной ячейки"
     },
     "WidgetTitle": {
         "Save": "Сохранить",
@@ -712,17 +718,18 @@
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Вы вошли как {{email}}. Вы можете войти с другой учетной записью или запросить доступ у администратора."
     },
     "CellStyle": {
-        "CELL STYLE": "ФОРМАТ ЯЧЕЙКИ",
-        "Default cell style": "Формат ячейки по умолчанию",
+        "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
+        "Default cell style": "Стиль ячейки по умолчанию",
         "Open row styles": "Открыть форматы строк",
-        "Cell Style": "Формат ячейки",
+        "Cell Style": "Стиль ячейки",
         "Mixed style": "Смешанный стиль"
     },
     "TypeTransform": {
         "Cancel": "Отмена",
         "Preview": "Предпросмотр",
         "Apply": "Применить",
-        "Update formula (Shift+Enter)": "Обновить формулу (Shift+Enter)"
+        "Update formula (Shift+Enter)": "Обновить формулу (Shift+Enter)",
+        "Revise": "Ревизировать"
     },
     "DiscussionEditor": {
         "Resolve": "Решить",
@@ -761,7 +768,18 @@
         "Enter": "Ввод",
         "Flying higher": "Flying higher",
         "Help Center": "Центр помощи",
-        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Просмотрите наши {{templateLibrary}} чтобы узнать возможности и получить вдохновение."
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Просмотрите наши {{templateLibrary}} чтобы узнать возможности и получить вдохновение.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Переключите {{creatorPanel}} для форматирования столбцов, ",
+        "Welcome to Grist!": "Добро пожаловать в Grist!",
+        "Reference": "Ссылка",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Задайте параметры форматирования, формулы или типов столбца, такие как даты, варианты выбора или вложений. ",
+        "Share": "Поделиться",
+        "Sharing": "Совместное использование",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Сделайте его реляционным! Используйте {{ref}} тип для связи таблиц. ",
+        "Start with {{equal}} to enter a formula.": "Начните с {{equal}} чтобы ввести формулу.",
+        "Use the Share button ({{share}}) to share the document or export data.": "Используйте кнопку \"Поделиться\" ({{share}}) чтобы поделиться документом или экспортировать данные.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Используйте {{addNew}} для добавления виджетов, страниц или импорта дополнительных данных. ",
+        "Use {{helpCenter}} for documentation or questions.": "Используйте {{helpCenter}} для получения документации или вопросов."
     },
     "ViewSectionMenu": {
         "(empty)": "(пустой)",
@@ -771,7 +789,8 @@
         "(modified)": "(модифицированный)",
         "Save": "Сохранить",
         "Update Sort&Filter settings": "Обновить настройки Cортировки&Фильтра",
-        "SORT": "СОРТИРОВКА"
+        "SORT": "СОРТИРОВКА",
+        "Revert": "Вернуть"
     },
     "VisibleFieldsConfig": {
         "Clear": "Очистить",
@@ -870,5 +889,15 @@
     },
     "LanguageMenu": {
         "Language": "Язык"
+    },
+    "FormulaEditor": {
+        "Column or field is required": "Столбец или поле обязательны для заполнения",
+        "Errors in all {{numErrors}} cells": "Ошибки во всех {{numErrors}} ячейках",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Ошибки в {{numErrors}} из {{numCells}} ячеек",
+        "Error in the cell": "Ошибка в ячейке",
+        "editingFormula is required": "editingFormula обязательно"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label] url"
     }
 }
