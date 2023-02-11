@@ -8,16 +8,24 @@ from formula_prompt import (
   values_type, column_type, referenced_tables, get_formula_prompt,
 )
 from objtypes import RaisedException
-from records import Record, RecordSet
+from records import Record as BaseRecord, RecordSet as BaseRecordSet
 
 
 class FakeTable(object):
 
   def __init__(self):
-    pass
+    class Record(BaseRecord):
+      _table = self
+    class RecordSet(BaseRecordSet):
+      _table = self
+    self.Record = Record
+    self.RecordSet = RecordSet
 
   table_id = "Table1"
   _identity_relation = None
+
+
+fake_table = FakeTable()
 
 
 @unittest.skipUnless(six.PY3, "Python 3 only")
@@ -38,22 +46,22 @@ class TestFormulaPrompt(test_engine.EngineTestCase):
     self.assertEqual(values_type([1, 2, "3", None]), "Any")
 
     self.assertEqual(values_type([
-      Record(FakeTable(), None),
-      Record(FakeTable(), None),
+      fake_table.Record(None),
+      fake_table.Record(None),
     ]), "Table1")
     self.assertEqual(values_type([
-      Record(FakeTable(), None),
-      Record(FakeTable(), None),
+      fake_table.Record(None),
+      fake_table.Record(None),
       None,
     ]), "Optional[Table1]")
 
     self.assertEqual(values_type([
-      RecordSet(FakeTable(), None),
-      RecordSet(FakeTable(), None),
+      fake_table.RecordSet(None),
+      fake_table.RecordSet(None),
     ]), "List[Table1]")
     self.assertEqual(values_type([
-      RecordSet(FakeTable(), None),
-      RecordSet(FakeTable(), None),
+      fake_table.RecordSet(None),
+      fake_table.RecordSet(None),
       None,
     ]), "Optional[List[Table1]]")
 
