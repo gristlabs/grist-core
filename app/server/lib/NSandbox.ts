@@ -5,6 +5,7 @@ import {arrayToString} from 'app/common/arrayToString';
 import * as marshal from 'app/common/marshal';
 import {ISandbox, ISandboxCreationOptions, ISandboxCreator} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
+import {getAppRoot, getAppRootFor, getUnpackedAppRoot} from 'app/server/lib/places';
 import {
   DirectProcessControl,
   ISandboxControl,
@@ -575,7 +576,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // Check for local virtual environments created with core's
   // install:python2 or install:python3 targets. They'll need
   // some extra sharing to make available in the sandbox.
-  const venv = path.join(process.cwd(),
+  const venv = path.join(getAppRootFor(getAppRoot(), 'sandbox'),
                          pythonVersion === '2' ? 'venv' : 'sandbox_venv3');
   if (fs.existsSync(venv)) {
     wrapperArgs.addMount(venv);
@@ -869,19 +870,24 @@ function findPython(command: string|undefined, preferredVersion?: string) {
   // TODO: rationalize this, it is a product of haphazard growth.
   const prefs = preferredVersion === '2' ? ['venv', 'sandbox_venv3'] : ['sandbox_venv3', 'venv'];
   for (const venv of prefs) {
-    const pythonPath = path.join(process.cwd(), venv, 'bin', 'python');
-    if (fs.existsSync(pythonPath)) {
-      command = pythonPath;
-      break;
+    const base = getUnpackedAppRoot();
+    // Try a battery of possible python executable paths when python is installed
+    // in a standalone directory.
+    // This battery of possibilities comes from Electron packaging, where python
+    // is bundled with Grist. Not all the possibilities are needed (there are
+    // multiple popular python bundles per OS).
+    for (const possiblePath of [['bin', 'python'], ['bin', 'python3'],
+                                ['Scripts', 'python.exe'], ['python.exe']] as const) {
+      const pythonPath = path.join(base, venv, ...possiblePath);
+      if (fs.existsSync(pythonPath)) {
+        return pythonPath;
+      }
     }
   }
   // Fall back on system python.
-  if (!command) {
-    command = which.sync(preferredVersion === '2' ? 'python2' : 'python3', {nothrow: true})
-      || which.sync(preferredVersion === '2' ? 'python2.7' : 'python3.9', {nothrow: true})
-      || which.sync('python');
-  }
-  return command;
+  return which.sync(preferredVersion === '2' ? 'python2' : 'python3', {nothrow: true})
+    || which.sync(preferredVersion === '2' ? 'python2.7' : 'python3.9', {nothrow: true})
+    || which.sync('python');
 }
 
 /**

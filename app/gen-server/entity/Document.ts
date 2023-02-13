@@ -99,6 +99,9 @@ export class Document extends Resource {
         if (props.options.icon !== undefined) {
           this.options.icon = sanitizeIcon(props.options.icon);
         }
+        if (props.options.externalId !== undefined) {
+          this.options.externalId = props.options.externalId;
+        }
         // Normalize so that null equates with absence.
         for (const key of Object.keys(this.options) as Array<keyof DocumentOptions>) {
           if (this.options[key] === null) {
