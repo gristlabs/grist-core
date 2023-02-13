@@ -8,7 +8,10 @@
         "Tutorial: Analyze & Visualize": "Посібник: аналіз та візуалізація",
         "Tutorial: Create a CRM": "Підручник: створити CRM",
         "Welcome to the Afterschool Program template": "Ласкаво просимо в шаблон програми позашкільної освіти",
-        "Welcome to the Lightweight CRM template": "Ласкаво просимо до шаблону полегшеної CRM"
+        "Welcome to the Lightweight CRM template": "Ласкаво просимо до шаблону полегшеної CRM",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Перегляньте наш відповідний посібник, щоб дізнатись, як зв'язати дані та створити високопродуктивні макети.",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Перегляньте наш відповідний посібник, щоб дізнатись, як створювати підсумкові таблиці та графіки, і як налаштувати динамічний зв’язок з діаграмами.",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Перегляньте наш відповідний посібник, щоб дізнатись, як моделювати бізнес-дані, використовувати формули та керувати складністю."
     },
     "FieldConfig": {
         "Clear and reset": "Очистити та скинути",
@@ -22,18 +25,25 @@
         "Enter formula": "Введіть формулу",
         "Formula Columns_one": "Стовпець формули",
         "Formula Columns_other": "Стовпці формул",
-        "Mixed Behavior": "Змішана поведінка",
+        "Mixed Behavior": "Змішане поводження",
         "Set formula": "Задайте формулу",
         "Set trigger formula": "Задайте трігерну формулу",
-        "TRIGGER FORMULA": "ТРІГЕРНА ФОРМУЛА"
+        "TRIGGER FORMULA": "ТРІГЕРНА ФОРМУЛА",
+        "COLUMN BEHAVIOR": "ПОВОДЖЕННЯ СТОВПЦІВ",
+        "Convert to trigger formula": "Перетворити на тригерну формулу",
+        "Column options are limited in summary tables.": "Налаштування стовпців у підсумкових таблицях обмежені.",
+        "Convert column to data": "Перетворити стовпець у дані"
     },
     "FieldMenus": {
         "Revert to common settings": "Повернутися до загальних налаштувань",
-        "Save as common settings": "Зберегти як загальні налаштування"
+        "Save as common settings": "Зберегти як загальні налаштування",
+        "Use separate settings": "Використати окремі налаштування",
+        "Using common settings": "Використати загальні налаштування",
+        "Using separate settings": "Використання окремих налаштувань"
     },
     "ShareMenu": {
         "Manage Users": "Керувати користувачами",
-        "Unsaved": "Незбережено",
+        "Unsaved": "Не збережено",
         "Access Details": "Параметри доступу",
         "Back to Current": "Повернутися до поточного",
         "Compare to {{termToUse}}": "Порівняти з {{termToUse}}",
@@ -74,7 +84,8 @@
         "Update Original": "Оновити оригінал",
         "Workspace": "Робочий простір",
         "You do not have write access to the selected workspace": "Ви не маєте права на запис у вибраному робочому просторі",
-        "You do not have write access to this site": "Ви не маєте права на запис на цьому сайті"
+        "You do not have write access to this site": "Ви не маєте права на запис на цьому сайті",
+        "However, it appears to be already identical.": "Втім, схоже, що вони вже ідентичні."
     },
     "SortConfig": {
         "Add Column": "Додати стовпець",
@@ -184,7 +195,8 @@
     "VisibleFieldsConfig": {
         "Clear": "Очистити",
         "Cannot drop items into Hidden Fields": "Неможливо перенести елементи у приховані поля",
-        "Hidden Fields cannot be reordered": "Приховані поля не можна перевпорядкувати"
+        "Hidden Fields cannot be reordered": "Приховані поля не можна перевпорядкувати",
+        "Select All": "Виділити всі"
     },
     "TriggerFormulas": {
         "Apply to new records": "Застосувати до нових записів",
@@ -211,7 +223,9 @@
         "Pick a column": "Виберіть стовпець",
         "selected new group data columns": "вибрані стовпці даних нової групи",
         "Create separate series for each value of the selected column.": "Створіть окремі серії для кожного значення вибраного стовпця.",
-        "Toggle chart aggregation": "Перемикання створення діаграм"
+        "Toggle chart aggregation": "Перемикання створення діаграм",
+        "Each Y series is followed by a series for the length of error bars.": "За кожною серією Y слідує серія для довжини стовпців помилок.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок."
     },
     "ColumnFilterMenu": {
         "All": "Все",
@@ -239,7 +253,7 @@
         "Add": "Додати",
         "Enter Custom URL": "Введіть користувацький URL",
         "Full document access": "Повний доступ до документа",
-        "Learn more about custom widgets": "Дізнайтеся більше про віджети користувача",
+        "Learn more about custom widgets": "Дізнайтеся більше про розширені віджети",
         "No document access": "Немає доступу до документа",
         "Open configuration": "Відкрита конфігурація",
         "Pick a column": "Виберіть стовпець",
@@ -288,7 +302,9 @@
         "Allow everyone to view Access Rules.": "Дозволити всім переглядати правила доступу.",
         "Permissions": "Дозволи",
         "Remove column {{- colId }} from {{- tableId }} rules": "Видалити стовпець {{- colId }} з правил {{- tableId }}",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "При додаванні правил таблиці, автоматично додавати правило для надання ВЛАСНИКУ повного доступу."
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "При додаванні правил таблиці, автоматично додавати правило для надання ВЛАСНИКУ повного доступу.",
+        "Seed rules": "Успадковані правила",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити всім копіювати весь документ або переглянути його повністю в fiddle-режимі (режимі створення нових копій).\nКорисно для прикладів і шаблонів, але не для конфіденційних даних."
     },
     "AccountPage": {
         "API": "API",
@@ -306,7 +322,7 @@
         "Two-factor authentication": "Двофакторна аутентифікація",
         "Language": "Мова",
         "Edit": "Редагувати",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двофакторна аутентифікація - це додатковий рівень безпеки для вашого облікового запису Grist, призначений, щоб тільки ви мали доступ до вашого облікового запису, навіть якщо хтось інший знає ваш пароль."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двофакторна аутентифікація - це додатковий рівень безпеки для вашого облікового запису Grist. Завдяки чому тільки ви будете мати доступ до вашого облікового запису, навіть якщо хтось інший дізнається ваш пароль."
     },
     "AccountWidget": {
         "Access Details": "Відомості про доступ",
@@ -352,7 +368,7 @@
     },
     "AppHeader": {
         "Home Page": "Домашня сторінка",
-        "Legacy": "Успадкована версія",
+        "Legacy": "Застаріла версія",
         "Personal Site": "Особистий сайт",
         "Team Site": "Сайт команди"
     },
@@ -463,10 +479,12 @@
         "This document's ID (for API use):": "Ідентифікатор цього документа (для використання API):",
         "API": "API",
         "Document ID copied to clipboard": "Ідентифікатор документа скопійований у буфер",
-        "Ok": "Ок"
+        "Ok": "Ок",
+        "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):"
     },
     "DocTour": {
-        "No valid document tour": "Немає дійсного огляду документа"
+        "No valid document tour": "Немає дійсного огляду документа",
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Не вдається створити огляд документа на основі даних цього документа. Переконайтеся, що існує таблиця з назвою GristDocTour зі стовпцями Title, Body, Placement і Location."
     },
     "DocumentUsage": {
         "Data Size": "Розмір даних",
@@ -475,7 +493,8 @@
         "Attachments Size": "Розмір вкладених файлів",
         "Contact the site owner to upgrade the plan to raise limits.": "Зв'яжіться з власником сайту, щоб оновити тариф та збільшити ліміти.",
         "Usage": "Використання",
-        "start your 30-day free trial of the Pro plan.": "розпочніть свою 30-денну безкоштовну пробну версію тарифу Pro."
+        "start your 30-day free trial of the Pro plan.": "розпочніть свою 30-денну безкоштовну пробну версію тарифу Pro.",
+        "Usage statistics are only available to users with full access to the document data.": "Статистика використання доступна лише користувачам, які мають повний доступ до даних документа."
     },
     "Drafts": {
         "Restore last edit": "Відновити останнє редагування",
@@ -509,7 +528,8 @@
     },
     "Importer": {
         "Merge rows that match these fields:": "Об'єднати рядки, які відповідають цим полям:",
-        "Update existing records": "Оновити існуючі записи"
+        "Update existing records": "Оновити існуючі записи",
+        "Select fields to match on": "Оберіть поля для зіставлення"
     },
     "LeftPanelCommon": {
         "Help Center": "Центр допомоги"
@@ -667,5 +687,217 @@
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Цей сайт команди обмежений. Документи можна читати, але редагування не доступне."
+    },
+    "WelcomeQuestions": {
+        "Education": "Освіта",
+        "Finance & Accounting": "Фінанси та облік",
+        "Marketing": "Маркетинг",
+        "Media Production": "Медіавиробництво",
+        "Other": "Інше",
+        "Product Development": "Розробка продукту",
+        "Research": "Дослідження",
+        "Sales": "Продажі",
+        "Type here": "Введіть тут",
+        "What brings you to Grist? Please help us serve you better.": "Що привело вас до Grist? Будь ласка, допоможіть зробити наш сервіс кращим.",
+        "HR & Management": "Управління персоналом та Менеджмент",
+        "IT & Technology": "IT та Технології",
+        "Welcome to Grist!": "Ласкаво просимо до Grist!"
+    },
+    "WidgetTitle": {
+        "Cancel": "Відмінити",
+        "DATA TABLE NAME": "ІМ'Я ТАБЛИЦІ ДАНИХ",
+        "Override widget title": "Перевизначити назву віджета",
+        "Provide a table name": "Вкажіть ім'я таблиці",
+        "Save": "Зберегти",
+        "WIDGET TITLE": "НАЗВА ВІДЖЕТА"
+    },
+    "breadcrumbs": {
+        "fiddle": "fiddle",
+        "override": "перевизначити",
+        "recovery mode": "режим відновлення",
+        "snapshot": "знімок",
+        "unsaved": "не збережено",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Ви можете вносити зміни, але вони створять нову копію \nі не впливатимуть на початковий документ."
+    },
+    "duplicatePage": {
+        "Duplicate page {{pageName}}": "Дублювати сторінку {{pageName}}",
+        "Note that this does not copy data, but creates another view of the same data.": "Зауважте, що це не копіювання даних, а створення іншого подання тих самих даних."
+    },
+    "errorPages": {
+        "Access denied{{suffix}}": "Доступ заборонено{{suffix}}",
+        "Add account": "Додати обліковий запис",
+        "Contact support": "Зв'язатись зі службою підтримки",
+        "Error{{suffix}}": "Помилка{{suffix}}",
+        "Go to main page": "Перейти на головну сторінку",
+        "Page not found{{suffix}}": "Сторінка не знайдена {{suffix}}",
+        "Sign in": "Увійти в систему",
+        "Sign in again": "Увійдіть ще раз",
+        "Signed out{{suffix}}": "Ви вийшли з системи {{suffix}}",
+        "Something went wrong": "Щось пішло не так",
+        "There was an error: {{message}}": "Сталася помилка: {{message}}",
+        "There was an unknown error.": "Виникла невідома помилка.",
+        "You are now signed out.": "Ви вийшли з облікового запису.",
+        "You do not have access to this organization's documents.": "У вас немає доступу до документів цієї організації.",
+        "Sign in to access this organization's documents.": "Увійдіть, щоб отримати доступ до документів цієї організації.",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Потрібну сторінку не знайдено.{{separator}}Перевірте URL-адресу та повторіть ще раз.",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Ви увійшли як {{email}}. Ви можете увійти під іншим обліковим записом або попросити доступ у адміністратора."
+    },
+    "menus": {
+        "* Workspaces are available on team plans. ": "* Робочі простори доступні в командних тарифах. ",
+        "Select fields": "Виберіть поля",
+        "Upgrade now": "Оновити зараз"
+    },
+    "modals": {
+        "Cancel": "Відмінити",
+        "Ok": "Ок",
+        "Save": "Зберегти"
+    },
+    "pages": {
+        "Duplicate Page": "Дублювати сторінку",
+        "Remove": "Видалити",
+        "Rename": "Перейменувати",
+        "You do not have edit access to this document": "Ви не маєте права на редагування цього документа"
+    },
+    "search": {
+        "Find Next ": "Знайти наступне ",
+        "Find Previous ": "Знайти попереднє ",
+        "Search in document": "Пошук у документі",
+        "No results": "Немає результатів"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Надсилання файлу на Google Диск"
+    },
+    "ACLUsers": {
+        "Example Users": "Приклади користувачів",
+        "View As": "Переглянути як",
+        "Users from table": "Користувачі з таблиці"
+    },
+    "NTextBox": {
+        "true": "істина",
+        "false": "хиба"
+    },
+    "TypeTransform": {
+        "Apply": "Застосувати",
+        "Preview": "Попередній перегляд",
+        "Revise": "Переглянути",
+        "Update formula (Shift+Enter)": "Оновити формулу (Shift+Enter)",
+        "Cancel": "Відмінити"
+    },
+    "CellStyle": {
+        "CELL STYLE": "СТИЛЬ КЛІТИНКИ",
+        "Default cell style": "Стиль клітинки за замовчуванням",
+        "Mixed style": "Змішаний стиль",
+        "Open row styles": "Відкрити стилі рядків",
+        "Cell Style": "Стиль клітинки"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "ВАРІАНТИ"
+    },
+    "ColumnEditor": {
+        "COLUMN LABEL": "ІМ'Я СТОВПЦЯ",
+        "COLUMN DESCRIPTION": "ОПИС СТОВПЦЯ"
+    },
+    "ColumnInfo": {
+        "COLUMN DESCRIPTION": "ОПИС СТОВПЦЯ",
+        "COLUMN ID: ": "ІДЕНТИФІКАТОР СТОВПЦЯ: ",
+        "Cancel": "Відмінити",
+        "Save": "Зберегти",
+        "COLUMN LABEL": "ІМ'Я СТОВПЦЯ"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Додайте інше правило",
+        "Error in style rule": "Помилка в правилі стилю",
+        "Row Style": "Стиль рядка",
+        "Rule must return True or False": "Правило має повертати Істина або Хиба",
+        "Add conditional style": "Додайте умовний стиль"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Недійсна валюта"
+    },
+    "DiscussionEditor": {
+        "Edit": "Редагувати",
+        "Marked as resolved": "Позначено як вирішене",
+        "Only current page": "Тільки поточна сторінка",
+        "Open": "Відкрити",
+        "Remove": "Видалити",
+        "Reply": "Відповісти",
+        "Resolve": "Вирішити",
+        "Save": "Зберегти",
+        "Show resolved comments": "Показати вирішені коментарі",
+        "Showing last {{nb}} comments": "Показати останні {{nb}} коментарів",
+        "Started discussion": "Розпочато обговорення",
+        "Write a comment": "Написати коментар",
+        "Comment": "Коментар",
+        "Cancel": "Відмінити",
+        "Reply to a comment": "Відповісти на коментар",
+        "Only my threads": "Тільки мої теми"
+    },
+    "FieldBuilder": {
+        "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
+        "Changing multiple column types": "Зміна кількох типів стовпців",
+        "DATA FROM TABLE": "ДАНІ З ТАБЛИЦІ",
+        "Mixed format": "Змішаний формат",
+        "Mixed types": "Змішані типи",
+        "Use separate field settings for {{colId}}": "Використати окремі налаштування поля для {{colId}}",
+        "Apply Formula to Data": "Застосувати формулу до даних",
+        "Revert field settings for {{colId}} to common": "Змінити налаштування поля для {{colId}} на загальні",
+        "Save field settings for {{colId}} as common": "Зберегти налаштування поля для {{colId}} як загальні"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "Неможливо зберегти відредаговану клітинку",
+        "It should be impossible to save a plain data value into a formula column": "Має бути неможливо зберегти просте значення даних у стовпець формули"
+    },
+    "FormulaEditor": {
+        "Column or field is required": "Стовпець або поле є обов’язковим",
+        "Error in the cell": "Помилка в клітинці",
+        "Errors in all {{numErrors}} cells": "Помилки в усіх клітинках {{numErrors}}",
+        "editingFormula is required": "Редагування формули обов'язкове",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Помилки в {{numErrors}} в {{numCells}} клітинках"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label] url"
+    },
+    "NumericTextBox": {
+        "Currency": "Валюта",
+        "Decimals": "Десяткові",
+        "Default currency ({{defaultCurrency}})": "Валюта за замовчуванням ({{defaultCurrency}})",
+        "Number Format": "Числовий формат"
+    },
+    "Reference": {
+        "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
+        "Row ID": "ID рядка",
+        "SHOW COLUMN": "ПОКАЗАТИ СТОВПЕЦЬ"
+    },
+    "welcomeTour": {
+        "Add New": "Додати",
+        "Building up": "Створюйте",
+        "Configuring your document": "Налаштування вашого документа",
+        "Customizing columns": "Налаштування стовпців",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Двічі клацніть на клітинку або натисніть {{enter}}, щоб відредагувати її. ",
+        "Enter": "Увійти",
+        "Flying higher": "Летимо вище",
+        "Help Center": "Центр допомоги",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Зробіть їх зв'язаними! Використовуйте тип {{ref}} для зв'язування таблиць. ",
+        "Reference": "Посилання",
+        "Sharing": "Поширення",
+        "Start with {{equal}} to enter a formula.": "Почати з {{equal}}, щоб ввести формулу.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Перемкніть {{creatorPanel}}, щоб форматувати стовпці, ",
+        "Share": "Поділитись",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Використовуйте {{addNew}}, щоб додати віджети, сторінки або імпортувати більше даних. ",
+        "Welcome to Grist!": "Ласкаво просимо до Grist!",
+        "creator panel": "панель автора",
+        "template library": "бібліотека шаблонів",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Надихайтесь і взнавайте більше про існуючі можливості, відвідавши наш {{templateLibrary}}.",
+        "Editing Data": "Редагування даних",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Встановити параметри форматування, формули або типи стовпців, наприклад - дати, варіанти або вкладені файли. ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Використовуйте кнопку \"Поділитись\" ({{share}}), щоб поділитись документом або експортувати дані.",
+        "Use {{helpCenter}} for documentation or questions.": "Знайдіть технічну документацію чи відповіді на запитання у {{helpCenter}}.",
+        "convert to card view, select data, and more.": "перетворити в представлення картки, вибрати дані, та інші можливості."
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Перетворити стовпець у формулу"
+    },
+    "LanguageMenu": {
+        "Language": "Мова"
     }
 }
