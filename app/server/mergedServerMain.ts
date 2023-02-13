@@ -64,7 +64,7 @@ export async function main(port: number, serverTypes: ServerType[],
     server.testAddRouter();
   }
 
-  if (options?.logToConsole !== false) { server.addLogging(); }
+  if (options.logToConsole !== false) { server.addLogging(); }
   if (options.externalStorage === false) { server.disableExternalStorage(); }
   await server.loadConfig();
 

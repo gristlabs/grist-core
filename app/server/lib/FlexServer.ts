@@ -921,11 +921,9 @@ export class FlexServer implements GristServer {
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
     this._getLogoutRedirectUrl = tbind(this._loginMiddleware.getLogoutRedirectUrl, this._loginMiddleware);
-    if (this._loginMiddleware.getWildcardMiddleware) {
-      const wildcardMiddleware = this._loginMiddleware.getWildcardMiddleware();
-      if (wildcardMiddleware.length > 0) {
+    const wildcardMiddleware = this._loginMiddleware.getWildcardMiddleware?.();
+    if (wildcardMiddleware?.length) {
         this.app.use(wildcardMiddleware);
-      }
     }
   }
 

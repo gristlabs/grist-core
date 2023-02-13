@@ -142,11 +142,6 @@ function getTypeORMSettings(): DataSourceOptions {
     "subscribers": [
       `${codeRoot}/app/gen-server/subscriber/*.js`
     ],
-    //  "cli": {
-    //    "entitiesDir": `${codeRoot}/app/gen-server/entity`,
-    //    "migrationsDir": `${codeRoot}/app/gen-server/migration`,
-    //    "subscribersDir": `${codeRoot}/app/gen-server/subscriber`
-    //  }
     ...cache,
   };
 }
