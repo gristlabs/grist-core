@@ -59,10 +59,17 @@ describe('DescriptionColumn', function() {
     await gu.changeWidget('Card');
 
     const detailUndescribedColumnFirstRow = await gu.getDetailCell('A', 1);
-    assert.isFalse(await detailUndescribedColumnFirstRow.findClosest(".g_record_detail_el").find(".test-column-info-tooltip").isPresent());
+    assert.isFalse(
+      await detailUndescribedColumnFirstRow
+        .findClosest(".g_record_detail_el")
+        .find(".test-column-info-tooltip")
+        .isPresent()
+    );
 
     const detailDescribedColumnFirstRow = await gu.getDetailCell('B', 1);
-    const toggle = await detailDescribedColumnFirstRow.findClosest(".g_record_detail_el").find(".test-column-info-tooltip");
+    const toggle = await detailDescribedColumnFirstRow
+      .findClosest(".g_record_detail_el")
+      .find(".test-column-info-tooltip");
     // The toggle to show the description is present if there is a description
     assert.isTrue(await toggle.isPresent());
 
@@ -71,11 +78,12 @@ describe('DescriptionColumn', function() {
     assert.isTrue(await driver.findWait('.test-column-info-tooltip-popup', 1000).isDisplayed());
 
     // Check the content of the tooltip
-    const descriptionTooltip = await driver.find('.test-column-info-tooltip-popup .test-column-info-tooltip-popup-body');
+    const descriptionTooltip = await driver
+      .find('.test-column-info-tooltip-popup .test-column-info-tooltip-popup-body');
     assert.equal(await descriptionTooltip.getText(), 'This is the column description');
 
     // Close the tooltip
     await toggle.click();
     assert.lengthOf(await driver.findAll('.test-column-info-tooltip-popup'), 0);
-  })
+  });
 });
