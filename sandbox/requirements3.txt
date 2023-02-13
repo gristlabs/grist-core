@@ -12,7 +12,11 @@ jdcal==1.4.1
 et-xmlfile==1.0.1
 
 # Different astroid version for python 3
-astroid==2.5.7
+astroid==2.14.2
+typing_extensions==4.4.0
+
+# Different roman version for python 3
+roman==3.3
 
 # Everything after this is the same for python 2 and 3
 asttokens==2.0.5
@@ -23,7 +27,6 @@ iso8601==0.1.12
 lazy_object_proxy==1.6.0
 phonenumberslite==8.12.57
 python_dateutil==2.8.2
-roman==2.0.0
 singledispatch==3.6.2
 six==1.16.0
 sortedcontainers==2.4.0

@@ -189,23 +189,21 @@ class TestRenames2(test_engine.EngineTestCase):
 
   def test_renames_b(self):
     # Rename Games.name: affects People.Games_Won, Games.win4_game_name
-    # TODO: win4_game_name isn't updated due to astroid avoidance of looking up the same attr on
-    # the same class during inference.
     out_actions = self.apply_user_action(["RenameColumn", "Games", "name", "nombre"])
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "Games", "name", "nombre"],
       ["ModifyColumn", "People", "Games_Won", {
         "formula": "' '.join(e.game.nombre for e in Entries.lookupRecords(person=$id, rank=1))"
       }],
-      ["BulkUpdateRecord", "_grist_Tables_column", [4, 12], {
-        "colId": ["nombre", "Games_Won"],
+      ["ModifyColumn", "Games", "win4_game_name", {"formula": "$win.win.win.win.nombre"}],
+      ["BulkUpdateRecord", "_grist_Tables_column", [4, 12, 19], {
+        "colId": ["nombre", "Games_Won", "win4_game_name"],
         "formula": [
-          "", "' '.join(e.game.nombre for e in Entries.lookupRecords(person=$id, rank=1))"]
-      }],
-      ["BulkUpdateRecord", "Games", [1, 2, 3, 4], {
-        "win4_game_name": [["E", "AttributeError"], ["E", "AttributeError"],
-          ["E", "AttributeError"], ["E", "AttributeError"]]
-      }],
+          "",
+          "' '.join(e.game.nombre for e in Entries.lookupRecords(person=$id, rank=1))",
+          "$win.win.win.win.nombre"
+        ]
+      }]
     ]})
 
     # Fix up things missed due to the TODOs above.
@@ -264,22 +262,16 @@ class TestRenames2(test_engine.EngineTestCase):
 
   def test_renames_d(self):
     # Rename People.name: affects People.N, People.ParnerNames
-    # TODO: win3_person_name ($win.win.win.name) does NOT get updated correctly with astroid
-    # because of a limitation in astroid inference: it refuses to look up the same attr on the
-    # same class during inference (in order to protect against too much recursion).
     # TODO: PartnerNames does NOT get updated correctly because astroid doesn't infer meanings of
     # lists very well.
     out_actions = self.apply_user_action(["RenameColumn", "People", "name", "nombre"])
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "People", "name", "nombre"],
       ["ModifyColumn", "People", "N", {"formula": "$nombre.upper()"}],
-      ["BulkUpdateRecord", "_grist_Tables_column", [2, 11], {
-        "colId": ["nombre", "N"],
-        "formula": ["", "$nombre.upper()"]
-      }],
-      ["BulkUpdateRecord", "Games", [1, 2, 3, 4], {
-        "win3_person_name": [["E", "AttributeError"], ["E", "AttributeError"],
-          ["E", "AttributeError"], ["E", "AttributeError"]]
+      ["ModifyColumn", "Games", "win3_person_name", {"formula": "$win.win.win.nombre"}],
+      ["BulkUpdateRecord", "_grist_Tables_column", [2, 11, 18], {
+        "colId": ["nombre", "N", "win3_person_name"],
+        "formula": ["", "$nombre.upper()", "$win.win.win.nombre"]
       }],
       ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5], {
         "PartnerNames": [["E", "AttributeError"], ["E", "AttributeError"],
@@ -287,8 +279,7 @@ class TestRenames2(test_engine.EngineTestCase):
       }],
     ]})
 
-    # Fix up things missed due to the TODOs above.
-    self.modify_column("Games", "win3_person_name", formula="$win.win.win.nombre")
+    # Fix up things missed due to the TODO above.
     self.modify_column("People", "PartnerNames",
                        formula=self.partner_names.replace("name", "nombre"))
 
@@ -305,20 +296,13 @@ class TestRenames2(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "People", "partner", "companero"],
       ["ModifyColumn", "People", "partner4", {
-        "formula": "$companero.companero.partner.partner"
+        "formula": "$companero.companero.companero.companero"
       }],
       ["BulkUpdateRecord", "_grist_Tables_column", [14, 15], {
         "colId": ["companero", "partner4"],
-        "formula": [self.partner, "$companero.companero.partner.partner"]
-      }],
-      ["BulkUpdateRecord", "People", [1, 2, 3, 4, 5], {
-        "partner4": [["E", "AttributeError"], ["E", "AttributeError"],
-          ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"]]
-      }],
+        "formula": [self.partner, "$companero.companero.companero.companero"]
+      }]
     ]})
-
-    # Fix up things missed due to the TODOs above.
-    self.modify_column("People", "partner4", formula="$companero.companero.companero.companero")
 
     _replace_col_name(self.people_data, "partner", "companero")
     self.assertTableData("People", cols="subset", data=self.people_data)
@@ -331,20 +315,12 @@ class TestRenames2(test_engine.EngineTestCase):
     self.assertPartialOutActions(out_actions, { "stored": [
       ["RenameColumn", "People", "win", "pwin"],
       ["ModifyColumn", "Games", "win3_person_name", {"formula": "$win.pwin.win.name"}],
-      # TODO: the omission of the 4th win's update is due to the same astroid bug mentioned above.
-      ["ModifyColumn", "Games", "win4_game_name", {"formula": "$win.pwin.win.win.name"}],
+      ["ModifyColumn", "Games", "win4_game_name", {"formula": "$win.pwin.win.pwin.name"}],
       ["BulkUpdateRecord", "_grist_Tables_column", [16, 18, 19], {
         "colId": ["pwin", "win3_person_name", "win4_game_name"],
         "formula": ["Entries.lookupOne(person=$id, rank=1).game",
-                    "$win.pwin.win.name", "$win.pwin.win.win.name"]}],
-      ["BulkUpdateRecord", "Games", [1, 2, 3, 4], {
-        "win4_game_name": [["E", "AttributeError"], ["E", "AttributeError"],
-          ["E", "AttributeError"], ["E", "AttributeError"]]
-      }],
+                    "$win.pwin.win.name", "$win.pwin.win.pwin.name"]}],
     ]})
-
-    # Fix up things missed due to the TODOs above.
-    self.modify_column("Games", "win4_game_name", formula="$win.pwin.win.pwin.name")
 
     _replace_col_name(self.people_data, "win", "pwin")
     self.assertTableData("People", cols="subset", data=self.people_data)

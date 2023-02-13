@@ -14,6 +14,32 @@ import marshal
 import sys
 import traceback
 
+class CarefulReader(object):
+  """
+  Wrap a pipe when reading from Pyodide, to work around marshaling
+  panicking if fewer bytes are read in a block than it was expecting.
+  Just wait for more.
+  """
+
+  def __init__(self, file_):
+    self._file = file_
+
+  def write(self, data):
+    return self._file.write(data)
+
+  def read(self, size):
+    return self._file.read(size)
+
+  def readinto(self, b):
+    result = self._file.readinto(b)
+    while result is not None and result < len(b):
+      bview = memoryview(b)
+      result += self._file.readinto(bview[result:])
+    return result
+
+  def __getattr__(self, attr):
+    return getattr(self._file, attr)
+
 def log(msg):
   sys.stderr.write(str(msg) + "\n")
   sys.stderr.flush()
@@ -23,22 +49,25 @@ class Sandbox(object):
   This class works in conjunction with Sandbox.js to allow function calls
   between the Node process and this sandbox.
 
-  The sandbox provides two pipes (on fds 3 and 4) to send data to and from the sandboxed
+  The sandbox provides two pipes to send data to and from the sandboxed
   process. Data on these is serialized using `marshal` module. All messages are comprised of a
   msgCode followed immediatedly by msgBody, with the following msgCodes:
     CALL = call to the other side. The data must be an array of [func_name, arguments...]
     DATA = data must be a value to return to a call from the other side
     EXC = data must be an exception to return to a call from the other side
+
+  Optionally, a callback can be supplied instead of an output pipe.
   """
 
   CALL = None
   DATA = True
   EXC = False
 
-  def __init__(self, external_input, external_output):
+  def __init__(self, external_input, external_output, external_output_method=None):
     self._functions = {}
     self._external_input = external_input
     self._external_output = external_output
+    self._external_output_method = external_output_method
 
   @classmethod
   def connected_to_js_pipes(cls):
@@ -62,6 +91,14 @@ class Sandbox(object):
     sys.stdout = sys.stderr
     return Sandbox.connected_to_js_pipes()
 
+  @classmethod
+  def use_pyodide(cls):
+    import js  # Get pyodide object.
+    external_input = CarefulReader(sys.stdin.buffer)
+    external_output_method = lambda data: js.sendFromSandbox(data)
+    sys.stdout = sys.stderr
+    return cls(external_input, None, external_output_method)
+
   def _send_to_js(self, msgCode, msgBody):
     # (Note that marshal version 2 is the default; we specify it explicitly for clarity. The
     # difference with version 0 is that version 2 uses a faster binary format for floats.)
@@ -69,9 +106,15 @@ class Sandbox(object):
     # For large data, JS's Unmarshaller is very inefficient parsing it if it gets it piecewise.
     # It's much better to ensure the whole blob is sent as one write. We marshal the resulting
     # buffer again so that the reader can quickly tell how many bytes to expect.
-    buf = marshal.dumps((msgCode, msgBody), 2)
-    marshal.dump(buf, self._external_output, 2)
-    self._external_output.flush()
+    if self._external_output:
+      marshal.dump(buf, self._external_output, 2)
+      self._external_output.flush()
+    elif self._external_output_method:
+      buf = marshal.dumps((msgCode, msgBody), 2)
+      buf = marshal.dumps(buf, 2)
+      self._external_output_method(buf)
+    else:
+      raise Exception('no data output method')
 
   def call_external(self, name, *args):
     self._send_to_js(Sandbox.CALL, (name,) + args)
@@ -115,6 +158,8 @@ def get_default_sandbox():
   if default_sandbox is None:
     if os.environ.get('PIPE_MODE') == 'minimal':
       default_sandbox = Sandbox.use_common_pipes()
+    elif os.environ.get('PIPE_MODE') == 'pyodide':
+      default_sandbox = Sandbox.use_pyodide()
     else:
       default_sandbox = Sandbox.connected_to_js_pipes()
   return default_sandbox
