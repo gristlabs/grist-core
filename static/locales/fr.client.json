@@ -861,7 +861,8 @@
         "Convert column to formula": "Convertir en formule"
     },
     "FieldEditor": {
-        "Unable to finish saving edited cell": "Impossible de terminer l'enregistrement"
+        "Unable to finish saving edited cell": "Impossible de terminer l'enregistrement",
+        "It should be impossible to save a plain data value into a formula column": "Il devrait être impossible d'enregistrer une valeur de donnée brute dans une colonne de formule"
     },
     "FormulaEditor": {
         "Errors in all {{numErrors}} cells": "Erreur dans toutes les {{numErrors}} cellules",

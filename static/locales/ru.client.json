@@ -17,7 +17,7 @@
         "Invalid": "Недействительный",
         "Permission to access the document in full when needed": "Разрешение на полный доступ к документу при необходимости",
         "Remove {{- tableId }} rules": "Удалить правила {{- tableId }}",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Разрешить всем копировать весь документ, или посмотреть его полностью в режиме Форк (fiddle).\nПолезно для примеров и шаблонов, но не для конфиденциальных данных.",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Разрешить всем копировать весь документ, или посмотреть его полностью в режиме Ответвления (fiddle).\nПолезно для примеров и шаблонов, но не для конфиденциальных данных.",
         "Attribute to Look Up": "Атрибут для поиска (Look Up)",
         "Condition": "Условие",
         "Checking...": "Проверка…",
@@ -56,7 +56,7 @@
         "Save": "Сохранить",
         "Password & Security": "Пароль & Безопасность",
         "Two-factor authentication": "Двухфакторная аутентификация",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двухфакторная аутентификация - это дополнительный уровень безопасности для вашей учетной записи Grist, предназначенный для идентификации вас как единственного человека, который может получить доступ к вашей учетной записи, даже если кто-то знает ваш пароль.",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двухфакторная аутентификация - это дополнительный уровень безопасности для вашего аккаунта Grist, предназначенный для идентификации вас как единственного человека, который может получить доступ к вашему аккаунту, даже если кто-то знает ваш пароль.",
         "Language": "Язык"
     },
     "App": {
@@ -187,10 +187,18 @@
     },
     "ValidationPanel": {
         "Rule {{length}}": "Правило {{length}}",
-        "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
+        "Update formula (Shift+Enter)": "Обновить формулу (Shift+Enter)"
     },
     "FieldBuilder": {
-        "Apply Formula to Data": "Применить формулу к данным"
+        "Apply Formula to Data": "Применить формулу к данным",
+        "DATA FROM TABLE": "ДАННЫЕ ИЗ ТАБЛИЦЫ",
+        "CELL FORMAT": "ФОРМАТ ЯЧЕЙКИ",
+        "Changing multiple column types": "Изменение нескольких типов столбцов",
+        "Mixed format": "Смешанный формат",
+        "Mixed types": "Смешанные типы",
+        "Revert field settings for {{colId}} to common": "Вернуть настройки полей для {{colId}} к общим",
+        "Save field settings for {{colId}} as common": "Сохранить настройки полей для {{colId}} как общие",
+        "Use separate field settings for {{colId}}": "Использовать отдельные настройки полей для {{colId}}"
     },
     "FieldConfig": {
         "TRIGGER FORMULA": "ТРИГГЕРНАЯ ФОРМУЛА",
@@ -260,16 +268,16 @@
         "Work on a Copy": "Работа над копией"
     },
     "SortConfig": {
-        "Search Columns": "Search columns",
+        "Search Columns": "Поиск по столбцам",
         "Add Column": "Добавить столбец",
-        "Empty values last": "Empty values last",
-        "Natural sort": "Natural sort",
+        "Empty values last": "Последние пустые значения",
+        "Natural sort": "Естественная сортировка",
         "Update Data": "Обновить данные",
         "Use choice position": "Use choice position"
     },
     "SortFilterConfig": {
         "Filter": "ФИЛЬТР",
-        "Revert": "Revert",
+        "Revert": "Возврат",
         "Save": "Сохранить",
         "Sort": "СОРТИРОВКА",
         "Update Sort & Filter settings": "Обновить настройки Сортировки & Фильтра"
@@ -290,10 +298,10 @@
     },
     "TypeTransformation": {
         "Cancel": "Отмена",
-        "Revise": "Revise",
+        "Revise": "Ревизировать",
         "Apply": "Применить",
         "Preview": "Предпросмотр",
-        "Update formula (Shift+Enter)": "Update formula (Shift+Enter)"
+        "Update formula (Shift+Enter)": "Обновить формулу (Shift+Enter)"
     },
     "DataTables": {
         "Click to copy": "Нажмите для копирования",
@@ -652,16 +660,244 @@
         "Advanced settings": "Расширенные настройки",
         "Make On-Demand": "Преобразовать в Хранилище",
         "Unmark On-Demand": "Убрать Хранилище",
-        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Большие таблицы могут быть помечены как \"Хранилище\", чтобы избежать перегрузки сервера при вычислениях."
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Большие таблицы могут быть помечены как \"Хранилище\", чтобы избежать перегрузки сервера при вычислениях.",
+        "Section: ": "Раздел: ",
+        "Form": "Форма",
+        "Plugin: ": "Плагин: ",
+        "Edit Card Layout": "Редактирование шаблона карточки",
+        "Blocks": "Блоками",
+        "Compact": "Компактная"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Расширенная Сортировка & Фильтр",
         "Delete record": "Удалить запись",
         "Delete widget": "Удалить виджет",
         "Download as XLSX": "Скачать как XLSX",
-        "Download as CSV": "Скачать как CSV"
+        "Download as CSV": "Скачать как CSV",
+        "Copy anchor link": "Копировать якорную ссылку",
+        "Edit Card Layout": "Редактирование шаблона карточки",
+        "Show raw data": "Показать необработанные данные",
+        "Open configuration": "Открыть конфигурацию",
+        "Print widget": "Печать виджета",
+        "Data selection": "Выбор данных",
+        "Widget options": "Параметры виджета"
     },
     "FieldEditor": {
-        "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы"
+        "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы",
+        "Unable to finish saving edited cell": "Не удается завершить сохранение отредактированной ячейки"
+    },
+    "WidgetTitle": {
+        "Save": "Сохранить",
+        "Cancel": "Отмена",
+        "DATA TABLE NAME": "НАЗВАНИЕ ТАБЛИЦЫ ДАННЫХ",
+        "Override widget title": "Переопределить заголовок виджета",
+        "Provide a table name": "Укажите имя таблицы",
+        "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА"
+    },
+    "duplicatePage": {
+        "Duplicate page {{pageName}}": "Дублировать страницу {{pageName}}",
+        "Note that this does not copy data, but creates another view of the same data.": "Обратите внимание, что это не копирует данные, а создает другое представление тех же данных."
+    },
+    "errorPages": {
+        "There was an error: {{message}}": "Была допущена ошибка: {{message}}",
+        "Access denied{{suffix}}": "Доступ запрещен{{suffix}}",
+        "Add account": "Добавить учетную запись",
+        "Error{{suffix}}": "Ошибка{{suffix}}",
+        "Go to main page": "Перейти на главную страницу",
+        "Page not found{{suffix}}": "Страница не найдена{{suffix}}",
+        "Signed out{{suffix}}": "Вышел{{suffix}}",
+        "Sign in": "Войти",
+        "Sign in again": "Войти снова",
+        "You are now signed out.": "Вы вышли из аккаунта.",
+        "Something went wrong": "Что-то пошло не так",
+        "There was an unknown error.": "Произошла неизвестная ошибка.",
+        "You do not have access to this organization's documents.": "У вас нет доступа к документам этой организации.",
+        "Contact support": "Обратитесь в службу поддержки",
+        "Sign in to access this organization's documents.": "Войдите, чтобы получить доступ к документам этой организации.",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Запрашиваемая страница не может быть найдена.{{separator}}Пожалуйста, проверьте URL-адрес и повторите попытку.",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Вы вошли как {{email}}. Вы можете войти с другой учетной записью или запросить доступ у администратора."
+    },
+    "CellStyle": {
+        "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
+        "Default cell style": "Стиль ячейки по умолчанию",
+        "Open row styles": "Открыть форматы строк",
+        "Cell Style": "Стиль ячейки",
+        "Mixed style": "Смешанный стиль"
+    },
+    "TypeTransform": {
+        "Cancel": "Отмена",
+        "Preview": "Предпросмотр",
+        "Apply": "Применить",
+        "Update formula (Shift+Enter)": "Обновить формулу (Shift+Enter)",
+        "Revise": "Ревизировать"
+    },
+    "DiscussionEditor": {
+        "Resolve": "Решить",
+        "Cancel": "Отмена",
+        "Comment": "Комментарий",
+        "Edit": "Редактировать",
+        "Marked as resolved": "Помечено как решенное",
+        "Only current page": "Только текущая страница",
+        "Only my threads": "Только мои темы",
+        "Open": "Открыть",
+        "Remove": "Удалить",
+        "Reply": "Ответить",
+        "Save": "Сохранить",
+        "Showing last {{nb}} comments": "Показать последние {{nb}} комментарии",
+        "Show resolved comments": "Показать решенные комментарии",
+        "Started discussion": "Начатое обсуждение",
+        "Write a comment": "Написать комментарий",
+        "Reply to a comment": "Ответить на комментарий"
+    },
+    "NumericTextBox": {
+        "Number Format": "Числовой формат",
+        "Currency": "Валюта",
+        "Default currency ({{defaultCurrency}})": "Валюта по умолчанию ({{defaultCurrency}})",
+        "Decimals": "Десятичные"
+    },
+    "welcomeTour": {
+        "convert to card view, select data, and more.": "преобразовать в представление карточки, выбрать данные, и более.",
+        "creator panel": "панель создателя",
+        "template library": "библиотека шаблонов",
+        "Configuring your document": "Настройка вашего документа",
+        "Add New": "Добавить новый",
+        "Building up": "Сборка",
+        "Customizing columns": "Настройка столбцов",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Дважды щелкните или нажмите {{enter}} в ячейке, чтобы отредактировать ее. ",
+        "Editing Data": "Редактирование данных",
+        "Enter": "Ввод",
+        "Flying higher": "Flying higher",
+        "Help Center": "Центр помощи",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Просмотрите наши {{templateLibrary}} чтобы узнать возможности и получить вдохновение.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Переключите {{creatorPanel}} для форматирования столбцов, ",
+        "Welcome to Grist!": "Добро пожаловать в Grist!",
+        "Reference": "Ссылка",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Задайте параметры форматирования, формулы или типов столбца, такие как даты, варианты выбора или вложений. ",
+        "Share": "Поделиться",
+        "Sharing": "Совместное использование",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Сделайте его реляционным! Используйте {{ref}} тип для связи таблиц. ",
+        "Start with {{equal}} to enter a formula.": "Начните с {{equal}} чтобы ввести формулу.",
+        "Use the Share button ({{share}}) to share the document or export data.": "Используйте кнопку \"Поделиться\" ({{share}}) чтобы поделиться документом или экспортировать данные.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Используйте {{addNew}} для добавления виджетов, страниц или импорта дополнительных данных. ",
+        "Use {{helpCenter}} for documentation or questions.": "Используйте {{helpCenter}} для получения документации или вопросов."
+    },
+    "ViewSectionMenu": {
+        "(empty)": "(пустой)",
+        "(customized)": "(индивидуальный)",
+        "FILTER": "ФИЛЬТР",
+        "Custom options": "Пользовательские параметры",
+        "(modified)": "(модифицированный)",
+        "Save": "Сохранить",
+        "Update Sort&Filter settings": "Обновить настройки Cортировки&Фильтра",
+        "SORT": "СОРТИРОВКА",
+        "Revert": "Вернуть"
+    },
+    "VisibleFieldsConfig": {
+        "Clear": "Очистить",
+        "Hidden Fields cannot be reordered": "Скрытые поля не могут быть переупорядочены",
+        "Cannot drop items into Hidden Fields": "Невозможно поместить элементы в скрытые поля",
+        "Select All": "Выбрать все"
+    },
+    "WelcomeQuestions": {
+        "Marketing": "Маркетинг",
+        "Research": "Исследование",
+        "Sales": "Продажи",
+        "Welcome to Grist!": "Добро пожаловать в Grist!",
+        "What brings you to Grist? Please help us serve you better.": "Как вы пришли к Grist? Пожалуйста, помогите сделать наш сервис лучше.",
+        "Education": "Образование",
+        "HR & Management": "Управление персоналом & Менеджмент",
+        "Finance & Accounting": "Финансы & Бухгалтерия",
+        "Media Production": "Медиапроизводство",
+        "Type here": "Введите здесь",
+        "Product Development": "Разработка продукта",
+        "Other": "Прочее",
+        "IT & Technology": "IT & Технология"
+    },
+    "breadcrumbs": {
+        "fiddle": "ответвление",
+        "override": "переопределение",
+        "recovery mode": "режим восстановления",
+        "snapshot": "снимок",
+        "unsaved": "несохраненный",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Вы можете вносить изменения, но они создадут новую копию\nи не повлияют на исходный документ."
+    },
+    "menus": {
+        "Select fields": "Выберите поля",
+        "Upgrade now": "Обновитесь сейчас",
+        "* Workspaces are available on team plans. ": "* Рабочие пространства доступны в командных тарифах. "
+    },
+    "modals": {
+        "Cancel": "Отмена",
+        "Ok": "Ok",
+        "Save": "Сохранить"
+    },
+    "search": {
+        "Find Next ": "Найти далее ",
+        "No results": "Нет результатов",
+        "Find Previous ": "Найти предыдущий ",
+        "Search in document": "Поиск в документе"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Отправка файла в Google Drive"
+    },
+    "NTextBox": {
+        "false": "ложь",
+        "true": "истина"
+    },
+    "pages": {
+        "Duplicate Page": "Дублировать страницу",
+        "Remove": "Удалить",
+        "Rename": "Переименовать",
+        "You do not have edit access to this document": "У вас нет доступа к редактированию этого документа"
+    },
+    "ACLUsers": {
+        "Example Users": "Пользователи для примера",
+        "View As": "Посмотреть как",
+        "Users from table": "Пользователи из таблицы"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "ВАРИАНТЫ"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "ОПИСАНИЕ СТОЛБЦА",
+        "COLUMN LABEL": "ЯРЛЫК СТОЛБЦА"
+    },
+    "ColumnInfo": {
+        "COLUMN ID: ": "ID СТОЛБЦА: ",
+        "Cancel": "Отменить",
+        "COLUMN LABEL": "ЯРЛЫК СТОЛБЦА",
+        "Save": "Сохранить",
+        "COLUMN DESCRIPTION": "ОПИСАНИЕ СТОЛБЦА"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Добавить другое правило",
+        "Add conditional style": "Добавить условное форматирование",
+        "Error in style rule": "Ошибка в правиле форматирования",
+        "Row Style": "Форматирование строки",
+        "Rule must return True or False": "Правило должно возвращать значение Истина или Ложь"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Неверная валюта"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Преобразовать столбец в формулу"
+    },
+    "Reference": {
+        "CELL FORMAT": "ФОРМАТ ЯЧЕЙКИ",
+        "Row ID": "ID строки",
+        "SHOW COLUMN": "ПОКАЗАТЬ СТОЛБЕЦ"
+    },
+    "LanguageMenu": {
+        "Language": "Язык"
+    },
+    "FormulaEditor": {
+        "Column or field is required": "Столбец или поле обязательны для заполнения",
+        "Errors in all {{numErrors}} cells": "Ошибки во всех {{numErrors}} ячейках",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Ошибки в {{numErrors}} из {{numCells}} ячеек",
+        "Error in the cell": "Ошибка в ячейке",
+        "editingFormula is required": "editingFormula обязательно"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label] url"
     }
 }
