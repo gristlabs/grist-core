@@ -25,7 +25,7 @@ describe('DescriptionColumn', function() {
     const doc = await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
     const docId = doc.id;
 
-    addColumnDescription(api, docId, 'B');
+    await addColumnDescription(api, docId, 'B');
 
     // Column description editable in right panel
     await driver.find('.test-right-opener').click();
@@ -54,7 +54,7 @@ describe('DescriptionColumn', function() {
     const doc = await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
     const docId = doc.id;
 
-    addColumnDescription(api, docId, 'B');
+    await addColumnDescription(api, docId, 'B');
 
     await gu.changeWidget('Card');
 
