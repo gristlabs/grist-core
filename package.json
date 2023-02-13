@@ -148,7 +148,7 @@
     "jquery": "3.5.0",
     "js-yaml": "3.14.1",
     "jsesc": "3.0.2",
-    "jsonwebtoken": "8.3.0",
+    "jsonwebtoken": "9.0.0",
     "knockout": "3.5.0",
     "locale-currency": "0.0.2",
     "lodash": "4.17.21",
