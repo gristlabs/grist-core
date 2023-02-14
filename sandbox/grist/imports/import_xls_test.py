@@ -97,6 +97,14 @@ class TestImportXLS(unittest.TestCase):
                     [-10.25, -8.00, -5.75, -3.50, "n/a", '  1.  ', "   ???   ", 5.50, None, "-",
                      12.25, 0.00, None, 0.00, "--", 23.50, "NA", 28.00, 30.25, 32.50])
 
+  def test_excel_numeric_gs(self):
+    # openpyxl sometimes sees floats for int values when those values come from Google Sheets (if
+    # saved via Excel, they'll look like ints). Check that they don't get imported with ".0" suffix.
+    parsed_file = import_xls.parse_file(*_get_fixture('test_excel_numeric_gs.xlsx'))
+    sheet = parsed_file[1][0]
+    self._check_col(sheet, 0, "TagId", "Numeric", [10, 20, 30, 40.5])
+    self._check_col(sheet, 1, "TagName", "Any", ["foo", "300", "bar", "300.1"])
+
   def test_excel_single_merged_cell(self):
     # An older version had a bug where a single cell marked as 'merged' would cause an exception.
     parsed_file = import_xls.parse_file(*_get_fixture('test_single_merged_cell.xlsx'))
