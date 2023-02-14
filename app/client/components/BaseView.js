@@ -140,8 +140,12 @@ function BaseView(gristDoc, viewSectionModel, options) {
     return linking && linking.cursorPos ? linking.cursorPos() : null;
   }).extend({deferred: true}));
 
-  // Update the cursor whenever linkedRowId() changes.
-  this.autoDispose(this.linkedRowId.subscribe(rowId => this.setCursorPos({rowId: rowId || 'new'})));
+  // Update the cursor whenever linkedRowId() changes (but only if we have any linking).
+  this.autoDispose(this.linkedRowId.subscribe(rowId => {
+    if (this.viewSection.linkingState.peek()) {
+      this.setCursorPos({rowId: rowId || 'new'});
+    }
+  }));
 
   // Indicated whether editing the section should be disabled given the current linking state.
   this.disableEditing = this.autoDispose(ko.computed(() => {
@@ -693,7 +697,11 @@ BaseView.prototype.onRowResize = function(rowModels) {
  * Called when user selects a different row which drives the link-filtering of this section.
  */
 BaseView.prototype.onLinkFilterChange = function(rowId) {
-  this.setCursorPos({rowIndex: 0});
+  // If this section is linked, go to the first row as the row previously selected may no longer
+  // be visible.
+  if (this.viewSection.linkingState.peek()) {
+    this.setCursorPos({rowIndex: 0});
+  }
 };
 
 /**

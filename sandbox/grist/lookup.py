@@ -161,9 +161,9 @@ class SimpleLookupMapColumn(BaseLookupMapColumn):
   def _recalc_rec_method(self, rec, table):
     old_key = self._row_key_map.lookup_left(rec._row_id)
 
-    # Note that rec._get_col(_col_id) is what creates the correct dependency, as well as ensures
+    # Note that getattr(rec, _col_id) is what creates the correct dependency, as well as ensures
     # that the columns used to index by are brought up-to-date (in case they are formula columns).
-    new_key = tuple(_extract(rec._get_col(_col_id)) for _col_id in self._col_ids_tuple)
+    new_key = tuple(_extract(getattr(rec, _col_id)) for _col_id in self._col_ids_tuple)
 
     try:
       self._row_key_map.insert(rec._row_id, new_key)
@@ -188,9 +188,9 @@ class ContainsLookupMapColumn(BaseLookupMapColumn):
     # looked up with CONTAINS()
     new_keys_groups = []
     for col_id in self._col_ids_tuple:
-      # Note that _get_col is what creates the correct dependency, as well as ensures
+      # Note that getattr() is what creates the correct dependency, as well as ensures
       # that the columns used to index by are brought up-to-date (in case they are formula columns).
-      group = rec._get_col(extract_column_id(col_id))
+      group = getattr(rec, extract_column_id(col_id))
 
       if isinstance(col_id, _Contains):
         # Check that the cell targeted by CONTAINS() has an appropriate type.

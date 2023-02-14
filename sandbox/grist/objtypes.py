@@ -121,10 +121,8 @@ class CensoredValue(object):
 _censored_sentinel = CensoredValue()
 
 
-_max_js_int = 1<<31
-
 def is_int_short(value):
-  return -_max_js_int <= value < _max_js_int
+  return -(1<<31) <= value < (1<<31)
 
 def safe_shift(arg, default=None):
   value = arg.pop(0) if arg else None

@@ -402,7 +402,8 @@
         "Welcome to Grist, {{name}}!": "Welcome to Grist, {{name}}!",
         "Welcome to {{orgName}}": "Welcome to {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "You have read-only access to this site. Currently there are no documents.",
-        "personal site": "personal site"
+        "personal site": "personal site",
+        "{{signUp}} to save your work. ": "{{signUp}} to save your work. "
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -899,5 +900,45 @@
     },
     "LanguageMenu": {
         "Language": "Language"
+    },
+    "GristTooltips": {
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Apply conditional formatting to cells in this column when formula conditions are met.",
+        "Apply conditional formatting to rows based on formulas.": "Apply conditional formatting to rows based on formulas.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Click on “Open row styles” to apply conditional formatting to rows.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Click the Add New button to create new documents or workspaces, or import data.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.",
+        "Editing Card Layout": "Editing Card Layout",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formulas that trigger in certain cases, and store the calculated value as data.",
+        "Learn more.": "Learn more.",
+        "Link your new widget to an existing widget on this page.": "Link your new widget to an existing widget on this page.",
+        "Linking Widgets": "Linking Widgets",
+        "Nested Filtering": "Nested Filtering",
+        "Only those rows will appear which match all of the filters.": "Only those rows will appear which match all of the filters.",
+        "Pinned filters are displayed as buttons above the widget.": "Pinned filters are displayed as buttons above the widget.",
+        "Pinning Filters": "Pinning Filters",
+        "Raw Data page": "Raw Data page",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Rearrange the fields in your card by dragging and resizing cells.",
+        "Reference Columns": "Reference Columns",
+        "Reference columns are the key to {{relational}} data in Grist.": "Reference columns are the key to {{relational}} data in Grist.",
+        "Select the table containing the data to show.": "Select the table containing the data to show.",
+        "Select the table to link to.": "Select the table to link to.",
+        "Selecting Data": "Selecting Data",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.",
+        "The total size of all data in this document, excluding attachments.": "The total size of all data in this document, excluding attachments.",
+        "They allow for one record to point (or refer) to another.": "They allow for one record to point (or refer) to another.",
+        "This is the secret to Grist's dynamic and productive layouts.": "This is the secret to Grist's dynamic and productive layouts.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Try out changes in a copy, then decide whether to replace the original with your edits.",
+        "Unpin to hide the the button while keeping the filter.": "Unpin to hide the the button while keeping the filter.",
+        "Updates every 5 minutes.": "Updates every 5 minutes.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Useful for storing the timestamp or author of a new record, data cleaning, and more.",
+        "You can filter by more than one column.": "You can filter by more than one column.",
+        "entire": "entire",
+        "relational": "relational",
+        "Access Rules": "Access Rules",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.",
+        "Add New": "Add New",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals."
     }
 }

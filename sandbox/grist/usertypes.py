@@ -11,14 +11,16 @@ Python's array.array. However, at least on the Python side, it means that we nee
 data structure for values of the wrong type, and the memory savings aren't that great to be worth
 the extra complexity.
 """
+# pylint: disable=unidiomatic-typecheck
 import csv
 import datetime
 import json
 import math
 
 import six
+from six import integer_types
 import objtypes
-from objtypes import AltText
+from objtypes import AltText, is_int_short
 import moment
 import logger
 from records import Record, RecordSet
@@ -69,6 +71,8 @@ def ifError(value, value_if_error):
   # formulas, but it's unclear how to make that work.
   return value_if_error if isinstance(value, AltText) else value
 
+_numeric_types = (float,) + six.integer_types
+_numeric_or_none = (float, NoneType) + six.integer_types
 
 # Unique sentinel object to tell BaseColumnType constructor to use get_type_default().
 _use_type_default = object()
@@ -203,7 +207,7 @@ class Bool(BaseColumnType):
     # recognize. Everything else will result in alttext.
     if not value:
       return False
-    if isinstance(value, (float, six.integer_types)):
+    if isinstance(value, _numeric_types):
       return True
     if isinstance(value, AltText):
       value = six.text_type(value)
@@ -229,14 +233,13 @@ class Int(BaseColumnType):
       return None
     # Convert to float first, since python does not allow casting strings with decimals to int
     ret = int(float(value))
-    if not objtypes.is_int_short(ret):
+    if not is_int_short(ret):
       raise OverflowError("Integer value too large")
     return ret
 
   @classmethod
   def is_right_type(cls, value):
-    return value is None or (isinstance(value, six.integer_types) and not isinstance(value, bool) and
-      objtypes.is_int_short(value))
+    return value is None or (type(value) in integer_types and is_int_short(value))
 
 
 class Numeric(BaseColumnType):
@@ -252,7 +255,7 @@ class Numeric(BaseColumnType):
     # TODO: Python distinguishes ints from floats, while JS only has floats. A value that can be
     # interpreted as an int will upon being entered have type 'float', but after database reload
     # will have type 'int'.
-    return isinstance(value, (float, six.integer_types, NoneType)) and not isinstance(value, bool)
+    return type(value) in _numeric_or_none
 
 
 class Date(Numeric):
@@ -267,7 +270,7 @@ class Date(Numeric):
       return moment.date_to_ts(value.date())
     elif isinstance(value, datetime.date):
       return moment.date_to_ts(value)
-    elif isinstance(value, (float, six.integer_types)):
+    elif isinstance(value, _numeric_types):
       return float(value)
     elif isinstance(value, six.string_types):
       # We also accept a date in ISO format (YYYY-MM-DD), the time portion is optional and ignored
@@ -277,7 +280,7 @@ class Date(Numeric):
 
   @classmethod
   def is_right_type(cls, value):
-    return isinstance(value, (float, six.integer_types, NoneType))
+    return isinstance(value, _numeric_or_none)
 
 
 class DateTime(Date):
@@ -299,7 +302,7 @@ class DateTime(Date):
       return moment.dt_to_ts(value, self.timezone)
     elif isinstance(value, datetime.date):
       return moment.date_to_ts(value, self.timezone)
-    elif isinstance(value, (float, six.integer_types)):
+    elif isinstance(value, _numeric_types):
       return float(value)
     elif isinstance(value, six.string_types):
       # We also accept a datetime in ISO format (YYYY-MM-DD[T]HH:mm:ss)
@@ -365,7 +368,7 @@ class PositionNumber(BaseColumnType):
   @classmethod
   def is_right_type(cls, value):
     # Same as Numeric, but does not support None.
-    return isinstance(value, (float, six.integer_types)) and not isinstance(value, bool)
+    return type(value) in _numeric_types
 
 
 class ManualSortPos(PositionNumber):
@@ -387,14 +390,13 @@ class Id(BaseColumnType):
     if not isinstance(value, (int, Record)):
       raise TypeError("Cannot convert to Id type")
     ret = int(value)
-    if not objtypes.is_int_short(ret):
+    if not is_int_short(ret):
       raise OverflowError("Integer value too large")
     return ret
 
   @classmethod
   def is_right_type(cls, value):
-    return (isinstance(value, six.integer_types) and not isinstance(value, bool) and
-      objtypes.is_int_short(value))
+    return (type(value) in integer_types and is_int_short(value))
 
 
 class Reference(Id):

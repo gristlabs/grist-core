@@ -90,7 +90,7 @@ export class BehavioralPromptsManager extends Disposable {
 
     const {hideArrow = false, onDispose, popupOptions} = options;
     const {title, content} = GristBehavioralPrompts[prompt];
-    const ctl = showBehavioralPrompt(refElement, title, content(), {
+    const ctl = showBehavioralPrompt(refElement, title(), content(), {
       onClose: (dontShowTips) => {
         if (dontShowTips) { this._dontShowTips(); }
         this._markAsSeen(prompt);

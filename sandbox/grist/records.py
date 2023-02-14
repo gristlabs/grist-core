@@ -39,8 +39,8 @@ class Record(object):
     Usage: __$group__
 
     In a [summary table](summary-tables.md), `$group` is a special field
-    containing the list of Records that are summarized by the current summary line.  E.g. the formula
-    `len($group)` counts the number of those records being summarized in each row.
+    containing the list of Records that are summarized by the current summary line.  E.g. the
+    formula `len($group)` counts the number of those records being summarized in each row.
 
     See [RecordSet](#recordset) for useful properties offered by the returned object.
 
@@ -54,9 +54,15 @@ class Record(object):
     """
   )
 
+  # Slots are an optimization to avoid the need for a per-object __dict__.
+  __slots__ = ('_row_id', '_source_relation')
+
+  # Per-table derived classes override this and set it to the appropriate Table object.
+  _table = None
+
   # Record is always a thin class, containing essentially a reference to a row in the table. The
   # properties to access individual fields of a row are provided in per-table derived classes.
-  def __init__(self, table, row_id, relation=None):
+  def __init__(self, row_id, relation=None):
     """
     Creates a Record object.
       table - Table object, in which this record lives.
@@ -69,20 +75,12 @@ class Record(object):
 
     which provides the table argument automatically.
     """
-    self._table = table
     self._row_id = row_id
-    self._source_relation = relation or table._identity_relation
+    self._source_relation = relation or self._table._identity_relation
 
-  def _get_col(self, col_id):
-    return self._table._get_col_value(col_id, self._row_id, self._source_relation)
-
-  # Look up a property of the record.  Internal properties are simple.
-  # For columns, we explicitly check that we have them before attempting to access.
-  # Otherwise AttributeError is ambiguous - it could be because we don't have the
-  # column, or because the column threw an AttributeError when evaluated.
+  # Existing fields are added as @property methods in table.py. When no field is found, raise a
+  # more informative AttributeError.
   def __getattr__(self, name):
-    if name in self._table.all_columns:
-      return self._get_col(name)
     return self._table._attribute_error(name, self._source_relation)
 
   def __hash__(self):
@@ -134,17 +132,23 @@ class RecordSet(object):
 
   You can get the number of records in a RecordSet using `len`, e.g. `len($group)`.
   """
+
+  # Slots are an optimization to avoid the need for a per-object __dict__.
+  __slots__ = ('_row_ids', '_source_relation', '_group_by', '_sort_by')
+
+  # Per-table derived classes override this and set it to the appropriate Table object.
+  _table = None
+
   # Methods should be named with a leading underscore to avoid interfering with access to
   # user-defined fields.
-  def __init__(self, table, row_ids, relation=None, group_by=None, sort_by=None):
+  def __init__(self, row_ids, relation=None, group_by=None, sort_by=None):
     """
     group_by may be a dictionary mapping column names to values that are all the same for the given
     RecordSet. sort_by may be the column name used for sorting this record set. Both are set by
     lookupRecords, and used when using RecordSet to insert new records.
     """
-    self._table = table
     self._row_ids = row_ids
-    self._source_relation = relation or table._identity_relation
+    self._source_relation = relation or self._table._identity_relation
     # If row_ids is itself a RecordList, default to its _group_by and _sort_by properties.
     self._group_by = group_by or getattr(row_ids, '_group_by', None)
     self._sort_by = sort_by or getattr(row_ids, '_sort_by', None)
@@ -188,12 +192,7 @@ class RecordSet(object):
       row_id = min(self._row_ids)
     return self._table.Record(row_id, self._source_relation)
 
-  def _get_col(self, col_id):
-    return self._table._get_col_subset(col_id, self._row_ids, self._source_relation)
-
   def __getattr__(self, name):
-    if name in self._table.all_columns:
-      return self._get_col(name)
     return self._table._attribute_error(name, self._source_relation)
 
   def __repr__(self):
