@@ -111,7 +111,7 @@
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/moment-guess": "1.2.4-grist.1",
     "@gristlabs/pidusage": "2.0.17",
-    "@gristlabs/sqlite3": "5.1.4-grist.7",
+    "@gristlabs/sqlite3": "5.1.4-grist.8",
     "@popperjs/core": "2.3.3",
     "accept-language-parser": "1.5.0",
     "async-mutex": "0.2.4",
@@ -182,6 +182,6 @@
   "resolutions": {
     "jquery": "3.5.0",
     "ts-interface-checker": "1.0.2",
-    "@gristlabs/sqlite3": "5.1.4-grist.7"
+    "@gristlabs/sqlite3": "5.1.4-grist.8"
   }
 }

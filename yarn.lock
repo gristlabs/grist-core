@@ -329,10 +329,10 @@
   dependencies:
     safe-buffer "^5.1.2"
 
-"@gristlabs/sqlite3@5.1.4-grist.7", "@gristlabs/sqlite3@^5.1.4-grist.7":
-  version "5.1.4-grist.7"
-  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-5.1.4-grist.7.tgz#7daefe70b49718fda966e8f829c772c9772e3cfe"
-  integrity sha512-qdnVkTV2m+9vfJtxP/4tlDmzNxh84nSDx4uUeGJ4fC9lfFAYe7OdJtcyiHC37NnMVHemvFd6cuwkc/kadS/SZA==
+"@gristlabs/sqlite3@5.1.4-grist.8", "@gristlabs/sqlite3@^5.1.4-grist.7":
+  version "5.1.4-grist.8"
+  resolved "https://registry.yarnpkg.com/@gristlabs/sqlite3/-/sqlite3-5.1.4-grist.8.tgz#3b1a909c78617e2c7c9f6ee103bf6becbf457d57"
+  integrity sha512-jAtYAjFoLcQ34KKPDVRIMgZrix59koxUTtKtkJvBy/2W3qJ/JrUWCYZdufY5Fuk0Bw/TlbWPW9j1QHmfdCy2Jg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.0"
     node-addon-api "^4.2.0"
