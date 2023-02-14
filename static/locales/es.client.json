@@ -358,7 +358,8 @@
         "Welcome to Grist, {{name}}!": "¡Bienvenido a Grist, {{name}}!",
         "Welcome to {{orgName}}": "Bienvenido a {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Tiene acceso sólo lectura a este sitio. Actualmente no hay documentos.",
-        "personal site": "sitio personal"
+        "personal site": "sitio personal",
+        "{{signUp}} to save your work. ": "{{signUp}} para guardar tu trabajo. "
     },
     "HomeLeftPane": {
         "Access Details": "Detalles de Acceso",
@@ -953,5 +954,45 @@
     },
     "LanguageMenu": {
         "Language": "Idioma"
+    },
+    "GristTooltips": {
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Aplicar formato condicional a las células en esta columna cuando se cumplen las condiciones de la fórmula.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Al hacer clic en {{EyeHideIcon}} en cada celda esconde el campo desde esta vista sin borrarlo.",
+        "Pinned filters are displayed as buttons above the widget.": "Los filtros anclados se muestran como botones encima del widget.",
+        "Pinning Filters": "Anclando filtros",
+        "Raw Data page": "Página de datos brutos",
+        "Reference Columns": "Columnas de referencia",
+        "Apply conditional formatting to rows based on formulas.": "Aplicar formato condicional a filas basado en fórmulas.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Haga clic en \"Abrir estilos de filas\" para aplicar formato condicional a filas.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Haga clic en el botón Añadir nuevo para crear nuevos documentos o espacios de trabajo, o importar datos.",
+        "Editing Card Layout": "Editando diseño de la tarjeta",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Las celdas en una columna de referencia siempre identifican un registro {{entire}} en esa tabla, pero puede seleccionar qué columna de ese registro mostrar.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Fórmulas que se activan en ciertos casos y almacenan el valor calculado como datos.",
+        "Link your new widget to an existing widget on this page.": "Vincule su nuevo widget a un widget existente en esta página.",
+        "Linking Widgets": "Vinculando widgets",
+        "Learn more.": "Más información.",
+        "Only those rows will appear which match all of the filters.": "Sólo aparecerán las filas que coincidan con todos los filtros.",
+        "Nested Filtering": "Filtros anidados",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Reorganice los campos de su tarjeta arrastrando y cambiando el tamaño de las celdas.",
+        "Reference columns are the key to {{relational}} data in Grist.": "Las columnas de referencia son la clave de los datos {{relational}} en Grist.",
+        "Selecting Data": "Seleccionando datos",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Prueba los cambios en una copia y, a continuación, decide si quieres reemplazar el original con tus ediciones.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Utilice el icono \\u{1D6BA} para crear tablas resumen (o dinámicas), para totales o subtotales.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Útil para almacenar la marca de tiempo o el autor de un nuevo registro, limpieza de datos y más.",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Las reglas de acceso le dan el poder de crear reglas matizadas para determinar quién puede ver o editar qué partes de su documento.",
+        "Select the table containing the data to show.": "Seleccione la tabla que contiene los datos que desea mostrar.",
+        "Select the table to link to.": "Seleccione la tabla a vincular.",
+        "The total size of all data in this document, excluding attachments.": "El tamaño total de todos los datos en este documento, excluyendo los adjuntos.",
+        "They allow for one record to point (or refer) to another.": "Permiten que un registro apunte (o se refiera) a otro.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La página Datos brutos enumera todas las tablas de datos del documento, incluidas las tablas de resumen y las tablas no incluidas en los diseños de página.",
+        "This is the secret to Grist's dynamic and productive layouts.": "Este es el secreto de los diseños dinámicos y productivos de Grist.",
+        "Updates every 5 minutes.": "Actualiza cada 5 minutos.",
+        "You can filter by more than one column.": "Puedes filtrar por más de una columna.",
+        "Add New": "Agregar Nuevo",
+        "entire": "entero",
+        "relational": "relacionales",
+        "Access Rules": "Reglas de acceso",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilice el icono 𝚺 para crear tablas resumen (o dinámicas), para totales o subtotales.",
+        "Unpin to hide the the button while keeping the filter.": "Desancla para ocultar el botón mientras mantienes el filtro."
     }
 }
