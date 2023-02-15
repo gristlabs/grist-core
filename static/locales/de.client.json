@@ -434,7 +434,8 @@
         "Welcome to Grist, {{name}}!": "Willkommen bei Grist, {{name}}!",
         "Welcome to {{orgName}}": "Willkommen bei {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
-        "personal site": "persönliche Seite"
+        "personal site": "persönliche Seite",
+        "{{signUp}} to save your work. ": "{{signUp}} um Ihre Arbeit zu speichern. "
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -963,5 +964,17 @@
     },
     "LanguageMenu": {
         "Language": "Sprache"
+    },
+    "GristTooltips": {
+        "Learn more.": "Mehr erfahren.",
+        "Editing Card Layout": "Kartenlayout bearbeiten",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Zellen in einer Referenzspalte identifizieren immer einen {{entire}} Datensatz in dieser Tabelle, aber Sie können auswählen, welche Spalte aus diesem Datensatz angezeigt werden soll.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Wenden Sie bedingte Formatierung auf Zellen in dieser Spalte an, wenn Formelbedingungen erfüllt sind.",
+        "Apply conditional formatting to rows based on formulas.": "Wenden Sie bedingte Formatierung auf Zeilen basierend auf Formeln an.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Klicken Sie auf „Zeilenstile öffnen“, um eine bedingte Formatierung auf Zeilen anzuwenden.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Klicken Sie auf die Schaltfläche Neu hinzufügen, um neue Dokumente oder Arbeitsbereiche zu erstellen oder Daten zu importieren.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Wenn Sie in jeder Zelle auf {{EyeHideIcon}} klicken, wird das Feld aus dieser Ansicht ausgeblendet, ohne es zu löschen.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formeln, die in bestimmten Fällen auslösen und den berechneten Wert als Daten speichern.",
+        "Link your new widget to an existing widget on this page.": "Verknüpfen Sie Ihr neues Widget mit einem bestehenden Widget auf dieser Seite."
     }
 }
