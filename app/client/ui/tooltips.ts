@@ -332,6 +332,7 @@ export function withInfoTooltip(
             ),
             cssInfoTooltipPopupBody(
               content,
+              { style: 'white-space: pre-wrap;' },
               testId('column-info-tooltip-popup-body'),
             ),
             dom.cls(menuCssClass),

@@ -6,7 +6,7 @@ import { setupTestSuite } from 'test/nbrowser/testUtils';
 async function addColumnDescription(api: UserAPIImpl, docId: string, columnName: string) {
   await api.applyUserActions(docId, [
     [ 'ModifyColumn', 'Table1', columnName, {
-      description: 'This is the column description'
+      description: 'This is the column description\nIt is in two lines'
     } ],
   ]);
 }
@@ -32,7 +32,7 @@ describe('DescriptionColumn', function() {
 
     await gu.getCell({ rowNum: 1, col: 'B' }).click();
     await driver.find('.test-right-tab-field').click();
-    assert.equal(await getDescriptionInput().value(), 'This is the column description');
+    assert.equal(await getDescriptionInput().value(), 'This is the column description\nIt is in two lines');
 
     await gu.getCell({ rowNum: 1, col: 'A' }).click();
     assert.equal(await getDescriptionInput().value(), '');
@@ -80,7 +80,7 @@ describe('DescriptionColumn', function() {
     // Check the content of the tooltip
     const descriptionTooltip = await driver
       .find('.test-column-info-tooltip-popup .test-column-info-tooltip-popup-body');
-    assert.equal(await descriptionTooltip.getText(), 'This is the column description');
+    assert.equal(await descriptionTooltip.getText(), 'This is the column description\nIt is in two lines');
 
     // Close the tooltip
     await toggle.click();

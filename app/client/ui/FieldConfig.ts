@@ -8,7 +8,7 @@ import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles
 import { withInfoTooltip } from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
-import { testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { testId, theme } from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -94,7 +94,6 @@ export function buildDescriptionConfig(
   origColumn: ColumnRec,
   cursor: ko.Computed<CursorPos>,
 ) {
-  const editedDescription = Observable.create(owner, '');
 
   // We will listen to cursor position and force a blur event on
   // the text input, which will trigger save before the column observable
@@ -115,9 +114,7 @@ export function buildDescriptionConfig(
         { onInput: false },
         { rows: '3' },
         dom.on('blur', async (e, elem) => {
-          editedDescription.set(elem.value);
           await origColumn.description.saveOnly(elem.value);
-          editedDescription.set('');
         }),
         testId('column-description'),
       )
@@ -538,6 +535,9 @@ const cssTextArea = styled(textarea, `
   background-color: ${theme.mainPanelBg};
   border: 1px solid ${theme.inputBorder};
   width: 100%;
+  outline: none;
+  border-radius: 3px;
+  padding: 3px 7px;
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
@@ -545,15 +545,6 @@ const cssTextArea = styled(textarea, `
 
   &[readonly] {
     background-color: ${theme.inputDisabledBg};
-    padding: 3px 7px;
-    border-radius: 3px;
-    resize: vertical;
-    border: 1px solid ${theme.inputBorder};
-    color: ${theme.inputFg};
-    background-color: ${theme.inputBg};
-    flex: 1 1 0;
-    font-size: ${vars.mediumFontSize};
-    font-family: ${vars.fontFamily};
-    outline: none;
+    color: ${theme.inputDisabledFg};
   }
 `);
