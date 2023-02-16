@@ -223,7 +223,8 @@
         "Deleted {{at}}": "Usunięto {{at}}",
         "Discover More Templates": "Odkryj więcej szablonów",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Dokumenty pozostają w Koszu przez 30 dni, po czym zostają trwale usunięte.",
-        "Document will be permanently deleted.": "Dokument zostanie na stałe usunięty."
+        "Document will be permanently deleted.": "Dokument zostanie na stałe usunięty.",
+        "Unpin Document": "Odepnij Dokument"
     },
     "ColorSelect": {
         "Apply": "Zastosuj",
