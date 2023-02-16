@@ -18,7 +18,8 @@
         "Welcome to Grist!": "Benvenuto in Grist!",
         "Welcome to Grist, {{name}}!": "Benvenuto in Grist, {{name}}!",
         "Welcome to {{orgName}}": "Benvenuto in {{orgName}}",
-        "You have read-only access to this site. Currently there are no documents.": "Hai accesso a questo sito in sola lettura. Attualmente non ci sono documenti."
+        "You have read-only access to this site. Currently there are no documents.": "Hai accesso a questo sito in sola lettura. Attualmente non ci sono documenti.",
+        "{{signUp}} to save your work. ": "{{signUp}} per salvare il tuo lavoro. "
     },
     "HomeLeftPane": {
         "Manage Users": "Gestisci gli utenti",
@@ -899,5 +900,13 @@
     "CodeEditorPanel": {
         "Code View is available only when you have full document access.": "Vista Codice è disponibile solo quando hai pieno accesso al documento.",
         "Access denied": "Accesso negato"
+    },
+    "GristTooltips": {
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Clicca su \"Apri stile righe\" per applicare la formattazione condizionale alle righe.",
+        "Editing Card Layout": "Modifica Layout Scheda",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Applica la formattazione condizionale alle celle in questa colonna quando le condizioni della formula sono soddisfatte.",
+        "Apply conditional formatting to rows based on formulas.": "Applica la formattazione condizionale alle righe in base alle formule.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Cliccando {{EyeHideIcon}} si nasconde il campo dalla vista senza cancellarlo.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Clicca il bottone Aggiungi Nuovo per creare nuovi documenti, workspace, o importare dei dati."
     }
 }
