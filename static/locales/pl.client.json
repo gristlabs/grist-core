@@ -224,11 +224,30 @@
         "Discover More Templates": "Odkryj więcej szablonów",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Dokumenty pozostają w Koszu przez 30 dni, po czym zostają trwale usunięte.",
         "Document will be permanently deleted.": "Dokument zostanie na stałe usunięty.",
-        "Unpin Document": "Odepnij Dokument"
+        "Unpin Document": "Odepnij Dokument",
+        "Remove": "Usuń",
+        "Rename": "Zmień nazwę",
+        "Requires edit permissions": "Wymagane uprawnienia do edycji",
+        "Restore": "Przywróć",
+        "To restore this document, restore the workspace first.": "Aby przywrócić ten dokument, najpierw przywróć obszar roboczy.",
+        "Trash": "Kosz",
+        "Trash is empty.": "Kosz jest pusty.",
+        "Workspace not found": "Nie odnaleziono obszaru roboczego",
+        "You are on your personal site. You also have access to the following sites:": "Jesteś w swojej osobistej przestrzeni. Masz dostęp także do:",
+        "You may delete a workspace forever once it has no documents in it.": "Ponieważ ten obszar roboczy nie zawiera żadnych dokumentów, możesz skasować go na stałe.",
+        "This service is not available right now": "Usługa jest aktualnie niedostępna",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Jesteś w przestrzeni {{siteName}}. Oprócz niej, masz dostęp także do:"
     },
     "ColorSelect": {
         "Apply": "Zastosuj",
         "Cancel": "Anuluj",
         "Default cell style": "Domyślny styl komórki"
+    },
+    "DocPageModel": {
+        "Add Empty Table": "Dodaj pustą tabele",
+        "Add Page": "Dodaj stronę",
+        "Add Widget to Page": "Dodaj widżet do strony",
+        "Document owners can attempt to recover the document. [{{error}}]": "Właściciel dokumentu może podjąć próbę odzyskania go. {{error}}",
+        "Enter recovery mode": "Przejdź w tryb odzyskiwania"
     }
 }
