@@ -9,7 +9,7 @@
         "Add Default Rule": "Dodaj domyślną regułę",
         "Add Table Rules": "Dodaj reguły tabeli",
         "Add User Attributes": "Dodawanie atrybutów użytkownika",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Pozwól innym skopiować lub obejrzeć cały dokument w trybie majsterkowicza.\nOpcja przydatna dla przykładów i szablonów, ale nie powinna być używana dla wrażliwych danych.",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Pozwól innym skopiować lub obejrzeć cały dokument w trybie roboczym.\nOpcja przydatna dla przykładów i szablonów, ale nie powinna być używana dla wrażliwych danych.",
         "Allow everyone to view Access Rules.": "Zezwalaj wszystkim na wyświetlanie reguł dostępu.",
         "Attribute name": "Nazwa atrybutu",
         "Attribute to Look Up": "Atrybut do wyszukania",
@@ -37,7 +37,7 @@
         "Type a message...": "Wpisz wiadomość…",
         "User Attributes": "Atrybuty użytkownika",
         "View As": "Wyświetl jako",
-        "Seed rules": "Zasady seedowania",
+        "Seed rules": "Zasady bazowe",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Automatycznie dodawaj regułę przyznającą właścicielowi pełen dostęp.",
         "Permission to edit document structure": "Uprawnienie do edycji struktury dokumentu"
     },
