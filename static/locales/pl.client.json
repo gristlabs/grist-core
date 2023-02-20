@@ -248,6 +248,11 @@
         "Add Page": "Dodaj stronę",
         "Add Widget to Page": "Dodaj widżet do strony",
         "Document owners can attempt to recover the document. [{{error}}]": "Właściciel dokumentu może podjąć próbę odzyskania go. {{error}}",
-        "Enter recovery mode": "Przejdź w tryb odzyskiwania"
+        "Enter recovery mode": "Przejdź w tryb odzyskiwania",
+        "Error accessing document": "Błąd w trakcie pobierania dokumentu",
+        "Reload": "Przeładuj",
+        "Sorry, access to this document has been denied. [{{error}}]": "Przepraszamy ale nie masz dostępu do tego dokumentu. [{{error}}]",
+        "You do not have edit access to this document": "nie masz uprawnień do edytowania tego dokumentu",
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Spróbuj przeładować dokument, albo użyj trybu odzyskiwania. W trybie odzyskiwania dokument jest otwarty z pełnym dostępem dla właściciela i jako niedostępny dla kogokolwiek innego, a formuły są wyłączone. [{{error}}]"
     }
 }
