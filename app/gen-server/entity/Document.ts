@@ -1,7 +1,8 @@
 import {ApiError} from 'app/common/ApiError';
 import {DocumentUsage} from 'app/common/DocUsage';
 import {Role} from 'app/common/roles';
-import {DocumentOptions, DocumentProperties, documentPropertyKeys, NEW_DOCUMENT_CODE} from "app/common/UserAPI";
+import {DocumentOptions, DocumentProperties, documentPropertyKeys,
+        DocumentType, NEW_DOCUMENT_CODE} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
 import {AclRuleDoc} from "./AclRule";
@@ -69,6 +70,25 @@ export class Document extends Resource {
   @Column({name: 'usage', type: nativeValues.jsonEntityType, nullable: true})
   public usage: DocumentUsage | null;
 
+  @Column({name: 'created_by', type: 'integer', nullable: true})
+  public createdBy: number|null;
+
+  @Column({name: 'trunk_id', type: 'text', nullable: true})
+  public trunkId: string|null;
+
+  // Property set for forks, containing the URL ID of the trunk.
+  public trunkUrlId?: string|null;
+
+  @ManyToOne(_type => Document, document => document.forks)
+  @JoinColumn({name: 'trunk_id'})
+  public trunk: Document|null;
+
+  @OneToMany(_type => Document, document => document.trunk)
+  public forks: Document[];
+
+  @Column({name: 'type', type: 'text', nullable: true})
+  public type: DocumentType|null;
+
   public checkProperties(props: any): props is Partial<DocumentProperties> {
     return super.checkProperties(props, documentPropertyKeys);
   }
@@ -82,6 +102,7 @@ export class Document extends Resource {
       }
       this.urlId = props.urlId;
     }
+    if (props.type !== undefined) { this.type = props.type; }
     if (props.options !== undefined) {
       // Options are merged over the existing state - unless options
       // object is set to "null", in which case the state is wiped

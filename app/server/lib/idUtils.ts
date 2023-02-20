@@ -30,6 +30,7 @@ export function makeForkIds(options: { userId: number|null, isAnonymous: boolean
   const docId = parseUrlId(options.trunkDocId).trunkId;
   const urlId = parseUrlId(options.trunkUrlId).trunkId;
   return {
+    forkId,
     docId: buildUrlId({trunkId: docId, forkId, forkUserId}),
     urlId: buildUrlId({trunkId: urlId, forkId, forkUserId}),
   };

@@ -169,6 +169,7 @@ export interface QueryResult extends TableFetchResult {
  * docId of XXXXX~FORKID[~USERID] and a urlId of UUUUU~FORKID[~USERID].
  */
 export interface ForkResult {
+  forkId: string;
   docId: string;
   urlId: string;
 }

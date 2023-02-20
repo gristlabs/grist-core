@@ -78,6 +78,7 @@ import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/Us
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
+import {Document} from 'app/gen-server/entity/Document';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -1375,10 +1376,16 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Fork the current document.  In fact, all that requires is calculating a good
-   * ID for the fork.  TODO: reconcile the two ways there are now of preparing a fork.
+   * Fork the current document.
+   *
+   * TODO: reconcile the two ways there are now of preparing a fork.
    */
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
+    const dbManager = this.getHomeDbManager();
+    if (!dbManager) {
+      throw new Error('HomeDbManager not available');
+    }
+
     const user = getDocSessionUser(docSession);
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
@@ -1387,9 +1394,19 @@ export class ActiveDoc extends EventEmitter {
     }
     const userId = user.id;
     const isAnonymous = this._docManager.isAnonymous(userId);
+
     // Get fresh document metadata (the cached metadata doesn't include the urlId).
-    const doc = await docSession.authorizer?.getDoc();
-    if (!doc) { throw new Error('document id not known'); }
+    let doc: Document | undefined;
+    if (docSession.authorizer) {
+      doc = await docSession.authorizer.getDoc();
+    } else if (docSession.req) {
+      doc = await this.getHomeDbManager()?.getDoc(docSession.req);
+    }
+    if (!doc) { throw new Error('Document not found'); }
+
+    // Don't allow creating forks of forks (for now).
+    if (doc.trunkId) { throw new ApiError("Cannot fork a document that's already a fork", 400); }
+
     const trunkDocId = doc.id;
     const trunkUrlId = doc.urlId || doc.id;
     await this.flushDoc();  // Make sure fork won't be too out of date.
@@ -1415,6 +1432,8 @@ export class ActiveDoc extends EventEmitter {
       if (resp.status !== 200) {
         throw new ApiError(resp.statusText, resp.status);
       }
+
+      await dbManager.forkDoc(userId, doc, forkIds.forkId);
     } finally {
       await permitStore.removePermit(permitKey);
     }
