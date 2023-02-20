@@ -83,6 +83,8 @@ export const NotifierEvents = StringUnion(
   'addBillingManager',
   'teamCreator',
   'trialPeriodEndingSoon',
+  'trialingSubscription',
+  'scheduledCall',
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
@@ -465,6 +467,10 @@ export class HomeDBManager extends EventEmitter {
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
     // Include logins relation for Authorization convenience.
     return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+  }
+
+  public async getUserByRef(ref: string): Promise<User|undefined> {
+    return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
   }
 
   public async getUser(userId: number): Promise<User|undefined> {
