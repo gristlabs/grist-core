@@ -901,5 +901,11 @@
     },
     "HyperLinkEditor": {
         "[link label] url": "[link label] url"
+    },
+    "GristTooltips": {
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Appliquez un formatage conditionnel aux cellules de cette colonne lorsque les conditions de la formule sont remplies.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Les cellules d'une colonne Référence identifient toujours un enregistrement {{entire}} de cette table, mais vous pouvez sélectionner la colonne de cet enregistrement à afficher.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Cliquez sur “Ouvrir les styles de ligne” pour appliquer le  formatage conditionnel aux lignes.",
+        "Apply conditional formatting to rows based on formulas.": "Appliquez un formatage conditionnel aux lignes en fonction de formules."
     }
 }
