@@ -30,6 +30,17 @@
   padding: .5rem;
 }
 
+.g_record_detail_label_container {
+  display: flex;
+  justify-content: flex-start;
+  gap: 3px;
+}
+
+.g_record_detail_label_container .info_toggle_icon {
+  width: 13px;
+  height: 13px;
+  margin-bottom: 3px;
+}
 .g_record_detail_label {
   min-height: 1rem;
   color: #666;
@@ -150,7 +161,7 @@
   -webkit-flex-direction: column-reverse;
 }
 
-.detail_theme_field_under > .g_record_detail_label {
+.detail_theme_field_under .g_record_detail_label {
   border-top: 1px solid #333;
 }
 
@@ -208,7 +219,7 @@
   line-height: 1.2;
 }
 
-.detail_theme_field_compact > .g_record_detail_label {
+.detail_theme_field_compact .g_record_detail_label {
   font-weight: normal;
   font-size: var(--grist-small-font-size);
   color: var(--grist-theme-card-compact-label, var(--grist-color-slate));
@@ -230,7 +241,7 @@
   padding: 1px 1px 1px 5px;
 }
 
-.detail_theme_field_form>.g_record_detail_label {
+.detail_theme_field_form .g_record_detail_label {
   font-size: var(--grist-small-font-size);
   color: var(--grist-theme-card-form-label, var(--grist-color-slate));
   font-weight: bold;
@@ -241,10 +252,8 @@
   margin-right: -8px;
 }
 
-.detail_theme_field_form .info_toggle_icon {
-  width: 13px;
-  height: 13px;
-  margin-bottom: 3px;
+.detail_theme_field_form .g_record_detail_label_container {
+  gap: 8px;
 }
 
 /* TODO want to style better the values themselves (e.g. more padding, rounded corners, move label
@@ -294,7 +303,7 @@
   border-radius: 2px;
 }
 
-.detail_theme_field_blocks > .g_record_detail_label {
+.detail_theme_field_blocks .g_record_detail_label {
   font-size: var(--grist-small-font-size);
   color: var(--grist-theme-card-blocks-label, var(--grist-color-slate));
   font-weight: normal;
