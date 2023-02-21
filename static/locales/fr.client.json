@@ -399,7 +399,8 @@
         "Browse Templates": "Parcourir les modèles",
         "Create Empty Document": "Créer un document vide",
         "Import Document": "Importer un Fichier",
-        "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus."
+        "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
+        "{{signUp}} to save your work. ": "{{signUp}} pour sauvegarder votre travail. "
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",
@@ -804,7 +805,10 @@
         "CELL FORMAT": "FORMAT DE CELLULE",
         "Mixed types": "Types composites",
         "Changing multiple column types": "Changer plusieurs types",
-        "Mixed format": "Format composite"
+        "Mixed format": "Format composite",
+        "Revert field settings for {{colId}} to common": "Réinitialiser les paramètres par défaut pour {{colId}}",
+        "Save field settings for {{colId}} as common": "Sauvegarder les paramètres pour {{colId}}",
+        "Use separate field settings for {{colId}}": "Utiliser des paramètres spécifiques pour {{colId}}"
     },
     "welcomeTour": {
         "Customizing columns": "Personnaliser les colonnes",
@@ -819,7 +823,14 @@
         "Start with {{equal}} to enter a formula.": "Commencer par {{equal}} pour ajouter une formule.",
         "Sharing": "Partager",
         "Reference": "Référence",
-        "Help Center": "Centre d'aide"
+        "Help Center": "Centre d'aide",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Parcourez notre {{templateLibrary}} pour découvrir les possibilités et trouver de l'inspiration.",
+        "Flying higher": "Pour aller plus loin",
+        "Enter": "Entrée",
+        "Use the Share button ({{share}}) to share the document or export data.": "Utilisez le bouton de partage ({{share}}) pour partager le document ou exporter les données.",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Rendez-le relationnel ! Utilisez le type {{ref}} pour lier les tableaux. ",
+        "Toggle the {{creatorPanel}} to format columns, ": "Ouvrez le {{creatorPanel}} pour formater les colonnes ",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Cliquez sur {{addNew}} pour ajouter des vues, des pages ou importer plus de données. "
     },
     "TypeTransformation": {
         "Cancel": "Annuler",
@@ -868,7 +879,8 @@
         "Errors in all {{numErrors}} cells": "Erreur dans toutes les {{numErrors}} cellules",
         "Error in the cell": "Erreur dans la cellule",
         "Column or field is required": "Colonne ou champ requis",
-        "Errors in {{numErrors}} of {{numCells}} cells": "Erreur dans {{numErrors}} des {{numCells}} cellules"
+        "Errors in {{numErrors}} of {{numCells}} cells": "Erreur dans {{numErrors}} des {{numCells}} cellules",
+        "editingFormula is required": "editingFormula est nécessaire"
     },
     "NumericTextBox": {
         "Decimals": "Décimales",
@@ -883,5 +895,8 @@
         "Row ID": "Id de ligne",
         "CELL FORMAT": "FORMAT DE CELLULE",
         "SHOW COLUMN": "MONTRER LA COLONNE"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label] url"
     }
 }
