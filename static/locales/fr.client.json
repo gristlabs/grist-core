@@ -832,7 +832,8 @@
         "Toggle the {{creatorPanel}} to format columns, ": "Ouvrez le {{creatorPanel}} pour formater les colonnes ",
         "Use {{addNew}} to add widgets, pages, or import more data. ": "Cliquez sur {{addNew}} pour ajouter des vues, des pages ou importer plus de données. ",
         "convert to card view, select data, and more.": "Convertir en tuile, sélectionner de la données, et plus encore.",
-        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Définissez des options de formatage de la colonne, des formules ou bien les types de la colonne (dates, liste à choix unique, pièce jointe etc.) "
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Définissez des options de formatage de la colonne, des formules ou bien les types de la colonne (dates, liste à choix unique, pièce jointe etc.) ",
+        "Use {{helpCenter}} for documentation or questions.": "Cliquez sur {{helpCenter}} pour voir la documentation et poser vos questions."
     },
     "TypeTransformation": {
         "Cancel": "Annuler",
