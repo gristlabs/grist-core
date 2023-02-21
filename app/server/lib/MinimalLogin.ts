@@ -40,7 +40,7 @@ export async function getMinimalLoginSystem(): Promise<GristLoginSystem> {
   };
 }
 
-function getDefaultProfile(): UserProfile {
+export function getDefaultProfile(): UserProfile {
   return {
     email: process.env.GRIST_DEFAULT_EMAIL || 'you@example.com',
     name: 'You',

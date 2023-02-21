@@ -929,7 +929,7 @@
         "They allow for one record to point (or refer) to another.": "They allow for one record to point (or refer) to another.",
         "This is the secret to Grist's dynamic and productive layouts.": "This is the secret to Grist's dynamic and productive layouts.",
         "Try out changes in a copy, then decide whether to replace the original with your edits.": "Try out changes in a copy, then decide whether to replace the original with your edits.",
-        "Unpin to hide the the button while keeping the filter.": "Unpin to hide the the button while keeping the filter.",
+        "Unpin to hide the the button while keeping the filter.": "Unpin to hide the button while keeping the filter.",
         "Updates every 5 minutes.": "Updates every 5 minutes.",
         "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.",
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Useful for storing the timestamp or author of a new record, data cleaning, and more.",
@@ -937,6 +937,8 @@
         "entire": "entire",
         "relational": "relational",
         "Access Rules": "Access Rules",
-        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document."
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.",
+        "Add New": "Add New",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals."
     }
 }

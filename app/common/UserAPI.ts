@@ -117,6 +117,8 @@ export interface DocumentOptions {
   description?: string|null;
   icon?: string|null;
   openMode?: OpenDocMode|null;
+  externalId?: string|null;  // A slot for storing an externally maintained id.
+                             // Not used in grist-core, but handy for Electron app.
 }
 
 export interface DocumentProperties extends CommonProperties {
