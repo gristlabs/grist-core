@@ -940,6 +940,7 @@
         "They allow for one record to point (or refer) to another.": "Ils permettent à une entrée de pointer (ou de faire référence) à une autre entrée.",
         "Add New": "Nouveau",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
-        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux."
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
+        "Unpin to hide the the button while keeping the filter.": "Détachez pour cacher le bouton tout en conservant le filtre."
     }
 }
