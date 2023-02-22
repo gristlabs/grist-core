@@ -106,11 +106,11 @@ class Sandbox(object):
     # For large data, JS's Unmarshaller is very inefficient parsing it if it gets it piecewise.
     # It's much better to ensure the whole blob is sent as one write. We marshal the resulting
     # buffer again so that the reader can quickly tell how many bytes to expect.
+    buf = marshal.dumps((msgCode, msgBody), 2)
     if self._external_output:
       marshal.dump(buf, self._external_output, 2)
       self._external_output.flush()
     elif self._external_output_method:
-      buf = marshal.dumps((msgCode, msgBody), 2)
       buf = marshal.dumps(buf, 2)
       self._external_output_method(buf)
     else:
