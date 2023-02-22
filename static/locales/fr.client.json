@@ -400,7 +400,7 @@
         "Create Empty Document": "Créer un document vide",
         "Import Document": "Importer un Fichier",
         "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
-        "{{signUp}} to save your work. ": "{{signUp}} pour sauvegarder votre travail. "
+        "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. "
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",
@@ -833,7 +833,8 @@
         "Use {{addNew}} to add widgets, pages, or import more data. ": "Cliquez sur {{addNew}} pour ajouter des vues, des pages ou importer plus de données. ",
         "convert to card view, select data, and more.": "convertir en vue carte, sélectionner des données et plus.",
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Définissez des options de formatage de la colonne, des formules ou bien les types de la colonne (dates, liste à choix unique, pièce jointe etc.) ",
-        "Use {{helpCenter}} for documentation or questions.": "Cliquez sur {{helpCenter}} pour voir la documentation et poser vos questions."
+        "Use {{helpCenter}} for documentation or questions.": "Cliquez sur {{helpCenter}} pour voir la documentation et poser vos questions.",
+        "creator panel": "menu latéral"
     },
     "TypeTransformation": {
         "Cancel": "Annuler",
@@ -917,7 +918,7 @@
         "Select the table to link to.": "Sélectionnez la table vers laquelle vous souhaitez établir un lien.",
         "Selecting Data": "Sélection de données",
         "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue carte en faisant glisser et en redimensionnant les cellules.",
-        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des données brutes listes toutes les tables de votre document, y compris les tables récapitulatives et les tables non-inclues dans les mises en page.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des données sources liste toutes les tables de votre document, y compris les tables récapitulatives et les tables non-inclues dans les mises en page.",
         "The total size of all data in this document, excluding attachments.": "La taille totale de toutes les données de ce document, à l'exclusion des pièces jointes.",
         "Click the Add New button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents dans votre espace de travail ou importer des données.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "En cliquant sur {{EyeHideIcon}} dans chaque cellule, vous masquez le champ de cette vue sans le supprimer.",
@@ -936,6 +937,9 @@
         "relational": "relationnelles",
         "Access Rules": "Règles d'accès",
         "Learn more.": "En savoir plus.",
-        "They allow for one record to point (or refer) to another.": "Ils permettent à une entrée de pointer (ou de faire référence) à une autre entrée."
+        "They allow for one record to point (or refer) to another.": "Ils permettent à une entrée de pointer (ou de faire référence) à une autre entrée.",
+        "Add New": "Nouveau",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux."
     }
 }
