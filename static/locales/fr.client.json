@@ -917,7 +917,7 @@
         "Select the table to link to.": "Sélectionnez la table vers laquelle vous souhaitez établir un lien.",
         "Selecting Data": "Sélection de données",
         "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue carte en faisant glisser et en redimensionnant les cellules.",
-        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des Données sources répertorie toutes les tables de données de votre document, y compris les tables récapitulatives et les tables non inclues dans les mises en page.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des données brutes listes toutes les tables de votre document, y compris les tables récapitulatives et les tables non-inclues dans les mises en page.",
         "The total size of all data in this document, excluding attachments.": "La taille totale de toutes les données de ce document, à l'exclusion des pièces jointes.",
         "Click the Add New button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents dans votre espace de travail ou importer des données.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "En cliquant sur {{EyeHideIcon}} dans chaque cellule, vous masquez le champ de cette vue sans le supprimer.",
