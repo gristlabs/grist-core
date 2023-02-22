@@ -144,12 +144,9 @@ AceEditor.prototype.attachSaveCommand = function() {
   if (!this.observable) {
     throw new Error("Cannot attach save command to editor with no bound observable");
   }
-  var key = 'Shift+Enter';
   this.editor.commands.addCommand({
     name: 'saveFormula',
     bindKey: {
-      win: key,
-      mac: key,
       sender: 'editor|cli'
     },
     // AceEditor wants a command to return true if it got handled
