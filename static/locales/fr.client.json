@@ -900,12 +900,40 @@
         "SHOW COLUMN": "MONTRER LA COLONNE"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[link label] url"
+        "[link label] url": "[label du lien] url"
     },
     "GristTooltips": {
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Appliquez un formatage conditionnel aux cellules de cette colonne lorsque les conditions de la formule sont remplies.",
         "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Les cellules d'une colonne Référence identifient toujours un enregistrement {{entire}} de cette table, mais vous pouvez sélectionner la colonne de cet enregistrement à afficher.",
         "Click on “Open row styles” to apply conditional formatting to rows.": "Cliquez sur “Ouvrir les styles de ligne” pour appliquer le  formatage conditionnel aux lignes.",
-        "Apply conditional formatting to rows based on formulas.": "Appliquez un formatage conditionnel aux lignes en fonction de formules."
+        "Apply conditional formatting to rows based on formulas.": "Appliquez un formatage conditionnel aux lignes en fonction de formules.",
+        "Updates every 5 minutes.": "Mises à jour toutes les 5 minutes.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône \\u{1D6BA} pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
+        "Reference columns are the key to {{relational}} data in Grist.": "Les colonnes références sont la clé des données {{relational}} dans Grist.",
+        "Select the table containing the data to show.": "Sélectionnez la table contenant les données à afficher.",
+        "Link your new widget to an existing widget on this page.": "Liez votre nouvelle vue à une vue existante sur cette page.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formules qui se déclenchent dans certains cas, et qui stockent la valeur calculée comme donnée.",
+        "Only those rows will appear which match all of the filters.": "Seules les lignes qui correspondent à tous les filtres apparaîtront.",
+        "Select the table to link to.": "Sélectionnez la table vers laquelle vous souhaitez établir un lien.",
+        "Selecting Data": "Sélection de données",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue carte en faisant glisser et en redimensionnant les cellules.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des Données sources répertorie toutes les tables de données de votre document, y compris les tables récapitulatives et les tables non inclues dans les mises en page.",
+        "The total size of all data in this document, excluding attachments.": "La taille totale de toutes les données de ce document, à l'exclusion des pièces jointes.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents dans votre espace de travail ou importer des données.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "En cliquant sur {{EyeHideIcon}} dans chaque cellule, vous masquez le champ de cette vue sans le supprimer.",
+        "Editing Card Layout": "Modification de la mise en page de la carte",
+        "Linking Widgets": "Lier les vues",
+        "Nested Filtering": "Filtrage imbriqué",
+        "Pinned filters are displayed as buttons above the widget.": "Les filtres épinglés sont affichés sous forme de boutons au-dessus de la vue.",
+        "Pinning Filters": "Filtres épinglés",
+        "Raw Data page": "Page des données sources",
+        "Reference Columns": "Colonnes références",
+        "This is the secret to Grist's dynamic and productive layouts.": "C'est le secret des mises en page dynamiques et productives de Grist.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Essayez les changements sur une copie, puis décidez de remplacer l'original par vos modifications.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Utile pour stocker l'horodatage ou l'auteur d'un nouvel enregistrement, le nettoyage des données, et plus encore.",
+        "You can filter by more than one column.": "Vous pouvez filtrer par plus d'une colonne.",
+        "entire": "entier",
+        "relational": "relationnelles",
+        "Access Rules": "Règles d'accès"
     }
 }
