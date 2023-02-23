@@ -359,6 +359,8 @@ const cssColumnInfoTooltipButton = styled('div', `
   border-radius: 50%;
   display: inline-block;
   margin-left: 5px;
+  line-height: 0px;
+
   &:hover  {
     --icon-color: ${theme.infoButtonHoverFg};
   }
