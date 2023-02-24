@@ -346,7 +346,8 @@
         "Empty Columns_one": "Coluna vazia",
         "Empty Columns_other": "Colunas Vazias",
         "Formula Columns_one": "Coluna de Fórmula",
-        "Formula Columns_other": "Colunas de Fórmula"
+        "Formula Columns_other": "Colunas de Fórmula",
+        "DESCRIPTION": "DESCRIÇÃO"
     },
     "FieldMenus": {
         "Revert to common settings": "Reverter para configurações comuns",
