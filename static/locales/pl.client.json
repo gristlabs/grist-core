@@ -263,7 +263,19 @@
         "Get started by inviting your team and creating your first Grist document.": "Zacznij od zaproszenia swojego zespołu i stworzenia pierwszego dokumentu Grist.",
         "Help Center": "Centrum pomocy",
         "Import Document": "Importuj dokument",
-        "Get started by exploring templates, or creating your first Grist document.": "Zacznij od zapoznania się z szablonami lub stworzenia swojego pierwszego dokumentu Grist."
+        "Get started by exploring templates, or creating your first Grist document.": "Zacznij od zapoznania się z szablonami lub stworzenia swojego pierwszego dokumentu Grist.",
+        "{{signUp}} to save your work. ": "{{signUp}}, aby zapisać swoją pracę. ",
+        "Welcome to {{orgName}}": "Witamy w {{orgName}}",
+        "Interested in using Grist outside of your team? Visit your free ": "Chcesz używać Grist poza swoim zespołem? Odwiedź swój darmowy ",
+        "Invite Team Members": "Zaproś członków zespołu",
+        "Sign up": "Zarejestruj się",
+        "Sprouts Program": "Program Kiełki",
+        "This workspace is empty.": "Ten obszar roboczy jest pusty.",
+        "Visit our {{link}} to learn more.": "Odwiedź nasze {{link}}, aby dowiedzieć się więcej.",
+        "You have read-only access to this site. Currently there are no documents.": "Masz dostęp tylko do odczytu do tej witryny. Obecnie brak dokumentów.",
+        "personal site": "strona osobista",
+        "Welcome to Grist!": "Witamy w Grist!",
+        "Welcome to Grist, {{name}}!": "Witamy w Grist, {{name}}!"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Nie można utworzyć przewodnika po dokumencie na podstawie danych w tym dokumencie. Upewnij się, że istnieje tabela o nazwie GristDocTour z kolumnami Tytuł, Treść, Położenie i Lokalizacja.",
@@ -392,5 +404,14 @@
     },
     "FilterConfig": {
         "Add Column": "Dodaj kolumnę"
+    },
+    "HomeLeftPane": {
+        "Delete": "Usuń",
+        "Delete {{workspace}} and all included documents?": "Usunąć {{workspace}} i wszystkie dołączone dokumenty?",
+        "Examples & Templates": "Przykłady i szablony",
+        "All Documents": "Wszystkie dokumenty",
+        "Create Empty Document": "Utwórz pusty dokument",
+        "Create Workspace": "Utwórz przestrzeń roboczą",
+        "Access Details": "Szczegóły dostępu"
     }
 }
