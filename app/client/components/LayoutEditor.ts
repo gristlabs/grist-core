@@ -89,40 +89,42 @@ interface JqueryUI {
   originalSize: { width: number, height: number };
 }
 
+type LeafId = string|number;
+
 /**
  * The Floater class represents a floating version of the element being dragged around. Its size
  * corresponds to the box being dragged. It lets the user see what's being repositioned.
  */
 class Floater extends Disposable implements ContentBox {
-  public leafId: ko.Observable<string | null>;
+  public leafId: ko.Observable<LeafId|null>;
   public leafContent: ko.Observable<Element | null>;
   public fillWindow: boolean;
-  public floaterElem: HTMLElement;
+  public dom: HTMLElement;
   public mouseOffsetX: number;
   public mouseOffsetY: number;
   public lastMouseEvent: MouseEvent | null;
 
   public create(fillWindow?: boolean) {
-    this.leafId = observable<string|null>(null);
+    this.leafId = observable<LeafId|null>(null);
     this.leafContent = observable<Element | null>(null);
     this.fillWindow = fillWindow || false;
 
-    this.floaterElem = this.autoDispose(dom('div.layout_editor_floater',
+    this.dom = this.autoDispose(dom('div.layout_editor_floater',
       koDom.show(this.leafContent),
       koDom.scope(this.leafContent, (leafContent: Element) => {
         return leafContent;
       })
     ));
-    G.document.body.appendChild(this.floaterElem);
+    G.document.body.appendChild(this.dom);
 
     this.mouseOffsetX = 0;
     this.mouseOffsetY = 0;
     this.lastMouseEvent = null;
   }
-  public onInitialMouseMove(mouseEvent: MouseEvent, sourceBox: LayoutBox) {
+  public onInitialMouseMove(mouseEvent: MouseEvent, sourceBox: ContentBox) {
     const rect = sourceBox.dom!.getBoundingClientRect();
-    this.floaterElem.style.width = rect.width + 'px';
-    this.floaterElem.style.height = rect.height + 'px';
+    this.dom.style.width = rect.width + 'px';
+    this.dom.style.height = rect.height + 'px';
     this.mouseOffsetX = 0.2 * rect.width;
     this.mouseOffsetY = 0.1 * rect.height;
     this.onMouseMove(mouseEvent);
@@ -141,8 +143,8 @@ class Floater extends Disposable implements ContentBox {
   }
   public onMouseMove(mouseEvent: MouseEvent) {
     this.lastMouseEvent = mouseEvent;
-    this.floaterElem.style.left = (mouseEvent.clientX - this.mouseOffsetX) + 'px';
-    this.floaterElem.style.top = (mouseEvent.clientY - this.mouseOffsetY) + 'px';
+    this.dom.style.left = (mouseEvent.clientX - this.mouseOffsetX) + 'px';
+    this.dom.style.top = (mouseEvent.clientY - this.mouseOffsetY) + 'px';
   }
 }
 
@@ -240,6 +242,10 @@ class DropTargeter extends Disposable {
     this.autoDisposeCallback(this.removeTargetHints);
   }
   public removeTargetHints() {
+    if (this.activeTarget?.box?.dom) {
+      this.activeTarget.box.dom.style.transition = '';
+      this.activeTarget.box.dom.style.padding = '0';
+    }
     this.activeTarget = null;
     this.delayedInsertion.cancel();
     if (this.targetsDom) {
@@ -253,7 +259,7 @@ class DropTargeter extends Disposable {
     layoutBox: LayoutBox|null,
     affinity: number,
     overlay: DropOverlay,
-    prevTargetBox: LayoutBox
+    prevTargetBox?: LayoutBox
   ) {
     // Nothing to update.
     if (!layoutBox || (layoutBox === this.currentBox && affinity === this.currentAffinity)) {
@@ -280,7 +286,7 @@ class DropTargeter extends Disposable {
         const children = layoutBox.childBoxes.peek();
         // If one of two children is prevTargetBox, replace the last target hint since it
         // will be redundant once prevTargetBox is removed.
-        if (children.length === 2 && prevTargetBox.parentBox() === layoutBox) {
+        if (children.length === 2 && prevTargetBox?.parentBox() === layoutBox) {
           targetParts.splice(targetParts.length - 1, 1,
             {box: layoutBox, isChild: false, isAfter: isAfter});
         }
@@ -572,6 +578,7 @@ export class LayoutEditor extends Disposable {
     this.triggerUserEditStart();
     this.targetBox = box;
     this.floater.onInitialMouseMove(event, box);
+    this.trigger('dragStart', this.originalBox);
   }
   public handleMouseUp(event: MouseEvent) {
     G.$(G.window).off('mousemove', this.boundMouseMove);
@@ -582,16 +589,27 @@ export class LayoutEditor extends Disposable {
       return;
     }
 
+    // We stopped dragging, any listener can clean its modification
+    // to the floater element.
+    this.trigger('dragStop');
     this.targetBox!.takeLeafFrom(this.floater);
-    if (this.dropTargeter.activeTarget) {
-      this.dropTargeter.accelerateInsertion();
-    } else {
-      resizeLayoutBox(this.targetBox!, 'reset');
+    // We dropped back the box to its original position, now
+    // anyone can hijack the box.
+    this.trigger('dragDrop', this.targetBox);
+
+    // Check if the box was hijacked by a drop target.
+    if (this.originalBox?.leafId() !== 'empty') {
+      if (this.dropTargeter.activeTarget) {
+        this.dropTargeter.accelerateInsertion();
+      } else {
+        resizeLayoutBox(this.targetBox!, 'reset');
+      }
     }
 
     this.dropTargeter.removeTargetHints();
     this.dropOverlay.detach();
-
+    this.trigger('dragEnd');
+    // Cleanup for any state.
     this.transitionPromise.finally(() => {
       this.floater.onMouseUp();
       resizeLayoutBox(this.targetBox!, 'reset');
@@ -600,19 +618,35 @@ export class LayoutEditor extends Disposable {
       this.triggerUserEditStop();
     });
   }
-  public removeContainingBox(elem: HTMLElement) {
+
+  public getBoxFromElement(elem: HTMLElement) {
     const box = this.layout.getContainingBox(elem);
+    if (box && !box.isDomDetached()) {
+      return box;
+    }
+    return null;
+  }
+
+  public getBox(leafId: number) {
+    return this.layout.getLeafBox(leafId);
+  }
+
+  public removeContainingBox(box: LayoutBox) {
     if (box && !box.isDomDetached()) {
       this.triggerUserEditStart();
       this.targetBox = box;
-      const rect = box.dom.getBoundingClientRect();
-      box.leafId('empty');
-      box.leafContent(dom('div.layout_editor_empty_space',
-        koDom.style('min-height', rect.height + 'px')
-      ));
-      this.onInsertBox(noop).catch(noop);
+      this.doRemoveBox(box);
       this.triggerUserEditStop();
     }
+  }
+
+  public doRemoveBox(box: ContentBox) {
+    const rect = box.dom!.getBoundingClientRect();
+    box.leafId('empty');
+    box.leafContent(dom('div.layout_editor_empty_space',
+      koDom.style('min-height', rect.height + 'px')
+    ));
+    this.onInsertBox(noop).catch(noop);
   }
   public handleMouseMove(event: MouseEvent) {
     // Make sure the grabbed box still exists
@@ -625,6 +659,8 @@ export class LayoutEditor extends Disposable {
       this.startDragBox(event, this.originalBox);
     }
     this.floater.onMouseMove(event);
+
+    this.trigger('dragMove', event, this.originalBox);
 
     if (this.transitionPromise.isPending()) {
       // Don't attempt to do any repositioning while another reposition is happening.
@@ -642,7 +678,14 @@ export class LayoutEditor extends Disposable {
       return;
     }
     this.trashDelay.cancel();
+    this.updateTargets(event);
+  }
 
+  public updateTargets(event: MouseEvent) {
+    if (this.transitionPromise.isPending()) {
+      // Don't attempt to do any repositioning while another reposition is happening.
+      return;
+    }
     // See if we are over a layout_leaf, and that the leaf is in the same layout as the dragged
     // element. If so, we are dealing with repositioning.
     const elem = dom.findAncestor(event.target, this.rootElem, '.' + this.layout.leafId);

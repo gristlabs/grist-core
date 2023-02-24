@@ -58,7 +58,8 @@ export function viewSectionMenu(
   // Should we show expand icon.
   const showExpandIcon = Computed.create(owner, (use) => {
     return !use(isNarrowScreenObs()) // not on narrow screens
-         && use(gristDoc.sectionInPopup) !== use(viewSection.id) // not in popup
+         && use(gristDoc.maximizedSectionId) !== use(viewSection.id) // not in when we are maximized
+         && use(gristDoc.externalSectionId) !== use(viewSection.id) // not in when we are external
          && !use(viewSection.isRaw); // not in raw mode
   });
 
@@ -210,7 +211,7 @@ function makeCustomOptions(section: ViewSectionRec) {
 const clsOldUI = styled('div', ``);
 
 
-const cssMenu = styled('div', `
+export const cssMenu = styled('div', `
   display: flex;
   cursor: pointer;
   border-radius: 3px;
@@ -277,7 +278,7 @@ const cssIcon = styled(icon, `
   }
 `);
 
-const cssDotsIconWrapper = styled(cssIconWrapper, `
+export const cssDotsIconWrapper = styled(cssIconWrapper, `
   border-radius: 0px 2px 2px 0px;
   display: flex;
   .${clsOldUI.className} & {

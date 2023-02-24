@@ -66,6 +66,14 @@ import {identity, last, uniqueId} from 'underscore';
 export interface ContentBox {
   leafId: ko.Observable<any>;
   leafContent: ko.Observable<Element|null>;
+  dom: HTMLElement|null;
+}
+
+export interface BoxSpec {
+  leaf?: string|number;
+  size?: number;
+  children?: BoxSpec[];
+  collapsed?: BoxSpec[];
 }
 
 /**
@@ -372,7 +380,7 @@ export class Layout extends Disposable {
   public leafId: string;
   private _leafIdMap: Map<any, LayoutBox>|null;
 
-  public create(boxSpec: object, createLeafFunc: (id: string) => HTMLElement, optFillWindow: boolean) {
+  public create(boxSpec: BoxSpec, createLeafFunc: (id: string) => HTMLElement, optFillWindow: boolean) {
     this.maximized = observable(null as (string|null));
     this.rootBox = observable(null as any);
     this.createLeafFunc = createLeafFunc;
@@ -424,13 +432,16 @@ export class Layout extends Disposable {
    * Calls cb on each box in the layout recursively.
    */
   public forEachBox(cb: (box: LayoutBox) => void, optContext?: any) {
+    if (!this.rootBox.peek()) {
+      return;
+    }
     function iter(box: any) {
       cb.call(optContext, box);
       box.childBoxes.peek().forEach(iter);
     }
     iter(this.rootBox.peek());
   }
-  public buildLayoutBox(boxSpec: any) {
+  public buildLayoutBox(boxSpec: BoxSpec) {
     // Note that this is hot code: it runs when rendering a layout for each record, not only for the
     // layout editor.
     const box = LayoutBox.create(this);
@@ -445,7 +456,7 @@ export class Layout extends Disposable {
     }
     return box;
   }
-  public buildLayout(boxSpec: any, needDynamic = false) {
+  public buildLayout(boxSpec: BoxSpec, needDynamic = false) {
     this.needDynamic = needDynamic;
     const oldRootBox = this.rootBox();
     this.rootBox(this.buildLayoutBox(boxSpec));
@@ -455,7 +466,7 @@ export class Layout extends Disposable {
     }
   }
   public _getBoxSpec(layoutBox: LayoutBox) {
-    const spec: any = {};
+    const spec: BoxSpec = {};
     if (layoutBox.isDisposed()) {
       return spec;
     }

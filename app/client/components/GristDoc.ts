@@ -166,10 +166,17 @@ export class GristDoc extends DisposableWithEvents {
   public readonly hasDocTour: Computed<boolean>;
 
   public readonly behavioralPromptsManager = this.docPageModel.appModel.behavioralPromptsManager;
-  // One of the section can be shown it the popup (as requested from the Layout), we will
-  // store its id in this variable. When the section is removed, changed or page is changed, we will
-  // hide it be informing the layout about it.
-  public sectionInPopup: Observable<number|null> = Observable.create(this, null);
+  // One of the section can be expanded (as requested from the Layout), we will
+  // store its id in this variable. NOTE: expanded section looks exactly the same as a section
+  // in the popup. But they are rendered differently, as section in popup is probably an external
+  // section (or raw data section) that is not part of this view. Maximized section is a section
+  // in the view, so there is no need to render it twice, layout just hides all other sections to make
+  // the space.
+  public maximizedSectionId: Observable<number|null> = Observable.create(this, null);
+  // This is id of the section that is currently shown in the popup. Probably this is an external
+  // section, like raw data view, or a section from another view..
+  public externalSectionId: Computed<number|null>;
+  public viewLayout: ViewLayout|null = null;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -178,7 +185,6 @@ export class GristDoc extends DisposableWithEvents {
   private _docHistory: DocHistory;
   private _discussionPanel: DiscussionPanel;
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
-  private _viewLayout: ViewLayout|null = null;
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
   private _rawSectionOptions: Observable<RawSectionOptions|null> = Observable.create(this, null);
@@ -229,6 +235,10 @@ export class GristDoc extends DisposableWithEvents {
       return viewId || use(defaultViewId);
     });
     this._activeContent = Computed.create(this, use => use(this._rawSectionOptions) ?? use(this.activeViewId));
+    this.externalSectionId = Computed.create(this, use => {
+      const externalContent = use(this._rawSectionOptions);
+      return externalContent ? use(externalContent.viewSection.id) : null;
+    });
     // This viewModel reflects the currently active view, relying on the fact that
     // createFloatingRowModel() supports an observable rowId for its argument.
     // Although typings don't reflect it, createFloatingRowModel() accepts non-numeric values,
@@ -238,10 +248,10 @@ export class GristDoc extends DisposableWithEvents {
 
     // When active section is changed, clear the maximized state.
     this.autoDispose(this.viewModel.activeSectionId.subscribe(() => {
-      this.sectionInPopup.set(null);
+      this.maximizedSectionId.set(null);
       // If we have layout, update it.
-      if (!this._viewLayout?.isDisposed()) {
-        this._viewLayout?.maximized.set(null);
+      if (!this.viewLayout?.isDisposed()) {
+        this.viewLayout?.maximized.set(null);
       }
     }));
 
@@ -444,7 +454,7 @@ export class GristDoc extends DisposableWithEvents {
    * Builds the DOM for this GristDoc.
    */
   public buildDom() {
-    const isMaximized = Computed.create(this, use => use(this.sectionInPopup) !== null);
+    const isMaximized = Computed.create(this, use => use(this.maximizedSectionId) !== null);
     const isPopup = Computed.create(this, use => {
       return ['data', 'settings'].includes(use(this.activeViewId) as any) // On Raw data or doc settings pages
         || use(isMaximized) // Layout has a maximized section visible
@@ -468,9 +478,10 @@ export class GristDoc extends DisposableWithEvents {
             return dom.create(RawDataPopup, this, content.viewSection, content.close);
           }) :
           dom.create((owner) => {
-            this._viewLayout = ViewLayout.create(owner, this, content);
-            this._viewLayout.maximized.addListener(n => this.sectionInPopup.set(n));
-            return this._viewLayout;
+            this.viewLayout = ViewLayout.create(owner, this, content);
+            this.viewLayout.maximized.addListener(n => this.maximizedSectionId.set(n));
+            owner.onDispose(() => this.viewLayout = null);
+            return this.viewLayout;
           })
         );
       }),
@@ -700,7 +711,7 @@ export class GristDoc extends DisposableWithEvents {
       return section;
     }
 
-    return await this._viewLayout!.freezeUntil(docData.bundleActions(
+    return await this.viewLayout!.freezeUntil(docData.bundleActions(
       t("Saved linked section {{title}} in view {{name}}", {title:section.title(), name: viewModel.name()}),
       async () => {
 
@@ -1021,7 +1032,7 @@ export class GristDoc extends DisposableWithEvents {
     // We can only open a popup for a section.
     if (!hash.sectionId) { return; }
     // We might open popup either for a section in this view or some other section (like Raw Data Page).
-    if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
+    if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId && !s.isCollapsed.peek())) {
       this.viewModel.activeSectionId(hash.sectionId);
       // If the anchor link is valid, set the cursor.
       if (hash.colRef && hash.rowId) {
@@ -1178,7 +1189,7 @@ export class GristDoc extends DisposableWithEvents {
     // we must read the current layout from the view layout because it can override the one in
     // `section.layoutSpec` (in particular it provides a default layout when missing from the
     // latter).
-    const layoutSpec = this._viewLayout!.layoutSpec();
+    const layoutSpec = this.viewLayout!.layoutSpec();
 
     const sectionTitle = section.title();
     const sectionId = section.id();

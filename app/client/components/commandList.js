@@ -393,6 +393,18 @@ exports.groups = [{
       keys: [],
       desc: 'Delete the currently active viewsection'
     }, {
+      name: 'collapseSection',
+      keys: [],
+      desc: 'Collapse the currently active viewsection'
+    }, {
+      name: 'expandSection',
+      keys: [],
+      desc: 'Expand collapsed viewsection'
+    }, {
+      name: 'deleteCollapsedSection',
+      keys: [],
+      desc: 'Delete collapsed viewsection'
+    }, {
       name: 'duplicateRows',
       keys: ['Mod+Shift+d'],
       desc: 'Duplicate selected rows'

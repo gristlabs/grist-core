@@ -229,8 +229,7 @@ export class ChartView extends Disposable {
     this.listenTo(this.sortedRows, 'rowNotify', this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
     this.autoDispose(this._formatterComp.subscribe(this._update));
-    this.autoDispose(this.gristDoc.docPageModel.appModel.currentTheme.addListener(() =>
-      this._update()));
+    this.autoDispose(this.gristDoc.docPageModel.appModel.currentTheme.addListener(() => this._update()));
   }
 
   public prepareToPrint(onOff: boolean) {

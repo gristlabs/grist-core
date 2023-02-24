@@ -17,10 +17,13 @@
   cursor: default;
   height: 24px;
   margin-left: -16px;   /* to include drag handle that shows up on hover */
+  white-space: nowrap;
+}
+
+.viewsection_title, .viewsection_title_font {
   color: var(--grist-theme-text-light, var(--grist-color-slate));
   font-size: var(--grist-small-font-size);
   font-weight: 500;
-  white-space: nowrap;
 }
 
 .viewsection_content {

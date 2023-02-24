@@ -1060,8 +1060,12 @@ export async function addNewPage(
   await driver.wait(async () => (await driver.getCurrentUrl()) !== url, 2000);
 }
 
+type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom';
+
 // Add a new widget to the current page using the 'Add New' menu.
-export async function addNewSection(typeRe: RegExp|string, tableRe: RegExp|string, options?: PageWidgetPickerOptions) {
+export async function addNewSection(
+  typeRe: RegExp|SectionTypes, tableRe: RegExp|string, options?: PageWidgetPickerOptions
+) {
   // Click the 'Add widget to page' entry in the 'Add New' menu
   await driver.findWait('.test-dp-add-new', 2000).doClick();
   await driver.findWait('.test-dp-add-widget-to-page', 500).doClick();
@@ -1514,7 +1518,6 @@ export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', secti
 const ColumnMenuOption: { [id: string]: string; } = {
   Filter: '.test-filter-menu-wrapper'
 };
-
 
 async function openColumnMenuHelper(col: IColHeader|string, option?: string): Promise<WebElement> {
   await getColumnHeader(typeof col === 'string' ? {col} : col).mouseMove().find('.g-column-main-menu').click();

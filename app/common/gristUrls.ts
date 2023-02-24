@@ -257,7 +257,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     queryParams[`${k}_`] = v;
   }
   const hashParts: string[] = [];
-  if (state.hash && state.hash.rowId) {
+  if (state.hash && (state.hash.rowId || state.hash.popup)) {
     const hash = state.hash;
     hashParts.push(state.hash?.popup ? 'a2' : `a1`);
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {

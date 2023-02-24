@@ -130,7 +130,8 @@ RecordLayoutEditor.prototype.buildLeafDom = function() {
       dom.on('click', (ev, elem) => {
         ev.preventDefault();
         ev.stopPropagation();
-        this.layoutEditor.removeContainingBox(elem);
+        const box = this.layoutEditor.getBoxFromElement(elem);
+        this.layoutEditor.removeContainingBox(box);
       })
     )
   );

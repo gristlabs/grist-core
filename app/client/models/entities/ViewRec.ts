@@ -1,3 +1,4 @@
+import {BoxSpec} from 'app/client/components/Layout';
 import {KoArray} from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
 import {DocModel, IRowModel, recordSet, refRecord} from 'app/client/models/DocModel';
@@ -10,10 +11,20 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
   viewSections: ko.Computed<KoArray<ViewSectionRec>>;
   tabBarItem: ko.Computed<KoArray<TabBarRec>>;
 
-  layoutSpecObj: modelUtil.ObjObservable<any>;
+  layoutSpecObj: modelUtil.SaveableObjObservable<BoxSpec>;
 
   // An observable for the ref of the section last selected by the user.
   activeSectionId: ko.Computed<number>;
+
+  // This is active collapsed section id. Set when the widget is clicked.
+  activeCollapsedSectionId: ko.Observable<number>;
+
+  // Saved collapsed sections.
+  collapsedSections: ko.Computed<number[]>;
+
+  // Active collapsed sections, changed by the user, can be different from the
+  // saved collapsed sections, for a brief moment (editor is buffering changes).
+  activeCollapsedSections: ko.Observable<number[]>;
 
   activeSection: ko.Computed<ViewSectionRec>;
 
@@ -38,6 +49,15 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
   });
 
   this.activeSection = refRecord(docModel.viewSections, this.activeSectionId);
+
+  this.activeCollapsedSectionId = ko.observable(0);
+
+  this.collapsedSections = this.autoDispose(ko.pureComputed(() => {
+    const allSections = new Set(this.viewSections().all().map(x => x.id()));
+    const collapsed: number[] = (this.layoutSpecObj().collapsed || []).map(x => x.leaf as number);
+    return collapsed.filter(x => allSections.has(x));
+  }));
+  this.activeCollapsedSections = ko.observable(this.collapsedSections.peek());
 
   // If the active section is removed, set the next active section to be the default.
   this._isActiveSectionGone = this.autoDispose(ko.computed(() => this.activeSection()._isDeleted()));

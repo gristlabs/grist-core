@@ -3,12 +3,13 @@ import {DataTables} from 'app/client/components/DataTables';
 import {DocumentUsage} from 'app/client/components/DocumentUsage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {printViewSection} from 'app/client/components/Printing';
-import {buildViewSectionDom, ViewSectionHelper} from 'app/client/components/ViewLayout';
+import {ViewSectionHelper} from 'app/client/components/ViewLayout';
 import {mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import {reportError} from 'app/client/models/errors';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 
 const testId = makeTestId('test-raw-data-');
 
@@ -76,6 +77,13 @@ export class RawDataPopup extends Disposable {
     super();
     const commandGroup = {
       cancel: () => { this._onClose(); },
+      deleteSection: () => {
+        // Normally this command is disabled on the menu, but for collapsed section it is active.
+        if (this._viewSection.isRaw.peek()) {
+          throw new Error("Can't delete a raw section");
+        }
+        this._gristDoc.docData.sendAction(['RemoveViewSection', this._viewSection.id.peek()]).catch(reportError);
+      },
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
   }
@@ -89,7 +97,7 @@ export class RawDataPopup extends Disposable {
           sectionRowId: this._viewSection.getRowId(),
           draggable: false,
           focusable: false,
-          widgetNameHidden: true
+          widgetNameHidden: this._viewSection.isRaw.peek(), // We are sometimes used for non raw sections.
         })
       ),
       cssCloseButton('CrossBig',

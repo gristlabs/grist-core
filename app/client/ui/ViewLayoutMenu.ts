@@ -4,7 +4,8 @@ import {ViewSectionRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {testId} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuItemCmd, menuItemLink} from 'app/client/ui2018/menus';
-import {dom} from 'grainjs';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {dom, UseCB} from 'grainjs';
 
 const t = makeT('ViewLayoutMenu');
 
@@ -42,10 +43,27 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   anchorUrlState.hash!.popup = true;
   const rawUrl = urlState().makeUrl(anchorUrlState);
 
+  // Count number of rendered sections on the viewLayout. Note that the layout might be detached or cleaned
+  // when we have an external section in the popup.
+  const expandedSectionCount = () => gristDoc.viewLayout?.layout.getAllLeafIds().length ?? 0 > 1;
+
+  const dontRemoveSection = () =>
+    !viewRec.getRowId() || viewRec.viewSections().peekLength <= 1 || isReadonly || expandedSectionCount() === 1;
+
+  const dontCollapseSection = () =>
+    dontRemoveSection() ||
+    (gristDoc.externalSectionId.get() === viewSection.getRowId()) ||
+    (gristDoc.maximizedSectionId.get() === viewSection.getRowId());
+
+  const showRawData = (use: UseCB) => {
+    return !use(viewSection.isRaw)// Don't show raw data if we're already in raw data.
+        && !isLight // Don't show raw data in light mode.
+           ;
+  };
 
   return [
     dom.maybe((use) => ['single'].includes(use(viewSection.parentKey)), () => contextMenu),
-    dom.maybe((use) => !use(viewSection.isRaw) && !isLight && !use(gristDoc.sectionInPopup),
+    dom.maybe(showRawData,
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
         dom.on('click', (ev) => {
@@ -78,8 +96,44 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       menuItemCmd(allCommands.openWidgetConfiguration, t("Open configuration"),
         testId('section-open-configuration')),
     ),
+    menuItemCmd(allCommands.collapseSection, t("Collapse widget"),
+      dom.cls('disabled', dontCollapseSection()),
+      testId('section-collapse')),
     menuItemCmd(allCommands.deleteSection, t("Delete widget"),
-      dom.cls('disabled', !viewRec.getRowId() || viewRec.viewSections().peekLength <= 1 || isReadonly),
+      dom.cls('disabled', dontRemoveSection()),
+      testId('section-delete')),
+  ];
+}
+
+
+/**
+ * Returns a list of menu items for a view section.
+ */
+export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: GristDoc) {
+  const isReadonly = gristDoc.isReadonly.get();
+  const isLight = urlState().state.get().params?.style === 'light';
+  const sectionId = viewSection.table.peek().rawViewSectionRef.peek();
+  const anchorUrlState = { hash: { sectionId, popup: true } };
+  const rawUrl = urlState().makeUrl(anchorUrlState);
+  return [
+    dom.maybe((use) => !use(viewSection.isRaw) && !isLight && !use(gristDoc.maximizedSectionId),
+      () => menuItemLink(
+        { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
+        dom.on('click', (ev) => {
+          // Replace the current URL so that the back button works as expected (it navigates back from
+          // the current page).
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+          urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
+        })
+      )
+    ),
+    menuDivider(),
+    menuItemCmd(allCommands.expandSection, t("Add to page"),
+      dom.cls('disabled', isReadonly),
+      testId('section-expand')),
+    menuItemCmd(allCommands.deleteCollapsedSection, t("Delete widget"),
+      dom.cls('disabled', isReadonly),
       testId('section-delete')),
   ];
 }
