@@ -346,7 +346,8 @@
         "Empty Columns_one": "Leere Spalte",
         "Empty Columns_other": "Leere Spalten",
         "Formula Columns_one": "Formel Spalte",
-        "Formula Columns_other": "Formel-Spalten"
+        "Formula Columns_other": "Formel-Spalten",
+        "DESCRIPTION": "BESCHREIBUNG"
     },
     "FieldMenus": {
         "Revert to common settings": "Gemeinsame Einstellungen wiederherstellen",
