@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 async function listLibs(src) {
   const txt = fs.readFileSync(path.join(__dirname, '..', 'requirements3.txt'), 'utf8');
   const libs = {};
-  for (const line of txt.split('\n')) {
+  for (const line of txt.split(/\r?\n/)) {
     const raw = line.split('#')[0];
     if (!raw.includes('==')) { continue; }
     const [name, version] = line.split('==');
