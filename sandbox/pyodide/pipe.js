@@ -69,7 +69,21 @@ class GristPipe {
     await this.pyodide.FS.mkdir("/grist_src");
     // careful, needs to be a realpath
     await this.pyodide.FS.mount(this.pyodide.FS.filesystems.NODEFS, { root }, "/grist_src");
-    await this.pyodide.runPython("import shutil; shutil.copytree('/grist_src', '/grist')");
+    // Now want to copy /grist_src to /grist.
+    // For some reason shutil.copytree doesn't work on Windows in this situation, so
+    // we reimplement it crudely.
+    await this.pyodide.runPython(`
+import os, shutil
+def copytree(src, dst):
+  os.makedirs(dst, exist_ok=True)
+  for item in os.listdir(src):
+    s = os.path.join(src, item)
+    d = os.path.join(dst, item)
+    if os.path.isdir(s):
+      copytree(s, d)
+    else:
+      shutil.copy2(s, d)
+copytree('/grist_src', '/grist')`);
     await this.pyodide.FS.unmount("/grist_src");
     await this.pyodide.FS.rmdir("/grist_src");
   }
