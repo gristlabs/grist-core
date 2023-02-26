@@ -32,7 +32,8 @@
         "COLUMN BEHAVIOR": "ПОВОДЖЕННЯ СТОВПЦІВ",
         "Convert to trigger formula": "Перетворити на тригерну формулу",
         "Column options are limited in summary tables.": "Налаштування стовпців у підсумкових таблицях обмежені.",
-        "Convert column to data": "Перетворити стовпець у дані"
+        "Convert column to data": "Перетворити стовпець у дані",
+        "DESCRIPTION": "ОПИС"
     },
     "FieldMenus": {
         "Revert to common settings": "Повернутися до загальних налаштувань",
