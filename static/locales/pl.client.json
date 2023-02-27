@@ -254,5 +254,164 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Przepraszamy ale nie masz dostępu do tego dokumentu. [{{error}}]",
         "You do not have edit access to this document": "nie masz uprawnień do edytowania tego dokumentu",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Spróbuj przeładować dokument, albo użyj trybu odzyskiwania. W trybie odzyskiwania dokument jest otwarty z pełnym dostępem dla właściciela i jako niedostępny dla kogokolwiek innego, a formuły są wyłączone. [{{error}}]"
+    },
+    "HomeIntro": {
+        "Get started by creating your first Grist document.": "Zacznij od stworzenia swojego pierwszego dokumentu Grist.",
+        "Any documents created in this site will appear here.": "Wszelkie dokumenty utworzone w tej witrynie pojawią się tutaj.",
+        "Browse Templates": "Przeglądaj szablony",
+        "Create Empty Document": "Tworzenie pustego dokumentu",
+        "Get started by inviting your team and creating your first Grist document.": "Zacznij od zaproszenia swojego zespołu i stworzenia pierwszego dokumentu Grist.",
+        "Help Center": "Centrum pomocy",
+        "Import Document": "Importuj dokument",
+        "Get started by exploring templates, or creating your first Grist document.": "Zacznij od zapoznania się z szablonami lub stworzenia swojego pierwszego dokumentu Grist.",
+        "{{signUp}} to save your work. ": "{{signUp}}, aby zapisać swoją pracę. ",
+        "Welcome to {{orgName}}": "Witamy w {{orgName}}",
+        "Interested in using Grist outside of your team? Visit your free ": "Chcesz używać Grist poza swoim zespołem? Odwiedź swój darmowy ",
+        "Invite Team Members": "Zaproś członków zespołu",
+        "Sign up": "Zarejestruj się",
+        "Sprouts Program": "Program Kiełki",
+        "This workspace is empty.": "Ten obszar roboczy jest pusty.",
+        "Visit our {{link}} to learn more.": "Odwiedź nasze {{link}}, aby dowiedzieć się więcej.",
+        "You have read-only access to this site. Currently there are no documents.": "Masz dostęp tylko do odczytu do tej witryny. Obecnie brak dokumentów.",
+        "personal site": "strona osobista",
+        "Welcome to Grist!": "Witamy w Grist!",
+        "Welcome to Grist, {{name}}!": "Witamy w Grist, {{name}}!"
+    },
+    "DocTour": {
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Nie można utworzyć przewodnika po dokumencie na podstawie danych w tym dokumencie. Upewnij się, że istnieje tabela o nazwie GristDocTour z kolumnami Tytuł, Treść, Położenie i Lokalizacja.",
+        "No valid document tour": "Brak przewodnika dla dokumentu"
+    },
+    "DocumentSettings": {
+        "Currency:": "Waluta:",
+        "Document Settings": "Ustawienia dokumentu",
+        "Engine (experimental {{span}} change at own risk):": "Silnik (eksperymentalny {{span}} zmiana na własne ryzyko):",
+        "Locale:": "Ustawienia regionalne",
+        "Save": "Zapisz",
+        "Save and Reload": "Zapisz i ponownie załaduj",
+        "This document's ID (for API use):": "Identyfikator tego dokumentu (na potrzeby API):",
+        "Time Zone:": "Strefa czasowa:",
+        "API": "API",
+        "Document ID copied to clipboard": "Identyfikator dokumentu skopiowany do schowka",
+        "Ok": "Ok",
+        "Local currency ({{currency}})": "Waluta lokalna ({{currency}})"
+    },
+    "DocumentUsage": {
+        "Contact the site owner to upgrade the plan to raise limits.": "Skontaktuj się z właścicielem witryny, aby uaktualnić plan w celu podniesienia limitów.",
+        "Data Size": "Rozmiar danych",
+        "Rows": "Wiersze",
+        "Usage": "Zastosowanie",
+        "Usage statistics are only available to users with full access to the document data.": "Statystyki użytkowania są dostępne tylko dla użytkowników z pełnym dostępem do danych dokumentu.",
+        "start your 30-day free trial of the Pro plan.": "rozpocznij 30-dniową bezpłatną próbę planu Pro.",
+        "Attachments Size": "Rozmiar załączników",
+        "For higher limits, ": "W przypadku wyższych limitów, "
+    },
+    "DuplicateTable": {
+        "Copy all data in addition to the table structure.": "Skopiuj wszystkie dane oprócz struktury tabeli.",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Zamiast duplikować tabele, zwykle lepiej jest segmentować dane za pomocą połączonych widoków. {{link}}",
+        "Name for new table": "Nazwa dla nowej tabeli",
+        "Only the document default access rules will apply to the copy.": "Do kopii będą miały zastosowanie tylko domyślne zasady dostępu do dokumentu."
+    },
+    "ExampleInfo": {
+        "Afterschool Program": "Program pozaszkolny",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Sprawdź nasz powiązany samouczek, jak łączyć dane i tworzyć układy o wysokiej produktywności.",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Zapoznaj się z naszym poradnikiem dotyczącym modelowania danych biznesowych, używania formuł i zarządzania złożonością.",
+        "Investment Research": "Badania inwestycyjne",
+        "Lightweight CRM": "Lekki CRM",
+        "Tutorial: Analyze & Visualize": "Samouczek: Analiza i wizualizacja",
+        "Tutorial: Create a CRM": "Tutorial: Utwórz CRM",
+        "Tutorial: Manage Business Data": "Samouczek: Zarządzanie danymi biznesowymi",
+        "Welcome to the Afterschool Program template": "Witamy w szablonie programu pozaszkolnego",
+        "Welcome to the Lightweight CRM template": "Witamy w lekkim szablonie CRM",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Sprawdź nasz powiązany tutorial, aby dowiedzieć się, jak tworzyć tabele i wykresy zbiorcze oraz dynamicznie łączyć wykresy.",
+        "Welcome to the Investment Research template": "Witamy w szablonie badań inwestycyjnych"
+    },
+    "FieldConfig": {
+        "COLUMN BEHAVIOR": "ZACHOWANIE KOLUMNY",
+        "COLUMN LABEL AND ID": "ETYKIETA I IDENTYFIKATOR KOLUMNY",
+        "Clear and make into formula": "Wyczyść i przekształć w formułę",
+        "Clear and reset": "Wyczyść i zresetuj",
+        "Column options are limited in summary tables.": "Opcje kolumn są ograniczone w tabelach zbiorczych.",
+        "Convert column to data": "Konwertowanie kolumny na dane",
+        "Convert to trigger formula": "Konwersja do formuły wyzwalającej",
+        "Data Columns_one": "Kolumna danych",
+        "Formula Columns_one": "Kolumna formuły",
+        "Formula Columns_other": "Kolumny formuł",
+        "Set formula": "Ustaw formułę",
+        "Mixed Behavior": "Mieszane zachowanie",
+        "TRIGGER FORMULA": "FORMUŁA WYZWALACZA",
+        "Data Columns_other": "Kolumny danych",
+        "Empty Columns_one": "Pusta kolumna",
+        "Empty Columns_other": "Puste kolumny",
+        "Enter formula": "Wprowadź formułę",
+        "Make into data column": "Zrób z tego kolumnę danych",
+        "Set trigger formula": "Ustawianie formuły wyzwalacza"
+    },
+    "GridOptions": {
+        "Zebra Stripes": "Paski zebry",
+        "Vertical Gridlines": "Pionowe linie siatki",
+        "Horizontal Gridlines": "Poziome linie siatki",
+        "Grid Options": "Opcje siatki"
+    },
+    "GridViewMenus": {
+        "Add Column": "Dodaj kolumnę",
+        "Add to sort": "Dodaj do sortowania",
+        "Clear values": "Wyczyść wartości",
+        "Column Options": "Opcje kolumn",
+        "Convert formula to data": "Konwertowanie formuły na dane",
+        "Delete {{count}} columns_one": "Usuń kolumnę",
+        "Delete {{count}} columns_other": "Usuń {{count}} kolumny",
+        "Filter Data": "Filtrowanie danych",
+        "Freeze {{count}} more columns_one": "Zablokuj jeszcze jedną kolumnę",
+        "Freeze {{count}} columns_one": "Zablokuj tę kolumnę",
+        "Freeze {{count}} columns_other": "Blokowanie kolumn {{count}}",
+        "Freeze {{count}} more columns_other": "Zamrożenie jeszcze {{count}} kolumn",
+        "Hide {{count}} columns_one": "Ukryj kolumnę",
+        "Hide {{count}} columns_other": "Ukryj {{count}}kolumn",
+        "Insert column to the {{to}}": "Wstaw kolumnę do {{to}}",
+        "More sort options ...": "Więcej opcji sortowania…",
+        "Rename column": "Zmień nazwę kolumny",
+        "Reset {{count}} columns_one": "Wyzerować kolumnę",
+        "Reset {{count}} columns_other": "Wyzeruj {{count}} kolumn",
+        "Reset {{count}} entire columns_one": "Zresetuj całą kolumnę",
+        "Reset {{count}} entire columns_other": "Resetowanie {{count}} całych kolumn",
+        "Show column {{- label}}": "Pokaż kolumnę {{- label}}",
+        "Sort": "Sortuj",
+        "Sorted (#{{count}})_one": "Posortowane (#{{count}})",
+        "Sorted (#{{count}})_other": "Posortowane (#{{count}})",
+        "Unfreeze all columns": "Odblokuj wszystkie kolumny",
+        "Unfreeze {{count}} columns_one": "Odblokuj tę kolumnę",
+        "Unfreeze {{count}} columns_other": "Odblokuj kolumny {{count}}"
+    },
+    "GristDoc": {
+        "Added new linked section to view {{viewName}}": "Dodano nową połączoną sekcję do widoku {{viewName}}",
+        "Import from file": "Import z pliku",
+        "Saved linked section {{title}} in view {{name}}": "Zapisane połączone sekcje {{title}} w widoku {{name}}"
+    },
+    "Drafts": {
+        "Restore last edit": "Przywróć ostatnią zmianę",
+        "Undo discard": "Cofnij odrzucenie"
+    },
+    "FieldMenus": {
+        "Use separate settings": "Użyj oddzielnych ustawień",
+        "Revert to common settings": "Przywrócenie zwykłych ustawień",
+        "Using common settings": "Używanie wspólnych ustawień",
+        "Save as common settings": "Zapisz jako ustawienia wspólne",
+        "Using separate settings": "Używanie oddzielnych ustawień"
+    },
+    "FilterBar": {
+        "Search Columns": "Wyszukaj kolumny",
+        "SearchColumns": "Wyszukaj kolumny"
+    },
+    "FilterConfig": {
+        "Add Column": "Dodaj kolumnę"
+    },
+    "HomeLeftPane": {
+        "Delete": "Usuń",
+        "Delete {{workspace}} and all included documents?": "Usunąć {{workspace}} i wszystkie dołączone dokumenty?",
+        "Examples & Templates": "Przykłady i szablony",
+        "All Documents": "Wszystkie dokumenty",
+        "Create Empty Document": "Utwórz pusty dokument",
+        "Create Workspace": "Utwórz przestrzeń roboczą",
+        "Access Details": "Szczegóły dostępu"
     }
 }

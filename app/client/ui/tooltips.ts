@@ -242,7 +242,7 @@ export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
 /**
  * Renders an info icon that shows a tooltip with the specified `content` on click.
  */
-function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
+export function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
   return cssInfoTooltipButton('?',
     (elem) => {
       setPopupToCreateDom(
@@ -313,6 +313,62 @@ export function withInfoTooltip(
     ...(domArgs ?? [])
   );
 }
+
+/**
+ * Renders an column info icon that shows a tooltip with the specified `content` on click.
+ */
+ export function columnInfoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
+  return cssColumnInfoTooltipButton(
+    icon('Info', dom.cls("info_toggle_icon")),
+    (elem) => {
+      setPopupToCreateDom(
+        elem,
+        (ctl) => {
+          return cssInfoTooltipPopup(
+            cssInfoTooltipPopupCloseButton(
+              icon('CrossSmall'),
+              dom.on('click', () => ctl.close()),
+              testId('column-info-tooltip-close'),
+            ),
+            cssInfoTooltipPopupBody(
+              content,
+              { style: 'white-space: pre-wrap;' },
+              testId('column-info-tooltip-popup-body'),
+            ),
+            dom.cls(menuCssClass),
+            dom.cls(cssMenu.className),
+            dom.onKeyDown({
+              Enter: () => ctl.close(),
+              Escape: () => ctl.close(),
+            }),
+            (popup) => { setTimeout(() => popup.focus(), 0); },
+            testId('column-info-tooltip-popup'),
+          );
+        },
+        { ...defaultMenuOptions, ...{ placement: 'bottom-end' }, ...menuOptions },
+      );
+    },
+    testId('column-info-tooltip'),
+    ...domArgs,
+  );
+}
+
+const cssColumnInfoTooltipButton = styled('div', `
+  cursor: pointer;
+  --icon-color: ${theme.infoButtonFg};
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 5px;
+  line-height: 0px;
+
+  &:hover  {
+    --icon-color: ${theme.infoButtonHoverFg};
+  }
+  &:active  {
+    --icon-color: ${theme.infoButtonActiveFg};
+  }
+`);
+
 
 const cssTooltip = styled('div', `
   position: absolute;

@@ -219,7 +219,8 @@
         "Make into data column": "Преобразовать в столбец данных",
         "Enter formula": "Введите формулу",
         "Mixed Behavior": "Смешанное поведение",
-        "Set formula": "Задать формулу"
+        "Set formula": "Задать формулу",
+        "DESCRIPTION": "ОПИСАНИЕ"
     },
     "MakeCopyMenu": {
         "Update Original": "Обновить оригинал",

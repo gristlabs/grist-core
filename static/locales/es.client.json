@@ -275,7 +275,8 @@
         "Empty Columns_one": "Columna vacía",
         "Empty Columns_other": "Columnas vacías",
         "Formula Columns_one": "Columna de Fórmula",
-        "Formula Columns_other": "Columnas de Fórmula"
+        "Formula Columns_other": "Columnas de Fórmula",
+        "DESCRIPTION": "DESCRIPCIÓN"
     },
     "FieldMenus": {
         "Revert to common settings": "Revertir a los ajustes comunes",

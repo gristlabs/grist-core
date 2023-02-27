@@ -399,7 +399,8 @@
         "Browse Templates": "Parcourir les modèles",
         "Create Empty Document": "Créer un document vide",
         "Import Document": "Importer un Fichier",
-        "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus."
+        "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
+        "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. "
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",
@@ -804,7 +805,10 @@
         "CELL FORMAT": "FORMAT DE CELLULE",
         "Mixed types": "Types composites",
         "Changing multiple column types": "Changer plusieurs types",
-        "Mixed format": "Format composite"
+        "Mixed format": "Format composite",
+        "Revert field settings for {{colId}} to common": "Réinitialiser les paramètres par défaut pour {{colId}}",
+        "Save field settings for {{colId}} as common": "Sauvegarder les paramètres pour {{colId}}",
+        "Use separate field settings for {{colId}}": "Utiliser des paramètres spécifiques pour {{colId}}"
     },
     "welcomeTour": {
         "Customizing columns": "Personnaliser les colonnes",
@@ -819,7 +823,18 @@
         "Start with {{equal}} to enter a formula.": "Commencer par {{equal}} pour ajouter une formule.",
         "Sharing": "Partager",
         "Reference": "Référence",
-        "Help Center": "Centre d'aide"
+        "Help Center": "Centre d'aide",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Parcourez notre {{templateLibrary}} pour découvrir les possibilités et trouver de l'inspiration.",
+        "Flying higher": "Pour aller plus loin",
+        "Enter": "Entrée",
+        "Use the Share button ({{share}}) to share the document or export data.": "Utilisez le bouton de partage ({{share}}) pour partager le document ou exporter les données.",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Rendez-le relationnel ! Utilisez le type {{ref}} pour lier les tableaux. ",
+        "Toggle the {{creatorPanel}} to format columns, ": "Ouvrez le {{creatorPanel}} pour formater les colonnes ",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Cliquez sur {{addNew}} pour ajouter des vues, des pages ou importer plus de données. ",
+        "convert to card view, select data, and more.": "convertir en vue carte, sélectionner des données et plus.",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Définissez des options de formatage de la colonne, des formules ou bien les types de la colonne (dates, liste à choix unique, pièce jointe etc.) ",
+        "Use {{helpCenter}} for documentation or questions.": "Cliquez sur {{helpCenter}} pour voir la documentation et poser vos questions.",
+        "creator panel": "menu latéral"
     },
     "TypeTransformation": {
         "Cancel": "Annuler",
@@ -868,7 +883,8 @@
         "Errors in all {{numErrors}} cells": "Erreur dans toutes les {{numErrors}} cellules",
         "Error in the cell": "Erreur dans la cellule",
         "Column or field is required": "Colonne ou champ requis",
-        "Errors in {{numErrors}} of {{numCells}} cells": "Erreur dans {{numErrors}} des {{numCells}} cellules"
+        "Errors in {{numErrors}} of {{numCells}} cells": "Erreur dans {{numErrors}} des {{numCells}} cellules",
+        "editingFormula is required": "editingFormula est nécessaire"
     },
     "NumericTextBox": {
         "Decimals": "Décimales",
@@ -883,5 +899,48 @@
         "Row ID": "Id de ligne",
         "CELL FORMAT": "FORMAT DE CELLULE",
         "SHOW COLUMN": "MONTRER LA COLONNE"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[label du lien] url"
+    },
+    "GristTooltips": {
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Appliquez un formatage conditionnel aux cellules de cette colonne lorsque les conditions de la formule sont remplies.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Les cellules d'une colonne Référence identifient toujours un enregistrement {{entire}} de cette table, mais vous pouvez sélectionner la colonne de cet enregistrement à afficher.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Cliquez sur “Ouvrir les styles de ligne” pour appliquer le formatage conditionnel aux lignes.",
+        "Apply conditional formatting to rows based on formulas.": "Appliquez un formatage conditionnel aux lignes en fonction de formules.",
+        "Updates every 5 minutes.": "Mises à jour toutes les 5 minutes.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône \\u{1D6BA} pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
+        "Reference columns are the key to {{relational}} data in Grist.": "Les colonnes références sont la clé des données {{relational}} dans Grist.",
+        "Select the table containing the data to show.": "Sélectionnez la table contenant les données à afficher.",
+        "Link your new widget to an existing widget on this page.": "Liez votre nouvelle vue à une vue existante sur cette page.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formules qui se déclenchent dans certains cas, et qui stockent la valeur calculée comme donnée.",
+        "Only those rows will appear which match all of the filters.": "Seules les lignes qui correspondent à tous les filtres apparaîtront.",
+        "Select the table to link to.": "Sélectionnez la table vers laquelle vous souhaitez établir un lien.",
+        "Selecting Data": "Sélection de données",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue carte en faisant glisser et en redimensionnant les cellules.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des données sources liste toutes les tables de votre document, y compris les tables récapitulatives et les tables non-inclues dans les mises en page.",
+        "The total size of all data in this document, excluding attachments.": "La taille totale de toutes les données de ce document, à l'exclusion des pièces jointes.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents dans votre espace de travail ou importer des données.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "En cliquant sur {{EyeHideIcon}} dans chaque cellule, vous masquez le champ de cette vue sans le supprimer.",
+        "Editing Card Layout": "Modification de la mise en page de la carte",
+        "Linking Widgets": "Lier les vues",
+        "Nested Filtering": "Filtrage imbriqué",
+        "Pinned filters are displayed as buttons above the widget.": "Les filtres épinglés sont affichés sous forme de boutons au-dessus de la vue.",
+        "Pinning Filters": "Filtres épinglés",
+        "Raw Data page": "Page des données sources",
+        "Reference Columns": "Colonnes références",
+        "This is the secret to Grist's dynamic and productive layouts.": "C'est le secret des mises en page dynamiques et productives de Grist.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Essayez les changements sur une copie, puis décidez de remplacer l'original par vos modifications.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Utile pour stocker l'horodatage ou l'auteur d'un nouvel enregistrement, le nettoyage des données, et plus encore.",
+        "You can filter by more than one column.": "Vous pouvez filtrer par plus d'une colonne.",
+        "entire": "entier",
+        "relational": "relationnelles",
+        "Access Rules": "Règles d'accès",
+        "Learn more.": "En savoir plus.",
+        "They allow for one record to point (or refer) to another.": "Ils permettent à une entrée de pointer (ou de faire référence) à une autre entrée.",
+        "Add New": "Nouveau",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
+        "Unpin to hide the the button while keeping the filter.": "Détachez pour cacher le bouton tout en conservant le filtre."
     }
 }

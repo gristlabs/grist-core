@@ -43,6 +43,7 @@ import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
         DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
+import { buildDescriptionConfig } from './FieldConfig';
 
 const t = makeT('RightPanel');
 
@@ -234,6 +235,9 @@ export class RightPanel extends Disposable {
         buildConfigContainer(
           cssSection(
             dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
+          ),
+          cssSection(
+            dom.create(buildDescriptionConfig, origColumn, cursor),
           ),
           cssSeparator(),
           cssSection(
