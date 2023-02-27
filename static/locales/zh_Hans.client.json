@@ -117,10 +117,10 @@
         "You do not have edit access to this document": "您没有对此文档的编辑权限"
     },
     "CellContextMenu": {
-        "Duplicate rows_one": "复制行",
+        "Duplicate rows_one": "重复行",
         "Delete {{count}} columns_other": "删除 {{count}} 列",
         "Delete {{count}} rows_one": "删除行",
-        "Duplicate rows_other": "复制行",
+        "Duplicate rows_other": "重复行",
         "Filter by this value": "按此值筛选",
         "Insert column to the left": "在左侧插入列",
         "Insert row below": "在下方插入行",
@@ -165,7 +165,7 @@
         "Document Settings": "文档设置",
         "Manage Team": "管理团队",
         "Pricing": "定价",
-        "Profile Settings": "配置文件设置",
+        "Profile Settings": "配置设置",
         "Sign Out": "登出",
         "Sign in": "登录",
         "Switch Accounts": "切换帐户",
@@ -226,8 +226,8 @@
         "Restore": "恢复",
         "This service is not available right now": "该服务目前不可用",
         "To restore this document, restore the workspace first.": "要恢复此文档，请先恢复工作区。",
-        "Trash": "垃圾",
-        "Trash is empty.": "垃圾桶是空的。",
+        "Trash": "回收站",
+        "Trash is empty.": "回收站是空的。",
         "Unpin Document": "取消固定文档",
         "Workspace not found": "找不到工作区",
         "You are on the {{siteName}} site. You also have access to the following sites:": "您在 {{siteName}} 网站上。 您还可以访问以下站点：",
@@ -247,7 +247,7 @@
         "Document owners can attempt to recover the document. [{{error}}]": "文档所有者可以尝试恢复文档。 [{{error}}]"
     },
     "SortFilterConfig": {
-        "Sort": "种类",
+        "Sort": "排序",
         "Filter": "筛选",
         "Revert": "恢复",
         "Save": "保存",
@@ -300,7 +300,7 @@
         "Get started by exploring templates, or creating your first Grist document.": "从浏览模板或创建您的第一个 Grist 文档开始。",
         "Get started by inviting your team and creating your first Grist document.": "开始邀请您的团队并创建您的第一个 Grist 文档。",
         "Help Center": "帮助中心",
-        "Import Document": "进口文件",
+        "Import Document": "导入文档",
         "Sprouts Program": "新芽计划",
         "This workspace is empty.": "这个工作区是空的。",
         "Visit our {{link}} to learn more.": "访问我们的{{link}}以了解更多信息。",
@@ -312,14 +312,14 @@
     },
     "HomeLeftPane": {
         "Delete": "删除",
-        "Trash": "垃圾",
+        "Trash": "回收站",
         "Access Details": "访问详细信息",
         "All Documents": "所有文件",
         "Create Empty Document": "创建空文档",
         "Create Workspace": "创建工作区",
         "Delete {{workspace}} and all included documents?": "删除 {{workspace}} 和所有包含的文档？",
         "Examples & Templates": "示例和模板",
-        "Import Document": "进口文件",
+        "Import Document": "导入文档",
         "Manage Users": "管理用户",
         "Rename": "改名",
         "Workspace will be moved to Trash.": "工作区将移至回收站。",
@@ -458,7 +458,7 @@
         "(modified)": "（修改的）",
         "Custom options": "自定义选项",
         "FILTER": "筛选",
-        "SORT": "种类"
+        "SORT": "排序"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "无法将项目放入隐藏字段",
@@ -559,7 +559,7 @@
         "Data Size": "数据大小",
         "For higher limits, ": "对于更高的限制， ",
         "Rows": "行数",
-        "Usage": "用法",
+        "Usage": "使用量",
         "Usage statistics are only available to users with full access to the document data.": "使用情况统计信息仅供对文档数据具有完全访问权限的用户使用。",
         "start your 30-day free trial of the Pro plan.": "开始 Pro 计划的 30 天免费试用。"
     },
@@ -632,7 +632,7 @@
     "GridViewMenus": {
         "Add Column": "添加列",
         "Add to sort": "添加到排序",
-        "Clear values": "明确的价值观",
+        "Clear values": "清除值",
         "Column Options": "列选项",
         "Convert formula to data": "将公式转换为数据",
         "Delete {{count}} columns_one": "删除列",
@@ -651,7 +651,7 @@
         "Reset {{count}} columns_other": "重置 {{count}} 列",
         "Reset {{count}} entire columns_one": "重置整列",
         "Reset {{count}} entire columns_other": "重置 {{count}} 整列",
-        "Sort": "种类",
+        "Sort": "排序",
         "Sorted (#{{count}})_one": "已排序（#{{count}}）",
         "Sorted (#{{count}})_other": "已排序（#{{count}}）",
         "Unfreeze {{count}} columns_one": "解冻此列",
@@ -745,7 +745,7 @@
         "Search Columns": "搜索列"
     },
     "ThemeConfig": {
-        "Appearance ": "外貌 ",
+        "Appearance ": "外观 ",
         "Switch appearance automatically to match system": "自动切换外观以匹配系统"
     },
     "Tools": {
