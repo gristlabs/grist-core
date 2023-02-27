@@ -1,1 +1,189 @@
-{}
+{
+    "AccessRules": {
+        "Remove {{- tableId }} rules": "删除 {{- tableId }} 规则",
+        "Remove {{- name }} user attribute": "删除 {{- name }} 用户属性",
+        "Reset": "重置",
+        "Rules for table ": "表格规则 ",
+        "Save": "保存",
+        "Saved": "已保存",
+        "Special Rules": "特殊规则",
+        "Type a message...": "输入一个拒绝时的提示信息…",
+        "User Attributes": "用户属性",
+        "View As": "查看为",
+        "Seed rules": "种子规则",
+        "Permission to edit document structure": "编辑文档结构的权限",
+        "Add Column Rule": "添加列规则",
+        "Attribute to Look Up": "要查找的属性",
+        "Everyone": "每个人",
+        "Permission to access the document in full when needed": "允许在需要时获取文件的全部内容",
+        "Add Default Rule": "添加默认规则",
+        "Add Table Rules": "添加表格规则",
+        "Add User Attributes": "添加用户属性",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "允许每个人复制整个文档，或在演示模式下完整查看。\n适用于示例和模板，但不要用在有敏感数据的情况下。",
+        "Attribute name": "属性名称",
+        "Condition": "条件",
+        "Default Rules": "默认规则",
+        "Enter Condition": "输入条件",
+        "Permission to view Access Rules": "查看访问规则的权限",
+        "Allow everyone to view Access Rules.": "允许所有人查看访问规则。",
+        "Lookup Table": "查找表",
+        "Checking...": "检查中…",
+        "Delete Table Rules": "删除表格规则",
+        "Everyone Else": "其他所有人",
+        "Invalid": "无效的",
+        "Lookup Column": "查找列",
+        "Permissions": "权限",
+        "Remove column {{- colId }} from {{- tableId }} rules": "从 {{- tableId }} 规则中删除列 {{- colId }}",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "添加表规则时，自动添加规则以授予 OWNER 完全访问权限。"
+    },
+    "AccountPage": {
+        "API": "API",
+        "API Key": "API密钥",
+        "Account settings": "帐户设置",
+        "Allow signing in to this account with Google": "允许通过谷歌登录此帐号",
+        "Change Password": "更改密码",
+        "Edit": "编辑",
+        "Email": "电子邮件",
+        "Login Method": "登录方式",
+        "Name": "名字",
+        "Names only allow letters, numbers and certain special characters": "名称仅允许使用字母、数字和某些特殊字符",
+        "Password & Security": "密码",
+        "Save": "保存",
+        "Theme": "主题",
+        "Two-factor authentication": "双因素身份验证",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "双因素身份验证是您的Grist帐户的额外安全层，旨在确保您是唯一可以访问您的帐户的人，即使有人知道您的密码。",
+        "Language": "语言"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "访问被拒绝",
+        "Code View is available only when you have full document access.": "代码视图只有在你有完整的文档权限时才可用。"
+    },
+    "ColorSelect": {
+        "Cancel": "取消",
+        "Default cell style": "默认单元格样式",
+        "Apply": "应用"
+    },
+    "ColumnFilterMenu": {
+        "All": "全部",
+        "All Shown": "全部显示",
+        "Filter by Range": "按范围筛选",
+        "No matching values": "没有匹配的值",
+        "None": "None",
+        "Min": "Min",
+        "Max": "Max",
+        "Start": "开始",
+        "Other Matching": "其他匹配",
+        "Other Non-Matching": "其他不匹配的",
+        "Others": "其他",
+        "Search": "搜索",
+        "All Except": "全部除外",
+        "End": "结束",
+        "Other Values": "其他值",
+        "Search values": "搜索值"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " （可选）",
+        "Add": "添加",
+        "Full document access": "完整文档访问权限",
+        "Learn more about custom widgets": "了解有关自定义小部件的更多信息",
+        "No document access": "没有文档访问权限",
+        "Open configuration": "打开配置",
+        "Pick a column": "选择一列",
+        "Read selected table": "读取选定的表格",
+        "Select Custom Widget": "选择自定义小部件",
+        "Widget does not require any permissions.": "小部件不需要任何权限。",
+        "Widget needs to {{read}} the current table.": "小部件需要 {{read}} 当前表。",
+        "Widget needs {{fullAccess}} to this document.": "小部件需要 {{fullAccess}} 到此文档。",
+        "Enter Custom URL": "输入自定义URL",
+        "Pick a {{columnType}} column": "选择一个 {{columnType}} 列"
+    },
+    "ChartView": {
+        "Create separate series for each value of the selected column.": "为所选列的每个值创建单独的系列。",
+        "Toggle chart aggregation": "切换图表聚合",
+        "selected new group data columns": "选定的新组数据列",
+        "Pick a column": "选择一列"
+    },
+    "DataTables": {
+        "Click to copy": "点击复制",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "删除 {{formattedTableName}} 数据，并将其从所有页面中删除？",
+        "Duplicate Table": "复制表",
+        "Raw Data Tables": "原始数据表"
+    },
+    "CellContextMenu": {
+        "Duplicate rows_one": "复制行",
+        "Delete {{count}} columns_other": "删除 {{count}} 列",
+        "Delete {{count}} rows_one": "删除行",
+        "Duplicate rows_other": "复制行",
+        "Filter by this value": "按此值筛选",
+        "Insert column to the left": "在左侧插入列",
+        "Insert row below": "在下方插入行",
+        "Insert column to the right": "在右侧插入列",
+        "Reset {{count}} columns_other": "重置 {{count}} 列",
+        "Insert row": "插入行",
+        "Insert row above": "在上方插入行",
+        "Reset {{count}} columns_one": "重置列",
+        "Reset {{count}} entire columns_one": "重置整列",
+        "Reset {{count}} entire columns_other": "重置 {{count}} 整列",
+        "Clear cell": "清除单元格",
+        "Clear values": "清除值",
+        "Copy anchor link": "复制锚点链接",
+        "Delete {{count}} columns_one": "删除列",
+        "Delete {{count}} rows_other": "删除 {{count}} 行"
+    },
+    "ACUserManager": {
+        "Enter email address": "请输入电邮地址",
+        "Invite new member": "邀请新成员",
+        "We'll email an invite to {{email}}": "我们将通过电子邮件向 {{email}} 发送邀请"
+    },
+    "ActionLog": {
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "列 {{colId}} 将在操作 #{{action.actionNum}} 中删除",
+        "Action Log failed to load": "操作日志加载失败",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "表 {{tableId}} 将在操作 #{{actionNum}} 中删除",
+        "This row was subsequently removed in action {{action.actionNum}}": "该行将在操作 {{action.actionNum}} 中删除"
+    },
+    "ApiKey": {
+        "This API key can be used to access this account anonymously via the API.": "该API密钥可用于通过API匿名访问该账户。",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "您将要删除 API 密钥。这将导致将来使用此 API 密钥的所有请求被拒绝。是否仍要删除？",
+        "By generating an API key, you will be able to make API calls for your own account.": "通过生成 API 密钥，您将能够为自己的帐户进行 API 调用。",
+        "Click to show": "点击显示",
+        "Create": "创建",
+        "Remove": "删除",
+        "Remove API Key": "删除 API 密钥",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "此 API 密钥可用于通过 API 访问您的帐户。不要与任何人分享您的 API 密钥。"
+    },
+    "AccountWidget": {
+        "Access Details": "访问详情",
+        "Accounts": "帐户",
+        "Add Account": "新增帐户",
+        "Document Settings": "文档设置",
+        "Manage Team": "管理团队",
+        "Pricing": "定价",
+        "Profile Settings": "配置文件设置",
+        "Sign Out": "登出",
+        "Sign in": "登录",
+        "Switch Accounts": "切换帐户",
+        "Toggle Mobile Mode": "切换移动模式"
+    },
+    "ViewAsDropdown": {
+        "View As": "查看为",
+        "Users from table": "表中的用户",
+        "Example Users": "示例用户"
+    },
+    "AddNewButton": {
+        "Add New": "新增"
+    },
+    "App": {
+        "Description": "描述",
+        "Key": "关键",
+        "Memory Error": "内存错误"
+    },
+    "AppHeader": {
+        "Home Page": "主页",
+        "Legacy": "遗产",
+        "Personal Site": "个人网站",
+        "Team Site": "团队网站"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "此团队网站已挂起。可以读取文档，但不能修改文档。"
+    }
+}
