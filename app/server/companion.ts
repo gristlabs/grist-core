@@ -2,12 +2,13 @@ import { version } from 'app/common/version';
 import { synchronizeProducts } from 'app/gen-server/entity/Product';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
-import { getMigrations, getOrCreateConnection, undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
+import { getMigrations, getOrCreateConnection, getTypeORMSettings,
+         undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
 import { getDatabaseUrl } from 'app/server/lib/serverUtils';
 import { Gristifier } from 'app/server/utils/gristify';
 import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
 import * as commander from 'commander';
-import { Connection, getConnectionOptions } from 'typeorm';
+import { Connection } from 'typeorm';
 
 /**
  * Main entrypoint for a cli toolbox for configuring aspects of Grist
@@ -140,7 +141,7 @@ export function addDbCommand(program: commander.Command,
   sub('url')
     .description('construct a url for the database (for psql, catsql etc)')
     .action(withConnection(async () => {
-      console.log(getDatabaseUrl(await getConnectionOptions(), true));
+      console.log(getDatabaseUrl(getTypeORMSettings(), true));
       return 0;
     }));
 }
@@ -175,7 +176,7 @@ export async function dbCheck(connection: Connection) {
   const changingProducts = await synchronizeProducts(connection, false);
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const log = process.env.TYPEORM_LOGGING === 'true' ? console.log : (...args: any[]) => null;
-  const options = await getConnectionOptions();
+  const options = getTypeORMSettings();
   log("database url:", getDatabaseUrl(options, false));
   log("migration files:", options.migrations);
   log("migrations applied to db:", migrations.migrationsInDb);

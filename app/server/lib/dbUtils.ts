@@ -103,7 +103,7 @@ export async function undoLastMigration(connection: Connection) {
 // Replace the old janky ormconfig.js file, which was always a source of
 // pain to use since it wasn't properly integrated into the typescript
 // project.
-function getTypeORMSettings(): DataSourceOptions {
+export function getTypeORMSettings(): DataSourceOptions {
   // If we have a redis server available, tell typeorm.  Then any queries built with
   // .cache() called on them will be cached via redis.
   // We use a separate environment variable for the moment so that we don't have to
