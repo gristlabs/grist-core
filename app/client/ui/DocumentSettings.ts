@@ -144,10 +144,6 @@ const cssContainer = styled('div', `
   position: relative;
   height: 100%;
   padding: 32px 64px 24px 64px;
-<<<<<<< HEAD
-  max-width: 487px;
-=======
->>>>>>> main
   @media ${mediaSmall} {
     & {
       padding: 32px 24px 24px 24px;

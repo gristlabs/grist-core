@@ -53,7 +53,6 @@ describe('HomeIntro', function() {
 
       // Open doc-menu and dismiss the welcome questions popup
       await session.loadDocMenu('/', 'skipWelcomeQuestions');
-      await gu.dismissCardPopups();
 
       // Reload the doc-menu and dismiss the coaching call popup
       await session.loadDocMenu('/');
