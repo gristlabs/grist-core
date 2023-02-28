@@ -653,7 +653,8 @@
         "Set formula": "Imposta formula",
         "Set trigger formula": "Imposta formula trigger",
         "TRIGGER FORMULA": "FORMULA TRIGGER",
-        "Make into data column": "Trasforma in una colonna di dati"
+        "Make into data column": "Trasforma in una colonna di dati",
+        "DESCRIPTION": "DESCRIZIONE"
     },
     "FieldMenus": {
         "Save as common settings": "Salva come impostazioni comuni",
