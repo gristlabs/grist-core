@@ -10,24 +10,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.9]
         node-version: [14.x]
+        tests:
+          - ':lint:python:client:common:smoke:'
+          - ':server-1-of-2:'
+          - ':server-2-of-2:'
+          - ':nbrowser-1-of-5:'
+          - ':nbrowser-2-of-5:'
+          - ':nbrowser-3-of-5:'
+          - ':nbrowser-4-of-5:'
+          - ':nbrowser-5-of-5:'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install Python packages
         run: |
@@ -38,9 +49,11 @@ jobs:
         run: yarn install
 
       - name: Run eslint
+        if: matrix.tests == ':lint:'
         run: yarn run lint:ci
 
       - name: Make sure bucket is versioned
+        if: contains(matrix.tests, ':server-')
         env:
           AWS_ACCESS_KEY_ID: administrator
           AWS_SECRET_ACCESS_KEY: administrator
@@ -49,15 +62,27 @@ jobs:
       - name: Build Node.js code
         run: yarn run build:prod
 
-
       - name: Run smoke test
+        if: contains(matrix.tests, ':smoke:')
         run: VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:smoke
 
       - name: Run python tests
+        if: contains(matrix.tests, ':python:')
         run: yarn run test:python
 
+      - name: Run client tests
+        if: contains(matrix.tests, ':client:')
+        run: yarn run test:client
+
+      - name: Run common tests
+        if: contains(matrix.tests, ':common:')
+        run: yarn run test:common
+
       - name: Run server tests with minio and redis
-        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
+        if: contains(matrix.tests, ':server-')
+        run: |
+          export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
         env:
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
@@ -68,17 +93,15 @@ jobs:
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
 
       - name: Run main tests without minio and redis
-        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test --exclude '_build/test/server/**/*'
-
-      - name: Update candidate branch
-        if: ${{ github.event_name == 'push' }}
-        uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: latest_candidate
-          force: true
+        if: contains(matrix.tests, ':nbrowser-')
+        run: |
+          export TEST_SPLITS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
+          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+        env:
+          TESTS: ${{ matrix.tests }}
 
     services:
+      if: contains(matrix.tests, ':server-')
       # https://github.com/bitnami/bitnami-docker-minio/issues/16
       minio:
         image: bitnami/minio:latest
@@ -103,3 +126,18 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+  candidate:
+    needs: build_and_test
+    if: ${{ success() && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch new candidate branch
+        uses: actions/checkout@v3
+
+      - name: Update candidate branch
+        uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: latest_candidate
+          force: true
