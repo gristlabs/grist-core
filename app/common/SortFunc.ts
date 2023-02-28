@@ -38,11 +38,15 @@ function naturalCompare(val1: any, val2: any) {
 /**
  * Empty comparator will treat empty values as last.
  */
-const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
-  if (!val1 && typeof val1 !== 'number') {
-      return 1;
+export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
+  const isEmptyValue1 = !val1 && typeof val1 !== 'number';
+  const isEmptyValue2 = !val2 && typeof val2 !== 'number';
+
+  // If both values are empty values, rely on next to compare.
+  if (isEmptyValue1 && !isEmptyValue2) {
+    return 1;
   }
-  if (!val2 && typeof val2 !== 'number') {
+  if (isEmptyValue2 && !isEmptyValue1) {
     return -1;
   }
   return next(val1, val2);

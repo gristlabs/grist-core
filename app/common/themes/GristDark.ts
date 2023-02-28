@@ -413,4 +413,16 @@ export const GristDark: ThemeColors = {
   'comments-panel-topic-bg': '#32323F',
   'comments-panel-topic-border': '#555563',
   'comments-panel-resolved-topic-bg': '#262634',
+
+  /* Date Picker */
+  'date-picker-selected-fg': '#FFFFFF',
+  'date-picker-selected-bg': '#7F7F7F',
+  'date-picker-selected-bg-hover': '#8F8F8F',
+  'date-picker-today-fg': '#FFFFFF',
+  'date-picker-today-bg': '#1DA270',
+  'date-picker-today-bg-hover': '#157A54',
+  'date-picker-range-start-end-bg': '#7F7F7F',
+  'date-picker-range-start-end-bg-hover': '#8F8F8F',
+  'date-picker-range-bg': '#57575F',
+  'date-picker-range-bg-hover': '#7F7F7F',
 };

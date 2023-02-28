@@ -26,6 +26,39 @@ describe("Fork", function() {
     doc = await team.tempDoc(cleanup, 'Hello.grist', {load: false});
   }
 
+  async function getForks(api: UserAPI) {
+    const wss = await api.getOrgWorkspaces('current');
+    const forks = wss
+      .find(ws => ws.name === team.workspace)
+      ?.docs
+      .find(d => d.id === doc.id)
+      ?.forks;
+    return forks ?? [];
+  }
+
+  async function testForksOfForks(isLoggedIn: boolean = true) {
+    const session = isLoggedIn ? await team.login() : await team.anon.login();
+    await session.loadDoc(`/doc/${doc.id}/m/fork`);
+    await gu.getCell({rowNum: 1, col: 0}).click();
+    await gu.enterCell('1');
+    await gu.waitForServer();
+    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
+    const forkUrl = await driver.getCurrentUrl();
+    assert.match(forkUrl, isLoggedIn ? /^[^~]*~[^~]+~\d+$/ : /^[^~]*~[^~]*$/);
+    await session.loadDoc((new URL(forkUrl)).pathname + '/m/fork');
+    await gu.getCell({rowNum: 1, col: 0}).click();
+    await gu.enterCell('2');
+    await gu.waitForServer();
+    await driver.findContentWait(
+      '.test-notifier-toast-wrapper',
+      /Cannot fork a document that's already a fork.*Report a problem/s,
+      2000
+    );
+    assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
+    assert.equal(await driver.getCurrentUrl(), `${forkUrl}/m/fork`);
+    await gu.wipeToasts();
+  }
+
   // Run tests with both regular docId and a custom urlId in URL, to make sure
   // ids are kept straight during forking.
 
@@ -182,27 +215,7 @@ describe("Fork", function() {
         assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '2');
       });
 
-      it('allows an anonymous fork to be forked', async function() {
-        const anonSession = await team.anon.login();
-        await anonSession.loadDoc(`/doc/${doc.id}/m/fork`);
-        await gu.getCell({rowNum: 1, col: 0}).click();
-        await gu.enterCell('1');
-        await gu.waitForServer();
-        assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
-        const fork1 = await driver.getCurrentUrl();
-        assert.match(fork1, /^[^~]*~[^~]*$/);  // just one ~
-        await anonSession.loadDoc((new URL(fork1)).pathname + '/m/fork');
-        await gu.getCell({rowNum: 1, col: 0}).click();
-        await gu.enterCell('2');
-        await gu.waitForServer();
-        assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '2');
-        const fork2 = await driver.getCurrentUrl();
-        assert.match(fork2, /^[^~]*~[^~]*$/);  // just one ~
-        await anonSession.loadDoc((new URL(fork1)).pathname);
-        assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
-        await anonSession.loadDoc((new URL(fork2)).pathname);
-        assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '2');
-      });
+      it('does not allow an anonymous fork to be forked', () => testForksOfForks(false));
 
       it('shows the right page item after forking', async function() {
         const anonSession = await team.anon.login();
@@ -235,6 +248,14 @@ describe("Fork", function() {
           // The url of the doc should now be that of a fork
           const forkUrl = await driver.getCurrentUrl();
           assert.match(forkUrl, /~/);
+
+          // Check that the fork was saved to the home db
+          const api = userSession.createHomeApi();
+          const forks = await getForks(api);
+          const forkId = forkUrl.match(/\/[\w-]+~(\w+)(?:~\w)?/)?.[1];
+          const fork = forks.find(f => f.id === forkId);
+          assert.isDefined(fork);
+          assert.equal(fork!.trunkId, doc.id);
 
           // Open the original url and make sure the change we made is not there
           await userSession.loadDoc(`/doc/${doc.id}`);
@@ -619,6 +640,8 @@ describe("Fork", function() {
           await api.updateDocPermissions(doc.id, {users: {[altSession.email]: null}});
         }
       });
+
+      it('does not allow a fork to be forked', testForksOfForks);
     });
   }
 });

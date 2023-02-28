@@ -1,7 +1,8 @@
 import {detectCurrentLang, makeT, setAnonymousLocale} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {hoverTooltip} from 'app/client/ui/tooltips';
-import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
+import {cssHoverCircle} from 'app/client/ui/TopBarCss';
+import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {getCountryCode} from 'app/common/Locales';
@@ -29,13 +30,10 @@ export function buildLanguageMenu(appModel: AppModel) {
     setAnonymousLocale(lng);
     window.location.reload();
   };
-  // Try to convert locale setting to the emoji flag, fallback to plain flag icon.
-  const emojiFlag = buildEmoji(userLanguage);
-  return cssHoverCircle(
-    // Margin is common for all hover buttons on TopBar.
-    {style: `margin: 5px;`},
+  const flagIcon = buildFlagIcon(userLanguage);
+  return cssFlagButton(
     // Flag or emoji flag if we have it.
-    emojiFlag ?? cssTopBarBtn('Flag'),
+    cssFlagIconWrapper(flagIcon),
     // Expose for test the current language use.
     testId(`current-` + userLanguage),
     menu(
@@ -56,15 +54,16 @@ export function buildLanguageMenu(appModel: AppModel) {
   );
 }
 
-// Unfortunately, Windows doesn't support emoji flags, so we need to use SVG icons.
-function buildEmoji(locale: string) {
+function buildFlagIcon(locale: string) {
   const countryCode = getCountryCode(locale);
-  if (!countryCode) { return null; }
   return [
-    cssSvgIcon({
-      style: `background-image: url("icons/locales/${countryCode}.svg")`
-    }),
-    dom.cls(cssSvgIconWrapper.className)
+    // Try to show an icon of the country's flag. (The icon may not exist.)
+    !countryCode ? null : cssFlagIcon({
+      // Unfortunately, Windows doesn't support emoji flags, so we need to use SVG icons.
+      style: `background-image: url("icons/locales/${countryCode}.svg");`,
+    }, testId('button-icon')),
+    // Display a placeholder icon behind the one above, to act as a fallback.
+    cssPlaceholderFlagIcon('Flag'),
   ];
 }
 
@@ -84,24 +83,38 @@ const cssWrapper = styled('div', `
   display: inline-block;
 `);
 
-const cssSvgIconWrapper = styled('div', `
-  display: grid;
-  place-content: center;
-  cursor: pointer;
-  user-select: none;
+const cssFirstUpper = styled('span', `
+  &::first-letter {
+    text-transform: capitalize;
+  }
 `);
 
-const cssSvgIcon = styled('div', `
+const cssFlagButton = styled(cssHoverCircle, `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+  cursor: pointer;
+`);
+
+const cssFlagIconWrapper = styled('div', `
+  position: relative;
+  width: 16px;
+  height: 16px;
+`);
+
+const cssFlagIcon = styled('div', `
+  position: absolute;
   width: 16px;
   height: 16px;
   background-repeat: no-repeat;
   background-position: center;
   background-color: transparent;
   background-size: contain;
+  z-index: 1;
 `);
 
-const cssFirstUpper = styled('span', `
-  &::first-letter {
-    text-transform: capitalize;
-  }
+const cssPlaceholderFlagIcon = styled(icon, `
+  position: absolute;
+  --icon-color: ${theme.topBarButtonPrimaryFg};
 `);

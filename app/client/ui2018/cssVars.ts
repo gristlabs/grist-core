@@ -672,6 +672,28 @@ export const theme = {
   commentsPanelTopicBorder: new CustomProp('theme-comments-panel-topic-border', undefined, '#ccc'),
   commentsPanelResolvedTopicBg: new CustomProp('theme-comments-panel-resolved-topic-bg', undefined,
     vars.labelActiveBg),
+
+  /* Date Picker */
+  datePickerSelectedFg: new CustomProp('theme-date-picker-selected-fg', undefined,
+    colors.light),
+  datePickerSelectedBg: new CustomProp('theme-date-picker-selected-bg', undefined,
+    '#286090'),
+  datePickerSelectedBgHover: new CustomProp('theme-date-picker-selected-bg-hover',
+    undefined, '#204d74'),
+  datePickerTodayFg: new CustomProp('theme-date-picker-today-fg', undefined,
+    colors.light),
+  datePickerTodayBg: new CustomProp('theme-date-picker-today-bg', undefined,
+    colors.lightGreen),
+  datePickerTodayBgHover: new CustomProp('theme-date-picker-today-bg-hover', undefined,
+    colors.darkGreen),
+  datePickerRangeStartEndBg: new CustomProp('theme-date-picker-range-start-end-bg', undefined,
+    '#777'),
+  datePickerRangeStartEndBgHover: new CustomProp('theme-date-picker-range-start-end-bg-hover',
+    undefined, '#5E5E5E'),
+  datePickerRangeBg: new CustomProp('theme-date-picker-range-bg', undefined,
+    colors.mediumGreyOpaque),
+  datePickerRangeBgHover: new CustomProp('theme-date-picker-range-bg-hover', undefined,
+    colors.darkGrey),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

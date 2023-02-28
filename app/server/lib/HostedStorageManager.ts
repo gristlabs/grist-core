@@ -556,9 +556,14 @@ export class HostedStorageManager implements IDocStorageManager {
    * This is called when a document was edited by the user.
    */
   private _markAsEdited(docName: string, timestamp: string): void {
-    if (parseUrlId(docName).snapshotId || !this._metadataManager) { return; }
+    if (!this._metadataManager) { return; }
+
+    const {forkId, snapshotId} = parseUrlId(docName);
+    if (snapshotId) { return; }
+
     // Schedule a metadata update for the modified doc.
-    this._metadataManager.scheduleUpdate(docName, {updatedAt: timestamp});
+    const docId = forkId || docName;
+    this._metadataManager.scheduleUpdate(docId, {updatedAt: timestamp});
   }
 
   /**

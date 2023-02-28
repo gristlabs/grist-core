@@ -35,6 +35,11 @@ export const cssRow = styled('div', `
   }
 `);
 
+export const cssRowWrapped = styled(cssRow, `
+  flex-wrap: wrap;
+  row-gap: 5px;
+`);
+
 export const cssSortFilterColumn = styled('div', `
   cursor: pointer;
   display: flex;
@@ -53,7 +58,7 @@ export const cssBlockedCursor = styled('span', `
   }
 `);
 
-export const cssButtonRow = styled(cssRow, `
+export const cssButtonRow = styled(cssRowWrapped, `
   margin-left: 0;
   margin-right: 0;
   & > button {

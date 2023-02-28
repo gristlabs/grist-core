@@ -72,7 +72,8 @@ function DateEditor(options) {
         toValue: (date, format, language) => {
           const timestampSec = parseDate(date, {
             dateFormat: this.safeFormat,
-            timezone: this.timezone,
+            // datepicker reads date in utc (ie: using date.getUTCDate()).
+            timezone: 'UTC',
           });
           return (timestampSec === null) ? null : new Date(timestampSec * 1000);
         },

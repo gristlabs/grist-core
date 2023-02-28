@@ -3,13 +3,13 @@ import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
 import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
-import {parseUrlId} from "app/common/gristUrls";
+import {buildUrlId, parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager, makeDocAuthResult, QueryResult} from 'app/gen-server/lib/HomeDBManager';
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
 import GristDataTI from 'app/plugin/GristData-ti';
@@ -1181,12 +1181,26 @@ export class DocWorkerApi {
     const scope = getDocScope(req);
     const docId = getDocId(req);
     if (permanent) {
-      // Soft delete the doc first, to de-list the document.
-      await this._dbManager.softDeleteDocument(scope);
-      // Delete document content from storage.
-      await this._docManager.deleteDoc(null, docId, true);
+      const {forkId} = parseUrlId(docId);
+      if (!forkId) {
+        // Soft delete the doc first, to de-list the document.
+        await this._dbManager.softDeleteDocument(scope);
+      }
+      // Delete document content from storage. Include forks if doc is a trunk.
+      const forks = forkId ? [] : await this._dbManager.getDocForks(docId);
+      const docsToDelete = [
+        docId,
+        ...forks.map((fork) =>
+          buildUrlId({forkId: fork.id, forkUserId: fork.createdBy!, trunkId: docId})),
+      ];
+      await Promise.all(docsToDelete.map(docName => this._docManager.deleteDoc(null, docName, true)));
       // Permanently delete from database.
-      const query = await this._dbManager.deleteDocument(scope);
+      let query: QueryResult<number>;
+      if (forkId) {
+        query = await this._dbManager.deleteFork({...scope, urlId: forkId});
+      } else {
+        query = await this._dbManager.deleteDocument(scope);
+      }
       this._dbManager.checkQueryResult(query);
       await sendReply(req, res, query);
     } else {

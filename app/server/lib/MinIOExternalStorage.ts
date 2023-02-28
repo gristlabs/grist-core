@@ -35,6 +35,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     useSSL?: boolean,
     accessKey: string,
     secretKey: string,
+    region: string
   }, private _batchSize?: number) {
     this._s3 = new minio.Client(options) as MinIOClient;
   }

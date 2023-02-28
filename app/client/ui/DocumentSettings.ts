@@ -57,7 +57,7 @@ export class DocSettingsPage extends Disposable {
         dom.create(buildCurrencyPicker, fromKo(this._currency), (val) => this._currency.saveOnly(val),
           {defaultCurrencyLabel: t("Local currency ({{currency}})", {currency: getCurrency(l)})})
       )),
-      canChangeEngine ? [
+      canChangeEngine ? cssDataRow([
         // Small easter egg: you can click on the skull-and-crossbones to
         // force a reload of the document.
         cssDataRow(t("Engine (experimental {{span}} change at own risk):", {span:
@@ -69,7 +69,7 @@ export class DocSettingsPage extends Disposable {
             }))
           })),
         select(this._engine, getSupportedEngineChoices()),
-      ] : null,
+      ]) : null,
       cssHeader(t('API')),
       cssDataRow(t("This document's ID (for API use):")),
       cssDataRow(cssHoverWrapper(
@@ -144,7 +144,10 @@ const cssContainer = styled('div', `
   position: relative;
   height: 100%;
   padding: 32px 64px 24px 64px;
+<<<<<<< HEAD
   max-width: 487px;
+=======
+>>>>>>> main
   @media ${mediaSmall} {
     & {
       padding: 32px 24px 24px 24px;
@@ -167,6 +170,10 @@ const cssDataRow = styled('div', `
   margin: 16px 0px;
   font-size: ${vars.largeFontSize};
   color: ${theme.text};
+<<<<<<< HEAD
+=======
+  width: 360px;
+>>>>>>> main
 `);
 
 // Check which engines can be selected in the UI, if any.

@@ -101,6 +101,7 @@ export interface AppModel {
   dismissedWelcomePopups: Observable<DismissedReminder[]>;
 
   pageType: Observable<PageType>;
+  needsOrg: Observable<boolean>;
 
   notifier: Notifier;
   planName: string|null;
@@ -252,6 +253,11 @@ export class AppModelImpl extends Disposable implements AppModel {
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,
     (use, state) => (state.doc ? "doc" : (state.billing ? "billing" : (state.welcome ? "welcome" : "home"))));
+
+  public readonly needsOrg: Observable<boolean> = Computed.create(
+    this, urlState().state, (use, state) => {
+      return !(Boolean(state.welcome) || state.billing === 'scheduled');
+    });
 
   public readonly notifier = this.topAppModel.notifier;
 

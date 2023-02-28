@@ -57,7 +57,8 @@
         "Save": "Speichern",
         "Theme": "Thema",
         "Two-factor authentication": "Zwei-Faktor-Authentifizierung",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Die Zwei-Faktor-Authentifizierung ist eine zusätzliche Sicherheitsebene für Ihr Grist-Konto, die sicherstellt, dass Sie die einzige Person sind, die auf Ihr Konto zugreifen kann, selbst wenn jemand Ihr Passwort kennt.",
+        "Language": "Sprache"
     },
     "AccountWidget": {
         "Access Details": "Zugangsdetails",
@@ -345,7 +346,8 @@
         "Empty Columns_one": "Leere Spalte",
         "Empty Columns_other": "Leere Spalten",
         "Formula Columns_one": "Formel Spalte",
-        "Formula Columns_other": "Formel-Spalten"
+        "Formula Columns_other": "Formel-Spalten",
+        "DESCRIPTION": "BESCHREIBUNG"
     },
     "FieldMenus": {
         "Revert to common settings": "Gemeinsame Einstellungen wiederherstellen",
@@ -433,7 +435,8 @@
         "Welcome to Grist, {{name}}!": "Willkommen bei Grist, {{name}}!",
         "Welcome to {{orgName}}": "Willkommen bei {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
-        "personal site": "persönliche Seite"
+        "personal site": "persönliche Seite",
+        "{{signUp}} to save your work. ": "{{signUp}} um Ihre Arbeit zu speichern. "
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -959,5 +962,48 @@
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Es sollte unmöglich sein, einen einfachen Datenwert in eine Formelspalte zu speichern",
         "Unable to finish saving edited cell": "Speichern der bearbeiteten Zelle kann nicht abgeschlossen werden"
+    },
+    "LanguageMenu": {
+        "Language": "Sprache"
+    },
+    "GristTooltips": {
+        "Learn more.": "Mehr erfahren.",
+        "Editing Card Layout": "Kartenlayout bearbeiten",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Zellen in einer Referenzspalte identifizieren immer einen {{entire}} Datensatz in dieser Tabelle, aber Sie können auswählen, welche Spalte aus diesem Datensatz angezeigt werden soll.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Wenden Sie bedingte Formatierung auf Zellen in dieser Spalte an, wenn Formelbedingungen erfüllt sind.",
+        "Apply conditional formatting to rows based on formulas.": "Wenden Sie bedingte Formatierung auf Zeilen basierend auf Formeln an.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Klicken Sie auf „Zeilenstile öffnen“, um eine bedingte Formatierung auf Zeilen anzuwenden.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Klicken Sie auf die Schaltfläche Neu hinzufügen, um neue Dokumente oder Arbeitsbereiche zu erstellen oder Daten zu importieren.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Wenn Sie in jeder Zelle auf {{EyeHideIcon}} klicken, wird das Feld aus dieser Ansicht ausgeblendet, ohne es zu löschen.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formeln, die in bestimmten Fällen auslösen und den berechneten Wert als Daten speichern.",
+        "Link your new widget to an existing widget on this page.": "Verknüpfen Sie Ihr neues Widget mit einem bestehenden Widget auf dieser Seite.",
+        "Linking Widgets": "Widgets verknüpfen",
+        "Nested Filtering": "Verschachtelte Filterung",
+        "Pinning Filters": "Anheften von Filtern",
+        "Raw Data page": "Rohdatenseite",
+        "Select the table to link to.": "Wählen Sie die zu verknüpfende Tabelle aus.",
+        "Selecting Data": "Daten auswählen",
+        "The total size of all data in this document, excluding attachments.": "Die Gesamtgröße aller Daten in diesem Dokument, ohne Anhänge.",
+        "Updates every 5 minutes.": "Aktualisiert alle 5 Minuten.",
+        "relational": "relationale",
+        "Unpin to hide the the button while keeping the filter.": "Lösen Sie die Anheftung, um die Schaltfläche auszublenden und den Filter beizubehalten.",
+        "Only those rows will appear which match all of the filters.": "Es werden nur die Zeilen angezeigt, die allen Filtern entsprechen.",
+        "Pinned filters are displayed as buttons above the widget.": "Angeheftete Filter werden als Schaltflächen über dem Widget angezeigt.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Ordnen Sie die Felder in Ihrer Karte neu an, indem Sie die Zellen ziehen und ihre Größe ändern.",
+        "Reference Columns": "Referenzspalten",
+        "Reference columns are the key to {{relational}} data in Grist.": "Referenzspalten sind der Schlüssel zu {{relational}} Daten in Grist.",
+        "Select the table containing the data to show.": "Wählen Sie die Tabelle mit den anzuzeigenden Daten aus.",
+        "Add New": "Neu hinzufügen",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Verwenden Sie das Symbol \\u{1D6BA}, um zusammenfassende (oder Pivot-)Tabellen für Summen oder Zwischensummen zu erstellen.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Verwenden Sie das Symbol 𝚺, um zusammenfassende (oder Pivot-)Tabellen für Summen oder Zwischensummen zu erstellen.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "Auf der Rohdatenseite werden alle Datentabellen in Ihrem Dokument aufgelistet, einschließlich Zusammenfassungstabellen und Tabellen, die nicht in Seitenlayouts enthalten sind.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Nützlich zum Speichern des Zeitstempels oder Autors eines neuen Datensatzes, zur Datenbereinigung und mehr.",
+        "They allow for one record to point (or refer) to another.": "Sie ermöglichen es, dass ein Datensatz auf einen anderen zeigt (oder verweist).",
+        "This is the secret to Grist's dynamic and productive layouts.": "Dies ist das Geheimnis für Grists dynamische und produktive Layouts.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Probieren Sie Änderungen in einer Kopie aus, dann entscheiden Sie, ob Sie das Original durch Ihre Bearbeitungen ersetzen.",
+        "You can filter by more than one column.": "Sie können nach mehr als einer Spalte filtern.",
+        "entire": "gesamte",
+        "Access Rules": "Zugriffsregeln",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Zugriffsregeln geben Ihnen die Möglichkeit, nuancierte Regeln zu erstellen, um festzulegen, wer welche Teile Ihres Dokuments sehen oder bearbeiten kann."
     }
 }

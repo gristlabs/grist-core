@@ -83,6 +83,8 @@ export const NotifierEvents = StringUnion(
   'addBillingManager',
   'teamCreator',
   'trialPeriodEndingSoon',
+  'trialingSubscription',
+  'scheduledCall',
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
@@ -465,6 +467,10 @@ export class HomeDBManager extends EventEmitter {
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
     // Include logins relation for Authorization convenience.
     return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+  }
+
+  public async getUserByRef(ref: string): Promise<User|undefined> {
+    return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
   }
 
   public async getUser(userId: number): Promise<User|undefined> {
@@ -1207,6 +1213,9 @@ export class HomeDBManager extends EventEmitter {
       (doc.workspace as any).owner = doc.workspace.org.owner;
     }
     if (forkId || snapshotId) {
+      doc.trunkId = doc.id;
+      doc.trunkUrlId = doc.urlId;
+
       // Fix up our reply to be correct for the fork, rather than the trunk.
       // The "id" and "urlId" fields need updating.
       doc.id = buildUrlId({trunkId: doc.id, forkId, forkUserId, snapshotId});
@@ -1286,6 +1295,20 @@ export class HomeDBManager extends EventEmitter {
       .andWhere('org.id = :orgId', {orgId});
     qb = this._withAccess(qb, userId, 'docs');
     return this._single(await this._verifyAclPermissions(qb));
+  }
+
+  /**
+   * Gets a list of all forks whose trunk is `docId`.
+   *
+   * NOTE: This is not a part of the API. It should only be called by the DocApi when
+   * deleting a document.
+   */
+  public async getDocForks(docId: string): Promise<Document[]> {
+    return this._connection.createQueryBuilder()
+      .select('forks')
+      .from(Document, 'forks')
+      .where('forks.trunk_id = :docId', {docId})
+      .getMany();
   }
 
   /**
@@ -1772,6 +1795,7 @@ export class HomeDBManager extends EventEmitter {
         doc.aliases = [];
       }
       doc.workspace = workspace;
+      doc.createdBy = scope.userId;
       // Create the special initial permission groups for the new workspace.
       const groupMap = this._createGroups(workspace, scope.userId);
       doc.aclRules = this.defaultCommonGroups.map(_grpDesc => {
@@ -1866,7 +1890,7 @@ export class HomeDBManager extends EventEmitter {
 
       const queryResult = await verifyIsPermitted(docQuery);
       if (queryResult.status !== 200) {
-        // If the query for the workspace failed, return the failure result.
+        // If the query for the doc failed, return the failure result.
         return queryResult;
       }
       // Update the name and save.
@@ -1937,6 +1961,30 @@ export class HomeDBManager extends EventEmitter {
 
   public async undeleteDocument(scope: DocScope): Promise<void> {
     return this._setDocumentRemovedAt(scope, null);
+  }
+
+  /**
+   * Like `deleteDocument`, but for deleting a fork.
+   *
+   * NOTE: This is not a part of the API. It should only be called by the DocApi when
+   * deleting a fork.
+   */
+  public async deleteFork(scope: DocScope): Promise<QueryResult<number>> {
+    return await this._connection.transaction(async manager => {
+      const forkQuery = this._doc(scope, {
+        manager,
+        allowSpecialPermit: true
+      });
+      const result = await forkQuery.getRawAndEntities();
+      if (result.entities.length === 0) {
+        return {
+          status: 404,
+          errMessage: 'fork not found'
+        };
+      }
+      await manager.remove(result.entities[0]);
+      return {status: 200};
+    });
   }
 
   // Fetches and provides a callback with the billingAccount so it may be updated within
@@ -2535,6 +2583,31 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * Creates a fork of `doc`, using the specified `forkId`.
+   *
+   * NOTE: This is not a part of the API. It should only be called by the ActiveDoc when
+   * a new fork is initiated.
+   */
+  public async forkDoc(
+    userId: number,
+    doc: Document,
+    forkId: string,
+  ): Promise<QueryResult<string>> {
+    return await this._connection.transaction(async manager => {
+      const fork = new Document();
+      fork.id = forkId;
+      fork.name = doc.name;
+      fork.createdBy = userId;
+      fork.trunkId = doc.trunkId || doc.id;
+      const result = await manager.save([fork]);
+      return {
+        status: 200,
+        data: result[0].id,
+      };
+    });
+  }
+
+  /**
    * Updates the updatedAt and usage values for several docs. Takes a map where each entry maps
    * a docId to a metadata object containing the updatedAt and/or usage values. This is not a part
    * of the API, it should be called only by the HostedMetadataManager when a change is made to a
@@ -2797,6 +2870,9 @@ export class HomeDBManager extends EventEmitter {
     let query = this.org(scope, org, options)
       .leftJoinAndSelect('orgs.workspaces', 'workspaces')
       .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
+      .leftJoin('docs.forks', 'forks', this._onFork())
+      .addSelect(['forks.id', 'forks.trunkId', 'forks.createdBy', 'forks.updatedAt'])
+      .setParameter('anonId', this.getAnonymousUserId())
       .leftJoin('orgs.billingAccount', 'account')
       .leftJoin('account.product', 'product')
       .addSelect('product.features')
@@ -3413,6 +3489,13 @@ export class HomeDBManager extends EventEmitter {
     } else {
       return `${onDefault} AND (workspaces.removed_at IS NULL AND docs.removed_at IS NULL)`;
     }
+  }
+
+  /**
+   * Like _onDoc, but for joining forks.
+   */
+  private _onFork() {
+    return 'forks.created_by = :userId AND forks.created_by <> :anonId';
   }
 
   /**

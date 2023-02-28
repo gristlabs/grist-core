@@ -195,6 +195,12 @@ class ColumnConverter(object):
     # For some reason, we get 'str' type rather than 'unicode' for empty strings.
     # Correct this, since all text should be unicode.
     value = u"" if value == "" else value
+
+    # Integer values sometimes show up as ints (from Excel), sometimes as floats (from Google).
+    # Make them consistently ints; this avoid addition of ".0" suffix when converting to text.
+    if type(value) == float and value.is_integer():
+      value = int(value)
+
     try:
       conv = self._converter.convert(value)
       self._converted_values.append(conv)

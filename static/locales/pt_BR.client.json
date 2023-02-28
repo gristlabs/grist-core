@@ -57,7 +57,8 @@
         "Save": "Salvar",
         "Theme": "Tema",
         "Two-factor authentication": "Autenticação de dois fatores",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A autenticação de dois fatores é uma camada extra de segurança para sua conta Grist projetada para garantir que você seja a única pessoa que pode acessar sua conta, mesmo que alguém saiba sua senha."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A autenticação de dois fatores é uma camada extra de segurança para sua conta Grist projetada para garantir que você seja a única pessoa que pode acessar sua conta, mesmo que alguém saiba sua senha.",
+        "Language": "Idioma"
     },
     "AccountWidget": {
         "Access Details": "Detalhes de Acesso",
@@ -167,7 +168,7 @@
         "Other Non-Matching": "Outros Não-Coincidentes",
         "Other Values": "Outros Valores",
         "Others": "Outros",
-        "Search": "Pesquisa",
+        "Search": "Pesquisar",
         "Search values": "Pesquisar valores",
         "Start": "Começo",
         "Filter by Range": "Filtrar por intervalo"
@@ -221,7 +222,7 @@
         "Delete {{name}}": "Excluir {{name}}",
         "Deleted {{at}}": "{{at}} excluído",
         "Discover More Templates": "Descubra mais Modelos",
-        "Document will be moved to Trash.": "O documento será movido à Lixeira.",
+        "Document will be moved to Trash.": "O documento será movido pra Lixeira.",
         "Document will be permanently deleted.": "O documento será permanentemente excluído.",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Os documentos ficam na Lixeira por 30 dias, após os quais são excluídos permanentemente.",
         "Edited {{at}}": "{{at}} editado",
@@ -242,8 +243,8 @@
         "Restore": "Restaurar",
         "This service is not available right now": "Este serviço não está disponível no momento",
         "To restore this document, restore the workspace first.": "Para restaurar esse documento, restaure a área de trabalho primeiro.",
-        "Trash": "Lixo",
-        "Trash is empty.": "O lixo está vazio.",
+        "Trash": "Lixeira",
+        "Trash is empty.": "A lixeira está vazia.",
         "Unpin Document": "Desafixar o Documento",
         "Workspace not found": "Área de trabalho não encontrada",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Você está no site {{siteName}}. Você também tem acesso aos seguintes sites:",
@@ -345,7 +346,8 @@
         "Empty Columns_one": "Coluna vazia",
         "Empty Columns_other": "Colunas Vazias",
         "Formula Columns_one": "Coluna de Fórmula",
-        "Formula Columns_other": "Colunas de Fórmula"
+        "Formula Columns_other": "Colunas de Fórmula",
+        "DESCRIPTION": "DESCRIÇÃO"
     },
     "FieldMenus": {
         "Revert to common settings": "Reverter para configurações comuns",
@@ -433,7 +435,8 @@
         "Welcome to Grist, {{name}}!": "Bem-vindo ao Grist, {{name}}!",
         "Welcome to {{orgName}}": "Bem-vindo ao {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Você só tem acesso de leitura a este site. Atualmente não há documentos.",
-        "personal site": "Site pessoal"
+        "personal site": "Site pessoal",
+        "{{signUp}} to save your work. ": "{{signUp}} para salvar seu trabalho. "
     },
     "HomeLeftPane": {
         "Access Details": "Detalhes de Acesso",
@@ -446,8 +449,8 @@
         "Import Document": "Importar Documento",
         "Manage Users": "Gerenciar Usuários",
         "Rename": "Renomear",
-        "Trash": "Lixo",
-        "Workspace will be moved to Trash.": "A Área de Trabalho será movida à Lixeira.",
+        "Trash": "Lixeira",
+        "Workspace will be moved to Trash.": "A Área de Trabalho será movida pra Lixeira.",
         "Workspaces": "Áreas de Trabalho"
     },
     "Importer": {
@@ -465,7 +468,7 @@
         "Enter document name": "Digite o nome do documento",
         "However, it appears to be already identical.": "No entanto, parece já ser idêntico.",
         "Include the structure without any of the data.": "Incluir a estrutura sem os dados.",
-        "It will be overwritten, losing any content not in this document.": "Ele será substituído, perdendo qualquer conteúdo que não esteja neste documento.",
+        "It will be overwritten, losing any content not in this document.": "Será substituído, perdendo qualquer conteúdo que não esteja neste documento.",
         "Name": "Nome",
         "No destination workspace": "Nenhuma área de trabalho de destino",
         "Organization": "Organização",
@@ -604,8 +607,8 @@
         "Download": "Baixar",
         "Duplicate Document": "Duplicar o Documento",
         "Edit without affecting the original": "Editar sem afetar o original",
-        "Export CSV": "Exportar a CSV",
-        "Export XLSX": "Exportar a XLSX",
+        "Export CSV": "Exportar CSV",
+        "Export XLSX": "Exportar XLSX",
         "Manage Users": "Gerenciar Usuários",
         "Original": "Original",
         "Replace {{termToUse}}...": "Substituir {{termToUse}}…",
@@ -959,5 +962,48 @@
     },
     "ChoiceTextBox": {
         "CHOICES": "ESCOLHAS"
+    },
+    "LanguageMenu": {
+        "Language": "Idioma"
+    },
+    "GristTooltips": {
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "As células em uma coluna de referência sempre identificam um registro {{entire}} nessa tabela, mas você pode selecionar qual coluna desse registro deve ser mostrada.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Fórmulas que acionam em certos casos, e armazenam o valor calculado como dados.",
+        "Link your new widget to an existing widget on this page.": "Vincule seu novo widget a um widget existente nesta página.",
+        "Linking Widgets": "Vinculando widgets",
+        "Nested Filtering": "Filtragem aninhada",
+        "Only those rows will appear which match all of the filters.": "Somente serão exibidas as linhas que correspondem a todos os filtros.",
+        "Reference Columns": "Colunas de referência",
+        "Select the table to link to.": "Selecione a tabela à qual se vincular.",
+        "Selecting Data": "Selecionando dados",
+        "The total size of all data in this document, excluding attachments.": "O tamanho total de todos os dados deste documento, excluindo os anexos.",
+        "Updates every 5 minutes.": "Atualiza a cada 5 minutos.",
+        "You can filter by more than one column.": "Você pode filtrar por mais de uma coluna.",
+        "Access Rules": "Regras de Acesso",
+        "Add New": "Adicionar Novo",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Clique no botão Adicionar Novo para criar novos documentos ou espaços de trabalho ou importar dados.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Aplicar formatação condicional às células nesta coluna quando as condições da fórmula forem atendidas.",
+        "Apply conditional formatting to rows based on formulas.": "Aplicar formatação condicional em linhas com base em fórmulas.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Clique em \"Abrir estilos de linhas\" para aplicar a formatação condicional às linhas.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Clicar {{EyeHideIcon}} em cada célula esconde o campo desta visualização sem apagá-lo.",
+        "Editing Card Layout": "Editando o layout do cartão",
+        "Learn more.": "Saiba mais.",
+        "Raw Data page": "Página de dados brutos",
+        "Reference columns are the key to {{relational}} data in Grist.": "As colunas de referência são a chave para os dados {{relational}} no Grist.",
+        "Pinning Filters": "Fixando filtros",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Organize os campos em seu cartão arrastando e redimensionando células.",
+        "Pinned filters are displayed as buttons above the widget.": "Os filtros fixados são exibidos como botões acima do widget.",
+        "Select the table containing the data to show.": "Selecione a tabela que contém os dados a serem exibidos.",
+        "They allow for one record to point (or refer) to another.": "Eles permitem que um registro aponte (ou se refira) a outro.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "A página de dados brutos lista todas as tabelas de dados em seu documento, incluindo tabelas de resumo e tabelas não incluídas nos layouts de página.",
+        "This is the secret to Grist's dynamic and productive layouts.": "Este é o segredo dos layouts dinâmicos e produtivos do Grist.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Experimente mudanças em uma cópia, depois decida se deseja substituir o original por suas edições.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Use o ícone \\u{1D6BA} para criar tabelas de resumo (ou dinâmicas) para totais ou subtotais.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Útil para armazenar o carimbo da hora ou autor de um novo registro, limpeza de dados, e muito mais.",
+        "entire": "inteiro",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "As regras de acesso lhe dão o poder de criar regras diferenciadas para determinar quem pode ver ou editar quais partes de seu documento.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use o ícone 𝚺 para criar tabelas resumidas (ou dinâmicas), para totais ou subtotais.",
+        "relational": "relacionais",
+        "Unpin to hide the the button while keeping the filter.": "Desfixe para ocultar o botão enquanto mantém o filtro."
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "grist-core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "license": "Apache-2.0",
   "description": "Grist is the evolution of spreadsheets",
   "homepage": "https://github.com/gristlabs/grist-core",
@@ -107,11 +107,11 @@
   "dependencies": {
     "@googleapis/drive": "0.3.1",
     "@googleapis/oauth2": "0.2.0",
-    "@gristlabs/connect-sqlite3": "0.9.11-grist.4",
+    "@gristlabs/connect-sqlite3": "0.9.11-grist.5",
     "@gristlabs/express-session": "1.17.0",
     "@gristlabs/moment-guess": "1.2.4-grist.1",
     "@gristlabs/pidusage": "2.0.17",
-    "@gristlabs/sqlite3": "4.1.1-grist.6",
+    "@gristlabs/sqlite3": "5.1.4-grist.8",
     "@popperjs/core": "2.3.3",
     "accept-language-parser": "1.5.0",
     "async-mutex": "0.2.4",
@@ -131,7 +131,6 @@
     "csv": "4.0.0",
     "diff-match-patch": "1.0.5",
     "double-ended-queue": "2.1.0-0",
-    "electron": "19.0.9",
     "exceljs": "4.2.1",
     "express": "4.16.4",
     "file-type": "16.5.4",
@@ -181,6 +180,7 @@
   },
   "resolutions": {
     "jquery": "3.5.0",
-    "ts-interface-checker": "1.0.2"
+    "ts-interface-checker": "1.0.2",
+    "@gristlabs/sqlite3": "5.1.4-grist.8"
   }
 }

@@ -169,6 +169,7 @@ export interface QueryResult extends TableFetchResult {
  * docId of XXXXX~FORKID[~USERID] and a urlId of UUUUU~FORKID[~USERID].
  */
 export interface ForkResult {
+  forkId: string;
   docId: string;
   urlId: string;
 }
@@ -317,6 +318,11 @@ export interface ActiveDocAPI {
    * Returns cell value with an error message (traceback) for one invalid formula cell.
    */
   getFormulaError(tableId: string, colId: string, rowId: number): Promise<CellValue>;
+
+  /**
+   * Generates a formula code based on the AI suggestions, it also modifies the column and sets it type to a formula.
+   */
+  getAssistance(tableId: string, colId: string, description: string): Promise<void>;
 
   /**
    * Fetch content at a url.

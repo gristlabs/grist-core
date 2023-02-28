@@ -1,5 +1,5 @@
 import {ActionSummary} from 'app/common/ActionSummary';
-import {ApplyUAResult, PermissionDataWithExtraUsers, QueryFilters} from 'app/common/ActiveDocAPI';
+import {ApplyUAResult, ForkResult, PermissionDataWithExtraUsers, QueryFilters} from 'app/common/ActiveDocAPI';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
@@ -108,6 +108,8 @@ export interface Workspace extends WorkspaceProperties {
   isSupportWorkspace?: boolean;
 }
 
+export type DocumentType = 'tutorial';
+
 // Non-core options for a document.
 // "Non-core" means bundled into a single options column in the database.
 // TODO: consider smoothing over this distinction in the API.
@@ -115,11 +117,15 @@ export interface DocumentOptions {
   description?: string|null;
   icon?: string|null;
   openMode?: OpenDocMode|null;
+  externalId?: string|null;  // A slot for storing an externally maintained id.
+                             // Not used in grist-core, but handy for Electron app.
 }
 
 export interface DocumentProperties extends CommonProperties {
   isPinned: boolean;
   urlId: string|null;
+  trunkId: string|null;
+  type: DocumentType|null;
   options: DocumentOptions|null;
 }
 
@@ -130,6 +136,13 @@ export interface Document extends DocumentProperties {
   workspace: Workspace;
   access: roles.Role;
   trunkAccess?: roles.Role|null;
+  forks?: Fork[];
+}
+
+export interface Fork {
+  id: string;
+  trunkId: string;
+  updatedAt: string;  // ISO date string
 }
 
 // Non-core options for a user.
@@ -385,6 +398,7 @@ export interface DocAPI {
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
+  fork(): Promise<ForkResult>;
   replace(source: DocReplacementOptions): Promise<void>;
   // Get list of document versions (specify raw to bypass caching, which should only make
   // a difference if snapshots have "leaked")
@@ -833,6 +847,12 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async removeRows(tableId: string, removals: number[]): Promise<number[]> {
     return this.requestJson(`${this._url}/tables/${tableId}/data/delete`, {
       body: JSON.stringify(removals),
+      method: 'POST'
+    });
+  }
+
+  public async fork(): Promise<ForkResult> {
+    return this.requestJson(`${this._url}/fork`, {
       method: 'POST'
     });
   }

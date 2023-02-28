@@ -1,4 +1,5 @@
 import { ApiError } from 'app/common/ApiError';
+import { buildUrlId } from 'app/common/gristUrls';
 import { Document } from 'app/gen-server/entity/Document';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/HomeDBManager';
@@ -119,6 +120,29 @@ export class Housekeeper {
       };
       await this._dbManager.deleteWorkspace(scope, workspace.id);
     }
+
+    // Delete old forks
+    const forks = await this._getForksToDelete();
+    for (const fork of forks) {
+      const docId = buildUrlId({trunkId: fork.trunkId!, forkId: fork.id, forkUserId: fork.createdBy!});
+      const permitKey = await this._permitStore.setPermit({docId});
+      try {
+        const result = await fetch(
+          await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}`),
+          {
+            method: 'DELETE',
+            headers: {
+              Permit: permitKey,
+            },
+          }
+        );
+        if (result.status !== 200) {
+          log.error(`failed to delete fork ${docId}: error status ${result.status}`);
+        }
+      } finally {
+        await this._permitStore.removePermit(permitKey);
+      }
+    }
   }
 
   public addEndpoints(app: express.Application) {
@@ -202,7 +226,7 @@ export class Housekeeper {
   }
 
   private async _getWorkspacesToDelete() {
-    const docs = await this._dbManager.connection.createQueryBuilder()
+    const workspaces = await this._dbManager.connection.createQueryBuilder()
       .select('workspaces')
       .from(Workspace, 'workspaces')
       .leftJoin('workspaces.docs', 'docs')
@@ -212,7 +236,17 @@ export class Housekeeper {
       // wait for workspace to be empty
       .andWhere('docs.id IS NULL')
       .getMany();
-    return docs;
+    return workspaces;
+  }
+
+  private async _getForksToDelete() {
+    const forks = await this._dbManager.connection.createQueryBuilder()
+      .select('forks')
+      .from(Document, 'forks')
+      .where('forks.trunk_id IS NOT NULL')
+      .andWhere(`forks.updated_at <= ${this._getThreshold()}`)
+      .getMany();
+    return forks;
   }
 
   /**

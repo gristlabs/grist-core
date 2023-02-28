@@ -1,5 +1,10 @@
 const path = require('path');
 
+// Get path to top-level node_modules if in a yarn workspace.
+// Otherwise node_modules one level up won't get resolved.
+// This is used in Electron packaging.
+const base = path.dirname(path.dirname(require.resolve('grainjs/package.json')));
+
 module.exports = {
   target: 'web',
   entry: {
@@ -18,7 +23,8 @@ module.exports = {
       path.resolve('.'),
       path.resolve('./ext'),
       path.resolve('./stubs'),
-      path.resolve('./node_modules')
+      path.resolve('./node_modules'),
+      base,
     ],
     fallback: {
       'path': require.resolve("path-browserify"),

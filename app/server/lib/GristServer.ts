@@ -62,6 +62,8 @@ export interface GristLoginMiddleware {
   getLoginOrSignUpMiddleware?(): express.RequestHandler[];
   // Optional middleware for the GET /logout route.
   getLogoutMiddleware?(): express.RequestHandler[];
+  // Optional middleware for all routes.
+  getWildcardMiddleware?(): express.RequestHandler[];
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express): Promise<string>;
   // Optionally, extract profile from request. Result can be a profile,

@@ -413,4 +413,16 @@ export const GristLight: ThemeColors = {
   'comments-panel-topic-bg': 'white',
   'comments-panel-topic-border': '#ccc',
   'comments-panel-resolved-topic-bg': '#F0F0F0',
+
+  /* Date Picker */
+  'date-picker-selected-fg': '#262633',
+  'date-picker-selected-bg': '#D9D9D9',
+  'date-picker-selected-bg-hover': '#CFCFCF',
+  'date-picker-today-fg': '#FFFFFF',
+  'date-picker-today-bg': '#16B378',
+  'date-picker-today-bg-hover': '#009058',
+  'date-picker-range-start-end-bg': '#D9D9D9',
+  'date-picker-range-start-end-bg-hover': '#CFCFCF',
+  'date-picker-range-bg': '#EEEEEE',
+  'date-picker-range-bg-hover': '#D9D9D9',
 };

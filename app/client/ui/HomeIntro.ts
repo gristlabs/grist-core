@@ -117,7 +117,7 @@ function makeAnonIntro(homeModel: HomeModel) {
   return [
     css.docListHeader(t("Welcome to Grist!"), testId('welcome-title')),
     cssIntroLine(t("Get started by exploring templates, or creating your first Grist document.")),
-    cssIntroLine(signUp, ' to save your work. ', // TODO i18n
+    cssIntroLine(t("{{signUp}} to save your work. ", {signUp}),
       (shouldHideUiElement('helpCenter') ? null : t("Visit our {{link}} to learn more.", { link: helpCenterLink() })),
       testId('welcome-text')),
     makeCreateButtons(homeModel),

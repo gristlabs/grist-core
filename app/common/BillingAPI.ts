@@ -4,7 +4,7 @@ import {StringUnion} from 'app/common/StringUnion';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import {BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo} from 'app/common/UserAPI';
 
-export const BillingSubPage = StringUnion('payment');
+export const BillingSubPage = StringUnion('payment', 'scheduled');
 export type BillingSubPage = typeof BillingSubPage.type;
 
 export const BillingPage = StringUnion(...BillingSubPage.values, 'billing');

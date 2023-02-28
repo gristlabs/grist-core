@@ -332,6 +332,16 @@ export const ThemeColors = t.iface([], {
   "comments-panel-topic-bg": "string",
   "comments-panel-topic-border": "string",
   "comments-panel-resolved-topic-bg": "string",
+  "date-picker-selected-fg": "string",
+  "date-picker-selected-bg": "string",
+  "date-picker-selected-bg-hover": "string",
+  "date-picker-today-fg": "string",
+  "date-picker-today-bg": "string",
+  "date-picker-today-bg-hover": "string",
+  "date-picker-range-start-end-bg": "string",
+  "date-picker-range-start-end-bg-hover": "string",
+  "date-picker-range-bg": "string",
+  "date-picker-range-bg-hover": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

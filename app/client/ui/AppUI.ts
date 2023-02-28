@@ -53,7 +53,7 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
 }
 
 function createMainPage(appModel: AppModel, appObj: App) {
-  if (!appModel.currentOrg && appModel.pageType.get() !== 'welcome') {
+  if (!appModel.currentOrg && appModel.needsOrg.get()) {
     const err = appModel.orgError;
     if (err && err.status === 404) {
       return createNotFoundPage(appModel);

@@ -34,7 +34,7 @@ describe("LanguageSettings", function() {
         const button = await langButton();
         assert.isTrue(await button.isDisplayed());
         // Make sure correct flag is shown.
-        const flag = await button.find("div").getCssValue("background-image");
+        const flag = await button.find(".test-language-button-icon").getCssValue("background-image");
         assert.isTrue(flag.endsWith(countryCode + '.svg")'), `Flag is ${flag} search for ${countryCode}`);
         // Make sure we see the all languages in the menu.
         await button.click();

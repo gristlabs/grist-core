@@ -1,0 +1,944 @@
+{
+    "HomeIntro": {
+        "Invite Team Members": "Invita i membri del team",
+        "personal site": "sito personale",
+        "Any documents created in this site will appear here.": "Tutti i documenti creati in questo sito appariranno qui.",
+        "Browse Templates": "Sfoglia template",
+        "Create Empty Document": "Crea un documento vuoto",
+        "Get started by creating your first Grist document.": "Inizia a creare il tuo primo documento Grist.",
+        "Get started by exploring templates, or creating your first Grist document.": "Inizia esplorando i template o creando il tuo primo documento Grist.",
+        "Get started by inviting your team and creating your first Grist document.": "Inizia invitando il tuo team e creando il tuo primo documento Grist.",
+        "Help Center": "Centro assistenza",
+        "Import Document": "Importa documento",
+        "Interested in using Grist outside of your team? Visit your free ": "Ti interessa usare Grist fuori dal tuo team? Prova gratis il tuo ",
+        "Sign up": "Iscriviti",
+        "Sprouts Program": "Consulenza per iniziare",
+        "This workspace is empty.": "Questo spazio di lavoro è vuoto.",
+        "Visit our {{link}} to learn more.": "Visita il {{link}} per saperne di più.",
+        "Welcome to Grist!": "Benvenuto in Grist!",
+        "Welcome to Grist, {{name}}!": "Benvenuto in Grist, {{name}}!",
+        "Welcome to {{orgName}}": "Benvenuto in {{orgName}}",
+        "You have read-only access to this site. Currently there are no documents.": "Hai accesso a questo sito in sola lettura. Attualmente non ci sono documenti.",
+        "{{signUp}} to save your work. ": "{{signUp}} per salvare il tuo lavoro. "
+    },
+    "HomeLeftPane": {
+        "Manage Users": "Gestisci gli utenti",
+        "Access Details": "Dettagli di accesso",
+        "All Documents": "Tutti i documenti",
+        "Create Empty Document": "Crea un documento vuoto",
+        "Create Workspace": "Crea uno spazio di lavoro",
+        "Delete": "Elimina",
+        "Delete {{workspace}} and all included documents?": "Eliminare {{workspace}} e tutti i documenti che contiene?",
+        "Examples & Templates": "Esempi e template",
+        "Import Document": "Importa documento",
+        "Rename": "Rinomina",
+        "Trash": "Cestino",
+        "Workspace will be moved to Trash.": "Lo spazio di lavoro sarà spostato nel cestino.",
+        "Workspaces": "Spazi di lavoro"
+    },
+    "MakeCopyMenu": {
+        "However, it appears to be already identical.": "Tuttavia, sembra essere già identico.",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Attenzione, l'originale ha delle modifiche che non sono in questo documento. Queste saranno sovrascritte.",
+        "It will be overwritten, losing any content not in this document.": "Sarà sovrascritto, perdendo qualsiasi contenuto che non è in questo documento.",
+        "As Template": "Come template",
+        "Cancel": "Annulla",
+        "Enter document name": "Inserisci il nome del documento",
+        "Include the structure without any of the data.": "Includi la struttura senza alcun dato.",
+        "Name": "Nome",
+        "No destination workspace": "Nessuno spazio di lavoro di destinazione",
+        "Organization": "Organizzazione",
+        "Original Has Modifications": "L'originale ha delle modifiche",
+        "Original Looks Unrelated": "L'originale sembra non essere in relazione",
+        "Original Looks Identical": "L'originale sembra identico",
+        "Overwrite": "Sovrascrivi",
+        "Replacing the original requires editing rights on the original document.": "Rimpiazzare l'originale richiede permessi in scrittura nel documento originale.",
+        "Sign up": "Iscriviti",
+        "The original version of this document will be updated.": "La versione originale di questo documento sarà aggiornata.",
+        "To save your changes, please sign up, then reload this page.": "Per salvare le modifiche, effettua l'accesso e ricarica questa pagina.",
+        "Update": "Aggiorna",
+        "Update Original": "Aggiorna l'originale",
+        "Workspace": "Spazio di lavoro",
+        "You do not have write access to the selected workspace": "Non hai accesso in scrittura allo spazio di lavoro selezionato",
+        "You do not have write access to this site": "Non hai accesso in scrittura a questo sito"
+    },
+    "Importer": {
+        "Update existing records": "Aggiorna i record esistenti",
+        "Merge rows that match these fields:": "Unisci le righe che corrispondono a questi campi:",
+        "Select fields to match on": "Seleziona i campi da far corrispondere"
+    },
+    "NotifyUI": {
+        "Cannot find personal site, sorry!": "Spiacente, impossibile trovare il sito personale!",
+        "Go to your free personal site": "Vai al tuo sito personale gratuito",
+        "Notifications": "Notifiche",
+        "Ask for help": "Chiedi aiuto",
+        "Give feedback": "Lascia un commento",
+        "No notifications": "Nessuna notifica",
+        "Renew": "Rinnova",
+        "Report a problem": "Segnala un problema",
+        "Upgrade Plan": "Aggiorna il tuo piano"
+    },
+    "Pages": {
+        "Delete data and this page.": "Elimina i dati e questa pagina.",
+        "The following tables will no longer be visible_one": "La tabella seguente non sarà più visibile",
+        "The following tables will no longer be visible_other": "Le tabelle seguenti non saranno più visibili",
+        "Delete": "Elimina"
+    },
+    "RecordLayoutEditor": {
+        "Save Layout": "Salva layout",
+        "Add Field": "Aggiungi campo",
+        "Create New Field": "Crea nuovo campo",
+        "Show field {{- label}}": "Mostra campo {{- label}}",
+        "Cancel": "Annulla"
+    },
+    "RightPanel": {
+        "SOURCE DATA": "SORGENTE DATI",
+        "WIDGET TITLE": "TITOLO WIDGET",
+        "Fields_other": "Campi",
+        "Save": "Salva",
+        "Select Widget": "Seleziona widget",
+        "TRANSFORM": "TRASFORMA",
+        "You do not have edit access to this document": "Non hai accesso in scrittura a questo documento",
+        "Theme": "Tema",
+        "Widget": "Widget",
+        "COLUMN TYPE": "TIPO COLONNA",
+        "CHART TYPE": "TIPO GRAFICO",
+        "CUSTOM": "PERSONALIZZATO",
+        "Change Widget": "Cambia widget",
+        "Columns_one": "Colonna",
+        "Columns_other": "Colonne",
+        "DATA TABLE": "TABELLA DATI",
+        "DATA TABLE NAME": "NOME TABELLA DATI",
+        "Data": "Dati",
+        "Detach": "Scollega",
+        "Edit Data Selection": "Modifica selezione dati",
+        "Fields_one": "Campo",
+        "GROUPED BY": "RAGGRUPPATO PER",
+        "ROW STYLE": "STILE RIGA",
+        "Row Style": "Stile riga",
+        "SELECT BY": "SELEZIONATO PER",
+        "SELECTOR FOR": "SELETTORE PER",
+        "Series_one": "Serie",
+        "Series_other": "Serie",
+        "Sort & Filter": "Ordina e filtra"
+    },
+    "RowContextMenu": {
+        "Copy anchor link": "Copia link",
+        "Delete": "Elimina",
+        "Duplicate rows_one": "Duplica riga",
+        "Duplicate rows_other": "Duplica righe",
+        "Insert row": "Inserisci riga",
+        "Insert row above": "Inserisci riga sopra",
+        "Insert row below": "Inserisci riga sotto"
+    },
+    "SortFilterConfig": {
+        "Save": "Salva",
+        "Filter": "FILTRO",
+        "Revert": "Ripristina",
+        "Sort": "ORDINA",
+        "Update Sort & Filter settings": "Aggiorna impostazioni Ordina e Filtra"
+    },
+    "SortConfig": {
+        "Use choice position": "Usa posizione scelta",
+        "Add Column": "Aggiungi colonna",
+        "Empty values last": "Valori vuoti al fondo",
+        "Natural sort": "Ordinamento naturale",
+        "Update Data": "Aggiorna dati",
+        "Search Columns": "Cerca colonne"
+    },
+    "TriggerFormulas": {
+        "Any field": "Qualsiasi campo",
+        "Apply on changes to:": "Applica su modifica a:",
+        "Apply on record changes": "Applica su modifica a record",
+        "Apply to new records": "Applica su nuovo record",
+        "Cancel": "Annulla",
+        "Close": "Chudi",
+        "Current field ": "Campo corrente ",
+        "OK": "OK"
+    },
+    "Tools": {
+        "Validate Data": "Valida dati",
+        "Settings": "Impostazioni",
+        "Access Rules": "Regole di accesso",
+        "Code View": "Vista codice",
+        "Delete": "Elimina",
+        "Delete document tour?": "Eliminare il tour del documento?",
+        "Document History": "Storia documento",
+        "How-to Tutorial": "Tutorial pratico",
+        "Raw Data": "Dati grezzi",
+        "Return to viewing as yourself": "Torna alla vista come te stesso",
+        "TOOLS": "STRUMENTI",
+        "Tour of this Document": "Tour di questo documento"
+    },
+    "ViewConfigTab": {
+        "Form": "Modulo",
+        "Make On-Demand": "Rendi on-demand",
+        "Advanced settings": "Impostazioni avanzate",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Le tabelle grandi possono essere marcate \"on-demand\" per evitare di caricarle nel sistema.",
+        "Blocks": "Blocchi",
+        "Compact": "Compatta",
+        "Edit Card Layout": "Modifica layout scheda",
+        "Plugin: ": "Plugin: ",
+        "Section: ": "Sezione: ",
+        "Unmark On-Demand": "Non rendere on-demand"
+    },
+    "WelcomeQuestions": {
+        "What brings you to Grist? Please help us serve you better.": "Che cosa ti ha portato a Grist? Aiutaci a servirti meglio.",
+        "Sales": "Vendite",
+        "Product Development": "Sviluppo di prodotti",
+        "Education": "Istruzione",
+        "Finance & Accounting": "Finanza e contabilità",
+        "HR & Management": "Risorse umane e amministrazione",
+        "IT & Technology": "IT e tecnologia",
+        "Marketing": "Marketing",
+        "Media Production": "Produzione nei media",
+        "Other": "Altro",
+        "Research": "Ricerca",
+        "Type here": "Scrivi qui",
+        "Welcome to Grist!": "Benvenuto in Grist!"
+    },
+    "errorPages": {
+        "Something went wrong": "Qualcosa non ha funzionato",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Impossibile trovare la pagina richiesta.{{separator}}Controllare la URL e provare ancora.",
+        "There was an unknown error.": "Si è verificato un errore sconosciuto.",
+        "Access denied{{suffix}}": "Accesso negato-{{suffix}}",
+        "Add account": "Aggiungi account",
+        "Contact support": "Contatta il supporto",
+        "Error{{suffix}}": "Errore-{{suffix}}",
+        "Go to main page": "Vai alla pagina principale",
+        "Page not found{{suffix}}": "Pagina non trovata-{{suffix}}",
+        "Sign in": "Accedi",
+        "Sign in again": "Accedi di nuovo",
+        "Sign in to access this organization's documents.": "Accedi per vedere i documenti di questa organizzazione.",
+        "Signed out{{suffix}}": "Disconnesso-{{suffix}}",
+        "There was an error: {{message}}": "Si è verificato un errore: {{message}}",
+        "You are now signed out.": "Adesso sei scollegato.",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Sei collegato come {{email}}. Puoi accedere con un account diverso, o chiedere l'accesso a un amministratore.",
+        "You do not have access to this organization's documents.": "Non hai accesso ai documenti di questa organizzazione."
+    },
+    "duplicatePage": {
+        "Note that this does not copy data, but creates another view of the same data.": "Notare che questo non copia i dati ma crea un'altra vista dagli stessi dati.",
+        "Duplicate page {{pageName}}": "Duplica pagina {{pageName}}"
+    },
+    "TypeTransform": {
+        "Apply": "Applica",
+        "Cancel": "Annulla",
+        "Preview": "Anteprima",
+        "Revise": "Rivedi",
+        "Update formula (Shift+Enter)": "Aggiorna formula (Maiusc + Invio)"
+    },
+    "CellStyle": {
+        "Cell Style": "Stile cella",
+        "CELL STYLE": "STILE CELLA",
+        "Mixed style": "Stile misto",
+        "Open row styles": "Apri stili riga",
+        "Default cell style": "Stile cella di default"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "SCELTE"
+    },
+    "ColumnEditor": {
+        "COLUMN LABEL": "ETICHETTA COLONNA",
+        "COLUMN DESCRIPTION": "DESCRIZIONE COLONNA"
+    },
+    "ColumnInfo": {
+        "COLUMN ID: ": "ID COLONNA: ",
+        "COLUMN DESCRIPTION": "DESCRIZIONE COLONNA",
+        "COLUMN LABEL": "ETICHETTA COLONNA",
+        "Save": "Salva",
+        "Cancel": "Annulla"
+    },
+    "DiscussionEditor": {
+        "Reply to a comment": "Rispondi a commento",
+        "Resolve": "Risolvi",
+        "Started discussion": "Discussione avviata",
+        "Save": "Salva",
+        "Open": "Apri",
+        "Remove": "Rimuovi",
+        "Reply": "Rispondi",
+        "Show resolved comments": "Mostra commenti risolti",
+        "Showing last {{nb}} comments": "Mostro gli ultimi {{nb}} commenti",
+        "Write a comment": "Scrivi un commento",
+        "Cancel": "Annulla",
+        "Comment": "Commenta",
+        "Edit": "Modifica",
+        "Marked as resolved": "Segnato come risolto",
+        "Only current page": "Solo pagina corrente",
+        "Only my threads": "Solo miei thread"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Converti colonna in formula"
+    },
+    "FieldBuilder": {
+        "Apply Formula to Data": "Applica formula ai dati",
+        "CELL FORMAT": "FORMATO CELLA",
+        "Mixed types": "Tipi misti",
+        "Mixed format": "Formato misto",
+        "Changing multiple column types": "Cambiare i tipi di più colonne",
+        "DATA FROM TABLE": "DATI DALLA TABELLA",
+        "Revert field settings for {{colId}} to common": "Ripristina le impostazioni dei campi per {{colId}} a quelli comuni",
+        "Use separate field settings for {{colId}}": "Usa impostazioni dei campi separate per {{colId}}",
+        "Save field settings for {{colId}} as common": "Salva le impostazioni dei campi per {{colId}} come quelli comuni"
+    },
+    "FormulaEditor": {
+        "Error in the cell": "Errore nella cella",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Errori in {{numErrors}} su {{numCells}} celle",
+        "Column or field is required": "Richiesta una colonna o un campo",
+        "Errors in all {{numErrors}} cells": "Errori in {{numErrors}} celle",
+        "editingFormula is required": "editingFormula è necessario"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "Non dovrebbe essere possibile salvare un valore semplice in una colonna di formule",
+        "Unable to finish saving edited cell": "Impossibile completare il salvataggio della cella modificata"
+    },
+    "Reference": {
+        "CELL FORMAT": "FORMATO CELLA",
+        "Row ID": "ID riga",
+        "SHOW COLUMN": "MOSTRA COLONNA"
+    },
+    "NumericTextBox": {
+        "Decimals": "Decimali",
+        "Default currency ({{defaultCurrency}})": "Valuta di default ({{defaultCurrency}})",
+        "Currency": "Valuta",
+        "Number Format": "Formato numerico"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[testo link] url"
+    },
+    "welcomeTour": {
+        "Editing Data": "Modificare i dati",
+        "Sharing": "Condividendo",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Sfoglia la nostra {{templateLibrary}} per scoprire che cosa è possibile fare e farti ispirare.",
+        "Building up": "In costruzione",
+        "Configuring your document": "Configurare il tuo documento",
+        "Customizing columns": "Personalizzare le colonne",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Fare doppio clic o premere {{enter}} su una cella per modificarla. ",
+        "Flying higher": "Volare più alto",
+        "Enter": "Entrare",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Rendilo relazionale! Usa il tipo {{ref}} per collegare le tabelle. ",
+        "Reference": "Riferimento",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Impostare opzioni di formattazione, formule, o tipi di colonna come date, scelte o allegati. ",
+        "Start with {{equal}} to enter a formula.": "Inizia da {{equal}} per inserire una formula.",
+        "convert to card view, select data, and more.": "convertire alla visualizzazione scheda, selezionare dati e altro ancora.",
+        "template library": "libreria di template",
+        "Use {{helpCenter}} for documentation or questions.": "Usa {{helpCenter}} per vedere la documentazione o fare domande.",
+        "creator panel": "pannello Creatore",
+        "Add New": "Aggiungi nuovo",
+        "Help Center": "Centro assistenza",
+        "Share": "Condividere",
+        "Toggle the {{creatorPanel}} to format columns, ": "Attiva il {{creatorPanel}} per formattare le colonne, ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Usa il pulsante Condividi ({{share}}) per condividere il documento o esportare i dati.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Usa {{addNew}} per aggiungere widget, pagine o importare altri dati. ",
+        "Welcome to Grist!": "Benvenuto in Grist!"
+    },
+    "AccountWidget": {
+        "Accounts": "Account",
+        "Document Settings": "Impostazioni del documento",
+        "Sign Out": "Esci",
+        "Toggle Mobile Mode": "Modalità mobile",
+        "Access Details": "Dettagli di accesso",
+        "Add Account": "Aggiungi account",
+        "Manage Team": "Gestisci team",
+        "Pricing": "Prezzi",
+        "Profile Settings": "Impostazioni utente",
+        "Sign in": "Accedi",
+        "Switch Accounts": "Cambia account"
+    },
+    "ActionLog": {
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonna {{colId}} è stata successivamente rimossa nell'azione #{{action.actionNum}}",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "La tabella {{tableId}} è stata successivamente rimossa nell'azione #{{actionNum}}",
+        "Action Log failed to load": "Impossibile caricare il log delle azioni",
+        "This row was subsequently removed in action {{action.actionNum}}": "Questa riga è stata successivamente rimossa nell'azione {{action.actionNum}}"
+    },
+    "App": {
+        "Memory Error": "Errore di memoria",
+        "Key": "Chiave",
+        "Description": "Descrizione"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Il sito del team è sospeso. Si possono leggere i documenti, ma non modificarli."
+    },
+    "CellContextMenu": {
+        "Insert column to the left": "Inserisci colonna a sinistra",
+        "Reset {{count}} entire columns_other": "Resetta {{count}} intere colonne",
+        "Clear cell": "Svuota cella",
+        "Clear values": "Cancella valori",
+        "Copy anchor link": "Copia link",
+        "Delete {{count}} columns_one": "Elimina colonna",
+        "Delete {{count}} columns_other": "Elimina {{count}} colonne",
+        "Delete {{count}} rows_one": "Elimina riga",
+        "Delete {{count}} rows_other": "Elimina {{count}} righe",
+        "Duplicate rows_one": "Duplica riga",
+        "Duplicate rows_other": "Duplica righe",
+        "Filter by this value": "Filtra per questo valore",
+        "Insert column to the right": "Inserisci colonna a destra",
+        "Insert row": "Inserisci riga",
+        "Insert row above": "Inserisci riga sopra",
+        "Insert row below": "Inserisci riga sotto",
+        "Reset {{count}} columns_one": "Resetta colonna",
+        "Reset {{count}} columns_other": "Resetta {{count}} colonne",
+        "Reset {{count}} entire columns_one": "Resetta l'intera colonna"
+    },
+    "AccountPage": {
+        "API": "API",
+        "API Key": "Chiave per le API",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "L'autenticazione a due fattori aggiunge un livello di sicurezza, garantendo che tu sia l'unico a poter accedere al tuo Grist, anche se qualcuno scopre la tua password.",
+        "Account settings": "Impostazioni dell'account",
+        "Allow signing in to this account with Google": "Permetti di accedere a questo account con Google",
+        "Change Password": "Cambia password",
+        "Edit": "Modifica",
+        "Email": "Email",
+        "Login Method": "Metodo di accesso",
+        "Name": "Nome",
+        "Names only allow letters, numbers and certain special characters": "Per il nome puoi usare solo lettere, numeri e alcuni caratteri speciali",
+        "Password & Security": "Password e sicurezza",
+        "Save": "Salva",
+        "Theme": "Tema",
+        "Two-factor authentication": "Autenticazione a due fattori",
+        "Language": "Lingua"
+    },
+    "AccessRules": {
+        "Permission to edit document structure": "Permesso di modificare la struttura del documento",
+        "Lookup Table": "Tabella di ricerca",
+        "Add Default Rule": "Aggiungi regola di default",
+        "Add Table Rules": "Aggiungi regole per la tabella",
+        "Delete Table Rules": "Elimina tabella delle regole",
+        "Allow everyone to view Access Rules.": "Permetti a tutti di vedere le regole di accesso.",
+        "Condition": "Condizione",
+        "Default Rules": "Regole di default",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Permetti a tutti di copiare l'intero documento, o vederlo interamente in modalità sandbox.\nUtile per esempi e template, ma non per i dati sensibili.",
+        "Attribute to Look Up": "Attributo da cercare",
+        "Permissions": "Permessi",
+        "Lookup Column": "Colonna di ricerca",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Rimuovi la colonna {{- colId }} dalle regole di {{- tableId }}",
+        "View As": "Vedi come",
+        "Add Column Rule": "Aggiungi regola per la colonna",
+        "Add User Attributes": "Aggiungi attributi degli utenti",
+        "Attribute name": "Nome dell'attributo",
+        "Checking...": "Controllo…",
+        "Enter Condition": "Inserisci la condizione",
+        "Everyone": "Chiunque",
+        "Everyone Else": "Chiunque altro",
+        "Invalid": "Non valido",
+        "Permission to access the document in full when needed": "Permesso di accedere al documento per intero quando necessario",
+        "Permission to view Access Rules": "Permesso di vedere le regole di accesso",
+        "Remove {{- tableId }} rules": "Rimuovi le regole di {{- tableId }}",
+        "Remove {{- name }} user attribute": "Rimuovi l'attributo utente {{- name }}",
+        "Reset": "Reset",
+        "Rules for table ": "Regole per la tabella ",
+        "Save": "Salva",
+        "Saved": "Salvato",
+        "Special Rules": "Regole speciali",
+        "Type a message...": "Inserisci un messaggio…",
+        "User Attributes": "Attributi dell'utente",
+        "Seed rules": "Regole pre-inserite",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER."
+    },
+    "ACUserManager": {
+        "Enter email address": "Inserisci indirizzo email",
+        "Invite new member": "Invita un nuovo membro",
+        "We'll email an invite to {{email}}": "Spediremo un invito a {{email}}"
+    },
+    "ViewAsDropdown": {
+        "View As": "Vedi come",
+        "Users from table": "Utenti tabella",
+        "Example Users": "Utenti di esempio"
+    },
+    "AddNewButton": {
+        "Add New": "Nuovo"
+    },
+    "ApiKey": {
+        "By generating an API key, you will be able to make API calls for your own account.": "Genera una chiave API per fare chiamate API per il tuo account.",
+        "Click to show": "Clicca per vedere",
+        "Create": "Crea",
+        "Remove": "Rimuovi",
+        "Remove API Key": "Rimuovi la chiave API",
+        "This API key can be used to access this account anonymously via the API.": "Questa chiave API può essere usata per accede anonimamente a questo account tramite le API.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Questa chiave API può essere usata per accedere al tuo account tramite le API. Non dare a nessuno la tua chiave API.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Stai per eliminare una chiave API. Tutte le richieste future che usano questa chiave verranno respinte. Vuoi procedere lo stesso?"
+    },
+    "AppHeader": {
+        "Home Page": "Home page",
+        "Legacy": "Vecchia versione",
+        "Personal Site": "Sito personale",
+        "Team Site": "Sito del team"
+    },
+    "ChartView": {
+        "Create separate series for each value of the selected column.": "Creare serie separate per ciascun valore delle colonne selezionate.",
+        "Pick a column": "Scegli una colonna",
+        "Toggle chart aggregation": "Grafici aggregati",
+        "selected new group data columns": "Selezionato un nuovo gruppo di colonne dati",
+        "Each Y series is followed by a series for the length of error bars.": "Ciascuna serie Y è seguita da una serie per la lunghezza della barra di errore.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Ciascuna serie Y è seguita da due serie, per le barre di errore alta e bassa."
+    },
+    "ColorSelect": {
+        "Apply": "Applica",
+        "Cancel": "Annulla",
+        "Default cell style": "Stile cella di default"
+    },
+    "ColumnFilterMenu": {
+        "All": "Tutto",
+        "All Except": "Tutto tranne",
+        "All Shown": "Tutto è visibile",
+        "Filter by Range": "Filtra per intervallo",
+        "Future Values": "Valori futuri",
+        "No matching values": "Nessun valore corrisponde",
+        "None": "Nessuno",
+        "Max": "Max",
+        "Start": "Inizio",
+        "End": "Fine",
+        "Other Matching": "Altre corrispondenze",
+        "Other Non-Matching": "Altre non-corrispondenze",
+        "Other Values": "Altri valori",
+        "Others": "Altro",
+        "Search": "Cerca",
+        "Search values": "Cerca valori",
+        "Min": "Min"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (opzionale)",
+        "Full document access": "Accesso completo al documento",
+        "No document access": "Nessun accesso al documento",
+        "Open configuration": "Apri configurazione",
+        "Pick a column": "Scegli una colonna",
+        "Pick a {{columnType}} column": "Scegli una colonna {{columnType}}",
+        "Read selected table": "Leggi la tabella selezionata",
+        "Widget does not require any permissions.": "Il Widget non richiede alcun permesso.",
+        "Widget needs to {{read}} the current table.": "Il Widget ha bisogno di {{read}} la tabella corrente.",
+        "Widget needs {{fullAccess}} to this document.": "Il Widget richiede {{fullAccess}} a questo documento.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} colonna non-{{columnType}} non è mostrata",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} colonne non-{{columnType}} non sono mostrate",
+        "Add": "Aggiungi",
+        "Enter Custom URL": "Inserisci URL personalizzata",
+        "Learn more about custom widgets": "Scopri di più sui widget personalizzati",
+        "Select Custom Widget": "Seleziona un Widget personalizzato"
+    },
+    "DataTables": {
+        "Click to copy": "Clicca per copiare",
+        "Duplicate Table": "Duplica tabella",
+        "Raw Data Tables": "Tabelle dati primarie",
+        "Table ID copied to clipboard": "ID tabella copiato",
+        "You do not have edit access to this document": "Non hai accesso in scrittura a questo documento",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Cancellare i dati di {{formattedTableName}} e rimuoverla da tutte le pagine?"
+    },
+    "DocHistory": {
+        "Compare to Previous": "Confronta con il precedente",
+        "Compare to Current": "Confronta con il corrente",
+        "Open Snapshot": "Apri snapshot",
+        "Snapshots": "Snapshot",
+        "Snapshots are unavailable.": "Le snapshot non sono disponibili.",
+        "Activity": "Attvità",
+        "Beta": "Beta"
+    },
+    "DocMenu": {
+        "(The organization needs a paid plan)": "(L'organizzazione deve avere un piano a pagamento)",
+        "Access Details": "Dettagli di accesso",
+        "All Documents": "Tutti i documenti",
+        "By Date Modified": "Per data di modifica",
+        "By Name": "Per nome",
+        "Current workspace": "Spazio di lavoro corrente",
+        "Delete": "Elimina",
+        "Delete {{name}}": "Elimina {{name}}",
+        "Deleted {{at}}": "Eliminato {{at}}",
+        "Discover More Templates": "Scopri altri template",
+        "Document will be moved to Trash.": "Il documento sarà spostato nel cestino.",
+        "Document will be permanently deleted.": "Il documento sarà eliminato definitivamente.",
+        "Edited {{at}}": "Modificato {{at}}",
+        "Examples & Templates": "Esempi e template",
+        "Examples and Templates": "Esempi e template",
+        "Featured": "In evidenza",
+        "Manage Users": "Gestisci gli utenti",
+        "Move": "Sposta",
+        "Move {{name}} to workspace": "Sposta {{name}} nello spazio di lavoro",
+        "Other Sites": "Altri siti",
+        "Pin Document": "Fissa il documento",
+        "Pinned Documents": "Documenti fissati",
+        "Remove": "Rimuovi",
+        "Rename": "Rinomina",
+        "Requires edit permissions": "Richiede permessi di modifica",
+        "Restore": "Ripristina",
+        "This service is not available right now": "Questo servizio non è attualmente disponibile",
+        "Trash": "Cestino",
+        "Trash is empty.": "Il cestino è vuoto.",
+        "Workspace not found": "Spazio di lavoro non trovato",
+        "You are on your personal site. You also have access to the following sites:": "Sei nel tuo sito personale. Hai anche accesso a questi siti:",
+        "You may delete a workspace forever once it has no documents in it.": "Puoi eliminare uno spazio di lavoro definitivamente, quando non contiene più documenti.",
+        "Delete Forever": "Elimina per sempre",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Il documento sarà nel cestino per 30 giorni, quindi verrà eliminato definitivamente.",
+        "Permanently Delete \"{{name}}\"?": "Eliminare \"{{name}}\" definitivamente?",
+        "More Examples and Templates": "Altri esempi e template",
+        "To restore this document, restore the workspace first.": "Per ripristinare il documento, ripristina prima lo spazio di lavoro.",
+        "Unpin Document": "Non fissare il documento",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Sei nel sito {{siteName}}. Hai anche accesso a questi siti:"
+    },
+    "DocPageModel": {
+        "Add Empty Table": "Aggiungi tabella vuota",
+        "Add Page": "Aggiungi pagina",
+        "Add Widget to Page": "Aggiungi Widget alla pagina",
+        "Enter recovery mode": "Entra in modalità ripristino",
+        "Reload": "Ricarica",
+        "Sorry, access to this document has been denied. [{{error}}]": "Spiacente, l'accesso a questo documento è stato rifiutato. [{{error}}]",
+        "You do not have edit access to this document": "Non hai accesso in scrittura a questo documento",
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Puoi provare a ricaricare il documento, o usare la modalità di ricovero. In modalità di ricovero il documento è pienamente accessibile al proprietario e inaccessibile a tutti gli altri. Inoltre le formule sono disabilitate. [{{error}}]",
+        "Document owners can attempt to recover the document. [{{error}}]": "Il proprietario del documento può tentare di ripristinarlo. [{{error}}]",
+        "Error accessing document": "Errore nell'accedere al documento"
+    },
+    "DocTour": {
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Non è possibile costruire un tour del documento dai dati contenuti. Verificare che esista una tabella GristDocTour con le colonne Title, Body, Placement e Location.",
+        "No valid document tour": "Nessun tour del documento valido"
+    },
+    "DocumentSettings": {
+        "Currency:": "Valuta:",
+        "Document Settings": "Impostazioni del documento",
+        "Engine (experimental {{span}} change at own risk):": "Motore (sperimentale {{span}} modifica a tuo rischio):",
+        "Local currency ({{currency}})": "Valuta locale ({{currency}})",
+        "Locale:": "Locale:",
+        "Save": "Salva",
+        "Save and Reload": "Salva e ricarica",
+        "This document's ID (for API use):": "L'ID di questo documento (da usare con le API):",
+        "Time Zone:": "Zona oraria:",
+        "API": "API",
+        "Document ID copied to clipboard": "ID del documento copiato",
+        "Ok": "Ok"
+    },
+    "DocumentUsage": {
+        "Data Size": "Dimensione dei dati",
+        "For higher limits, ": "Per limiti più alti, ",
+        "Rows": "Righe",
+        "Usage": "Utilizzo",
+        "Usage statistics are only available to users with full access to the document data.": "Le statistiche sull'utilizzo sono disponibili solo per gli utenti con pieno accesso ai dati del documento.",
+        "start your 30-day free trial of the Pro plan.": "Inizia i tuoi 30 giorni di prova gratuita del piano Pro.",
+        "Attachments Size": "Dimensione degli allegati",
+        "Contact the site owner to upgrade the plan to raise limits.": "Contatta il proprietario del sito per migliorare il piano e alzare i limiti."
+    },
+    "Drafts": {
+        "Restore last edit": "Ripristina l'ultima modifica",
+        "Undo discard": "Annulla elimina"
+    },
+    "DuplicateTable": {
+        "Copy all data in addition to the table structure.": "Copiare tutti i dati insieme alla struttura della tabella.",
+        "Name for new table": "Nome della nuova tabella",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Invece di duplicare le tabelle, di solito è meglio suddividere i dati con le viste collegate. {{link}}",
+        "Only the document default access rules will apply to the copy.": "Solo le regole di accesso di default del documento si applicheranno alla copia."
+    },
+    "ExampleInfo": {
+        "Afterschool Program": "Programma doposcuola",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Consulta il tutorial per sapere come collegare i dati e creare layout più efficienti.",
+        "Investment Research": "Ricerca di investimento",
+        "Lightweight CRM": "Semplice CRM",
+        "Tutorial: Analyze & Visualize": "Tutorial: Analizzare e visualizzare",
+        "Tutorial: Manage Business Data": "Tutorial: Gestire i dati di business",
+        "Welcome to the Lightweight CRM template": "Benvenuti al template del Semplice CRM",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Consulta il tutorial per il design dei dati, l'uso delle formule e la gestione dei casi complessi.",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Consulta il tutorial per sapere come creare tabelle riassuntive e grafici, e come collegare dinamicamente i grafici.",
+        "Welcome to the Afterschool Program template": "Benvenuti al template del Programma doposcuola",
+        "Tutorial: Create a CRM": "Tutorial: Creare un CRM",
+        "Welcome to the Investment Research template": "Benvenuti al template della Ricerca d'investimento"
+    },
+    "FieldConfig": {
+        "COLUMN BEHAVIOR": "COMPORTAMENTO DELLA COLONNA",
+        "COLUMN LABEL AND ID": "ETICHETTA E ID DELLA COLONNA",
+        "Clear and make into formula": "Cancella e trasforma in formula",
+        "Clear and reset": "Cancella e resetta",
+        "Column options are limited in summary tables.": "Le opzioni delle colonne sono limitate nelle tabelle riassuntive.",
+        "Convert column to data": "Converti la colonna in dati",
+        "Convert to trigger formula": "Converti in una formula trigger",
+        "Data Columns_one": "Colonna di dati",
+        "Data Columns_other": "Colonne di dati",
+        "Empty Columns_one": "Colonna vuota",
+        "Empty Columns_other": "Colonne vuote",
+        "Enter formula": "Inserisci formula",
+        "Formula Columns_one": "Colonna di formula",
+        "Formula Columns_other": "Colonne di formula",
+        "Mixed Behavior": "Comportamento misto",
+        "Set formula": "Imposta formula",
+        "Set trigger formula": "Imposta formula trigger",
+        "TRIGGER FORMULA": "FORMULA TRIGGER",
+        "Make into data column": "Trasforma in una colonna di dati"
+    },
+    "FieldMenus": {
+        "Save as common settings": "Salva come impostazioni comuni",
+        "Using common settings": "Sto usando le impostazioni comuni",
+        "Use separate settings": "Usa impostazioni separate",
+        "Revert to common settings": "Riporta alle impostazioni comuni",
+        "Using separate settings": "Sto usando impostazioni separate"
+    },
+    "FilterConfig": {
+        "Add Column": "Aggiungi colonna"
+    },
+    "FilterBar": {
+        "SearchColumns": "Cerca nelle colonne",
+        "Search Columns": "Cerca nelle colonne"
+    },
+    "GridOptions": {
+        "Grid Options": "Opzioni della griglia",
+        "Horizontal Gridlines": "Linee orizzontali della griglia",
+        "Zebra Stripes": "Strisce alternate",
+        "Vertical Gridlines": "Linee verticali della griglia"
+    },
+    "GridViewMenus": {
+        "Add Column": "Aggiungi colonna",
+        "Add to sort": "Aggiungi all'ordinamento",
+        "Clear values": "Cancella valori",
+        "Column Options": "Opzioni colonna",
+        "Convert formula to data": "Converti la formula in dati",
+        "Delete {{count}} columns_one": "Elimina colonna",
+        "Delete {{count}} columns_other": "Elimina {{count}} colonne",
+        "Filter Data": "Filtra dati",
+        "Hide {{count}} columns_one": "Nascondi colonna",
+        "Freeze {{count}} more columns_one": "Blocca ancora una colonna",
+        "Freeze {{count}} columns_one": "Blocca questa colonna",
+        "Freeze {{count}} columns_other": "Blocca {{count}} colonne",
+        "Freeze {{count}} more columns_other": "Blocca ancora {{count}} colonne",
+        "Insert column to the {{to}}": "Inserisci colonna a {{to}}",
+        "More sort options ...": "Altre opzioni di ordinamento…",
+        "Rename column": "Rinomina colonna",
+        "Reset {{count}} columns_one": "Resetta colonna",
+        "Reset {{count}} entire columns_one": "Resetta l'intera colonna",
+        "Reset {{count}} entire columns_other": "Resetta {{count}} intere colonne",
+        "Sort": "Ordina",
+        "Sorted (#{{count}})_one": "Ordinato (#{{count}})",
+        "Unfreeze all columns": "Sblocca tutte le colonne",
+        "Unfreeze {{count}} columns_one": "Sblocca questa colonna",
+        "Hide {{count}} columns_other": "Nascondi {{count}} colonne",
+        "Reset {{count}} columns_other": "Resetta {{count}} colonne",
+        "Show column {{- label}}": "Mostra colonna {{- label}}",
+        "Sorted (#{{count}})_other": "Ordinati (#{{count}})",
+        "Unfreeze {{count}} columns_other": "Sblocca {{count}} colonne"
+    },
+    "GristDoc": {
+        "Import from file": "Importa da file",
+        "Saved linked section {{title}} in view {{name}}": "Salvata la sezione collegata {{title}} nella vista {{name}}",
+        "Added new linked section to view {{viewName}}": "Aggiunta nuova sezione collegata alla vista {{viewName}}"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Centro assistenza"
+    },
+    "OnBoardingPopups": {
+        "Finish": "Termina",
+        "Next": "Prossimo"
+    },
+    "OpenVideoTour": {
+        "Grist Video Tour": "Video tour di Grist",
+        "Video Tour": "Video tour",
+        "YouTube video player": "Player di YouTube"
+    },
+    "PageWidgetPicker": {
+        "Add to Page": "Aggiungi a pagina",
+        "Building {{- label}} widget": "Costruisco il widget {{- label}}",
+        "Group by": "Raggruppa",
+        "Select Data": "Seleziona dati",
+        "Select Widget": "Seleziona widget"
+    },
+    "PermissionsWidget": {
+        "Allow All": "Autorizza tutto",
+        "Deny All": "Nega tutto",
+        "Read Only": "Sola lettura"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Importazione fallita: "
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Aggiorno il layout del record."
+    },
+    "RefSelect": {
+        "Add Column": "Aggiungi colonna",
+        "No columns to add": "Nessuna colonna da aggiungere"
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Copiato nella clipboard"
+    },
+    "ShareMenu": {
+        "Access Details": "Dettagli di accesso",
+        "Back to Current": "Indietro a corrente",
+        "Compare to {{termToUse}}": "Confronta con {{termToUse}}",
+        "Current Version": "Versione attuale",
+        "Download": "Scarica",
+        "Duplicate Document": "Duplica documento",
+        "Edit without affecting the original": "Modifica senza toccare l'originale",
+        "Export CSV": "Esporta CSV",
+        "Export XLSX": "Esporta XLSX",
+        "Manage Users": "Gestisci gli utenti",
+        "Original": "Originale",
+        "Replace {{termToUse}}...": "Sostituisci {{termToUse}}…",
+        "Return to {{termToUse}}": "Torna a {{termToUse}}",
+        "Save Copy": "Salva copia",
+        "Save Document": "Salva documento",
+        "Send to Google Drive": "Invia a Google Drive",
+        "Show in folder": "Mostra nella cartella",
+        "Unsaved": "Non salvato",
+        "Work on a Copy": "Lavora su una copia"
+    },
+    "SiteSwitcher": {
+        "Create new team site": "Crea un nuovo sito per il team",
+        "Switch Sites": "Cambia sito"
+    },
+    "ThemeConfig": {
+        "Appearance ": "Aspetto ",
+        "Switch appearance automatically to match system": "Cambia aspetto automaticamente con il sistema"
+    },
+    "TopBar": {
+        "Manage Team": "Gestisci team"
+    },
+    "TypeTransformation": {
+        "Apply": "Applica",
+        "Cancel": "Annulla",
+        "Preview": "Anteprima",
+        "Revise": "Rivedi",
+        "Update formula (Shift+Enter)": "Aggiorna formula (Maiusc + Invio)"
+    },
+    "UserManagerModel": {
+        "Editor": "Redattore",
+        "In Full": "Per intero",
+        "No Default Access": "Nessun accesso di default",
+        "None": "Nessuno",
+        "Owner": "Proprietario",
+        "View & Edit": "Vedi e modifica",
+        "View Only": "Vedi solo",
+        "Viewer": "Lettore"
+    },
+    "ValidationPanel": {
+        "Rule {{length}}": "Regola {{length}}",
+        "Update formula (Shift+Enter)": "Aggiorna formula (Maiusc + Invio)"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Utente sconosciuto"
+    },
+    "ViewLayoutMenu": {
+        "Advanced Sort & Filter": "Ordina e filtra avanzato",
+        "Copy anchor link": "Copia link",
+        "Data selection": "Selezione dati",
+        "Delete record": "Elimina record",
+        "Delete widget": "Elimina widget",
+        "Download as CSV": "Scarica come CSV",
+        "Download as XLSX": "Scarica come XLSX",
+        "Edit Card Layout": "Modifica layout scheda",
+        "Open configuration": "Apri configurazione",
+        "Print widget": "Widget di stampa",
+        "Show raw data": "Mostra dati grezzi",
+        "Widget options": "Opzioni widget"
+    },
+    "ViewSectionMenu": {
+        "(customized)": "(personalizzato)",
+        "(empty)": "(vuoto)",
+        "(modified)": "(modificato)",
+        "Custom options": "Opzioni personalizzate",
+        "FILTER": "FILTRO",
+        "Revert": "Ripristina",
+        "SORT": "ORDINA",
+        "Save": "Salva",
+        "Update Sort&Filter settings": "Aggiorna impostazioni Ordina e Filtra"
+    },
+    "VisibleFieldsConfig": {
+        "Cannot drop items into Hidden Fields": "Impossibile collocare elementi in campi nascosti",
+        "Clear": "Svuota",
+        "Hidden Fields cannot be reordered": "Impossibile riordinare i campi nascosti",
+        "Select All": "Seleziona tutto"
+    },
+    "WidgetTitle": {
+        "Cancel": "Annulla",
+        "DATA TABLE NAME": "NOME TABELLA DATI",
+        "Override widget title": "Sovrascrivi titolo widget",
+        "Provide a table name": "Inserisci un nome per la tabella",
+        "Save": "Salva",
+        "WIDGET TITLE": "TITOLO WIDGET"
+    },
+    "breadcrumbs": {
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Puoi fare delle modifiche, ma queste generano una nuova copia\ne l'originale resta immutato.",
+        "fiddle": "sperimenta",
+        "override": "sovrascrivi",
+        "recovery mode": "modalità di ricovero",
+        "snapshot": "istantanea",
+        "unsaved": "non salvato"
+    },
+    "menus": {
+        "* Workspaces are available on team plans. ": "*Gli spazi di lavoro sono disponibili nel piano per i team. ",
+        "Select fields": "Seleziona campi",
+        "Upgrade now": "Aggiorna ora"
+    },
+    "modals": {
+        "Cancel": "Annulla",
+        "Ok": "Ok",
+        "Save": "Salva"
+    },
+    "pages": {
+        "Duplicate Page": "Duplica pagina",
+        "Remove": "Rimuovi",
+        "Rename": "Rinomina",
+        "You do not have edit access to this document": "Non hai accesso in scrittura a questo documento"
+    },
+    "search": {
+        "Find Next ": "Trova successivo ",
+        "Find Previous ": "Trova precedente ",
+        "No results": "Nessun risultato",
+        "Search in document": "Cerca nel documento"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Invio i file a Google Drive"
+    },
+    "NTextBox": {
+        "false": "falso",
+        "true": "vero"
+    },
+    "ACLUsers": {
+        "Example Users": "Utenti di esempio",
+        "Users from table": "Utenti dalla tabella",
+        "View As": "Vedi come"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Aggiungi altra regola",
+        "Add conditional style": "Aggiungi stile condizionale",
+        "Error in style rule": "Errore nella regola di stile",
+        "Row Style": "Stile riga",
+        "Rule must return True or False": "La regola deve restituire Vero o Falso"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Valuta non valida"
+    },
+    "LanguageMenu": {
+        "Language": "Lingua"
+    },
+    "CodeEditorPanel": {
+        "Code View is available only when you have full document access.": "Vista Codice è disponibile solo quando hai pieno accesso al documento.",
+        "Access denied": "Accesso negato"
+    },
+    "GristTooltips": {
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Clicca su \"Apri stile righe\" per applicare la formattazione condizionale alle righe.",
+        "Editing Card Layout": "Modifica Layout Scheda",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Applica la formattazione condizionale alle celle in questa colonna quando le condizioni della formula sono soddisfatte.",
+        "Apply conditional formatting to rows based on formulas.": "Applica la formattazione condizionale alle righe in base alle formule.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Cliccando {{EyeHideIcon}} si nasconde il campo dalla vista senza cancellarlo.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Clicca il bottone Aggiungi Nuovo per creare nuovi documenti, workspace, o importare dei dati.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formule che si attivano in certi casi, e conservano il valore calcolato come dato.",
+        "Linking Widgets": "Collegare i widget",
+        "Nested Filtering": "Filtri innestati",
+        "Only those rows will appear which match all of the filters.": "Saranno mostrate solo le righe che soddisfano tutte le condizioni filtro.",
+        "Pinning Filters": "Fissare i filtri",
+        "Reference Columns": "Colonne con riferimenti",
+        "Select the table containing the data to show.": "Seleziona la tabella che contiene i dati da mostrare.",
+        "Selecting Data": "Selezionare i dati",
+        "This is the secret to Grist's dynamic and productive layouts.": "Questo è il segreto dei layout dinamici e produttivi di Grist.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Prova i cambiamenti in una copia, quindi decidi se rimpiazzare l'originale con le tue modifiche.",
+        "Updates every 5 minutes.": "Si aggiorna ogni 5 minuti.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Utile per conservare data e ora, o l'autore di un nuovo record, per la pulizia dei dati e altro ancora.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Usa il simbolo \\u{1D6BA} per creare tabelle riassuntive (pivot), per totali e subtotali.",
+        "Add New": "Aggiungi nuovo",
+        "Unpin to hide the the button while keeping the filter.": "Sblocca per nascondere il pulsante, mantenendo comunque il filtro.",
+        "Select the table to link to.": "Seleziona la tabella da collegare.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Le celle in una colonna referenziata indentificano sempre un record {{entire}} di una tabella, ma puoi scegliere quale colonna mostrare da quel record.",
+        "Learn more.": "Scopri di più.",
+        "Link your new widget to an existing widget on this page.": "Collega il tuo widget a un widget già esistente in questa pagina.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Sposta e ridimensiona le celle per riconfigurare i campi nella tua scheda.",
+        "You can filter by more than one column.": "Puoi filtrare secondo più di una colonna.",
+        "Pinned filters are displayed as buttons above the widget.": "I filtri fissati sono mostrati come pulsanti sopra il widget.",
+        "Raw Data page": "Pagine di dati grezzi",
+        "The total size of all data in this document, excluding attachments.": "Lo spazio totale di tutti i dati in questo documento, esclusi gli allegati.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La pagina dei dati grezzi elenca tutte le tabelle-dati nel tuo documento, incluse le tabelle sommario e le tabelle non comprese nei layout delle pagine.",
+        "They allow for one record to point (or refer) to another.": "Permettono a un record di puntare (o riferirsi) a un altro.",
+        "entire": "intero",
+        "relational": "relazionale",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Usa il simbolo 𝚺 per creare tabelle riassuntive (pivot), per totali o subtotali.",
+        "Access Rules": "Regole di accesso",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Le regole di accesso ti danno il potere di creare regole sofisticate per decidere chi può vedere o modificare il tuo documento, e quali parti.",
+        "Reference columns are the key to {{relational}} data in Grist.": "Le colonne con riferimenti sono il motore {{relational}} dei dati in Grist."
+    }
+}
