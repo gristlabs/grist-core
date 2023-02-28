@@ -622,7 +622,8 @@ function getFullUser(member: IEditableMember): FullUser {
     id: member.id,
     name: member.name,
     email: member.email,
-    picture: member.picture
+    picture: member.picture,
+    locale: member.locale
   };
 }
 

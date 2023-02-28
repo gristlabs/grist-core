@@ -141,6 +141,8 @@ export interface UserOptions {
   // Whether user is a consultant. Consultant users can be added to sites
   // without being counted for billing. Defaults to false if unset.
   isConsultant?: boolean;
+  // Locale selected by the user. Defaults to 'en' if unset.
+  locale?: string;
 }
 
 export interface PermissionDelta {
@@ -331,6 +333,7 @@ export interface UserAPI {
   moveDoc(docId: string, workspaceId: number): Promise<void>;
   getUserProfile(): Promise<FullUser>;
   updateUserName(name: string): Promise<void>;
+  updateUserLocale(locale: string|null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
@@ -629,6 +632,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/profile/user/name`, {
       method: 'POST',
       body: JSON.stringify({name})
+    });
+  }
+
+  public async updateUserLocale(locale: string|null): Promise<void> {
+    await this.request(`${this._url}/api/profile/user/locale`, {
+      method: 'POST',
+      body: JSON.stringify({locale})
     });
   }
 

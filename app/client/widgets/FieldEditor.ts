@@ -2,6 +2,7 @@ import * as commands from 'app/client/components/commands';
 import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
+import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
@@ -16,6 +17,8 @@ import isEqual = require('lodash/isEqual');
 import {CellPosition} from "app/client/components/CellPosition";
 
 type IEditorConstructor = typeof NewBaseEditor;
+
+const t = makeT('FieldEditor');
 
 /**
  * Check if the typed-in value should change the cell without opening the cell editor, and if so,
@@ -320,7 +323,7 @@ export class FieldEditor extends Disposable {
     await editor.prepForSave();
     if (this.isDisposed()) {
       // We shouldn't normally get disposed here, but if we do, avoid confusing JS errors.
-      console.warn("Unable to finish saving edited cell");  // tslint:disable-line:no-console
+      console.warn(t("Unable to finish saving edited cell"));  // tslint:disable-line:no-console
       return false;
     }
 
@@ -349,7 +352,7 @@ export class FieldEditor extends Disposable {
       const value = editor.getCellValue();
       if (col.isRealFormula()) {
         // tslint:disable-next-line:no-console
-        console.warn("It should be impossible to save a plain data value into a formula column");
+        console.warn(t("It should be impossible to save a plain data value into a formula column"));
       } else {
         // This could still be an isFormula column if it's empty (isEmpty is true), but we don't
         // need to toggle isFormula in that case, since the data engine takes care of that.

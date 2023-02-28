@@ -10,7 +10,7 @@ import {getStorage} from 'app/client/lib/storage';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {Theme, ThemeAppearance} from 'app/common/ThemePrefs';
-import {dom, makeTestId, Observable, styled, TestId} from 'grainjs';
+import {dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
 import debounce = require('lodash/debounce');
 import values = require('lodash/values');
 
@@ -605,6 +605,11 @@ export const theme = {
   menuToggleBg: new CustomProp('theme-menu-toggle-bg', undefined, 'white'),
   menuToggleBorder: new CustomProp('theme-menu-toggle-border', undefined, colors.slate),
 
+  /* Info Button */
+  infoButtonFg: new CustomProp('theme-info-button-fg', undefined, "#8F8F8F"),
+  infoButtonHoverFg: new CustomProp('theme-info-button-hover-fg', undefined, "#707070"),
+  infoButtonActiveFg: new CustomProp('theme-info-button-active-fg', undefined, "#5C5C5C"),
+
   /* Button Groups */
   buttonGroupFg: new CustomProp('theme-button-group-fg', undefined, colors.dark),
   buttonGroupLightFg: new CustomProp('theme-button-group-light-fg', undefined, colors.slate),
@@ -893,3 +898,16 @@ function getOrCreateStyleElement(id: string) {
   document.head.append(style);
   return style;
 }
+
+// A dom method to hide element in print view
+export function hideInPrintView(): DomElementMethod {
+  return cssHideInPrint.cls('');
+}
+
+const cssHideInPrint = styled('div', `
+  @media print {
+    & {
+      display: none !important;
+    }
+  }
+`);

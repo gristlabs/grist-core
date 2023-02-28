@@ -64,7 +64,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
   }
 
   const sub1 = dom.onElem(window, 'beforeprint', () => prepareToPrint(true));
-  const sub2 = dom.onElem(window, 'afterprint', () => {
+  const sub2 = dom.onElem(window, 'afterprint', (window as any).afterPrintCallback = () => {
     sub1.dispose();
     sub2.dispose();
     // To debug printing, set window.debugPrinting=1 in the console, then print a section, dismiss
@@ -75,6 +75,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     } else {
       prepareToPrint(false);
     }
+    delete (window as any).afterPrintCallback;
   });
 
   // Running print on a timeout makes it possible to test printing using selenium, and doesn't

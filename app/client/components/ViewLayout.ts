@@ -19,11 +19,10 @@ import {colors, isNarrowScreen, isNarrowScreenObs, mediaSmall, testId, theme} fr
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {mod} from 'app/common/gutil';
-import {Observable} from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 import debounce from 'lodash/debounce';
-import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, styled, subscribe} from 'grainjs';
+import {computedArray, Disposable, dom, fromKo, Holder, IDomComponent, Observable, styled, subscribe} from 'grainjs';
 
 // tslint:disable:no-console
 
@@ -71,9 +70,10 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   public docModel = this.gristDoc.docModel;
   public viewModel: ViewRec;
   public layoutSpec: ko.Computed<object>;
+  public maximized: Observable<number|null>;
 
   private _freeze = false;
-  private _layout: any;
+  private _layout: Layout;
   private _sectionIds: number[];
   private _isResizing = Observable.create(this, false);
 
@@ -155,12 +155,12 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const classInactive = cssLayoutBox.className + '-inactive';
     this.autoDispose(subscribe(fromKo(this.viewModel.activeSection), (use, section) => {
       const id = section.getRowId();
-      this._layout.forEachBox((box: {dom: Element}) => {
-        box.dom.classList.add(classInactive);
-        box.dom.classList.remove(classActive);
-        box.dom.classList.remove("transition");
+      this._layout.forEachBox(box => {
+        box.dom!.classList.add(classInactive);
+        box.dom!.classList.remove(classActive);
+        box.dom!.classList.remove("transition");
       });
-      let elem: Element|null = this._layout.getLeafBox(id)?.dom;
+      let elem: Element|null = this._layout.getLeafBox(id)?.dom || null;
       while (elem?.matches('.layout_box')) {
         elem.classList.remove(classInactive);
         elem.classList.add(classActive);
@@ -177,12 +177,43 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       prevSection: () => { this._otherSection(-1); },
       printSection: () => { printViewSection(this._layout, this.viewModel.activeSection()).catch(reportError); },
       sortFilterMenuOpen: (sectionId?: number) => { this._openSortFilterMenu(sectionId); },
+      maximizeActiveSection: () => { this._maximizeActiveSection(); },
+      cancel: () => {
+        if (this.maximized.get()) {
+          this.maximized.set(null);
+        }
+      }
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
+
+    this.maximized = fromKo(this._layout.maximized) as any;
+    this.autoDispose(this.maximized.addListener(val => {
+      const section = this.viewModel.activeSection.peek();
+      // If section is not disposed and it is not a deleted row.
+      if (!section.isDisposed() && section.id.peek()) {
+        section?.viewInstance.peek()?.onResize();
+      }
+    }));
   }
 
   public buildDom() {
-    return this._layout.rootElem;
+    const close = () => this.maximized.set(null);
+    return cssOverlay(
+      cssOverlay.cls('-active', use => !!use(this.maximized)),
+      testId('viewLayout-overlay'),
+      cssLayoutWrapper(
+        cssLayoutWrapper.cls('-active',  use => !!use(this.maximized)),
+        this._layout.rootElem,
+      ),
+      dom.maybe(use => !!use(this.maximized), () =>
+        cssCloseButton('CrossBig',
+          testId('close-button'),
+          dom.on('click', () => close())
+        )
+      ),
+      // Close the lightbox when user clicks exactly on the overlay.
+      dom.on('click', (ev, elem) => void (ev.target === elem && this.maximized.get() ? close() : null))
+    );
   }
 
   // Freezes the layout until the passed in promise resolves. This is useful to achieve a single
@@ -204,6 +235,14 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     this.gristDoc.docData.sendAction(['RemoveViewSection', viewSectionRowId]).catch(reportError);
   }
 
+  private _maximizeActiveSection() {
+    const activeSection = this.viewModel.activeSection();
+    const activeSectionId = activeSection.getRowId();
+    const activeSectionBox = this._layout.getLeafBox(activeSectionId);
+    if (!activeSectionBox) { return; }
+    activeSectionBox.maximize();
+  }
+
   private _buildLeafContent(sectionRowId: number) {
     return buildViewSectionDom({
        gristDoc: this.gristDoc,
@@ -219,33 +258,33 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
    */
   private _updateLayoutSpecWithSections(spec: object) {
     // We use tmpLayout as a way to manipulate the layout before we get a final spec from it.
-    const tmpLayout = Layout.create(spec, (leafId: number) => dom('div'), true);
+    const tmpLayout = Layout.create(spec, () => dom('div'), true);
 
     const specFieldIds = tmpLayout.getAllLeafIds();
     const viewSectionIds = this.viewModel.viewSections().all().map(function(f) { return f.getRowId(); });
 
     function addToSpec(leafId: number) {
       const newBox = tmpLayout.buildLayoutBox({ leaf: leafId });
-      const rows = tmpLayout.rootBox().childBoxes.peek();
+      const rows = tmpLayout.rootBox()!.childBoxes.peek();
       const lastRow = rows[rows.length - 1];
       if (rows.length >= 1 && lastRow.isLeaf()) {
         // Add a new child to the last row.
         lastRow.addChild(newBox, true);
       } else {
         // Add a new row.
-        tmpLayout.rootBox().addChild(newBox, true);
+        tmpLayout.rootBox()!.addChild(newBox, true);
       }
       return newBox;
     }
 
     // For any stale fields (no longer among viewFields), remove them from tmpLayout.
-    _.difference(specFieldIds, viewSectionIds).forEach(function(leafId) {
-      tmpLayout.getLeafBox(leafId).dispose();
+    _.difference(specFieldIds, viewSectionIds).forEach(function(leafId: any) {
+      tmpLayout.getLeafBox(leafId)?.dispose();
     });
 
     // For all fields that should be in the spec but aren't, add them to tmpLayout. We maintain a
     // two-column layout, so add a new row, or a second box to the last row if it's a leaf.
-    _.difference(viewSectionIds, specFieldIds).forEach(function(leafId) {
+    _.difference(viewSectionIds, specFieldIds).forEach(function(leafId: any) {
       // Only add the builder box if it hasn`t already been created
       addToSpec(leafId);
     });
@@ -340,7 +379,7 @@ export function buildViewSectionDom(options: {
         cssSigmaIcon('Pivot', testId('sigma'))),
       buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
       viewInstance.buildTitleControls(),
-      dom('span.viewsection_buttons',
+      dom('div.viewsection_buttons',
         dom.create(viewSectionMenu, gristDoc, vs)
       )
      )),
@@ -470,4 +509,66 @@ const cssDragIcon = styled(icon, `
 // important then we'd need to use an overlay element during dragging.)
 const cssResizing = styled('div', `
   pointer-events: none;
+`);
+
+const cssLayoutWrapper = styled('div', `
+  @media not print {
+    &-active {
+      background: ${theme.mainPanelBg};
+      height: 100%;
+      width: 100%;
+      border-radius: 5px;
+      border-bottom-left-radius: 0px;
+      border-bottom-right-radius: 0px;
+      position: relative;
+    }
+    &-active .viewsection_content {
+      margin: 0px;
+      margin-top: 12px;
+    }
+    &-active .viewsection_title {
+      padding: 0px 12px;
+    }
+    &-active .filter_bar {
+      margin-left: 6px;
+    }
+  }
+`);
+
+const cssOverlay = styled('div', `
+  @media screen {
+    &-active {
+      background-color: ${theme.modalBackdrop};
+      inset: 0px;
+      height: 100%;
+      width: 100%;
+      padding: 20px 56px 20px 56px;
+      position: absolute;
+    }
+  }
+  @media screen and ${mediaSmall} {
+    &-active {
+      padding: 22px;
+      padding-top: 30px;
+    }
+  }
+`);
+
+const cssCloseButton = styled(icon, `
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  height: 24px;
+  width: 24px;
+  cursor: pointer;
+  --icon-color: ${theme.modalBackdropCloseButtonFg};
+  &:hover {
+    --icon-color: ${theme.modalBackdropCloseButtonHoverFg};
+  }
+  @media ${mediaSmall} {
+    & {
+      top: 6px;
+      right: 6px;
+    }
+  }
 `);

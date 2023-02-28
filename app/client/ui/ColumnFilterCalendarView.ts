@@ -5,7 +5,6 @@ import { textButton } from "app/client/ui2018/buttons";
 import { IColumnFilterViewType } from "app/client/ui/ColumnFilterMenu";
 import getCurrentTime from "app/common/getCurrentTime";
 import { IRelativeDateSpec, isRelativeBound } from "app/common/FilterState";
-import { toUnixTimestamp } from "app/common/RelativeDates";
 import { updateRelativeDate } from "app/client/ui/RelativeDatesOptions";
 import moment from "moment-timezone";
 
@@ -79,7 +78,7 @@ export class ColumnFilterCalendarView extends Disposable {
 
     if (minMax !== null) {
       const value = this.columnFilter.getBoundsValue(minMax);
-      if (value !== undefined) {
+      if (isFinite(value)) {
         dateValue = new Date(value * 1000);
       }
     }
@@ -100,12 +99,12 @@ export class ColumnFilterCalendarView extends Disposable {
     // TODO: also perform this check when users pick relative dates from popup
     if (this.selectedBoundObs.get() === 'min') {
       min.set(this._updateBoundValue(min.get(), d));
-      if (max.get() !== undefined && toUnixTimestamp(max.get()!) < d) {
+      if (this.columnFilter.getBoundsValue('max') < d) {
         max.set(this._updateBoundValue(max.get(), d));
       }
     } else {
       max.set(this._updateBoundValue(max.get(), d));
-      if (min.get() !== undefined && d < toUnixTimestamp(min.get()!)) {
+      if (this.columnFilter.getBoundsValue('min') > d) {
         min.set(this._updateBoundValue(min.get(), d));
       }
     }
@@ -119,13 +118,13 @@ export class ColumnFilterCalendarView extends Disposable {
       const m = moment.utc(val * 1000);
       return new Date(Date.UTC(m.year(), m.month(), m.date()));
     };
-    if (min === undefined && max === undefined) {
+    if (!isFinite(min) && !isFinite(max)) {
       return [];
     }
-    if (min === undefined) {
-      return [{valueOf: () => -Infinity}, toDate(max!)];
+    if (!isFinite(min)) {
+      return [{valueOf: () => -Infinity}, toDate(max)];
     }
-    if (max === undefined) {
+    if (!isFinite(max)) {
       return [toDate(min), {valueOf: () => +Infinity}];
     }
     return [toDate(min), toDate(max)];

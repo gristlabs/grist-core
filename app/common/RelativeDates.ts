@@ -32,31 +32,25 @@ export function isRelativeBound(bound?: number|IRelativeDateSpec): bound is IRel
 
 // Returns the number of seconds between 1 January 1970 00:00:00 UTC and the given bound, may it be
 // a relative date.
-export function toUnixTimestamp(bound: IRelativeDateSpec|number): number {
+export function relativeDateToUnixTimestamp(bound: IRelativeDateSpec): number {
+  const localDate = getCurrentTime().startOf('day');
+  const date = moment.utc(localDate.toObject());
+  const periods = Array.isArray(bound) ? bound : [bound];
 
-  if (isRelativeBound(bound)) {
-    const localDate = getCurrentTime().startOf('day');
-    const date = moment.utc(localDate.toObject());
-    const periods = Array.isArray(bound) ? bound : [bound];
+  for (const period of periods) {
+    const {quantity, unit, endOf} = period;
 
-    for (const period of periods) {
-      const {quantity, unit, endOf} = period;
+    date.add(quantity, unit);
+    if (endOf) {
+      date.endOf(unit);
 
-      date.add(quantity, unit);
-      if (endOf) {
-        date.endOf(unit);
-
-        // date must have "hh:mm:ss" set to "00:00:00"
-        date.startOf('day');
-      } else {
-        date.startOf(unit);
-      }
+      // date must have "hh:mm:ss" set to "00:00:00"
+      date.startOf('day');
+    } else {
+      date.startOf(unit);
     }
-
-    return Math.floor(date.valueOf() / 1000);
-  } else {
-    return bound;
   }
+  return Math.floor(date.valueOf() / 1000);
 }
 
 // Format a relative date.

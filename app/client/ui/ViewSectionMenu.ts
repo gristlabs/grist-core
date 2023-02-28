@@ -1,4 +1,5 @@
 import {GristDoc} from 'app/client/components/GristDoc';
+import {allCommands} from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {DocModel, ViewSectionRec} from 'app/client/models/DocModel';
@@ -8,7 +9,7 @@ import {hoverTooltip} from 'app/client/ui/tooltips';
 import {SortConfig} from 'app/client/ui/SortConfig';
 import {makeViewLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {theme, vars} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {Computed, dom, IDisposableOwner, makeTestId, styled} from 'grainjs';
@@ -54,9 +55,15 @@ export function viewSectionMenu(
   const save = () => { doSave(docModel, viewSection).catch(reportError); };
   const revert = () => doRevert(viewSection);
 
+  // Should we show expand icon.
+  const showExpandIcon = Computed.create(owner, (use) => {
+    return !use(isNarrowScreenObs()) // not on narrow screens
+         && use(gristDoc.sectionInPopup) !== use(viewSection.id) // not in popup
+         && !use(viewSection.isRaw); // not in raw mode
+  });
+
   return [
     cssFilterMenuWrapper(
-      cssFixHeight.cls(''),
       cssFilterMenuWrapper.cls('-unsaved', displaySaveObs),
       testId('wrapper'),
       cssMenu(
@@ -130,12 +137,19 @@ export function viewSectionMenu(
     ),
     cssMenu(
       testId('viewLayout'),
-      cssFixHeight.cls(''),
       cssDotsIconWrapper(cssIcon('Dots')),
       menu(_ctl => makeViewLayoutMenu(viewSection, isReadonly.get()), {
         ...defaultMenuOptions,
         placement: 'bottom-end',
       })
+    ),
+    dom.maybe(showExpandIcon, () =>
+      cssExpandIconWrapper(
+        cssSmallIcon('Grow'),
+        testId('expandSection'),
+        dom.on('click', () =>  allCommands.maximizeActiveSection.run()),
+        hoverTooltip('Expand section', {key: 'expandSection'}),
+      ),
     )
   ];
 }
@@ -181,7 +195,7 @@ function makeCustomOptions(section: ViewSectionRec) {
       dom.text(text),
       cssMenuText.cls(color),
       cssSpacer(),
-      dom.maybe(use => use(section.activeCustomOptions), () =>
+      dom.maybe(use => Boolean(use(section.activeCustomOptions)), () =>
         cssMenuIconWrapper(
           cssIcon('Remove', testId('btn-remove-options'), dom.on('click', () =>
             section.activeCustomOptions(null)
@@ -195,22 +209,15 @@ function makeCustomOptions(section: ViewSectionRec) {
 
 const clsOldUI = styled('div', ``);
 
-const cssFixHeight = styled('div', `
-  margin-top: -3px; /* Section header is 24px, so need to move this up a little bit */
-`);
 
 const cssMenu = styled('div', `
-
-  display: inline-flex;
+  display: flex;
   cursor: pointer;
-
   border-radius: 3px;
-  border: 1px solid transparent;
   &.${clsOldUI.className} {
     margin-top: 0px;
     border-radius: 0px;
   }
-
   &:hover, &.weasel-popup-open {
     background-color: ${theme.hover};
   }
@@ -241,8 +248,7 @@ const cssMenuIconWrapper = styled(cssIconWrapper, `
 `);
 
 const cssFilterMenuWrapper = styled('div', `
-  display: inline-flex;
-  margin-right: 10px;
+  display: flex;
   border-radius: 3px;
   align-items: center;
   &-unsaved {
@@ -251,7 +257,6 @@ const cssFilterMenuWrapper = styled('div', `
   & .${cssMenu.className} {
     border: none;
   }
-
 `);
 
 const cssIcon = styled(icon, `
@@ -274,14 +279,31 @@ const cssIcon = styled(icon, `
 
 const cssDotsIconWrapper = styled(cssIconWrapper, `
   border-radius: 0px 2px 2px 0px;
-
+  display: flex;
   .${clsOldUI.className} & {
     border-radius: 0px;
   }
 `);
 
+const cssExpandIconWrapper = styled('div', `
+  display: flex;
+  border-radius: 3px;
+  align-items: center;
+  padding: 4px;
+  cursor: pointer;
+  &:hover, &.weasel-popup-open {
+    background-color: ${theme.hover};
+  }
+`);
+
+const cssSmallIcon = styled(cssIcon, `
+  height: 13px;
+  width: 13px;
+`);
+
 const cssFilterIconWrapper = styled(cssIconWrapper, `
   border-radius: 2px 0px 0px 2px;
+  display: flex;
   &-any {
     border-radius: 2px;
     background-color: ${theme.controlSecondaryFg};

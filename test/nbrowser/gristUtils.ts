@@ -35,6 +35,8 @@ namespace gristUtils {
 // Allow overriding the global 'driver' to use in gristUtil.
 let driver: WebDriver;
 
+export function currentDriver() { return driver; }
+
 // Substitute a custom driver to use with gristUtils functions. Omit argument to restore to default.
 export function setDriver(customDriver: WebDriver = driverOrig) { driver = customDriver; }
 
@@ -121,10 +123,12 @@ export function startsWith(value: string): RegExp {
 }
 
 /**
- * Helper to scroll an element into view.
+ * Helper to scroll an element into view. Returns the passed-in element.
  */
-export function scrollIntoView(elem: WebElement): Promise<void> {
-  return driver.executeScript((el: any) => el.scrollIntoView({behavior: 'auto'}), elem);
+export function scrollIntoView(elem: WebElement): WebElementPromise {
+  return new WebElementPromise(driver,
+    driver.executeScript((el: any) => el.scrollIntoView({behavior: 'auto'}), elem)
+    .then(() => elem));
 }
 
 /**
@@ -236,6 +240,19 @@ export async function selectSectionByTitle(title: string) {
   }
 }
 
+export async function expandSection(title?: string) {
+  const select = title
+    ? driver.findContent(`.test-viewsection-title`, exactMatch(title)).findClosest(".viewsection_title")
+    : driver.find(".active_section");
+  await select.find(".test-section-menu-expandSection").click();
+}
+
+export async function getSectionId() {
+  const classList = await driver.find(".active_section").getAttribute("class");
+  const match = classList.match(/test-viewlayout-section-(\d+)/);
+  if (!match) { throw new Error("Could not find section id"); }
+  return parseInt(match[1]);
+}
 
 /**
  * Returns visible cells of the GridView from a single column and one or more rows. Options may be
@@ -2455,14 +2472,14 @@ export async function openAccountMenu() {
 
 export async function openProfileSettingsPage() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu a', 'Profile Settings').click();
+  await driver.find('.grist-floating-menu .test-dm-account-settings').click();
   await driver.findWait('.test-account-page-login-method', 5000);
 }
 
 export async function openDocumentSettings() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu li', 'Document Settings').click();
-  await driver.findWait('.test-modal-title', 5000);
+  await driver.findContent('.grist-floating-menu a', 'Document Settings').click();
+  await waitForUrl(/settings/, 5000);
 }
 
 /**

@@ -63,6 +63,7 @@ export interface IEditableMember {
   name: string;
   email: string;
   picture?: string|null;
+  locale?: string|null;
   access: Observable<roles.Role|null>;
   parentAccess: roles.BasicRole|null;
   inheritedAccess: Computed<roles.BasicRole|null>;

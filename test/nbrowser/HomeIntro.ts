@@ -53,6 +53,7 @@ describe('HomeIntro', function() {
 
       // Open doc-menu
       await session.loadDocMenu('/', 'skipWelcomeQuestions');
+      await gu.dismissCardPopups();
 
       // Check message specific to logged-in user
       assert.match(await driver.find('.test-welcome-title').getText(), new RegExp(`Welcome.* ${session.name}`));
@@ -322,6 +323,8 @@ async function checkDocAndRestore(
   await gu.waitForDocMenuToLoad();
   // If not logged in, we create docs "unsaved" and don't see them in doc-menu.
   if (isLoggedIn) {
+    // Freshly-created users will see a tip for the Add New button; dismiss it.
+    await gu.dismissBehavioralPrompts();
     // Delete the first doc we find. We expect exactly one to exist.
     await deleteFirstDoc();
   }

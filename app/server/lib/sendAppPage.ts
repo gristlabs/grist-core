@@ -65,6 +65,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: process.env.COMMENTS === "true",
     supportEmail: SUPPORT_EMAIL,
+    userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     ...extra,
   };
 }
@@ -111,9 +112,12 @@ export function makeSendAppPage(opts: {
     const customHeadHtmlSnippet = server?.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.
-    const preloads = req.languages.map((lng) =>
-      readLoadedNamespaces(req.i18n).map((ns) =>
-        `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`
+    const preloads = req.languages
+      .filter(lng => (readLoadedLngs(req.i18n)).includes(lng))
+      .map(lng => lng.replace('-', '_'))
+      .map((lng) =>
+        readLoadedNamespaces(req.i18n).map((ns) =>
+       `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`
       ).join("\n")
     ).join('\n');
     const content = fileContent

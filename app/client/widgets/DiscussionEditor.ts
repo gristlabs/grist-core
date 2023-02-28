@@ -1,4 +1,5 @@
 import {GristDoc} from 'app/client/components/GristDoc';
+import {makeT} from 'app/client/lib/localization';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
@@ -35,6 +36,7 @@ import maxSize from 'popper-max-size-modifier';
 import flatMap = require('lodash/flatMap');
 
 const testId = makeTestId('test-discussion-');
+const t = makeT('DiscussionEditor');
 const COMMENTS_LIMIT = 200;
 
 interface DiscussionPopupProps {
@@ -68,7 +70,7 @@ export class CellWithComments extends Disposable implements ICellView {
 
   public async reply(comment: CellRec, text: string): Promise<void> {
     const author = commentAuthor(this.gristDoc);
-    await this.gristDoc.docData.bundleActions("Reply to a comment", () => Promise.all([
+    await this.gristDoc.docData.bundleActions(t("Reply to a comment"), () => Promise.all([
       this.gristDoc.docModel.cells.sendTableAction([
         "AddRecord",
         null,
@@ -150,7 +152,7 @@ export class EmptyCell extends CellWithComments implements ICellView {
         })
       }
     ];
-    await props.gristDoc.docData.sendActions([addComment], 'Started discussion');
+    await props.gristDoc.docData.sendActions([addComment], t('Started discussion'));
   }
 }
 
@@ -221,9 +223,9 @@ class EmptyCellView extends Disposable {
       text: this._newText,
       onSave: () => this.props.onSave(this._newText.get()),
       onCancel: () => this.props.closeClicked?.(),
-      editorArgs: [{placeholder: 'Write a comment'}],
-      mainButton: 'Comment',
-      buttons: ['Cancel'],
+      editorArgs: [{placeholder: t('Write a comment')}],
+      mainButton: t('Comment'),
+      buttons: [t('Cancel')],
       args: [testId('editor-start')]
     }));
   }
@@ -274,7 +276,7 @@ class CellWithCommentsView extends Disposable implements IDomComponent {
 
   public buildDom() {
     return cssTopic(
-      dom.maybe(this._truncated, () => cssTruncate(`Showing last ${COMMENTS_LIMIT} comments`)),
+      dom.maybe(this._truncated, () => cssTruncate(t("Showing last {{nb}} comments", {nb: COMMENTS_LIMIT}))),
       cssTopic.cls('-panel', this.props.panel),
       domOnCustom(CommentView.EDIT, (s: CommentView) => this._onEditComment(s)),
       domOnCustom(CommentView.CANCEL, (s: CommentView) => this._onCancelEdit()),
@@ -358,7 +360,7 @@ class CellWithCommentsView extends Disposable implements IDomComponent {
       onSave: () => this._save(),
       onCancel: () => this.props.closeClicked?.(),
       mainButton: 'Send',
-      editorArgs: [{placeholder: 'Comment'}],
+      editorArgs: [{placeholder: t('Comment')}],
       args: [testId('editor-add')]
     }));
   }
@@ -464,8 +466,8 @@ class CommentView extends Disposable {
             const text = Observable.create(owner, comment.text.peek() ?? '');
             return dom.create(CommentEntry, {
               text,
-              mainButton: 'Save',
-              buttons: ['Cancel'],
+              mainButton: t('Save'),
+              buttons: [t('Cancel')],
               onSave: async () => {
                 const value = text.get();
                 text.set("");
@@ -503,7 +505,7 @@ class CommentView extends Disposable {
         dom.maybe(use => !use(this.isEditing) && !this.props.isReply && !use(comment.resolved),
           () => dom.domComputed(use => {
             if (!use(this.replying)) {
-              return cssReplyButton(icon('Message'), 'Reply',
+              return cssReplyButton(icon('Message'), t('Reply'),
                 testId('comment-reply-button'),
                 dom.on('click', withStop(() => this.replying.set(true))),
                 dom.style('margin-left', use2 => use2(this._hasReplies) ? '16px' : '0px'),
@@ -513,8 +515,8 @@ class CommentView extends Disposable {
               return dom.create(CommentEntry, {
                 text,
                 args: [dom.style('margin-top', '8px'), testId('editor-reply')],
-                mainButton: 'Reply',
-                buttons: ['Cancel'],
+                mainButton: t('Reply'),
+                buttons: [t('Cancel')],
                 onSave: async () => {
                   const value = text.get();
                   this.replying.set(false);
@@ -522,7 +524,7 @@ class CommentView extends Disposable {
                 },
                 onCancel: () => this.replying.set(false),
                 onClick: (button) => {
-                  if (button === 'Cancel') {
+                  if (button === t('Cancel')) {
                     this.replying.set(false);
                   }
                 },
@@ -538,7 +540,7 @@ class CommentView extends Disposable {
             testId('comment-resolved'),
             icon('FieldChoice'),
             cssResolvedText(dom.text(
-              `Marked as resolved`
+              t(`Marked as resolved`)
             )));
         }),
       ]),
@@ -554,23 +556,23 @@ class CommentView extends Disposable {
       !canResolve ? null :
         menuItem(
           () => this.props.topic.resolve(this.props.comment),
-          'Resolve'
+          t('Resolve')
         ),
       !comment.resolved() ? null :
         menuItem(
           () => this.props.topic.open(comment),
-          'Open'
+          t('Open')
         ),
       menuItem(
         () => this.props.topic.remove(comment),
-        'Remove',
+        t('Remove'),
         dom.cls('disabled', use => {
           return currentUser !== use(comment.userRef);
         })
       ),
       menuItem(
         () => this._edit(),
-        'Edit',
+        t('Edit'),
         dom.cls('disabled', use => {
           return currentUser !== use(comment.userRef);
         })
@@ -605,7 +607,7 @@ class CommentEntry extends Disposable {
   public buildDom() {
     const text = this.props.text;
     const clickBuilder = (button: string) => dom.on('click', () => {
-      if (button === "Cancel") {
+      if (button === t("Cancel")) {
         this.props.onCancel?.();
       } else {
         this.props.onClick?.(button);
@@ -625,7 +627,7 @@ class CommentEntry extends Disposable {
         dom.onKeyDown({
           Enter$: async (e) => {
             // Save on ctrl+enter
-            if (e.ctrlKey && text.get().trim()) {
+            if ((e.ctrlKey || e.metaKey) && text.get().trim()) {
               await onSave?.();
               e.preventDefault();
               e.stopPropagation();
@@ -699,9 +701,9 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
     const tables = Computed.create(owner, use => {
       // Filter out those tables that are not available by ACL.
       if (use(this._currentPageKo)) {
-        return [...new Set(use(viewSections).map(vs => use(vs.table)).filter(t => use(t.tableId)))];
+        return [...new Set(use(viewSections).map(vs => use(vs.table)).filter(tb => use(tb.tableId)))];
       } else {
-        return use(this._grist.docModel.visibleTables.getObservable()).filter(t => use(t.tableId));
+        return use(this._grist.docModel.visibleTables.getObservable()).filter(tb => use(tb.tableId));
       }
     });
 
@@ -774,8 +776,8 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       ;
     });
     const allDiscussions = Computed.create(owner, use => {
-      const list = flatMap(flatMap(use(tables).map(t => {
-        const columns = use(use(t.columns).getObservable());
+      const list = flatMap(flatMap(use(tables).map(tb => {
+        const columns = use(use(tb.columns).getObservable());
         const dList = columns.map(col => use(use(col.cells).getObservable())
           .filter(c => use(c.root) && use(c.type) === CellInfoType.COMMENT));
         return dList;
@@ -818,9 +820,9 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         testId('panel-menu'),
         menu(() => {
           return [cssDropdownMenu(
-            labeledSquareCheckbox(this._onlyMine, "Only my threads", testId('my-threads')),
-            labeledSquareCheckbox(this._currentPage, "Only current page", testId('only-page')),
-            labeledSquareCheckbox(this._resolved, "Show resolved comments", testId('show-resolved')),
+            labeledSquareCheckbox(this._onlyMine, t("Only my threads"), testId('my-threads')),
+            labeledSquareCheckbox(this._currentPage, t("Only current page"), testId('only-page')),
+            labeledSquareCheckbox(this._resolved, t("Show resolved comments"), testId('show-resolved')),
           )];
         }, {placement: 'bottom-start'}),
         dom.on('click', stopPropagation)

@@ -10,7 +10,7 @@ import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
 
-export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour');
+export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings');
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
 
@@ -585,6 +585,9 @@ export interface GristLoadConfig {
 
   // Email address of the support user.
   supportEmail?: string;
+
+  // Current user locale, read from the user options;
+  userLocale?: string;
 }
 
 export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");

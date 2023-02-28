@@ -9,8 +9,7 @@ const BinaryIndexedTree = require('app/common/BinaryIndexedTree');
 const {Sort} = require('app/common/SortSpec');
 
 const dom           = require('../lib/dom');
-const kd            = require('../lib/koDom');
-const kf            = require('../lib/koForm');
+const kd = require('../lib/koDom');
 const koDomScrolly  = require('../lib/koDomScrolly');
 const tableUtil     = require('../lib/tableUtil');
 const {addToSort, sortBy}   = require('../lib/sortUtil');
@@ -48,6 +47,8 @@ const {showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
 const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
+const {columnInfoTooltip} = require("../ui/tooltips");
+const {buildColumnTitle} = require('../ui/ColumnTitle');
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
 // Anything longer than this time (in milliseconds) should be interpreted as a drag
@@ -935,17 +936,6 @@ GridView.prototype.buildDom = function() {
   let vVerticalGridlines   = v.optionsObj.prop('verticalGridlines');
   let vZebraStripes        = v.optionsObj.prop('zebraStripes');
 
-  var renameCommands = {
-    nextField: function() {
-      editIndex(editIndex() + 1);
-      self.selectColumn(editIndex.peek());
-    },
-    prevField: function() {
-      editIndex(editIndex() - 1);
-      self.selectColumn(editIndex.peek());
-    }
-  };
-
   return dom(
     'div.gridview_data_pane.flexvbox',
     // offset for frozen columns - how much move them to the left
@@ -1065,9 +1055,31 @@ GridView.prototype.buildDom = function() {
                   const btn = ev.currentTarget.querySelector('.g-column-menu-btn');
                   if (btn) { btn.click(); }
                 }),
-                dom('div.g-column-label',
-                  kf.editableLabel(self.isPreview ? field.label : field.displayLabel, isEditingLabel, renameCommands),
-                  dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true)
+                dom.on('contextinfo', ev => {
+                  // This is a little hack to position the info the same way as with a click
+                  ev.preventDefault();
+                  const btn = ev.currentTarget.querySelector('.g-column-info-btn');
+                  if (btn) {btn.click();}
+                }),
+                dom('div.g_column_label_and_desc',
+                  kd.scope(field.description, desc => desc
+                    ? columnInfoTooltip(
+                      kd.text(field.description),
+                      {trigger: ['click']},
+                      // Prevent mousedown on the dropdown triangle from initiating column drag.
+                      dom.on('mousedown', () => false),
+                      // Select the column if it's not part of a multiselect.
+                      dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode, field))
+                    )
+                    : null
+                  ),
+                  dom('div.g_column_label',
+                    // Prevent mousedown on the dropdown triangle from initiating column drag.
+                    dom.on('mousedown', () => false),
+                    // Select the column if it's not part of a multiselect.
+                    dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode, field)),
+                    buildColumnTitle(field.column.peek(), testId('viewsection-title'))
+                  )
                 ),
                 dom.on("mouseenter", () => self.changeHover(field._index())),
                 dom.on("mouseleave", () => self.changeHover(-1)),

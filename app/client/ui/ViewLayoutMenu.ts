@@ -36,10 +36,26 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
 
   const viewRec = viewSection.view();
   const isLight = urlState().state.get().params?.style === 'light';
+
+  const sectionId = viewSection.table.peek().rawViewSectionRef.peek();
+  const anchorUrlState = viewInstance.getAnchorLinkForSection(sectionId);
+  anchorUrlState.hash!.popup = true;
+  const rawUrl = urlState().makeUrl(anchorUrlState);
+
+
   return [
     dom.maybe((use) => ['single'].includes(use(viewSection.parentKey)), () => contextMenu),
-    dom.maybe((use) => !use(viewSection.isRaw) && !isLight,
-      () => menuItemCmd(allCommands.showRawData, t("Show raw data"), testId('show-raw-data')),
+    dom.maybe((use) => !use(viewSection.isRaw) && !isLight && !use(gristDoc.sectionInPopup),
+      () => menuItemLink(
+        { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
+        dom.on('click', (ev) => {
+          // Replace the current URL so that the back button works as expected (it navigates back from
+          // the current page).
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+          urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
+        })
+      )
     ),
     menuItemCmd(allCommands.printSection, t("Print widget"), testId('print-section')),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},

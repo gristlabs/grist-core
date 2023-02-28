@@ -112,6 +112,11 @@ exports.groups = [{
       desc: 'Open Custom widget configuration screen',
     },
     {
+      name: 'maximizeActiveSection',
+      keys: [],
+      desc: 'Maximize the active section',
+    },
+    {
       name: 'leftPanelOpen',
       keys: [],
       desc: 'Shortcut to open the left panel',

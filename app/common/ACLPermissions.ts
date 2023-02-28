@@ -190,3 +190,25 @@ export function summarizePermissions(perms: MixedPermissionValue[]): MixedPermis
   const perm = perms[0];
   return perms.some(p => p !== perm) ? 'mixed' : perm;
 }
+
+
+function isEmpty(permissions: PartialPermissionSet): boolean {
+  return Object.values(permissions).every(v => v === "");
+}
+
+
+/**
+ * Divide up a PartialPermissionSet into two: one containing only the 'schemaEdit' permission bit,
+ * and the other containing everything else. Empty parts will be returned as undefined, except
+ * when both are empty, in which case nonSchemaEdit will be returned as an empty permission set.
+ */
+export function splitSchemaEditPermissionSet(permissions: PartialPermissionSet):
+    {schemaEdit?: PartialPermissionSet, nonSchemaEdit?: PartialPermissionSet} {
+
+  const schemaEdit = {...emptyPermissionSet(), schemaEdit: permissions.schemaEdit};
+  const nonSchemaEdit: PartialPermissionSet = {...permissions, schemaEdit: ""};
+  return {
+    schemaEdit: !isEmpty(schemaEdit) ? schemaEdit : undefined,
+    nonSchemaEdit: !isEmpty(nonSchemaEdit) || isEmpty(schemaEdit) ? nonSchemaEdit : undefined,
+  };
+}

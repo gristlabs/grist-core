@@ -26,7 +26,7 @@ import {
   summarizePermissions,
   summarizePermissionSet
 } from 'app/common/ACLPermissions';
-import {ACLRuleCollection, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
+import {ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
 import {AclRuleProblem, AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {
@@ -45,6 +45,7 @@ import {
   Computed,
   Disposable,
   dom,
+  DomContents,
   DomElementArg,
   IDisposableOwner,
   MutableObsArray,
@@ -201,7 +202,7 @@ export class AccessRules extends Disposable {
     const rules = this._ruleCollection;
 
     const [ , , aclResources] = await Promise.all([
-      rules.update(this._gristDoc.docData, {log: console}),
+      rules.update(this._gristDoc.docData, {log: console, pullOutSchemaEdit: true}),
       this._updateDocAccessData(),
       this._gristDoc.docComm.getAclResources(),
     ]);
@@ -217,7 +218,7 @@ export class AccessRules extends Disposable {
     );
 
     const withDefaultRules = ['SeedRule'];
-    const separateRules = ['FullCopies', 'AccessRules'];
+    const separateRules = ['SchemaEdit', 'FullCopies', 'AccessRules'];
 
     SpecialRules.create(
       this._specialRulesWithDefault, SPECIAL_RULES_TABLE_ID, this,
@@ -252,11 +253,19 @@ export class AccessRules extends Disposable {
       [{tableId: '*', colIds: '*'}],
       this._specialRulesWithDefault.get()?.getResources() || [],
       this._specialRulesSeparate.get()?.getResources() || [],
-      ...this._tableRules.get().map(tr => tr.getResources()))
-      .map(r => ({id: -1, ...r}));
+      ...this._tableRules.get().map(tr => tr.getResources())
+    )
+    // Skip the fake "*SPECIAL:SchemaEdit" resource (frontend-specific); these rules are saved to the default resource.
+    .filter(resource => !isSchemaEditResource(resource))
+    .map(r => ({id: -1, ...r}));
 
     // Prepare userActions and a mapping of serializedResource to rowIds.
     const resourceSync = syncRecords(resourcesTable, newResources, serializeResource);
+
+    const defaultResourceRowId = resourceSync.rowIdMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
+    if (!defaultResourceRowId) {
+      throw new Error('Default resource missing in resource map');
+    }
 
     // For syncing rules, we'll go by rowId that we store with each RulePart and with the RuleSet.
     const newRules: RowRecord[] = [];
@@ -267,10 +276,16 @@ export class AccessRules extends Disposable {
       }
 
       // Look up the rowId for the resource.
-      const resourceKey = serializeResource(rule.resourceRec as RowRecord);
-      const resourceRowId = resourceSync.rowIdMap.get(resourceKey);
-      if (!resourceRowId) {
-        throw new Error(`Resource missing in resource map: ${resourceKey}`);
+      let resourceRowId: number|undefined;
+      // Assign the rules for the fake "*SPECIAL:SchemaEdit" resource to the default resource where they belong.
+      if (isSchemaEditResource(rule.resourceRec!)) {
+        resourceRowId = defaultResourceRowId;
+      } else {
+        const resourceKey = serializeResource(rule.resourceRec as RowRecord);
+        resourceRowId = resourceSync.rowIdMap.get(resourceKey);
+        if (!resourceRowId) {
+          throw new Error(`Resource missing in resource map: ${resourceKey}`);
+        }
       }
       newRules.push({
         id: rule.id || -1,
@@ -283,10 +298,6 @@ export class AccessRules extends Disposable {
     }
 
     // UserAttribute rules are listed in the same rulesTable.
-    const defaultResourceRowId = resourceSync.rowIdMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
-    if (!defaultResourceRowId) {
-      throw new Error('Default resource missing in resource map');
-    }
     for (const userAttr of this._userAttrRules.get()) {
       const rule = userAttr.getRule();
       newRules.push({
@@ -370,7 +381,7 @@ export class AccessRules extends Disposable {
         ),
         bigBasicButton(t('Add User Attributes'), dom.on('click', () => this._addUserAttributes())),
         bigBasicButton(t('View As'), cssDropdownIcon('Dropdown'),
-          elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end'}),
+          elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end', resetDocPage: true}),
           dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
       ),
       cssConditionError({style: 'margin-left: 16px'},
@@ -829,7 +840,12 @@ class SpecialRules extends TableRules {
     owner: IDisposableOwner, accessRules: AccessRules, tableRules: TableRules,
     ruleSet: RuleSet|undefined, initialColIds: string[],
   ): ColumnObsRuleSet {
-    return SpecialObsRuleSet.create(owner, accessRules, tableRules, ruleSet, initialColIds);
+    if (isEqual(ruleSet?.colIds, ['SchemaEdit'])) {
+      // The special rule for "schemaEdit" permissions.
+      return SpecialSchemaObsRuleSet.create(owner, accessRules, tableRules, ruleSet, initialColIds);
+    } else {
+      return SpecialObsRuleSet.create(owner, accessRules, tableRules, ruleSet, initialColIds);
+    }
   }
 }
 
@@ -1014,12 +1030,7 @@ abstract class ObsRuleSet extends Disposable {
    * Which permission bits to allow the user to set.
    */
   public getAvailableBits(): PermissionKey[] {
-    if (this._tableRules) {
-      return ['read', 'update', 'create', 'delete'];
-    } else {
-      // For the doc-wide rule set, expose the schemaEdit bit too.
-      return ['read', 'update', 'create', 'delete', 'schemaEdit'];
-    }
+    return ['read', 'update', 'create', 'delete'];
   }
 
   /**
@@ -1112,17 +1123,31 @@ class DefaultObsRuleSet extends ObsRuleSet {
   }
 }
 
+interface SpecialRuleBody {
+  permissions: string;
+  formula: string;
+}
+
 /**
  * Properties we need to know about how a special rule should function and
  * be rendered.
  */
-interface SpecialRuleProperties {
+interface SpecialRuleProperties extends SpecialRuleBody {
   description: string;
   name: string;
   availableBits: PermissionKey[];
-  permissions: string;
-  formula: string;
 }
+
+const schemaEditRules: {[key: string]: SpecialRuleBody} = {
+  allowEditors: {
+    permissions: '+S',
+    formula: 'user.Access == EDITOR',
+  },
+  denyEditors: {
+    permissions: '-S',
+    formula: 'user.Access != OWNER',
+  },
+};
 
 const specialRuleProperties: Record<string, SpecialRuleProperties> = {
   AccessRules: {
@@ -1147,6 +1172,13 @@ Useful for examples and templates, but not for sensitive data.`),
     permissions: '+CRUD',
     formula: 'user.Access in [OWNER]',
   },
+  SchemaEdit: {
+    name: t("Permission to edit document structure"),
+    description: t("Allow editors to edit structure (e.g. modify and delete tables, columns, " +
+        "layouts), and to write formulas, which give access to all data regardless of read restrictions."),
+    availableBits: ['schemaEdit'],
+    ...schemaEditRules.denyEditors,
+  },
 };
 
 function getSpecialRuleProperties(name: string): SpecialRuleProperties {
@@ -1165,32 +1197,29 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
   }
 
   public buildRuleSetDom() {
-    const isNonStandard: Observable<boolean> = Computed.create(null, this._body, (use, body) =>
-      !body.every(rule => rule.isBuiltInOrEmpty(use) || rule.matches(use, this.props.formula, this.props.permissions)));
-
-    const allowEveryone: Observable<boolean> = Computed.create(null, this._body,
-      (use, body) => !use(isNonStandard) && !body.every(rule => rule.isBuiltInOrEmpty(use)))
-      .onWrite(val => this._allowEveryone(val));
-
+    const isNonStandard = this._createIsNonStandardObs();
+    const isChecked = this._createIsCheckedObs(isNonStandard);
     if (isNonStandard.get()) {
       this._isExpanded.set(true);
     }
 
     return dom('div',
-      dom.autoDispose(allowEveryone),
+      dom.autoDispose(isChecked),
+      dom.autoDispose(isNonStandard),
       cssRuleDescription(
-        {style: 'white-space: pre-line;'},  // preserve line breaks in long descriptions
         cssIconButton(icon('Expand'),
           dom.style('transform', (use) => use(this._isExpanded) ? 'rotate(90deg)' : ''),
           dom.on('click', () => this._isExpanded.set(!this._isExpanded.get())),
           testId('rule-special-expand'),
+          {style: 'margin: -4px'},  // subtract padding to align better.
         ),
-        squareCheckbox(allowEveryone,
+        cssCheckbox(isChecked,
           dom.prop('disabled', isNonStandard),
           testId('rule-special-checkbox'),
         ),
         this.props.description,
       ),
+      this._buildDomWarning(),
       dom.maybe(this._isExpanded, () =>
         cssTableRounded(
           {style: 'margin-left: 56px'},
@@ -1238,20 +1267,92 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
     }
   }
 
+  protected _buildDomWarning(): DomContents {
+    return null;
+  }
+
+  // Observable for whether this ruleSet is "standard", i.e. checked or unchecked state, without
+  // any strange rules that need to be shown expanded with the checkbox greyed out.
+  protected _createIsNonStandardObs(): Observable<boolean> {
+    return Computed.create(null, this._body, (use, body) =>
+      !body.every(rule => rule.isBuiltInOrEmpty(use) || rule.matches(use, this.props.formula, this.props.permissions)));
+  }
+
+  // Observable for whether the checkbox should be shown as checked. Writing to it will update
+  // rules so as to toggle the checkbox.
+  protected _createIsCheckedObs(isNonStandard: Observable<boolean>): Observable<boolean> {
+    return Computed.create(null, this._body,
+      (use, body) => !use(isNonStandard) && !body.every(rule => rule.isBuiltInOrEmpty(use)))
+      .onWrite(val => this._allowEveryone(val));
+  }
+
   private _allowEveryone(value: boolean) {
     const builtInRules = this._body.get().filter(r => r.isBuiltIn());
     if (value) {
-      const rulePart: RulePart = {
-        aclFormula: this.props.formula,
-        permissionsText: this.props.permissions,
-        permissions: parsePermissions(this.props.permissions),
-      };
+      const rulePart = makeRulePart(this.props);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
     } else {
       this._body.set(builtInRules);
       if (builtInRules.length === 0) {
         this._body.push(ObsRulePart.create(this._body, this, undefined));
       }
+    }
+  }
+}
+
+function makeRulePart({permissions, formula}: SpecialRuleBody): RulePart {
+  const rulePart: RulePart = {
+    aclFormula: formula,
+    permissionsText: permissions,
+    permissions: parsePermissions(permissions),
+  };
+  return rulePart;
+}
+
+/**
+ * SchemaEdit permissions are moved out to a special fake resource "*SPECIAL:SchemaEdit" in the
+ * frontend, to be presented under their own checkbox option. Its behaviors are a bit different
+ * from other checkbox options; the differences are in the overridden methods here.
+ */
+class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
+  protected _buildDomWarning(): DomContents {
+    return dom.maybe(
+      (use) => use(this._body).every(rule => rule.isBuiltInOrEmpty(use)),
+      () => cssConditionError({style: 'margin-left: 56px; margin-bottom: 8px;'},
+        "This default should be changed if editors' access is to be limited. ",
+        dom('a', {style: 'color: inherit; text-decoration: underline'},
+          'Dismiss', dom.on('click', () => this._allowEditors('confirm'))),
+        testId('rule-schema-edit-warning'),
+      )
+    );
+  }
+
+  // SchemaEdit rules support an extra "standard" state, where a no-op rule exists (explicit rule
+  // allowing EDITORs SchemaEdit permission), in which case we don't show a warning.
+  protected _createIsNonStandardObs(): Observable<boolean> {
+    return Computed.create(null, this._body, (use, body) =>
+      !body.every(rule => rule.isBuiltInOrEmpty(use) || rule.matches(use, this.props.formula, this.props.permissions)
+        || rule.matches(use, schemaEditRules.allowEditors.formula, schemaEditRules.allowEditors.permissions)));
+  }
+
+  protected _createIsCheckedObs(isNonStandard: Observable<boolean>): Observable<boolean> {
+    return Computed.create(null, this._body,
+      (use, body) => body.every(rule => rule.isBuiltInOrEmpty(use)
+        || rule.matches(use, schemaEditRules.allowEditors.formula, schemaEditRules.allowEditors.permissions)))
+      .onWrite(val => this._allowEditors(val));
+  }
+
+  // The third "confirm" option is used by the "Dismiss" link in the warning.
+  private _allowEditors(value: boolean|'confirm') {
+    const builtInRules = this._body.get().filter(r => r.isBuiltIn());
+    if (value === 'confirm') {
+      const rulePart = makeRulePart(schemaEditRules.allowEditors);
+      this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
+    } else if (!value) {
+      const rulePart = makeRulePart(schemaEditRules.denyEditors);
+      this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
+    } else {
+      this._body.set(builtInRules);
     }
   }
 }
@@ -1943,9 +2044,14 @@ const cssRuleBody = styled('div', `
 const cssRuleDescription = styled('div', `
   color: ${theme.text};
   display: flex;
-  align-items: center;
+  align-items: top;
   margin: 16px 0 8px 0;
-  gap: 8px;
+  gap: 12px;
+  white-space: pre-line;  /* preserve line breaks in long descriptions */
+`);
+
+const cssCheckbox = styled(squareCheckbox, `
+  flex: none;
 `);
 
 const cssCellContent = styled('div', `

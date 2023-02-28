@@ -15,6 +15,7 @@ const RecordLayout  = require('./RecordLayout');
 const commands      = require('./commands');
 const {RowContextMenu} = require('../ui/RowContextMenu');
 const {parsePasteForView} = require("./BaseView2");
+const {columnInfoTooltip} = require("../ui/tooltips");
 
 /**
  * DetailView component implements a list of record layouts.
@@ -227,8 +228,10 @@ DetailView.prototype.buildFieldDom = function(field, row) {
   if (field.isNewField) {
     return dom('div.g_record_detail_el.flexitem',
       kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
-      dom('div.g_record_detail_label', field.label),
-      dom('div.g_record_detail_value', field.value)
+      dom('div.g_record_detail_label_container',
+        dom('div.g_record_detail_label', kd.text(field.displayLabel)),
+        kd.scope(field.description, desc => desc ? columnInfoTooltip(kd.text(field.description)) : null)
+      ),
     );
   }
 
@@ -257,7 +260,10 @@ DetailView.prototype.buildFieldDom = function(field, row) {
     dom.autoDispose(isCellSelected),
     dom.autoDispose(isCellActive),
     kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
-    dom('div.g_record_detail_label', kd.text(field.displayLabel)),
+    dom('div.g_record_detail_label_container',
+      dom('div.g_record_detail_label', kd.text(field.displayLabel)),
+      kd.scope(field.description, desc => desc ? columnInfoTooltip(kd.text(field.description)) : null)
+    ),
     dom('div.g_record_detail_value',
       kd.toggleClass('scissors', isCopyActive),
       kd.toggleClass('record-add', row._isAddRow),

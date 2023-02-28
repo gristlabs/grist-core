@@ -237,7 +237,7 @@ export class RightPanel extends Disposable {
             dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
           ),
           cssSection(
-            dom.create(buildDescriptionConfig, origColumn, cursor, isMultiSelect),
+            dom.create(buildDescriptionConfig, origColumn, cursor),
           ),
           cssSeparator(),
           cssSection(

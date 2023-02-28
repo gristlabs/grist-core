@@ -1,6 +1,8 @@
 import * as crypto from 'crypto';
 import * as express from 'express';
 import {EntityManager} from 'typeorm';
+import * as cookie from 'cookie';
+import {Request} from 'express';
 
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
@@ -13,10 +15,10 @@ import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
-import {Request} from 'express';
 
 import {User} from './entity/User';
 import {HomeDBManager, QueryResult, Scope} from './lib/HomeDBManager';
+import {getCookieDomain} from 'app/server/lib/gristSessions';
 
 // Special public organization that contains examples and templates.
 export const TEMPLATES_ORG_DOMAIN = process.env.GRIST_ID_PREFIX ?
@@ -368,6 +370,23 @@ export class ApiServer {
       }
       const name = req.body.name;
       await this._dbManager.updateUserName(userId, name);
+      res.sendStatus(200);
+    }));
+
+    // POST /api/profile/user/locale
+    // Body params: string
+    // Update users profile.
+    this._app.post('/api/profile/user/locale', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      await this._dbManager.updateUserOptions(userId, {locale: req.body.locale || null});
+      res.append('Set-Cookie', cookie.serialize('grist_user_locale', req.body.locale || '', {
+        httpOnly: false,    // make available to client-side scripts
+        domain: getCookieDomain(req),
+        path: '/',
+        secure: true,
+        maxAge: req.body.locale ? 31536000 : 0,
+        sameSite: 'None', // there is no security concern to expose this information.
+      }));
       res.sendStatus(200);
     }));
 

@@ -1,0 +1,39 @@
+<svg width="16" height="12" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <mask id="a" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="12">
+    <path fill="#fff" d="M0 0h16v12H0z"/>
+  </mask>
+  <g mask="url(#a)">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0v12h16V0H0z" fill="#093"/>
+    <mask id="b" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="12">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0v12h16V0H0z" fill="#fff"/>
+    </mask>
+    <g mask="url(#b)">
+      <g filter="url(#BR_-_Brazil__filter0_d)" fill-rule="evenodd" clip-rule="evenodd">
+        <path d="M7.963 1.852l6.101 4.252-6.184 3.982L1.904 6.02l6.06-4.169z" fill="#FFD221"/>
+        <path d="M7.963 1.852l6.101 4.252-6.184 3.982L1.904 6.02l6.06-4.169z" fill="url(#BR_-_Brazil__paint0_linear)"/>
+      </g>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M8 8.6a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" fill="#2E42A5"/>
+      <mask id="c" maskUnits="userSpaceOnUse" x="5" y="3" width="6" height="6">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M8 8.6a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" fill="#fff"/>
+      </mask>
+      <g mask="url(#c)" fill="#F7FCFF">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.19 7.285l-.112.059.022-.125-.09-.088.124-.018L7.19 7l.056.113.125.018-.09.088.02.125-.111-.059zm1 0l-.112.059.022-.125-.09-.088.124-.018L8.19 7l.056.113.125.018-.09.088.02.125-.111-.059zm0 .6l-.112.059.022-.125-.09-.088.124-.018.056-.113.056.113.125.018-.09.088.02.125-.111-.059zm-.5-2.1l-.112.059.022-.125-.09-.088.124-.018.056-.113.056.113.125.018-.09.088.02.125-.111-.059zm0 1l-.112.059.022-.125-.09-.088.124-.018.056-.113.056.113.125.018-.09.088.02.125-.111-.059zm-.7-.5l-.112.059.022-.125-.09-.088.124-.018L6.99 6l.056.113.125.018-.09.088.02.125-.11-.059zm-.7.4l-.112.059.022-.125-.09-.088.124-.018.056-.113.056.113.125.018-.09.088.02.125-.111-.059zm2.3-1.7l-.112.059.022-.125-.09-.088.124-.018.056-.113.056.113.125.018-.09.088.02.125-.111-.059z"/>
+        <path d="M4.962 5.499l.076-.998c2.399.181 4.292.97 5.656 2.373l-.717.697C8.795 6.355 7.131 5.662 4.962 5.5z"/>
+      </g>
+    </g>
+  </g>
+  <defs>
+    <linearGradient id="BR_-_Brazil__paint0_linear" x1="16" y1="12" x2="16" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC600"/>
+      <stop offset="1" stop-color="#FFDE42"/>
+    </linearGradient>
+    <filter id="BR_-_Brazil__filter0_d" x="1.904" y="1.852" width="12.16" height="8.234" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+      <feOffset/>
+      <feColorMatrix values="0 0 0 0 0.0313726 0 0 0 0 0.368627 0 0 0 0 0 0 0 0 0.28 0"/>
+      <feBlend in2="BackgroundImageFix" result="effect1_dropShadow"/>
+      <feBlend in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+    </filter>
+  </defs>
+</svg>

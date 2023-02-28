@@ -54,6 +54,17 @@
   height: calc(var(--gridview-header-height) + 1px); /* Also should match height for overlay elements */
 }
 
+.field.column_name .g_column_label_and_desc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.field.column_name .g_column_label_and_desc .g_column_label {
+  white-space: nowrap;
+  overflow: hidden;
+}
 /* also .field.column_name, style set in viewCommon */
 
 /* ====== Row stuff */

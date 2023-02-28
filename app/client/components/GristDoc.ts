@@ -19,12 +19,14 @@ import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
+import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
+import {allCommands} from 'app/client/components/commands';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
@@ -41,7 +43,6 @@ import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/mode
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
-import {showDocSettingsModal} from 'app/client/ui/DocumentSettings';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
@@ -91,7 +92,7 @@ const t = makeT('GristDoc');
 const G = getBrowserGlobals('document', 'window');
 
 // Re-export some tools to move them from main webpack bundle to the one with GristDoc.
-export {DocComm, showDocSettingsModal, startDocTour};
+export {DocComm, startDocTour};
 
 export interface TabContent {
   showObs?: any;
@@ -116,8 +117,7 @@ export interface IExtraTool {
   label: DomContents;
   content: TabContent[]|IDomComponent;
 }
-
-interface PopupOptions {
+interface RawSectionOptions {
   viewSection: ViewSectionRec;
   hash: HashLink;
   close: () => void;
@@ -166,6 +166,10 @@ export class GristDoc extends DisposableWithEvents {
   public readonly hasDocTour: Computed<boolean>;
 
   public readonly behavioralPromptsManager = this.docPageModel.appModel.behavioralPromptsManager;
+  // One of the section can be shown it the popup (as requested from the Layout), we will
+  // store its id in this variable. When the section is removed, changed or page is changed, we will
+  // hide it be informing the layout about it.
+  public sectionInPopup: Observable<number|null> = Observable.create(this, null);
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -177,8 +181,8 @@ export class GristDoc extends DisposableWithEvents {
   private _viewLayout: ViewLayout|null = null;
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
-  private _popupOptions: Observable<PopupOptions|null> = Observable.create(this, null);
-  private _activeContent: Computed<IDocPage|PopupOptions>;
+  private _rawSectionOptions: Observable<RawSectionOptions|null> = Observable.create(this, null);
+  private _activeContent: Computed<IDocPage|RawSectionOptions>;
 
 
   constructor(
@@ -224,15 +228,22 @@ export class GristDoc extends DisposableWithEvents {
       const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
       return viewId || use(defaultViewId);
     });
-
-    this._activeContent = Computed.create(this, use => use(this._popupOptions) ?? use(this.activeViewId));
-
+    this._activeContent = Computed.create(this, use => use(this._rawSectionOptions) ?? use(this.activeViewId));
     // This viewModel reflects the currently active view, relying on the fact that
     // createFloatingRowModel() supports an observable rowId for its argument.
     // Although typings don't reflect it, createFloatingRowModel() accepts non-numeric values,
     // which yield an empty row, which is why we can cast activeViewId.
     this.viewModel = this.autoDispose(
       this.docModel.views.createFloatingRowModel(toKo(ko, this.activeViewId) as ko.Computed<number>));
+
+    // When active section is changed, clear the maximized state.
+    this.autoDispose(this.viewModel.activeSectionId.subscribe(() => {
+      this.sectionInPopup.set(null);
+      // If we have layout, update it.
+      if (!this._viewLayout?.isDisposed()) {
+        this._viewLayout?.maximized.set(null);
+      }
+    }));
 
     // Grainjs observable reflecting the name of the current document page.
     this.currentPageName = Computed.create(this, this.activeViewId,
@@ -433,23 +444,34 @@ export class GristDoc extends DisposableWithEvents {
    * Builds the DOM for this GristDoc.
    */
   public buildDom() {
+    const isMaximized = Computed.create(this, use => use(this.sectionInPopup) !== null);
+    const isPopup = Computed.create(this, use => {
+      return ['data', 'settings'].includes(use(this.activeViewId) as any) // On Raw data or doc settings pages
+        || use(isMaximized) // Layout has a maximized section visible
+        || typeof use(this._activeContent) === 'object'; // We are on show raw data popup
+    });
     return cssViewContentPane(
       testId('gristdoc'),
-      cssViewContentPane.cls("-contents", use => use(this.activeViewId) === 'data' || use(this._popupOptions) !== null),
+      cssViewContentPane.cls("-contents", isPopup),
       dom.domComputed(this._activeContent, (content) => {
         return  (
           content === 'code' ? dom.create(CodeEditorPanel, this) :
           content === 'acl' ? dom.create(AccessRules, this) :
           content === 'data' ? dom.create(RawDataPage, this) :
+          content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'GristDocTour' ? null :
-          typeof content === 'object' ? dom.create(owner => {
+          (typeof content === 'object') ? dom.create(owner => {
             // In case user changes a page, close the popup.
             owner.autoDispose(this.activeViewId.addListener(content.close));
             // In case the section is removed, close the popup.
             content.viewSection.autoDispose({dispose: content.close});
             return dom.create(RawDataPopup, this, content.viewSection, content.close);
           }) :
-          dom.create((owner) => (this._viewLayout = ViewLayout.create(owner, this, content)))
+          dom.create((owner) => {
+            this._viewLayout = ViewLayout.create(owner, this, content);
+            this._viewLayout.maximized.addListener(n => this.sectionInPopup.set(n));
+            return this._viewLayout;
+          })
         );
       }),
     );
@@ -998,6 +1020,21 @@ export class GristDoc extends DisposableWithEvents {
   public async openPopup(hash: HashLink) {
     // We can only open a popup for a section.
     if (!hash.sectionId) { return; }
+    // We might open popup either for a section in this view or some other section (like Raw Data Page).
+    if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
+      this.viewModel.activeSectionId(hash.sectionId);
+      // If the anchor link is valid, set the cursor.
+      if (hash.colRef && hash.rowId) {
+        const activeSection = this.viewModel.activeSection.peek();
+        const fieldIndex = activeSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
+        if (fieldIndex >= 0) {
+          const view = await this._waitForView(activeSection);
+          view?.setCursorPos({ sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex });
+        }
+      }
+      allCommands.maximizeActiveSection.run();
+      return;
+    }
     // We will borrow active viewModel and will trick him into believing that
     // the section from the link is his viewSection and it is active. Fortunately
     // he doesn't care. After popup is closed, we will restore the original.
@@ -1010,12 +1047,12 @@ export class GristDoc extends DisposableWithEvents {
     // which might be a diffrent view from what we currently have. If the section is
     // a raw data section it will use `EmptyRowModel` as raw sections don't have parents.
     popupSection.hasFocus(true);
-    this._popupOptions.set({
+    this._rawSectionOptions.set({
       hash,
       viewSection: popupSection,
       close: () => {
         // In case we are already close, do nothing.
-        if (!this._popupOptions.get()) { return; }
+        if (!this._rawSectionOptions.get()) { return; }
         if (popupSection !== prevSection) {
           // We need to blur raw view section. Otherwise it will automatically be opened
           // on raw data view. Note: raw data section doesn't have its own view, it uses
@@ -1028,7 +1065,7 @@ export class GristDoc extends DisposableWithEvents {
           if (!prevSection.isDisposed()) { prevSection.hasFocus(true); }
         }
         // Clearing popup data will close this popup.
-        this._popupOptions.set(null);
+        this._rawSectionOptions.set(null);
       }
     });
     // If the anchor link is valid, set the cursor.
