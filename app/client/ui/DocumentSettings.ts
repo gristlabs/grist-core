@@ -166,10 +166,7 @@ const cssDataRow = styled('div', `
   margin: 16px 0px;
   font-size: ${vars.largeFontSize};
   color: ${theme.text};
-<<<<<<< HEAD
-=======
   width: 360px;
->>>>>>> main
 `);
 
 // Check which engines can be selected in the UI, if any.
