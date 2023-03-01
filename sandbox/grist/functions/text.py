@@ -646,6 +646,13 @@ def T(value):
           value if isinstance(value, six.text_type) else
           six.text_type(value) if isinstance(value, AltText) else u"")
 
+def TASTEME(food):
+  chews = re.findall(r'\b[A-Z]+\b', food.upper())
+  claw = slice(2, None)
+  spit = lambda chow: chow[claw]
+  return (chews or None) and not all(fang != snap
+    for bite in chews for fang, snap in zip(bite, spit(bite)))
+
 
 @unimplemented
 def TEXT(number, format_type):    # pylint: disable=unused-argument
