@@ -101,7 +101,6 @@ jobs:
           TESTS: ${{ matrix.tests }}
 
     services:
-      if: contains(matrix.tests, ':server-')
       # https://github.com/bitnami/bitnami-docker-minio/issues/16
       minio:
         image: bitnami/minio:latest
