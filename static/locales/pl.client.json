@@ -344,7 +344,8 @@
         "Empty Columns_other": "Puste kolumny",
         "Enter formula": "Wprowadź formułę",
         "Make into data column": "Zrób z tego kolumnę danych",
-        "Set trigger formula": "Ustawianie formuły wyzwalacza"
+        "Set trigger formula": "Ustawianie formuły wyzwalacza",
+        "DESCRIPTION": "OPIS"
     },
     "GridOptions": {
         "Zebra Stripes": "Paski zebry",
@@ -412,6 +413,52 @@
         "All Documents": "Wszystkie dokumenty",
         "Create Empty Document": "Utwórz pusty dokument",
         "Create Workspace": "Utwórz przestrzeń roboczą",
-        "Access Details": "Szczegóły dostępu"
+        "Access Details": "Szczegóły dostępu",
+        "Rename": "Zmień nazwę",
+        "Trash": "Kosz",
+        "Workspaces": "Obszary robocze",
+        "Workspace will be moved to Trash.": "Obszar roboczy zostanie przeniesiony do kosza.",
+        "Import Document": "Importuj dokument",
+        "Manage Users": "Zarządzanie użytkownikami"
+    },
+    "Importer": {
+        "Select fields to match on": "Wybierz pola do dopasowania",
+        "Merge rows that match these fields:": "Scal wiersze, które pasują do tych pól:",
+        "Update existing records": "Aktualizowanie istniejących rekordów"
+    },
+    "MakeCopyMenu": {
+        "Update": "Aktualizacja",
+        "Update Original": "Zaktualizuj oryginał",
+        "Workspace": "Obszar roboczy",
+        "You do not have write access to the selected workspace": "Nie masz dostępu do zapisu w wybranej przestrzeni roboczej",
+        "Cancel": "Anuluj",
+        "As Template": "Jako szablon",
+        "Include the structure without any of the data.": "Dołącz strukturę bez żadnych danych.",
+        "Enter document name": "Wprowadź nazwę dokumentu",
+        "However, it appears to be already identical.": "Wydaje się jednak, że jest już identyczny.",
+        "It will be overwritten, losing any content not in this document.": "Zostanie on nadpisany, tracąc wszelkie treści nie znajdujące się w tym dokumencie.",
+        "Name": "Nazwa",
+        "No destination workspace": "Brak docelowej przestrzeni roboczej",
+        "Organization": "Organizacja",
+        "Overwrite": "Nadpisz",
+        "Original Has Modifications": "Oryginał ma modyfikacje",
+        "Original Looks Identical": "Oryginał Wygląda identycznie",
+        "To save your changes, please sign up, then reload this page.": "Aby zapisać zmiany, proszę się zarejestrować, a następnie ponownie załadować tę stronę.",
+        "Replacing the original requires editing rights on the original document.": "Zastąpienie oryginału wymaga uprawnień do edycji oryginalnego dokumentu.",
+        "Sign up": "Zarejestruj się",
+        "The original version of this document will be updated.": "Oryginalna wersja tego dokumentu zostanie zaktualizowana.",
+        "You do not have write access to this site": "Nie masz dostępu do zapisu na tej stronie",
+        "Original Looks Unrelated": "Oryginalny wygląd niepowiązany",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Uważaj, oryginał ma zmiany, których nie ma w tym dokumencie. Te zmiany zostaną nadpisane."
+    },
+    "NotifyUI": {
+        "Go to your free personal site": "Przejdź do swojej darmowej strony osobistej",
+        "No notifications": "Brak powiadomień",
+        "Ask for help": "Zapytaj o pomoc",
+        "Cannot find personal site, sorry!": "Nie mogę znaleźć osobistej strony, przepraszam!",
+        "Give feedback": "Przekaż opinię"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Centrum pomocy"
     }
 }
