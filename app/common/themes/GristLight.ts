@@ -366,6 +366,11 @@ export const GristLight: ThemeColors = {
   'menu-toggle-bg': 'white',
   'menu-toggle-border': '#929299',
 
+  /* Info Button */
+  'info-button-fg': '#8F8F8F',
+  'info-button-hover-fg': '#707070',
+  'info-button-active-fg': '#5C5C5C',
+
   /* Button Groups */
   'button-group-fg': '#262633',
   'button-group-light-fg': '#929299',

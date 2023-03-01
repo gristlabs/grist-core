@@ -366,6 +366,11 @@ export const GristDark: ThemeColors = {
   'menu-toggle-bg': '#32323F',
   'menu-toggle-border': '#A4A4A4',
 
+  /* Info Button */
+  'info-button-fg': '#8F8F8F',
+  'info-button-hover-fg': '#707070',
+  'info-button-active-fg': '#5C5C5C',
+
   /* Button Groups */
   'button-group-fg': '#EFEFEF',
   'button-group-light-fg': '#A4A4A4',

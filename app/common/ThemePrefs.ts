@@ -387,6 +387,11 @@ export interface ThemeColors {
   'menu-toggle-bg': string;
   'menu-toggle-border': string;
 
+  /* Info Button */
+  'info-button-fg': string;
+  'info-button-hover-fg': string;
+  'info-button-active-fg': string;
+
   /* Button Groups */
   'button-group-fg': string;
   'button-group-light-fg': string;

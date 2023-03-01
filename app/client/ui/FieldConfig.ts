@@ -5,10 +5,10 @@ import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import { withInfoTooltip } from 'app/client/ui/tooltips';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
-import { testId, theme } from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -18,7 +18,6 @@ import {sanitizeIdent} from 'app/common/gutil';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
-import { textarea } from './inputs';
 
 const t = makeT('FieldConfig');
 
@@ -86,40 +85,6 @@ export function buildNameConfig(
     ),
     dom.maybe(isSummaryTable,
       () => cssRow(t("Column options are limited in summary tables.")))
-  ];
-}
-
-export function buildDescriptionConfig(
-  owner: MultiHolder,
-  origColumn: ColumnRec,
-  cursor: ko.Computed<CursorPos>,
-) {
-
-  // We will listen to cursor position and force a blur event on
-  // the text input, which will trigger save before the column observable
-  // will change its value.
-  // Otherwise, blur will be invoked after column change and save handler will
-  // update a different column.
-  let editor: HTMLTextAreaElement | undefined;
-  owner.autoDispose(
-    cursor.subscribe(() => {
-      editor?.blur();
-    })
-  );
-
-  return [
-    cssLabel(t("DESCRIPTION")),
-    cssRow(
-      editor = cssTextArea(fromKo(origColumn.description),
-        { onInput: false },
-        { rows: '3' },
-        dom.on('blur', async (e, elem) => {
-          await origColumn.description.saveOnly(elem.value);
-        }),
-        testId('column-description'),
-      )
-    ),
-
   ];
 }
 
@@ -519,25 +484,6 @@ const cssInput = styled(textInput, `
   color: ${theme.inputFg};
   background-color: ${theme.mainPanelBg};
   border: 1px solid ${theme.inputBorder};
-
-  &::placeholder {
-    color: ${theme.inputPlaceholderFg};
-  }
-
-  &[readonly] {
-    background-color: ${theme.inputDisabledBg};
-    color: ${theme.inputDisabledFg};
-  }
-`);
-
-const cssTextArea = styled(textarea, `
-  color: ${theme.inputFg};
-  background-color: ${theme.mainPanelBg};
-  border: 1px solid ${theme.inputBorder};
-  width: 100%;
-  outline: none;
-  border-radius: 3px;
-  padding: 3px 7px;
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};

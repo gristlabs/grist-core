@@ -28,6 +28,7 @@ import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkId, selectBy} from 'app/client/ui/selectBy';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
+import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
@@ -43,7 +44,6 @@ import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
         DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
-import { buildDescriptionConfig } from './FieldConfig';
 
 const t = makeT('RightPanel');
 

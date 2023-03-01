@@ -229,9 +229,10 @@ DetailView.prototype.buildFieldDom = function(field, row) {
     return dom('div.g_record_detail_el.flexitem',
       kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
       dom('div.g_record_detail_label_container',
-        dom('div.g_record_detail_label', kd.text(field.displayLabel)),
+        dom('div.g_record_detail_label', kd.text(field.label)),
         kd.scope(field.description, desc => desc ? columnInfoTooltip(kd.text(field.description)) : null)
       ),
+      dom('div.g_record_detail_value'),
     );
   }
 
