@@ -1,5 +1,6 @@
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionSummary, TableDelta} from 'app/common/ActionSummary';
+import {ApiError} from 'app/common/ApiError';
 import {MapWithTTL} from 'app/common/AsyncCreate';
 import {fromTableDataAction, RowRecord, TableColValues, TableDataAction} from 'app/common/DocActions';
 import {StringUnion} from 'app/common/StringUnion';
@@ -36,7 +37,7 @@ type RecordDeltas = Map<number, RecordDelta>;
 type TriggerAction = WebhookAction | PythonAction;
 
 type WebhookBatchStatus = 'success'|'failure'|'rejected';
-type WebhookStatus = 'idle'|'sending'|'retrying'|'postponed'|'error';
+type WebhookStatus = 'idle'|'sending'|'retrying'|'postponed'|'error'|'invalid';
 
 export interface WebhookSummary {
   id: string;
@@ -80,6 +81,7 @@ export interface WebhookAction {
 
 // Just hypothetical
 interface PythonAction {
+  id: string;
   type: "python";
   code: string;
 }
@@ -130,8 +132,7 @@ const TRIGGER_MAX_ATTEMPTS =
 // Triggers are configured in the document, while details of webhooks (URLs) are kept
 // in the Secrets table of the Home DB.
 export class DocTriggers {
-  // Converts a column ref to colId by looking it up in _grist_Tables_column
-  private _getColId: (rowId: number) => string|undefined;
+
 
   // Events that need to be sent to webhooks in FIFO order.
   // This is the primary place where events are stored and consumed,
@@ -199,7 +200,6 @@ export class DocTriggers {
 
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
-    this._getColId = docData.getMetaTable("_grist_Tables_column").getRowPropFunc("colId");
 
     const triggersByTableRef = _.groupBy(triggersTable.getRecords(), "tableRef");
     const triggersByTableId: Array<[string, Trigger[]]> = [];
@@ -326,6 +326,22 @@ export class DocTriggers {
     return result;
   }
 
+  public getWebhookTriggerRecord(webhookId: string, tableRef?: number) {
+    const docData = this._activeDoc.docData!;
+    const triggersTable = docData.getMetaTable("_grist_Triggers");
+    const trigger = triggersTable.getRecords().find(t => {
+      const actions: TriggerAction[] = JSON.parse((t.actions || '[]') as string);
+      return actions.some(action => action.id === webhookId && action?.type === "webhook");
+    });
+    if (!trigger) {
+      throw new ApiError(`Webhook not found "${webhookId || ''}"`, 404);
+    }
+    if (tableRef && trigger.tableRef !== tableRef) {
+      throw new ApiError(`Wrong table`, 400);
+    }
+    return trigger;
+  }
+
   public webhookDeleted(id: string) {
     // We can't do much about that as the loop might be in progress and it is not safe to modify the queue.
     // But we can clear the webHook cache, so that the next time we check the webhook url it will be gone.
@@ -348,6 +364,40 @@ export class DocTriggers {
       await this._redisClient.multi().del(this._redisQueueKey).execAsync();
     }
     await this._stats.clear();
+  }
+
+  // Converts a table to tableId by looking it up in _grist_Tables.
+  private _getTableId(rowId: number) {
+    const docData = this._activeDoc.docData;
+    if (!docData) {
+      throw new Error("ActiveDoc not ready");
+    }
+    return docData.getMetaTable("_grist_Tables").getValue(rowId, "tableId");
+  }
+
+  // Return false if colRef does not belong to tableRef
+  private _validateColId(colRef: number, tableRef: number) {
+    const docData = this._activeDoc.docData;
+    if (!docData) {
+      throw new Error("ActiveDoc not ready");
+    }
+    return docData.getMetaTable("_grist_Tables_column").getValue(colRef, "parentId") === tableRef;
+  }
+
+  // Converts a column ref to colId by looking it up in _grist_Tables_column. If tableRef is
+  // provided, check whether col belongs to table and throws if not.
+  private _getColId(rowId: number, tableRef?: number) {
+    const docData = this._activeDoc.docData;
+    if (!docData) {
+      throw new Error("ActiveDoc not ready");
+    }
+    if (!rowId) { return ''; }
+    const colId = docData.getMetaTable("_grist_Tables_column").getValue(rowId, "colId");
+    if (tableRef !== undefined &&
+      docData.getMetaTable("_grist_Tables_column").getValue(rowId, "parentId") !== tableRef) {
+      throw new ApiError(`Column ${colId} does not belong to table ${this._getTableId(tableRef)}`, 400);
+    }
+    return colId;
   }
 
   private get _docId() {
@@ -426,6 +476,22 @@ export class DocTriggers {
       if (!webhookActions.length) {
         continue;
       }
+
+      if (trigger.isReadyColRef) {
+        if (!this._validateColId(trigger.isReadyColRef, trigger.tableRef)) {
+          // ready column does not belong to table, let's ignore trigger and log stats
+          for (const action of webhookActions) {
+            const colId = this._getColId(trigger.isReadyColRef); // no validation
+            const tableId = this._getTableId(trigger.tableRef);
+            const error = `isReadyColumn is not valid: colId ${colId} does not belong to ${tableId}`;
+            this._stats.logInvalid(action.id, error).catch(e => log.error("Webhook stats failed to log", e));
+          }
+          continue;
+        }
+      }
+
+      // TODO: would be worth checking that the trigger's fields are valid (ie: eventTypes, url,
+      // ...) as there's no guarantee that they are.
 
       const rowIndexesToSend: number[] = _.range(bulkColValues.id.length).filter(rowIndex => {
           const rowId = bulkColValues.id[rowIndex];
@@ -860,9 +926,22 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
    * millisecond were seen as the same update.
    */
   public async logStatus(id: string, status: WebhookStatus, now?: number|null) {
-    await this.set(id, [
+    const stats: [StatsKey, string][] = [
       ['status', status],
       ['updatedTime', (now ?? Date.now()).toString()],
+    ];
+    if (status === 'sending') {
+      // clear any error message that could have been left from an earlier bad state (ie: invalid
+      // fields)
+      stats.push(['errorMessage', '']);
+    }
+    await this.set(id, stats);
+  }
+
+  public async logInvalid(id: string, errorMessage: string) {
+    await this.logStatus(id, 'invalid');
+    await this.set(id, [
+      ['errorMessage', errorMessage]
     ]);
   }
 

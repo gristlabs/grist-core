@@ -14,6 +14,7 @@ import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import {encodeQueryParams} from 'app/common/gutil';
+import {WebhookUpdate} from 'app/common/Triggers';
 
 export type {FullUser, UserProfile};
 
@@ -451,6 +452,9 @@ export interface DocAPI {
 
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
+
+  // Update webhook
+  updateWebhook(webhook: WebhookUpdate): Promise<void>;
 }
 
 // Operations that are supported by a doc worker.
@@ -898,6 +902,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async getUsersForViewAs(): Promise<PermissionDataWithExtraUsers> {
     return this.requestJson(`${this._url}/usersForViewAs`);
+  }
+
+  public async updateWebhook(webhook: WebhookUpdate): Promise<void> {
+    return this.requestJson(`${this._url}/webhooks/${webhook.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(webhook.fields),
+    });
   }
 
   public async forceReload(): Promise<void> {

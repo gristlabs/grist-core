@@ -33,6 +33,7 @@ import {serveSomething, Serving} from 'test/server/customUtil';
 import * as testUtils from 'test/server/testUtils';
 import clone = require('lodash/clone');
 import defaultsDeep = require('lodash/defaultsDeep');
+import pick = require('lodash/pick');
 
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('Kiwi');
@@ -2732,23 +2733,26 @@ function testDocApi() {
   });
 
   it("POST /docs/{did}/tables/{tid}/_subscribe validates inputs", async function () {
-    async function check(requestBody: any, status: number, error: string) {
+    async function check(requestBody: any, status: number, ...errors: RegExp[]) {
       const resp = await axios.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
         requestBody, chimpy
       );
       assert.equal(resp.status, status);
-      assert.deepEqual(resp.data, {error});
+      for (const error of errors) {
+        assert.match(resp.data.details || resp.data.error, error);
+      }
     }
 
-    await check({}, 400, "eventTypes must be a non-empty array");
-    await check({eventTypes: 0}, 400, "eventTypes must be a non-empty array");
-    await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");
-    await check({eventTypes: ["foo"]}, 400, "Allowed values in eventTypes are: add,update");
-    await check({eventTypes: ["add"]}, 400, "Bad request: url required");
-    await check({eventTypes: ["add"], url: "https://evil.com"}, 403, "Provided url is forbidden");
-    await check({eventTypes: ["add"], url: "http://example.com"}, 403, "Provided url is forbidden");  // not https
-    await check({eventTypes: ["add"], url: "https://example.com", isReadyColumn: "bar"}, 404, `Column not found "bar"`);
+    await check({}, 400, /eventTypes is missing/);
+    await check({eventTypes: 0}, 400, /url is missing/, /eventTypes is not an array/);
+    await check({eventTypes: []}, 400, /url is missing/);
+    await check({eventTypes: [], url: "https://example.com"}, 400, /eventTypes must be a non-empty array/);
+    await check({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0\] is none of "add", "update"/);
+    await check({eventTypes: ["add"]}, 400, /url is missing/);
+    await check({eventTypes: ["add"], url: "https://evil.com"}, 403, /Provided url is forbidden/);
+    await check({eventTypes: ["add"], url: "http://example.com"}, 403, /Provided url is forbidden/);  // not https
+    await check({eventTypes: ["add"], url: "https://example.com", isReadyColumn: "bar"}, 404, /Column not found "bar"/);
   });
 
   async function userCheck(user: AxiosRequestConfig, requestBody: any, status: number, responseBody: any) {
@@ -3354,6 +3358,7 @@ function testDocApi() {
         await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ['ModifyColumn', 'Table1', 'B', {type: 'Bool'}],
         ], chimpy);
+        await userApi.applyUserActions(docId, [['AddTable', 'Table2', [{id: 'Foo'}, {id: 'Bar'}]]]);
       });
 
       const waitForQueue = async (length: number) => {
@@ -3891,6 +3896,90 @@ function testDocApi() {
         await addRowProm;
         await unsubscribe(docId, webhook3);
         await unsubscribe(docId, webhook4);
+      });
+
+      describe('webhook update', function() {
+
+        it('should work correctly', async function() {
+
+
+          async function check(fields: any, status: number, error?: RegExp|string,
+                               expectedFieldsCallback?: (fields: any) => any) {
+
+            let savedTableId = 'Table1';
+            const origFields = {
+              tableId: 'Table1',
+              eventTypes: ['add'],
+              isReadyColumn: 'B',
+            };
+
+            // subscribe
+            const webhook = await subscribe('foo', docId, origFields);
+
+            const expectedFields = {
+              url: `${serving.url}/foo`,
+              unsubscribeKey: webhook.unsubscribeKey,
+              eventTypes: ['add'],
+              isReadyColumn: 'B',
+              tableId: 'Table1',
+              enabled: true,
+            };
+
+            let stats = await readStats(docId);
+            assert.equal(stats.length, 1, 'stats=' + JSON.stringify(stats));
+            assert.equal(stats[0].id, webhook.webhookId);
+            assert.deepEqual(stats[0].fields, expectedFields);
+
+            // update
+            const resp = await axios.patch(
+              `${serverUrl}/api/docs/${docId}/webhooks/${webhook.webhookId}`, fields, chimpy
+            );
+
+            // check resp
+            assert.equal(resp.status, status, JSON.stringify(pick(resp, ['data', 'status'])));
+            if (resp.status === 200) {
+              stats = await readStats(docId);
+              assert.equal(stats.length, 1);
+              assert.equal(stats[0].id, webhook.webhookId);
+              if (expectedFieldsCallback) { expectedFieldsCallback(expectedFields); }
+              assert.deepEqual(stats[0].fields, {...expectedFields, ...fields});
+              if (fields.tableId) {
+                savedTableId = fields.tableId;
+              }
+            } else {
+              if (error instanceof RegExp) {
+                assert.match(resp.data.details || resp.data.error, error);
+              } else {
+                assert.deepEqual(resp.data, {error});
+              }
+            }
+
+            // finally  unsubscribe
+            const unsubscribeResp = await unsubscribe(docId, webhook, savedTableId);
+            assert.equal(unsubscribeResp.status, 200, JSON.stringify(pick(unsubscribeResp, ['data', 'status'])));
+            stats = await readStats(docId);
+            assert.equal(stats.length, 0, 'stats=' + JSON.stringify(stats));
+          }
+
+          await check({url: `${serving.url}/bar`}, 200);
+          await check({url: "https://evil.com"}, 403, "Provided url is forbidden");
+          await check({url: "http://example.com"}, 403, "Provided url is forbidden");  // not https
+
+          // changing table without changing the ready column should reset the latter
+          await check({tableId: 'Table2'}, 200, '', expectedFields => expectedFields.isReadyColumn = null);
+
+
+          await check({tableId: 'Santa'}, 404, `Table not found "Santa"`);
+          await check({tableId: 'Table2', isReadyColumn: 'Foo'}, 200);
+
+          await check({eventTypes: ['add', 'update']}, 200);
+          await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");
+          await check({eventTypes: ["foo"]}, 400, /eventTypes\[0\] is none of "add", "update"/);
+
+          await check({isReadyColumn: null}, 200);
+          await check({isReadyColumn: "bar"}, 404, `Column not found "bar"`);
+        });
+
       });
     });
   });

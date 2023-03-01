@@ -347,6 +347,7 @@ export class ActiveDoc extends EventEmitter {
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
 
+  public get triggers(): DocTriggers { return this._triggers; }
 
   public get rowLimitRatio(): number {
     return getUsageRatio(
@@ -1119,7 +1120,7 @@ export class ActiveDoc extends EventEmitter {
    * @param options: As for applyUserActions.
    * @returns Promise of retValues, see applyUserActions.
    */
-  public async applyUserActionsById(docSession: DocSession,
+  public async applyUserActionsById(docSession: OptDocSession,
                                     actionNums: number[],
                                     actionHashes: string[],
                                     undo: boolean,
@@ -2443,6 +2444,21 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
     throw new ApiError(`Table not found "${tableId}"`, 404);
   }
   return tableRefs[tableRowIndex];
+}
+
+// Helper that converts a Grist column colId to a ref given the corresponding table.
+export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: string, colId: string) {
+
+  const tableRef = tableIdToRef(metaTables, tableId);
+
+  const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+  const colRowIndex = columnData.colId.findIndex((_, i) => (
+    columnData.colId[i] === colId && columnData.parentId[i] === tableRef
+  ));
+  if (colRowIndex === -1) {
+    throw new ApiError(`Column not found "${colId}"`, 404);
+  }
+  return colRefs[colRowIndex];
 }
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {

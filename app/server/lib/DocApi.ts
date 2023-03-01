@@ -1,17 +1,26 @@
 import {createEmptyActionSummary} from "app/common/ActionSummary";
 import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
-import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
+import {
+  BulkColValues,
+  ColValues,
+  fromTableDataAction,
+  TableColValues,
+  TableRecordValue
+} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
+import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import TriggersTI from 'app/common/Triggers-ti';
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
+import {GristObjCode} from "app/plugin/GristData";
 import GristDataTI from 'app/plugin/GristData-ti';
 import {OpOptions} from "app/plugin/TableOperations";
 import {
@@ -20,7 +29,7 @@ import {
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
 import {concatenateSummaries, summarizeAction} from "app/server/lib/ActionSummary";
-import {ActiveDoc, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {ActiveDoc, colIdToRef as colIdToReference, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {
   assertAccess,
   getOrSetDocAuth,
@@ -44,6 +53,7 @@ import {exportToDrive} from "app/server/lib/GoogleExport";
 import {GristServer} from 'app/server/lib/GristServer';
 import {HashUtil} from 'app/server/lib/HashUtil';
 import {makeForkIds} from "app/server/lib/idUtils";
+import log from 'app/server/lib/log';
 import {
   getDocId,
   getDocScope,
@@ -58,7 +68,7 @@ import {
 } from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
-import {allowedEventTypes, isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
+import {isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
 import * as assert from 'assert';
 import contentDisposition from 'content-disposition';
@@ -96,6 +106,12 @@ for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, Colum
   checker.setReportedPath("body");
 }
 
+// Schema validators for api endpoints that creates or updates records.
+const {
+  WebhookPatch,
+  WebhookSubscribe
+} = t.createCheckers(TriggersTI);
+
 /**
  * Middleware for validating request's body with a Checker instance.
  */
@@ -104,6 +120,7 @@ function validate(checker: Checker): RequestHandler {
     try {
       checker.check(req.body);
     } catch(err) {
+      log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
       res.status(400).json({
         error : "Invalid payload",
         details: String(err)
@@ -531,34 +548,24 @@ export class DocWorkerApi {
     );
 
     // Add a new webhook and trigger
-    this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner,
+    this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner, validate(WebhookSubscribe),
       withDoc(async (activeDoc, req, res) => {
         const {isReadyColumn, eventTypes, url} = req.body;
 
-        if (!(Array.isArray(eventTypes) && eventTypes.length)) {
+        if (!eventTypes.length) {
           throw new ApiError(`eventTypes must be a non-empty array`, 400);
-        }
-        if (!eventTypes.every(allowedEventTypes.guard)) {
-          throw new ApiError(`Allowed values in eventTypes are: ${allowedEventTypes.values}`, 400);
-        }
-        if (!url) {
-          throw new ApiError('Bad request: url required', 400);
         }
         if (!isUrlAllowed(url)) {
           throw new ApiError('Provided url is forbidden', 403);
         }
 
+        const tableId = req.params.tableId;
         const metaTables = await getMetaTables(activeDoc, req);
-        const tableRef = tableIdToRef(metaTables, req.params.tableId);
 
+        const tableRef = tableIdToRef(metaTables, tableId);
         let isReadyColRef = 0;
         if (isReadyColumn) {
-          const [, , colRefs, columnData] = metaTables._grist_Tables_column;
-          const colRowIndex = columnData.colId.indexOf(isReadyColumn);
-          if (colRowIndex === -1) {
-            throw new ApiError(`Column not found "${isReadyColumn}"`, 404);
-          }
-          isReadyColRef = colRefs[colRowIndex];
+          isReadyColRef = colIdToReference(metaTables, tableId, isReadyColumn);
         }
 
         const unsubscribeKey = uuidv4();
@@ -566,22 +573,30 @@ export class DocWorkerApi {
         const secretValue = JSON.stringify(webhook);
         const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
 
-        const webhookAction: WebhookAction = {type: "webhook", id: webhookId};
+        try {
 
-        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
-          docSessionFromRequest(req),
-          [['AddRecord', "_grist_Triggers", null, {
-            tableRef,
-            isReadyColRef,
-            eventTypes: ["L", ...eventTypes],
-            actions: JSON.stringify([webhookAction])
-          }]]));
+          const webhookAction: WebhookAction = {type: "webhook", id: webhookId};
+          const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+            docSessionFromRequest(req),
+            [['AddRecord', "_grist_Triggers", null, {
+              eventTypes: [GristObjCode.List, ...eventTypes],
+              isReadyColRef,
+              tableRef,
+              actions: JSON.stringify([webhookAction])
+            }]]));
 
-        res.json({
-          unsubscribeKey,
-          triggerId: sandboxRes.retValues[0],
-          webhookId,
-        });
+          res.json({
+            unsubscribeKey,
+            triggerId: sandboxRes.retValues[0],
+            webhookId,
+          });
+
+        } catch (err) {
+
+          // remove webhook
+          await this._dbManager.removeWebhook(webhookId, activeDoc.docName, '', false);
+          throw err;
+        }
       })
     );
 
@@ -595,27 +610,89 @@ export class DocWorkerApi {
         // Validate combination of triggerId, webhookId, and tableRef.
         // This is overly strict, webhookId should be enough,
         // but it should be easy to relax that later if we want.
-        const [, , triggerRowIds, triggerColData] = metaTables._grist_Triggers;
-        const triggerRowIndex = triggerColData.actions.findIndex(a => {
-          const actions: any[] = JSON.parse((a || '[]') as string);
-          return actions.some(action => action.id === webhookId && action?.type === "webhook");
-        });
-        if (triggerRowIndex === -1) {
-          throw new ApiError(`Webhook not found "${webhookId || ''}"`, 404);
-        }
-        if (triggerColData.tableRef[triggerRowIndex] !== tableRef) {
-          throw new ApiError(`Wrong table`, 400);
-        }
-        const triggerRowId = triggerRowIds[triggerRowIndex];
+        const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId, tableRef).id;
 
         const checkKey = !(await this._isOwner(req));
         // Validate unsubscribeKey before deleting trigger from document
         await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey, checkKey);
+        activeDoc.triggers.webhookDeleted(webhookId);
 
         // TODO handle trigger containing other actions when that becomes possible
         await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
           docSessionFromRequest(req),
           [['RemoveRecord', "_grist_Triggers", triggerRowId]]));
+
+        res.json({success: true});
+      })
+    );
+
+    // Update a webhoook
+    this._app.patch(
+      '/api/docs/:docId/webhooks/:webhookId', isOwner, validate(WebhookPatch), withDoc(async (activeDoc, req, res) => {
+
+        const docId = activeDoc.docName;
+        const webhookId = req.params.webhookId;
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const trigger = activeDoc.triggers.getWebhookTriggerRecord(webhookId);
+        let currentTableId = tablesTable.getValue(trigger.tableRef, 'tableId')!;
+        const {url, eventTypes, isReadyColumn, tableId} = req.body;
+        const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
+
+        if (url && !isUrlAllowed(url)) {
+          // TODO: remove redundancy with same validation in _subscribe endpoint
+          throw new ApiError('Provided url is forbidden', 403);
+        }
+
+        if (eventTypes) {
+          // TODO: remove redundancy with same validation in _subscribe endpoint
+          if (!eventTypes.length) {
+            throw new ApiError(`eventTypes must be a non-empty array`, 400);
+          }
+          fields.eventTypes = [GristObjCode.List, ...eventTypes];
+        }
+
+        if (tableId !== undefined) {
+          fields.tableRef = tableIdToRef(metaTables, tableId);
+          currentTableId = tableId;
+        }
+
+        if (isReadyColumn !== undefined) {
+          // When isReadyColumn is defined let's explicitly changes the ready column to the new col
+          // id, null being a special case that unsets it.
+          if (isReadyColumn !== null) {
+            fields.isReadyColRef = colIdToReference(metaTables, currentTableId, isReadyColumn);
+          } else {
+            fields.isReadyColRef = 0;
+          }
+        } else if (tableId) {
+          // When isReadyColumn is undefined but tableId was changed, let's implicitely unset the ready column
+          fields.isReadyColRef = 0;
+        }
+
+        // assign other fields properties
+        Object.assign(fields, _.pick(req.body, ['enabled']));
+
+        const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
+
+        await this._dbManager.connection.transaction(async manager => {
+
+          // update url
+          if (url) {
+            await this._dbManager.updateWebhookUrl(webhookId, docId, url, manager);
+            activeDoc.triggers.webhookDeleted(webhookId); // clear cache
+          }
+
+          // then update sqlite.
+          if (Object.keys(fields).length) {
+            // In order to make sure to push a valid modification, let's update all fields since
+            // some may have changed since lookup.
+            _.defaults(fields, _.omit(trigger, 'id'));
+            await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+              docSessionFromRequest(req),
+              [['UpdateRecord', "_grist_Triggers", triggerRowId, fields]]));
+          }
+        });
 
         res.json({success: true});
       })

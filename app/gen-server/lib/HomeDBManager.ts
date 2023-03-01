@@ -1851,6 +1851,18 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
+  // Updates the secret matching id and docId, to the new value.
+  public async updateSecret(id: string, docId: string, value: string, manager?: EntityManager): Promise<void> {
+    const res = await (manager || this._connection).createQueryBuilder()
+      .update(Secret)
+      .set({value})
+      .where("id = :id AND doc_id = :docId", {id, docId})
+      .execute();
+    if (res.affected !== 1) {
+      throw new ApiError('secret with given id not found', 404);
+    }
+  }
+
   public async getSecret(id: string, docId: string, manager?: EntityManager): Promise<string | undefined> {
     const secret = await (manager || this._connection).createQueryBuilder()
       .select('secrets')
@@ -1858,6 +1870,20 @@ export class HomeDBManager extends EventEmitter {
       .where('id = :id AND doc_id = :docId', {id, docId})
       .getOne();
     return secret?.value;
+  }
+
+  // Update the webhook url in the webhook's corresponding secret (note: the webhook identifier is
+  // its secret identifier).
+  public async updateWebhookUrl(id: string, docId: string, url: string, outerManager?: EntityManager) {
+    return await this._runInTransaction(outerManager, async manager => {
+      const value = await this.getSecret(id, docId, manager);
+      if (!value) {
+        throw new ApiError('Webhook with given id not found', 404);
+      }
+      const webhookSecret = JSON.parse(value);
+      webhookSecret.url = url;
+      await this.updateSecret(id, docId, JSON.stringify(webhookSecret), manager);
+    });
   }
 
   public async removeWebhook(id: string, docId: string, unsubscribeKey: string, checkKey: boolean): Promise<void> {
@@ -1881,7 +1907,7 @@ export class HomeDBManager extends EventEmitter {
       await manager.createQueryBuilder()
         .delete()
         .from(Secret)
-        .where('id = :id', {id})
+        .where('id = :id AND doc_id = :docId', {id, docId})
         .execute();
     });
   }
