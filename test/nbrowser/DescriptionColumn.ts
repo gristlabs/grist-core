@@ -84,25 +84,23 @@ describe('DescriptionColumn', function() {
 
   it('should support basic edition inside gridview popup', async () => {
     const mainSession = await gu.session().teamSite.login();
-    // const api = mainSession.createHomeApi();
     mainSession.createHomeApi();
-    // const doc = await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
     await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
-    // const docId = doc.id;
 
-    const columnHeader = await gu.getColumnHeader({ col: 'A' })
+    const columnHeader = await gu.getColumnHeader({ col: 'A' });
 
     // Click on the title and open the edition popup
     columnHeader.find(".g_column_label .test-column-title-text").click();
     const columnEditPopup = await driver.findWait('.test-column-title-popup', 1000);
+    const columnDescInput = await columnEditPopup.find('.test-column-title-field-description')
 
     // Check initial content of popup
     assert.equal(await columnEditPopup.find('.test-column-title-column-label-input').value(), 'A');
-    assert.equal(await columnEditPopup.find('.test-column-title-field-description').value(), '');
+    assert.equal(await columnDescInput.value(), '');
 
     // Edit the description of the column inside the popup
-    await columnEditPopup.find('.test-column-title-field-description').click();
-    await columnEditPopup.find('.test-column-title-field-description').sendKeys("New description", Key.ENTER);
+    await columnDescInput.click();
+    await columnDescInput.sendKeys("New description", Key.ENTER);
     await gu.waitForServer();
 
     // Check the new description value inside the column tooltip
