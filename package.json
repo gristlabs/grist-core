@@ -14,7 +14,6 @@
     "start:prod": "sandbox/run.sh",
     "test": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha ${DEBUG:+-b --no-exit} --slow 8000 ${DEBUG:---forbid-only} -g ${GREP_TESTS:-''} '_build/test/common/*.js' '_build/test/client/*.js' '_build/test/nbrowser/*.js' '_build/test/server/**/*.js' '_build/test/gen-server/**/*.js'",
     "test:nbrowser": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha ${DEBUG:+-b --no-exit} ${DEBUG:---forbid-only} -g ${GREP_TESTS:-''} --slow 8000 '_build/test/nbrowser/**/*.js'",
-    "test:nbrowser2": "GRIST_SESSION_COOKIE=grist_test_cookie GRIST_TEST_LOGIN=1 TEST_SUPPORT_API_KEY=api_key_for_support TEST_CLEAN_DATABASE=true NODE_PATH=_build:_build/stubs:_build/ext mocha ${DEBUG:+-b --no-exit} ${DEBUG:---forbid-only} -g ${GREP_TESTS:-''} --slow 8000 '_build/test/nbrowser/DescriptionColumn.js'",
     "test:client": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha ${DEBUG:+'-b'} '_build/test/client/**/*.js'",
     "test:common": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha ${DEBUG:+'-b'} '_build/test/common/**/*.js'",
     "test:server": "GRIST_SESSION_COOKIE=grist_test_cookie NODE_PATH=_build:_build/stubs:_build/ext mocha ${DEBUG:+'-b'} '_build/test/server/**/*.js' '_build/test/gen-server/**/*.js'",
