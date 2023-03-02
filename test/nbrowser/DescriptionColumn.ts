@@ -90,9 +90,9 @@ describe('DescriptionColumn', function() {
     const columnHeader = await gu.getColumnHeader({ col: 'A' });
 
     // Click on the title and open the edition popup
-    columnHeader.find(".g_column_label .test-column-title-text").click();
+    await columnHeader.find(".g_column_label .test-column-title-text").click();
     const columnEditPopup = await driver.findWait('.test-column-title-popup', 1000);
-    const columnDescInput = await columnEditPopup.find('.test-column-title-field-description')
+    const columnDescInput = await columnEditPopup.find('.test-column-title-field-description');
 
     // Check initial content of popup
     assert.equal(await columnEditPopup.find('.test-column-title-column-label-input').value(), 'A');
