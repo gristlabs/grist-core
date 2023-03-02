@@ -2277,7 +2277,7 @@ export async function addColumn(name: string, type?: string) {
   await waitForServer();
 
   // Open the popup to rename the column
-  await driver.find('.column_name.selected .g_column_label .test-column-title-text').click()
+  await driver.find('.column_name.selected .g_column_label .test-column-title-text').click();
 
   await driver.sendKeys(name);
   await driver.sendKeys(Key.ENTER);
