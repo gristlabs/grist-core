@@ -198,7 +198,7 @@ export class VisibleFieldsConfig extends Disposable {
     });
     return [
       cssHeader(
-        cssFieldListHeader(dom.text((use) => `Visible ${use(this._fieldLabel)}`)),
+        cssFieldListHeader(dom.text((use) => t("Visible {{label}}", {label: use(this._fieldLabel)}))),
         dom.maybe(
           (use) => Boolean(use(use(this._section.viewFields).getObservable()).length),
           () => (
@@ -215,7 +215,7 @@ export class VisibleFieldsConfig extends Disposable {
       dom.maybe(this._showVisibleBatchButtons, () =>
         cssRow(
           primaryButton(
-            dom.text((use) => `Hide ${use(this._fieldLabel)}`),
+            dom.text((use) => t("Hide {{label}}", {label: use(this._fieldLabel)})),
             dom.on('click', () => this._removeSelectedFields()),
           ),
           basicButton(
@@ -234,7 +234,7 @@ export class VisibleFieldsConfig extends Disposable {
           testId('collapse-hidden'),
         ),
         // TODO: show `hidden column` only when some fields are hidden
-        cssFieldListHeader(dom.text((use) => `Hidden ${use(this._fieldLabel)}`)),
+        cssFieldListHeader(dom.text((use) => t("Hidden {{label}}", {label: use(this._fieldLabel)}))),
         dom.maybe(
           (use) => Boolean(use(this._hiddenFields.getObservable()).length && !use(this._collapseHiddenFields)),
           () => (
@@ -257,7 +257,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.maybe(this._showHiddenBatchButtons, () =>
           cssRow(
             primaryButton(
-              dom.text((use) => `Show ${use(this._fieldLabel)}`),
+              dom.text((use) => t("Show {{label}}", {label: use(this._fieldLabel)})),
               dom.on('click', () => this._addSelectedFields()),
             ),
             basicButton(

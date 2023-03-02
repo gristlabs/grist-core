@@ -688,7 +688,11 @@
         "Cannot drop items into Hidden Fields": "Cannot drop items into Hidden Fields",
         "Clear": "Clear",
         "Hidden Fields cannot be reordered": "Hidden Fields cannot be reordered",
-        "Select All": "Select All"
+        "Select All": "Select All",
+        "Visible {{label}}": "Visible {{label}}",
+        "Hide {{label}}": "Hide {{label}}",
+        "Hidden {{label}}": "Hidden {{label}}",
+        "Show {{label}}": "Show {{label}}"
     },
     "WelcomeQuestions": {
         "Education": "Education",
