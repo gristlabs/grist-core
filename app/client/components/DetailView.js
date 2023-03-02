@@ -76,17 +76,33 @@ function DetailView(gristDoc, viewSectionModel) {
   //--------------------------------------------------
   // Set up DOM event handling.
 
+  this.lastElemSelected = null;
+
   // Clicking on a detail field selects that field.
   this.onEvent(this.viewPane, 'mousedown', '.g_record_detail_el', function(elem, event) {
     this.viewSection.hasFocus(true);
     var rowModel = this.recordLayout.getContainingRow(elem, this.viewPane);
     var field = this.recordLayout.getContainingField(elem, this.viewPane);
     commands.allCommands.setCursor.run(rowModel, field);
+    this.lastElemSelected = elem;
   });
 
   // Double-clicking on a field also starts editing the field.
   this.onEvent(this.viewPane, 'dblclick', '.g_record_detail_el', function(elem, event) {
     this.activateEditorAtCursor();
+    this.lastElemSelected = elem;
+  });
+
+  // Clicking on a field also starts editing the field but only on certain cases and if the field are preselected
+  const simpleClickUnacceptedSelectors = [".formula_field", ".widget_checkbox", ".widget_switch"]
+  this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
+    if (
+      elem === this.lastFieldSelected
+      && simpleClickUnacceptedSelectors.reduce((formula, current) => formula && !elem.querySelector(current), true)
+    ) {
+      this.activateEditorAtCursor();
+    }
+    this.lastFieldSelected = elem;
   });
 
   //--------------------------------------------------
