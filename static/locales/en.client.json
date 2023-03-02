@@ -751,7 +751,19 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
         "Select fields": "Select fields",
-        "Upgrade now": "Upgrade now"
+        "Upgrade now": "Upgrade now",
+        "Any": "Any",
+        "Numeric": "Numeric",
+        "Text": "Text",
+        "Integer": "Integer",
+        "Toggle": "Toggle",
+        "Date": "Date",
+        "DateTime": "DateTime",
+        "Choice": "Choice",
+        "Choice List": "Choice List",
+        "Reference": "Reference",
+        "Reference List": "Reference List",
+        "Attachment": "Attachment"
     },
     "modals": {
         "Cancel": "Cancel",
