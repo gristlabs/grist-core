@@ -1235,9 +1235,11 @@ export async function renameTable(tableId: string, newName: string) {
  */
 export async function renameColumn(col: IColHeader, newName: string) {
   const header = await getColumnHeader(col);
-  await header.click();
-  await header.click();   // Second click opens the label for editing.
-  await header.find('.kf_elabel_input').sendKeys(newName, Key.ENTER);
+  // Open the popup
+  await header.find(".g_column_label .test-column-title-text").click();
+  const columnEditPopup = await driver.findWait('.test-column-title-popup', 1000);
+  // Edit column label
+  await columnEditPopup.find('.test-column-title-column-label-input').sendKeys(newName, Key.ENTER);
   await waitForServer();
 }
 

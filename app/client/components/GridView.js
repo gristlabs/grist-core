@@ -1069,7 +1069,7 @@ GridView.prototype.buildDom = function() {
                       // Prevent mousedown on the dropdown triangle from initiating column drag.
                       dom.on('mousedown', () => false),
                       // Select the column if it's not part of a multiselect.
-                      dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode, field))
+                      dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode.parentNode, field))
                     )
                     : null
                   ),
@@ -1077,7 +1077,7 @@ GridView.prototype.buildDom = function() {
                     // Prevent mousedown on the dropdown triangle from initiating column drag.
                     dom.on('mousedown', () => false),
                     // Select the column if it's not part of a multiselect.
-                    dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode, field)),
+                    dom.on('click', (ev) => this.maybeSelectColumn(ev.currentTarget.parentNode.parentNode, field)),
                     buildColumnTitle(field.column.peek(), testId('viewsection-title'))
                   )
                 ),

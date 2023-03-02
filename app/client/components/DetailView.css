@@ -222,8 +222,8 @@
 
   white-space: nowrap;
   overflow: hidden;
-  margin-left: 3px; /* to align with the .field_clip content */
-  margin-right: -1px; /* allow labels to overflow into the padding */
+  margin-left: 3px;     /* to align with the .field_clip content */
+  margin-right: -1px;   /* allow labels to overflow into the padding */
 }
 
 .detail_theme_record_compact .menu_toggle {
@@ -304,8 +304,8 @@
   font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
-  margin-left: 3px; /* to align with the .field_clip content */
-  margin-right: -6px; /* allow labels to overflow into the padding */
+  margin-left: 3px;     /* to align with the .field_clip content */
+  margin-right: -6px;   /* allow labels to overflow into the padding */
   margin-bottom: 4px;
 }
 
