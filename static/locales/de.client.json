@@ -744,7 +744,11 @@
         "Cannot drop items into Hidden Fields": "Elemente können nicht in ausgeblendeten Feldern abgelegt werden",
         "Clear": "Klären",
         "Hidden Fields cannot be reordered": "Ausgeblendete Felder können nicht neu sortiert werden",
-        "Select All": "Alle auswählen"
+        "Select All": "Alle auswählen",
+        "Hide {{label}}": "{{label}} ausblenden",
+        "Hidden {{label}}": "{{label}} Versteckt",
+        "Show {{label}}": "{{label}} anzeigen",
+        "Visible {{label}}": "Sichtbar {{label}}"
     },
     "WelcomeQuestions": {
         "Education": "Bildung",
@@ -803,7 +807,19 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
         "Select fields": "Felder auswählen",
-        "Upgrade now": "Jetzt aktualisieren"
+        "Upgrade now": "Jetzt aktualisieren",
+        "Numeric": "Numerisch",
+        "DateTime": "DatumUhrzeit",
+        "Choice List": "Auswahlliste",
+        "Choice": "Auswahl",
+        "Reference": "Referenz",
+        "Reference List": "Referenzliste",
+        "Attachment": "Anhang",
+        "Any": "Jegliche",
+        "Text": "Text",
+        "Integer": "Ganze Zahl",
+        "Toggle": "Umschalten",
+        "Date": "Datum"
     },
     "modals": {
         "Cancel": "Abbrechen",
