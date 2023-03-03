@@ -456,7 +456,8 @@
         "No notifications": "Brak powiadomień",
         "Ask for help": "Zapytaj o pomoc",
         "Cannot find personal site, sorry!": "Nie mogę znaleźć osobistej strony, przepraszam!",
-        "Give feedback": "Przekaż opinię"
+        "Give feedback": "Przekaż opinię",
+        "Notifications": "Powiadomienia"
     },
     "LeftPanelCommon": {
         "Help Center": "Centrum pomocy"
