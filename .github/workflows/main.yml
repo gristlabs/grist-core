@@ -49,7 +49,7 @@ jobs:
         run: yarn install
 
       - name: Run eslint
-        if: matrix.tests == ':lint:'
+        if: contains(matrix.tests, ':lint:')
         run: yarn run lint:ci
 
       - name: Make sure bucket is versioned
