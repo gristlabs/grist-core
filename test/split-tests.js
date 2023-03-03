@@ -32,7 +32,7 @@ before(function() {
   }
   const match = testSplits.match(/^(\d+)-of-(\d+)$/);
   if (!match) {
-    assert.fail(`Invalid test split spec '${testSplits}': use format 'suite_name:N-of-M'`);
+    assert.fail(`Invalid test split spec '${testSplits}': use format 'N-of-M'`);
   }
 
   const group = Number(match[1]);
