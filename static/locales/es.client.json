@@ -601,7 +601,11 @@
         "Cannot drop items into Hidden Fields": "No se pueden colocar elementos en campos ocultos",
         "Clear": "Limpiar",
         "Hidden Fields cannot be reordered": "Los campos ocultos no pueden ser reordenados",
-        "Select All": "Seleccionar todo"
+        "Select All": "Seleccionar todo",
+        "Hide {{label}}": "Ocultar {{label}}",
+        "Hidden {{label}}": "{{label}} oculta",
+        "Show {{label}}": "Mostrar {{label}}",
+        "Visible {{label}}": "{{label}} visible"
     },
     "WelcomeQuestions": {
         "Education": "Educación",
@@ -808,7 +812,19 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* Los espacios de trabajo están disponibles en los planes de equipo. ",
         "Select fields": "Seleccionar campos",
-        "Upgrade now": "Actualizar ahora"
+        "Upgrade now": "Actualizar ahora",
+        "Numeric": "Numérico",
+        "Text": "Texto",
+        "Integer": "Entero",
+        "Date": "Fecha",
+        "DateTime": "Fecha y hora",
+        "Choice": "Elección",
+        "Choice List": "Lista de opciones",
+        "Reference": "Referencia",
+        "Reference List": "Lista de referencia",
+        "Attachment": "Adjunto",
+        "Any": "Cualquiera",
+        "Toggle": "Cambiar"
     },
     "modals": {
         "Cancel": "Cancelar",

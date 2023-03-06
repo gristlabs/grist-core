@@ -653,7 +653,8 @@
         "Set formula": "Imposta formula",
         "Set trigger formula": "Imposta formula trigger",
         "TRIGGER FORMULA": "FORMULA TRIGGER",
-        "Make into data column": "Trasforma in una colonna di dati"
+        "Make into data column": "Trasforma in una colonna di dati",
+        "DESCRIPTION": "DESCRIZIONE"
     },
     "FieldMenus": {
         "Save as common settings": "Salva come impostazioni comuni",
@@ -832,7 +833,11 @@
         "Cannot drop items into Hidden Fields": "Impossibile collocare elementi in campi nascosti",
         "Clear": "Svuota",
         "Hidden Fields cannot be reordered": "Impossibile riordinare i campi nascosti",
-        "Select All": "Seleziona tutto"
+        "Select All": "Seleziona tutto",
+        "Hidden {{label}}": "Nascosta {{label}}",
+        "Hide {{label}}": "Nascondi {{label}}",
+        "Visible {{label}}": "Visibile {{label}}",
+        "Show {{label}}": "Mostra {{label}}"
     },
     "WidgetTitle": {
         "Cancel": "Annulla",
@@ -853,7 +858,19 @@
     "menus": {
         "* Workspaces are available on team plans. ": "*Gli spazi di lavoro sono disponibili nel piano per i team. ",
         "Select fields": "Seleziona campi",
-        "Upgrade now": "Aggiorna ora"
+        "Upgrade now": "Aggiorna ora",
+        "Any": "Qualsiasi",
+        "Text": "Testo",
+        "Integer": "Intero",
+        "Toggle": "Interruttore",
+        "Date": "Data",
+        "DateTime": "Data/ora",
+        "Reference": "Riferimento",
+        "Reference List": "Lista di riferimenti",
+        "Choice List": "Scelta da lista",
+        "Attachment": "Allegato",
+        "Numeric": "Numerico",
+        "Choice": "Scelta"
     },
     "modals": {
         "Cancel": "Annulla",

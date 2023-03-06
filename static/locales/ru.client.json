@@ -4,7 +4,7 @@
         "Attribute name": "Имя атрибута",
         "Add Default Rule": "Добавить правило по умолчанию",
         "Add Column Rule": "Добавить правило столбца",
-        "View As": "Посмотреть как",
+        "View As": "Смотреть как",
         "Seed rules": "Наследуемые правила",
         "Add User Attributes": "Добавить атрибуты пользователя",
         "Add Table Rules": "Добавить правила таблицы",
@@ -798,7 +798,11 @@
         "Clear": "Очистить",
         "Hidden Fields cannot be reordered": "Скрытые поля не могут быть переупорядочены",
         "Cannot drop items into Hidden Fields": "Невозможно поместить элементы в скрытые поля",
-        "Select All": "Выбрать все"
+        "Select All": "Выбрать все",
+        "Hide {{label}}": "Скрыть {{label}}",
+        "Hidden {{label}}": "Скрытый {{label}}",
+        "Show {{label}}": "Показать {{label}}",
+        "Visible {{label}}": "Видимый {{label}}"
     },
     "WelcomeQuestions": {
         "Marketing": "Маркетинг",
@@ -826,7 +830,19 @@
     "menus": {
         "Select fields": "Выберите поля",
         "Upgrade now": "Обновитесь сейчас",
-        "* Workspaces are available on team plans. ": "* Рабочие пространства доступны в командных тарифах. "
+        "* Workspaces are available on team plans. ": "* Рабочие пространства доступны в командных тарифах. ",
+        "Any": "Любые",
+        "Numeric": "Численный",
+        "Text": "Текст",
+        "Toggle": "Переключатель",
+        "Date": "Дата",
+        "Choice": "Выбор",
+        "Reference List": "Ссылки списком",
+        "Choice List": "Выбор списком",
+        "Attachment": "Вложения",
+        "DateTime": "Дата и Время",
+        "Integer": "Целочисленный",
+        "Reference": "Ссылка"
     },
     "modals": {
         "Cancel": "Отмена",

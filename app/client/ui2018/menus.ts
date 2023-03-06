@@ -150,7 +150,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
   return weasel.select(obs, optionArray, selectOptions, (op) =>
     cssOptionRow(
       op.icon ? cssOptionRowIcon(op.icon) : null,
-      cssOptionLabel(op.label),
+      cssOptionLabel(t(op.label)),
       renderOptionArgs ? renderOptionArgs(op) : null,
       testId('select-row')
     )
