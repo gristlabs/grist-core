@@ -279,6 +279,7 @@ export async function exportSection(
       label: col.label,
       type: col.type,
       parentPos: col.parentPos,
+      description: col.description,
       widgetOptions: Object.assign(colWidgetOptions, fieldWidgetOptions),
     };
   };

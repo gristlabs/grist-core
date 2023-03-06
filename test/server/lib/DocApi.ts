@@ -2138,6 +2138,50 @@ function testDocApi() {
     assert.deepEqual(resp.data, { error: 'tableId parameter should be a string: undefined' });
   });
 
+  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function() {
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/download/table-schema?tableId=Table1`,
+      chimpy,
+    );
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
+
+    const resp2 = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Foo`, chimpy);
+    assert.equal(resp2.status, 200);
+    assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
+  });
+
+  it("GET /docs/{did}/download/table-schema respects permissions", async function() {
+    // kiwi has no access to TestDoc
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1`, kiwi);
+    assert.equal(resp.status, 403);
+    assert.notEqual(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
+  });
+
+  it("GET /docs/{did}/download/table-schema returns 404 if tableId is invalid", async function() {
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=MissingTableId`,
+      chimpy,
+    );
+    assert.equal(resp.status, 404);
+    assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
+  });
+
+  it("GET /docs/{did}/download/table-schema returns 404 if viewSectionId is invalid", async function() {
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1&viewSection=9999`, chimpy);
+    assert.equal(resp.status, 404);
+    assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
+  });
+
+  it("GET /docs/{did}/download/table-schema returns 400 if tableId is missing", async function() {
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema`, chimpy);
+    assert.equal(resp.status, 400);
+    assert.deepEqual(resp.data, { error: 'tableId parameter should be a string: undefined' });
+  });
+
+
   it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/xlsx?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
