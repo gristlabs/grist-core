@@ -15,7 +15,7 @@ import {
 } from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
-import {ChildProcess, spawn} from 'child_process';
+import {ChildProcess, fork, spawn} from 'child_process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -73,6 +73,8 @@ export interface ISandboxOptions {
 interface SandboxProcess {
   child: ChildProcess;
   control: ISandboxControl;
+  dataToSandboxDescriptor?: number;    // override sandbox's 'stdin' for data
+  dataFromSandboxDescriptor?: number;  // override sandbox's 'stdout' for data
 }
 
 type ResolveRejectPair = [(value?: any) => void, (reason?: unknown) => void];
@@ -131,10 +133,23 @@ export class NSandbox implements ISandbox {
 
     if (options.minimalPipeMode) {
       log.rawDebug("3-pipe Sandbox started", this._logMeta);
-      this._streamToSandbox = this.childProc.stdin!;
-      this._streamFromSandbox = this.childProc.stdout!;
+      if (sandboxProcess.dataToSandboxDescriptor) {
+        this._streamToSandbox =
+          (this.childProc.stdio as Stream[])[sandboxProcess.dataToSandboxDescriptor] as Writable;
+      } else {
+        this._streamToSandbox = this.childProc.stdin!;
+      }
+      if (sandboxProcess.dataFromSandboxDescriptor) {
+        this._streamFromSandbox =
+          (this.childProc.stdio as Stream[])[sandboxProcess.dataFromSandboxDescriptor];
+      } else {
+        this._streamFromSandbox = this.childProc.stdout!;
+      }
     } else {
       log.rawDebug("5-pipe Sandbox started", this._logMeta);
+      if (sandboxProcess.dataFromSandboxDescriptor || sandboxProcess.dataToSandboxDescriptor) {
+        throw new Error('cannot override file descriptors in 5 pipe mode');
+      }
       this._streamToSandbox = (this.childProc.stdio as Stream[])[3] as Writable;
       this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
       this.childProc.stdout!.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
@@ -206,10 +221,17 @@ export class NSandbox implements ISandbox {
    * @param args Arguments to pass to the given function.
    * @returns A promise for the return value from the Python function.
    */
-  public pyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
+  public async pyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
     const startTime = Date.now();
     this._sendData(sandboxUtil.CALL, Array.from(arguments));
-    return this._pyCallWait(funcName, startTime);
+    const slowCallCheck = setTimeout(() => {
+      // Log calls that take some time, can be a useful symptom of misconfiguration
+      // (or just benign if the doc is big).
+      log.rawWarn('Slow pyCall', {...this._logMeta, funcName});
+    }, 10000);
+    const result = await this._pyCallWait(funcName, startTime);
+    clearTimeout(slowCallCheck);
+    return result;
   }
 
   /**
@@ -371,6 +393,7 @@ const spawners = {
   docker,             // Run sandboxes in distinct docker containers.
   gvisor,             // Gvisor's runsc sandbox.
   macSandboxExec,     // Use "sandbox-exec" on Mac.
+  pyodide,            // Run data engine using pyodide.
 };
 
 function isFlavor(flavor: string): flavor is keyof typeof spawners {
@@ -526,6 +549,44 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   const child = spawn(command, pythonArgs,
                       {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {child, control: new DirectProcessControl(child, options.logMeta)};
+}
+
+function pyodide(options: ISandboxOptions): SandboxProcess {
+  const paths = getAbsolutePaths(options);
+  // We will fork with three regular pipes (stdin, stdout, stderr), then
+  // ipc (mandatory for calling fork), and a replacement pipe for stdin
+  // and for stdout.
+  // The regular stdin always opens non-blocking in node, which is a pain
+  // in this case, so we just use a different pipe. There's a different
+  // problem with stdout, with the same solution.
+  const spawnOptions = {
+    stdio: ['ignore', 'ignore', 'pipe', 'ipc', 'pipe', 'pipe'] as Array<'pipe'|'ipc'>,
+    env: {
+      PYTHONPATH: paths.engine,
+      IMPORTDIR: options.importDir,
+      ...getInsertedEnv(options),
+      ...getWrappingEnv(options),
+    }
+  };
+  const base = getUnpackedAppRoot();
+  const child = fork(path.join(base, 'sandbox', 'pyodide', 'pipe.js'),
+                     {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+  return {
+    child,
+    control: new DirectProcessControl(child, options.logMeta),
+    dataToSandboxDescriptor: 4,  // Cannot use normal descriptor, node
+    // makes it non-blocking. Can be worked around in linux and osx, but
+    // for windows just using a different file descriptor seems simplest.
+    // In the sandbox, calling async methods from emscripten code is
+    // possible but would require more changes to the data engine code
+    // than seems reasonable at this time. The top level sandbox.run
+    // can be tweaked to step operations, which actually works for a
+    // lot of things, but not for cases where the sandbox calls back
+    // into node (e.g. for column type guessing). TLDR: just switching
+    // to FD 4 and reading synchronously is more practical solution.
+    dataFromSandboxDescriptor: 5, // There's an equally long but different
+    // story about why stdout is a bit messed up under pyodide right now.
+  };
 }
 
 /**
