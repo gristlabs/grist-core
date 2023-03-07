@@ -723,7 +723,9 @@
         "Open configuration": "Abrir configuração",
         "Print widget": "Imprimir Widget",
         "Show raw data": "Mostrar dados primários",
-        "Widget options": "Opções do Widget"
+        "Widget options": "Opções do Widget",
+        "Collapse widget": "Colapsar widget",
+        "Add to page": "Adicionar à página"
     },
     "ViewSectionMenu": {
         "(customized)": "(personalizado)",
@@ -1021,5 +1023,8 @@
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use o ícone 𝚺 para criar tabelas resumidas (ou dinâmicas), para totais ou subtotais.",
         "relational": "relacionais",
         "Unpin to hide the the button while keeping the filter.": "Desfixe para ocultar o botão enquanto mantém o filtro."
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "DESCRIÇÃO"
     }
 }
