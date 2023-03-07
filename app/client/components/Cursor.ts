@@ -51,13 +51,6 @@ export class Cursor extends Disposable {
     moveToLastRecord(this: Cursor) { this.rowIndex(Infinity); },
     moveToFirstField(this: Cursor) { this.fieldIndex(0); },
     moveToLastField(this: Cursor) { this.fieldIndex(Infinity); },
-
-    // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
-    // This is overridden by the formula editor to insert "$col" variables when clicking cells.
-    setCursor(this: Cursor, rowModel: BaseRowModel, fieldModel: BaseRowModel) {
-      this.rowIndex(rowModel ? rowModel._index() : 0);
-      this.fieldIndex(fieldModel ? fieldModel._index()! : 0);
-    },
   };
 
   public viewData: LazyArrayModel<BaseRowModel>;

@@ -1,66 +1,21 @@
-import {Computed, dom, fromKo, input, makeTestId, onElem, styled, TestId} from 'grainjs';
-
+import {CellValue} from "app/common/DocActions";
 import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {cssRow} from 'app/client/ui/RightPanelStyles';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId, vars} from 'app/client/ui2018/cssVars';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {encodeQueryParams} from 'app/common/gutil';
+import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
+import {DataRowModel} from 'app/client/models/DataRowModel';
 import {MetaTableData} from 'app/client/models/TableData';
-import {UploadResult} from 'app/common/uploads';
-import {extname} from 'path';
 import { SingleCell } from 'app/common/TableData';
+import {KoSaveableObservable} from 'app/client/models/modelUtil';
+import {UploadResult} from 'app/common/uploads';
+import { GristObjCode } from 'app/plugin/GristData';
+import {Computed, dom, fromKo, input, onElem, styled} from 'grainjs';
+import {extname} from 'path';
 
-const testId: TestId = makeTestId('test-pw-');
-
-const attachmentWidget = styled('div.attachment_widget.field_clip', `
-  display: flex;
-  flex-wrap: wrap;
-  white-space: pre-wrap;
-`);
-
-const attachmentIcon = styled('div.attachment_icon.glyphicon.glyphicon-paperclip', `
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  padding: 2px;
-  background-color: #D0D0D0;
-  color: white;
-  border-radius: 2px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px white;
-  z-index: 1;
-
-  &:hover {
-    background-color: #3290BF;
-  }
-`);
-
-const attachmentPreview = styled('div', `
-  color: black;
-  background-color: white;
-  border: 1px solid #bbb;
-  margin: 0 2px 2px 0;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 0;
-  &:hover {
-    border-color: ${colors.lightGreen};
-  }
-`);
-
-const sizeLabel = styled('div', `
-  color: ${colors.slate};
-  margin-right: 9px;
-`);
-
-export interface SavingObservable<T> extends ko.Observable<T> {
-  setAndSave(value: T): void;
-}
 
 /**
  * AttachmentsWidget - A widget for displaying attachments as image previews.
@@ -68,46 +23,49 @@ export interface SavingObservable<T> extends ko.Observable<T> {
 export class AttachmentsWidget extends NewAbstractWidget {
 
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
-  private _height: SavingObservable<string>;
+  private _height: KoSaveableObservable<string>;
 
-  constructor(field: any) {
+  constructor(field: ViewFieldRec) {
     super(field);
 
     // TODO: the Attachments table currently treated as metadata, and loaded on open,
     // but should probably be loaded on demand as it contains user data, which may be large.
     this._attachmentsTable = this._getDocData().getMetaTable('_grist_Attachments');
 
-    this._height = this.options.prop('height') as SavingObservable<string>;
+    this._height = this.options.prop('height');
 
     this.autoDispose(this._height.subscribe(() => {
       this.field.viewSection().events.trigger('rowHeightChange');
     }));
   }
 
-  public buildDom(_row: any): Element {
+  public buildDom(row: DataRowModel) {
     // NOTE: A cellValue of the correct type includes the list encoding designator 'L' as the
     // first element.
-    const cellValue: SavingObservable<number[]> = _row[this.field.colId()];
+    const cellValue = row.cells[this.field.colId()];
     const values = Computed.create(null, fromKo(cellValue), (use, _cellValue) =>
-      Array.isArray(_cellValue) ? _cellValue.slice(1) : []);
+      Array.isArray(_cellValue) ? _cellValue.slice(1) as number[] : []);
 
     const colId = this.field.colId();
     const tableId = this.field.column().table().tableId();
-    return attachmentWidget(
+    return cssAttachmentWidget(
       dom.autoDispose(values),
 
+      dom.cls('field_clip'),
       dragOverClass('attachment_drag_over'),
-      attachmentIcon(
-        dom.cls('attachment_hover_icon', (use) => use(values).length > 0),
-        dom.on('click', () => this._selectAndSave(cellValue))
+      cssAttachmentIcon(
+        cssAttachmentIcon.cls('-hover', (use) => use(values).length > 0),
+        dom.on('click', () => this._selectAndSave(row, cellValue)),
+        testId('attachment-icon'),
       ),
-      dom.maybe(_row.id, rowId => {
+      dom.maybe<number>(row.id, rowId => {
         return dom.forEach(values, (value: number) =>
           isNaN(value) ? null : this._buildAttachment(value, values, {
             rowId, colId, tableId,
           }));
       }),
-      dom.on('drop', ev => this._uploadAndSave(cellValue, ev.dataTransfer!.files))
+      dom.on('drop', ev => this._uploadAndSave(row, cellValue, ev.dataTransfer!.files)),
+      testId('attachment-widget'),
     );
   }
 
@@ -123,15 +81,17 @@ export class AttachmentsWidget extends NewAbstractWidget {
         max: '96',
         value: '36'
       },
-      testId('thumbnail-size'),
+      testId('pw-thumbnail-size'),
       // When multiple columns are selected, we can only edit height when all
       // columns support it.
       dom.prop('disabled', use => use(options.disabled('height'))),
     );
     // Save the height on change event (when the user releases the drag button)
-    onElem(inputRange, 'change', (ev: any) => { height.setAndSave(ev.target.value).catch(reportError); });
+    onElem(inputRange, 'change', (ev: Event) => {
+      height.setAndSave(inputRange.value).catch(reportError);
+    });
     return cssRow(
-      sizeLabel('Size'),
+      cssSizeLabel('Size'),
       inputRange
     );
   }
@@ -144,7 +104,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const hasPreview = Boolean(height);
     const ratio = hasPreview ? (width / height) : 1;
 
-    return attachmentPreview({title: filename}, // Add a filename tooltip to the previews.
+    return cssAttachmentPreview({title: filename}, // Add a filename tooltip to the previews.
       dom.style('height', (use) => `${use(this._height)}px`),
       dom.style('width', (use) => `${parseInt(use(this._height), 10) * ratio}px`),
       // TODO: Update to legitimately determine whether a file preview exists.
@@ -155,7 +115,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an
       // accidental feature of opening e.g. second attachment by hitting "2".
       dom.on('dblclick', () => commands.allCommands.input.run(String(allValues.get().indexOf(value) + 1))),
-      testId('thumbnail'),
+      testId('pw-thumbnail'),
     );
   }
 
@@ -170,27 +130,36 @@ export class AttachmentsWidget extends NewAbstractWidget {
     });
   }
 
-  private async _selectAndSave(value: SavingObservable<number[]>): Promise<void> {
+  private async _selectAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>): Promise<void> {
     const uploadResult = await selectFiles({docWorkerUrl: this._getDocComm().docWorkerUrl,
                                             multiple: true, sizeLimit: 'attachment'});
-    return this._save(value, uploadResult);
+    return this._save(row, value, uploadResult);
   }
 
-  private async _uploadAndSave(value: SavingObservable<number[]>, files: FileList): Promise<void> {
+  private async _uploadAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>,
+        files: FileList): Promise<void> {
     const uploadResult = await uploadFiles(Array.from(files),
                                            {docWorkerUrl: this._getDocComm().docWorkerUrl,
                                             sizeLimit: 'attachment'});
-    return this._save(value, uploadResult);
+    return this._save(row, value, uploadResult);
   }
 
-  private async _save(value: SavingObservable<number[]>, uploadResult: UploadResult|null): Promise<void> {
+  private async _save(row: DataRowModel, value: KoSaveableObservable<CellValue>,
+        uploadResult: UploadResult|null
+  ): Promise<void> {
     if (!uploadResult) { return; }
     const rowIds = await this._getDocComm().addAttachments(uploadResult.uploadId);
     // Values should be saved with a leading "L" to fit Grist's list value encoding.
-    const formatted: any[] = value() ? value() : ["L"];
-    value.setAndSave(formatted.concat(rowIds));
-    // Trigger a row height change in case the added attachment wraps to the next line.
-    this.field.viewSection().events.trigger('rowHeightChange');
+    const formatted: CellValue = value() ? value() : [GristObjCode.List];
+    const newValue = (formatted as number[]).concat(rowIds) as CellValue;
+
+    // Move the cursor here (note that this may involve switching active section when dragging
+    // into a cell of an inactive section). Then send the 'input' command; it is normally used for
+    // key presses to open an editor; here the "typed text" is the new value. It is handled by
+    // AttachmentsEditor.skipEditor(), and makes the edit apply to editRow, which handles setting
+    // default values based on widget linking.
+    commands.allCommands.setCursor.run(row, this.field);
+    commands.allCommands.input.run(newValue);
   }
 }
 
@@ -205,6 +174,63 @@ export function renderFileType(fileName: string, fileIdent: string, height?: ko.
     }),
   );
 }
+
+const cssAttachmentWidget = styled('div', `
+  display: flex;
+  flex-wrap: wrap;
+  white-space: pre-wrap;
+
+  &.attachment_drag_over {
+    outline: 2px dashed #ff9a00;
+    outline-offset: -2px;
+  }
+`);
+
+const cssAttachmentIcon = styled('div.glyphicon.glyphicon-paperclip', `
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  padding: 2px;
+  background-color: #D0D0D0;
+  color: white;
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px white;
+  z-index: 1;
+
+  &:hover {
+    background-color: #3290BF;
+  }
+
+  &-hover {
+    display: none;
+  }
+  .${cssAttachmentWidget.className}:hover &-hover {
+    display: inline;
+  }
+`);
+
+const cssAttachmentPreview = styled('div', `
+  color: black;
+  background-color: white;
+  border: 1px solid #bbb;
+  margin: 0 2px 2px 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+  &:hover {
+    border-color: ${colors.lightGreen};
+  }
+`);
+
+const cssSizeLabel = styled('div', `
+  color: ${colors.slate};
+  margin-right: 9px;
+`);
+
 
 const cssFileType = styled('div', `
   height: 100%;

@@ -885,7 +885,7 @@ GridView.prototype._getColStyle = function(colIndex) {
 GridView.prototype.domToRowModel = function(elem, elemType) {
   switch (elemType) {
     case selector.COL:
-      return 0;
+      return undefined;
     case selector.ROW: // row > row num: row has record model
       return ko.utils.domData.get(elem.parentNode, 'itemModel');
     case selector.NONE:
@@ -899,7 +899,7 @@ GridView.prototype.domToRowModel = function(elem, elemType) {
 GridView.prototype.domToColModel = function(elem, elemType) {
   switch (elemType) {
     case selector.ROW:
-      return 0;
+      return undefined;
     case selector.NONE:
     case selector.CELL: // cell: .field has col model
     case selector.COL:  // col:  .column_name I think

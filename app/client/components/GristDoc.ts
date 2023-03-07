@@ -31,10 +31,11 @@ import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
 import {reportError} from 'app/client/models/AppModel';
+import BaseRowModel from 'app/client/models/BaseRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
 import {DocData} from 'app/client/models/DocData';
-import {DocInfoRec, DocModel, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
@@ -361,6 +362,16 @@ export class GristDoc extends DisposableWithEvents {
       undo(this: GristDoc) { this._undoStack.sendUndoAction().catch(reportError); },
       redo(this: GristDoc) { this._undoStack.sendRedoAction().catch(reportError); },
       reloadPlugins() { this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
+
+      // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
+      // This is overridden by the formula editor to insert "$col" variables when clicking cells.
+      setCursor(this: GristDoc, rowModel: BaseRowModel, fieldModel?: ViewFieldRec) {
+        return this.setCursorPos({
+          rowIndex: rowModel?._index() || 0,
+          fieldIndex: fieldModel?._index() || 0,
+          sectionId: fieldModel?.viewSection().getRowId(),
+        });
+      },
     }, this, true));
 
     this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);
@@ -507,6 +518,21 @@ export class GristDoc extends DisposableWithEvents {
     return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
   }
 
+  public async setCursorPos(cursorPos: CursorPos) {
+    if (cursorPos.sectionId) {
+      const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      if (desiredSection.view.peek().getRowId() !== this.activeViewId.get()) {
+        // This may be asynchronous. In other cases, the change is synchronous, and some code
+        // relies on it (doesn't wait for this function to resolve).
+        await this._switchToSectionId(cursorPos.sectionId);
+      } else if (desiredSection !== this.viewModel.activeSection.peek()) {
+        this.viewModel.activeSectionId(cursorPos.sectionId);
+      }
+    }
+    const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
+    viewInstance?.setCursorPos(cursorPos);
+  }
+
   /**
    * Switch to the view/section and scroll to the record indicated by cursorPos. If cursorPos is
    * null, then moves to a position best suited for optActionGroup (not yet implemented).
@@ -523,10 +549,7 @@ export class GristDoc extends DisposableWithEvents {
       return;
     }
     try {
-      const viewInstance = await this._switchToSectionId(cursorPos.sectionId);
-      if (viewInstance) {
-        viewInstance.setCursorPos(cursorPos);
-      }
+      await this.setCursorPos(cursorPos);
     } catch(e) {
       reportError(e);
     }

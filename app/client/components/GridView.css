@@ -22,7 +22,7 @@
   overflow: auto;
   overscroll-behavior: none;
 
-  z-index: 2; /* scrollbar should be over the overlay background */
+  z-index: 20; /* scrollbar should be over the overlay background */
   border-top: 1px solid var(--grist-theme-table-header-border, lightgrey);
 }
 
@@ -36,7 +36,7 @@
   position: -webkit-sticky;
   position: sticky;
   top: 0px;
-  z-index: 2; /* z-index must be here, doesnt work on children*/
+  z-index: 20; /* z-index must be here, doesnt work on children*/
 }
 
 .gridview_data_header {
@@ -74,7 +74,7 @@
   border-bottom: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
   color: var(--grist-theme-table-header-fg, unset);
   background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey));
-  z-index: 2; /* goes over data cells */
+  z-index: 20; /* goes over data cells */
 
   padding-top: 2px;
   text-align: center;
@@ -159,7 +159,7 @@
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
   top: 1px; /* go under 1px border on scrollpane */
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
-  z-index: 3;
+  z-index: 30;
   cursor: pointer;
 }
 
@@ -182,7 +182,7 @@
   /* shadow should only show to the right of it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
-  z-index: 3;
+  z-index: 30;
 }
 
 /* Right shadow - normally not displayed - activated when grid has frozen columns */
@@ -193,7 +193,7 @@
   box-shadow: -8px 0 14px 4px var(--grist-theme-table-scroll-shadow, #444);
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 28px 0, 24px 100%, 0 100%);
-  z-index: 3;
+  z-index: 30;
   position: absolute;
 }
 
@@ -207,7 +207,7 @@
    */
   left: calc(4em + var(--frozen-width, 0) * 1px);
   background-color: var(--grist-theme-table-frozen-columns-border, #999999);
-  z-index: 3;
+  z-index: 30;
   user-select: none;
   pointer-events: none
 }
@@ -222,14 +222,14 @@
   /* should only show below it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 0 10px, 100% 10px, 100% 0);
   clip-path: polygon(0 0, 0 10px, 100% 10px, 100% 0);
-  z-index: 3;
+  z-index: 30;
 }
 
 .gridview_header_backdrop_left {
   width: calc(4rem + 1px); /* Matches rowid width (+border) */
   height:100%;
   top: 1px; /* go under 1px border on scrollpane */
-  z-index: 1;
+  z-index: 10;
   border-right: 1px solid var(--grist-theme-table-header-border, lightgray);
 }
 
@@ -237,7 +237,7 @@
   position: absolute;
   width: 0px; /* Matches rowid width (+border) */
   height: 100%;
-  z-index: 3;
+  z-index: 30;
   border-right: 1px solid var(--grist-theme-table-body-border, var(--grist-color-dark-grey)) !important;
   user-select: none;
   pointer-events: none
@@ -248,7 +248,7 @@
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
   top: 1px; /* go under 1px border on scrollpane */
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
-  z-index: 1;
+  z-index: 10;
 }
 
 .gridview_data_pane > .scroll_shadow_top {
@@ -269,7 +269,7 @@
   height: 100%;
   position: absolute;
   border: 2px solid var(--grist-theme-table-drag-drop-indicator, gray);
-  z-index: 20;
+  z-index: 200;
   top: 0px;
 }
 
@@ -278,7 +278,7 @@
   height: 100%;
   position: absolute;
   border: 1px solid var(--grist-theme-table-drag-drop-indicator, gray);
-  z-index: 15;
+  z-index: 150;
   top: 0px;
   background-color: var(--grist-theme-table-drag-drop-shadow, #F0F0F0);
   opacity: 0.5;
@@ -289,7 +289,7 @@
   height: 0px;
   position: absolute;
   border: 2px solid var(--grist-theme-table-drag-drop-indicator, gray);
-  z-index: 20;
+  z-index: 200;
   left: 0px;
 }
 
@@ -298,7 +298,7 @@
   height: 0px;
   position: absolute;
   border: 1px solid var(--grist-theme-table-drag-drop-indicator, gray);
-  z-index: 15;
+  z-index: 150;
   left: 0px;
   background-color: var(--grist-theme-table-drag-drop-shadow, #F0F0F0);
   opacity: 0.5;
@@ -311,7 +311,7 @@
 .record .field.frozen {
   position: sticky;
   left: calc(4em + 1px + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* 4em for row number + total width of cells + 1px for border*/
-  z-index: 1;
+  z-index: 10;
 }
 /* for data field we need to reuse color from record (add-row and zebra stripes) */
 .gridview_row .record .field.frozen {
