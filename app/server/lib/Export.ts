@@ -204,7 +204,8 @@ export async function exportTable(
       label: tc.label,
       type: displayCol.type,
       widgetOptions,
-      parentPos: tc.parentPos
+      parentPos: tc.parentPos,
+      description: displayCol.description,
     };
   }).filter(tc => tc !== emptyCol);
 

@@ -875,7 +875,18 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
       const {name: filename} = await this._dbManager.getDoc(req);
       const options = this._getDownloadOptions(req, filename);
-      await downloadTableSchema(activeDoc, req, res, options);
+      const tableSchema = await downloadTableSchema(activeDoc, req, options);
+      res.send({
+        format: "csv",
+        mediatype: "text/csv",
+        encoding: "utf-8",
+        path: `${req.protocol}://${req.get('host')}${req.originalUrl}`.replace('table-schema', 'csv'),
+        dialect: {
+          delimiter: ",",
+          doubleQuote: true,
+        },
+        ...tableSchema,
+      });
     }));
 
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
