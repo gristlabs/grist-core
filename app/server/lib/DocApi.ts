@@ -47,7 +47,6 @@ import {makeForkIds} from "app/server/lib/idUtils";
 import {
   getDocId,
   getDocScope,
-  getOriginUrl,
   getScope,
   integerParam,
   isParameterOn,
@@ -874,14 +873,17 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
-      const {name: filename} = await this._dbManager.getDoc(req);
-      const options = this._getDownloadOptions(req, filename);
+      const doc = await this._dbManager.getDoc(req);
+      const options = this._getDownloadOptions(req, doc.name);
       const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
+      const apiPath = await this._grist.getResourceUrl(doc, 'api');
+      const query = new URLSearchParams(req.query as {[key: string]: string});
+      const tableSchemaPath = `${apiPath}/download/csv?${query.toString()}`;
       res.send({
         format: "csv",
         mediatype: "text/csv",
         encoding: "utf-8",
-        path: `${getOriginUrl(req)}${req.originalUrl}`.replace('table-schema', 'csv'),
+        path: tableSchemaPath,
         dialect: {
           delimiter: ",",
           doubleQuote: true,
