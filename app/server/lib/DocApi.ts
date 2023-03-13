@@ -36,7 +36,7 @@ import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
 import {downloadCSV} from "app/server/lib/ExportCSV";
 import {downloadXLSX} from "app/server/lib/ExportXLSX";
-import {downloadTableSchema} from "app/server/lib/ExportTableSchema";
+import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
@@ -47,6 +47,7 @@ import {makeForkIds} from "app/server/lib/idUtils";
 import {
   getDocId,
   getDocScope,
+  getOriginUrl,
   getScope,
   integerParam,
   isParameterOn,
@@ -875,12 +876,12 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
       const {name: filename} = await this._dbManager.getDoc(req);
       const options = this._getDownloadOptions(req, filename);
-      const tableSchema = await downloadTableSchema(activeDoc, req, options);
+      const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
       res.send({
         format: "csv",
         mediatype: "text/csv",
         encoding: "utf-8",
-        path: `${req.protocol}://${req.get('host')}${req.originalUrl}`.replace('table-schema', 'csv'),
+        path: `${getOriginUrl(req)}${req.originalUrl}`.replace('table-schema', 'csv'),
         dialect: {
           delimiter: ",",
           doubleQuote: true,

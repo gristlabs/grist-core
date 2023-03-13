@@ -1,23 +1,52 @@
 import * as express from 'express';
+import {ApiError} from 'app/common/ApiError';
+import {WidgetOptions} from 'app/common/WidgetOptions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DownloadOptions, exportTable} from 'app/server/lib/Export';
-import { ApiError } from 'app/common/ApiError';
 
 interface ExportColumn {
   id: number;
   colId: string;
   label: string;
   type: string;
-  widgetOptions: any;
+  widgetOptions: WidgetOptions;
   description?: string;
   parentPos: number;
 }
 
-export async function downloadTableSchema(
+interface FrictionlessFormat {
+  name: string;
+  title: string;
+  schema: {
+    fields: {
+      name: string;
+      type: string;
+      description?: string;
+      format?: string;
+      bareNumber?: boolean;
+      groupChar?: string;
+      decimalChar?: string;
+      gristFormat?: string;
+      constraint?: {};
+      trueValue?: string[];
+      falseValue?: string[];
+    }[]
+  }
+}
+
+/**
+ * Return a table schema for frictionless interoperability
+ *
+ * See https://specs.frictionlessdata.io/table-schema/#page-frontmatter-title for spec
+ * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
+ * @param {Object} options - options to get the table ID
+ * @return {Promise<FrictionlessFormat>} Promise for the resulting schema.
+ */
+export async function collectTableSchemaInFrictionlessFormat(
   activeDoc: ActiveDoc,
   req: express.Request,
   options: DownloadOptions
-) {
+): Promise<FrictionlessFormat> {
   const {tableId} = options;
   if (!activeDoc.docData) {
     throw new Error('No docData in active document');
@@ -41,7 +70,7 @@ function columnsToTableSchema(
   tableId: string,
   {tableName, columns}: {tableName: string, columns: ExportColumn[]},
   locale: string,
-) {
+): FrictionlessFormat {
   return {
     name: tableId.toLowerCase().replace(/_/g, '-'),
     title: tableName,

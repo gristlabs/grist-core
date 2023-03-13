@@ -2139,16 +2139,32 @@ function testDocApi() {
   });
 
   it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function() {
-    const resp = await axios.get(
-      `${serverUrl}/api/docs/${docIds.Timesheets}/download/table-schema?tableId=Table1`,
-      chimpy,
-    );
-    assert.equal(resp.status, 200);
-    assert.equal(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
 
-    const resp2 = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Foo`, chimpy);
-    assert.equal(resp2.status, 200);
-    assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Foo`, chimpy);
+    assert.equal(resp.status, 200);
+    assert.deepEqual(resp.data, {
+      format: "csv",
+      mediatype: "text/csv",
+      encoding: "utf-8",
+      path: `${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=Foo`,
+      dialect: {
+        delimiter: ",",
+        doubleQuote: true,
+      },
+      name: 'foo',
+      title: 'Foo',
+      schema: {
+        fields: [{
+          name: 'A',
+          type: 'string',
+          format: 'default',
+        }, {
+          name: 'B',
+          type: 'string',
+          format: 'default',
+        }]
+      }
+    });
   });
 
   it("GET /docs/{did}/download/table-schema respects permissions", async function() {
@@ -2165,13 +2181,6 @@ function testDocApi() {
     );
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
-  });
-
-  it("GET /docs/{did}/download/table-schema returns 404 if viewSectionId is invalid", async function() {
-    const resp = await axios.get(
-      `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1&viewSection=9999`, chimpy);
-    assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
   });
 
   it("GET /docs/{did}/download/table-schema returns 400 if tableId is missing", async function() {
