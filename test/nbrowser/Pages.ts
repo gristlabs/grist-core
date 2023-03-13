@@ -259,6 +259,26 @@ describe('Pages', function() {
     assert.include(await gu.getPageNames(), 'People');
   });
 
+  it('should show tooltip for long page names on hover', async () => {
+    await gu.openPageMenu('People');
+    await driver.find('.test-docpage-rename').doClick();
+    await driver.find('.test-docpage-editor')
+      .sendKeys('People, Persons, Humans, Ladies & Gentlemen', Key.ENTER);
+    await gu.waitForServer();
+
+    await driver.findContent('.test-treeview-label', /People, Persons, Humans, Ladies & Gentlemen/).mouseMove();
+    await driver.wait(() => driver.findWait('.test-tooltip', 1000).isDisplayed(), 3000);
+    assert.equal(await driver.find('.test-tooltip').getText(),
+      'People, Persons, Humans, Ladies & Gentlemen');
+
+    await gu.undo();
+    assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
+
+    await driver.findContent('.test-treeview-label', /People/).mouseMove();
+    await driver.sleep(500);
+    assert.equal(await driver.find('.test-tooltip').isPresent(), false);
+  });
+
   it('should not change page when clicking the input while renaming page', async () => {
     // check that initially People is selected
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /People/);

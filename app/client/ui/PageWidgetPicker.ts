@@ -8,6 +8,7 @@ import { linkId, NoLink } from 'app/client/ui/selectBy';
 import { withInfoTooltip } from 'app/client/ui/tooltips';
 import { getWidgetTypes, IWidgetType } from 'app/client/ui/widgetTypes';
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
+import { overflowTooltip } from "app/client/ui/tooltips";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from 'app/client/ui2018/modals';
@@ -321,7 +322,7 @@ export class PageWidgetSelect extends Disposable {
           dom.forEach(this._tables, (table) => dom('div',
             cssEntryWrapper(
               cssEntry(cssIcon('TypeTable'),
-                       cssLabel(dom.text(use => use(table.tableNameDef) || use(table.tableId))),
+                       cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
                        dom.on('click', () => this._selectTable(table.id())),
                        cssEntry.cls('-selected', (use) => use(this._value.table) === table.id()),
                        testId('table-label')

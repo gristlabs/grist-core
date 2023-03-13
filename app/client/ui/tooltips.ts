@@ -12,6 +12,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
 import Popper from 'popper.js';
 import {cssMenu, defaultMenuOptions, IMenuOptions, setPopupToCreateDom} from 'popweasel';
+import merge = require('lodash/merge');
 
 export interface ITipOptions {
   /**
@@ -25,6 +26,12 @@ export interface ITipOptions {
 
   /** When set, a tooltip will replace any previous tooltip with the same key. */
   key?: string;
+
+  /**
+   * Optionally, popper modifiers (e.g. {offset: {offset: 8}}),
+   * See https://popper.js.org/docs/v1/#modifiers.
+   */
+  modifiers?: Popper.Modifiers;
 }
 
 export interface ITransientTipOptions extends ITipOptions {
@@ -66,6 +73,9 @@ export interface IHoverTipOptions extends ITransientTipOptions {
    * Should only be set to true if `openOnClick` is false.
    */
   closeOnClick?: boolean;
+
+  /** Whether to show the tooltip only when the ref element overflows horizontally. */
+  overflowOnly?: boolean;
 }
 
 export type ITooltipContent = ITooltipContentFunc | DomContents;
@@ -132,9 +142,13 @@ export function showTooltip(
 
   // Create a popper for positioning the tooltip content relative to refElem.
   const popperOptions: Popper.PopperOptions = {
-    modifiers: {preventOverflow: {boundariesElement: 'viewport'}},
+    modifiers: merge(
+      { preventOverflow: {boundariesElement: 'viewport'} },
+      options.modifiers
+    ),
     placement,
   };
+
   const popper = new Popper(refElem, content, popperOptions);
 
   // If refElem is disposed we close the tooltip.
@@ -160,6 +174,20 @@ export function hoverTooltip(tipContent: ITooltipContent, options?: IHoverTipOpt
 }
 
 /**
+ * On hover, show the full text of this element when it overflows horizontally. It is intended
+ * mainly for styled with "text-overflow: ellipsis".
+ * E.g. dom('label', 'Long text...', overflowTooltip()).
+ */
+export function overflowTooltip(options?: IHoverTipOptions): DomElementMethod {
+  const defaultOptions: IHoverTipOptions = {
+    placement: 'bottom-start',
+    overflowOnly: true,
+    modifiers: {offset: {offset: '40, 0'}},
+  };
+  return (elem) => setHoverTooltip(elem, () => elem.textContent,  {...defaultOptions, ...options});
+}
+
+/**
  * Attach a tooltip to the given element, to be rendered on hover.
  */
 export function setHoverTooltip(
@@ -167,7 +195,8 @@ export function setHoverTooltip(
   tipContent: ITooltipContent,
   options: IHoverTipOptions = {}
 ) {
-  const {key, openDelay = 200, timeoutMs, closeDelay = 100, openOnClick, closeOnClick = true} = options;
+  const {key, openDelay = 200, timeoutMs, closeDelay = 100, openOnClick, closeOnClick = true,
+    overflowOnly = false} = options;
 
   const tipContentFunc = typeof tipContent === 'function' ? tipContent : () => tipContent;
 
@@ -204,6 +233,9 @@ export function setHoverTooltip(
 
   // We simulate hover effect by handling mouseenter/mouseleave.
   dom.onElem(refElem, 'mouseenter', () => {
+    if (overflowOnly && (refElem as HTMLElement).offsetWidth >= refElem.scrollWidth) {
+      return;
+    }
     if (!tipControl && !timer) {
       // If we're replacing a tooltip, open without delay.
       const delay = key && openTooltips.has(key) ? 0 : openDelay;

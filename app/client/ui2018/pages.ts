@@ -4,7 +4,7 @@ import { cssEditorInput } from "app/client/ui/HomeLeftPane";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { hoverTooltip } from 'app/client/ui/tooltips';
+import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
@@ -88,6 +88,7 @@ export function buildPageDom(name: Observable<string>, actions: PageActions, ...
               dom.text(name),
               testId('label'),
               dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+              overflowTooltip(),
             ),
             cssPageMenuTrigger(
               cssPageMenuIcon('Dots'),
