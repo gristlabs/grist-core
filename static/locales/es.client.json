@@ -580,7 +580,9 @@
         "Open configuration": "Abrir configuración",
         "Print widget": "Imprimir widget",
         "Show raw data": "Mostrar datos brutos",
-        "Widget options": "Opciones de Widget"
+        "Widget options": "Opciones de Widget",
+        "Collapse widget": "Ocultar el widget",
+        "Add to page": "Añadir a la página"
     },
     "ViewSectionMenu": {
         "(customized)": "(personalizado)",
@@ -1011,5 +1013,8 @@
         "Access Rules": "Reglas de acceso",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilice el icono 𝚺 para crear tablas resumen (o dinámicas), para totales o subtotales.",
         "Unpin to hide the the button while keeping the filter.": "Desancla para ocultar el botón mientras mantienes el filtro."
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "DESCRIPCIÓN"
     }
 }

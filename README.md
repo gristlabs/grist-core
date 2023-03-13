@@ -246,6 +246,7 @@ GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown b
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_USER_ROOT     | an extra path to look for plugins in.
+GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest
 COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
 PORT                | port number to listen on for Grist server

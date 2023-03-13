@@ -457,9 +457,371 @@
         "Ask for help": "Zapytaj o pomoc",
         "Cannot find personal site, sorry!": "Nie mogę znaleźć osobistej strony, przepraszam!",
         "Give feedback": "Przekaż opinię",
-        "Notifications": "Powiadomienia"
+        "Notifications": "Powiadomienia",
+        "Upgrade Plan": "Plan aktualizacji",
+        "Renew": "Odnów",
+        "Report a problem": "Zgłoś problem"
     },
     "LeftPanelCommon": {
         "Help Center": "Centrum pomocy"
+    },
+    "PageWidgetPicker": {
+        "Add to Page": "Dodaj do strony",
+        "Select Widget": "Wybierz widżet",
+        "Group by": "Grupuj według",
+        "Building {{- label}} widget": "Budowa widżetu {{- label}}",
+        "Select Data": "Wybierz Dane"
+    },
+    "OpenVideoTour": {
+        "Grist Video Tour": "Wideo Przewodnik Grist",
+        "YouTube video player": "Odtwarzacz wideo YouTube",
+        "Video Tour": "Prezentacja wideo"
+    },
+    "Pages": {
+        "Delete": "Usunąć",
+        "Delete data and this page.": "Usuń dane i tę stronę.",
+        "The following tables will no longer be visible_one": "Poniższa tabela nie będzie już widoczna",
+        "The following tables will no longer be visible_other": "Poniższa tabela nie będzie już widoczna"
+    },
+    "PermissionsWidget": {
+        "Allow All": "Pozwól wszystkim",
+        "Deny All": "Odmówić wszystkim",
+        "Read Only": "Tylko do odczytu"
+    },
+    "RecordLayoutEditor": {
+        "Cancel": "Anuluj",
+        "Add Field": "Dodaj pole",
+        "Show field {{- label}}": "Pokaż pole {{- label}}",
+        "Save Layout": "Zapisz układ",
+        "Create New Field": "Utwórz nowe pole"
+    },
+    "RefSelect": {
+        "Add Column": "Dodaj kolumnę",
+        "No columns to add": "Brak kolumn do dodania"
+    },
+    "RightPanel": {
+        "Data": "Dane",
+        "Detach": "Odłączyć",
+        "Fields_other": "Pola",
+        "SOURCE DATA": "DANE ŹRÓDŁOWE",
+        "Select Widget": "Wybierz widżet",
+        "CUSTOM": "NIESTANDARDOWE",
+        "Save": "Zapisz",
+        "Widget": "Widżet",
+        "Columns_other": "Kolumny",
+        "Columns_one": "Kolumna",
+        "DATA TABLE": "TABELA DANYCH",
+        "DATA TABLE NAME": "NAZWA TABELI DANYCH",
+        "GROUPED BY": "POGRUPOWANE WEDŁUG",
+        "ROW STYLE": "STYL WIERSZA",
+        "Row Style": "Styl wiersza",
+        "SELECT BY": "WYBIERZ WEDŁUG",
+        "TRANSFORM": "PRZEKSZTAŁCAĆ",
+        "Theme": "Motyw",
+        "WIDGET TITLE": "TYTUŁ WIDŻETU",
+        "Series_one": "Seria",
+        "CHART TYPE": "TYP WYKRESU",
+        "COLUMN TYPE": "TYP KOLUMNY",
+        "Change Widget": "Zmień widżet",
+        "Edit Data Selection": "Edytuj zaznaczenie danych",
+        "Fields_one": "Pole",
+        "SELECTOR FOR": "WYBÓR DLA",
+        "Sort & Filter": "Sortowanie i filtrowanie",
+        "Series_other": "Seria",
+        "You do not have edit access to this document": "nie masz uprawnień do edytowania tego dokumentu"
+    },
+    "RowContextMenu": {
+        "Delete": "Usuń",
+        "Insert row": "Wstawić wiersz",
+        "Insert row above": "Wstawić wiersz powyżej",
+        "Insert row below": "Wstawić wiersz poniżej",
+        "Copy anchor link": "Kopiowanie łącza zakotwiczenia",
+        "Duplicate rows_one": "Duplikuj wiersz",
+        "Duplicate rows_other": "Duplikuj wiersze"
+    },
+    "ShareMenu": {
+        "Back to Current": "Powrót do aktualnego",
+        "Download": "Pobierz",
+        "Send to Google Drive": "Wyślij na Dysk Google",
+        "Work on a Copy": "Praca nad kopią",
+        "Edit without affecting the original": "Edycja bez wpływu na oryginał",
+        "Duplicate Document": "Duplikat dokumentu",
+        "Show in folder": "Pokaż w folderze",
+        "Unsaved": "Niezapisane",
+        "Access Details": "Szczegóły dostępu",
+        "Original": "Oryginał",
+        "Replace {{termToUse}}...": "Zastąp {{termToUse}}…",
+        "Return to {{termToUse}}": "Wróć do {{termToUse}}",
+        "Save Copy": "Zapisz kopię",
+        "Save Document": "Zapisz dokument",
+        "Compare to {{termToUse}}": "Porównaj z {{termToUse}}",
+        "Export CSV": "Eksportuj plik CSV",
+        "Current Version": "Obecna wersja",
+        "Export XLSX": "Eksportuj XLSX",
+        "Manage Users": "Zarządzanie użytkownikami"
+    },
+    "SiteSwitcher": {
+        "Switch Sites": "Przełączanie witryn",
+        "Create new team site": "Utwórz nową witrynę zespołu"
+    },
+    "SortConfig": {
+        "Add Column": "Dodaj kolumnę",
+        "Empty values last": "Puste wartości jako ostatnie",
+        "Natural sort": "Naturalne sortowanie",
+        "Update Data": "Aktualizowanie danych",
+        "Search Columns": "Wyszukaj kolumny",
+        "Use choice position": "Użyj pozycji wyboru"
+    },
+    "Tools": {
+        "Document History": "Historia dokumentu",
+        "Return to viewing as yourself": "Powrót do oglądania jako Ty",
+        "Access Rules": "Zasady dostępu",
+        "Code View": "Widok kodu",
+        "Delete": "Usuń",
+        "Delete document tour?": "Usunąć wycieczkę po dokumencie?",
+        "Raw Data": "Surowe dane",
+        "Validate Data": "Sprawdzanie poprawności danych",
+        "TOOLS": "NARZĘDZIA",
+        "Settings": "Ustawienia",
+        "How-to Tutorial": "Samouczek",
+        "Tour of this Document": "Przewodnik po tym dokumencie"
+    },
+    "TriggerFormulas": {
+        "Apply on changes to:": "Zastosuj w przypadku zmian do:",
+        "Apply on record changes": "Zastosuj zmiany w rekordzie",
+        "Cancel": "Anuluj",
+        "Any field": "Dowolne pole",
+        "Close": "Zamknij",
+        "OK": "OK",
+        "Current field ": "Bieżące pole ",
+        "Apply to new records": "Zastosuj do nowych rekordów"
+    },
+    "TypeTransformation": {
+        "Apply": "Zastosuj",
+        "Cancel": "Anuluj",
+        "Preview": "Podgląd",
+        "Revise": "Zrewidować",
+        "Update formula (Shift+Enter)": "Aktualizacja formuły (Shift+Enter)"
+    },
+    "UserManagerModel": {
+        "Editor": "Edytor",
+        "View & Edit": "Wyświetlanie i edytowanie",
+        "None": "Żaden",
+        "In Full": "W pełni",
+        "No Default Access": "Brak dostępu domyślnego",
+        "Owner": "Właściciel",
+        "View Only": "Tylko widok",
+        "Viewer": "Przeglądarka"
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "Aktualizuj formułę (Shift+Enter)",
+        "Rule {{length}}": "Zasada {{length}}"
+    },
+    "ViewConfigTab": {
+        "Make On-Demand": "Twórz na żądanie",
+        "Plugin: ": "Wtyczka: ",
+        "Advanced settings": "Ustawienia zaawansowane",
+        "Blocks": "Bloki",
+        "Compact": "Kompaktowy",
+        "Form": "Formularz",
+        "Edit Card Layout": "Edytuj układ karty",
+        "Section: ": "Sekcja: ",
+        "Unmark On-Demand": "Odznacz opcję Na żądanie",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Duże tabele mogą być oznaczone jako \"na żądanie\", aby uniknąć ładowania ich do silnika danych."
+    },
+    "ViewLayoutMenu": {
+        "Copy anchor link": "Kopiowanie łącza zakotwiczenia",
+        "Data selection": "Wybór danych",
+        "Delete record": "Usuń rekord",
+        "Open configuration": "Otwórz konfiguracje",
+        "Print widget": "Drukuj widżet",
+        "Add to page": "Dodaj do strony",
+        "Collapse widget": "Zwiń widżet",
+        "Download as XLSX": "Pobierz jako XLSX",
+        "Edit Card Layout": "Edytuj układ karty",
+        "Delete widget": "Usuń widżet",
+        "Download as CSV": "Pobierz jako CSV",
+        "Show raw data": "Pokaż surowe dane",
+        "Widget options": "Opcje widżetów",
+        "Advanced Sort & Filter": "Zaawansowane sortowanie i filtrowanie"
+    },
+    "ViewSectionMenu": {
+        "Custom options": "Opcje niestandardowe",
+        "Revert": "Przywrócić",
+        "SORT": "SORTOWAĆ",
+        "Save": "Zapisz",
+        "(customized)": "(dostosowane)",
+        "(empty)": "(pusty)",
+        "(modified)": "(zmodyfikowany)",
+        "FILTER": "FILTR",
+        "Update Sort&Filter settings": "Zaktualizuj ustawienia sortowania i filtrowania"
+    },
+    "VisibleFieldsConfig": {
+        "Clear": "Wyczyść",
+        "Select All": "Wybierz wszystko",
+        "Visible {{label}}": "Widoczny {{label}}",
+        "Hide {{label}}": "Ukryj {{label}}",
+        "Hidden {{label}}": "Ukryty {{label}}",
+        "Show {{label}}": "Pokaż {{label}}",
+        "Cannot drop items into Hidden Fields": "Nie można upuszczać elementów do ukrytych pól",
+        "Hidden Fields cannot be reordered": "Pola ukryte nie mogą być ponownie uporządkowane"
+    },
+    "WelcomeQuestions": {
+        "Education": "Edukacja",
+        "Research": "Badania",
+        "Type here": "Wpisz tutaj",
+        "Welcome to Grist!": "Witamy w Grist!",
+        "What brings you to Grist? Please help us serve you better.": "Co sprowadza cię do Grist? Pomóż nam lepiej Ci służyć.",
+        "Product Development": "Rozwój produktu",
+        "IT & Technology": "IT i technologia",
+        "Marketing": "Marketing",
+        "Media Production": "Produkcja medialna",
+        "Other": "Inne",
+        "Sales": "Sprzedaż",
+        "Finance & Accounting": "Finanse i Księgowość",
+        "HR & Management": "HR i zarządzanie"
+    },
+    "WidgetTitle": {
+        "DATA TABLE NAME": "NAZWA TABELI DANYCH",
+        "Override widget title": "Zastąp tytuł widżetu",
+        "WIDGET TITLE": "TYTUŁ WIDŻETU",
+        "Provide a table name": "Podaj nazwę tabeli",
+        "Cancel": "Anulować",
+        "Save": "Zapisz"
+    },
+    "breadcrumbs": {
+        "fiddle": "skrzypce",
+        "override": "nadpisać",
+        "snapshot": "migawka",
+        "unsaved": "niezapisany",
+        "recovery mode": "tryb odzyskiwania",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Możesz wprowadzać zmiany, ale one utworzą nową kopię i\nnie mają wpływu na oryginalny dokument."
+    },
+    "duplicatePage": {
+        "Note that this does not copy data, but creates another view of the same data.": "Zauważ, że to nie kopiuje danych, ale tworzy inny widok tych samych danych.",
+        "Duplicate page {{pageName}}": "Duplikat strony {{pageName}}"
+    },
+    "errorPages": {
+        "Access denied{{suffix}}": "Odmowa dostępu{{suffix}}",
+        "Go to main page": "Przejdź do strony głównej",
+        "Page not found{{suffix}}": "Nie znaleziono strony{{suffix}}",
+        "Sign in again": "Zaloguj się ponownie",
+        "Signed out{{suffix}}": "Wylogowano{{suffix}}",
+        "Something went wrong": "Coś poszło nie tak",
+        "There was an error: {{message}}": "Wystąpił błąd: {{message}}",
+        "There was an unknown error.": "Wystąpił nieznany błąd.",
+        "You are now signed out.": "Jesteś teraz wylogowany.",
+        "You do not have access to this organization's documents.": "Nie ma dostępu do dokumentów tej organizacji.",
+        "Error{{suffix}}": "Błąd{{suffix}}",
+        "Sign in": "Zaloguj się",
+        "Add account": "Dodaj konto",
+        "Contact support": "Skontaktuj się z pomocą techniczną",
+        "Sign in to access this organization's documents.": "Zaloguj się, aby uzyskać dostęp do dokumentów tej organizacji.",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Nie można odnaleźć żądanej strony. {{separator}} Sprawdź adres URL i spróbuj ponownie.",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Jesteś zalogowany jako {{email}}. Możesz zalogować się na inne konto lub poprosić administratora o dostęp."
+    },
+    "menus": {
+        "* Workspaces are available on team plans. ": "* Obszary robocze są dostępne w planach zespołowych. ",
+        "Upgrade now": "Uaktualnij teraz",
+        "Any": "Dowolny",
+        "Integer": "Liczba całkowita",
+        "Toggle": "Przełączać",
+        "Date": "Data",
+        "Choice": "Wybór",
+        "Choice List": "Lista wyboru",
+        "Reference": "Odnośnik",
+        "Reference List": "Lista referencyjna",
+        "Select fields": "Wybierz pola",
+        "Numeric": "Numeryczny",
+        "Text": "Tekst",
+        "DateTime": "DataGodzina",
+        "Attachment": "Załącznik"
+    },
+    "modals": {
+        "Cancel": "Anuluj",
+        "Save": "Zapisz",
+        "Ok": "OK"
+    },
+    "pages": {
+        "You do not have edit access to this document": "Nie masz dostępu do edycji tego dokumentu",
+        "Duplicate Page": "Duplikat strony",
+        "Remove": "Usuń",
+        "Rename": "Zmień nazwę"
+    },
+    "search": {
+        "Search in document": "Szukaj w dokumencie",
+        "Find Next ": "Znajdź następny ",
+        "Find Previous ": "Znajdź poprzedni ",
+        "No results": "Brak wyników"
+    },
+    "NTextBox": {
+        "true": "prawdziwy",
+        "false": "fałszywy"
+    },
+    "ACLUsers": {
+        "Users from table": "Użytkownicy z tabeli",
+        "View As": "Wyświetl jako",
+        "Example Users": "Przykładowi Użytkownicy"
+    },
+    "TypeTransform": {
+        "Cancel": "Anulować",
+        "Preview": "Podgląd",
+        "Revise": "Zrewidować",
+        "Apply": "Zastosuj",
+        "Update formula (Shift+Enter)": "Aktualizuj formułę (Shift+Enter)"
+    },
+    "CellStyle": {
+        "Cell Style": "Styl komórki",
+        "Default cell style": "Domyślny styl komórki",
+        "Mixed style": "Styl mieszany",
+        "Open row styles": "Otwórz style wierszy",
+        "CELL STYLE": "STYL KOMÓRKI"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "OPIS KOLUMNY",
+        "COLUMN LABEL": "ETYKIETA KOLUMNY"
+    },
+    "ColumnInfo": {
+        "COLUMN ID: ": "ID KOLUMNY: ",
+        "COLUMN LABEL": "ETYKIETA KOLUMNY",
+        "Cancel": "Anuluj",
+        "Save": "Zapisz",
+        "COLUMN DESCRIPTION": "OPIS KOLUMNY"
+    },
+    "OnBoardingPopups": {
+        "Next": "Następny",
+        "Finish": "Skończyć"
+    },
+    "SortFilterConfig": {
+        "Revert": "Przywrócić",
+        "Filter": "FILTR",
+        "Save": "Zapisz",
+        "Sort": "SORTOWAĆ",
+        "Update Sort & Filter settings": "Zaktualizuj ustawienia sortowania i filtrowania"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Nieznany użytkownik"
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Skopiowane do schowka"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Importowanie nie powiodło się: "
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Aktualizowanie układu rekordu."
+    },
+    "ThemeConfig": {
+        "Appearance ": "Wygląd ",
+        "Switch appearance automatically to match system": "Automatyczne przełączanie wyglądu w celu dopasowania do systemu"
+    },
+    "TopBar": {
+        "Manage Team": "Zarządzaj zespołem"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Wysyłanie pliku do Google Drive"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "WYBORY"
     }
 }

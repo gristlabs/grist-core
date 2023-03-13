@@ -671,7 +671,9 @@
         "Open configuration": "Open configuration",
         "Print widget": "Print widget",
         "Show raw data": "Show raw data",
-        "Widget options": "Widget options"
+        "Widget options": "Widget options",
+        "Add to page": "Add to page",
+        "Collapse widget": "Collapse widget"
     },
     "ViewSectionMenu": {
         "(customized)": "(customized)",
@@ -957,5 +959,8 @@
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.",
         "Add New": "Add New",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals."
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "DESCRIPTION"
     }
 }

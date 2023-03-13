@@ -723,7 +723,9 @@
         "Open configuration": "Konfiguration öffnen",
         "Print widget": "Widget drucken",
         "Show raw data": "Rohdaten anzeigen",
-        "Widget options": "Widget Optionen"
+        "Widget options": "Widget Optionen",
+        "Add to page": "Zur Seite hinzufügen",
+        "Collapse widget": "Widget einklappen"
     },
     "ViewSectionMenu": {
         "(customized)": "(angepasst)",
@@ -1021,5 +1023,8 @@
         "entire": "gesamte",
         "Access Rules": "Zugriffsregeln",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Zugriffsregeln geben Ihnen die Möglichkeit, nuancierte Regeln zu erstellen, um festzulegen, wer welche Teile Ihres Dokuments sehen oder bearbeiten kann."
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "BESCHREIBUNG"
     }
 }
