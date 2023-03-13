@@ -99,7 +99,8 @@
     "App": {
         "Description": "Description",
         "Key": "Key",
-        "Memory Error": "Memory Error"
+        "Memory Error": "Memory Error",
+        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users"
     },
     "AppHeader": {
         "Home Page": "Home Page",
