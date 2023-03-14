@@ -229,9 +229,11 @@ export class NSandbox implements ISandbox {
       // (or just benign if the doc is big).
       log.rawWarn('Slow pyCall', {...this._logMeta, funcName});
     }, 10000);
-    const result = await this._pyCallWait(funcName, startTime);
-    clearTimeout(slowCallCheck);
-    return result;
+    try {
+      return await this._pyCallWait(funcName, startTime);
+    } finally {
+      clearTimeout(slowCallCheck);
+    }
   }
 
   /**
