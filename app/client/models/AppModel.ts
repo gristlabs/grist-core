@@ -13,7 +13,7 @@ import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
-import {DeprecationWarning, DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
+import {DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
 import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
@@ -94,10 +94,6 @@ export interface AppModel {
    * Popups that user has seen.
    */
   dismissedPopups: Observable<DismissedPopup[]>;
-  /**
-   * Deprecation messages that user has seen.
-   */
-  deprecatedWarnings: Observable<DeprecationWarning[]>;
   dismissedWelcomePopups: Observable<DismissedReminder[]>;
 
   pageType: Observable<PageType>;
@@ -245,8 +241,6 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',
     { defaultValue: [] }) as Observable<DismissedPopup[]>;
-  public readonly deprecatedWarnings = getUserPrefObs(this.userPrefsObs, 'seenDeprecatedWarnings',
-    { defaultValue: [] }) as Observable<DeprecationWarning[]>;
   public readonly dismissedWelcomePopups = getUserPrefObs(this.userPrefsObs, 'dismissedWelcomePopups',
     { defaultValue: [] }) as Observable<DismissedReminder[]>;
 

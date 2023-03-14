@@ -1,6 +1,3 @@
-const { DeprecationWarning } = require('app/common/Prefs');
-
-
 // The top-level groups, and the ordering within them are for user-facing documentation.
 exports.groups = [{
   group: 'General',
@@ -408,21 +405,6 @@ exports.groups = [{
       name: 'duplicateRows',
       keys: ['Mod+Shift+d'],
       desc: 'Duplicate selected rows'
-    }, {
-      name: DeprecationWarning.parse('deprecatedInsertRowBefore'),
-      keys: ['Mod+Shift+='],
-      desc: 'Shortcuts to remove or insert a record have changed, to avoid interfering with page zoom. In the future, to delete a record use {deleteRecords}, and to insert a record use {insertRecordAfter}.',
-      deprecated: true,
-    }, {
-      name: DeprecationWarning.parse('deprecatedInsertRecordAfter'),
-      keys: ['Mod+='],
-      desc: 'Shortcuts to remove or insert a record have changed, to avoid interfering with page zoom. In the future, to delete a record use {deleteRecords}, and to insert a record use {insertRecordAfter}.',
-      deprecated: true,
-    }, {
-      name: DeprecationWarning.parse('deprecatedDeleteRecords'),
-      keys: ['Mod+-'],
-      desc: 'Shortcuts to remove or insert a record have changed, to avoid interfering with page zoom. In the future, to delete a record use {deleteRecords}, and to insert a record use {insertRecordAfter}.',
-      deprecated: true,
     },
   ],
 }, {

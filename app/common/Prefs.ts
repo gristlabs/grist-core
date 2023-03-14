@@ -23,7 +23,7 @@ export interface UserPrefs extends Prefs {
   recordSignUpEvent?: boolean;
   // Theme-related preferences.
   theme?: ThemePrefs;
-  // List of deprecated warnings user have seen.
+  // List of deprecated warnings user have seen. Kept for historical reasons as some users have them in their prefs.
   seenDeprecatedWarnings?: DeprecationWarning[];
   // List of dismissedPopups user have seen.
   dismissedPopups?: DismissedPopup[];
@@ -61,11 +61,16 @@ export type OrgPrefs = Prefs;
  * All of them are marked as seen for new users in FlexServer.ts (welcomeNewUser handler).
  * For now we use then to mark which keyboard shortcuts are deprecated, so those keys
  * are also used in commandList.js.
+ *
+ * Source code for this feature was deprecated itself :). Here is a link to the latest revision:
+ * https://github.com/gristlabs/grist-core/blob/ec20e7fb68786e10979f238c16c432c50a9a7464/app/client/components/DeprecatedCommands.ts
  */
 export const DeprecationWarning = StringUnion(
-  'deprecatedInsertRowBefore',
-  'deprecatedInsertRecordAfter',
-  'deprecatedDeleteRecords',
+  // Those are not checked anymore. They are kept here for historical reasons (as some users have them marked as seen
+  // so they should not be reused).
+  // 'deprecatedInsertRowBefore',
+  // 'deprecatedInsertRecordAfter',
+  // 'deprecatedDeleteRecords',
 );
 export type DeprecationWarning = typeof DeprecationWarning.type;
 

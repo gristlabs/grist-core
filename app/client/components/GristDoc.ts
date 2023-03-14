@@ -11,7 +11,6 @@ import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
 import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
-import {DeprecatedCommands} from 'app/client/components/DeprecatedCommands';
 import {DocComm} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
@@ -440,7 +439,6 @@ export class GristDoc extends DisposableWithEvents {
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
 
-    DeprecatedCommands.create(this, this).attach();
 
     G.window.resetSeenPopups = (seen = false) => {
       this.docPageModel.appModel.dismissedPopups.set(seen ? DismissedPopup.values : []);
