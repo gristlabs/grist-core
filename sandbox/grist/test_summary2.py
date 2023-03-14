@@ -1247,3 +1247,67 @@ class TestSummary2(test_engine.EngineTestCase):
       [ 3,    "IL",     [4],          1,        4.               ],
       [ 4,    "MA",     [5,8],        2,        5.+9             ],
     ])
+
+  #----------------------------------------------------------------------
+  @test_engine.test_undo
+  def test_update_summary_with_suffixed_colId(self):
+    # Verifies that summary update correctly when one of the formula
+    # columns has a suffixed colId
+
+    self.load_sample(self.sample)
+
+    # Let's create two summary table, one with totals (no grouped by columns) and one grouped by
+    # "city".
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [], None])
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
+
+    # Change type of Amount columns to "Any" only for table Address_summary_city. User actions keep
+    # types consistent across same-named columns for all summary tables with the same source table,
+    # but here we want to test for the case where types are inconsistent. Hence we bypass user
+    # actions and directly use doc actions.
+    self.engine.apply_doc_action(actions.UpdateRecord("_grist_Tables_column", 20, {'type': 'Any'}))
+    self.engine.apply_doc_action(actions.ModifyColumn("Address_summary_city", "amount", {'type':
+                                                                                         'Any'}))
+    self.engine.assert_schema_consistent()
+
+    self.assertTables([
+      self.starting_table,
+      Table(2, "Address_summary", primaryViewId=0, summarySourceTable=1, columns=[
+        Column(14, "group", "RefList:Address", isFormula=True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(15, "count", "Int", isFormula=True, summarySourceCol=0,
+               formula="len($group)"),
+        # This column has type Numeric
+        Column(16, "amount", "Numeric", isFormula=True, summarySourceCol=0,
+               formula="SUM($group.amount)"),
+      ]),
+      Table(3, "Address_summary_city", primaryViewId=0, summarySourceTable=1, columns=[
+        Column(17, "city", "Text", isFormula=False, summarySourceCol=11,
+               formula=""),
+        Column(18, "group", "RefList:Address", isFormula=True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(19, "count", "Int", isFormula=True, summarySourceCol=0,
+               formula="len($group)"),
+        # This column has type Any
+        Column(20, "amount", "Any", isFormula=True, summarySourceCol=0,
+               formula="SUM($group.amount)"),
+      ]),
+    ])
+
+    # Now let's add "city" to the summary table with no grouped by column
+    self.apply_user_action(["UpdateSummaryViewSection", 2, [11]])
+
+    # Check that summary table now has one column Amount of type Any.
+    self.assertTables([
+      self.starting_table,
+      Table(3, "Address_summary_city", primaryViewId=0, summarySourceTable=1, columns=[
+        Column(17, "city", "Text", isFormula=False, summarySourceCol=11,
+               formula=""),
+        Column(18, "group", "RefList:Address", isFormula=True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(19, "count", "Int", isFormula=True, summarySourceCol=0,
+               formula="len($group)"),
+        Column(20, "amount", "Any", isFormula=True, summarySourceCol=0,
+               formula="SUM($group.amount)"),
+      ])
+    ])

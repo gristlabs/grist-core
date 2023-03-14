@@ -167,7 +167,7 @@ class SummaryActions(object):
     prior = {c.colId: c for c in table.columns}
     for ci in all_colinfo:
       col = prior.get(ci.colId)
-      if col and col.type == ci.type and col.formula == ci.formula:
+      if col and col.formula == ci.formula:
         yield col
       else:
         result = self.useractions.doAddColumn(table.tableId, ci.colId,
