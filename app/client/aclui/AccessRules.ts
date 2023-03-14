@@ -507,7 +507,8 @@ export class AccessRules extends Disposable {
 
   // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
   public getValidColIds(tableId: string): string[]|undefined {
-    return this._aclResources.get(tableId)?.colIds.filter(id => !isHiddenCol(id)).sort();
+    return this._aclResources.get(tableId)?.colIds.filter(id =>
+      !isHiddenCol(id) && id !== 'id').sort();
   }
 
   // Get rules to use for seeding any new set of table/column rules, e.g. to give owners
