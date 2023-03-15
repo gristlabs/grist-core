@@ -34,7 +34,7 @@ import {
   TransformRule
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
-import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
+import {asyncOnce, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
 import {
   BulkAddRecord,
@@ -230,6 +230,11 @@ export class ActiveDoc extends EventEmitter {
   private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
+  private _afterShutdownCallback?: () => Promise<void>;
+  // catch & report error so that asyncOnce does not get cleared.
+  private _doShutdown = asyncOnce(
+    () => this._doShutdownImpl().catch((e) => log.error('Uncaught shutdown error', e))
+  );
 
   /**
    * In cases where large numbers of documents are restarted simultaneously
@@ -493,6 +498,14 @@ export class ActiveDoc extends EventEmitter {
   public async shutdown(options: {
     afterShutdown?: () => Promise<void>
   } = {}): Promise<void> {
+    if (options.afterShutdown) {
+      this._afterShutdownCallback = options.afterShutdown;
+    }
+    await this._doShutdown();
+  }
+
+
+  private async _doShutdownImpl(): Promise<void> {
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
     try {
@@ -576,7 +589,7 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
-      await options.afterShutdown?.();
+      await this._afterShutdownCallback?.();
     } finally {
       this._docManager.removeActiveDoc(this);
     }

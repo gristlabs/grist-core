@@ -1,3 +1,4 @@
+import {Role} from 'app/common/roles';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DummyAuthorizer} from 'app/server/lib/Authorizer';
@@ -82,8 +83,8 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
   const systemSession = makeExceptionalDocSession('system');
   return {
     /** create a fake session for use when applying user actions to a document */
-    createFakeSession(): DocSession {
-      return {client: null, authorizer: new DummyAuthorizer('editors', 'doc')} as any as DocSession;
+    createFakeSession(role: Role = 'editors'): DocSession {
+      return {client: null, authorizer: new DummyAuthorizer(role, 'doc')} as any as DocSession;
     },
 
     /** create a throw-away, empty document for testing purposes */

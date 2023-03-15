@@ -4,16 +4,25 @@
 
 import {delay} from 'app/common/delay';
 import log from 'app/server/lib/log';
-import fetch, { Response as FetchResponse} from 'node-fetch';
+import fetch from 'node-fetch';
 
+export const DEPS = { fetch };
 
 export async function sendForCompletion(prompt: string): Promise<string> {
   let completion: string|null = null;
-  if (process.env.OPENAI_API_KEY) {
-    completion = await sendForCompletionOpenAI(prompt);
-  }
-  if (process.env.HUGGINGFACE_API_KEY) {
-    completion = await sendForCompletionHuggingFace(prompt);
+  let retries: number = 0;
+  while(retries++ < 3) {
+    try {
+      if (process.env.OPENAI_API_KEY) {
+        completion = await sendForCompletionOpenAI(prompt);
+      }
+      if (process.env.HUGGINGFACE_API_KEY) {
+        completion = await sendForCompletionHuggingFace(prompt);
+      }
+      break;
+    } catch(e) {
+      await delay(1000);
+    }
   }
   if (completion === null) {
     throw new Error("Please set OPENAI_API_KEY or HUGGINGFACE_API_KEY (and optionally COMPLETION_MODEL)");
@@ -29,7 +38,7 @@ async function sendForCompletionOpenAI(prompt: string) {
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY not set");
   }
-  const response = await fetch(
+  const response = await DEPS.fetch(
     "https://api.openai.com/v1/completions",
     {
       method: "POST",
@@ -73,31 +82,27 @@ async function sendForCompletionHuggingFace(prompt: string) {
       completionUrl = 'https://api-inference.huggingface.co/models/NovelAI/genji-python-6B';
     }
   }
-  let retries: number = 0;
-  let response!: FetchResponse;
-  while (retries++ < 3) {
-    response = await fetch(
-      completionUrl,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            return_full_text: false,
-            max_new_tokens: 50,
-          },
-        }),
+
+  const response = await DEPS.fetch(
+    completionUrl,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
-    );
-    if (response.status === 503) {
-      log.error(`Sleeping for 10s - HuggingFace API returned ${response.status}: ${await response.text()}`);
-      await delay(10000);
-      continue;
-    }
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          return_full_text: false,
+          max_new_tokens: 50,
+        },
+      }),
+    },
+  );
+  if (response.status === 503) {
+    log.error(`Sleeping for 10s - HuggingFace API returned ${response.status}: ${await response.text()}`);
+    await delay(10000);
   }
   if (response.status !== 200) {
     const text = await response.text();

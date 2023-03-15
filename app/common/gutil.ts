@@ -951,7 +951,7 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
  * Calls function `fn`, passes any thrown errors to function `recover`, and finally calls `fn`
  * once more if `recover` doesn't throw.
  */
- export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) => Promise<void>): Promise<T> {
+export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) => Promise<void>): Promise<T> {
   try {
     return await fn();
   } catch (e) {
@@ -964,7 +964,7 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
  * Checks if value is 'empty' (like null, undefined, empty string, empty array/set/map, empty object).
  * Values like 0, true, false are not empty.
  */
- export function notSet(value: any) {
+export function notSet(value: any) {
   return value === undefined || value === null || value === ''
          || (Array.isArray(value) && !value.length)
          || (typeof value === 'object' && !Object.keys(value).length)
