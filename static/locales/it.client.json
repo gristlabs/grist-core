@@ -352,7 +352,8 @@
     "App": {
         "Memory Error": "Errore di memoria",
         "Key": "Chiave",
-        "Description": "Descrizione"
+        "Description": "Descrizione",
+        "Translators: please translate this only when your language is ready to be offered to users": "Traduttori: per favore tradurre questo solo quando la tua lingua è pronta per gli utenti"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Il sito del team è sospeso. Si possono leggere i documenti, ma non modificarli."
@@ -386,7 +387,7 @@
         "Allow signing in to this account with Google": "Permetti di accedere a questo account con Google",
         "Change Password": "Cambia password",
         "Edit": "Modifica",
-        "Email": "Email",
+        "Email": "E-mail",
         "Login Method": "Metodo di accesso",
         "Name": "Nome",
         "Names only allow letters, numbers and certain special characters": "Per il nome puoi usare solo lettere, numeri e alcuni caratteri speciali",
@@ -434,9 +435,9 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER."
     },
     "ACUserManager": {
-        "Enter email address": "Inserisci indirizzo email",
+        "Enter email address": "Inserisci indirizzo e-mail",
         "Invite new member": "Invita un nuovo membro",
-        "We'll email an invite to {{email}}": "Spediremo un invito a {{email}}"
+        "We'll email an invite to {{email}}": "Un invito sarà inviato a {{email}}"
     },
     "ViewAsDropdown": {
         "View As": "Vedi come",
@@ -598,7 +599,7 @@
         "Time Zone:": "Zona oraria:",
         "API": "API",
         "Document ID copied to clipboard": "ID del documento copiato",
-        "Ok": "Ok"
+        "Ok": "OK"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -816,7 +817,9 @@
         "Open configuration": "Apri configurazione",
         "Print widget": "Widget di stampa",
         "Show raw data": "Mostra dati grezzi",
-        "Widget options": "Opzioni widget"
+        "Widget options": "Opzioni widget",
+        "Add to page": "Aggiungi a pagina",
+        "Collapse widget": "Compatta widget"
     },
     "ViewSectionMenu": {
         "(customized)": "(personalizzato)",
@@ -957,5 +960,8 @@
         "Access Rules": "Regole di accesso",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Le regole di accesso ti danno il potere di creare regole sofisticate per decidere chi può vedere o modificare il tuo documento, e quali parti.",
         "Reference columns are the key to {{relational}} data in Grist.": "Le colonne con riferimenti sono il motore {{relational}} dei dati in Grist."
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "DESCRIZIONE"
     }
 }
