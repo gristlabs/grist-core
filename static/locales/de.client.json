@@ -2,7 +2,7 @@
     "ACUserManager": {
         "Enter email address": "E-Mail Adresse eingeben",
         "Invite new member": "Neues Mitglied einladen",
-        "We'll email an invite to {{email}}": "Wir schicken eine Einladung zu {{email}}"
+        "We'll email an invite to {{email}}": "Eine Einladung wird per E-Mail an {{email}} gesendet"
     },
     "AccessRules": {
         "Add Column Rule": "Spaltenregel hinzufügen",
@@ -95,7 +95,8 @@
     "App": {
         "Description": "Beschreibung",
         "Key": "Schlüssel",
-        "Memory Error": "Speicherfehler"
+        "Memory Error": "Speicherfehler",
+        "Translators: please translate this only when your language is ready to be offered to users": "Übersetzer: Bitte übersetzen Sie dies erst, wenn Ihre Sprache bereit ist, Benutzern angeboten zu werden"
     },
     "AppHeader": {
         "Home Page": "Startseite",
@@ -279,10 +280,10 @@
         "Time Zone:": "Zeitzone:",
         "API": "API",
         "Document ID copied to clipboard": "Dokument-ID in die Zwischenablage kopiert",
-        "Ok": "Ok"
+        "Ok": "OK"
     },
     "DocumentUsage": {
-        "Attachments Size": "Anhänge Größe",
+        "Attachments Size": "Größe der Anhänge",
         "Contact the site owner to upgrade the plan to raise limits.": "Wenden Sie sich an den Eigentümer der Seite, um den Plan zu aktualisieren und die Grenzwerte zu erhöhen.",
         "Data Size": "Daten Größe",
         "Document limits {{- link}}.": "Dokumentgrenzwerte {{- link}}.",
@@ -572,7 +573,7 @@
         "Save": "Speichern",
         "Select Widget": "Widget auswählen",
         "Series": "Serie",
-        "Sort & Filter": "Sortieren & Filtern",
+        "Sort & Filter": "Sortieren und Filtern",
         "TRANSFORM": "UMWANDELN",
         "Theme": "Thema",
         "WIDGET TITLE": "WIDGET-TITEL",
@@ -687,7 +688,7 @@
         "No Default Access": "Kein Standardzugriff",
         "None": "Keine",
         "Owner": "Eigentümer",
-        "View & Edit": "Anzeigen & Bearbeiten",
+        "View & Edit": "Anzeigen und Bearbeiten",
         "View Only": "Nur anzeigen",
         "Viewer": "Betrachter"
     },
