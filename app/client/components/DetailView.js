@@ -75,7 +75,6 @@ function DetailView(gristDoc, viewSectionModel) {
 
   //--------------------------------------------------
   // Set up DOM event handling.
-
   this.lastElemSelected = null;
 
   // Clicking on a detail field selects that field.
