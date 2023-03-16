@@ -44,7 +44,7 @@
         "Allow signing in to this account with Google": "Permitir iniciar sesión en esta cuenta con Google",
         "Change Password": "Cambiar contraseña",
         "Edit": "Editar",
-        "Email": "E-mail",
+        "Email": "Correo electrónico",
         "Login Method": "Método de inicio de sesión",
         "Name": "Nombre",
         "Names only allow letters, numbers and certain special characters": "Los nombres solo permiten letras, números y ciertos caracteres especiales",
@@ -796,7 +796,7 @@
         "No Default Access": "Sin acceso predeterminado",
         "None": "Ninguno",
         "Owner": "Propietario",
-        "View & Edit": "Ver y Editar",
+        "View & Edit": "Ver y editar",
         "View Only": "Ver sólo",
         "Viewer": "Espectador"
     },
