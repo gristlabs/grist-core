@@ -1,3 +1,5 @@
+import {appSettings} from 'app/server/lib/AppSettings';
+import log from 'app/server/lib/log';
 import {lstatSync, readdirSync, readFileSync} from 'fs';
 import {createInstance, i18n} from 'i18next';
 import {LanguageDetector} from 'i18next-http-middleware';
@@ -26,7 +28,7 @@ export function setupLocale(appRoot: string): i18n {
       throw new Error("Unrecognized resource file " + fileName);
     }
     supportedNamespaces.add(namespace);
-    preload.push([lang, namespace, fullPath]);
+    preload.push([namespace, lang, fullPath]);
     supportedLngs.add(lang);
   }
 
@@ -51,15 +53,32 @@ export function setupLocale(appRoot: string): i18n {
   }).catch((err: any) => {
     // This should not happen, the promise should be resolved synchronously, without
     // any errors reported.
-    console.error("i18next failed unexpectedly", err);
+    log.error("i18next failed unexpectedly", err);
   });
   if (errorDuringLoad) {
-    console.error('i18next failed to load', errorDuringLoad);
+    log.error('i18next failed to load', errorDuringLoad);
     throw errorDuringLoad;
   }
   // Load all files synchronously.
-  for(const [lng, ns, fullPath] of preload) {
-    instance.addResourceBundle(lng, ns, JSON.parse(readFileSync(fullPath, 'utf8')));
+  // First sort by ns, which will put "client" first. That lets us check for a
+  // client key which, if absent, means the language should be ignored.
+  preload.sort((a, b) => a[0].localeCompare(b[0]));
+  const offerAll = appSettings.section('locale').flag('offerAllLanguages').readBool({
+    envVar: 'GRIST_OFFER_ALL_LANGUAGES',
+  });
+  const shouldIgnoreLng = new Set<string>();
+  for(const [ns, lng, fullPath] of preload) {
+    const data = JSON.parse(readFileSync(fullPath, 'utf8'));
+    // If the "Translators: please ..." key in "App" has not been translated,
+    // ignore this language for this and later namespaces.
+    if (!offerAll && ns === 'client' &&
+      !Object.keys(data.App || []).some(key => key.includes('Translators: please'))) {
+      shouldIgnoreLng.add(lng);
+      log.debug(`skipping incomplete language ${lng} (set GRIST_OFFER_ALL_LANGUAGES if you want it)`);
+    }
+    if (!shouldIgnoreLng.has(lng)) {
+      instance.addResourceBundle(lng, ns, data);
+    }
   }
   return instance;
 }
