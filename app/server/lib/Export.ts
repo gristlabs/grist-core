@@ -204,7 +204,8 @@ export async function exportTable(
       label: tc.label,
       type: displayCol.type,
       widgetOptions,
-      parentPos: tc.parentPos
+      parentPos: tc.parentPos,
+      description: displayCol.description,
     };
   }).filter(tc => tc !== emptyCol);
 
@@ -279,6 +280,7 @@ export async function exportSection(
       label: col.label,
       type: col.type,
       parentPos: col.parentPos,
+      description: col.description,
       widgetOptions: Object.assign(colWidgetOptions, fieldWidgetOptions),
     };
   };
