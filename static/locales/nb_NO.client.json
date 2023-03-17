@@ -106,7 +106,7 @@
         "Filter by Range": "Filtrer etter tallfølge"
     },
     "CustomSectionConfig": {
-        " (optional)": "(valgfritt)",
+        " (optional)": " (valgfritt)",
         "Add": "Legg til",
         "Enter Custom URL": "Skriv inn egendefinert nettadresse",
         "Full document access": "Full dokumenttilgang",
@@ -899,7 +899,7 @@
     "ACUserManager": {
         "Enter email address": "Skriv inn e-postadresse",
         "Invite new member": "Inviter nytt medlem",
-        "We'll email an invite to {{email}}": "Invitasjon per e-post vil bli sendt til"
+        "We'll email an invite to {{email}}": "Invitasjon per e-post vil bli sendt til {{email}}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Flett rader som samsvarer med disse feltene:",
