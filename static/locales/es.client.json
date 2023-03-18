@@ -613,7 +613,7 @@
     "WelcomeQuestions": {
         "Education": "Educación",
         "Finance & Accounting": "Finanzas y Contabilidad",
-        "HR & Management": "Recursos humanos y gestión",
+        "HR & Management": "RRHH y Gestión",
         "IT & Technology": "TI y Tecnología",
         "Marketing": "Publicidad",
         "Media Production": "Producción audiovisual",
@@ -831,7 +831,7 @@
     },
     "modals": {
         "Cancel": "Cancelar",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Guardar"
     },
     "pages": {
@@ -941,7 +941,7 @@
         "convert to card view, select data, and more.": "convertir a la vista de la tarjeta, seleccionar datos y más."
     },
     "HyperLinkEditor": {
-        "[link label] url": "[etiqueta de enlace] url"
+        "[link label] url": "[etiqueta de enlace] URL"
     },
     "NumericTextBox": {
         "Currency": "Moneda",
