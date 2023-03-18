@@ -826,7 +826,7 @@
     },
     "modals": {
         "Cancel": "Abbrechen",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Speichern"
     },
     "pages": {
@@ -944,7 +944,7 @@
         "Row ID": "Zeilen-ID"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[Linklabel]-URL"
+        "[link label] url": "[Linkbezeichnung] URL"
     },
     "welcomeTour": {
         "Add New": "Neu hinzufügen",
