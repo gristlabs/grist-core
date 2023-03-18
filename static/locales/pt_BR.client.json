@@ -826,7 +826,7 @@
     },
     "modals": {
         "Cancel": "Cancelar",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Salvar"
     },
     "pages": {
@@ -941,7 +941,7 @@
         "Error in the cell": "Erro na célula"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[rótulo do link] url"
+        "[link label] url": "[rótulo do link] URL"
     },
     "NumericTextBox": {
         "Currency": "Moeda",
