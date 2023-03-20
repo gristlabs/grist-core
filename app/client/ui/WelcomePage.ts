@@ -12,7 +12,8 @@ import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
          cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
 import { basicButtonLink, bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink,
          cssButton } from "app/client/ui2018/buttons";
-import { colors, mediaSmall, testId, vars } from "app/client/ui2018/cssVars";
+import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
+import { cssLink } from "app/client/ui2018/links";
 import { getOrgName, Organization } from "app/common/UserAPI";
 
 // Redirect from ..../welcome/thing to .../welcome/${name}
@@ -92,13 +93,13 @@ export class WelcomePage extends Disposable {
       'form',
       { method: "post", action: action.href },
       handleSubmitForm(pending, () => _redirectToSiblingPage('verify')),
-      dom('p',
+      cssParagraph(
           `Welcome Sumo-ling! ` +  // This flow currently only used with AppSumo.
           `Your Grist site is almost ready. Let's get your account set up and verified. ` +
           `If you already have a Grist account as `,
           dom('b', email.get()),
           ` you can just `,
-          dom('a', {href: getLoginUrl()}, 'log in'),
+          cssLink({href: getLoginUrl('')}, 'log in'),
           ` now. Otherwise, please pick a password.`
          ),
       cssSeparatedLabel('The email address you activated Grist with:'),
@@ -112,7 +113,7 @@ export class WelcomePage extends Disposable {
       // for some reason.
       cssInput(
         email, { onInput: true, },
-        { name: "email" },
+        { name: "email", style: 'visibility: hidden;' },
         dom.boolAttr('hidden', true),
         dom.attr('type', 'email'),
       ),
@@ -160,9 +161,9 @@ export class WelcomePage extends Disposable {
           window.location.reload();
         }
       }),
-      dom('p',
+      cssParagraph(
           `Please check your email for a 6-digit verification code, and enter it here.`),
-      dom('p',
+      cssParagraph(
           `If you've any trouble, try our full set of sign-up options. Do take care to use ` +
           `the email address you activated with: `,
           dom('b', email.get())),
@@ -183,7 +184,7 @@ export class WelcomePage extends Disposable {
                            'Apply verification code' : 'Resend verification email')
         ),
         bigBasicButtonLink('More sign-up options',
-                           {href: getSignupUrl()})
+                           {href: getSignupUrl('')})
       )
     );
   }
@@ -265,7 +266,7 @@ const cssUserItem = styled('div', `
     margin-top: 16px;
   }
   &:hover {
-    background-color: ${colors.lightGrey};
+    background-color: ${theme.lightHover};
   }
 `);
 
@@ -300,7 +301,7 @@ const cssTitle = styled('div', `
   height: 32px;
   line-height: 32px;
   margin: 0 0 28px 0;
-  color: ${colors.dark};
+  color: ${theme.text};
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
 `);
@@ -308,7 +309,7 @@ const cssTitle = styled('div', `
 const textStyle = `
   font-weight: normal;
   font-size: ${vars.mediumFontSize};
-  color: ${colors.dark};
+  color: ${theme.text};
 `;
 
 // TODO: there's probably a much better way to style labels with a bit of
