@@ -502,103 +502,6 @@ export class ActiveDoc extends EventEmitter {
     await this._doShutdown;
   }
 
-  private async _doShutdownImpl(): Promise<void> {
-    const docSession = makeExceptionalDocSession('system');
-    this._log.debug(docSession, "shutdown starting");
-    try {
-      this.setMuted();
-      this._inactivityTimer.disable();
-      if (this.docClients.clientCount() > 0) {
-        this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
-        await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
-        this.docClients.interruptAllClients();
-        this.docClients.removeAllClients();
-      }
-
-      this._triggers.shutdown();
-
-      this._redisSubscriber?.quitAsync()
-        .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
-
-      // Clear the MapWithTTL to remove all timers from the event loop.
-      this._fetchCache.clear();
-
-      for (const interval of this._intervals) {
-        await interval.disableAndFinish();
-      }
-      // We'll defer syncing usage until everything is calculated.
-      const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
-
-      // This cleanup requires docStorage, which may have failed to start up.
-      // We don't want to log pointless errors in that case.
-      if (this.docStorage.isInitialized()) {
-        // Remove expired attachments, i.e. attachments that were soft deleted a while ago. This
-        // needs to happen periodically, and doing it here means we can guarantee that it happens
-        // even if the doc is only ever opened briefly, without having to slow down startup.
-        const removeAttachmentsPromise = this.removeUnusedAttachments(true, usageOptions);
-
-        // Update data size; we'll be syncing both it and attachments size to the database soon.
-        const updateDataSizePromise = this._updateDataSize(usageOptions);
-
-        try {
-          await removeAttachmentsPromise;
-        } catch (e) {
-          this._log.error(docSession, "Failed to remove expired attachments", e);
-        }
-
-        try {
-          await updateDataSizePromise;
-        } catch (e) {
-          this._log.error(docSession, "Failed to update data size", e);
-        }
-      }
-
-      this._syncDocUsageToDatabase(true);
-
-      try {
-        await this._docManager.storageManager.closeDocument(this.docName);
-      } catch (err) {
-        log.error('Problem shutting down document: %s %s', this.docName, err.message);
-      }
-
-      try {
-        const dataEngine = this._dataEngine ? await this._getEngine() : null;
-        this._shuttingDown = true;  // Block creation of engine if not yet in existence.
-        if (dataEngine) {
-          // Give a small grace period for finishing initialization if we are being shut
-          // down while initialization is still in progress, and we don't have an easy
-          // way yet to cancel it cleanly. This is mainly for the benefit of automated
-          // tests.
-          await timeoutReached(3000, this.waitForInitialization());
-        }
-        await Promise.all([
-          this.docStorage.shutdown(),
-          this.docPluginManager?.shutdown(),
-          dataEngine?.shutdown()
-        ]);
-        // The this.waitForInitialization promise may not yet have resolved, but
-        // should do so quickly now we've killed everything it depends on.
-        try {
-          await this.waitForInitialization();
-        } catch (err) {
-          // Initialization errors do not matter at this point.
-        }
-      } catch (err) {
-        this._log.error(docSession, "failed to shutdown some resources", err);
-      }
-      await this._afterShutdownCallback?.();
-    } finally {
-      this._docManager.removeActiveDoc(this);
-    }
-    try {
-      await this._granularAccess.close();
-    } catch (err) {
-      // This should not happen.
-      this._log.error(docSession, "failed to shutdown granular access", err);
-    }
-    this._log.debug(docSession, "shutdown complete");
-  }
-
   /**
    * Create a new blank document (no "Table1") using the data engine. This is used only
    * to generate the SQL saved to initialDocSql.ts
@@ -1925,6 +1828,103 @@ export class ActiveDoc extends EventEmitter {
       this._docManager.markAsChanged(this, 'edit');
     }
     return result;
+  }
+
+  private async _doShutdownImpl(): Promise<void> {
+    const docSession = makeExceptionalDocSession('system');
+    this._log.debug(docSession, "shutdown starting");
+    try {
+      this.setMuted();
+      this._inactivityTimer.disable();
+      if (this.docClients.clientCount() > 0) {
+        this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
+        await this.docClients.broadcastDocMessage(null, 'docShutdown', null);
+        this.docClients.interruptAllClients();
+        this.docClients.removeAllClients();
+      }
+
+      this._triggers.shutdown();
+
+      this._redisSubscriber?.quitAsync()
+        .catch(e => this._log.warn(docSession, "Failed to quit redis subscriber", e));
+
+      // Clear the MapWithTTL to remove all timers from the event loop.
+      this._fetchCache.clear();
+
+      for (const interval of this._intervals) {
+        await interval.disableAndFinish();
+      }
+      // We'll defer syncing usage until everything is calculated.
+      const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
+
+      // This cleanup requires docStorage, which may have failed to start up.
+      // We don't want to log pointless errors in that case.
+      if (this.docStorage.isInitialized()) {
+        // Remove expired attachments, i.e. attachments that were soft deleted a while ago. This
+        // needs to happen periodically, and doing it here means we can guarantee that it happens
+        // even if the doc is only ever opened briefly, without having to slow down startup.
+        const removeAttachmentsPromise = this.removeUnusedAttachments(true, usageOptions);
+
+        // Update data size; we'll be syncing both it and attachments size to the database soon.
+        const updateDataSizePromise = this._updateDataSize(usageOptions);
+
+        try {
+          await removeAttachmentsPromise;
+        } catch (e) {
+          this._log.error(docSession, "Failed to remove expired attachments", e);
+        }
+
+        try {
+          await updateDataSizePromise;
+        } catch (e) {
+          this._log.error(docSession, "Failed to update data size", e);
+        }
+      }
+
+      this._syncDocUsageToDatabase(true);
+
+      try {
+        await this._docManager.storageManager.closeDocument(this.docName);
+      } catch (err) {
+        log.error('Problem shutting down document: %s %s', this.docName, err.message);
+      }
+
+      try {
+        const dataEngine = this._dataEngine ? await this._getEngine() : null;
+        this._shuttingDown = true;  // Block creation of engine if not yet in existence.
+        if (dataEngine) {
+          // Give a small grace period for finishing initialization if we are being shut
+          // down while initialization is still in progress, and we don't have an easy
+          // way yet to cancel it cleanly. This is mainly for the benefit of automated
+          // tests.
+          await timeoutReached(3000, this.waitForInitialization());
+        }
+        await Promise.all([
+          this.docStorage.shutdown(),
+          this.docPluginManager?.shutdown(),
+          dataEngine?.shutdown()
+        ]);
+        // The this.waitForInitialization promise may not yet have resolved, but
+        // should do so quickly now we've killed everything it depends on.
+        try {
+          await this.waitForInitialization();
+        } catch (err) {
+          // Initialization errors do not matter at this point.
+        }
+      } catch (err) {
+        this._log.error(docSession, "failed to shutdown some resources", err);
+      }
+      await this._afterShutdownCallback?.();
+    } finally {
+      this._docManager.removeActiveDoc(this);
+    }
+    try {
+      await this._granularAccess.close();
+    } catch (err) {
+      // This should not happen.
+      this._log.error(docSession, "failed to shutdown granular access", err);
+    }
+    this._log.debug(docSession, "shutdown complete");
   }
 
   private async _applyUserActionsWithExtendedOptions(docSession: OptDocSession, actions: UserAction[],
