@@ -814,13 +814,13 @@
         "Welcome to Grist!": "Добро пожаловать в Grist!",
         "What brings you to Grist? Please help us serve you better.": "Как вы пришли к Grist? Пожалуйста, помогите сделать наш сервис лучше.",
         "Education": "Образование",
-        "HR & Management": "Управление персоналом & Менеджмент",
-        "Finance & Accounting": "Финансы & Бухгалтерия",
+        "HR & Management": "Управление персоналом и Менеджмент",
+        "Finance & Accounting": "Финансы и Бухгалтерия",
         "Media Production": "Медиапроизводство",
         "Type here": "Введите здесь",
         "Product Development": "Разработка продукта",
         "Other": "Прочее",
-        "IT & Technology": "IT & Технология"
+        "IT & Technology": "IT и Технология"
     },
     "breadcrumbs": {
         "fiddle": "ветка",
@@ -849,7 +849,7 @@
     },
     "modals": {
         "Cancel": "Отмена",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Сохранить"
     },
     "search": {
@@ -919,7 +919,7 @@
         "editingFormula is required": "editingFormula обязательно"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[link label] url"
+        "[link label] url": "[link label] URL"
     },
     "GristTooltips": {
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Нажатие {{EyeHideIcon}} в каждой ячейке скрывает поле из этого представления, не удаляя его.",
