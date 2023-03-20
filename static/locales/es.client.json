@@ -44,7 +44,7 @@
         "Allow signing in to this account with Google": "Permitir iniciar sesión en esta cuenta con Google",
         "Change Password": "Cambiar contraseña",
         "Edit": "Editar",
-        "Email": "E-mail",
+        "Email": "Correo electrónico",
         "Login Method": "Método de inicio de sesión",
         "Name": "Nombre",
         "Names only allow letters, numbers and certain special characters": "Los nombres solo permiten letras, números y ciertos caracteres especiales",
@@ -84,7 +84,8 @@
     "App": {
         "Description": "Descripción",
         "Key": "Clave",
-        "Memory Error": "Error de memoria"
+        "Memory Error": "Error de memoria",
+        "Translators: please translate this only when your language is ready to be offered to users": "Traductores: por favor, traduzcan esto sólo cuando su idioma esté listo para ser ofrecido a los usuarios"
     },
     "AppHeader": {
         "Home Page": "Portada",
@@ -226,7 +227,7 @@
         "Save and Reload": "Guardar y recargar",
         "This document's ID (for API use):": "ID de este documento (para uso de API):",
         "Time Zone:": "Zona horaria:",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Document ID copied to clipboard": "ID de documento copiado al portapapeles",
         "API": "API"
     },
@@ -612,7 +613,7 @@
     "WelcomeQuestions": {
         "Education": "Educación",
         "Finance & Accounting": "Finanzas y Contabilidad",
-        "HR & Management": "Recursos humanos y gestión",
+        "HR & Management": "RRHH y Gestión",
         "IT & Technology": "TI y Tecnología",
         "Marketing": "Publicidad",
         "Media Production": "Producción audiovisual",
@@ -682,7 +683,7 @@
     "ACUserManager": {
         "Enter email address": "Introduzca la dirección de correo electrónico",
         "Invite new member": "Invitar nuevo miembro",
-        "We'll email an invite to {{email}}": "Enviaremos una invitación a {{email}}"
+        "We'll email an invite to {{email}}": "Se enviará una invitación por correo electrónico a {{email}}"
     },
     "ViewAsDropdown": {
         "View As": "Ver como",
@@ -795,7 +796,7 @@
         "No Default Access": "Sin acceso predeterminado",
         "None": "Ninguno",
         "Owner": "Propietario",
-        "View & Edit": "Ver y Editar",
+        "View & Edit": "Ver y editar",
         "View Only": "Ver sólo",
         "Viewer": "Espectador"
     },
@@ -830,7 +831,7 @@
     },
     "modals": {
         "Cancel": "Cancelar",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Guardar"
     },
     "pages": {
@@ -940,7 +941,7 @@
         "convert to card view, select data, and more.": "convertir a la vista de la tarjeta, seleccionar datos y más."
     },
     "HyperLinkEditor": {
-        "[link label] url": "[etiqueta de enlace] url"
+        "[link label] url": "[etiqueta de enlace] URL"
     },
     "NumericTextBox": {
         "Currency": "Moneda",

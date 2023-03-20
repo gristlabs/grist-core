@@ -1,117 +1,977 @@
 {
-  "AccountPage": {
-    "API": "API",
-    "API Key": "API-nøkkel",
-    "Account settings": "Kontoinnstillinger",
-    "Allow signing in to this account with Google": "Tillat innlogging på denne kontoen med Google",
-    "Change Password": "Endre passord",
-    "Edit": "Rediger",
-    "Email": "E-post",
-    "Login Method": "Innloggingsmetode",
-    "Name": "Navn",
-    "Password & Security": "Passord og sikkerhet",
-    "Save": "Lagre",
-    "Theme": "Drakt",
-    "Two-factor authentication": "To-faktoridentitetsbekreftelse",
-    "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "To-faktoridentitetsbekreftelse er et ekstra sikkerhetslag for din Grist-konto, designet for å forsikre at kun du har tilgang til kontoen din, selv om noen tar rede på passordet."
-  },
-  "AccountWidget": {
-    "Access Details": "Tilgangsdetaljer",
-    "Accounts": "Kontoer",
-    "Add Account": "Legg til konto",
-    "Document Settings": "Dokument-innstillinger",
-    "Manage Team": "Håndter lag",
-    "Pricing": "Prissetting",
-    "Profile Settings": "Profilinnstillinger",
-    "Sign Out": "Logg ut",
-    "Sign in": "Logg inn",
-    "Switch Accounts": "Bytt konto",
-    "Toggle Mobile Mode": "Slå av/på mobilmodus"
-  },
-  "AddNewButton": {
-    "Add New": "Legg til ny"
-  },
-  "ApiKey": {
-    "Click to show": "Klikk for å vise",
-    "Create": "Opprett",
-    "Remove": "Fjern",
-    "Remove API Key": "Fjern API-nøkkel"
-  },
-  "App": {
-    "Description": "Beskrivelse",
-    "Key": "Nøkkel",
-    "Memory Error": "Minnefeil"
-  },
-  "AppHeader": {
-    "Home Page": "Hjemmeside",
-    "Personal Site": "Personlig side",
-    "Team Site": "Lagside"
-  },
-  "CellContextMenu": {
-    "Clear cell": "Tøm celle",
-    "Clear values": "Tøm verdier",
-    "Copy anchor link": "Kopier ankerlenke",
-    "Delete column": "Slett kolonne",
-    "Delete row": "Slett rad",
-    "Delete {{count}} columns": "Slett {{count}} kolonner",
-    "Delete {{count}} rows": "Slett {{count}} rader",
-    "Duplicate row": "Dupliser rad",
-    "Duplicate rows": "Dupliser rader",
-    "Filter by this value": "Filtrer etter denne verdien",
-    "Insert column to the left": "Sett inn kolonne til venstre",
-    "Insert column to the right": "Sett inn kolonne til høyre",
-    "Insert row": "Sett inn rad",
-    "Insert row above": "Sett inn rad ovenfor",
-    "Insert row below": "Sett inn rad under",
-    "Reset column": "Tilbakestill kolonne",
-    "Reset entire column": "Tilbakestill hele kolonnen",
-    "Reset {{count}} columns": "Tilbakestill {{count}} kolonner",
-    "Reset {{count}} entire columns": "Tilbakestill {{count}} hele kolonner"
-  },
-  "ColumnFilterMenu": {
-    "All": "Alle",
-    "All Except": "Alle unntatt",
-    "All Shown": "Alle viste",
-    "End": "Slutt",
-    "Future Values": "Fremtidige verdier",
-    "Max": "Maks.",
-    "Min": "Min.",
-    "No matching values": "Ingen samsvarende verdier",
-    "None": "Ingen",
-    "Other Matching": "Andre som samsvarer",
-    "Other Non-Matching": "Andre som ikke samsvarer",
-    "Other Values": "Andre verdier",
-    "Others": "Andre",
-    "Search": "Søk",
-    "Search values": "Søk etter verdier",
-    "Start": "Start"
-  },
-  "CustomSectionConfig": {
-    " (optional)": "(valgfritt)",
-    "Add": "Legg til",
-    "Enter Custom URL": "Skriv inn egendefinert nettadresse",
-    "Full document access": "Full dokumenttilgang",
-    "Learn more about custom widgets": "Lær mer om egendefinerte miniprogrammer",
-    "No document access": "Ingen dokumenttilgang",
-    "Open configuration": "Åpne oppsett",
-    "Pick a column": "Velg en kolonne",
-    "Pick a {{columnType}} column": "Velg en {{columnType}}-kolonne",
-    "Read selected table": "Les valgt tabell",
-    "Select Custom Widget": "Velg egendefinert miniprogram"
-  },
-  "DocHistory": {
-    "Activity": "Aktivitet",
-    "Beta": "Beta"
-  },
-  "DocMenu": {
-    "All Documents": "Alle dokumenter",
-    "Delete {{name}}": "Slett {{name}}",
-    "Deleted {{at}}": "Slettet {{at}}",
-    "Discover More Templates": "Oppdag flere maler",
-    "Edited {{at}}": "Redigert {{at}}",
-    "Examples and Templates": "Eksempler og maler",
-    "More Examples and Templates": "Flere eksempler ogmaler",
-    "Pinned Documents": "Festede dokumenter",
-    "This service is not available right now": "Denne tjenesten er ikke tilgjengelig akkurat nå"
-  }
+    "AccountPage": {
+        "API": "API",
+        "API Key": "API-nøkkel",
+        "Account settings": "Kontoinnstillinger",
+        "Allow signing in to this account with Google": "Tillat innlogging på denne kontoen med Google",
+        "Change Password": "Endre passord",
+        "Edit": "Rediger",
+        "Email": "E-post",
+        "Login Method": "Innloggingsmetode",
+        "Name": "Navn",
+        "Password & Security": "Passord og sikkerhet",
+        "Save": "Lagre",
+        "Theme": "Drakt",
+        "Two-factor authentication": "To-faktoridentitetsbekreftelse",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "To-faktoridentitetsbekreftelse er et ekstra sikkerhetslag for din Grist-konto, designet for å forsikre at kun du har tilgang til kontoen din, selv om noen tar rede på passordet.",
+        "Language": "Språk",
+        "Names only allow letters, numbers and certain special characters": "Navn tillater kun bokstaver, nummer, og noen spesialtegn"
+    },
+    "AccountWidget": {
+        "Access Details": "Tilgangsdetaljer",
+        "Accounts": "Kontoer",
+        "Add Account": "Legg til konto",
+        "Document Settings": "Dokument-innstillinger",
+        "Manage Team": "Håndter lag",
+        "Pricing": "Prissetting",
+        "Profile Settings": "Profilinnstillinger",
+        "Sign Out": "Logg ut",
+        "Sign in": "Logg inn",
+        "Switch Accounts": "Bytt konto",
+        "Toggle Mobile Mode": "Slå av/på mobilmodus"
+    },
+    "AddNewButton": {
+        "Add New": "Legg til ny"
+    },
+    "ApiKey": {
+        "Click to show": "Klikk for å vise",
+        "Create": "Opprett",
+        "Remove": "Fjern",
+        "Remove API Key": "Fjern API-nøkkel",
+        "By generating an API key, you will be able to make API calls for your own account.": "Ved å generere en API-nøkkel vil du kunne gjøre API-kall for din egen konto.",
+        "This API key can be used to access this account anonymously via the API.": "Denne API-nøkkelen kan brukes til å oppnå tilgang til dette dokumentet anonymt via API-et.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Denne API-nøkkelen kan brukes til å oppnå tilgang til kontoen din via API-et. Ikke del API-nøkkelen din med noen.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Du er i ferd med å slette en API-nøkkel. Dette vil medføre at alle fremtidige forespørsler som bruker denne API-nøkkelen avslås. Vil du fremdeles slette den?"
+    },
+    "App": {
+        "Description": "Beskrivelse",
+        "Key": "Nøkkel",
+        "Memory Error": "Minnefeil",
+        "Translators: please translate this only when your language is ready to be offered to users": "Oversettere: Oversett dette når språket ditt kan tilbys brukere"
+    },
+    "AppHeader": {
+        "Home Page": "Hjemmeside",
+        "Personal Site": "Personlig side",
+        "Team Site": "Lagside",
+        "Legacy": "Foreldet"
+    },
+    "CellContextMenu": {
+        "Clear cell": "Tøm celle",
+        "Clear values": "Tøm verdier",
+        "Copy anchor link": "Kopier ankerlenke",
+        "Delete column": "Slett kolonne",
+        "Delete row": "Slett rad",
+        "Delete {{count}} columns": "Slett {{count}} kolonner",
+        "Delete {{count}} rows": "Slett {{count}} rader",
+        "Duplicate row": "Dupliser rad",
+        "Duplicate rows": "Dupliser rader",
+        "Filter by this value": "Filtrer etter denne verdien",
+        "Insert column to the left": "Sett inn kolonne til venstre",
+        "Insert column to the right": "Sett inn kolonne til høyre",
+        "Insert row": "Sett inn rad",
+        "Insert row above": "Sett inn rad ovenfor",
+        "Insert row below": "Sett inn rad under",
+        "Reset column": "Tilbakestill kolonne",
+        "Reset entire column": "Tilbakestill hele kolonnen",
+        "Reset {{count}} columns": "Tilbakestill {{count}} kolonner",
+        "Reset {{count}} entire columns": "Tilbakestill {{count}} hele kolonner",
+        "Reset {{count}} entire columns_one": "Tilbakestill hele kolonnen",
+        "Delete {{count}} rows_one": "Slett rad",
+        "Delete {{count}} columns_one": "Slett kolonne",
+        "Delete {{count}} columns_other": "Slett {{count}} kolonner",
+        "Duplicate rows_other": "Dupliser rader",
+        "Delete {{count}} rows_other": "Slett {{count}} rader",
+        "Duplicate rows_one": "Dupliser rad",
+        "Reset {{count}} columns_one": "Tilbakestill kolonne",
+        "Reset {{count}} entire columns_other": "Tilbakestill {{count}} hele kolonner",
+        "Reset {{count}} columns_other": "Tilbakestill {{count}} kolonner"
+    },
+    "ColumnFilterMenu": {
+        "All": "Alle",
+        "All Except": "Alle unntatt",
+        "All Shown": "Alle viste",
+        "End": "Slutt",
+        "Future Values": "Fremtidige verdier",
+        "Max": "Maks.",
+        "Min": "Min.",
+        "No matching values": "Ingen samsvarende verdier",
+        "None": "Ingen",
+        "Other Matching": "Andre som samsvarer",
+        "Other Non-Matching": "Andre som ikke samsvarer",
+        "Other Values": "Andre verdier",
+        "Others": "Andre",
+        "Search": "Søk",
+        "Search values": "Søk etter verdier",
+        "Start": "Start",
+        "Filter by Range": "Filtrer etter tallfølge"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (valgfritt)",
+        "Add": "Legg til",
+        "Enter Custom URL": "Skriv inn egendefinert nettadresse",
+        "Full document access": "Full dokumenttilgang",
+        "Learn more about custom widgets": "Lær mer om egendefinerte miniprogrammer",
+        "No document access": "Ingen dokumenttilgang",
+        "Open configuration": "Åpne oppsett",
+        "Pick a column": "Velg en kolonne",
+        "Pick a {{columnType}} column": "Velg en {{columnType}}-kolonne",
+        "Read selected table": "Les valgt tabell",
+        "Select Custom Widget": "Velg egendefinert miniprogram",
+        "Widget does not require any permissions.": "Miniprogrammet krever ingen tilganger.",
+        "Widget needs to {{read}} the current table.": "Miniprogrammet må {{read}} nåværende tabell.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} ikke-{{columnType}}-kolonner er ikke vist.",
+        "Widget needs {{fullAccess}} to this document.": "Miniprogrammet trenger {{fullAccess}} til dette dokumentet.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} ikke-{{columnType}}-kolonne er ikke vist."
+    },
+    "DocHistory": {
+        "Activity": "Aktivitet",
+        "Beta": "Beta",
+        "Compare to Previous": "Sammenlign med forrige",
+        "Snapshots": "Øyeblikksbilder",
+        "Snapshots are unavailable.": "Øyeblikksbilder utilgjengelig.",
+        "Compare to Current": "Sammenlign med nåværende",
+        "Open Snapshot": "Åpne øyeblikksbilde"
+    },
+    "DocMenu": {
+        "All Documents": "Alle dokumenter",
+        "Delete {{name}}": "Slett {{name}}",
+        "Deleted {{at}}": "Slettet {{at}}",
+        "Discover More Templates": "Oppdag flere maler",
+        "Edited {{at}}": "Redigert {{at}}",
+        "Examples and Templates": "Eksempler og maler",
+        "More Examples and Templates": "Flere eksempler ogmaler",
+        "Pinned Documents": "Festede dokumenter",
+        "This service is not available right now": "Denne tjenesten er ikke tilgjengelig akkurat nå",
+        "Pin Document": "Fest dokument",
+        "Remove": "Fjern",
+        "Trash": "Papirkurv",
+        "Trash is empty.": "Papirkurven er tom.",
+        "Unpin Document": "Løsne dokument",
+        "Workspace not found": "Fant ikke arbeidsområdet",
+        "To restore this document, restore the workspace first.": "Gjenopprett arbeidsområdet for å gjenopprette dette dokumentet.",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Du er på {{siteName}}-siden. Du har også tilgang til følgende sider:",
+        "You are on your personal site. You also have access to the following sites:": "Du er på din personlige side. Du har også tilgang til følgende sider:",
+        "You may delete a workspace forever once it has no documents in it.": "Du kan slette et arbeidsområde for godt siden det ikke har noen dokumenter i seg.",
+        "Delete": "Slett",
+        "Move": "Flytt",
+        "(The organization needs a paid plan)": "(Organisasjonen trenger en betalt plan)",
+        "Access Details": "Tilgangsdetaljer",
+        "By Date Modified": "Etter endringsdato",
+        "By Name": "Etter navn",
+        "Current workspace": "Nåværende arbeidsområde",
+        "Delete Forever": "Slett for godt",
+        "Document will be moved to Trash.": "Dokumentet vil bli flyttet til papirkurven.",
+        "Document will be permanently deleted.": "Dokumentet vil bli slettet for godt.",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Dokumenter forblir i papirkurven i 30 dager. Etter dette slettes de for godt.",
+        "Featured": "Framhevet",
+        "Rename": "Gi nytt navn",
+        "Requires edit permissions": "Krever redigeringstilgang",
+        "Restore": "Gjenopprett",
+        "Other Sites": "Andre sider",
+        "Move {{name}} to workspace": "Flytt {{name}} til arbeidsområde",
+        "Examples & Templates": "Eksempler og maler",
+        "Manage Users": "Håndter brukere",
+        "Permanently Delete \"{{name}}\"?": "Slett «{{name}}» for godt?"
+    },
+    "HomeLeftPane": {
+        "Examples & Templates": "Eksempler og maler",
+        "Create Workspace": "Opprett arbeidsområde",
+        "Delete": "Slett",
+        "Access Details": "Tilgangsdetaljer",
+        "All Documents": "Alle dokumenter",
+        "Create Empty Document": "Opprett tomt dokument",
+        "Delete {{workspace}} and all included documents?": "Slett {{workspace}} og alle inkluderte dokumenter?",
+        "Import Document": "Importer dokument",
+        "Manage Users": "Håndter brukere",
+        "Trash": "Papirkurv",
+        "Workspace will be moved to Trash.": "Arbeidsområdet vil bli flyttet til papirkurven.",
+        "Workspaces": "Arbeidsområder",
+        "Rename": "Gi nytt navn"
+    },
+    "MakeCopyMenu": {
+        "It will be overwritten, losing any content not in this document.": "Den vil bli overskrevet, noe som forkaster alt innholdet som ikke er i dokumentet.",
+        "Sign up": "Registrering",
+        "Update": "Oppdater",
+        "Update Original": "Oppdater original",
+        "Original Looks Identical": "Originalen ser identisk ut",
+        "Name": "Navn",
+        "No destination workspace": "Inget målarbeidsrom",
+        "Include the structure without any of the data.": "Inkluder strukturen uten noe av dataen.",
+        "Organization": "Organisasjon",
+        "Original Has Modifications": "Originalen har endringer",
+        "The original version of this document will be updated.": "Den opprinnelige versjonen av dette dokumentet vil bli oppdatert.",
+        "To save your changes, please sign up, then reload this page.": "Registrer deg her og gjeninnlast siden for å lagre endringene dine.",
+        "Workspace": "Arbeidsområde",
+        "You do not have write access to the selected workspace": "Du har ikke skrivetilgang til valgt arbeidsområde",
+        "You do not have write access to this site": "Du har ikke skrivetilgang til denne siden.",
+        "As Template": "Som mal",
+        "Cancel": "Avbryt",
+        "Enter document name": "Skriv inn dokumentnavn",
+        "Original Looks Unrelated": "Originalen ser urelatert ut",
+        "Overwrite": "Overskriv",
+        "Replacing the original requires editing rights on the original document.": "Erstatting av originalen krever redigeringsrettigheter til originaldokumentet.",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Vær forsiktig, originalen har endringer som ikke finnes i dette dokumentet. De endringene vil bli overskrevet.",
+        "However, it appears to be already identical.": "Dog later det til at det allerede er identisk."
+    },
+    "NotifyUI": {
+        "Cannot find personal site, sorry!": "Finner ikke personlig side. Beklager.",
+        "Upgrade Plan": "Oppgrader plan",
+        "Renew": "Forny",
+        "Give feedback": "Gi tilbakemeldinger",
+        "Ask for help": "Spør om hjelp",
+        "Report a problem": "Innrapporter et problem",
+        "Go to your free personal site": "Gå til din kostnadsløse personlige side",
+        "No notifications": "Ingen merknader",
+        "Notifications": "Merknader"
+    },
+    "RightPanel": {
+        "COLUMN TYPE": "Kolonnetype",
+        "CHART TYPE": "Diagramstype",
+        "CUSTOM": "Egendefinert",
+        "Change Widget": "Endre miniprogram",
+        "Columns_one": "Kolonne",
+        "Columns_other": "Kolonner",
+        "DATA TABLE": "Datatabell",
+        "Data": "Data",
+        "Edit Data Selection": "Rediger datautvalg",
+        "Fields_one": "Felt",
+        "Fields_other": "Felter",
+        "GROUPED BY": "Gruppert etter",
+        "ROW STYLE": "Radstil",
+        "Row Style": "Radstil",
+        "SELECTOR FOR": "Utvelger for",
+        "SOURCE DATA": "Kildedata",
+        "Save": "Lagre",
+        "Select Widget": "Velg miniprogram",
+        "TRANSFORM": "Transformer",
+        "Theme": "Drakt",
+        "DATA TABLE NAME": "Datatabellnavn",
+        "SELECT BY": "Velg etter",
+        "Detach": "Løsne",
+        "Series_one": "Serie",
+        "WIDGET TITLE": "Miniprogramsnavn",
+        "Series_other": "Serier",
+        "Sort & Filter": "Sorter og filtrer",
+        "You do not have edit access to this document": "Du har ikke redigeringstilgang til dette dokumentet",
+        "Widget": "Miniprogram"
+    },
+    "RowContextMenu": {
+        "Delete": "Slett",
+        "Copy anchor link": "Kopier avsnitts-lenke",
+        "Duplicate rows_one": "Dupliser rad",
+        "Insert row above": "Sett inn rad ovenfor",
+        "Insert row below": "Sett inn rad nedenfor",
+        "Duplicate rows_other": "Dupliser rader",
+        "Insert row": "Sett inn rad"
+    },
+    "ShareMenu": {
+        "Unsaved": "Ulagret",
+        "Access Details": "Tilgangsdetaljer",
+        "Back to Current": "Tilbake til nåværende",
+        "Export XLSX": "Eksporter XLSX",
+        "Manage Users": "Håndter brukere",
+        "Original": "Original",
+        "Save Copy": "Lagre kopi",
+        "Replace {{termToUse}}...": "Erstatt {{termToUse}} …",
+        "Show in folder": "Vis i mappe",
+        "Edit without affecting the original": "Rediger uten innvirkning på originalen",
+        "Export CSV": "Eksporter CSV",
+        "Return to {{termToUse}}": "Gå tilbake til {{termToUse}}",
+        "Save Document": "Lagre dokument",
+        "Work on a Copy": "Endre en kopi",
+        "Compare to {{termToUse}}": "Sammenlign med{{termToUse}}",
+        "Current Version": "Nåværende versjon",
+        "Download": "Last ned",
+        "Duplicate Document": "Dupliser dokument",
+        "Send to Google Drive": "Send til Google Drive"
+    },
+    "ThemeConfig": {
+        "Switch appearance automatically to match system": "Bytt utseende automatisk for å samsvare med systemet",
+        "Appearance ": "Utseende "
+    },
+    "Tools": {
+        "Access Rules": "Tilgangsregler",
+        "Document History": "Dokumenthistorikk",
+        "Raw Data": "Rådata",
+        "TOOLS": "Verktøy",
+        "Return to viewing as yourself": "Gå tilbake til visning som deg selv",
+        "Settings": "Innstillinger",
+        "Tour of this Document": "Gjennomgang av dette dokumentet",
+        "Validate Data": "Bekreft data",
+        "Delete": "Slett",
+        "Code View": "Kodevising",
+        "How-to Tutorial": "Funksjonsveiledning",
+        "Delete document tour?": "Slett dokumentveivisning?"
+    },
+    "TriggerFormulas": {
+        "Any field": "Alle felter",
+        "Current field ": "Nåværende felt ",
+        "Cancel": "Avbryt",
+        "Close": "Lukk",
+        "OK": "OK",
+        "Apply to new records": "Bruk for nye oppføringer",
+        "Apply on changes to:": "Bruk for endringer av:",
+        "Apply on record changes": "Bruk for oppføringsendringer"
+    },
+    "TypeTransformation": {
+        "Revise": "Gjennomse",
+        "Preview": "Forhåndsvis",
+        "Update formula (Shift+Enter)": "Oppdater formel (Shift+Enter)",
+        "Cancel": "Avbryt",
+        "Apply": "Bruk"
+    },
+    "ValidationPanel": {
+        "Rule {{length}}": "Regel {{length}}",
+        "Update formula (Shift+Enter)": "Oppdater formel (Shift+Enter)"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Ukjent bruker"
+    },
+    "ViewConfigTab": {
+        "Advanced settings": "Avanserte innstillinger",
+        "Blocks": "Blokker",
+        "Compact": "Kompakt",
+        "Edit Card Layout": "Rediger kort-oppsett",
+        "Make On-Demand": "Gjør til «ved behov»",
+        "Unmark On-Demand": "Opphev «ved behov»",
+        "Plugin: ": "Programtillegg: ",
+        "Section: ": "Avsnitt: ",
+        "Form": "Skjema",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Store tabeller kan markeres «ved behov» for å unngå innlasting av dem inn i datamotoren."
+    },
+    "errorPages": {
+        "Add account": "Legg til konto",
+        "Access denied{{suffix}}": "Tilgang nektet-{{suffix}}",
+        "Signed out{{suffix}}": "Utlogget-{{suffix}}",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Fant ikke forespurt side.{{separator}}Sjekk nettadressen og prøv igjen.",
+        "Sign in": "Logg inn",
+        "Contact support": "Kontakt brukerstøtte",
+        "Go to main page": "Gå til hovedsiden",
+        "Sign in again": "Logg inn igjen",
+        "Sign in to access this organization's documents.": "Logg inn for å få tilgang til organisasjonens dokumenter.",
+        "Something went wrong": "Noe gikk galt",
+        "You are now signed out.": "Du er nå utlogget.",
+        "There was an error: {{message}}": "En feil oppstod: {{message}}",
+        "There was an unknown error.": "En ukjent feil oppstod.",
+        "You do not have access to this organization's documents.": "Du har ikke tilgang til denne organisasjonens dokumenter.",
+        "Error{{suffix}}": "Feil-{{suffix}}",
+        "Page not found{{suffix}}": "Fant ikke siden-{{suffix}}",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Du er innlogget som {{email}}. Du kan logge inn med en annen konto, eller spørre en administrator om tilgang."
+    },
+    "search": {
+        "Search in document": "Søk i dokumentet",
+        "Find Next ": "Finn neste ",
+        "Find Previous ": "Finn forrige ",
+        "No results": "Resultatløst"
+    },
+    "DiscussionEditor": {
+        "Cancel": "Avbryt",
+        "Only my threads": "Kun mine tråder",
+        "Open": "Åpne",
+        "Only current page": "Kun nåværende side",
+        "Remove": "Fjern",
+        "Reply": "Svar",
+        "Reply to a comment": "Besvar en kommentar",
+        "Resolve": "Løs",
+        "Save": "Lagre",
+        "Show resolved comments": "Vis løste kommentarer",
+        "Started discussion": "Startet diskusjon",
+        "Comment": "Kommentar",
+        "Showing last {{nb}} comments": "Viser de siste {{nb}} kommentarene",
+        "Marked as resolved": "Markert som løst",
+        "Write a comment": "Skriv en kommentar",
+        "Edit": "Rediger"
+    },
+    "FieldBuilder": {
+        "DATA FROM TABLE": "Data fra tabell",
+        "Save field settings for {{colId}} as common": "Lagre feltinnstillinger for {{colId}} som vanlige",
+        "CELL FORMAT": "Celleformat",
+        "Apply Formula to Data": "Bruk formel for data",
+        "Use separate field settings for {{colId}}": "Bruk egne feltinnstillinger for {{colId}}",
+        "Changing multiple column types": "Endring av flere kolonnetyper",
+        "Revert field settings for {{colId}} to common": "Tilbakestill feltinnstillinger for {{colId}} til de vanlige",
+        "Mixed types": "Blandede typer",
+        "Mixed format": "Blandet format"
+    },
+    "AccessRules": {
+        "Permission to edit document structure": "Tilgang til redigering av dokumentstruktur",
+        "Seed rules": "Delingsregler",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Legg til regel som innvilger eier full tilgang når tabellregler legges til.",
+        "Add User Attributes": "Legg til brukerattributter",
+        "Add Column Rule": "Legg til kolonneregel",
+        "Add Default Rule": "Legg til forvalgt regel",
+        "Add Table Rules": "Legg tiltabellregler",
+        "Condition": "Betingelse",
+        "Default Rules": "Forvalgte regler",
+        "Delete Table Rules": "Slett tabellregler",
+        "Enter Condition": "Skriv inn betingelse",
+        "Everyone": "Alle",
+        "Everyone Else": "Alle andre",
+        "Invalid": "Ugyldig",
+        "Permissions": "Tilganger",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Fjern {{- colId }}-kolonnen fra {{- tableId }}-regler",
+        "Remove {{- tableId }} rules": "Fjern {{- tableId }}-regler",
+        "Remove {{- name }} user attribute": "Fjern {{- name }}-brukerattributt",
+        "Reset": "Tilbakestill",
+        "Type a message...": "Skriv en melding …",
+        "User Attributes": "Brukerattributter",
+        "View As": "Vis som",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Tillat alle å kopiere hele dokumentet, eller å vise det i sin helhet i fiklingsmodus.\nNyttig for eksempler og maler, men ikke for sensitiv data.",
+        "Allow everyone to view Access Rules.": "Tillat alle å utforske tilgangsregler.",
+        "Attribute name": "Attributtnavn",
+        "Attribute to Look Up": "Attributt å utforske",
+        "Checking...": "Sjekker …",
+        "Rules for table ": "Regler for tabell ",
+        "Special Rules": "Spesialregler",
+        "Saved": "Lagret",
+        "Permission to view Access Rules": "Tilgang til visning av tilgangsregler",
+        "Lookup Table": "Oppslagstabell",
+        "Lookup Column": "Oppslagskolonne",
+        "Permission to access the document in full when needed": "Tilgang til hele dokumentet når det trengs",
+        "Save": "Lagre"
+    },
+    "ChartView": {
+        "Toggle chart aggregation": "Veksle diagramsvisning",
+        "Create separate series for each value of the selected column.": "Opprett egne serier for hver verdi i de valgte kolonnene.",
+        "Each Y series is followed by a series for the length of error bars.": "Hver Y-serie følges av en serie for lengden for feilfeltene.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Hver Y-serie følges av to serier, for topp- og bunn-feilfelter.",
+        "Pick a column": "Velg en kolonne",
+        "selected new group data columns": "valgte nye gruppedatakolonner"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Tilgang nektet",
+        "Code View is available only when you have full document access.": "Kodevisning er kun tilgjengelig for deg om du har full dokumenttilgang."
+    },
+    "DataTables": {
+        "Click to copy": "Klikk for å kopiere",
+        "Duplicate Table": "Dupliser tabell",
+        "Raw Data Tables": "Rå-datatabeller",
+        "Table ID copied to clipboard": "Tabell-ID kopiert til utklippstavlen",
+        "You do not have edit access to this document": "Du har ikke redigeringstilgang til dette dokumentet",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Slett {{formattedTableName}}-data,og fjern den fra alle sider?"
+    },
+    "DocPageModel": {
+        "Reload": "Last inn igjen",
+        "Document owners can attempt to recover the document. [{{error}}]": "Dokumenteiere kan prøve å gjenopprette dokumentet. [{{error}}]",
+        "Enter recovery mode": "Skriv inn gjenopprettingskode",
+        "Add Empty Table": "Legg til tom tabell",
+        "Add Page": "Legg til side",
+        "Add Widget to Page": "Legg til miniprogram på siden",
+        "Error accessing document": "Fikk ikke tilgang til dokumentet",
+        "Sorry, access to this document has been denied. [{{error}}]": "Du er ikke innvilget tilgang til dette dokumentet. {{error}}",
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Du kan prøve å laste inn dokumentet igjen, eller bruke gjenopprettingsmodus. Gjenopprettingsmodus åpner dokumentet som fullt ut tilgjengelig for eiere, og utilgjengelig for andre. Det skrur også av formler. {{error}}",
+        "You do not have edit access to this document": "Du har ikke redigeringstilgang til dette dokumentet"
+    },
+    "DocumentSettings": {
+        "Ok": "OK",
+        "Engine (experimental {{span}} change at own risk):": "Motor (eksperimentell {{span}} endre på egen risiko):",
+        "Local currency ({{currency}})": "Lokal valuta ({{currency}})",
+        "Save and Reload": "Lagre og last inn igjen",
+        "Time Zone:": "Tidssone:",
+        "API": "API",
+        "Save": "Lagre",
+        "This document's ID (for API use):": "Dette dokumentets ID (for API-bruk):",
+        "Locale:": "Lokalitet:",
+        "Document ID copied to clipboard": "Dokument-ID kopiert til utklippstavlen",
+        "Currency:": "Valuta:",
+        "Document Settings": "Dokumentinnstillinger"
+    },
+    "DocumentUsage": {
+        "Usage": "Bruk",
+        "Attachments Size": "Vedleggsstørrelse",
+        "Usage statistics are only available to users with full access to the document data.": "Bruksstatistikk er kun tilgjengelig for brukere med full tilgang til dokumentdataen.",
+        "start your 30-day free trial of the Pro plan.": "start din 30-dagers gratisperiode av Pro-planen.",
+        "Data Size": "Datastørrelse",
+        "Rows": "Rader",
+        "Contact the site owner to upgrade the plan to raise limits.": "Kontakt eieren av siden for å oppgradere planen eller å øke grensene.",
+        "For higher limits, ": "For høyere grenser, "
+    },
+    "FieldConfig": {
+        "Formula Columns_one": "Formelkolonne",
+        "Make into data column": "Gjør til datakolonne",
+        "Set formula": "Sett formel",
+        "Set trigger formula": "Sett utløserformel",
+        "COLUMN BEHAVIOR": "Kolonneadferd",
+        "Empty Columns_one": "Tom kolonne",
+        "Data Columns_one": "Datakolonne",
+        "Data Columns_other": "Datakolonner",
+        "Empty Columns_other": "Tomme kolonner",
+        "Enter formula": "Skriv inn formel",
+        "Mixed Behavior": "Blandet adferd",
+        "TRIGGER FORMULA": "Utløserformel",
+        "Clear and make into formula": "Tøm og gjør til formel",
+        "Convert column to data": "Konverter kolonne til data",
+        "Convert to trigger formula": "Konverter til utløserformel",
+        "COLUMN LABEL AND ID": "Kolonneetikett og ID",
+        "Column options are limited in summary tables.": "Kolonnealternativer er begrenset i sammendragstabeller.",
+        "Clear and reset": "Tøm og tilbakestill",
+        "Formula Columns_other": "Formelkolonner",
+        "DESCRIPTION": "Beskrivelse"
+    },
+    "DocTour": {
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Kan ikke konstruere dokumentgjennomgang fra dataen i dette dokumentet. Forsikre deg om at det er en tabell ved navn «GristDocTour» med kolonnene «Title», «Body», «Placement» og «Location».",
+        "No valid document tour": "Ingen gyldig dokumentgjennomgang"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Denne lagsiden er sperret. Dokumenter kan leses, men ikke endres."
+    },
+    "GristTooltips": {
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Bruk «𝚺»-ikonet for å opprette sammendrag (eller pivotere) tabeller, for totalsummer, eller delsummer.",
+        "Pinned filters are displayed as buttons above the widget.": "Festede filtre vises som knapper over miniprogrammet.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Endre kortrekkefølgen på siden din ved å dra og endre størrelsen på celler.",
+        "Selecting Data": "Valg av data",
+        "They allow for one record to point (or refer) to another.": "De lar én oppføring peke til (eller henvise til) en annen.",
+        "This is the secret to Grist's dynamic and productive layouts.": "Dette er nøkkelen til Grists dynamiske og produktive oppsett.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Bruk betingelsesmessig formatering for celler i denne kolonnen når formelbetingelser oppfylles.",
+        "Access Rules": "Tilgangsregler",
+        "Raw Data page": "Rådata-side",
+        "Pinning Filters": "Festing av filter",
+        "You can filter by more than one column.": "Du kan filtrere med mer enn én kolonne.",
+        "entire": "hele",
+        "relational": "relasjonsmessig",
+        "Nested Filtering": "Underfiltrering",
+        "Select the table containing the data to show.": "Velg tabellen som inneholder dataen å vise.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Å klikke på «{{EyeHideIcon}}» i hver celle skjuler feltet fra denne visningen uten sletting av den.",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Tilgangsregler lar deg skape nyanserte regler for å bestemme hvem som kan utforske eller redigere gitte deler av dokumentet ditt.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Celler i en referansekolonne identifiserer alltid en {{entire}}-oppføring i den tabellen, men du kan velge hvilken kolonne fra den oppføringen du vil vise.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formler som utløses i gitte fall, og lagrer utregnet verdi som data.",
+        "Add New": "Legg til ny",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Bruk «\\u{1D6BA}»-ikonet for å opprette sammendrag (eller pivotere) tabeller, for totalsummer, eller delsummer.",
+        "Select the table to link to.": "Velg tabell å lenke til.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Klikk på «Åpne radstiler» for å bruke betingelsesmessig formatering på rader.",
+        "Apply conditional formatting to rows based on formulas.": "Bruk betingelsesmessig formatering i rader basert på formler.",
+        "Editing Card Layout": "Redigering av kort-oppsett",
+        "Only those rows will appear which match all of the filters.": "Kun rader som samsvarer med alle filtre vises.",
+        "Reference Columns": "Referansekolonner",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Klikk på «Legg til ny»-knappen for å opprette nye dokumenter eller arbeidsområder, eller importere data.",
+        "Learn more.": "Lær mer.",
+        "Link your new widget to an existing widget on this page.": "Lenk ditt nye miniprogram til et eksisterende miniprogram på denne siden.",
+        "Linking Widgets": "Lenking av miniprogrammer",
+        "Reference columns are the key to {{relational}} data in Grist.": "Referansekolonner er nøkkelen til {{relational}}-data i Grist.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "Rådatasiden lister opp alle datatabeller i dokumentet ditt, inkludert sammendragstabeller og tabeller som ikke er inkludert i sideoppsett.",
+        "Updates every 5 minutes.": "Oppdateringer hvert femte minutt.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Prøv ut endringer i en kopi, og avgjør så hvorvidt du vil erstatte originalen med endringene dine.",
+        "Unpin to hide the the button while keeping the filter.": "Løsne for å skjule knappen og beholde filteret.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Nyttig for lagring av tidsstempel eller forfatter av en ny oppføring, datarensing, med mer.",
+        "The total size of all data in this document, excluding attachments.": "Samlet størrelse av all data i dette dokumentet, fraregnet vedlegg."
+    },
+    "ViewAsDropdown": {
+        "Example Users": "Eksempelbrukere",
+        "View As": "Vis som",
+        "Users from table": "Brukere fra tabell"
+    },
+    "ActionLog": {
+        "Action Log failed to load": "Kunne ikke laste inn handlingslogg",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Kolonnen {{colId}} ble påfølgende fjernet i handling #{{action.actionNum}}",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabellen {{tableId}} ble påfølgende fjernet i handling #{{actionNum}}",
+        "This row was subsequently removed in action {{action.actionNum}}": "Denne raden ble påfølgende fjernet i handling {{action.actionNum}}"
+    },
+    "ColorSelect": {
+        "Apply": "Bruk",
+        "Cancel": "Avbryt",
+        "Default cell style": "Forvalgt cellestil"
+    },
+    "Drafts": {
+        "Restore last edit": "Gjenopprett siste redigering",
+        "Undo discard": "Angre forkasting"
+    },
+    "DuplicateTable": {
+        "Copy all data in addition to the table structure.": "Kopier all data i tillegg til tabellstrukturen.",
+        "Name for new table": "Navn på ny tabell",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Istedenfor duplisering av tabeller er det vanligvis bedre å dele inn data ved bruk av lenkede visninger. {{link}}",
+        "Only the document default access rules will apply to the copy.": "Kun forvalgte dokumentregler vil ha innvirkning på kopien."
+    },
+    "ExampleInfo": {
+        "Afterschool Program": "Nattskoleprogram",
+        "Tutorial: Create a CRM": "Veiledning: Opprettelse av en CRM",
+        "Tutorial: Manage Business Data": "Veiledning: Håndtering av bedriftsdata",
+        "Investment Research": "Investeringsforskning",
+        "Lightweight CRM": "Lettvektig CRM",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Sjekk ut den narrative veiledningen om hvordan man lenker data og skaper høyproduktive oppsett.",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Sjekk ut vår relaterte veiledning om hvordan man modellerer bedriftsdata, bruker formler, og håndterer kompleksitet.",
+        "Tutorial: Analyze & Visualize": "Veiledning: Analys og virtualisering",
+        "Welcome to the Investment Research template": "Velkommen til investeringsforskningsmalen",
+        "Welcome to the Afterschool Program template": "Velkommen til nattskoleprogramsmalen",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Sjekk vår relaterte veiledning om hvordan man oppretter sammendragstabeller og diagrammer, og også lenker til diagrammer dynamisk.",
+        "Welcome to the Lightweight CRM template": "Velkommen til malen for lettvektig CRM"
+    },
+    "FieldMenus": {
+        "Revert to common settings": "Gjenopprett til vanlige innstillinger",
+        "Use separate settings": "Bruk egne innstillinger",
+        "Using common settings": "Bruker vanlige innstillinger",
+        "Save as common settings": "Lagre som vanlige innstillinger",
+        "Using separate settings": "Bruker egne innstillinger"
+    },
+    "GridViewMenus": {
+        "Clear values": "Tøm verdier",
+        "Convert formula to data": "Konverter formel til data",
+        "Column Options": "Kolonnealternativer",
+        "More sort options ...": "Flere sorteringsalternativer …",
+        "Insert column to the {{to}}": "Sett inn kolonne i {{to}}",
+        "Delete {{count}} columns_one": "Slett kolonne",
+        "Freeze {{count}} more columns_one": "Frys én kolonne til",
+        "Freeze {{count}} more columns_other": "Frys {{count}} kolonner til",
+        "Hide {{count}} columns_one": "Skjul kolonner",
+        "Rename column": "Gi kolonnen nytt navn",
+        "Reset {{count}} columns_one": "Tilbakestill kolonne",
+        "Reset {{count}} columns_other": "Tilbakestill {{count}} kolonner",
+        "Reset {{count}} entire columns_one": "Tilbakestill hele kolonnen",
+        "Add to sort": "Legg til sortering",
+        "Sorted (#{{count}})_one": "Sortert (#{{count}})",
+        "Sorted (#{{count}})_other": "Sortert (#{{count}})",
+        "Freeze {{count}} columns_one": "Frys denne kolonnen",
+        "Filter Data": "Filtrer data",
+        "Show column {{- label}}": "Vis {{- label}}-kolonne",
+        "Unfreeze {{count}} columns_one": "Tin denne kolonnen",
+        "Hide {{count}} columns_other": "Skjul {{count}} kolonner",
+        "Sort": "Sortering",
+        "Delete {{count}} columns_other": "Slett {{count}} kolonner",
+        "Freeze {{count}} columns_other": "Frys {{count}} kolonner",
+        "Unfreeze {{count}} columns_other": "Tin {{count}} kolonner",
+        "Reset {{count}} entire columns_other": "Tilbakestill {{count}} hele kolonner",
+        "Unfreeze all columns": "Tin alle kolonner",
+        "Add Column": "Legg til kolonne"
+    },
+    "GristDoc": {
+        "Import from file": "Importer fra fil",
+        "Added new linked section to view {{viewName}}": "Ny lenket avsnitt lagt til i visning {{viewName}}",
+        "Saved linked section {{title}} in view {{name}}": "Lagret lenket {{title}}-avsnitt i {{name}}-visningen"
+    },
+    "HomeIntro": {
+        "Browse Templates": "Utforsk maler",
+        "You have read-only access to this site. Currently there are no documents.": "Du har lesetilgang til denne siden. Det finnes for øyeblikket ingen dokumenter.",
+        "personal site": "personlig side",
+        "Visit our {{link}} to learn more.": "Besøk vår {{link}} for å lære mer.",
+        "Welcome to Grist!": "Velkommen til Grist!",
+        "Welcome to Grist, {{name}}!": "Velkommen til Grist, {{name}}.",
+        "Welcome to {{orgName}}": "Velkommen til {{orgName}}",
+        "{{signUp}} to save your work. ": "{{signUp}} for å lagre arbeidet ditt. ",
+        "Create Empty Document": "Opprett tomt dokument",
+        "Help Center": "Hjelpesenter",
+        "Import Document": "Importer dokument",
+        "Invite Team Members": "Inviter lagmedlemmer",
+        "Sign up": "Registrer deg",
+        "Sprouts Program": "spire-program",
+        "Get started by creating your first Grist document.": "Begynn ved å opprette ditt første Grist-dokument.",
+        "Get started by exploring templates, or creating your first Grist document.": "Begynn ved å utforske maler, eller ved å opprette ditt første Grist-dokument.",
+        "Get started by inviting your team and creating your first Grist document.": "Begynn ved å invitere laget ditt og ved å opprette ditt første Grist-dokument.",
+        "Interested in using Grist outside of your team? Visit your free ": "Interessert i bruk av Grist utenfor laget ditt? Besøk ditt kostnadsløse ",
+        "This workspace is empty.": "Arbeidsområdet er tomt.",
+        "Any documents created in this site will appear here.": "Alle dokumenter opprettet i denne siden vil vises her."
+    },
+    "PageWidgetPicker": {
+        "Building {{- label}} widget": "Bygger {{- label}}-miniprogram",
+        "Group by": "Grupper etter",
+        "Add to Page": "Legg til på siden",
+        "Select Data": "Velg data",
+        "Select Widget": "Velg miniprogram"
+    },
+    "ViewLayoutMenu": {
+        "Advanced Sort & Filter": "Avansert sortering og filtrering",
+        "Download as XLSX": "Last ned som XLSX",
+        "Data selection": "Datautvalg",
+        "Add to page": "Legg til på siden",
+        "Collapse widget": "Fold sammen miniprogram",
+        "Edit Card Layout": "Rediger kort-oppsett",
+        "Copy anchor link": "Kopier avsnittslenke",
+        "Delete record": "Slett oppføring",
+        "Delete widget": "Slett miniprogram",
+        "Download as CSV": "Last ned som CSV",
+        "Open configuration": "Åpne oppsett",
+        "Show raw data": "Vis rådata",
+        "Widget options": "Miniprogramsalternativer",
+        "Print widget": "Utskriftsminiprogram"
+    },
+    "CellStyle": {
+        "Mixed style": "Blandet stil",
+        "CELL STYLE": "Cellestil",
+        "Cell Style": "Cellestil",
+        "Default cell style": "Forvalgt cellestil",
+        "Open row styles": "Åpne radstiler"
+    },
+    "FormulaEditor": {
+        "Errors in all {{numErrors}} cells": "Feil i alle {{numErrors}} celler",
+        "Column or field is required": "Kolonne eller felt kreves angitt",
+        "editingFormula is required": "«editingFormula» kreves",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Feil i {{numErrors}} av {{numCells}} celler",
+        "Error in the cell": "Feil i cellen"
+    },
+    "VisibleFieldsConfig": {
+        "Cannot drop items into Hidden Fields": "Kan ikke plassere elementer i skjulte felter",
+        "Hidden {{label}}": "Skjult {{label}}",
+        "Show {{label}}": "Vis {{label}}",
+        "Hidden Fields cannot be reordered": "Skjulte felter har låst rekkefølge",
+        "Clear": "Tøm",
+        "Visible {{label}}": "Synlig {{label}}",
+        "Select All": "Velg alt",
+        "Hide {{label}}": "Skjul {{label}}"
+    },
+    "OpenVideoTour": {
+        "Grist Video Tour": "Grist-videogjennomgang",
+        "Video Tour": "Video-veiledning",
+        "YouTube video player": "YouTube-videospiller"
+    },
+    "OnBoardingPopups": {
+        "Finish": "Fullfør",
+        "Next": "Neste"
+    },
+    "Pages": {
+        "Delete data and this page.": "Slett data og denne siden.",
+        "Delete": "Slett",
+        "The following tables will no longer be visible_one": "Følgende tabell vil ikke lenger være synlig.",
+        "The following tables will no longer be visible_other": "Følgende tabeller vil ikke lenger være synlige."
+    },
+    "PermissionsWidget": {
+        "Allow All": "Tillat alle",
+        "Deny All": "Nekt alle",
+        "Read Only": "Skrivebeskyttet"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Importering mislyktes: "
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Oppdatering av oppføringsoppsett."
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Kopiert til utklippstavlen"
+    },
+    "SortConfig": {
+        "Empty values last": "Tomme verdier sist",
+        "Update Data": "Oppdater data",
+        "Natural sort": "Naturlig sortering",
+        "Use choice position": "Bruk valgt posisjon",
+        "Search Columns": "Søk i kolonner",
+        "Add Column": "Legg til kolonne"
+    },
+    "SortFilterConfig": {
+        "Filter": "Filtrer",
+        "Revert": "Tilbakestill",
+        "Update Sort & Filter settings": "Oppdatering sortering- og filtreringsinnstillinger",
+        "Save": "Lagre",
+        "Sort": "Sorter"
+    },
+    "NumericTextBox": {
+        "Default currency ({{defaultCurrency}})": "Forvalgt valuta ({{defaultCurrency}})",
+        "Currency": "Valuta",
+        "Decimals": "Desimaler",
+        "Number Format": "Tallformat"
+    },
+    "Reference": {
+        "CELL FORMAT": "Celleformat",
+        "Row ID": "Rad-ID",
+        "SHOW COLUMN": "Vis kolonne"
+    },
+    "welcomeTour": {
+        "Configuring your document": "Oppsett av dokumentet ditt",
+        "Customizing columns": "Oppsett av kolonner",
+        "Building up": "Oppbygging",
+        "Help Center": "Hjelpesenter",
+        "Reference": "Referanse",
+        "Editing Data": "Redigering av data",
+        "Enter": "Begynn",
+        "Flying higher": "Fly høyere",
+        "Add New": "Legg til ny",
+        "Share": "Del",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Bruk {{addNew}} for å legge til miniprogrammer, sider, eller importere mer data. ",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Gjør ting relasjonsbasert. Bruk {{ref}}-typen for å lenke tabeller. ",
+        "Start with {{equal}} to enter a formula.": "Start med {{equal}} for å skrive inn en formel.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Veksle {{creatorPanel}} for å formatere kolonner, ",
+        "Welcome to Grist!": "Velkommen til Grist.",
+        "template library": "mal-bibliotek",
+        "Use the Share button ({{share}}) to share the document or export data.": "Bruk delingsknappen ({{share}}) for å dele dokumentet eller eksportere data.",
+        "Use {{helpCenter}} for documentation or questions.": "Bruk {{helpCenter}} for dokumentasjon eller spørsmål.",
+        "Sharing": "Deling",
+        "creator panel": "skaper-panel",
+        "convert to card view, select data, and more.": "konverter til kortvisning, velg data, med mer.",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Sett formateringsalternativer, formler, eller kolonnetyper. Dette kan være datoer, valg, eller vedlegg. ",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Dobbeltklikk eller trykk {{enter}} på en celle for å redigere den. ",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Utforsk vårt {{templateLibrary}} for å oppdage hva som er mulig og for å få inspirasjon."
+    },
+    "WelcomeQuestions": {
+        "Finance & Accounting": "Finans og bokføring",
+        "What brings you to Grist? Please help us serve you better.": "Hva bringer deg til Grist? Hjelp oss å tjene dine behov.",
+        "Other": "Annet",
+        "Type here": "Skriv her",
+        "IT & Technology": "IT og teknologi",
+        "HR & Management": "Stabsforvaltning og håndtering",
+        "Product Development": "Produktutvikling",
+        "Research": "Forskning",
+        "Sales": "Salg",
+        "Education": "Utdanning",
+        "Media Production": "Mediaproduksjon",
+        "Marketing": "Markedsføring",
+        "Welcome to Grist!": "Velkommen til Grist."
+    },
+    "WidgetTitle": {
+        "Cancel": "Avbryt",
+        "DATA TABLE NAME": "Datatabellnavn",
+        "Save": "Lagre",
+        "Provide a table name": "Angi et tabellnavn",
+        "Override widget title": "Overstyr miniprogramsnavn",
+        "WIDGET TITLE": "Miniprogramsnavn"
+    },
+    "menus": {
+        "Select fields": "Velg felter",
+        "* Workspaces are available on team plans. ": "* Arbeidsområder er tilgjengelige i lag-planer. ",
+        "Upgrade now": "Oppgrader nå",
+        "Numeric": "Numerisk",
+        "Text": "Tekst",
+        "Integer": "Heltall",
+        "Toggle": "Veksle",
+        "Date": "Dato",
+        "Attachment": "Vedlegg",
+        "Any": "Alle",
+        "Reference": "Referanse",
+        "Reference List": "Referanseliste",
+        "Choice List": "Liste med valg",
+        "Choice": "Valg",
+        "DateTime": "Datotid"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "Beskrivelse"
+    },
+    "SiteSwitcher": {
+        "Switch Sites": "Bytt sider",
+        "Create new team site": "Opprett ny lagside"
+    },
+    "UserManagerModel": {
+        "No Default Access": "Ingen forvalgt tilgang",
+        "None": "Ingen",
+        "Owner": "Eier",
+        "View Only": "Kun visning",
+        "Viewer": "Viser",
+        "View & Edit": "Vis og rediger",
+        "Editor": "Redigerer",
+        "In Full": "Fullstendig"
+    },
+    "ACLUsers": {
+        "Users from table": "Brukere fra tabell",
+        "View As": "Vis som",
+        "Example Users": "Eksempelbruker"
+    },
+    "TypeTransform": {
+        "Apply": "Bruk",
+        "Cancel": "Avbryt",
+        "Update formula (Shift+Enter)": "Oppdater formel (Shift+Enter)",
+        "Preview": "Forhåndsvisning",
+        "Revise": "Gjennomse"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Legg til enda en regel",
+        "Add conditional style": "Legg til betingelsesmessig stil",
+        "Error in style rule": "Feil i stilregel",
+        "Row Style": "Radstil",
+        "Rule must return True or False": "Regelen må returnere enten riktig eller feil"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[link label]-nettadresse"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "Kunne ikke fullføre lagring av redigert celle",
+        "It should be impossible to save a plain data value into a formula column": "Det skal være umulig å lagre vanlige dataverdier i en formelkolonne"
+    },
+    "RecordLayoutEditor": {
+        "Save Layout": "Lagre oppsett",
+        "Add Field": "Legg til felt",
+        "Create New Field": "Opprett nytt felt",
+        "Show field {{- label}}": "Vis {{- label}}-felt",
+        "Cancel": "Avbryt"
+    },
+    "breadcrumbs": {
+        "recovery mode": "gjenopprettingsmodus",
+        "unsaved": "ulagret",
+        "override": "overstyringsmodus",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Du kan gjøre redigeringer, men de vil opprette en ny kopi og ikke\nha innvirkning på originaldokumentet.",
+        "fiddle": "fiklemodus",
+        "snapshot": "øyeblikksbilde"
+    },
+    "duplicatePage": {
+        "Note that this does not copy data, but creates another view of the same data.": "Merk at dette ikke kopierer dataen, men oppretter en annen visning av samme data.",
+        "Duplicate page {{pageName}}": "Dupliser {{pageName}}-siden"
+    },
+    "ColumnInfo": {
+        "COLUMN ID: ": "Kolonne-ID: ",
+        "COLUMN DESCRIPTION": "Kolonnebeskrivelse",
+        "COLUMN LABEL": "Kolonneetikett",
+        "Cancel": "Avbryt",
+        "Save": "Lagre"
+    },
+    "ACUserManager": {
+        "Enter email address": "Skriv inn e-postadresse",
+        "Invite new member": "Inviter nytt medlem",
+        "We'll email an invite to {{email}}": "Invitasjon per e-post vil bli sendt til {{email}}"
+    },
+    "Importer": {
+        "Merge rows that match these fields:": "Flett rader som samsvarer med disse feltene:",
+        "Select fields to match on": "Velg felter å jamføre",
+        "Update existing records": "Oppdater eksisterende oppføringer"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Hjelpesenter"
+    },
+    "RefSelect": {
+        "Add Column": "Legg til kolonne",
+        "No columns to add": "Ingen kolonner å legge til"
+    },
+    "TopBar": {
+        "Manage Team": "Håndter lag"
+    },
+    "ViewSectionMenu": {
+        "(empty)": "(tom)",
+        "Revert": "Tilbakestill",
+        "Save": "Lagre",
+        "SORT": "Sorter",
+        "Update Sort&Filter settings": "Oppdater sortering- og filtreringsinnstillinger",
+        "(customized)": "(egendefinert)",
+        "(modified)": "(endret)",
+        "Custom options": "Egendefinerte alternativer",
+        "FILTER": "Filtrer"
+    },
+    "modals": {
+        "Save": "Lagre",
+        "Cancel": "Avbryt",
+        "Ok": "OK"
+    },
+    "pages": {
+        "Remove": "Fjern",
+        "Rename": "Gi nytt navn",
+        "You do not have edit access to this document": "Du har ikke redigeringstilgang til dette dokumentet",
+        "Duplicate Page": "Duplikatside"
+    },
+    "NTextBox": {
+        "true": "riktig",
+        "false": "feil"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "Valg"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "Kolonnebeskrivelse",
+        "COLUMN LABEL": "Kolonneetikett"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Ugyldig valuta"
+    },
+    "LanguageMenu": {
+        "Language": "Språk"
+    },
+    "FilterConfig": {
+        "Add Column": "Legg til kolonne"
+    },
+    "FilterBar": {
+        "SearchColumns": "Søk i kolonner",
+        "Search Columns": "Søk i kolonner"
+    },
+    "GridOptions": {
+        "Grid Options": "Rutenettsvalg",
+        "Horizontal Gridlines": "Vannrette rutenettslinjer",
+        "Vertical Gridlines": "Loddrette rutenettslinjer",
+        "Zebra Stripes": "Zebra-striper"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Sender filer til Google Drive …"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Konverter kolonne til formel"
+    }
 }

@@ -1,8 +1,8 @@
 {
     "ACUserManager": {
-        "Enter email address": "Enter email address",
+        "Enter email address": "Enter e-mail address",
         "Invite new member": "Invite new member",
-        "We'll email an invite to {{email}}": "We'll email an invite to {{email}}"
+        "We'll email an invite to {{email}}": "An invite will be e-mailed to {{email}}"
     },
     "AccessRules": {
         "Add Column Rule": "Add Column Rule",
@@ -48,7 +48,7 @@
         "Allow signing in to this account with Google": "Allow signing in to this account with Google",
         "Change Password": "Change Password",
         "Edit": "Edit",
-        "Email": "Email",
+        "Email": "E-mail",
         "Login Method": "Login Method",
         "Name": "Name",
         "Names only allow letters, numbers and certain special characters": "Names only allow letters, numbers and certain special characters",
@@ -99,7 +99,8 @@
     "App": {
         "Description": "Description",
         "Key": "Key",
-        "Memory Error": "Memory Error"
+        "Memory Error": "Memory Error",
+        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users"
     },
     "AppHeader": {
         "Home Page": "Home Page",
@@ -137,7 +138,7 @@
         "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
         "Pick a column": "Pick a column",
         "Toggle chart aggregation": "Toggle chart aggregation",
-        "selected new group data columns": "selected new group data columns"
+        "selected new group data columns": "selected new group-data columns"
     },
     "CodeEditorPanel": {
         "Access denied": "Access denied",
@@ -218,7 +219,7 @@
         "Document will be permanently deleted.": "Document will be permanently deleted.",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Documents stay in Trash for 30 days, after which they get deleted permanently.",
         "Edited {{at}}": "Edited {{at}}",
-        "Examples & Templates": "Examples & Templates",
+        "Examples & Templates": "Examples and Templates",
         "Examples and Templates": "Examples and Templates",
         "Featured": "Featured",
         "Manage Users": "Manage Users",
@@ -271,10 +272,10 @@
         "Time Zone:": "Time Zone:",
         "API": "API",
         "Document ID copied to clipboard": "Document ID copied to clipboard",
-        "Ok": "Ok"
+        "Ok": "OK"
     },
     "DocumentUsage": {
-        "Attachments Size": "Attachments Size",
+        "Attachments Size": "Size of Attachments",
         "Contact the site owner to upgrade the plan to raise limits.": "Contact the site owner to upgrade the plan to raise limits.",
         "Data Size": "Data Size",
         "For higher limits, ": "For higher limits, ",
@@ -300,7 +301,7 @@
         "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.",
         "Investment Research": "Investment Research",
         "Lightweight CRM": "Lightweight CRM",
-        "Tutorial: Analyze & Visualize": "Tutorial: Analyze & Visualize",
+        "Tutorial: Analyze & Visualize": "Tutorial: Analyze and Visualize",
         "Tutorial: Create a CRM": "Tutorial: Create a CRM",
         "Tutorial: Manage Business Data": "Tutorial: Manage Business Data",
         "Welcome to the Afterschool Program template": "Welcome to the Afterschool Program template",
@@ -365,7 +366,7 @@
         "Hide {{count}} columns_one": "Hide column",
         "Hide {{count}} columns_other": "Hide {{count}} columns",
         "Insert column to the {{to}}": "Insert column to the {{to}}",
-        "More sort options ...": "More sort options…",
+        "More sort options ...": "More sorting options…",
         "Rename column": "Rename column",
         "Reset {{count}} columns_one": "Reset column",
         "Reset {{count}} columns_other": "Reset {{count}} columns",
@@ -413,7 +414,7 @@
         "Create Workspace": "Create Workspace",
         "Delete": "Delete",
         "Delete {{workspace}} and all included documents?": "Delete {{workspace}} and all included documents?",
-        "Examples & Templates": "Examples & Templates",
+        "Examples & Templates": "Examples and Templates",
         "Import Document": "Import Document",
         "Manage Users": "Manage Users",
         "Rename": "Rename",
@@ -533,7 +534,7 @@
         "Select Widget": "Select Widget",
         "Series_one": "Series",
         "Series_other": "Series",
-        "Sort & Filter": "Sort & Filter",
+        "Sort & Filter": "Sort and Filter",
         "TRANSFORM": "TRANSFORM",
         "Theme": "Theme",
         "WIDGET TITLE": "WIDGET TITLE",
@@ -636,7 +637,7 @@
         "No Default Access": "No Default Access",
         "None": "None",
         "Owner": "Owner",
-        "View & Edit": "View & Edit",
+        "View & Edit": "View and Edit",
         "View Only": "View Only",
         "Viewer": "Viewer"
     },
@@ -660,7 +661,7 @@
         "Unmark On-Demand": "Unmark On-Demand"
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Advanced Sort & Filter",
+        "Advanced Sort & Filter": "Advanced Sorting and Filtering",
         "Copy anchor link": "Copy anchor link",
         "Data selection": "Data selection",
         "Delete record": "Delete record",
@@ -698,9 +699,9 @@
     },
     "WelcomeQuestions": {
         "Education": "Education",
-        "Finance & Accounting": "Finance & Accounting",
-        "HR & Management": "HR & Management",
-        "IT & Technology": "IT & Technology",
+        "Finance & Accounting": "Finance and Accounting",
+        "HR & Management": "HR and Management",
+        "IT & Technology": "IT and Technology",
         "Marketing": "Marketing",
         "Media Production": "Media Production",
         "Other": "Other",
@@ -743,7 +744,7 @@
         "Sign in to access this organization's documents.": "Sign in to access this organization's documents.",
         "Signed out{{suffix}}": "Signed out{{suffix}}",
         "Something went wrong": "Something went wrong",
-        "The requested page could not be found.{{separator}}Please check the URL and try again.": "The requested page could not be found.{{separator}}Please check the URL and try again.",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Could not find the requested page.{{separator}}Please check the URL and try again.",
         "There was an error: {{message}}": "There was an error: {{message}}",
         "There was an unknown error.": "There was an unknown error.",
         "You are now signed out.": "You are now signed out.",
@@ -769,7 +770,7 @@
     },
     "modals": {
         "Cancel": "Cancel",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Save"
     },
     "pages": {
@@ -878,7 +879,7 @@
         "editingFormula is required": "editingFormula is required"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[link label] url"
+        "[link label] url": "[link label] URL"
     },
     "NumericTextBox": {
         "Currency": "Currency",

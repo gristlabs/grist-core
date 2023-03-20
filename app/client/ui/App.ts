@@ -218,6 +218,20 @@ export class App extends DisposableWithEvents {
     this._mostRecentDocPageModel = pageModel;
   }
 
+  /**
+   * This method is not called anywhere, it is here just to introduce
+   * a special translation key. The purpose of this key is to let translators
+   * control whether a translation is ready to be offered to the user.
+   *
+   * If the key has not been translated for a language, and the language
+   * is not the default language, then the language should not be offered
+   * or used (unless some flag is set). TODO: implement this once key
+   * is available in weblate and good translations have been updated.
+   */
+  public checkSpecialTranslationKey() {
+    return t('Translators: please translate this only when your language is ready to be offered to users');
+  }
+
   // Get the user profile for testing purposes
   public async testGetProfile(): Promise<any> {
     const resp = await fetchFromHome('/api/profile/user', {credentials: 'include'});

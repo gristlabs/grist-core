@@ -1,8 +1,8 @@
 {
     "ACUserManager": {
-        "Enter email address": "Digite seu email",
+        "Enter email address": "Digite o endereço de e-mail",
         "Invite new member": "Convidar novo membro",
-        "We'll email an invite to {{email}}": "Enviaremos um convite por e-mail para {{email}}"
+        "We'll email an invite to {{email}}": "Um convite será enviado por e-mail para {{email}}"
     },
     "AccessRules": {
         "Add Column Rule": "Adicionar Regra de Coluna",
@@ -95,7 +95,8 @@
     "App": {
         "Description": "Descrição",
         "Key": "Chave",
-        "Memory Error": "Erro de Memória"
+        "Memory Error": "Erro de Memória",
+        "Translators: please translate this only when your language is ready to be offered to users": "Tradutores: por favor, traduzam isso apenas quando seu idioma estiver pronto para ser oferecido aos usuários"
     },
     "AppHeader": {
         "Home Page": "Página inicial",
@@ -277,7 +278,7 @@
         "Save and Reload": "Salvar e Recarregar",
         "This document's ID (for API use):": "O ID deste documento (para uso em API):",
         "Time Zone:": "Fuso horário:",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Document ID copied to clipboard": "ID do documento copiado para a área de transferência",
         "API": "API"
     },
@@ -712,7 +713,7 @@
         "Unmark table On-Demand?": "Desmarcar a tabela Sob-Demanda?"
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Classificação e Filtros Avançados",
+        "Advanced Sort & Filter": "Classificação e filtragem avançadas",
         "Copy anchor link": "Copiar o link de ancoragem",
         "Data selection": "Seleção de dados",
         "Delete record": "Excluir registro",
@@ -825,7 +826,7 @@
     },
     "modals": {
         "Cancel": "Cancelar",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Salvar"
     },
     "pages": {
@@ -940,7 +941,7 @@
         "Error in the cell": "Erro na célula"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[rótulo do link] url"
+        "[link label] url": "[rótulo do link] URL"
     },
     "NumericTextBox": {
         "Currency": "Moeda",

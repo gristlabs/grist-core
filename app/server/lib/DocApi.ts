@@ -36,6 +36,7 @@ import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
 import {downloadCSV} from "app/server/lib/ExportCSV";
 import {downloadXLSX} from "app/server/lib/ExportXLSX";
+import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
@@ -869,6 +870,26 @@ export class DocWorkerApi {
       const uploadId = integerParam(req.body.uploadId, 'uploadId');
       const result = await this._docManager.importDocToWorkspace(userId, uploadId, wsId, req.body.browserSettings);
       res.json(result);
+    }));
+
+    this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
+      const doc = await this._dbManager.getDoc(req);
+      const options = this._getDownloadOptions(req, doc.name);
+      const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
+      const apiPath = await this._grist.getResourceUrl(doc, 'api');
+      const query = new URLSearchParams(req.query as {[key: string]: string});
+      const tableSchemaPath = `${apiPath}/download/csv?${query.toString()}`;
+      res.send({
+        format: "csv",
+        mediatype: "text/csv",
+        encoding: "utf-8",
+        path: tableSchemaPath,
+        dialect: {
+          delimiter: ",",
+          doubleQuote: true,
+        },
+        ...tableSchema,
+      });
     }));
 
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {

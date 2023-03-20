@@ -370,7 +370,7 @@ export interface UserAPI {
 }
 
 /**
- * Parameters for the download CSV and XLSX endpoint (/download/csv & /download/csv).
+ * Parameters for the download CSV and XLSX endpoint (/download/table-schema & /download/csv & /download/csv).
  */
  export interface DownloadDocParams {
   tableId: string;
@@ -418,6 +418,7 @@ export interface DocAPI {
   getDownloadUrl(template?: boolean): string;
   getDownloadXlsxUrl(params?: DownloadDocParams): string;
   getDownloadCsvUrl(params: DownloadDocParams): string;
+  getDownloadTableSchemaUrl(params: DownloadDocParams): string;
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
    * acquire "code" via Google Auth Endpoint (see ShareMenu.ts for an example).
@@ -918,6 +919,11 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public getDownloadCsvUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
     return this._url + '/download/csv?' + encodeQueryParams({...params});
+  }
+
+  public getDownloadTableSchemaUrl(params: DownloadDocParams) {
+    // We spread `params` to work around TypeScript being overly cautious.
+    return this._url + '/download/table-schema?' + encodeQueryParams({...params});
   }
 
   public async sendToDrive(code: string, title: string): Promise<{url: string}> {

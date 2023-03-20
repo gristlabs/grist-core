@@ -823,5 +823,144 @@
     },
     "ChoiceTextBox": {
         "CHOICES": "WYBORY"
+    },
+    "FormulaEditor": {
+        "Error in the cell": "Błąd w komórce",
+        "editingFormula is required": "edycja Formuły jest wymagana",
+        "Column or field is required": "Kolumna lub pole jest wymagane",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Błędy w {{numErrors}} komórek {{numCells}}",
+        "Errors in all {{numErrors}} cells": "Błędy we wszystkich komórkach {{numErrors}}"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "Nie można zakończyć zapisywania edytowanej komórki",
+        "It should be impossible to save a plain data value into a formula column": "Zapisanie zwykłej wartości danych w kolumnie formuły powinno być niemożliwe"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[etykieta linku] url"
+    },
+    "NumericTextBox": {
+        "Decimals": "Miejsc dziesiętnych",
+        "Default currency ({{defaultCurrency}})": "Waluta domyślna ({{defaultCurrency}})",
+        "Number Format": "Format liczb",
+        "Currency": "Waluta:"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Dodaj kolejną regułę",
+        "Add conditional style": "Dodaj styl warunkowy",
+        "Error in style rule": "Błąd w regule stylu",
+        "Row Style": "Styl wiersza",
+        "Rule must return True or False": "Reguła musi zwracać wartość Prawda lub Fałsz"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Nieprawidłowa waluta"
+    },
+    "DiscussionEditor": {
+        "Only current page": "Tylko bieżąca strona",
+        "Remove": "Usuń",
+        "Resolve": "Rozwiązać",
+        "Save": "Zapisać",
+        "Showing last {{nb}} comments": "Wyświetlanie ostatnich {{nb}} komentarzy",
+        "Started discussion": "Rozpoczęto dyskusję",
+        "Write a comment": "Napisz komentarz",
+        "Only my threads": "Tylko moje wątki",
+        "Open": "Otwórz",
+        "Reply to a comment": "Odpowiedz na komentarz",
+        "Show resolved comments": "Pokaż rozwiązane komentarze",
+        "Cancel": "Anulować",
+        "Comment": "Komentarz",
+        "Edit": "Edytuj",
+        "Marked as resolved": "Oznaczone jako rozwiązane",
+        "Reply": "Odpowiedź"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Konwertuj kolumnę na formułę"
+    },
+    "FieldBuilder": {
+        "Apply Formula to Data": "Zastosuj formułę do danych",
+        "CELL FORMAT": "FORMAT KOMÓRKI",
+        "DATA FROM TABLE": "DANE Z TABELI",
+        "Mixed format": "Format mieszany",
+        "Mixed types": "Rodzaje mieszane",
+        "Save field settings for {{colId}} as common": "Zapisz ustawienia pola dla {{colId}} jako typowe",
+        "Use separate field settings for {{colId}}": "Użyj oddzielnych ustawień pól dla {{colId}}",
+        "Revert field settings for {{colId}} to common": "Przywróć ustawienia pola dla {{colId}} do wspólnych",
+        "Changing multiple column types": "Zmienianie wielu typów kolumn"
+    },
+    "Reference": {
+        "CELL FORMAT": "FORMAT KOMÓRKI",
+        "Row ID": "Identyfikator wiersza",
+        "SHOW COLUMN": "POKAŻ KOLUMNĘ"
+    },
+    "welcomeTour": {
+        "Add New": "Dodaj nowy",
+        "Building up": "Budowanie",
+        "Flying higher": "Latanie wyżej",
+        "Help Center": "Centrum pomocy",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Spraw, aby był relacyjny! Użyj typu {{ref}}, aby połączyć tabele. ",
+        "Reference": "Odnośnik",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Ustaw opcje formatowania, formuły lub typy kolumn, takie jak daty, wybory lub załączniki. ",
+        "Sharing": "Udostępnianie",
+        "Start with {{equal}} to enter a formula.": "Zacznij od {{equal}}, aby wprowadzić formułę.",
+        "convert to card view, select data, and more.": "Konwertuj na widok karty, wybierz Dane i nie tylko.",
+        "creator panel": "Panel tworzenia",
+        "template library": "Biblioteka szablonów",
+        "Configuring your document": "Konfigurowanie dokumentu",
+        "Customizing columns": "Dostosowywanie kolumn",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Kliknij dwukrotnie lub naciśnij {{enter}} na komórkę, aby ją edytować. ",
+        "Enter": "Wejść",
+        "Editing Data": "Edycja danych",
+        "Welcome to Grist!": "Witamy w Grist!",
+        "Use {{helpCenter}} for documentation or questions.": "Użyj {{helpCenter}} do dokumentacji lub pytań.",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Przeglądaj nasze {{templateLibrary}}, aby odkryć, co jest możliwe i zainspirować się.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Przełącz {{creatorPanel}}, aby sformatować kolumny, ",
+        "Share": "Udostępnij",
+        "Use the Share button ({{share}}) to share the document or export data.": "Użyj przycisku Udostępnij ({{share}}), aby udostępnić dokument lub wyeksportować dane.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Użyj {{addNew}}, aby dodać widżety, strony lub zaimportować więcej danych. "
+    },
+    "GristTooltips": {
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Kliknij na \"Otwórz style wierszy\", aby zastosować formatowanie warunkowe do wierszy.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Kliknij przycisk Dodaj nowy, aby utworzyć nowe dokumenty lub obszary robocze albo zaimportować dane.",
+        "Learn more.": "Dowiedz się więcej.",
+        "Link your new widget to an existing widget on this page.": "Połącz swój nowy widget z istniejącym widgetem na tej stronie.",
+        "Nested Filtering": "Filtrowanie zagnieżdżone",
+        "Pinned filters are displayed as buttons above the widget.": "Przypięte filtry są wyświetlane jako przyciski nad widżetem.",
+        "Pinning Filters": "Przypinanie filtrów",
+        "Raw Data page": "Strona z danymi surowymi",
+        "Reference Columns": "Kolumny referencyjne",
+        "Select the table containing the data to show.": "Wybierz tabelę zawierającą dane do wyświetlenia.",
+        "Select the table to link to.": "Wybierz tabelę, do której chcesz utworzyć łącze.",
+        "Selecting Data": "Wybieranie danych",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "Strona Dane surowe zawiera listę wszystkich tabel danych w dokumencie, w tym tabel podsumowania i tabel nieuwzględnionych w układach stron.",
+        "The total size of all data in this document, excluding attachments.": "Całkowity rozmiar wszystkich danych w tym dokumencie, z wyłączeniem załączników.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Wypróbuj zmiany w kopii, a następnie zdecyduj, czy zastąpić oryginał zmianami.",
+        "Unpin to hide the the button while keeping the filter.": "Odepnij, aby ukryć przycisk, zachowując filtr.",
+        "You can filter by more than one column.": "Możesz filtrować według więcej niż jednej kolumny.",
+        "entire": "cały",
+        "Editing Card Layout": "Edytuj układ karty",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formuły, które wyzwalają się w określonych przypadkach i przechowują obliczoną wartość jako dane.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Przydatne do przechowywania znacznika czasu lub autora nowego rekordu, czyszczenia danych i nie tylko.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Zastosuj formatowanie warunkowe do komórek w tej kolumnie, gdy spełnione są warunki formuły.",
+        "Apply conditional formatting to rows based on formulas.": "Zastosuj formatowanie warunkowe do wierszy na podstawie formuł.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Komórki w kolumnie odwołania zawsze identyfikują rekord {{entire}} w tej tabeli, ale można wybrać kolumnę z tego rekordu do wyświetlenia.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Kliknięcie {{EyeHideIcon}} w każdej komórce powoduje ukrycie pola w tym widoku bez jego usuwania.",
+        "Only those rows will appear which match all of the filters.": "Pojawią się tylko te wiersze, które pasują do wszystkich filtrów.",
+        "Linking Widgets": "Połączenie widżetów",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Zmień kolejność pól na karcie, przeciągając komórki i zmieniając ich rozmiar.",
+        "Reference columns are the key to {{relational}} data in Grist.": "Kolumny referencyjne są kluczem do {{relational}} danych w Grist.",
+        "They allow for one record to point (or refer) to another.": "Pozwalają one na to, aby jeden rekord wskazywał (lub odnosił się) do innego.",
+        "This is the secret to Grist's dynamic and productive layouts.": "To jest sekret dynamicznych i produktywnych układów Grist.",
+        "Updates every 5 minutes.": "Aktualizacje co 5 minut.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Użyj ikony Σ, aby utworzyć tabele podsumowujące (lub przestawne) dla sum lub sum częściowych.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Użyj ikony \\u{1D6BA}, aby utworzyć tabele podsumowujące (przestawne) dla sum lub sum częściowych.",
+        "relational": "relacyjny",
+        "Access Rules": "Zasady dostępu",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Reguły dostępu umożliwiają tworzenie reguł szczegółowych w celu określenia, kto może wyświetlać lub edytować poszczególne części dokumentu.",
+        "Add New": "Dodaj nowy"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "OPIS"
+    },
+    "LanguageMenu": {
+        "Language": "Język"
     }
 }
