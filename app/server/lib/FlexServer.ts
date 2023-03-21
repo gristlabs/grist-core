@@ -7,7 +7,7 @@ import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
-import {ApiServer} from 'app/gen-server/ApiServer';
+import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Workspace} from 'app/gen-server/entity/Workspace';
@@ -20,8 +20,8 @@ import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
-import {addRequestUser, getUser, getUserId, isSingleUserMode,
-        redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
+import {addRequestUser, getUser, getUserId, isAnonymousUser,
+        isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
@@ -963,32 +963,16 @@ export class FlexServer implements GristServer {
     // should be factored out of it.
     this.addComm();
 
-    async function redirectToLoginOrSignup(
-      this: FlexServer, signUp: boolean|null, req: express.Request, resp: express.Response,
-    ) {
-      const mreq = req as RequestWithLogin;
-
-      // This will ensure that express-session will set our cookie if it hasn't already -
-      // we'll need it when we redirect back.
-      forceSessionChange(mreq.session);
-      // Redirect to the requested URL after successful login.
-      const nextPath = optStringParam(req.query.next);
-      const nextUrl = new URL(getOrgUrl(req, nextPath));
-      if (signUp === null) {
-        // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
-        // user has ever logged in on this browser.
-        signUp = (mreq.session.users === undefined);
-      }
-      const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-      resp.redirect(await getRedirectUrl(req, nextUrl));
-    }
-
     const signinMiddleware = this._loginMiddleware.getLoginOrSignUpMiddleware ?
       this._loginMiddleware.getLoginOrSignUpMiddleware() :
       [];
-    this.app.get('/login', ...signinMiddleware, expressWrap(redirectToLoginOrSignup.bind(this, false)));
-    this.app.get('/signup', ...signinMiddleware, expressWrap(redirectToLoginOrSignup.bind(this, true)));
-    this.app.get('/signin', ...signinMiddleware, expressWrap(redirectToLoginOrSignup.bind(this, null)));
+    this.app.get('/login', ...signinMiddleware, expressWrap(this._redirectToLoginOrSignup.bind(this, {
+      signUp: false,
+    })));
+    this.app.get('/signup', ...signinMiddleware, expressWrap(this._redirectToLoginOrSignup.bind(this, {
+      signUp: true,
+    })));
+    this.app.get('/signin', ...signinMiddleware, expressWrap(this._redirectToLoginOrSignup.bind(this, {})));
 
     if (allowTestLogin()) {
       // This is an endpoint for the dev environment that lets you log in as anyone.
@@ -1210,6 +1194,37 @@ export class FlexServer implements GristServer {
     // These are some special-purpose welcome pages, with no middleware.
     this.app.get(/\/welcome\/(signup|verify|teams|select-account)/, expressWrap(async (req, resp, next) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}, googleTagManager: 'anon'});
+    }));
+
+    /**
+     * A nuanced redirecting endpoint. For example, on docs.getgrist.com it does:
+     * 1) If logged in and no team site -> https://docs.getgrist.com/
+     * 2) If logged in and has team sites -> https://docs.getgrist.com/welcome/teams
+     * 3) If logged out but has a cookie -> /login, then 1 or 2
+     * 4) If entirely unknown -> /signup
+     */
+    this.app.get('/welcome/start', [
+      this._redirectToHostMiddleware,
+      this._userIdMiddleware,
+    ], expressWrap(async (req, resp, next) => {
+      if (isAnonymousUser(req)) {
+        return this._redirectToLoginOrSignup({
+          nextUrl: new URL(getOrgUrl(req, '/welcome/start')),
+        }, req, resp);
+      } else {
+        const userId = getUserId(req);
+        const domain = getOrgFromRequest(req);
+        const orgs = this._dbManager.unwrapQueryResult(
+          await this._dbManager.getOrgs(userId, domain, {
+            ignoreEveryoneShares: true,
+          })
+        );
+        if (orgs.length > 1) {
+          resp.redirect(getOrgUrl(req, '/welcome/teams'));
+        } else {
+          resp.redirect(getOrgUrl(req));
+        }
+      }
     }));
 
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
@@ -1726,6 +1741,40 @@ export class FlexServer implements GristServer {
     }
   }
 
+  /**
+   * If signUp is true, redirect to signUp.
+   * If signUp is false, redirect to login.
+   * If signUp is not set, redirect to signUp if no cookie found, else login.
+   *
+   * If nextUrl is not supplied, it will be constructed from a path in
+   * the "next" query parameter.
+   */
+  private async _redirectToLoginOrSignup(
+    options: {
+      signUp?: boolean, nextUrl?: URL,
+    },
+    req: express.Request, resp: express.Response,
+  ) {
+    let {nextUrl, signUp} = options;
+
+    const mreq = req as RequestWithLogin;
+
+    // This will ensure that express-session will set our cookie if it hasn't already -
+    // we'll need it when we redirect back.
+    forceSessionChange(mreq.session);
+    // Redirect to the requested URL after successful login.
+    if (!nextUrl) {
+      const nextPath = optStringParam(req.query.next);
+      nextUrl = new URL(getOrgUrl(req, nextPath));
+    }
+    if (signUp === undefined) {
+      // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
+      // user has ever logged in on this browser.
+      signUp = (mreq.session.users === undefined);
+    }
+    const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
+    resp.redirect(await getRedirectUrl(req, nextUrl));
+  }
 }
 
 /**

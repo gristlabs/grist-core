@@ -2,7 +2,7 @@
     "ACUserManager": {
         "Enter email address": "Enter e-mail address",
         "Invite new member": "Invite new member",
-        "We'll email an invite to {{email}}": "An invite will be e-mailed to {{email}}"
+        "We'll email an invite to {{email}}": "We'll email an invite to {{email}}"
     },
     "AccessRules": {
         "Add Column Rule": "Add Column Rule",
@@ -366,7 +366,7 @@
         "Hide {{count}} columns_one": "Hide column",
         "Hide {{count}} columns_other": "Hide {{count}} columns",
         "Insert column to the {{to}}": "Insert column to the {{to}}",
-        "More sort options ...": "More sorting options…",
+        "More sort options ...": "More sort options…",
         "Rename column": "Rename column",
         "Reset {{count}} columns_one": "Reset column",
         "Reset {{count}} columns_other": "Reset {{count}} columns",
@@ -534,7 +534,7 @@
         "Select Widget": "Select Widget",
         "Series_one": "Series",
         "Series_other": "Series",
-        "Sort & Filter": "Sort and Filter",
+        "Sort & Filter": "Sort & Filter",
         "TRANSFORM": "TRANSFORM",
         "Theme": "Theme",
         "WIDGET TITLE": "WIDGET TITLE",
@@ -637,7 +637,7 @@
         "No Default Access": "No Default Access",
         "None": "None",
         "Owner": "Owner",
-        "View & Edit": "View and Edit",
+        "View & Edit": "View & Edit",
         "View Only": "View Only",
         "Viewer": "Viewer"
     },
@@ -661,7 +661,7 @@
         "Unmark On-Demand": "Unmark On-Demand"
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Advanced Sorting and Filtering",
+        "Advanced Sort & Filter": "Advanced Sort & Filter",
         "Copy anchor link": "Copy anchor link",
         "Data selection": "Data selection",
         "Delete record": "Delete record",
