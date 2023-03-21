@@ -97,6 +97,9 @@ function DetailView(gristDoc, viewSectionModel) {
   this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
     if (
       elem === this.lastFieldSelected
+      // Trick to avoid event to be triggered in other context,
+      // and the error `UnexpectedAlertOpenError: unexpected alert open: {Alert text : }`
+      && elem.querySelector(".g_record_detail_el ")
       && simpleClickUnacceptedSelectors.reduce((formula, current) => formula && !elem.querySelector(current), true)
     ) {
       this.activateEditorAtCursor();
