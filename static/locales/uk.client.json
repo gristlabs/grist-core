@@ -310,7 +310,7 @@
         "Remove column {{- colId }} from {{- tableId }} rules": "Видалити стовпець {{- colId }} з правил {{- tableId }}",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При додаванні правил таблиці, автоматично додавати правило для надання ВЛАСНИКУ повного доступу.",
         "Seed rules": "Успадковані правила",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити всім копіювати весь документ або переглянути його повністю в fiddle-режимі (режимі створення нових копій).\nКорисно для прикладів і шаблонів, але не для конфіденційних даних."
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних."
     },
     "AccountPage": {
         "API": "API",
