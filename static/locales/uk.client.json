@@ -198,7 +198,11 @@
         "Clear": "Очистити",
         "Cannot drop items into Hidden Fields": "Неможливо перенести елементи у приховані поля",
         "Hidden Fields cannot be reordered": "Приховані поля не можна перевпорядкувати",
-        "Select All": "Виділити всі"
+        "Select All": "Виділити всі",
+        "Show {{label}}": "Показати {{label}}",
+        "Visible {{label}}": "Видимі {{label}}",
+        "Hide {{label}}": "Приховати {{label}}",
+        "Hidden {{label}}": "Приховані {{label}}"
     },
     "TriggerFormulas": {
         "Apply to new records": "Застосувати до нових записів",
@@ -223,7 +227,7 @@
     },
     "ChartView": {
         "Pick a column": "Виберіть стовпець",
-        "selected new group data columns": "вибрані стовпці даних нової групи",
+        "selected new group data columns": "вибрана нова група стовпців даних",
         "Create separate series for each value of the selected column.": "Створіть окремі серії для кожного значення вибраного стовпця.",
         "Toggle chart aggregation": "Перемикання створення діаграм",
         "Each Y series is followed by a series for the length of error bars.": "За кожною серією Y слідує серія для довжини стовпців помилок.",
@@ -292,7 +296,7 @@
         "Permission to view Access Rules": "Дозвіл на перегляд правил доступу",
         "Rules for table ": "Правила для таблиці ",
         "Save": "Зберегти",
-        "Lookup Table": "Таблиця пошуку",
+        "Lookup Table": "Пошукова таблиця",
         "Lookup Column": "Стовпець пошуку",
         "Saved": "Збережено",
         "Special Rules": "Особливі правила",
@@ -366,7 +370,8 @@
     "App": {
         "Description": "Опис",
         "Key": "Ключ",
-        "Memory Error": "Помилка памʼяті"
+        "Memory Error": "Помилка памʼяті",
+        "Translators: please translate this only when your language is ready to be offered to users": "Перекладачі: будь ласка, перекладайте це тільки тоді, коли ваша мова буде готова для користувачів"
     },
     "AppHeader": {
         "Home Page": "Домашня сторінка",
@@ -481,7 +486,7 @@
         "This document's ID (for API use):": "Ідентифікатор цього документа (для використання API):",
         "API": "API",
         "Document ID copied to clipboard": "Ідентифікатор документа скопійований у буфер",
-        "Ok": "Ок",
+        "Ok": "ОК",
         "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):"
     },
     "DocTour": {
@@ -685,7 +690,9 @@
         "Open configuration": "Відкрита конфігурація",
         "Print widget": "Роздрукувати віджет",
         "Show raw data": "Показати вихідні дані",
-        "Widget options": "Параметри віджету"
+        "Widget options": "Параметри віджету",
+        "Add to page": "Додати на сторінку",
+        "Collapse widget": "Згорнути віджет"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Цей сайт команди обмежений. Документи можна читати, але редагування не доступне."
@@ -741,17 +748,29 @@
         "You are now signed out.": "Ви вийшли з облікового запису.",
         "You do not have access to this organization's documents.": "У вас немає доступу до документів цієї організації.",
         "Sign in to access this organization's documents.": "Увійдіть, щоб отримати доступ до документів цієї організації.",
-        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Потрібну сторінку не знайдено.{{separator}}Перевірте URL-адресу та повторіть ще раз.",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Не вдалося знайти запитувану сторінку.{{separator}}Будь ласка, перевірте URL-адресу і спробуйте ще раз.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Ви увійшли як {{email}}. Ви можете увійти під іншим обліковим записом або попросити доступ у адміністратора."
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Робочі простори доступні в командних тарифах. ",
         "Select fields": "Виберіть поля",
-        "Upgrade now": "Оновити зараз"
+        "Upgrade now": "Оновити зараз",
+        "Any": "Будь-які",
+        "Numeric": "Числа",
+        "Text": "Текст",
+        "Integer": "Цілі числа",
+        "Toggle": "Перемикач",
+        "Date": "Дата",
+        "Choice": "Вибір",
+        "Choice List": "Список вибору",
+        "Reference": "Посилання",
+        "DateTime": "Дата і час",
+        "Reference List": "Список посилань",
+        "Attachment": "Вкладення"
     },
     "modals": {
         "Cancel": "Відмінити",
-        "Ok": "Ок",
+        "Ok": "ОК",
         "Save": "Зберегти"
     },
     "pages": {
@@ -857,7 +876,7 @@
         "Errors in {{numErrors}} of {{numCells}} cells": "Помилки в {{numErrors}} в {{numCells}} клітинках"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[link label] url"
+        "[link label] url": "[мітка посилання] URL"
     },
     "NumericTextBox": {
         "Currency": "Валюта",
@@ -941,5 +960,8 @@
         "You can filter by more than one column.": "Ви можете фільтрувати за кількома стовпцями.",
         "Try out changes in a copy, then decide whether to replace the original with your edits.": "Спробуйте змінити копію, а потім вирішіть, чи слід замінювати оригінал своїми правками.",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Правила доступу дають вам можливість створювати детальні правила, щоб визначити, хто може бачити або редагувати (та які) частини вашого документа."
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "ОПИС"
     }
 }
