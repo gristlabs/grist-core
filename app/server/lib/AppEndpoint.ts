@@ -231,8 +231,12 @@ export function attachAppEndpoint(options: AttachOptions): void {
       // Query DB for the doc metadata, to include in the page (as a pre-fetch of getDoc() call),
       // and to get fresh (uncached) access info.
       doc = await dbManager.getDoc({userId, org: mreq.org, urlId});
-      const slug = getSlugIfNeeded(doc);
+      if (isAnonymousUser(mreq) && doc.type === 'tutorial') {
+        // Tutorials require users to be signed in.
+        throw new ApiError('You must be signed in to access a tutorial.', 403);
+      }
 
+      const slug = getSlugIfNeeded(doc);
       const slugMismatch = (req.params.slug || null) !== (slug || null);
       const preferredUrlId = doc.urlId || doc.id;
       if (urlId !== preferredUrlId || slugMismatch) {
@@ -263,8 +267,8 @@ export function attachAppEndpoint(options: AttachOptions): void {
           // First check if anonymous user has access to this org.  If so, we don't propose
           // that they log in.  This is the same check made in redirectToLogin() middleware.
           const result = await dbManager.getOrg({userId: getUserId(mreq)}, mreq.org || null);
-          if (result.status !== 200) {
-            // Anonymous user does not have any access to this org, or to this doc.
+          if (result.status !== 200 || doc?.type === 'tutorial') {
+            // Anonymous user does not have any access to this org, doc, or tutorial.
             // Redirect to log in.
             return forceLogin(req, res, next);
           }

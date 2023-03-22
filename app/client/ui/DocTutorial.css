@@ -1,0 +1,96 @@
+.doc-tutorial-popup h1,
+.doc-tutorial-popup h2,
+.doc-tutorial-popup h3,
+.doc-tutorial-popup p,
+.doc-tutorial-popup li {
+  color: var(--grist-theme-text, #262633);
+}
+
+.doc-tutorial-popup h1 {
+  margin: 0px 0px 24px 0px;
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 40px;
+}
+
+.doc-tutorial-popup h2 {
+  margin: 20px 0px 10px 0px;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.doc-tutorial-popup h3 {
+  margin: 20px 0px 10px 0px;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.doc-tutorial-popup p {
+  margin: 0px 0px 16px 0px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.doc-tutorial-popup a,
+.doc-tutorial-popup a:hover {
+  color: var(--grist-theme-link, #16B378);
+}
+
+.doc-tutorial-popup li {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.doc-tutorial-popup ol,
+.doc-tutorial-popup ul {
+  margin: 0px 0px 10px 0px;
+}
+
+.doc-tutorial-popup code {
+  padding: 2px 5px;
+  background: #FFFFFF;
+  border: 1px solid #E1E4E5;
+  color: #333333;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.doc-tutorial-popup iframe {
+  border: none;
+}
+
+.doc-tutorial-popup-thumbnail {
+  position: relative;
+  margin: 20px 0px 30px 0px;
+  cursor: pointer;
+}
+
+.doc-tutorial-popup-thumbnail img {
+  width: 100%;
+  border: 1px solid var(--grist-theme-tutorials-popup-border, #D9D9D9);
+  border-radius: 4px;
+  padding: 4px;
+  background-color: transparent;
+}
+
+.doc-tutorial-popup-thumbnail-icon-wrapper {
+  pointer-events: none;
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  padding: 4px;
+  background-color: #D9D9D9;
+  border-radius: 4px;
+}
+
+.doc-tutorial-popup-thumbnail-icon {
+  mask-image: var(--icon-Maximize);
+  -webkit-mask-image: var(--icon-Maximize);
+  background-color: var(--grist-theme-accent-icon, var(--grist-color-light-green));
+  width: 16px;
+  height: 16px;
+}

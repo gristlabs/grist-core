@@ -44,6 +44,8 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuOriginal(doc, appModel, true),
         menuExports(doc, pageModel),
       ], {buttonAction: backToCurrent});
+    } else if (doc.isTutorialFork) {
+      return null;
     } else if (doc.isPreFork || doc.isBareFork) {
       // A new unsaved document, or a fiddle, or a public example.
       const saveActionTitle = doc.isBareFork ? t("Save Document") : t("Save Copy");

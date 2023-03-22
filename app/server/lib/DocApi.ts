@@ -9,7 +9,7 @@ import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
-import {HomeDBManager, makeDocAuthResult, QueryResult} from 'app/gen-server/lib/HomeDBManager';
+import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
 import GristDataTI from 'app/plugin/GristData-ti';
@@ -784,6 +784,27 @@ export class DocWorkerApi {
             'Content-Type': 'application/json',
           }
         });
+        if (req.body.resetTutorialMetadata) {
+          const scope = getDocScope(req);
+          const tutorialTrunkId = options.sourceDocId;
+          await this._dbManager.connection.transaction(async (manager) => {
+            // Fetch the tutorial trunk doc so we can replace the tutorial doc's name.
+            const tutorialTrunk = await this._dbManager.getRawDocById(tutorialTrunkId, manager);
+            await this._dbManager.updateDocument(
+              scope,
+              {
+                name: tutorialTrunk.name,
+                options: {
+                  tutorial: {
+                    // For now, the only state we need to reset is the slide position.
+                    lastSlideIndex: 0,
+                  },
+                },
+              },
+              manager
+            );
+          });
+        }
       }
       if (req.body.snapshotId) {
         options.snapshotId = String(req.body.snapshotId);
@@ -1216,12 +1237,7 @@ export class DocWorkerApi {
       ];
       await Promise.all(docsToDelete.map(docName => this._docManager.deleteDoc(null, docName, true)));
       // Permanently delete from database.
-      let query: QueryResult<number>;
-      if (forkId) {
-        query = await this._dbManager.deleteFork({...scope, urlId: forkId});
-      } else {
-        query = await this._dbManager.deleteDocument(scope);
-      }
+      const query = await this._dbManager.deleteDocument(scope);
       this._dbManager.checkQueryResult(query);
       await sendReply(req, res, query);
     } else {

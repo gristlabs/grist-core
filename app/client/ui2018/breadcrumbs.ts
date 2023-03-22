@@ -94,6 +94,7 @@ export function docBreadcrumbs(
     isDocNameReadOnly?: BindableValue<boolean>,
     isPageNameReadOnly?: BindableValue<boolean>,
     isFork: Observable<boolean>,
+    isTutorialFork: Observable<boolean>,
     isBareFork: Observable<boolean>,
     isFiddle: Observable<boolean>,
     isRecoveryMode: Observable<boolean>,
@@ -140,7 +141,7 @@ export function docBreadcrumbs(
         if (options.isSnapshot && use(options.isSnapshot)) {
           return cssTag(t("snapshot"), testId('snapshot-tag'));
         }
-        if (use(options.isFork)) {
+        if (use(options.isFork) && !use(options.isTutorialFork)) {
           return cssTag(t("unsaved"), testId('unsaved-tag'));
         }
         if (use(options.isRecoveryMode)) {

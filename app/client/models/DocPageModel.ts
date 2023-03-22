@@ -19,7 +19,7 @@ import {delay} from 'app/common/delay';
 import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
-import {IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
+import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit, isOwner} from 'app/common/roles';
 import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app/common/UserAPI';
@@ -39,6 +39,8 @@ export interface DocInfo extends Document {
   userOverride: UserOverride|null;
   isBareFork: boolean;  // a document created without logging in, which is treated as a
                         // fork without an original.
+  isTutorialTrunk: boolean;
+  isTutorialFork: boolean;
   idParts: UrlIdParts;
   openMode: OpenDocMode;
 }
@@ -70,6 +72,8 @@ export interface DocPageModel {
   isRecoveryMode: Observable<boolean>;
   userOverride: Observable<UserOverride|null>;
   isBareFork: Observable<boolean>;
+  isTutorialTrunk: Observable<boolean>;
+  isTutorialFork: Observable<boolean>;
 
   importSources: ImportSource[];
 
@@ -120,6 +124,10 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
                                                    (use, doc) => doc ? doc.isRecoveryMode : false);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
+  public readonly isTutorialTrunk = Computed.create(this, this.currentDoc,
+                                                    (use, doc) => doc ? doc.isTutorialTrunk : false);
+  public readonly isTutorialFork = Computed.create(this, this.currentDoc,
+                                                    (use, doc) => doc ? doc.isTutorialFork : false);
 
   public readonly importSources: ImportSource[] = [];
 
@@ -226,12 +234,22 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   }
 
   // Replace the URL without reloading the doc.
-  public updateUrlNoReload(urlId: string, urlOpenMode: OpenDocMode, options: {replace: boolean}) {
+  public updateUrlNoReload(
+    urlId: string,
+    urlOpenMode: OpenDocMode,
+    options: {removeSlug?: boolean, replaceUrl?: boolean} = {removeSlug: false, replaceUrl: true}
+  ) {
+    const {removeSlug, replaceUrl} = options;
     const state = urlState().state.get();
-    const nextState = {...state, doc: urlId, mode: urlOpenMode === 'default' ? undefined : urlOpenMode};
+    const nextState = {
+      ...state,
+      doc: urlId,
+      ...(removeSlug ? {slug: undefined} : undefined),
+      mode: urlOpenMode === 'default' ? undefined : urlOpenMode,
+    };
     // We preemptively update _openerDocKey so that the URL update doesn't trigger a reload.
     this._openerDocKey = this._getDocKey(nextState);
-    return urlState().pushUrl(nextState, {avoidReload: true, ...options});
+    return urlState().pushUrl(nextState, {avoidReload: true, replace: replaceUrl});
   }
 
   public offerRecovery(err: Error) {
@@ -283,15 +301,41 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     const gristDocModulePromise = loadGristDoc();
 
     const docResponse = await retryOnNetworkError(flow, getDoc.bind(null, this._api, urlId));
-    const doc = buildDocInfo(docResponse, urlOpenMode);
     flow.checkIfCancelled();
 
-    if (doc.urlId && doc.urlId !== urlId) {
-      // Replace the URL to reflect the canonical urlId.
-      await this.updateUrlNoReload(doc.urlId, doc.openMode, {replace: true});
-    }
+    let doc = buildDocInfo(docResponse, urlOpenMode);
+    if (doc.isTutorialTrunk) {
+      // We're loading a tutorial, so we need to prepare a URL to a fork of the
+      // tutorial. The URL will either be to an existing fork, or a new fork if this
+      // is the first time the user is opening the tutorial.
+      const fork = doc.forks?.[0];
+      let forkUrlId: string | undefined;
+      if (fork) {
+        // If a fork of this tutorial already exists, prepare to navigate to it.
+        forkUrlId = buildUrlId({
+          trunkId: doc.urlId || doc.id,
+          forkId: fork.id,
+          forkUserId: this.appModel.currentValidUser!.id
+        });
+      } else {
+        // Otherwise, create a new fork and prepare to navigate to it.
+        const forkResult = await this._api.getDocAPI(doc.id).fork();
+        flow.checkIfCancelled();
+        forkUrlId = forkResult.urlId;
+      }
+      // Remove the slug from the fork URL - they don't work with slugs.
+      await this.updateUrlNoReload(forkUrlId, 'default', {removeSlug: true});
+      await this.updateCurrentDoc(forkUrlId, 'default');
+      flow.checkIfCancelled();
+      doc = this.currentDoc.get()!;
+    } else {
+      if (doc.urlId && doc.urlId !== urlId) {
+        // Replace the URL to reflect the canonical urlId.
+        await this.updateUrlNoReload(doc.urlId, doc.openMode);
+      }
 
-    this.currentDoc.set(doc);
+      this.currentDoc.set(doc);
+    }
 
     // Maintain a connection to doc-worker while opening a document. After it's opened, the DocComm
     // object created by GristDoc will maintain the connection.
@@ -316,7 +360,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       // The current document has been forked, and should now be referred to using a new docId.
       const currentDoc = this.currentDoc.get();
       if (currentDoc) {
-        await this.updateUrlNoReload(newUrlId, 'default', {replace: false});
+        // Remove the slug from the fork URL - they don't work with slugs.
+        await this.updateUrlNoReload(newUrlId, 'default', {removeSlug: true, replaceUrl: false});
         await this.updateCurrentDoc(newUrlId, 'default');
       }
     });
@@ -396,6 +441,8 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
 
   const isPreFork = (openMode === 'fork');
   const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
+  const isTutorialTrunk = !isFork && doc.type === 'tutorial' && mode !== 'default';
+  const isTutorialFork = isFork && doc.type === 'tutorial';
   const isEditable = canEdit(doc.access) || isPreFork;
   return {
     ...doc,
@@ -404,6 +451,8 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
     userOverride: null,     // ditto.
     isPreFork,
     isBareFork,
+    isTutorialTrunk,
+    isTutorialFork,
     isReadonly: !isEditable,
     idParts,
     openMode,

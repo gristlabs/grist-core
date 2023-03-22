@@ -451,6 +451,11 @@ export interface ThemeColors {
   'date-picker-range-start-end-bg-hover': string;
   'date-picker-range-bg': string;
   'date-picker-range-bg-hover': string;
+
+  /* Tutorials */
+  'tutorials-popup-border': string;
+  'tutorials-popup-header-fg': string;
+  'tutorials-popup-box-bg': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

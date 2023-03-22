@@ -14,6 +14,7 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
   // Page is hidden when any of this is true:
   // - It has an empty name (or no name at all)
   // - It is GristDocTour (unless user wants to see it)
+  // - It is GristDocTutorial (and the document is a tutorial fork)
   // - It is a page generated for a hidden table TODO: Follow up - don't create
   //   pages for hidden tables.
   // This is used currently only the left panel, to hide pages from the user.
@@ -26,7 +27,11 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
       const primaryTable = tables.find(t => t.primaryViewId() === viewId);
       return !!primaryTable && primaryTable.tableId()?.startsWith("GristHidden_");
     };
-    return (name === 'GristDocTour' && !docModel.showDocTourTable) || isTableHidden();
+    return (
+      (name === 'GristDocTour' && !docModel.showDocTourTable) ||
+      (name === 'GristDocTutorial' && !docModel.showDocTutorialTable) ||
+      isTableHidden()
+    );
   });
   this.isHidden = ko.pureComputed(() => {
     return this.isCensored() || this.isSpecial();

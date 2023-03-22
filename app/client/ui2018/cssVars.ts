@@ -694,6 +694,13 @@ export const theme = {
     colors.mediumGreyOpaque),
   datePickerRangeBgHover: new CustomProp('theme-date-picker-range-bg-hover', undefined,
     colors.darkGrey),
+
+  /* Tutorials */
+  tutorialsPopupBorder: new CustomProp('theme-tutorials-popup-border', undefined,
+    colors.darkGrey),
+  tutorialsPopupHeaderFg: new CustomProp('theme-tutorials-popup-header-fg', undefined,
+    colors.lightGreen),
+  tutorialsPopupBoxBg: new CustomProp('theme-tutorials-popup-box-bg', undefined, '#F5F5F5'),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

@@ -19,13 +19,16 @@ import * as koArray from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DocData} from 'app/client/models/DocData';
+import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import MetaRowModel from 'app/client/models/MetaRowModel';
 import MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
+import {TableData} from 'app/client/models/TableData';
 import {isHiddenTable, isSummaryTable} from 'app/common/isHiddenTable';
 import {RowFilterFunc} from 'app/common/RowFilterFunc';
 import {schema, SchemaTypes} from 'app/common/schema';
+import {UIRowId} from 'app/common/UIRowId';
 
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
@@ -41,6 +44,7 @@ import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/V
 import {CellRec, createCellRec} from 'app/client/models/entities/CellRec';
 import {RefListValue} from 'app/common/gristTypes';
 import {decodeObject} from 'app/plugin/objtypes';
+import { toKo } from 'grainjs';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
@@ -129,10 +133,12 @@ export class DocModel {
 
   public docInfoRow: DocInfoRec;
 
+  public allTables: KoArray<TableRec>;
   public visibleTables: KoArray<TableRec>;
   public rawDataTables: KoArray<TableRec>;
   public rawSummaryTables: KoArray<TableRec>;
 
+  public allTableIds: KoArray<string>;
   public visibleTableIds: KoArray<string>;
 
   // A mapping from tableId to DataTableModel for user-defined tables.
@@ -151,14 +157,21 @@ export class DocModel {
   // Flag for tracking whether document is in formula-editing mode
   public editingFormula: ko.Observable<boolean> = ko.observable(false);
 
+  // If the doc has a docTour. Used also to enable the UI button to restart the tour.
+  public readonly hasDocTour: ko.Computed<boolean>;
+
+  public readonly isTutorial: ko.Computed<boolean>;
+
   // TODO This is a temporary solution until we expose creation of doc-tours to users. This flag
   // is initialized once on page load. If set, then the tour page (if any) will be visible.
   public showDocTourTable: boolean = (urlState().state.get().docPage === 'GristDocTour');
 
+  public showDocTutorialTable: boolean = !this._docPageModel.isTutorialFork.get();
+
   // List of all the metadata tables.
   private _metaTables: Array<MetaTableModel<any>>;
 
-  constructor(public readonly docData: DocData) {
+  constructor(public readonly docData: DocData, private readonly _docPageModel: DocPageModel) {
     // For all the metadata tables, load their data (and create the RowModels).
     for (const model of this._metaTables) {
       model.loadData();
@@ -166,13 +179,20 @@ export class DocModel {
 
     this.docInfoRow = this.docInfo.getRowModel(1);
 
+    // An observable array of all tables, sorted by tableId, with no exclusions.
+    this.allTables = this._createAllTablesArray();
+
     // An observable array of user-visible tables, sorted by tableId, excluding summary tables.
     // This is a publicly exposed member.
-    this.visibleTables = createVisibleTablesArray(this.tables);
+    this.visibleTables = this._createVisibleTablesArray();
 
     // Observable arrays of raw data and summary tables, sorted by tableId.
-    this.rawDataTables = createRawDataTablesArray(this.tables);
-    this.rawSummaryTables = createRawSummaryTablesArray(this.tables);
+    this.rawDataTables = this._createRawDataTablesArray();
+    this.rawSummaryTables = this._createRawSummaryTablesArray();
+
+    // An observable array of all tableIds. A shortcut mapped from allTables.
+    const allTableIds = ko.computed(() => this.allTables.all().map(t => t.tableId()));
+    this.allTableIds = koArray.syncedKoArray(allTableIds);
 
     // An observable array of user-visible tableIds. A shortcut mapped from visibleTables.
     const visibleTableIds = ko.computed(() => this.visibleTables.all().map(t => t.tableId()));
@@ -206,6 +226,12 @@ export class DocModel {
       return pagesToShow.filter(p => !hide(p));
     });
     this.visibleDocPages = ko.computed(() => allPages.all().filter(p => !p.isHidden()));
+
+    this.hasDocTour = ko.computed(() => this.visibleTableIds.all().includes('GristDocTour'));
+
+    this.isTutorial = ko.computed(() =>
+      toKo(ko, this._docPageModel.isTutorialFork)()
+      && this.allTableIds.all().includes('GristDocTutorial'));
   }
 
   private _metaTableModel<TName extends keyof SchemaTypes, TRow extends IRowModel<TName>>(
@@ -240,6 +266,42 @@ export class DocModel {
     delete this.dataTables[tid];
     this.dataTablesByRef.delete(tableMetaRow.getRowId());
   }
+
+  /**
+   * Returns an observable array of all tables, sorted by tableId.
+   */
+  private _createAllTablesArray(): KoArray<TableRec> {
+    return createTablesArray(this.tables);
+  }
+
+  /**
+   * Returns an observable array of user tables, sorted by tableId, and excluding hidden/summary
+   * tables.
+   */
+  private _createVisibleTablesArray(): KoArray<TableRec> {
+    return createTablesArray(this.tables, r =>
+      !isHiddenTable(this.tables.tableData, r) &&
+      (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable)
+    );
+  }
+
+  /**
+   * Returns an observable array of raw data tables, sorted by tableId, and excluding summary
+   * tables.
+   */
+  private _createRawDataTablesArray(): KoArray<TableRec> {
+    return createTablesArray(this.tables, r =>
+      !isSummaryTable(this.tables.tableData, r) &&
+      (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable)
+    );
+  }
+
+  /**
+   * Returns an observable array of raw summary tables, sorted by tableId.
+   */
+  private _createRawSummaryTablesArray(): KoArray<TableRec> {
+    return createTablesArray(this.tables, r => isSummaryTable(this.tables.tableData, r));
+  }
 }
 
 /**
@@ -258,24 +320,9 @@ function createTablesArray(
 }
 
 /**
- * Returns an observable array of user tables, sorted by tableId, and excluding hidden/summary
- * tables.
+ * Return whether a table (identified by the rowId of its metadata record) is
+ * the special GristDocTutorial table.
  */
-function createVisibleTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
-  return createTablesArray(tablesModel, r => !isHiddenTable(tablesModel.tableData, r));
-}
-
-/**
- * Returns an observable array of raw data tables, sorted by tableId, and excluding summary
- * tables.
- */
-function createRawDataTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
-  return createTablesArray(tablesModel, r => !isSummaryTable(tablesModel.tableData, r));
-}
-
-/**
- * Returns an observable array of raw summary tables, sorted by tableId.
- */
- function createRawSummaryTablesArray(tablesModel: MetaTableModel<TableRec>): KoArray<TableRec> {
-  return createTablesArray(tablesModel, r => isSummaryTable(tablesModel.tableData, r));
+function isTutorialTable(tablesData: TableData, tableRef: UIRowId): boolean {
+  return tablesData.getValue(tableRef, 'tableId') === 'GristDocTutorial';
 }

@@ -120,7 +120,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       );
     }),
     // Show the 'Tour of this Document' button if a GristDocTour table exists.
-    dom.maybe(gristDoc.hasDocTour, () =>
+    dom.maybe(use => use(gristDoc.docModel.hasDocTour) && !use(gristDoc.docModel.isTutorial), () =>
       cssSplitPageEntry(
         cssPageEntryMain(
           cssPageLink(cssPageIcon('Page'),

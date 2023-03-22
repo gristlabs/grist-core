@@ -119,6 +119,11 @@ export interface DocumentOptions {
   openMode?: OpenDocMode|null;
   externalId?: string|null;  // A slot for storing an externally maintained id.
                              // Not used in grist-core, but handy for Electron app.
+  tutorial?: TutorialMetadata|null;
+}
+
+export interface TutorialMetadata {
+  lastSlideIndex?: number;
 }
 
 export interface DocumentProperties extends CommonProperties {
@@ -129,7 +134,7 @@ export interface DocumentProperties extends CommonProperties {
   options: DocumentOptions|null;
 }
 
-export const documentPropertyKeys = [...commonPropertyKeys, 'isPinned', 'urlId', 'options'];
+export const documentPropertyKeys = [...commonPropertyKeys, 'isPinned', 'urlId', 'options', 'type'];
 
 export interface Document extends DocumentProperties {
   id: string;
@@ -143,6 +148,7 @@ export interface Fork {
   id: string;
   trunkId: string;
   updatedAt: string;  // ISO date string
+  options: DocumentOptions|null;
 }
 
 // Non-core options for a user.
@@ -241,8 +247,21 @@ export interface OrgError {
  * (e.g. a fork) or from a snapshot.
  */
 export interface DocReplacementOptions {
-  sourceDocId?: string;       // docId to copy from
-  snapshotId?: string;        // s3 VersionId
+  /**
+   * The docId to copy from.
+   */
+  sourceDocId?: string;
+  /**
+   * The s3 version ID.
+   */
+  snapshotId?: string;
+  /**
+   * True if tutorial metadata should be reset.
+   *
+   * Metadata that's reset includes the doc (i.e. tutorial) name, and the
+   * properties under options.tutorial (e.g. lastSlideIndex).
+   */
+  resetTutorialMetadata?: boolean;
 }
 
 /**

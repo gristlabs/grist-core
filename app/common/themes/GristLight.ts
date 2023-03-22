@@ -430,4 +430,9 @@ export const GristLight: ThemeColors = {
   'date-picker-range-start-end-bg-hover': '#CFCFCF',
   'date-picker-range-bg': '#EEEEEE',
   'date-picker-range-bg-hover': '#D9D9D9',
+
+  /* Tutorials */
+  'tutorials-popup-border': '#D9D9D9',
+  'tutorials-popup-header-fg': '#FFFFFF',
+  'tutorials-popup-box-bg': '#F5F5F5',
 };

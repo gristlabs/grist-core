@@ -43,6 +43,7 @@ import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/mode
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
+import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
@@ -162,9 +163,6 @@ export class GristDoc extends DisposableWithEvents {
 
   public readonly userOrgPrefs = getUserOrgPrefsObs(this.docPageModel.appModel);
 
-  // If the doc has a docTour. Used also to enable the UI button to restart the tour.
-  public readonly hasDocTour: Computed<boolean>;
-
   public readonly behavioralPromptsManager = this.docPageModel.appModel.behavioralPromptsManager;
   // One of the section can be expanded (as requested from the Layout), we will
   // store its id in this variable. NOTE: expanded section looks exactly the same as a section
@@ -189,6 +187,7 @@ export class GristDoc extends DisposableWithEvents {
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
   private _rawSectionOptions: Observable<RawSectionOptions|null> = Observable.create(this, null);
   private _activeContent: Computed<IDocPage|RawSectionOptions>;
+  private _docTutorialHolder = Holder.create<DocTutorial>(this);
 
 
   constructor(
@@ -204,16 +203,13 @@ export class GristDoc extends DisposableWithEvents {
     super();
     console.log("RECEIVED DOC RESPONSE", openDocResponse);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
-    this.docModel = new DocModel(this.docData);
+    this.docModel = new DocModel(this.docData, this.docPageModel);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager(plugins,
       app.topAppModel.getUntrustedContentOrigin(), this.docComm, app.clientScope);
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfoRow;
-
-    this.hasDocTour = Computed.create(this, use =>
-      use(this.docModel.visibleTableIds.getObservable()).includes('GristDocTour'));
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 
@@ -287,27 +283,31 @@ export class GristDoc extends DisposableWithEvents {
       }
     }));
 
-    // Start welcome tour if flag is present in the url hash.
-    let tourStarting = false;
+    let isStartingTourOrTutorial = false;
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
-      // Onboarding tours were not designed with mobile support in mind. Disable until fixed.
-      if (isNarrowScreen()) {
-        return;
-      }
-      // Only start a tour when the full interface is showing, i.e. not when in embedded mode.
+      // Only start a tour or tutorial when the full interface is showing, i.e. not when in
+      // embedded mode.
       if (state.params?.style === 'light') {
         return;
       }
-      // If we have an active tour (or are in the process of starting one), don't start a new one.
-      if (tourStarting || isTourActive()) {
+
+      const shouldStartTutorial = this.docModel.isTutorial();
+      // Onboarding tours were not designed with mobile support in mind. Disable until fixed.
+      if (isNarrowScreen() && !shouldStartTutorial) {
         return;
       }
-      const autoStartDocTour = this.hasDocTour.get() && !this._seenDocTours.get()?.includes(this.docId());
-      const docTour = state.docTour || autoStartDocTour;
-      const welcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
 
-      if (welcomeTour || docTour) {
-        tourStarting = true;
+      // If we have an active tour or tutorial (or are in the process of starting one), don't start
+      // a new one.
+      const hasActiveTourOrTutorial = isTourActive() || !this._docTutorialHolder.isEmpty();
+      if (isStartingTourOrTutorial || hasActiveTourOrTutorial) {
+        return;
+      }
+
+      const shouldStartDocTour = state.docTour || this._shouldAutoStartDocTour();
+      const shouldStartWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
+      if (shouldStartTutorial || shouldStartDocTour || shouldStartWelcomeTour) {
+        isStartingTourOrTutorial = true;
         try {
           await this._waitForView();
 
@@ -316,14 +316,19 @@ export class GristDoc extends DisposableWithEvents {
           await urlState().pushUrl({welcomeTour: false, docTour: false},
             {replace: true, avoidReload: true});
 
-          if (!docTour) {
-            startWelcomeTour(() => this._showGristTour.set(false));
-          } else {
-            const onFinishCB = () => (autoStartDocTour && markAsSeen(this._seenDocTours, this.docId()));
+          if (shouldStartTutorial) {
+            await DocTutorial.create(this._docTutorialHolder, this).start();
+          } else if (shouldStartDocTour) {
+            const onFinishCB = () => (
+              !this._seenDocTours.get()?.includes(this.docId())
+              && markAsSeen(this._seenDocTours, this.docId())
+            );
             await startDocTour(this.docData, this.docComm, onFinishCB);
+          } else {
+            startWelcomeTour(() => this._showGristTour.set(false));
           }
         } finally {
-          tourStarting = false;
+          isStartingTourOrTutorial = false;
         }
       }
     }));
@@ -1333,12 +1338,29 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
-   * For first-time users on personal org, start a welcome tour.
+   * Returns whether a doc tour should automatically be started.
+   *
+   * Currently, tours are started if a GristDocTour table exists and the user hasn't
+   * seen the tour before.
+   */
+  private _shouldAutoStartDocTour(): boolean {
+    if (this.docModel.isTutorial()) {
+      return false;
+    }
+
+    return this.docModel.hasDocTour() && !this._seenDocTours.get()?.includes(this.docId());
+  }
+
+  /**
+   * Returns whether a welcome tour should automatically be started.
+   *
+   * Currently, tours are started for first-time users on a personal org, as long as
+   * a doc tutorial or tour isn't available.
    */
   private _shouldAutoStartWelcomeTour(): boolean {
-    // When both a docTour and grist welcome tour are available, show only the docTour, leaving
-    // the welcome tour for another doc (e.g. a new one).
-    if (this.hasDocTour.get()) {
+    // If a doc tutorial or tour are available, leave the welcome tour for another
+    // doc (e.g. a new one).
+    if (this.docModel.isTutorial() || this.docModel.hasDocTour()) {
       return false;
     }
 

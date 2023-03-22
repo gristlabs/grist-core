@@ -76,9 +76,6 @@ export class Document extends Resource {
   @Column({name: 'trunk_id', type: 'text', nullable: true})
   public trunkId: string|null;
 
-  // Property set for forks, containing the URL ID of the trunk.
-  public trunkUrlId?: string|null;
-
   @ManyToOne(_type => Document, document => document.forks)
   @JoinColumn({name: 'trunk_id'})
   public trunk: Document|null;
@@ -122,6 +119,19 @@ export class Document extends Resource {
         }
         if (props.options.externalId !== undefined) {
           this.options.externalId = props.options.externalId;
+        }
+        if (props.options.tutorial !== undefined) {
+          // Tutorial metadata is merged over the existing state - unless
+          // metadata is set to "null", in which case the state is wiped
+          // completely.
+          if (props.options.tutorial === null) {
+            this.options.tutorial = null;
+          } else {
+            this.options.tutorial = this.options.tutorial || {};
+            if (props.options.tutorial.lastSlideIndex !== undefined) {
+              this.options.tutorial.lastSlideIndex = props.options.tutorial.lastSlideIndex;
+            }
+          }
         }
         // Normalize so that null equates with absence.
         for (const key of Object.keys(this.options) as Array<keyof DocumentOptions>) {

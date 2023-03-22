@@ -430,4 +430,9 @@ export const GristDark: ThemeColors = {
   'date-picker-range-start-end-bg-hover': '#8F8F8F',
   'date-picker-range-bg': '#57575F',
   'date-picker-range-bg-hover': '#7F7F7F',
+
+  /* Tutorials */
+  'tutorials-popup-border': '#69697D',
+  'tutorials-popup-header-fg': '#FFFFFF',
+  'tutorials-popup-box-bg': '#57575F',
 };

@@ -345,6 +345,9 @@ export const ThemeColors = t.iface([], {
   "date-picker-range-start-end-bg-hover": "string",
   "date-picker-range-bg": "string",
   "date-picker-range-bg-hover": "string",
+  "tutorials-popup-border": "string",
+  "tutorials-popup-header-fg": "string",
+  "tutorials-popup-box-bg": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

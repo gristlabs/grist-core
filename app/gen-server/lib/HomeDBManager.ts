@@ -1008,9 +1008,13 @@ export class HomeDBManager extends EventEmitter {
    * Returns a QueryResult for the workspace with the given workspace id. The workspace
    * includes nested Docs.
    */
-  public async getWorkspace(scope: Scope, wsId: number): Promise<QueryResult<Workspace>> {
+  public async getWorkspace(
+    scope: Scope,
+    wsId: number,
+    transaction?: EntityManager
+  ): Promise<QueryResult<Workspace>> {
     const {userId} = scope;
-    let queryBuilder = this._workspaces()
+    let queryBuilder = this._workspaces(transaction)
       .where('workspaces.id = :wsId', {wsId})
       // Nest the docs within the workspace object
       .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
@@ -1161,7 +1165,7 @@ export class HomeDBManager extends EventEmitter {
   // TODO: The return type of this function includes the workspace and org with the owner
   // properties set, as documented in app/common/UserAPI. The return type of this function
   // should reflect that.
-  public async getDocImpl(key: DocAuthKey): Promise<Document> {
+  public async getDocImpl(key: DocAuthKey, transaction?: EntityManager): Promise<Document> {
     const {userId} = key;
     // Doc permissions of forks are based on the "trunk" document, so make sure
     // we look up permissions of trunk if we are on a fork (we'll fix the permissions
@@ -1196,8 +1200,11 @@ export class HomeDBManager extends EventEmitter {
       // it is very simple at the single-document level.  So we direct the db to include
       // everything with showAll flag, and let the getDoc() wrapper deal with the remaining
       // work.
-      let qb = this._doc({...key, showAll: true})
+      let qb = this._doc({...key, showAll: true}, {manager: transaction})
         .leftJoinAndSelect('orgs.owner', 'org_users');
+      if (userId !== this.getAnonymousUserId()) {
+        qb = this._addForks(userId, qb);
+      }
       qb = this._addIsSupportWorkspace(userId, qb, 'orgs', 'workspaces');
       qb = this._addFeatures(qb);  // add features to determine whether we've gone readonly
       const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb));
@@ -1214,7 +1221,6 @@ export class HomeDBManager extends EventEmitter {
     }
     if (forkId || snapshotId) {
       doc.trunkId = doc.id;
-      doc.trunkUrlId = doc.urlId;
 
       // Fix up our reply to be correct for the fork, rather than the trunk.
       // The "id" and "urlId" fields need updating.
@@ -1227,17 +1233,20 @@ export class HomeDBManager extends EventEmitter {
       doc.trunkAccess = doc.access;
 
       // Update access for fork.
-      this._setForkAccess({userId, forkUserId, snapshotId}, doc);
+      this._setForkAccess(doc, {userId, forkUserId, snapshotId}, doc);
+      if (!doc.access) {
+        throw new ApiError('access denied', 403);
+      }
     }
     return doc;
   }
 
   // Calls getDocImpl() and returns the Document from that, caching a fresh DocAuthResult along
   // the way. Note that we only cache the access level, not Document itself.
-  public async getDoc(reqOrScope: Request | Scope): Promise<Document> {
+  public async getDoc(reqOrScope: Request | Scope, transaction?: EntityManager): Promise<Document> {
     const scope = "params" in reqOrScope ? getScope(reqOrScope) : reqOrScope;
     const key = getDocAuthKeyFromScope(scope);
-    const promise = this.getDocImpl(key);
+    const promise = this.getDocImpl(key, transaction);
     await mapSetOrClear(this._docAuthCache, stringifyDocAuthKey(key), makeDocAuthResult(promise));
     const doc = await promise;
     // Filter the result for removed / non-removed documents.
@@ -1249,8 +1258,12 @@ export class HomeDBManager extends EventEmitter {
     return doc;
   }
 
-  public async getRawDocById(docId: string) {
-    return await this.getDoc({urlId: docId, userId: this.getPreviewerUserId(), showAll: true});
+  public async getRawDocById(docId: string, transaction?: EntityManager) {
+    return await this.getDoc({
+      urlId: docId,
+      userId: this.getPreviewerUserId(),
+      showAll: true
+    }, transaction);
   }
 
   // Returns access info for the given doc and user, caching the results for DOC_AUTH_CACHE_TTL
@@ -1878,25 +1891,39 @@ export class HomeDBManager extends EventEmitter {
   // query result with status 200 on success.
   // NOTE: This does not update the updateAt date indicating the last modified time of the doc.
   // We may want to make it do so.
-  public async updateDocument(scope: DocScope,
-                              props: Partial<DocumentProperties>): Promise<QueryResult<number>> {
-
+  public async updateDocument(
+    scope: DocScope,
+    props: Partial<DocumentProperties>,
+    transaction?: EntityManager
+  ): Promise<QueryResult<number>> {
     const markPermissions = Permissions.SCHEMA_EDIT;
-    return await this._connection.transaction(async manager => {
-      const docQuery = this._doc(scope, {
-        manager,
-        markPermissions
-      });
-
-      const queryResult = await verifyIsPermitted(docQuery);
+    return await this._runInTransaction(transaction, async (manager) => {
+      const {forkId} = parseUrlId(scope.urlId);
+      let query: SelectQueryBuilder<Document>;
+      if (forkId) {
+        query = this._fork(scope, {
+          manager,
+        });
+      } else {
+        query = this._doc(scope, {
+          manager,
+          markPermissions,
+        });
+      }
+      const queryResult = await verifyIsPermitted(query);
       if (queryResult.status !== 200) {
-        // If the query for the doc failed, return the failure result.
+        // If the query for the doc or fork failed, return the failure result.
         return queryResult;
       }
       // Update the name and save.
       const doc: Document = queryResult.data;
       doc.checkProperties(props);
       doc.updateFromProperties(props);
+      if (forkId) {
+        await manager.save(doc);
+        return {status: 200};
+      }
+
       // Forcibly remove the aliases relation from the document object, so that TypeORM
       // doesn't try to save it.  It isn't safe to do that because it was filtered by
       // a where clause.
@@ -1930,28 +1957,44 @@ export class HomeDBManager extends EventEmitter {
   // status 200 on success.
   public async deleteDocument(scope: DocScope): Promise<QueryResult<number>> {
     return await this._connection.transaction(async manager => {
-      const docQuery = this._doc(scope, {
-        manager,
-        markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
-        allowSpecialPermit: true
-      })
-      // Join the docs's ACLs and groups so we can remove them.
-      // Join the workspace and org to get their ids.
-      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'groups');
-      const queryResult = await verifyIsPermitted(docQuery);
-      if (queryResult.status !== 200) {
-        // If the query for the workspace failed, return the failure result.
-        return queryResult;
+      const {forkId} = parseUrlId(scope.urlId);
+      if (forkId) {
+        const forkQuery = this._fork(scope, {
+          manager,
+          allowSpecialPermit: true,
+        });
+        const queryResult = await verifyIsPermitted(forkQuery);
+        if (queryResult.status !== 200) {
+          // If the query for the fork failed, return the failure result.
+          return queryResult;
+        }
+        const fork: Document = queryResult.data;
+        await manager.remove([fork]);
+        return {status: 200};
+      } else {
+        const docQuery = this._doc(scope, {
+          manager,
+          markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
+          allowSpecialPermit: true
+        })
+        // Join the docs's ACLs and groups so we can remove them.
+        // Join the workspace and org to get their ids.
+        .leftJoinAndSelect('docs.aclRules', 'acl_rules')
+        .leftJoinAndSelect('acl_rules.group', 'groups');
+        const queryResult = await verifyIsPermitted(docQuery);
+        if (queryResult.status !== 200) {
+          // If the query for the doc failed, return the failure result.
+          return queryResult;
+        }
+        const doc: Document = queryResult.data;
+        // Delete the doc and doc ACLs/groups.
+        const docGroups = doc.aclRules.map(docAcl => docAcl.group);
+        await manager.remove([doc, ...docGroups, ...doc.aclRules]);
+        // Update guests of the workspace and org after removing this doc.
+        await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
+        await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
+        return {status: 200};
       }
-      const doc: Document = queryResult.data;
-      // Delete the doc and doc ACLs/groups.
-      const docGroups = doc.aclRules.map(docAcl => docAcl.group);
-      await manager.remove([doc, ...docGroups, ...doc.aclRules]);
-      // Update guests of the workspace and org after removing this doc.
-      await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
-      await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
-      return {status: 200};
     });
   }
 
@@ -1961,30 +2004,6 @@ export class HomeDBManager extends EventEmitter {
 
   public async undeleteDocument(scope: DocScope): Promise<void> {
     return this._setDocumentRemovedAt(scope, null);
-  }
-
-  /**
-   * Like `deleteDocument`, but for deleting a fork.
-   *
-   * NOTE: This is not a part of the API. It should only be called by the DocApi when
-   * deleting a fork.
-   */
-  public async deleteFork(scope: DocScope): Promise<QueryResult<number>> {
-    return await this._connection.transaction(async manager => {
-      const forkQuery = this._doc(scope, {
-        manager,
-        allowSpecialPermit: true
-      });
-      const result = await forkQuery.getRawAndEntities();
-      if (result.entities.length === 0) {
-        return {
-          status: 404,
-          errMessage: 'fork not found'
-        };
-      }
-      await manager.remove(result.entities[0]);
-      return {status: 200};
-    });
   }
 
   // Fetches and provides a callback with the billingAccount so it may be updated within
@@ -2425,7 +2444,7 @@ export class HomeDBManager extends EventEmitter {
     // have been flattened.
     if (forkId || snapshotId) {
       for (const user of users) {
-        this._setForkAccess({userId: user.id, forkUserId, snapshotId}, user);
+        this._setForkAccess(doc, {userId: user.id, forkUserId, snapshotId}, user);
       }
     }
 
@@ -2870,9 +2889,6 @@ export class HomeDBManager extends EventEmitter {
     let query = this.org(scope, org, options)
       .leftJoinAndSelect('orgs.workspaces', 'workspaces')
       .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
-      .leftJoin('docs.forks', 'forks', this._onFork())
-      .addSelect(['forks.id', 'forks.trunkId', 'forks.createdBy', 'forks.updatedAt'])
-      .setParameter('anonId', this.getAnonymousUserId())
       .leftJoin('orgs.billingAccount', 'account')
       .leftJoin('account.product', 'product')
       .addSelect('product.features')
@@ -2881,12 +2897,16 @@ export class HomeDBManager extends EventEmitter {
       // order the support org (aka Samples/Examples) after other ones.
       .orderBy('coalesce(orgs.owner_id = :supportId, false)')
       .setParameter('supportId', supportId)
-      .addOrderBy('(orgs.owner_id = :userId)', 'DESC')
       .setParameter('userId', userId)
+      .addOrderBy('(orgs.owner_id = :userId)', 'DESC')
       // For consistency of results, particularly in tests, order workspaces by name.
       .addOrderBy('workspaces.name')
       .addOrderBy('docs.created_at')
       .leftJoinAndSelect('orgs.owner', 'org_users');
+
+    if (userId !== this.getAnonymousUserId()) {
+      query = this._addForks(userId, query);
+    }
 
     // If merged org, we need to take some special steps.
     if (this.isMergedOrg(org)) {
@@ -3159,6 +3179,21 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
+   * Makes sure that doc forks are available in query result.
+   */
+  private _addForks<T>(userId: number, qb: SelectQueryBuilder<T>) {
+    return qb.leftJoin('docs.forks', 'forks', 'forks.created_by = :forkUserId')
+      .setParameter('forkUserId', userId)
+      .addSelect([
+        'forks.id',
+        'forks.trunkId',
+        'forks.createdBy',
+        'forks.updatedAt',
+        'forks.options'
+      ]);
+  }
+
+  /**
    *
    * Get the id of a special user, creating that user if it is not already present.
    *
@@ -3180,26 +3215,39 @@ export class HomeDBManager extends EventEmitter {
    * Modify an access level when the document is a fork. Here are the rules, as they
    * have evolved (the main constraint is that currently forks have no access info of
    * their own in the db).
+   *   - If fork is a tutorial:
+   *     - User ~USERID from the fork id is owner, all others have no access.
    *   - If fork is a snapshot, all users are at most viewers. Else:
    *     - If there is no ~USERID in fork id, then all viewers of trunk are owners of the fork.
    *     - If there is a ~USERID in fork id, that user is owner, all others are at most viewers.
    */
-  private _setForkAccess(ids: {userId: number, forkUserId?: number, snapshotId?: string},
+  private _setForkAccess(doc: Document,
+                         ids: {userId: number, forkUserId?: number, snapshotId?: string},
                          res: {access: roles.Role|null}) {
-    // Forks without a user id are editable by anyone with view access to the trunk.
-    if (ids.forkUserId === undefined && roles.canView(res.access)) { res.access = 'owners'; }
-    if (ids.forkUserId !== undefined) {
-      // A fork user id is known, so only that user should get to edit the fork.
-      if (ids.userId === ids.forkUserId) {
-        if (roles.canView(res.access)) { res.access = 'owners'; }
+    if (doc.type === 'tutorial') {
+      if (ids.userId === this.getPreviewerUserId()) {
+        res.access = 'viewers';
+      } else if (ids.forkUserId && ids.forkUserId === ids.userId) {
+        res.access = 'owners';
       } else {
-        // reduce to viewer if not already viewer
-       res.access = roles.getWeakestRole('viewers', res.access);
+        res.access = null;
       }
-    }
-    // Finally, if we are viewing a snapshot, we can't edit it.
-    if (ids.snapshotId) {
-      res.access = roles.getWeakestRole('viewers', res.access);
+    } else {
+      // Forks without a user id are editable by anyone with view access to the trunk.
+      if (ids.forkUserId === undefined && roles.canView(res.access)) { res.access = 'owners'; }
+      if (ids.forkUserId !== undefined) {
+        // A fork user id is known, so only that user should get to edit the fork.
+        if (ids.userId === ids.forkUserId) {
+          if (roles.canView(res.access)) { res.access = 'owners'; }
+        } else {
+          // reduce to viewer if not already viewer
+        res.access = roles.getWeakestRole('viewers', res.access);
+        }
+      }
+      // Finally, if we are viewing a snapshot, we can't edit it.
+      if (ids.snapshotId) {
+        res.access = roles.getWeakestRole('viewers', res.access);
+      }
     }
   }
 
@@ -3463,6 +3511,40 @@ export class HomeDBManager extends EventEmitter {
     return query;
   }
 
+  /**
+   * Construct a QueryBuilder for a select query on a specific fork given by urlId.
+   * Provides options for running in a transaction.
+   */
+  private _fork(scope: DocScope, options: QueryOptions = {}): SelectQueryBuilder<Document> {
+    // Extract the forkId from the urlId and use it to find the fork in the db.
+    const {forkId} = parseUrlId(scope.urlId);
+    let query = this._docs(options.manager)
+      .where('docs.id = :forkId', {forkId});
+
+    // Compute whether we have access to the fork.
+    if (options.allowSpecialPermit && scope.specialPermit?.docId) {
+      const {forkId: permitForkId} = parseUrlId(scope.specialPermit.docId);
+      query = query
+        .setParameter('permitForkId', permitForkId)
+        .addSelect(
+          'docs.id = :permitForkId',
+          'is_permitted'
+        );
+    } else {
+      query = query
+        .setParameter('forkUserId', scope.userId)
+        .setParameter('forkAnonId', this.getAnonymousUserId())
+        .addSelect(
+          // Access to forks is currently limited to the users that created them, with
+          // the exception of anonymous users, who have no access to their forks.
+          'docs.created_by = :forkUserId AND docs.created_by <> :forkAnonId',
+          'is_permitted'
+        );
+    }
+
+    return query;
+  }
+
   private _workspaces(manager?: EntityManager) {
     return (manager || this._connection).createQueryBuilder()
       .select('workspaces')
@@ -3489,13 +3571,6 @@ export class HomeDBManager extends EventEmitter {
     } else {
       return `${onDefault} AND (workspaces.removed_at IS NULL AND docs.removed_at IS NULL)`;
     }
-  }
-
-  /**
-   * Like _onDoc, but for joining forks.
-   */
-  private _onFork() {
-    return 'forks.created_by = :userId AND forks.created_by <> :anonId';
   }
 
   /**
