@@ -1,15 +1,18 @@
-import {buildCollapsedSectionDom} from 'app/client/components/buildViewSectionDom';
+import BaseView from 'app/client/components/BaseView';
+import {buildCollapsedSectionDom, buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 import * as commands from 'app/client/components/commands';
 import {ContentBox} from 'app/client/components/Layout';
 import type {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {detachNode} from 'app/client/lib/dom';
 import {Signal} from 'app/client/lib/Signal';
 import {urlState} from 'app/client/models/gristUrlState';
 import {TransitionWatcher} from 'app/client/ui/transitions';
 import {theme} from 'app/client/ui2018/cssVars';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isNonNullish} from 'app/common/gutil';
-import {Disposable, dom, makeTestId, MutableObsArray, obsArray, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, IDisposable, IDisposableOwner,
+        makeTestId, obsArray, Observable, styled} from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
 const testId = makeTestId('test-layoutTray-');
@@ -36,6 +39,8 @@ export class LayoutTray extends DisposableWithEvents {
   public layout = CollapsedLayout.create(this, this);
   // Whether we are active (have a dotted border, that indicates we are ready to receive a drop)
   public active = Signal.create(this, false);
+
+  private _rootElement: HTMLElement;
   constructor(public viewLayout: ViewLayout) {
     super();
     // Create a proxy for the LayoutEditor. It will mimic the same interface as CollapsedLeaf.
@@ -44,14 +49,7 @@ export class LayoutTray extends DisposableWithEvents {
     // Build layout using saved settings.
     this.layout.buildLayout(this.viewLayout.viewModel.collapsedSections.peek());
 
-    // Whenever we add or remove box, update the model.
-    this.layout.boxes.addListener(l => this.viewLayout.viewModel.activeCollapsedSections(this.layout.leafIds()));
 
-    // Whenever saved settings are changed, rebuild the layout using them.
-    this.autoDispose(this.viewLayout.viewModel.collapsedSections.subscribe((val) => {
-      this.viewLayout.viewModel.activeCollapsedSections(val);
-      this.layout.buildLayout(val);
-    }));
 
     this._registerCommands();
 
@@ -65,10 +63,10 @@ export class LayoutTray extends DisposableWithEvents {
         // No one took it, so we should handle it if we are over the tray.
         if (this.over.state.get()) {
           const leafId = value.leafId();
-          // Ask it to remove itself from the target.
-          value.removeFromLayout();
           // Add it as a last element.
           this.layout.addBox(leafId);
+          // Ask it to remove itself from the target.
+          value.removeFromLayout();
         }
       }
       // Clear the state, any other listener will get null.
@@ -77,8 +75,15 @@ export class LayoutTray extends DisposableWithEvents {
 
     // Now wire up active state.
 
+    // When a drag is started, get the top point of the tray, over which we will activate.
+    let topPoint = 48; // By default it is 48 pixels.
+    this.autoDispose(externalLeaf.drag.listen(d => {
+      if (!d) { return; }
+      topPoint = (this._rootElement.parentElement?.getBoundingClientRect().top ?? 61) - 13;
+    }));
+
     // First we can be activated when a drag has started and we have some boxes.
-    this.drag.map(drag => drag && this.layout.boxes.get().length > 0)
+    this.drag.map(drag => drag && this.layout.count.get() > 0)
              .flag() // Map to a boolean, and emit only when the value changes.
              .filter(Boolean) // Only emit when it is set to true
              .pipe(this.active);
@@ -89,7 +94,7 @@ export class LayoutTray extends DisposableWithEvents {
       const drag = on(externalLeaf.drag);
       if (!drag) { return false; }
       const mouseEvent = on(externalLeaf.dragMove);
-      const over = mouseEvent && mouseEvent.clientY < 48;
+      const over = mouseEvent && mouseEvent.clientY < topPoint;
       return !!over;
     }).flag().filter(Boolean).pipe(this.active);
 
@@ -97,8 +102,48 @@ export class LayoutTray extends DisposableWithEvents {
     this.drag.flag().filter(d => !d).pipe(this.active);
   }
 
+  public replaceLayout() {
+    const savedSections = this.viewLayout.viewModel.collapsedSections.peek();
+    this.viewLayout.viewModel.activeCollapsedSections(savedSections);
+    const boxes = this.layout.buildLayout(savedSections);
+    return {
+      dispose() {
+        boxes.forEach(box => box.dispose());
+        boxes.length = 0;
+      }
+    };
+  }
+
+  /**
+   * Builds a popup for a maximized section.
+   */
+  public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, close: () => void) {
+    const section = Observable.create<number|null>(owner, null);
+    owner.autoDispose(selected.addListener((cur, prev) => {
+      if (prev && !cur) {
+        const vs = this.viewLayout.gristDoc.docModel.viewSections.getRowModel(prev);
+        const vi = vs.viewInstance.peek();
+        if (vi) {
+          detachNode(vi.viewPane);
+        }
+      }
+      section.set(cur);
+    }));
+    return dom.domComputed(section, (id) => {
+      if (!id) { return null; }
+      return dom.update(
+        buildViewSectionDom({
+          gristDoc: this.viewLayout.gristDoc,
+          sectionRowId: id,
+          draggable: false,
+          focusable: false,
+        })
+      );
+    });
+  }
+
   public buildDom() {
-    return cssCollapsedTray(
+    return this._rootElement = cssCollapsedTray(
       testId('editor'),
       // When drag is active we should show a dotted border around the tray.
       cssCollapsedTray.cls('-is-active', this.active.state),
@@ -112,7 +157,7 @@ export class LayoutTray extends DisposableWithEvents {
       this.layout.buildDom(),
       // But show only if there are any sections in the tray (even if those are empty or drop target sections)
       // or we can accept a drop.
-      dom.show(use => use(this.layout.boxes).length > 0 || use(this.active.state)),
+      dom.show(use => use(this.layout.count) > 0 || use(this.active.state)),
     );
   }
 
@@ -122,6 +167,8 @@ export class LayoutTray extends DisposableWithEvents {
       sectionRowId: id,
     });
   }
+
+
 
   private _registerCommands() {
     const viewLayout = this.viewLayout;
@@ -143,7 +190,7 @@ export class LayoutTray extends DisposableWithEvents {
           viewLayout.layoutEditor.layout.getAllLeafIds().filter(x => x !== leafId)[0]
         );
 
-        // Add the box to our collapsed editor.
+        // Add the box to our collapsed editor (it will transfer the viewInstance).
         this.layout.addBox(leafId);
 
         // Remove it from the main layout.
@@ -156,8 +203,10 @@ export class LayoutTray extends DisposableWithEvents {
         // Get the section that is collapsed and clicked (we are setting this value).
         const leafId = viewLayout.viewModel.activeCollapsedSectionId();
         if (!leafId) { return; }
-        this.layout.removeBy(leafId);
         viewLayout.viewModel.activeCollapsedSectionId(0);
+        viewLayout.viewModel.activeCollapsedSections(
+          viewLayout.viewModel.activeCollapsedSections.peek().filter(x => x !== leafId)
+        );
         viewLayout.viewModel.activeSectionId(leafId);
         viewLayout.saveLayoutSpec();
       },
@@ -202,10 +251,10 @@ class CollapsedDropZone extends Disposable {
 
     this.autoDispose(model.active.distinct().listen(ok => {
       if (ok) {
-        pushedLeaf = EmptyLeaf.create(layout.boxes, this.model);
-        layout.boxes.push(pushedLeaf);
+        pushedLeaf = EmptyLeaf.create(null, this.model);
+        layout.addBox(pushedLeaf);
       } else if (pushedLeaf) {
-        layout.remove(pushedLeaf);
+        layout.destroy(pushedLeaf);
       }
     }));
   }
@@ -273,7 +322,7 @@ class CollapsedDropZone extends Disposable {
     return this._animation.get() > 0;
   }
   private _calculate(parentRect: DOMRect) {
-    const boxes = this.model.layout.boxes.get();
+    const boxes = this.model.layout.all();
     const rects: Array<VRect|null> = [];
     // Boxes can be wrapped, we will detect the line offset.
     let lineOffset = 12;
@@ -356,64 +405,95 @@ class CollapsedDropZone extends Disposable {
  * UI component that renders and owns all the collapsed leaves.
  */
 class CollapsedLayout extends Disposable {
-  public boxes = this.autoDispose(obsArray<Leaf>());
   public rootElement: HTMLElement;
+  /**
+   * Leaves owner. Adding or removing leaves will not dispose them automatically, as they are released and
+   * return to the caller. Only those leaves that were not removed will be disposed with the layout.
+   */
+  public holder = ArrayHolder.create(this);
+  /**
+   * Number of leaves in the layout.
+   */
+  public count: Computed<number>;
+
+  private _boxes = this.autoDispose(obsArray<Leaf>());
 
   constructor(protected model: LayoutTray) {
     super();
+
+    // Whenever we add or remove box, update the model. This is used to test if the section is collapsed or not.
+    this._boxes.addListener(l => model.viewLayout.viewModel.activeCollapsedSections(this.leafIds()));
+
+    this.count = Computed.create(this, use => use(this._boxes).length);
+  }
+
+  public all() {
+    return this._boxes.get();
   }
 
   public buildLayout(leafs: number[]) {
-    if (isEqual(leafs, this.boxes.get().map((box) => box.id.get()))) { return; }
-    this.boxes.splice(0, this.boxes.get().length,
-      ...leafs.map((id) => CollapsedLeaf.create(this.boxes, this.model, id)));
+    if (isEqual(leafs, this._boxes.get().map((box) => box.id.get()))) { return []; }
+    const removed = this._boxes.splice(0, this._boxes.get().length,
+      ...leafs.map((id) => CollapsedLeaf.create(this.holder, this.model, id)));
+    removed.forEach((box) => this.holder.release(box));
+    return removed;
   }
 
-  public addBox(id: number, index?: number) {
+  public addBox(id: number|Leaf, index?: number) {
     index ??= -1;
-    const box = CollapsedLeaf.create(this.boxes, this.model, id);
+    const box = typeof id === 'number' ? CollapsedLeaf.create(this.holder, this.model, id): id;
+    if (typeof id !== 'number') {
+      this.holder.autoDispose(box);
+    }
     return this.insert(index, box);
   }
 
   public indexOf(box: Leaf) {
-    return this.boxes.get().indexOf(box);
+    return this._boxes.get().indexOf(box);
   }
 
   public insert(index: number, leaf: Leaf) {
+    this.holder.autoDispose(leaf);
     if (index < 0) {
-      this.boxes.push(leaf);
+      this._boxes.push(leaf);
     } else {
-      this.boxes.splice(index, 0, leaf);
+      this._boxes.splice(index, 0, leaf);
     }
     return leaf;
   }
 
-  public remove(leaf: Leaf | undefined) {
-    const index = this.boxes.get().indexOf(leaf!);
+  /**
+   * Removes the leaf from the list but doesn't dispose it.
+   */
+  public remove(leaf: Leaf) {
+    const index = this._boxes.get().indexOf(leaf);
     if (index >= 0) {
-      this.boxes.splice(index, 1);
+      const removed = this._boxes.splice(index, 1)[0];
+      if (removed) {
+        this.holder.release(removed);
+      }
+      return removed || null;
     }
+    return null;
   }
 
-  public removeAt(index: number) {
-    index = index < 0 ? this.boxes.get().length - 1 : index;
-    removeFromObsArray(this.boxes, (l, i) => i === index);
-  }
-
-  public removeBy(id: number) {
-    removeFromObsArray(this.boxes, box => box.id.get() === id);
+  /**
+   * Removes and dispose the leaf from the list.
+   */
+  public destroy(leaf: Leaf) {
+    this.remove(leaf)?.dispose();
   }
 
   public leafIds() {
-    return this.boxes.get().map(l => l.id.get()).filter(x => x && typeof x === 'number');
+    return this._boxes.get().map(l => l.id.get()).filter(x => x && typeof x === 'number');
   }
 
   public buildDom() {
     return (this.rootElement = cssLayout(
       testId('layout'),
       useDragging(),
-      dom.hide(use => use(this.boxes).length === 0),
-      dom.forEach(this.boxes, line => line.buildDom())
+      dom.hide(use => use(this._boxes).length === 0),
+      dom.forEach(this._boxes, line => line.buildDom())
     ));
   }
 }
@@ -466,8 +546,8 @@ class EmptyLeaf extends Leaf {
         // Replace the empty leaf with the dropped box.
         const myIndex = this.model.layout.indexOf(this);
         const leafId = box.leafId();
-        box.removeFromLayout();
         this.model.layout.addBox(leafId, myIndex);
+        box.removeFromLayout();
       })
     );
   }
@@ -515,7 +595,7 @@ class TargetLeaf extends EmptyLeaf {
     return new Promise((resolve) => {
       const watcher = new TransitionWatcher(this.rootElement);
       watcher.onDispose(() => {
-        this.model.layout.remove(this);
+        this.model.layout.destroy(this);
         resolve(undefined);
       });
       this.rootElement.style.width = '0px';
@@ -531,15 +611,39 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   // content changes or put it in the floater.
   private _content: Observable<HTMLElement|null> = Observable.create(this, null);
 
+  // Computed to get the view instance from the viewSection.
+  private _viewInstance: Computed<BaseView|null>;
+
+  // An observable for the dom that holds the viewInstance and displays it in a hidden element.
+  // This is owned by this leaf and is disposed separately from the dom that is returned by buildDom. Like a
+  // singleton, this element will be moved from one "instance" (a result of buildDom) to another.
+  // When a leaf is removed from the dom (e.g. when we remove the collapsed section or move it to the main area)
+  // the dom of this element is disposed, but the hidden element stays with this instance and can be disposed
+  // later on, giving anyone a chance to grab the viewInstance and display it somewhere else.
+  private _hiddenViewInstance: Observable<HTMLElement|null> = Observable.create(this, null);
+
   // Helper to keeping track of the index of the leaf in the layout.
   private _indexWhenDragged = 0;
   constructor(protected model: LayoutTray, id: number) {
     super();
     this.id.set(id);
+    this._viewInstance = Computed.create(this, use => {
+      const sections = use(use(this.model.viewLayout.viewModel.viewSections).getObservable());
+      const view = sections.find(s => use(s.id) === use(this.id));
+      if (!view) { return null; }
+      const instance = use(view.viewInstance);
+      return instance;
+    });
+    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => view.viewPane)));
+    this.onDispose(() => {
+      const instance = this._hiddenViewInstance.get();
+      instance && dom.domDispose(instance);
+    });
   }
+
   public buildDom() {
     this._content.set(this.model.buildContentDom(this.id.get()));
-    return (this.rootElement = cssBox(
+    return this.rootElement = cssBox(
       testId('leaf-box'),
       dom.domComputed(this._content, c => c),
       // Add draggable interface.
@@ -565,8 +669,9 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
         }).catch(() => {});
         e.preventDefault();
         e.stopPropagation();
-      })
-    ));
+      }),
+      detachedNode(this._hiddenViewInstance),
+    );
   }
 
   // Implement the drag interface. All those methods are called by the draggable helper.
@@ -580,7 +685,9 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
     const clone = CollapsedLeaf.create(floater, this.model, this.id.get());
     clone._indexWhenDragged = this.model.layout.indexOf(this);
     this.model.drag.emit(clone);
-    this.model.layout.remove(this);
+
+    // Remove self from the layout (it will dispose this instance, but the viewInstance was moved to the floater)
+    this.model.layout.destroy(this);
     return clone;
   }
 
@@ -607,7 +714,7 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   public removeFromLayout() {
     // Set the id to 0 so that the layout doesn't try to read me back.
     this.id.set(0);
-    this.model.layout.remove(this);
+    this.model.layout.destroy(this);
   }
 
   public leafId() {
@@ -743,13 +850,14 @@ class ExternalLeaf extends Disposable implements Dropped {
           const part = dropTargeter.activeTarget;
           dropTargeter.removeTargetHints();
           const leaf = dropped.leafId();
-          dropped.removeFromLayout();
           const box = externalEditor.layout.buildLayoutBox({leaf});
+          dropped.removeFromLayout();
           if (part.isChild) {
             part.box.addChild(box, part.isAfter);
           } else {
             part.box.addSibling(box, part.isAfter);
           }
+          this.model.viewLayout.viewModel.activeSectionId(leaf);
           this.model.drop.state.set(null);
         }
       })
@@ -758,26 +866,23 @@ class ExternalLeaf extends Disposable implements Dropped {
   }
 
   /**
-   * Dropped interface implementation. It calls _collapseSection to make it obvious that this is
-   * what is happening, we are only called when a section in the main area is collapsed (dragged onto the valid target
-   * in the tray).
+   * Dropped interface implementation, it is called only when a section in the main area is collapsed (dragged
+   * onto the valid target in the tray).
    */
   public removeFromLayout() {
-    this._collapseSection();
-  }
-
-  public leafId() {
-    return this._drop.state.get()?.leafId.peek() || 0;
-  }
-
-  private _collapseSection() {
     const droppedBox = this._drop.state.get();
     if (!droppedBox) { return; }
     const leafId = this.leafId();
     const otherSection = this.model.viewLayout.layoutEditor
       .layout.getAllLeafIds().find(x => typeof x === 'number' && x !== leafId);
     this.model.viewLayout.viewModel.activeSectionId(otherSection);
+    // We can safely remove the box, because we should be called after viewInstance is grabbed by
+    // the tray.
     this.model.viewLayout.layoutEditor.doRemoveBox(droppedBox);
+  }
+
+  public leafId() {
+    return this._drop.state.get()?.leafId.peek() || 0;
   }
 
   /**
@@ -837,8 +942,54 @@ class ExternalLeaf extends Disposable implements Dropped {
   }
 }
 
+/**
+ * A class that holds an array of IDisposable objects, and disposes them all when it is disposed.
+ * The difference from a MultipleHolder is that it can release individual disposables from the array.
+ */
+class ArrayHolder extends Disposable {
+  private _array: IDisposable[] = [];
+
+  constructor() {
+    super();
+    this.onDispose(() => {
+      const seen = new Set();
+      for (const obj of this._array) {
+        if (!seen.has(obj)) {
+          seen.add(obj);
+          obj.dispose();
+        }
+      }
+      this._array = [];
+    });
+  }
+
+  public autoDispose<T extends IDisposable>(obj: T): T {
+    this._array.push(obj);
+    return obj;
+  }
+
+  public release(obj: IDisposable) {
+    const index = this._array.indexOf(obj);
+    if (index >= 0) {
+      return this._array.splice(index, 1);
+    }
+    return null;
+  }
+}
+
 function syncHover(obs: Signal) {
   return [dom.on('mouseenter', () => obs.emit(true)), dom.on('mouseleave', () => obs.emit(false))];
+}
+
+/**
+ * Helper function that renders an element from an observable, but prevents it from being disposed.
+ * Used to keep viewInstance from being disposed when it is added as a child in various containers.
+ */
+function detachedNode(node: Observable<HTMLElement|null>) {
+  return [
+    dom.maybe(node, n => n),
+    dom.onDispose(() => node.get() && detachNode(node.get()))
+  ];
 }
 
 /**
@@ -876,6 +1027,8 @@ function useDragging() {
     let isDragging = false;
     let dragged: Draggable|null = null;
     let floater: MiniFloater|null = null;
+    let downX: number|null = null;
+    let downY: number|null = null;
     const listener = (ev: MouseEvent) => {
       switch (ev.type) {
         case 'mousedown':
@@ -895,6 +1048,8 @@ function useDragging() {
           justStarted = true;
           G.$(G.window).on('mousemove', mouseMoveListener);
           G.$(G.window).on('mouseup', mouseUpListener);
+          downX = ev.clientX;
+          downY = ev.clientY;
           return false;
         case 'mouseup':
           if (!dragged) {
@@ -918,19 +1073,21 @@ function useDragging() {
           floater = null;
           return false;
         case 'mousemove':
-          // We start the drag with a first mousemove event. We don't want to start dragging if the mouse
-          // hasn't moved.
           if (justStarted) {
-            justStarted = false;
-            if (dragged?.dragStart) {
-              // Drag element has an opportunity to return a new draggable object.
-              dragged = dragged.dragStart(ev as DragEvent, floater!);
-              if (!dragged) {
-                return;
+            const slightMove = downX && downY &&
+              (Math.abs(ev.clientX - downX) > 3 || Math.abs(ev.clientY - downY) > 3);
+            if (slightMove) {
+              justStarted = false;
+              if (dragged?.dragStart) {
+                // Drag element has an opportunity to return a new draggable object.
+                dragged = dragged.dragStart(ev as DragEvent, floater!);
+                if (!dragged) {
+                  return;
+                }
               }
+              // Now we are dragging.
+              isDragging = true;
             }
-            // Now we are dragging.
-            isDragging = true;
           }
           if (!isDragging) {
             return;
@@ -947,13 +1104,6 @@ function useDragging() {
     dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', (e) => listener(e)));
     dom.onDisposeElem(el, () => (floater?.dispose(), floater = null));
   };
-}
-
-function removeFromObsArray<T>(boxes: MutableObsArray<T>, selector: (box: T, index: number) => boolean) {
-  const index = boxes.get().findIndex(selector);
-  if (index !== -1) {
-    boxes.splice(index, 1);
-  }
 }
 
 /**
@@ -1078,3 +1228,5 @@ const cssVirtualPart = styled('div', `
   z-index: 10;
   background: rgba(0, 0, 0, 0.1);
 `);
+
+const cssHidden = styled('div', `display: none;`);

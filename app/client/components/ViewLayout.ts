@@ -22,7 +22,7 @@ import * as ko from 'knockout';
 import * as _ from 'underscore';
 import debounce from 'lodash/debounce';
 import {Computed, computedArray, Disposable, dom, fromKo, Holder,
-        IDomComponent, Observable, styled, subscribe} from 'grainjs';
+        IDomComponent, MultiHolder, Observable, styled, subscribe} from 'grainjs';
 
 // tslint:disable:no-console
 
@@ -49,23 +49,8 @@ export class ViewSectionHelper extends Disposable {
   constructor(gristDoc: GristDoc, vs: ViewSectionRec) {
     super();
     this.onDispose(() => vs.viewInstance(null));
-    // If this is a collapsed section (but not active), don't create an instance (or remove the old one).
-    // Collapsed section can be expanded and shown in the popup window, it will be active then.
-    // This is important to avoid recreating the instance when the section is collapsed, but mainly for the
-    // charts as they are not able to handle being detached from the dom.
-    const hidden = Computed.create(this, (use) => {
-      // Note: this is a separate computed from the one below (with subscribe method), because we don't want
-      // trigger it unnecessarily.
-      return use(vs.isCollapsed) && use(gristDoc.externalSectionId) !== use(vs.id);
-    });
 
     this.autoDispose(subscribe((use) => {
-      // Destroy the instance if the section is hidden.
-      if (use(hidden)) {
-        this._instance.clear();
-        vs.viewInstance(null);
-        return;
-      }
       // Rebuild the section when its type changes or its underlying table.
       const table = use(vs.table);
       const Cons = getInstanceConstructor(use(vs.parentKey));
@@ -86,6 +71,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   public viewModel: ViewRec;
   public layoutSpec: ko.Computed<BoxSpec>;
   public maximized: Observable<number|null>;
+  public previousSectionId = 0; // Used to restore focus after a maximized section is closed.
   public isResizing = Observable.create(this, false);
   public layout: Layout;
   public layoutEditor: LayoutEditor;
@@ -199,26 +185,49 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     };
     this.autoDispose(commands.createGroup(commandGroup, this, true));
 
-    this.maximized = fromKo(this.layout.maximized) as any;
-    this.autoDispose(this.maximized.addListener(val => {
-      const section = this.viewModel.activeSection.peek();
-      // If section is not disposed and it is not a deleted row.
-      if (!section.isDisposed() && section.id.peek()) {
-        section?.viewInstance.peek()?.onResize();
+    this.maximized = fromKo(this.layout.maximizedLeaf) as any;
+    this.autoDispose(this.maximized.addListener((sectionId, prev) => {
+      // If we are closing popup, resize all sections.
+      if (!sectionId) {
+        this._onResize();
+        // Reset active section to the first one if the section is popup is collapsed.
+        if (prev
+            && this.viewModel.activeCollapsedSections.peek().includes(prev)
+            && this.previousSectionId) {
+          // Make sure that previous section exists still.
+          if (this.viewModel.viewSections.peek().all()
+                  .some(s => !s.isDisposed() && s.id.peek() === this.previousSectionId)) {
+            this.viewModel.activeSectionId(this.previousSectionId);
+          }
+        }
+      } else {
+        // Otherwise resize only active one (the one in popup).
+        const section = this.viewModel.activeSection.peek();
+        if (!section.isDisposed() && section.id.peek()) {
+          section?.viewInstance.peek()?.onResize();
+        }
       }
     }));
   }
 
   public buildDom() {
+    const owner = MultiHolder.create(null);
     const close = () => this.maximized.set(null);
+    const mainBoxInPopup = Computed.create(owner, use => this.layout.getAllLeafIds().includes(use(this.maximized)));
+    const miniBoxInPopup = Computed.create(owner, use => use(mainBoxInPopup) ? null : use(this.maximized));
     return cssOverlay(
+      dom.autoDispose(owner),
       cssOverlay.cls('-active', use => !!use(this.maximized)),
       testId('viewLayout-overlay'),
-      cssLayoutContainer(
+      cssVFull(
         this.layoutTray.buildDom(),
         cssLayoutWrapper(
-          cssLayoutWrapper.cls('-active',  use => !!use(this.maximized)),
-          this.layout.rootElem,
+          cssLayoutWrapper.cls('-active', use => Boolean(use(this.maximized))),
+          dom.update(
+            this.layout.rootElem,
+            dom.hide(use => Boolean(use(miniBoxInPopup))),
+          ),
+          this.layoutTray.buildPopup(owner, miniBoxInPopup, close),
         ),
       ),
       dom.maybe(use => !!use(this.maximized), () =>
@@ -265,12 +274,20 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   // Removes a view section from the current view. Should only be called if there is
   // more than one viewsection in the view.
   public removeViewSection(viewSectionRowId: number) {
+    this.maximized.set(null);
     this.gristDoc.docData.sendAction(['RemoveViewSection', viewSectionRowId]).catch(reportError);
   }
 
-  public rebuildLayout(layoutSpec: object) {
+  public rebuildLayout(layoutSpec: BoxSpec) {
+    // Rebuild the collapsed section layout. In return we will get all leaves that were
+    // removed from collapsed dom. Some of them will hold a view instance dom.
+    const oldTray = this.layoutTray.replaceLayout();
+    // Build the normal layout. While building, some leaves will grab the view instance dom
+    // and attach it to their dom (and detach them from the old layout in the process).
     this.layout.buildLayout(layoutSpec, true);
     this._onResize();
+    // Dispose the old layout. This will dispose the view instances that were not reused.
+    oldTray.dispose();
   }
 
   private _maximizeActiveSection() {
@@ -479,7 +496,7 @@ const cssCloseButton = styled(icon, `
   }
 `);
 
-const cssLayoutContainer = styled('div', `
+const cssVFull = styled('div', `
   height: 100%;
   display: flex;
   flex-direction: column;

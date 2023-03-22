@@ -25,7 +25,6 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
-import {allCommands} from 'app/client/components/commands';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
@@ -243,7 +242,10 @@ export class GristDoc extends DisposableWithEvents {
       this.docModel.views.createFloatingRowModel(toKo(ko, this.activeViewId) as ko.Computed<number>));
 
     // When active section is changed, clear the maximized state.
-    this.autoDispose(this.viewModel.activeSectionId.subscribe(() => {
+    this.autoDispose(this.viewModel.activeSectionId.subscribe((id) => {
+      if (id === this.maximizedSectionId.get()) {
+        return;
+      }
       this.maximizedSectionId.set(null);
       // If we have layout, update it.
       if (!this.viewLayout?.isDisposed()) {
@@ -1058,7 +1060,10 @@ export class GristDoc extends DisposableWithEvents {
     // We can only open a popup for a section.
     if (!hash.sectionId) { return; }
     // We might open popup either for a section in this view or some other section (like Raw Data Page).
-    if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId && !s.isCollapsed.peek())) {
+    if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
+      if (this.viewLayout) {
+        this.viewLayout.previousSectionId = this.viewModel.activeSectionId.peek();
+      }
       this.viewModel.activeSectionId(hash.sectionId);
       // If the anchor link is valid, set the cursor.
       if (hash.colRef && hash.rowId) {
@@ -1069,7 +1074,7 @@ export class GristDoc extends DisposableWithEvents {
           view?.setCursorPos({ sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex });
         }
       }
-      allCommands.maximizeActiveSection.run();
+      this.viewLayout?.maximized.set(hash.sectionId);
       return;
     }
     // We will borrow active viewModel and will trick him into believing that

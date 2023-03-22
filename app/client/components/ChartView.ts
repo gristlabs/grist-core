@@ -351,6 +351,11 @@ export class ChartView extends Disposable {
 
   private _resizeChart() {
     if (this.isDisposed() || !Plotly || !this._chartDom.parentNode) { return; }
+    // Check if the chart is visible before resizing. If it's not visible, Plotly will throw an error.
+    const display = window.getComputedStyle(this._chartDom).display;
+    if (!display || display === 'none') {
+      return;
+    }
     Plotly.Plots.resize(this._chartDom);
   }
 

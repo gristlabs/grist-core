@@ -128,7 +128,16 @@ class PageRecWrapper implements ISearchablePageRec {
 
   }
   public viewSections(): ViewSectionRec[] {
-    return this._page.view.peek().viewSections.peek().peek();
+    const sections = this._page.view.peek().viewSections.peek().peek();
+    const collapsed = new Set(this._page.view.peek().activeCollapsedSections.peek());
+    const activeSectionId = this._page.view.peek().activeSectionId.peek();
+    // If active section is collapsed, it means it is rendered in the popup, so narrow
+    // down the search to only it.
+    const inPopup = collapsed.has(activeSectionId);
+    if (inPopup) {
+      return sections.filter((s) => s.getRowId() === activeSectionId);
+    }
+    return sections.filter((s) => !collapsed.has(s.getRowId()));
   }
 
   public activeSectionId() {

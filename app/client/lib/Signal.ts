@@ -109,6 +109,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
    */
   public pipe(signal: Signal<T>) {
     this.autoDispose(this.listen(value => signal.emit(value)));
+    return this;
   }
 
   /**

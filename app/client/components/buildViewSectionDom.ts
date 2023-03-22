@@ -29,13 +29,13 @@ export function buildCollapsedSectionDom(options: {
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
   const typeComputed = Computed.create(null, use => getWidgetTypes(use(vs.parentKey) as any).icon);
   return cssMiniSection(
-    testId(`minilayout-section-${sectionRowId}`),
-    testId(`minilayout-section`),
+    testId(`collapsed-section-${sectionRowId}`),
+    testId(`collapsed-section`),
     cssDragHandle(
       dom.domComputed(typeComputed, (type) => icon(type)),
       dom('div', {style: 'margin-right: 16px;'}),
       dom.maybe((use) => use(use(vs.table).summarySourceTable), () => cssSigmaIcon('Pivot', testId('sigma'))),
-      dom('span.viewsection_title_font', testId('viewsection-title'),
+      dom('span.viewsection_title_font', testId('collapsed-section-title'),
         dom.text(vs.titleDef),
       ),
     ),
@@ -102,7 +102,7 @@ export function buildViewSectionDom(options: {
           dom('div.viewsection_truncated', 'Not all data is shown')
         ),
         dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
-        viewInstance.viewPane,
+        viewInstance.viewPane
       ),
       dom.maybe(use => !use(isNarrowScreenObs()), () => viewInstance.selectionSummary?.buildDom()),
     ]),

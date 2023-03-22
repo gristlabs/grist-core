@@ -103,8 +103,8 @@ export interface IColsSelect<T = WebElement> {
  * TODO It would be nice if mocha-webdriver allowed exact string match in findContent() (it now
  * supports a substring match, but we still need a helper for an exact match).
  */
-export function exactMatch(value: string): RegExp {
-  return new RegExp(`^${escapeRegExp(value)}$`);
+export function exactMatch(value: string, flags?: string): RegExp {
+  return new RegExp(`^${escapeRegExp(value)}$`, flags);
 }
 
 /**
@@ -230,8 +230,11 @@ export function getSection(sectionOrTitle: string|WebElement): WebElement|WebEle
 /**
  * Click into a section without disrupting cursor positions.
  */
-export async function selectSectionByTitle(title: string) {
+export async function selectSectionByTitle(title: string|RegExp) {
   try {
+    if (typeof title === 'string') {
+      title = new RegExp("^" + escapeRegExp(title) + "$", 'i');
+    }
     // .test-viewsection is a special 1px width element added for tests only.
     await driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
   } catch (e) {
@@ -406,6 +409,13 @@ export function getDetailCell(colOrOptions: string|ICellSelect, rowNum?: number,
     {col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper} :
     {col: colOrOptions, rowNums: [rowNum!], section, mapper});
   return new WebElementPromise(driver, getVisibleDetailCells(options).then((elems) => elems[0]));
+}
+
+/**
+ * Gets a cell on a single card page.
+ */
+export function getCardCell(col: string, section?: string) {
+  return getDetailCell({col, rowNum: 1, section});
 }
 
 
@@ -2546,6 +2556,8 @@ export async function setRefShowColumn(col: string) {
   await waitForServer();
 }
 
+
+
 /**
  * Returns "Data from table" setting value of a reference column.
  */
@@ -2559,6 +2571,19 @@ export async function getRefTable(): Promise<string> {
 export async function setRefTable(table: string) {
   await driver.find('.test-fbuilder-ref-table-select').click();
   await driver.findContent('.test-select-menu .test-select-row', table).click();
+  await waitForServer();
+}
+
+/**
+ * Changes "Select by" of the current section.
+ */
+export async function selectBy(table: string|RegExp) {
+  await toggleSidePanel('right', 'open');
+  await driver.find('.test-right-tab-pagewidget').click();
+  await driver.find('.test-config-data').click();
+  await driver.find('.test-right-select-by').click();
+  table = typeof table === 'string' ? exactMatch(table) : table;
+  await driver.findContentWait('.test-select-menu li', table, 200).click();
   await waitForServer();
 }
 

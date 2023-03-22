@@ -38,18 +38,6 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
 
   this.layoutSpecObj = modelUtil.jsonObservable(this.layoutSpec);
 
-  // An observable for the ref of the section last selected by the user.
-  this.activeSectionId = koUtil.observableWithDefault(ko.observable(), () => {
-    // The default function which is used when the conditional case is true.
-    // Read may occur for recently disposed sections, must check condition first.
-    return !this.isDisposed() &&
-      // `!this.getRowId()` implies that this is an empty (non-existent) view record
-      // which happens when viewing the raw data tables, in which case the default is no active view section.
-      this.getRowId() && this.viewSections().all().length > 0 ? this.viewSections().at(0)!.getRowId() : 0;
-  });
-
-  this.activeSection = refRecord(docModel.viewSections, this.activeSectionId);
-
   this.activeCollapsedSectionId = ko.observable(0);
 
   this.collapsedSections = this.autoDispose(ko.pureComputed(() => {
@@ -58,6 +46,25 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
     return collapsed.filter(x => allSections.has(x));
   }));
   this.activeCollapsedSections = ko.observable(this.collapsedSections.peek());
+
+  // An observable for the ref of the section last selected by the user.
+  this.activeSectionId = koUtil.observableWithDefault(ko.observable(), () => {
+    // The default function which is used when the conditional case is true.
+    // Read may occur for recently disposed sections, must check condition first.
+    // `!this.getRowId()` implies that this is an empty (non-existent) view record
+    // which happens when viewing the raw data tables, in which case the default is no active view section.
+
+    if (this.isDisposed() || !this.getRowId()) { return 0; }
+    const all = this.viewSections().all();
+    const collapsed = new Set(this.activeCollapsedSections());
+    const visible = all.filter(x => !collapsed.has(x.id()));
+
+    return visible.length > 0 ? visible[0].getRowId() : 0;
+  });
+
+  this.activeSection = refRecord(docModel.viewSections, this.activeSectionId);
+
+
 
   // If the active section is removed, set the next active section to be the default.
   this._isActiveSectionGone = this.autoDispose(ko.computed(() => this.activeSection()._isDeleted()));

@@ -114,14 +114,14 @@ export class LayoutBox extends Disposable implements ContentBox {
       this));
 
     this.isMaximized = this.autoDispose(ko.pureComputed(() => {
-      const leafId = this.layout?.maximized();
+      const leafId = this.layout?.maximizedLeaf();
       if (!leafId) { return false; }
       if (leafId === this.leafId()) { return true; }
       return this.childBoxes.all().some(function(child) { return child.isMaximized(); });
     }, this));
     this.isHidden = this.autoDispose(ko.pureComputed(() => {
       // If there isn't any maximized box, then no box is hidden.
-      const maximized = this.layout?.maximized();
+      const maximized = this.layout?.maximizedLeaf();
       if (!maximized) { return false; }
       return !this.isMaximized();
     }, this));
@@ -150,10 +150,10 @@ export class LayoutBox extends Disposable implements ContentBox {
     return this.dom || (this.dom = this.autoDispose(this.buildDom()));
   }
   public maximize() {
-    if (this.layout.maximized.peek() !== this.leafId.peek()) {
-      this.layout.maximized(this.leafId());
+    if (this.layout.maximizedLeaf.peek() !== this.leafId.peek()) {
+      this.layout.maximizedLeaf(this.leafId());
     } else {
-      this.layout.maximized(null);
+      this.layout.maximizedLeaf(null);
     }
   }
   public buildDom() {
@@ -371,7 +371,7 @@ export class Layout extends Disposable {
   public trigger: BackboneEvents["trigger"];              // set by Backbone
   public stopListening: BackboneEvents["stopListening"];  // set by Backbone
 
-  public maximized: ko.Observable<string|null>;
+  public maximizedLeaf: ko.Observable<string|null>;
   public rootBox: ko.Observable<LayoutBox|null>;
   public createLeafFunc: (id: string) => HTMLElement;
   public fillWindow: boolean;
@@ -381,7 +381,7 @@ export class Layout extends Disposable {
   private _leafIdMap: Map<any, LayoutBox>|null;
 
   public create(boxSpec: BoxSpec, createLeafFunc: (id: string) => HTMLElement, optFillWindow: boolean) {
-    this.maximized = observable(null as (string|null));
+    this.maximizedLeaf = observable(null as (string|null));
     this.rootBox = observable(null as any);
     this.createLeafFunc = createLeafFunc;
     this._leafIdMap = null;
@@ -422,7 +422,7 @@ export class Layout extends Disposable {
     return dom('div.layout_root',
       domData('layoutModel', this),
       toggleClass('layout_fill_window', this.fillWindow),
-      toggleClass('layout_box_maximized', this.maximized),
+      toggleClass('layout_box_maximized', this.maximizedLeaf),
       scope(this.rootBox, (rootBox: LayoutBox) => {
         return rootBox ? rootBox.getDom() : null;
       })

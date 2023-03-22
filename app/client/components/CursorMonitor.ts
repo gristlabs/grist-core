@@ -93,6 +93,11 @@ export class CursorMonitor extends Disposable {
     }
     const position = this._readPosition(viewId);
     if (position) {
+      // Don't restore position if this is a collapsed section.
+      const collapsed = doc.viewModel.activeCollapsedSections.peek();
+      if (position.sectionId && collapsed.includes(position.sectionId)) {
+        return;
+      }
       // Ignore error with finding desired cell.
       await doc.recursiveMoveToCursorPos(position, true, true);
     }
