@@ -1,10 +1,12 @@
 /**
  * Note that it assumes the presence of cssVars.cssRootVars on <body>.
  */
+import {makeT} from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import {watchElementForBlur} from 'app/client/lib/FocusLayer';
 import {urlState} from "app/client/models/gristUrlState";
 import {resizeFlexVHandle} from 'app/client/ui/resizeHandle';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {transition, TransitionWatcher} from 'app/client/ui/transitions';
 import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
@@ -16,6 +18,8 @@ import noop from 'lodash/noop';
 import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
 import debounce from 'lodash/debounce';
+
+const t = makeT('PagePanels');
 
 const AUTO_EXPAND_TIMEOUT_MS = 400;
 
@@ -280,6 +284,8 @@ export function pagePanels(page: PageContents) {
             cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
               testId('right-opener'),
               dom.cls('tour-creator-panel'),
+              hoverTooltip(() => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')),
+                {key: 'topBarBtnTooltip'}),
               dom.on('click', () => toggleObs(right.panelOpen)),
               cssHideForNarrowScreen.cls(''))
           ),
