@@ -62,7 +62,7 @@ const cssSizer = styled('div', `
 
 enum Status { NORMAL, EDITING, SAVING }
 
-type SaveFunc = (value: string) => Promise<void>;
+type SaveFunc = (value: string) => void|PromiseLike<void>;
 
 export interface EditableLabelOptions {
   save: SaveFunc;

@@ -11,10 +11,13 @@ export const DEPS = { fetch };
 export async function sendForCompletion(prompt: string): Promise<string> {
   let completion: string|null = null;
   let retries: number = 0;
+  const openApiKey = process.env.OPENAI_API_KEY;
+  const model = process.env.COMPLETION_MODEL || "text-davinci-002";
+
   while(retries++ < 3) {
     try {
-      if (process.env.OPENAI_API_KEY) {
-        completion = await sendForCompletionOpenAI(prompt);
+      if (openApiKey) {
+        completion = await sendForCompletionOpenAI(prompt, openApiKey, model);
       }
       if (process.env.HUGGINGFACE_API_KEY) {
         completion = await sendForCompletionHuggingFace(prompt);
@@ -33,8 +36,7 @@ export async function sendForCompletion(prompt: string): Promise<string> {
 }
 
 
-async function sendForCompletionOpenAI(prompt: string) {
-  const apiKey = process.env.OPENAI_API_KEY;
+async function sendForCompletionOpenAI(prompt: string, apiKey: string, model = "text-davinci-002") {
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY not set");
   }
@@ -51,7 +53,7 @@ async function sendForCompletionOpenAI(prompt: string) {
         max_tokens: 150,
         temperature: 0,
         // COMPLETION_MODEL of `code-davinci-002` may be better if you have access to it.
-        model: process.env.COMPLETION_MODEL || "text-davinci-002",
+        model,
         stop: ["\n\n"],
       }),
     },

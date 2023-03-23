@@ -583,6 +583,9 @@ export interface GristLoadConfig {
   // TODO: remove when comments will be released.
   featureComments?: boolean;
 
+  // TODO: remove once released.
+  featureFormulaAssistant?: boolean;
+
   // Email address of the support user.
   supportEmail?: string;
 

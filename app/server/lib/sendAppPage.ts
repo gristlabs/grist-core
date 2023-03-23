@@ -1,4 +1,5 @@
 import {getPageTitleSuffix, GristLoadConfig, HideableUiElements, IHideableUiElement} from 'app/common/gristUrls';
+import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
@@ -60,10 +61,11 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: getActivation(req as RequestWithLogin | undefined),
-    enableCustomCss: process.env.APP_STATIC_INCLUDE_CUSTOM_CSS === 'true',
+    enableCustomCss: isAffirmative(process.env.APP_STATIC_INCLUDE_CUSTOM_CSS),
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
-    featureComments: process.env.COMMENTS === "true",
+    featureComments: isAffirmative(process.env.COMMENTS),
+    featureFormulaAssistant: isAffirmative(process.env.GRIST_FORMULA_ASSISTANT),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     ...extra,

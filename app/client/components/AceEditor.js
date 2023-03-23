@@ -187,6 +187,10 @@ AceEditor.prototype._setup = function() {
   if (this.gristDoc && this.column) {
     const getSuggestions = (prefix) => {
       const section = this.gristDoc.viewModel.activeSection();
+      // If section is disposed or is pointing to an empty row, don't try to autocomplete.
+      if (!section?.getRowId()) {
+        return [];
+      }
       const tableId = section.table().tableId();
       const columnId = this.column.colId();
       const rowId = section.activeRowId();

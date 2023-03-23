@@ -2,26 +2,26 @@
  * This module export a component for editing some document settings consisting of the timezone,
  * (new settings to be added here ...).
  */
-import {makeT} from 'app/client/lib/localization';
-import {Computed, Disposable, dom, fromKo, IDisposableOwner, styled} from 'grainjs';
-import {ACSelectItem, buildACSelect} from "app/client/lib/ACSelect";
+import {GristDoc} from 'app/client/components/GristDoc';
+import {ACIndexImpl} from 'app/client/lib/ACIndex';
+import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
-import {ACIndexImpl} from "app/client/lib/ACIndex";
-import {docListHeader} from "app/client/ui/DocMenuCss";
+import {makeT} from 'app/client/lib/localization';
+import {reportError} from 'app/client/models/AppModel';
+import {KoSaveableObservable} from 'app/client/models/modelUtil';
+import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {select} from 'app/client/ui2018/menus';
+import {confirmModal} from 'app/client/ui2018/modals';
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {GristLoadConfig} from 'app/common/gristUrls';
-import {propertyCompare} from "app/common/gutil";
-import {getCurrency, locales} from "app/common/Locales";
-import {GristDoc} from 'app/client/components/GristDoc';
-import * as moment from "moment-timezone";
-import {KoSaveableObservable} from 'app/client/models/modelUtil';
-import {reportError} from 'app/client/models/AppModel';
-import {confirmModal} from 'app/client/ui2018/modals';
+import {propertyCompare} from 'app/common/gutil';
+import {getCurrency, locales} from 'app/common/Locales';
+import {Computed, Disposable, dom, fromKo, IDisposableOwner, styled} from 'grainjs';
+import * as moment from 'moment-timezone';
 
 const t = makeT('DocumentSettings');
 

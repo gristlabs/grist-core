@@ -1,4 +1,4 @@
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import * as ace from 'brace';
 import {BindableValue, dom, DomElementArg, styled, subscribeElem} from 'grainjs';
 
@@ -69,5 +69,20 @@ const cssHighlightedCode = styled(cssCodeBlock, `
   & .ace_line {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+`);
+
+export const cssFieldFormula = styled(buildHighlightedCode, `
+  flex: auto;
+  cursor: pointer;
+  margin-top: 4px;
+  padding-left: 24px;
+  --icon-color: ${theme.accentIcon};
+
+  &-disabled-icon.formula_field_sidepane::before {
+    --icon-color: ${theme.lightText};
+  }
+  &-disabled {
+    pointer-events: none;
   }
 `);

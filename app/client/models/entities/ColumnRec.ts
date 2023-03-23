@@ -1,6 +1,8 @@
 import {KoArray} from 'app/client/lib/koArray';
+import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {CellRec, DocModel, IRowModel, recordSet,
         refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
+import {urlState} from 'app/client/models/gristUrlState';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId} from 'app/common/gristTypes';
@@ -11,6 +13,7 @@ import {
   FullFormatterArgs
 } from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
+import {Observable} from 'grainjs';
 import * as ko from 'knockout';
 
 // Column behavior type, used primarily in the UI.
@@ -76,6 +79,11 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   // `formatter` formats actual cell values, e.g. a whole list from the display column.
   formatter: ko.Computed<BaseFormatter>;
   cells: ko.Computed<KoArray<CellRec>>;
+
+  /**
+   * Current history of chat. This is a temporary array used only in the ui.
+   */
+  chatHistory: ko.PureComputed<Observable<ChatMessage[]>>;
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
@@ -151,6 +159,12 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   };
 
   this.behavior = ko.pureComputed(() => this.isEmpty() ? 'empty' : this.isFormula() ? 'formula' : 'data');
+
+  this.chatHistory = this.autoDispose(ko.computed(() => {
+    const docId = urlState().state.get().doc ?? '';
+    const key = `formula-assistant-history-${docId}-${this.table().tableId()}-${this.colId()}`;
+    return localStorageJsonObs(key, [] as ChatMessage[]);
+  }));
 }
 
 export function formatterForRec(
@@ -167,4 +181,23 @@ export function formatterForRec(
     docSettings: docModel.docInfoRow.documentSettingsJson(),
   };
   return func(args);
+}
+
+/**
+ * A chat message. Either send by the user or by the AI.
+ */
+export interface ChatMessage {
+  /**
+   * The message to display. It is a prompt typed by the user or a formula returned from the AI.
+   */
+  message: string;
+  /**
+   * The sender of the message. Either the user or the AI.
+   */
+  sender: 'user' | 'ai';
+  /**
+   * The formula returned from the AI. It is only set when the sender is the AI. For now it is the same
+   * value as the message, but it might change in the future when we use more conversational AI.
+   */
+  formula?: string;
 }

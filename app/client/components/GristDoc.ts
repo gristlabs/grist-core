@@ -175,6 +175,9 @@ export class GristDoc extends DisposableWithEvents {
   public externalSectionId: Computed<number|null>;
   public viewLayout: ViewLayout|null = null;
 
+  // Holder for the popped up formula editor.
+  public readonly formulaPopup = Holder.create(this);
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;

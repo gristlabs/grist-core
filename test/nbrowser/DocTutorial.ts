@@ -55,7 +55,7 @@ describe('DocTutorial', function () {
 
     it('shows a popup containing slides generated from the GristDocTutorial table', async function() {
       assert.isTrue(await driver.findWait('.test-doc-tutorial-popup', 2000).isDisplayed());
-      assert.equal(await driver.find('.test-doc-tutorial-popup-title').getText(), 'DocTutorial');
+      assert.equal(await driver.find('.test-floating-popup-header').getText(), 'DocTutorial');
       assert.equal(
         await driver.findWait('.test-doc-tutorial-popup h1', 2000).getText(),
         'Intro'
@@ -172,12 +172,12 @@ describe('DocTutorial', function () {
     });
 
     it('can be minimized and maximized', async function() {
-      await driver.find('.test-doc-tutorial-popup-minimize-maximize').click();
+      await driver.find('.test-floating-popup-minimize-maximize').click();
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-header').isDisplayed());
       assert.isFalse(await driver.find('.test-doc-tutorial-popup-body').isPresent());
       assert.isFalse(await driver.find('.test-doc-tutorial-popup-footer').isPresent());
 
-      await driver.find('.test-doc-tutorial-popup-minimize-maximize').click();
+      await driver.find('.test-floating-popup-minimize-maximize').click();
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-header').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-body').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-footer').isDisplayed());
@@ -262,7 +262,7 @@ describe('DocTutorial', function () {
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Zane Rails']);
 
       // Check that changes made to the tutorial since the last fork are included.
-      assert.equal(await driver.find('.test-doc-tutorial-popup-title').getText(),
+      assert.equal(await driver.find('.test-doc-tutorial-popup-header').getText(),
         'DocTutorial V2');
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'NewTable']);
     });
