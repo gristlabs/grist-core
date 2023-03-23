@@ -30,14 +30,14 @@
         "Remove {{- tableId }} rules": "Usuń reguły {{- tableId }}",
         "Remove {{- name }} user attribute": "Usuń atrybut użytkownika {{- name }}",
         "Reset": "Reset",
-        "Rules for table ": "Zasady dotyczące tabeli ",
+        "Rules for table ": "Reguły dotyczące tabeli ",
         "Save": "Zapisz",
         "Saved": "Zapisano",
         "Special Rules": "Reguły specjalne",
         "Type a message...": "Wpisz wiadomość…",
         "User Attributes": "Atrybuty użytkownika",
         "View As": "Wyświetl jako",
-        "Seed rules": "Zasady bazowe",
+        "Seed rules": "Reguły początkowe",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Automatycznie dodawaj regułę przyznającą właścicielowi pełen dostęp.",
         "Permission to edit document structure": "Uprawnienie do edycji struktury dokumentu"
     },
@@ -103,7 +103,7 @@
     },
     "AppHeader": {
         "Home Page": "Strona główna",
-        "Legacy": "Starsze",
+        "Legacy": "Brak wsparcia",
         "Personal Site": "Strona osobista",
         "Team Site": "Strona zespołu"
     },
@@ -117,8 +117,8 @@
         "Delete {{count}} columns_other": "Usuń {{count}} kolumny",
         "Delete {{count}} rows_one": "Usuń wiersz",
         "Delete {{count}} rows_other": "Usuń {{count}} wierszy",
-        "Duplicate rows_one": "Duplikuj wiersz",
-        "Duplicate rows_other": "Duplikuj wiersze",
+        "Duplicate rows_one": "Zduplikuj wiersz",
+        "Duplicate rows_other": "Zduplikuj wiersze",
         "Filter by this value": "Filtruj według tej wartości",
         "Insert column to the left": "Wstaw kolumnę z lewej strony",
         "Insert column to the right": "Wstaw kolumnę z prawej strony",
@@ -135,12 +135,12 @@
         "Create separate series for each value of the selected column.": "Utwórz osobne serie dla każdej wartości z wybranej kolumny.",
         "Each Y series is followed by two series, for top and bottom error bars.": "Po każdej serii Y następują dwie serie, dla górnych i dolnych słupków błędów.",
         "Pick a column": "Wybierz kolumnę",
-        "Toggle chart aggregation": "Przełączanie agregacji wykresów",
+        "Toggle chart aggregation": "Zmień agregację wykresu",
         "selected new group data columns": "wybrane nowe kolumny danych grupowych",
         "Each Y series is followed by a series for the length of error bars.": "Po każdej serii Y następuje seria dla długości słupków błędów."
     },
     "CodeEditorPanel": {
-        "Access denied": "Odmowa dostępu",
+        "Access denied": "Brak dostępu",
         "Code View is available only when you have full document access.": "Widok kodu jest dostępny tylko wtedy, gdy masz pełny dostęp do dokumentu."
     },
     "ColumnFilterMenu": {
@@ -183,7 +183,7 @@
     "DataTables": {
         "Click to copy": "Kliknij, aby skopiować",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Usunąć dane {{formattedTableName}}, i usunąć je ze wszystkich stron?",
-        "Duplicate Table": "Duplikat tabeli",
+        "Duplicate Table": "Zduplikuj całą tabele",
         "Raw Data Tables": "Tabele danych surowych",
         "Table ID copied to clipboard": "ID tabeli skopiowane do schowka",
         "You do not have edit access to this document": "Nie masz dostępu do edycji tego dokumentu"
@@ -263,7 +263,7 @@
         "Get started by inviting your team and creating your first Grist document.": "Zacznij od zaproszenia swojego zespołu i stworzenia pierwszego dokumentu Grist.",
         "Help Center": "Centrum pomocy",
         "Import Document": "Importuj dokument",
-        "Get started by exploring templates, or creating your first Grist document.": "Zacznij od zapoznania się z szablonami lub stworzenia swojego pierwszego dokumentu Grist.",
+        "Get started by exploring templates, or creating your first Grist document.": "Zacznij od zapoznania się z gotowymi szablonami lub stwórz swój pierwszego dokument Grist.",
         "{{signUp}} to save your work. ": "{{signUp}}, aby zapisać swoją pracę. ",
         "Welcome to {{orgName}}": "Witamy w {{orgName}}",
         "Interested in using Grist outside of your team? Visit your free ": "Chcesz używać Grist poza swoim zespołem? Odwiedź swój darmowy ",
@@ -285,14 +285,14 @@
         "Currency:": "Waluta:",
         "Document Settings": "Ustawienia dokumentu",
         "Engine (experimental {{span}} change at own risk):": "Silnik (eksperymentalny {{span}} zmiana na własne ryzyko):",
-        "Locale:": "Ustawienia regionalne",
+        "Locale:": "Ustawienia regionalne:",
         "Save": "Zapisz",
         "Save and Reload": "Zapisz i ponownie załaduj",
         "This document's ID (for API use):": "Identyfikator tego dokumentu (na potrzeby API):",
         "Time Zone:": "Strefa czasowa:",
         "API": "API",
         "Document ID copied to clipboard": "Identyfikator dokumentu skopiowany do schowka",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Local currency ({{currency}})": "Waluta lokalna ({{currency}})"
     },
     "DocumentUsage": {
@@ -307,9 +307,9 @@
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Skopiuj wszystkie dane oprócz struktury tabeli.",
-        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Zamiast duplikować tabele, zwykle lepiej jest segmentować dane za pomocą połączonych widoków. {{link}}",
-        "Name for new table": "Nazwa dla nowej tabeli",
-        "Only the document default access rules will apply to the copy.": "Do kopii będą miały zastosowanie tylko domyślne zasady dostępu do dokumentu."
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Zamiast duplikować tabele, zwykle lepiej jest utworzyć klika połączonych ze sobą widoków. {{link}}",
+        "Name for new table": "Nowa nazwa tabeli",
+        "Only the document default access rules will apply to the copy.": "Kopia dokumentu będzie używać tylko domyślnych reguł dostępu."
     },
     "ExampleInfo": {
         "Afterschool Program": "Program pozaszkolny",
@@ -369,7 +369,7 @@
         "Hide {{count}} columns_one": "Ukryj kolumnę",
         "Hide {{count}} columns_other": "Ukryj {{count}}kolumn",
         "Insert column to the {{to}}": "Wstaw kolumnę do {{to}}",
-        "More sort options ...": "Więcej opcji sortowania…",
+        "More sort options ...": "Pozostałe opcje sortowania…",
         "Rename column": "Zmień nazwę kolumny",
         "Reset {{count}} columns_one": "Wyzerować kolumnę",
         "Reset {{count}} columns_other": "Wyzeruj {{count}} kolumn",
@@ -532,10 +532,10 @@
     },
     "RowContextMenu": {
         "Delete": "Usuń",
-        "Insert row": "Wstawić wiersz",
-        "Insert row above": "Wstawić wiersz powyżej",
-        "Insert row below": "Wstawić wiersz poniżej",
-        "Copy anchor link": "Kopiowanie łącza zakotwiczenia",
+        "Insert row": "Dodaj wiersz",
+        "Insert row above": "Dodaj wiersz powyżej",
+        "Insert row below": "Dodaj wiersz poniżej",
+        "Copy anchor link": "Skopiuj link",
         "Duplicate rows_one": "Duplikuj wiersz",
         "Duplicate rows_other": "Duplikuj wiersze"
     },
@@ -543,9 +543,9 @@
         "Back to Current": "Powrót do aktualnego",
         "Download": "Pobierz",
         "Send to Google Drive": "Wyślij na Dysk Google",
-        "Work on a Copy": "Praca nad kopią",
+        "Work on a Copy": "Wersja robocza",
         "Edit without affecting the original": "Edycja bez wpływu na oryginał",
-        "Duplicate Document": "Duplikat dokumentu",
+        "Duplicate Document": "Zduplikuj dokument",
         "Show in folder": "Pokaż w folderze",
         "Unsaved": "Niezapisane",
         "Access Details": "Szczegóły dostępu",
@@ -561,7 +561,7 @@
         "Manage Users": "Zarządzanie użytkownikami"
     },
     "SiteSwitcher": {
-        "Switch Sites": "Przełączanie witryn",
+        "Switch Sites": "Przełącz witrynę",
         "Create new team site": "Utwórz nową witrynę zespołu"
     },
     "SortConfig": {
@@ -575,7 +575,7 @@
     "Tools": {
         "Document History": "Historia dokumentu",
         "Return to viewing as yourself": "Powrót do oglądania jako Ty",
-        "Access Rules": "Zasady dostępu",
+        "Access Rules": "Reguły dostępu",
         "Code View": "Widok kodu",
         "Delete": "Usuń",
         "Delete document tour?": "Usunąć wycieczkę po dokumencie?",
@@ -630,11 +630,11 @@
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Duże tabele mogą być oznaczone jako \"na żądanie\", aby uniknąć ładowania ich do silnika danych."
     },
     "ViewLayoutMenu": {
-        "Copy anchor link": "Kopiowanie łącza zakotwiczenia",
+        "Copy anchor link": "Skopiuj link",
         "Data selection": "Wybór danych",
         "Delete record": "Usuń rekord",
         "Open configuration": "Otwórz konfiguracje",
-        "Print widget": "Drukuj widżet",
+        "Print widget": "Wydrukuj sekcję",
         "Add to page": "Dodaj do strony",
         "Collapse widget": "Zwiń widżet",
         "Download as XLSX": "Pobierz jako XLSX",
@@ -642,7 +642,7 @@
         "Delete widget": "Usuń widżet",
         "Download as CSV": "Pobierz jako CSV",
         "Show raw data": "Pokaż surowe dane",
-        "Widget options": "Opcje widżetów",
+        "Widget options": "Ustawienia widoku",
         "Advanced Sort & Filter": "Zaawansowane sortowanie i filtrowanie"
     },
     "ViewSectionMenu": {
@@ -699,10 +699,10 @@
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Zauważ, że to nie kopiuje danych, ale tworzy inny widok tych samych danych.",
-        "Duplicate page {{pageName}}": "Duplikat strony {{pageName}}"
+        "Duplicate page {{pageName}}": "Utwórz kopię stronę {{pageName}}"
     },
     "errorPages": {
-        "Access denied{{suffix}}": "Odmowa dostępu{{suffix}}",
+        "Access denied{{suffix}}": "Brak dostępu{{suffix}}",
         "Go to main page": "Przejdź do strony głównej",
         "Page not found{{suffix}}": "Nie znaleziono strony{{suffix}}",
         "Sign in again": "Zaloguj się ponownie",
@@ -717,7 +717,7 @@
         "Add account": "Dodaj konto",
         "Contact support": "Skontaktuj się z pomocą techniczną",
         "Sign in to access this organization's documents.": "Zaloguj się, aby uzyskać dostęp do dokumentów tej organizacji.",
-        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Nie można odnaleźć żądanej strony. {{separator}} Sprawdź adres URL i spróbuj ponownie.",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Nie można odnaleźć strony. {{separator}} Sprawdź adres URL i spróbuj ponownie.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Jesteś zalogowany jako {{email}}. Możesz zalogować się na inne konto lub poprosić administratora o dostęp."
     },
     "menus": {
@@ -744,7 +744,7 @@
     },
     "pages": {
         "You do not have edit access to this document": "Nie masz dostępu do edycji tego dokumentu",
-        "Duplicate Page": "Duplikat strony",
+        "Duplicate Page": "Utwórz kopię strony",
         "Remove": "Usuń",
         "Rename": "Zmień nazwę"
     },
@@ -836,13 +836,13 @@
         "It should be impossible to save a plain data value into a formula column": "Zapisanie zwykłej wartości danych w kolumnie formuły powinno być niemożliwe"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[etykieta linku] url"
+        "[link label] url": "[etykieta linku] URL"
     },
     "NumericTextBox": {
         "Decimals": "Miejsc dziesiętnych",
         "Default currency ({{defaultCurrency}})": "Waluta domyślna ({{defaultCurrency}})",
         "Number Format": "Format liczb",
-        "Currency": "Waluta:"
+        "Currency": "Waluta"
     },
     "ConditionalStyle": {
         "Add another rule": "Dodaj kolejną regułę",
@@ -953,7 +953,7 @@
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Użyj ikony Σ, aby utworzyć tabele podsumowujące (lub przestawne) dla sum lub sum częściowych.",
         "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Użyj ikony \\u{1D6BA}, aby utworzyć tabele podsumowujące (przestawne) dla sum lub sum częściowych.",
         "relational": "relacyjny",
-        "Access Rules": "Zasady dostępu",
+        "Access Rules": "Reguły dostępu",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Reguły dostępu umożliwiają tworzenie reguł szczegółowych w celu określenia, kto może wyświetlać lub edytować poszczególne części dokumentu.",
         "Add New": "Dodaj nowy"
     },
