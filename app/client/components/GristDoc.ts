@@ -524,7 +524,7 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public async setCursorPos(cursorPos: CursorPos) {
-    if (cursorPos.sectionId) {
+    if (cursorPos.sectionId && cursorPos.sectionId !== this.externalSectionId.get()) {
       const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
       if (desiredSection.view.peek().getRowId() !== this.activeViewId.get()) {
         // This may be asynchronous. In other cases, the change is synchronous, and some code
