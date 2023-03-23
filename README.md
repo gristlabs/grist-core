@@ -261,6 +261,7 @@ GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be l
 GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone
 GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited).
 GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited).
+GRIST_OFFER_ALL_LANGUAGES | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user).
 GRIST_ORG_IN_PATH | if true, encode org in path rather than domain
 GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all.
 GRIST_PROXY_AUTH_HEADER | header which will be set by a (reverse) proxy webserver with an authorized users' email. This can be used as an alternative to a SAML service. See also GRIST_FORWARD_AUTH_HEADER.
