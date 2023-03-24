@@ -409,7 +409,9 @@
         "Sorted (#{{count}})_one": "Ordenado (#{{count}})",
         "Sorted (#{{count}})_other": "Ordenado (#{{count}})",
         "Unfreeze {{count}} columns_one": "Descongelar esta coluna",
-        "Unfreeze {{count}} columns_other": "Descongelar {{count}} colunas"
+        "Unfreeze {{count}} columns_other": "Descongelar {{count}} colunas",
+        "Insert column to the left": "Inserir coluna à esquerda",
+        "Insert column to the right": "Inserir coluna à direita"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
