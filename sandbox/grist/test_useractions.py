@@ -1634,3 +1634,21 @@ class TestUserActions(test_engine.EngineTestCase):
     existing_times = self.engine.fetch_table('Table1').columns['E']
     duplicated_times = self.engine.fetch_table('FooData').columns['E']
     self.assertEqual(existing_times, duplicated_times)
+
+  def test_duplicate_table2(self):
+    # This test case verifies a bug fix: when a column doesn't match its label despite
+    # untieColIdFromLabel being False (which is possible), ensure that duplicating still works.
+
+    self.load_sample(self.sample)
+
+    # This is the problem situation: "State2" doesn't match "State". It can happen legitimately in
+    # the wild if a second column labeled "State" is added, and then the first one removed.
+    self.apply_user_action(['AddTable', 'Table1', [
+      {'id': 'State2', 'type': 'Text', 'label': 'State'}
+    ]])
+    self.apply_user_action(['BulkAddRecord', 'Table1', [1], {
+      'State2': ['NY'],
+    }])
+    self.apply_user_action(['DuplicateTable', 'Table1', 'Foo', True])
+    self.assertTableData('Table1', data=[["id", "State2", 'manualSort'], [1, 'NY', 1.0]])
+    self.assertTableData('Foo', data=[["id", "State2", 'manualSort'], [1, 'NY', 1.0]])

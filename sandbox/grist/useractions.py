@@ -1904,6 +1904,7 @@ class UserActions(object):
         type=new_type,
         visibleCol=new_visible_col,
         untieColIdFromLabel=existing_column.untieColIdFromLabel,
+        colId=new_column.colId,   # To ensure untieColIdFromLabel doesn't rename this column.
         recalcWhen=existing_column.recalcWhen,
         recalcDeps=new_recalc_deps,
         formula=formula_updates.get(new_column, existing_column.formula),
