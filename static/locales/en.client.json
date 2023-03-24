@@ -378,7 +378,9 @@
         "Sorted (#{{count}})_other": "Sorted (#{{count}})",
         "Unfreeze all columns": "Unfreeze all columns",
         "Unfreeze {{count}} columns_one": "Unfreeze this column",
-        "Unfreeze {{count}} columns_other": "Unfreeze {{count}} columns"
+        "Unfreeze {{count}} columns_other": "Unfreeze {{count}} columns",
+        "Insert column to the left": "Insert column to the left",
+        "Insert column to the right": "Insert column to the right"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
