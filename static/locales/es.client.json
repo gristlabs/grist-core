@@ -338,7 +338,9 @@
         "Sorted (#{{count}})_one": "Ordenado (#{{count}})",
         "Sorted (#{{count}})_other": "Ordenado (#{{count}})",
         "Unfreeze {{count}} columns_one": "Descongelar esta columna",
-        "Unfreeze {{count}} columns_other": "Descongelar {{count}} columnas"
+        "Unfreeze {{count}} columns_other": "Descongelar {{count}} columnas",
+        "Insert column to the right": "Insertar columna a la derecha",
+        "Insert column to the left": "Insertar columna a la izquierda"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", o encontrar un experto a través de nuestro",
