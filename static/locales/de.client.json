@@ -409,7 +409,9 @@
         "Sorted (#{{count}})_one": "Sortiert (#{{count}})",
         "Sorted (#{{count}})_other": "Sortiert (#{{count}})",
         "Unfreeze {{count}} columns_one": "Diese Spalte entsperren",
-        "Unfreeze {{count}} columns_other": "{{count}} Spalten entsperren"
+        "Unfreeze {{count}} columns_other": "{{count}} Spalten entsperren",
+        "Insert column to the right": "Spalte rechts einfügen",
+        "Insert column to the left": "Spalte links einfügen"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
