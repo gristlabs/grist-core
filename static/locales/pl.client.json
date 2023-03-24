@@ -99,7 +99,8 @@
     "App": {
         "Key": "Klucz",
         "Memory Error": "Błąd pamięci",
-        "Description": "Opis"
+        "Description": "Opis",
+        "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]"
     },
     "AppHeader": {
         "Home Page": "Strona główna",
