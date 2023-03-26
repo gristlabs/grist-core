@@ -3,15 +3,35 @@
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the
 robustness of a database to organize your data and make you more productive.
 
+This repository, `grist-core`, is the heart of Grist, and has what you
+need to run a powerful spreadsheet hosting server. If you wish to view and edit
+spreadsheets stored locally, another option is to use the
+[`grist-electron`](https://github.com/gristlabs/grist-electron) desktop app for Linux, Mac, and Windows. And to show Grist spreadsheets on a website
+without any special back-end support, your options include
+[`grist-static`](https://github.com/gristlabs/grist-static),
+a fully in-browser build of Grist.
+The `grist-core` repository is the basis for all these options, and
+for the hosted spreadsheet services offered by
+[`Grist Labs`](https://getgrist.com), an NYC-based company 🇺🇸 that is the main developer of Grist, and by
+[`ANCT Données et Territoires`](https://donnees.incubateur.anct.gouv.fr/toolbox/grist),
+a French government agency 🇫🇷 whose developers have made many
+contributions to the code-base.
+The `grist-core`, `grist-electron`, and `grist-static` repositories
+are all open-source (Apache License, Version 2.0).
+
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
 ## Features
 
-(By popular request: we have a specific write-up of [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) that may be helpful).
 Grist is a hybrid database/spreadsheet, meaning that:
 
   - Columns work like they do in databases. They are named, and hold one kind of data.
   - Columns can be filled by formula, spreadsheet-style, with automatic updates when referenced cells change.
+
+This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance!
+If you are coming from Airtable, you'll find the model familiar though (and there's a
+[Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article that might interest you).
+
 
 Here are some specific feature highlights of Grist:
 
@@ -23,6 +43,8 @@ Here are some specific feature highlights of Grist:
     - Any tool that can read SQLite can read numeric and text data from a Grist file.
     - Great format for [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can be confident you can restore in full.
     - Great format for moving between different hosts.
+	- Can be displayed on a static website with [grist-static](https://github.com/gristlabs/grist-static).
+	- There's a self-contained desktop app available for viewing and editing: [grist-electron](https://github.com/gristlabs/grist-electron).
   * Convenient editing and formatting features.
     - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records without fuss.
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
@@ -45,7 +67,7 @@ Here are some specific feature highlights of Grist:
     - Can link data with custom widgets hosted externally.
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
-    - (You'll need SSO logins set up to make use of these options)
+    - (You'll need SSO logins set up to make use of these options; [grist-omnibus](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
     - Share [individual documents](https://support.getgrist.com/sharing/), or workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
     - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
     - Control access based on cell values and user attributes.
@@ -56,6 +78,8 @@ Here are some specific feature highlights of Grist:
       [gVisor](https://github.com/google/gvisor) sandboxing at the individual
       document level.
     - On OSX, you can use native sandboxing.
+	- On any OS, including Windows, you can use a wasm-based sandbox.
+  * Translated to many languages.
 
 If you are curious about where Grist is going heading,
 see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a
@@ -64,11 +88,16 @@ or browse [our extensive documentation](https://support.getgrist.com).
 
 ## Using Grist
 
-There are docker images set up for individual use, or (with some
-configuration) for self-hosting. Grist Labs offers a hosted service
-at [docs.getgrist.com](https://docs.getgrist.com).
+If you just want a quick demo of Grist:
 
-To get Grist running on your computer with [Docker](https://www.docker.com/get-started), do:
+  * You can try Grist out at the hosted service run
+    by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com)
+	(no registration needed).
+  * Or you can see an experimental fully in-browser build of Grist
+    at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
+  * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-electron](https://github.com/gristlabs/grist-electron).
+
+To get `grist-core` running on your computer with [Docker](https://www.docker.com/get-started), do:
 
 ```sh
 docker pull gristlabs/grist
@@ -120,6 +149,7 @@ environment variable.
    uses the native `sandbox-exec` command for sandboxing.
  * On Linux with [gVisor's runsc](https://github.com/google/gvisor)
    installed, `export GRIST_SANDBOX_FLAVOR=gvisor` is an option.
+ * On any OS including Windows, `export GRIST_SANDBOX_FLAVOR=pyodide` is available.
 
 These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
@@ -348,5 +378,3 @@ This repository, `grist-core`, is released under the [Apache License, Version
 2.0](http://www.apache.org/licenses/LICENSE-2.0), which is an
 [OSI](https://opensource.org/)-approved free software license.
 See LICENSE.txt and NOTICE.txt for more information.
-If you have received a version of Grist with an `ext` directory,
-the material within it is separately licensed.
