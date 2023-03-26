@@ -2,6 +2,7 @@
 
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the
 robustness of a database to organize your data and make you more productive.
+
 This repository, `grist-core`, is the heart of Grist, and has what you
 need to run a powerful spreadsheet hosting server. If you wish to view and edit
 spreadsheets stored locally, another option is to use the
