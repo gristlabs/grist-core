@@ -10,7 +10,15 @@ import {IPopupOptions} from 'popweasel';
 
 export interface AttachOptions {
   /** Defaults to false. */
+  forceShow?: boolean;
+  /** Defaults to false. */
   hideArrow?: boolean;
+  /** Defaults to false. */
+  hideDontShowTips?: boolean;
+  /** Defaults to true. */
+  markAsSeen?: boolean;
+  /** Defaults to false. */
+  showOnMobile?: boolean;
   popupOptions?: IPopupOptions;
   onDispose?(): void;
 }
@@ -60,11 +68,11 @@ export class BehavioralPromptsManager extends Disposable {
       // Don't show tips if surveying is disabled.
       // TODO: Move this into a dedicated variable - this is only a short-term fix for hiding
       // tips in grist-core.
-      !getGristConfig().survey ||
-      // Or on mobile - the design currently isn't mobile-friendly.
-      isNarrowScreen() ||
+      (!getGristConfig().survey && prompt !== 'rickRow') ||
+      // Or if this tip shouldn't be shown on mobile.
+      (isNarrowScreen() && !options.showOnMobile) ||
       // Or if "Don't show tips" was checked in the past.
-      this._prefs.get().dontShowTips ||
+      (this._prefs.get().dontShowTips && !options.forceShow) ||
       // Or if this tip has been shown and dismissed in the past.
       this.hasSeenTip(prompt)
     ) {
@@ -88,15 +96,16 @@ export class BehavioralPromptsManager extends Disposable {
       }
     };
 
-    const {hideArrow = false, onDispose, popupOptions} = options;
+    const {hideArrow, hideDontShowTips, markAsSeen = true, onDispose, popupOptions} = options;
     const {title, content} = GristBehavioralPrompts[prompt];
     const ctl = showBehavioralPrompt(refElement, title(), content(), {
       onClose: (dontShowTips) => {
         if (dontShowTips) { this._dontShowTips(); }
-        this._markAsSeen(prompt);
+        if (markAsSeen) { this._markAsSeen(prompt); }
       },
       hideArrow,
       popupOptions,
+      hideDontShowTips,
     });
 
     ctl.onDispose(() => {

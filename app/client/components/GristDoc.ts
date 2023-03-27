@@ -36,7 +36,7 @@ import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
-import {urlState} from 'app/client/models/gristUrlState';
+import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {App} from 'app/client/ui/App';
@@ -48,8 +48,10 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {startWelcomeTour} from 'app/client/ui/welcomeTour';
 import {IWidgetType} from 'app/client/ui/widgetTypes';
-import {isNarrowScreen, mediaSmall, testId} from 'app/client/ui2018/cssVars';
+import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
+import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
+import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
@@ -78,6 +80,7 @@ import {
   Holder,
   IDisposable,
   IDomComponent,
+  keyframes,
   Observable,
   styled,
   subscribe,
@@ -86,6 +89,8 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+
+const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
 
 const t = makeT('GristDoc');
 
@@ -190,6 +195,9 @@ export class GristDoc extends DisposableWithEvents {
   private _rawSectionOptions: Observable<RawSectionOptions|null> = Observable.create(this, null);
   private _activeContent: Computed<IDocPage|RawSectionOptions>;
   private _docTutorialHolder = Holder.create<DocTutorial>(this);
+  private _isRickRowing: Observable<boolean> = Observable.create(this, false);
+  private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
+  private _backgroundVideoPlayerHolder: Holder<YouTubePlayer> = Holder.create(this);
 
 
   constructor(
@@ -279,6 +287,40 @@ export class GristDoc extends DisposableWithEvents {
             // Navigate to an anchor if one is present in the url hash.
             const cursorPos = this._getCursorPosFromHash(state.hash);
             await this.recursiveMoveToCursorPos(cursorPos, true);
+          }
+          if (state.hash.rickRow && !this._isRickRowing.get()) {
+            YouTubePlayer.create(this._backgroundVideoPlayerHolder, RICK_ROLL_YOUTUBE_EMBED_ID, {
+              height: '100%',
+              width: '100%',
+              origin: getMainOrgUrl(),
+              playerVars: {
+                controls: 0,
+                disablekb: 1,
+                fs: 0,
+                iv_load_policy: 3,
+                modestbranding: 1,
+              },
+              onPlayerStateChange: (_player, event) => {
+                if (event.data === PlayerState.Playing) {
+                  this._isRickRowing.set(true);
+                }
+              },
+            }, cssYouTubePlayer.cls(''));
+            this._showBackgroundVideoPlayer.set(true);
+            this._waitForView()
+              .then(() => {
+                const cursor = document.querySelector('.selected_cursor.active_cursor');
+                if (cursor) {
+                  this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
+                    forceShow: true,
+                    hideDontShowTips: true,
+                    markAsSeen: false,
+                    showOnMobile: true,
+                    onDispose: () => this.playRickRollVideo(),
+                  });
+                }
+              })
+              .catch(reportError);
           }
         } catch (e) {
           reportError(e);
@@ -482,6 +524,14 @@ export class GristDoc extends DisposableWithEvents {
     return cssViewContentPane(
       testId('gristdoc'),
       cssViewContentPane.cls("-contents", isPopup),
+      dom.maybe(this._isRickRowing, () => cssStopRickRowingButton(
+        cssCloseIcon('CrossBig'),
+        dom.on('click', () => {
+          this._isRickRowing.set(false);
+          this._showBackgroundVideoPlayer.set(false);
+        }),
+        testId('gristdoc-stop-rick-rowing'),
+      )),
       dom.domComputed(this._activeContent, (content) => {
         return  (
           content === 'code' ? dom.create(CodeEditorPanel, this) :
@@ -504,6 +554,13 @@ export class GristDoc extends DisposableWithEvents {
           })
         );
       }),
+      dom.maybe(this._showBackgroundVideoPlayer, () => [
+        cssBackgroundVideo(
+          this._backgroundVideoPlayerHolder.get()?.buildDom(),
+          cssBackgroundVideo.cls('-fade-in-and-out', this._isRickRowing),
+          testId('gristdoc-background-video'),
+        ),
+      ]),
     );
   }
 
@@ -1124,6 +1181,41 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
+   * Starts playing the music video for Never Gonna Give You Up in the background.
+   */
+  public async playRickRollVideo() {
+    const backgroundVideoPlayer = this._backgroundVideoPlayerHolder.get();
+    if (!backgroundVideoPlayer) { return; }
+
+    await backgroundVideoPlayer.isLoaded();
+    backgroundVideoPlayer.play();
+
+    const setVolume = async (start: number, end: number, step: number) => {
+      let volume: number;
+      const condition = start <= end
+        ? () => volume <= end
+        : () => volume >= end;
+      const afterthought = start <= end
+        ? () => volume += step
+        : () => volume -= step;
+      for (volume = start; condition(); afterthought()) {
+        backgroundVideoPlayer.setVolume(volume);
+        await delay(250);
+      }
+    };
+
+    await setVolume(0, 100, 5);
+
+    await delay(190 * 1000);
+    if (!this._isRickRowing.get()) { return; }
+
+    await setVolume(100, 0, 5);
+
+    this._isRickRowing.set(false);
+    this._showBackgroundVideoPlayer.set(false);
+  }
+
+  /**
    * Waits for a view to be ready
    */
   private async _waitForView(popupSection?: ViewSectionRec) {
@@ -1447,4 +1539,64 @@ const cssViewContentPane = styled('div', `
     margin: 0px;
     overflow: hidden;
   }
+`);
+
+const fadeInAndOut = keyframes(`
+  0% {
+    opacity: 0.01;
+  }
+  5%, 95% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.01;
+  }
+`);
+
+const cssBackgroundVideo = styled('div', `
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+
+  &-fade-in-and-out {
+    animation: ${fadeInAndOut} 200s;
+  }
+`);
+
+const cssYouTubePlayer = styled('div', `
+  position: absolute;
+  width: 450%;
+  height: 450%;
+  top: -175%;
+  left: -175%;
+
+  @media ${mediaXSmall} {
+    & {
+      width: 450%;
+      height: 450%;
+      top: -175%;
+      left: -175%;
+    }
+  }
+`);
+
+const cssStopRickRowingButton = styled('div', `
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 8px;
+  margin: 16px;
+  border-radius: 24px;
+  background-color: ${theme.toastBg};
+  cursor: pointer;
+`);
+
+const cssCloseIcon = styled(icon, `
+  height: 24px;
+  width: 24px;
+  --icon-color: ${theme.toastControlFg};
 `);

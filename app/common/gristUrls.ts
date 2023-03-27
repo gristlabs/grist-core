@@ -77,7 +77,6 @@ export const commonUrls = {
 
   efcrConnect: 'https://efc-r.com/connect',
   efcrHelp: 'https://www.nioxus.info/eFCR-Help',
-  videoTour: 'https://www.youtube.com/embed/qnr2Pfnxdlc?autoplay=1',
 };
 
 /**
@@ -261,7 +260,11 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     const hash = state.hash;
     hashParts.push(state.hash?.popup ? 'a2' : `a1`);
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
-      if (hash[key]) { hashParts.push(`${key[0]}${hash[key]}`); }
+      const partValue = hash[key];
+      if (partValue) {
+        const partKey = key === 'rowId' && state.hash?.rickRow ? 'rr' : key[0];
+        hashParts.push(`${partKey}${partValue}`);
+      }
     }
   }
   const queryStr = encodeQueryParams(queryParams);
@@ -379,13 +382,28 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     const hashParts = hash.split('.');
     const hashMap = new Map<string, string>();
     for (const part of hashParts) {
-      hashMap.set(part.slice(0, 1), part.slice(1));
+      if (part.startsWith('rr')) {
+        hashMap.set(part.slice(0, 2), part.slice(2));
+      } else {
+        hashMap.set(part.slice(0, 1), part.slice(1));
+      }
     }
     if (hashMap.has('#') && ['a1', 'a2'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
-      for (const key of ['sectionId', 'rowId', 'colRef'] as Array<Exclude<keyof HashLink, 'popup'>>) {
-        const ch = key.substr(0, 1);
-        if (!hashMap.has(ch)) { continue; }
+      const keys = [
+        'sectionId',
+        'rowId',
+        'colRef',
+      ] as Array<Exclude<keyof HashLink, 'popup' | 'rickRow'>>;
+      for (const key of keys) {
+        let ch: string;
+        if (key === 'rowId' && hashMap.has('rr')) {
+          ch = 'rr';
+          link.rickRow = true;
+        } else {
+          ch = key.substr(0, 1);
+          if (!hashMap.has(ch)) { continue; }
+        }
         const value = hashMap.get(ch);
         if (key === 'rowId' && value === 'new') {
           link[key] = 'new';
@@ -819,6 +837,7 @@ export interface HashLink {
   rowId?: UIRowId;
   colRef?: number;
   popup?: boolean;
+  rickRow?: boolean;
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be

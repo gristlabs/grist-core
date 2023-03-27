@@ -1,15 +1,19 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
+import {getMainOrgUrl} from 'app/client/models/gristUrlState';
 import {cssLinkText, cssPageEntryMain, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
+import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalCloseButton, modal} from 'app/client/ui2018/modals';
-import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
+import {shouldHideUiElement} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
 
 const t = makeT('OpenVideoTour');
 
 const testId = makeTestId('test-video-tour-');
+
+const VIDEO_TOUR_YOUTUBE_EMBED_ID = 'qnr2Pfnxdlc';
 
 /**
  * Opens a modal containing a video tour of Grist.
@@ -24,15 +28,16 @@ const testId = makeTestId('test-video-tour-');
           dom.on('click', () => ctl.close()),
           testId('close'),
         ),
-        cssVideoWrap(
-          cssVideo(
+        cssYouTubePlayerContainer(
+          dom.create(YouTubePlayer,
+            VIDEO_TOUR_YOUTUBE_EMBED_ID,
             {
-              src: commonUrls.videoTour,
-              title: t("YouTube video player"),
-              frameborder: '0',
-              allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
-              allowfullscreen: '',
+              onPlayerReady: (player) => player.playVideo(),
+              height: '100%',
+              width: '100%',
+              origin: getMainOrgUrl(),
             },
+            cssYouTubePlayer.cls(''),
           ),
         ),
         testId('modal'),
@@ -94,18 +99,16 @@ const cssModal = styled('div', `
   max-width: 864px;
 `);
 
-const cssVideoWrap = styled('div', `
+const cssYouTubePlayerContainer = styled('div', `
   position: relative;
   padding-bottom: 56.25%;
   height: 0;
 `);
 
-const cssVideo = styled('iframe', `
+const cssYouTubePlayer = styled('div', `
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
 `);
 
 const cssVideoTourTextButton = styled('div', `

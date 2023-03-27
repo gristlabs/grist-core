@@ -4,7 +4,7 @@ import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {reportSuccess} from 'app/client/models/errors';
 import {basicButton, bigPrimaryButton, primaryButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalTooltip, modalTooltip} from 'app/client/ui2018/modals';
 import {dom, DomContents, keyframes, observable, styled, svg} from 'grainjs';
@@ -138,6 +138,8 @@ export interface ShowBehavioralPromptOptions {
   onClose: (dontShowTips: boolean) => void;
   /** Defaults to false. */
   hideArrow?: boolean;
+  /** Defaults to false. */
+  hideDontShowTips?: boolean;
   popupOptions?: IPopupOptions;
 }
 
@@ -147,7 +149,7 @@ export function showBehavioralPrompt(
   content: DomContents,
   options: ShowBehavioralPromptOptions
 ) {
-  const {onClose, hideArrow, popupOptions} = options;
+  const {onClose, hideArrow = false, hideDontShowTips = false, popupOptions} = options;
   const arrow = hideArrow ? null : buildArrow();
   const dontShowTips = observable(false);
   const tooltip = modalTooltip(refElement,
@@ -180,6 +182,7 @@ export function showBehavioralPrompt(
                 cssSkipTipsCheckboxLabel("Don't show tips"),
                 testId('behavioral-prompt-dont-show-tips')
               ),
+              dom.style('visibility', hideDontShowTips ? 'hidden' : ''),
             ),
             cssDismissPromptButton('Got it', testId('behavioral-prompt-dismiss'),
               dom.on('click', () => { onClose(dontShowTips.get()); ctl.close(); })
@@ -193,6 +196,10 @@ export function showBehavioralPrompt(
         ...(arrow ? {arrow: {element: arrow}}: {}),
         offset: {
           offset: '0,12',
+        },
+        preventOverflow: {
+          boundariesElement: 'window',
+          padding: 32,
         },
       }
     })
@@ -339,6 +346,12 @@ const cssBehavioralPromptModal = styled('div', `
 
   &[x-placement^=right] {
     animation-name: ${cssFadeInFromRight};
+  }
+
+  @media ${mediaXSmall} {
+    & {
+      width: 320px;
+    }
   }
 `);
 

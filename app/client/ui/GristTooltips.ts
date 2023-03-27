@@ -1,9 +1,11 @@
+import * as commands from 'app/client/components/commands';
+import {makeT} from 'app/client/lib/localization';
+import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
+import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls} from 'app/common/gristUrls';
 import {BehavioralPrompt} from 'app/common/Prefs';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
-import {icon} from 'app/client/ui2018/icons';
-import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('GristTooltips');
 
@@ -202,4 +204,18 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ...args,
     ),
   },
+  rickRow: {
+    title: () => t('Anchor Links'),
+    content: (...args: DomElementArg[]) => cssTooltipContent(
+      dom('div',
+        t('To make an anchor link that takes the user to a specific cell, click on'
+          + ' a row and press {{shortcut}}.',
+          {
+            shortcut: ShortcutKey(ShortcutKeyContent(commands.allCommands.copyLink.humanKeys[0])),
+          }
+        ),
+      ),
+      ...args,
+    ),
+  }
 };

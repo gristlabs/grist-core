@@ -2,6 +2,7 @@ import { makeT } from 'app/client/lib/localization';
 import * as commands from 'app/client/components/commands';
 import { urlState } from 'app/client/models/gristUrlState';
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
+import { ShortcutKey, ShortcutKeyContent } from 'app/client/ui/ShortcutKey';
 import { theme } from 'app/client/ui2018/cssVars';
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
@@ -14,8 +15,12 @@ export const welcomeTour: IOnBoardingMsg[] = [
     title: t('Editing Data'),
     body: () => [
       dom('p',
-        t('Double-click or hit {{enter}} on a cell to edit it. ', {enter: Key(KeyContent(t('Enter')))}),
-        t('Start with {{equal}} to enter a formula.', { equal: Key(KeyStrong('=')) }))
+        t('Double-click or hit {{enter}} on a cell to edit it. ', {
+          enter: ShortcutKey(ShortcutKeyContent(t('Enter'))),
+        }),
+        t('Start with {{equal}} to enter a formula.', {
+          equal: ShortcutKey(ShortcutKeyContent('=')),
+        })),
     ],
     selector: '.field_clip',
     placement: 'bottom',
@@ -39,8 +44,9 @@ export const welcomeTour: IOnBoardingMsg[] = [
       dom('p',
           t('Set formatting options, formulas, or column types, such as dates, choices, or attachments. ')),
       dom('p',
-          t('Make it relational! Use the {{ref}} type to link tables. ', {ref: Key(t('Reference'))}),
-         )
+          t('Make it relational! Use the {{ref}} type to link tables. ', {
+            ref: ShortcutKey(t('Reference')),
+          })),
     ],
     placement: 'right',
   },
@@ -48,7 +54,9 @@ export const welcomeTour: IOnBoardingMsg[] = [
     selector: '.tour-add-new',
     title: t('Building up'),
     body: () => [
-      dom('p', t('Use {{addNew}} to add widgets, pages, or import more data. ', {addNew: Key(t('Add New'))}))
+      dom('p', t('Use {{addNew}} to add widgets, pages, or import more data. ', {
+        addNew: ShortcutKey(t('Add New')),
+      })),
     ],
     placement: 'right',
   },
@@ -67,7 +75,7 @@ export const welcomeTour: IOnBoardingMsg[] = [
     title: t('Flying higher'),
     body: () => [
       dom('p', t('Use {{helpCenter}} for documentation or questions.',
-      {helpCenter: Key(GreyIcon('Help'), t('Help Center'))})),
+      {helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center'))}))
     ],
     placement: 'right',
   },
@@ -91,29 +99,6 @@ export function startWelcomeTour(onFinishCB: () => void) {
   commands.allCommands.fieldTabOpen.run();
   startOnBoarding(welcomeTour, onFinishCB);
 }
-
-const KeyContent = styled('span', `
-  font-style: normal;
-  font-family: inherit;
-  color: ${theme.shortcutKeyPrimaryFg};
-`);
-
-const KeyStrong = styled(KeyContent, `
-  font-weight: 700;
-`);
-
-const Key = styled('div', `
-  display: inline-block;
-  padding: 2px 5px;
-  border-radius: 4px;
-  margin: 0px 2px;
-  border: 1px solid ${theme.shortcutKeyBorder};
-  color: ${theme.shortcutKeyFg};
-  background-color: ${theme.shortcutKeyBg};
-  font-family: inherit;
-  font-style: normal;
-  white-space: nowrap;
-`);
 
 const TopBarButtonIcon = styled(icon, `
   --icon-color: ${theme.topBarButtonPrimaryFg};
