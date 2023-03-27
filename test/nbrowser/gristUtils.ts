@@ -358,8 +358,17 @@ export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: numbe
 export async function getVisibleDetailCells(col: number|string, rows: number[], section?: string): Promise<string[]>;
 export async function getVisibleDetailCells<T = string>(options: IColSelect<T>): Promise<T[]>;
 export async function getVisibleDetailCells<T>(
-  colOrOptions: number|string|IColSelect<T>, _rowNums?: number[], _section?: string
+  colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string
 ): Promise<T[]> {
+
+  if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
+    const {rowNums, section, mapper} = colOrOptions;    // tslint:disable-line:no-shadowed-variable
+    const columns = await Promise.all(colOrOptions.cols.map((oneCol) =>
+      getVisibleDetailCells({col: oneCol, rowNums, section, mapper})));
+    // This zips column-wise data into a flat row-wise array of values.
+    return ([] as T[]).concat(...rowNums.map((r, i) => columns.map((c) => c[i])));
+  }
+
   const {col, rowNums, section, mapper = el => el.getText()}: IColSelect<any> = (
     typeof colOrOptions === 'object' ? colOrOptions :
     { col: colOrOptions, rowNums: _rowNums!, section: _section}
@@ -483,12 +492,13 @@ export async function getCardCount(): Promise<number> {
  * Return the .column-name element for the specified column, which may be specified by full name
  * or index, and may include a section (or will use the active section by default).
  */
-export function getColumnHeader(colOptions: IColHeader): WebElementPromise {
+export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementPromise {
+  const colOptions = typeof colOrColOptions === 'string' ? {col: colOrColOptions} : colOrColOptions;
   const {col, section} = colOptions;
   const sectionElem = section ? getSection(section) : driver.findWait('.active_section', 4000);
   return new WebElementPromise(driver, typeof col === 'number' ?
     sectionElem.find(`.column_name:nth-child(${col + 1})`) :
-    sectionElem.findContent('.column_name', exactMatch(col)));
+    sectionElem.findContent('.column_name .kf_elabel_text', exactMatch(col)).findClosest('.column_name'));
 }
 
 export async function getColumnNames() {
