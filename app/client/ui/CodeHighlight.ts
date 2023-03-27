@@ -17,7 +17,7 @@ export function buildHighlightedCode(
 ): HTMLElement {
   const highlighter = ace.acequire('ace/ext/static_highlight');
   const PythonMode = ace.acequire('ace/mode/python').Mode;
-  const theme = ace.acequire('ace/theme/chrome');
+  const aceTheme = ace.acequire('ace/theme/chrome');
   const mode = new PythonMode();
 
   return cssHighlightedCode(
@@ -32,7 +32,7 @@ export function buildHighlightedCode(
               codeText = lines.slice(0, options.maxLines).join("\n") + " \u2026";  // Ellipsis
             }
           }
-          elem.innerHTML = highlighter.render(codeText, mode, theme, 1, true).html;
+          elem.innerHTML = highlighter.render(codeText, mode, aceTheme, 1, true).html;
         } else {
           elem.textContent = options.placeholder || '';
         }
