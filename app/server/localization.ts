@@ -72,7 +72,7 @@ export function setupLocale(appRoot: string): i18n {
     // If the "Translators: please ..." key in "App" has not been translated,
     // ignore this language for this and later namespaces.
     if (!offerAll && ns === 'client' &&
-      !Object.keys(data.App || []).some(key => key.includes('Translators: please'))) {
+      !Object.keys(data.App || {}).some(key => key.includes('Translators: please'))) {
       shouldIgnoreLng.add(lng);
       log.debug(`skipping incomplete language ${lng} (set GRIST_OFFER_ALL_LANGUAGES if you want it)`);
     }
