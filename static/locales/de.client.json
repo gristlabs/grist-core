@@ -227,7 +227,7 @@
         "Document will be permanently deleted.": "Das Dokument wird endgültig gelöscht.",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Dokumente bleiben 30 Tage lang im Papierkorb, danach werden sie endgültig gelöscht.",
         "Edited {{at}}": "Bearbeitet {{at}}",
-        "Examples & Templates": "Beispiele und Vorlagen",
+        "Examples & Templates": "Beispiele & Vorlagen",
         "Examples and Templates": "Beispiele und Vorlagen",
         "Featured": "Hervorgehoben",
         "Manage Users": "Benutzer verwalten",
@@ -409,7 +409,9 @@
         "Sorted (#{{count}})_one": "Sortiert (#{{count}})",
         "Sorted (#{{count}})_other": "Sortiert (#{{count}})",
         "Unfreeze {{count}} columns_one": "Diese Spalte entsperren",
-        "Unfreeze {{count}} columns_other": "{{count}} Spalten entsperren"
+        "Unfreeze {{count}} columns_other": "{{count}} Spalten entsperren",
+        "Insert column to the right": "Spalte rechts einfügen",
+        "Insert column to the left": "Spalte links einfügen"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
@@ -446,7 +448,7 @@
         "Create Workspace": "Arbeitsbereich erstellen",
         "Delete": "Löschen",
         "Delete {{workspace}} and all included documents?": "{{workspace}} und alle enthaltenen Dokumente löschen?",
-        "Examples & Templates": "Beispiele und Vorlagen",
+        "Examples & Templates": "Beispiele & Vorlagen",
         "Import Document": "Dokument importieren",
         "Manage Users": "Benutzer verwalten",
         "Rename": "Umbenennen",

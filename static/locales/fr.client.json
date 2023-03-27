@@ -95,7 +95,8 @@
     "App": {
         "Description": "Description",
         "Key": "Clé",
-        "Memory Error": "Erreur mémoire"
+        "Memory Error": "Erreur mémoire",
+        "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]"
     },
     "AppHeader": {
         "Home Page": "Page d’accueil",

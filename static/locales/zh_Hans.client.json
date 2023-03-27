@@ -182,7 +182,8 @@
     "App": {
         "Description": "描述",
         "Key": "关键",
-        "Memory Error": "内存错误"
+        "Memory Error": "内存错误",
+        "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]"
     },
     "AppHeader": {
         "Home Page": "主页",

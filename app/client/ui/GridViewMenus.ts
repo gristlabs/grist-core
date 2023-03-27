@@ -156,8 +156,8 @@ export function MultiColumnMenu(options: IMultiColumnContextMenu) {
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the {{to}}", {to: 'left'}), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the {{to}}", {to: 'right'}), disableForReadonlyView)
+    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyView)
   ];
 }
 

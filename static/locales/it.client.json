@@ -302,7 +302,7 @@
         "Number Format": "Formato numerico"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[testo link] url"
+        "[link label] url": "[testo link] URL"
     },
     "welcomeTour": {
         "Editing Data": "Modificare i dati",
@@ -467,7 +467,7 @@
         "Create separate series for each value of the selected column.": "Creare serie separate per ciascun valore delle colonne selezionate.",
         "Pick a column": "Scegli una colonna",
         "Toggle chart aggregation": "Grafici aggregati",
-        "selected new group data columns": "Selezionato un nuovo gruppo di colonne dati",
+        "selected new group data columns": "Selezionato un nuovo gruppo-colonne dati",
         "Each Y series is followed by a series for the length of error bars.": "Ciascuna serie Y è seguita da una serie per la lunghezza della barra di errore.",
         "Each Y series is followed by two series, for top and bottom error bars.": "Ciascuna serie Y è seguita da due serie, per le barre di errore alta e bassa."
     },
@@ -705,7 +705,9 @@
         "Reset {{count}} columns_other": "Resetta {{count}} colonne",
         "Show column {{- label}}": "Mostra colonna {{- label}}",
         "Sorted (#{{count}})_other": "Ordinati (#{{count}})",
-        "Unfreeze {{count}} columns_other": "Sblocca {{count}} colonne"
+        "Unfreeze {{count}} columns_other": "Sblocca {{count}} colonne",
+        "Insert column to the left": "Inserisci colonna a sinistra",
+        "Insert column to the right": "Inserisci colonna a destra"
     },
     "GristDoc": {
         "Import from file": "Importa da file",
@@ -877,7 +879,7 @@
     },
     "modals": {
         "Cancel": "Annulla",
-        "Ok": "Ok",
+        "Ok": "OK",
         "Save": "Salva"
     },
     "pages": {

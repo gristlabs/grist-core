@@ -188,7 +188,7 @@
         "Document will be permanently deleted.": "El documento será eliminado permanentemente.",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Los documentos permanecen en la papelera durante 30 días, tras los cuales se eliminan definitivamente.",
         "Edited {{at}}": "Editado {{at}}",
-        "Examples & Templates": "Ejemplos y Plantillas",
+        "Examples & Templates": "Ejemplos & Plantillas",
         "Examples and Templates": "Ejemplos y Plantillas",
         "Featured": "Destacados",
         "Manage Users": "Gestionar usuarios",
@@ -338,7 +338,9 @@
         "Sorted (#{{count}})_one": "Ordenado (#{{count}})",
         "Sorted (#{{count}})_other": "Ordenado (#{{count}})",
         "Unfreeze {{count}} columns_one": "Descongelar esta columna",
-        "Unfreeze {{count}} columns_other": "Descongelar {{count}} columnas"
+        "Unfreeze {{count}} columns_other": "Descongelar {{count}} columnas",
+        "Insert column to the right": "Insertar columna a la derecha",
+        "Insert column to the left": "Insertar columna a la izquierda"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", o encontrar un experto a través de nuestro",
@@ -370,7 +372,7 @@
         "Create Workspace": "Crear espacio de trabajo",
         "Delete": "Borrar",
         "Delete {{workspace}} and all included documents?": "Eliminar {{workspace}} y todos los documentos incluidos?",
-        "Examples & Templates": "Ejemplos y Plantillas",
+        "Examples & Templates": "Ejemplos & Plantillas",
         "Import Document": "Importar documento",
         "Manage Users": "Gestionar usuarios",
         "Rename": "Renombrar",

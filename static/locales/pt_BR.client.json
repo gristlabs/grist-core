@@ -227,7 +227,7 @@
         "Document will be permanently deleted.": "O documento será permanentemente excluído.",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Os documentos ficam na Lixeira por 30 dias, após os quais são excluídos permanentemente.",
         "Edited {{at}}": "{{at}} editado",
-        "Examples & Templates": "Exemplos e Modelos",
+        "Examples & Templates": "Exemplos & Modelos",
         "Examples and Templates": "Exemplos e Modelos",
         "Featured": "Destaques",
         "Manage Users": "Gerenciar Usuários",
@@ -409,7 +409,9 @@
         "Sorted (#{{count}})_one": "Ordenado (#{{count}})",
         "Sorted (#{{count}})_other": "Ordenado (#{{count}})",
         "Unfreeze {{count}} columns_one": "Descongelar esta coluna",
-        "Unfreeze {{count}} columns_other": "Descongelar {{count}} colunas"
+        "Unfreeze {{count}} columns_other": "Descongelar {{count}} colunas",
+        "Insert column to the left": "Inserir coluna à esquerda",
+        "Insert column to the right": "Inserir coluna à direita"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
@@ -446,7 +448,7 @@
         "Create Workspace": "Criar Área de Trabalho",
         "Delete": "Excluir",
         "Delete {{workspace}} and all included documents?": "Excluir {{workspace}} e todos os documentos inclusos?",
-        "Examples & Templates": "Exemplos e Modelos",
+        "Examples & Templates": "Exemplos & Modelos",
         "Import Document": "Importar Documento",
         "Manage Users": "Gerenciar Usuários",
         "Rename": "Renomear",
