@@ -41,6 +41,7 @@ export class LayoutTray extends DisposableWithEvents {
   public active = Signal.create(this, false);
 
   private _rootElement: HTMLElement;
+
   constructor(public viewLayout: ViewLayout) {
     super();
     // Create a proxy for the LayoutEditor. It will mimic the same interface as CollapsedLeaf.
@@ -48,8 +49,6 @@ export class LayoutTray extends DisposableWithEvents {
 
     // Build layout using saved settings.
     this.layout.buildLayout(this.viewLayout.viewModel.collapsedSections.peek());
-
-
 
     this._registerCommands();
 
@@ -121,11 +120,7 @@ export class LayoutTray extends DisposableWithEvents {
     const section = Observable.create<number|null>(owner, null);
     owner.autoDispose(selected.addListener((cur, prev) => {
       if (prev && !cur) {
-        const vs = this.viewLayout.gristDoc.docModel.viewSections.getRowModel(prev);
-        const vi = vs.viewInstance.peek();
-        if (vi) {
-          detachNode(vi.viewPane);
-        }
+        this.layout.getBox(prev)?.recreate();
       }
       section.set(cur);
     }));
@@ -488,6 +483,10 @@ class CollapsedLayout extends Disposable {
     return this._boxes.get().map(l => l.id.get()).filter(x => x && typeof x === 'number');
   }
 
+  public getBox(leaf: number): CollapsedLeaf|undefined {
+    return this._boxes.get().find(l => l.id.get() === leaf) as CollapsedLeaf|undefined;
+  }
+
   public buildDom() {
     return (this.rootElement = cssLayout(
       testId('layout'),
@@ -639,6 +638,12 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
       const instance = this._hiddenViewInstance.get();
       instance && dom.domDispose(instance);
     });
+  }
+
+  public recreate() {
+    const previous = this._hiddenViewInstance.get();
+    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => view.viewPane)));
+    previous && dom.domDispose(previous);
   }
 
   public buildDom() {
