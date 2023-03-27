@@ -64,7 +64,7 @@ function makeViewerTeamSiteIntro(homeModel: HomeModel) {
   return [
     css.docListHeader(
       dom.autoDispose(personalOrg),
-      t("Welcome to {{orgName}}", {orgName: homeModel.app.currentOrgName}),
+      t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')
     ),
@@ -85,7 +85,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
   const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, t("Sprouts Program"));
   return [
     css.docListHeader(
-      t("Welcome to {{orgName}}", {orgName: homeModel.app.currentOrgName}),
+      t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
       productPill(homeModel.app.currentOrg, {large: true}),
       testId('welcome-title')
     ),
@@ -102,7 +102,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
 
 function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
-    css.docListHeader(t("Welcome to Grist, {{name}}!", {name: user.name}), testId('welcome-title')),
+    css.docListHeader(t("Welcome to Grist, {{- name}}!", {name: user.name}), testId('welcome-title')),
     cssIntroLine(t("Get started by creating your first Grist document.")),
     (shouldHideUiElement('helpCenter') ? null :
       cssIntroLine(t("Visit our {{link}} to learn more.", { link: helpCenterLink() }),
