@@ -248,7 +248,7 @@ describe('HomeIntro', function() {
 
   async function testSelectedExamplesPage() {
     // Click Examples & Templates in left panel.
-    await driver.findContent('.test-dm-templates-page', /Examples & Templates/).click();
+    await driver.find('.test-dm-templates-page').click();
     await gu.waitForDocMenuToLoad();
 
     // Check Featured Templates are shown at the top of the page.

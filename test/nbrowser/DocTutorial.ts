@@ -30,6 +30,19 @@ describe('DocTutorial', function () {
       session = await gu.session().anon.login();
     });
 
+    it('shows a tutorial card', async function() {
+      await session.loadRelPath('/');
+      await gu.waitForDocMenuToLoad();
+      await gu.skipWelcomeQuestions();
+
+      assert.isTrue(await driver.find('.test-tutorial-card-content').isDisplayed());
+      // Can dismiss it.
+      await driver.find('.test-tutorial-card-close').click();
+      assert.isFalse((await driver.findAll('.test-tutorial-card-content')).length > 0);
+      // When dismissed, we can see link in the menu.
+      assert.isTrue(await driver.find('.test-dm-basic-tutorial').isDisplayed());
+    });
+
     it('redirects user to log in', async function() {
       await session.loadDoc(`/doc/${doc.id}`, false);
       await gu.checkLoginPage();
@@ -44,6 +57,34 @@ describe('DocTutorial', function () {
     });
 
     afterEach(() => gu.checkForErrors());
+
+    it('shows a tutorial card', async function() {
+      await session.loadRelPath('/');
+      await gu.waitForDocMenuToLoad();
+      await gu.skipWelcomeQuestions();
+
+      // Make sure we have clean start.
+      await driver.executeScript('resetSeenPopups();');
+      await gu.waitForServer();
+      await driver.navigate().refresh();
+      await gu.waitForDocMenuToLoad();
+
+      // Make sure we see the card.
+      assert.isTrue(await driver.find('.test-tutorial-card-content').isDisplayed());
+
+      // And can dismiss it.
+      await driver.find('.test-tutorial-card-close').click();
+      assert.isFalse((await driver.findAll('.test-tutorial-card-content')).length > 0);
+
+      // When dismissed, we can see link in the menu.
+      assert.isTrue(await driver.find('.test-dm-basic-tutorial').isDisplayed());
+
+      // Prefs are preserved after reload.
+      await driver.navigate().refresh();
+      await gu.waitForDocMenuToLoad();
+      assert.isFalse((await driver.findAll('.test-tutorial-card-content')).length > 0);
+      assert.isTrue(await driver.find('.test-dm-basic-tutorial').isDisplayed());
+    });
 
     it('creates a fork the first time the document is opened', async function() {
       await session.loadDoc(`/doc/${doc.id}`);

@@ -39,6 +39,8 @@ export type IconName = "ChartArea" |
   "AddUser" |
   "BarcodeQR" |
   "BarcodeQR2" |
+  "Board" |
+  "Bookmark" |
   "CenterAlign" |
   "Chat" |
   "Code" |
@@ -68,6 +70,7 @@ export type IconName = "ChartArea" |
   "FontStrikethrough" |
   "FontUnderline" |
   "FunctionResult" |
+  "GreenArrow" |
   "Grow" |
   "Help" |
   "Home" |
@@ -105,6 +108,7 @@ export type IconName = "ChartArea" |
   "PublicFilled" |
   "Redo" |
   "Remove" |
+  "RemoveBig" |
   "Repl" |
   "ResizePanel" |
   "Revert" |
@@ -176,6 +180,8 @@ export const IconList: IconName[] = ["ChartArea",
   "AddUser",
   "BarcodeQR",
   "BarcodeQR2",
+  "Board",
+  "Bookmark",
   "CenterAlign",
   "Chat",
   "Code",
@@ -205,6 +211,7 @@ export const IconList: IconName[] = ["ChartArea",
   "FontStrikethrough",
   "FontUnderline",
   "FunctionResult",
+  "GreenArrow",
   "Grow",
   "Help",
   "Home",
@@ -242,6 +249,7 @@ export const IconList: IconName[] = ["ChartArea",
   "PublicFilled",
   "Redo",
   "Remove",
+  "RemoveBig",
   "Repl",
   "ResizePanel",
   "Revert",

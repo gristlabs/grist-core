@@ -98,3 +98,17 @@ export function markAsSeen<T>(seenIdsObs: Observable<T[] | undefined>, itemId: T
     console.warn("Failed to save preference in markAsSeen", e);
   }
 }
+
+export function markAsUnSeen<T>(seenIdsObs: Observable<T[] | undefined>, itemId: T) {
+  const seenIds = seenIdsObs.get() || [];
+  try {
+    if (seenIds.includes(itemId)) {
+      const seen = new Set(seenIds);
+      seen.delete(itemId);
+      seenIdsObs.set([...seen].sort());
+    }
+  } catch (e) {
+    // tslint:disable-next-line:no-console
+    console.warn("Failed to save preference in markAsUnSeen", e);
+  }
+}

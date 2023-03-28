@@ -758,7 +758,7 @@ const cssSeparator = styled('div', `
   margin-top: 16px;
 `);
 
-const cssConfigContainer = styled('div', `
+const cssConfigContainer = styled('div.test-config-container', `
   overflow: auto;
   --color-list-item: none;
   --color-list-item-hover: none;

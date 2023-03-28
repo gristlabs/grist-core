@@ -12,6 +12,7 @@ import {attachAddNewTip} from 'app/client/ui/AddNewTip';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro, buildWorkspaceIntro} from 'app/client/ui/HomeIntro';
 import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
+import {buildTutorialCard} from 'app/client/ui/TutorialCard';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {transition} from 'app/client/ui/transitions';
@@ -71,7 +72,12 @@ function attachWelcomePopups(home: HomeModel): (el: Element) => void {
 function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
   const flashDocId = observable<string|null>(null);
   const upgradeButton = buildUpgradeButton(owner, home.app);
-  return css.docList(
+  return css.docList( /* vbox */
+  /* first line */
+  dom.create(buildTutorialCard, { app: home.app }),
+  /* hbox */
+  css.docListContent(
+    /* left column - grow 1 */
     css.docMenu(
       attachAddNewTip(home),
 
@@ -169,7 +175,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
     ),
     dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
               () => upgradeButton.showUpgradeCard(css.upgradeCard.cls(''))),
-  );
+  ));
 }
 
 function buildAllDocsBlock(

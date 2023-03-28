@@ -1977,6 +1977,7 @@ export class Session {
                                 freshAccount?: boolean,
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
+                                skipTutorial?: boolean, // By default true
                                 retainExistingLogin?: boolean}) {
     // Optimize testing a little bit, so if we are already logged in as the expected
     // user on the expected org, and there are no options set, we can just continue.
@@ -1994,6 +1995,11 @@ export class Session {
     }
     await server.simulateLogin(this.settings.name, this.settings.email, this.settings.orgDomain,
                                {isFirstLogin: false, cacheCredentials: true, ...options});
+
+    if (options?.skipTutorial ?? true) {
+      await dismissTutorialCard();
+    }
+
     return this;
   }
 
@@ -2033,10 +2039,7 @@ export class Session {
     if (wait === 'skipWelcomeQuestions') {
       // When waitForDocMenuToLoad() returns, welcome questions should also render, so that we
       // don't need to wait extra for them.
-      if (await driver.find('.test-welcome-questions').isPresent()) {
-        await driver.sendKeys(Key.ESCAPE);
-        assert.equal(await driver.find('.test-welcome-questions').isPresent(), false);
-      }
+      await skipWelcomeQuestions();
     }
   }
 
@@ -2803,12 +2806,34 @@ export async function dismissBehavioralPrompts() {
 }
 
 /**
- * Dismisses all card popups that are present.
- *
- * Optionally takes a `waitForServerTimeoutMs`, which may be null to skip waiting
- * after closing each popup.
+ * Dismisses any tutorial card that might be active.
  */
- export async function dismissCardPopups(waitForServerTimeoutMs: number | null = 2000) {
+export async function dismissTutorialCard() {
+  // If there is something in our way, we can't do it.
+  if (await driver.find('.test-welcome-questions').isPresent()) {
+    return;
+  }
+  if (await driver.find('.test-tutorial-card-close').isPresent()) {
+    if (await driver.find('.test-tutorial-card-close').isDisplayed()) {
+      await driver.find('.test-tutorial-card-close').click();
+    }
+  }
+}
+
+/**
+ * Dismisses coaching call if needed.
+ */
+export async function dismissCoachingCall() {
+  const selector = '.test-coaching-call .test-popup-close-button';
+  if ((await driver.findAll(selector)).length) {
+    await driver.find(selector).click();
+  }
+}
+
+/**
+ * Dismisses all card popups that are present.
+ */
+export async function dismissCardPopups(waitForServerTimeoutMs: number | null = 2000) {
   let i = 0;
   const max = 10;
 
@@ -2819,6 +2844,7 @@ export async function dismissBehavioralPrompts() {
     i += 1;
   }
 }
+
 
 /**
  * Confirms that anchor link was used for navigation.
@@ -2921,6 +2947,17 @@ export function withComments() {
 }
 
 /**
+ * Helper to scroll creator panel top or bottom. By default bottom.
+ */
+export function scrollPanel(top = false): WebElementPromise {
+  return new WebElementPromise(driver,
+    driver.executeScript((top: number) => {
+      document.getElementsByClassName('test-config-container')[0].scrollTop = top ? 0 : 10000;
+    }, top)
+  );
+}
+
+/**
  * Helper to revert ACL changes. It first saves the current ACL data, and
  * then removes everything and adds it back.
  */
@@ -2965,6 +3002,13 @@ export async function setRangeFilterBound(minMax: 'min'|'max', value: string|{re
       }
       await driver.findContent('.grist-floating-menu li', value.relative).click();
     });
+  }
+}
+
+export async function skipWelcomeQuestions() {
+  if (await driver.find('.test-welcome-questions').isPresent()) {
+    await driver.sendKeys(Key.ESCAPE);
+    assert.equal(await driver.find('.test-welcome-questions').isPresent(), false);
   }
 }
 

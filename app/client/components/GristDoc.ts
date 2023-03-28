@@ -66,7 +66,6 @@ import {isList, isListType, isRefListType, RecalcWhen} from 'app/common/gristTyp
 import {HashLink, IDocPage, isViewDocPage, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
-import {DismissedPopup} from 'app/common/Prefs';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
@@ -490,11 +489,6 @@ export class GristDoc extends DisposableWithEvents {
     this.draftMonitor = Drafts.create(this, this);
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
-
-
-    G.window.resetSeenPopups = (seen = false) => {
-      this.docPageModel.appModel.dismissedPopups.set(seen ? DismissedPopup.values : []);
-    };
   }
 
   /**

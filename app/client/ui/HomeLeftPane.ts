@@ -16,7 +16,7 @@ import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {shouldHideUiElement} from 'app/common/gristUrls';
+import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Workspace} from 'app/common/UserAPI';
 import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
@@ -111,19 +111,26 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
         cssPageEntry(
           dom.hide(shouldHideUiElement("templates")),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
-          cssPageLink(cssPageIcon('FieldTable'), cssLinkText(t("Examples & Templates")),
+          cssPageLink(cssPageIcon('Board'), cssLinkText(t("Examples & Templates")),
             urlState().setLinkUrl({homePage: "templates"}),
             testId('dm-templates-page'),
           ),
         ),
         cssPageEntry(
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "trash"),
-          cssPageLink(cssPageIcon('Remove'), cssLinkText(t("Trash")),
+          cssPageLink(cssPageIcon('RemoveBig'), cssLinkText(t("Trash")),
             urlState().setLinkUrl({homePage: "trash"}),
             testId('dm-trash'),
           ),
         ),
         cssSpacer(),
+        cssPageEntry(
+          dom.hide(shouldHideUiElement("templates")),
+          cssPageLink(cssPageIcon('Bookmark'), cssLinkText(t("Tutorial")),
+            { href: commonUrls.basicTutorial, target: '_blank' },
+            testId('dm-basic-tutorial'),
+          ),
+        ),
         createVideoTourToolsButton(),
         createHelpTools(home.app),
       )

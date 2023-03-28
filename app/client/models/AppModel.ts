@@ -21,7 +21,7 @@ import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
 import {getThemeColors} from 'app/common/Themes';
 import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {getUserPrefObs, getUserPrefsObs} from 'app/client/models/UserPrefs';
+import {getUserPrefObs, getUserPrefsObs, markAsSeen, markAsUnSeen} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 const t = makeT('AppModel');
@@ -111,6 +111,8 @@ export interface AppModel {
   isSupport(): boolean;                 // If user is a Support user
   isOwner(): boolean;                   // If user is an owner of this org
   isOwnerOrEditor(): boolean;           // If user is an owner or editor of this org
+  /** Creates an computed observable to dismiss a popup or check if it was dismissed */
+  dismissedPopup(name: DismissedPopup): Observable<boolean>;
 }
 
 export class TopAppModelImpl extends Disposable implements TopAppModel {
@@ -277,6 +279,10 @@ export class AppModelImpl extends Disposable implements AppModel {
       urlState().pushUrl({createTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
       this.showNewSiteModal(state.params?.planType);
     }
+
+    G.window.resetSeenPopups = (seen = false) => {
+      this.dismissedPopups.set(seen ? DismissedPopup.values : []);
+    };
   }
 
   public get planName() {
@@ -335,6 +341,18 @@ export class AppModelImpl extends Disposable implements AppModel {
     if (!this.isDisposed()) {
       this.currentOrgUsage.set(usage);
     }
+  }
+
+  public dismissedPopup(name: DismissedPopup): Computed<boolean> {
+    const computed = Computed.create(null, use => use(this.dismissedPopups).includes(name));
+    computed.onWrite(value => {
+      if (value) {
+        markAsSeen(this.dismissedPopups, name);
+      } else {
+        markAsUnSeen(this.dismissedPopups, name);
+      }
+    });
+    return computed;
   }
 
   /**

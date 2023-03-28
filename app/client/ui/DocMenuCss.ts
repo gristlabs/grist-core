@@ -8,11 +8,6 @@ import {bigBasicButton} from 'app/client/ui2018/buttons';
 // styles, which gives it priority.
 import 'popweasel';
 
-export const docMenu = styled('div', `
-  flex-grow: 1;
-  max-width: 100%;
-`);
-
 // The "&:after" clause forces some padding below all docs.
 export const docList = styled('div', `
   height: 100%;
@@ -20,6 +15,7 @@ export const docList = styled('div', `
   overflow-y: auto;
   position: relative;
   display: flex;
+  flex-direction: column;
 
   &:after {
     content: "";
@@ -36,6 +32,15 @@ export const docList = styled('div', `
       display: none;
     }
   }
+`);
+
+export const docListContent = styled('div', `
+  display: flex;
+`);
+
+export const docMenu = styled('div', `
+  flex-grow: 1;
+  max-width: 100%;
 `);
 
 const listHeader = styled('div', `
