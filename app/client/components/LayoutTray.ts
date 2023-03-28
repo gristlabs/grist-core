@@ -119,8 +119,11 @@ export class LayoutTray extends DisposableWithEvents {
   public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, close: () => void) {
     const section = Observable.create<number|null>(owner, null);
     owner.autoDispose(selected.addListener((cur, prev) => {
-      if (prev && !cur) {
-        this.layout.getBox(prev)?.recreate();
+      if (prev) {
+        this.layout.getBox(prev)?.attach();
+      }
+      if (cur) {
+        this.layout.getBox(cur)?.detach();
       }
       section.set(cur);
     }));
@@ -623,6 +626,11 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
 
   // Helper to keeping track of the index of the leaf in the layout.
   private _indexWhenDragged = 0;
+
+  // A helper variable that indicates that this section is in a popup, and we should
+  // make any attempt to grab it and attach to our dom. Note: this is not a computed variable.
+  private _detached = false;
+
   constructor(protected model: LayoutTray, id: number) {
     super();
     this.id.set(id);
@@ -633,16 +641,21 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
       const instance = use(view.viewInstance);
       return instance;
     });
-    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => view.viewPane)));
+    this._buildHidden();
     this.onDispose(() => {
       const instance = this._hiddenViewInstance.get();
       instance && dom.domDispose(instance);
     });
   }
 
-  public recreate() {
+  public detach() {
+    this._detached = true;
+  }
+
+  public attach() {
+    this._detached = false;
     const previous = this._hiddenViewInstance.get();
-    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => view.viewPane)));
+    this._buildHidden();
     previous && dom.domDispose(previous);
   }
 
@@ -724,6 +737,12 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
 
   public leafId() {
     return this.id.get();
+  }
+
+  private _buildHidden() {
+    this._hiddenViewInstance.set(cssHidden(dom.maybe(this._viewInstance, view => {
+      return this._detached ? null : view.viewPane;
+    })));
   }
 }
 
