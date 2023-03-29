@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import calendar
 import datetime
 import dateutil.parser
@@ -780,3 +781,51 @@ def YEARFRAC(start_date, end_date, basis=0):
 def _one_year_frac(start_date, end_date):
   year_length = 366.0 if calendar.isleap(start_date.year) else 365.0
   return (end_date - start_date).days / year_length
+
+
+# Constants for moon phase calculations.
+_new_moon_date = datetime.date(1900, 1, 1)    # Known new moon.
+_synodic_month = 29.530588853                 # Length of synodic month, in days.
+
+def MOONPHASE(date, output="emoji"):
+  """
+  Returns the phase of the moon on the given date. The output defaults to a moon-phase emoji.
+
+  - With `output="days"`, the output is the age of the moon in days (new moon being 0).
+  - With `output="fraction"`, the output is the fraction of the lunar month since new moon.
+
+  The calculation isn't astronomically precise, but good enough for wolves and sailors.
+
+  Do NOT! use `output="lunacy"`.
+
+  >>> MOONPHASE(datetime.date(1900, 1, 1), "days")
+  0.0
+  >>> MOONPHASE(datetime.date(1900, 1, 1), "fraction")
+  0.0
+  >>> MOONPHASE(datetime.datetime(1900, 1, 1))
+  '🌑'
+  >>> MOONPHASE(datetime.date(1900, 1, 15))
+  '🌕'
+  >>> MOONPHASE(datetime.date(1900, 1, 30))
+  '🌑'
+  >>> [MOONPHASE(DATEADD(datetime.date(2023, 4, 1), days=4*n)) for n in range(8)]
+  ['🌔', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓']
+  >>> [round(MOONPHASE(DATEADD(datetime.date(2023, 4, 1), days=4*n), "days"), 1) for n in range(8)]
+  [10.4, 14.4, 18.4, 22.4, 26.4, 0.9, 4.9, 8.9]
+  """
+  days = (_make_datetime(date).date() - _new_moon_date).total_seconds() / 86400.
+  age = days % _synodic_month
+  phase = age / _synodic_month
+  if output == "fraction":
+    return phase
+  elif output == "days":
+    return age
+  else:
+    # DRAW THE MOON'S PHASES WITH EMOJI. ALL MOON PHASES ARE BEAUTIFUL, EVEN (near) INSTANT
+    # ONES LIKE NEW, QUARTER, AND FULL (my fave, AWOOOO!) TO BE FAIR TO ALL PHASES, DIVIDE UP
+    # EACH QUARTER INTO 10% FOR THE SHORT PHASES, 15% FOR THE LONG ONES.
+    quarter, frac = divmod((phase + 0.05) % 1, 0.25)
+    index = int(quarter) * 2 + int(frac > 0.1)
+    if output == "lunacy":
+      return "🐺" if index == 4 else "🕺"
+    return ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"][index]
