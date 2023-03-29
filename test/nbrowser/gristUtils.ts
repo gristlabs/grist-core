@@ -3012,6 +3012,15 @@ export async function skipWelcomeQuestions() {
   }
 }
 
+/**
+ * Asserts whether a video of Never Gonna Give You Up is playing in the background.
+ */
+export async function assertIsRickRowing(expected: boolean) {
+  assert.equal(await driver.find('.test-gristdoc-stop-rick-rowing').isPresent(), expected);
+  assert.equal(await driver.find('.test-gristdoc-background-video').isPresent(), expected);
+  assert.equal(await driver.find('iframe#youtube-player-dQw4w9WgXcQ').isPresent(), expected);
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

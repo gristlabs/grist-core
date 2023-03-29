@@ -197,6 +197,7 @@ export class GristDoc extends DisposableWithEvents {
   private _isRickRowing: Observable<boolean> = Observable.create(this, false);
   private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
   private _backgroundVideoPlayerHolder: Holder<YouTubePlayer> = Holder.create(this);
+  private _disableAutoStartingTours: boolean = false;
 
 
   constructor(
@@ -278,54 +279,56 @@ export class GristDoc extends DisposableWithEvents {
 
     // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
-      if (state.hash) {
-        try {
-          if (state.hash.popup) {
-            await this.openPopup(state.hash);
-          } else {
-            // Navigate to an anchor if one is present in the url hash.
-            const cursorPos = this._getCursorPosFromHash(state.hash);
-            await this.recursiveMoveToCursorPos(cursorPos, true);
-          }
-          if (state.hash.rickRow && !this._isRickRowing.get()) {
-            YouTubePlayer.create(this._backgroundVideoPlayerHolder, RICK_ROLL_YOUTUBE_EMBED_ID, {
-              height: '100%',
-              width: '100%',
-              origin: getMainOrgUrl(),
-              playerVars: {
-                controls: 0,
-                disablekb: 1,
-                fs: 0,
-                iv_load_policy: 3,
-                modestbranding: 1,
-              },
-              onPlayerStateChange: (_player, event) => {
-                if (event.data === PlayerState.Playing) {
-                  this._isRickRowing.set(true);
-                }
-              },
-            }, cssYouTubePlayer.cls(''));
-            this._showBackgroundVideoPlayer.set(true);
-            this._waitForView()
-              .then(() => {
-                const cursor = document.querySelector('.selected_cursor.active_cursor');
-                if (cursor) {
-                  this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
-                    forceShow: true,
-                    hideDontShowTips: true,
-                    markAsSeen: false,
-                    showOnMobile: true,
-                    onDispose: () => this.playRickRollVideo(),
-                  });
-                }
-              })
-              .catch(reportError);
-          }
-        } catch (e) {
-          reportError(e);
-        } finally {
-          setTimeout(finalizeAnchor, 0);
+      if (!state.hash) { return; }
+
+      try {
+        if (state.hash.popup) {
+          await this.openPopup(state.hash);
+        } else {
+          // Navigate to an anchor if one is present in the url hash.
+          const cursorPos = this._getCursorPosFromHash(state.hash);
+          await this.recursiveMoveToCursorPos(cursorPos, true);
         }
+
+        const isTourOrTutorialActive = isTourActive() || this.docModel.isTutorial();
+        if (state.hash.rickRow && !this._isRickRowing.get() && !isTourOrTutorialActive) {
+          YouTubePlayer.create(this._backgroundVideoPlayerHolder, RICK_ROLL_YOUTUBE_EMBED_ID, {
+            height: '100%',
+            width: '100%',
+            origin: getMainOrgUrl(),
+            playerVars: {
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              iv_load_policy: 3,
+              modestbranding: 1,
+            },
+            onPlayerStateChange: (_player, event) => {
+              if (event.data === PlayerState.Playing) {
+                this._isRickRowing.set(true);
+              }
+            },
+          }, cssYouTubePlayer.cls(''));
+          this._showBackgroundVideoPlayer.set(true);
+          this._waitForView()
+            .then(() => {
+              const cursor = document.querySelector('.selected_cursor.active_cursor');
+              if (!cursor) { return; }
+
+              this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
+                forceShow: true,
+                hideDontShowTips: true,
+                markAsSeen: false,
+                showOnMobile: true,
+                onDispose: () => this.playRickRollVideo(),
+              });
+            })
+            .catch(reportError);
+        }
+      } catch (e) {
+        reportError(e);
+      } finally {
+        setTimeout(finalizeAnchor, 0);
       }
     }));
 
@@ -337,10 +340,15 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
 
-      const shouldStartTutorial = this.docModel.isTutorial();
+      const isTutorial = this.docModel.isTutorial();
       // Onboarding tours were not designed with mobile support in mind. Disable until fixed.
-      if (isNarrowScreen() && !shouldStartTutorial) {
+      if (isNarrowScreen() && !isTutorial) {
         return;
+      }
+
+      // Onboarding tours can conflict with rick rowing.
+      if (state.hash?.rickRow) {
+        this._disableAutoStartingTours = true;
       }
 
       // If we have an active tour or tutorial (or are in the process of starting one), don't start
@@ -350,6 +358,7 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
 
+      const shouldStartTutorial = isTutorial;
       const shouldStartDocTour = state.docTour || this._shouldAutoStartDocTour();
       const shouldStartWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
       if (shouldStartTutorial || shouldStartDocTour || shouldStartWelcomeTour) {
@@ -1438,7 +1447,7 @@ export class GristDoc extends DisposableWithEvents {
    * seen the tour before.
    */
   private _shouldAutoStartDocTour(): boolean {
-    if (this.docModel.isTutorial()) {
+    if (this._disableAutoStartingTours || this.docModel.isTutorial()) {
       return false;
     }
 
@@ -1454,7 +1463,7 @@ export class GristDoc extends DisposableWithEvents {
   private _shouldAutoStartWelcomeTour(): boolean {
     // If a doc tutorial or tour are available, leave the welcome tour for another
     // doc (e.g. a new one).
-    if (this.docModel.isTutorial() || this.docModel.hasDocTour()) {
+    if (this._disableAutoStartingTours || this.docModel.isTutorial() || this.docModel.hasDocTour()) {
       return false;
     }
 
