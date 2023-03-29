@@ -517,7 +517,7 @@
         "ROW STYLE": "STYL WIERSZA",
         "Row Style": "Styl wiersza",
         "SELECT BY": "WYBIERZ WEDŁUG",
-        "TRANSFORM": "PRZEKSZTAŁCAĆ",
+        "TRANSFORM": "ZMIANA DANYCH",
         "Theme": "Motyw",
         "WIDGET TITLE": "TYTUŁ WIDŻETU",
         "Series_one": "Seria",
@@ -601,7 +601,7 @@
         "Apply": "Zastosuj",
         "Cancel": "Anuluj",
         "Preview": "Podgląd",
-        "Revise": "Zrewidować",
+        "Revise": "Popraw",
         "Update formula (Shift+Enter)": "Aktualizacja formuły (Shift+Enter)"
     },
     "UserManagerModel": {
@@ -687,7 +687,7 @@
         "Override widget title": "Zastąp tytuł widżetu",
         "WIDGET TITLE": "TYTUŁ WIDŻETU",
         "Provide a table name": "Podaj nazwę tabeli",
-        "Cancel": "Anulować",
+        "Cancel": "Anuluj",
         "Save": "Zapisz"
     },
     "breadcrumbs": {
@@ -726,16 +726,16 @@
         "Upgrade now": "Uaktualnij teraz",
         "Any": "Dowolny",
         "Integer": "Liczba całkowita",
-        "Toggle": "Przełączać",
+        "Toggle": "Przełącznik",
         "Date": "Data",
         "Choice": "Wybór",
         "Choice List": "Lista wyboru",
         "Reference": "Odnośnik",
-        "Reference List": "Lista referencyjna",
+        "Reference List": "Lista odnośników",
         "Select fields": "Wybierz pola",
-        "Numeric": "Numeryczny",
+        "Numeric": "Liczba",
         "Text": "Tekst",
-        "DateTime": "DataGodzina",
+        "DateTime": "Data i godzina",
         "Attachment": "Załącznik"
     },
     "modals": {
@@ -765,7 +765,7 @@
         "Example Users": "Przykładowi Użytkownicy"
     },
     "TypeTransform": {
-        "Cancel": "Anulować",
+        "Cancel": "Anuluj",
         "Preview": "Podgląd",
         "Revise": "Zrewidować",
         "Apply": "Zastosuj",
@@ -867,7 +867,7 @@
         "Open": "Otwórz",
         "Reply to a comment": "Odpowiedz na komentarz",
         "Show resolved comments": "Pokaż rozwiązane komentarze",
-        "Cancel": "Anulować",
+        "Cancel": "Anuluj",
         "Comment": "Komentarz",
         "Edit": "Edytuj",
         "Marked as resolved": "Oznaczone jako rozwiązane",
