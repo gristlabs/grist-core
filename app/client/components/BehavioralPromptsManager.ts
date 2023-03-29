@@ -35,6 +35,8 @@ interface QueuedTip {
  * Tips are shown in the order that they are attached.
  */
 export class BehavioralPromptsManager extends Disposable {
+  private _isDisabled: boolean = false;
+
   private readonly _prefs = getUserPrefObs(this._appModel.userPrefsObs, 'behavioralPrompts',
     { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
 
@@ -67,8 +69,17 @@ export class BehavioralPromptsManager extends Disposable {
     return !this._prefs.get().dontShowTips;
   }
 
+  public enable() {
+    this._isDisabled = false;
+  }
+
+  public disable() {
+    this._isDisabled = true;
+  }
+
   private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
     if (
+      this._isDisabled ||
       // Don't show tips if surveying is disabled.
       // TODO: Move this into a dedicated variable - this is only a short-term fix for hiding
       // tips in grist-core.

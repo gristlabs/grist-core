@@ -332,6 +332,10 @@ export class GristDoc extends DisposableWithEvents {
       }
     }));
 
+    if (this.docModel.isTutorial()) {
+      this.behavioralPromptsManager.disable();
+    }
+
     let isStartingTourOrTutorial = false;
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
       // Only start a tour or tutorial when the full interface is showing, i.e. not when in

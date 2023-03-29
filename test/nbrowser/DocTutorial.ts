@@ -53,7 +53,7 @@ describe('DocTutorial', function () {
     let forkUrl: string;
 
     before(async () => {
-      session = await gu.session().teamSite.user('user1').login();
+      session = await gu.session().teamSite.user('user1').login({showTips: true});
     });
 
     afterEach(() => gu.checkForErrors());
@@ -122,6 +122,13 @@ describe('DocTutorial', function () {
       await gu.waitForServer();
       assert.isFalse(await driver.findContent('.test-raw-data-table-id',
         /GristDocTutorial/).isPresent());
+    });
+
+    it('does not show behavioral tips', async function() {
+      await gu.openPage('Page 1');
+      await gu.openAddWidgetToPage();
+      assert.equal(await driver.find('.test-behavioral-prompt').isPresent(), false);
+      await gu.sendKeys(Key.ESCAPE);
     });
 
     it('only allows users access to their own forks', async function() {
