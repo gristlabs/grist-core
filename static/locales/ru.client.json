@@ -470,7 +470,7 @@
         "Access Details": "Детали доступа",
         "Create Empty Document": "Создать пустой документ",
         "Delete": "Удалить",
-        "Examples & Templates": "Примеры и Шаблоны",
+        "Examples & Templates": "Примеры & Шаблоны",
         "Rename": "Переименовать",
         "Delete {{workspace}} and all included documents?": "Удалить {{workspace}} и все прилагаемые документы?",
         "Trash": "Корзина",
@@ -505,7 +505,9 @@
         "Show column {{- label}}": "Показать столбец {{- label}}",
         "Sort": "Сортировать",
         "Unfreeze {{count}} columns_other": "Открепить {{count}} столбцов",
-        "Unfreeze {{count}} columns_one": "Открепить этот столбец"
+        "Unfreeze {{count}} columns_one": "Открепить этот столбец",
+        "Insert column to the left": "Вставить столбец слева",
+        "Insert column to the right": "Вставить столбец справа"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
