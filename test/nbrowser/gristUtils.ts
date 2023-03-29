@@ -751,7 +751,7 @@ export async function reloadDoc() {
  * Wait for the doc list to show, to know that workspaces are fetched, and imports enabled.
  */
 export async function waitForDocMenuToLoad(): Promise<void> {
-  await driver.findWait('.test-dm-doclist', 1000);
+  await driver.findWait('.test-dm-doclist', 2000);
   await driver.wait(() => driver.find('.test-dm-doclist').isDisplayed(), 2000);
 }
 

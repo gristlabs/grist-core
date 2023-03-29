@@ -63,6 +63,10 @@ export class BehavioralPromptsManager extends Disposable {
     return this._dismissedTips.get().has(prompt);
   }
 
+  public shouldShowTips() {
+    return !this._prefs.get().dontShowTips;
+  }
+
   private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
     if (
       // Don't show tips if surveying is disabled.
