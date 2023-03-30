@@ -802,14 +802,14 @@ def MOONPHASE(date, output="emoji"):
   0.0
   >>> MOONPHASE(datetime.date(1900, 1, 1), "fraction")
   0.0
-  >>> MOONPHASE(datetime.datetime(1900, 1, 1))
-  '🌑'
-  >>> MOONPHASE(datetime.date(1900, 1, 15))
-  '🌕'
-  >>> MOONPHASE(datetime.date(1900, 1, 30))
-  '🌑'
-  >>> [MOONPHASE(DATEADD(datetime.date(2023, 4, 1), days=4*n)) for n in range(8)]
-  ['🌔', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓']
+  >>> MOONPHASE(datetime.datetime(1900, 1, 1)) == '🌑'
+  True
+  >>> MOONPHASE(datetime.date(1900, 1, 15)) == '🌕'
+  True
+  >>> MOONPHASE(datetime.date(1900, 1, 30)) == '🌑'
+  True
+  >>> [MOONPHASE(DATEADD(datetime.date(2023, 4, 1), days=4*n)) for n in range(8)] == ['🌔', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓']
+  True
   >>> [round(MOONPHASE(DATEADD(datetime.date(2023, 4, 1), days=4*n), "days"), 1) for n in range(8)]
   [10.4, 14.4, 18.4, 22.4, 26.4, 0.9, 4.9, 8.9]
   """
