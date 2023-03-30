@@ -86,6 +86,7 @@ see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a
 question in [our forum](https://community.getgrist.com),
 or browse [our extensive documentation](https://support.getgrist.com).
 
+
 ## Using Grist
 
 If you just want a quick demo of Grist:
@@ -222,6 +223,14 @@ Grist benefits its users:
   experimental [Custom Widget](https://support.getgrist.com/widget-custom/)). You can more easily
   include Grist in your pipeline. And if a feature is missing, you can just take the source code and
   build on top of it.
+
+## Sponsors
+
+<p align="center">
+	<a href="https://www.dotphoton.com/">
+	 <img width="11%" src="https://user-images.githubusercontent.com/11277225/228914729-ae581352-b37a-4ca8-b220-b1463dd1ade0.png" />
+	</a>
+</p>
 
 ## Reviews
 
