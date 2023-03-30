@@ -27,9 +27,9 @@ export function showWelcomeQuestions(userPrefsObs: Observable<UserPrefs>) {
     const showQuestions = getUserPrefObs(userPrefsObs, 'showNewUserQuestions');
 
     async function onConfirm() {
-      const selected = choices.filter((c, i) => selection[i].get()).map(c => t(c.textKey));
+      const selected = choices.filter((c, i) => selection[i].get()).map(c => c.textKey);
       const use_cases = ['L', ...selected];   // Format to populate a ChoiceList column
-      const use_other = selected.includes(t("Other")) ? otherText.get() : '';
+      const use_other = selected.includes("Other") ? otherText.get() : '';
 
       const submitUrl = new URL(window.location.href);
       submitUrl.pathname = '/welcome/info';
