@@ -9,11 +9,10 @@ const testId = makeTestId('test-tutorial-card-');
 
 interface Options {
   app: AppModel,
-  onStart?: () => void,
 }
 
 export function buildTutorialCard(owner: IDisposableOwner, options: Options) {
-  const {app, onStart} = options;
+  const {app} = options;
   const dismissed = app.dismissedPopup('tutorialFirstCard');
   owner.autoDispose(dismissed);
   function onClose() {
@@ -43,7 +42,7 @@ export function buildTutorialCard(owner: IDisposableOwner, options: Options) {
           cssButtonWrapper(
             cssButtonWrapper.cls('-small'),
             cssHeroButton("Start Tutorial"),
-            dom.on('click', () => onStart?.())
+            {href: commonUrls.basicTutorial, target: '_blank'},
           ),
         ),
       ),
