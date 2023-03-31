@@ -395,3 +395,27 @@ class TestRenames2(test_engine.EngineTestCase):
 
     self.assertTableData("People", cols="subset", data=self.people_data)
     self.assertTableData("Games", cols="subset", data=self.games_data)
+
+  def test_renames_i(self):
+    # Rename when using a local variable referring to a user table.
+    # Test also that a local variable that happens to match a global name is unaffected by renames.
+    self.modify_column("Games", "winner", formula=(
+      "myvar = Entries\n"
+      "People = Entries\n"
+      "myvar.lookupOne(game=$id, rank=1).person\n"
+      "People.lookupOne(game=$id, rank=1).person\n"
+    ))
+    self.apply_user_action(["RenameColumn", "Entries", "game", "juego"])
+    self.apply_user_action(["RenameTable", "People", "Persons"])
+
+    # Check that renames worked.
+    new_col = self.engine.docmodel.columns.lookupOne(tableId='Games', colId='winner')
+    self.assertEqual(new_col.formula, (
+      "myvar = Entries\n"
+      "People = Entries\n"
+      "myvar.lookupOne(juego=$id, rank=1).person\n"
+      "People.lookupOne(juego=$id, rank=1).person\n"
+    ))
+
+    self.assertTableData("Persons", cols="subset", data=self.people_data)
+    self.assertTableData("Games", cols="subset", data=self.games_data)

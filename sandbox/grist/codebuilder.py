@@ -195,6 +195,11 @@ def _is_table(node):
   return (isinstance(node, astroid.nodes.ClassDef) and node.decorators and
           node.decorators.nodes[0].as_string() == 'grist.UserTable')
 
+def _is_local(node):
+  """
+  Returns true if node is a Name node for an innermost variable.
+  """
+  return isinstance(node, astroid.nodes.Name) and node.name in node.scope().locals
 
 
 @contextlib.contextmanager
@@ -394,14 +399,15 @@ def parse_grist_names(builder):
     in_text, in_value, in_patch = patch_source
     if in_value:
       return (in_value, in_patch.start, table_id, col_id)
+    return None
 
   parsed_names = []
   for node in asttokens.util.walk(atok.tree):
     if isinstance(node, astroid.nodes.Name):
       obj = infer(node)
-      if _is_table(obj):
+      if _is_table(obj) and not _is_local(node):
         start, end = atok.get_text_range(node)
-        parsed_names.append(make_tuple(start, end, obj.name, None))
+        parsed_names.append(make_tuple(start, end, node.name, None))
 
     elif isinstance(node, astroid.nodes.Attribute):
       obj = infer(node.expr)
@@ -431,7 +437,7 @@ def save_to_linecache(source_code):
   Makes source code available to friendly-traceback and traceback formatting in general.
   """
   if six.PY3:
-    import friendly_traceback.source_cache
+    import friendly_traceback.source_cache    # pylint: disable=import-error
 
     friendly_traceback.source_cache.cache.add(code_filename, source_code)
   else:
