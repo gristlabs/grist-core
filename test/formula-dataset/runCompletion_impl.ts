@@ -24,7 +24,7 @@
  */
 
 
-import { ActiveDoc } from "app/server/lib/ActiveDoc";
+import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
 import { DEPS } from "app/server/lib/Assistance";
 import log from 'app/server/lib/log';
 import crypto from 'crypto';
@@ -38,11 +38,14 @@ import * as os from 'os';
 import { pipeline } from 'stream';
 import { createDocTools } from "test/server/docTools";
 import { promisify } from 'util';
+import { AssistanceResponse, AssistanceState } from "app/common/AssistancePrompts";
+import { CellValue } from "app/plugin/GristData";
 
 const streamPipeline = promisify(pipeline);
 
 const DATA_PATH = process.env.DATA_PATH || path.join(__dirname, 'data');
 const PATH_TO_DOC = path.join(DATA_PATH, 'templates');
+const PATH_TO_RESULTS = path.join(DATA_PATH, 'results');
 const PATH_TO_CSV = path.join(DATA_PATH, 'formula-dataset-index.csv');
 const PATH_TO_CACHE = path.join(DATA_PATH, 'cache');
 const TEMPLATE_URL = "https://grist-static.com/datasets/grist_dataset_formulai_2023_02_20.zip";
@@ -60,8 +63,11 @@ const _stats = {
   callCount: 0,
 };
 
+const SEEMS_CHATTY = (process.env.COMPLETION_MODEL || '').includes('turbo');
+const SIMULATE_CONVERSATION = SEEMS_CHATTY;
 
 export async function runCompletion() {
+  ActiveDocDeps.ACTIVEDOC_TIMEOUT = 600000;
 
   // if template directory not exists, make it
   if (!fs.existsSync(path.join(PATH_TO_DOC))) {
@@ -107,11 +113,12 @@ export async function runCompletion() {
   if (!process.env.VERBOSE) {
     log.transports.file.level = 'error';  // Suppress most of log output.
   }
-  let activeDoc: ActiveDoc|undefined;
   const docTools = createDocTools();
   const session = docTools.createFakeSession('owners');
   await docTools.before();
   let successCount = 0;
+  let caseCount = 0;
+  fs.mkdirSync(path.join(PATH_TO_RESULTS), {recursive: true});
 
   console.log('Testing AI assistance: ');
 
@@ -119,37 +126,108 @@ export async function runCompletion() {
 
     DEPS.fetch = fetchWithCache;
 
+    let activeDoc: ActiveDoc|undefined;
     for (const rec of records) {
+      let success: boolean = false;
+      let suggestedActions: AssistanceResponse['suggestedActions'] | undefined;
+      let newValues: CellValue[] | undefined;
+      let expected: CellValue[] | undefined;
+      let formula: string | undefined;
+      let history: AssistanceState = {messages: []};
+      let lastFollowUp: string | undefined;
 
-      // load new document
-      if (!activeDoc || activeDoc.docName !== rec.doc_id) {
-        const docPath = path.join(PATH_TO_DOC, rec.doc_id + '.grist');
-        activeDoc = await docTools.loadLocalDoc(docPath);
-        await activeDoc.waitForInitialization();
+      try {
+        async function sendMessage(followUp?: string) {
+          // load new document
+          if (!activeDoc || activeDoc.docName !== rec.doc_id) {
+            const docPath = path.join(PATH_TO_DOC, rec.doc_id + '.grist');
+            activeDoc = await docTools.loadLocalDoc(docPath);
+            await activeDoc.waitForInitialization();
+          }
+
+          if (!activeDoc) { throw new Error("No doc"); }
+
+          // get values
+          await activeDoc.docData!.fetchTable(rec.table_id);
+          expected = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
+
+          // send prompt
+          const tableId = rec.table_id;
+          const colId = rec.col_id;
+          const description = rec.Description;
+          const colInfo = await activeDoc.docStorage.get(`
+select * from _grist_Tables_column as c
+left join _grist_Tables as t on t.id = c.parentId
+where c.colId = ? and t.tableId = ?
+`, rec.col_id, rec.table_id);
+          formula = colInfo?.formula;
+
+          const result = await activeDoc.getAssistanceWithOptions(session, {
+            context: {type: 'formula', tableId, colId},
+            state: history,
+            text: followUp || description,
+          });
+          if (result.state) {
+            history = result.state;
+          }
+          suggestedActions = result.suggestedActions;
+          // apply modification
+          const {actionNum} = await activeDoc.applyUserActions(session, suggestedActions);
+
+          // get new values
+          newValues = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
+
+          // revert modification
+          const [bundle] = await activeDoc.getActions([actionNum]);
+          await activeDoc.applyUserActionsById(session, [bundle!.actionNum], [bundle!.actionHash!], true);
+
+          // compare values
+          success = isEqual(expected, newValues);
+
+          if (!success) {
+            const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
+            const result = await activeDoc.getFormulaError({client: null, mode: 'system'} as any, rec.table_id,
+                                                           rec.col_id, rowIds[0]);
+            if (Array.isArray(result) && result[0] === 'E') {
+              result.shift();
+              const txt = `I got a \`${result.shift()}\` error:\n` +
+                '```\n' +
+                result.shift() + '\n' +
+                result.shift() + '\n' +
+                '```\n' +
+                'Please answer with the code block you (the assistant) just gave, ' +
+                'revised based on this error. Your answer must include a code block. ' +
+                'If you have to explain anything, do it after. ' +
+                'It is perfectly acceptable (and may be necessary) to do ' +
+                'imports from within a method body.\n';
+              return { followUp: txt };
+            } else {
+              for (let i = 0; i < expected.length; i++) {
+                const e = expected[i];
+                const v = newValues[i];
+                if (String(e) !== String(v)) {
+                  const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
+                    'Please answer with the code block you (the assistant) just gave, ' +
+                    'revised based on this information. Your answer must include a code ' +
+                    'block. If you have to explain anything, do it after.\n';
+                  return { followUp: txt };
+                }
+              }
+            }
+          }
+          return null;
+        }
+        const result = await sendMessage();
+        if (result?.followUp && SIMULATE_CONVERSATION) {
+          // Allow one follow up message, based on error or differences.
+          const result2 = await sendMessage(result.followUp);
+          if (result2?.followUp) {
+            lastFollowUp = result2.followUp;
+          }
+        }
+      } catch (e) {
+        console.error(e);
       }
-
-      // get values
-      await activeDoc.docData!.fetchTable(rec.table_id);
-      const expected = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
-
-      // send prompt
-      const tableId = rec.table_id;
-      const colId = rec.col_id;
-      const description = rec.Description;
-      const {suggestedActions} = await activeDoc.getAssistance(session, {tableId, colId, description});
-
-      // apply modification
-      const {actionNum} = await activeDoc.applyUserActions(session, suggestedActions);
-
-      // get new values
-      const newValues = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
-
-      // revert modification
-      const [bundle] = await activeDoc.getActions([actionNum]);
-      await activeDoc.applyUserActionsById(session, [bundle!.actionNum], [bundle!.actionHash!], true);
-
-      // compare values
-      const success = isEqual(expected, newValues);
 
       console.log(` ${success ? 'Successfully' : 'Failed to'} complete formula ` +
         `for column ${rec.table_id}.${rec.col_id} (doc=${rec.doc_id})`);
@@ -162,6 +240,23 @@ export async function runCompletion() {
         // console.log('expected=', expected);
         // console.log('actual=', newValues);
       }
+      const suggestedFormula = suggestedActions?.length === 1 &&
+        suggestedActions[0][0] === 'ModifyColumn' &&
+        suggestedActions[0][3].formula || suggestedActions;
+      fs.writeFileSync(
+        path.join(
+          PATH_TO_RESULTS,
+          `${rec.table_id}_${rec.col_id}_` +
+            caseCount.toLocaleString('en', {minimumIntegerDigits: 8, useGrouping: false}) + '.json'),
+        JSON.stringify({
+          formula,
+          suggestedFormula, success,
+          expectedValues: expected,
+          suggestedValues: newValues,
+          history,
+          lastFollowUp,
+        }, null, 2));
+      caseCount++;
     }
   } finally {
     await docTools.after();
@@ -171,6 +266,13 @@ export async function runCompletion() {
     console.log(
       `AI Assistance completed ${successCount} successful prompt on a total of ${records.length};`
     );
+    console.log(JSON.stringify(
+      {
+        hit: successCount,
+        total: records.length,
+        percentage: (100.0 * successCount) / Math.max(records.length, 1),
+      }
+    ));
   }
 }
 

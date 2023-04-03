@@ -14,7 +14,7 @@ import {
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
-import {Prompt, Suggestion} from "app/common/AssistancePrompts";
+import {AssistanceRequest, AssistanceResponse} from "app/common/AssistancePrompts";
 import {
   AclResources,
   AclTableDescription,
@@ -85,7 +85,7 @@ import {Document} from 'app/gen-server/entity/Document';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
-import {sendForCompletion} from 'app/server/lib/Assistance';
+import {AssistanceDoc, sendForCompletion} from 'app/server/lib/Assistance';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -180,7 +180,7 @@ interface UpdateUsageOptions {
  * either .loadDoc() or .createEmptyDoc() is called.
  * @param {String} docName - The document's filename, without the '.grist' extension.
  */
-export class ActiveDoc extends EventEmitter {
+export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   /**
    * Decorator for ActiveDoc methods that prevents shutdown while the method is running, i.e.
    * until the returned promise is resolved.
@@ -1112,7 +1112,7 @@ export class ActiveDoc extends EventEmitter {
    * @param {Integer} rowId - Row number
    * @returns {Promise} Promise for a error message
    */
-  public async getFormulaError(docSession: DocSession, tableId: string, colId: string,
+  public async getFormulaError(docSession: OptDocSession, tableId: string, colId: string,
                                rowId: number): Promise<CellValue> {
     // Throw an error if the user doesn't have access to read this cell.
     await this._granularAccess.getCellValue(docSession, {tableId, colId, rowId});
@@ -1260,22 +1260,32 @@ export class ActiveDoc extends EventEmitter {
     return this._pyCall('autocomplete', txt, tableId, columnId, rowId, user.toJSON());
   }
 
-  public async getAssistance(docSession: DocSession, userPrompt: Prompt): Promise<Suggestion> {
-    // Making a prompt can leak names of tables and columns.
+  public async getAssistance(docSession: DocSession, request: AssistanceRequest): Promise<AssistanceResponse> {
+    return this.getAssistanceWithOptions(docSession, request);
+  }
+
+  public async getAssistanceWithOptions(docSession: DocSession,
+                                        request: AssistanceRequest): Promise<AssistanceResponse> {
+    // Making a prompt leaks names of tables and columns etc.
     if (!await this._granularAccess.canScanData(docSession)) {
       throw new Error("Permission denied");
     }
     await this.waitForInitialization();
-    const { tableId, colId, description } = userPrompt;
-    const prompt = await this._pyCall('get_formula_prompt', tableId, colId, description);
-    this._log.debug(docSession, 'getAssistance prompt', {prompt});
-    const completion = await sendForCompletion(prompt);
-    this._log.debug(docSession, 'getAssistance completion', {completion});
-    const formula = await this._pyCall('convert_formula_completion', completion);
-    const action: DocAction = ["ModifyColumn", tableId, colId, {formula}];
-    return {
-      suggestedActions: [action],
-    };
+    return sendForCompletion(this, request);
+  }
+
+  // Callback to make a data-engine formula tweak for assistance.
+  public assistanceFormulaTweak(txt: string) {
+    return this._pyCall('convert_formula_completion', txt);
+  }
+
+  // Callback to generate a prompt containing schema info for assistance.
+  public assistanceSchemaPromptV1(options: {
+    tableId: string,
+    colId: string,
+    docString: string,
+  }): Promise<string> {
+    return this._pyCall('get_formula_prompt', options.tableId, options.colId, options.docString);
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {

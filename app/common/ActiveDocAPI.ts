@@ -1,5 +1,5 @@
 import {ActionGroup} from 'app/common/ActionGroup';
-import {Prompt, Suggestion} from 'app/common/AssistancePrompts';
+import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {UIRowId} from 'app/common/UIRowId';
@@ -323,7 +323,7 @@ export interface ActiveDocAPI {
   /**
    * Generates a formula code based on the AI suggestions, it also modifies the column and sets it type to a formula.
    */
-  getAssistance(userPrompt: Prompt): Promise<Suggestion>;
+  getAssistance(request: AssistanceRequest): Promise<AssistanceResponse>;
 
   /**
    * Fetch content at a url.

@@ -376,7 +376,8 @@ export class GranularAccess implements GranularAccessForBundle {
     function fail(): never {
       throw new ErrorWithCode('ACL_DENY', 'Cannot access cell');
     }
-    if (!await this.hasTableAccess(docSession, cell.tableId)) { fail(); }
+    const hasExceptionalAccess = this._hasExceptionalFullAccess(docSession);
+    if (!hasExceptionalAccess && !await this.hasTableAccess(docSession, cell.tableId)) { fail(); }
     let rows: TableDataAction|null = null;
     if (docData) {
       const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
@@ -393,16 +394,18 @@ export class GranularAccess implements GranularAccessForBundle {
       return fail();
     }
     const rec = new RecordView(rows, 0);
-    const input: AclMatchInput = {...await this.inputs(docSession), rec, newRec: rec};
-    const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
-    const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
-    if (rowAccess === 'deny') { fail(); }
-    if (rowAccess !== 'allow') {
-      const colAccess = rowPermInfo.getColumnAccess(cell.tableId, cell.colId).perms.read;
-      if (colAccess === 'deny') { fail(); }
+    if (!hasExceptionalAccess) {
+      const input: AclMatchInput = {...await this.inputs(docSession), rec, newRec: rec};
+      const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
+      const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
+      if (rowAccess === 'deny') { fail(); }
+      if (rowAccess !== 'allow') {
+        const colAccess = rowPermInfo.getColumnAccess(cell.tableId, cell.colId).perms.read;
+        if (colAccess === 'deny') { fail(); }
+      }
+      const colValues = rows[3];
+      if (!(cell.colId in colValues)) { fail(); }
     }
-    const colValues = rows[3];
-    if (!(cell.colId in colValues)) { fail(); }
     return rec.get(cell.colId);
   }
 
