@@ -53,6 +53,8 @@ const log: LogWithTimestamp = Object.assign(rawLog, {
   rawWarn: (msg: string, meta: ILogMeta) => origLog.call(log, 'warn', msg, meta),
   rawDebug: (msg: string, meta: ILogMeta) => origLog.call(log, 'debug', msg, meta),
   origLog,
+  add: rawLog.add.bind(rawLog),  // Explicitly pass add method along - otherwise
+                                 // there's an odd glitch under Electron.
 });
 
 /**
