@@ -5,6 +5,7 @@ const dom           = require('app/client/lib/dom');
 const kd            = require('app/client/lib/koDom');
 const koDomScrolly  = require('app/client/lib/koDomScrolly');
 const {renderAllRows} = require('app/client/components/Printing');
+const {isNarrowScreen} = require('app/client/ui2018/cssVars');
 
 require('app/client/lib/koUtil'); // Needed for subscribeInit.
 
@@ -97,6 +98,7 @@ function DetailView(gristDoc, viewSectionModel) {
   this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
     if (
       elem === this.lastFieldSelected
+      && !isNarrowScreen()
       // Trick to avoid event to be triggered in other context,
       // and the error `UnexpectedAlertOpenError: unexpected alert open: {Alert text : }`
       && elem.querySelector(".g_record_detail_el ")
