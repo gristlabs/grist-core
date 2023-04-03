@@ -1,0 +1,42 @@
+{
+    "ACUserManager": {
+        "Invite new member": "دعوت از عضو جدید",
+        "Enter email address": "آدرس رایانامه(ایمیل) را وارد کنید",
+        "We'll email an invite to {{email}}": "ما دعوت‌نامه‌ای به آدرس {{email}} ارسال خواهیم کرد"
+    },
+    "AccessRules": {
+        "Add Column Rule": "افزودن قاعده ستون",
+        "Add Default Rule": "افزودن قاعده پیش‌فرض",
+        "Add Table Rules": "افزودن قواعد جدول",
+        "Add User Attributes": "افزودن خصیصه‌های کاربر",
+        "Allow everyone to view Access Rules.": "به همه اجازه مشاهده قواعد دسترسی را بدهید.",
+        "Attribute name": "نام خصیصه",
+        "Attribute to Look Up": "خصیصه برای جستجو",
+        "Checking...": "در حال بررسی…",
+        "Condition": "شرط",
+        "Default Rules": "قواعد پیش‌فرض",
+        "Delete Table Rules": "حذف قواعد جدول",
+        "Enter Condition": "وارد کردن شرط",
+        "Everyone": "همه",
+        "Everyone Else": "دیگران",
+        "Invalid": "نامعتبر",
+        "Permission to access the document in full when needed": "اجازه دسترسی کامل به سند وقتی نیاز شد",
+        "Permission to view Access Rules": "اجازه مشاهده قواعد دسترسی",
+        "Permissions": "اجازه‌ها",
+        "Remove column {{- colId }} from {{- tableId }} rules": "حذف ستون {{- colId }} از قواعد {{- tableId }}",
+        "Remove {{- tableId }} rules": "حذف قواعد {{- tableId }}",
+        "Remove {{- name }} user attribute": "حذف خصیصه کاربر {{- name }}",
+        "Reset": "بازنشانی",
+        "Rules for table ": "قواعد برای جدول ",
+        "Save": "ذخیره",
+        "Saved": "ذخیره شد",
+        "Special Rules": "قواعد ویژه",
+        "Type a message...": "پیامی بنویسید…",
+        "User Attributes": "خصیصه‌های کاربر",
+        "View As": "مشاهده به عنوان",
+        "Seed rules": "قواعد دانه(Seed)",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "به همه اجازه دهید کل سند را کپی کنند، یا آن را به صورت کامل در حالت ور رفتن مشاهده کنند.\nمفید برای نمونه‌ها و قالب‌ها، اما نه برای داده‌های حساس.",
+        "Lookup Column": "جستجوی ستون",
+        "Lookup Table": "جستجوی جدول"
+    }
+}

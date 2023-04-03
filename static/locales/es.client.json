@@ -685,7 +685,7 @@
     "ACUserManager": {
         "Enter email address": "Introduzca la dirección de correo electrónico",
         "Invite new member": "Invitar nuevo miembro",
-        "We'll email an invite to {{email}}": "Se enviará una invitación por correo electrónico a {{email}}"
+        "We'll email an invite to {{email}}": "Enviaremos una invitación por correo electrónico a {{email}}"
     },
     "ViewAsDropdown": {
         "View As": "Ver como",
@@ -1019,5 +1019,9 @@
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "Cerrar el panel de creación",
+        "Open Creator Panel": "Abrir el panel de creación"
     }
 }

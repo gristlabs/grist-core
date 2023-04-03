@@ -448,7 +448,9 @@
         "Download as XLSX": "下载为 XLSX",
         "Edit Card Layout": "编辑卡片布局",
         "Show raw data": "显示原始数据",
-        "Widget options": "小部件选项"
+        "Widget options": "小部件选项",
+        "Add to page": "添加到页面",
+        "Collapse widget": "折叠小部件"
     },
     "ViewSectionMenu": {
         "Save": "保存",
@@ -465,15 +467,19 @@
         "Cannot drop items into Hidden Fields": "无法将项目放入隐藏字段",
         "Clear": "清除",
         "Hidden Fields cannot be reordered": "隐藏字段无法重新排序",
-        "Select All": "全选"
+        "Select All": "全选",
+        "Hide {{label}}": "隐藏 {{label}}",
+        "Hidden {{label}}": "隐藏 {{label}}",
+        "Show {{label}}": "显示 {{label}}",
+        "Visible {{label}}": "可见 {{label}}"
     },
     "WelcomeQuestions": {
-        "IT & Technology": "资讯科技",
+        "IT & Technology": "IT和技术",
         "Sales": "销售量",
         "What brings you to Grist? Please help us serve you better.": "是什么让你来到格里斯特？ 请帮助我们更好地为您服务。",
         "Education": "教育",
         "Finance & Accounting": "财务与会计",
-        "HR & Management": "人力资源与管理",
+        "HR & Management": "人力资源和管理",
         "Marketing": "营销",
         "Media Production": "媒体制作",
         "Other": "其他",
@@ -555,7 +561,7 @@
         "Ok": "好的"
     },
     "DocumentUsage": {
-        "Attachments Size": "附件尺寸",
+        "Attachments Size": "附件大小",
         "Contact the site owner to upgrade the plan to raise limits.": "联系站点所有者以升级计划以提高限制。",
         "Data Size": "数据大小",
         "For higher limits, ": "对于更高的限制， ",
@@ -658,7 +664,9 @@
         "Unfreeze {{count}} columns_one": "解冻此列",
         "Unfreeze all columns": "解冻所有列",
         "Unfreeze {{count}} columns_other": "解冻 {{count}} 列",
-        "Show column {{- label}}": "显示列 {{- label}}"
+        "Show column {{- label}}": "显示列 {{- label}}",
+        "Insert column to the left": "在左侧插入列",
+        "Insert column to the right": "在右侧插入列"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "添加了新的链接部分以查看 {{viewName}}",
@@ -801,7 +809,19 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* 工作区在团队计划中可用。 ",
         "Select fields": "选择字段",
-        "Upgrade now": "现在升级"
+        "Upgrade now": "现在升级",
+        "Reference List": "参考列表",
+        "Toggle": "切换",
+        "Date": "日期",
+        "DateTime": "日期时间",
+        "Choice": "选择",
+        "Choice List": "选择列表",
+        "Reference": "参考",
+        "Attachment": "附件",
+        "Any": "任何",
+        "Numeric": "数值",
+        "Text": "文本",
+        "Integer": "整数"
     },
     "errorPages": {
         "Add account": "新增帐户",
@@ -887,7 +907,7 @@
         "Unable to finish saving edited cell": "无法完成保存编辑的单元格"
     },
     "HyperLinkEditor": {
-        "[link label] url": "[链接标签] url"
+        "[link label] url": "[链接标签] URL"
     },
     "NumericTextBox": {
         "Currency": "货币",
@@ -942,5 +962,12 @@
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "单击每个单元格中的 {{EyeHideIcon}} 可隐藏此视图中的字段而不将其删除。",
         "Editing Card Layout": "编辑卡片布局",
         "Formulas that trigger in certain cases, and store the calculated value as data.": "在某些情况下触发的公式，并将计算值存储为数据。"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "描述"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "关闭创作者面板",
+        "Open Creator Panel": "打开创作者面板"
     }
 }

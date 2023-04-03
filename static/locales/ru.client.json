@@ -39,7 +39,7 @@
     "ACUserManager": {
         "Enter email address": "Введите адрес электронной почты",
         "Invite new member": "Пригласить нового участника",
-        "We'll email an invite to {{email}}": "Приглашение будет отправлено на электронную почту {{email}}"
+        "We'll email an invite to {{email}}": "Мы вышлем приглашение на {{email}}"
     },
     "AccountPage": {
         "API": "API",
@@ -470,7 +470,7 @@
         "Access Details": "Детали доступа",
         "Create Empty Document": "Создать пустой документ",
         "Delete": "Удалить",
-        "Examples & Templates": "Примеры и Шаблоны",
+        "Examples & Templates": "Примеры & Шаблоны",
         "Rename": "Переименовать",
         "Delete {{workspace}} and all included documents?": "Удалить {{workspace}} и все прилагаемые документы?",
         "Trash": "Корзина",
@@ -505,7 +505,9 @@
         "Show column {{- label}}": "Показать столбец {{- label}}",
         "Sort": "Сортировать",
         "Unfreeze {{count}} columns_other": "Открепить {{count}} столбцов",
-        "Unfreeze {{count}} columns_one": "Открепить этот столбец"
+        "Unfreeze {{count}} columns_one": "Открепить этот столбец",
+        "Insert column to the left": "Вставить столбец слева",
+        "Insert column to the right": "Вставить столбец справа"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -591,7 +593,7 @@
         "Save": "Сохранить",
         "Select Widget": "Выберите виджет",
         "Series_one": "Ряд",
-        "Sort & Filter": "Сортировка и Фильтрация",
+        "Sort & Filter": "Сортировка & Фильтрация",
         "TRANSFORM": "ПРЕОБРАЗОВАНИЕ",
         "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА",
         "You do not have edit access to this document": "У вас нет прав на редактирование этого документа",
@@ -649,7 +651,7 @@
     "UserManagerModel": {
         "In Full": "Полный",
         "None": "Без доступа",
-        "View & Edit": "Просмотр и Редактирование",
+        "View & Edit": "Просмотр & Редактирование",
         "Viewer": "Наблюдатель",
         "Owner": "Владелец",
         "No Default Access": "Нет доступа по умолчанию",
@@ -672,7 +674,7 @@
         "Compact": "Компактная"
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Расширенная Сортировка и Фильтрация",
+        "Advanced Sort & Filter": "Расширенная Сортировка & Фильтрация",
         "Delete record": "Удалить запись",
         "Delete widget": "Удалить виджет",
         "Download as XLSX": "Скачать как XLSX",
@@ -963,5 +965,9 @@
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "Закрыть Панель Создателя",
+        "Open Creator Panel": "Открыть Панель Создателя"
     }
 }

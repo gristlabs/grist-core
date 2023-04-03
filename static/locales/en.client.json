@@ -965,5 +965,9 @@
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "Close Creator Panel",
+        "Open Creator Panel": "Open Creator Panel"
     }
 }

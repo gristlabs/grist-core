@@ -2,7 +2,7 @@
     "ACUserManager": {
         "Enter email address": "E-Mail Adresse eingeben",
         "Invite new member": "Neues Mitglied einladen",
-        "We'll email an invite to {{email}}": "Eine Einladung wird per E-Mail an {{email}} gesendet"
+        "We'll email an invite to {{email}}": "Wir schicken eine Einladung zu {{email}}"
     },
     "AccessRules": {
         "Add Column Rule": "Spaltenregel hinzufügen",
@@ -382,7 +382,7 @@
         "Hide column": "Spalte ausblenden",
         "Hide {{count}} columns": "{{count}} Spalten ausblenden",
         "Insert column to the {{to}}": "Spalte in {{to}} einfügen",
-        "More sort options ...": "Weitere Sortieroptionen…",
+        "More sort options ...": "Mehr Sortieroptionen…",
         "Rename column": "Spalte umbenennen",
         "Reset column": "Spalte zurücksetzen",
         "Reset entire column": "Gesamte Spalte zurücksetzen",
@@ -575,7 +575,7 @@
         "Save": "Speichern",
         "Select Widget": "Widget auswählen",
         "Series": "Serie",
-        "Sort & Filter": "Sortieren und Filtern",
+        "Sort & Filter": "Sortieren & Filtern",
         "TRANSFORM": "UMWANDELN",
         "Theme": "Thema",
         "WIDGET TITLE": "WIDGET-TITEL",
@@ -690,7 +690,7 @@
         "No Default Access": "Kein Standardzugriff",
         "None": "Keine",
         "Owner": "Eigentümer",
-        "View & Edit": "Anzeigen und Bearbeiten",
+        "View & Edit": "Anzeigen & Bearbeiten",
         "View Only": "Nur anzeigen",
         "Viewer": "Betrachter"
     },
@@ -715,7 +715,7 @@
         "Unmark table On-Demand?": "Markierung der Tabelle auf-Befehl aufheben?"
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Erweitertes Sortieren und Filtern",
+        "Advanced Sort & Filter": "Erweitertes Sortieren & Filtern",
         "Copy anchor link": "Ankerlink kopieren",
         "Data selection": "Datenauswahl",
         "Delete record": "Datensatz löschen",
@@ -1029,5 +1029,9 @@
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "Ersteller-Panel schließen",
+        "Open Creator Panel": "Ersteller-Panel öffnen"
     }
 }
