@@ -18,6 +18,7 @@ const {RowContextMenu} = require('../ui/RowContextMenu');
 const {parsePasteForView} = require("./BaseView2");
 const {columnInfoTooltip} = require("../ui/tooltips");
 
+
 /**
  * DetailView component implements a list of record layouts.
  */
@@ -76,7 +77,23 @@ function DetailView(gristDoc, viewSectionModel) {
 
   //--------------------------------------------------
   // Set up DOM event handling.
-  this.lastElemSelected = null;
+  this.lastFieldIdsSelected = [null, null];
+
+  this._canSingleClick = function(field) {
+    // we can't simple click if :
+    // - the field is a formula
+    // - the field is toggle (switch or checkbox)
+    if (
+      field.column().isRealFormula() || field.column().hasTriggerFormula()
+      || (
+        field.column().pureType() === "Bool"
+        && ["Switch", "CheckBox"].includes(field.column().visibleColFormatter().widgetOpts.widget)
+      )
+    ) {
+      return false;
+    }
+    return true;
+  };
 
   // Clicking on a detail field selects that field.
   this.onEvent(this.viewPane, 'mousedown', '.g_record_detail_el', function(elem, event) {
@@ -84,29 +101,32 @@ function DetailView(gristDoc, viewSectionModel) {
     var rowModel = this.recordLayout.getContainingRow(elem, this.viewPane);
     var field = this.recordLayout.getContainingField(elem, this.viewPane);
     commands.allCommands.setCursor.run(rowModel, field);
-    this.lastElemSelected = elem;
+    this.lastFieldIdsSelected.unshift(field.id());
+    this.lastFieldIdsSelected.pop();
   });
 
   // Double-clicking on a field also starts editing the field.
   this.onEvent(this.viewPane, 'dblclick', '.g_record_detail_el', function(elem, event) {
     this.activateEditorAtCursor();
-    this.lastElemSelected = elem;
+    var field = this.recordLayout.getContainingField(elem, this.viewPane);
+    this.lastFieldIdsSelected.unshift(field.id());
+    this.lastFieldIdsSelected.pop();
   });
 
-  // Clicking on a field also starts editing the field but only on certain cases and if the field are preselected
-  const simpleClickUnacceptedSelectors = [".formula_field", ".widget_checkbox", ".widget_switch"]
   this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
+    var field = this.recordLayout.getContainingField(elem, this.viewPane);
     if (
-      elem === this.lastFieldSelected
+      field.id() === this.lastFieldIdsSelected[1]
       && !isNarrowScreen()
       // Trick to avoid event to be triggered in other context,
       // and the error `UnexpectedAlertOpenError: unexpected alert open: {Alert text : }`
-      && elem.querySelector(".g_record_detail_el ")
-      && simpleClickUnacceptedSelectors.reduce((formula, current) => formula && !elem.querySelector(current), true)
+      && elem.classList.contains("g_record_detail_el")
+      && this._canSingleClick(field)
     ) {
       this.activateEditorAtCursor();
     }
-    this.lastFieldSelected = elem;
+    this.lastFieldIdsSelected.unshift(field.id());
+    this.lastFieldIdsSelected.pop();
   });
 
   //--------------------------------------------------
