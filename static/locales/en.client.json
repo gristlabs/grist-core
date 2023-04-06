@@ -723,7 +723,8 @@
         "Override widget title": "Override widget title",
         "Provide a table name": "Provide a table name",
         "Save": "Save",
-        "WIDGET TITLE": "WIDGET TITLE"
+        "WIDGET TITLE": "WIDGET TITLE",
+        "WIDGET DESCRIPTION": "WIDGET DESCRIPTION"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "You may make edits, but they will create a new copy and will\nnot affect the original document.",
@@ -973,5 +974,14 @@
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
         "Open Creator Panel": "Open Creator Panel"
+    },
+    "ColumnTitle": {
+        "COLUMN DESCRIPTION": "COLUMN DESCRIPTION",
+        "COLUMN ID: ": "COLUMN ID: ",
+        "COLUMN LABEL": "COLUMN LABEL",
+        "Cancel": "Cancel",
+        "Column ID copied to clipboard": "Column ID copied to clipboard",
+        "Provide a column label": "Provide a column label",
+        "Save": "Save"
     }
 }

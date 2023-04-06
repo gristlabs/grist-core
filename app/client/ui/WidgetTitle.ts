@@ -9,6 +9,7 @@ import {ModalControl} from 'app/client/ui2018/modals';
 import {Computed, dom, DomElementArg, IInputOptions, input, makeTestId, Observable, styled} from 'grainjs';
 import {IOpenController, setPopupToCreateDom} from 'popweasel';
 import { columnInfoTooltip } from './tooltips';
+import { textarea } from './inputs';
 
 const testId = makeTestId('test-widget-title-');
 const t = makeT('WidgetTitle');
@@ -52,12 +53,9 @@ export function buildRenameWidget(
       },
       dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
     ),
-    // TODO : add tooltip + description in popup
-    // cssDescription()
-    // dom('div.g_record_detail_label_container',
-    //     dom('div.g_record_detail_label', kd.text(field.displayLabel)),
-    //     kd.scope(description, desc => desc ? columnInfoTooltip(kd.text(description)) : null)
-    //   ),
+    dom.maybe(description, () => [
+      columnInfoTooltip(description.get())
+    ]),
     ...args
   );
 }
@@ -79,11 +77,19 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   // - when widget title is set, shows just a text to override it.
   const inputWidgetPlaceholder = !vs.title.peek() ? t("Override widget title") : vs.defaultWidgetTitle.peek();
 
+  // User input for widget description
+  const inputWidgetDesc = Observable.create(ctrl, vs.description.peek() ?? '');
+
   const disableSave = Computed.create(ctrl, (use) => {
     const newTableName = use(inputTableName)?.trim() ?? '';
     const newWidgetTitle = use(inputWidgetTitle)?.trim() ?? '';
+    const newWidgetDesc = use(inputWidgetDesc)?.trim() ?? '';
     // Can't save when table name is empty or there wasn't any change.
-    return !newTableName || (newTableName === tableName && newWidgetTitle === use(vs.title));
+    return !newTableName || (
+      newTableName === tableName
+      && newWidgetTitle === use(vs.title)
+      && newWidgetDesc === use(vs.description)
+    );
   });
 
   const modalCtl = ModalControl.create(ctrl, () => ctrl.close());
@@ -109,9 +115,19 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
       await vs.title.saveOnly(newTitle);
     }
   };
+
+  const saveWidgetDesc = async () => {
+    const newWidgetDesc = inputWidgetDesc.get().trim() ?? '';
+    // If value was changed.
+    if (newWidgetDesc !== vs.description.peek()) {
+      await vs.description.saveOnly(newWidgetDesc);
+    }
+  };
+
   const doSave = modalCtl.doWork(() => Promise.all([
     saveTableName(),
-    saveWidgetTitle()
+    saveWidgetTitle(),
+    saveWidgetDesc()
   ]), {close: true});
 
   function initialFocus() {
@@ -163,6 +179,11 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
         testId('section-name-input')
       ),
     ]),
+    cssLabel(t("WIDGET DESCRIPTION")),
+    cssTextArea(inputWidgetDesc, updateOnKey,
+      {},
+      testId('section-description-input'),
+    ),
     cssButtons(
       primaryButton(t("Save"),
         dom.on('click', doSave),
@@ -260,5 +281,20 @@ const cssInput = styled((
   }
   .${cssInputWithIcon.className} > &:disabled {
     padding-right: 28px;
+  }
+`);
+
+const cssTextArea = styled(textarea, `
+  color: ${theme.inputFg};
+  background-color: ${theme.mainPanelBg};
+  border: 1px solid ${theme.inputBorder};
+  width: 100%;
+  padding: 10px;
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+  &[readonly] {
+    background-color: ${theme.inputDisabledBg};
+    color: ${theme.inputDisabledFg};
   }
 `);

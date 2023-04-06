@@ -351,7 +351,11 @@ export function withInfoTooltip(
  */
  export function columnInfoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
   return cssColumnInfoTooltipButton(
-    icon('Info', dom.cls("info_toggle_icon")),
+    icon('Info',
+      dom.style('width', '13px'),
+      dom.style('height', '13px'),
+      dom.style('margin-bottom', '3px')
+    ),
     (elem) => {
       setPopupToCreateDom(
         elem,
@@ -377,7 +381,7 @@ export function withInfoTooltip(
             testId('column-info-tooltip-popup'),
           );
         },
-        { ...defaultMenuOptions, ...{ placement: 'bottom-end' }, ...menuOptions },
+        { ...defaultMenuOptions, ...{ placement: 'bottom' }, ...menuOptions },
       );
     },
     testId('column-info-tooltip'),
