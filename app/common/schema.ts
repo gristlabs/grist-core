@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 36;
+export const SCHEMA_VERSION = 37;
 
 export const schema = {
 
@@ -148,6 +148,7 @@ export const schema = {
     fileName            : "Text",
     fileType            : "Text",
     fileSize            : "Int",
+    fileExt             : "Text",
     imageHeight         : "Int",
     imageWidth          : "Int",
     timeDeleted         : "DateTime",
@@ -354,6 +355,7 @@ export interface SchemaTypes {
     fileName: string;
     fileType: string;
     fileSize: number;
+    fileExt: string;
     imageHeight: number;
     imageWidth: number;
     timeDeleted: number;

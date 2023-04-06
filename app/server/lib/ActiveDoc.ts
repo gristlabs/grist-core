@@ -65,19 +65,22 @@ import {
 import {normalizeEmail} from 'app/common/emails';
 import {Product} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
-import {parseUrlId} from 'app/common/gristUrls';
+import {isHiddenCol} from 'app/common/gristTypes';
+import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
+import {TelemetryEventName} from 'app/common/Telemetry';
 import {UIRowId} from 'app/common/UIRowId';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
+import {Document as APIDocument, DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
+import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from 'app/gen-server/entity/Document';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
@@ -117,6 +120,7 @@ import {DocPluginManager} from './DocPluginManager';
 import {
   DocSession,
   getDocSessionAccess,
+  getDocSessionAltSessionId,
   getDocSessionUser,
   getDocSessionUserId,
   makeExceptionalDocSession,
@@ -156,6 +160,9 @@ const UPDATE_CURRENT_TIME_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 100
 
 // Measure and broadcast data size every 5 minutes
 const UPDATE_DATA_SIZE_DELAY = {delayMs: 5 * 60 * 1000, varianceMs: 30 * 1000};
+
+// Log document metrics every hour
+const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
 // A hook for dependency injection.
 export const Deps = {ACTIVEDOC_TIMEOUT};
@@ -215,6 +222,7 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;  // Becomes true once all columns are loaded/computed.
   private _lastMemoryMeasurement: number = 0;    // Timestamp when memory was last measured.
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
+  private _doc: Document|undefined;
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
   private _gracePeriodStart: Date|null = null;
@@ -260,6 +268,12 @@ export class ActiveDoc extends EventEmitter {
       UPDATE_DATA_SIZE_DELAY,
       {onError: (e) => this._log.error(null, 'failed to update data size', e)},
     ),
+    // Log document metrics every hour.
+    new Interval(
+      () => this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'),
+      LOG_DOCUMENT_METRICS_DELAY,
+      {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
+    ),
   ];
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
@@ -268,7 +282,8 @@ export class ActiveDoc extends EventEmitter {
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
-      const {gracePeriodStart, workspace, usage} = _options.doc;
+      this._doc = _options.doc;
+      const {gracePeriodStart, workspace, usage} = this._doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
       this._gracePeriodStart = gracePeriodStart;
@@ -1348,6 +1363,17 @@ export class ActiveDoc extends EventEmitter {
       }
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
+
+      // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
+      const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
+      this.logTelemetryEvent(docSession, 'documentForked', {
+        forkId: forkIds.forkId,
+        forkDocId: forkIds.docId,
+        forkUrlId: forkIds.urlId,
+        trunkId: doc.trunkId,
+        isTemplate,
+        lastActivity: doc.updatedAt,
+      });
     } finally {
       await permitStore.removePermit(permitKey);
     }
@@ -1720,6 +1746,17 @@ export class ActiveDoc extends EventEmitter {
     return this._triggers.summary();
   }
 
+  public logTelemetryEvent(
+    docSession: OptDocSession | null,
+    eventName: TelemetryEventName,
+    metadata?: Record<string, any>
+  ) {
+    this._docManager.gristServer.getTelemetryManager()?.logEvent(eventName, {
+      ...this._getTelemetryMeta(docSession),
+      ...metadata,
+    });
+  }
+
   /**
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */
@@ -1883,6 +1920,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._syncDocUsageToDatabase(true);
+      this._logDocMetrics(docSession, 'docClose');
 
       try {
         await this._docManager.storageManager.closeDocument(this.docName);
@@ -2101,6 +2139,7 @@ export class ActiveDoc extends EventEmitter {
       // We used to set fileType, but it's not easily available for native types. Since it's
       // also entirely unused, we just skip it until it becomes relevant.
       fileSize: fileData.size,
+      fileExt: fileData.ext,
       imageHeight: dimensions.height,
       imageWidth: dimensions.width,
       timeUploaded: Date.now()
@@ -2238,6 +2277,147 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
+  private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval'| 'docClose') {
+    this.logTelemetryEvent(docSession, 'documentUsage', {
+      triggeredBy,
+      access: this._doc?.access,
+      isPublic: ((this._doc as unknown) as APIDocument)?.public ?? false,
+      rowCount: this._docUsage?.rowCount?.total,
+      dataSizeBytes: this._docUsage?.dataSizeBytes,
+      attachmentsSize: this._docUsage?.attachmentsSizeBytes,
+      ...this._getAccessRuleMetrics(),
+      ...this._getAttachmentMetrics(),
+      ...this._getChartMetrics(),
+      ...this._getWidgetMetrics(),
+      ...this._getColumnMetrics(),
+      ...this._getTableMetrics(),
+      ...this._getCustomWidgetMetrics(),
+    });
+  }
+
+  private _getAccessRuleMetrics() {
+    const accessRules = this.docData?.getMetaTable('_grist_ACLRules');
+    const numAccessRules = accessRules?.numRecords() ?? 0;
+    const numUserAttributes = accessRules?.getRecords().filter(r => r.userAttributes).length ?? 0;
+
+    return {
+      numAccessRules,
+      numUserAttributes,
+    };
+  }
+
+  private _getAttachmentMetrics() {
+    const attachments = this.docData?.getMetaTable('_grist_Attachments');
+    const numAttachments = attachments?.numRecords() ?? 0;
+    const attachmentTypes = attachments?.getRecords()
+      .map(r => r.fileExt?.slice(1) ?? null)
+      .filter(ext => ext !== null);
+
+    return {
+      numAttachments,
+      attachmentTypes,
+    };
+  }
+
+  private _getChartMetrics() {
+    const viewSections = this.docData?.getMetaTable('_grist_Views_section');
+    const viewSectionRecords = viewSections?.getRecords() ?? [];
+    const chartRecords = viewSectionRecords?.filter(r => r.parentKey === 'chart') ?? [];
+    const chartTypes = chartRecords.map(r => r.chartType || 'bar');
+    const numCharts = chartRecords.length;
+    const numLinkedCharts = chartRecords.filter(r => r.linkSrcSectionRef).length;
+
+    return {
+      numCharts,
+      chartTypes,
+      numLinkedCharts,
+    };
+  }
+
+  private _getWidgetMetrics() {
+    const viewSections = this.docData?.getMetaTable('_grist_Views_section');
+    const viewSectionRecords = viewSections?.getRecords() ?? [];
+    const numLinkedWidgets = viewSectionRecords.filter(r => r.linkSrcSectionRef).length;
+
+    return {
+      numLinkedWidgets,
+    };
+  }
+
+  private _getColumnMetrics() {
+    const columns = this.docData?.getMetaTable('_grist_Tables_column');
+    const columnRecords = columns?.getRecords().filter(r => !isHiddenCol(r.colId)) ?? [];
+    const numColumns = columnRecords.length;
+    const numColumnsWithConditionalFormatting = columnRecords.filter(r => r.rules).length;
+    const numFormulaColumns = columnRecords.filter(r => r.isFormula && r.formula).length;
+    const numTriggerFormulaColumns = columnRecords.filter(r => !r.isFormula && r.formula).length;
+
+    const tables = this.docData?.getMetaTable('_grist_Tables');
+    const tableRecords = tables?.getRecords().filter(r =>
+      r.tableId && !r.tableId.startsWith('GristHidden_')) ?? [];
+    const summaryTables = tableRecords.filter(r => r.summarySourceTable);
+    const summaryTableIds = new Set([...summaryTables.map(t => t.id)]);
+    const numSummaryFormulaColumns = columnRecords.filter(r =>
+      r.isFormula && summaryTableIds.has(r.parentId)).length;
+
+    const viewSectionFields = this.docData?.getMetaTable('_grist_Views_section_field');
+    const viewSectionFieldRecords = viewSectionFields?.getRecords() ?? [];
+    const numFieldsWithConditionalFormatting = viewSectionFieldRecords.filter(r => r.rules).length;
+
+    return {
+      numColumns,
+      numColumnsWithConditionalFormatting,
+      numFormulaColumns,
+      numTriggerFormulaColumns,
+      numSummaryFormulaColumns,
+      numFieldsWithConditionalFormatting,
+    };
+  }
+
+  private _getTableMetrics() {
+    const tables = this.docData?.getMetaTable('_grist_Tables');
+    const tableRecords = tables?.getRecords().filter(r =>
+      r.tableId && !r.tableId.startsWith('GristHidden_')) ?? [];
+    const numTables = tableRecords.length;
+    const numOnDemandTables = tableRecords.filter(r => r.onDemand).length;
+
+    const viewSections = this.docData?.getMetaTable('_grist_Views_section');
+    const viewSectionRecords = viewSections?.getRecords() ?? [];
+    const numTablesWithConditionalFormatting = viewSectionRecords.filter(r => r.rules).length;
+
+    const summaryTables = tableRecords.filter(r => r.summarySourceTable);
+    const numSummaryTables = summaryTables.length;
+
+    return {
+      numTables,
+      numOnDemandTables,
+      numTablesWithConditionalFormatting,
+      numSummaryTables,
+    };
+  }
+
+  private _getCustomWidgetMetrics() {
+    const viewSections = this.docData?.getMetaTable('_grist_Views_section');
+    const viewSectionRecords = viewSections?.getRecords() ?? [];
+    const customWidgetUrls: string[] = [];
+    for (const r of viewSectionRecords) {
+      const {customView} = safeJsonParse(r.options, {});
+      if (!customView) { continue; }
+
+      const {url} = safeJsonParse(customView, {});
+      if (!url) { continue; }
+
+      const isGristUrl = url.startsWith(commonUrls.gristLabsCustomWidgets);
+      customWidgetUrls.push(isGristUrl ? url : 'externalURL');
+    }
+    const numCustomWidgets = customWidgetUrls.length;
+
+    return {
+      numCustomWidgets,
+      customWidgetUrls,
+    };
+  }
+
   private async _fetchQueryFromDB(query: ServerQuery, onDemand: boolean): Promise<TableDataAction> {
     // Expand query to compute formulas (or include placeholders for them).
     const expandedQuery = expandQuery(query, this.docData!, onDemand);
@@ -2279,7 +2459,10 @@ export class ActiveDoc extends EventEmitter {
     if (this._docUsage?.attachmentsSizeBytes === undefined) {
       promises.push(this._updateAttachmentsSize(options));
     }
-    if (promises.length === 0) { return; }
+    if (promises.length === 0) {
+      this._logDocMetrics(docSession, 'docOpen');
+      return;
+    }
 
     try {
       await Promise.all(promises);
@@ -2288,6 +2471,20 @@ export class ActiveDoc extends EventEmitter {
     } catch (e) {
       this._log.warn(docSession, 'failed to initialize doc usage', e);
     }
+
+    this._logDocMetrics(docSession, 'docOpen');
+  }
+
+  private _getTelemetryMeta(docSession: OptDocSession|null) {
+    return {
+      ...(docSession ? {
+          ...getLogMetaFromDocSession(docSession),
+          altSessionId: getDocSessionAltSessionId(docSession),
+        } : {}),
+      docId: this._docName,
+      siteId: this._doc?.workspace.org.id,
+      siteType: this._product?.name,
+    };
   }
 
   /**

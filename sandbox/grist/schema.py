@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 36
+SCHEMA_VERSION = 37
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -236,6 +236,7 @@ def schema_create_actions():
       make_column("fileName",     "Text"), # User defined file name
       make_column("fileType",     "Text"), # A string indicating the MIME type of the data
       make_column("fileSize",     "Int"),  # The size in bytes
+      make_column("fileExt",      "Text"), # The file extension
       make_column("imageHeight",  "Int"),  # height in pixels
       make_column("imageWidth",   "Int"),  # width in pixels
       make_column("timeDeleted",  "DateTime"),

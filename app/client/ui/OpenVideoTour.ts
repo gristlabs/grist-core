@@ -1,5 +1,6 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getMainOrgUrl} from 'app/client/models/gristUrlState';
 import {cssLinkText, cssPageEntryMain, cssPageIcon, cssPageLink} from 'app/client/ui/LeftPanelCommon';
 import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
@@ -20,7 +21,26 @@ const VIDEO_TOUR_YOUTUBE_EMBED_ID = 'qnr2Pfnxdlc';
  */
  export function openVideoTour(refElement: HTMLElement) {
   return modal(
-    (ctl) => {
+    (ctl, owner) => {
+      const youtubePlayer = YouTubePlayer.create(owner,
+        VIDEO_TOUR_YOUTUBE_EMBED_ID,
+        {
+          onPlayerReady: (player) => player.playVideo(),
+          height: '100%',
+          width: '100%',
+          origin: getMainOrgUrl(),
+        },
+        cssYouTubePlayer.cls(''),
+      );
+
+      owner.onDispose(async () => {
+        if (youtubePlayer.isLoading()) { return; }
+
+        await logTelemetryEvent('watchedVideoTour', {
+          watchTimeSeconds: Math.floor(youtubePlayer.getCurrentTime()),
+        });
+      });
+
       return [
         cssModal.cls(''),
         cssModalCloseButton(
@@ -28,18 +48,7 @@ const VIDEO_TOUR_YOUTUBE_EMBED_ID = 'qnr2Pfnxdlc';
           dom.on('click', () => ctl.close()),
           testId('close'),
         ),
-        cssYouTubePlayerContainer(
-          dom.create(YouTubePlayer,
-            VIDEO_TOUR_YOUTUBE_EMBED_ID,
-            {
-              onPlayerReady: (player) => player.playVideo(),
-              height: '100%',
-              width: '100%',
-              origin: getMainOrgUrl(),
-            },
-            cssYouTubePlayer.cls(''),
-          ),
-        ),
+        cssYouTubePlayerContainer(youtubePlayer.buildDom()),
         testId('modal'),
       ];
     },

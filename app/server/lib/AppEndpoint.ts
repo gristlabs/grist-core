@@ -7,10 +7,12 @@ import * as express from 'express';
 import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
 
 import {ApiError} from 'app/common/ApiError';
-import {getSlugIfNeeded, parseSubdomainStrictly} from 'app/common/gristUrls';
+import {getSlugIfNeeded, parseSubdomainStrictly, parseUrlId} from 'app/common/gristUrls';
 import {removeTrailingSlash} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
+import {TelemetryTemplateSignupCookieName} from 'app/common/Telemetry';
 import {Document as APIDocument} from 'app/common/UserAPI';
+import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
@@ -18,6 +20,7 @@ import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
+import {getCookieDomain} from 'app/server/lib/gristSessions';
 import {getAssignmentId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {adaptServerUrl, addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
@@ -297,6 +300,42 @@ export function attachAppEndpoint(options: AttachOptions): void {
       const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, {headers});
       docStatus = workerInfo.docStatus;
       body = await workerInfo.resp.json();
+    }
+
+    const isPublic = ((doc as unknown) as APIDocument).public ?? false;
+    const isSnapshot = parseUrlId(urlId).snapshotId;
+    // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
+    const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
+    if (isPublic || isTemplate) {
+      gristServer.getTelemetryManager()?.logEvent('documentOpened', {
+        docId,
+        siteId: doc.workspace.org.id,
+        siteType: doc.workspace.org.billingAccount.product.name,
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+        access: doc.access,
+        isPublic,
+        isSnapshot,
+        isTemplate,
+        lastUpdated: doc.updatedAt,
+      });
+    }
+
+    if (isTemplate) {
+      // Keep track of the last template a user visited in the last hour.
+      // If a sign-up occurs within that time period, we'll know which
+      // template, if any, was viewed most recently.
+      const value = {
+        isAnonymous: isAnonymousUser(mreq),
+        templateId: docId,
+      };
+      res.cookie(TelemetryTemplateSignupCookieName, JSON.stringify(value), {
+        maxAge: 1000 * 60 * 60,
+        httpOnly: true,
+        path: '/',
+        domain: getCookieDomain(req),
+        sameSite: 'lax',
+      });
     }
 
     await sendAppPage(req, res, {path: "", content: body.page, tag: body.tag, status: 200,

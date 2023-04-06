@@ -31,7 +31,10 @@ export async function main(baseName: string) {
     if (await fse.pathExists(fname)) {
       await fse.remove(fname);
     }
-    const docManager = new DocManager(storageManager, pluginManager, null as any, {create} as any);
+    const docManager = new DocManager(storageManager, pluginManager, null as any, {
+      create,
+      getTelemetryManager: () => undefined,
+    } as any);
     const activeDoc = new ActiveDoc(docManager, baseName);
     const session = makeExceptionalDocSession('nascent');
     await activeDoc.createEmptyDocWithDataEngine(session);

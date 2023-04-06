@@ -836,6 +836,7 @@ export class DocWorkerApi {
     // This endpoint cannot use withDoc since it is expected behavior for the ActiveDoc it
     // starts with to become muted.
     this._app.post('/api/docs/:docId/replace', canEdit, throttled(async (req, res) => {
+      const docSession = docSessionFromRequest(req);
       const activeDoc = await this._getActiveDoc(req);
       const options: DocReplacementOptions = {};
       if (req.body.sourceDocId) {
@@ -881,12 +882,17 @@ export class DocWorkerApi {
               manager
             );
           });
+          const {forkId} = parseUrlId(scope.urlId);
+          activeDoc.logTelemetryEvent(docSession, 'tutorialRestarted', {
+            tutorialForkId: forkId,
+            tutorialForkUrlId: scope.urlId,
+            tutorialTrunkId,
+          });
         }
       }
       if (req.body.snapshotId) {
         options.snapshotId = String(req.body.snapshotId);
       }
-      const docSession = docSessionFromRequest(req);
       await activeDoc.replace(docSession, options);
       res.json(null);
     }));

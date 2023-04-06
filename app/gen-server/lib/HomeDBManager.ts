@@ -89,6 +89,14 @@ export const NotifierEvents = StringUnion(
 
 export type NotifierEvent = typeof NotifierEvents.type;
 
+export const TelemetryEvents = StringUnion(
+  'tutorialProgressChange',
+);
+
+export type TelemetryEvent = typeof TelemetryEvents.type;
+
+export type Event = NotifierEvent | TelemetryEvent;
+
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
 
@@ -276,6 +284,7 @@ export class HomeDBManager extends EventEmitter {
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
 
+
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
    * 'guests', and 'members') are created by default on every new entity (Organization,
@@ -315,7 +324,7 @@ export class HomeDBManager extends EventEmitter {
     orgOnly: true
   }];
 
-  public emit(event: NotifierEvent, ...args: any[]): boolean {
+  public emit(event: Event, ...args: any[]): boolean {
     return super.emit(event, ...args);
   }
 
@@ -1944,7 +1953,7 @@ export class HomeDBManager extends EventEmitter {
       // Update the name and save.
       const doc: Document = queryResult.data;
       doc.checkProperties(props);
-      doc.updateFromProperties(props);
+      doc.updateFromProperties(props, this);
       if (forkId) {
         await manager.save(doc);
         return {status: 200};
