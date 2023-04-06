@@ -75,3 +75,7 @@ jspm_packages/
 .env
 
 **/_build
+
+# Local testing
+timings.txt
+xunit.xml

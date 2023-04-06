@@ -1,6 +1,6 @@
 import {CursorPos} from 'app/client/components/Cursor';
 import {makeT} from 'app/client/lib/localization';
-import {ColumnRec} from 'app/client/models/DocModel';
+import { ColumnRec, ViewSectionRec } from 'app/client/models/DocModel';
 import {textarea} from 'app/client/ui/inputs';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId, theme} from 'app/client/ui2018/cssVars';
@@ -10,7 +10,7 @@ const t = makeT('FieldConfig');
 
 export function buildDescriptionConfig(
     owner: MultiHolder,
-    origColumn: ColumnRec,
+    parent: ColumnRec | ViewSectionRec,
     cursor: ko.Computed<CursorPos>,
   ) {
 
@@ -29,11 +29,11 @@ export function buildDescriptionConfig(
     return [
       cssLabel(t("DESCRIPTION")),
       cssRow(
-        editor = cssTextArea(fromKo(origColumn.description),
+        editor = cssTextArea(fromKo(parent.description),
           { onInput: false },
           { rows: '3' },
           dom.on('blur', async (e, elem) => {
-            await origColumn.description.saveOnly(elem.value);
+            await parent.description.saveOnly(elem.value);
           }),
           testId('column-description'),
         )

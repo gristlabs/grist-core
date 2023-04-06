@@ -1196,3 +1196,11 @@ def migration36(tdset):
   Add description to column
   """
   return tdset.apply_doc_actions([add_column('_grist_Tables_column', 'description', 'Text')])
+
+
+@migration(schema_version=37)
+def migration37(tdset):
+  """
+  Add description to widget
+  """
+  return tdset.apply_doc_actions([add_column('_grist_Views_section', 'description', 'Text')])

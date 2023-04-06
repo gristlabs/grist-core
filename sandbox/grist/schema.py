@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 36
+SCHEMA_VERSION = 37
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -181,6 +181,7 @@ def schema_create_actions():
       # TODO: rename this (e.g. to "sectionType").
       make_column("parentKey",          "Text"),
       make_column("title",              "Text"),
+      make_column("description",        "Text"),
       make_column("defaultWidth",       "Int", formula="100"),
       make_column("borderWidth",        "Int", formula="1"),
       make_column("theme",              "Text"),
