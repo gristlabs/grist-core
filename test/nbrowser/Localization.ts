@@ -41,14 +41,23 @@ describe("Localization", function() {
     const namespaces: Set<string> = new Set();
     for (const file of fs.readdirSync(localeDirectory)) {
       if (file.endsWith(".json")) {
-        const lang = file.split('.')[0]?.replace(/_/g, '-');
+        const langRaw = file.split('.')[0];
+        const lang = langRaw?.replace(/_/g, '-');
         const ns = file.split('.')[1];
+        const clientFile = path.join(localeDirectory,
+                                     `${langRaw}.client.json`);
+        const clientText = fs.readFileSync(clientFile, { encoding: 'utf8' });
+        if (!clientText.includes('Translators: please translate this only when')) {
+          // Translation not ready if this key is not present.
+          continue;
+        }
         langs.add(lang);
         namespaces.add(ns);
       }
     }
     assert.deepEqual(gristConfig.supportedLngs.sort(), [...langs].sort());
     assert.deepEqual(gristConfig.namespaces.sort(), [...namespaces].sort());
+    assert.isAbove(gristConfig.supportedLngs.length, 9);
   });
 
   // Now make a uz-UZ language file, and test that it is used.

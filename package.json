@@ -1,6 +1,6 @@
 {
   "name": "grist-core",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "license": "Apache-2.0",
   "description": "Grist is the evolution of spreadsheets",
   "homepage": "https://github.com/gristlabs/grist-core",

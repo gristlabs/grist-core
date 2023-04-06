@@ -1336,7 +1336,7 @@ export class GristDoc extends DisposableWithEvents {
     const options = section.options();
     const colIds = section.viewFields().all().map((f) => f.column().colId());
     const chartType = section.chartType();
-    const theme = section.theme();
+    const sectionTheme = section.theme();
 
     // we must read the current layout from the view layout because it can override the one in
     // `section.layoutSpec` (in particular it provides a default layout when missing from the
@@ -1370,7 +1370,7 @@ export class GristDoc extends DisposableWithEvents {
     }
 
     // update theme, and chart type
-    await newSection.theme.saveOnly(theme);
+    await newSection.theme.saveOnly(sectionTheme);
     await newSection.chartType.saveOnly(chartType);
 
     // The newly-added section should be given focus.

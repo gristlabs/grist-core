@@ -136,12 +136,16 @@ export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: b
  */
 export async function checkAllegedGristDoc(docSession: OptDocSession, fname: string) {
   const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
-  const integrityCheckResults = await db.all('PRAGMA integrity_check');
-  if (integrityCheckResults.length !== 1 || integrityCheckResults[0].integrity_check !== 'ok') {
-    const uuid = uuidv4();
-    log.info('Integrity check failure on import', {uuid, integrityCheckResults,
-                                                   ...getLogMetaFromDocSession(docSession)});
-    throw new Error(`Document failed integrity checks - is it corrupted? Event ID: ${uuid}`);
+  try {
+    const integrityCheckResults = await db.all('PRAGMA integrity_check');
+    if (integrityCheckResults.length !== 1 || integrityCheckResults[0].integrity_check !== 'ok') {
+      const uuid = uuidv4();
+      log.info('Integrity check failure on import', {uuid, integrityCheckResults,
+                                                     ...getLogMetaFromDocSession(docSession)});
+      throw new Error(`Document failed integrity checks - is it corrupted? Event ID: ${uuid}`);
+    }
+  } finally {
+    await db.close();
   }
 }
 
