@@ -8,6 +8,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {ModalControl} from 'app/client/ui2018/modals';
 import {Computed, dom, DomElementArg, IInputOptions, input, makeTestId, Observable, styled} from 'grainjs';
 import {IOpenController, setPopupToCreateDom} from 'popweasel';
+import { columnInfoTooltip } from './tooltips';
 
 const testId = makeTestId('test-widget-title-');
 const t = makeT('WidgetTitle');
@@ -19,17 +20,20 @@ interface WidgetTitleOptions {
 
 export function buildWidgetTitle(vs: ViewSectionRec, options: WidgetTitleOptions, ...args: DomElementArg[]) {
   const title = Computed.create(null, use => use(vs.titleDef));
-  return buildRenameWidget(vs, title, options, dom.autoDispose(title), ...args);
+  const description = Computed.create(null, use => use(vs.description));
+  return buildRenameWidget(vs, title, description, options, dom.autoDispose(title), ...args);
 }
 
 export function buildTableName(vs: ViewSectionRec, ...args: DomElementArg[]) {
   const title = Computed.create(null, use => use(use(vs.table).tableNameDef));
-  return buildRenameWidget(vs, title, { widgetNameHidden: true }, dom.autoDispose(title), ...args);
+  const description = Computed.create(null, use => use(vs.description));
+  return buildRenameWidget(vs, title, description, { widgetNameHidden: true }, dom.autoDispose(title), ...args);
 }
 
 export function buildRenameWidget(
   vs: ViewSectionRec,
   title: Observable<string>,
+  description: Observable<string>,
   options: WidgetTitleOptions,
   ...args: DomElementArg[]) {
   return cssTitleContainer(
@@ -48,6 +52,12 @@ export function buildRenameWidget(
       },
       dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
     ),
+    // TODO : add tooltip + description in popup
+    // cssDescription()
+    // dom('div.g_record_detail_label_container',
+    //     dom('div.g_record_detail_label', kd.text(field.displayLabel)),
+    //     kd.scope(description, desc => desc ? columnInfoTooltip(kd.text(description)) : null)
+    //   ),
     ...args
   );
 }
