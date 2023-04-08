@@ -19,7 +19,9 @@
         "Welcome to Grist, {{name}}!": "Benvenuto in Grist, {{name}}!",
         "Welcome to {{orgName}}": "Benvenuto in {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Hai accesso a questo sito in sola lettura. Attualmente non ci sono documenti.",
-        "{{signUp}} to save your work. ": "{{signUp}} per salvare il tuo lavoro. "
+        "{{signUp}} to save your work. ": "{{signUp}} per salvare il tuo lavoro. ",
+        "Welcome to Grist, {{- name}}!": "Benvenuto in Grist, {{- name}}!",
+        "Welcome to {{- orgName}}": "Benvenuto, {{- orgName}}"
     },
     "HomeLeftPane": {
         "Manage Users": "Gestisci gli utenti",
@@ -29,12 +31,13 @@
         "Create Workspace": "Crea uno spazio di lavoro",
         "Delete": "Elimina",
         "Delete {{workspace}} and all included documents?": "Eliminare {{workspace}} e tutti i documenti che contiene?",
-        "Examples & Templates": "Esempi e template",
+        "Examples & Templates": "Template",
         "Import Document": "Importa documento",
         "Rename": "Rinomina",
         "Trash": "Cestino",
         "Workspace will be moved to Trash.": "Lo spazio di lavoro sarà spostato nel cestino.",
-        "Workspaces": "Spazi di lavoro"
+        "Workspaces": "Spazi di lavoro",
+        "Tutorial": "Tutorial"
     },
     "MakeCopyMenu": {
         "However, it appears to be already identical.": "Tuttavia, sembra essere già identico.",
@@ -437,7 +440,7 @@
     "ACUserManager": {
         "Enter email address": "Inserisci indirizzo e-mail",
         "Invite new member": "Invita un nuovo membro",
-        "We'll email an invite to {{email}}": "Un invito sarà inviato a {{email}}"
+        "We'll email an invite to {{email}}": "Invieremo una email a {{email}}"
     },
     "ViewAsDropdown": {
         "View As": "Vedi come",
@@ -961,9 +964,14 @@
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Usa il simbolo 𝚺 per creare tabelle riassuntive (pivot), per totali o subtotali.",
         "Access Rules": "Regole di accesso",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Le regole di accesso ti danno il potere di creare regole sofisticate per decidere chi può vedere o modificare il tuo documento, e quali parti.",
-        "Reference columns are the key to {{relational}} data in Grist.": "Le colonne con riferimenti sono il motore {{relational}} dei dati in Grist."
+        "Reference columns are the key to {{relational}} data in Grist.": "Le colonne con riferimenti sono il motore {{relational}} dei dati in Grist.",
+        "Anchor Links": "Link interno"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
+    },
+    "PagePanels": {
+        "Close Creator Panel": "Chiudi il pannello Creatore",
+        "Open Creator Panel": "Apri il pannello Creatore"
     }
 }
