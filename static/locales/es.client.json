@@ -363,7 +363,9 @@
         "Welcome to {{orgName}}": "Bienvenido a {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Tiene acceso sólo lectura a este sitio. Actualmente no hay documentos.",
         "personal site": "sitio personal",
-        "{{signUp}} to save your work. ": "{{signUp}} para guardar tu trabajo. "
+        "{{signUp}} to save your work. ": "{{signUp}} para guardar tu trabajo. ",
+        "Welcome to Grist, {{- name}}!": "¡Bienvenido a Grist, {{- name}}!",
+        "Welcome to {{- orgName}}": "Bienvenido a {{- orgName}}"
     },
     "HomeLeftPane": {
         "Access Details": "Detalles de Acceso",
@@ -372,13 +374,14 @@
         "Create Workspace": "Crear espacio de trabajo",
         "Delete": "Borrar",
         "Delete {{workspace}} and all included documents?": "Eliminar {{workspace}} y todos los documentos incluidos?",
-        "Examples & Templates": "Ejemplos & Plantillas",
+        "Examples & Templates": "Plantillas",
         "Import Document": "Importar documento",
         "Manage Users": "Gestionar usuarios",
         "Rename": "Renombrar",
         "Trash": "Papelera",
         "Workspace will be moved to Trash.": "El espacio de trabajo se moverá a la papelera.",
-        "Workspaces": "Espacios de trabajo"
+        "Workspaces": "Espacios de trabajo",
+        "Tutorial": "Tutorial"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de ayuda"
@@ -1015,7 +1018,8 @@
         "relational": "relacionales",
         "Access Rules": "Reglas de acceso",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilice el icono 𝚺 para crear tablas resumen (o dinámicas), para totales o subtotales.",
-        "Unpin to hide the the button while keeping the filter.": "Desancla para ocultar el botón mientras mantienes el filtro."
+        "Unpin to hide the the button while keeping the filter.": "Desancla para ocultar el botón mientras mantienes el filtro.",
+        "Anchor Links": "Enlaces fijados"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
