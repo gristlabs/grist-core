@@ -236,7 +236,10 @@ function buildChat(owner: Disposable, context: Context & { formulaClicked: (form
         } else {
           return cssAiMessage(
             cssAvatar(cssAiImage()),
-            buildHighlightedCode(entry.message, { maxLines: 10 }, cssCodeStyles.cls('')),
+            buildHighlightedCode(entry.message, {
+              gristTheme: grist.currentTheme,
+              maxLines: 10,
+            }, cssCodeStyles.cls('')),
             cssCopyIconWrapper(
               icon('Copy', dom.on('click', () => context.formulaClicked(entry.message))),
             )

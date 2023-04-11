@@ -17,6 +17,7 @@ import {GRIST_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
 import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
 import {sanitizeIdent} from 'app/common/gutil';
+import {Theme} from 'app/common/ThemePrefs';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
@@ -316,10 +317,13 @@ export function buildFormulaConfig(
     cssRow(formulaField = buildFormula(
       origColumn,
       buildEditor,
-      t("Enter formula"),
-      disableOtherActions,
-      onSave,
-      clearState)),
+      {
+        gristTheme: gristDoc.currentTheme,
+        placeholder: t("Enter formula"),
+        disabled: disableOtherActions,
+        onSave,
+        onCancel: clearState,
+      })),
     dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId('field-error-count'))),
   ];
 
@@ -404,14 +408,21 @@ export function buildFormulaConfig(
   ]);
 }
 
+interface BuildFormulaOptions {
+  gristTheme: Computed<Theme>;
+  placeholder: string;
+  disabled: Observable<boolean>;
+  onSave?: SaveHandler;
+  onCancel?: () => void;
+}
+
 function buildFormula(
-    column: ColumnRec,
-    buildEditor: BuildEditor,
-    placeholder: string,
-    disabled: Observable<boolean>,
-    onSave?: SaveHandler,
-    onCancel?: () => void) {
-  return cssFieldFormula(column.formula, {placeholder, maxLines: 2},
+  column: ColumnRec,
+  buildEditor: BuildEditor,
+  options: BuildFormulaOptions
+) {
+  const {gristTheme, placeholder, disabled, onSave, onCancel} = options;
+  return cssFieldFormula(column.formula, {gristTheme, placeholder, maxLines: 2},
     dom.cls('formula_field_sidepane'),
     cssFieldFormula.cls('-disabled', disabled),
     cssFieldFormula.cls('-disabled-icon', use => !use(column.formula)),

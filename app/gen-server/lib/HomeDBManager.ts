@@ -482,8 +482,14 @@ export class HomeDBManager extends EventEmitter {
     return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
   }
 
-  public async getUser(userId: number): Promise<User|undefined> {
-    return await User.findOne({where: {id: userId}, relations: ["logins"]}) || undefined;
+  public async getUser(
+    userId: number,
+    options: {includePrefs?: boolean} = {}
+  ): Promise<User|undefined> {
+    const {includePrefs} = options;
+    const relations = ["logins"];
+    if (includePrefs) { relations.push("prefs"); }
+    return await User.findOne({where: {id: userId}, relations}) || undefined;
   }
 
   public async getFullUser(userId: number): Promise<FullUser> {
@@ -505,7 +511,8 @@ export class HomeDBManager extends EventEmitter {
       name: user.name,
       picture: user.picture,
       ref: user.ref,
-      locale: user.options?.locale
+      locale: user.options?.locale,
+      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
     };
     if (this.getAnonymousUserId() === user.id) {
       result.anonymous = true;

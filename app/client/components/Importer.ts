@@ -856,7 +856,8 @@ export class Importer extends DisposableWithEvents {
       return formula;
     };
 
-    return cssFieldFormula(use => formatFormula(use(column.formula)), {placeholder, maxLines: 1},
+    return cssFieldFormula(use => formatFormula(use(column.formula)),
+      {gristTheme: this._gristDoc.currentTheme, placeholder, maxLines: 1},
       dom.cls('disabled'),
       {tabIndex: '-1'},
       dom.on('focus', (_ev, elem) => buildEditor(elem)),

@@ -3,17 +3,21 @@
 }
 
 .ace_grist_link {
-  color: var(--grist-color-light-green);
+  color: var(--grist-theme-ace-autocomplete-link, var(--grist-color-light-green));
   text-decoration: underline;
   cursor: pointer;
 }
 
 .ace_grist_example {
-  color: #8f8f8f;
+  color: var(--grist-theme-ace-autocomplete-secondary-fg);
+}
+
+.ace_editor.ace_autocomplete .ace_completion-highlight {
+  color: var(--grist-theme-ace-autocomplete-highlighted-fg, #000) !important;
 }
 
 .ace_editor.ace_autocomplete .ace_completion-highlight.ace_grist_link {
-  color: var(--grist-color-dark-green);
+  color: var(--grist-theme-ace-autocomplete-link-highlighted, var(--grist-color-dark-green)) !important;
 }
 
 .ace_editor.ace_autocomplete .ace_text-layer {
@@ -22,6 +26,18 @@
 }
 
 .ace_editor.ace_autocomplete {
+  color: var(--grist-theme-ace-autocomplete-primary-fg) !important;
+  background: var(--grist-theme-ace-autocomplete-bg, #fbfbfb) !important;
+  border: 1px solid var(--grist-theme-ace-autocomplete-border, lightgray) !important;
   width: 500px !important;  /* the default in language_tools.js is 280px */
   max-width: 80%;  /* of the screen, for hypothetical mobile support */
+}
+
+.ace_editor.ace_autocomplete .ace_marker-layer .ace_line-hover {
+  background-color: var(--grist-theme-ace-autocomplete-line-bg-hover, rgba(233,233,253,0.4)) !important;
+  border: 1px solid var(--grist-theme-ace-autocomplete-line-border-hover, #abbffe) !important;
+}
+
+.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {
+  background-color: var(--grist-theme-ace-autocomplete-active-line-bg, #CAD6FA) !important;
 }

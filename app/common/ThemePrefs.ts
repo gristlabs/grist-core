@@ -110,6 +110,9 @@ export interface ThemeColors {
   'popup-shadow-outer': string;
   'popup-close-button-fg': string;
 
+  /* Prompts */
+  'prompt-fg': string;
+
   /* Progress Bars */
   'progress-bar-fg': string;
   'progress-bar-error-fg': string;
@@ -215,6 +218,10 @@ export interface ThemeColors {
   'filter-bar-button-saved-fg': string;
   'filter-bar-button-saved-bg': string;
   'filter-bar-button-saved-hover-bg': string;
+
+  /* Icons */
+  'icon-disabled': string;
+  'icon-error': string;
 
   /* Icon Buttons */
   'icon-button-fg': string;
@@ -373,6 +380,8 @@ export interface ThemeColors {
   'code-view-params': string;
   'code-view-string': string;
   'code-view-number': string;
+  'code-view-builtin': string;
+  'code-view-literal': string;
 
   /* Importer */
   'importer-table-info-border': string;
@@ -415,6 +424,10 @@ export interface ThemeColors {
   'access-rules-column-item-icon-fg': string;
   'access-rules-column-item-icon-hover-fg': string;
   'access-rules-column-item-icon-hover-bg': string;
+  'access-rules-formula-editor-bg': string;
+  'access-rules-formula-editor-border-hover': string;
+  'access-rules-formula-editor-bg-disabled': string;
+  'access-rules-formula-editor-focus': string;
 
   /* Cells */
   'cell-fg': string;
@@ -456,6 +469,41 @@ export interface ThemeColors {
   'tutorials-popup-border': string;
   'tutorials-popup-header-fg': string;
   'tutorials-popup-box-bg': string;
+
+  /* Ace Autocomplete */
+  'ace-autocomplete-primary-fg': string;
+  'ace-autocomplete-secondary-fg': string;
+  'ace-autocomplete-highlighted-fg': string;
+  'ace-autocomplete-bg': string;
+  'ace-autocomplete-border': string;
+  'ace-autocomplete-link': string;
+  'ace-autocomplete-link-highlighted': string;
+  'ace-autocomplete-active-line-bg': string;
+  'ace-autocomplete-line-border-hover': string;
+  'ace-autocomplete-line-bg-hover': string;
+
+  /* Color Select */
+  'color-select-fg': string;
+  'color-select-bg': string;
+  'color-select-shadow': string;
+  'color-select-font-options-border': string;
+  'color-select-font-option-fg': string;
+  'color-select-font-option-bg': string;
+  'color-select-font-option-bg-hover': string;
+  'color-select-font-option-fg-selected': string;
+  'color-select-font-option-bg-selected': string;
+  'color-select-color-square-border': string;
+  'color-select-color-square-border-empty': string;
+  'color-select-input-fg': string;
+  'color-select-input-bg': string;
+  'color-select-input-border': string;
+
+  /* Highlighted Code */
+  'highlighted-code-block-bg': string;
+  'highlighted-code-block-bg-disabled': string;
+  'highlighted-code-fg': string;
+  'highlighted-code-border': string;
+  'highlighted-code-bg-disabled': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

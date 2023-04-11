@@ -1,10 +1,13 @@
 import {setupAceEditorCompletions} from 'app/client/components/AceEditorCompletions';
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
+import {Theme} from 'app/common/ThemePrefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import * as ace from 'brace';
-import {dom, DomArg, Observable, styled} from 'grainjs';
+import {Computed, dom, DomArg, Listener, Observable, styled} from 'grainjs';
 import debounce from 'lodash/debounce';
 
 export interface ACLFormulaOptions {
+  gristTheme: Computed<Theme>;
   initialValue: string;
   readOnly: boolean;
   placeholder: DomArg;
@@ -19,7 +22,19 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   const editor: ace.Editor = ace.edit(editorElem);
 
   // Set various editor options.
-  editor.setTheme('ace/theme/chrome');
+  function setAceTheme(gristTheme: Theme) {
+    const {enableCustomCss} = getGristConfig();
+    const gristAppearance = gristTheme.appearance;
+    const aceTheme = gristAppearance === 'dark' && !enableCustomCss ? 'dracula' : 'chrome';
+    editor.setTheme(`ace/theme/${aceTheme}`);
+  }
+  setAceTheme(options.gristTheme.get());
+  let themeListener: Listener | undefined;
+  if (!getGristConfig().enableCustomCss) {
+    themeListener = options.gristTheme.addListener((gristTheme) => {
+      setAceTheme(gristTheme);
+    });
+  }
   // ACE editor resizes automatically when maxLines is set.
   editor.setOptions({enableLiveAutocompletion: true, maxLines: 10});
   editor.renderer.setShowGutter(false);       // Default line numbers to hidden
@@ -80,6 +95,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   }
 
   return cssConditionInputAce(
+    dom.autoDispose(themeListener ?? null),
     cssConditionInputAce.cls('-disabled', options.readOnly),
     // ACE editor calls preventDefault on clicks into the scrollbar area, which prevents focus
     // being set when the click happens to be into there. To ensure we can focus on such clicks
@@ -100,22 +116,25 @@ const cssConditionInputAce = styled('div', `
   cursor: pointer;
 
   &:hover {
-    border: 1px solid ${colors.darkGrey};
+    border: 1px solid ${theme.accessRulesFormulaEditorBorderHover};
   }
   &:not(&-disabled):focus-within {
-    box-shadow: inset 0 0 0 1px ${colors.cursor};
-    border-color: ${colors.cursor};
+    box-shadow: inset 0 0 0 1px ${theme.accessRulesFormulaEditorFocus};
+    border-color: ${theme.accessRulesFormulaEditorFocus};
   }
   &:not(:focus-within) .ace_scroller, &-disabled .ace_scroller {
     cursor: unset;
   }
   &-disabled, &-disabled:hover {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.accessRulesFormulaEditorBgDisabled};
     box-shadow: unset;
     border-color: transparent;
   }
-  &-disabled .ace-chrome {
-    background-color: ${colors.mediumGreyOpaque};
+  & .ace-chrome, & .ace-dracula {
+    background-color: ${theme.accessRulesFormulaEditorBg};
+  }
+  &-disabled .ace-chrome, &-disabled .ace-dracula {
+    background-color: ${theme.accessRulesFormulaEditorBgDisabled};
   }
   & .ace_marker-layer, & .ace_cursor-layer {
     display: none;

@@ -89,6 +89,9 @@ export const GristLight: ThemeColors = {
   'popup-shadow-outer': 'rgba(76, 86, 103, 0.24)',
   'popup-close-button-fg': '#929299',
 
+  /* Prompts */
+  'prompt-fg': '#606060',
+
   /* Progress Bars */
   'progress-bar-fg': '#16B378',
   'progress-bar-error-fg': '#D0021B',
@@ -194,6 +197,10 @@ export const GristLight: ThemeColors = {
   'filter-bar-button-saved-fg': '#FFFFFF',
   'filter-bar-button-saved-bg': '#929299',
   'filter-bar-button-saved-hover-bg': '#D9D9D9',
+
+  /* Icons */
+  'icon-disabled': '#929299',
+  'icon-error': '#D0021B',
 
   /* Icon Buttons */
   'icon-button-fg': '#FFFFFF',
@@ -352,6 +359,8 @@ export const GristLight: ThemeColors = {
   'code-view-params': '#444',
   'code-view-string': '#880000',
   'code-view-number': '#880000',
+  'code-view-builtin': '#397300',
+  'code-view-literal': '#78A960',
 
   /* Importer */
   'importer-table-info-border': '#D9D9D9',
@@ -394,6 +403,10 @@ export const GristLight: ThemeColors = {
   'access-rules-column-item-icon-fg': '#929299',
   'access-rules-column-item-icon-hover-fg': '#FFFFFF',
   'access-rules-column-item-icon-hover-bg': '#929299',
+  'access-rules-formula-editor-bg': 'white',
+  'access-rules-formula-editor-border-hover': '#D9D9D9',
+  'access-rules-formula-editor-bg-disabled': '#E8E8E8',
+  'access-rules-formula-editor-focus': '#16B378',
 
   /* Cells */
   'cell-fg': 'black',
@@ -435,4 +448,39 @@ export const GristLight: ThemeColors = {
   'tutorials-popup-border': '#D9D9D9',
   'tutorials-popup-header-fg': '#FFFFFF',
   'tutorials-popup-box-bg': '#F5F5F5',
+
+  /* Ace Autocomplete */
+  'ace-autocomplete-primary-fg': '#444',
+  'ace-autocomplete-secondary-fg': '#8F8F8F',
+  'ace-autocomplete-highlighted-fg': '#000',
+  'ace-autocomplete-bg': '#FBFBFB',
+  'ace-autocomplete-border': 'lightgray',
+  'ace-autocomplete-link': '#16B378',
+  'ace-autocomplete-link-highlighted': '#009058',
+  'ace-autocomplete-active-line-bg': '#CAD6FA',
+  'ace-autocomplete-line-border-hover': '#ABBFFE',
+  'ace-autocomplete-line-bg-hover': 'rgba(233,233,253,0.4)',
+
+  /* Color Select */
+  'color-select-fg': '#262633',
+  'color-select-bg': 'white',
+  'color-select-shadow': 'rgba(38,38,51,0.6)',
+  'color-select-font-options-border': '#D9D9D9',
+  'color-select-font-option-fg': '#262633',
+  'color-select-font-option-bg': '#FFFFFF',
+  'color-select-font-option-bg-hover': '#F7F7F7',
+  'color-select-font-option-fg-selected': '#FFFFFF',
+  'color-select-font-option-bg-selected': '#262633',
+  'color-select-color-square-border': '#D9D9D9',
+  'color-select-color-square-border-empty': '#262633',
+  'color-select-input-fg': '#929299',
+  'color-select-input-bg': 'white',
+  'color-select-input-border': '#D9D9D9',
+
+  /* Highlighted Code */
+  'highlighted-code-block-bg': '#FFFFFF',
+  'highlighted-code-block-bg-disabled': '#E8E8E8',
+  'highlighted-code-fg': '#929299',
+  'highlighted-code-border': '#D9D9D9',
+  'highlighted-code-bg-disabled': '#E8E8E8',
 };

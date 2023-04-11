@@ -186,7 +186,7 @@ export class ConditionalStyle extends Disposable {
   ) {
     return cssFieldFormula(
       formula,
-      { maxLines: 1 },
+      { gristTheme: this._gristDoc.currentTheme, maxLines: 1 },
       dom.cls('formula_field_sidepane'),
       dom.cls(cssErrorBorder.className, hasError),
       { tabIndex: '-1' },

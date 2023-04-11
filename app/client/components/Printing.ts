@@ -2,6 +2,7 @@ import {CustomView} from 'app/client/components/CustomView';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {prefersDarkMode, prefersDarkModeObs} from 'app/client/ui2018/cssVars';
 import {dom} from 'grainjs';
 
 type RowId = number|'new';
@@ -36,6 +37,16 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
   }
 
   function prepareToPrint(onOff: boolean) {
+    // window.print() is a blocking call, which means our listener for the
+    // `prefers-color-scheme: dark` media feature will not receive any updates for the
+    // duration that the print dialog is shown. This proves problematic since an event is
+    // sent just before the blocking call containing a value of false, regardless of the
+    // user agent's color scheme preference. It's not clear why this happens, but the result
+    // is Grist temporarily reverting to the light theme until the print dialog is dismissed.
+    // As a workaround, we'll temporarily pause our listener, and unpause after the print dialog
+    // is dismissed.
+    prefersDarkModeObs().pause();
+
     // Hide all layout boxes that do NOT contain the section to be printed.
     layout?.forEachBox((box: any) => {
       if (!box.dom.contains(sectionElem)) {
@@ -76,6 +87,10 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
       prepareToPrint(false);
     }
     delete (window as any).afterPrintCallback;
+    prefersDarkModeObs().pause(false);
+
+    // This may have changed while window.print() was blocking.
+    prefersDarkModeObs().set(prefersDarkMode());
   });
 
   // Running print on a timeout makes it possible to test printing using selenium, and doesn't

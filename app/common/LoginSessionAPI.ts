@@ -1,3 +1,5 @@
+import {UserPrefs} from 'app/common/Prefs';
+
 // User profile info for the user. When using Cognito, it is fetched during login.
 export interface UserProfile {
   email: string;
@@ -16,6 +18,7 @@ export interface FullUser extends UserProfile {
   ref?: string|null; // Not filled for anonymous users.
   allowGoogleLogin?: boolean; // when present, specifies whether logging in via Google is possible.
   isSupport?: boolean; // set if user is a special support user.
+  prefs?: UserPrefs;
 }
 
 export interface LoginSessionAPI {

@@ -6,6 +6,7 @@
  *  https://css-tricks.com/snippets/css/system-font-stack/
  *
  */
+import {createPausableObs, PausableObservable} from 'app/client/lib/pausableObs';
 import {getStorage} from 'app/client/lib/storage';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
@@ -257,6 +258,9 @@ export const theme = {
     'rgba(76, 86, 103, 0.24)'),
   popupCloseButtonFg: new CustomProp('theme-popup-close-button-fg', undefined, colors.slate),
 
+  /* Prompts */
+  promptFg: new CustomProp('theme-prompt-fg', undefined, '#606060'),
+
   /* Progress Bars */
   progressBarFg: new CustomProp('theme-progress-bar-fg', undefined, colors.lightGreen),
   progressBarErrorFg: new CustomProp('theme-progress-bar-error-fg', undefined, colors.error),
@@ -381,6 +385,10 @@ export const theme = {
     colors.slate),
   filterBarButtonSavedHoverBg: new CustomProp('theme-filter-bar-button-saved-hover-bg', undefined,
     colors.darkGrey),
+
+  /* Icons */
+  iconDisabled: new CustomProp('theme-icon-disabled', undefined, colors.slate),
+  iconError: new CustomProp('theme-icon-error', undefined, colors.error),
 
   /* Icon Buttons */
   iconButtonFg: new CustomProp('theme-icon-button-fg', undefined, colors.light),
@@ -589,6 +597,8 @@ export const theme = {
   codeViewParams: new CustomProp('theme-code-view-params', undefined, '#444'),
   codeViewString: new CustomProp('theme-code-view-string', undefined, '#880000'),
   codeViewNumber: new CustomProp('theme-code-view-number', undefined, '#880000'),
+  codeViewBuiltin: new CustomProp('theme-code-view-builtin', undefined, '#397300'),
+  codeViewLiteral: new CustomProp('theme-code-view-literal', undefined, '#78A960'),
 
   /* Importer */
   importerTableInfoBorder: new CustomProp('theme-importer-table-info-border', undefined, colors.darkGrey),
@@ -646,6 +656,14 @@ export const theme = {
     undefined, colors.light),
   accessRulesColumnItemIconHoverBg: new CustomProp('theme-access-rules-column-item-icon-hover-bg',
     undefined, colors.slate),
+  accessRulesFormulaEditorBg: new CustomProp('theme-access-rules-formula-editor-bg', undefined,
+    'white'),
+  accessRulesFormulaEditorBorderHover: new CustomProp(
+    'theme-access-rules-formula-editor-border-hover', undefined, colors.darkGrey),
+  accessRulesFormulaEditorBgDisabled: new CustomProp(
+    'theme-access-rules-formula-editor-bg-disabled', undefined, colors.mediumGreyOpaque),
+  accessRulesFormulaEditorFocus: new CustomProp('theme-access-rules-formula-editor-focus',
+    undefined, colors.cursor),
 
   /* Cells */
   cellFg: new CustomProp('theme-cell-fg', undefined, 'unset'),
@@ -701,6 +719,63 @@ export const theme = {
   tutorialsPopupHeaderFg: new CustomProp('theme-tutorials-popup-header-fg', undefined,
     colors.lightGreen),
   tutorialsPopupBoxBg: new CustomProp('theme-tutorials-popup-box-bg', undefined, '#F5F5F5'),
+
+  /* Ace Autocomplete */
+  aceAutocompletePrimaryFg: new CustomProp('theme-ace-autocomplete-primary-fg', undefined, '#444'),
+  aceAutocompleteSecondaryFg: new CustomProp('theme-ace-autocomplete-secondary-fg', undefined,
+    '#8f8f8f'),
+  aceAutocompleteHighlightedFg: new CustomProp('theme-ace-autocomplete-highlighted-fg', undefined, '#000'),
+  aceAutocompleteBg: new CustomProp('theme-ace-autocomplete-bg', undefined, '#FBFBFB'),
+  aceAutocompleteBorder: new CustomProp('theme-ace-autocomplete-border', undefined, 'lightgray'),
+  aceAutocompleteLink: new CustomProp('theme-ace-autocomplete-link', undefined, colors.lightGreen),
+  aceAutocompleteLinkHighlighted: new CustomProp('theme-ace-autocomplete-link-highlighted',
+    undefined, colors.darkGreen),
+  aceAutocompleteActiveLineBg: new CustomProp('theme-ace-autocomplete-active-line-bg',
+    undefined, '#CAD6FA'),
+  aceAutocompleteLineBorderHover: new CustomProp('theme-ace-autocomplete-line-border-hover',
+    undefined, '#abbffe'),
+  aceAutocompleteLineBgHover: new CustomProp('theme-ace-autocomplete-line-bg-hover',
+    undefined, 'rgba(233,233,253,0.4)'),
+
+  /* Color Select */
+  colorSelectFg: new CustomProp('theme-color-select-fg', undefined, colors.dark),
+  colorSelectBg: new CustomProp('theme-color-select-bg', undefined, 'white'),
+  colorSelectShadow: new CustomProp('theme-color-select-shadow', undefined,
+    'rgba(38,38,51,0.6)'),
+  colorSelectFontOptionsBorder: new CustomProp('theme-color-select-font-options-border',
+    undefined, colors.darkGrey),
+  colorSelectFontOptionFg: new CustomProp('theme-color-select-font-option-fg',
+    undefined, colors.dark),
+  colorSelectFontOptionBg: new CustomProp('theme-color-select-font-option-bg',
+    undefined, colors.light),
+  colorSelectFontOptionBgHover: new CustomProp('theme-color-select-font-option-bg-hover',
+    undefined, colors.lightGrey),
+  colorSelectFontOptionFgSelected: new CustomProp('theme-color-select-font-option-selected-fg',
+    undefined, colors.light),
+  colorSelectFontOptionBgSelected: new CustomProp('theme-color-select-font-option-selected-bg',
+    undefined, colors.dark),
+  colorSelectColorSquareBorder: new CustomProp('theme-color-select-color-square-border',
+    undefined, '#D9D9D9'),
+  colorSelectColorSquareBorderEmpty: new CustomProp('theme-color-select-color-square-border-empty',
+    undefined, colors.dark),
+  colorSelectInputFg: new CustomProp('theme-color-select-input-fg',
+    undefined, colors.slate),
+  colorSelectInputBg: new CustomProp('theme-color-select-input-bg',
+    undefined, 'white'),
+  colorSelectInputBorder: new CustomProp('theme-color-select-input-border',
+    undefined, colors.darkGrey),
+
+  /* Highlighted Code */
+  highlightedCodeBlockBg: new CustomProp('theme-highlighted-code-block-bg', undefined,
+    colors.light),
+  highlightedCodeBlockBgDisabled: new CustomProp('theme-highlighted-code-block-bg-disabled',
+    undefined, colors.mediumGreyOpaque),
+  highlightedCodeFg: new CustomProp('theme-highlighted-code-fg',
+    undefined, colors.slate),
+  highlightedCodeBorder: new CustomProp('theme-highlighted-code-border',
+    undefined, colors.darkGrey),
+  highlightedCodeBgDisabled: new CustomProp('theme-highlighted-code-bg-disabled',
+    undefined, colors.mediumGreyOpaque),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');
@@ -823,15 +898,19 @@ export function isScreenResizing(): Observable<boolean> {
   return _isScreenResizingObs;
 }
 
-let _prefersDarkModeObs: Observable<boolean>|undefined;
+export function prefersDarkMode(): boolean {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+let _prefersDarkModeObs: PausableObservable<boolean>|undefined;
 
 /**
  * Returns a singleton observable for whether the user agent prefers dark mode.
  */
-export function prefersDarkModeObs(): Observable<boolean> {
+export function prefersDarkModeObs(): PausableObservable<boolean> {
   if (!_prefersDarkModeObs) {
     const query = window.matchMedia('(prefers-color-scheme: dark)');
-    const obs = Observable.create<boolean>(null, query.matches);
+    const obs = createPausableObs<boolean>(null, query.matches);
     query.addEventListener('change', event => obs.set(event.matches));
     _prefersDarkModeObs = obs;
   }

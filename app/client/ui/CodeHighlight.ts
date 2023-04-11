@@ -1,13 +1,17 @@
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
+import {Theme} from 'app/common/ThemePrefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import * as ace from 'brace';
-import {BindableValue, dom, DomElementArg, styled, subscribeElem} from 'grainjs';
+import {BindableValue, Computed, dom, DomElementArg, Observable, styled, subscribeElem} from 'grainjs';
 
 // tslint:disable:no-var-requires
 require('brace/ext/static_highlight');
 require("brace/mode/python");
 require("brace/theme/chrome");
+require('brace/theme/dracula');
 
 export interface ICodeOptions {
+  gristTheme: Computed<Theme>;
   placeholder?: string;
   maxLines?: number;
 }
@@ -15,29 +19,48 @@ export interface ICodeOptions {
 export function buildHighlightedCode(
   code: BindableValue<string>, options: ICodeOptions, ...args: DomElementArg[]
 ): HTMLElement {
+  const {gristTheme, placeholder, maxLines} = options;
+  const {enableCustomCss} = getGristConfig();
+
   const highlighter = ace.acequire('ace/ext/static_highlight');
   const PythonMode = ace.acequire('ace/mode/python').Mode;
-  const aceTheme = ace.acequire('ace/theme/chrome');
+  const chrome = ace.acequire('ace/theme/chrome');
+  const dracula = ace.acequire('ace/theme/dracula');
   const mode = new PythonMode();
 
-  return cssHighlightedCode(
-    dom('div',
-      elem => subscribeElem(elem, code, (codeText) => {
-        if (codeText) {
-          if (options.maxLines) {
-            // If requested, trim to maxLines, and add an ellipsis at the end.
-            // (Long lines are also truncated with an ellpsis via text-overflow style.)
-            const lines = codeText.split(/\n/);
-            if (lines.length > options.maxLines) {
-              codeText = lines.slice(0, options.maxLines).join("\n") + " \u2026";  // Ellipsis
-            }
-          }
-          elem.innerHTML = highlighter.render(codeText, mode, aceTheme, 1, true).html;
-        } else {
-          elem.textContent = options.placeholder || '';
+  const codeText = Observable.create(null, '');
+  const codeTheme = Observable.create(null, gristTheme.get());
+
+  function updateHighlightedCode(elem: HTMLElement) {
+    let text = codeText.get();
+    if (text) {
+      if (maxLines) {
+        // If requested, trim to maxLines, and add an ellipsis at the end.
+        // (Long lines are also truncated with an ellpsis via text-overflow style.)
+        const lines = text.split(/\n/);
+        if (lines.length > maxLines) {
+          text = lines.slice(0, maxLines).join("\n") + " \u2026";  // Ellipsis
         }
+      }
+
+      const aceTheme = codeTheme.get().appearance === 'dark' && !enableCustomCss ? dracula : chrome;
+      elem.innerHTML = highlighter.render(text, mode, aceTheme, 1, true).html;
+    } else {
+      elem.textContent = placeholder || '';
+    }
+  }
+
+  return cssHighlightedCode(
+    dom.autoDispose(codeText),
+    dom.autoDispose(codeTheme),
+    elem => subscribeElem(elem, code, (newCodeText) => {
+      codeText.set(newCodeText);
+      updateHighlightedCode(elem);
       }),
-    ),
+    elem => subscribeElem(elem, gristTheme, (newCodeTheme) => {
+      codeTheme.set(newCodeTheme);
+      updateHighlightedCode(elem);
+    }),
     ...args,
   );
 }
@@ -46,9 +69,9 @@ export function buildHighlightedCode(
 export const cssCodeBlock = styled('div', `
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: ${vars.smallFontSize};
-  background-color: ${colors.light};
+  background-color: ${theme.highlightedCodeBlockBg};
   &[disabled], &.disabled {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.highlightedCodeBlockBgDisabled};
   }
 `);
 
@@ -57,14 +80,14 @@ const cssHighlightedCode = styled(cssCodeBlock, `
   white-space: pre;
   overflow: hidden;
   text-overflow: ellipsis;
-  border: 1px solid ${colors.darkGrey};
+  border: 1px solid ${theme.highlightedCodeBorder};
   border-radius: 3px;
   min-height: 28px;
   padding: 5px 6px;
-  color: ${colors.slate};
+  color: ${theme.highlightedCodeFg};
 
-  &.disabled, &.disabled .ace-chrome {
-    background-color: ${colors.mediumGreyOpaque};
+  &.disabled, &.disabled .ace-chrome, &.disabled .ace-dracula {
+    background-color: ${theme.highlightedCodeBgDisabled};
   }
   & .ace_line {
     overflow: hidden;
@@ -80,7 +103,7 @@ export const cssFieldFormula = styled(buildHighlightedCode, `
   --icon-color: ${theme.accentIcon};
 
   &-disabled-icon.formula_field_sidepane::before {
-    --icon-color: ${theme.lightText};
+    --icon-color: ${theme.iconDisabled};
   }
   &-disabled {
     pointer-events: none;

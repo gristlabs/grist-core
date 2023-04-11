@@ -7,6 +7,7 @@ import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMa
 import {Group} from "./Group";
 import {Login} from "./Login";
 import {Organization} from "./Organization";
+import {Pref} from './Pref';
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {
@@ -33,6 +34,9 @@ export class User extends BaseEntity {
 
   @OneToMany(type => Login, login => login.user)
   public logins: Login[];
+
+  @OneToMany(type => Pref, pref => pref.user)
+  public prefs: Pref[];
 
   @ManyToMany(type => Group)
   @JoinTable({
