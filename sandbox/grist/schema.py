@@ -236,7 +236,11 @@ def schema_create_actions():
       make_column("fileName",     "Text"), # User defined file name
       make_column("fileType",     "Text"), # A string indicating the MIME type of the data
       make_column("fileSize",     "Int"),  # The size in bytes
-      make_column("fileExt",      "Text"), # The file extension
+      # The file extension, including the "." prefix.
+      # Prior to April 2023, this column did not exist, so attachments created before then have a
+      # blank fileExt. The extension may still be present in fileName, so a migration can backfill
+      # some older attachments if the need arises.
+      make_column("fileExt",      "Text"),
       make_column("imageHeight",  "Int"),  # height in pixels
       make_column("imageWidth",   "Int"),  # width in pixels
       make_column("timeDeleted",  "DateTime"),
