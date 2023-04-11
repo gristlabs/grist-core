@@ -11,6 +11,7 @@ import {TableData} from 'app/client/models/TableData';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {UserAction} from 'app/common/DocActions';
 import {Disposable, Observable} from 'grainjs';
+import isPlainObject from 'lodash/isPlainObject';
 import * as ko from 'knockout';
 import noop = require('lodash/noop');
 
@@ -163,7 +164,10 @@ export class ColumnTransform extends Disposable {
   protected async addTransformColumn(colType: string): Promise<number> {
     // Retrieve widget options on prepare (useful for type transforms)
     const newColInfo = await this._tableData.sendTableAction(['AddColumn', "gristHelper_Transform", {
-      type: colType, isFormula: true, formula: this.getIdentityFormula(),
+      type: colType,
+      isFormula: true,
+      formula: this.getIdentityFormula(),
+      ...(this.origWidgetOptions ? {widgetOptions: JSON.stringify(this.origWidgetOptions)} : {}),
     }]);
     return newColInfo.colRef;
   }
@@ -219,6 +223,9 @@ export class ColumnTransform extends Disposable {
    * The user actions to send when actually executing the transform.
    */
   protected executeActions(): UserAction[] {
+    const newWidgetOptions = isPlainObject(this.origWidgetOptions) ?
+     {...this.origWidgetOptions as object, ...this._fieldBuilder.options.peek()} :
+     this._fieldBuilder.options.peek();
     return [
       [
         'CopyFromColumn',
@@ -229,7 +236,7 @@ export class ColumnTransform extends Disposable {
         // Those options are supposed to be set by prepTransformColInfo(TypeTransform) and
         // adjusted by client.
         // TODO: is this really needed? Aren't those options already in the data-engine?
-        JSON.stringify(this._fieldBuilder.options.peek()),
+        JSON.stringify(newWidgetOptions),
       ],
     ];
   }
