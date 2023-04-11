@@ -96,6 +96,7 @@ import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDo
 import {ISandbox} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {NullSandbox} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
@@ -226,7 +227,8 @@ export class ActiveDoc extends EventEmitter {
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
   private _gracePeriodStart: Date|null = null;
-  private _isForkOrSnapshot: boolean = false;
+  private _isSnapshot: boolean;
+  private _isForkOrSnapshot: boolean;
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
   // Cache of which columns are attachment columns.
   private _attachmentColumns?: AttachmentColumns;
@@ -243,46 +245,49 @@ export class ActiveDoc extends EventEmitter {
   private _shuttingDown: boolean = false;
   private _afterShutdownCallback?: () => Promise<void>;
   private _doShutdown?: Promise<void>;
-
-  /**
-   * In cases where large numbers of documents are restarted simultaneously
-   * (like during deployments), there's a tendency for scheduled intervals to
-   * execute at roughly the same moment in time, which causes spikes in load.
-   *
-   * To mitigate this, we use randomized intervals that re-compute their delay
-   * in-between calls, with a variance of 30 seconds.
-   */
-  private _intervals = [
-    // Cleanup expired attachments every hour (also happens when shutting down).
-    new Interval(
-      () => this.removeUnusedAttachments(true),
-      REMOVE_UNUSED_ATTACHMENTS_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to remove expired attachments', e)},
-    ),
-    // Update the time in formulas every hour.
-    new Interval(
-      () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
-      UPDATE_CURRENT_TIME_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to update current time', e)},
-    ),
-    // Measure and broadcast data size every 5 minutes.
-    new Interval(
-      () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
-      UPDATE_DATA_SIZE_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to update data size', e)},
-    ),
-    // Log document metrics every hour.
-    new Interval(
-      () => this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'),
-      LOG_DOCUMENT_METRICS_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
-    ),
-  ];
+  private _intervals: Interval[] = [];
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
     const {forkId, snapshotId} = parseUrlId(docName);
+    this._isSnapshot = Boolean(snapshotId);
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
+    if (!this._isSnapshot) {
+      /**
+       * In cases where large numbers of documents are restarted simultaneously
+       * (like during deployments), there's a tendency for scheduled intervals to
+       * execute at roughly the same moment in time, which causes spikes in load.
+       *
+       * To mitigate this, we use randomized intervals that re-compute their delay
+       * in-between calls, with a variance of 30 seconds.
+       */
+      this._intervals.push(
+        // Cleanup expired attachments every hour (also happens when shutting down).
+        new Interval(
+          () => this.removeUnusedAttachments(true),
+          REMOVE_UNUSED_ATTACHMENTS_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to remove expired attachments', e)},
+        ),
+        // Update the time in formulas every hour.
+        new Interval(
+          () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
+          UPDATE_CURRENT_TIME_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to update current time', e)},
+        ),
+        // Measure and broadcast data size every 5 minutes.
+        new Interval(
+          () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
+          UPDATE_DATA_SIZE_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to update data size', e)},
+        ),
+        // Log document metrics every hour.
+        new Interval(
+          () => this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'),
+          LOG_DOCUMENT_METRICS_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
+        ),
+      );
+    }
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
       this._doc = _options.doc;
@@ -630,13 +635,17 @@ export class ActiveDoc extends EventEmitter {
    * DocManager.
    */
   public async replace(docSession: OptDocSession, source: DocReplacementOptions) {
-    // During replacement, it is important for all hands to be off the document. So we
-    // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
-    // before a new one could be opened.
+    if (parseUrlId(this._docName).snapshotId) {
+      throw new ApiError('Snapshots cannot be replaced.', 400);
+    }
     if (!await this._granularAccess.isOwner(docSession)) {
       throw new ApiError('Only owners can replace a document.', 403);
     }
     this._log.debug(docSession, 'ActiveDoc.replace starting shutdown');
+
+    // During replacement, it is important for all hands to be off the document. So we
+    // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
+    // before a new one could be opened.
     return this.shutdown({
       afterShutdown: () => this._docManager.storageManager.replace(this.docName, source)
     });
@@ -959,7 +968,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(docSession, "fetchQuery %s %s", JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
     let data: TableDataAction;
-    if (onDemand) {
+    if (onDemand || this._isSnapshot) {
       data = await this._fetchQueryFromDB(query, onDemand);
     } else if (wantFull) {
       await this.waitForInitialization();
@@ -2542,6 +2551,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _makeEngine(): Promise<ISandbox> {
+    if (this._isSnapshot) { return new NullSandbox(); }
+
     // Figure out what kind of engine we need for this document.
     let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
 

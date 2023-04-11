@@ -39,6 +39,7 @@ export interface DocInfo extends Document {
   userOverride: UserOverride|null;
   isBareFork: boolean;  // a document created without logging in, which is treated as a
                         // fork without an original.
+  isSnapshot: boolean;
   isTutorialTrunk: boolean;
   isTutorialFork: boolean;
   idParts: UrlIdParts;
@@ -72,6 +73,7 @@ export interface DocPageModel {
   isRecoveryMode: Observable<boolean>;
   userOverride: Observable<UserOverride|null>;
   isBareFork: Observable<boolean>;
+  isSnapshot: Observable<boolean>;
   isTutorialTrunk: Observable<boolean>;
   isTutorialFork: Observable<boolean>;
 
@@ -124,6 +126,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
                                                    (use, doc) => doc ? doc.isRecoveryMode : false);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
+  public readonly isSnapshot = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSnapshot : false);
   public readonly isTutorialTrunk = Computed.create(this, this.currentDoc,
                                                     (use, doc) => doc ? doc.isTutorialTrunk : false);
   public readonly isTutorialFork = Computed.create(this, this.currentDoc,
@@ -441,9 +444,10 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
 
   const isPreFork = (openMode === 'fork');
   const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
+  const isSnapshot = Boolean(idParts.snapshotId);
   const isTutorialTrunk = !isFork && doc.type === 'tutorial' && mode !== 'default';
   const isTutorialFork = isFork && doc.type === 'tutorial';
-  const isEditable = canEdit(doc.access) || isPreFork;
+  const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
   return {
     ...doc,
     isFork,
@@ -451,6 +455,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
     userOverride: null,     // ditto.
     isPreFork,
     isBareFork,
+    isSnapshot,
     isTutorialTrunk,
     isTutorialFork,
     isReadonly: !isEditable,

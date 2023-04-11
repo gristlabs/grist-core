@@ -36,7 +36,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   return dom.maybe(pageModel.currentDoc, (doc) => {
     const appModel = pageModel.appModel;
     const saveCopy = () => makeCopy(doc, appModel, t("Save Document")).catch(reportError);
-    if (doc.idParts.snapshotId) {
+    if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
       return shareButton(t("Back to Current"), () => [
         menuManageUsers(doc, pageModel),
