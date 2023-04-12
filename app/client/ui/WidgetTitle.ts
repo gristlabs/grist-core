@@ -8,7 +8,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {ModalControl} from 'app/client/ui2018/modals';
 import {Computed, dom, DomElementArg, IInputOptions, input, makeTestId, Observable, styled} from 'grainjs';
 import {IOpenController, setPopupToCreateDom} from 'popweasel';
-import { columnInfoTooltip } from './tooltips';
+import { descriptionInfoTooltip } from './tooltips';
 import { textarea } from './inputs';
 
 const testId = makeTestId('test-widget-title-');
@@ -54,7 +54,7 @@ export function buildRenameWidget(
       dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
     ),
     dom.maybe(description, () => [
-      columnInfoTooltip(description.get())
+      descriptionInfoTooltip(description.get(), "widget")
     ]),
     ...args
   );

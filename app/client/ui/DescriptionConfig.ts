@@ -12,6 +12,7 @@ export function buildDescriptionConfig(
     owner: MultiHolder,
     parent: ColumnRec | ViewSectionRec,
     cursor: ko.Computed<CursorPos>,
+    testPrefix: string,
   ) {
 
     // We will listen to cursor position and force a blur event on
@@ -35,7 +36,7 @@ export function buildDescriptionConfig(
           dom.on('blur', async (e, elem) => {
             await parent.description.saveOnly(elem.value);
           }),
-          testId('column-description'),
+          testId(`${testPrefix}-description`),
         )
       ),
     ];

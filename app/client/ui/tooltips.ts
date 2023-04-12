@@ -349,8 +349,13 @@ export function withInfoTooltip(
 /**
  * Renders an column info icon that shows a tooltip with the specified `content` on click.
  */
- export function columnInfoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
-  return cssColumnInfoTooltipButton(
+export function descriptionInfoTooltip(
+  content: DomContents,
+  testPrefix: string,
+  menuOptions?: IMenuOptions,
+  ...domArgs: DomElementArg[]
+  ) {
+  return cssDescriptionInfoTooltipButton(
     icon('Info',
       dom.style('width', '13px'),
       dom.style('height', '13px'),
@@ -364,12 +369,12 @@ export function withInfoTooltip(
             cssInfoTooltipPopupCloseButton(
               icon('CrossSmall'),
               dom.on('click', () => ctl.close()),
-              testId('column-info-tooltip-close'),
+              testId(`${testPrefix}-info-tooltip-close`),
             ),
             cssInfoTooltipPopupBody(
               content,
               { style: 'white-space: pre-wrap;' },
-              testId('column-info-tooltip-popup-body'),
+              testId(`${testPrefix}-info-tooltip-popup-body`),
             ),
             dom.cls(menuCssClass),
             dom.cls(cssMenu.className),
@@ -378,18 +383,18 @@ export function withInfoTooltip(
               Escape: () => ctl.close(),
             }),
             (popup) => { setTimeout(() => popup.focus(), 0); },
-            testId('column-info-tooltip-popup'),
+            testId(`${testPrefix}-info-tooltip-popup`),
           );
         },
         { ...defaultMenuOptions, ...{ placement: 'bottom' }, ...menuOptions },
       );
     },
-    testId('column-info-tooltip'),
+    testId(`${testPrefix}-info-tooltip`),
     ...domArgs,
   );
 }
 
-const cssColumnInfoTooltipButton = styled('div', `
+const cssDescriptionInfoTooltipButton = styled('div', `
   cursor: pointer;
   --icon-color: ${theme.infoButtonFg};
   border-radius: 50%;

@@ -365,6 +365,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // Widget title.
   this.titleDef = modelUtil.fieldWithDefault(this.title, this.defaultWidgetTitle);
 
+  // Widget description
+  this.description = modelUtil.fieldWithDefault(this.description, this.description());
+
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   this.isRaw = this.autoDispose(ko.pureComputed(() => this.table().rawViewSectionRef() === this.getRowId()));
