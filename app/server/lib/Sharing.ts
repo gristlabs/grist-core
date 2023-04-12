@@ -480,6 +480,7 @@ export class Sharing {
       } catch(rollbackExc) {
         this._log.error(docSession, "Failed to apply undo of rejected action", rollbackExc.message);
         await accessControl.finishedBundle();
+        this._log.debug(docSession, "Sharing._applyActionsToDataEngine starting ActiveDoc.shutdown");
         await this._activeDoc.shutdown();
         throw rollbackExc;
       }

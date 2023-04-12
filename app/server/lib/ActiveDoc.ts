@@ -130,7 +130,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -235,7 +235,10 @@ export class ActiveDoc extends EventEmitter {
   private _redisSubscriber?: RedisClient;
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
-  private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
+  private _inactivityTimer = new InactivityTimer(() => {
+    this._log.debug(null, 'inactivity timeout');
+    return this.shutdown();
+  }, Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
   private _afterShutdownCallback?: () => Promise<void>;
@@ -289,12 +292,14 @@ export class ActiveDoc extends EventEmitter {
       this._gracePeriodStart = gracePeriodStart;
 
       if (process.env.REDIS_URL && billingAccount) {
-        const channel = `billingAccount-${billingAccount.id}-product-changed`;
+        const prefix = getPubSubPrefix();
+        const channel = `${prefix}-billingAccount-${billingAccount.id}-product-changed`;
         this._redisSubscriber = createClient(process.env.REDIS_URL);
         this._redisSubscriber.subscribe(channel);
         this._redisSubscriber.on("message", async () => {
           // A product change has just happened in Billing.
           // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
+          this._log.debug(null, 'reload after product change');
           await this.reloadDoc();
         });
       }
@@ -631,6 +636,7 @@ export class ActiveDoc extends EventEmitter {
     if (!await this._granularAccess.isOwner(docSession)) {
       throw new ApiError('Only owners can replace a document.', 403);
     }
+    this._log.debug(docSession, 'ActiveDoc.replace starting shutdown');
     return this.shutdown({
       afterShutdown: () => this._docManager.storageManager.replace(this.docName, source)
     });
@@ -1297,6 +1303,7 @@ export class ActiveDoc extends EventEmitter {
    * browser clients to reopen it.
    */
   public async reloadDoc(docSession?: DocSession) {
+    this._log.debug(docSession || null, 'ActiveDoc.reloadDoc starting shutdown');
     return this.shutdown();
   }
 
