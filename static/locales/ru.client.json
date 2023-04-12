@@ -765,7 +765,7 @@
         "Default currency ({{defaultCurrency}})": "Валюта по умолчанию ({{defaultCurrency}})",
         "Decimals": "Десятичные"
     },
-    "welcomeTour": {
+    "WelcomeTour": {
         "convert to card view, select data, and more.": "преобразовать в представление карточки, выбрать данные, и более.",
         "creator panel": "панель создателя",
         "template library": "библиотека шаблонов",

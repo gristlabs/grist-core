@@ -919,7 +919,7 @@
         "Errors in all {{numErrors}} cells": "Errores en todas las {{numErrors}} celdas",
         "editingFormula is required": "ediciónFórmula es necesaria"
     },
-    "welcomeTour": {
+    "WelcomeTour": {
         "Add New": "Agregar Nuevo",
         "Configuring your document": "Configurando tu documento",
         "Enter": "Intro",

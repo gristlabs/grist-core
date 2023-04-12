@@ -46,7 +46,7 @@ import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
-import {startWelcomeTour} from 'app/client/ui/welcomeTour';
+import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
 import {IWidgetType} from 'app/client/ui/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
