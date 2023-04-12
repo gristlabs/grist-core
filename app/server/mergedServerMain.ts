@@ -125,11 +125,13 @@ export async function main(port: number, serverTypes: ServerType[],
     server.addBillingPages();
     server.addWelcomePaths();
     server.addLogEndpoint();
+    server.addTelemetryEndpoint();
     server.addGoogleAuthEndpoint();
   }
 
   if (includeDocs) {
     server.addJsonSupport();
+    server.addTelemetryEndpoint();
     await server.addDoc();
   }
 

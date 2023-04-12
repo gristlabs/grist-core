@@ -2,7 +2,8 @@ import {ApiError} from 'app/common/ApiError';
 import {DocumentUsage} from 'app/common/DocUsage';
 import {Role} from 'app/common/roles';
 import {DocumentOptions, DocumentProperties, documentPropertyKeys,
-        DocumentType, NEW_DOCUMENT_CODE} from "app/common/UserAPI";
+        DocumentType, NEW_DOCUMENT_CODE, TutorialMetadata} from "app/common/UserAPI";
+import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
 import {AclRuleDoc} from "./AclRule";
@@ -90,7 +91,7 @@ export class Document extends Resource {
     return super.checkProperties(props, documentPropertyKeys);
   }
 
-  public updateFromProperties(props: Partial<DocumentProperties>) {
+  public updateFromProperties(props: Partial<DocumentProperties>, dbManager?: HomeDBManager) {
     super.updateFromProperties(props);
     if (props.isPinned !== undefined) { this.isPinned = props.isPinned; }
     if (props.urlId !== undefined) {
@@ -131,6 +132,12 @@ export class Document extends Resource {
             if (props.options.tutorial.lastSlideIndex !== undefined) {
               this.options.tutorial.lastSlideIndex = props.options.tutorial.lastSlideIndex;
             }
+            if (props.options.tutorial.numSlides !== undefined) {
+              this.options.tutorial.numSlides = props.options.tutorial.numSlides;
+              if (dbManager && props.options?.tutorial?.lastSlideIndex !== undefined) {
+                this._emitTutorialProgressChangeEvent(dbManager, this.options.tutorial);
+              }
+            }
           }
         }
         // Normalize so that null equates with absence.
@@ -145,6 +152,24 @@ export class Document extends Resource {
         }
       }
     }
+  }
+
+  private _emitTutorialProgressChangeEvent(
+    dbManager: HomeDBManager,
+    tutorialMetadata: TutorialMetadata
+  ) {
+    const lastSlideIndex = tutorialMetadata.lastSlideIndex;
+    const numSlides = tutorialMetadata.numSlides;
+    const percentComplete = lastSlideIndex !== undefined && numSlides !== undefined
+      ? Math.floor((lastSlideIndex / numSlides) * 100)
+      : undefined;
+    dbManager?.emit('tutorialProgressChange', {
+      tutorialForkId: this.id,
+      tutorialTrunkId: this.trunkId,
+      lastSlideIndex,
+      numSlides,
+      percentComplete,
+    });
   }
 }
 

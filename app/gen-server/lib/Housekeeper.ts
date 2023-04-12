@@ -1,6 +1,7 @@
 import { ApiError } from 'app/common/ApiError';
 import { buildUrlId } from 'app/common/gristUrls';
 import { Document } from 'app/gen-server/entity/Document';
+import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { HomeDBManager, Scope } from 'app/gen-server/lib/HomeDBManager';
 import { fromNow } from 'app/gen-server/sqlUtils';
@@ -14,6 +15,7 @@ import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
+import { EntityManager } from 'typeorm';
 
 const HOUSEKEEPER_PERIOD_MS = 1 * 60 * 60 * 1000;   // operate every 1 hour
 const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval known by postgres + sqlite
@@ -23,6 +25,7 @@ const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval kno
  *
  *  - deleting old soft-deleted documents
  *  - deleting old soft-deleted workspaces
+ *  - logging metrics
  *
  * Call start(), keep the object around, and call stop() when shutting down.
  *
@@ -42,7 +45,9 @@ export class Housekeeper {
    */
   public async start() {
     await this.stop();
-    this._interval = setInterval(() => this.deleteTrashExclusively().catch(log.warn.bind(log)), HOUSEKEEPER_PERIOD_MS);
+    this._interval = setInterval(() => {
+      this.doHousekeepingExclusively().catch(log.warn.bind(log));
+    }, HOUSEKEEPER_PERIOD_MS);
   }
 
   /**
@@ -56,16 +61,18 @@ export class Housekeeper {
   }
 
   /**
-   * Deletes old trash if no other server is working on it or worked on it recently.
+   * Deletes old trash and logs metrics if no other server is working on it or worked on it
+   * recently.
    */
-  public async deleteTrashExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('trash', HOUSEKEEPER_PERIOD_MS / 2.0);
+  public async doHousekeepingExclusively(): Promise<boolean> {
+    const electionKey = await this._electionStore.getElection('housekeeping', HOUSEKEEPER_PERIOD_MS / 2.0);
     if (!electionKey) {
-      log.info('Skipping deleteTrash since another server is working on it or worked on it recently');
+      log.info('Skipping housekeeping since another server is working on it or worked on it recently');
       return false;
     }
     this._electionKey = electionKey;
     await this.deleteTrash();
+    await this.logMetrics();
     return true;
   }
 
@@ -145,6 +152,39 @@ export class Housekeeper {
     }
   }
 
+  /**
+   * Logs metrics regardless of what other servers may be doing.
+   */
+  public async logMetrics() {
+    await this._dbManager.connection.transaction('READ UNCOMMITTED', async (manager) => {
+      const telemetryManager = this._server.getTelemetryManager();
+      const usageSummaries = await this._getOrgUsageSummaries(manager);
+      for (const summary of usageSummaries) {
+        telemetryManager?.logEvent('siteUsage', {
+          siteId: summary.site_id,
+          siteType: summary.site_type,
+          inGoodStanding: summary.in_good_standing,
+          stripePlanId: summary.stripe_plan_id,
+          numDocs: summary.num_docs,
+          numWorkspaces: summary.num_workspaces,
+          numMembers: summary.num_members,
+          lastActivity: summary.last_activity,
+        });
+      }
+
+      const membershipSummaries = await this._getOrgMembershipSummaries(manager);
+      for (const summary of membershipSummaries) {
+        telemetryManager?.logEvent('siteMembership', {
+          siteId: summary.site_id,
+          siteType: summary.site_type,
+          numOwners: summary.num_owners,
+          numEditors: summary.num_editors,
+          numViewers: summary.num_viewers,
+        });
+      }
+    });
+  }
+
   public addEndpoints(app: express.Application) {
     // Allow support user to perform housekeeping tasks for a specific
     // document.  The tasks necessarily bypass user access controls.
@@ -208,7 +248,7 @@ export class Housekeeper {
    */
   public async testClearExclusivity(): Promise<void> {
     if (this._electionKey) {
-      await this._electionStore.removeElection('trash', this._electionKey);
+      await this._electionStore.removeElection('housekeeping', this._electionKey);
       this._electionKey = undefined;
     }
   }
@@ -247,6 +287,52 @@ export class Housekeeper {
       .andWhere(`forks.updated_at <= ${this._getThreshold()}`)
       .getMany();
     return forks;
+  }
+
+  private async _getOrgUsageSummaries(manager: EntityManager) {
+    const orgs = await manager.createQueryBuilder()
+      .select('orgs.id', 'site_id')
+      .addSelect('products.name', 'site_type')
+      .addSelect('billing_accounts.in_good_standing', 'in_good_standing')
+      .addSelect('billing_accounts.stripe_plan_id', 'stripe_plan_id')
+      .addSelect('COUNT(DISTINCT docs.id)', 'num_docs')
+      .addSelect('COUNT(DISTINCT workspaces.id)', 'num_workspaces')
+      .addSelect('COUNT(DISTINCT org_member_users.id)', 'num_members')
+      .addSelect('MAX(docs.updated_at)', 'last_activity')
+      .from(Organization, 'orgs')
+      .leftJoin('orgs.workspaces', 'workspaces')
+      .leftJoin('workspaces.docs', 'docs')
+      .leftJoin('orgs.billingAccount', 'billing_accounts')
+      .leftJoin('billing_accounts.product', 'products')
+      .leftJoin('orgs.aclRules', 'acl_rules')
+      .leftJoin('acl_rules.group', 'org_groups')
+      .leftJoin('org_groups.memberUsers', 'org_member_users')
+      .where('org_member_users.id IS NOT NULL')
+      .groupBy('orgs.id')
+      .addGroupBy('products.id')
+      .addGroupBy('billing_accounts.id')
+      .getRawMany();
+    return orgs;
+  }
+
+  private async _getOrgMembershipSummaries(manager: EntityManager) {
+    const orgs = await manager.createQueryBuilder()
+      .select('orgs.id', 'site_id')
+      .addSelect('products.name', 'site_type')
+      .addSelect("SUM(CASE WHEN org_groups.name = 'owners' THEN 1 ELSE 0 END)", 'num_owners')
+      .addSelect("SUM(CASE WHEN org_groups.name = 'editors' THEN 1 ELSE 0 END)", 'num_editors')
+      .addSelect("SUM(CASE WHEN org_groups.name = 'viewers' THEN 1 ELSE 0 END)", 'num_viewers')
+      .from(Organization, 'orgs')
+      .leftJoin('orgs.billingAccount', 'billing_accounts')
+      .leftJoin('billing_accounts.product', 'products')
+      .leftJoin('orgs.aclRules', 'acl_rules')
+      .leftJoin('acl_rules.group', 'org_groups')
+      .leftJoin('org_groups.memberUsers', 'org_member_users')
+      .where('org_member_users.id IS NOT NULL')
+      .groupBy('orgs.id')
+      .addGroupBy('products.id')
+      .getRawMany();
+    return orgs;
   }
 
   /**

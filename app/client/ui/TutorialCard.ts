@@ -12,6 +12,8 @@ interface Options {
 }
 
 export function buildTutorialCard(owner: IDisposableOwner, options: Options) {
+  if (shouldHideUiElement('templates')) { return null; }
+
   const {app} = options;
   const dismissed = app.dismissedPopup('tutorialFirstCard');
   owner.autoDispose(dismissed);

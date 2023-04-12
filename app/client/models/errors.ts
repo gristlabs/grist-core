@@ -59,7 +59,7 @@ export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions
 export function reportWarning(msg: string, options?: Partial<INotifyOptions>) {
   options = {level: 'warning', ...options};
   log.warn(`${options.level}: `, msg);
-  _logError(msg);
+  logError(msg);
   return reportMessage(msg, options);
 }
 
@@ -84,7 +84,7 @@ export function reportError(err: Error|string): void {
     // This error can be emitted while a page is reloaded, and isn't worth reporting.
     return;
   }
-  _logError(err);
+  logError(err);
   if (_notifier && !_notifier.isDisposed()) {
     if (!isError(err)) {
       err = new Error(String(err));
@@ -175,7 +175,7 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
  * over-logging (regular errors such as access rights or account limits) and
  * under-logging (javascript errors during startup might never get reported).
  */
-function _logError(error: Error|string) {
+export function logError(error: Error|string) {
   if (!pageHasHome()) { return; }
   const docId = G.window.gristDocPageModel?.currentDocId?.get();
   fetchFromHome('/api/log', {

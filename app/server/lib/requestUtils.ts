@@ -260,7 +260,7 @@ export function optStringParam(p: any): string|undefined {
   return undefined;
 }
 
-export function stringParam(p: any, name: string, allowed?: string[]): string {
+export function stringParam(p: any, name: string, allowed?: readonly string[]): string {
   if (typeof p !== 'string') {
     throw new ApiError(`${name} parameter should be a string: ${p}`, 400);
   }

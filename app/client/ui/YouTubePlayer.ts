@@ -10,6 +10,7 @@ export interface Player {
   mute(): void;
   unMute(): void;
   setVolume(volume: number): void;
+  getCurrentTime(): number;
 }
 
 export interface PlayerOptions {
@@ -80,6 +81,10 @@ export class YouTubePlayer extends Disposable {
     }
   }
 
+  public isLoading() {
+    return this._isLoading();
+  }
+
   public isLoaded() {
     return waitObs(this._isLoading, (val) => !val);
   }
@@ -90,6 +95,10 @@ export class YouTubePlayer extends Disposable {
 
   public setVolume(volume: number) {
     this._player.setVolume(volume);
+  }
+
+  public getCurrentTime(): number {
+    return this._player.getCurrentTime();
   }
 
   public buildDom() {

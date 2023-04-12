@@ -393,7 +393,16 @@ export class GristDoc extends DisposableWithEvents {
     }));
 
     // Importer takes a function for creating previews.
-    const createPreview = (vs: ViewSectionRec) => GridView.create(this, vs, true);
+    const createPreview = (vs: ViewSectionRec) => {
+      const preview = GridView.create(this, vs, true);
+      // We need to set the instance to the newly created section. This is important, as
+      // GristDoc is responsible for changing the cursor position not the cursor itself. Final
+      // cursor position is determined by finding active (or visible) section and passing this
+      // command (setCursor) to its instance.
+      vs.viewInstance(preview);
+      preview.autoDisposeCallback(() => vs.viewInstance(null));
+      return preview;
+    };
 
     const importSourceElems = ImportSourceElement.fromArray(this.docPluginManager.pluginsList);
     const importMenuItems = [
@@ -593,6 +602,16 @@ export class GristDoc extends DisposableWithEvents {
   public async setCursorPos(cursorPos: CursorPos) {
     if (cursorPos.sectionId && cursorPos.sectionId !== this.externalSectionId.get()) {
       const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      // If this is completely unknown section (without a parent), it is probably an import preview.
+      if (!desiredSection.parentId.peek() && !desiredSection.isRaw.peek()) {
+        const view = desiredSection.viewInstance.peek();
+        // Make sure we have a view instance here - it will prove our assumption that this is
+        // an import preview. Section might also be disconnected during undo/redo.
+        if (view && !view.isDisposed()) {
+          view.setCursorPos(cursorPos);
+          return;
+        }
+      }
       if (desiredSection.view.peek().getRowId() !== this.activeViewId.get()) {
         // This may be asynchronous. In other cases, the change is synchronous, and some code
         // relies on it (doesn't wait for this function to resolve).

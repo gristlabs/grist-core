@@ -160,6 +160,8 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   // about this case.
   let authDone: boolean = false;
 
+  let hasApiKey: boolean = false;
+
   // Support providing an access token via an `auth` query parameter.
   // This is useful for letting the browser load assets like image
   // attachments.
@@ -191,6 +193,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
       mreq.user = user;
       mreq.userId = user.id;
       mreq.userIsAuthorized = true;
+      hasApiKey = true;
     }
   }
 
@@ -392,6 +395,12 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
     altSessionId: mreq.altSessionId,
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
+  if (hasApiKey) {
+    options.gristServer.getTelemetryManager()?.logEvent('apiUsage', {
+      ...meta,
+      userAgent: req.headers['user-agent'],
+    });
+  }
 
   return next();
 }

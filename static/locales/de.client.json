@@ -439,7 +439,9 @@
         "Welcome to {{orgName}}": "Willkommen bei {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
         "personal site": "persönliche Seite",
-        "{{signUp}} to save your work. ": "{{signUp}} um Ihre Arbeit zu speichern. "
+        "{{signUp}} to save your work. ": "{{signUp}} um Ihre Arbeit zu speichern. ",
+        "Welcome to Grist, {{- name}}!": "Willkommen bei Grist, {{-name}}!",
+        "Welcome to {{- orgName}}": "Willkommen bei {{-orgName}}"
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -448,13 +450,14 @@
         "Create Workspace": "Arbeitsbereich erstellen",
         "Delete": "Löschen",
         "Delete {{workspace}} and all included documents?": "{{workspace}} und alle enthaltenen Dokumente löschen?",
-        "Examples & Templates": "Beispiele & Vorlagen",
+        "Examples & Templates": "Vorlagen",
         "Import Document": "Dokument importieren",
         "Manage Users": "Benutzer verwalten",
         "Rename": "Umbenennen",
         "Trash": "Papierkorb",
         "Workspace will be moved to Trash.": "Der Arbeitsbereich wird in den Papierkorb verschoben.",
-        "Workspaces": "Arbeitsbereiche"
+        "Workspaces": "Arbeitsbereiche",
+        "Tutorial": "Tutorial"
     },
     "Importer": {
         "Merge rows that match these fields:": "Zeilen zusammenführen, die mit diesen Feldern übereinstimmen:",
@@ -1025,7 +1028,8 @@
         "You can filter by more than one column.": "Sie können nach mehr als einer Spalte filtern.",
         "entire": "gesamte",
         "Access Rules": "Zugriffsregeln",
-        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Zugriffsregeln geben Ihnen die Möglichkeit, nuancierte Regeln zu erstellen, um festzulegen, wer welche Teile Ihres Dokuments sehen oder bearbeiten kann."
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Zugriffsregeln geben Ihnen die Möglichkeit, nuancierte Regeln zu erstellen, um festzulegen, wer welche Teile Ihres Dokuments sehen oder bearbeiten kann.",
+        "Anchor Links": "Anker-Links"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
