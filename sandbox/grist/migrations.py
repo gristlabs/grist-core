@@ -1211,3 +1211,4 @@ def migration38(tdset):
   Add description to widget
   """
   return tdset.apply_doc_actions([add_column('_grist_Views_section', 'description', 'Text')])
+  
