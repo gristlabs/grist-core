@@ -165,9 +165,9 @@ export class Housekeeper {
           siteType: summary.site_type,
           inGoodStanding: summary.in_good_standing,
           stripePlanId: summary.stripe_plan_id,
-          numDocs: summary.num_docs,
-          numWorkspaces: summary.num_workspaces,
-          numMembers: summary.num_members,
+          numDocs: Number(summary.num_docs),
+          numWorkspaces: Number(summary.num_workspaces),
+          numMembers: Number(summary.num_members),
           lastActivity: summary.last_activity,
         });
       }
@@ -177,9 +177,9 @@ export class Housekeeper {
         telemetryManager?.logEvent('siteMembership', {
           siteId: summary.site_id,
           siteType: summary.site_type,
-          numOwners: summary.num_owners,
-          numEditors: summary.num_editors,
-          numViewers: summary.num_viewers,
+          numOwners: Number(summary.num_owners),
+          numEditors: Number(summary.num_editors),
+          numViewers: Number(summary.num_viewers),
         });
       }
     });
