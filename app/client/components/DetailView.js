@@ -94,14 +94,12 @@ function DetailView(gristDoc, viewSectionModel) {
     this.activateEditorAtCursor();
   });
 
-  this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
+  // We authorize single click only on the value to avoid conflict with tooltip
+  this.onEvent(this.viewPane, 'click', '.g_record_detail_value', function(elem, event) {
     var field = this.recordLayout.getContainingField(elem, this.viewPane);
     if (
       this._twoLastFieldIdsSelected[0] === this._twoLastFieldIdsSelected[1]
       && !isNarrowScreen()
-      // Trick to avoid event to be triggered in other context,
-      // and the error `UnexpectedAlertOpenError: unexpected alert open: {Alert text : }`
-      && elem.classList.contains("g_record_detail_el")
       && this._canSingleClick(field)
     ) {
       this.activateEditorAtCursor();
