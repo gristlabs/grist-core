@@ -92,7 +92,6 @@ function DetailView(gristDoc, viewSectionModel) {
   // Double-clicking on a field also starts editing the field.
   this.onEvent(this.viewPane, 'dblclick', '.g_record_detail_el', function(elem, event) {
     this.activateEditorAtCursor();
-    var field = this.recordLayout.getContainingField(elem, this.viewPane);
   });
 
   this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
