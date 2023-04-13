@@ -77,23 +77,7 @@ function DetailView(gristDoc, viewSectionModel) {
 
   //--------------------------------------------------
   // Set up DOM event handling.
-  this.lastFieldIdsSelected = [null, null];
-
-  this._canSingleClick = function(field) {
-    // we can't simple click if :
-    // - the field is a formula
-    // - the field is toggle (switch or checkbox)
-    if (
-      field.column().isRealFormula() || field.column().hasTriggerFormula()
-      || (
-        field.column().pureType() === "Bool"
-        && ["Switch", "CheckBox"].includes(field.column().visibleColFormatter().widgetOpts.widget)
-      )
-    ) {
-      return false;
-    }
-    return true;
-  };
+  this._twoLastFieldIdsSelected = [null, null];
 
   // Clicking on a detail field selects that field.
   this.onEvent(this.viewPane, 'mousedown', '.g_record_detail_el', function(elem, event) {
@@ -101,22 +85,20 @@ function DetailView(gristDoc, viewSectionModel) {
     var rowModel = this.recordLayout.getContainingRow(elem, this.viewPane);
     var field = this.recordLayout.getContainingField(elem, this.viewPane);
     commands.allCommands.setCursor.run(rowModel, field);
-    this.lastFieldIdsSelected.unshift(field.id());
-    this.lastFieldIdsSelected.pop();
+    this._twoLastFieldIdsSelected.unshift(field.id());
+    this._twoLastFieldIdsSelected.pop();
   });
 
   // Double-clicking on a field also starts editing the field.
   this.onEvent(this.viewPane, 'dblclick', '.g_record_detail_el', function(elem, event) {
     this.activateEditorAtCursor();
     var field = this.recordLayout.getContainingField(elem, this.viewPane);
-    this.lastFieldIdsSelected.unshift(field.id());
-    this.lastFieldIdsSelected.pop();
   });
 
   this.onEvent(this.viewPane, 'click', '.g_record_detail_el', function(elem, event) {
     var field = this.recordLayout.getContainingField(elem, this.viewPane);
     if (
-      field.id() === this.lastFieldIdsSelected[1]
+      this._twoLastFieldIdsSelected[0] === this._twoLastFieldIdsSelected[1]
       && !isNarrowScreen()
       // Trick to avoid event to be triggered in other context,
       // and the error `UnexpectedAlertOpenError: unexpected alert open: {Alert text : }`
@@ -125,8 +107,6 @@ function DetailView(gristDoc, viewSectionModel) {
     ) {
       this.activateEditorAtCursor();
     }
-    this.lastFieldIdsSelected.unshift(field.id());
-    this.lastFieldIdsSelected.pop();
   });
 
   //--------------------------------------------------
@@ -469,5 +449,21 @@ DetailView.prototype._duplicateRows = async function() {
   const addRowIds = await BaseView.prototype._duplicateRows.call(this);
   this.setCursorPos({rowId: addRowIds[0]})
 }
+
+DetailView.prototype._canSingleClick = function(field) {
+  // we can't simple click if :
+  // - the field is a formula
+  // - the field is toggle (switch or checkbox)
+  if (
+    field.column().isRealFormula() || field.column().hasTriggerFormula()
+    || (
+      field.column().pureType() === "Bool"
+      && ["Switch", "CheckBox"].includes(field.column().visibleColFormatter().widgetOpts.widget)
+    )
+  ) {
+    return false;
+  }
+  return true;
+};
 
 module.exports = DetailView;
