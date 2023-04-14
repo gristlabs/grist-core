@@ -513,6 +513,24 @@ export class GristDoc extends DisposableWithEvents {
     this.draftMonitor = Drafts.create(this, this);
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
+
+    // When active section is changed to a chart or custom widget, change the tab in the creator
+    // panel to the table.
+    this.autoDispose(this.viewModel.activeSection.subscribe((section) => {
+      if (section.isDisposed() || section._isDeleted.peek()) { return; }
+      if ('chart' === section.parentKey.peek()) {
+        commands.allCommands.viewTabFocus.run();
+      } else if ('custom' === section.parentKey.peek()) {
+        // Check if user has seen custom URL tooltip.
+        const seenTooltip = this.behavioralPromptsManager.hasSeenTip('customURL');
+        // If yes, just focus on the table if it is opened
+        if (seenTooltip) {
+          commands.allCommands.viewTabFocus.run();
+        } else {
+          commands.allCommands.viewTabOpen.run();
+        }
+      }
+    }));
   }
 
   /**

@@ -74,6 +74,11 @@ exports.groups = [{
       desc: 'Shortcut to open view tab'
     },
     {
+      name: 'viewTabFocus',
+      keys: [],
+      desc: 'Shortcut to focus view tab if creator panel is open'
+    },
+    {
       name: 'fieldTabOpen',
       keys: [],
       desc: 'Shortcut to open field tab'

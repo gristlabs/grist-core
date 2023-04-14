@@ -238,7 +238,7 @@ export class CustomSectionConfig extends Disposable {
   // Does widget has custom configuration.
   private _hasConfiguration: Computed<boolean>;
 
-  constructor(private _section: ViewSectionRec, _gristDoc: GristDoc) {
+  constructor(private _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
 
     const api = _gristDoc.app.topAppModel.api;
@@ -411,7 +411,12 @@ export class CustomSectionConfig extends Disposable {
             async value => this._url.set(value),
             dom.attr('placeholder', t("Enter Custom URL")),
             testId('url')
-          )
+          ),
+          this._gristDoc.behavioralPromptsManager.attachTip('customURL', {
+            popupOptions: {
+              placement: 'left-start',
+            }
+          })
         ),
       ]),
       dom.maybe(prompt, () =>
