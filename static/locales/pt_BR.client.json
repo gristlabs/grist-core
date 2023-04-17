@@ -439,7 +439,9 @@
         "Welcome to {{orgName}}": "Bem-vindo ao {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Você só tem acesso de leitura a este site. Atualmente não há documentos.",
         "personal site": "Site pessoal",
-        "{{signUp}} to save your work. ": "{{signUp}} para salvar seu trabalho. "
+        "{{signUp}} to save your work. ": "{{signUp}} para salvar seu trabalho. ",
+        "Welcome to Grist, {{- name}}!": "Bem-vindo ao Grist, {{-name}}!",
+        "Welcome to {{- orgName}}": "Bem-vindo a {{-orgName}}"
     },
     "HomeLeftPane": {
         "Access Details": "Detalhes de Acesso",
@@ -448,13 +450,14 @@
         "Create Workspace": "Criar Área de Trabalho",
         "Delete": "Excluir",
         "Delete {{workspace}} and all included documents?": "Excluir {{workspace}} e todos os documentos inclusos?",
-        "Examples & Templates": "Exemplos & Modelos",
+        "Examples & Templates": "Modelos",
         "Import Document": "Importar Documento",
         "Manage Users": "Gerenciar Usuários",
         "Rename": "Renomear",
         "Trash": "Lixeira",
         "Workspace will be moved to Trash.": "A Área de Trabalho será movida pra Lixeira.",
-        "Workspaces": "Áreas de Trabalho"
+        "Workspaces": "Áreas de Trabalho",
+        "Tutorial": "Tutorial"
     },
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
@@ -1025,7 +1028,8 @@
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "As regras de acesso lhe dão o poder de criar regras diferenciadas para determinar quem pode ver ou editar quais partes de seu documento.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use o ícone 𝚺 para criar tabelas resumidas (ou dinâmicas), para totais ou subtotais.",
         "relational": "relacionais",
-        "Unpin to hide the the button while keeping the filter.": "Desfixe para ocultar o botão enquanto mantém o filtro."
+        "Unpin to hide the the button while keeping the filter.": "Desfixe para ocultar o botão enquanto mantém o filtro.",
+        "Anchor Links": "Links de âncora"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"

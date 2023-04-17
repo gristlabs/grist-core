@@ -831,24 +831,23 @@ describe('ChoiceList', function() {
       await gu.sendKeys(await gu.pasteKey());
       await gu.sendKeys(await gu.pasteKey());
       await gu.sendKeys(Key.ENTER);
-      await clickEntry('three');
-      await gu.sendKeys(await gu.copyKey());
       await clickEntry('two');
+      await gu.sendKeys(await gu.copyKey());
       await gu.sendKeys(Key.ARROW_RIGHT);
       await gu.sendKeys(await gu.pasteKey());
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await getEditModeChoiceLabels(), ["foofoo", "three", "twothree"]);
+      assert.deepEqual(await getEditModeChoiceLabels(), ["foofoo", "three", "twotwo"]);
       await saveChoiceEntries();
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [columnName] }), [
         "foofoo",
         "three",
-        "twothree",
+        "twotwo",
       ]);
 
       // Rename to bar, four and eight and do the change.
       await editChoiceEntries();
       await renameEntry("foofoo", "bar");
-      await renameEntry("twothree", "four");
+      await renameEntry("twotwo", "four");
       await renameEntry("three", "eight");
       await saveChoiceEntries();
       assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [columnName] }), [

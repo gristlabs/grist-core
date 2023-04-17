@@ -372,7 +372,7 @@
         "Insert column to the {{to}}": "Wstaw kolumnę do {{to}}",
         "More sort options ...": "Pozostałe opcje sortowania…",
         "Rename column": "Zmień nazwę kolumny",
-        "Reset {{count}} columns_one": "Wyzerować kolumnę",
+        "Reset {{count}} columns_one": "Resetuj kolumnę",
         "Reset {{count}} columns_other": "Wyzeruj {{count}} kolumn",
         "Reset {{count}} entire columns_one": "Zresetuj całą kolumnę",
         "Reset {{count}} entire columns_other": "Resetowanie {{count}} całych kolumn",
@@ -589,13 +589,13 @@
     },
     "TriggerFormulas": {
         "Apply on changes to:": "Zastosuj w przypadku zmian do:",
-        "Apply on record changes": "Zastosuj zmiany w rekordzie",
+        "Apply on record changes": "Uruchom przy zmianach",
         "Cancel": "Anuluj",
         "Any field": "Dowolne pole",
         "Close": "Zamknij",
         "OK": "OK",
         "Current field ": "Bieżące pole ",
-        "Apply to new records": "Zastosuj do nowych rekordów"
+        "Apply to new records": "Uruchom przy dodawaniu"
     },
     "TypeTransformation": {
         "Apply": "Zastosuj",
@@ -767,7 +767,7 @@
     "TypeTransform": {
         "Cancel": "Anuluj",
         "Preview": "Podgląd",
-        "Revise": "Zrewidować",
+        "Revise": "Popraw",
         "Apply": "Zastosuj",
         "Update formula (Shift+Enter)": "Aktualizuj formułę (Shift+Enter)"
     },

@@ -125,6 +125,7 @@ export interface DocumentOptions {
 
 export interface TutorialMetadata {
   lastSlideIndex?: number;
+  numSlides?: number;
 }
 
 export interface DocumentProperties extends CommonProperties {

@@ -16,6 +16,7 @@ import { IPermitStore } from 'app/server/lib/Permit';
 import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
+import { TelemetryManager } from 'app/server/lib/TelemetryManager';
 import * as express from 'express';
 import { IncomingMessage } from 'http';
 
@@ -42,6 +43,7 @@ export interface GristServer {
   getHosts(): Hosts;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
+  getTelemetryManager(): TelemetryManager|undefined;
   getNotifier(): INotifier;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -118,6 +120,7 @@ export function createDummyGristServer(): GristServer {
     getHosts() { throw new Error('no hosts'); },
     getHomeDBManager() { throw new Error('no db'); },
     getStorageManager() { throw new Error('no storage manager'); },
+    getTelemetryManager() { return undefined; },
     getNotifier() { throw new Error('no notifier'); },
     getDocTemplate() { throw new Error('no doc template'); },
     getTag() { return 'tag'; },

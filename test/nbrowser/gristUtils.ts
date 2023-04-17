@@ -248,6 +248,7 @@ export async function expandSection(title?: string) {
     ? driver.findContent(`.test-viewsection-title`, exactMatch(title)).findClosest(".viewsection_title")
     : driver.find(".active_section");
   await select.find(".test-section-menu-expandSection").click();
+  await driver.findWait('.test-viewLayout-overlay .test-close-button', 500);
 }
 
 export async function getSectionId() {
@@ -541,9 +542,9 @@ export async function rightClick(cell: WebElement) {
  * section. RowNum is a 1-based number as in the row headers, and col is a 0-based index for
  * grid view or field name for detail view.
  */
-export async function getCursorPosition() {
+export async function getCursorPosition(section?: WebElement) {
   return await retryOnStale(async () => {
-    const section = await driver.findWait('.active_section', 4000);
+    section = section ?? await driver.findWait('.active_section', 4000);
     const cursor = await section.findWait('.active_cursor', 1000);
     // Query assuming the cursor is in a GridView and a DetailView, then use whichever query data
     // works out.

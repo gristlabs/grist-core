@@ -15,6 +15,7 @@
 
 // tslint:disable:unified-signatures
 
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {AppModel} from 'app/client/models/AppModel';
 import {reportWarning} from 'app/client/models/errors';
 import {IAppError} from 'app/client/models/NotifyModel';
@@ -54,6 +55,11 @@ interface ISessionData {
   [key: string]: string;
 }
 
+interface ICallbackAttributes {
+  id?: string;
+  query?: string;
+}
+
 /**
  * This provides the HelpScout Beacon API, taking care of initializing Beacon on first use.
  */
@@ -65,7 +71,8 @@ export function Beacon(method: 'navigate', route: string): void;
 export function Beacon(method: 'identify', userObj: IUserObj): void;
 export function Beacon(method: 'prefill', formObj: IFormObj): void;
 export function Beacon(method: 'config', configObj: object): void;
-export function Beacon(method: 'on'|'once', event: string, callback: () => void): void;
+export function Beacon(method: 'on'|'once', event: string,
+  callback: (attrs?: ICallbackAttributes) => void): void;
 export function Beacon(method: 'off', event: string, callback?: () => void): void;
 export function Beacon(method: 'session-data', data: ISessionData): void;
 export function Beacon(method: BeaconCmd): void;
@@ -187,6 +194,15 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
   if (!skipNav) {
     Beacon('navigate', route);
   }
+
+  Beacon('once', 'open', () => logTelemetryEvent('beaconOpen'));
+  Beacon('on', 'article-viewed', (article) => logTelemetryEvent('beaconArticleViewed', {
+    articleId: article!.id,
+  }));
+  Beacon('on', 'email-sent', () => logTelemetryEvent('beaconEmailSent'));
+  Beacon('on', 'search', (search) => logTelemetryEvent('beaconSearch', {
+    searchQuery: search!.query,
+  }));
 }
 
 function fixBeaconBaseHref() {

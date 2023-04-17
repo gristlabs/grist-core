@@ -6,6 +6,7 @@ import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPath
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
+import {TelemetryEventName, TelemetryEventNames} from 'app/common/Telemetry';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
@@ -55,6 +56,7 @@ import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
+import {TelemetryManager} from 'app/server/lib/TelemetryManager';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
@@ -127,6 +129,7 @@ export class FlexServer implements GristServer {
   private _sessions: Sessions;
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
+  private _telemetryManager: TelemetryManager|undefined;
   private _docWorkerMap: IDocWorkerMap;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
@@ -336,6 +339,10 @@ export class FlexServer implements GristServer {
   public getStorageManager(): IDocStorageManager {
     if (!this._storageManager) { throw new Error('no storage manager available'); }
     return this._storageManager;
+  }
+
+  public getTelemetryManager(): TelemetryManager|undefined {
+    return this._telemetryManager;
   }
 
   public getWidgetRepository(): IWidgetRepository {
@@ -663,7 +670,8 @@ export class FlexServer implements GristServer {
    */
   public addLogEndpoint() {
     if (this._check('log-endpoint', 'json', 'api-mw')) { return; }
-    this.app.post('/api/log', expressWrap(async (req, resp) => {
+
+    this.app.post('/api/log', async (req, resp) => {
       const mreq = req as RequestWithLogin;
       log.rawWarn('client error', {
         event: req.body.event,
@@ -676,7 +684,26 @@ export class FlexServer implements GristServer {
         altSessionId: mreq.altSessionId,
       });
       return resp.status(200).send();
-    }));
+    });
+  }
+
+  public addTelemetryEndpoint() {
+    if (this._check('telemetry-endpoint', 'json', 'api-mw', 'homedb')) { return; }
+
+    this._telemetryManager = new TelemetryManager(this._dbManager);
+
+    this.app.post('/api/telemetry', async (req, resp) => {
+      const mreq = req as RequestWithLogin;
+      const name = stringParam(req.body.name, 'name', TelemetryEventNames);
+      this._telemetryManager?.logEvent(name as TelemetryEventName, {
+        userId: mreq.userId,
+        email: mreq.user?.loginEmail,
+        altSessionId: mreq.altSessionId,
+        site: mreq.org,
+        ...req.body.metadata,
+      });
+      return resp.status(200).send();
+    });
   }
 
   public async close() {
@@ -1076,7 +1103,8 @@ export class FlexServer implements GristServer {
 
   // Add document-related endpoints and related support.
   public async addDoc() {
-    this._check('doc', 'start', 'tag', 'json', isSingleUserMode() ? null : 'homedb', 'api-mw', 'map');
+    this._check('doc', 'start', 'tag', 'json', isSingleUserMode() ?
+      null : 'homedb', 'api-mw', 'map', 'telemetry-endpoint');
     // add handlers for cleanup, if we are in charge of the doc manager.
     if (!this._docManager) { this.addCleanup(); }
     await this.loadConfig();

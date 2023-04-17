@@ -79,6 +79,7 @@ export const commonUrls = {
   efcrHelp: 'https://www.nioxus.info/eFCR-Help',
   basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
+  gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
 };
 
 /**
@@ -613,7 +614,8 @@ export interface GristLoadConfig {
   userLocale?: string;
 }
 
-export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");
+export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts",
+"sendToDrive");
 export type IHideableUiElement = typeof HideableUiElements.type;
 
 export function shouldHideUiElement(elem: IHideableUiElement): boolean {
