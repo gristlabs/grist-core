@@ -307,7 +307,7 @@
     "HyperLinkEditor": {
         "[link label] url": "[testo link] URL"
     },
-    "welcomeTour": {
+    "WelcomeTour": {
         "Editing Data": "Modificare i dati",
         "Sharing": "Condividendo",
         "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Sfoglia la nostra {{templateLibrary}} per scoprire che cosa è possibile fare e farti ispirare.",
