@@ -965,7 +965,8 @@
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.",
         "Add New": "Add New",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.",
-        "Anchor Links": "Anchor Links"
+        "Anchor Links": "Anchor Links",
+        "Custom Widgets": "Custom Widgets"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
