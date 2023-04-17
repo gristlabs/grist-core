@@ -615,7 +615,8 @@ export interface GristLoadConfig {
   userLocale?: string;
 }
 
-export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts");
+export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts",
+"sendToDrive");
 export type IHideableUiElement = typeof HideableUiElements.type;
 
 export function shouldHideUiElement(elem: IHideableUiElement): boolean {

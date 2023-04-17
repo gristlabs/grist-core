@@ -11,7 +11,7 @@ import {primaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuText} from 'app/client/ui2018/menus';
-import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
+import {buildUrlId, parseUrlId, shouldHideUiElement} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
 import {dom, DomContents, styled} from 'grainjs';
@@ -244,8 +244,8 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
       target: '_blank', download: ''
     }, menuIcon('Download'), t("Export XLSX"), testId('tb-share-option')),
-    menuItem(() => sendToDrive(doc, pageModel),
-      menuIcon('Download'), t("Send to Google Drive"), testId('tb-share-option')),
+    (shouldHideUiElement("sendToDrive") ? null : menuItem(() => sendToDrive(doc, pageModel),
+      menuIcon('Download'), t("Send to Google Drive"), testId('tb-share-option'))),
   ];
 }
 
