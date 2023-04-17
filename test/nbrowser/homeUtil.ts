@@ -8,7 +8,7 @@ import {WebElement} from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import {authenticator} from 'otplib';
 import * as path from 'path';
-import {WebDriver} from 'selenium-webdriver';
+import { Key, WebDriver } from 'selenium-webdriver';
 
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
@@ -146,6 +146,8 @@ export class HomeUtil {
    * to be more nuanced.
    */
   public async removeLogin(org: string = "") {
+    // If cursor is on field editor, escape before remove login
+    await this.driver.sendKeys(Key.ESCAPE);
     if (!this.server.isExternalServer()) {
       const testingHooks = await this.server.getTestingHooks();
       const sid = await this.getGristSid();
