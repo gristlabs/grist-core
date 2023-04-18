@@ -518,17 +518,8 @@ export class GristDoc extends DisposableWithEvents {
     // panel to the table.
     this.autoDispose(this.viewModel.activeSection.subscribe((section) => {
       if (section.isDisposed() || section._isDeleted.peek()) { return; }
-      if ('chart' === section.parentKey.peek()) {
+      if (['chart', 'custom'].includes(section.parentKey.peek())) {
         commands.allCommands.viewTabFocus.run();
-      } else if ('custom' === section.parentKey.peek()) {
-        // Check if user has seen custom URL tooltip.
-        const seenTooltip = this.behavioralPromptsManager.hasSeenTip('customURL');
-        // If yes, just focus on the table if it is opened
-        if (seenTooltip) {
-          commands.allCommands.viewTabFocus.run();
-        } else {
-          commands.allCommands.viewTabOpen.run();
-        }
       }
     }));
   }
