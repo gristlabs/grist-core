@@ -115,6 +115,25 @@ describe('DocTutorial', function () {
       }
     });
 
+    it('does not break navigation via browser history', async function() {
+      // Navigating via browser history was partially broken at one point; if you
+      // started a tutorial, and wanted to leave via the browser's back button, you
+      // couldn't.
+      for (const page of ['code', 'data', 'acl']) {
+        await driver.navigate().back();
+        const currentUrl = await driver.getCurrentUrl();
+        assert.match(currentUrl, new RegExp(`/p/${page}$`));
+      }
+
+      await driver.navigate().back();
+      await driver.navigate().back();
+      await driver.findWait('.test-dm-doclist', 2000);
+
+      await driver.navigate().forward();
+      await gu.waitForDocToLoad();
+      assert.isTrue(await driver.findWait('.test-doc-tutorial-popup', 2000).isDisplayed());
+    });
+
     it('does not show the GristDocTutorial page or table', async function() {
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2']);
       await driver.find('.test-tools-raw').click();
@@ -290,7 +309,7 @@ describe('DocTutorial', function () {
       await api.updateDoc(doc.id, {name: 'DocTutorial V2'});
       await api.applyUserActions(doc.id, [['AddTable', 'NewTable', [{id: 'A'}]]]);
 
-      // Load the current fork of the tutorial.
+      // Load the fork of the tutorial.
       await driver.navigate().to(forkUrl);
       await gu.waitForDocToLoad();
       await driver.findWait('.test-doc-tutorial-popup', 2000);
@@ -299,7 +318,7 @@ describe('DocTutorial', function () {
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2']);
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Redacted']);
 
-      // Restart the tutorial and wait for a new fork to be created.
+      // Restart the tutorial.
       await driver.find('.test-doc-tutorial-popup-restart').click();
       await driver.find('.test-modal-confirm').click();
       await gu.waitForServer();
@@ -319,7 +338,7 @@ describe('DocTutorial', function () {
       // Check that edits were reset.
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Zane Rails']);
 
-      // Check that changes made to the tutorial since the last fork are included.
+      // Check that changes made to the tutorial since it was last started are included.
       assert.equal(await driver.find('.test-doc-tutorial-popup-header').getText(),
         'DocTutorial V2');
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'NewTable']);

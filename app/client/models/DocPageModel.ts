@@ -240,9 +240,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public updateUrlNoReload(
     urlId: string,
     urlOpenMode: OpenDocMode,
-    options: {removeSlug?: boolean, replaceUrl?: boolean} = {removeSlug: false, replaceUrl: true}
+    options: {removeSlug?: boolean, replaceUrl?: boolean} = {}
   ) {
-    const {removeSlug, replaceUrl} = options;
+    const {removeSlug = false, replaceUrl = true} = options;
     const state = urlState().state.get();
     const nextState = {
       ...state,
