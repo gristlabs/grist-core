@@ -2326,8 +2326,9 @@ export class ActiveDoc extends EventEmitter {
     const attachments = this.docData?.getMetaTable('_grist_Attachments');
     const numAttachments = attachments?.numRecords() ?? 0;
     const attachmentTypes = attachments?.getRecords()
-      .map(r => r.fileExt?.slice(1) ?? null)
-      .filter(ext => ext !== null);
+      // Exclude the leading ".", if any.
+      .map(r => r.fileExt?.trim()?.slice(1))
+      .filter(ext => Boolean(ext));
 
     return {
       numAttachments,
