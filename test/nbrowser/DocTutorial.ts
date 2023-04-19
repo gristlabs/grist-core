@@ -108,6 +108,160 @@ describe('DocTutorial', function () {
       );
     });
 
+    it('can be moved around and minimized', async function() {
+      // Get the initial position of the popup.
+      const initialDims = await driver.find('.test-floating-popup-window').getRect();
+      // Get the move handle.
+      const mover = await driver.find('.test-floating-popup-move-handle');
+      const moverInitial = await mover.getRect();
+
+      const move = async (pos: {x?: number, y?: number}) => driver.withActions((actions) => actions
+        .move({origin: driver.find('.test-floating-popup-move-handle')})
+        .press()
+        .move({origin: driver.find('.test-floating-popup-move-handle'), ...pos})
+        .release()
+      );
+
+      const resize = async (pos: {x?: number, y?: number}) => driver.withActions((actions) => actions
+        .move({origin: driver.find('.test-floating-popup-resize-handle')})
+        .press()
+        .move({origin: driver.find('.test-floating-popup-resize-handle'), ...pos})
+        .release()
+      );
+
+      // Move it a little bit down.
+      await move({y: 100, x: -10});
+
+      // Check it is moved but not shrinked.
+      let dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, initialDims.height);
+      // And moving down.
+      assert.equal(dims.y, initialDims.y + 100);
+      assert.equal(dims.x, initialDims.x - 10);
+
+      // Now move it a little up and test it doesn't grow.
+      await move({y: -100});
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, initialDims.height);
+      assert.equal(dims.y, initialDims.y);
+
+      // Resize it in steps.
+      await resize({y: 10});
+      await resize({y: 10});
+      await resize({y: 10});
+      await resize({y: 10});
+      await resize({y: 10});
+      await resize({y: 50});
+
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, initialDims.height - 100);
+      assert.equal(dims.y, initialDims.y + 100);
+
+      // Resize back (in steps, to simulate user actions)
+      await resize({y: -20});
+      await resize({y: -20});
+      await resize({y: -20});
+      await resize({y: -40});
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, initialDims.height);
+      assert.equal(dims.y, initialDims.y);
+
+      // Now resize it beyond the maximum size and check it doesn't move.
+      await resize({y: -10});
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, initialDims.height);
+      assert.equal(dims.y, initialDims.y);
+
+      // Now resize it to the minimum size.
+      await resize({y: 700});
+
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, 300);
+
+      // Get window inner size.
+      const windowHeight: any = await driver.executeScript('return window.innerHeight');
+      const windowWidth: any = await driver.executeScript('return window.innerWidth');
+      assert.equal(dims.y + dims.height, windowHeight - 16);
+
+      // Now move it offscreen as low as possible.
+      await move({y: windowHeight - dims.y - 10});
+
+      // Make sure it is still visible.
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.y, windowHeight - 32); // 32px is a header size
+      assert.isBelow(dims.x, windowWidth - (32 * 4) + 1); // 120px is the right overflow value.
+
+      // Now move it to the right as far as possible.
+      await move({x: windowWidth - dims.x - 10});
+
+      // Make sure it is still visible.
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.y, windowHeight - 32);
+      assert.equal(dims.x, windowWidth - 32 * 4);
+
+      // Now move it to the left as far as possible.
+      await move({x: -3000});
+
+      // Make sure it is still visible.
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.isBelow(dims.x, 0);
+      assert.isAbove(dims.x + dims.width, 30);
+
+      const miniButton = driver.find(".test-floating-popup-minimize-maximize");
+      // Now move it back, but this time manually as the move handle is off screen.
+      await driver.withActions((a) => a
+        .move({origin: miniButton })
+        .press()
+        .move({origin: miniButton, x: Math.abs(dims.x) + 20})
+        .release()
+      );
+
+      // Maximize it (it was minimized as we used the button to move it).
+      await driver.find(".test-floating-popup-minimize-maximize").click();
+
+      // Now move it to the top as far as possible.
+      // Move it a little right, so that we don't end up on the logo. Driver is clicking logo sometimes.
+      await move({y: -windowHeight, x: 100});
+
+      // Make sure it is still visible.
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.y, 16);
+      assert.isAbove(dims.x, 100);
+      assert.isBelow(dims.x, windowWidth);
+
+      // Move back where it was.
+      let moverNow = await driver.find('.test-floating-popup-move-handle').getRect();
+      await move({x: moverInitial.x - moverNow.x});
+      // And restore the size by double clicking the resizer.
+      await driver.withActions((a) => a.doubleClick(driver.find('.test-floating-popup-resize-handle')));
+
+      // Now test if we can't resize it offscreen.
+      await move({y: 10000});
+      await move({y: -100});
+      // Header is about 100px above the viewport.
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.isBelow(dims.y, windowHeight);
+      assert.isAbove(dims.x, windowHeight - 140);
+
+      // Now resize as far as possible.
+      await resize({y: 10});
+      await resize({y: 300});
+
+      // Make sure it is still visible.
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.isBelow(dims.y, windowHeight - 16);
+
+      // Now move back and resize.
+      moverNow = await driver.find('.test-floating-popup-move-handle').getRect();
+      await move({x: moverInitial.x - moverNow.x, y: moverInitial.y - moverNow.y});
+      await driver.withActions((a) => a.doubleClick(driver.find('.test-floating-popup-resize-handle')));
+
+      dims = await driver.find('.test-floating-popup-window').getRect();
+      assert.equal(dims.height, initialDims.height);
+      assert.equal(dims.y, initialDims.y);
+      assert.equal(dims.x, initialDims.x);
+    });
+
     it('is visible on all pages', async function() {
       for (const page of ['access-rules', 'raw', 'code', 'settings']) {
         await driver.find(`.test-tools-${page}`).click();
