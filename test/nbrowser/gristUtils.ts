@@ -918,7 +918,7 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 }
 
 export async function waitForLabelInput(): Promise<void> {
-  await driver.wait(async () => (await driver.findWait('.kf_elabel_input', 100).hasFocus()), 300);
+  await driver.wait(async () => (await driver.findWait('.test-column-title-label', 100).hasFocus()), 300);
 }
 
 /**
@@ -1267,7 +1267,7 @@ export async function renameColumn(col: IColHeader, newName: string) {
   const header = await getColumnHeader(col);
   await header.click();
   await header.click();   // Second click opens the label for editing.
-  await header.find('.kf_elabel_input').sendKeys(newName, Key.ENTER);
+  await driver.findWait('.test-column-title-label', 100).sendKeys(newName, Key.ENTER);
   await waitForServer();
 }
 

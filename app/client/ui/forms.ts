@@ -15,7 +15,7 @@
  *   );
  */
 import {cssCheckboxSquare, cssLabel} from 'app/client/ui2018/checkbox';
-import {dom, DomArg, DomElementArg, styled} from 'grainjs';
+import {dom, DomArg, DomElementArg, Observable, styled} from 'grainjs';
 
 export {
   form,
@@ -75,6 +75,26 @@ export function hasValue(formData: FormData, nameOrPrefix: string): boolean {
   } else {
     return Boolean(formData.get(nameOrPrefix));
   }
+}
+
+function resize(el: HTMLTextAreaElement) {
+  el.style.height = '5px'; // hack for triggering style update.
+  const border = getComputedStyle(el, null).borderTopWidth || "0";
+  el.style.height = `calc(${el.scrollHeight}px + 2 * ${border})`;
+}
+
+export function autoGrow(text: Observable<string>) {
+  return (el: HTMLTextAreaElement) => {
+    el.addEventListener('input', () => resize(el));
+    setTimeout(() => resize(el), 10);
+    dom.autoDisposeElem(el, text.addListener(val => {
+      // Changes to the text are not reflected by the input event (witch is used by the autoGrow)
+      // So we need to manually update the textarea when the text is cleared.
+      if (!val) {
+        el.style.height = '5px'; // there is a min-height css attribute, so this is only to trigger a style update.
+      }
+    }));
+  };
 }
 
 const cssForm = styled('form', `

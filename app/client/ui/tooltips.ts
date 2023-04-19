@@ -352,45 +352,33 @@ export function withInfoTooltip(
  export function columnInfoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
   return cssColumnInfoTooltipButton(
     icon('Info', dom.cls("info_toggle_icon")),
-    (elem) => {
-      setPopupToCreateDom(
-        elem,
-        (ctl) => {
-          return cssInfoTooltipPopup(
-            cssInfoTooltipPopupCloseButton(
-              icon('CrossSmall'),
-              dom.on('click', () => ctl.close()),
-              testId('column-info-tooltip-close'),
-            ),
-            cssInfoTooltipPopupBody(
-              content,
-              { style: 'white-space: pre-wrap;' },
-              testId('column-info-tooltip-popup-body'),
-            ),
-            dom.cls(menuCssClass),
-            dom.cls(cssMenu.className),
-            dom.onKeyDown({
-              Enter: () => ctl.close(),
-              Escape: () => ctl.close(),
-            }),
-            (popup) => { setTimeout(() => popup.focus(), 0); },
-            testId('column-info-tooltip-popup'),
-          );
-        },
-        { ...defaultMenuOptions, ...{ placement: 'bottom-end' }, ...menuOptions },
-      );
-    },
     testId('column-info-tooltip'),
+    dom.on('mousedown', (e) => e.stopPropagation()),
+    dom.on('click', (e) => e.stopPropagation()),
+    hoverTooltip(() => cssColumnInfoTooltip(content, testId('column-info-tooltip-popup')), {
+      closeDelay: 200,
+      key: 'columnDescription',
+      openOnClick: true,
+    }),
+    dom.cls("info_toggle_icon_wrapper"),
     ...domArgs,
   );
 }
+
+const cssColumnInfoTooltip = styled('div', `
+  white-space: pre-wrap;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: min(500px, calc(100vw - 80px)); /* can't use 100%, 500px and 80px are picked by hand */
+`);
 
 const cssColumnInfoTooltipButton = styled('div', `
   cursor: pointer;
   --icon-color: ${theme.infoButtonFg};
   border-radius: 50%;
   display: inline-block;
-  margin-left: 5px;
+  padding-left: 5px;
   line-height: 0px;
 
   &:hover  {

@@ -20,7 +20,7 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   origCol: ko.Computed<ColumnRec>;
   colId: ko.Computed<string>;
   label: ko.Computed<string>;
-  description: ko.Computed<string>;
+  description: modelUtil.KoSaveableObservable<string>;
 
   // displayLabel displays label by default but switches to the more helpful colId whenever a
   // formula field in the view is being edited.
@@ -109,7 +109,10 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.origCol = ko.pureComputed(() => this.column().origCol());
   this.colId = ko.pureComputed(() => this.column().colId());
   this.label = ko.pureComputed(() => this.column().label());
-  this.description = ko.pureComputed(() => this.column().description());
+  this.description = modelUtil.savingComputed({
+    read: () => this.column().description(),
+    write: (setter, val) => setter(this.column().description, val)
+  });
 
   // displayLabel displays label by default but switches to the more helpful colId whenever a
   // formula field in the view is being edited.
