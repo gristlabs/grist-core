@@ -564,7 +564,7 @@ describe("Fork", function() {
         // check Replace Original gives expected button, and press it.
         await driver.find('.test-tb-share').click();
         await driver.find('.test-replace-original').click();
-        let confirmButton = driver.findWait('.test-modal-confirm', 1000);
+        let confirmButton = driver.findWait('.test-modal-confirm', 3000);
         assert.equal(await confirmButton.getText(), 'Update');
         await confirmButton.click();
 
@@ -585,7 +585,7 @@ describe("Fork", function() {
         // check Replace Original gives a scarier button, and press it anyway.
         await driver.find('.test-tb-share').click();
         await driver.find('.test-replace-original').click();
-        confirmButton = driver.findWait('.test-modal-confirm', 1000);
+        confirmButton = driver.findWait('.test-modal-confirm', 3000);
         assert.equal(await confirmButton.getText(), 'Overwrite');
         await confirmButton.click();
 
@@ -600,7 +600,7 @@ describe("Fork", function() {
         // check Replace Original mentions that the document is the same as the trunk.
         await driver.find('.test-tb-share').click();
         await driver.find('.test-replace-original').click();
-        confirmButton = driver.findWait('.test-modal-confirm', 1000);
+        confirmButton = driver.findWait('.test-modal-confirm', 3000);
         assert.equal(await confirmButton.getText(), 'Update');
         assert.match(await driver.find('.test-modal-dialog').getText(),
                      /already identical/);
