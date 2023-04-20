@@ -65,7 +65,7 @@ export const cssMenuElem = styled('div', `
   padding: 8px 0px 16px 0px;
   box-shadow: 0 2px 20px 0 ${theme.menuShadow};
   min-width: 160px;
-  z-index: 999;
+  z-index: ${vars.menuZIndex};
   --weaseljs-selected-background-color: ${theme.menuItemSelectedBg};
   --weaseljs-menu-item-padding: 8px 24px;
   background-color: ${theme.menuBg};

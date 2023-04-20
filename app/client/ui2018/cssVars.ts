@@ -134,6 +134,18 @@ export const vars = {
   logoBg: new CustomProp('logo-bg', '#040404'),
   logoSize: new CustomProp('logo-size', '22px 22px'),
   toastBg: new CustomProp('toast-bg', '#040404'),
+
+  /* Z indexes */
+  menuZIndex: new CustomProp('menu-z-index', '999'),
+  modalZIndex: new CustomProp('modal-z-index', '999'),
+  onboardingBackdropZIndex: new CustomProp('onboarding-backdrop-z-index', '999'),
+  onboardingPopupZIndex: new CustomProp('onboarding-popup-z-index', '1000'),
+  floatingPopupZIndex: new CustomProp('floating-popup-z-index', '1002'),
+  tutorialModalZIndex: new CustomProp('tutorial-modal-z-index', '1003'),
+  notificationZIndex: new CustomProp('notification-z-index', '1100'),
+  browserCheckZIndex: new CustomProp('browser-check-z-index', '5000'),
+  tooltipZIndex: new CustomProp('tooltip-z-index', '5000'),
+  // TODO: Add properties for remaining hard-coded z-indexes.
 };
 
 /**

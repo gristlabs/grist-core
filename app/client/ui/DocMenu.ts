@@ -476,7 +476,8 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
   function deleteDoc() {
     confirmModal(t("Delete {{name}}", {name: doc.name}), t("Delete"),
       () => home.deleteDoc(doc.id, false).catch(reportError),
-      t("Document will be moved to Trash."));
+      {explanation: t("Document will be moved to Trash.")}
+    );
   }
 
   async function manageUsers() {
@@ -529,7 +530,8 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
   function hardDeleteDoc() {
     confirmModal(t("Permanently Delete \"{{name}}\"?", {name: doc.name}), t("Delete Forever"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
-      t("Document will be permanently deleted."));
+      {explanation: t("Document will be permanently deleted.")}
+    );
   }
 
   return [

@@ -115,8 +115,12 @@ export class ApiKey extends Disposable {
     confirmModal(
       t("Remove API Key"), t("Remove"),
       () => this._onDelete(),
-      t("You're about to delete an API key. This will cause all future requests " +
-        "using this API key to be rejected. Do you still want to delete?")
+      {
+        explanation: t(
+          "You're about to delete an API key. This will cause all future requests " +
+          "using this API key to be rejected. Do you still want to delete?"
+        ),
+      }
     );
   }
 }

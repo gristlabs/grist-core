@@ -404,7 +404,7 @@ const cssColumnInfoTooltipButton = styled('div', `
 
 const cssTooltip = styled('div', `
   position: absolute;
-  z-index: 5000;      /* should be higher than a modal */
+  z-index: ${vars.tooltipZIndex};      /* should be higher than a modal */
   background-color: ${theme.tooltipBg};
   border-radius: 3px;
   box-shadow: 0 0 2px rgba(0,0,0,0.5);

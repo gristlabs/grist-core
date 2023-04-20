@@ -24,15 +24,15 @@ export async function duplicatePage(gristDoc: GristDoc, pageId: number) {
   let inputEl: HTMLInputElement;
   setTimeout(() => { inputEl.focus(); inputEl.select(); }, 100);
 
-  confirmModal('Duplicate page', 'Save', () => makeDuplicate(gristDoc, pageId, inputEl.value), (
-    dom('div', [
+  confirmModal('Duplicate page', 'Save', () => makeDuplicate(gristDoc, pageId, inputEl.value), {
+    explanation: dom('div', [
       cssField(
         cssLabel("Name"),
         inputEl = cssInput({value: pageName + ' (copy)'}),
       ),
       t("Note that this does not copy data, but creates another view of the same data."),
-    ])
-  ));
+    ]),
+  });
 }
 
 async function makeDuplicate(gristDoc: GristDoc, pageId: number, pageName: string = '') {

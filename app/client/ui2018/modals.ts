@@ -137,6 +137,8 @@ export interface IModalOptions {
   noEscapeKey?: boolean;
   // If set, clicking into background does not close dialog.
   noClickAway?: boolean;
+  // DOM arguments to pass to the modal backer.
+  backerDomArgs?: DomElementArg[];
   // If given, call and wait for this before closing the dialog. If it returns false, don't close.
   // Error also prevents closing, and is reported as an unexpected error.
   beforeClose?: () => Promise<boolean>;
@@ -174,7 +176,13 @@ export function modal(
   createFn: (ctl: IModalControl, owner: MultiHolder) => DomElementArg,
   options: IModalOptions = {}
 ): void {
-  const {noEscapeKey, noClickAway, refElement = document.body, variant = 'fade-in'} = options;
+  const {
+    noEscapeKey,
+    noClickAway,
+    refElement = document.body,
+    variant = 'fade-in',
+    backerDomArgs = [],
+  } = options;
 
   function doClose() {
     if (!modalDom.isConnected) { return; }
@@ -242,6 +250,7 @@ export function modal(
       return dialogDom;
     }),
     noClickAway ? null : dom.on('click', () => close()),
+    ...backerDomArgs,
   );
 
   document.body.appendChild(modalDom);
@@ -293,7 +302,10 @@ export interface ISaveModalOptions {
  *  3.  saveFunc: () => doSomething().catch((e) => { alert("BOOM"); throw new StayOpen(); })
  *      If doSomething fails, an alert is shown, and the dialog stays open.
  */
-export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) => ISaveModalOptions) {
+export function saveModal(
+  createFunc: (ctl: IModalControl, owner: MultiHolder) => ISaveModalOptions,
+  modalOptions?: IModalOptions
+) {
   return modal((ctl, owner) => {
     const options = createFunc(ctl, owner);
 
@@ -321,7 +333,14 @@ export function saveModal(createFunc: (ctl: IModalControl, owner: MultiHolder) =
       options.width && cssModalWidth(options.width),
       options.modalArgs,
     ];
-  });
+  }, modalOptions);
+}
+
+export interface ConfirmModalOptions {
+  explanation?: DomElementArg,
+  hideCancel?: boolean;
+  extraButtons?: DomContents;
+  modalOptions?: IModalOptions;
 }
 
 /**
@@ -333,8 +352,7 @@ export function confirmModal(
   title: DomElementArg,
   btnText: DomElementArg,
   onConfirm: () => Promise<void>,
-  explanation?: DomElementArg,
-  {hideCancel, extraButtons}: {hideCancel?: boolean, extraButtons?: DomContents} = {},
+  {explanation, hideCancel, extraButtons, modalOptions}: ConfirmModalOptions = {},
 ): void {
   return saveModal((ctl, owner): ISaveModalOptions => ({
     title,
@@ -344,7 +362,7 @@ export function confirmModal(
     hideCancel,
     width: 'normal',
     extraButtons,
-  }));
+  }), modalOptions);
 }
 
 
@@ -592,7 +610,7 @@ const cssModalBacker = styled('div', `
   top: 0;
   left: 0;
   padding: 16px;
-  z-index: 999;
+  z-index: ${vars.modalZIndex};
   background-color: ${theme.modalBackdrop};
   overflow-y: auto;
   animation-name: ${cssFadeIn};

@@ -1,5 +1,5 @@
 import {hoverTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
+import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Disposable, dom, DomArg, DomContents, IDisposable, makeTestId, Observable, styled} from 'grainjs';
 
@@ -16,11 +16,15 @@ export interface PopupOptions {
   onClose?: () => void;
   closeButton?: boolean;
   autoHeight?: boolean;
+  /** Defaults to false. */
+  stopClickPropagationOnMove?: boolean;
 }
 
 export class FloatingPopup extends Disposable {
   protected _isMinimized = Observable.create(this, false);
+  private _isFinishingMove = false;
   private _popupElement: HTMLElement | null = null;
+  private _popupMinimizeButtonElement: HTMLElement | null = null;
 
   private _startX: number;
   private _startY: number;
@@ -32,6 +36,25 @@ export class FloatingPopup extends Disposable {
 
   constructor(protected _options: PopupOptions = {}, private _args: DomArg[] = []) {
     super();
+
+    if (_options.stopClickPropagationOnMove){
+      // weasel.js registers a 'click' listener that closes any open popups that
+      // are outside the click target. We capture the click event here, stopping
+      // propagation in a few scenarios where closing popups is undesirable.
+      window.addEventListener('click', (ev) => {
+        if (this._isFinishingMove) {
+          ev.stopPropagation();
+          this._isFinishingMove = false;
+          return;
+        }
+
+        if (this._popupMinimizeButtonElement?.contains(ev.target as Node)) {
+          ev.stopPropagation();
+          this._minimizeOrMaximize();
+          return;
+        }
+      }, {capture: true});
+    }
 
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this._handleMouseMove = this._handleMouseMove.bind(this);
@@ -181,6 +204,7 @@ export class FloatingPopup extends Disposable {
   }
 
   private _handleMouseUp() {
+    this._isFinishingMove = true;
     document.removeEventListener('mousemove', this._handleMouseMove);
     document.removeEventListener('mouseup', this._handleMouseUp);
     document.body.removeEventListener('mouseleave', this._handleMouseUp);
@@ -221,6 +245,11 @@ export class FloatingPopup extends Disposable {
     this._popupElement!.style.top = `${newTop}px`;
   }
 
+  private _minimizeOrMaximize() {
+    this._isMinimized.set(!this._isMinimized.get());
+    this._repositionPopup();
+  }
+
   private _buildPopup() {
     const body = cssPopup(
       {tabIndex: '-1'},
@@ -231,7 +260,8 @@ export class FloatingPopup extends Disposable {
           return cssResizeTopLayer(
             cssTopHandle(testId('resize-handle')),
             dom.on('mousedown', () => this._resize = true),
-            dom.on('dblclick', () => {
+            dom.on('dblclick', (e) => {
+              e.stopImmediatePropagation();
               this._popupElement?.style.setProperty('--height', `${POPUP_MAX_HEIGHT}px`);
               this._repositionPopup();
             })
@@ -262,23 +292,27 @@ export class FloatingPopup extends Disposable {
                 }),
                 testId('close'),
               ),
-              cssPopupHeaderButton(
+              this._popupMinimizeButtonElement = cssPopupHeaderButton(
                 isMinimized ? icon('Maximize'): icon('Minimize'),
                 hoverTooltip(isMinimized ? 'Maximize' : 'Minimize', {key: 'docTutorialTooltip'}),
-                dom.on('click', () => {
-                  this._isMinimized.set(!this._isMinimized.get());
-                  this._repositionPopup();
-                }),
+                dom.on('click', () => this._minimizeOrMaximize()),
                 testId('minimize-maximize'),
               ),
+              // Disable dragging when a button in the header is clicked.
+              dom.on('mousedown', ev => ev.stopPropagation()),
+              dom.on('touchstart', ev => ev.stopPropagation()),
             )
           ];
         }),
         dom.on('mousedown', this._handleMouseDown),
         dom.on('touchstart', this._handleTouchStart),
+        dom.on('dblclick', () => this._minimizeOrMaximize()),
         testId('header'),
       ),
-      dom.maybe(use => !use(this._isMinimized), () => this._buildContent()),
+      cssPopupContent(
+        this._buildContent(),
+        cssPopupContent.cls('-minimized', this._isMinimized),
+      ),
       () => { window.addEventListener('resize', this._handleWindowResize); },
       dom.onDispose(() => {
         document.removeEventListener('mousemove', this._handleMouseMove);
@@ -344,7 +378,7 @@ const cssPopup = styled('div', `
   flex-direction: column;
   border: 2px solid ${theme.accentBorder};
   border-radius: 5px;
-  z-index: 999;
+  z-index: ${vars.floatingPopupZIndex};
   --height: ${POPUP_MAX_HEIGHT}px;
   height: ${POPUP_HEIGHT};
   width: ${POPUP_WIDTH};
@@ -441,10 +475,10 @@ const cssPopupHeaderButton = styled('div', `
 
 const cssResizeTopLayer = styled('div', `
   position: absolute;
-  top: 0;
+  top: -6px;
   left: 0;
   right: 0;
-  bottom: 70%;
+  bottom: 28px;
   z-index: 500;
   cursor: ns-resize;
 `);
@@ -464,4 +498,15 @@ const cssBottomHandle = styled(cssTopHandle, `
   top: unset;
   bottom: 0;
   left: 0;
+`);
+
+const cssPopupContent = styled('div', `
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+
+  &-minimized {
+    display: none;
+  }
 `);

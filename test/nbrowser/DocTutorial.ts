@@ -354,7 +354,12 @@ describe('DocTutorial', function () {
 
     it('supports navigating to a specific slide', async function() {
       const slide3 = await driver.find('.test-doc-tutorial-popup-slide-3');
-      assert.equal(await slide3.getAttribute('title'), 'Adding Columns and Rows');
+      await slide3.mouseMove();
+      await gu.waitToPass(
+        async () => assert.isTrue(await driver.find('.test-tooltip').isDisplayed()),
+        500
+      );
+      assert.equal(await driver.find('.test-tooltip').getText(), 'Adding Columns and Rows');
       await slide3.click();
       await driver.find('.test-doc-tutorial-popup-slide-3').click();
       assert.equal(
@@ -368,7 +373,12 @@ describe('DocTutorial', function () {
       );
 
       const slide1 = await driver.find('.test-doc-tutorial-popup-slide-1');
-      assert.equal(await slide1.getAttribute('title'), 'Intro');
+      await slide1.mouseMove();
+      await gu.waitToPass(
+        async () => assert.isTrue(await driver.find('.test-tooltip').isDisplayed()),
+        500
+      );
+      assert.equal(await driver.find('.test-tooltip').getText(), 'Intro');
       await slide1.click();
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1').getText(),
@@ -392,13 +402,25 @@ describe('DocTutorial', function () {
       assert.isFalse(await driver.find('.test-doc-tutorial-lightbox').isPresent());
     });
 
-    it('can be minimized and maximized', async function() {
+    it('can be minimized and maximized by clicking a button in the header', async function() {
       await driver.find('.test-floating-popup-minimize-maximize').click();
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-header').isDisplayed());
-      assert.isFalse(await driver.find('.test-doc-tutorial-popup-body').isPresent());
-      assert.isFalse(await driver.find('.test-doc-tutorial-popup-footer').isPresent());
+      assert.isFalse(await driver.find('.test-doc-tutorial-popup-body').isDisplayed());
+      assert.isFalse(await driver.find('.test-doc-tutorial-popup-footer').isDisplayed());
 
       await driver.find('.test-floating-popup-minimize-maximize').click();
+      assert.isTrue(await driver.find('.test-doc-tutorial-popup-header').isDisplayed());
+      assert.isTrue(await driver.find('.test-doc-tutorial-popup-body').isDisplayed());
+      assert.isTrue(await driver.find('.test-doc-tutorial-popup-footer').isDisplayed());
+    });
+
+    it('can be minimized and maximized by double clicking the header', async function() {
+      await driver.withActions(a => a.doubleClick(driver.find('.test-floating-popup-title')));
+      assert.isTrue(await driver.find('.test-doc-tutorial-popup-header').isDisplayed());
+      assert.isFalse(await driver.find('.test-doc-tutorial-popup-body').isDisplayed());
+      assert.isFalse(await driver.find('.test-doc-tutorial-popup-footer').isDisplayed());
+
+      await driver.withActions(a => a.doubleClick(driver.find('.test-floating-popup-title')));
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-header').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-body').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-footer').isDisplayed());
