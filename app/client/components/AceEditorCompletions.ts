@@ -17,6 +17,7 @@ export function setupAceEditorCompletions(editor: ace.Editor, options: ICompleti
   // use a suggestion, a change of behavior that doesn't seem particularly desirable and
   // which also breaks several existing tests.
   const {Autocomplete} = ace.acequire('ace/autocomplete'); // lives in brace/ext/language_tools
+
   const completer = new Autocomplete();
   completer.autoSelect = false;
   (editor as any).completer = completer;
@@ -83,18 +84,30 @@ function initCustomCompleter() {
   if (_initialized) { return; }
   _initialized = true;
 
+  // The default regex just matches identifiers. We expand it to include periods (to capture
+  // attributes) and "$", for Grist column names. In addition, we autocomplete lookup formulas
+  // with the function name, to give suggestions for lookup keyword arguments.
+  const prefixMatchRegex = /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$|[\w.$\u00A2-\uFFFF]+$/;
+
+  // Monkey-patch getCompletionPrefix. This is based on the source code in
+  // node_modules/brace/ext/language_tools.js, simplified to do the one thing we want here (since
+  // the original method's generality doesn't help us here).
+  const util = ace.acequire('ace/autocomplete/util');   // lives in brace/ext/language_tools
+  util.getCompletionPrefix = function getCompletionPrefix(this: any, editor: ace.Editor) {
+    const pos = editor.getCursorPosition();
+    const line = editor.session.getLine(pos.row);
+    const match = line.slice(0, pos.column).match(prefixMatchRegex);
+    return match ? match[0] : "";
+  };
+
   // Add some autocompletion with partial access to document
   const aceLanguageTools = ace.acequire('ace/ext/language_tools');
   aceLanguageTools.setCompleters([]);
   aceLanguageTools.addCompleter({
-    // Default regexp stops at periods, which doesn't let autocomplete
-    // work on members.  So we expand it to include periods.
-    // We also include $, which grist uses for column names,
-    // and '(' for the start of a function call, which may provide completions for arguments.
-    identifierRegexps: [/[a-zA-Z_0-9.$\u00A2-\uFFFF(]/],
-
     // For autocompletion we ship text to the sandbox and run standard completion there.
-    async getCompletions(editor: ace.Editor, session: ace.IEditSession, pos: number, prefix: string, callback: any) {
+    async getCompletions(
+      editor: ace.Editor, session: ace.IEditSession, pos: ace.Position, prefix: string, callback: any
+    ) {
       const options = completionOptions.get(editor);
       if (!options || prefix.length === 0) { callback(null, []); return; }
       const suggestions = await options.getSuggestions(prefix);
