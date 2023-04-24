@@ -951,7 +951,7 @@
     "HyperLinkEditor": {
         "[link label] url": "[Linkbezeichnung] URL"
     },
-    "welcomeTour": {
+    "WelcomeTour": {
         "Add New": "Neu hinzufügen",
         "Building up": "Zubauend",
         "Configuring your document": "Konfigurieren Ihres Dokuments",

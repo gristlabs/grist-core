@@ -74,4 +74,8 @@ jspm_packages/
 # dotenv environment variables file
 .env
 
+# Test
+timings.txt
+xunit.xml
+
 **/_build
