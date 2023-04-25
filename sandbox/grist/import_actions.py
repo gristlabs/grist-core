@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 from six.moves import zip
 
 import column
@@ -86,7 +84,7 @@ class ImportActions(object):
     hidden_table_rec = tables.lookupOne(tableId=hidden_table_id)
 
     # will use these to set default formulas (if column names match in src and dest table)
-    src_cols = {c.colId for c in hidden_table_rec.columns}
+    src_cols = {c.colId: c for c in hidden_table_rec.columns}
 
     target_table = tables.lookupOne(tableId=dest_table_id) if dest_table_id else hidden_table_rec
     target_cols = target_table.columns
@@ -97,34 +95,29 @@ class ImportActions(object):
     dest_cols = []
     for c in target_cols:
       if column.is_visible_column(c.colId) and (not c.isFormula or c.formula == ""):
-
-        dest_cols.append( {
+        source_col = src_cols.get(c.colId)
+        dest_col = {
           "label":    c.label,
           "colId":    c.colId if dest_table_id else None, #should be None if into new table
           "type":     c.type,
           "widgetOptions": getattr(c, "widgetOptions", ""),
-          "formula":  ("$" + c.colId) if (c.colId in src_cols) else ''
-        })
+          "formula":  ("$" + source_col.colId) if source_col else '',
+        }
+        if source_col and c.type.startswith("Ref:"):
+          ref_table_id = c.type.split(':')[1]
+          visible_col = c.visibleCol
+          if visible_col:
+            dest_col["visibleCol"] = visible_col.id
+            dest_col["formula"] = '{}.lookupOne({}=${c}) or (${c} and str(${c}))'.format(
+                ref_table_id, visible_col.colId, c=source_col.colId)
+
+        dest_cols.append(dest_col)
 
     return {"destCols": dest_cols}
     # doesnt generate other fields of transform_rule, but sandbox only used destCols
 
 
-  def FillTransformRuleColIds(self, transform_rule):
-    """
-    Takes a transform rule with missing dest col ids, and returns it
-    with sanitized and de-duplicated ids generated from the original
-    column labels.
-
-    NOTE: This work could be done outside the data engine, but the logic
-    for cleaning column identifiers is quite complex and currently only lives
-    in the data engine. In the future, it may be worth porting it to
-    Node to avoid an extra trip to the data engine.
-    """
-    return _gen_colids(transform_rule)
-
-
-  def MakeImportTransformColumns(self, hidden_table_id, transform_rule, gen_all):
+  def _MakeImportTransformColumns(self, hidden_table_id, transform_rule, gen_all):
     """
     Makes prefixed columns in the grist hidden import table (hidden_table_id)
 
@@ -142,10 +135,9 @@ class ImportActions(object):
     src_cols = {c.colId for c in hidden_table_rec.columns}
     log.debug("destCols:" + repr(transform_rule['destCols']))
 
-    #wrap dest_cols as namedtuples, to allow access like 'dest_col.param'
-    dest_cols = [namedtuple('col', c.keys())(*c.values()) for c in transform_rule['destCols']]
+    dest_cols = transform_rule['destCols']
 
-    log.debug("MakeImportTransformColumns: {}".format("gen_all" if gen_all else "optimize"))
+    log.debug("_MakeImportTransformColumns: {}".format("gen_all" if gen_all else "optimize"))
 
     # Calling rebuild_usercode once per added column is wasteful and can be very slow.
     self._engine._should_rebuild_usercode = False
@@ -156,21 +148,31 @@ class ImportActions(object):
     try:
       for c in dest_cols:
         # skip copy columns (unless gen_all)
-        formula = c.formula.strip()
+        formula = c["formula"].strip()
         isCopyFormula = (formula.startswith("$") and formula[1:] in src_cols)
 
         if gen_all or not isCopyFormula:
           # If colId specified, use that. Otherwise, use the (sanitized) label.
-          col_id = c.colId or identifiers.pick_col_ident(c.label)
+          col_id = c["colId"] or identifiers.pick_col_ident(c["label"])
+          visible_col_ref = c.get("visibleCol", 0)
           new_col_id = _import_transform_col_prefix + col_id
           new_col_spec = {
-            "label": c.label,
-            "type": c.type,
-            "widgetOptions": getattr(c, "widgetOptions", ""),
+            "label": c["label"],
+            "type": c["type"],
+            "widgetOptions": c.get("widgetOptions", ""),
             "isFormula": True,
-            "formula": c.formula}
+            "formula": c["formula"],
+            "visibleCol": visible_col_ref,
+          }
           result = self._useractions.doAddColumn(hidden_table_id, new_col_id, new_col_spec)
-          new_cols.append(result["colRef"])
+          new_col_id, new_col_ref = result["colId"], result["colRef"]
+
+          if visible_col_ref:
+            visible_col_id = self._docmodel.columns.table.get_record(visible_col_ref).colId
+            self._useractions.SetDisplayFormula(hidden_table_id, None, new_col_ref,
+                '${}.{}'.format(new_col_id, visible_col_id))
+
+          new_cols.append(new_col_ref)
     finally:
       self._engine._should_rebuild_usercode = True
     self._engine.rebuild_usercode()
@@ -178,36 +180,40 @@ class ImportActions(object):
     return new_cols
 
 
-  def DoGenImporterView(self, source_table_id, dest_table_id, transform_rule = None):
+  def DoGenImporterView(self, source_table_id, dest_table_id, transform_rule, options):
     """
-    Generates viewsections/formula columns for importer
+    Generates formula columns for transformed importer columns, and optionally a new viewsection.
 
-    source_table_id: id of temporary hidden table, data parsed from data source
-    dest_table_id: id of table to import to, or None for new table
+    source_table_id: id of temporary hidden table, containing source data and used for preview.
+    dest_table_id: id of table to import to, or None for new table.
     transform_rule: transform_rule to reuse (if it still applies), if None will generate new one
+    options: a dictionary with optional keys:
+      createViewSection: defaults to True, in which case creates a new view-section to show the
+        generated columns, for use in review, and remove any previous ones.
+      genAll: defaults to True; if False, transform formulas that just copy will not be generated.
+      refsAsInts: if set, treat Ref columns as type Int for a new dest_table. This is used when
+        finishing imports from multi-table sources (e.g. from json) to avoid issues such as
+        importing linked tables in the wrong order. Caller is expected to fix these up separately.
 
-    Removes old transform viewSection and columns for source_table_id, and creates new ones that
-    match the destination table.
-    Returns the rowId of the newly added section or 0 if no source table (source_table_id
-    can be None in case of importing empty file).
-
-    Creates formula columns for transforms (match columns in dest table)
+    Returns and object with:
+      transformRule: updated (normalized) transform rule, or a newly generated one.
+      viewSectionRef: rowId of the newly added section, present only if createViewSection is set.
     """
+    createViewSection = options.get("createViewSection", True)
+    genAll = options.get("genAll", True)
+    refsAsInts = options.get("refsAsInts", True)
 
-    tables = self._docmodel.tables
-    src_table_rec = tables.lookupOne(tableId=source_table_id)
+    if createViewSection:
+      src_table_rec = self._docmodel.tables.lookupOne(tableId=source_table_id)
 
-    # for new table, dest_table_id is None
-    dst_table_rec = tables.lookupOne(tableId=dest_table_id) if dest_table_id else src_table_rec
+      # ======== Cleanup old sections/columns
 
-    # ======== Cleanup old sections/columns
-
-    # Transform columns are those that start with a special prefix.
-    old_cols = [c for c in src_table_rec.columns
-                if c.colId.startswith(_import_transform_col_prefix)]
-    old_sections = {field.parentId for c in old_cols for field in c.viewFields}
-    self._docmodel.remove(old_sections)
-    self._docmodel.remove(old_cols)
+      # Transform columns are those that start with a special prefix.
+      old_cols = [c for c in src_table_rec.columns
+                  if c.colId.startswith(_import_transform_col_prefix)]
+      old_sections = {field.parentId for c in old_cols for field in c.viewFields}
+      self._docmodel.remove(old_sections)
+      self._docmodel.remove(old_cols)
 
     #======== Prepare/normalize transform_rule, Create new formula columns
     # Defaults to duplicating dest_table columns (or src_table columns for a new table)
@@ -216,26 +222,35 @@ class ImportActions(object):
     if transform_rule is None:
       transform_rule = self._MakeDefaultTransformRule(source_table_id, dest_table_id)
 
-    else: #ensure prefixes, colIds are correct
-      _strip_prefixes(transform_rule)
+    # ensure prefixes, colIds are correct
+    _strip_prefixes(transform_rule)
 
-      if not dest_table_id: # into new table: 'colId's are undefined
-        _gen_colids(transform_rule)
-      else:
-        if None in (dc["colId"] for dc in transform_rule["destCols"]):
-          errstr = "colIds must be defined in transform_rule for importing into existing table: "
-          raise ValueError(errstr + repr(transform_rule))
+    if not dest_table_id: # into new table: 'colId's are undefined
+      _gen_colids(transform_rule)
 
+      # Treat destination Ref:* columns as Int instead, for new tables, to avoid issues when
+      # importing linked tables in the wrong order. Caller is expected to fix up afterwards.
+      if refsAsInts:
+        for col in transform_rule["destCols"]:
+          if col["type"].startswith("Ref:"):
+            col["type"] = "Int"
 
-    new_cols = self.MakeImportTransformColumns(source_table_id, transform_rule, gen_all=True)
-    # we want to generate all columns so user can see them and edit
+    else:
+      if None in (dc["colId"] for dc in transform_rule["destCols"]):
+        errstr = "colIds must be defined in transform_rule for importing into existing table: "
+        raise ValueError(errstr + repr(transform_rule))
 
-    #=========  Create new transform view section.
-    new_section = self._docmodel.add(self._docmodel.view_sections,
-                                    tableRef=src_table_rec.id,
-                                    parentKey='record',
-                                    borderWidth=1, defaultWidth=100,
-                                    sortColRefs='[]')[0]
-    self._docmodel.add(new_section.fields, colRef=new_cols)
+    new_cols = self._MakeImportTransformColumns(source_table_id, transform_rule, gen_all=genAll)
 
-    return new_section.id
+    result = {"transformRule": transform_rule}
+    if createViewSection:
+      #=========  Create new transform view section.
+      new_section = self._docmodel.add(self._docmodel.view_sections,
+                                      tableRef=src_table_rec.id,
+                                      parentKey='record',
+                                      borderWidth=1, defaultWidth=100,
+                                      sortColRefs='[]')[0]
+      self._docmodel.add(new_section.fields, colRef=new_cols)
+      result["viewSectionRef"] = new_section.id
+
+    return result

@@ -5,10 +5,9 @@ from __future__ import absolute_import
 import datetime
 import math as _math
 import operator
-import os
 import random
 import uuid
-from functools import reduce
+from functools import reduce  # pylint: disable=redefined-builtin
 
 from six.moves import zip, xrange
 import six
@@ -491,6 +490,25 @@ def MULTINOMIAL(value1, *more_values):
     res *= COMBIN(s, v)
   return res
 
+def NUM(value):
+  """
+  For a Python floating-point value that's actually an integer, returns a Python integer type.
+  Otherwise, returns the value unchanged. This is helpful sometimes when a value comes from a
+  Numeric Grist column (represented as floats), but when int values are actually expected.
+
+  >>> NUM(-17.0)
+  -17
+  >>> NUM(1.5)
+  1.5
+  >>> NUM(4)
+  4
+  >>> NUM("NA")
+  'NA'
+  """
+  if isinstance(value, float) and value.is_integer():
+    return int(value)
+  return value
+
 def ODD(value):
   """
   Rounds a number up to the nearest odd integer.
@@ -869,10 +887,12 @@ def TRUNC(value, places=0):
 def UUID():
   """
   Generate a random UUID-formatted string identifier.
+
   Since UUID() produces a different value each time it's called, it is best to use it in
   [trigger formula](formulas.md#trigger-formulas) for new records.
-  This would only calculate UUID() once and freeze the calculated value. By contrast, a regular formula
-  may get recalculated any time the document is reloaded, producing a different value for UUID() each time.
+  This would only calculate UUID() once and freeze the calculated value. By contrast, a regular
+  formula may get recalculated any time the document is reloaded, producing a different value for
+  UUID() each time.
   """
   try:
     uid = uuid.uuid4()

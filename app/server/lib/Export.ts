@@ -1,6 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {buildColFilter} from 'app/common/ColumnFilterFunc';
 import {TableDataAction} from 'app/common/DocActions';
+import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
@@ -11,6 +12,7 @@ import {schema, SchemaTypes} from 'app/common/schema';
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord, MetaTableData} from 'app/common/TableData';
+import {BaseFormatter, createFullFormatterFromDocData} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
@@ -23,23 +25,16 @@ import * as _ from 'underscore';
 type Access = (row: number) => any;
 
 // Helper interface with information about the column
-interface ExportColumn {
+export interface ExportColumn {
   id: number;
   colId: string;
   label: string;
   type: string;
-  widgetOptions: any;
+  formatter: BaseFormatter;
   parentPos: number;
+  description: string;
 }
-// helper for empty column
-const emptyCol: ExportColumn = {
-  id: 0,
-  colId: '',
-  label: '',
-  type: '',
-  widgetOptions: null,
-  parentPos: 0
-};
+
 /**
  * Bare data that is exported - used to convert to various formats.
  */
@@ -173,41 +168,33 @@ export async function exportTable(
   {metaTables}: {metaTables?: FilteredMetaTables} = {},
 ): Promise<ExportData> {
   metaTables = metaTables || await getMetaTables(activeDoc, req);
+  const docData = new DocData((tableId) => { throw new Error("Unexpected DocData fetch"); }, metaTables);
   const tables = safeTable(metaTables, '_grist_Tables');
+  const metaColumns = safeTable(metaTables, '_grist_Tables_column');
   checkTableAccess(tables, tableRef);
   const table = safeRecord(tables, tableRef);
-  const tableColumns = safeTable(metaTables, '_grist_Tables_column')
-    .getRecords()
+
+  // Select only columns that belong to this table.
+  const tableColumns = metaColumns.filterRecords({parentId: tableRef})
     // sort by parentPos and id, which should be the same order as in raw data
-    .sort((c1, c2) => nativeCompare(c1.parentPos, c2.parentPos) || nativeCompare(c1.id, c2.id))
-    // remove manual sort column
-    .filter(col => col.colId !== gristTypes.MANUALSORT);
+    .sort((c1, c2) => nativeCompare(c1.parentPos, c2.parentPos) || nativeCompare(c1.id, c2.id));
+
   // Produce a column description matching what user will see / expect to export
-  const tableColsById = _.indexBy(tableColumns, 'id');
-  const columns = tableColumns.map(tc => {
-    // remove all columns that don't belong to this table
-    if (tc.parentId !== tableRef) {
-      return emptyCol;
-    }
-    // remove all helpers
-    if (gristTypes.isHiddenCol(tc.colId)) {
-      return emptyCol;
-    }
+  const columns: ExportColumn[] = tableColumns
+  .filter(tc => !gristTypes.isHiddenCol(tc.colId))    // Exclude helpers
+  .map<ExportColumn>(tc => {
     // for reference columns, return display column, and copy settings from visible column
-    const displayCol = tableColsById[tc.displayCol || tc.id];
-    const colOptions = gutil.safeJsonParse(tc.widgetOptions, {});
-    const displayOptions = gutil.safeJsonParse(displayCol.widgetOptions, {});
-    const widgetOptions = Object.assign(displayOptions, colOptions);
+    const displayCol = metaColumns.getRecord(tc.displayCol) || tc;
     return {
       id: displayCol.id,
       colId: displayCol.colId,
       label: tc.label,
-      type: displayCol.type,
-      widgetOptions,
+      type: tc.type,
+      formatter: createFullFormatterFromDocData(docData, tc.id),
       parentPos: tc.parentPos,
-      description: displayCol.description,
+      description: tc.description,
     };
-  }).filter(tc => tc !== emptyCol);
+  });
 
   // fetch actual data
   const {tableData} = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
@@ -251,37 +238,35 @@ export async function exportSection(
   {metaTables}: {metaTables?: FilteredMetaTables} = {},
 ): Promise<ExportData> {
   metaTables = metaTables || await getMetaTables(activeDoc, req);
+  const docData = new DocData((tableId) => { throw new Error("Unexpected DocData fetch"); }, metaTables);
   const viewSections = safeTable(metaTables, '_grist_Views_section');
   const viewSection = safeRecord(viewSections, viewSectionId);
   safe(viewSection.tableRef, `Cannot find or access table`);
   const tables = safeTable(metaTables, '_grist_Tables');
   checkTableAccess(tables, viewSection.tableRef);
   const table = safeRecord(tables, viewSection.tableRef);
-  const columns = safeTable(metaTables, '_grist_Tables_column')
-    .filterRecords({parentId: table.id});
+  const metaColumns = safeTable(metaTables, '_grist_Tables_column');
+  const columns = metaColumns.filterRecords({parentId: table.id});
   const viewSectionFields = safeTable(metaTables, '_grist_Views_section_field');
   const fields = viewSectionFields.filterRecords({parentId: viewSection.id});
   const savedFilters = safeTable(metaTables, '_grist_Filters')
     .filterRecords({viewSectionRef: viewSection.id});
 
-  const tableColsById = _.indexBy(columns, 'id');
   const fieldsByColRef = _.indexBy(fields, 'colRef');
   const savedFiltersByColRef = _.indexBy(savedFilters, 'colRef');
   const unsavedFiltersByColRef = _.indexBy(filters ?? [], 'colRef');
 
   // Produce a column description matching what user will see / expect to export
-  const viewify = (col: GristTablesColumn, field?: GristViewsSectionField) => {
-    const displayCol = tableColsById[field?.displayCol || col.displayCol || col.id];
-    const colWidgetOptions = gutil.safeJsonParse(col.widgetOptions, {});
-    const fieldWidgetOptions = field ? gutil.safeJsonParse(field.widgetOptions, {}) : {};
+  const viewify = (col: GristTablesColumn, field?: GristViewsSectionField): ExportColumn => {
+    const displayCol = metaColumns.getRecord(field?.displayCol || col.displayCol) || col;
     return {
       id: displayCol.id,
       colId: displayCol.colId,
       label: col.label,
       type: col.type,
+      formatter: createFullFormatterFromDocData(docData, col.id, field?.id),
       parentPos: col.parentPos,
       description: col.description,
-      widgetOptions: Object.assign(colWidgetOptions, fieldWidgetOptions),
     };
   };
   const buildFilters = (col: GristTablesColumn, field?: GristViewsSectionField) => {
@@ -297,14 +282,14 @@ export async function exportSection(
   const columnsForFilters = columns
     .filter(column => !gristTypes.isHiddenCol(column.colId))
     .map(column => buildFilters(column, fieldsByColRef[column.id]));
-  const viewColumns = _.sortBy(fields, 'parentPos')
-    .map((field) => viewify(tableColsById[field.colRef], field));
+  const viewColumns: ExportColumn[] = _.sortBy(fields, 'parentPos')
+    .map((field) => viewify(metaColumns.getRecord(field.colRef)!, field));
 
   // The columns named in sort order need to now become display columns
   sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
   sortSpec = sortSpec!.map((colSpec) => {
     const colRef = Sort.getColRef(colSpec);
-    const col = tableColsById[colRef];
+    const col = metaColumns.getRecord(colRef);
     if (!col) {
       return 0;
     }
