@@ -108,7 +108,7 @@ div:hover > .kf_tooltip {
   box-shadow: 0 1px 1px 1px rgba(0,0,0,0.15);
   line-height: 1.1rem;
   font-size: 1rem;
-  color: #606060;
+  color: var(--grist-theme-prompt-fg, #606060);
   z-index: 10;
 }
 

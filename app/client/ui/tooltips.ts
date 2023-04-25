@@ -349,57 +349,83 @@ export function withInfoTooltip(
 /**
  * Renders an column info icon that shows a tooltip with the specified `content` on click.
  */
-export function descriptionInfoTooltip(
+// export function descriptionInfoTooltip(
+//   content: DomContents,
+//   testPrefix: string,
+//   menuOptions?: IMenuOptions,
+//   ...domArgs: DomElementArg[]
+//   ) {
+//   return cssDescriptionInfoTooltipButton(
+//     icon('Info',
+//       dom.style('width', '13px'),
+//       dom.style('height', '13px'),
+//       dom.style('margin-bottom', '3px')
+//     ),
+//     (elem) => {
+//       setPopupToCreateDom(
+//         elem,
+//         (ctl) => {
+//           return cssInfoTooltipPopup(
+//             cssInfoTooltipPopupCloseButton(
+//               icon('CrossSmall'),
+//               dom.on('click', () => ctl.close()),
+//               testId(`${testPrefix}-info-tooltip-close`),
+//             ),
+//             cssInfoTooltipPopupBody(
+//               content,
+//               { style: 'white-space: pre-wrap;' },
+//               testId(`${testPrefix}-info-tooltip-popup-body`),
+//             ),
+//             dom.cls(menuCssClass),
+//             dom.cls(cssMenu.className),
+//             dom.onKeyDown({
+//               Enter: () => ctl.close(),
+//               Escape: () => ctl.close(),
+//             }),
+//             (popup) => { setTimeout(() => popup.focus(), 0); },
+//             testId(`${testPrefix}-info-tooltip-popup`),
+//           );
+//         },
+//         { ...defaultMenuOptions, ...{ placement: 'bottom' }, ...menuOptions },
+//       );
+//     },
+//     testId(`${testPrefix}-info-tooltip`),
+
+
+ export function descriptionInfoTooltip(
   content: DomContents,
   testPrefix: string,
-  menuOptions?: IMenuOptions,
-  ...domArgs: DomElementArg[]
-  ) {
+  ...domArgs: DomElementArg[]) {
   return cssDescriptionInfoTooltipButton(
-    icon('Info',
-      dom.style('width', '13px'),
-      dom.style('height', '13px'),
-      dom.style('margin-bottom', '3px')
-    ),
-    (elem) => {
-      setPopupToCreateDom(
-        elem,
-        (ctl) => {
-          return cssInfoTooltipPopup(
-            cssInfoTooltipPopupCloseButton(
-              icon('CrossSmall'),
-              dom.on('click', () => ctl.close()),
-              testId(`${testPrefix}-info-tooltip-close`),
-            ),
-            cssInfoTooltipPopupBody(
-              content,
-              { style: 'white-space: pre-wrap;' },
-              testId(`${testPrefix}-info-tooltip-popup-body`),
-            ),
-            dom.cls(menuCssClass),
-            dom.cls(cssMenu.className),
-            dom.onKeyDown({
-              Enter: () => ctl.close(),
-              Escape: () => ctl.close(),
-            }),
-            (popup) => { setTimeout(() => popup.focus(), 0); },
-            testId(`${testPrefix}-info-tooltip-popup`),
-          );
-        },
-        { ...defaultMenuOptions, ...{ placement: 'bottom' }, ...menuOptions },
-      );
-    },
+    icon('Info', dom.cls("info_toggle_icon")),
     testId(`${testPrefix}-info-tooltip`),
+    dom.on('mousedown', (e) => e.stopPropagation()),
+    dom.on('click', (e) => e.stopPropagation()),
+    hoverTooltip(() => cssDescriptionInfoTooltip(content, testId(`${testPrefix}-info-tooltip-popup`)), {
+      closeDelay: 200,
+      key: 'columnDescription',
+      openOnClick: true,
+    }),
+    dom.cls("info_toggle_icon_wrapper"),
     ...domArgs,
   );
 }
+
+
+const cssDescriptionInfoTooltip = styled('div', `
+  white-space: pre-wrap;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: min(500px, calc(100vw - 80px)); /* can't use 100%, 500px and 80px are picked by hand */
+`);
 
 const cssDescriptionInfoTooltipButton = styled('div', `
   cursor: pointer;
   --icon-color: ${theme.infoButtonFg};
   border-radius: 50%;
   display: inline-block;
-  margin-left: 5px;
+  padding-left: 5px;
   line-height: 0px;
 
   &:hover  {
@@ -413,7 +439,7 @@ const cssDescriptionInfoTooltipButton = styled('div', `
 
 const cssTooltip = styled('div', `
   position: absolute;
-  z-index: 5000;      /* should be higher than a modal */
+  z-index: ${vars.tooltipZIndex};      /* should be higher than a modal */
   background-color: ${theme.tooltipBg};
   border-radius: 3px;
   box-shadow: 0 0 2px rgba(0,0,0,0.5);

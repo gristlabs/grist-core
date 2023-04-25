@@ -7,7 +7,7 @@ import {reportError} from 'app/client/models/errors';
 import {cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -238,7 +238,7 @@ export class CustomSectionConfig extends Disposable {
   // Does widget has custom configuration.
   private _hasConfiguration: Computed<boolean>;
 
-  constructor(private _section: ViewSectionRec, _gristDoc: GristDoc) {
+  constructor(private _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
 
     const api = _gristDoc.app.topAppModel.api;
@@ -411,7 +411,12 @@ export class CustomSectionConfig extends Disposable {
             async value => this._url.set(value),
             dom.attr('placeholder', t("Enter Custom URL")),
             testId('url')
-          )
+          ),
+          this._gristDoc.behavioralPromptsManager.attachTip('customURL', {
+            popupOptions: {
+              placement: 'left-start',
+            }
+          })
         ),
       ]),
       dom.maybe(prompt, () =>
@@ -511,7 +516,7 @@ export class CustomSectionConfig extends Disposable {
 const cssWarningWrapper = styled('div', `
   padding-left: 8px;
   padding-top: 6px;
-  --icon-color: ${colors.error}
+  --icon-color: ${theme.iconError}
 `);
 
 const cssColumns = styled('div', `
@@ -534,7 +539,7 @@ const cssSection = styled('div', `
 
 const cssMenu = styled('div', `
   & > li:first-child {
-    border-bottom: 1px solid ${colors.mediumGrey};
+    border-bottom: 1px solid ${theme.menuBorder};
   }
 `);
 
@@ -556,30 +561,37 @@ const cssRemoveIcon = styled(icon, `
 const cssSubLabel = styled('span', `
   text-transform: none;
   font-size: ${vars.xsmallFontSize};
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const cssAddMapping = styled('div', `
   display: flex;
   cursor: pointer;
-  color: ${colors.lightGreen};
-  --icon-color: ${colors.lightGreen};
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
 
   &:not(:first-child) {
     margin-top: 8px;
   }
   &:hover, &:focus, &:active {
-    color: ${colors.darkGreen};
-    --icon-color: ${colors.darkGreen};
+    color: ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
   }
 `);
 
 const cssTextInput = styled(textInput, `
   flex: 1 0 auto;
 
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+
   &:disabled {
-    color: ${colors.slate};
-    background-color: ${colors.lightGrey};
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
     pointer-events: none;
+  }
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
   }
 `);

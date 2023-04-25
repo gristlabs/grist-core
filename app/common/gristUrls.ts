@@ -70,6 +70,7 @@ export const commonUrls = {
   helpUnderstandingReferenceColumns: "https://support.getgrist.com/col-refs/#understanding-reference-columns",
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
+  helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   plans: "https://www.getgrist.com/pricing",
   createTeamSite: "https://www.getgrist.com/create-team-site",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",

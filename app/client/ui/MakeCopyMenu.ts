@@ -59,7 +59,7 @@ export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, a
       } catch (e) {
         reportError(e);  // For example: no write access on trunk.
       }
-    },  warningText);
+    }, {explanation: warningText});
 }
 
 // Show message in a modal with a `Sign up` button that redirects to the login page.

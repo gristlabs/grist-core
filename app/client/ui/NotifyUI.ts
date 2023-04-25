@@ -258,13 +258,13 @@ const cssDropdownStatusText = styled('div', `
   color: ${theme.lightText};
 `);
 
-// z-index below is set above other assorted children of <body> which include z-index such as 999
-// and 1050 (for new-style and old-style modals, for example).
+// z-index below is set above other assorted children of <body>, which includes
+// indexes such as 999 for modals.
 const cssSnackbarWrapper = styled('div', `
   position: fixed;
   bottom: 8px;
   right: 8px;
-  z-index: 1100;
+  z-index: ${vars.notificationZIndex};
 
   display: flex;
   flex-direction: column;

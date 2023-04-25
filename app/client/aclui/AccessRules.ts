@@ -123,9 +123,9 @@ export class AccessRules extends Disposable {
   // Map of tableId to basic metadata for all tables in the document.
   private _aclResources = new Map<string, AclTableDescription>();
 
-  private _aclUsersPopup = ACLUsersPopup.create(this, this._gristDoc.docPageModel);
+  private _aclUsersPopup = ACLUsersPopup.create(this, this.gristDoc.docPageModel);
 
-  constructor(private _gristDoc: GristDoc) {
+  constructor(public gristDoc: GristDoc) {
     super();
     this._ruleStatus = Computed.create(this, (use) => {
       const defRuleSet = use(this._docDefaultRuleSet);
@@ -175,10 +175,10 @@ export class AccessRules extends Disposable {
     // changes). Instead, react deliberately if rules change. Note that table/column renames would
     // trigger changes to rules, so we don't need to listen for those separately.
     for (const tableId of ['_grist_ACLResources', '_grist_ACLRules']) {
-      const tableData = this._gristDoc.docData.getTable(tableId)!;
+      const tableData = this.gristDoc.docData.getTable(tableId)!;
       this.autoDispose(tableData.tableActionEmitter.addListener(this._onChange, this));
     }
-    this.autoDispose(this._gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
+    this.autoDispose(this.gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
 
     this.update().catch((e) => this._errorMessage.set(e.message));
   }
@@ -202,9 +202,9 @@ export class AccessRules extends Disposable {
     const rules = this._ruleCollection;
 
     const [ , , aclResources] = await Promise.all([
-      rules.update(this._gristDoc.docData, {log: console, pullOutSchemaEdit: true}),
+      rules.update(this.gristDoc.docData, {log: console, pullOutSchemaEdit: true}),
       this._updateDocAccessData(),
-      this._gristDoc.docComm.getAclResources(),
+      this.gristDoc.docComm.getAclResources(),
     ]);
     this._aclResources = new Map(Object.entries(aclResources.tables));
     this._ruleProblems.set(aclResources.problems);
@@ -244,7 +244,7 @@ export class AccessRules extends Disposable {
     // Note that if anything has changed, we apply changes relative to the current state of the
     // ACL tables (they may have changed by other users). So our changes will win.
 
-    const docData = this._gristDoc.docData;
+    const docData = this.gristDoc.docData;
     const resourcesTable = docData.getMetaTable('_grist_ACLResources');
     const rulesTable = docData.getMetaTable('_grist_ACLRules');
 
@@ -346,7 +346,7 @@ export class AccessRules extends Disposable {
 
   public buildDom() {
     return cssOuter(
-      dom('div', this._gristDoc.behavioralPromptsManager.attachTip('accessRules', {
+      dom('div', this.gristDoc.behavioralPromptsManager.attachTip('accessRules', {
         hideArrow: true,
       })),
       cssAddTableRow(
@@ -485,7 +485,7 @@ export class AccessRules extends Disposable {
 
   public async checkAclFormula(text: string): Promise<FormulaProperties> {
     if (text) {
-      return this._gristDoc.docComm.checkAclFormula(text);
+      return this.gristDoc.docComm.checkAclFormula(text);
     }
     return {};
   }
@@ -1433,6 +1433,7 @@ class ObsUserAttributeRule extends Disposable {
         cssColumnGroup(
           cssCell1(
             aclFormulaEditor({
+              gristTheme: this._accessRules.gristDoc.currentTheme,
               initialValue: this._charId.get(),
               readOnly: false,
               setValue: (text) => this._setUserAttr(text),
@@ -1655,6 +1656,7 @@ class ObsRulePart extends Disposable {
         cssCell2(
           wide ? cssCell4.cls('') : null,
           aclFormulaEditor({
+            gristTheme: this._ruleSet.accessRules.gristDoc.currentTheme,
             initialValue: this._aclFormula.get(),
             readOnly: this.isBuiltIn(),
             setValue: (value) => this._setAclFormula(value),

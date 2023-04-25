@@ -472,7 +472,7 @@ export class ApiServer {
     // GET /api/session/access/active
     // Returns active user and active org (if any)
     this._app.get('/api/session/access/active', expressWrap(async (req, res) => {
-      const fullUser = await this._getFullUser(req);
+      const fullUser = await this._getFullUser(req, {includePrefs: true});
       const domain = getOrgFromRequest(req);
       const org = domain ? (await this._withSupportUserAllowedToView(
         domain, req, (scope) => this._dbManager.getOrg(scope, domain)
@@ -534,10 +534,10 @@ export class ApiServer {
     }));
   }
 
-  private async _getFullUser(req: Request): Promise<FullUser> {
+  private async _getFullUser(req: Request, options: {includePrefs?: boolean} = {}): Promise<FullUser> {
     const mreq = req as RequestWithLogin;
     const userId = getUserId(mreq);
-    const user = await this._dbManager.getUser(userId);
+    const user = await this._dbManager.getUser(userId, options);
     if (!user) { throw new ApiError("unable to find user", 400); }
 
     const fullUser = this._dbManager.makeFullUser(user);

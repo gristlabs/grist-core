@@ -204,7 +204,7 @@ AceEditor.prototype._setup = function() {
   this.session = this.editor.getSession();
   this.session.setMode('ace/mode/python');
 
-  const gristTheme = this.gristDoc?.docPageModel.appModel.currentTheme;
+  const gristTheme = this.gristDoc?.currentTheme;
   this._setAceTheme(gristTheme?.get());
   if (!getGristConfig().enableCustomCss && gristTheme) {
     this.autoDispose(gristTheme.addListener((theme) => {

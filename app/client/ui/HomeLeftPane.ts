@@ -217,7 +217,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
   function deleteWorkspace() {
     confirmModal(t("Delete {{workspace}} and all included documents?", {workspace: ws.name}), t("Delete"),
       () => home.deleteWorkspace(ws.id, false),
-      t("Workspace will be moved to Trash."));
+      {explanation: t("Workspace will be moved to Trash.")});
   }
 
   async function manageWorkspaceUsers() {

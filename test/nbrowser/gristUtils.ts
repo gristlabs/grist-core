@@ -60,6 +60,7 @@ export const isOnLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
 export const isOnGristLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
 export const checkLoginPage = homeUtil.checkLoginPage.bind(homeUtil);
 export const checkGristLoginPage = homeUtil.checkGristLoginPage.bind(homeUtil);
+export const copyDoc = homeUtil.copyDoc.bind(homeUtil);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -758,10 +759,14 @@ export async function waitForDocMenuToLoad(): Promise<void> {
 
 export async function waitToPass(check: () => Promise<void>, timeMs: number = 4000) {
   try {
+    let delay: number = 10;
     await driver.wait(async () => {
       try {
         await check();
       } catch (e) {
+        // Throttle operations a little bit.
+        await driver.sleep(delay);
+        if (delay < 50) { delay += 10; }
         return false;
       }
       return true;
@@ -913,7 +918,7 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 }
 
 export async function waitForLabelInput(): Promise<void> {
-  await driver.wait(async () => (await driver.findWait('.kf_elabel_input', 100).hasFocus()), 300);
+  await driver.wait(async () => (await driver.findWait('.test-column-title-label', 100).hasFocus()), 300);
 }
 
 /**
@@ -1262,7 +1267,7 @@ export async function renameColumn(col: IColHeader, newName: string) {
   const header = await getColumnHeader(col);
   await header.click();
   await header.click();   // Second click opens the label for editing.
-  await header.find('.kf_elabel_input').sendKeys(newName, Key.ENTER);
+  await driver.findWait('.test-column-title-label', 100).sendKeys(newName, Key.ENTER);
   await waitForServer();
 }
 
@@ -1714,6 +1719,7 @@ export async function openDocDropdown(docNameOrRow: string|WebElement): Promise<
 export async function openAccessRulesDropdown(): Promise<void> {
   await driver.find('.test-tools-access-rules').mouseMove();
   await driver.find('.test-tools-access-rules-trigger').mouseMove().click();
+  await driver.findWait('.grist-floating-menu', 1000);
 }
 
 export async function editOrgAcls(): Promise<void> {
@@ -1884,6 +1890,7 @@ export enum TestUserEnum {
   user2 = 'charon',
   user3 = 'kiwi',
   user4 = 'ham',
+  userz = 'userz',    // a user for old tests, that doesn't overlap with others.
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',

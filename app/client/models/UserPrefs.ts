@@ -20,18 +20,24 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
    */
   function getPrefsObs(appModel: AppModel): Observable<PrefsType> {
     if (appModel.currentValidUser) {
-      const prefsObs = Observable.create<PrefsType>(null, appModel.currentOrg?.[prefsTypeName] ?? {});
+      let prefs: PrefsType | undefined;
+      if (prefsTypeName === 'userPrefs') {
+        prefs = appModel.currentValidUser.prefs;
+      } else {
+        prefs = appModel.currentOrg?.[prefsTypeName];
+      }
+      const prefsObs = Observable.create<PrefsType>(null, prefs ?? {});
       return Computed.create(null, (use) => use(prefsObs))
-        .onWrite(prefs => {
-          prefsObs.set(prefs);
-          return appModel.api.updateOrg('current', {[prefsTypeName]: prefs});
+        .onWrite(newPrefs => {
+          prefsObs.set(newPrefs);
+          return appModel.api.updateOrg('current', {[prefsTypeName]: newPrefs});
         });
     } else {
       const userId = appModel.currentUser?.id || 0;
       const jsonPrefsObs = localStorageObs(`${prefsTypeName}:u=${userId}`);
       return Computed.create(null, jsonPrefsObs, (use, p) => (p && JSON.parse(p) || {}) as PrefsType)
-        .onWrite(prefs => {
-          jsonPrefsObs.set(JSON.stringify(prefs));
+        .onWrite(newPrefs => {
+          jsonPrefsObs.set(JSON.stringify(newPrefs));
         });
     }
   }

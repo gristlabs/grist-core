@@ -46,7 +46,7 @@ import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
-import {startWelcomeTour} from 'app/client/ui/welcomeTour';
+import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
 import {IWidgetType} from 'app/client/ui/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
@@ -181,6 +181,8 @@ export class GristDoc extends DisposableWithEvents {
 
   // Holder for the popped up formula editor.
   public readonly formulaPopup = Holder.create(this);
+
+  public readonly currentTheme = this.docPageModel.appModel.currentTheme;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -431,13 +433,13 @@ export class GristDoc extends DisposableWithEvents {
 
     /* Command binding */
     this.autoDispose(commands.createGroup({
-      undo(this: GristDoc) { this._undoStack.sendUndoAction().catch(reportError); },
-      redo(this: GristDoc) { this._undoStack.sendRedoAction().catch(reportError); },
-      reloadPlugins() { this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
+      undo() { this._undoStack.sendUndoAction().catch(reportError); },
+      redo() { this._undoStack.sendRedoAction().catch(reportError); },
+      reloadPlugins() { void this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
 
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
-      setCursor(this: GristDoc, rowModel: BaseRowModel, fieldModel?: ViewFieldRec) {
+      setCursor(rowModel: BaseRowModel, fieldModel?: ViewFieldRec) {
         return this.setCursorPos({
           rowIndex: rowModel?._index() || 0,
           fieldIndex: fieldModel?._index() || 0,
@@ -511,6 +513,15 @@ export class GristDoc extends DisposableWithEvents {
     this.draftMonitor = Drafts.create(this, this);
     this.cursorMonitor = CursorMonitor.create(this, this);
     this.editorMonitor = EditorMonitor.create(this, this);
+
+    // When active section is changed to a chart or custom widget, change the tab in the creator
+    // panel to the table.
+    this.autoDispose(this.viewModel.activeSection.subscribe((section) => {
+      if (section.isDisposed() || section._isDeleted.peek()) { return; }
+      if (['chart', 'custom'].includes(section.parentKey.peek())) {
+        commands.allCommands.viewTabFocus.run();
+      }
+    }));
   }
 
   /**

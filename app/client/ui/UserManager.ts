@@ -105,9 +105,14 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
       confirmModal(
         `You are about to remove your own access to this ${name}`,
         'Remove my access', tryToSaveChanges,
-        'Once you have removed your own access, ' +
-          'you will not be able to get it back without assistance ' +
-          `from someone else with sufficient access to the ${name}.`);
+        {
+          explanation: (
+            'Once you have removed your own access, ' +
+            'you will not be able to get it back without assistance ' +
+            `from someone else with sufficient access to the ${name}.`
+          ),
+        }
+      );
     } else {
       tryToSaveChanges().catch(reportError);
     }

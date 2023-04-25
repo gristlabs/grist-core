@@ -96,6 +96,7 @@ import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDo
 import {ISandbox} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {NullSandbox} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
@@ -130,7 +131,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -226,7 +227,8 @@ export class ActiveDoc extends EventEmitter {
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
   private _gracePeriodStart: Date|null = null;
-  private _isForkOrSnapshot: boolean = false;
+  private _isSnapshot: boolean;
+  private _isForkOrSnapshot: boolean;
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
   // Cache of which columns are attachment columns.
   private _attachmentColumns?: AttachmentColumns;
@@ -235,51 +237,57 @@ export class ActiveDoc extends EventEmitter {
   private _redisSubscriber?: RedisClient;
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
-  private _inactivityTimer = new InactivityTimer(() => this.shutdown(), Deps.ACTIVEDOC_TIMEOUT * 1000);
+  private _inactivityTimer = new InactivityTimer(() => {
+    this._log.debug(null, 'inactivity timeout');
+    return this.shutdown();
+  }, Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
   private _afterShutdownCallback?: () => Promise<void>;
   private _doShutdown?: Promise<void>;
-
-  /**
-   * In cases where large numbers of documents are restarted simultaneously
-   * (like during deployments), there's a tendency for scheduled intervals to
-   * execute at roughly the same moment in time, which causes spikes in load.
-   *
-   * To mitigate this, we use randomized intervals that re-compute their delay
-   * in-between calls, with a variance of 30 seconds.
-   */
-  private _intervals = [
-    // Cleanup expired attachments every hour (also happens when shutting down).
-    new Interval(
-      () => this.removeUnusedAttachments(true),
-      REMOVE_UNUSED_ATTACHMENTS_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to remove expired attachments', e)},
-    ),
-    // Update the time in formulas every hour.
-    new Interval(
-      () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
-      UPDATE_CURRENT_TIME_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to update current time', e)},
-    ),
-    // Measure and broadcast data size every 5 minutes.
-    new Interval(
-      () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
-      UPDATE_DATA_SIZE_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to update data size', e)},
-    ),
-    // Log document metrics every hour.
-    new Interval(
-      () => this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'),
-      LOG_DOCUMENT_METRICS_DELAY,
-      {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
-    ),
-  ];
+  private _intervals: Interval[] = [];
 
   constructor(docManager: DocManager, docName: string, private _options?: ICreateActiveDocOptions) {
     super();
     const {forkId, snapshotId} = parseUrlId(docName);
+    this._isSnapshot = Boolean(snapshotId);
     this._isForkOrSnapshot = Boolean(forkId || snapshotId);
+    if (!this._isSnapshot) {
+      /**
+       * In cases where large numbers of documents are restarted simultaneously
+       * (like during deployments), there's a tendency for scheduled intervals to
+       * execute at roughly the same moment in time, which causes spikes in load.
+       *
+       * To mitigate this, we use randomized intervals that re-compute their delay
+       * in-between calls, with a variance of 30 seconds.
+       */
+      this._intervals.push(
+        // Cleanup expired attachments every hour (also happens when shutting down).
+        new Interval(
+          () => this.removeUnusedAttachments(true),
+          REMOVE_UNUSED_ATTACHMENTS_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to remove expired attachments', e)},
+        ),
+        // Update the time in formulas every hour.
+        new Interval(
+          () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
+          UPDATE_CURRENT_TIME_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to update current time', e)},
+        ),
+        // Measure and broadcast data size every 5 minutes.
+        new Interval(
+          () => this._checkDataSizeLimitRatio(makeExceptionalDocSession('system')),
+          UPDATE_DATA_SIZE_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to update data size', e)},
+        ),
+        // Log document metrics every hour.
+        new Interval(
+          () => this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'),
+          LOG_DOCUMENT_METRICS_DELAY,
+          {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
+        ),
+      );
+    }
     if (_options?.safeMode) { this._recoveryMode = true; }
     if (_options?.doc) {
       this._doc = _options.doc;
@@ -289,12 +297,14 @@ export class ActiveDoc extends EventEmitter {
       this._gracePeriodStart = gracePeriodStart;
 
       if (process.env.REDIS_URL && billingAccount) {
-        const channel = `billingAccount-${billingAccount.id}-product-changed`;
+        const prefix = getPubSubPrefix();
+        const channel = `${prefix}-billingAccount-${billingAccount.id}-product-changed`;
         this._redisSubscriber = createClient(process.env.REDIS_URL);
         this._redisSubscriber.subscribe(channel);
         this._redisSubscriber.on("message", async () => {
           // A product change has just happened in Billing.
           // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
+          this._log.debug(null, 'reload after product change');
           await this.reloadDoc();
         });
       }
@@ -625,12 +635,17 @@ export class ActiveDoc extends EventEmitter {
    * DocManager.
    */
   public async replace(docSession: OptDocSession, source: DocReplacementOptions) {
-    // During replacement, it is important for all hands to be off the document. So we
-    // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
-    // before a new one could be opened.
+    if (parseUrlId(this._docName).snapshotId) {
+      throw new ApiError('Snapshots cannot be replaced.', 400);
+    }
     if (!await this._granularAccess.isOwner(docSession)) {
       throw new ApiError('Only owners can replace a document.', 403);
     }
+    this._log.debug(docSession, 'ActiveDoc.replace starting shutdown');
+
+    // During replacement, it is important for all hands to be off the document. So we
+    // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
+    // before a new one could be opened.
     return this.shutdown({
       afterShutdown: () => this._docManager.storageManager.replace(this.docName, source)
     });
@@ -953,7 +968,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(docSession, "fetchQuery %s %s", JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
     let data: TableDataAction;
-    if (onDemand) {
+    if (onDemand || this._isSnapshot) {
       data = await this._fetchQueryFromDB(query, onDemand);
     } else if (wantFull) {
       await this.waitForInitialization();
@@ -1297,6 +1312,7 @@ export class ActiveDoc extends EventEmitter {
    * browser clients to reopen it.
    */
   public async reloadDoc(docSession?: DocSession) {
+    this._log.debug(docSession || null, 'ActiveDoc.reloadDoc starting shutdown');
     return this.shutdown();
   }
 
@@ -2310,8 +2326,9 @@ export class ActiveDoc extends EventEmitter {
     const attachments = this.docData?.getMetaTable('_grist_Attachments');
     const numAttachments = attachments?.numRecords() ?? 0;
     const attachmentTypes = attachments?.getRecords()
-      .map(r => r.fileExt?.slice(1) ?? null)
-      .filter(ext => ext !== null);
+      // Exclude the leading ".", if any.
+      .map(r => r.fileExt?.trim()?.slice(1))
+      .filter(ext => Boolean(ext));
 
     return {
       numAttachments,
@@ -2535,6 +2552,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _makeEngine(): Promise<ISandbox> {
+    if (this._isSnapshot) { return new NullSandbox(); }
+
     // Figure out what kind of engine we need for this document.
     let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
 

@@ -4,9 +4,82 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('RightPanel', function() {
   this.timeout(20000);
-  setupTestSuite();
+  const cleanup = setupTestSuite();
 
   afterEach(() => gu.checkForErrors());
+
+  it('should focus on the creator panel when chart/custom section is added', async () => {
+    const mainSession = await gu.session().teamSite.login();
+    await mainSession.tempNewDoc(cleanup);
+
+    // Reset prefs.
+    await driver.executeScript('resetSeenPopups();');
+    await gu.waitForServer();
+
+    // Refresh for a clean start.
+    await gu.reloadDoc();
+
+    // Close panel and make sure it stays closed.
+    await gu.toggleSidePanel('right', 'close');
+
+    // Add a chart section.
+    await gu.addNewSection('Chart', 'Table1', { dismissTips: true});
+    assert.isFalse(await gu.isSidePanelOpen('right'));
+    await gu.undo();
+
+    // Add a chart page.
+    await gu.addNewPage('Chart', 'Table1');
+    assert.isFalse(await gu.isSidePanelOpen('right'));
+    await gu.undo();
+
+    // Add a custom section.
+    await gu.addNewSection('Custom', 'Table1');
+    assert.isFalse(await gu.isSidePanelOpen('right'));
+    await gu.undo();
+
+    // Add a custom page.
+    await gu.addNewPage('Custom', 'Table1');
+    assert.isFalse(await gu.isSidePanelOpen('right'));
+    await gu.undo();
+
+    // Now open the panel on the column tab.
+    const columnTab = async () => {
+      await gu.toggleSidePanel('right', 'open');
+      await driver.find('.test-right-tab-field').click();
+    };
+
+    await columnTab();
+
+    // Add a chart section.
+    await gu.addNewSection('Chart', 'Table1');
+    assert.isTrue(await gu.isSidePanelOpen('right'));
+    assert.isTrue(await driver.find('.test-right-widget-title').isDisplayed());
+    await gu.undo();
+
+    await columnTab();
+
+    // Add a chart page.
+    await gu.addNewPage('Chart', 'Table1');
+    assert.isTrue(await gu.isSidePanelOpen('right'));
+    assert.isTrue(await driver.find('.test-right-widget-title').isDisplayed());
+    await gu.undo();
+
+    await columnTab();
+
+    // Add a custom section.
+    await gu.addNewSection('Custom', 'Table1');
+    assert.isTrue(await gu.isSidePanelOpen('right'));
+    assert.isTrue(await driver.find('.test-right-widget-title').isDisplayed());
+    await gu.undo();
+
+    await columnTab();
+
+    // Add a custom page.
+    await gu.addNewPage('Custom', 'Table1');
+    assert.isTrue(await gu.isSidePanelOpen('right'));
+    assert.isTrue(await driver.find('.test-right-widget-title').isDisplayed());
+    await gu.undo();
+  });
 
   it('should open/close panel, and reflect the current section', async function() {
     // Open a document with multiple views and multiple sections.
@@ -19,7 +92,7 @@ describe('RightPanel', function() {
     assert.equal(await driver.find('.test-bc-page').getAttribute('value'), 'City');
 
     // Open side pane, and check it shows the right section.
-    await gu.toggleSidePanel('right');
+    await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-config-widget').click();
     assert.equal(await gu.isSidePanelOpen('right'), true);
 

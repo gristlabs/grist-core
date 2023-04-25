@@ -235,6 +235,7 @@ export class DocManager extends EventEmitter {
     if (docPromise) {
       // Call activeDoc's shutdown method first, to remove the doc from internal structures.
       const doc: ActiveDoc = await docPromise;
+      log.debug('DocManager.deleteDoc starting activeDoc shutdown', docName);
       await doc.shutdown();
     }
     await this.storageManager.deleteDoc(docName, deletePermanently);
@@ -368,8 +369,12 @@ export class DocManager extends EventEmitter {
    * Shut down all open docs. This is called, in particular, on server shutdown.
    */
   public async shutdownAll() {
-    await Promise.all(Array.from(this._activeDocs.values(),
-      adocPromise => adocPromise.then(adoc => adoc.shutdown())));
+    await Promise.all(Array.from(
+      this._activeDocs.values(),
+      adocPromise => adocPromise.then(async adoc => {
+        log.debug('DocManager.shutdownAll starting activeDoc shutdown', adoc.docName);
+        await adoc.shutdown();
+      })));
     try {
       await this.storageManager.closeStorage();
     } catch (err) {
@@ -471,6 +476,7 @@ export class DocManager extends EventEmitter {
       if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && await activeDoc.isOwner(docSession)) {
         // shutting doc down to have a chance to re-open in the correct mode.
         // TODO: there could be a battle with other users opening it in a different mode.
+        log.debug('DocManager._fetchPossiblyMutedDoc starting activeDoc shutdown', docName);
         await activeDoc.shutdown();
       }
     }

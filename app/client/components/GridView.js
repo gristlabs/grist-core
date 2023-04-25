@@ -44,10 +44,11 @@ const {testId, isNarrowScreen} = require('app/client/ui2018/cssVars');
 const {contextMenu} = require('app/client/ui/contextMenu');
 const {mouseDragMatchElem} = require('app/client/ui/mouseDrag');
 const {menuToggle} = require('app/client/ui/MenuToggle');
-const {showTooltip} = require('app/client/ui/tooltips');
+const {descriptionInfoTooltip, showTooltip} = require('app/client/ui/tooltips');
 const {parsePasteForView} = require("./BaseView2");
 const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
+const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
 // Anything longer than this time (in milliseconds) should be interpreted as a drag
@@ -130,15 +131,19 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   }));
 
   this.autoDispose(this.cursor.fieldIndex.subscribe(idx => {
+    // If there are some frozen columns.
+    if (this.numFrozen.peek() && idx < this.numFrozen.peek()) { return; }
+
     const offset = this.colRightOffsets.peek().getSumTo(idx);
 
     const rowNumsWidth = this._cornerDom.clientWidth;
     const viewWidth = this.scrollPane.clientWidth - rowNumsWidth;
     const fieldWidth = this.colRightOffsets.peek().getValue(idx) + 1; // +1px border
 
-    // Left and right pixel edge of 'viewport', starting from edge of row nums
-    const leftEdge = this.scrollPane.scrollLeft;
-    const rightEdge = leftEdge + viewWidth;
+    // Left and right pixel edge of 'viewport', starting from edge of row nums.
+    const frozenWidth = this.frozenWidth.peek();
+    const leftEdge = this.scrollPane.scrollLeft + frozenWidth;
+    const rightEdge = leftEdge + (viewWidth - frozenWidth);
 
     //If cell doesn't fit onscreen, scroll to fit
     const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
@@ -243,7 +248,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   //--------------------------------------------------
   // Set up DOM event handling.
-  onDblClickMatchElem(this.scrollPane, '.field', () => this.activateEditorAtCursor());
+  onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', () => this.activateEditorAtCursor());
   if (!this.isPreview) {
     grainjsDom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu', (ev, elem) => this.onCellContextMenu(ev, elem), {useCapture: true});
   }
@@ -308,7 +313,7 @@ GridView.gridCommands = {
 
   insertFieldBefore: function() { this.insertColumn(this.cursor.fieldIndex()); },
   insertFieldAfter: function() { this.insertColumn(this.cursor.fieldIndex() + 1); },
-  renameField: function() { this.currentEditingColumnIndex(this.cursor.fieldIndex()); },
+  renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
   deleteFields: function() {
     const selection = this.getSelection();
@@ -711,6 +716,10 @@ GridView.prototype.insertColumn = async function(index) {
   this.currentEditingColumnIndex(index);
 };
 
+GridView.prototype.renameColumn = function(index) {
+  this.currentEditingColumnIndex(index);
+};
+
 GridView.prototype.scrollPaneRight = function() {
   this.scrollPane.scrollLeft = Number.MAX_SAFE_INTEGER;
 };
@@ -1021,15 +1030,27 @@ GridView.prototype.buildDom = function() {
             kd.style('minWidth', '100%'),
             kd.style('borderLeftWidth', v.borderWidthPx),
             kd.foreach(v.viewFields(), field => {
-              var isEditingLabel = ko.pureComputed({
+              const isEditingLabel = koUtil.withKoUtils(ko.pureComputed({
                 read: () => {
                   const goodIndex = () => editIndex() === field._index();
                   const isReadonly = () => this.gristDoc.isReadonlyKo() || self.isPreview;
                   const isSummary = () => Boolean(field.column().disableEditData());
                   return goodIndex() && !isReadonly() && !isSummary();
                 },
-                write: val => editIndex(val ? field._index() : -1)
-              }).extend({ rateLimit: 0 });
+                write: val => {
+                  if (val) {
+                    // Turn on editing.
+                    editIndex(field._index());
+                  } else {
+                    // Turn off editing only if it wasn't changed to another field (e.g. by tabbing).
+                    const isCurrent = editIndex.peek() === field._index.peek();
+                    if (isCurrent) {
+                      editIndex(-1);
+                    }
+                  }
+                }
+              }).extend({ rateLimit: 0 })).onlyNotifyUnequal();
+
               let filterTriggerCtl;
               const isTooltip = ko.pureComputed(() =>
                   self.gristDoc.docModel.editingFormula() &&
@@ -1066,8 +1087,16 @@ GridView.prototype.buildDom = function() {
                   if (btn) { btn.click(); }
                 }),
                 dom('div.g-column-label',
-                  kf.editableLabel(self.isPreview ? field.label : field.displayLabel, isEditingLabel, renameCommands),
-                  dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true)
+                  kd.scope(field.description, desc => desc ? descriptionInfoTooltip(kd.text(field.description)) : null),
+                  dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true),
+                  // We are using editableLabel here, but we don't use it for editing.
+                  kf.editableLabel(self.isPreview ? field.label : field.displayLabel, ko.observable(false)),
+                  kd.scope(field.description, desc => desc ? dom('div.g-column-label-spacer') : null),
+                  buildRenameColumn({
+                    field,
+                    isEditing: isEditingLabel,
+                    optCommands: renameCommands
+                  }),
                 ),
                 dom.on("mouseenter", () => self.changeHover(field._index())),
                 dom.on("mouseleave", () => self.changeHover(-1)),

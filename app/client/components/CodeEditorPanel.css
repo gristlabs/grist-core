@@ -50,3 +50,11 @@
 .g-code-viewer .hljs-number {
   color: var(--grist-theme-code-view-number, #880000);
 }
+
+.g-code-viewer .hljs-built_in {
+  color: var(--grist-theme-code-view-builtin, #397300);
+}
+
+.g-code-viewer .hljs-literal {
+  color: var(--grist-theme-code-view-literal, #78A960);
+}

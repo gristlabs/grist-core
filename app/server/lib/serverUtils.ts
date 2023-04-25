@@ -178,7 +178,7 @@ export function getSupportedEngineChoices(): EngineCode[]|undefined {
  * Returns a promise that resolves in the given number of milliseconds or rejects
  * when the given signal is raised.
  */
- export function delayAbort(msec: number, signal?: AbortSignal): Promise<void> {
+export function delayAbort(msec: number, signal?: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let resolved = false;
     const timeout = setTimeout(() => {
@@ -197,4 +197,21 @@ export function getSupportedEngineChoices(): EngineCode[]|undefined {
       });
     }
   });
+}
+
+/**
+ * For a Redis URI, we expect no path component, or a path component
+ * that is an integer database number. We'd like to scope pub/sub to
+ * individual databases. Redis doesn't do that, so we construct a
+ * key prefix to have the same effect.
+ *   https://redis.io/docs/manual/pubsub/#database--scoping
+ */
+export function getPubSubPrefix(): string {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) { return 'db-x'; }
+  const dbNumber = new URL(redisUrl).pathname.replace(/^\//, '');
+  if (dbNumber.match(/[^0-9]/)) {
+    throw new Error('REDIS_URL has an unexpected structure');
+  }
+  return `db-${dbNumber}`;
 }

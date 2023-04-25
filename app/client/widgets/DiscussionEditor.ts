@@ -34,6 +34,7 @@ import * as ko from 'knockout';
 import moment from 'moment';
 import maxSize from 'popper-max-size-modifier';
 import flatMap = require('lodash/flatMap');
+import {autoGrow} from 'app/client/ui/forms';
 
 const testId = makeTestId('test-discussion-');
 const t = makeT('DiscussionEditor');
@@ -920,26 +921,6 @@ function bindProp(text: Observable<string>) {
 
 function autoFocus() {
   return (el: HTMLElement) => void setTimeout(() => el.focus(), 10);
-}
-
-function resize(el: HTMLTextAreaElement) {
-  el.style.height = '5px'; // hack for triggering style update.
-  const border = getComputedStyle(el, null).borderTopWidth || "0";
-  el.style.height = `calc(${el.scrollHeight}px + 2 * ${border})`;
-}
-
-function autoGrow(text: Observable<string>) {
-  return (el: HTMLTextAreaElement) => {
-    el.addEventListener('input', () => resize(el));
-    setTimeout(() => resize(el), 10);
-    dom.autoDisposeElem(el, text.addListener(val => {
-      // Changes to the text are not reflected by the input event (witch is used by the autoGrow)
-      // So we need to manually update the textarea when the text is cleared.
-      if (!val) {
-        el.style.height = '5px'; // there is a min-height css attribute, so this is only to trigger a style update.
-      }
-    }));
-  };
 }
 
 function buildPopup(

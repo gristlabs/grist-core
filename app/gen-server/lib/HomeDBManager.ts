@@ -482,8 +482,14 @@ export class HomeDBManager extends EventEmitter {
     return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
   }
 
-  public async getUser(userId: number): Promise<User|undefined> {
-    return await User.findOne({where: {id: userId}, relations: ["logins"]}) || undefined;
+  public async getUser(
+    userId: number,
+    options: {includePrefs?: boolean} = {}
+  ): Promise<User|undefined> {
+    const {includePrefs} = options;
+    const relations = ["logins"];
+    if (includePrefs) { relations.push("prefs"); }
+    return await User.findOne({where: {id: userId}, relations}) || undefined;
   }
 
   public async getFullUser(userId: number): Promise<FullUser> {
@@ -505,7 +511,8 @@ export class HomeDBManager extends EventEmitter {
       name: user.name,
       picture: user.picture,
       ref: user.ref,
-      locale: user.options?.locale
+      locale: user.options?.locale,
+      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
     };
     if (this.getAnonymousUserId() === user.id) {
       result.anonymous = true;
@@ -1242,7 +1249,7 @@ export class HomeDBManager extends EventEmitter {
       doc.trunkAccess = doc.access;
 
       // Update access for fork.
-      this._setForkAccess(doc, {userId, forkUserId, snapshotId}, doc);
+      if (forkId) { this._setForkAccess(doc, {userId, forkUserId}, doc); }
       if (!doc.access) {
         throw new ApiError('access denied', 403);
       }
@@ -2477,9 +2484,9 @@ export class HomeDBManager extends EventEmitter {
 
     // If we are on a fork, make any access changes needed. Assumes results
     // have been flattened.
-    if (forkId || snapshotId) {
+    if (forkId) {
       for (const user of users) {
-        this._setForkAccess(doc, {userId: user.id, forkUserId, snapshotId}, user);
+        this._setForkAccess(doc, {userId: user.id, forkUserId}, user);
       }
     }
 
@@ -3252,12 +3259,12 @@ export class HomeDBManager extends EventEmitter {
    * their own in the db).
    *   - If fork is a tutorial:
    *     - User ~USERID from the fork id is owner, all others have no access.
-   *   - If fork is a snapshot, all users are at most viewers. Else:
+   *   - If fork is not a tutorial:
    *     - If there is no ~USERID in fork id, then all viewers of trunk are owners of the fork.
    *     - If there is a ~USERID in fork id, that user is owner, all others are at most viewers.
    */
   private _setForkAccess(doc: Document,
-                         ids: {userId: number, forkUserId?: number, snapshotId?: string},
+                         ids: {userId: number, forkUserId?: number},
                          res: {access: roles.Role|null}) {
     if (doc.type === 'tutorial') {
       if (ids.userId === this.getPreviewerUserId()) {
@@ -3276,12 +3283,8 @@ export class HomeDBManager extends EventEmitter {
           if (roles.canView(res.access)) { res.access = 'owners'; }
         } else {
           // reduce to viewer if not already viewer
-        res.access = roles.getWeakestRole('viewers', res.access);
+          res.access = roles.getWeakestRole('viewers', res.access);
         }
-      }
-      // Finally, if we are viewing a snapshot, we can't edit it.
-      if (ids.snapshotId) {
-        res.access = roles.getWeakestRole('viewers', res.access);
       }
     }
   }

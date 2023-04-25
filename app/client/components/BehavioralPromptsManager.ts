@@ -77,6 +77,11 @@ export class BehavioralPromptsManager extends Disposable {
     this._isDisabled = true;
   }
 
+  public reset() {
+    this._prefs.set({...this._prefs.get(), dismissedTips: [], dontShowTips: false});
+    this.enable();
+  }
+
   private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
     if (
       this._isDisabled ||

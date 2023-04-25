@@ -1,6 +1,7 @@
 import {CursorPos} from 'app/client/components/Cursor';
 import {makeT} from 'app/client/lib/localization';
 import { ColumnRec, ViewSectionRec } from 'app/client/models/DocModel';
+import {autoGrow} from 'app/client/ui/forms';
 import {textarea} from 'app/client/ui/inputs';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId, theme} from 'app/client/ui2018/cssVars';
@@ -37,6 +38,7 @@ export function buildDescriptionConfig(
             await parent.description.saveOnly(elem.value);
           }),
           testId(`${testPrefix}-description`),
+          autoGrow(fromKo(parent.description))
         )
       ),
     ];
@@ -50,6 +52,7 @@ const cssTextArea = styled(textarea, `
   outline: none;
   border-radius: 3px;
   padding: 3px 7px;
+  min-height: calc(3em * 1.5);
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};

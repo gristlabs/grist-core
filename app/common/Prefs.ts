@@ -86,6 +86,7 @@ export const BehavioralPrompt = StringUnion(
   'editCardLayout',
   'addNew',
   'rickRow',
+  'customURL',
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;
 

@@ -1,25 +1,259 @@
-import { UserAPIImpl } from 'app/common/UserAPI';
-import { assert, driver } from 'mocha-webdriver';
+import {UserAPIImpl} from 'app/common/UserAPI';
+import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
-
-async function addColumnDescription(api: UserAPIImpl, docId: string, columnName: string) {
-  await api.applyUserActions(docId, [
-    [ 'ModifyColumn', 'Table1', columnName, {
-      description: 'This is the column description\nIt is in two lines'
-    } ],
-  ]);
-}
-
-function getDescriptionInput() {
-  return driver.find('.test-right-panel .test-column-description');
-}
+import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('DescriptionColumn', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
-  it('should support basic edition', async () => {
+  it('should show info tooltip in a Grid View', async () => {
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, 'Hello.grist');
+    await gu.dismissWelcomeTourIfNeeded();
+
+    // Start renaming col A.
+    await doubleClickHeader('A');
+    await gu.sendKeys('ColumnA');
+    // Check that description is not visible.
+    await descriptionIsVisible(false);
+    await addDescriptionIsVisible(true);
+    // Press add description.
+    await clickAddDescription();
+    // Check that description is visible.
+    await descriptionIsVisible(true);
+    await addDescriptionIsVisible(false);
+    // Wait for focus in the description input
+    await waitForFocus('description');
+
+    // Measure the height of the description input
+    const rBefore = await driver.find(`.test-column-title-description`).getRect();
+
+    // Send some multiline text (with more than three lines to test if it auto grows).
+    await gu.sendKeys('Line1');
+    await gu.sendKeys(Key.SHIFT, Key.ENTER, Key.NULL);
+    await gu.sendKeys('Line2');
+    await gu.sendKeys(Key.SHIFT, Key.ENTER, Key.NULL);
+    await gu.sendKeys('Line3');
+    await gu.sendKeys(Key.SHIFT, Key.ENTER, Key.NULL);
+    await gu.sendKeys('Line4');
+    await gu.sendKeys(Key.SHIFT, Key.ENTER, Key.NULL);
+
+    // Measure the height of the description input again
+    const rAfter = await driver.find(`.test-column-title-description`).getRect();
+    // Make sure it is at least 13 pixel taller (default font height).
+    assert.isTrue(rAfter.height >= rBefore.height + 13);
+
+    // Press save
+    await pressSave();
+
+    // Make sure column is renamed.
+    let header = await gu.getColumnHeader({col: 'ColumnA'});
+
+    // Make sure it has a tooltip.
+    assert.isTrue(await header.find(".test-column-info-tooltip").isDisplayed());
+
+    // Click the tooltip.
+    await header.find(".test-column-info-tooltip").click();
+
+    // Make sure we see the popup.
+    await waitForTooltip();
+
+    // With a proper text.
+    assert.equal(await driver.find(".test-column-info-tooltip-popup").getText(), 'Line1\nLine2\nLine3\nLine4');
+
+    // Undo one (those renames should be bundled).
+    await gu.undo();
+
+    // Make sure column is renamed back.
+    header = await gu.getColumnHeader({col: 'A'});
+
+    // And there is no tooltip.
+    assert.isFalse(await header.find(".test-column-info-tooltip").isPresent());
+  });
+
+  const saveTest = async (save: () => Promise<void>) => {
+    const revert = await gu.begin();
+    // Start renaming col A.
+    await doubleClickHeader('B');
+    await gu.sendKeys('ColumnB');
+    // Press enter.
+    await save();
+    await gu.waitForServer();
+    // Make sure it is renamed.
+    await gu.getColumnHeader({col: 'ColumnB'});
+
+    // Change description by clicking save.
+    await doubleClickHeader('ColumnB');
+    await clickAddDescription();
+    await waitForFocus('description');
+
+    await gu.sendKeys('ColumnB description');
+    await save();
+    await gu.waitForServer();
+    // Make sure tooltip is shown.
+    await clickTooltip('ColumnB');
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.findWait(".test-column-info-tooltip-popup", 300).getText(), 'ColumnB description');
+    });
+    await gu.sendKeys(Key.ESCAPE);
+    await revert();
+  };
+
+  it('should support saving by clicking save', async () => {
+    await saveTest(pressSave);
+  });
+
+  it('should support saving by clicking away', async () => {
+    await saveTest(() => gu.getCell('E', 5).click());
+  });
+
+  it('should support saving by clicking Ctrl+Enter', async () => {
+    await saveTest(async () => await gu.sendKeys(Key.chord(await gu.modKey(), Key.ENTER)));
+  });
+
+  it('should support saving by enter', async () => {
+    const revert = await gu.begin();
+    // Start renaming col A.
+    await doubleClickHeader('B');
+    await gu.sendKeys('ColumnB');
+
+    // Make description.
+    await clickAddDescription();
+    await gu.sendKeys('ColumnB description');
+
+    // Go to label.
+    await gu.sendKeys(Key.ARROW_UP);
+    await gu.sendKeys(Key.ARROW_UP);
+    await waitForFocus('label');
+
+    // Save by pressing enter.
+    await gu.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+    // Make sure tooltip is shown.
+    await clickTooltip('ColumnB');
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.findWait(".test-column-info-tooltip-popup", 300).getText(), 'ColumnB description');
+    });
+    await gu.sendKeys(Key.ESCAPE);
+    await revert();
+  });
+
+  it('should support saving by tab', async () => {
+    await saveTest(() => gu.sendKeys(Key.TAB));
+    await saveTest(() => gu.sendKeys(Key.SHIFT, Key.TAB, Key.NULL));
+  });
+
+  const cancelTest = async (makeCancel: () => Promise<void>) => {
+    // Rename column A.
+    await doubleClickHeader('A');
+    await gu.sendKeys('ColumnA');
+    await makeCancel();
+    await gu.waitForServer();
+    // Make sure we see column A.
+    await gu.getColumnHeader({col: 'A'});
+
+    // Check the same for description.
+    await doubleClickHeader('A');
+    await clickAddDescription();
+    await gu.sendKeys('ColumnA description');
+    await makeCancel();
+    await gu.waitForServer();
+    // Make sure that there is no tooltip.
+    assert.isFalse(await gu.getColumnHeader({col: 'A'}).find(".test-column-info-tooltip").isPresent());
+  };
+
+  it('should support canceling by cancel', async () => {
+    await cancelTest(pressCancel);
+  });
+
+  it('should support canceling by Escape', async () => {
+    await cancelTest(() => gu.sendKeys(Key.ESCAPE));
+  });
+
+  it('should add description by pressing arrow down', async () => {
+    await doubleClickHeader('A');
+    await addDescriptionIsVisible(true);
+    await descriptionIsVisible(false);
+    await gu.sendKeys(Key.ARROW_DOWN);
+    await waitForFocus('description');
+    await addDescriptionIsVisible(false);
+    await descriptionIsVisible(true);
+    // Type something.
+    await gu.sendKeys('ColumnA description', Key.ENTER);
+    await gu.sendKeys('ColumnA description');
+    // Now press 2 times the up key.
+    await gu.sendKeys(Key.ARROW_UP);
+    await gu.sendKeys(Key.ARROW_UP);
+    // We should still be in the description field.
+    await waitForFocus('description');
+    // Now press down key and test if that works.
+    await gu.sendKeys(Key.ARROW_DOWN);
+    await driver.wait(() => driver.executeScript(() => ((document as any).activeElement.selectionEnd === 39)), 500);
+
+    // Now press it 3 times, we should be back in the label field.
+    await gu.sendKeys(Key.ARROW_UP);
+    await gu.sendKeys(Key.ARROW_UP);
+    await gu.sendKeys(Key.ARROW_UP);
+
+    // We should be focused back in the label field.
+    await waitForFocus('label');
+    await pressCancel();
+  });
+
+  it('should tab to other columns and save', async () => {
+    const revert = await gu.begin();
+    // Start renaming col A.
+    await doubleClickHeader('B');
+    await gu.sendKeys('ColumnB');
+    // Press tab.
+    await gu.sendKeys(Key.TAB);
+    await gu.waitForServer();
+
+    // Make sure it is renamed.
+    await gu.getColumnHeader({col: 'ColumnB'});
+    // Make sure we are now at column C.
+    await popupIsAt('C');
+
+    // Rename column C.
+    await gu.sendKeys('ColumnC');
+
+    // Add description.
+    await driver.find(".test-column-title-add-description").click();
+    await waitForFocus('description');
+
+    // Rename description.
+    await gu.sendKeys('ColumnC description');
+
+    // Go back to column B from description by pressing shift tab
+    await gu.sendKeys(Key.SHIFT, Key.TAB, Key.NULL);
+    await gu.waitForServer();
+    // Make sure we are now at column B.
+    await popupIsAt('ColumnB');
+    // Make sure the label has focus.
+    await waitForFocus('label');
+    // Go to column C and from the label.
+    await gu.sendKeys(Key.TAB);
+    // Make sure we are now at column C.
+    await popupIsAt('ColumnC');
+    // Just quick test that shift tab will work.
+    await gu.sendKeys(Key.SHIFT, Key.TAB, Key.NULL);
+    // Make sure we are now at column B.
+    await popupIsAt('ColumnB');
+    // Go to column C and test if the description was saved.
+    await gu.sendKeys(Key.TAB);
+    // Make sure we are now at column C.
+    await popupIsAt('ColumnC');
+    // And it has proper description.
+    assert.equal(await driver.find(".test-column-title-description").getAttribute('value'), 'ColumnC description');
+    // Close by pressing escape.
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitForServer();
+
+    await revert();
+  });
+
+  it('should support basic edition on CardList', async () => {
     const mainSession = await gu.session().teamSite.login();
     const api = mainSession.createHomeApi();
     const doc = await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
@@ -75,15 +309,88 @@ describe('DescriptionColumn', function() {
 
     // Open the tooltip
     await toggle.click();
-    assert.isTrue(await driver.findWait('.test-column-info-tooltip-popup', 1000).isDisplayed());
+    await waitForTooltip();
 
     // Check the content of the tooltip
     const descriptionTooltip = await driver
-      .find('.test-column-info-tooltip-popup .test-column-info-tooltip-popup-body');
+      .find('.test-column-info-tooltip-popup');
     assert.equal(await descriptionTooltip.getText(), 'This is the column description\nIt is in two lines');
-
-    // Close the tooltip
-    await toggle.click();
-    assert.lengthOf(await driver.findAll('.test-column-info-tooltip-popup'), 0);
   });
+
 });
+
+async function clickTooltip(col: string) {
+  await gu.getColumnHeader({col}).find(".test-column-info-tooltip").click();
+}
+
+async function addDescriptionIsVisible(visible = true) {
+  if (visible) {
+    assert.isTrue(await driver.find(".test-column-title-add-description").isDisplayed());
+  } else {
+    assert.isFalse(await driver.find(".test-column-title-add-description").isPresent());
+  }
+}
+
+async function descriptionIsVisible(visible = true) {
+  if (visible) {
+    assert.isTrue(await driver.find(".test-column-title-description").isDisplayed());
+  } else {
+    assert.isFalse(await driver.find(".test-column-title-description").isPresent());
+  }
+}
+
+async function addColumnDescription(api: UserAPIImpl, docId: string, columnName: string) {
+  await api.applyUserActions(docId, [
+    [ 'ModifyColumn', 'Table1', columnName, {
+      description: 'This is the column description\nIt is in two lines'
+    } ],
+  ]);
+}
+
+function getDescriptionInput() {
+  return driver.find('.test-right-panel .test-column-description');
+}
+
+async function popupIsAt(col: string) {
+  // Make sure we are now at column.
+  assert.equal(await driver.find(".test-column-title-label").getAttribute('value'), col);
+  // Make sure that popup is near the column.
+  const headerCRect = await gu.getColumnHeader({col}).getRect();
+  const popup = await driver.find(".test-column-title-popup").getRect();
+  assert.isAtLeast(popup.x, headerCRect.x - 2);
+  assert.isBelow(popup.x, headerCRect.x + 2);
+  assert.isAtLeast(popup.y, headerCRect.y + headerCRect.height - 2);
+  assert.isBelow(popup.y, headerCRect.y + headerCRect.height + 2);
+}
+
+async function doubleClickHeader(col: string) {
+  const header = await gu.getColumnHeader({col});
+  await header.click();
+  await header.click();
+  await waitForFocus('label');
+}
+
+async function waitForFocus(field: 'label'|'description') {
+  await gu.waitToPass(async () => assert.isTrue(await driver.find(`.test-column-title-${field}`).hasFocus()), 200);
+}
+
+async function waitForTooltip() {
+  await gu.waitToPass(async () => {
+    assert.isTrue(await driver.find(".test-column-info-tooltip-popup").isDisplayed());
+  });
+}
+
+async function pressSave() {
+  await driver.find(".test-column-title-save").click();
+  await gu.waitForServer();
+}
+
+async function pressCancel() {
+  await driver.find(".test-column-title-cancel").click();
+  await gu.waitForServer();
+}
+
+async function clickAddDescription() {
+  await driver.find(".test-column-title-add-description").click();
+  await waitForFocus('description');
+}

@@ -104,6 +104,7 @@ export class RightPanel extends Disposable {
     this.autoDispose(commands.createGroup({
       fieldTabOpen: () => this._openFieldTab(),
       viewTabOpen: () => this._openViewTab(),
+      viewTabFocus: () => this._viewTabFocus(),
       sortFilterTabOpen: () => this._openSortFilter(),
       dataSelectionTabOpen: () => this._openDataSelection()
     }, this, true));
@@ -115,6 +116,11 @@ export class RightPanel extends Disposable {
 
   private _openViewTab() {
     this._open('pageWidget', 'widget');
+  }
+
+  private _viewTabFocus() {
+    // If the view tab is already open, focus on the first input.
+    this._focus('pageWidget');
   }
 
   private _openSortFilter() {
@@ -132,6 +138,14 @@ export class RightPanel extends Disposable {
       if (subTab) {
         this._subTab.set(subTab);
       }
+    });
+  }
+
+  private _focus(topTab: typeof TopTab.type) {
+    bundleChanges(() => {
+      if (!this._isOpen.get()) { return; }
+      this._isOpen.set(true);
+      this._topTab.set(topTab);
     });
   }
 

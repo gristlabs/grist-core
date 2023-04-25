@@ -811,7 +811,7 @@
         "Save field settings for {{colId}} as common": "Sauvegarder les paramètres pour {{colId}}",
         "Use separate field settings for {{colId}}": "Utiliser des paramètres spécifiques pour {{colId}}"
     },
-    "welcomeTour": {
+    "WelcomeTour": {
         "Customizing columns": "Personnaliser les colonnes",
         "template library": "Bibliothèque de modèles",
         "Share": "Partager",

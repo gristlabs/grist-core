@@ -217,5 +217,18 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ),
       ...args,
     ),
-  }
+  },
+  customURL: {
+    title: () => t('Custom Widgets'),
+    content: (...args: DomElementArg[]) => cssTooltipContent(
+      dom('div',
+        t(
+          'You can choose one of our pre-made widgets or embed your own ' +
+          'by providing its full URL.'
+        ),
+      ),
+      dom('div', cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.'))),
+      ...args,
+    ),
+  },
 };

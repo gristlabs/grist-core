@@ -19,7 +19,7 @@ body {
   left: 10%;
   height: 80%;
   width: 80%;
-  z-index: 999;
+  z-index: var(--grist-modal-z-index);
 
   padding: 1rem;
 

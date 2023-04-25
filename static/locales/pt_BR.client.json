@@ -866,7 +866,7 @@
         "View As": "Ver como",
         "Example Users": "Usuários de exemplo"
     },
-    "welcomeTour": {
+    "WelcomeTour": {
         "Use {{helpCenter}} for documentation or questions.": "Use {{helpCenter}} para documentação ou perguntas.",
         "convert to card view, select data, and more.": "converta para a visualização de cartão, selecione dados e muito mais.",
         "Start with {{equal}} to enter a formula.": "Comece com {{equal}} para inserir uma fórmula.",

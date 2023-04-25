@@ -1,6 +1,6 @@
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {isLight, swatches} from 'app/client/ui2018/ColorPalette';
-import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
@@ -366,24 +366,24 @@ class FontComponent extends Disposable {
 const cssFontOptions = styled('div', `
   display: flex;
   gap: 1px;
-  background: ${colors.darkGrey};
-  border: 1px solid ${colors.darkGrey};
+  background: ${theme.colorSelectFontOptionsBorder};
+  border: 1px solid ${theme.colorSelectFontOptionsBorder};
 `);
 
 const cssFontOption = styled('div', `
   display: grid;
   place-items: center;
   flex-grow: 1;
-  background: ${colors.light};
-  --icon-color: ${colors.dark};
+  background: ${theme.colorSelectFontOptionBg};
+  --icon-color: ${theme.colorSelectFontOptionFg};
   height: 24px;
   cursor: pointer;
   &:hover:not(&-selected) {
-    background: ${colors.lightGrey};
+    background: ${theme.colorSelectFontOptionBgHover};
   }
   &-selected {
-    background: ${colors.dark};
-    --icon-color: ${colors.light}
+    background: ${theme.colorSelectFontOptionBgSelected};
+    --icon-color: ${theme.colorSelectFontOptionFgSelected}
   }
 `);
 
@@ -409,6 +409,7 @@ const cssControlRow = styled('div', `
 `);
 
 const cssHeaderRow = styled('div', `
+  color: ${theme.colorSelectFg};
   text-transform: uppercase;
   font-size: ${vars.smallFontSize};
   margin-bottom: 12px;
@@ -430,8 +431,8 @@ const cssVSpacer = styled('div', `
 
 const cssContainer = styled('div', `
   padding: 18px 16px;
-  background-color: white;
-  box-shadow: 0 2px 16px 0 rgba(38,38,51,0.6);
+  background-color: ${theme.colorSelectBg};
+  box-shadow: 0 2px 16px 0 ${theme.colorSelectShadow};
   z-index: 20;
   margin: 2px 0;
   &:focus {
@@ -445,13 +446,13 @@ const cssContent = styled('div', `
 `);
 
 const cssHexBox = styled(textInput, `
-  border: 1px solid ${theme.inputBorder};
+  border: 1px solid ${theme.colorSelectInputBorder};
   border-left: none;
   font-size: ${vars.smallFontSize};
   display: flex;
   align-items: center;
-  color: ${theme.lightText};
-  background-color: ${theme.inputBg};
+  color: ${theme.colorSelectInputFg};
+  background-color: ${theme.colorSelectInputBg};
   width: 56px;
   outline: none;
   padding: 0 3px;
@@ -460,7 +461,7 @@ const cssHexBox = styled(textInput, `
 `);
 
 const cssLightBorder = styled('div', `
-  border: 1px solid #D9D9D9;
+  border: 1px solid ${theme.colorSelectColorSquareBorder};
 `);
 
 const cssColorSquare = styled('div', `
@@ -471,16 +472,16 @@ const cssColorSquare = styled('div', `
   align-items: center;
   position: relative;
   &-selected {
-    outline: 1px solid #D9D9D9;
+    outline: 1px solid ${theme.colorSelectColorSquareBorder};
     outline-offset: 1px;
   }
 `);
 
 const cssEmptyBox = styled(cssColorSquare, `
-  --icon-color: ${colors.error};
+  --icon-color: ${theme.iconError};
   border: 1px solid #D9D9D9;
   &-selected {
-    outline: 1px solid ${colors.dark};
+    outline: 1px solid ${theme.colorSelectColorSquareBorderEmpty};
     outline-offset: 1px;
   }
 `);
@@ -493,7 +494,7 @@ const cssFontIcon = styled(icon, `
 const cssNoneIcon = styled(icon, `
   height: 100%;
   width: 100%;
-  --icon-color: ${colors.error}
+  --icon-color: ${theme.iconError}
 `);
 
 const cssButtonIcon = styled(cssColorSquare, `

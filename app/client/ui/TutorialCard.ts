@@ -23,7 +23,6 @@ export function buildTutorialCard(owner: IDisposableOwner, options: Options) {
   const visible = Computed.create(owner, (use) =>
        !use(dismissed)
     && !use(isNarrowScreenObs())
-    && !shouldHideUiElement("templates")
   );
   return dom.maybe(visible, () => {
     return cssCard(
