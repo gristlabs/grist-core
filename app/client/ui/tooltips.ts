@@ -347,52 +347,9 @@ export function withInfoTooltip(
 }
 
 /**
- * Renders an column info icon that shows a tooltip with the specified `content` on click.
+ * Renders an description info icon that shows a tooltip with the specified `content` on click.
  */
-// export function descriptionInfoTooltip(
-//   content: DomContents,
-//   testPrefix: string,
-//   menuOptions?: IMenuOptions,
-//   ...domArgs: DomElementArg[]
-//   ) {
-//   return cssDescriptionInfoTooltipButton(
-//     icon('Info',
-//       dom.style('width', '13px'),
-//       dom.style('height', '13px'),
-//       dom.style('margin-bottom', '3px')
-//     ),
-//     (elem) => {
-//       setPopupToCreateDom(
-//         elem,
-//         (ctl) => {
-//           return cssInfoTooltipPopup(
-//             cssInfoTooltipPopupCloseButton(
-//               icon('CrossSmall'),
-//               dom.on('click', () => ctl.close()),
-//               testId(`${testPrefix}-info-tooltip-close`),
-//             ),
-//             cssInfoTooltipPopupBody(
-//               content,
-//               { style: 'white-space: pre-wrap;' },
-//               testId(`${testPrefix}-info-tooltip-popup-body`),
-//             ),
-//             dom.cls(menuCssClass),
-//             dom.cls(cssMenu.className),
-//             dom.onKeyDown({
-//               Enter: () => ctl.close(),
-//               Escape: () => ctl.close(),
-//             }),
-//             (popup) => { setTimeout(() => popup.focus(), 0); },
-//             testId(`${testPrefix}-info-tooltip-popup`),
-//           );
-//         },
-//         { ...defaultMenuOptions, ...{ placement: 'bottom' }, ...menuOptions },
-//       );
-//     },
-//     testId(`${testPrefix}-info-tooltip`),
-
-
- export function descriptionInfoTooltip(
+export function descriptionInfoTooltip(
   content: DomContents,
   testPrefix: string,
   ...domArgs: DomElementArg[]) {
