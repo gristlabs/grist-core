@@ -3,33 +3,6 @@ import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 
-function getWidgetTitle(widgetName: string) {
-  return driver.findContent('.test-widget-title-text', `${widgetName}`);
-}
-
-function getWidgetTooltip(widgetName: string) {
-  return getWidgetTitle(widgetName).findClosest(".test-viewsection-title").find(".test-widget-info-tooltip");
-}
-
-async function addWidgetDescription(desc: string, widgetName: string) {
-  // Click on the title and open the edition popup
-  await getWidgetTitle(widgetName).click();
-  const widgetEditPopup = await driver.findWait('.test-widget-title-popup', 1000);
-  const widgetDescInput = await widgetEditPopup.find('.test-widget-title-section-description-input');
-
-  // Edit the description of the widget inside the popup
-  await widgetDescInput.click();
-  await widgetDescInput.sendKeys(desc, Key.ENTER);
-  await gu.waitForServer();
-}
-
-async function checkDescValueInWidgetTooltip(desc: string, widgetName: string) {
-  await getWidgetTooltip(widgetName).click();
-  const descriptionTooltip = await driver
-    .findWait('.test-widget-info-tooltip-popup .test-widget-info-tooltip-popup-body', 1000);
-  assert.equal(await descriptionTooltip.getText(), desc);
-}
-
 describe('DescriptionWidget', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
@@ -75,3 +48,44 @@ describe('DescriptionWidget', function() {
     await checkDescValueInWidgetTooltip(newWidgetDesc, "Table");
   });
 });
+
+async function waitForEditPopup() {
+  await gu.waitToPass(async () => {
+    assert.isTrue(await driver.find(".test-widget-title-popup").isDisplayed());
+  });
+}
+
+async function waitForTooltip() {
+  await gu.waitToPass(async () => {
+    assert.isTrue(await driver.find(".test-widget-info-tooltip-popup").isDisplayed());
+  });
+}
+
+function getWidgetTitle(widgetName: string) {
+  return driver.findContent('.test-widget-title-text', `${widgetName}`);
+}
+
+function getWidgetTooltip(widgetName: string) {
+  return getWidgetTitle(widgetName).findClosest(".test-viewsection-title").find(".test-widget-info-tooltip");
+}
+
+async function addWidgetDescription(desc: string, widgetName: string) {
+  // Click on the title and open the edition popup
+  await getWidgetTitle(widgetName).click();
+  await waitForEditPopup()
+  const widgetEditPopup = await driver.find('.test-widget-title-popup');
+  const widgetDescInput = await widgetEditPopup.find('.test-widget-title-section-description-input');
+
+  // Edit the description of the widget inside the popup
+  await widgetDescInput.click();
+  await widgetDescInput.sendKeys(desc, Key.ENTER);
+  await gu.waitForServer();
+}
+
+async function checkDescValueInWidgetTooltip(desc: string, widgetName: string) {
+  await getWidgetTooltip(widgetName).click();
+  await waitForTooltip();
+  const descriptionTooltip = await driver
+    .find('.test-widget-info-tooltip-popup');
+  assert.equal(await descriptionTooltip.getText(), desc);
+}
