@@ -543,10 +543,11 @@ export async function rightClick(cell: WebElement) {
  * section. RowNum is a 1-based number as in the row headers, and col is a 0-based index for
  * grid view or field name for detail view.
  */
-export async function getCursorPosition(section?: WebElement) {
+export async function getCursorPosition(section?: WebElement|string) {
   return await retryOnStale(async () => {
+    if (typeof section === 'string') { section = await getSection(section); }
     section = section ?? await driver.findWait('.active_section', 4000);
-    const cursor = await section.findWait('.active_cursor', 1000);
+    const cursor = await section.findWait('.selected_cursor', 1000);
     // Query assuming the cursor is in a GridView and a DetailView, then use whichever query data
     // works out.
     const [colIndex, rowIndex, rowNum, colName] = await Promise.all([
