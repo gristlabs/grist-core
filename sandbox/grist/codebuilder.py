@@ -3,10 +3,11 @@ import contextlib
 import itertools
 import linecache
 import re
-import six
+import textwrap
 
 import astroid
 import asttokens
+import six
 
 import friendly_errors
 import textbuilder
@@ -40,6 +41,11 @@ def make_formula_body(formula, default_value, assoc_value=None):
   """
   if isinstance(formula, six.binary_type):
     formula = formula.decode('utf8')
+
+  # Remove any common leading whitespace. In python, extra indent should not be an error, but
+  # it is in Grist because we parse the formula body before it gets inserted into a function (i.e.
+  # as if at module level).
+  formula = textwrap.dedent(formula)
 
   if not formula.strip():
     return textbuilder.Text('return ' + repr(default_value), assoc_value)

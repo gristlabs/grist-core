@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-import unittest
-
 import codebuilder
 import six
+import test_engine
 
 unicode_prefix = 'u' if six.PY2 else ''
 
 def make_body(formula, default=None):
   return codebuilder.make_formula_body(formula, default).get_text()
 
-class TestCodeBuilder(unittest.TestCase):
+class TestCodeBuilder(test_engine.EngineTestCase):
   def test_make_formula_body(self):
     # Test simple usage.
     self.assertEqual(make_body(""), "return None")
@@ -239,3 +238,19 @@ return x or y
 
     # Check that missing arguments is OK
     self.assertEqual(make_body("ISERR()"), "return ISERR()")
+
+
+  def test_leading_whitespace(self):
+    self.assertEqual(make_body(" $A + 1"), "return rec.A + 1")
+
+    self.assertEqual(make_body("""
+  if $A:
+    return $A
+
+  $B
+"""), """
+if rec.A:
+  return rec.A
+
+return rec.B
+""")

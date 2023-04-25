@@ -614,6 +614,9 @@ export async function enterCell(...keys: string[]) {
 
 /**
  * Enter a formula into the currently selected cell.
+ *
+ * You can insert newlines by embedding `${Key.chord(Key.SHIFT, Key.ENTER)}` into the formula
+ * text. Note that ACE editor adds some indentation automatically.
  */
 export async function enterFormula(formula: string) {
   await driver.sendKeys('=');
@@ -621,7 +624,7 @@ export async function enterFormula(formula: string) {
   if (await driver.find('.test-editor-tooltip-convert').isPresent()) {
     await driver.find('.test-editor-tooltip-convert').click();
   }
-  await driver.sendKeys(formula, Key.ENTER);
+  await sendKeys(formula, Key.ENTER);
   await waitForServer();
 }
 
