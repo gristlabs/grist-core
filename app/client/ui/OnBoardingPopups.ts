@@ -326,7 +326,7 @@ const Container = styled('div', `
   align-self: center;
   border: 2px solid ${theme.accentBorder};
   border-radius: 3px;
-  z-index: 1000;
+  z-index: ${vars.onboardingPopupZIndex};
   max-width: 490px;
   position: relative;
   background-color: ${theme.popupBg};
@@ -423,7 +423,7 @@ const Overlay = styled('div', `
   height: 100%;
   top: 0;
   left: 0;
-  z-index: 999;
+  z-index: ${vars.onboardingBackdropZIndex};
   overflow-y: auto;
 `);
 

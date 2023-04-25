@@ -69,6 +69,12 @@
   cursor: pointer;
 }
 
+.doc-tutorial-popup-thumbnail-half-screenshot {
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
 .doc-tutorial-popup-thumbnail img {
   width: 100%;
   border: 1px solid var(--grist-theme-tutorials-popup-border, #D9D9D9);

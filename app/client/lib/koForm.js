@@ -882,13 +882,12 @@ exports.statusPanel = function(valueObservable, options) {
  * @param {Observable} optToggleObservable - If another observable is provided, it will be used to
  *   toggle whether or not the field is editable. It will also prevent clicks from affecting whether
  *   the label is editable.
- * @param {Observable} optCommands - Optional commands to bind to the input.
  */
-exports.editableLabel = function(valueObservable, optToggleObservable, optCommands) {
+exports.editableLabel = function(valueObservable, optToggleObservable) {
   var isEditing = optToggleObservable || ko.observable(false);
   var cancelEdit = false;
 
-  var editingCommands = Object.assign({
+  var editingCommands = {
     cancel: function() {
       cancelEdit = true;
       isEditing(false);
@@ -897,7 +896,7 @@ exports.editableLabel = function(valueObservable, optToggleObservable, optComman
       cancelEdit = false;
       isEditing(false);
     }
-  }, optCommands || {});
+  };
 
   var contentSizer;
   return dom('div.kf_editable_label',

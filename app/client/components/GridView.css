@@ -397,3 +397,26 @@
   min-width: 40px;
   padding-right: 12px;
 }
+
+.g-column-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.g-column-label .info_toggle_icon {
+  width: 13px;
+  height: 13px;
+  margin-right: 4px;
+}
+
+.g-column-label .kf_editable_label {
+  padding-left: 1px;
+  padding-right: 1px;
+}
+
+.g-column-label-spacer {
+  width: calc(13px + 4px + 4px);
+  height: 17px;
+  flex-shrink: 100;
+}

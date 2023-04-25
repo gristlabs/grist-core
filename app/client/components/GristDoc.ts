@@ -433,13 +433,13 @@ export class GristDoc extends DisposableWithEvents {
 
     /* Command binding */
     this.autoDispose(commands.createGroup({
-      undo(this: GristDoc) { this._undoStack.sendUndoAction().catch(reportError); },
-      redo(this: GristDoc) { this._undoStack.sendRedoAction().catch(reportError); },
-      reloadPlugins() { this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
+      undo() { this._undoStack.sendUndoAction().catch(reportError); },
+      redo() { this._undoStack.sendRedoAction().catch(reportError); },
+      reloadPlugins() { void this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
 
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
-      setCursor(this: GristDoc, rowModel: BaseRowModel, fieldModel?: ViewFieldRec) {
+      setCursor(rowModel: BaseRowModel, fieldModel?: ViewFieldRec) {
         return this.setCursorPos({
           rowIndex: rowModel?._index() || 0,
           fieldIndex: fieldModel?._index() || 0,
@@ -518,17 +518,8 @@ export class GristDoc extends DisposableWithEvents {
     // panel to the table.
     this.autoDispose(this.viewModel.activeSection.subscribe((section) => {
       if (section.isDisposed() || section._isDeleted.peek()) { return; }
-      if ('chart' === section.parentKey.peek()) {
+      if (['chart', 'custom'].includes(section.parentKey.peek())) {
         commands.allCommands.viewTabFocus.run();
-      } else if ('custom' === section.parentKey.peek()) {
-        // Check if user has seen custom URL tooltip.
-        const seenTooltip = this.behavioralPromptsManager.hasSeenTip('customURL');
-        // If yes, just focus on the table if it is opened
-        if (seenTooltip) {
-          commands.allCommands.viewTabFocus.run();
-        } else {
-          commands.allCommands.viewTabOpen.run();
-        }
       }
     }));
   }

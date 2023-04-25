@@ -12,11 +12,18 @@ describe('RightPanel', function() {
     const mainSession = await gu.session().teamSite.login();
     await mainSession.tempNewDoc(cleanup);
 
+    // Reset prefs.
+    await driver.executeScript('resetSeenPopups();');
+    await gu.waitForServer();
+
+    // Refresh for a clean start.
+    await gu.reloadDoc();
+
     // Close panel and make sure it stays closed.
     await gu.toggleSidePanel('right', 'close');
 
     // Add a chart section.
-    await gu.addNewSection('Chart', 'Table1');
+    await gu.addNewSection('Chart', 'Table1', { dismissTips: true});
     assert.isFalse(await gu.isSidePanelOpen('right'));
     await gu.undo();
 

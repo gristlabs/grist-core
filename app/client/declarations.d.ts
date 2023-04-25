@@ -4,7 +4,6 @@ declare module "app/client/components/CodeEditorPanel";
 declare module "app/client/components/DetailView";
 declare module "app/client/components/DocConfigTab";
 declare module "app/client/components/GridView";
-declare module "app/client/components/commandList";
 declare module "app/client/lib/Mousetrap";
 declare module "app/client/lib/browserGlobals";
 declare module "app/client/lib/dom";
@@ -106,24 +105,6 @@ declare module "app/client/components/ViewConfigTab" {
     public _buildCustomTypeItems(): DomArg;
   }
   export = ViewConfigTab;
-}
-
-declare module "app/client/components/commands" {
-  export class Command {
-    public name: string;
-    public deprecated: boolean;
-    public desc: string;
-    public humanKeys: string[];
-    public keys: string[];
-    public getDesc(): string;
-    public getKeysDesc(): string;
-    public run(): any;
-  }
-
-  export type CommandsGroup = any;
-  export const init: any;
-  export const allCommands: any;
-  export const createGroup: any;
 }
 
 declare module "app/client/models/BaseRowModel" {

@@ -1,9 +1,12 @@
 import {hoverTooltip} from 'app/client/ui/tooltips';
-import {isNarrowScreen, isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
+import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, DomArg, DomContents, makeTestId, Observable, styled} from 'grainjs';
+import {Disposable, dom, DomArg, DomContents, IDisposable, makeTestId, Observable, styled} from 'grainjs';
 
-const POPUP_PADDING_PX = 16;
+const POPUP_INITIAL_PADDING_PX = 16;
+const POPUP_MIN_HEIGHT = 300;
+const POPUP_MAX_HEIGHT = 711;
+const POPUP_HEADER_HEIGHT = 30;
 
 const testId = makeTestId('test-floating-popup-');
 
@@ -13,17 +16,45 @@ export interface PopupOptions {
   onClose?: () => void;
   closeButton?: boolean;
   autoHeight?: boolean;
+  /** Defaults to false. */
+  stopClickPropagationOnMove?: boolean;
 }
 
 export class FloatingPopup extends Disposable {
   protected _isMinimized = Observable.create(this, false);
+  private _isFinishingMove = false;
   private _popupElement: HTMLElement | null = null;
+  private _popupMinimizeButtonElement: HTMLElement | null = null;
 
-  private _clientX: number;
-  private _clientY: number;
+  private _startX: number;
+  private _startY: number;
+  private _initialTop: number;
+  private _initialBottom: number;
+  private _initialLeft: number;
+  private _resize = false;
+  private _cursorGrab: IDisposable|null = null;
 
   constructor(protected _options: PopupOptions = {}, private _args: DomArg[] = []) {
     super();
+
+    if (_options.stopClickPropagationOnMove){
+      // weasel.js registers a 'click' listener that closes any open popups that
+      // are outside the click target. We capture the click event here, stopping
+      // propagation in a few scenarios where closing popups is undesirable.
+      window.addEventListener('click', (ev) => {
+        if (this._isFinishingMove) {
+          ev.stopPropagation();
+          this._isFinishingMove = false;
+          return;
+        }
+
+        if (this._popupMinimizeButtonElement?.contains(ev.target as Node)) {
+          ev.stopPropagation();
+          this._minimizeOrMaximize();
+          return;
+        }
+      }, {capture: true});
+    }
 
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this._handleMouseMove = this._handleMouseMove.bind(this);
@@ -37,6 +68,7 @@ export class FloatingPopup extends Disposable {
 
     this.onDispose(() => {
       this._closePopup();
+      this._cursorGrab?.dispose();
     });
   }
 
@@ -44,7 +76,7 @@ export class FloatingPopup extends Disposable {
     this._popupElement = this._buildPopup();
     document.body.appendChild(this._popupElement);
     const topPaddingPx = getTopPopupPaddingPx();
-    const initialLeft = document.body.offsetWidth - this._popupElement.offsetWidth - POPUP_PADDING_PX;
+    const initialLeft = document.body.offsetWidth - this._popupElement.offsetWidth - POPUP_INITIAL_PADDING_PX;
     const initialTop = document.body.offsetHeight - this._popupElement.offsetHeight - topPaddingPx;
     this._popupElement.style.left = `${initialLeft}px`;
     this._popupElement.style.top = `${initialTop}px`;
@@ -69,61 +101,126 @@ export class FloatingPopup extends Disposable {
     return this._args;
   }
 
+  private _rememberPosition() {
+    this._initialLeft = this._popupElement!.offsetLeft;
+    this._initialTop = this._popupElement!.offsetTop;
+    this._initialBottom = this._popupElement!.offsetTop + this._popupElement!.offsetHeight;
+  }
+
   private _handleMouseDown(ev: MouseEvent) {
     if (ev.button !== 0) { return; } // Only handle left-click.
-    this._clientX = ev.clientX;
-    this._clientY = ev.clientY;
+    this._startX = ev.clientX;
+    this._startY = ev.clientY;
+    this._rememberPosition();
     document.addEventListener('mousemove', this._handleMouseMove);
     document.addEventListener('mouseup', this._handleMouseUp);
+    this._forceCursor();
   }
 
   private _handleTouchStart(ev: TouchEvent) {
-    this._clientX = ev.touches[0].clientX;
-    this._clientY = ev.touches[0].clientY;
+    this._startX = ev.touches[0].clientX;
+    this._startY = ev.touches[0].clientY;
+    this._rememberPosition();
     document.addEventListener('touchmove', this._handleTouchMove);
     document.addEventListener('touchend', this._handleTouchEnd);
-  }
 
-  private _handleMouseMove({clientX, clientY}: MouseEvent) {
-    this._handleMove(clientX, clientY);
+    this._resize = false;
+    this._forceCursor();
   }
 
   private _handleTouchMove({touches}: TouchEvent) {
-    this._handleMove(touches[0].clientX, touches[0].clientY);
+    this._handleMouseMove(touches[0]);
+  }
+
+  private _handleMouseMove({clientX, clientY}: MouseEvent | Touch) {
+    if (this._resize) {
+      this._handleResize(clientY);
+    } else {
+      this._handleMove(clientX, clientY);
+    }
+  }
+
+  private _handleResize(clientY: number) {
+    const deltaY = clientY - this._startY;
+    if (this._resize && !isNarrowScreen()) {
+      // First calculate the boundaries for the new top.
+
+      // First just how much we can resize the popup.
+      let minTop = this._initialBottom - POPUP_MAX_HEIGHT;
+      let maxTop = this._initialBottom - POPUP_MIN_HEIGHT;
+
+      // Now how far we can move top (leave at least some padding for mobile).
+      minTop = Math.max(minTop, getTopPopupPaddingPx());
+      // And bottom (we want the header to be visible)
+      maxTop = Math.min(document.body.offsetHeight - POPUP_HEADER_HEIGHT - 2, maxTop);
+
+      // Now get new top from those boundaries.
+      const newTop = Math.max(minTop, Math.min(maxTop, this._initialTop + deltaY));
+      // And calculate the new height.
+      const newHeight = this._initialBottom - newTop;
+      this._popupElement!.style.top = `${newTop}px`;
+      this._popupElement!.style.setProperty('--height', `${newHeight}px`);
+      return;
+    }
   }
 
   private _handleMove(clientX: number, clientY: number) {
-    const deltaX = clientX - this._clientX;
-    const deltaY = clientY - this._clientY;
-    let newLeft = this._popupElement!.offsetLeft + deltaX;
-    let newTop = this._popupElement!.offsetTop + deltaY;
+    // Last change in position (from last move).
+    const deltaX = clientX - this._startX;
+    const deltaY = clientY - this._startY;
 
-    const topPaddingPx = getTopPopupPaddingPx();
-    if (newLeft - POPUP_PADDING_PX < 0) { newLeft = POPUP_PADDING_PX; }
-    if (newTop - topPaddingPx < 0) { newTop = topPaddingPx; }
-    if (newLeft + POPUP_PADDING_PX > document.body.offsetWidth - this._popupElement!.offsetWidth) {
-      newLeft = document.body.offsetWidth - this._popupElement!.offsetWidth - POPUP_PADDING_PX;
-    }
-    if (newTop + topPaddingPx > document.body.offsetHeight - this._popupElement!.offsetHeight) {
-      newTop = document.body.offsetHeight - this._popupElement!.offsetHeight - topPaddingPx;
-    }
+    // Available space where we can put the popup (anchored at top left corner).
+    const viewPort = {
+      right: document.body.offsetWidth,
+      bottom: document.body.offsetHeight,
+      top: getTopPopupPaddingPx(),
+      left: 0,
+    };
+
+    // Allow some extra space, where we can still move the popup outside the viewport.
+    viewPort.right += this._popupElement!.offsetWidth - (POPUP_HEADER_HEIGHT + 2) * 4;
+    viewPort.left -= this._popupElement!.offsetWidth - (POPUP_HEADER_HEIGHT + 2) * 4;
+    viewPort.bottom += this._popupElement!.offsetHeight - POPUP_HEADER_HEIGHT - 2; // 2px border top
+
+    let newLeft = this._initialLeft + deltaX;
+    let newTop = this._initialTop + deltaY;
+    const newRight = (val?: number) => {
+      if (val !== undefined) { newLeft = val - this._popupElement!.offsetWidth; }
+      return newLeft + this._popupElement!.offsetWidth;
+    };
+    const newBottom = (val?: number) => {
+      if (val !== undefined) { newTop = val - this._popupElement!.offsetHeight; }
+      return newTop + this._popupElement!.offsetHeight;
+    };
+
+    // Calculate new position in the padding area.
+    if (newLeft < viewPort.left) { newLeft = viewPort.left; }
+    if (newRight() > viewPort.right) { newRight(viewPort.right); }
+    if (newTop  < viewPort.top) { newTop = viewPort.top; }
+    if (newBottom() > viewPort.bottom) { newBottom(viewPort.bottom); }
 
     this._popupElement!.style.left = `${newLeft}px`;
     this._popupElement!.style.top = `${newTop}px`;
-    this._clientX = clientX;
-    this._clientY = clientY;
   }
 
   private _handleMouseUp() {
+    this._isFinishingMove = true;
     document.removeEventListener('mousemove', this._handleMouseMove);
     document.removeEventListener('mouseup', this._handleMouseUp);
     document.body.removeEventListener('mouseleave', this._handleMouseUp);
+    this._handleMouseEnd();
   }
 
   private _handleTouchEnd() {
     document.removeEventListener('touchmove', this._handleTouchMove);
     document.removeEventListener('touchend', this._handleTouchEnd);
     document.body.removeEventListener('touchcancel', this._handleTouchEnd);
+    this._handleMouseEnd();
+  }
+
+  private _handleMouseEnd() {
+    this._resize = false;
+    this._cursorGrab?.dispose();
   }
 
   private _handleWindowResize() {
@@ -135,10 +232,10 @@ export class FloatingPopup extends Disposable {
     let newTop = this._popupElement!.offsetTop;
 
     const topPaddingPx = getTopPopupPaddingPx();
-    if (newLeft - POPUP_PADDING_PX < 0) { newLeft = POPUP_PADDING_PX; }
+    if (newLeft - POPUP_INITIAL_PADDING_PX < 0) { newLeft = POPUP_INITIAL_PADDING_PX; }
     if (newTop - topPaddingPx < 0) { newTop = topPaddingPx; }
-    if (newLeft + POPUP_PADDING_PX > document.body.offsetWidth - this._popupElement!.offsetWidth) {
-      newLeft = document.body.offsetWidth - this._popupElement!.offsetWidth - POPUP_PADDING_PX;
+    if (newLeft + POPUP_INITIAL_PADDING_PX > document.body.offsetWidth - this._popupElement!.offsetWidth) {
+      newLeft = document.body.offsetWidth - this._popupElement!.offsetWidth - POPUP_INITIAL_PADDING_PX;
     }
     if (newTop + topPaddingPx > document.body.offsetHeight - this._popupElement!.offsetHeight) {
       newTop = document.body.offsetHeight - this._popupElement!.offsetHeight - topPaddingPx;
@@ -148,11 +245,28 @@ export class FloatingPopup extends Disposable {
     this._popupElement!.style.top = `${newTop}px`;
   }
 
+  private _minimizeOrMaximize() {
+    this._isMinimized.set(!this._isMinimized.get());
+    this._repositionPopup();
+  }
+
   private _buildPopup() {
     const body = cssPopup(
       {tabIndex: '-1'},
       cssPopup.cls('-auto', this._options.autoHeight ?? false),
       cssPopupHeader(
+        cssBottomHandle(testId('move-handle')),
+        dom.maybe(use => !use(this._isMinimized), () => {
+          return cssResizeTopLayer(
+            cssTopHandle(testId('resize-handle')),
+            dom.on('mousedown', () => this._resize = true),
+            dom.on('dblclick', (e) => {
+              e.stopImmediatePropagation();
+              this._popupElement?.style.setProperty('--height', `${POPUP_MAX_HEIGHT}px`);
+              this._repositionPopup();
+            })
+          );
+        }),
         dom.domComputed(this._isMinimized, isMinimized => {
           return [
             // Copy buttons on the left side of the header, to automatically
@@ -178,23 +292,27 @@ export class FloatingPopup extends Disposable {
                 }),
                 testId('close'),
               ),
-              cssPopupHeaderButton(
+              this._popupMinimizeButtonElement = cssPopupHeaderButton(
                 isMinimized ? icon('Maximize'): icon('Minimize'),
                 hoverTooltip(isMinimized ? 'Maximize' : 'Minimize', {key: 'docTutorialTooltip'}),
-                dom.on('click', () => {
-                  this._isMinimized.set(!this._isMinimized.get());
-                  this._repositionPopup();
-                }),
+                dom.on('click', () => this._minimizeOrMaximize()),
                 testId('minimize-maximize'),
               ),
+              // Disable dragging when a button in the header is clicked.
+              dom.on('mousedown', ev => ev.stopPropagation()),
+              dom.on('touchstart', ev => ev.stopPropagation()),
             )
           ];
         }),
         dom.on('mousedown', this._handleMouseDown),
         dom.on('touchstart', this._handleTouchStart),
+        dom.on('dblclick', () => this._minimizeOrMaximize()),
         testId('header'),
       ),
-      dom.maybe(use => !use(this._isMinimized), () => this._buildContent()),
+      cssPopupContent(
+        this._buildContent(),
+        cssPopupContent.cls('-minimized', this._isMinimized),
+      ),
       () => { window.addEventListener('resize', this._handleWindowResize); },
       dom.onDispose(() => {
         document.removeEventListener('mousemove', this._handleMouseMove);
@@ -223,26 +341,48 @@ export class FloatingPopup extends Disposable {
 
     return body;
   }
+
+  private _forceCursor() {
+    this._cursorGrab?.dispose();
+    const type = this._resize ? 'ns-resize' : 'grabbing';
+    const cursorStyle: HTMLStyleElement = document.createElement('style');
+    cursorStyle.innerHTML = `*{cursor: ${type}!important;}`;
+    cursorStyle.id = 'cursor-style';
+    document.head.appendChild(cursorStyle);
+    const cursorOwner = {
+      dispose() {
+        if (this.isDisposed()) { return; }
+        document.head.removeChild(cursorStyle);
+      },
+      isDisposed() {
+        return !cursorStyle.isConnected;
+      }
+    };
+    this._cursorGrab = cursorOwner;
+  }
 }
+
 
 function getTopPopupPaddingPx(): number {
   // On mobile, we need additional padding to avoid blocking the top and bottom bars.
-  return POPUP_PADDING_PX + (isNarrowScreen() ? 50 : 0);
+  return POPUP_INITIAL_PADDING_PX + (isNarrowScreen() ? 50 : 0);
 }
 
-const POPUP_HEIGHT = `min(711px, calc(100% - (2 * ${POPUP_PADDING_PX}px)))`;
-const POPUP_HEIGHT_MOBILE = `min(711px, calc(100% - (2 * ${POPUP_PADDING_PX}px) - (2 * 50px)))`;
-const POPUP_WIDTH = `min(436px, calc(100% - (2 * ${POPUP_PADDING_PX}px)))`;
+const POPUP_HEIGHT = `min(var(--height), calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px)))`;
+const POPUP_HEIGHT_MOBILE = `min(var(--height), calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px) - (2 * 50px)))`;
+const POPUP_WIDTH = `min(436px, calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px)))`;
 
 const cssPopup = styled('div', `
-  position: absolute;
+  position: fixed;
   display: flex;
   flex-direction: column;
   border: 2px solid ${theme.accentBorder};
   border-radius: 5px;
-  z-index: 999;
+  z-index: ${vars.floatingPopupZIndex};
+  --height: ${POPUP_MAX_HEIGHT}px;
   height: ${POPUP_HEIGHT};
   width: ${POPUP_WIDTH};
+  min-height: ${POPUP_MIN_HEIGHT}px;
   background-color: ${theme.popupBg};
   box-shadow: 0 2px 18px 0 ${theme.popupInnerShadow}, 0 0 1px 0 ${theme.popupOuterShadow};
   outline: unset;
@@ -254,6 +394,7 @@ const cssPopup = styled('div', `
   &-minimized {
     max-width: 225px;
     height: unset;
+    min-height: unset;
   }
 
   &-minimized:not(&-mobile) {
@@ -267,6 +408,7 @@ const cssPopup = styled('div', `
   &-auto {
     height: auto;
     max-height: ${POPUP_HEIGHT};
+    min-height: unset;
   }
 
   &-auto&-mobile {
@@ -283,11 +425,12 @@ const cssPopupHeader = styled('div', `
   cursor: grab;
   padding-left: 4px;
   padding-right: 4px;
-  height: 30px;
+  height: ${POPUP_HEADER_HEIGHT}px;
   user-select: none;
   display: flex;
   justify-content: space-between;
   position: relative;
+  isolation: isolate;
   &:active {
     cursor: grabbing;
   }
@@ -323,8 +466,47 @@ const cssPopupHeaderButton = styled('div', `
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
+  z-index: 1000;
 
   &:hover {
     background-color: ${theme.hover};
+  }
+`);
+
+const cssResizeTopLayer = styled('div', `
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  bottom: 28px;
+  z-index: 500;
+  cursor: ns-resize;
+`);
+
+const cssTopHandle = styled('div', `
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  user-select: none;
+  visibility: hidden;
+`);
+
+const cssBottomHandle = styled(cssTopHandle, `
+  top: unset;
+  bottom: 0;
+  left: 0;
+`);
+
+const cssPopupContent = styled('div', `
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+
+  &-minimized {
+    display: none;
   }
 `);

@@ -3,9 +3,9 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
 import {cssPopupBody, FloatingPopup} from 'app/client/ui/FloatingPopup';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
-import {hoverTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, setHoverTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
-import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {confirmModal, modal} from 'app/client/ui2018/modals';
@@ -24,6 +24,8 @@ interface DocTutorialSlide {
 }
 
 const testId = makeTestId('test-doc-tutorial-');
+
+const TOOLTIP_KEY = 'docTutorialTooltip';
 
 export class DocTutorial extends FloatingPopup {
   private _appModel = this._gristDoc.docPageModel.appModel;
@@ -44,7 +46,7 @@ export class DocTutorial extends FloatingPopup {
   });
 
   constructor(private _gristDoc: GristDoc) {
-    super();
+    super({stopClickPropagationOnMove: true});
   }
 
   public async start() {
@@ -77,7 +79,7 @@ export class DocTutorial extends FloatingPopup {
 
               this._openLightbox((ev.target as HTMLImageElement).src);
             }),
-            this._restartGIFs(),
+            this._initializeImages(),
           ],
           testId('popup-body'),
         );
@@ -94,14 +96,17 @@ export class DocTutorial extends FloatingPopup {
           return [
               cssFooterButtonsLeft(
               cssPopupFooterButton(icon('Undo'),
-                hoverTooltip('Restart Tutorial', {key: 'docTutorialTooltip'}),
+                hoverTooltip('Restart Tutorial', {key: TOOLTIP_KEY}),
                 dom.on('click', () => this._restartTutorial()),
                 testId('popup-restart'),
               ),
             ),
             cssProgressBar(
               range(slides.length).map((i) => cssProgressBarDot(
-                {title: slides[i].slideTitle},
+                hoverTooltip(slides[i].slideTitle, {
+                  closeOnClick: false,
+                  key: TOOLTIP_KEY,
+                }),
                 cssProgressBarDot.cls('-current', i === slideIndex),
                 i === slideIndex ? null : dom.on('click', () => this._changeSlide(i)),
                 testId(`popup-slide-${i + 1}`),
@@ -251,11 +256,19 @@ export class DocTutorial extends FloatingPopup {
     confirmModal(
       'Do you want to restart the tutorial? All progress will be lost.',
       'Restart',
-      doRestart
+      doRestart,
+      {
+        modalOptions: {
+          backerDomArgs: [
+            // Stack modal above the tutorial popup.
+            dom.style('z-index', vars.tutorialModalZIndex.toString()),
+          ],
+        },
+      }
     );
   }
 
-  private _restartGIFs() {
+  private _initializeImages() {
     return (element: HTMLElement) => {
       setTimeout(() => {
         const imgs = element.querySelectorAll('img');
@@ -263,6 +276,16 @@ export class DocTutorial extends FloatingPopup {
           // Re-assigning src to itself is a neat way to restart a GIF.
           // eslint-disable-next-line no-self-assign
           img.src = img.src;
+
+          setHoverTooltip(img, 'Click to expand', {
+            key: TOOLTIP_KEY,
+            modifiers: {
+              flip: {
+                boundariesElement: 'scrollParent',
+              },
+            },
+            placement: 'bottom',
+          });
         }
       }, 0);
     };
@@ -281,6 +304,11 @@ export class DocTutorial extends FloatingPopup {
         dom.on('click', (ev, elem) => void (ev.target === elem ? ctl.close() : null)),
         testId('lightbox'),
       ];
+    }, {
+      backerDomArgs: [
+        // Stack modal above the tutorial popup.
+        dom.style('z-index', vars.tutorialModalZIndex.toString()),
+      ],
     });
   }
 }
