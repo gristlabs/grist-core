@@ -72,7 +72,7 @@ function getWidgetTooltip(widgetName: string) {
 async function addWidgetDescription(desc: string, widgetName: string) {
   // Click on the title and open the edition popup
   await getWidgetTitle(widgetName).click();
-  await waitForEditPopup()
+  await waitForEditPopup();
   const widgetEditPopup = await driver.find('.test-widget-title-popup');
   const widgetDescInput = await widgetEditPopup.find('.test-widget-title-section-description-input');
 
