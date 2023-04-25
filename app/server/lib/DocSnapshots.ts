@@ -375,7 +375,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
       return false;
     }
 
-    let keep = index < 5;   // Keep 5 most recent versions
+    let keep = index < ( process.env.NUM_SNAPSHOT_KEEP || 5);   // Keep 5 most recent versions
     for (const bucket of buckets) {
       if (updateAndCheckRange(date, bucket)) { keep = true; }
     }
