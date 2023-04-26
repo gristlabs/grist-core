@@ -350,15 +350,26 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
 
   // Get time of current version
   const start = moment.tz(current.lastModified, tz);
+ // Read environment variable for cap values as a stringified JSON object with key-value pairs
+    const capObjectString = process.env.TIMEBUCKET_CAP || '{"hour": "25", "day": "32", "isoWeek": "12", "month": "96", "year": "1000"}';
 
-  // Track saved version per hour, day, week, month, year, and number of times a version
-  // has been saved based on a corresponding rule.
-  const buckets: TimeBucket[] = [
-    {range: 'hour', prev: start, usage: 0, cap: 25},
-    {range: 'day', prev: start, usage: 0, cap: 32},
-    {range: 'isoWeek', prev: start, usage: 0, cap: 12},
-    {range: 'month', prev: start, usage: 0, cap: 96},
-    {range: 'year', prev: start, usage: 0, cap: 1000}
+// Parse the stringified JSON object into an actual object
+    const caps = JSON.parse(capObjectString);
+
+// Extract the cap values for each bucket range and convert them to integers
+    const capHour = parseInt(caps.hour);
+    const capDay = parseInt(caps.day);
+    const capIsoWeek = parseInt(caps.isoWeek);
+    const capMonth = parseInt(caps.month);
+    const capYear = parseInt(caps.year);
+// Track saved version per hour, day, week, month, year, and number of times a version
+// has been saved based on a corresponding rule.
+    const buckets: TimeBucket[] = [
+        {range: 'hour', prev: start, usage: 0, cap: capHour},
+        {range: 'day', prev: start, usage: 0, cap: capDay},
+        {range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek},
+        {range: 'month', prev: start, usage: 0, cap: capMonth},
+        {range: 'year', prev: start, usage: 0, cap: capYear}
   ];
   // For each snapshot starting with newest, check if it is worth saving by comparing
   // it with the last saved snapshot based on hour, day, week, month, year
