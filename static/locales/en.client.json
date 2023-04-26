@@ -974,5 +974,15 @@
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
         "Open Creator Panel": "Open Creator Panel"
+    },
+    "ColumnTitle": {
+        "Add description": "Add description",
+        "COLUMN ID: ": "COLUMN ID: ",
+        "Cancel": "Cancel",
+        "Column ID copied to clipboard": "Column ID copied to clipboard",
+        "Column description": "Column description",
+        "Column label": "Column label",
+        "Provide a column label": "Provide a column label",
+        "Save": "Save"
     }
 }
