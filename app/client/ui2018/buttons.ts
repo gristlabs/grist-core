@@ -106,6 +106,7 @@ export const bigPrimaryButtonLink = tbind(button, null, {link: true, large: true
 export const textButton = styled(cssButton, `
   border: none;
   padding: 0px;
+  text-align: left;
   background-color: inherit !important;
   &:disabled {
     color: ${theme.controlPrimaryDisabled};
