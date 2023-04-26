@@ -8,7 +8,7 @@ import {ViewFieldRec} from 'app/client/models/DocModel';
 import {autoGrow} from 'app/client/ui/forms';
 import {textarea} from 'app/client/ui/inputs';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
-import {basicButton, cssButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
+import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {cssTextInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
@@ -60,14 +60,15 @@ function buildColumnRenamePopup(
   // change to (it may overlap with another column)
   const colId = '$' + field.colId.peek();
 
-  // Flag that indicates if something has changed (controls the save button).
-  const disableSave = Computed.create(ctrl, (use) => {
-    return (
-      use(editedLabel)?.trim() === field.displayLabel.peek()
-      && use(editedDesc)?.trim() === field.description.peek()
-    );
+  const hasChange = Computed.create(ctrl, (use) => {
+    return use(editedLabel)?.trim() !== field.displayLabel.peek()
+        || use(editedDesc)?.trim() !== field.description.peek();
   });
 
+  const cantSave = Computed.create(ctrl, (use) => {
+    const filledLabel = Boolean(use(editedLabel)?.trim());
+    return !filledLabel;
+  });
 
   // Function to change a column name.
   const saveColumnLabel = async () => {
@@ -230,14 +231,22 @@ function buildColumnRenamePopup(
       }
     }),
     cssButtons(
+      primaryButton(
+        dom.on('click', cancel),
+        testId('close'),
+        dom.hide(hasChange),
+        t("Close"),
+      ),
       primaryButton(t("Save"),
         dom.on('click', close),
-        dom.boolAttr('disabled', use => use(disableSave)),
         testId('save'),
+        dom.show(hasChange),
+        dom.boolAttr('disabled', cantSave),
       ),
       basicButton(t("Cancel"),
         testId('cancel'),
         dom.on('click', cancel),
+        dom.show(hasChange)
       ),
     ),
     // After showing the popup, focus the label input and select it's content.
@@ -338,8 +347,9 @@ const cssTextArea = styled(textarea, `
 const cssButtons = styled('div', `
   display: flex;
   margin-top: 16px;
-  & > .${cssButton.className}:not(:first-child) {
-    margin-left: 8px;
+  gap: 8px;
+  & button {
+    min-width: calc(50 / 13 * 1em); /* Min 50px for 13px font size, to make Save and Close buttons equal width */
   }
 `);
 

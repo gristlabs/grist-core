@@ -34,7 +34,7 @@ export function buildDescriptionConfig(
           { onInput: false },
           { rows: '3' },
           dom.on('blur', async (e, elem) => {
-            await origColumn.description.saveOnly(elem.value);
+            await origColumn.description.setAndSave(elem.value.trim());
           }),
           testId('column-description'),
           autoGrow(fromKo(origColumn.description))
