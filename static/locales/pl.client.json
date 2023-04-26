@@ -612,7 +612,7 @@
         "No Default Access": "Brak dostępu domyślnego",
         "Owner": "Właściciel",
         "View Only": "Tylko widok",
-        "Viewer": "Przeglądarka"
+        "Viewer": "Czytelnik"
     },
     "ValidationPanel": {
         "Update formula (Shift+Enter)": "Aktualizuj formułę (Shift+Enter)",
