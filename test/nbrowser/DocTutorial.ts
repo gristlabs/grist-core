@@ -12,7 +12,7 @@ describe('DocTutorial', function () {
   let api: UserAPI;
   let session: gu.Session;
 
-  const cleanup = setupTestSuite();
+  const cleanup = setupTestSuite({team: true});
 
   before(async () => {
     session = await gu.session().teamSite.user('support').login();

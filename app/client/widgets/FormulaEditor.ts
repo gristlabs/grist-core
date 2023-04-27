@@ -175,7 +175,10 @@ export class FormulaEditor extends NewBaseEditor {
   }
 
   public getCellValue() {
-    return this._formulaEditor.getValue();
+    const value = this._formulaEditor.getValue();
+    // Strip the leading "=" sign, if any, in case users think it should start the formula body (as
+    // it does in Excel, and because the equal sign is also used for formulas in Grist UI).
+    return (value[0] === '=') ? value.slice(1) : value;
   }
 
   public getTextValue() {

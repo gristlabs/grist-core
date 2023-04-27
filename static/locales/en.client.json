@@ -977,11 +977,12 @@
         "Open Creator Panel": "Open Creator Panel"
     },
     "ColumnTitle": {
-        "COLUMN DESCRIPTION": "COLUMN DESCRIPTION",
+        "Add description": "Add description",
         "COLUMN ID: ": "COLUMN ID: ",
-        "COLUMN LABEL": "COLUMN LABEL",
         "Cancel": "Cancel",
         "Column ID copied to clipboard": "Column ID copied to clipboard",
+        "Column description": "Column description",
+        "Column label": "Column label",
         "Provide a column label": "Provide a column label",
         "Save": "Save"
     }
