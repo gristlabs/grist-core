@@ -1019,7 +1019,8 @@
         "Access Rules": "Reglas de acceso",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilice el icono 𝚺 para crear tablas resumen (o dinámicas), para totales o subtotales.",
         "Unpin to hide the the button while keeping the filter.": "Desancla para ocultar el botón mientras mantienes el filtro.",
-        "Anchor Links": "Enlaces fijados"
+        "Anchor Links": "Enlaces fijados",
+        "Custom Widgets": "Widgets personalizados"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1027,5 +1028,15 @@
     "PagePanels": {
         "Close Creator Panel": "Cerrar el panel de creación",
         "Open Creator Panel": "Abrir el panel de creación"
+    },
+    "ColumnTitle": {
+        "COLUMN ID: ": "ID DE LA COLUMNA: ",
+        "Cancel": "Cancelar",
+        "Column label": "Etiqueta de la columna",
+        "Save": "Guardar",
+        "Add description": "Agregar una descripción",
+        "Column ID copied to clipboard": "ID de la columna copiada al portapapeles",
+        "Column description": "Descripción de la Columna",
+        "Provide a column label": "Proporciona una etiqueta a la columna"
     }
 }
