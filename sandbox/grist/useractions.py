@@ -16,7 +16,7 @@ import actions
 import column
 import sort_specs
 import identifiers
-from objtypes import strict_equal, encode_object, decode_object
+from objtypes import strict_equal, encode_object
 import schema
 from schema import RecalcWhen
 import summary

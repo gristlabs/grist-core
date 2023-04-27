@@ -25,6 +25,13 @@ else:
 """
   if sum(3, 5) > 6:
     return 6
+return 0
+"""
+
+  other_err = \
+"""
+  if sum(3, 5) > 6:
+    return 6
 """
 
   sample = testutil.parse_test_sample({
@@ -34,7 +41,7 @@ else:
         [12, "built_in_formula", "Text", True, "max(5)", "", ""],
         [13, "syntax_err", "Text", True, syntax_err, "", ""],
         [14, "indent_err", "Text", True, indent_err, "", ""],
-        [15, "other_err", "Text", True, textwrap.dedent(indent_err), "", ""],
+        [15, "other_err", "Text", True, other_err, "", ""],
         [15, "custom_err", "Text", True, "raise Exception('hello'); return 1", "", ""],
       ]]
     ],

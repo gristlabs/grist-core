@@ -507,8 +507,7 @@ export class AccessRules extends Disposable {
 
   // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
   public getValidColIds(tableId: string): string[]|undefined {
-    return this._aclResources.get(tableId)?.colIds.filter(id =>
-      !isHiddenCol(id) && id !== 'id').sort();
+    return this._aclResources.get(tableId)?.colIds.filter(id => !isHiddenCol(id)).sort();
   }
 
   // Get rules to use for seeding any new set of table/column rules, e.g. to give owners
@@ -1084,7 +1083,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
   }
 
   public buildResourceDom(): DomElementArg {
-    return aclColumnList(this._colIds, this.getValidColIds());
+    return aclColumnList(this._colIds, this._getValidColIdsList());
   }
 
   public getColIdList(): string[] {
@@ -1106,6 +1105,10 @@ class ColumnObsRuleSet extends ObsRuleSet {
 
   public hasColumns() {
     return true;
+  }
+
+  private _getValidColIdsList(): string[] {
+    return this.getValidColIds().filter(id => id !== 'id');
   }
 }
 
