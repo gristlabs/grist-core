@@ -22,7 +22,7 @@ const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
 const {reportError, reportSuccess} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
 const {SectionFilter} = require('app/client/models/SectionFilter');
-const {copyToClipboard} = require('app/client/lib/copyToClipboard');
+const {copyToClipboard} = require('app/client/lib/clipboardUtils');
 const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
@@ -153,7 +153,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
     return linking && linking.disableEditing();
   }));
 
-  this.isPreview = this.options.isPreview;
+  this.isPreview = this.options.isPreview ?? false;
 
   this.enableAddRow = this.autoDispose(ko.computed(() => this.options.addNewRow &&
     !this.viewSection.disableAddRemoveRows() && !this.disableEditing()));
@@ -602,6 +602,9 @@ BaseView.prototype._saveEditRowField = function(editRowModel, colName, value) {
  * @returns {pasteObj} - Paste object
  */
 BaseView.prototype.copy = function(selection) {
+  // Clear the previous copy selection, if any.
+  commands.allCommands.clearCopySelection.run();
+
   this.copySelection(selection);
 
   return {
@@ -617,6 +620,9 @@ BaseView.prototype.copy = function(selection) {
  * @returns {pasteObj} - Paste object
  */
 BaseView.prototype.cut = function(selection) {
+  // Clear the previous copy selection, if any.
+  commands.allCommands.clearCopySelection.run();
+
   this.copySelection(selection);
 
   return {

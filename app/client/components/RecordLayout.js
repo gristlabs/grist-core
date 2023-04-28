@@ -54,7 +54,8 @@ const t = makeT('RecordLayout');
 function RecordLayout(options) {
   this.viewSection = options.viewSection;
   this.buildFieldDom = options.buildFieldDom;
-  this.buildContextMenu = options.buildContextMenu;
+  this.buildRowContextMenu = options.buildRowContextMenu;
+  this.buildFieldContextMenu = options.buildFieldContextMenu;
   this.isEditingLayout = ko.observable(false);
   this.editIndex = ko.observable(0);
   this.layoutEditor = ko.observable(null);    // RecordLayoutEditor when one is active.
@@ -340,8 +341,8 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
       this.layoutEditor.peek().dispose();
       this.layoutEditor(null);
     }) : null,
-    // enables row context menu anywhere on the card
-    contextMenu(() => this.buildContextMenu(row)),
+    // enables field context menu anywhere on the card
+    contextMenu(() => this.buildFieldContextMenu(row)),
     dom('div.detail_row_num',
       kd.text(() => (row._index() + 1)),
       dom.on('contextmenu', ev => {
@@ -357,7 +358,7 @@ RecordLayout.prototype.buildLayoutDom = function(row, optCreateEditor) {
           this.viewSection.hasFocus(true);
           commands.allCommands.setCursor.run(row);
         }),
-        menu(() => this.buildContextMenu(row)),
+        menu(() => this.buildRowContextMenu(row)),
         testId('card-menu-trigger')
       )
     ),

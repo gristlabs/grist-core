@@ -14,7 +14,7 @@ import {Computed, Disposable, dom, DomElementArg, Observable, observable, styled
 import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
-import {copyToClipboard} from 'app/client/lib/copyToClipboard';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {setTestState} from 'app/client/lib/testState';
 import {buildMultiUserManagerModal} from 'app/client/lib/MultiUserManager';
 import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';

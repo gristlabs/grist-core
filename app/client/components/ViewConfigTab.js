@@ -99,19 +99,19 @@ ViewConfigTab.prototype._makeOnDemand = function(table) {
   }
 
   if (table.onDemand()) {
-    confirmModal('Unmark table On-Demand?', 'Unmark On-Demand', onConfirm,
-      dom('div', 'If you unmark table ', dom('b', table), ' as On-Demand, ' +
+    confirmModal('Unmark table On-Demand?', 'Unmark On-Demand', onConfirm, {
+      explanation: dom('div', 'If you unmark table ', dom('b', table), ' as On-Demand, ' +
         'its data will be loaded into the calculation engine and will be available ' +
         'for use in formulas. For a big table, this may greatly increase load times.',
-        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.')
-    );
+        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
+    });
   } else {
-    confirmModal('Make table On-Demand?', 'Make On-Demand', onConfirm,
-      dom('div', 'If you make table ', dom('b', table), ' On-Demand, ' +
+    confirmModal('Make table On-Demand?', 'Make On-Demand', onConfirm, {
+      explanation: dom('div', 'If you make table ', dom('b', table), ' On-Demand, ' +
         'its data will no longer be loaded into the calculation engine and will not be available ' +
         'for use in formulas. It will remain available for viewing and editing.',
-        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.')
-    );
+        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
+    });
   }
 };
 

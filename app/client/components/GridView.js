@@ -277,6 +277,7 @@ _.extend(GridView.prototype, BaseView.prototype);
 // Moved out of all commands to support Raw Data Views (which use this command to close
 // the Grid popup).
 GridView.selectionCommands = {
+  clearCopySelection: function() { this._clearCopySelection(); },
   cancel: function() { this.clearSelection(); }
 }
 
@@ -455,7 +456,7 @@ GridView.prototype.paste = async function(data, cutCallback) {
           topRowIndex + outputHeight - 1, leftIndex + outputWidth - 1);
       }
 
-      this.copySelection(null);
+      commands.allCommands.clearCopySelection.run();
     });
   }
 };
@@ -1737,6 +1738,10 @@ GridView.prototype._duplicateRows = async function() {
       topRowIndex + addRowIds.length - 1, this.viewSection.viewFields().peekLength - 1);
   }
 }
+
+GridView.prototype._clearCopySelection = function() {
+  this.copySelection(null);
+};
 
 function buildStyleOption(owner, computedRule, optionName) {
   return ko.computed(() => {

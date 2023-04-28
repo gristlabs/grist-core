@@ -1,5 +1,5 @@
 import {GristDoc} from 'app/client/components/GristDoc';
-import {copyToClipboard} from 'app/client/lib/copyToClipboard';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
 import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';

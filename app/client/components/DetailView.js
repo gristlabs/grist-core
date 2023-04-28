@@ -11,9 +11,12 @@ require('app/client/lib/koUtil'); // Needed for subscribeInit.
 
 const Base          = require('./Base');
 const BaseView      = require('./BaseView');
+const selector      = require('./CellSelector');
 const {CopySelection} = require('./CopySelection');
 const RecordLayout  = require('./RecordLayout');
 const commands      = require('./commands');
+const tableUtil     = require('../lib/tableUtil');
+const {FieldContextMenu} = require('../ui/FieldContextMenu');
 const {RowContextMenu} = require('../ui/RowContextMenu');
 const {parsePasteForView} = require("./BaseView2");
 const {columnInfoTooltip} = require("../ui/tooltips");
@@ -25,6 +28,8 @@ const {columnInfoTooltip} = require("../ui/tooltips");
 function DetailView(gristDoc, viewSectionModel) {
   BaseView.call(this, gristDoc, viewSectionModel, { 'addNewRow': true });
 
+  this.cellSelector = selector.CellSelector.create(this, this);
+
   this.viewFields = gristDoc.docModel.viewFields;
   this._isSingle = (this.viewSection.parentKey.peek() === 'single');
 
@@ -33,7 +38,8 @@ function DetailView(gristDoc, viewSectionModel) {
   this.recordLayout = this.autoDispose(RecordLayout.create({
     viewSection: this.viewSection,
     buildFieldDom: this.buildFieldDom.bind(this),
-    buildContextMenu : this.buildContextMenu.bind(this),
+    buildRowContextMenu : this.buildRowContextMenu.bind(this),
+    buildFieldContextMenu : this.buildFieldContextMenu.bind(this),
     resizeCallback: () => {
       if (!this._isSingle) {
         this.scrolly().updateSize();
@@ -109,8 +115,10 @@ function DetailView(gristDoc, viewSectionModel) {
   //--------------------------------------------------
   // Instantiate CommandGroups for the different modes.
   this.autoDispose(commands.createGroup(DetailView.generalCommands, this, this.viewSection.hasFocus));
-  this.newFieldCommandGroup = this.autoDispose(
-    commands.createGroup(DetailView.newFieldCommands, this, this.isNewFieldActive));
+  this.autoDispose(commands.createGroup(DetailView.fieldCommands, this, this.viewSection.hasFocus));
+  const hasSelection = this.autoDispose(ko.pureComputed(() =>
+    !this.cellSelector.isCurrentSelectType('') || this.copySelection()));
+  this.autoDispose(commands.createGroup(DetailView.selectionCommands, this, hasSelection));
 }
 Base.setBaseFor(DetailView);
 _.extend(DetailView.prototype, BaseView.prototype);
@@ -151,7 +159,17 @@ DetailView.generalCommands = {
       this.scrolly().scrollRowIntoView(this.cursor.rowIndex());
     }
     this.recordLayout.editLayout(this.cursor.rowIndex());
-  }
+  },
+};
+
+DetailView.fieldCommands = {
+  clearCardFields: function() { this._clearCardFields(); },
+  hideCardFields: function() { this._hideCardFields(); },
+};
+
+DetailView.selectionCommands = {
+  clearCopySelection: function() { this._clearCopySelection(); },
+  cancel: function() { this._clearSelection(); }
 };
 
 //----------------------------------------------------------------------
@@ -205,7 +223,7 @@ DetailView.prototype.paste = async function(data, cutCallback) {
       const addRowId = (action[0] === 'BulkAddRecord' ? results[0][0] : null);
       // Restore the cursor to the right rowId, even if it jumped.
       this.cursor.setCursorPos({rowId: cursorPos.rowId === 'new' ? addRowId : cursorPos.rowId});
-      this.copySelection(null);
+      commands.allCommands.clearCopySelection.run();
     });
 };
 
@@ -224,14 +242,15 @@ DetailView.prototype.getSelection = function() {
   );
 };
 
-DetailView.prototype.buildContextMenu = function(row, options) {
-  const defaults = {
-    disableInsert: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.tableModel.tableMetaRow.onDemand()),
-    disableDelete: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || row._isAddRow()),
-    isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
-    numRows: this.getSelection().rowIds.length,
-  };
-  return RowContextMenu(options ? Object.assign(defaults, options) : defaults);
+DetailView.prototype.buildRowContextMenu = function(row) {
+  const rowOptions = this._getRowContextMenuOptions(row);
+  return RowContextMenu(rowOptions);
+}
+
+DetailView.prototype.buildFieldContextMenu = function(row) {
+  const rowOptions = this._getRowContextMenuOptions(row);
+  const fieldOptions = this._getFieldContextMenuOptions();
+  return FieldContextMenu(rowOptions, fieldOptions);
 }
 
 /**
@@ -462,5 +481,62 @@ DetailView.prototype._canSingleClick = function(field) {
   }
   return true;
 };
+
+DetailView.prototype._clearCardFields = function() {
+  const {isFormula} = this._getFieldContextMenuOptions();
+  if (isFormula === true) {
+    this.activateEditorAtCursor({init: ''});
+  } else {
+    const clearAction = tableUtil.makeDeleteAction(this.getSelection());
+    if (clearAction) {
+      this.gristDoc.docData.sendAction(clearAction);
+    }
+  }
+};
+
+DetailView.prototype._hideCardFields = function() {
+  const selection = this.getSelection();
+  const actions = selection.fields.map(field => ['RemoveRecord', field.id()]);
+  return this.gristDoc.docModel.viewFields.sendTableActions(
+    actions,
+    `Hide fields ${actions.map(a => a[1]).join(', ')} ` +
+      `from ${this.tableModel.tableData.tableId}.`
+  );
+}
+
+DetailView.prototype._clearSelection = function() {
+  this.copySelection(null);
+  this.cellSelector.setToCursor();
+};
+
+DetailView.prototype._clearCopySelection = function() {
+  this.copySelection(null);
+};
+
+DetailView.prototype._getRowContextMenuOptions = function(row) {
+  return {
+    disableInsert: Boolean(
+      this.gristDoc.isReadonly.get() ||
+      this.viewSection.disableAddRemoveRows() ||
+      this.tableModel.tableMetaRow.onDemand()
+    ),
+    disableDelete: Boolean(
+      this.gristDoc.isReadonly.get() ||
+      this.viewSection.disableAddRemoveRows() ||
+      row._isAddRow()
+    ),
+    isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
+    numRows: this.getSelection().rowIds.length,
+  };
+}
+
+DetailView.prototype._getFieldContextMenuOptions = function() {
+  const selection = this.getSelection();
+  return {
+    disableModify: Boolean(selection.fields[0]?.disableModify.peek()),
+    isReadonly: this.gristDoc.isReadonly.get() || this.isPreview,
+    isFormula: Boolean(selection.fields[0]?.column.peek().isRealFormula.peek()),
+  };
+}
 
 module.exports = DetailView;

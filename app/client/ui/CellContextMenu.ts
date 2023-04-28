@@ -32,9 +32,10 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
   const result: Array<Element|null> = [];
 
   result.push(
-
-    // TODO: implement copy/paste actions
-
+    menuItemCmd(allCommands.contextMenuCut, t('Cut'), disableForReadonlyColumn),
+    menuItemCmd(allCommands.contextMenuCopy, t('Copy')),
+    menuItemCmd(allCommands.contextMenuPaste, t('Paste'), disableForReadonlyColumn),
+    menuDivider(),
     colOptions.isFormula ?
       null :
       menuItemCmd(allCommands.clearValues, nameClearCells, disableForReadonlyColumn),
@@ -46,7 +47,7 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
         menuItemCmd(allCommands.copyLink, t("Copy anchor link")),
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
-        menuItemCmd(allCommands.openDiscussion, 'Comment', dom.cls('disabled', (
+        menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
          isReadonly || numRows === 0 || numCols === 0
         )), dom.hide(use => !use(COMMENTS()))) //TODO: i18next
       ]

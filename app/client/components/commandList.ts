@@ -59,6 +59,9 @@ export type CommandName =
   | 'copy'
   | 'cut'
   | 'paste'
+  | 'contextMenuCopy'
+  | 'contextMenuCut'
+  | 'contextMenuPaste'
   | 'fillSelectionDown'
   | 'clearValues'
   | 'input'
@@ -80,9 +83,11 @@ export type CommandName =
   | 'insertFieldAfter'
   | 'renameField'
   | 'hideFields'
+  | 'hideCardFields'
   | 'toggleFreeze'
   | 'deleteFields'
   | 'clearColumns'
+  | 'clearCardFields'
   | 'convertFormulasToData'
   | 'addSection'
   | 'deleteSection'
@@ -102,6 +107,7 @@ export type CommandName =
   | 'clearLinks'
   | 'clearSectionLinks'
   | 'transformUpdate'
+  | 'clearCopySelection'
   ;
 
 
@@ -109,6 +115,7 @@ export interface CommandDef {
   name: CommandName;
   keys: string[];
   desc: string | null;
+  bindKeys?: boolean;
   deprecated?: boolean;
 }
 
@@ -367,6 +374,10 @@ export const groups: CommendGroupDef[] = [{
       name: 'copyLink',
       keys: ['Mod+Shift+A'],
       desc: 'Copy anchor link'
+    }, {
+      name: 'clearCopySelection',
+      keys: [],
+      desc: 'Clears the current copy selection, if any'
     }
   ],
 }, {
@@ -399,7 +410,22 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'paste',
       keys: [],
-      desc: 'Paste clipboard contents at cursor'
+      desc: 'Paste clipboard contents at cursor',
+    }, {
+      name: 'contextMenuCopy',
+      keys: ['Mod+C'],
+      desc: 'Copy current selection to clipboard',
+      bindKeys: false,
+    }, {
+      name: 'contextMenuCut',
+      keys: ['Mod+X'],
+      desc: 'Cut current selection to clipboard',
+      bindKeys: false,
+    }, {
+      name: 'contextMenuPaste',
+      keys: ['Mod+V'],
+      desc: 'Paste clipboard contents at cursor',
+      bindKeys: false,
     }, {
       name: 'fillSelectionDown',
       keys: ['Mod+D'],
@@ -490,6 +516,10 @@ export const groups: CommendGroupDef[] = [{
       keys: ['Alt+Shift+-'],
       desc: 'Hide currently selected columns'
     }, {
+      name: 'hideCardFields',
+      keys: [],
+      desc: 'Hide currently selected fields'
+    }, {
       name: 'toggleFreeze',
       keys: [],
       desc: 'Freeze or unfreeze selected columns'
@@ -501,6 +531,10 @@ export const groups: CommendGroupDef[] = [{
       name: 'clearColumns',
       keys: [],
       desc: 'Clear the selected columns'
+    }, {
+      name: 'clearCardFields',
+      keys: [],
+      desc: 'Clear the selected fields'
     }, {
       name: 'convertFormulasToData',
       keys: [],

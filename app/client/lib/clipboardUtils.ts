@@ -3,9 +3,20 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 const G = getBrowserGlobals('document', 'window');
 
 /**
- * Copy some text to the clipboard, by hook or by crook.
+ * Copy text or data to the clipboard.
  */
-export async function copyToClipboard(txt: string) {
+export async function copyToClipboard(data: string | ClipboardItem) {
+  if (typeof data === 'string') {
+    await copyTextToClipboard(data);
+  } else {
+    await copyDataToClipboard(data);
+  }
+}
+
+/**
+ * Copy text to the clipboard.
+ */
+async function copyTextToClipboard(txt: string) {
   // If present and we have permission to use it, the navigator.clipboard interface
   // is convenient.  This method works in non-headless tests, and regular chrome
   // and firefox.
@@ -35,4 +46,37 @@ export async function copyToClipboard(txt: string) {
     G.document.getSelection().removeAllRanges();
     G.document.getSelection().addRange(selection);
   }
+}
+
+/**
+ * Copy data to the clipboard.
+ */
+async function copyDataToClipboard(data: ClipboardItem) {
+  if (!G.window.navigator?.clipboard?.write) {
+    throw new Error('navigator.clipboard.write is not supported on this browser');
+  }
+
+  await G.window.navigator.clipboard.write([data]);
+}
+
+/**
+ * Read text from the clipboard.
+ */
+export function readTextFromClipboard(): Promise<string> {
+  if (!G.window.navigator?.clipboard?.readText) {
+    throw new Error('navigator.clipboard.readText is not supported on this browser');
+  }
+
+  return G.window.navigator.clipboard.readText();
+}
+
+/**
+ * Read data from the clipboard.
+ */
+export function readDataFromClipboard(): Promise<ClipboardItem[]> {
+  if (!G.window.navigator?.clipboard?.read) {
+    throw new Error('navigator.clipboard.read is not supported on this browser');
+  }
+
+  return G.window.navigator.clipboard.read();
 }

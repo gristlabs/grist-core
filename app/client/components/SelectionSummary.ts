@@ -1,5 +1,5 @@
 import {CellSelector, COL, ROW} from 'app/client/components/CellSelector';
-import {copyToClipboard} from 'app/client/lib/copyToClipboard';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {Delay} from "app/client/lib/Delay";
 import {KoArray} from 'app/client/lib/koArray';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';

@@ -1,6 +1,6 @@
 import * as Clipboard from 'app/client/components/Clipboard';
 import * as commands from 'app/client/components/commands';
-import {copyToClipboard} from 'app/client/lib/copyToClipboard';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {setTestState} from 'app/client/lib/testState';

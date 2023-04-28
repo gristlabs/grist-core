@@ -33,7 +33,21 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
     // Don't show popups to save passwords, which are shown when running against a deployment when
     // we use a login form.
     "credentials_enable_service": false,
-    "profile.password_manager_enabled" : false,
+    "profile": {
+      content_settings: {
+        exceptions: {
+          clipboard: {
+            '*': {
+              // Grant access to the system clipboard. This applies to regular (non-headless)
+              // Chrome. On headless Chrome, this has no effect.
+              setting: 1,
+            }
+          },
+        },
+      },
+      // Don't show popups to save passwords.
+      password_manager_enabled: false,
+    },
 
     // These preferences are my best effort to set up "print to pdf" that saves into the test's temp
     // dir, based on discussion here: https://bugs.chromium.org/p/chromedriver/issues/detail?id=2821.

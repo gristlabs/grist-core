@@ -5,7 +5,7 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ACIndexImpl} from 'app/client/lib/ACIndex';
 import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
-import {copyToClipboard} from 'app/client/lib/copyToClipboard';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';

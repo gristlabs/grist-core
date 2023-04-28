@@ -34,13 +34,22 @@
 
 /* global window, document */
 
-var {tsvDecode} = require('app/common/tsvFormat');
+var {getHumanKey, isMac} = require('app/client/components/commands');
+var {copyToClipboard, readDataFromClipboard} = require('app/client/lib/clipboardUtils');
 var {FocusLayer} = require('app/client/lib/FocusLayer');
+var {makeT} = require('app/client/lib/localization');
+
+var {tsvDecode} = require('app/common/tsvFormat');
+var {ShortcutKey, ShortcutKeyContent} = require('app/client/ui/ShortcutKey');
+var {confirmModal} = require('app/client/ui2018/modals');
+var {styled} = require('grainjs');
 
 var commands = require('./commands');
 var dom = require('../lib/dom');
 var Base = require('./Base');
 var tableUtil = require('../lib/tableUtil');
+
+const t = makeT('Clipboard');
 
 function Clipboard(app) {
   Base.call(this, null);
@@ -91,8 +100,16 @@ function Clipboard(app) {
   // The plaintext content of the cut callback. Used to verify that we are pasting the results
   // of the cut, rather than new data from outside.
   this._cutData = null;
+
+  this.autoDispose(commands.createGroup(Clipboard.commands, this, true));
 }
 Base.setBaseFor(Clipboard);
+
+Clipboard.commands = {
+  contextMenuCopy: function() { this._doContextMenuCopy(); },
+  contextMenuCut: function() { this._doContextMenuCut(); },
+  contextMenuPaste: function() { this._doContextMenuPaste(); },
+};
 
 /**
  * Internal helper fired on `copy` events. If a callback was registered from a component, calls the
@@ -106,6 +123,12 @@ Clipboard.prototype._onCopy = function(elem, event) {
   this._setCBdata(pasteObj, event.originalEvent.clipboardData);
 };
 
+Clipboard.prototype._doContextMenuCopy = function() {
+  let pasteObj = commands.allCommands.copy.run();
+
+  this._copyToClipboard(pasteObj, 'copy');
+};
+
 Clipboard.prototype._onCut = function(elem, event) {
   event.preventDefault();
 
@@ -114,20 +137,63 @@ Clipboard.prototype._onCut = function(elem, event) {
   this._setCBdata(pasteObj, event.originalEvent.clipboardData);
 };
 
-Clipboard.prototype._setCBdata = function(pasteObj, clipboardData) {
+Clipboard.prototype._doContextMenuCut = function() {
+  let pasteObj = commands.allCommands.cut.run();
 
-  if (!pasteObj) {
+  this._copyToClipboard(pasteObj, 'cut');
+};
+
+Clipboard.prototype._setCBdata = function(pasteObj, clipboardData) {
+  if (!pasteObj) { return; }
+
+  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection);
+  clipboardData.setData('text/plain', plainText);
+  const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection);
+  clipboardData.setData('text/html', htmlText);
+
+  this._setCutCallback(pasteObj, plainText);
+};
+
+Clipboard.prototype._copyToClipboard = async function(pasteObj, action) {
+  if (!pasteObj) { return; }
+
+  const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection);
+  let data;
+  if (typeof ClipboardItem === 'function') {
+    const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection);
+    // eslint-disable-next-line no-undef
+    data = new ClipboardItem({
+      // eslint-disable-next-line no-undef
+      'text/plain': new Blob([plainText], {type: 'text/plain'}),
+      // eslint-disable-next-line no-undef
+      'text/html': new Blob([htmlText], {type: 'text/html'}),
+    });
+  } else {
+    data = plainText;
+  }
+
+  try {
+    await copyToClipboard(data);
+  } catch {
+    showUnavailableMenuCommandModal(action);
     return;
   }
 
-  let plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection);
-  clipboardData.setData('text/plain', plainText);
-  let htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection);
-  clipboardData.setData('text/html', htmlText);
+  this._setCutCallback(pasteObj, plainText);
+};
 
+/**
+ * Sets the cut callback from the `pasteObj` if one exists. Otherwise clears the
+ * cut callback.
+ *
+ * The callback is called on paste, and only if the pasted data matches the `cutData`
+ * that was cut from within Grist. The callback handles removal of the data that was
+ * cut.
+ */
+Clipboard.prototype._setCutCallback = function(pasteObj, cutData) {
   if (pasteObj.cutCallback) {
     this._cutCallback = pasteObj.cutCallback;
-    this._cutData = plainText;
+    this._cutData = cutData;
   } else {
     this._cutCallback = null;
     this._cutData = null;
@@ -140,36 +206,11 @@ Clipboard.prototype._setCBdata = function(pasteObj, clipboardData) {
  */
 Clipboard.prototype._onPaste = function(elem, event) {
   event.preventDefault();
-  let cb = event.originalEvent.clipboardData;
-  let plainText = cb.getData('text/plain');
-  let htmlText = cb.getData('text/html');
-  let data;
-
-  // Grist stores both text/html and text/plain when copying data. When pasting back, we first
-  // check if text/html exists (should exist for Grist and other spreadsheet software), and fall
-  // back to text/plain otherwise.
-  try {
-    data = tableUtil.parsePasteHtml(htmlText);
-  } catch (e) {
-    if (plainText === '' || plainText.charCodeAt(0) === 0xFEFF) {
-      data = [['']];
-    } else {
-      data = tsvDecode(plainText.replace(/\r\n?/g, "\n").trimEnd());
-    }
-  }
-
-  if (this._cutData === plainText) {
-    if (this._cutCallback) {
-      // Cuts should only be possible on the first paste after a cut and only if the data being
-      // pasted matches the data that was cut.
-      commands.allCommands.paste.run(data, this._cutCallback);
-    }
-  } else {
-    this._cutData = null;
-    commands.allCommands.paste.run(data, null);
-  }
-  // The cut callback should only be usable once so it needs to be cleared after every paste.
-  this._cutCallback = null;
+  const cb = event.originalEvent.clipboardData;
+  const plainText = cb.getData('text/plain');
+  const htmlText = cb.getData('text/html');
+  const pasteData = getPasteData(plainText, htmlText);
+  this._doPaste(pasteData, plainText);
 };
 
 var FOCUS_TARGET_TAGS = {
@@ -178,6 +219,72 @@ var FOCUS_TARGET_TAGS = {
   'SELECT': true,
   'IFRAME': true,
 };
+
+Clipboard.prototype._doContextMenuPaste = async function() {
+  let clipboardItem;
+  try {
+    clipboardItem = (await readDataFromClipboard())?.[0];
+  } catch {
+    showUnavailableMenuCommandModal('paste');
+    return;
+  }
+  const plainText = await getTextFromClipboardItem(clipboardItem, 'text/plain');
+  const htmlText = await getTextFromClipboardItem(clipboardItem, 'text/html');
+  const pasteData = getPasteData(plainText, htmlText);
+  this._doPaste(pasteData, plainText);
+};
+
+Clipboard.prototype._doPaste = function(pasteData, plainText) {
+  console.log(this._cutData, plainText, this._cutCallback);
+  if (this._cutData === plainText) {
+    if (this._cutCallback) {
+      // Cuts should only be possible on the first paste after a cut and only if the data being
+      // pasted matches the data that was cut.
+      commands.allCommands.paste.run(pasteData, this._cutCallback);
+    }
+  } else {
+    this._cutData = null;
+    commands.allCommands.paste.run(pasteData, null);
+  }
+  // The cut callback should only be usable once so it needs to be cleared after every paste.
+  this._cutCallback = null;
+}
+
+/**
+ * Returns data formatted as a 2D array of strings, suitable for pasting within Grist.
+ *
+ * Grist stores both text/html and text/plain when copying data. When pasting back, we first
+ * check if text/html exists (should exist for Grist and other spreadsheet software), and fall
+ * back to text/plain otherwise.
+ */
+function getPasteData(plainText, htmlText) {
+  try {
+    return tableUtil.parsePasteHtml(htmlText);
+  } catch (e) {
+    if (plainText === '' || plainText.charCodeAt(0) === 0xFEFF) {
+      return [['']];
+    } else {
+      return tsvDecode(plainText.replace(/\r\n?/g, "\n").trimEnd());
+    }
+  }
+}
+
+/**
+ * Returns clipboard data of the given `type` from `clipboardItem` as text.
+ *
+ * Returns an empty string if `clipboardItem` is nullish or no data exists
+ * for the given `type`.
+ */
+async function getTextFromClipboardItem(clipboardItem, type) {
+  if (!clipboardItem) { return ''; }
+
+  try {
+    return (await clipboardItem.getType(type)).text();
+  } catch {
+    // No clipboard data exists for the MIME type.
+    return '';
+  }
+}
 
 /**
  * Helper to determine if the currently active element deserves to keep its own focus, and capture
@@ -192,4 +299,48 @@ function allowFocus(elem) {
 
 Clipboard.allowFocus = allowFocus;
 
+function showUnavailableMenuCommandModal(action) {
+  let keys;
+  switch (action) {
+    case 'cut': {
+      keys = 'Mod+X'
+      break;
+    }
+    case 'copy': {
+      keys = 'Mod+C'
+      break;
+    }
+    case 'paste': {
+      keys = 'Mod+V'
+      break;
+    }
+    default: {
+      throw new Error(`Clipboard: unrecognized action ${action}`);
+    }
+  }
+
+  confirmModal(
+    t("Unavailable Command"),
+    t("Got it"),
+    () => {},
+    {
+      explanation: cssModalContent(
+        t(
+          'The {{action}} menu command is not available in this browser. You can still {{action}}' +
+          ' by using the keyboard shortcut {{shortcut}}.',
+          {
+            action,
+            shortcut: ShortcutKey(ShortcutKeyContent(getHumanKey(keys, isMac))),
+          }
+        ),
+      ),
+      hideCancel: true,
+    },
+  );
+}
+
 module.exports = Clipboard;
+
+const cssModalContent = styled('div', `
+  line-height: 18px;
+`);

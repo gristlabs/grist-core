@@ -22,7 +22,7 @@ const G = getBrowserGlobals('window');
 type BoolLike = boolean|ko.Observable<boolean>|ko.Computed<boolean>;
 
 // Same logic as used by mousetrap to map 'Mod' key to platform-specific key.
-const isMac = (typeof navigator !== 'undefined' && navigator &&
+export const isMac = (typeof navigator !== 'undefined' && navigator &&
                /Mac|iPod|iPhone|iPad/.test(navigator.platform));
 
 /**
@@ -62,7 +62,10 @@ export function init(optCommandGroups?: CommendGroupDef[]) {
       if (allCommands[c.name]) {
         console.error("Ignoring duplicate command %s in commandList", c.name);
       } else {
-        allCommands[c.name] = new Command(c.name, c.desc, c.keys, c.deprecated);
+        allCommands[c.name] = new Command(c.name, c.desc, c.keys, {
+          bindKeys: c.bindKeys,
+          deprecated: c.deprecated,
+        });
       }
     });
   });
@@ -95,7 +98,7 @@ const KEY_MAP_WIN = {
   Down: '↓',
 };
 
-function getHumanKey(key: string, mac: boolean): string {
+export function getHumanKey(key: string, mac: boolean): string {
   const keyMap = mac ? KEY_MAP_MAC : KEY_MAP_WIN;
   let keys = key.split('+').map(s => s.trim());
   keys = keys.map(k => {
@@ -104,6 +107,11 @@ function getHumanKey(key: string, mac: boolean): string {
     return k;
   });
   return keys.join( mac ? '' : ' + ');
+}
+
+export interface CommandOptions {
+  bindKeys?: boolean;
+  deprecated?: boolean;
 }
 
 /**
@@ -119,21 +127,23 @@ export class Command implements CommandDef {
   public desc: string|null;
   public humanKeys: string[];
   public keys: string[];
+  public bindKeys: boolean;
   public isActive: ko.Observable<boolean>;
   public deprecated: boolean;
   public run: (...args: any[]) => any;
   private _implGroupStack: CommandGroup[] = [];
   private _activeFunc: (...args: any[]) => any = _.noop;
 
-  constructor(name: CommandName, desc: string|null, keys: string[], deprecated?: boolean) {
+  constructor(name: CommandName, desc: string|null, keys: string[], options: CommandOptions = {}) {
     this.name = name;
     this.desc = desc;
     this.humanKeys = keys.map(key => getHumanKey(key, isMac));
     this.keys = keys.map(function(k) { return k.trim().toLowerCase().replace(/ *\+ */g, '+'); });
+    this.bindKeys = options.bindKeys ?? true;
     this.isActive = ko.observable(false);
     this._implGroupStack = [];
     this._activeFunc = _.noop; // The function to run when this command is invoked.
-    this.deprecated = deprecated || false;
+    this.deprecated = options.deprecated || false;
     // Let .run bind the Command object, so that it can be used as a stand-alone callback.
     this.run = this._run.bind(this);
   }
@@ -192,19 +202,21 @@ export class Command implements CommandDef {
       this._activeFunc = _.noop;
     }
 
-    // Now bind or unbind the affected key combinations.
-    this.keys.forEach(function(key) {
-      const keyGroups = _allKeys[key];
-      if (keyGroups && keyGroups.length > 0) {
-        const commandGroup = _.last(keyGroups)!;
-        // Command name might be different from this.name in case we are deactivating a command, and
-        // the previous meaning of the key points to a different command.
-        const commandName = commandGroup.knownKeys[key];
-        Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName]));
-      } else {
-        Mousetrap.unbind(key);
-      }
-    });
+    if (this.bindKeys) {
+      // Now bind or unbind the affected key combinations.
+      this.keys.forEach(function(key) {
+        const keyGroups = _allKeys[key];
+        if (keyGroups && keyGroups.length > 0) {
+          const commandGroup = _.last(keyGroups)!;
+          // Command name might be different from this.name in case we are deactivating a command, and
+          // the previous meaning of the key points to a different command.
+          const commandName = commandGroup.knownKeys[key];
+          Mousetrap.bind(key, wrapKeyCallback(commandGroup.commands[commandName]));
+        } else {
+          Mousetrap.unbind(key);
+        }
+      });
+    }
   }
 
   private _run(...args: any[]) {
