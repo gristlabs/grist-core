@@ -106,10 +106,26 @@ function initCustomCompleter() {
   aceLanguageTools.addCompleter({
     // For autocompletion we ship text to the sandbox and run standard completion there.
     async getCompletions(
-      editor: ace.Editor, session: ace.IEditSession, pos: ace.Position, prefix: string, callback: any
+      editor: ace.Editor,
+      session: ace.IEditSession,
+      pos: ace.Position,
+      prefix: string,
+      callback: any
     ) {
       const options = completionOptions.get(editor);
       if (!options || prefix.length === 0) { callback(null, []); return; }
+
+      // Autocompletion can be triggered in the middle of a function or method call, like
+      // in the case where one function is being switched with another. Since we normally
+      // append a "(" when completing such suggestions, we need to be careful not to do
+      // so if a "(" is already present. One way to do this in ACE is to check if the
+      // current token is an identifier, and the next token is a lparen; if both are true,
+      // we skip appending a "(" to each suggestion.
+      const wordRange = session.getWordRange(pos.row, pos.column);
+      const token = session.getTokenAt(pos.row, wordRange.end.column) as TokenInfo;
+      const nextToken = session.getTokenAt(pos.row, wordRange.end.column + 1) as TokenInfo|null;
+      const isRenamingFunc = token.type === 'identifier' && nextToken?.type === 'paren.lparen';
+
       const suggestions = await options.getSuggestions(prefix);
       // ACE autocompletions are very poorly documented. This is somewhat helpful:
       // https://prog.world/implementing-code-completion-in-ace-editor/
@@ -118,7 +134,7 @@ function initCustomCompleter() {
         if (Array.isArray(suggestion)) {
           const [funcname, argSpec] = suggestion;
           return {
-            value: funcname + '(',
+            value: funcname + (isRenamingFunc ? '' : '('),
             caption: funcname + argSpec,
             score: 1,
             example,
