@@ -544,7 +544,8 @@
         "Theme": "Theme",
         "WIDGET TITLE": "WIDGET TITLE",
         "Widget": "Widget",
-        "You do not have edit access to this document": "You do not have edit access to this document"
+        "You do not have edit access to this document": "You do not have edit access to this document",
+        "Add referenced columns": "Add referenced columns"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
