@@ -1,4 +1,4 @@
-import {urlState} from 'app/client/models/gristUrlState';
+import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {buildAppMenuBillingItem} from 'app/client/ui/BillingButtons';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
@@ -48,7 +48,7 @@ export class AppHeader extends Disposable {
       cssAppLogo(
         {title: `Version ${version.version}` +
           ((version.gitcommit as string) !== 'unknown' ? ` (${version.gitcommit})` : '')},
-        urlState().setLinkUrl({}),
+        this._setHomePageUrl(),
         testId('dm-logo')
       ),
       cssOrg(
@@ -78,6 +78,15 @@ export class AppHeader extends Disposable {
         testId('dm-org'),
       ),
     );
+  }
+
+  private _setHomePageUrl() {
+    const lastVisitedOrg = this._appModel.lastVisitedOrgDomain.get();
+    if (lastVisitedOrg) {
+      return urlState().setLinkUrl({org: lastVisitedOrg});
+    } else {
+      return {href: getWelcomeHomeUrl()};
+    }
   }
 }
 
