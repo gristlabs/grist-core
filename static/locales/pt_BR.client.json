@@ -1029,7 +1029,8 @@
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use o ícone 𝚺 para criar tabelas resumidas (ou dinâmicas), para totais ou subtotais.",
         "relational": "relacionais",
         "Unpin to hide the the button while keeping the filter.": "Desfixe para ocultar o botão enquanto mantém o filtro.",
-        "Anchor Links": "Links de âncora"
+        "Anchor Links": "Links de âncora",
+        "Custom Widgets": "Widgets personalizados"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1037,5 +1038,15 @@
     "PagePanels": {
         "Open Creator Panel": "Abrir o Painel do Criador",
         "Close Creator Panel": "Fechar Painel do Criador"
+    },
+    "ColumnTitle": {
+        "Cancel": "Cancelar",
+        "Column description": "Descrição da coluna",
+        "Column label": "Rótulo da coluna",
+        "Save": "Salvar",
+        "Add description": "Adicionar descrição",
+        "Column ID copied to clipboard": "ID da coluna copiada para a área de transferência",
+        "COLUMN ID: ": "ID DA COLUNA: ",
+        "Provide a column label": "Forneça um rótulo de coluna"
     }
 }
