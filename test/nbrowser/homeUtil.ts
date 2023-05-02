@@ -4,11 +4,10 @@
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import defaults = require('lodash/defaults');
-import {WebElement} from 'mocha-webdriver';
+import {Key, WebDriver, WebElement} from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import {authenticator} from 'otplib';
 import * as path from 'path';
-import { Key, WebDriver } from 'selenium-webdriver';
 
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
