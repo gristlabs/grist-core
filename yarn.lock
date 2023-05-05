@@ -2747,6 +2747,11 @@ csv@4.0.0:
     csv-stringify "^4.3.1"
     stream-transform "^1.0.7"
 
+currency-symbol-map@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/currency-symbol-map/-/currency-symbol-map-5.1.0.tgz#59531fbe977ba95e8d358e90e3c9e9053efb75ad"
+  integrity sha512-LO/lzYRw134LMDVnLyAf1dHE5tyO6axEFkR3TXjQIOmMkAM9YL6QsiUwuXzZAmFnuDJcs4hayOgyIYtViXFrLw==
+
 cycle@1.0.x:
   version "1.0.3"
   resolved "https://registry.npmjs.org/cycle/-/cycle-1.0.3.tgz"
