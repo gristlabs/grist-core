@@ -72,12 +72,9 @@ export const commonUrls = {
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   plans: "https://www.getgrist.com/pricing",
-  createTeamSite: "https://www.getgrist.com/create-team-site",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
 
-  efcrConnect: 'https://efc-r.com/connect',
-  efcrHelp: 'https://www.nioxus.info/eFCR-Help',
   basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
   gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',

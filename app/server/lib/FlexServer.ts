@@ -1338,7 +1338,6 @@ export class FlexServer implements GristServer {
 
   public addNotifier() {
     if (this._check('notifier', 'start', 'homedb')) { return; }
-    // TODO: Disable notifications for Nioxus orgs, until they are ready to deal with them.
     // TODO: make Notifier aware of base domains, rather than sending emails with default
     // base domain.
     // Most notifications are ultimately triggered by requests with a base domain in them,
