@@ -2240,12 +2240,47 @@ export function setFillColor(color: string) {
   return setColor(driver.find('.test-fill-input'), color);
 }
 
+export async function styleRulesCount() {
+  const rules = await driver.findAll('.test-widget-style-conditional-rule');
+  return rules.length;
+}
+
+export async function addInitialStyleRule() {
+  await driver.find('.test-widget-style-add-conditional-style').click();
+  await waitForServer();
+}
+
+export async function removeStyleRuleAt(nr: number) {
+  await driver.find(`.test-widget-style-remove-rule-${nr}`).click();
+  await waitForServer();
+}
+
+export async function addAnotherStyleRule() {
+  await driver.find('.test-widget-style-add-another-rule').click();
+  await waitForServer();
+}
+
+export async function openStyleRuleFormula(nr: number) {
+  await driver
+    .findWait(`.test-widget-style-conditional-rule-${nr} .formula_field_sidepane`, 1000)
+    .click();
+  await waitAppFocus(false);
+}
+
 export async function clickAway() {
   await driver.find(".test-notifier-menu-btn").click();
   await driver.sendKeys(Key.ESCAPE);
 }
 
-export function openColorPicker() {
+/**
+ * Opens a color picker, either the default one or the one for a specific style rule.
+ */
+export function openColorPicker(nr?: number) {
+  if (nr !== undefined) {
+    return driver
+      .find(`.test-widget-style-conditional-rule-${nr} .test-color-select`)
+      .click();
+  }
   return driver.find('.test-color-select').click();
 }
 

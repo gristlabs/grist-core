@@ -423,6 +423,7 @@ export class FieldBuilder extends Disposable {
                    kf.checkButton(transformButton,
                      dom('span.glyphicon.glyphicon-flash'),
                      dom.testId("FieldBuilder_editTransform"),
+                     testId('edit-transform'),
                      kd.toggleClass('disabled', () => this._isTransformingType() || this.origColumn.isFormula() ||
                        this.origColumn.disableModifyBase())
                    )
