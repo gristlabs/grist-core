@@ -2,16 +2,15 @@ import {SandboxRequest} from 'app/common/ActionBundle';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {httpEncoding} from 'app/server/lib/httpEncoding';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {HttpProxyAgent} from 'http-proxy-agent';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as tmp from 'tmp';
+import * as fse from 'fs-extra';
+import log from 'app/server/lib/log';
+import {proxyAgent} from "app/server/utils/ProxyAgent";
 import chunk = require('lodash/chunk');
 import fromPairs = require('lodash/fromPairs');
 import zipObject = require('lodash/zipObject');
-import * as fse from 'fs-extra';
-import log from 'app/server/lib/log';
 
 export class DocRequests {
   // Request responses are briefly cached in files only to handle multiple requests in a formula
@@ -118,11 +117,3 @@ interface RequestError {
 
 type Response = RequestError | SuccessfulResponse;
 
-function proxyAgent(requestUrl: URL) {
-  const proxy = process.env.GRIST_HTTPS_PROXY;
-  if (!proxy) {
-    return undefined;
-  }
-  const ProxyAgent = requestUrl.protocol === "https:" ? HttpsProxyAgent : HttpProxyAgent;
-  return new ProxyAgent(proxy);
-}

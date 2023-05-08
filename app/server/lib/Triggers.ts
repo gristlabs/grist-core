@@ -13,6 +13,7 @@ import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 import {delayAbort} from 'app/server/lib/serverUtils';
+import {proxyAgent} from 'app/server/utils/ProxyAgent';
 import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import {AbortController, AbortSignal} from 'node-abort-controller';
@@ -738,6 +739,7 @@ export class DocTriggers {
             'Content-Type': 'application/json',
           },
           signal,
+          agent: proxyAgent(new URL(url)),
         });
         if (response.status === 200) {
           await this._stats.logBatch(id, 'success', { size, httpStatus: 200, error: null, attempts: attempt + 1 });
