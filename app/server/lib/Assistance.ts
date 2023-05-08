@@ -2,9 +2,9 @@
  * Module with functions used for AI formula assistance.
  */
 
-import { AssistanceRequest, AssistanceResponse } from 'app/common/AssistancePrompts';
+import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
-import { DocAction } from 'app/common/DocActions';
+import {DocAction} from 'app/common/DocActions';
 import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
 
