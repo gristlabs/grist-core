@@ -6,8 +6,9 @@ import {fromTableDataAction, RowRecord, TableColValues, TableDataAction} from 'a
 import {StringUnion} from 'app/common/StringUnion';
 import {MetaRowRecord} from 'app/common/TableData';
 import {CellDelta} from 'app/common/TabularDiff';
+import {WebhookBatchStatus, WebhookStatus, WebhookSummary, WebhookUsage} from 'app/common/Triggers';
 import {decodeObject} from 'app/plugin/objtypes';
-import {summarizeAction} from 'app/server/lib/ActionSummary';
+import {summarizeAction} from 'app/common/ActionSummarizer';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
@@ -36,44 +37,6 @@ type RecordDeltas = Map<number, RecordDelta>;
 
 // Union discriminated by type
 type TriggerAction = WebhookAction | PythonAction;
-
-type WebhookBatchStatus = 'success'|'failure'|'rejected';
-type WebhookStatus = 'idle'|'sending'|'retrying'|'postponed'|'error'|'invalid';
-
-export interface WebhookSummary {
-  id: string;
-  fields: {
-    url: string;
-    unsubscribeKey: string;
-    eventTypes: string[];
-    isReadyColumn?: string|null;
-    tableId: string;
-    enabled: boolean;
-  },
-  usage: WebhookUsage|null,
-}
-
-interface WebhookUsage {
-  // As minimum we need number of waiting events and status (by default pending).
-  numWaiting: number,
-  status: WebhookStatus;
-  updatedTime?: number|null;
-  lastSuccessTime?: number|null;
-  lastFailureTime?: number|null;
-  lastErrorMessage?: string|null;
-  lastHttpStatus?: number|null;
-  lastEventBatch?: null | {
-    size: number;
-    errorMessage: string|null;
-    httpStatus: number|null;
-    status: WebhookBatchStatus;
-    attempts: number;
-  },
-  numSuccess?: {
-    pastHour: number;
-    past24Hours: number;
-  },
-}
 
 export interface WebhookAction {
   type: "webhook";
@@ -171,7 +134,7 @@ export class DocTriggers {
       // to quit it afterwards and avoid keeping a client open for documents without triggers.
       this._getRedisQueuePromise = this._getRedisQueue(createClient(redisUrl));
     }
-    this._stats = new WebhookStatistics(this._docId, () => this._redisClient ?? null);
+    this._stats = new WebhookStatistics(this._docId, _activeDoc, () => this._redisClient ?? null);
   }
 
   public shutdown() {
@@ -316,7 +279,9 @@ export class DocTriggers {
             isReadyColumn: getColId(t.isReadyColRef) ?? null,
             tableId: getTableId(t.tableRef) ?? null,
             // For future use - for now every webhook is enabled.
-            enabled: true,
+            enabled: t.enabled,
+            name: t.label,
+            memo: t.memo,
           },
           // Create some statics and status info.
           usage: await this._stats.getUsage(act.id, this._webHookEventQueue),
@@ -346,6 +311,10 @@ export class DocTriggers {
   public webhookDeleted(id: string) {
     // We can't do much about that as the loop might be in progress and it is not safe to modify the queue.
     // But we can clear the webHook cache, so that the next time we check the webhook url it will be gone.
+    this.clearWebhookCache(id);
+  }
+
+  public clearWebhookCache(id: string) {
     this._webhookCache.delete(id);
   }
 
@@ -527,7 +496,9 @@ export class DocTriggers {
     tableDelta: TableDelta,
   ): boolean {
     let readyBefore: boolean;
-    if (!trigger.isReadyColRef) {
+    if (!trigger.enabled) {
+      return false;
+    } else if (!trigger.isReadyColRef) {
       // User hasn't configured a column, so all records are considered ready immediately
       readyBefore = recordDelta.existedBefore;
     } else {
@@ -821,6 +792,7 @@ class PersistedStore<Keys> {
 
   constructor(
     docId: string,
+    private _activeDoc: ActiveDoc,
     private _redisClientDep: () => RedisClient | null
     ) {
     this._redisKey = `webhooks:${docId}:statistics`;
@@ -831,6 +803,10 @@ class PersistedStore<Keys> {
     if (this._redisClient) {
       await this._redisClient.delAsync(this._redisKey).catch(() => {});
     }
+  }
+
+  protected async markChange() {
+    await this._activeDoc.sendWebhookNotification();
   }
 
   protected async set(id: string, keyValues: [Keys, string][]) {
@@ -939,6 +915,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
       stats.push(['errorMessage', '']);
     }
     await this.set(id, stats);
+    await this.markChange();
   }
 
   public async logInvalid(id: string, errorMessage: string) {
@@ -946,6 +923,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
     await this.set(id, [
       ['errorMessage', errorMessage]
     ]);
+    await this.markChange();
   }
 
   /**
@@ -995,6 +973,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
       batchSummary.push([`lastHttpStatus`, (stats.httpStatus || '').toString()]);
     }
     await this.set(id, batchStats.concat(batchSummary));
+    await this.markChange();
   }
 }
 

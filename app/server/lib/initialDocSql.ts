@@ -6,7 +6,7 @@ export const GRIST_DOC_SQL = `
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "_grist_DocInfo" (id INTEGER PRIMARY KEY, "docId" TEXT DEFAULT '', "peers" TEXT DEFAULT '', "basketId" TEXT DEFAULT '', "schemaVersion" INTEGER DEFAULT 0, "timezone" TEXT DEFAULT '', "documentSettings" TEXT DEFAULT '');
-INSERT INTO _grist_DocInfo VALUES(1,'','','',37,'','');
+INSERT INTO _grist_DocInfo VALUES(1,'','','',38,'','');
 CREATE TABLE IF NOT EXISTS "_grist_Tables" (id INTEGER PRIMARY KEY, "tableId" TEXT DEFAULT '', "primaryViewId" INTEGER DEFAULT 0, "summarySourceTable" INTEGER DEFAULT 0, "onDemand" BOOLEAN DEFAULT 0, "rawViewSectionRef" INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_Tables_column" (id INTEGER PRIMARY KEY, "parentId" INTEGER DEFAULT 0, "parentPos" NUMERIC DEFAULT 1e999, "colId" TEXT DEFAULT '', "type" TEXT DEFAULT '', "widgetOptions" TEXT DEFAULT '', "isFormula" BOOLEAN DEFAULT 0, "formula" TEXT DEFAULT '', "label" TEXT DEFAULT '', "description" TEXT DEFAULT '', "untieColIdFromLabel" BOOLEAN DEFAULT 0, "summarySourceCol" INTEGER DEFAULT 0, "displayCol" INTEGER DEFAULT 0, "visibleCol" INTEGER DEFAULT 0, "rules" TEXT DEFAULT NULL, "recalcWhen" INTEGER DEFAULT 0, "recalcDeps" TEXT DEFAULT NULL);
 CREATE TABLE IF NOT EXISTS "_grist_Imports" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "origFileName" TEXT DEFAULT '', "parseFormula" TEXT DEFAULT '', "delimiter" TEXT DEFAULT '', "doublequote" BOOLEAN DEFAULT 0, "escapechar" TEXT DEFAULT '', "quotechar" TEXT DEFAULT '', "skipinitialspace" BOOLEAN DEFAULT 0, "encoding" TEXT DEFAULT '', "hasHeaders" BOOLEAN DEFAULT 0);
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS "_grist_Views_section_field" (id INTEGER PRIMARY KEY,
 CREATE TABLE IF NOT EXISTS "_grist_Validations" (id INTEGER PRIMARY KEY, "formula" TEXT DEFAULT '', "name" TEXT DEFAULT '', "tableRef" INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_REPL_Hist" (id INTEGER PRIMARY KEY, "code" TEXT DEFAULT '', "outputText" TEXT DEFAULT '', "errorText" TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS "_grist_Attachments" (id INTEGER PRIMARY KEY, "fileIdent" TEXT DEFAULT '', "fileName" TEXT DEFAULT '', "fileType" TEXT DEFAULT '', "fileSize" INTEGER DEFAULT 0, "fileExt" TEXT DEFAULT '', "imageHeight" INTEGER DEFAULT 0, "imageWidth" INTEGER DEFAULT 0, "timeDeleted" DATETIME DEFAULT NULL, "timeUploaded" DATETIME DEFAULT NULL);
-CREATE TABLE IF NOT EXISTS "_grist_Triggers" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "eventTypes" TEXT DEFAULT NULL, "isReadyColRef" INTEGER DEFAULT 0, "actions" TEXT DEFAULT '');
+CREATE TABLE IF NOT EXISTS "_grist_Triggers" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "eventTypes" TEXT DEFAULT NULL, "isReadyColRef" INTEGER DEFAULT 0, "actions" TEXT DEFAULT '', "label" TEXT DEFAULT '', "memo" TEXT DEFAULT '', "enabled" BOOLEAN DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_ACLRules" (id INTEGER PRIMARY KEY, "resource" INTEGER DEFAULT 0, "permissions" INTEGER DEFAULT 0, "principals" TEXT DEFAULT '', "aclFormula" TEXT DEFAULT '', "aclColumn" INTEGER DEFAULT 0, "aclFormulaParsed" TEXT DEFAULT '', "permissionsText" TEXT DEFAULT '', "rulePos" NUMERIC DEFAULT 1e999, "userAttributes" TEXT DEFAULT '', "memo" TEXT DEFAULT '');
 INSERT INTO _grist_ACLRules VALUES(1,1,63,'[1]','',0,'','',1e999,'','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLResources" (id INTEGER PRIMARY KEY, "tableId" TEXT DEFAULT '', "colIds" TEXT DEFAULT '');
@@ -43,7 +43,7 @@ export const GRIST_DOC_WITH_TABLE1_SQL = `
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "_grist_DocInfo" (id INTEGER PRIMARY KEY, "docId" TEXT DEFAULT '', "peers" TEXT DEFAULT '', "basketId" TEXT DEFAULT '', "schemaVersion" INTEGER DEFAULT 0, "timezone" TEXT DEFAULT '', "documentSettings" TEXT DEFAULT '');
-INSERT INTO _grist_DocInfo VALUES(1,'','','',37,'','');
+INSERT INTO _grist_DocInfo VALUES(1,'','','',38,'','');
 CREATE TABLE IF NOT EXISTS "_grist_Tables" (id INTEGER PRIMARY KEY, "tableId" TEXT DEFAULT '', "primaryViewId" INTEGER DEFAULT 0, "summarySourceTable" INTEGER DEFAULT 0, "onDemand" BOOLEAN DEFAULT 0, "rawViewSectionRef" INTEGER DEFAULT 0);
 INSERT INTO _grist_Tables VALUES(1,'Table1',1,0,0,2);
 CREATE TABLE IF NOT EXISTS "_grist_Tables_column" (id INTEGER PRIMARY KEY, "parentId" INTEGER DEFAULT 0, "parentPos" NUMERIC DEFAULT 1e999, "colId" TEXT DEFAULT '', "type" TEXT DEFAULT '', "widgetOptions" TEXT DEFAULT '', "isFormula" BOOLEAN DEFAULT 0, "formula" TEXT DEFAULT '', "label" TEXT DEFAULT '', "description" TEXT DEFAULT '', "untieColIdFromLabel" BOOLEAN DEFAULT 0, "summarySourceCol" INTEGER DEFAULT 0, "displayCol" INTEGER DEFAULT 0, "visibleCol" INTEGER DEFAULT 0, "rules" TEXT DEFAULT NULL, "recalcWhen" INTEGER DEFAULT 0, "recalcDeps" TEXT DEFAULT NULL);
@@ -75,7 +75,7 @@ INSERT INTO _grist_Views_section_field VALUES(6,2,6,4,0,'',0,0,'',NULL);
 CREATE TABLE IF NOT EXISTS "_grist_Validations" (id INTEGER PRIMARY KEY, "formula" TEXT DEFAULT '', "name" TEXT DEFAULT '', "tableRef" INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_REPL_Hist" (id INTEGER PRIMARY KEY, "code" TEXT DEFAULT '', "outputText" TEXT DEFAULT '', "errorText" TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS "_grist_Attachments" (id INTEGER PRIMARY KEY, "fileIdent" TEXT DEFAULT '', "fileName" TEXT DEFAULT '', "fileType" TEXT DEFAULT '', "fileSize" INTEGER DEFAULT 0, "fileExt" TEXT DEFAULT '', "imageHeight" INTEGER DEFAULT 0, "imageWidth" INTEGER DEFAULT 0, "timeDeleted" DATETIME DEFAULT NULL, "timeUploaded" DATETIME DEFAULT NULL);
-CREATE TABLE IF NOT EXISTS "_grist_Triggers" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "eventTypes" TEXT DEFAULT NULL, "isReadyColRef" INTEGER DEFAULT 0, "actions" TEXT DEFAULT '');
+CREATE TABLE IF NOT EXISTS "_grist_Triggers" (id INTEGER PRIMARY KEY, "tableRef" INTEGER DEFAULT 0, "eventTypes" TEXT DEFAULT NULL, "isReadyColRef" INTEGER DEFAULT 0, "actions" TEXT DEFAULT '', "label" TEXT DEFAULT '', "memo" TEXT DEFAULT '', "enabled" BOOLEAN DEFAULT 0);
 CREATE TABLE IF NOT EXISTS "_grist_ACLRules" (id INTEGER PRIMARY KEY, "resource" INTEGER DEFAULT 0, "permissions" INTEGER DEFAULT 0, "principals" TEXT DEFAULT '', "aclFormula" TEXT DEFAULT '', "aclColumn" INTEGER DEFAULT 0, "aclFormulaParsed" TEXT DEFAULT '', "permissionsText" TEXT DEFAULT '', "rulePos" NUMERIC DEFAULT 1e999, "userAttributes" TEXT DEFAULT '', "memo" TEXT DEFAULT '');
 INSERT INTO _grist_ACLRules VALUES(1,1,63,'[1]','',0,'','',1e999,'','');
 CREATE TABLE IF NOT EXISTS "_grist_ACLResources" (id INTEGER PRIMARY KEY, "tableId" TEXT DEFAULT '', "colIds" TEXT DEFAULT '');

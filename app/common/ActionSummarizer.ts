@@ -166,12 +166,17 @@ class ActionSummarizer {
  * that will be suitable for composition.
  */
 export function summarizeAction(body: LocalActionBundle, options?: ActionSummaryOptions): ActionSummary {
+  return summarizeStoredAndUndo(getEnvContent(body.stored), body.undo, options);
+}
+
+export function summarizeStoredAndUndo(stored: DocAction[], undo: DocAction[],
+                                       options?: ActionSummaryOptions): ActionSummary {
   const summarizer = new ActionSummarizer(options);
   const summary = createEmptyActionSummary();
-  for (const act of getEnvContent(body.stored)) {
+  for (const act of stored) {
     summarizer.addForwardAction(summary, act);
   }
-  for (const act of Array.from(body.undo).reverse()) {
+  for (const act of Array.from(undo).reverse()) {
     summarizer.addReverseAction(summary, act);
   }
   // Name tables consistently, by their ultimate name, now we know it.

@@ -94,9 +94,10 @@ RecordLayout.prototype.resizeCallback = function() {
 };
 
 RecordLayout.prototype.getField = function(fieldRowId) {
-  // If fieldRowId is a string, then it's actually "colRef:label:value" placeholder that we use
-  // when adding a new field. If so, return a special object with the fields available.
-  if (typeof fieldRowId === 'string') {
+  // If fieldRowId is a string which includes ":", then it's actually "colRef:label:value"
+  // placeholder that we use when adding a new field. If so, return a special object with the fields
+  // available. Note that virtual tables also produces string fieldRowId but they have no ":".
+  if (typeof fieldRowId === 'string' && fieldRowId.includes(':')) {
     var parts = gutil.maxsplit(fieldRowId, ":", 2);
     return {
       isNewField: true,        // To make it easy to distinguish from a ViewField MetaRowModel

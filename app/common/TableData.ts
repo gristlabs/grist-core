@@ -254,23 +254,27 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Optionally takes a list of row ids to return data from. If a row id is
    * not actually present in the table, a row of nulls will be returned for it.
    */
-  public getTableDataAction(desiredRowIds?: number[]): TableDataAction {
+  public getTableDataAction(desiredRowIds?: number[],
+                            colIds?: string[]): TableDataAction {
+    colIds = colIds || this.getColIds();
+    const colIdSet = new Set<string>(colIds);
     const rowIds = desiredRowIds || this.getRowIds();
     let bulkColValues: {[colId: string]: CellValue[]};
+    const colArray = this._colArray.filter(({colId}) => colIdSet.has(colId));
     if (desiredRowIds) {
       const len = rowIds.length;
       bulkColValues = {};
-      for (const colId of this.getColIds()) { bulkColValues[colId] = Array(len); }
+      for (const colId of colIds) { bulkColValues[colId] = Array(len); }
       for (let i = 0; i < len; i++) {
         const index = this._rowMap.get(rowIds[i]);
-        for (const {colId, values} of this._colArray) {
+        for (const {colId, values} of colArray) {
           const value = (index === undefined) ? null : values[index];
           bulkColValues[colId][i] = value;
         }
       }
     } else {
       bulkColValues = fromPairs(
-        this.getColIds()
+        colIds
           .filter(colId => colId !== 'id')
           .map(colId => [colId, this.getColValues(colId)! as CellValue[]]));
     }

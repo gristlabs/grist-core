@@ -14,7 +14,9 @@ import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import {encodeQueryParams} from 'app/common/gutil';
-import {WebhookUpdate} from 'app/common/Triggers';
+import {WebhookFields, WebhookSubscribe, WebhookSummary, WebhookUpdate} from 'app/common/Triggers';
+import omitBy from 'lodash/omitBy';
+
 
 export type {FullUser, UserProfile};
 
@@ -454,8 +456,12 @@ export interface DocAPI {
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 
+  getWebhooks(): Promise<WebhookSummary[]>;
+  addWebhook(webhook: WebhookFields): Promise<{webhookId: string}>;
+  removeWebhook(webhookId: string, tableId: string): Promise<void>;
   // Update webhook
   updateWebhook(webhook: WebhookUpdate): Promise<void>;
+  flushWebhooks(): Promise<void>;
 }
 
 // Operations that are supported by a doc worker.
@@ -905,10 +911,38 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/usersForViewAs`);
   }
 
+  public async getWebhooks(): Promise<WebhookSummary[]> {
+    return this.requestJson(`${this._url}/webhooks`);
+  }
+
+  public async addWebhook(webhook: WebhookSubscribe & {tableId: string}): Promise<{webhookId: string}> {
+    const {tableId} = webhook;
+    return this.requestJson(`${this._url}/tables/${tableId}/_subscribe`, {
+      method: 'POST',
+      body: JSON.stringify(
+        omitBy(webhook, (val, key) => key === 'tableId' || val === null)),
+    });
+  }
+
   public async updateWebhook(webhook: WebhookUpdate): Promise<void> {
     return this.requestJson(`${this._url}/webhooks/${webhook.id}`, {
       method: 'PATCH',
       body: JSON.stringify(webhook.fields),
+    });
+  }
+
+  public removeWebhook(webhookId: string, tableId: string) {
+    // unsubscribeKey is not required for owners
+    const unsubscribeKey = '';
+    return this.requestJson(`${this._url}/tables/${tableId}/_unsubscribe`, {
+      method: 'POST',
+      body: JSON.stringify({webhookId, unsubscribeKey}),
+    });
+  }
+
+  public async flushWebhooks(): Promise<void> {
+    await this.request(`${this._url}/webhooks/queue`, {
+      method: 'DELETE'
     });
   }
 

@@ -57,7 +57,7 @@ TODO: this hardcoded port numbers might cause conflicts in parallel tests execut
 const webhooksTestPort = 34365;
 const webhooksTestProxyPort = 22335;
 
-describe('Webhooks proxy configuration', function () {
+describe('Webhooks-Proxy', function () {
   // A testDir of the form grist_test_{USER}_{SERVER_NAME}
   // - its a directory that will be base for all test related files and activities
   const username = process.env.USER || "nobody";

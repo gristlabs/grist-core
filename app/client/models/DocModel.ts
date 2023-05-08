@@ -281,6 +281,7 @@ export class DocModel {
   private _createVisibleTablesArray(): KoArray<TableRec> {
     return createTablesArray(this.tables, r =>
       !isHiddenTable(this.tables.tableData, r) &&
+      !isVirtualTable(this.tables.tableData, r) &&
       (!isTutorialTable(this.tables.tableData, r) || this.showDocTutorialTable)
     );
   }
@@ -325,4 +326,12 @@ function createTablesArray(
  */
 function isTutorialTable(tablesData: TableData, tableRef: UIRowId): boolean {
   return tablesData.getValue(tableRef, 'tableId') === 'GristDocTutorial';
+}
+
+/**
+ * Check whether a table is virtual - currently that is done
+ * by having a string rowId rather than the expected integer.
+ */
+function isVirtualTable(tablesData: TableData, tableRef: UIRowId): boolean {
+  return typeof(tableRef) === 'string';
 }

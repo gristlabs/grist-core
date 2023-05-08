@@ -32,6 +32,8 @@ export class DocData extends BaseDocData {
   private _lastActionNum: number|null = null;   // ActionNum of the last action in the current bundle, or null.
   private _bundleSender: BundleSender;
 
+  private _virtualTablesFunc: Map<string, Constructor<TableData>>;
+
   /**
    * Constructor for DocData.
    * @param {Object} docComm: A map of server methods available on this document.
@@ -41,10 +43,12 @@ export class DocData extends BaseDocData {
   constructor(public readonly docComm: DocComm, metaTableData: {[tableId: string]: TableDataAction}) {
     super((tableId) => docComm.fetchTable(tableId), metaTableData);
     this._bundleSender = new BundleSender(this.docComm);
+    this._virtualTablesFunc = new Map();
   }
 
   public createTableData(tableId: string, tableData: TableDataAction|null, colTypes: ColTypeMap): TableData {
-    return new TableData(this, tableId, tableData, colTypes);
+    const Cons = this._virtualTablesFunc?.get(tableId) || TableData;
+    return new Cons(this, tableId, tableData, colTypes);
   }
 
   // Version of inherited getTable() which returns the enhance TableData type.
@@ -182,8 +186,16 @@ export class DocData extends BaseDocData {
     return this.sendActions([action], optDesc).then((retValues) => retValues[0]);
   }
 
+  public registerVirtualTable(tableId: string, Cons: typeof TableData) {
+    this._virtualTablesFunc.set(tableId, Cons);
+  }
+
   // See documentation of sendActions().
   private async _sendActionsImpl(actions: UserAction[], optDesc?: string): Promise<any[]> {
+    if (this._virtualTablesFunc?.has(actions[0]?.[1] as any)) {
+      // It would be easy to pass along actions, but we don't need this functionality yet.
+      throw new Error('_sendActionsImpl needs updating to direct actions to virtual tables');
+    }
     const eventData = {actions};
     this.sendActionsEmitter.emit(eventData);
     const options = { desc: optDesc };
@@ -282,3 +294,5 @@ export interface BundlingInfo<T = unknown> {
   // Promise for when the bundle has been finalized.
   completionPromise: Promise<void>;
 }
+
+type Constructor<T> = new (...args: any[]) => T;

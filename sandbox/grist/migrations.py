@@ -1189,7 +1189,6 @@ def migration35(tdset):
 
   return tdset.apply_doc_actions(doc_actions)
 
-
 @migration(schema_version=36)
 def migration36(tdset):
   """
@@ -1197,10 +1196,22 @@ def migration36(tdset):
   """
   return tdset.apply_doc_actions([add_column('_grist_Tables_column', 'description', 'Text')])
 
-
 @migration(schema_version=37)
 def migration37(tdset):
   """
   Add fileExt column to _grist_Attachments.
   """
   return tdset.apply_doc_actions([add_column('_grist_Attachments', 'fileExt', 'Text')])
+
+@migration(schema_version=38)
+def migration38(tdset):
+  doc_actions = [add_column('_grist_Triggers', 'memo', 'Text'),
+                 add_column('_grist_Triggers', 'label', 'Text'),
+                 add_column('_grist_Triggers', 'enabled', 'Bool')]
+  triggers = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Triggers']))
+  doc_actions.append(actions.BulkUpdateRecord(
+    '_grist_Triggers',
+    [t.id for t in triggers],
+    {'enabled': [True for t in triggers]}
+  ))
+  return tdset.apply_doc_actions(doc_actions)

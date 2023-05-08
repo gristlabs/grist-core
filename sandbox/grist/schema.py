@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 37
+SCHEMA_VERSION = 38
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -254,6 +254,9 @@ def schema_create_actions():
       make_column("eventTypes", "ChoiceList"),
       make_column("isReadyColRef", "Ref:_grist_Tables_column"),
       make_column("actions", "Text"),  # JSON
+      make_column("label", "Text"),
+      make_column("memo", "Text"),
+      make_column("enabled", "Bool"),
     ]),
 
     # All of the ACL rules.

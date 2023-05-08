@@ -8,9 +8,11 @@ import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
 import {copyToClipboard} from 'app/client/lib/copyToClipboard';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
+import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
+import {primaryButtonLink} from 'app/client/ui2018/buttons';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {select} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
@@ -83,6 +85,8 @@ export class DocSettingsPage extends Disposable {
           await copyToClipboard(docPageModel.currentDocId.get()!);
         }),
       )),
+      cssHeader(t('Webhooks'), cssBeta('Beta')),
+      cssDataRow(primaryButtonLink(t('Manage Webhooks'), urlState().setLinkUrl({docPage: 'webhook'}))),
     );
   }
 
@@ -167,6 +171,13 @@ const cssDataRow = styled('div', `
   font-size: ${vars.largeFontSize};
   color: ${theme.text};
   width: 360px;
+`);
+
+const cssBeta = styled('sup', `
+  text-transform: uppercase;
+  color: ${theme.text};
+  font-size: ${vars.smallFontSize};
+  margin-left: 8px;
 `);
 
 // Check which engines can be selected in the UI, if any.

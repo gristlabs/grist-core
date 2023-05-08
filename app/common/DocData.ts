@@ -75,6 +75,15 @@ export class DocData extends ActionDispatcher {
     return this._tables.get(tableId);
   }
 
+  public async requireTable(tableId: string): Promise<TableData> {
+    await this.fetchTable(tableId);
+    const td = this._tables.get(tableId);
+    if (!td) {
+      throw new Error(`could not fetch table: ${tableId}`);
+    }
+    return td;
+  }
+
   /**
    * Like getTable, but the result knows about the types of its records
    */

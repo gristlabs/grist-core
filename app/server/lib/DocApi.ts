@@ -28,7 +28,7 @@ import {
   TableOperationsImpl,
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
-import {concatenateSummaries, summarizeAction} from "app/server/lib/ActionSummary";
+import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer";
 import {ActiveDoc, colIdToRef as colIdToReference, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {
   assertAccess,
@@ -117,18 +117,18 @@ const {
  */
 function validate(checker: Checker): RequestHandler {
   return (req, res, next) => {
-    try {
-      checker.check(req.body);
-    } catch(err) {
-      log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
-      res.status(400).json({
-        error : "Invalid payload",
-        details: String(err)
-      }).end();
-      return;
-    }
+    validateCore(checker, req, req.body);
     next();
   };
+}
+
+function validateCore(checker: Checker, req: Request, body: any) {
+    try {
+      checker.check(body);
+    } catch(err) {
+      log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
+      throw new ApiError('Invalid payload', 400, {userError: String(err)});
+    }
 }
 
 export class DocWorkerApi {
@@ -235,6 +235,59 @@ export class DocWorkerApi {
     async function getMetaTables(activeDoc: ActiveDoc, req: RequestWithLogin) {
       return await handleSandboxError("", [],
         activeDoc.fetchMetaTables(docSessionFromRequest(req)));
+    }
+
+    async function getWebhookSettings(activeDoc: ActiveDoc, req: RequestWithLogin, webhookId: string|null) {
+      const metaTables = await getMetaTables(activeDoc, req);
+      const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+      const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
+      let currentTableId = trigger ? tablesTable.getValue(trigger.tableRef, 'tableId')! : undefined;
+      const {url, eventTypes, isReadyColumn, name} = req.body;
+      const tableId = req.params.tableId || req.body.tableId;
+      const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
+
+      if (url && !isUrlAllowed(url)) {
+        throw new ApiError('Provided url is forbidden', 403);
+      }
+
+      if (eventTypes) {
+        if (!eventTypes.length) {
+          throw new ApiError(`eventTypes must be a non-empty array`, 400);
+        }
+        fields.eventTypes = [GristObjCode.List, ...eventTypes];
+      }
+
+      if (tableId !== undefined) {
+        fields.tableRef = tableIdToRef(metaTables, tableId);
+        currentTableId = tableId;
+      }
+
+      if (isReadyColumn !== undefined) {
+        // When isReadyColumn is defined let's explicitly change the ready column to the new col
+        // id, null or empty string being a special case that unsets it.
+        if (isReadyColumn !== null && isReadyColumn !== '') {
+          if (!currentTableId) {
+            throw new ApiError(`Cannot find column "${isReadyColumn}" because table is not known`, 404);
+          }
+          fields.isReadyColRef = colIdToReference(metaTables, currentTableId, isReadyColumn);
+        } else {
+          fields.isReadyColRef = 0;
+        }
+      } else if (tableId) {
+        // When isReadyColumn is undefined but tableId was changed, let's unset the ready column
+        fields.isReadyColRef = 0;
+      }
+
+      // assign other field properties
+      Object.assign(fields, _.pick(req.body, ['enabled', 'memo']));
+      if (name) {
+        fields.label = name;
+      }
+      return {
+        fields,
+        url,
+        trigger,
+      };
     }
 
     // Get the columns of the specified table in recordish format
@@ -358,9 +411,27 @@ export class DocWorkerApi {
 
     // Adds records given in a record oriented format,
     // returns in the same format as GET /records but without the fields object for now
-    this._app.post('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPost),
+    // WARNING: The `req.body` object is modified in place.
+    this._app.post('/api/docs/:docId/tables/:tableId/records', canEdit,
       withDoc(async (activeDoc, req, res) => {
-        const body = req.body as Types.RecordsPost;
+        let body = req.body;
+        if (isAffirmative(req.query.flat)) {
+          if (!body.records && Array.isArray(body)) {
+            for (const [i, rec] of body.entries()) {
+              if (!rec.fields) {
+                // If ids arrive in a loosely formatted flat payload,
+                // remove them since we cannot honor them. If not loosely
+                // formatted, throw an error later. TODO: would be useful
+                // to have a way to exclude or rename fields via query
+                // parameters.
+                if (rec.id) { delete rec.id; }
+                body[i] = {fields: rec};
+              }
+            }
+            body = {records: body};
+          }
+        }
+        validateCore(RecordsPost, req, body);
         const ops = getTableOperations(req, activeDoc);
         const records = await ops.create(body.records);
         res.json({records});
@@ -550,22 +621,15 @@ export class DocWorkerApi {
     // Add a new webhook and trigger
     this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner, validate(WebhookSubscribe),
       withDoc(async (activeDoc, req, res) => {
-        const {isReadyColumn, eventTypes, url} = req.body;
-
-        if (!eventTypes.length) {
+        const {fields, url} = await getWebhookSettings(activeDoc, req, null);
+        if (!fields.eventTypes?.length) {
           throw new ApiError(`eventTypes must be a non-empty array`, 400);
         }
         if (!isUrlAllowed(url)) {
           throw new ApiError('Provided url is forbidden', 403);
         }
-
-        const tableId = req.params.tableId;
-        const metaTables = await getMetaTables(activeDoc, req);
-
-        const tableRef = tableIdToRef(metaTables, tableId);
-        let isReadyColRef = 0;
-        if (isReadyColumn) {
-          isReadyColRef = colIdToReference(metaTables, tableId, isReadyColumn);
+        if (!fields.tableRef) {
+          throw new ApiError(`tableId is required`, 400);
         }
 
         const unsubscribeKey = uuidv4();
@@ -579,9 +643,8 @@ export class DocWorkerApi {
           const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
             docSessionFromRequest(req),
             [['AddRecord', "_grist_Triggers", null, {
-              eventTypes: [GristObjCode.List, ...eventTypes],
-              isReadyColRef,
-              tableRef,
+              enabled: true,
+              ...fields,
               actions: JSON.stringify([webhookAction])
             }]]));
 
@@ -596,6 +659,8 @@ export class DocWorkerApi {
           // remove webhook
           await this._dbManager.removeWebhook(webhookId, activeDoc.docName, '', false);
           throw err;
+        } finally {
+          await activeDoc.sendWebhookNotification();
         }
       })
     );
@@ -622,56 +687,19 @@ export class DocWorkerApi {
           docSessionFromRequest(req),
           [['RemoveRecord', "_grist_Triggers", triggerRowId]]));
 
+        await activeDoc.sendWebhookNotification();
+
         res.json({success: true});
       })
     );
 
-    // Update a webhoook
+    // Update a webhook
     this._app.patch(
       '/api/docs/:docId/webhooks/:webhookId', isOwner, validate(WebhookPatch), withDoc(async (activeDoc, req, res) => {
 
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
-        const metaTables = await getMetaTables(activeDoc, req);
-        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
-        const trigger = activeDoc.triggers.getWebhookTriggerRecord(webhookId);
-        let currentTableId = tablesTable.getValue(trigger.tableRef, 'tableId')!;
-        const {url, eventTypes, isReadyColumn, tableId} = req.body;
-        const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
-
-        if (url && !isUrlAllowed(url)) {
-          // TODO: remove redundancy with same validation in _subscribe endpoint
-          throw new ApiError('Provided url is forbidden', 403);
-        }
-
-        if (eventTypes) {
-          // TODO: remove redundancy with same validation in _subscribe endpoint
-          if (!eventTypes.length) {
-            throw new ApiError(`eventTypes must be a non-empty array`, 400);
-          }
-          fields.eventTypes = [GristObjCode.List, ...eventTypes];
-        }
-
-        if (tableId !== undefined) {
-          fields.tableRef = tableIdToRef(metaTables, tableId);
-          currentTableId = tableId;
-        }
-
-        if (isReadyColumn !== undefined) {
-          // When isReadyColumn is defined let's explicitly changes the ready column to the new col
-          // id, null being a special case that unsets it.
-          if (isReadyColumn !== null) {
-            fields.isReadyColRef = colIdToReference(metaTables, currentTableId, isReadyColumn);
-          } else {
-            fields.isReadyColRef = 0;
-          }
-        } else if (tableId) {
-          // When isReadyColumn is undefined but tableId was changed, let's implicitely unset the ready column
-          fields.isReadyColRef = 0;
-        }
-
-        // assign other fields properties
-        Object.assign(fields, _.pick(req.body, ['enabled']));
+        const {fields, trigger, url} = await getWebhookSettings(activeDoc, req, webhookId);
 
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
@@ -694,6 +722,8 @@ export class DocWorkerApi {
           }
         });
 
+        await activeDoc.sendWebhookNotification();
+
         res.json({success: true});
       })
     );
@@ -702,6 +732,7 @@ export class DocWorkerApi {
     this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
       withDoc(async (activeDoc, req, res) => {
         await activeDoc.clearWebhookQueue();
+        await activeDoc.sendWebhookNotification();
         res.json({success: true});
       })
     );

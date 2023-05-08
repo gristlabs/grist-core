@@ -1,6 +1,6 @@
 import {ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta} from 'app/common/ActionSummary';
 import {CellDelta} from 'app/common/TabularDiff';
-import {concatenateSummaries} from 'app/server/lib/ActionSummary';
+import {concatenateSummaries} from 'app/common/ActionSummarizer';
 import {ISQLiteDB, quoteIdent, ResultRow} from 'app/server/lib/SQLiteDB';
 import keyBy = require('lodash/keyBy');
 import matches = require('lodash/matches');

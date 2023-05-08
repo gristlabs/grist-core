@@ -56,6 +56,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   isRaw: ko.Computed<boolean>;
+  isVirtual: ko.Computed<boolean>;
   isCollapsed: ko.Computed<boolean>;
 
   borderWidthPx: ko.Computed<string>;
@@ -366,6 +367,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   this.isRaw = this.autoDispose(ko.pureComputed(() => this.table().rawViewSectionRef() === this.getRowId()));
+
+  this.isVirtual = this.autoDispose(ko.pureComputed(() => typeof this.id() === 'string'));
 
   this.borderWidthPx = ko.pureComputed(() => this.borderWidth() + 'px');
 

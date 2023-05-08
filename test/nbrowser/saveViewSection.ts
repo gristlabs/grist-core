@@ -5,6 +5,7 @@ import { setupTestSuite } from 'test/nbrowser/testUtils';
 describe("saveViewSection", function() {
   this.timeout(20000);
   setupTestSuite();
+  gu.bigScreen();
 
   const cleanup = setupTestSuite();
 

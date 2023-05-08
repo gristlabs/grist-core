@@ -10,13 +10,36 @@ export const WebhookFields = t.iface([], {
   "tableId": "string",
   "enabled": t.opt("boolean"),
   "isReadyColumn": t.opt(t.union("string", "null")),
+  "name": t.opt("string"),
+  "memo": t.opt("string"),
 });
+
+export const WebhookBatchStatus = t.union(t.lit('success'), t.lit('failure'), t.lit('rejected'));
+
+export const WebhookStatus = t.union(t.lit('idle'), t.lit('sending'), t.lit('retrying'), t.lit('postponed'), t.lit('error'), t.lit('invalid'));
 
 export const WebhookSubscribe = t.iface([], {
   "url": "string",
   "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"))),
   "enabled": t.opt("boolean"),
   "isReadyColumn": t.opt(t.union("string", "null")),
+  "name": t.opt("string"),
+  "memo": t.opt("string"),
+});
+
+export const WebhookSummary = t.iface([], {
+  "id": "string",
+  "fields": t.iface([], {
+    "url": "string",
+    "unsubscribeKey": "string",
+    "eventTypes": t.array("string"),
+    "isReadyColumn": t.union("string", "null"),
+    "tableId": "string",
+    "enabled": "boolean",
+    "name": "string",
+    "memo": "string",
+  }),
+  "usage": t.union("WebhookUsage", "null"),
 });
 
 export const WebhookUpdate = t.iface([], {
@@ -30,12 +53,39 @@ export const WebhookPatch = t.iface([], {
   "tableId": t.opt("string"),
   "enabled": t.opt("boolean"),
   "isReadyColumn": t.opt(t.union("string", "null")),
+  "name": t.opt("string"),
+  "memo": t.opt("string"),
+});
+
+export const WebhookUsage = t.iface([], {
+  "numWaiting": "number",
+  "status": "WebhookStatus",
+  "updatedTime": t.opt(t.union("number", "null")),
+  "lastSuccessTime": t.opt(t.union("number", "null")),
+  "lastFailureTime": t.opt(t.union("number", "null")),
+  "lastErrorMessage": t.opt(t.union("string", "null")),
+  "lastHttpStatus": t.opt(t.union("number", "null")),
+  "lastEventBatch": t.opt(t.union("null", t.iface([], {
+    "size": "number",
+    "errorMessage": t.union("string", "null"),
+    "httpStatus": t.union("number", "null"),
+    "status": "WebhookBatchStatus",
+    "attempts": "number",
+  }))),
+  "numSuccess": t.opt(t.iface([], {
+    "pastHour": "number",
+    "past24Hours": "number",
+  })),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
   WebhookFields,
+  WebhookBatchStatus,
+  WebhookStatus,
   WebhookSubscribe,
+  WebhookSummary,
   WebhookUpdate,
   WebhookPatch,
+  WebhookUsage,
 };
 export default exportedTypeSuite;

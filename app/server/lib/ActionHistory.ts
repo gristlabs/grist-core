@@ -19,7 +19,7 @@ import {createEmptyActionSummary} from 'app/common/ActionSummary';
 import {getSelectionDesc, UserAction} from 'app/common/DocActions';
 import {DocState} from 'app/common/UserAPI';
 import toPairs = require('lodash/toPairs');
-import {summarizeAction} from './ActionSummary';
+import {summarizeAction} from 'app/common/ActionSummarizer';
 
 export interface ActionGroupOptions {
   // If set, inspect the action in detail in order to include a summary of

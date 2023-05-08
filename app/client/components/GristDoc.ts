@@ -46,6 +46,7 @@ import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
+import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
 import {IWidgetType} from 'app/client/ui/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
@@ -57,7 +58,7 @@ import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
-import {CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
+import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
@@ -452,6 +453,8 @@ export class GristDoc extends DisposableWithEvents {
 
     this.listenTo(app.comm, 'docUsage', this.onDocUsageMessage);
 
+    this.listenTo(app.comm, 'docChatter', this.onDocChatter);
+
     this.autoDispose(DocConfigTab.create({gristDoc: this}));
 
     this.rightPanelTool = Computed.create(this, (use) => this._getToolContent(use(this._rightPanelTool)));
@@ -565,6 +568,7 @@ export class GristDoc extends DisposableWithEvents {
           content === 'acl' ? dom.create(AccessRules, this) :
           content === 'data' ? dom.create(RawDataPage, this) :
           content === 'settings' ? dom.create(DocSettingsPage, this) :
+          content === 'webhook' ? dom.create(WebhookPage, this) :
           content === 'GristDocTour' ? null :
           (typeof content === 'object') ? dom.create(owner => {
             // In case user changes a page, close the popup.
@@ -706,6 +710,10 @@ export class GristDoc extends DisposableWithEvents {
     }
   }
 
+  public getUndoStack() {
+    return this._undoStack;
+  }
+
   /**
    * Process usage and product received from the server by updating their respective
    * observables.
@@ -717,6 +725,13 @@ export class GristDoc extends DisposableWithEvents {
       this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
       this.docPageModel.currentProduct.set(message.data.product ?? null);
     });
+  }
+
+  public onDocChatter(message: CommDocChatter) {
+    if (!this.docComm.isActionFromThisDoc(message)) { return; }
+    if (message.data.webhooks) {
+      this.trigger('webhooks', message.data.webhooks);
+    }
   }
 
   public getTableModel(tableId: string): DataTableModel {
@@ -1439,6 +1454,11 @@ export class GristDoc extends DisposableWithEvents {
     if (section.isRaw.peek()) {
       // This is raw data view
       await urlState().pushUrl({docPage: 'data'});
+      this.viewModel.activeSectionId(sectionId);
+    } else if (section.isVirtual.peek()) {
+      // this is a virtual table, and therefore a webhook page (that is the only
+      // place virtual tables are used so far)
+      await urlState().pushUrl({docPage: 'webhook'});
       this.viewModel.activeSectionId(sectionId);
     } else {
       const view: ViewRec = section.view.peek();

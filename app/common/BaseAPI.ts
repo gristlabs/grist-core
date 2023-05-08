@@ -138,8 +138,13 @@ function throwApiError(url: string, resp: Response | AxiosResponse, body: any) {
   // If the response includes details, include them into the ApiError we construct. Include
   // also the error message from the server as details.userError. It's used by the Notifier.
   if (!body) { body = {}; }
-  const details: ApiErrorDetails = body.details && typeof body.details === 'object' ? body.details : {};
-  if (body.error) {
+  const details: ApiErrorDetails = body.details && typeof body.details === 'object' ? body.details :
+    {errorDetails: body.details};
+  // If a userError is already specified, do not overwrite it.
+  // (The error handling here is quite confusing, would it not be better
+  // to just unserialize an ApiError into the form it would have had on
+  // the server?)
+  if (body.error && !details.userError) {
     details.userError = body.error;
   }
   if (body.memos) {

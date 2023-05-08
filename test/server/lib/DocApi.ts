@@ -2,6 +2,7 @@
 import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
+import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
 import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
@@ -15,7 +16,6 @@ import {
 } from 'app/server/lib/DocApi';
 import log from 'app/server/lib/log';
 import {delayAbort} from 'app/server/lib/serverUtils';
-import {WebhookSummary} from 'app/server/lib/Triggers';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import * as bodyParser from 'body-parser';
@@ -1421,26 +1421,28 @@ function testDocApi() {
 
     it("should validate request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-      const test = async (payload: any, error: { error: string, details: string }) => {
+      const test = async (payload: any, error: { error: string, details: {userError: string} }) => {
         const resp = await axios.put(url, payload, chimpy);
         checkError(400, error, resp);
       };
-      await test({}, {error: 'Invalid payload', details: 'Error: body.records is missing'});
-      await test({records: 1}, {error: 'Invalid payload', details: 'Error: body.records is not an array'});
+      await test({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
+      await test({records: 1}, {
+        error: 'Invalid payload',
+        details: {userError: 'Error: body.records is not an array'}});
       await test({records: [{fields: {}}]},
         {
           error: 'Invalid payload',
-          details: 'Error: ' +
+          details: {userError: 'Error: ' +
             'body.records[0] is not a AddOrUpdateRecord; ' +
             'body.records[0].require is missing',
-        });
+         }});
       await test({records: [{require: {id: "1"}}]},
         {
           error: 'Invalid payload',
-          details: 'Error: ' +
+          details: {userError: 'Error: ' +
             'body.records[0] is not a AddOrUpdateRecord; ' +
             'body.records[0].require.id is not a number',
-        });
+        }});
     });
   });
 
@@ -1462,23 +1464,23 @@ function testDocApi() {
 
     it("validates request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-      const test = async (payload: any, error: { error: string, details: string }) => {
+      const test = async(payload: any, error: {error: string, details: {userError: string}}) => {
         const resp = await axios.post(url, payload, chimpy);
         checkError(400, error, resp);
       };
-      await test({}, {error: 'Invalid payload', details: 'Error: body.records is missing'});
-      await test({records: 1}, {error: 'Invalid payload', details: 'Error: body.records is not an array'});
+      await test({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
+      await test({records: 1}, {
+        error: 'Invalid payload',
+        details: {userError: 'Error: body.records is not an array'}});
       // All column types are allowed, except Arrays (or objects) without correct code.
       const testField = async (A: any) => {
-        await test({records: [{id: 1, fields: {A}}]}, {
-          error: 'Invalid payload', details:
-            'Error: body.records[0] is not a NewRecord; ' +
-            'body.records[0].fields.A is not a CellValue; ' +
-            'body.records[0].fields.A is none of number, ' +
-            'string, boolean, null, 1 more; body.records[0].' +
-            'fields.A[0] is not a GristObjCode; body.records[0]' +
-            '.fields.A[0] is not a valid enum value'
-        });
+        await test({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details: {userError:
+                    'Error: body.records[0] is not a NewRecord; '+
+                    'body.records[0].fields.A is not a CellValue; '+
+                    'body.records[0].fields.A is none of number, '+
+                    'string, boolean, null, 1 more; body.records[0].'+
+                    'fields.A[0] is not a GristObjCode; body.records[0]'+
+                    '.fields.A[0] is not a valid enum value'}});
       };
       // test no code at all
       await testField([]);
@@ -1627,34 +1629,29 @@ function testDocApi() {
 
     it("validates request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-
-      async function failsWithError(payload: any, error: { error: string, details?: string }) {
+      async function failsWithError(payload: any, error: { error: string, details?: {userError: string} }){
         const resp = await axios.patch(url, payload, chimpy);
         checkError(400, error, resp);
       }
 
-      await failsWithError({}, {error: 'Invalid payload', details: 'Error: body.records is missing'});
+      await failsWithError({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
 
-      await failsWithError({records: 1}, {error: 'Invalid payload', details: 'Error: body.records is not an array'});
+      await failsWithError({records: 1}, {
+        error: 'Invalid payload',
+        details: {userError: 'Error: body.records is not an array'}});
 
-      await failsWithError({records: []}, {
-        error: 'Invalid payload', details:
-          'Error: body.records[0] is not a Record; body.records[0] is not an object'
-      });
+      await failsWithError({records: []}, {error: 'Invalid payload', details: {userError:
+                  'Error: body.records[0] is not a Record; body.records[0] is not an object'}});
 
-      await failsWithError({records: [{}]}, {
-        error: 'Invalid payload', details:
-          'Error: body.records[0] is not a Record\n    ' +
-          'body.records[0].id is missing\n    ' +
-          'body.records[0].fields is missing'
-      });
+      await failsWithError({records: [{}]}, {error: 'Invalid payload', details: {userError:
+                  'Error: body.records[0] is not a Record\n    '+
+                  'body.records[0].id is missing\n    '+
+                  'body.records[0].fields is missing'}});
 
-      await failsWithError({records: [{id: "1"}]}, {
-        error: 'Invalid payload', details:
-          'Error: body.records[0] is not a Record\n' +
-          '    body.records[0].id is not a number\n' +
-          '    body.records[0].fields is missing'
-      });
+      await failsWithError({records: [{id: "1"}]}, {error: 'Invalid payload', details: {userError:
+                  'Error: body.records[0] is not a Record\n' +
+                  '    body.records[0].id is not a number\n' +
+                  '    body.records[0].fields is missing'}});
 
       await failsWithError(
         {records: [{id: 1, fields: {A: 1}}, {id: 2, fields: {B: 3}}]},
@@ -1662,15 +1659,13 @@ function testDocApi() {
 
       // Test invalid object codes
       const fieldIsNotValid = async (A: any) => {
-        await failsWithError({records: [{id: 1, fields: {A}}]}, {
-          error: 'Invalid payload', details:
-            'Error: body.records[0] is not a Record; ' +
-            'body.records[0].fields.A is not a CellValue; ' +
-            'body.records[0].fields.A is none of number, ' +
-            'string, boolean, null, 1 more; body.records[0].' +
-            'fields.A[0] is not a GristObjCode; body.records[0]' +
-            '.fields.A[0] is not a valid enum value'
-        });
+        await failsWithError({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details: {userError:
+                    'Error: body.records[0] is not a Record; '+
+                    'body.records[0].fields.A is not a CellValue; '+
+                    'body.records[0].fields.A is none of number, '+
+                    'string, boolean, null, 1 more; body.records[0].'+
+                    'fields.A[0] is not a GristObjCode; body.records[0]'+
+                    '.fields.A[0] is not a valid enum value'}});
       };
       await fieldIsNotValid([]);
       await fieldIsNotValid(['ZZ']);
@@ -2785,7 +2780,7 @@ function testDocApi() {
       );
       assert.equal(resp.status, status);
       for (const error of errors) {
-        assert.match(resp.data.details || resp.data.error, error);
+        assert.match(resp.data.details?.userError || resp.data.error, error);
       }
     }
 
@@ -3133,8 +3128,10 @@ function testDocApi() {
 
     async function subscribe(endpoint: string, docId: string, options?: {
       tableId?: string,
-      isReadyColumn?: string | null,
-      eventTypes?: string[]
+      isReadyColumn?: string|null,
+      eventTypes?: string[],
+      name?: string,
+      memo?: string,
     }) {
       // Subscribe helper that returns a method to unsubscribe.
       const {data, status} = await axios.post(
@@ -3142,7 +3139,8 @@ function testDocApi() {
         {
           eventTypes: options?.eventTypes ?? ['add', 'update'],
           url: `${serving.url}/${endpoint}`,
-          isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn
+          isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
+          ...pick(options, 'name', 'memo'),
         }, chimpy
       );
       assert.equal(status, 200);
@@ -3640,8 +3638,10 @@ function testDocApi() {
               eventTypes: ['add', 'update'],
               enabled: true,
               isReadyColumn: 'B',
-              tableId: 'Table1'
-            }, usage: {
+              tableId: 'Table1',
+              name: '',
+              memo: '',
+            }, usage : {
               status: 'idle',
               numWaiting: 0,
               lastEventBatch: null
@@ -3655,8 +3655,10 @@ function testDocApi() {
               eventTypes: ['add', 'update'],
               enabled: true,
               isReadyColumn: 'B',
-              tableId: 'Table1'
-            }, usage: {
+              tableId: 'Table1',
+              name: '',
+              memo: '',
+            }, usage : {
               status: 'idle',
               numWaiting: 0,
               lastEventBatch: null
@@ -3966,6 +3968,8 @@ function testDocApi() {
               tableId: 'Table1',
               eventTypes: ['add'],
               isReadyColumn: 'B',
+              name: 'My Webhook',
+              memo: 'Sync store',
             };
 
             // subscribe
@@ -3978,6 +3982,8 @@ function testDocApi() {
               isReadyColumn: 'B',
               tableId: 'Table1',
               enabled: true,
+              name: 'My Webhook',
+              memo: 'Sync store',
             };
 
             let stats = await readStats(docId);
@@ -4005,7 +4011,7 @@ function testDocApi() {
               }
             } else {
               if (error instanceof RegExp) {
-                assert.match(resp.data.details || resp.data.error, error);
+                assert.match(resp.data.details?.userError || resp.data.error, error);
               } else {
                 assert.deepEqual(resp.data, {error});
               }

@@ -1566,7 +1566,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
     docSession: OptDocSession|null,
     userActions: UserAction[]
   ): Promise<SandboxActionBundle> {
-    const [normalActions, onDemandActions] = this._onDemandActions.splitByOnDemand(userActions);
+    const [normalActions, onDemandActions] = this._onDemandActions.splitByStorage(userActions);
 
     let sandboxActionBundle: SandboxActionBundle;
     if (normalActions.length > 0) {
@@ -1766,6 +1766,18 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
    */
   public async webhooksSummary() {
     return this._triggers.summary();
+  }
+
+  /**
+   * Send a message to clients connected to the document that something
+   * webhook-related has happened (a change in configuration, or a
+   * delivery, or an error). There is room to give details in future,
+   * if that proves useful, but for now no details are needed.
+   */
+  public async sendWebhookNotification() {
+    await this.docClients.broadcastDocMessage(null, 'docChatter', {
+      webhooks: {},
+    });
   }
 
   public logTelemetryEvent(

@@ -9,6 +9,9 @@ import sortBy = require('lodash/sortBy');
 
 export interface ActionGroupWithCursorPos extends MinimalActionGroup {
   cursorPos?: CursorPos;
+  // For operations not done by the server, we supply a function to
+  // handle them.
+  op?: (ag: MinimalActionGroup, isUndo: boolean) => Promise<void>;
 }
 
 // Provides observables indicating disabled state for undo/redo.
@@ -28,7 +31,7 @@ export class UndoStack extends dispose.Disposable {
   private _gristDoc: GristDoc;
   private _stack: ActionGroupWithCursorPos[];
   private _pointer: number;
-  private _linkMap: Map<number, MinimalActionGroup[]>;
+  private _linkMap: Map<number, ActionGroupWithCursorPos[]>;
 
   // Chain of promises which send undo actions to the server. This delays the execution of the
   // next action until the current one has been received and moved the pointer index.
@@ -119,11 +122,17 @@ export class UndoStack extends dispose.Disposable {
       // responsive, then again when the action is done. The second jump matters more for most
       // changes, but the first is the important one when Undoing an AddRecord.
       this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => { /* do nothing */ });
-      await this._gristDoc.docComm.applyUserActionsById(
-        actionGroups.map(a => a.actionNum),
-        actionGroups.map(a => a.actionHash),
-        isUndo,
-        { otherId: ag.actionNum });
+      if (actionGroups.length === 1 && actionGroups[0].op) {
+        // this is an internal operation, rather than one done by the server,
+        // so we can't ask the server to undo it.
+        await actionGroups[0].op(actionGroups[0], isUndo);
+      } else {
+        await this._gristDoc.docComm.applyUserActionsById(
+          actionGroups.map(a => a.actionNum),
+          actionGroups.map(a => a.actionHash),
+          isUndo,
+          { otherId: ag.actionNum });
+      }
       this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => { /* do nothing */ });
     } catch (err) {
       err.message = `Failed to apply ${isUndo ? 'undo' : 'redo'} action: ${err.message}`;
@@ -134,7 +143,7 @@ export class UndoStack extends dispose.Disposable {
   /**
    * Find all actionGroups in the bundle that starts with the given action group.
    */
-  private _findActionBundle(ag: MinimalActionGroup) {
+  private _findActionBundle(ag: ActionGroupWithCursorPos) {
     const prevNums = new Set();
     const actionGroups = [];
     const queue = [ag];
