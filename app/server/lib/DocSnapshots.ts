@@ -389,7 +389,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
     }
 
     // Keep 5 most recent versions if NUM_SNAPSHOT_KEEP not exist
-    let keep = index < (integerParam(process.env.GRIST_SNAPSHOT_KEEP, "GRIST_SNAPSHOT_KEEP")|| 5);
+    let keep = index < integerParam(process.env.GRIST_SNAPSHOT_KEEP || 5, "GRIST_SNAPSHOT_KEEP");
 
     for (const bucket of buckets) {
       if (updateAndCheckRange(date, bucket)) { keep = true; }
