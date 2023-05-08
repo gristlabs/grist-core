@@ -163,8 +163,8 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   this.chatHistory = this.autoDispose(ko.computed(() => {
     const docId = urlState().state.get().doc ?? '';
-    // Changed key name from history to history2 when ChatHistory changed in incompatible way.
-    const key = `formula-assistant-history2-${docId}-${this.table().tableId()}-${this.colId()}`;
+    // Changed key name from history to history-v2 when ChatHistory changed in incompatible way.
+    const key = `formula-assistant-history-v2-${docId}-${this.table().tableId()}-${this.colId()}`;
     return localStorageJsonObs(key, {messages: []} as ChatHistory);
   }));
 }
