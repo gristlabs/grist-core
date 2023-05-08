@@ -30,16 +30,18 @@ export interface AssistanceDoc {
    * Marked "V1" to suggest that it is a particular prompt and it would
    * be great to try variants.
    */
-  assistanceSchemaPromptV1(options: {
-    tableId: string,
-    colId: string,
-    docString: string,
-  }): Promise<string>;
+  assistanceSchemaPromptV1(options: AssistanceSchemaPromptV1Context): Promise<string>;
 
   /**
    * Some tweaks to a formula after it has been generated.
    */
   assistanceFormulaTweak(txt: string): Promise<string>;
+}
+
+export interface AssistanceSchemaPromptV1Context {
+  tableId: string,
+  colId: string,
+  docString: string,
 }
 
 /**

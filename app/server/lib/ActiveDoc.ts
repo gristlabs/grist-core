@@ -85,7 +85,7 @@ import {Document} from 'app/gen-server/entity/Document';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
-import {AssistanceDoc, sendForCompletion} from 'app/server/lib/Assistance';
+import {AssistanceDoc, AssistanceSchemaPromptV1Context, sendForCompletion} from 'app/server/lib/Assistance';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -1280,11 +1280,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   }
 
   // Callback to generate a prompt containing schema info for assistance.
-  public assistanceSchemaPromptV1(options: {
-    tableId: string,
-    colId: string,
-    docString: string,
-  }): Promise<string> {
+  public assistanceSchemaPromptV1(options: AssistanceSchemaPromptV1Context): Promise<string> {
     return this._pyCall('get_formula_prompt', options.tableId, options.colId, options.docString);
   }
 
