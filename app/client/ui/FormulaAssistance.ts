@@ -8,7 +8,7 @@ import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons'
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssTextInput, rawTextInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
-import {Suggestion} from 'app/common/AssistancePrompts';
+import {AssistanceResponse, AssistanceState} from 'app/common/AssistancePrompts';
 import {Disposable, dom, makeTestId, MultiHolder, obsArray, Observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
 
@@ -78,7 +78,7 @@ function buildControls(
   }
 ) {
 
-  const hasHistory = props.column.chatHistory.peek().get().length > 0;
+  const hasHistory = props.column.chatHistory.peek().get().messages.length > 0;
 
   // State variables, to show various parts of the UI.
   const saveButtonVisible = Observable.create(owner, true);
@@ -153,36 +153,46 @@ function buildControls(
   };
 }
 
-function buildChat(owner: Disposable, context: Context & { formulaClicked: (formula: string) => void }) {
+function buildChat(owner: Disposable, context: Context & { formulaClicked: (formula?: string) => void }) {
   const { grist, column } = context;
 
-  const history = owner.autoDispose(obsArray(column.chatHistory.peek().get()));
+  const history = owner.autoDispose(obsArray(column.chatHistory.peek().get().messages));
   const hasHistory = history.get().length > 0;
   const enabled = Observable.create(owner, hasHistory);
   const introVisible = Observable.create(owner, !hasHistory);
   owner.autoDispose(history.addListener((cur) => {
-    column.chatHistory.peek().set([...cur]);
+    const chatHistory = column.chatHistory.peek();
+    chatHistory.set({...chatHistory.get(), messages: [...cur]});
   }));
 
-  const submit = async () => {
-    // Ask about suggestion, and send the whole history. Currently the chat is implemented by just sending
-    // all previous user prompts back to the AI. This is subject to change (and probably should be done in the backend).
-    const prompt = history.get().filter(x => x.sender === 'user')
-                                .map(entry => entry.message)
-                                .filter(Boolean)
-                                .join("\n");
-    console.debug('prompt', prompt);
-    const { suggestedActions } = await askAI(grist, column, prompt);
-    console.debug('suggestedActions', suggestedActions);
+  const submit = async (regenerate: boolean = false) => {
+    // Send most recent question, and send back any conversation
+    // state we have been asked to track.
+    const chatHistory = column.chatHistory.peek().get();
+    const messages = chatHistory.messages.filter(msg => msg.sender === 'user');
+    const description = messages[messages.length - 1]?.message || '';
+    console.debug('description', {description});
+    const {reply, suggestedActions, state} = await askAI(grist, {
+      column, description, state: chatHistory.state,
+      regenerate,
+    });
+    console.debug('suggestedActions', {suggestedActions, reply});
     const firstAction = suggestedActions[0] as any;
     // Add the formula to the history.
-    const formula = firstAction[3].formula as string;
+    const formula = firstAction ? firstAction[3].formula as string : undefined;
     // Add to history
     history.push({
-      message: formula,
+      message: formula || reply || '(no reply)',
       sender: 'ai',
       formula
     });
+    // If back-end is capable of conversation, keep its state.
+    if (state) {
+      const chatHistoryNew = column.chatHistory.peek();
+      const value = chatHistoryNew.get();
+      value.state = state;
+      chatHistoryNew.set(value);
+    }
     return formula;
   };
 
@@ -203,12 +213,13 @@ function buildChat(owner: Disposable, context: Context & { formulaClicked: (form
     // Remove the last AI response from the history.
     history.pop();
     // And submit again.
-    context.formulaClicked(await submit());
+    context.formulaClicked(await submit(true));
   };
 
   const newChat = () => {
     // Clear the history.
     history.set([]);
+    column.chatHistory.peek().set({messages: []});
     // Show intro.
     introVisible.set(true);
   };
@@ -371,9 +382,11 @@ function openAIAssistant(grist: GristDoc, column: ColumnRec) {
   const chat = buildChat(owner, {...props,
     // When a formula is clicked (or just was returned from the AI), we set it in the formula editor and hit
     // the preview button.
-    formulaClicked: (formula: string) => {
-      formulaEditor.set(formula);
-      controls.preview().catch(reportError);
+    formulaClicked: (formula?: string) => {
+      if (formula) {
+        formulaEditor.set(formula);
+        controls.preview().catch(reportError);
+      }
     },
   });
 
@@ -397,11 +410,22 @@ function openAIAssistant(grist: GristDoc, column: ColumnRec) {
   grist.formulaPopup.autoDispose(popup);
 }
 
-async function askAI(grist: GristDoc, column: ColumnRec, description: string): Promise<Suggestion> {
+async function askAI(grist: GristDoc, options: {
+  column: ColumnRec,
+  description: string,
+  regenerate?: boolean,
+  state?: AssistanceState
+}): Promise<AssistanceResponse> {
+  const {column, description, state, regenerate} = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
   try {
-    const result = await grist.docComm.getAssistance({tableId, colId, description});
+    const result = await grist.docComm.getAssistance({
+      context: {type: 'formula', tableId, colId},
+      text: description,
+      state,
+      regenerate,
+    });
     return result;
   } catch (error) {
     reportError(error);

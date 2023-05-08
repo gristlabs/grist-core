@@ -37,7 +37,6 @@ def column_type(engine, table_id, col_id):
       Attachments="Any",
     )[parts[0]]
 
-
 def choices(col_rec):
   try:
     widget_options = json.loads(col_rec.widgetOptions)
