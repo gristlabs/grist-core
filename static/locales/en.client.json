@@ -984,6 +984,7 @@
         "Column description": "Column description",
         "Column label": "Column label",
         "Provide a column label": "Provide a column label",
-        "Save": "Save"
+        "Save": "Save",
+        "Close": "Close"
     }
 }
