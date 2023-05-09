@@ -1,6 +1,7 @@
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeT} from 'app/client/lib/localization';
+import {sessionStorageObs} from 'app/client/lib/localStorageObs';
 import {error} from 'app/client/lib/log';
 import {reportError, setErrorNotifier} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
@@ -83,6 +84,7 @@ export interface AppModel {
   isTeamSite: boolean;                  // Is it a team site?
   isLegacySite: boolean;                // Is it a legacy site?
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
+  lastVisitedOrgDomain: Observable<string|null>;
 
   currentProduct: Product|null;         // The current org's product.
   currentFeatures: Features;            // Features of the current org's product.
@@ -227,6 +229,8 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly currentOrgUsage: Observable<OrgUsageSummary|null> = Observable.create(this, null);
 
+  public readonly lastVisitedOrgDomain = this.autoDispose(sessionStorageObs('grist-last-visited-org-domain'));
+
   public readonly currentProduct = this.currentOrg?.billingAccount?.product ?? null;
   public readonly currentFeatures = this.currentProduct?.features ?? {};
 
@@ -284,6 +288,14 @@ export class AppModelImpl extends Disposable implements AppModel {
       this.dismissedPopups.set(seen ? DismissedPopup.values : []);
       this.behavioralPromptsManager.reset();
     };
+
+    this.autoDispose(subscribe(urlState().state, async (_use, {doc, org}) => {
+      // Keep track of the last valid org domain the user visited, ignoring those
+      // with a document id in the URL.
+      if (!this.currentOrg || doc) { return; }
+
+      this.lastVisitedOrgDomain.set(org ?? null);
+    }));
   }
 
   public get planName() {

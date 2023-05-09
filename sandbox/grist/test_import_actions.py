@@ -66,7 +66,7 @@ class TestImportActions(test_engine.EngineTestCase):
 
     # Update transform while importing to destination table which have
     # columns with the same names as source
-    self.apply_user_action(['GenImporterView', 'Source', 'Destination1', None])
+    self.apply_user_action(['GenImporterView', 'Source', 'Destination1', None, {}])
 
     # Verify the new structure of source table and sections
     # (two columns with special names were added)
@@ -98,7 +98,7 @@ class TestImportActions(test_engine.EngineTestCase):
 
     # Apply useraction again to verify that old columns and sections are removing
     # Update transform while importing to destination table which has no common columns with source
-    self.apply_user_action(['GenImporterView', 'Source', 'Destination2', None])
+    self.apply_user_action(['GenImporterView', 'Source', 'Destination2', None, {}])
 
     # Verify the new structure of source table and sections (old special columns were removed
     # and one new columns with empty formula were added)
@@ -131,8 +131,8 @@ class TestImportActions(test_engine.EngineTestCase):
     # Generate without a destination table, and then with one. Ensure that we don't omit the
     # actions needed to populate the table in the second call.
     self.init_state()
-    self.apply_user_action(['GenImporterView', 'Source', None, None])
-    out_actions = self.apply_user_action(['GenImporterView', 'Source', 'Destination1', None])
+    self.apply_user_action(['GenImporterView', 'Source', None, None, {}])
+    out_actions = self.apply_user_action(['GenImporterView', 'Source', 'Destination1', None, {}])
     self.assertPartialOutActions(out_actions, {
       "stored": [
         ["BulkRemoveRecord", "_grist_Views_section_field", [13, 14, 15]],
@@ -160,7 +160,7 @@ class TestImportActions(test_engine.EngineTestCase):
     self.init_state()
 
     # Update transform while importing to destination table which is "New Table"
-    self.apply_user_action(['GenImporterView', 'Source', None, None])
+    self.apply_user_action(['GenImporterView', 'Source', None, None, {}])
 
     # Verify the new structure of source table and sections (old special columns were removed
     # and three new columns, which are the same as in source table were added)

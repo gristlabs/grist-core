@@ -6,7 +6,7 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssSelectBtn} from 'app/client/ui2018/select';
 import {isValidHex} from 'app/common/gutil';
-import {BindableValue, Computed, Disposable, dom, Observable, onKeyDown, styled} from 'grainjs';
+import {BindableValue, Computed, Disposable, dom, DomElementArg, Observable, onKeyDown, styled} from 'grainjs';
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
@@ -87,16 +87,24 @@ export function colorSelect(
 
   const domCreator = (ctl: IOpenController) => {
     onOpen?.();
-    return buildColorPicker(ctl, styleOptions, onSave, onRevert);
+    return buildColorPicker(ctl, {styleOptions, onSave, onRevert});
   };
   setPopupToCreateDom(selectBtn, domCreator, {...defaultMenuOptions, placement: 'bottom-end'});
 
   return selectBtn;
 }
 
-export function colorButton(
-  styleOptions: StyleOptions,
-  onSave: () => Promise<void>): Element {
+export interface ColorButtonOptions {
+  styleOptions: StyleOptions;
+  colorPickerDomArgs?: DomElementArg[];
+  onSave(): Promise<void>;
+  onRevert?(): void;
+  onClose?(): void;
+}
+
+export function colorButton(options: ColorButtonOptions): Element {
+  const { colorPickerDomArgs, ...colorPickerOptions } = options;
+  const { styleOptions } = colorPickerOptions;
   const { textColor, fillColor } = styleOptions;
   const iconBtn = cssIconBtn(
     'T',
@@ -109,24 +117,29 @@ export function colorButton(
     testId('color-button'),
   );
 
-  const domCreator = (ctl: IOpenController) => buildColorPicker(ctl, styleOptions, onSave);
+  const domCreator = (ctl: IOpenController) =>
+    buildColorPicker(ctl, colorPickerOptions, colorPickerDomArgs);
   setPopupToCreateDom(iconBtn, domCreator, { ...defaultMenuOptions, placement: 'bottom-end' });
 
   return iconBtn;
 }
 
-function buildColorPicker(ctl: IOpenController,
-  {
-    textColor,
-    fillColor,
-    fontBold,
-    fontUnderline,
-    fontItalic,
-    fontStrikethrough
-  }: StyleOptions,
-  onSave: () => Promise<void>,
-  onRevert?: () => void,
+interface ColorPickerOptions {
+  styleOptions: StyleOptions;
+  onSave(): Promise<void>;
+  onRevert?(): void;
+  onClose?(): void;
+}
+
+function buildColorPicker(
+  ctl: IOpenController,
+  options: ColorPickerOptions,
+  ...domArgs: DomElementArg[]
 ): Element {
+  const {styleOptions, onSave, onRevert, onClose} = options;
+  const {
+    textColor, fillColor, fontBold, fontUnderline, fontItalic, fontStrikethrough
+  } = styleOptions;
   const textColorModel = ColorModel.create(null, textColor.color);
   const fillColorModel = ColorModel.create(null, fillColor.color);
   const fontBoldModel = BooleanModel.create(null, fontBold);
@@ -161,6 +174,7 @@ function buildColorPicker(ctl: IOpenController,
     }
     models.forEach(m => m.dispose());
     notChanged.dispose();
+    onClose?.();
   });
 
   return cssContainer(
@@ -202,6 +216,8 @@ function buildColorPicker(ctl: IOpenController,
     // Set focus when `focusout` is bubbling from a children element. This is to allow to receive
     // keyboard event again after user interacted with the hex box text input.
     dom.on('focusout', (ev, elem) => (ev.target !== elem) && elem.focus()),
+
+    ...domArgs,
   );
 }
 

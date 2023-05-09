@@ -520,10 +520,14 @@ describe('DocTutorial', function () {
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'NewTable']);
     });
 
-    it('redirects to the doc menu when finished', async function() {
-      await driver.find('.test-doc-tutorial-popup-slide-13').click();
+    it('redirects to the last visited site when finished', async function() {
+      const otherSession = await gu.session().personalSite.user('user1').addLogin();
+      await otherSession.loadDocMenu('/');
+      await session.loadDoc(`/doc/${doc.id}`);
+      await driver.findWait('.test-doc-tutorial-popup-slide-13', 2000).click();
       await driver.find('.test-doc-tutorial-popup-next').click();
-      await driver.findWait('.test-dm-doclist', 2000);
+      await gu.waitForDocMenuToLoad();
+      assert.match(await driver.getCurrentUrl(), /o\/docs\/$/);
     });
   });
 

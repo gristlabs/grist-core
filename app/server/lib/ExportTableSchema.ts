@@ -1,18 +1,7 @@
 import * as express from 'express';
 import {ApiError} from 'app/common/ApiError';
-import {WidgetOptions} from 'app/common/WidgetOptions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {DownloadOptions, exportTable} from 'app/server/lib/Export';
-
-interface ExportColumn {
-  id: number;
-  colId: string;
-  label: string;
-  type: string;
-  widgetOptions: WidgetOptions;
-  description?: string;
-  parentPos: number;
-}
+import {DownloadOptions, ExportColumn, exportTable} from 'app/server/lib/Export';
 
 interface FrictionlessFormat {
   name: string;
@@ -86,35 +75,36 @@ function columnsToTableSchema(
 
 function buildTypeField(col: ExportColumn, locale: string) {
   const type = col.type.split(':', 1)[0];
+  const widgetOptions = col.formatter.widgetOpts;
   switch (type) {
     case 'Text':
       return {
         type: 'string',
-        format: col.widgetOptions.widget === 'HyperLink' ? 'uri' : 'default',
+        format: widgetOptions.widget === 'HyperLink' ? 'uri' : 'default',
       };
     case 'Numeric':
       return {
         type: 'number',
-        bareNumber: col.widgetOptions?.numMode === 'decimal',
+        bareNumber: widgetOptions?.numMode === 'decimal',
         ...getNumberSeparators(locale),
       };
     case 'Integer':
       return {
         type: 'integer',
-        bareNumber: col.widgetOptions?.numMode === 'decimal',
+        bareNumber: widgetOptions?.numMode === 'decimal',
         groupChar: getNumberSeparators(locale).groupChar,
       };
     case 'Date':
       return {
         type: 'date',
         format: 'any',
-        gristFormat: col.widgetOptions?.dateFormat || 'YYYY-MM-DD',
+        gristFormat: widgetOptions?.dateFormat || 'YYYY-MM-DD',
       };
     case 'DateTime':
       return {
         type: 'datetime',
         format: 'any',
-        gristFormat: `${col.widgetOptions?.dateFormat} ${col.widgetOptions?.timeFormat}`,
+        gristFormat: `${widgetOptions?.dateFormat} ${widgetOptions?.timeFormat}`,
       };
     case 'Bool':
       return {
@@ -125,12 +115,12 @@ function buildTypeField(col: ExportColumn, locale: string) {
     case 'Choice':
       return {
         type: 'string',
-        constraints: {enum: col.widgetOptions?.choices},
+        constraints: {enum: widgetOptions?.choices},
       };
     case 'ChoiceList':
       return {
         type: 'array',
-        constraints: {enum: col.widgetOptions?.choices},
+        constraints: {enum: widgetOptions?.choices},
       };
     case 'Reference':
       return {type: 'string'};

@@ -1,5 +1,4 @@
 import {ApiError} from 'app/common/ApiError';
-import {createFormatter} from 'app/common/ValueFormatter';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DownloadOptions, ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
@@ -86,7 +85,7 @@ function convertToCsv({
 }: ExportData) {
 
   // create formatters for columns
-  const formatters = viewColumns.map(col => createFormatter(col.type, col.widgetOptions, docSettings));
+  const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
   const csvMatrix = [viewColumns.map(col => col.label)];
   // populate all the rows with values as strings

@@ -4,6 +4,7 @@ import {CellRec, DocModel, IRowModel, recordSet,
         refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
+import {AssistanceState} from 'app/common/AssistancePrompts';
 import * as gristTypes from 'app/common/gristTypes';
 import {getReferencedTableId} from 'app/common/gristTypes';
 import {
@@ -83,7 +84,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   /**
    * Current history of chat. This is a temporary array used only in the ui.
    */
-  chatHistory: ko.PureComputed<Observable<ChatMessage[]>>;
+  chatHistory: ko.PureComputed<Observable<ChatHistory>>;
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
   saveDisplayFormula(formula: string): Promise<void>|undefined;
@@ -162,8 +163,9 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   this.chatHistory = this.autoDispose(ko.computed(() => {
     const docId = urlState().state.get().doc ?? '';
-    const key = `formula-assistant-history-${docId}-${this.table().tableId()}-${this.colId()}`;
-    return localStorageJsonObs(key, [] as ChatMessage[]);
+    // Changed key name from history to history-v2 when ChatHistory changed in incompatible way.
+    const key = `formula-assistant-history-v2-${docId}-${this.table().tableId()}-${this.colId()}`;
+    return localStorageJsonObs(key, {messages: []} as ChatHistory);
   }));
 }
 
@@ -196,8 +198,20 @@ export interface ChatMessage {
    */
   sender: 'user' | 'ai';
   /**
-   * The formula returned from the AI. It is only set when the sender is the AI. For now it is the same
-   * value as the message, but it might change in the future when we use more conversational AI.
+   * The formula returned from the AI. It is only set when the sender is the AI.
    */
   formula?: string;
+}
+
+/**
+ * The state of assistance for a particular column.
+ * ChatMessages are what are shown in the UI, whereas state is
+ * how the back-end represents the conversation. The two are
+ * similar but not the same because of post-processing.
+ * It may be possible to reconcile them when things settle down
+ * a bit?
+ */
+export interface ChatHistory {
+  messages: ChatMessage[];
+  state?: AssistanceState;
 }

@@ -1029,7 +1029,8 @@
         "entire": "gesamte",
         "Access Rules": "Zugriffsregeln",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Zugriffsregeln geben Ihnen die Möglichkeit, nuancierte Regeln zu erstellen, um festzulegen, wer welche Teile Ihres Dokuments sehen oder bearbeiten kann.",
-        "Anchor Links": "Anker-Links"
+        "Anchor Links": "Anker-Links",
+        "Custom Widgets": "Benutzerdefinierte Widgets"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1037,5 +1038,15 @@
     "PagePanels": {
         "Close Creator Panel": "Ersteller-Panel schließen",
         "Open Creator Panel": "Ersteller-Panel öffnen"
+    },
+    "ColumnTitle": {
+        "Add description": "Beschreibung hinzufügen",
+        "COLUMN ID: ": "SPALTEN-ID: ",
+        "Cancel": "Abbrechen",
+        "Column description": "Spaltenbeschreibung",
+        "Provide a column label": "Geben Sie eine Spaltenbeschriftung an",
+        "Save": "Speichern",
+        "Column label": "Spaltenbeschriftung",
+        "Column ID copied to clipboard": "Spalten-ID in die Zwischenablage kopiert"
     }
 }

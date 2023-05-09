@@ -6,31 +6,38 @@ import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
 import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
-import {applyQueryParameters, docApiUsagePeriods, docPeriodicApiUsageKey,
-  getDocApiUsageKeysToIncr, WebhookSubscription} from 'app/server/lib/DocApi';
+import {
+  applyQueryParameters,
+  docApiUsagePeriods,
+  docPeriodicApiUsageKey,
+  getDocApiUsageKeysToIncr,
+  WebhookSubscription
+} from 'app/server/lib/DocApi';
 import log from 'app/server/lib/log';
+import {delayAbort} from 'app/server/lib/serverUtils';
 import {WebhookSummary} from 'app/server/lib/Triggers';
-import {waitForIt} from 'test/server/wait';
-import {delayAbort, exitPromise} from 'app/server/lib/serverUtils';
-import {connectTestingHooks, TestingHooksClient} from 'app/server/lib/TestingHooks';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import * as bodyParser from 'body-parser';
 import {assert} from 'chai';
-import {ChildProcess, execFileSync, spawn} from 'child_process';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
 import LRUCache from 'lru-cache';
 import * as moment from 'moment';
+import {AbortController} from 'node-abort-controller';
 import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import {createClient, RedisClient} from 'redis';
-import {AbortController} from 'node-abort-controller';
 import {configForUser} from 'test/gen-server/testUtils';
 import {serveSomething, Serving} from 'test/server/customUtil';
+import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
+import {prepareFilesystemDirectoryForTests} from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
+import {signal} from 'test/server/lib/helpers/Signal';
+import {TestServer} from 'test/server/lib/helpers/TestServer';
 import * as testUtils from 'test/server/testUtils';
+import {waitForIt} from 'test/server/wait';
 import clone = require('lodash/clone');
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
@@ -42,7 +49,7 @@ const nobody = configForUser('Anonymous');
 const support = configForUser('support');
 
 // some doc ids
-const docIds: {[name: string]: string} = {
+const docIds: { [name: string]: string } = {
   ApiDataRecordsTest: 'sample_7',
   Timesheets: 'sample_13',
   Bananas: 'sample_6',
@@ -62,12 +69,12 @@ let home: TestServer;
 let docs: TestServer;
 let userApi: UserAPIImpl;
 
-describe('DocApi', function() {
+describe('DocApi', function () {
   this.timeout(30000);
   testUtils.setTmpLogLevel('error');
   const oldEnv = clone(process.env);
 
-  before(async function() {
+  before(async function () {
     // Clear redis test database if redis is in use.
     if (process.env.TEST_REDIS_URL) {
       const cli = createClient(process.env.TEST_REDIS_URL);
@@ -76,21 +83,15 @@ describe('DocApi', function() {
     }
 
     // Create the tmp dir removing any previous one
-    await fse.remove(tmpDir);
-    await fse.mkdirs(tmpDir);
-    log.warn(`Test logs and data are at: ${tmpDir}/`);
+    await prepareFilesystemDirectoryForTests(tmpDir);
+
 
     // Let's create a sqlite db that we can share with servers that run in other processes, hence
     // not an in-memory db. Running seed.ts directly might not take in account the most recent value
     // for TYPEORM_DATABASE, because ormconfig.js may already have been loaded with a different
     // configuration (in-memory for instance). Spawning a process is one way to make sure that the
     // latest value prevail.
-    process.env.TYPEORM_DATABASE = path.join(tmpDir, 'landing.db');
-    const seed = await testUtils.getBuildFile('test/gen-server/seed.js');
-    execFileSync('node', [seed, 'init'], {
-      env: process.env,
-      stdio: 'inherit'
-    });
+    await prepareDatabase(tmpDir);
   });
 
   after(() => {
@@ -109,7 +110,11 @@ describe('DocApi', function() {
 
   describe("should work with a merged server", async () => {
     setup('merged', async () => {
-      home = docs = await startServer('home,docs');
+      const additionalEnvConfiguration = {
+        ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+        GRIST_DATA_DIR: dataDir
+      };
+      home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
       homeUrl = serverUrl = home.serverUrl;
       hasHomeApi = true;
     });
@@ -120,8 +125,13 @@ describe('DocApi', function() {
   if (process.env.TEST_REDIS_URL) {
     describe("should work with a home server and a docworker", async () => {
       setup('separated', async () => {
-        home = await startServer('home');
-        docs = await startServer('docs', home.serverUrl);
+        const additionalEnvConfiguration = {
+          ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+          GRIST_DATA_DIR: dataDir
+        };
+
+        home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
         homeUrl = serverUrl = home.serverUrl;
         hasHomeApi = true;
       });
@@ -130,8 +140,12 @@ describe('DocApi', function() {
 
     describe("should work directly with a docworker", async () => {
       setup('docs', async () => {
-        home = await startServer('home');
-        docs = await startServer('docs', home.serverUrl);
+        const additionalEnvConfiguration = {
+          ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+          GRIST_DATA_DIR: dataDir
+        };
+        home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
         homeUrl = home.serverUrl;
         serverUrl = docs.serverUrl;
         hasHomeApi = false;
@@ -144,13 +158,13 @@ describe('DocApi', function() {
 
     function makeExample() {
       return {
-        id:    [   1,        2,       3,      7,       8,       9  ],
+        id: [1, 2, 3, 7, 8, 9],
         color: ['red', 'yellow', 'white', 'blue', 'black', 'purple'],
-        spin:  [ 'up',     'up',  'down', 'down',    'up',     'up'],
+        spin: ['up', 'up', 'down', 'down', 'up', 'up'],
       };
     }
 
-    it("supports ascending sort", async function() {
+    it("supports ascending sort", async function () {
       assert.deepEqual(applyQueryParameters(makeExample(), {sort: ['color']}, null), {
         id: [8, 7, 9, 1, 3, 2],
         color: ['black', 'blue', 'purple', 'red', 'white', 'yellow'],
@@ -158,7 +172,7 @@ describe('DocApi', function() {
       });
     });
 
-    it("supports descending sort", async function() {
+    it("supports descending sort", async function () {
       assert.deepEqual(applyQueryParameters(makeExample(), {sort: ['-id']}, null), {
         id: [9, 8, 7, 3, 2, 1],
         color: ['purple', 'black', 'blue', 'white', 'yellow', 'red'],
@@ -166,7 +180,7 @@ describe('DocApi', function() {
       });
     });
 
-    it("supports multi-key sort", async function() {
+    it("supports multi-key sort", async function () {
       assert.deepEqual(applyQueryParameters(makeExample(), {sort: ['-spin', 'color']}, null), {
         id: [8, 9, 1, 2, 7, 3],
         color: ['black', 'purple', 'red', 'yellow', 'blue', 'white'],
@@ -174,9 +188,9 @@ describe('DocApi', function() {
       });
     });
 
-    it("does not freak out sorting mixed data", async function() {
+    it("does not freak out sorting mixed data", async function () {
       const example = {
-        id:    [   1,       2,       3,    4, 5,    6,          7,               8,     9],
+        id: [1, 2, 3, 4, 5, 6, 7, 8, 9],
         mixed: ['red', 'green', 'white', 2.5, 1, null, ['zing', 3] as any, 5, 'blue']
       };
       assert.deepEqual(applyQueryParameters(example, {sort: ['mixed']}, null), {
@@ -185,14 +199,14 @@ describe('DocApi', function() {
       });
     });
 
-    it("supports limit", async function() {
+    it("supports limit", async function () {
       assert.deepEqual(applyQueryParameters(makeExample(), {limit: 1}),
-                       { id: [1], color: ['red'], spin: ['up'] });
+        {id: [1], color: ['red'], spin: ['up']});
     });
 
-    it("supports sort and limit", async function() {
+    it("supports sort and limit", async function () {
       assert.deepEqual(applyQueryParameters(makeExample(), {sort: ['-color'], limit: 2}, null),
-                       { id: [2, 3], color: ['yellow', 'white'], spin: ['up', 'down'] });
+        {id: [2, 3], color: ['yellow', 'white'], spin: ['up', 'down']});
     });
   });
 });
@@ -322,7 +336,7 @@ function testDocApi() {
 
   for (const mode of ['logged in', 'anonymous']) {
     for (const content of ['with content', 'without content']) {
-      it(`POST /api/docs ${content} creates an unsaved doc when ${mode}`, async function() {
+      it(`POST /api/docs ${content} creates an unsaved doc when ${mode}`, async function () {
         const user = (mode === 'logged in') ? chimpy : nobody;
         const formData = new FormData();
         formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
@@ -356,15 +370,15 @@ function testDocApi() {
         // content was successfully stored
         resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
         if (content === 'with content') {
-          assert.deepEqual(resp.data, { id: [ 1, 2 ], manualSort: [ 1, 2 ], A: [ 1, 3 ], B: [ 2, 4 ] });
+          assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
         } else {
-          assert.deepEqual(resp.data, { id: [], manualSort: [], A: [], B: [], C: [] });
+          assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
         }
       });
     }
   }
 
-  it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function() {
+  it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data, {
@@ -596,7 +610,7 @@ function testDocApi() {
     );
   });
 
-  it("GET/POST/PATCH /docs/{did}/tables and /columns", async function() {
+  it("GET/POST/PATCH /docs/{did}/tables and /columns", async function () {
     // POST /tables: Create new tables
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables`, {
       tables: [
@@ -828,36 +842,37 @@ function testDocApi() {
     assert.equal(resp.status, 200);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function() {
+  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/typotypotypo/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /document not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent table", async function() {
+  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent table", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Typo1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /table not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent doc", async function() {
+  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent doc", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/typotypotypo/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /document not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent table", async function() {
+  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent table", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Typo1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /table not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data supports filters", async function() {
-    function makeQuery(filters: {[colId: string]: any[]}) {
+  it("GET /docs/{did}/tables/{tid}/data supports filters", async function () {
+    function makeQuery(filters: { [colId: string]: any[] }) {
       const query = "filter=" + encodeURIComponent(JSON.stringify(filters));
       return axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data?${query}`, chimpy);
     }
-    function checkResults(resp: AxiosResponse<any>, expectedData: any) {
+
+    function checkResults(resp: AxiosResponse, expectedData: any) {
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data, expectedData);
     }
@@ -906,20 +921,29 @@ function testDocApi() {
   });
 
   for (const mode of ['url', 'header']) {
-    it(`GET /docs/{did}/tables/{tid}/data supports sorts and limits in ${mode}`, async function() {
-      function makeQuery(sort: string[]|null, limit: number|null) {
+    it(`GET /docs/{did}/tables/{tid}/data supports sorts and limits in ${mode}`, async function () {
+      function makeQuery(sort: string[] | null, limit: number | null) {
         const url = new URL(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`);
         const config = configForUser('chimpy');
         if (mode === 'url') {
-          if (sort) { url.searchParams.append('sort', sort.join(',')); }
-          if (limit) { url.searchParams.append('limit', String(limit)); }
+          if (sort) {
+            url.searchParams.append('sort', sort.join(','));
+          }
+          if (limit) {
+            url.searchParams.append('limit', String(limit));
+          }
         } else {
-          if (sort)  { config.headers['x-sort'] = sort.join(','); }
-          if (limit) { config.headers['x-limit'] = String(limit); }
+          if (sort) {
+            config.headers['x-sort'] = sort.join(',');
+          }
+          if (limit) {
+            config.headers['x-limit'] = String(limit);
+          }
         }
         return axios.get(url.href, config);
       }
-      function checkResults(resp: AxiosResponse<any>, expectedData: any) {
+
+      function checkResults(resp: AxiosResponse, expectedData: any) {
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data, expectedData);
       }
@@ -946,19 +970,19 @@ function testDocApi() {
     });
   }
 
-  it("GET /docs/{did}/tables/{tid}/data respects document permissions", async function() {
+  it("GET /docs/{did}/tables/{tid}/data respects document permissions", async function () {
     // as not part of any group kiwi cannot fetch Timesheets
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, kiwi);
     assert.equal(resp.status, 403);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data returns matches /not found/ for bad table id", async function() {
+  it("GET /docs/{did}/tables/{tid}/data returns matches /not found/ for bad table id", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /not found/);
   });
 
-  it("POST /docs/{did}/apply applies user actions", async function() {
+  it("POST /docs/{did}/apply applies user actions", async function () {
     const userActions = [
       ['AddTable', 'Foo', [{id: 'A'}, {id: 'B'}]],
       ['BulkAddRecord', 'Foo', [1, 2], {A: ["Santa", "Bob"], B: [1, 11]}]
@@ -970,7 +994,7 @@ function testDocApi() {
       {id: [1, 2], A: ['Santa', 'Bob'], B: ['1', '11'], manualSort: [1, 2]});
   });
 
-  it("POST /docs/{did}/apply respects document permissions", async function() {
+  it("POST /docs/{did}/apply respects document permissions", async function () {
     const userActions = [
       ['AddTable', 'FooBar', [{id: 'A'}]]
     ];
@@ -997,7 +1021,7 @@ function testDocApi() {
 
   });
 
-  it("POST /docs/{did}/tables/{tid}/data adds records", async function() {
+  it("POST /docs/{did}/tables/{tid}/data adds records", async function () {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
       A: ['Alice', 'Felix'],
       B: [2, 22]
@@ -1013,7 +1037,7 @@ function testDocApi() {
     });
   });
 
-  it("POST /docs/{did}/tables/{tid}/records adds records", async function() {
+  it("POST /docs/{did}/tables/{tid}/records adds records", async function () {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
       records: [
         {fields: {A: 'John', B: 55}},
@@ -1079,7 +1103,7 @@ function testDocApi() {
       });
   });
 
-  it("POST /docs/{did}/tables/{tid}/data/delete deletes records", async function() {
+  it("POST /docs/{did}/tables/{tid}/data/delete deletes records", async function () {
     let resp = await axios.post(
       `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data/delete`,
       [3, 4, 5, 6],
@@ -1109,14 +1133,14 @@ function testDocApi() {
     });
   });
 
-  function checkError(status: number, test: RegExp|object, resp: AxiosResponse<any>, message?: string) {
+  function checkError(status: number, test: RegExp | object, resp: AxiosResponse, message?: string) {
     assert.equal(resp.status, status);
     if (test instanceof RegExp) {
       assert.match(resp.data.error, test, message);
     } else {
       try {
-      assert.deepEqual(resp.data, test, message);
-      } catch(err) {
+        assert.deepEqual(resp.data, test, message);
+      } catch (err) {
         console.log(JSON.stringify(resp.data));
         console.log(JSON.stringify(test));
         throw err;
@@ -1188,14 +1212,14 @@ function testDocApi() {
     );
   });
 
-  describe("PUT /docs/{did}/tables/{tid}/records", async function() {
-    it("should add or update records", async function() {
+  describe("PUT /docs/{did}/tables/{tid}/records", async function () {
+    it("should add or update records", async function () {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
 
-      async function check(records: AddOrUpdateRecord[], expectedTableData: BulkColValues, params: any={}) {
+      async function check(records: AddOrUpdateRecord[], expectedTableData: BulkColValues, params: any = {}) {
         const resp = await axios.put(url, {records}, {...chimpy, params});
         assert.equal(resp.status, 200);
         const table = await userApi.getTable(docId, "Table1");
@@ -1206,42 +1230,42 @@ function testDocApi() {
 
       // Add 3 new records, since the table is empty so nothing matches `requires`
       await check(
-         [
-            {
-              require: {A: 1},
-            },
-            {
-              // Since no record with A=2 is found, create a new record,
-              // but `fields` overrides `require` for the value when creating,
-              // so the new record has A=3
-              require: {A: 2},
-              fields: {A: 3},
-            },
-            {
-              require: {A: 4},
-              fields: {B: 5},
-            },
-          ],
+        [
+          {
+            require: {A: 1},
+          },
+          {
+            // Since no record with A=2 is found, create a new record,
+            // but `fields` overrides `require` for the value when creating,
+            // so the new record has A=3
+            require: {A: 2},
+            fields: {A: 3},
+          },
+          {
+            require: {A: 4},
+            fields: {B: 5},
+          },
+        ],
         {id: [1, 2, 3], A: [1, 3, 4], B: [0, 0, 5]}
       );
 
       // Update all three records since they all match the `require` values here
       await check(
         [
-            {
-              // Does nothing
-              require: {A: 1},
-            },
-            {
-              // Changes A from 3 to 33
-              require: {A: 3},
-              fields: {A: 33},
-            },
-            {
-              // Changes B from 5 to 6 in the third record where A=4
-              require: {A: 4},
-              fields: {B: 6},
-            },
+          {
+            // Does nothing
+            require: {A: 1},
+          },
+          {
+            // Changes A from 3 to 33
+            require: {A: 3},
+            fields: {A: 33},
+          },
+          {
+            // Changes B from 5 to 6 in the third record where A=4
+            require: {A: 4},
+            fields: {B: 6},
+          },
         ],
         {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]}
       );
@@ -1381,21 +1405,21 @@ function testDocApi() {
           {records: [{require: {no_such_column: 1}}]}, chimpy));
     });
 
-    it("should 400 for an incorrect onmany parameter", async function() {
+    it("should 400 for an incorrect onmany parameter", async function () {
       checkError(400,
         /onmany parameter foo should be one of first,none,all/,
         await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
           {records: [{require: {id: 1}}]}, {...chimpy, params: {onmany: "foo"}}));
     });
 
-    it("should 400 for an empty require without allow_empty_require", async function() {
+    it("should 400 for an empty require without allow_empty_require", async function () {
       checkError(400,
         /require is empty but allow_empty_require isn't set/,
         await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
           {records: [{require: {}}]}, chimpy));
     });
 
-    it("should validate request schema", async function() {
+    it("should validate request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
       const test = async (payload: any, error: { error: string, details: string }) => {
         const resp = await axios.put(url, payload, chimpy);
@@ -1420,25 +1444,25 @@ function testDocApi() {
     });
   });
 
-  describe("POST /docs/{did}/tables/{tid}/records", async function() {
+  describe("POST /docs/{did}/tables/{tid}/records", async function () {
     it("POST should have good errors", async () => {
       checkError(404, /not found/,
-                await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`,
-                { A: ['Alice', 'Felix'], B: [2, 22] }, chimpy));
+        await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`,
+          {A: ['Alice', 'Felix'], B: [2, 22]}, chimpy));
 
       checkError(400, /Invalid column "Bad"/,
-                await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
-                { A: ['Alice'], Bad: ['Monthy'] }, chimpy));
+        await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
+          {A: ['Alice'], Bad: ['Monthy']}, chimpy));
 
       // Other errors should also be maximally informative.
       checkError(400, /Error manipulating data/,
-                await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
-                { A: ['Alice'], B: null }, chimpy));
+        await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
+          {A: ['Alice'], B: null}, chimpy));
     });
 
-    it("validates request schema", async function() {
+    it("validates request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-      const test = async(payload: any, error: {error: string, details: string}) => {
+      const test = async (payload: any, error: { error: string, details: string }) => {
         const resp = await axios.post(url, payload, chimpy);
         checkError(400, error, resp);
       };
@@ -1446,13 +1470,15 @@ function testDocApi() {
       await test({records: 1}, {error: 'Invalid payload', details: 'Error: body.records is not an array'});
       // All column types are allowed, except Arrays (or objects) without correct code.
       const testField = async (A: any) => {
-        await test({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details:
-                    'Error: body.records[0] is not a NewRecord; '+
-                    'body.records[0].fields.A is not a CellValue; '+
-                    'body.records[0].fields.A is none of number, '+
-                    'string, boolean, null, 1 more; body.records[0].'+
-                    'fields.A[0] is not a GristObjCode; body.records[0]'+
-                    '.fields.A[0] is not a valid enum value'});
+        await test({records: [{id: 1, fields: {A}}]}, {
+          error: 'Invalid payload', details:
+            'Error: body.records[0] is not a NewRecord; ' +
+            'body.records[0].fields.A is not a CellValue; ' +
+            'body.records[0].fields.A is none of number, ' +
+            'string, boolean, null, 1 more; body.records[0].' +
+            'fields.A[0] is not a GristObjCode; body.records[0]' +
+            '.fields.A[0] is not a valid enum value'
+        });
       };
       // test no code at all
       await testField([]);
@@ -1460,39 +1486,39 @@ function testDocApi() {
       await testField(['ZZ']);
     });
 
-    it("allows to create a blank record", async function() {
+    it("allows to create a blank record", async function () {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-      const docId = await userApi.newDoc({ name : 'BlankTest'}, wid);
+      const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
       // Create two blank records
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
-      const resp = await axios.post(url, {records: [{}, { fields: {}}]}, chimpy);
+      const resp = await axios.post(url, {records: [{}, {fields: {}}]}, chimpy);
       assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, { records : [{id: 1}, {id: 2}]});
+      assert.deepEqual(resp.data, {records: [{id: 1}, {id: 2}]});
     });
 
-    it("allows to create partial records", async function() {
+    it("allows to create partial records", async function () {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-      const docId = await userApi.newDoc({ name : 'BlankTest'}, wid);
+      const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       // create partial records
-      const resp = await axios.post(url, {records: [{fields: { A: 1}}, { fields: {B: 2}}, {}]}, chimpy);
+      const resp = await axios.post(url, {records: [{fields: {A: 1}}, {fields: {B: 2}}, {}]}, chimpy);
       assert.equal(resp.status, 200);
       const table = await userApi.getTable(docId, "Table1");
       delete table.manualSort;
       assert.deepStrictEqual(
         table,
-        { id: [1, 2, 3], A: [1, null, null], B: [null, 2, null], C:[null, null, null]});
+        {id: [1, 2, 3], A: [1, null, null], B: [null, 2, null], C: [null, null, null]});
     });
 
-    it("allows CellValue as a field", async function() {
+    it("allows CellValue as a field", async function () {
       // create sample document
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-      const docId = await userApi.newDoc({ name : 'PostTest'}, wid);
+      const docId = await userApi.newDoc({name: 'PostTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
-      const testField = async(A?: CellValue, message?: string) =>{
-        const resp = await axios.post(url, {records: [{ fields: { A } }]}, chimpy);
+      const testField = async (A?: CellValue, message?: string) => {
+        const resp = await axios.post(url, {records: [{fields: {A}}]}, chimpy);
         assert.equal(resp.status, 200, message ?? `Error for code ${A}`);
       };
       // test allowed types for a field
@@ -1504,25 +1530,25 @@ function testDocApi() {
       await testField(null); // null
       // encoded values (though not all make sense)
       for (const code of [
-          GristObjCode.List,
-          GristObjCode.Dict,
-          GristObjCode.DateTime,
-          GristObjCode.Date,
-          GristObjCode.Skip,
-          GristObjCode.Censored,
-          GristObjCode.Reference,
-          GristObjCode.ReferenceList,
-          GristObjCode.Exception,
-          GristObjCode.Pending,
-          GristObjCode.Unmarshallable,
-          GristObjCode.Versions,
+        GristObjCode.List,
+        GristObjCode.Dict,
+        GristObjCode.DateTime,
+        GristObjCode.Date,
+        GristObjCode.Skip,
+        GristObjCode.Censored,
+        GristObjCode.Reference,
+        GristObjCode.ReferenceList,
+        GristObjCode.Exception,
+        GristObjCode.Pending,
+        GristObjCode.Unmarshallable,
+        GristObjCode.Versions,
       ]) {
         await testField([code]);
       }
     });
   });
 
-  it("POST /docs/{did}/tables/{tid}/data respects document permissions", async function() {
+  it("POST /docs/{did}/tables/{tid}/data respects document permissions", async function () {
     let resp: AxiosResponse;
     const data = {
       A: ['Alice', 'Felix'],
@@ -1549,7 +1575,7 @@ function testDocApi() {
     });
   });
 
-  describe("PATCH /docs/{did}/tables/{tid}/records", function() {
+  describe("PATCH /docs/{did}/tables/{tid}/records", function () {
     it("updates records", async function () {
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
         records: [
@@ -1599,9 +1625,10 @@ function testDocApi() {
       });
     });
 
-    it("validates request schema", async function() {
+    it("validates request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-      async function failsWithError(payload: any, error: { error: string, details?: string }){
+
+      async function failsWithError(payload: any, error: { error: string, details?: string }) {
         const resp = await axios.patch(url, payload, chimpy);
         checkError(400, error, resp);
       }
@@ -1610,46 +1637,54 @@ function testDocApi() {
 
       await failsWithError({records: 1}, {error: 'Invalid payload', details: 'Error: body.records is not an array'});
 
-      await failsWithError({records: []}, {error: 'Invalid payload', details:
-                  'Error: body.records[0] is not a Record; body.records[0] is not an object'});
+      await failsWithError({records: []}, {
+        error: 'Invalid payload', details:
+          'Error: body.records[0] is not a Record; body.records[0] is not an object'
+      });
 
-      await failsWithError({records: [{}]}, {error: 'Invalid payload', details:
-                  'Error: body.records[0] is not a Record\n    '+
-                  'body.records[0].id is missing\n    '+
-                  'body.records[0].fields is missing'});
+      await failsWithError({records: [{}]}, {
+        error: 'Invalid payload', details:
+          'Error: body.records[0] is not a Record\n    ' +
+          'body.records[0].id is missing\n    ' +
+          'body.records[0].fields is missing'
+      });
 
-      await failsWithError({records: [{id: "1"}]}, {error: 'Invalid payload', details:
-                  'Error: body.records[0] is not a Record\n' +
-                  '    body.records[0].id is not a number\n' +
-                  '    body.records[0].fields is missing'});
+      await failsWithError({records: [{id: "1"}]}, {
+        error: 'Invalid payload', details:
+          'Error: body.records[0] is not a Record\n' +
+          '    body.records[0].id is not a number\n' +
+          '    body.records[0].fields is missing'
+      });
 
       await failsWithError(
-        {records: [{id: 1, fields: {A : 1}}, {id: 2, fields: {B: 3}}]},
+        {records: [{id: 1, fields: {A: 1}}, {id: 2, fields: {B: 3}}]},
         {error: 'PATCH requires all records to have same fields'});
 
       // Test invalid object codes
       const fieldIsNotValid = async (A: any) => {
-        await failsWithError({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details:
-                    'Error: body.records[0] is not a Record; '+
-                    'body.records[0].fields.A is not a CellValue; '+
-                    'body.records[0].fields.A is none of number, '+
-                    'string, boolean, null, 1 more; body.records[0].'+
-                    'fields.A[0] is not a GristObjCode; body.records[0]'+
-                    '.fields.A[0] is not a valid enum value'});
+        await failsWithError({records: [{id: 1, fields: {A}}]}, {
+          error: 'Invalid payload', details:
+            'Error: body.records[0] is not a Record; ' +
+            'body.records[0].fields.A is not a CellValue; ' +
+            'body.records[0].fields.A is none of number, ' +
+            'string, boolean, null, 1 more; body.records[0].' +
+            'fields.A[0] is not a GristObjCode; body.records[0]' +
+            '.fields.A[0] is not a valid enum value'
+        });
       };
       await fieldIsNotValid([]);
       await fieldIsNotValid(['ZZ']);
     });
 
-    it("allows CellValue as a field", async function() {
+    it("allows CellValue as a field", async function () {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-      const docId = await userApi.newDoc({ name : 'PatchTest'}, wid);
+      const docId = await userApi.newDoc({name: 'PatchTest'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       // create record for patching
-      const id = (await axios.post(url, { records: [{}] }, chimpy)).data.records[0].id;
-      const testField = async(A?: CellValue, message?: string) =>{
-        const resp = await axios.patch(url, {records: [{ id, fields: { A } }]}, chimpy);
+      const id = (await axios.post(url, {records: [{}]}, chimpy)).data.records[0].id;
+      const testField = async (A?: CellValue, message?: string) => {
+        const resp = await axios.patch(url, {records: [{id, fields: {A}}]}, chimpy);
         assert.equal(resp.status, 200, message ?? `Error for code ${A}`);
       };
       await testField(1);
@@ -1659,27 +1694,27 @@ function testDocApi() {
       await testField(false);
       await testField(null);
       for (const code of [
-          GristObjCode.List,
-          GristObjCode.Dict,
-          GristObjCode.DateTime,
-          GristObjCode.Date,
-          GristObjCode.Skip,
-          GristObjCode.Censored,
-          GristObjCode.Reference,
-          GristObjCode.ReferenceList,
-          GristObjCode.Exception,
-          GristObjCode.Pending,
-          GristObjCode.Unmarshallable,
-          GristObjCode.Versions,
+        GristObjCode.List,
+        GristObjCode.Dict,
+        GristObjCode.DateTime,
+        GristObjCode.Date,
+        GristObjCode.Skip,
+        GristObjCode.Censored,
+        GristObjCode.Reference,
+        GristObjCode.ReferenceList,
+        GristObjCode.Exception,
+        GristObjCode.Pending,
+        GristObjCode.Unmarshallable,
+        GristObjCode.Versions,
       ]) {
         await testField([code]);
       }
     });
   });
 
-  describe("PATCH /docs/{did}/tables/{tid}/data", function() {
+  describe("PATCH /docs/{did}/tables/{tid}/data", function () {
 
-    it("updates records", async function() {
+    it("updates records", async function () {
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1],
         A: ['Santa Klaus'],
@@ -1696,7 +1731,7 @@ function testDocApi() {
 
     });
 
-    it("throws 400 for invalid row ids", async function() {
+    it("throws 400 for invalid row ids", async function () {
 
       // combination of valid and invalid ids fails
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
@@ -1723,7 +1758,7 @@ function testDocApi() {
       });
     });
 
-    it("throws 400 for invalid column", async function() {
+    it("throws 400 for invalid column", async function () {
       const resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1],
         A: ['Alice'],
@@ -1733,7 +1768,7 @@ function testDocApi() {
       assert.match(resp.data.error, /Invalid column "C"/);
     });
 
-    it("respects document permissions", async function() {
+    it("respects document permissions", async function () {
       let resp: AxiosResponse;
       const data = {
         id: [1],
@@ -1769,8 +1804,8 @@ function testDocApi() {
 
   });
 
-  describe('attachments', function() {
-    it("POST /docs/{did}/attachments adds attachments", async function() {
+  describe('attachments', function () {
+    it("POST /docs/{did}/attachments adds attachments", async function () {
       let formData = new FormData();
       formData.append('upload', 'foobar', "hello.doc");
       formData.append('upload', '123456', "world.jpg");
@@ -1788,7 +1823,7 @@ function testDocApi() {
       assert.deepEqual(resp.data, [3]);
     });
 
-    it("GET /docs/{did}/attachments lists attachment metadata", async function() {
+    it("GET /docs/{did}/attachments lists attachment metadata", async function () {
       // Test that the usual /records query parameters like sort and filter also work
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/attachments?sort=-fileName&limit=2`;
       const resp = await axios.get(url, chimpy);
@@ -1805,14 +1840,14 @@ function testDocApi() {
       );
     });
 
-    it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function() {
+    it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function () {
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/2`, chimpy);
       assert.equal(resp.status, 200);
       assert.include(resp.data, {fileName: "world.jpg", fileSize: 6});
       assert.match(resp.data.timeUploaded, /^\d{4}-\d{2}-\d{2}T/);
     });
 
-    it("GET /docs/{did}/attachments/{id}/download downloads attachment contents", async function() {
+    it("GET /docs/{did}/attachments/{id}/download downloads attachment contents", async function () {
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
         {...chimpy, responseType: 'arraybuffer'});
       assert.equal(resp.status, 200);
@@ -1822,7 +1857,7 @@ function testDocApi() {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
-    it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function() {
+    it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
       // Check that we can download when ActiveDoc isn't currently open.
       let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
       assert.equal(resp.status, 200);
@@ -1835,7 +1870,7 @@ function testDocApi() {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
-    it("GET /docs/{did}/attachments/{id}... returns 404 when attachment not found", async function() {
+    it("GET /docs/{did}/attachments/{id}... returns 404 when attachment not found", async function () {
       let resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/22`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
       resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments/moo`, chimpy);
@@ -1846,7 +1881,7 @@ function testDocApi() {
       checkError(400, /parameter cannot be understood as an integer: moo/, resp);
     });
 
-    it("POST /docs/{did}/attachments produces reasonable errors", async function() {
+    it("POST /docs/{did}/attachments produces reasonable errors", async function () {
       // Check that it produces reasonable errors if we try to use it with non-form-data
       let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments`, [4, 5, 6], chimpy);
       assert.equal(resp.status, 415);     // Wrong content-type
@@ -1859,7 +1894,7 @@ function testDocApi() {
       // TODO The error here is "stream ended unexpectedly", which isn't really reasonable.
     });
 
-    it("POST/GET /docs/{did}/attachments respect document permissions", async function() {
+    it("POST/GET /docs/{did}/attachments respect document permissions", async function () {
       const formData = new FormData();
       formData.append('upload', 'xyzzz', "wrong.png");
       let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
@@ -1873,7 +1908,7 @@ function testDocApi() {
       checkError(403, /No view access/, resp);
     });
 
-    it("POST /docs/{did}/attachments respects untrusted content-type only if valid", async function() {
+    it("POST /docs/{did}/attachments respects untrusted content-type only if valid", async function () {
       const formData = new FormData();
       formData.append('upload', 'xyz', {filename: "foo", contentType: "application/pdf"});
       formData.append('upload', 'abc', {filename: "hello.png", contentType: "invalid/content-type"});
@@ -1904,7 +1939,7 @@ function testDocApi() {
       assert.deepEqual(resp.data, 'def');
     });
 
-    it("POST /docs/{did}/attachments/updateUsed updates timeDeleted on metadata", async function() {
+    it("POST /docs/{did}/attachments/updateUsed updates timeDeleted on metadata", async function () {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'TestDoc2'}, wid);
 
@@ -1927,14 +1962,14 @@ function testDocApi() {
         resp = await axios.get(`${docUrl}/tables/Table1/records`, chimpy);
         const actualUserData = resp.data.records.map(
           ({id, fields: {Attached}}: ApiRecord) =>
-          ({id, Attached})
+            ({id, Attached})
         );
         assert.deepEqual(actualUserData, userData);
 
         resp = await axios.get(`${docUrl}/tables/_grist_Attachments/records`, chimpy);
         const actualMetaData = resp.data.records.map(
           ({id, fields: {timeDeleted}}: ApiRecord) =>
-          ({id, deleted: Boolean(timeDeleted)})
+            ({id, deleted: Boolean(timeDeleted)})
         );
         assert.deepEqual(actualMetaData, metaData);
       }
@@ -2030,7 +2065,7 @@ function testDocApi() {
       );
     });
 
-    it("POST /docs/{did}/attachments/removeUnused removes unused attachments", async function() {
+    it("POST /docs/{did}/attachments/removeUnused removes unused attachments", async function () {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'TestDoc3'}, wid);
       const docUrl = `${serverUrl}/api/docs/${docId}`;
@@ -2082,13 +2117,13 @@ function testDocApi() {
 
   });
 
-  it("GET /docs/{did}/download serves document", async function() {
+  it("GET /docs/{did}/download serves document", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download`, chimpy);
     assert.equal(resp.status, 200);
     assert.match(resp.data, /grist_Tables_column/);
   });
 
-  it("GET /docs/{did}/download respects permissions", async function() {
+  it("GET /docs/{did}/download respects permissions", async function () {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download`, kiwi);
     assert.equal(resp.status, 403);
@@ -2096,13 +2131,13 @@ function testDocApi() {
   });
 
   // A tiny test that /copy doesn't throw.
-  it("POST /docs/{did}/copy succeeds", async function() {
+  it("POST /docs/{did}/copy succeeds", async function () {
     const docId = docIds.TestDoc;
     const worker1 = await userApi.getWorkerAPI(docId);
     await worker1.copyDoc(docId, undefined, 'copy');
   });
 
-  it("GET /docs/{did}/download/csv serves CSV-encoded document", async function() {
+  it("GET /docs/{did}/download/csv serves CSV-encoded document", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/csv?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
@@ -2112,34 +2147,34 @@ function testDocApi() {
     assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
   });
 
-  it("GET /docs/{did}/download/csv respects permissions", async function() {
+  it("GET /docs/{did}/download/csv respects permissions", async function () {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
     assert.notEqual(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
   });
 
-  it("GET /docs/{did}/download/csv returns 404 if tableId is invalid", async function() {
+  it("GET /docs/{did}/download/csv returns 404 if tableId is invalid", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=MissingTableId`, chimpy);
     assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
+    assert.deepEqual(resp.data, {error: 'Table MissingTableId not found.'});
   });
 
-  it("GET /docs/{did}/download/csv returns 404 if viewSectionId is invalid", async function() {
+  it("GET /docs/{did}/download/csv returns 404 if viewSectionId is invalid", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=Table1&viewSection=9999`, chimpy);
     assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
+    assert.deepEqual(resp.data, {error: 'No record 9999 in table _grist_Views_section'});
   });
 
-  it("GET /docs/{did}/download/csv returns 400 if tableId is missing", async function() {
+  it("GET /docs/{did}/download/csv returns 400 if tableId is missing", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/csv`, chimpy);
     assert.equal(resp.status, 400);
-    assert.deepEqual(resp.data, { error: 'tableId parameter should be a string: undefined' });
+    assert.deepEqual(resp.data, {error: 'tableId parameter should be a string: undefined'});
   });
 
-  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function() {
+  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Foo`, chimpy);
     assert.equal(resp.status, 200);
     const expected = {
@@ -2171,86 +2206,90 @@ function testDocApi() {
     assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
   });
 
-  it("GET /docs/{did}/download/table-schema respects permissions", async function() {
+  it("GET /docs/{did}/download/table-schema respects permissions", async function () {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
-    assert.deepEqual(resp.data, {"error":"No view access"});
+    assert.deepEqual(resp.data, {"error": "No view access"});
   });
 
-  it("GET /docs/{did}/download/table-schema returns 404 if tableId is invalid", async function() {
+  it("GET /docs/{did}/download/table-schema returns 404 if tableId is invalid", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=MissingTableId`,
       chimpy,
     );
     assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
+    assert.deepEqual(resp.data, {error: 'Table MissingTableId not found.'});
   });
 
-  it("GET /docs/{did}/download/table-schema returns 400 if tableId is missing", async function() {
+  it("GET /docs/{did}/download/table-schema returns 400 if tableId is missing", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema`, chimpy);
     assert.equal(resp.status, 400);
-    assert.deepEqual(resp.data, { error: 'tableId parameter should be a string: undefined' });
+    assert.deepEqual(resp.data, {error: 'tableId parameter should be a string: undefined'});
   });
 
 
-  it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function() {
+  it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/xlsx?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
     assert.notEqual(resp.data, null);
   });
 
-  it("GET /docs/{did}/download/xlsx respects permissions", async function() {
+  it("GET /docs/{did}/download/xlsx respects permissions", async function () {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
-    assert.deepEqual(resp.data, { error: 'No view access' });
+    assert.deepEqual(resp.data, {error: 'No view access'});
   });
 
-  it("GET /docs/{did}/download/xlsx returns 404 if tableId is invalid", async function() {
+  it("GET /docs/{did}/download/xlsx returns 404 if tableId is invalid", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=MissingTableId`,
       chimpy
     );
     assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
+    assert.deepEqual(resp.data, {error: 'Table MissingTableId not found.'});
   });
 
-  it("GET /docs/{did}/download/xlsx returns 404 if viewSectionId is invalid", async function() {
+  it("GET /docs/{did}/download/xlsx returns 404 if viewSectionId is invalid", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=Table1&viewSection=9999`, chimpy);
     assert.equal(resp.status, 404);
-    assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
+    assert.deepEqual(resp.data, {error: 'No record 9999 in table _grist_Views_section'});
   });
 
-  it("GET /docs/{did}/download/xlsx returns 200 if tableId is missing", async function() {
+  it("GET /docs/{did}/download/xlsx returns 200 if tableId is missing", async function () {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx`, chimpy);
     assert.equal(resp.status, 200);
     assert.notEqual(resp.data, null);
   });
 
-  it('POST /workspaces/{wid}/import handles empty filenames', async function() {
-    if (!process.env.TEST_REDIS_URL) { this.skip(); }
+  it('POST /workspaces/{wid}/import handles empty filenames', async function () {
+    if (!process.env.TEST_REDIS_URL) {
+      this.skip();
+    }
     const worker1 = await userApi.getWorkerAPI('import');
     const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
     const fakeData1 = await testUtils.readFixtureDoc('Hello.grist');
     const uploadId1 = await worker1.upload(fakeData1, '.grist');
     const resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
-                                configForUser('Chimpy'));
+      configForUser('Chimpy'));
     assert.equal(resp.status, 200);
     assert.equal(resp.data.title, 'Untitled upload');
     assert.equal(typeof resp.data.id, 'string');
     assert.notEqual(resp.data.id, '');
   });
 
-  it("document is protected during upload-and-import sequence", async function() {
-    if (!process.env.TEST_REDIS_URL) { this.skip(); }
+  it("document is protected during upload-and-import sequence", async function () {
+    if (!process.env.TEST_REDIS_URL) {
+      this.skip();
+    }
     // Prepare an API for a different user.
     const kiwiApi = new UserAPIImpl(`${home.serverUrl}/o/Fish`, {
       headers: {Authorization: 'Bearer api_key_for_kiwi'},
-      fetch : fetch as any,
+      fetch: fetch as any,
       newFormData: () => new FormData() as any,
       logger: log
     });
@@ -2265,22 +2304,22 @@ function testDocApi() {
     // Check that kiwi only has access to their own upload.
     let wid = (await kiwiApi.getOrgWorkspaces('current')).find((w) => w.name === 'Big')!.id;
     let resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
-                                configForUser('Kiwi'));
+      configForUser('Kiwi'));
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, {error: "access denied"});
 
     resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, {uploadId: uploadId2},
-                            configForUser('Kiwi'));
+      configForUser('Kiwi'));
     assert.equal(resp.status, 200);
 
     // Check that chimpy has access to their own upload.
     wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
     resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
-                            configForUser('Chimpy'));
+      configForUser('Chimpy'));
     assert.equal(resp.status, 200);
   });
 
-  it('limits parallel requests', async function() {
+  it('limits parallel requests', async function () {
     // Launch 30 requests in parallel and see how many are honored and how many
     // return 429s.  The timing of this test is a bit delicate.  We close the doc
     // to increase the odds that results won't start coming back before all the
@@ -2294,7 +2333,7 @@ function testDocApi() {
     assert.lengthOf(responses.filter(r => r.status === 429), 20);
   });
 
-  it('allows forced reloads', async function() {
+  it('allows forced reloads', async function () {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
     assert.equal(resp.status, 200);
     // Check that support cannot force a reload.
@@ -2310,7 +2349,7 @@ function testDocApi() {
     }
   });
 
-  it('allows assignments', async function() {
+  it('allows assignments', async function () {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/assign`, null, chimpy);
     assert.equal(resp.status, 200);
     // Check that support cannot force an assignment.
@@ -2326,21 +2365,21 @@ function testDocApi() {
     }
   });
 
-  it('honors urlIds', async function() {
+  it('honors urlIds', async function () {
     // Make a document with a urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1', urlId: 'urlid1'}, ws1);
     try {
       // Make sure an edit made by docId is visible when accessed via docId or urlId
-      let resp = await axios.post(`${serverUrl}/api/docs/${doc1}/tables/Table1/data`, {
+      await axios.post(`${serverUrl}/api/docs/${doc1}/tables/Table1/data`, {
         A: ['Apple'], B: [99]
       }, chimpy);
-      resp = await axios.get(`${serverUrl}/api/docs/${doc1}/tables/Table1/data`, chimpy);
+      let resp = await axios.get(`${serverUrl}/api/docs/${doc1}/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[0], 'Apple');
       resp = await axios.get(`${serverUrl}/api/docs/urlid1/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[0], 'Apple');
       // Make sure an edit made by urlId is visible when accessed via docId or urlId
-      resp = await axios.post(`${serverUrl}/api/docs/urlid1/tables/Table1/data`, {
+      await axios.post(`${serverUrl}/api/docs/urlid1/tables/Table1/data`, {
         A: ['Orange'], B: [42]
       }, chimpy);
       resp = await axios.get(`${serverUrl}/api/docs/${doc1}/tables/Table1/data`, chimpy);
@@ -2352,13 +2391,13 @@ function testDocApi() {
     }
   });
 
-  it('filters urlIds by org', async function() {
+  it('filters urlIds by org', async function () {
     // Make two documents with same urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1', urlId: 'urlid'}, ws1);
     const nasaApi = new UserAPIImpl(`${home.serverUrl}/o/nasa`, {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
-      fetch : fetch as any,
+      fetch: fetch as any,
       newFormData: () => new FormData() as any,
       logger: log
     });
@@ -2384,13 +2423,13 @@ function testDocApi() {
     }
   });
 
-  it('allows docId access to any document from merged org', async function() {
+  it('allows docId access to any document from merged org', async function () {
     // Make two documents
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
     const nasaApi = new UserAPIImpl(`${home.serverUrl}/o/nasa`, {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
-      fetch : fetch as any,
+      fetch: fetch as any,
       newFormData: () => new FormData() as any,
       logger: log
     });
@@ -2418,7 +2457,7 @@ function testDocApi() {
     }
   });
 
-  it("GET /docs/{did}/replace replaces one document with another", async function() {
+  it("GET /docs/{did}/replace replaces one document with another", async function () {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
     const doc2 = await userApi.newDoc({name: 'testdoc2'}, ws1);
@@ -2469,7 +2508,7 @@ function testDocApi() {
       assert.equal(resp.status, 403);
       assert.match(resp.data.error, /not authorized/);
       resp = await axios.post(`${serverUrl}/api/docs/${doc3}/tables/_grist_ACLRules/data/delete`,
-                              [2], chimpy);
+        [2], chimpy);
       assert.equal(resp.status, 200);
       resp = await axios.post(`${serverUrl}/o/docs/api/docs/${doc4}/replace`, {
         sourceDocId: doc3
@@ -2483,14 +2522,14 @@ function testDocApi() {
     }
   });
 
-  it("GET /docs/{did}/snapshots retrieves a list of snapshots", async function() {
+  it("GET /docs/{did}/snapshots retrieves a list of snapshots", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/snapshots`, chimpy);
     assert.equal(resp.status, 200);
     assert.isAtLeast(resp.data.snapshots.length, 1);
     assert.hasAllKeys(resp.data.snapshots[0], ['docId', 'lastModified', 'snapshotId']);
   });
 
-  it("POST /docs/{did}/states/remove removes old states", async function() {
+  it("POST /docs/{did}/states/remove removes old states", async function () {
     // Check doc has plenty of states.
     let resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/states`, chimpy);
     assert.equal(resp.status, 200);
@@ -2516,7 +2555,7 @@ function testDocApi() {
     assert.equal(resp.data.states[0].h, states[0].h);
   });
 
-  it("GET /docs/{did1}/compare/{did2} tracks changes between docs", async function() {
+  it("GET /docs/{did1}/compare/{did2} tracks changes between docs", async function () {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const docId1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
     const docId2 = await userApi.newDoc({name: 'testdoc2'}, ws1);
@@ -2545,10 +2584,10 @@ function testDocApi() {
     assert.deepEqual(comp.left, comp.parent);
     assert.equal(comp.details, undefined);
 
-    comp = await doc1.compareDoc(docId2, { detail: true });
+    comp = await doc1.compareDoc(docId2, {detail: true});
     assert.deepEqual(comp.details, {
-      leftChanges: { tableRenames: [], tableDeltas: {} },
-      rightChanges: { tableRenames: [], tableDeltas: {} }
+      leftChanges: {tableRenames: [], tableDeltas: {}},
+      rightChanges: {tableRenames: [], tableDeltas: {}}
     });
 
     await doc1.addRows('Table1', {A: [1]});
@@ -2559,21 +2598,23 @@ function testDocApi() {
     assert.deepEqual(comp.right, comp.parent);
     assert.equal(comp.details, undefined);
 
-    comp = await doc1.compareDoc(docId2, { detail: true });
+    comp = await doc1.compareDoc(docId2, {detail: true});
     assert.deepEqual(comp.details!.rightChanges,
-                     { tableRenames: [], tableDeltas: {} });
+      {tableRenames: [], tableDeltas: {}});
     const addA1: ActionSummary = {
       tableRenames: [],
-      tableDeltas: { Table1: {
-        updateRows: [],
-        removeRows: [],
-        addRows: [ 2 ],
-        columnDeltas: {
-          A: { [2]: [null, [1]] },
-          manualSort: { [2]: [null, [2]] },
-        },
-        columnRenames: [],
-      } }
+      tableDeltas: {
+        Table1: {
+          updateRows: [],
+          removeRows: [],
+          addRows: [2],
+          columnDeltas: {
+            A: {[2]: [null, [1]]},
+            manualSort: {[2]: [null, [2]]},
+          },
+          columnRenames: [],
+        }
+      }
     };
     assert.deepEqual(comp.details!.leftChanges, addA1);
 
@@ -2585,7 +2626,7 @@ function testDocApi() {
     assert.equal(comp.parent!.n, 2);
     assert.equal(comp.details, undefined);
 
-    comp = await doc1.compareDoc(docId2, { detail: true });
+    comp = await doc1.compareDoc(docId2, {detail: true});
     assert.deepEqual(comp.details!.leftChanges, addA1);
     assert.deepEqual(comp.details!.rightChanges, addA1);
 
@@ -2598,10 +2639,10 @@ function testDocApi() {
     assert.deepEqual(comp.left, comp.parent);
     assert.equal(comp.details, undefined);
 
-    comp = await doc1.compareDoc(docId2, { detail: true });
+    comp = await doc1.compareDoc(docId2, {detail: true});
     assert.deepEqual(comp.details, {
-      leftChanges: { tableRenames: [], tableDeltas: {} },
-      rightChanges: { tableRenames: [], tableDeltas: {} }
+      leftChanges: {tableRenames: [], tableDeltas: {}},
+      rightChanges: {tableRenames: [], tableDeltas: {}}
     });
 
     await doc2.addRows('Table1', {A: [2]});
@@ -2612,26 +2653,28 @@ function testDocApi() {
     assert.deepEqual(comp.left, comp.parent);
     assert.equal(comp.details, undefined);
 
-    comp = await doc1.compareDoc(docId2, { detail: true });
+    comp = await doc1.compareDoc(docId2, {detail: true});
     assert.deepEqual(comp.details!.leftChanges,
-                     { tableRenames: [], tableDeltas: {} });
+      {tableRenames: [], tableDeltas: {}});
     const addA2: ActionSummary = {
       tableRenames: [],
-      tableDeltas: { Table1: {
-        updateRows: [],
-        removeRows: [],
-        addRows: [ 3 ],
-        columnDeltas: {
-          A: { [3]: [null, [2]] },
-          manualSort: { [3]: [null, [3]] },
-        },
-        columnRenames: [],
-      } }
+      tableDeltas: {
+        Table1: {
+          updateRows: [],
+          removeRows: [],
+          addRows: [3],
+          columnDeltas: {
+            A: {[3]: [null, [2]]},
+            manualSort: {[3]: [null, [3]]},
+          },
+          columnRenames: [],
+        }
+      }
     };
     assert.deepEqual(comp.details!.rightChanges, addA2);
   });
 
-  it("GET /docs/{did}/compare tracks changes within a doc", async function() {
+  it("GET /docs/{did}/compare tracks changes within a doc", async function () {
     // Create a test document.
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
@@ -2652,7 +2695,7 @@ function testDocApi() {
     assert.hasAllKeys(comp.right, ['n', 'h']);
     assert.equal(comp.left.n, 3);
     assert.equal(comp.right.n, 4);
-    assert.deepEqual(comp.details!.leftChanges, { tableRenames: [], tableDeltas: {} });
+    assert.deepEqual(comp.details!.leftChanges, {tableRenames: [], tableDeltas: {}});
     assert.deepEqual(comp.details!.rightChanges, {
       tableRenames: [],
       tableDeltas: {
@@ -2661,7 +2704,7 @@ function testDocApi() {
           removeRows: [],
           addRows: [],
           columnDeltas: {
-            A: { [1]: [['a1'], ['A1']] }
+            A: {[1]: [['a1'], ['A1']]}
           },
           columnRenames: [],
         }
@@ -2679,8 +2722,8 @@ function testDocApi() {
     assert.equal(comp.summary, 'same');
     assert.deepEqual(comp.parent, comp.left);
     assert.deepEqual(comp.parent, comp.right);
-    assert.deepEqual(comp.details!.leftChanges, { tableRenames: [], tableDeltas: {} });
-    assert.deepEqual(comp.details!.rightChanges, { tableRenames: [], tableDeltas: {} });
+    assert.deepEqual(comp.details!.leftChanges, {tableRenames: [], tableDeltas: {}});
+    assert.deepEqual(comp.details!.rightChanges, {tableRenames: [], tableDeltas: {}});
 
     // Examine the combination of the last two changes.
     comp = await doc.compareVersion('HEAD~~', 'HEAD');
@@ -2692,7 +2735,7 @@ function testDocApi() {
     assert.hasAllKeys(comp.right, ['n', 'h']);
     assert.equal(comp.left.n, 2);
     assert.equal(comp.right.n, 4);
-    assert.deepEqual(comp.details!.leftChanges, { tableRenames: [], tableDeltas: {} });
+    assert.deepEqual(comp.details!.leftChanges, {tableRenames: [], tableDeltas: {}});
     assert.deepEqual(comp.details!.rightChanges, {
       tableRenames: [],
       tableDeltas: {
@@ -2701,10 +2744,12 @@ function testDocApi() {
           removeRows: [],
           addRows: [2],
           columnDeltas: {
-            A: { [1]: [['a1'], ['A1']],
-                 [2]: [null, ['a2']] },
-            B: { [2]: [null, ['b2']] },
-            manualSort: { [2]: [null, [2]] },
+            A: {
+              [1]: [['a1'], ['A1']],
+              [2]: [null, ['a2']]
+            },
+            B: {[2]: [null, ['b2']]},
+            manualSort: {[2]: [null, [2]]},
           },
           columnRenames: [],
         }
@@ -2712,7 +2757,7 @@ function testDocApi() {
     });
   });
 
-  it('doc worker endpoints ignore any /dw/.../ prefix', async function() {
+  it('doc worker endpoints ignore any /dw/.../ prefix', async function () {
     const docWorkerUrl = docs.serverUrl;
     let resp = await axios.get(`${docWorkerUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 200);
@@ -2748,7 +2793,7 @@ function testDocApi() {
     await check({eventTypes: 0}, 400, /url is missing/, /eventTypes is not an array/);
     await check({eventTypes: []}, 400, /url is missing/);
     await check({eventTypes: [], url: "https://example.com"}, 400, /eventTypes must be a non-empty array/);
-    await check({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0\] is none of "add", "update"/);
+    await check({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0] is none of "add", "update"/);
     await check({eventTypes: ["add"]}, 400, /url is missing/);
     await check({eventTypes: ["add"], url: "https://evil.com"}, 403, /Provided url is forbidden/);
     await check({eventTypes: ["add"], url: "http://example.com"}, 403, /Provided url is forbidden/);  // not https
@@ -2767,7 +2812,7 @@ function testDocApi() {
     assert.deepEqual(resp.data, responseBody);
   }
 
-  it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for owners", async function() {
+  it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for owners", async function () {
     const subscribeResponse = await axios.post(
       `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
       {eventTypes: ["add"], url: "https://example.com"}, chimpy
@@ -2788,7 +2833,7 @@ function testDocApi() {
     await check({webhookId}, 404, `Webhook not found "${webhookId}"`);
   });
 
-  it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function() {
+  it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
     const subscribeResponse = await axios.post(
       `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
       {eventTypes: ["add"], url: "https://example.com"}, chimpy
@@ -2798,7 +2843,7 @@ function testDocApi() {
     const {unsubscribeKey, webhookId} = subscribeResponse.data;
 
     const delta = {
-      users: {"kiwi@getgrist.com": 'editors' as string|null}
+      users: {"kiwi@getgrist.com": 'editors' as string | null}
     };
     let accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
     assert.equal(accessResp.status, 200);
@@ -2824,12 +2869,14 @@ function testDocApi() {
   describe("Daily API Limit", () => {
     let redisClient: RedisClient;
 
-    before(async function() {
-      if (!process.env.TEST_REDIS_URL) { this.skip(); }
+    before(async function () {
+      if (!process.env.TEST_REDIS_URL) {
+        this.skip();
+      }
       redisClient = createClient(process.env.TEST_REDIS_URL);
     });
 
-    it("limits daily API usage", async function() {
+    it("limits daily API usage", async function () {
       // Make a new document in a test product with a low daily limit
       const api = makeUserApi('testdailyapilimit');
       const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
@@ -2856,7 +2903,7 @@ function testDocApi() {
       }
     });
 
-    it("limits daily API usage and sets the correct keys in redis", async function() {
+    it("limits daily API usage and sets the correct keys in redis", async function () {
       this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
       const freeTeamApi = makeUserApi('freeteam');
@@ -2936,7 +2983,7 @@ function testDocApi() {
       }
     });
 
-    it("correctly allocates API requests based on the day, hour, and minute", async function() {
+    it("correctly allocates API requests based on the day, hour, and minute", async function () {
       const m = moment.utc("1999-12-31T23:59:59Z");
       const docId = "myDocId";
       const currentDay = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[0], m);
@@ -2951,6 +2998,7 @@ function testDocApi() {
       assert.equal(nextHour, `doc-myDocId-periodicApiUsage-2000-01-01T00`);
 
       const usage = new LRUCache<string, number>({max: 1024});
+
       function check(expected: string[] | undefined) {
         assert.deepEqual(getDocApiUsageKeysToIncr(docId, usage, dailyMax, m), expected);
       }
@@ -2978,8 +3026,10 @@ function testDocApi() {
       check([nextDay, currentHour, currentMinute]);
     });
 
-    after(async function() {
-      if (!process.env.TEST_REDIS_URL) { this.skip(); }
+    after(async function () {
+      if (!process.env.TEST_REDIS_URL) {
+        this.skip();
+      }
       await redisClient.quitAsync();
     });
   });
@@ -3015,7 +3065,7 @@ function testDocApi() {
 
         // From the big applies
         [{id: 3, A3: 13, B3: true, manualSort: 3},
-         {id: 5, A3: 15, B3: true, manualSort: 5}],
+          {id: 5, A3: 15, B3: true, manualSort: 5}],
         [{id: 7, A3: 18, B3: true, manualSort: 7}],
 
         ...expected200AddEvents,
@@ -3037,8 +3087,8 @@ function testDocApi() {
 
         // from the big applies
         [{id: 1, A3: 101, B3: true, manualSort: 1},  // update
-         {id: 3, A3: 13, B3: true, manualSort: 3},   // add
-         {id: 5, A3: 15, B3: true, manualSort: 5}],  // add
+          {id: 3, A3: 13, B3: true, manualSort: 3},   // add
+          {id: 5, A3: 15, B3: true, manualSort: 5}],  // add
 
         [{id: 7, A3: 18, B3: true, manualSort: 7}],  // add
 
@@ -3057,7 +3107,7 @@ function testDocApi() {
     const longFinished = signal();
     // /probe endpoint will return this status when aborted.
     let probeStatus = 200;
-    let probeMessage: string|null = "OK";
+    let probeMessage: string | null = "OK";
 
     // Create an abort controller for the latest request. We will
     // use it to abort the delay on the longEndpoint.
@@ -3066,7 +3116,7 @@ function testDocApi() {
     async function autoSubscribe(
       endpoint: string, docId: string, options?: {
         tableId?: string,
-        isReadyColumn?: string|null,
+        isReadyColumn?: string | null,
         eventTypes?: string[]
       }) {
       // Subscribe helper that returns a method to unsubscribe.
@@ -3083,7 +3133,7 @@ function testDocApi() {
 
     async function subscribe(endpoint: string, docId: string, options?: {
       tableId?: string,
-      isReadyColumn?: string|null,
+      isReadyColumn?: string | null,
       eventTypes?: string[]
     }) {
       // Subscribe helper that returns a method to unsubscribe.
@@ -3114,7 +3164,7 @@ function testDocApi() {
       return result.data;
     }
 
-    before(async function() {
+    before(async function () {
       this.timeout(30000);
       requests = {
         "add,update": [],
@@ -3149,7 +3199,7 @@ function testDocApi() {
           try {
             await delayAbort(20000, scoped.signal); // We don't expect to wait for this, we should be aborted
             assert.fail('Should have been aborted');
-          } catch(exc) {
+          } catch (exc) {
             res.status(probeStatus);
             res.send(probeMessage);
             res.end();
@@ -3167,7 +3217,7 @@ function testDocApi() {
             res.sendStatus(200);
             res.end();
             longFinished.emit(body[0].A);
-          } catch(exc) {
+          } catch (exc) {
             res.sendStatus(200); // Send ok, so that it won't be seen as an error.
             res.end();
             longFinished.emit([408, body[0].A]); // We will signal that this is success but after aborting timeout.
@@ -3186,15 +3236,17 @@ function testDocApi() {
       }, webhooksTestPort);
     });
 
-    after(async function() {
+    after(async function () {
       await serving.shutdown();
     });
 
-    describe('table endpoints', function() {
-      before(async function() {
+    describe('table endpoints', function () {
+      before(async function () {
         this.timeout(30000);
         // We rely on the REDIS server in this test.
-        if (!process.env.TEST_REDIS_URL) { this.skip(); }
+        if (!process.env.TEST_REDIS_URL) {
+          this.skip();
+        }
         requests = {
           "add,update": [],
           "add": [],
@@ -3209,12 +3261,14 @@ function testDocApi() {
         });
       });
 
-      after(async function() {
-        if (!process.env.TEST_REDIS_URL) { this.skip(); }
+      after(async function () {
+        if (!process.env.TEST_REDIS_URL) {
+          this.skip();
+        }
         await redisMonitor.quitAsync();
       });
 
-      it("delivers expected payloads from combinations of changes, with retrying and batching", async function() {
+      it("delivers expected payloads from combinations of changes, with retrying and batching", async function () {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
@@ -3331,12 +3385,12 @@ function testDocApi() {
 
         // Check that the events were all removed from the redis queue
         const redisTrims = queueRedisCalls.filter(args => args[0] === "ltrim")
-          .map(([,, start, end]) => {
+          .map(([, , start, end]) => {
             assert.equal(end, '-1');
             start = Number(start);
             assert.isTrue(start > 0);
             return start;
-        });
+          });
         const expectedTrims = Object.values(redisPushes).map(value => value.length);
         assert.equal(
           _.sum(redisTrims),
@@ -3346,11 +3400,11 @@ function testDocApi() {
       });
     });
 
-    describe("/webhooks endpoint", function() {
+    describe("/webhooks endpoint", function () {
       let docId: string;
       let doc: DocAPI;
       let stats: WebhookSummary[];
-      before(async function() {
+      before(async function () {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         docId = await userApi.newDoc({name: 'testdoc2'}, ws1);
@@ -3368,7 +3422,7 @@ function testDocApi() {
         }, 1000, 200);
       };
 
-      it("should clear the outgoing queue", async() => {
+      it("should clear the outgoing queue", async () => {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({name: 'testdoc2'}, ws1);
@@ -3466,7 +3520,7 @@ function testDocApi() {
         assert.isFalse(longFinished.called());
         // It will be aborted.
         controller.abort();
-        assert.deepEqual(await longFinished.waitAndReset(),  [408, 4]);
+        assert.deepEqual(await longFinished.waitAndReset(), [408, 4]);
 
         // Trigger another event.
         await doc.addRows("Table1", {
@@ -3475,8 +3529,8 @@ function testDocApi() {
         });
         // We are stuck once again on the long call. But this time we won't
         // abort it till the end of this test.
-        assert.deepEqual(await successCalled.waitAndReset(),  5);
-        assert.deepEqual(await longStarted.waitAndReset(),  5);
+        assert.deepEqual(await successCalled.waitAndReset(), 5);
+        assert.deepEqual(await longStarted.waitAndReset(), 5);
         assert.isFalse(longFinished.called());
 
         // Remember this controller for cleanup.
@@ -3522,7 +3576,7 @@ function testDocApi() {
         await clearQueue(docId);
       });
 
-      it("should not call to a deleted webhook", async() => {
+      it("should not call to a deleted webhook", async () => {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({name: 'testdoc4'}, ws1);
@@ -3569,7 +3623,7 @@ function testDocApi() {
         await webhook1();
       });
 
-      it("should return statistics", async() => {
+      it("should return statistics", async () => {
         await clearQueue(docId);
         // Read stats, it should be empty.
         assert.deepEqual(await readStats(docId), []);
@@ -3580,14 +3634,14 @@ function testDocApi() {
         assert.deepEqual(await readStats(docId), [
           {
             id: first.webhookId,
-            fields : {
+            fields: {
               url: `${serving.url}/200`,
               unsubscribeKey: first.unsubscribeKey,
               eventTypes: ['add', 'update'],
               enabled: true,
               isReadyColumn: 'B',
               tableId: 'Table1'
-            }, usage : {
+            }, usage: {
               status: 'idle',
               numWaiting: 0,
               lastEventBatch: null
@@ -3595,14 +3649,14 @@ function testDocApi() {
           },
           {
             id: second.webhookId,
-            fields : {
+            fields: {
               url: `${serving.url}/404`,
               unsubscribeKey: second.unsubscribeKey,
               eventTypes: ['add', 'update'],
               enabled: true,
               isReadyColumn: 'B',
               tableId: 'Table1'
-            }, usage : {
+            }, usage: {
               status: 'idle',
               numWaiting: 0,
               lastEventBatch: null
@@ -3616,7 +3670,7 @@ function testDocApi() {
         assert.deepEqual(await readStats(docId), []);
 
         // Test that stats work when there is no ready column.
-        let unsubscribe1 = await autoSubscribe('200', docId, { isReadyColumn: null });
+        let unsubscribe1 = await autoSubscribe('200', docId, {isReadyColumn: null});
         assert.isNull((await readStats(docId))[0].fields.isReadyColumn);
         await unsubscribe1();
 
@@ -3797,7 +3851,7 @@ function testDocApi() {
         await unsubscribe1();
       });
 
-      it("should monitor failures", async() => {
+      it("should monitor failures", async () => {
         const webhook3 = await subscribe('probe', docId);
         const webhook4 = await subscribe('probe', docId);
         // Now we have two webhooks, both will fail, but the first one will
@@ -3847,7 +3901,8 @@ function testDocApi() {
         const addRowProm = doc.addRows("Table1", {
           A: arrayRepeat(5, 100), // there are 2 webhooks, so 5 events per webhook.
           B: arrayRepeat(5, true)
-        }).catch(() => {});
+        }).catch(() => {
+        });
         // WARNING: we can't wait for it, as the Webhooks will literally stop the document, and wait
         // for the queue to drain. So we will carefully go further, and wait for the queue to drain.
 
@@ -3898,12 +3953,12 @@ function testDocApi() {
         await unsubscribe(docId, webhook4);
       });
 
-      describe('webhook update', function() {
+      describe('webhook update', function () {
 
-        it('should work correctly', async function() {
+        it('should work correctly', async function () {
 
 
-          async function check(fields: any, status: number, error?: RegExp|string,
+          async function check(fields: any, status: number, error?: RegExp | string,
                                expectedFieldsCallback?: (fields: any) => any) {
 
             let savedTableId = 'Table1';
@@ -3941,7 +3996,9 @@ function testDocApi() {
               stats = await readStats(docId);
               assert.equal(stats.length, 1);
               assert.equal(stats[0].id, webhook.webhookId);
-              if (expectedFieldsCallback) { expectedFieldsCallback(expectedFields); }
+              if (expectedFieldsCallback) {
+                expectedFieldsCallback(expectedFields);
+              }
               assert.deepEqual(stats[0].fields, {...expectedFields, ...fields});
               if (fields.tableId) {
                 savedTableId = fields.tableId;
@@ -3974,7 +4031,7 @@ function testDocApi() {
 
           await check({eventTypes: ['add', 'update']}, 200);
           await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");
-          await check({eventTypes: ["foo"]}, 400, /eventTypes\[0\] is none of "add", "update"/);
+          await check({eventTypes: ["foo"]}, 400, /eventTypes\[0] is none of "add", "update"/);
 
           await check({isReadyColumn: null}, 200);
           await check({isReadyColumn: "bar"}, 404, `Column not found "bar"`);
@@ -3985,10 +4042,10 @@ function testDocApi() {
   });
 
   describe("Allowed Origin", () => {
-    it('should allow only example.com',  async () => {
+    it('should allow only example.com', async () => {
       async function checkOrigin(origin: string, allowed: boolean) {
         const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`,
-        {...chimpy, headers: {...chimpy.headers, "Origin": origin}}
+          {...chimpy, headers: {...chimpy.headers, "Origin": origin}}
         );
         assert.equal(resp.headers['access-control-allow-credentials'], allowed ? 'true' : undefined);
         assert.equal(resp.status, allowed ? 200 : 403);
@@ -4002,7 +4059,7 @@ function testDocApi() {
       await checkOrigin("https://good.example.com/toto", true);
     });
 
-    it("should respond with correct CORS headers", async function() {
+    it("should respond with correct CORS headers", async function () {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'CorsTestDoc'}, wid);
       await userApi.updateDocPermissions(docId, {
@@ -4087,10 +4144,11 @@ interface WebhookRequests {
 }
 
 const ORG_NAME = 'docs-1';
+
 function setup(name: string, cb: () => Promise<void>) {
   let api: UserAPIImpl;
 
-  before(async function() {
+  before(async function () {
     suitename = name;
     dataDir = path.join(tmpDir, `${suitename}-data`);
     await fse.mkdirs(dataDir);
@@ -4103,7 +4161,7 @@ function setup(name: string, cb: () => Promise<void>) {
     docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
   });
 
-  after(async function() {
+  after(async function () {
     // remove TestDoc
     await api.deleteDoc(docIds.TestDoc);
     delete docIds.TestDoc;
@@ -4128,129 +4186,9 @@ async function getWorkspaceId(api: UserAPIImpl, name: string) {
   return workspaces.find((w) => w.name === name)!.id;
 }
 
-async function startServer(serverTypes: string, _homeUrl?: string): Promise<TestServer> {
-  const server = new TestServer(serverTypes);
-  await server.start(_homeUrl);
-  return server;
-}
-
+// TODO: deal with safe port allocation
 const webhooksTestPort = 34365;
 
-class TestServer {
-  public testingSocket: string;
-  public testingHooks: TestingHooksClient;
-  public serverUrl: string;
-  public stopped = false;
-
-  private _server: ChildProcess;
-  private _exitPromise: Promise<number|string>;
-
-  constructor(private _serverTypes: string) {}
-
-  public async start(_homeUrl?: string) {
-
-    // put node logs into files with meaningful name that relate to the suite name and server type
-    const fixedName = this._serverTypes.replace(/,/, '_');
-    const nodeLogPath = path.join(tmpDir, `${suitename}-${fixedName}-node.log`);
-    const nodeLogFd = await fse.open(nodeLogPath, 'a');
-    const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
-
-    // use a path for socket that relates to suite name and server types
-    this.testingSocket = path.join(tmpDir, `${suitename}-${fixedName}.socket`);
-
-    // env
-    const env = {
-      GRIST_DATA_DIR: dataDir,
-      GRIST_INST_DIR: tmpDir,
-      GRIST_SERVERS: this._serverTypes,
-      // with port '0' no need to hard code a port number (we can use testing hooks to find out what
-      // port server is listening on).
-      GRIST_PORT: '0',
-      GRIST_TESTING_SOCKET: this.testingSocket,
-      GRIST_DISABLE_S3: 'true',
-      REDIS_URL: process.env.TEST_REDIS_URL,
-      APP_HOME_URL: _homeUrl,
-      ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
-      GRIST_ALLOWED_HOSTS: `example.com,localhost`,
-      GRIST_TRIGGER_WAIT_DELAY: '100',
-      // this is calculated value, some tests expect 4 attempts and some will try 3 times
-      GRIST_TRIGGER_MAX_ATTEMPTS: '4',
-      GRIST_MAX_QUEUE_SIZE: '10',
-      ...process.env
-    };
-
-    const main = await testUtils.getBuildFile('app/server/mergedServerMain.js');
-    this._server = spawn('node', [main, '--testingHooks'], {
-      env,
-      stdio: ['inherit', serverLog, serverLog]
-    });
-
-    this._exitPromise = exitPromise(this._server);
-
-    // Try to be more helpful when server exits by printing out the tail of its log.
-    this._exitPromise.then((code) => {
-        if (this._server.killed) { return; }
-        log.error("Server died unexpectedly, with code", code);
-        const output = execFileSync('tail', ['-30', nodeLogPath]);
-        log.info(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
-      })
-      .catch(() => undefined);
-
-    await this._waitServerReady(30000);
-    log.info(`server ${this._serverTypes} up and listening on ${this.serverUrl}`);
-  }
-
-  public async stop() {
-    if (this.stopped) { return; }
-    log.info("Stopping node server: " + this._serverTypes);
-    this.stopped = true;
-    this._server.kill();
-    this.testingHooks.close();
-    await this._exitPromise;
-  }
-
-  public async isServerReady(): Promise<boolean> {
-    // Let's wait for the testingSocket to be created, then get the port the server is listening on,
-    // and then do an api check. This approach allow us to start server with GRIST_PORT set to '0',
-    // which will listen on first available port, removing the need to hard code a port number.
-    try {
-
-      // wait for testing socket
-      while (!(await fse.pathExists(this.testingSocket))) {
-        await delay(200);
-      }
-
-      // create testing hooks and get own port
-      this.testingHooks = await connectTestingHooks(this.testingSocket);
-      const port: number = await this.testingHooks.getOwnPort();
-      this.serverUrl = `http://localhost:${port}`;
-
-      // wait for check
-      return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
-    } catch (err) {
-      return false;
-    }
-  }
-
-
-  private async _waitServerReady(ms: number) {
-    // It's important to clear the timeout, because it can prevent node from exiting otherwise,
-    // which is annoying when running only this test for debugging.
-    let timeout: any;
-    const maxDelay = new Promise((resolve) => {
-      timeout = setTimeout(resolve, 30000);
-    });
-    try {
-      await Promise.race([
-        this.isServerReady(),
-        this._exitPromise.then(() => { throw new Error("Server exited while waiting for it"); }),
-        maxDelay,
-      ]);
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-}
 
 async function setupDataDir(dir: string) {
   // we'll be serving Hello.grist content for various document ids, so let's make copies of it in
@@ -4262,43 +4200,4 @@ async function setupDataDir(dir: string) {
   await testUtils.copyFixtureDoc(
     'ApiDataRecordsTest.grist',
     path.resolve(dir, docIds.ApiDataRecordsTest + '.grist'));
-}
-
-/**
- * Helper that creates a promise that can be resolved from outside.
- */
-function signal() {
-  let resolve: null | ((data: any) => void) = null;
-  let promise: null | Promise<any> = null;
-  let called = false;
-  return {
-    emit(data: any) {
-      if (!resolve) {
-        throw new Error("signal.emit() called before signal.reset()");
-      }
-      called = true;
-      resolve(data);
-    },
-    async wait() {
-      if (!promise) {
-        throw new Error("signal.wait() called before signal.reset()");
-      }
-      const proms = Promise.race([promise, delay(2000).then(() => { throw new Error("signal.wait() timed out"); })]);
-      return await proms;
-    },
-    async waitAndReset() {
-      try {
-        return await this.wait();
-      } finally {
-        this.reset();
-      }
-    },
-    called() {
-      return called;
-    },
-    reset() {
-      called = false;
-      promise = new Promise((res) => { resolve = res; });
-    }
-  };
 }

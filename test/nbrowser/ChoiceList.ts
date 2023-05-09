@@ -666,18 +666,26 @@ describe('ChoiceList', function() {
          strikethrough, underline, bold}
       ]
     );
+  });
 
-    // Open the editor again to make another change.
-    await driver.find('.test-choice-list-entry').click();
-    await gu.waitAppFocus(false);
+  it('should discard changes on cancel', async function() {
+    for (const method of ['button', 'shortcut']) {
+      // Open the editor.
+      await driver.find('.test-choice-list-entry').click();
+      await gu.waitAppFocus(false);
 
-    // Delete 'Apricot', then cancel the change by pressing Escape.
-    await gu.sendKeys(Key.BACK_SPACE);
-    assert.deepEqual(await getEditModeChoiceLabels(), ['Green', 'Blue', 'Black']);
-    await gu.sendKeys(Key.ESCAPE);
+      // Delete 'Apricot', then cancel the change.
+      await gu.sendKeys(Key.BACK_SPACE);
+      assert.deepEqual(await getEditModeChoiceLabels(), ['Green', 'Blue', 'Black']);
+      if (method === 'button') {
+        await driver.find('.test-choice-list-entry-cancel').click();
+      } else {
+        await gu.sendKeys(Key.ESCAPE);
+      }
 
-    // Check that 'Apricot' is still there and the change wasn't saved.
-    assert.deepEqual(await getChoiceLabels(), ['Green', 'Blue', 'Black', 'Apricot']);
+      // Check that 'Apricot' is still there and the change wasn't saved.
+      assert.deepEqual(await getChoiceLabels(), ['Green', 'Blue', 'Black', 'Apricot']);
+    }
   });
 
   it('should support undo/redo shortcuts in the choice config editor', async function() {
@@ -752,6 +760,17 @@ describe('ChoiceList', function() {
     // choices as newline-separated labels. For this reason, we can't check that the color
     // information also got pasted, because the data is stored elsewhere. In actual use, the
     // workflow above would copy all the choice data as well, and use it for pasting in the editor.
+  });
+
+  it('should save and close the choice config editor on focusout', async function() {
+    // Click outside of the editor.
+    await driver.find('.test-gristdoc').click();
+    await gu.waitAppFocus(true);
+
+    // Check that the changes were saved.
+    assert.deepEqual(await getChoiceLabels(), ['Choice 1', 'Choice 2', 'Choice 3']);
+
+    await gu.undo();
   });
 
   it('should add a new element on a fresh ChoiceList column', async function() {

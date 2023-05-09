@@ -1,5 +1,5 @@
 import {GristDoc} from 'app/client/components/GristDoc';
-import {urlState} from 'app/client/models/gristUrlState';
+import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
 import {cssPopupBody, FloatingPopup} from 'app/client/ui/FloatingPopup';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
@@ -242,7 +242,12 @@ export class DocTutorial extends FloatingPopup {
   private async _finishTutorial() {
     this._saveCurrentSlidePositionDebounced.cancel();
     await this._saveCurrentSlidePosition();
-    await urlState().pushUrl({});
+    const lastVisitedOrg = this._appModel.lastVisitedOrgDomain.get();
+    if (lastVisitedOrg) {
+      await urlState().pushUrl({org: lastVisitedOrg});
+    } else {
+      window.location.assign(getWelcomeHomeUrl());
+    }
   }
 
   private async _restartTutorial() {

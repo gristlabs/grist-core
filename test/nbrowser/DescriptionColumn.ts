@@ -6,9 +6,120 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 describe('DescriptionColumn', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
+  let session: gu.Session;
+
+  before(async () => {
+    session = await gu.session().teamSite.login();
+  });
+
+  it('should switch between close and save', async () => {
+    await session.tempNewDoc(cleanup);
+    // Add new column.
+    await addColumn();
+
+    // We should have popup at column D.
+    await popupIsAt('D');
+
+    // Close button should be visible.
+    assert.isTrue(await closeVisible());
+    assert.isFalse(await saveVisible());
+    assert.isFalse(await cancelVisible());
+
+    // Change something in the name.
+    await gu.sendKeys('DD');
+    // Save button should be visible.
+    assert.isFalse(await closeVisible());
+    assert.isTrue(await saveVisible());
+    assert.isFalse(await saveDisabled());
+    assert.isTrue(await cancelVisible());
+
+    // Restore name.
+    await gu.sendKeys(Key.BACK_SPACE);
+    // Close button should be visible.
+    assert.isTrue(await closeVisible());
+    assert.isFalse(await saveVisible());
+    assert.isFalse(await cancelVisible());
+
+    // Add description.
+    await clickAddDescription();
+    await waitForFocus('description');
+
+    // Still close button should be visible.
+    assert.isTrue(await closeVisible());
+    assert.isFalse(await saveVisible());
+    assert.isFalse(await cancelVisible());
+
+    // Type something.
+    await gu.sendKeys('D');
+    // Save button should be visible.
+    assert.isFalse(await closeVisible());
+    assert.isTrue(await saveVisible());
+    assert.isFalse(await saveDisabled());
+    assert.isTrue(await cancelVisible());
+
+    // Clear and move to label.
+    await gu.sendKeys(Key.BACK_SPACE);
+    await gu.sendKeys(Key.ARROW_UP);
+    await waitForFocus('label');
+    assert.isTrue(await closeVisible());
+    assert.isFalse(await saveVisible());
+    assert.isFalse(await cancelVisible());
+
+    // Clear label completely, we have change, but we can't save.
+    await gu.sendKeys(Key.BACK_SPACE);
+    assert.isEmpty(await getLabel());
+    assert.isFalse(await closeVisible());
+    assert.isTrue(await saveVisible());
+    // But save button is disabled.
+    assert.isTrue(await saveDisabled());
+    assert.isTrue(await cancelVisible());
+
+    // Add description.
+    await gu.sendKeys(Key.ARROW_DOWN);
+    await waitForFocus('description');
+    await gu.sendKeys('D');
+
+    // Still can't save.
+    assert.isFalse(await closeVisible());
+    assert.isTrue(await saveVisible());
+    assert.isTrue(await saveDisabled());
+    assert.isTrue(await cancelVisible());
+
+    // Clear description completely, restore label and press close.
+    await gu.sendKeys(Key.BACK_SPACE);
+    await gu.sendKeys(Key.ARROW_UP);
+    await waitForFocus('label');
+    await gu.sendKeys('D');
+    await pressClose();
+
+    // Make sure popup is gone.
+    assert.isFalse(await popupVisible());
+    // Make sure column D exists.
+    assert.isTrue(await gu.getColumnHeader({col: 'D'}).isDisplayed());
+    await gu.undo();
+    assert.isFalse(await gu.getColumnHeader({col: 'D'}).isPresent());
+  });
+
+  it('should close popup by enter and escape', async () => {
+    // Add another column, make sure that enter and escape work.
+    await addColumn();
+    await popupIsAt('D');
+    await gu.sendKeys(Key.ESCAPE);
+    assert.isFalse(await popupVisible());
+    // Column D is still there.
+    assert.isTrue(await gu.getColumnHeader({col: 'D'}).isDisplayed());
+    await gu.undo();
+    assert.isFalse(await gu.getColumnHeader({col: 'D'}).isPresent());
+
+    await addColumn();
+    await popupIsAt('D');
+    await gu.sendKeys(Key.ENTER);
+    assert.isFalse(await popupVisible());
+    assert.isTrue(await gu.getColumnHeader({col: 'D'}).isDisplayed());
+    await gu.undo();
+  });
 
   it('should show info tooltip in a Grid View', async () => {
-    const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, 'Hello.grist');
     await gu.dismissWelcomeTourIfNeeded();
 
@@ -351,9 +462,21 @@ function getDescriptionInput() {
   return driver.find('.test-right-panel .test-column-description');
 }
 
+function getLabel() {
+  return driver.findWait(".test-column-title-label", 1000).getAttribute('value');
+}
+
+async function popupVisible() {
+  if (await driver.find(".test-column-title-popup").isPresent()) {
+    return await driver.find(".test-column-title-popup").isDisplayed();
+  } else {
+    return false;
+  }
+}
+
 async function popupIsAt(col: string) {
   // Make sure we are now at column.
-  assert.equal(await driver.find(".test-column-title-label").getAttribute('value'), col);
+  assert.equal(await getLabel(), col);
   // Make sure that popup is near the column.
   const headerCRect = await gu.getColumnHeader({col}).getRect();
   const popup = await driver.find(".test-column-title-popup").getRect();
@@ -385,6 +508,16 @@ async function pressSave() {
   await gu.waitForServer();
 }
 
+async function pressClose() {
+  await driver.find(".test-column-title-close").click();
+  await gu.waitForServer();
+}
+
+async function saveDisabled() {
+  const value = await driver.find(".test-column-title-save").getAttribute('disabled');
+  return value === 'true';
+}
+
 async function pressCancel() {
   await driver.find(".test-column-title-cancel").click();
   await gu.waitForServer();
@@ -393,4 +526,21 @@ async function pressCancel() {
 async function clickAddDescription() {
   await driver.find(".test-column-title-add-description").click();
   await waitForFocus('description');
+}
+
+async function addColumn() {
+  await driver.find(".mod-add-column").click();
+  await gu.waitForServer();
+}
+
+async function closeVisible() {
+  return await driver.find(".test-column-title-close").isDisplayed();
+}
+
+async function saveVisible() {
+  return await driver.find(".test-column-title-save").isDisplayed();
+}
+
+async function cancelVisible() {
+  return await driver.find(".test-column-title-cancel").isDisplayed();
 }

@@ -91,6 +91,9 @@ export class ChoiceListEntry extends Disposable {
   private _isEditing: Observable<boolean> = Observable.create(this, false);
   private _tokenFieldHolder: Holder<TokenField<ChoiceItem>> = Holder.create(this);
 
+  private _editorContainer: HTMLElement | null = null;
+  private _editorSaveButtons: HTMLElement | null = null;
+
   constructor(
     private _values: Observable<string[]>,
     private _choiceOptionsByName: Observable<ChoiceOptionsByName>,
@@ -105,6 +108,12 @@ export class ChoiceListEntry extends Disposable {
     this.autoDispose(this._values.addListener(() => {
       this._cancel();
     }));
+
+    this.onDispose(() => {
+      if (!this._isEditing.get()) { return; }
+
+      this._save();
+    });
   }
 
   // Arg maxRows indicates the number of rows to display when the editor is inactive.
@@ -137,14 +146,42 @@ export class ChoiceListEntry extends Disposable {
         });
 
         return cssVerticalFlex(
-          cssListBox(
+          this._editorContainer = cssListBox(
+            {tabIndex: '-1'},
             elem => {
               tokenField.attach(elem);
               this._focusOnOpen(tokenField.getTextInput());
             },
+            dom.on('focusout', (ev) => {
+              const hasActiveElement = (
+                element: Element | null,
+                activeElement = document.activeElement
+              ) => {
+                return element?.contains(activeElement);
+              };
+
+              // Save and close the editor when it loses focus.
+              setTimeout(() => {
+                // The editor may have already been closed via keyboard shortcut.
+                if (!this._isEditing.get()) { return; }
+
+                if (
+                  // Don't close if focus hasn't left the editor.
+                  hasActiveElement(this._editorContainer) ||
+                  // Or if the token color picker has focus.
+                  hasActiveElement(document.querySelector('.token-color-picker')) ||
+                  // Or if Save or Cancel was clicked.
+                  hasActiveElement(this._editorSaveButtons, ev.relatedTarget as Element | null)
+                ) {
+                  return;
+                }
+
+                this._save();
+              }, 0);
+            }),
             testId('choice-list-entry')
           ),
-          cssButtonRow(
+          this._editorSaveButtons = cssButtonRow(
             primaryButton('Save',
               dom.on('click', () => this._save() ),
               testId('choice-list-entry-save')
@@ -154,8 +191,8 @@ export class ChoiceListEntry extends Disposable {
               testId('choice-list-entry-cancel')
             )
           ),
-          dom.onKeyDown({Escape$: () => this._cancel()}),
-          dom.onKeyDown({Enter$: () => this._save()}),
+          dom.onKeyDown({Escape: () => this._cancel()}),
+          dom.onKeyDown({Enter: () => this._save()}),
         );
       } else {
         const holder = new MultiHolder();
@@ -310,34 +347,41 @@ export class ChoiceListEntry extends Disposable {
       dom.autoDispose(fillColorObs),
       dom.autoDispose(textColorObs),
       dom.autoDispose(choiceText),
-      colorButton({
-          textColor: new ColorOption({color: textColorObs, defaultColor: '#000000'}),
-          fillColor: new ColorOption(
-            {color: fillColorObs, allowsNone: true, noneText: 'none', defaultColor: '#FFFFFF'}),
-          fontBold: fontBoldObs,
-          fontItalic: fontItalicObs,
-          fontUnderline: fontUnderlineObs,
-          fontStrikethrough: fontStrikethroughObs
-        },
-        async () => {
-          const tokenField = this._tokenFieldHolder.get();
-          if (!tokenField) { return; }
+      colorButton(
+        {
+          styleOptions: {
+            textColor: new ColorOption({color: textColorObs, defaultColor: '#000000'}),
+            fillColor: new ColorOption(
+              {color: fillColorObs, allowsNone: true, noneText: 'none', defaultColor: '#FFFFFF'}),
+            fontBold: fontBoldObs,
+            fontItalic: fontItalicObs,
+            fontUnderline: fontUnderlineObs,
+            fontStrikethrough: fontStrikethroughObs
+          },
+          onSave: async () => {
+            const tokenField = this._tokenFieldHolder.get();
+            if (!tokenField) { return; }
 
-          const fillColor = fillColorObs.get();
-          const textColor = textColorObs.get();
-          const fontBold = fontBoldObs.get();
-          const fontItalic = fontItalicObs.get();
-          const fontUnderline = fontUnderlineObs.get();
-          const fontStrikethrough = fontStrikethroughObs.get();
-          tokenField.replaceToken(token.label, ChoiceItem.from(token).changeStyle({
-            fillColor,
-            textColor,
-            fontBold,
-            fontItalic,
-            fontUnderline,
-            fontStrikethrough,
-          }));
-        }
+            const fillColor = fillColorObs.get();
+            const textColor = textColorObs.get();
+            const fontBold = fontBoldObs.get();
+            const fontItalic = fontItalicObs.get();
+            const fontUnderline = fontUnderlineObs.get();
+            const fontStrikethrough = fontStrikethroughObs.get();
+            tokenField.replaceToken(token.label, ChoiceItem.from(token).changeStyle({
+              fillColor,
+              textColor,
+              fontBold,
+              fontItalic,
+              fontUnderline,
+              fontStrikethrough,
+            }));
+          },
+          onClose: () => this._editorContainer?.focus(),
+          colorPickerDomArgs: [
+            dom.cls('token-color-picker'),
+          ],
+        },
       ),
       editableLabel(choiceText, {
         save: rename,

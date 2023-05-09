@@ -10,6 +10,7 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {TableData} from 'app/client/models/TableData';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {UserAction} from 'app/common/DocActions';
+import {GristObjCode} from 'app/plugin/GristData';
 import {Disposable, Observable} from 'grainjs';
 import isPlainObject from 'lodash/isPlainObject';
 import * as ko from 'knockout';
@@ -34,6 +35,7 @@ export class ColumnTransform extends Disposable {
   protected editor: AceEditor|null = null;              // Created when the dom is built by extending classes
   protected formulaUpToDate = Observable.create(this, true);
   protected _tableData: TableData;
+  protected rules: [GristObjCode.List, ...number[]]|null;
 
   // Whether _doFinalize should execute the transform, or cancel it.
   protected _shouldExecute: boolean = false;
@@ -53,6 +55,7 @@ export class ColumnTransform extends Disposable {
     this.origColumn = this.field.column();
     this.origDisplayCol = this.field.displayColModel();
     this.origWidgetOptions = this.field.widgetOptionsJson();
+    this.rules = this.origColumn.rules();
     this.isCallPending = _fieldBuilder.isCallPending;
 
     this._tableData = gristDoc.docData.getTable(this.origColumn.table().tableId())!;
@@ -169,6 +172,14 @@ export class ColumnTransform extends Disposable {
       formula: this.getIdentityFormula(),
       ...(this.origWidgetOptions ? {widgetOptions: JSON.stringify(this.origWidgetOptions)} : {}),
     }]);
+    if (this.rules) {
+      // We are in bundle, it is safe to just send another action.
+      // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
+      await this.gristDoc.docData.sendActions([
+        ['UpdateRecord', '_grist_Tables_column', newColInfo.colRef, {rules: this.rules}]
+      ]);
+    }
+
     return newColInfo.colRef;
   }
 

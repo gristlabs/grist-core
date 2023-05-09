@@ -19,7 +19,8 @@ import {openFilePicker} from 'app/client/ui/FileDialog';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, linkSelect, menu, menuDivider, menuItem, multiSelect} from 'app/client/ui2018/menus';
+import {IOptionFull, linkSelect, menu,
+        menuDivider, menuItem, multiSelect} from 'app/client/ui2018/menus';
 import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
@@ -188,30 +189,29 @@ export class Importer extends DisposableWithEvents {
     ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map((id) => ({value: id, label: id})),
   ]);
 
-  // Source column labels for the selected import source, keyed by column id.
-  private _sourceColLabelsById = Computed.create(this, this._sourceInfoSelected, (use, info) => {
-    if (!info || use(info.sourceSection._isDeleted)) { return null; }
-
-    const fields = use(use(info.sourceSection.viewFields).getObservable());
-    return new Map(fields.map(f => [use(use(f.column).colId), use(use(f.column).label)]));
+  // List of transform fields, i.e. those formula fields of the transform section whose values
+  // will be used to populate the destination columns.
+  private _transformFields: Computed<ViewFieldRec[]|null> = Computed.create(
+      this, this._sourceInfoSelected, (use, info) => {
+    const section = info && use(info.transformSection);
+    if (!section || use(section._isDeleted)) { return null; }
+    return use(use(section.viewFields).getObservable());
   });
 
-  // Transform section columns of the selected source.
-  private _transformSectionCols = Computed.create(this, this._sourceInfoSelected, (use, info) => {
-    if (!info) { return null; }
-
-    const transformSection = use(info.transformSection);
-    if (!transformSection || use(transformSection._isDeleted)) { return null; }
-
-    const fields = use(use(transformSection.viewFields).getObservable());
-    return fields.map(f => use(f.column));
+  // Prepare a Map, mapping of colRef of each transform column to the set of options to offer in
+  // the dropdown. The options are represented as a Map too, mapping formula to label.
+  private _transformColImportOptions: Computed<Map<number, Map<string, string>>> = Computed.create(
+      this, this._transformFields, this._sourceInfoSelected, (use, fields, info) => {
+    if (!fields || !info) { return new Map(); }
+    return new Map(fields.map(f =>
+      [use(f.colRef), this._makeImportOptionsForCol(use(f.column), info)]));
   });
 
-  // List of destination fields that aren't mapped to a source column.
-  private _unmatchedFields = Computed.create(this, this._transformSectionCols, (use, cols) => {
-    if (!cols) { return null; }
-
-    return cols.filter(c => use(c.formula).trim() === '').map(c => c.label());
+  // List of labels of destination columns that aren't mapped to a source column, i.e. transform
+  // columns with empty formulas.
+  private _unmatchedFields: Computed<string[]|undefined> = Computed.create(
+      this, this._transformFields, (use, fields) => {
+    return fields?.filter(f => (use(use(f.column).formula).trim() === '')).map(f => use(f.label));
   });
 
   // null tells to use the built-in file picker.
@@ -299,9 +299,9 @@ export class Importer extends DisposableWithEvents {
     sourceInfo.transformSection.set(null);
 
     const genImporterViewPromise = this._gristDoc.docData.sendAction(
-      ['GenImporterView', sourceInfo.hiddenTableId, sourceInfo.destTableId.get(), null]);
+      ['GenImporterView', sourceInfo.hiddenTableId, sourceInfo.destTableId.get(), null, null]);
     sourceInfo.lastGenImporterViewPromise = genImporterViewPromise;
-    const transformSectionRef = await genImporterViewPromise;
+    const transformSectionRef = (await genImporterViewPromise).viewSectionRef;
 
     // If the request is superseded by a newer request, or the Importer is disposed, do nothing.
     if (this.isDisposed() || sourceInfo.lastGenImporterViewPromise !== genImporterViewPromise) {
@@ -444,7 +444,11 @@ export class Importer extends DisposableWithEvents {
 
     if (importResult.tables[0]?.hiddenTableId) {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;
-      await this._gristDoc.openDocPage(tableRowModel.primaryViewId());
+      const primaryViewId = tableRowModel.primaryViewId();
+      if (primaryViewId) {
+        // Switch page if there is a sensible one to switch to.
+        await this._gristDoc.openDocPage(primaryViewId);
+      }
     }
     this._screen.close();
     this.dispose();
@@ -685,49 +689,14 @@ export class Importer extends DisposableWithEvents {
                           ),
                           cssDestinationFieldSettings(
                             icon('Dots'),
-                            menu(
-                              () => {
-                                const sourceColId = field.origCol().id();
-                                const sourceColIdsAndLabels = [...this._sourceColLabelsById.get()!.entries()];
-                                return [
-                                  menuItem(
-                                    async () => {
-                                      await this._gristDoc.clearColumns([sourceColId], {keepType: true});
-                                      await this._updateImportDiff(info);
-                                    },
-                                    'Skip',
-                                    testId('importer-column-match-menu-item')
-                                  ),
-                                  menuDivider(),
-                                  ...sourceColIdsAndLabels.map(([id, label]) =>
-                                    menuItem(
-                                      async () => {
-                                        await this._setColumnFormula(sourceColId, '$' + id);
-                                        await this._updateImportDiff(info);
-                                      },
-                                      label,
-                                      testId('importer-column-match-menu-item')
-                                    ),
-                                  ),
-                                  testId('importer-column-match-menu'),
-                                ];
-                              },
+                            menu(() => this._makeImportOptionsMenu(field.origCol.peek(), info),
                               { placement: 'right-start' },
                             ),
                             testId('importer-column-match-destination-settings')
                           ),
                           testId('importer-column-match-destination')
                         ),
-                        dom.domComputed(use => dom.create(
-                          this._buildColMappingFormula.bind(this),
-                          use(field.column),
-                          (elem: Element) => this._activateFormulaEditor(
-                            elem,
-                            field,
-                            () => this._updateImportDiff(info),
-                          ),
-                          'Skip'
-                        )),
+                        dom.create(owner => this._buildColMappingFormula(owner, field, info)),
                         testId('importer-column-match-source-destination'),
                       )
                     )),
@@ -776,6 +745,52 @@ export class Importer extends DisposableWithEvents {
     this._screen.render(content, {fullscreen: true});
   }
 
+  private _makeImportOptionsForCol(transformCol: ColumnRec, info: SourceInfo) {
+    const options = new Map<string, string>();  // Maps formula to label.
+    const importedFields = info.sourceSection.viewFields.peek().peek();
+
+    // Reference columns are populated using lookup formulas, so figure out now if this is a
+    // reference column, and if so, its destination table and the lookup column ID.
+    const refTable = transformCol.refTable.peek();
+    const refTableId = refTable ? refTable.tableId.peek() : undefined;
+    const visibleColId = transformCol.visibleColModel.peek().colId.peek();
+    const isRefDest = Boolean(info.destTableId.get() && transformCol.pureType.peek() === 'Ref');
+
+    for (const f of importedFields) {
+      const importedCol = f.column.peek();
+      const colId = importedCol.colId.peek();
+      const colLabel = importedCol.label.peek();
+      if (isRefDest && visibleColId) {
+        const formula = `${refTableId}.lookupOne(${visibleColId}=$${colId}) or ($${colId} and str($${colId}))`;
+        options.set(formula, colLabel);
+      } else {
+        options.set(`$${colId}`, colLabel);
+      }
+      if (isRefDest && ['Numeric', 'Int'].includes(importedCol.type.peek())) {
+        options.set(`${refTableId}.lookupOne(id=NUM($${colId})) or ($${colId} and str(NUM($${colId})))`,
+          `${colLabel} (as row ID)`);
+      }
+    }
+    return options;
+  }
+
+  private _makeImportOptionsMenu(transformCol: ColumnRec, info: SourceInfo) {
+    const transformColRef = transformCol.id();
+    const options = this._transformColImportOptions.get().get(transformCol.getRowId());
+    return [
+      menuItem(() => this._setColumnFormula(transformColRef, null, info),
+        'Skip',
+        testId('importer-column-match-menu-item')),
+      menuDivider(),
+      ...Array.from(options || [], ([formula, label]) =>
+        menuItem(() => this._setColumnFormula(transformColRef, formula, info),
+          label,
+          testId('importer-column-match-menu-item'))
+      ),
+      testId('importer-column-match-menu'),
+    ];
+  }
+
   private _addFocusLayer(container: HTMLElement) {
     dom.autoDisposeElem(container, new FocusLayer({
       defaultFocusElem: container,
@@ -787,10 +802,14 @@ export class Importer extends DisposableWithEvents {
   /**
    * Updates the formula on column `colRef` to `formula`.
    */
-  private async _setColumnFormula(colRef: number, formula: string): Promise<void> {
-    return this._gristDoc.docModel.columns.sendTableAction(
-      ['UpdateRecord', colRef, { formula, isFormula: true }]
-    );
+  private async _setColumnFormula(transformColRef: number, formula: string|null, info: SourceInfo) {
+    if (formula === null) {
+      await this._gristDoc.clearColumns([transformColRef], {keepType: true});
+    } else {
+      await this._gristDoc.docModel.columns.sendTableAction(
+        ['UpdateRecord', transformColRef, { formula, isFormula: true }]);
+    }
+    await this._updateImportDiff(info);
   }
 
   /**
@@ -841,26 +860,20 @@ export class Importer extends DisposableWithEvents {
    * in the column mapping section of Importer. On click, opens
    * an editor for the formula for `column`.
    */
-  private _buildColMappingFormula(_owner: MultiHolder, column: ColumnRec, buildEditor: (e: Element) => void,
-                                  placeholder: string) {
-    const formatFormula = (formula: string) => {
-      const sourceColLabels = this._sourceColLabelsById.get();
-      if (!sourceColLabels) { return formula; }
+  private _buildColMappingFormula(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
+    const displayFormula = Computed.create(owner, use => {
+      const column = use(field.column);
+      const formula = use(column.formula);
+      const importOptions = use(this._transformColImportOptions).get(column.getRowId());
+      return importOptions?.get(formula) ?? formula;
+    });
 
-      formula = formula.trim();
-      if (formula.startsWith('$') && sourceColLabels.has(formula.slice(1))) {
-        // For simple formulas that only reference a source column id, show the source column label.
-        return sourceColLabels.get(formula.slice(1))!;
-      }
-
-      return formula;
-    };
-
-    return cssFieldFormula(use => formatFormula(use(column.formula)),
-      {gristTheme: this._gristDoc.currentTheme, placeholder, maxLines: 1},
+    return cssFieldFormula(displayFormula,
+      {gristTheme: this._gristDoc.currentTheme, placeholder: 'Skip', maxLines: 1},
       dom.cls('disabled'),
       {tabIndex: '-1'},
-      dom.on('focus', (_ev, elem) => buildEditor(elem)),
+      dom.on('focus', (_ev, elem) =>
+        this._activateFormulaEditor(elem, field, () => this._updateImportDiff(info))),
       testId('importer-column-match-formula'),
     );
   }

@@ -1,10 +1,11 @@
 import {CellValue} from 'app/common/DocActions';
-import * as gutil from 'app/common/gutil';
 import * as gristTypes from 'app/common/gristTypes';
+import * as gutil from 'app/common/gutil';
 import {NumberFormatOptions} from 'app/common/NumberFormat';
 import {FormatOptions, formatUnknown, IsRightTypeFunc} from 'app/common/ValueFormatter';
 import {GristType} from 'app/plugin/GristData';
 import {decodeObject} from 'app/plugin/objtypes';
+import getSymbolFromCurrency from 'currency-symbol-map';
 import {Style} from 'exceljs';
 import moment from 'moment-timezone';
 
@@ -64,7 +65,13 @@ class BaseFormatter {
     // those formats strings are the defaults that LibreOffice Calc is using.
     if (this.widgetOptions.numMode) {
       if (this.widgetOptions.numMode === 'currency') {
-        style.numFmt = '[$$-409]#,##0.00';
+        // If currency name is undefined or null, it should be cast to unknown currency, because
+        // "getSymbolFromCurrency" expect argument to be string
+        const currencyName = this.widgetOptions.currency??"";
+        const currencySymbol = getSymbolFromCurrency(currencyName)
+          ?? this.widgetOptions.currency
+          ?? "$";
+        style.numFmt = `"${currencySymbol} "#,##0.000`;
       } else if (this.widgetOptions.numMode === 'percent') {
         style.numFmt = '0.00%';
       } else if (this.widgetOptions.numMode === 'decimal') {

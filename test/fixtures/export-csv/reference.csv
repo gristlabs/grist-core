@@ -1,4 +1,4 @@
-Text Bar,Int Text,Text Formula
-"the ""quote marks"" ?",Integer[500],a --- grist https://www.getgrist.com/
-"b ,d",Integer[200],"b ,d --- https://www.getgrist.com/"
-"the ""quote marks"" ?",,a --- grist https://www.getgrist.com/
+Text Bar,Int Text,Text Formula,RowId
+"the ""quote marks"" ?",500,a --- grist https://www.getgrist.com/,Text[3]
+"b ,d",200,"b ,d --- https://www.getgrist.com/",Text[2]
+"the ""quote marks"" ?",0,a --- grist https://www.getgrist.com/,

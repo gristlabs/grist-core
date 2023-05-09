@@ -5,11 +5,11 @@ import * as _ from 'underscore';
 
 import {ColumnDelta, createEmptyActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
-        MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE, TransformColumn,
+        MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE,
         TransformRule,
         TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
-import {BulkColValues, CellValue, fromTableDataAction, TableRecordValue, UserAction} from 'app/common/DocActions';
+import {BulkColValues, CellValue, fromTableDataAction, UserAction} from 'app/common/DocActions';
 import * as gutil from 'app/common/gutil';
 import {DocStateComparison} from 'app/common/UserAPI';
 import {guessColInfoForImports} from 'app/common/ValueGuesser';
@@ -339,9 +339,9 @@ export class ActiveDocImport {
       if (isHidden) {
         // Generate formula columns, view sections, etc
         const results: ApplyUAResult = await this._activeDoc.applyUserActions(docSession,
-          [['GenImporterView', hiddenTableId, destTableId, ruleCanBeApplied ? transformRule : null]]);
+          [['GenImporterView', hiddenTableId, destTableId, ruleCanBeApplied ? transformRule : null, null]]);
 
-        transformSectionRef = results.retValues[0];
+        transformSectionRef = results.retValues[0].viewSectionRef;
         createdTableId = hiddenTableId;
 
       } else {
@@ -391,36 +391,21 @@ export class ActiveDocImport {
    * the source and destination table.
    * @returns {string} The table id of the new or updated destination table.
    */
-  private async _transformAndFinishImport(docSession: OptDocSession,
-                                          hiddenTableId: string, destTableId: string,
-                                          intoNewTable: boolean, transformRule: TransformRule|null,
-                                          mergeOptions: MergeOptions|null): Promise<string> {
+  private async _transformAndFinishImport(
+    docSession: OptDocSession,
+    hiddenTableId: string, destTableId: string,
+    intoNewTable: boolean, transformRule: TransformRule|null,
+    mergeOptions: MergeOptions|null
+  ): Promise<string> {
     log.info("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
       hiddenTableId, destTableId, intoNewTable, transformRule, mergeOptions);
-    const srcCols = await this._activeDoc.getTableCols(docSession, hiddenTableId);
 
-    // Use a default transform rule if one was not provided by the client.
-    if (!transformRule) {
-      const transformDest = intoNewTable ? null : destTableId;
-      transformRule = await this._makeDefaultTransformRule(docSession, srcCols, transformDest);
-    }
-
-    // Transform rules from client may have prefixed column ids, so we need to strip them.
-    stripRulePrefixes(transformRule);
-
-    if (intoNewTable) {
-      // Transform rules for new tables don't have filled in destination column ids.
-      const result = await this._activeDoc.applyUserActions(docSession, [['FillTransformRuleColIds', transformRule]]);
-      transformRule = result.retValues[0] as TransformRule;
-
-      // Encode Refs as Ints, to avoid table dependency issues. We'll convert back to Ref at the end.
-      encodeRuleReferences(transformRule);
-    } else if (transformRule.destCols.some(c => c.colId === null)) {
-      throw new Error('Column ids in transform rule must be filled when importing into an existing table');
-    }
-
-    await this._activeDoc.applyUserActions(docSession,
-      [['MakeImportTransformColumns', hiddenTableId, transformRule, false]]);
+    const transformDestTableId = intoNewTable ? null : destTableId;
+    const result = await this._activeDoc.applyUserActions(docSession, [[
+      'GenImporterView', hiddenTableId, transformDestTableId, transformRule,
+      {createViewSection: false, genAll: false, refsAsInts: true},
+    ]]);
+    transformRule = result.retValues[0].transformRule as TransformRule;
 
     if (!intoNewTable && mergeOptions && mergeOptions.mergeCols.length > 0) {
       await this._mergeAndFinishImport(docSession, hiddenTableId, destTableId, transformRule, mergeOptions);
@@ -430,6 +415,7 @@ export class ActiveDocImport {
     const hiddenTableData = fromTableDataAction(await this._activeDoc.fetchTable(docSession, hiddenTableId, true));
     const columnData: BulkColValues = {};
 
+    const srcCols = await this._activeDoc.getTableCols(docSession, hiddenTableId);
     const srcColIds = srcCols.map(c => c.id as string);
 
     // Only include destination columns that weren't skipped.
@@ -592,38 +578,6 @@ export class ActiveDocImport {
   }
 
   /**
-   * Returns a default TransformRule using column definitions from `destTableId`. If `destTableId`
-   * is null (in the case when the import destination is a new table), the `srcCols` are used instead.
-   *
-   * @param {TableRecordValue[]} srcCols Source column definitions.
-   * @param {string|null} destTableId The destination table id. If null, the destination is assumed
-   * to be a new table, and `srcCols` are used to build the transform rule.
-   * @returns {Promise<TransformRule>} The constructed transform rule.
-   */
-  private async _makeDefaultTransformRule(docSession: OptDocSession, srcCols: TableRecordValue[],
-                                          destTableId: string|null): Promise<TransformRule> {
-    const targetCols = destTableId ? await this._activeDoc.getTableCols(docSession, destTableId) : srcCols;
-    const destCols: TransformColumn[] = [];
-    const srcColIds = srcCols.map(c => c.id as string);
-
-    for (const {id, fields} of targetCols) {
-      destCols.push({
-        colId: destTableId ? id as string : null,
-        label: fields.label as string,
-        type: fields.type as string,
-        widgetOptions: fields.widgetOptions as string,
-        formula: srcColIds.includes(id as string) ? `$${id}` :  ''
-      });
-    }
-
-    return {
-      destTableId,
-      destCols,
-      sourceCols: srcColIds
-    };
-  }
-
-  /**
    * This function removes temporary hidden tables which were created during the import process
    *
    * @param {Array[String]} hiddenTableIds: Array of hidden table ids
@@ -694,32 +648,6 @@ function isBlank(value: CellValue): boolean {
   return value === null || (typeof value === 'string' && value.trim().length === 0);
 }
 
-/**
- * Changes every Ref column to an Int column in `destCols`.
- *
- * Encoding references as ints can be useful when finishing imports to avoid
- * issues such as importing linked tables in the wrong order. When encoding references,
- * ActiveDocImport._fixReferences should be called at the end of importing to
- * decode Ints back to Refs.
- */
-function encodeRuleReferences({destCols}: TransformRule): void {
-  for (const col of destCols) {
-    const refTableId = gutil.removePrefix(col.type, "Ref:");
-    if (refTableId) {
-      col.type = 'Int';
-    }
-  }
-}
-
-// Helper function that strips import prefixes from columns in transform rules (if ids are present).
-function stripRulePrefixes({destCols}: TransformRule): void {
-  for (const col of destCols) {
-    const colId = col.colId;
-    if (colId && colId.startsWith(IMPORT_TRANSFORM_COLUMN_PREFIX)) {
-      col.colId = colId.slice(IMPORT_TRANSFORM_COLUMN_PREFIX.length);
-    }
-  }
-}
 
 // Helper function that returns new `colIds` with import prefixes stripped.
 function stripPrefixes(colIds: string[]): string[] {

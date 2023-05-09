@@ -130,7 +130,7 @@ async function convertToExcel(tables: ExportData[], testDates: boolean) {
     const { columns, rowIds, access, tableName } = table;
     const ws = wb.addWorksheet(sanitizeWorksheetName(tableName));
     // Build excel formatters.
-    const formatters = columns.map(col => createExcelFormatter(col.type, col.widgetOptions));
+    const formatters = columns.map(col => createExcelFormatter(col.formatter.type, col.formatter.widgetOpts));
     // Generate headers for all columns with correct styles for whole column.
     // Actual header style for a first row will be overwritten later.
     ws.columns = columns.map((col, c) => ({ header: col.label, style: formatters[c].style() }));

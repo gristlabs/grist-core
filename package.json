@@ -1,6 +1,6 @@
 {
   "name": "grist-core",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "license": "Apache-2.0",
   "description": "Grist is the evolution of spreadsheets",
   "homepage": "https://github.com/gristlabs/grist-core",
@@ -96,7 +96,6 @@
     "moment-locales-webpack-plugin": "^1.2.0",
     "nodemon": "^2.0.4",
     "otplib": "12.0.1",
-    "selenium-webdriver": "3.6.0",
     "sinon": "7.1.1",
     "source-map-loader": "^0.2.4",
     "tmp-promise": "1.0.5",
@@ -131,6 +130,7 @@
     "cookie": "0.5.0",
     "cookie-parser": "1.4.3",
     "csv": "4.0.0",
+    "currency-symbol-map": "5.1.0",
     "diff-match-patch": "1.0.5",
     "dompurify": "3.0.0",
     "double-ended-queue": "2.1.0-0",

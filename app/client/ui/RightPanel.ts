@@ -279,7 +279,7 @@ export class RightPanel extends Disposable {
           cssSeparator(),
           cssSection(
             dom.maybe(refSelect.isForeignRefCol, () => [
-              cssLabel('Add referenced columns'),
+              cssLabel(t('Add referenced columns')),
               cssRow(refSelect.buildDom()),
               cssSeparator()
             ]),

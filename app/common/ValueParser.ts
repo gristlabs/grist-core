@@ -268,7 +268,8 @@ export function createParserOrFormatterArguments(
   const col = columnsTable.getRecord(colRef)!;
   let fieldOrCol: MetaRowRecord<'_grist_Tables_column' | '_grist_Views_section_field'> = col;
   if (fieldRef) {
-    fieldOrCol = fieldsTable.getRecord(fieldRef) || col;
+    const field = fieldsTable.getRecord(fieldRef);
+    fieldOrCol = field?.widgetOptions ? field : col;
   }
 
   return createParserOrFormatterArgumentsRaw(docData, col.type, fieldOrCol.widgetOptions, fieldOrCol.visibleCol);

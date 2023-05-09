@@ -1239,20 +1239,32 @@ export class FlexServer implements GristServer {
         return this._redirectToLoginOrSignup({
           nextUrl: new URL(getOrgUrl(req, '/welcome/start')),
         }, req, resp);
-      } else {
-        const userId = getUserId(req);
-        const domain = getOrgFromRequest(req);
-        const orgs = this._dbManager.unwrapQueryResult(
-          await this._dbManager.getOrgs(userId, domain, {
-            ignoreEveryoneShares: true,
-          })
-        );
-        if (orgs.length > 1) {
-          resp.redirect(getOrgUrl(req, '/welcome/teams'));
-        } else {
-          resp.redirect(getOrgUrl(req));
-        }
       }
+
+      await this._redirectToHomeOrWelcomePage(req as RequestWithLogin, resp);
+    }));
+
+    /**
+     * Like /welcome/start, but doesn't redirect anonymous users to sign in.
+     *
+     * Used by the client when the last site the user visited is unknown, and
+     * a suitable site is needed for the home page.
+     *
+     * For example, on templates.getgrist.com it does:
+     * 1) If logged in and no team site -> https://docs.getgrist.com/
+     * 2) If logged in and has team sites -> https://docs.getgrist.com/welcome/teams
+     * 3) If logged out -> https://docs.getgrist.com/
+     */
+    this.app.get('/welcome/home', [
+      this._redirectToHostMiddleware,
+      this._userIdMiddleware,
+    ], expressWrap(async (req, resp) => {
+      const mreq = req as RequestWithLogin;
+      if (isAnonymousUser(req)) {
+        return resp.redirect(this.getMergedOrgUrl(mreq));
+      }
+
+      await this._redirectToHomeOrWelcomePage(mreq, resp, {redirectToMergedOrg: true});
     }));
 
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
@@ -1326,7 +1338,6 @@ export class FlexServer implements GristServer {
 
   public addNotifier() {
     if (this._check('notifier', 'start', 'homedb')) { return; }
-    // TODO: Disable notifications for Nioxus orgs, until they are ready to deal with them.
     // TODO: make Notifier aware of base domains, rather than sending emails with default
     // base domain.
     // Most notifications are ultimately triggered by requests with a base domain in them,
@@ -1802,6 +1813,26 @@ export class FlexServer implements GristServer {
     }
     const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
     resp.redirect(await getRedirectUrl(req, nextUrl));
+  }
+
+  private async _redirectToHomeOrWelcomePage(
+    mreq: RequestWithLogin,
+    resp: express.Response,
+    options: {redirectToMergedOrg?: boolean} = {}
+  ) {
+    const {redirectToMergedOrg} = options;
+    const userId = getUserId(mreq);
+    const domain = getOrgFromRequest(mreq);
+    const orgs = this._dbManager.unwrapQueryResult(
+      await this._dbManager.getOrgs(userId, domain, {
+        ignoreEveryoneShares: true,
+      })
+    );
+    if (orgs.length > 1) {
+      resp.redirect(getOrgUrl(mreq, '/welcome/teams'));
+    } else {
+      resp.redirect(redirectToMergedOrg ? this.getMergedOrgUrl(mreq) : getOrgUrl(mreq));
+    }
   }
 }
 

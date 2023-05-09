@@ -70,7 +70,7 @@ export type IsRightTypeFunc = (value: CellValue) => boolean;
 export class BaseFormatter {
   protected isRightType: IsRightTypeFunc;
 
-  constructor(public type: string, public widgetOpts: object, public docSettings: DocumentSettings) {
+  constructor(public type: string, public widgetOpts: FormatOptions, public docSettings: DocumentSettings) {
     this.isRightType = gristTypes.isRightType(gristTypes.extractTypeFromColType(type)) ||
       gristTypes.isRightType('Any')!;
   }
@@ -144,7 +144,7 @@ export interface DateFormatOptions {
 }
 
 class DateFormatter extends BaseFormatter {
-  private _dateTimeFormat: string;
+  protected _dateTimeFormat: string;
   private _timezone: string;
 
   constructor(type: string, widgetOpts: DateFormatOptions, docSettings: DocumentSettings, timezone: string = 'UTC') {
@@ -194,9 +194,11 @@ export interface DateTimeFormatOptions extends DateFormatOptions {
 class DateTimeFormatter extends DateFormatter {
   constructor(type: string, widgetOpts: DateTimeFormatOptions, docSettings: DocumentSettings) {
     const timezone = gutil.removePrefix(type, "DateTime:") || '';
+    // Pass up the original widgetOpts. It's helpful to have them available; e.g. ExcelFormatter
+    // takes options from an initialized ValueFormatter.
+    super(type, widgetOpts, docSettings, timezone);
     const timeFormat = widgetOpts.timeFormat === undefined ? 'h:mma' : widgetOpts.timeFormat;
-    const dateFormat = (widgetOpts.dateFormat || 'YYYY-MM-DD') + " " + timeFormat;
-    super(type, {dateFormat}, docSettings, timezone);
+    this._dateTimeFormat = (widgetOpts.dateFormat || 'YYYY-MM-DD') + " " + timeFormat;
   }
 }
 

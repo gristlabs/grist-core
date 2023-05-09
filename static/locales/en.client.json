@@ -544,7 +544,8 @@
         "Theme": "Theme",
         "WIDGET TITLE": "WIDGET TITLE",
         "Widget": "Widget",
-        "You do not have edit access to this document": "You do not have edit access to this document"
+        "You do not have edit access to this document": "You do not have edit access to this document",
+        "Add referenced columns": "Add referenced columns"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -984,6 +985,7 @@
         "Column description": "Column description",
         "Column label": "Column label",
         "Provide a column label": "Provide a column label",
-        "Save": "Save"
+        "Save": "Save",
+        "Close": "Close"
     }
 }

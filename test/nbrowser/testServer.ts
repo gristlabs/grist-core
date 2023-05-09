@@ -273,6 +273,11 @@ export class TestServerMerged implements IMochaServer {
    * Returns the path to the database.
    */
   private _getDatabaseFile(): string {
+    if (process.env.TYPEORM_TYPE === 'postgres') {
+      const db = process.env.TYPEORM_DATABASE;
+      if (!db) { throw new Error("Missing TYPEORM_DATABASE"); }
+      return db;
+    }
     return path.join(this.testDir, 'landing.db');
   }
 }

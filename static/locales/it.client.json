@@ -965,7 +965,8 @@
         "Access Rules": "Regole di accesso",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Le regole di accesso ti danno il potere di creare regole sofisticate per decidere chi può vedere o modificare il tuo documento, e quali parti.",
         "Reference columns are the key to {{relational}} data in Grist.": "Le colonne con riferimenti sono il motore {{relational}} dei dati in Grist.",
-        "Anchor Links": "Link interno"
+        "Anchor Links": "Link interno",
+        "Custom Widgets": "Widget personalizzati"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -973,5 +974,15 @@
     "PagePanels": {
         "Close Creator Panel": "Chiudi il pannello Creatore",
         "Open Creator Panel": "Apri il pannello Creatore"
+    },
+    "ColumnTitle": {
+        "Column ID copied to clipboard": "ID colonna copiato negli appunti",
+        "Column description": "Descrizione colonna",
+        "Save": "Salva",
+        "Add description": "Aggiungi descrizione",
+        "COLUMN ID: ": "ID COLONNA: ",
+        "Column label": "Etichetta colonna",
+        "Provide a column label": "Dare un'etichetta alla colonna",
+        "Cancel": "Annulla"
     }
 }

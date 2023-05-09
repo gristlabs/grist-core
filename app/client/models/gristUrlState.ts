@@ -85,6 +85,10 @@ export function getLoginOrSignupUrl(nextUrl: string = _getCurrentUrl()): string 
   return _getLoginLogoutUrl('signin', nextUrl);
 }
 
+export function getWelcomeHomeUrl() {
+  return _buildUrl('welcome/home').href;
+}
+
 // Returns the relative URL (i.e. path) of the current page, except when it's the
 // "/signed-out" page, in which case it returns the home page ("/").
 // This is a good URL to use for a post-login redirect.
@@ -97,12 +101,17 @@ function _getCurrentUrl(): string {
 
 // Returns the URL for the given login page, with 'next' param optionally set.
 function _getLoginLogoutUrl(page: 'login'|'logout'|'signin'|'signup', nextUrl?: string | null): string {
-  const startUrl = new URL(window.location.href);
-  startUrl.pathname = addOrgToPath('', window.location.href, true) + '/' + page;
-  startUrl.search = '';
-  startUrl.hash = '';
+  const startUrl = _buildUrl(page);
   if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
   return startUrl.href;
+}
+
+function _buildUrl(page?: string): URL {
+  const startUrl = new URL(window.location.href);
+  startUrl.pathname = addOrgToPath('', window.location.href, true) + '/' + (page ?? '');
+  startUrl.search = '';
+  startUrl.hash = '';
+  return startUrl;
 }
 
 /**
