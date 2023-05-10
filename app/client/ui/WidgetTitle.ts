@@ -1,6 +1,5 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ViewSectionRec} from 'app/client/models/entities/ViewSectionRec';
 import {basicButton, cssButton, primaryButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
