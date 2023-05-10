@@ -20,7 +20,7 @@ describe('DescriptionWidget', function() {
     await rightPanelDescriptionInput.sendKeys(newWidgetDesc);
     // Click on other input to unselect descriptionInput
     await driver.find('.test-right-panel .test-right-widget-title').click();
-    await checkDescValueInWidgetTooltip(newWidgetDesc, "Table");
+    await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
   });
 
   it('should support basic edition in widget popup', async () => {
@@ -28,10 +28,11 @@ describe('DescriptionWidget', function() {
     await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
 
     const widgetName = "Table";
-    const newWidgetDesc = "New description";
+    const newWidgetDescFirstLine = "First line of the description";
+    const newWidgetDescSecondLine = "Second line of the description";
 
-    await addWidgetDescription(newWidgetDesc, widgetName);
-    await checkDescValueInWidgetTooltip(newWidgetDesc, widgetName);
+    await addWidgetDescription(widgetName, newWidgetDescFirstLine, newWidgetDescSecondLine);
+    await checkDescValueInWidgetTooltip(widgetName, `${newWidgetDescFirstLine}\n${newWidgetDescSecondLine}`);
   });
 
   it('should show info tooltip only if there is a description', async () => {
@@ -40,12 +41,12 @@ describe('DescriptionWidget', function() {
 
     const newWidgetDesc = "New description for widget Table";
 
-    await addWidgetDescription(newWidgetDesc, "Table");
+    await addWidgetDescription("Table", newWidgetDesc);
 
     assert.isFalse(await getWidgetTooltip("Single card").isPresent());
     assert.isTrue(await getWidgetTooltip("Table").isPresent());
 
-    await checkDescValueInWidgetTooltip(newWidgetDesc, "Table");
+    await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
   });
 });
 
@@ -69,7 +70,7 @@ function getWidgetTooltip(widgetName: string) {
   return getWidgetTitle(widgetName).findClosest(".test-viewsection-title").find(".test-widget-info-tooltip");
 }
 
-async function addWidgetDescription(desc: string, widgetName: string) {
+async function addWidgetDescription(widgetName: string, desc: string, descSecondLine: string = "") {
   // Click on the title and open the edition popup
   await getWidgetTitle(widgetName).click();
   await waitForEditPopup();
@@ -78,11 +79,15 @@ async function addWidgetDescription(desc: string, widgetName: string) {
 
   // Edit the description of the widget inside the popup
   await widgetDescInput.click();
-  await widgetDescInput.sendKeys(desc, Key.ENTER);
+  await widgetDescInput.sendKeys(desc);
+  if (descSecondLine !== "") {
+    await widgetDescInput.sendKeys(Key.ENTER, descSecondLine);
+  }
+  await widgetDescInput.sendKeys(Key.CONTROL, Key.ENTER);
   await gu.waitForServer();
 }
 
-async function checkDescValueInWidgetTooltip(desc: string, widgetName: string) {
+async function checkDescValueInWidgetTooltip(widgetName: string, desc: string) {
   await getWidgetTooltip(widgetName).click();
   await waitForTooltip();
   const descriptionTooltip = await driver
