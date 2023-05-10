@@ -79,7 +79,3 @@ timings.txt
 xunit.xml
 
 **/_build
-
-# Local testing
-timings.txt
-xunit.xml
