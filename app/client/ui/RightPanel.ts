@@ -251,7 +251,7 @@ export class RightPanel extends Disposable {
             dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
           ),
           cssSection(
-            dom.create(buildDescriptionConfig, origColumn, cursor, "column"),
+            dom.create(buildDescriptionConfig, origColumn.description, { cursor, "testPrefix": "column" }),
           ),
           cssSeparator(),
           cssSection(
@@ -385,7 +385,7 @@ export class RightPanel extends Disposable {
       )),
 
       cssSection(
-        dom.create(buildDescriptionConfig, activeSection, cursor, "right-widget"),
+        dom.create(buildDescriptionConfig, activeSection.description, { cursor, "testPrefix": "right-widget" }),
       ),
 
       dom.maybe(
