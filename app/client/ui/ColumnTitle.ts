@@ -15,7 +15,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {Computed, dom, makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
-import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from './RenamePopupStyles';
+import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from 'app/client/ui/RenamePopupStyles';
 
 
 const testId = makeTestId('test-column-title-');
