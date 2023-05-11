@@ -25,7 +25,7 @@ export function buildDescriptionConfig(
     // update a different column.
     let editor: HTMLTextAreaElement | undefined;
     owner.autoDispose(
-      options.cursor?.subscribe(() => {
+      options.cursor.subscribe(() => {
         editor?.blur();
       })
     );
