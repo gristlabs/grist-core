@@ -6,17 +6,16 @@ import {makeT} from 'app/client/lib/localization';
 import {setTestState} from 'app/client/lib/testState';
 import {ViewFieldRec} from 'app/client/models/DocModel';
 import {autoGrow} from 'app/client/ui/forms';
-import {textarea} from 'app/client/ui/inputs';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
-import {cssTextInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {menuCssClass} from 'app/client/ui2018/menus';
 
-import {Computed, dom, IInputOptions, input, makeTestId, Observable, styled} from 'grainjs';
+import {Computed, dom, makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
+import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from './RenamePopupStyles';
 
 
 const testId = makeTestId('test-column-title-');
@@ -281,32 +280,11 @@ const cssAddDescription = styled('div', `
   }
 `);
 
-const cssRenamePopup = styled('div', `
-  display: flex;
-  flex-direction: column;
-  min-width: 280px;
-  padding: 16px;
-  background-color: ${theme.popupBg};
-  border-radius: 2px;
-  outline: none;
-`);
-
 const cssColLabelBlock = styled('div', `
   display: flex;
   flex-direction: column;
   flex: auto;
   min-width: 80px;
-`);
-
-const cssLabel = styled('label', `
-  color: ${theme.text};
-  font-size: ${vars.xsmallFontSize};
-  font-weight: ${vars.bigControlTextWeight};
-  text-transform: uppercase;
-  margin: 0 0 8px 0;
-  &:not(:first-child) {
-    margin-top: 16px;
-  }
 `);
 
 const cssColId = styled('div', `
@@ -321,60 +299,11 @@ const cssColId = styled('div', `
   align-self: start;
 `);
 
-const cssTextArea = styled(textarea, `
-  color: ${theme.inputFg};
-  background-color: ${theme.mainPanelBg};
-  border: 1px solid ${theme.inputBorder};
-  width: 100%;
-  padding: 3px 7px;
-  outline: none;
-  max-width: 100%;
-  min-width: calc(280px - 16px*2);
-  max-height: 500px;
-  min-height: calc(3em * 1.5);
-  resize: none;
-  border-radius: 3px;
-  &::placeholder {
-    color: ${theme.inputPlaceholderFg};
-  }
-
-  &[readonly] {
-    background-color: ${theme.inputDisabledBg};
-    color: ${theme.inputDisabledFg};
-  }
-`);
-
 const cssButtons = styled('div', `
   display: flex;
   margin-top: 16px;
   gap: 8px;
   & button {
     min-width: calc(50 / 13 * 1em); /* Min 50px for 13px font size, to make Save and Close buttons equal width */
-  }
-`);
-
-const cssInputWithIcon = styled('div', `
-  position: relative;
-  display: flex;
-  flex-direction: column;
-`);
-
-const cssInput = styled((
-  obs: Observable<string>,
-  opts: IInputOptions,
-  ...args) => input(obs, opts, cssTextInput.cls(''), ...args), `
-  text-overflow: ellipsis;
-  color: ${theme.inputFg};
-  background-color: transparent;
-  &:disabled {
-    color: ${theme.inputDisabledFg};
-    background-color: ${theme.inputDisabledBg};
-    pointer-events: none;
-  }
-  &::placeholder {
-    color: ${theme.inputPlaceholderFg};
-  }
-  .${cssInputWithIcon.className} > &:disabled {
-    padding-right: 28px;
   }
 `);

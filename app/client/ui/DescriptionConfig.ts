@@ -7,7 +7,7 @@ import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {dom, fromKo, MultiHolder, styled} from 'grainjs';
 
-const t = makeT('FieldConfig');
+const t = makeT('DescriptionConfig');
 
 export function buildDescriptionConfig(
     owner: MultiHolder,
