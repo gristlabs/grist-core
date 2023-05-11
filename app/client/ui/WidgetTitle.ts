@@ -11,6 +11,7 @@ import {IOpenController, setPopupToCreateDom} from 'popweasel';
 import { descriptionInfoTooltip } from './tooltips';
 import { textarea } from './inputs';
 import { autoGrow } from './forms';
+import { FocusLayer } from '../lib/FocusLayer';
 
 const testId = makeTestId('test-widget-title-');
 const t = makeT('WidgetTitle');
@@ -210,6 +211,9 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
   let widgetInput: HTMLInputElement|undefined;
   let descInput: HTMLTextAreaElement | undefined;
   return cssRenamePopup(
+    // Create a FocusLayer to keep focus in this popup while it's active, and prevent keyboard
+    // shortcuts from being seen by the view underneath.
+    elem => { FocusLayer.create(ctrl, { defaultFocusElem: elem, pauseMousetrap: false }); },
     dom.onDispose(onClose),
     dom.autoDispose(commandGroup),
     testId('popup'),
