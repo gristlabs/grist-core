@@ -218,7 +218,7 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
     testId('popup'),
     dom.cls(menuCssClass),
     dom.maybe(!options.tableNameHidden, () => [
-      cssLabel(t("Data table name")),
+      cssLabel(t("DATA TABLE NAME")),
       // Update tableName on key stroke - this will show the default widget name as we type.
       // above this modal.
       tableInput = cssInput(
@@ -230,13 +230,13 @@ function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, optio
       ),
     ]),
     dom.maybe(!options.widgetNameHidden, () => [
-      cssLabel(t("Widget title")),
+      cssLabel(t("WIDGET TITLE")),
       widgetInput = cssInput(inputWidgetTitle, updateOnKey, {placeholder: inputWidgetPlaceholder},
         testId('section-name-input'),
         commandGroup.attach(),
       ),
     ]),
-    cssLabel(t("Widget description")),
+    cssLabel(t("WIDGET DESCRIPTION")),
     descInput = cssTextArea(inputWidgetDesc, updateOnKey,
       testId('section-description-input'),
       commandGroup.attach(),
