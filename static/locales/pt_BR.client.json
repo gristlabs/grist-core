@@ -589,7 +589,8 @@
         "Columns_one": "Coluna",
         "Columns_other": "Colunas",
         "Fields_one": "Campo",
-        "Fields_other": "Campos"
+        "Fields_other": "Campos",
+        "Add referenced columns": "Adicionar colunas referenciadas"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar o link de ancoragem",
@@ -1047,6 +1048,7 @@
         "Add description": "Adicionar descrição",
         "Column ID copied to clipboard": "ID da coluna copiada para a área de transferência",
         "COLUMN ID: ": "ID DA COLUNA: ",
-        "Provide a column label": "Forneça um rótulo de coluna"
+        "Provide a column label": "Forneça um rótulo de coluna",
+        "Close": "Fechar"
     }
 }
