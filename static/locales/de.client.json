@@ -589,7 +589,8 @@
         "Columns_one": "Spalte",
         "Columns_other": "Spalten",
         "Fields_one": "Feld",
-        "Fields_other": "Felder"
+        "Fields_other": "Felder",
+        "Add referenced columns": "Referenzspalten hinzufügen"
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -1047,6 +1048,7 @@
         "Provide a column label": "Geben Sie eine Spaltenbeschriftung an",
         "Save": "Speichern",
         "Column label": "Spaltenbeschriftung",
-        "Column ID copied to clipboard": "Spalten-ID in die Zwischenablage kopiert"
+        "Column ID copied to clipboard": "Spalten-ID in die Zwischenablage kopiert",
+        "Close": "Schließen"
     }
 }
