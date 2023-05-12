@@ -4,7 +4,7 @@ import { MinDB, PreparedStatement, ResultRow, SqliteVariant } from 'app/server/l
 import { OpenMode, RunResult } from 'app/server/lib/SQLiteDB';
 
 export class NodeSqliteVariant implements SqliteVariant {
-  opener(dbPath: string, mode: OpenMode): Promise<MinDB> {
+  public opener(dbPath: string, mode: OpenMode): Promise<MinDB> {
     return NodeSqlite3DatabaseAdapter.opener(dbPath, mode);
   }
 }

@@ -9,8 +9,8 @@ import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
  * It is important that Statement exists - but we don't expect
  * anything of it.
  */
-export interface Statement {
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Statement {}
 
 export interface MinDB {
   exec(sql: string): Promise<void>;

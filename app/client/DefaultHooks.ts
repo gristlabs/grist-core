@@ -9,4 +9,4 @@ export interface IHooks {
 }
 
 export const defaultHooks: IHooks = {
-}
+};
