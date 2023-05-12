@@ -724,7 +724,8 @@
         "Override widget title": "Override widget title",
         "Provide a table name": "Provide a table name",
         "Save": "Save",
-        "WIDGET TITLE": "WIDGET TITLE"
+        "WIDGET TITLE": "WIDGET TITLE",
+        "WIDGET DESCRIPTION": "WIDGET DESCRIPTION"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "You may make edits, but they will create a new copy and will\nnot affect the original document.",

@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 37;
+export const SCHEMA_VERSION = 38;
 
 export const schema = {
 
@@ -104,6 +104,7 @@ export const schema = {
     parentId            : "Ref:_grist_Views",
     parentKey           : "Text",
     title               : "Text",
+    description         : "Text",
     defaultWidth        : "Int",
     borderWidth         : "Int",
     theme               : "Text",
@@ -311,6 +312,7 @@ export interface SchemaTypes {
     parentId: number;
     parentKey: string;
     title: string;
+    description: string;
     defaultWidth: number;
     borderWidth: number;
     theme: string;

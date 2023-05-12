@@ -1204,3 +1204,11 @@ def migration37(tdset):
   Add fileExt column to _grist_Attachments.
   """
   return tdset.apply_doc_actions([add_column('_grist_Attachments', 'fileExt', 'Text')])
+
+@migration(schema_version=38)
+def migration38(tdset):
+  """
+  Add description to widget
+  """
+  return tdset.apply_doc_actions([add_column('_grist_Views_section', 'description', 'Text')])
+  
