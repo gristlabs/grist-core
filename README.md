@@ -291,8 +291,8 @@ COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
 PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching
-GRIST_SNAPSHOT_TIME_CAP           | optional. Track saved version per hour, day, week, month, year, and number of times a version  Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
-GRIST_SNAPSHOT_KEEP           | optional. How many Snapshot versions should be kept
+GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
+GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
 
 Sandbox related variables:
 
