@@ -122,7 +122,8 @@
         "SELECTOR FOR": "SELETTORE PER",
         "Series_one": "Serie",
         "Series_other": "Serie",
-        "Sort & Filter": "Ordina e filtra"
+        "Sort & Filter": "Ordina e filtra",
+        "Add referenced columns": "Aggiungi colonne referenziate"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copia link",
@@ -853,7 +854,8 @@
         "Override widget title": "Sovrascrivi titolo widget",
         "Provide a table name": "Inserisci un nome per la tabella",
         "Save": "Salva",
-        "WIDGET TITLE": "TITOLO WIDGET"
+        "WIDGET TITLE": "TITOLO WIDGET",
+        "WIDGET DESCRIPTION": "DESCRIZIONE WIDGET"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Puoi fare delle modifiche, ma queste generano una nuova copia\ne l'originale resta immutato.",
@@ -983,6 +985,7 @@
         "COLUMN ID: ": "ID COLONNA: ",
         "Column label": "Etichetta colonna",
         "Provide a column label": "Dare un'etichetta alla colonna",
-        "Cancel": "Annulla"
+        "Cancel": "Annulla",
+        "Close": "Chiudi"
     }
 }
