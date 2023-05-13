@@ -780,7 +780,8 @@
         "Override widget title": "Substituir o título do Widget",
         "Provide a table name": "Forneça um nome de tabela",
         "Save": "Salvar",
-        "WIDGET TITLE": "TÍTULO DO WIDGET"
+        "WIDGET TITLE": "TÍTULO DO WIDGET",
+        "WIDGET DESCRIPTION": "DESCRIÇÃO DO WIDGET"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Você pode fazer edições, mas elas criarão uma nova cópia e\nnão afetarão o documento original.",
