@@ -637,7 +637,8 @@
         "Override widget title": "Sobrescribir título del Widget",
         "Provide a table name": "Proporcionar un nombre de tabla",
         "Save": "Guardar",
-        "WIDGET TITLE": "TÍTULO DEL WIDGET"
+        "WIDGET TITLE": "TÍTULO DEL WIDGET",
+        "WIDGET DESCRIPTION": "DESCRIPCIÓN DEL WIDGET"
     },
     "errorPages": {
         "Access denied{{suffix}}": "Acceso negado{{suffix}}",
