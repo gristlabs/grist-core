@@ -581,7 +581,8 @@ BaseView.prototype._saveEditRowField = function(editRowModel, colName, value) {
       // Display this rowId, even if it doesn't match the filter
       .then((result) => {
         if (!this.isDisposed()) {
-          this._sectionFilter.addTemporaryRow(rowId);
+          const colType = this.viewSection.viewFields().peek()[this.cursor.fieldIndex()].column().type();
+          this._sectionFilter.addTemporaryRow(rowId, colType);
         }
         return result;
       })

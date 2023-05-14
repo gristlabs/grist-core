@@ -68,9 +68,10 @@ export class SectionFilter extends Disposable {
     });
   }
 
-  public addTemporaryRow(rowId: number) {
-    // Only add the rowId if it would otherwise be filtered out
-    if (!this.sectionFilterFunc.get()(rowId)) {
+  public addTemporaryRow(rowId: number, colType: string) {
+    // Only add the rowId if it would otherwise be filtered out,
+    // unless the changed column is of type Bool
+    if (!this.sectionFilterFunc.get()(rowId) && colType !== 'Bool') {
       this._tempRows.push(rowId);
     }
   }
