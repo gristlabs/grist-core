@@ -130,7 +130,11 @@
         "Reset {{count}} columns_one": "Reset column",
         "Reset {{count}} columns_other": "Reset {{count}} columns",
         "Reset {{count}} entire columns_one": "Reset entire column",
-        "Reset {{count}} entire columns_other": "Reset {{count}} entire columns"
+        "Reset {{count}} entire columns_other": "Reset {{count}} entire columns",
+        "Comment": "Comment",
+        "Copy": "Copy",
+        "Cut": "Cut",
+        "Paste": "Paste"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Create separate series for each value of the selected column.",
@@ -272,7 +276,9 @@
         "Time Zone:": "Time Zone:",
         "API": "API",
         "Document ID copied to clipboard": "Document ID copied to clipboard",
-        "Ok": "OK"
+        "Ok": "OK",
+        "Manage Webhooks": "Manage Webhooks",
+        "Webhooks": "Webhooks"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -987,5 +993,21 @@
         "Provide a column label": "Provide a column label",
         "Save": "Save",
         "Close": "Close"
+    },
+    "Clipboard": {
+        "Got it": "Got it",
+        "Unavailable Command": "Unavailable Command"
+    },
+    "FieldContextMenu": {
+        "Clear field": "Clear field",
+        "Copy": "Copy",
+        "Copy anchor link": "Copy anchor link",
+        "Cut": "Cut",
+        "Hide field": "Hide field",
+        "Paste": "Paste"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Clear Queue",
+        "Webhook Settings": "Webhook Settings"
     }
 }
