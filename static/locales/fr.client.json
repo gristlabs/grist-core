@@ -381,7 +381,7 @@
     },
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",
-        "Added new linked section to view {{viewName}}": "Ajout d'une nouvelle section à la page {{viewName}}",
+        "Added new linked section to view {{viewName}}": "Création d'une nouvelle section à la page {{viewName}}",
         "Saved linked section {{title}} in view {{name}}": "Sauvegarder la section {{title}} dans la page {{name}}"
     },
     "HomeIntro": {
@@ -443,7 +443,7 @@
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Attention, l'original a des modifications qui ne sont pas dans ce document. Ces modifications seront écrasées.",
         "Original Looks Unrelated": "L'original ne semble pas relié",
         "It will be overwritten, losing any content not in this document.": "Il sera écrasé, perdant tout contenu ne figurant pas dans ce document.",
-        "Original Looks Identical": "L'original semble identique",
+        "Original Looks Identical": "L'original semble être identique",
         "However, it appears to be already identical.": "Cependant, il semble être déjà identique.",
         "Sign up": "Inscription",
         "To save your changes, please sign up, then reload this page.": "Pour enregistrer vos modifications, veuillez vous inscrire, puis recharger cette page.",
@@ -541,7 +541,8 @@
         "Select Widget": "Choisir la vue",
         "SELECTOR FOR": "SÉLECTEUR",
         "Save": "Enregistrer",
-        "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document"
+        "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
+        "Add referenced columns": "Ajouter une colonne référencée"
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -584,7 +585,7 @@
         "Add Column": "Ajouter une colonne",
         "Update Data": "Mettre à jour les données",
         "Use choice position": "Use choice position",
-        "Natural sort": "Tri naturel",
+        "Natural sort": "Trier",
         "Empty values last": "Valeurs vides en dernier",
         "Search Columns": "Rechercher"
     },
@@ -717,7 +718,8 @@
         "Provide a table name": "Indiquer un nom de table",
         "WIDGET TITLE": "TITRE DE LA VUE",
         "Save": "Enregistrer",
-        "Cancel": "Annuler"
+        "Cancel": "Annuler",
+        "WIDGET DESCRIPTION": "DESCRIPTION DE LA VUE"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Vous pouvez faire des modifications, mais une nouvelle copie\n sera créée et ces modifications n’affecteront pas le document original.",
@@ -764,7 +766,8 @@
         "Integer": "Entier",
         "Choice List": "Choix multiple",
         "Toggle": "Booléen",
-        "Reference": "Référence"
+        "Reference": "Référence",
+        "Any": "Non défini"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -976,14 +979,15 @@
         "COLUMN ID: ": "Identifiant de la column : ",
         "Column description": "Description de la colonne",
         "Column label": "Libellé de la colonne",
-        "Provide a column label": "Fournir un libellé pour la colonne",
-        "Save": "Sauvegarder"
+        "Provide a column label": "Renommer la colonne",
+        "Save": "Sauvegarder",
+        "Close": "Fermer"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
     },
     "PagePanels": {
-        "Open Creator Panel": "Ouvrir le menu latéral",
-        "Close Creator Panel": "Fermer le menu latéral"
+        "Open Creator Panel": "Ouvrir le panneau de création",
+        "Close Creator Panel": "Fermer le panneau de création"
     }
 }
