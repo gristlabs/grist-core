@@ -4,7 +4,6 @@ export interface IHooks {
   iframeAttributes?: Record<string, any>,
   fetch?: typeof fetch,
   baseURI?: string,
-  nominalUrl?: string,
   urlTweaks?: UrlTweaks,
 }
 
