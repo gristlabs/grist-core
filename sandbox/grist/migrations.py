@@ -1205,13 +1205,32 @@ def migration37(tdset):
 
 @migration(schema_version=38)
 def migration38(tdset):
-  doc_actions = [add_column('_grist_Triggers', 'memo', 'Text'),
-                 add_column('_grist_Triggers', 'label', 'Text'),
-                 add_column('_grist_Triggers', 'enabled', 'Bool')]
-  triggers = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Triggers']))
-  doc_actions.append(actions.BulkUpdateRecord(
-    '_grist_Triggers',
-    [t.id for t in triggers],
-    {'enabled': [True for t in triggers]}
-  ))
+  """
+  Through a mishap, this migration ended up conflicted across two version of Grist.
+  In one version, it added webhook related columns. In another it added a description
+  to widgets. Sorry if this impacted you. Migration 39 does the best we can to
+  smooth over the divergence, and this migration now does nothing (though in the
+  past it did one of two possible things).
+  """
+  return tdset.apply_doc_actions([])
+
+@migration(schema_version=39)
+def migration39(tdset):
+  """
+  Adds memo, label, and enabled flag to triggers (for webhooks).
+  Adds a description to widgets.
+  """
+  doc_actions = []
+  if 'memo' not in tdset.all_tables['_grist_Triggers'].columns:
+    doc_actions += [add_column('_grist_Triggers', 'memo', 'Text'),
+                    add_column('_grist_Triggers', 'label', 'Text'),
+                    add_column('_grist_Triggers', 'enabled', 'Bool')]
+    triggers = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Triggers']))
+    doc_actions.append(actions.BulkUpdateRecord(
+      '_grist_Triggers',
+      [t.id for t in triggers],
+      {'enabled': [True for t in triggers]}
+    ))
+  if 'description' not in tdset.all_tables['_grist_Views_section'].columns:
+    doc_actions.append(add_column('_grist_Views_section', 'description', 'Text'))
   return tdset.apply_doc_actions(doc_actions)
