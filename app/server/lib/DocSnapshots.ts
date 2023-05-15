@@ -1,3 +1,4 @@
+import {integerParam} from 'app/server/lib/requestUtils';
 import {ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import {SnapshotWindow} from 'app/common/Features';
 import {KeyedMutex} from 'app/common/KeyedMutex';
@@ -350,16 +351,28 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
 
   // Get time of current version
   const start = moment.tz(current.lastModified, tz);
+  const capObjectString = process.env.GRIST_SNAPSHOT_TIME_CAP
+        || '{"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}';
 
+  // Parse the stringified JSON object into an actual object
+  const caps = JSON.parse(capObjectString);
+
+  // Extract the cap values for each bucket range and convert them to integers
+  const capHour = integerParam(caps.hour, "GRIST_SNAPSHOT_TIMEBUCKET_CAP.hour");
+  const capDay = integerParam(caps.day, "GRIST_SNAPSHOT_TIMEBUCKET_CAP.day");
+  const capIsoWeek = integerParam(caps.isoWeek, "GRIST_SNAPSHOT_TIMEBUCKET_CAP.isoWeek");
+  const capMonth = integerParam(caps.month, "GRIST_SNAPSHOT_TIMEBUCKET_CAP.month");
+  const capYear = integerParam(caps.year, "GRIST_SNAPSHOT_TIMEBUCKET_CAP.year");
   // Track saved version per hour, day, week, month, year, and number of times a version
   // has been saved based on a corresponding rule.
   const buckets: TimeBucket[] = [
-    {range: 'hour', prev: start, usage: 0, cap: 25},
-    {range: 'day', prev: start, usage: 0, cap: 32},
-    {range: 'isoWeek', prev: start, usage: 0, cap: 12},
-    {range: 'month', prev: start, usage: 0, cap: 96},
-    {range: 'year', prev: start, usage: 0, cap: 1000}
+      {range: 'hour', prev: start, usage: 0, cap: capHour},
+      {range: 'day', prev: start, usage: 0, cap: capDay},
+      {range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek},
+      {range: 'month', prev: start, usage: 0, cap: capMonth},
+      {range: 'year', prev: start, usage: 0, cap: capYear}
   ];
+
   // For each snapshot starting with newest, check if it is worth saving by comparing
   // it with the last saved snapshot based on hour, day, week, month, year
   return snapshots.map((snapshot, index) => {
@@ -375,7 +388,9 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
       return false;
     }
 
-    let keep = index < 5;   // Keep 5 most recent versions
+    // Keep 5 most recent versions if NUM_SNAPSHOT_KEEP not exist
+    let keep = index < integerParam(process.env.GRIST_SNAPSHOT_KEEP || 5, "GRIST_SNAPSHOT_KEEP");
+
     for (const bucket of buckets) {
       if (updateAndCheckRange(date, bucket)) { keep = true; }
     }

@@ -251,7 +251,7 @@ export class RightPanel extends Disposable {
             dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
           ),
           cssSection(
-            dom.create(buildDescriptionConfig, origColumn, cursor),
+            dom.create(buildDescriptionConfig, origColumn.description, { cursor, "testPrefix": "column" }),
           ),
           cssSeparator(),
           cssSection(
@@ -361,6 +361,13 @@ export class RightPanel extends Disposable {
       const hasColumnMapping = use(activeSection.columnsToMap);
       return Boolean(isCustom && hasColumnMapping);
     });
+
+    // build cursor position observable
+    const cursor = owner.autoDispose(ko.computed(() => {
+      const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
+      return vsi?.cursor.currentPosition() ?? {};
+    }));
+
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
       cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
@@ -376,6 +383,10 @@ export class RightPanel extends Disposable {
         }),
         testId('right-widget-title')
       )),
+
+      cssSection(
+        dom.create(buildDescriptionConfig, activeSection.description, { cursor, "testPrefix": "right-widget" }),
+      ),
 
       dom.maybe(
         (use) => !use(activeSection.isRaw),

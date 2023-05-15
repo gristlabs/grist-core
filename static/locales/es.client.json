@@ -486,7 +486,8 @@
         "Columns_one": "Columna",
         "Columns_other": "Columnas",
         "Fields_one": "Campo",
-        "Fields_other": "Campos"
+        "Fields_other": "Campos",
+        "Add referenced columns": "Añadir columnas referenciadas"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar enlace de anclaje",
@@ -636,7 +637,8 @@
         "Override widget title": "Sobrescribir título del Widget",
         "Provide a table name": "Proporcionar un nombre de tabla",
         "Save": "Guardar",
-        "WIDGET TITLE": "TÍTULO DEL WIDGET"
+        "WIDGET TITLE": "TÍTULO DEL WIDGET",
+        "WIDGET DESCRIPTION": "DESCRIPCIÓN DEL WIDGET"
     },
     "errorPages": {
         "Access denied{{suffix}}": "Acceso negado{{suffix}}",
@@ -1037,6 +1039,7 @@
         "Add description": "Agregar una descripción",
         "Column ID copied to clipboard": "ID de la columna copiada al portapapeles",
         "Column description": "Descripción de la Columna",
-        "Provide a column label": "Proporciona una etiqueta a la columna"
+        "Provide a column label": "Proporciona una etiqueta a la columna",
+        "Close": "Cerrar"
     }
 }

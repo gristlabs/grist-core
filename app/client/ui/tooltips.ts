@@ -347,15 +347,18 @@ export function withInfoTooltip(
 }
 
 /**
- * Renders an column info icon that shows a tooltip with the specified `content` on click.
+ * Renders an description info icon that shows a tooltip with the specified `content` on click.
  */
- export function columnInfoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
-  return cssColumnInfoTooltipButton(
+export function descriptionInfoTooltip(
+  content: DomContents,
+  testPrefix: string,
+  ...domArgs: DomElementArg[]) {
+  return cssDescriptionInfoTooltipButton(
     icon('Info', dom.cls("info_toggle_icon")),
-    testId('column-info-tooltip'),
+    testId(`${testPrefix}-info-tooltip`),
     dom.on('mousedown', (e) => e.stopPropagation()),
     dom.on('click', (e) => e.stopPropagation()),
-    hoverTooltip(() => cssColumnInfoTooltip(content, testId('column-info-tooltip-popup')), {
+    hoverTooltip(() => cssDescriptionInfoTooltip(content, testId(`${testPrefix}-info-tooltip-popup`)), {
       closeDelay: 200,
       key: 'columnDescription',
       openOnClick: true,
@@ -365,7 +368,8 @@ export function withInfoTooltip(
   );
 }
 
-const cssColumnInfoTooltip = styled('div', `
+
+const cssDescriptionInfoTooltip = styled('div', `
   white-space: pre-wrap;
   text-align: left;
   text-overflow: ellipsis;
@@ -373,7 +377,7 @@ const cssColumnInfoTooltip = styled('div', `
   max-width: min(500px, calc(100vw - 80px)); /* can't use 100%, 500px and 80px are picked by hand */
 `);
 
-const cssColumnInfoTooltipButton = styled('div', `
+const cssDescriptionInfoTooltipButton = styled('div', `
   cursor: pointer;
   --icon-color: ${theme.infoButtonFg};
   border-radius: 50%;

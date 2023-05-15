@@ -53,6 +53,8 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Default widget title (the one that is used in titleDef).
   defaultWidgetTitle: ko.PureComputed<string>;
 
+  description: modelUtil.KoSaveableObservable<string>;
+
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   isRaw: ko.Computed<boolean>;
@@ -363,6 +365,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
   // Widget title.
   this.titleDef = modelUtil.fieldWithDefault(this.title, this.defaultWidgetTitle);
+
+  // Widget description
+  this.description = modelUtil.fieldWithDefault(this.description, this.description());
 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
