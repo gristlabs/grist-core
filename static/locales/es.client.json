@@ -1057,7 +1057,8 @@
         "Copy": "Copiar",
         "Paste": "Pegar",
         "Cut": "Cortar",
-        "Hide field": "Ocultar el campo"
+        "Hide field": "Ocultar el campo",
+        "Copy anchor link": "Copiar enlace de anclaje"
     },
     "WebhookPage": {
         "Clear Queue": "Borrar la cola",
