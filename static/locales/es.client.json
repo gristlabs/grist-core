@@ -234,8 +234,8 @@
         "Ok": "OK",
         "Document ID copied to clipboard": "ID de documento copiado al portapapeles",
         "API": "API",
-        "Webhooks": "Webhooks",
-        "Manage Webhooks": "Administrar los Webhooks"
+        "Webhooks": "Ganchos Web",
+        "Manage Webhooks": "Administrar los ganchos web"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -1062,6 +1062,6 @@
     },
     "WebhookPage": {
         "Clear Queue": "Borrar la cola",
-        "Webhook Settings": "Ajustes de los Webhook"
+        "Webhook Settings": "Ajustes del gancho web"
     }
 }
