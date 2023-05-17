@@ -178,25 +178,21 @@ export function getSupportedEngineChoices(): EngineCode[]|undefined {
  * Returns a promise that resolves in the given number of milliseconds or rejects
  * when the given signal is raised.
  */
-export function delayAbort(msec: number, signal?: AbortSignal): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    let resolved = false;
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        resolve();
-      }
-    }, msec);
-    if (signal?.addEventListener) {
-      signal.addEventListener('abort', (ev) => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          reject(ev);
-        }
-      });
-    }
-  });
+export async function delayAbort(msec: number, signal?: AbortSignal): Promise<void> {
+  let cleanup: () => void = () => {};
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => resolve(), msec);
+      signal?.addEventListener('abort', reject);
+      cleanup = () => {
+        // Be careful to clean up both the timer and the listener to avoid leaks.
+        clearTimeout(timeout);
+        signal?.removeEventListener('abort', reject);
+      };
+    });
+  } finally {
+    cleanup();
+  }
 }
 
 /**

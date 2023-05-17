@@ -14,7 +14,7 @@ import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 import {delayAbort} from 'app/server/lib/serverUtils';
-import {proxyAgent} from 'app/server/utils/ProxyAgent';
+import {proxyAgent} from 'app/server/lib/ProxyAgent';
 import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import {AbortController, AbortSignal} from 'node-abort-controller';
