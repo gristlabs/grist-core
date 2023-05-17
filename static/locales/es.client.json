@@ -122,7 +122,11 @@
         "Reset {{count}} columns_one": "Restablecer columna",
         "Reset {{count}} columns_other": "Restablecer {{count}} columnas",
         "Reset {{count}} entire columns_one": "Restablecer toda la columna",
-        "Reset {{count}} entire columns_other": "Restablecer {{count}} columnas enteras"
+        "Reset {{count}} entire columns_other": "Restablecer {{count}} columnas enteras",
+        "Paste": "Pegar",
+        "Comment": "Comentario",
+        "Copy": "Copiar",
+        "Cut": "Cortar"
     },
     "ColumnFilterMenu": {
         "All": "Todo",
@@ -229,7 +233,9 @@
         "Time Zone:": "Zona horaria:",
         "Ok": "OK",
         "Document ID copied to clipboard": "ID de documento copiado al portapapeles",
-        "API": "API"
+        "API": "API",
+        "Webhooks": "Webhooks",
+        "Manage Webhooks": "Administrar los Webhooks"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -1041,5 +1047,20 @@
         "Column description": "Descripción de la Columna",
         "Provide a column label": "Proporciona una etiqueta a la columna",
         "Close": "Cerrar"
+    },
+    "Clipboard": {
+        "Got it": "Entiendo",
+        "Unavailable Command": "Comando no disponible"
+    },
+    "FieldContextMenu": {
+        "Clear field": "Borrar el campo",
+        "Copy": "Copiar",
+        "Paste": "Pegar",
+        "Cut": "Cortar",
+        "Hide field": "Ocultar el campo"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Borrar la cola",
+        "Webhook Settings": "Ajustes de los Webhook"
     }
 }
