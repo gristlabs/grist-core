@@ -164,6 +164,20 @@ export function getLogMetaFromDocSession(docSession: OptDocSession) {
 }
 
 /**
+ * Extract telemetry metadata from session.
+ */
+export function getTelemetryMetaFromDocSession(docSession: OptDocSession) {
+  const client = docSession.client;
+  const access = getDocSessionAccessOrNull(docSession);
+  const user = getDocSessionUser(docSession);
+  return {
+    access,
+    ...(user ? {userId: user.id} : {}),
+    ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
+  };
+}
+
+/**
  * Only offer choices of engine on experimental deployments (staging/dev).
  */
 export function getSupportedEngineChoices(): EngineCode[]|undefined {

@@ -697,9 +697,7 @@ export class FlexServer implements GristServer {
       const name = stringParam(req.body.name, 'name', TelemetryEventNames);
       this._telemetryManager?.logEvent(name as TelemetryEventName, {
         userId: mreq.userId,
-        email: mreq.user?.loginEmail,
         altSessionId: mreq.altSessionId,
-        site: mreq.org,
         ...req.body.metadata,
       });
       return resp.status(200).send();

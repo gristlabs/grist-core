@@ -11,6 +11,7 @@ import {
 import {isRaisedException} from "app/common/gristTypes";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
+import {hashId} from "app/common/hashingUtils";
 import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
@@ -915,9 +916,8 @@ export class DocWorkerApi {
           });
           const {forkId} = parseUrlId(scope.urlId);
           activeDoc.logTelemetryEvent(docSession, 'tutorialRestarted', {
-            tutorialForkId: forkId,
-            tutorialForkUrlId: scope.urlId,
-            tutorialTrunkId,
+            tutorialForkIdDigest: forkId ? hashId(forkId) : undefined,
+            tutorialTrunkIdDigest: hashId(tutorialTrunkId),
           });
         }
       }

@@ -2,10 +2,10 @@ import {logError} from 'app/client/models/errors';
 import {TelemetryEventName} from 'app/common/Telemetry';
 import {fetchFromHome, pageHasHome} from 'app/common/urlUtils';
 
-export async function logTelemetryEvent(name: TelemetryEventName, metadata?: Record<string, any>) {
+export function logTelemetryEvent(name: TelemetryEventName, metadata?: Record<string, any>) {
   if (!pageHasHome()) { return; }
 
-  await fetchFromHome('/api/telemetry', {
+  fetchFromHome('/api/telemetry', {
     method: 'POST',
     body: JSON.stringify({
       name,

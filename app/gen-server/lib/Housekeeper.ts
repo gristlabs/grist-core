@@ -17,7 +17,8 @@ import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
 import { EntityManager } from 'typeorm';
 
-const HOUSEKEEPER_PERIOD_MS = 1 * 60 * 60 * 1000;   // operate every 1 hour
+const DELETE_TRASH_PERIOD_MS = 1 * 60 * 60 * 1000;  // operate every 1 hour
+const LOG_METRICS_PERIOD_MS = 24 * 60 * 60 * 1000;  // operate every day
 const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval known by postgres + sqlite
 
 /**
@@ -33,7 +34,8 @@ const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval kno
  * multiple home servers, there will be no competition or duplication of effort.
  */
 export class Housekeeper {
-  private _interval?: NodeJS.Timeout;
+  private _deleteTrashinterval?: NodeJS.Timeout;
+  private _logMetricsInterval?: NodeJS.Timeout;
   private _electionKey?: string;
 
   public constructor(private _dbManager: HomeDBManager, private _server: GristServer,
@@ -45,34 +47,35 @@ export class Housekeeper {
    */
   public async start() {
     await this.stop();
-    this._interval = setInterval(() => {
-      this.doHousekeepingExclusively().catch(log.warn.bind(log));
-    }, HOUSEKEEPER_PERIOD_MS);
+    this._deleteTrashinterval = setInterval(() => {
+      this.deleteTrashExclusively().catch(log.warn.bind(log));
+    }, DELETE_TRASH_PERIOD_MS);
+    this._logMetricsInterval = setInterval(() => {
+      this.logMetricsExclusively().catch(log.warn.bind(log));
+    }, LOG_METRICS_PERIOD_MS);
   }
 
   /**
    * Stop scheduling housekeeping tasks.  Note: doesn't wait for any housekeeping task in progress.
    */
   public async stop() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = undefined;
+    for (const interval of ['_deleteTrashinterval', '_logMetricsInterval'] as const) {
+      clearInterval(this[interval]);
+      this[interval] = undefined;
     }
   }
 
   /**
-   * Deletes old trash and logs metrics if no other server is working on it or worked on it
-   * recently.
+   * Deletes old trash if no other server is working on it or worked on it recently.
    */
-  public async doHousekeepingExclusively(): Promise<boolean> {
-    const electionKey = await this._electionStore.getElection('housekeeping', HOUSEKEEPER_PERIOD_MS / 2.0);
+  public async deleteTrashExclusively(): Promise<boolean> {
+    const electionKey = await this._electionStore.getElection('housekeeping', DELETE_TRASH_PERIOD_MS / 2.0);
     if (!electionKey) {
-      log.info('Skipping housekeeping since another server is working on it or worked on it recently');
+      log.info('Skipping deleteTrash since another server is working on it or worked on it recently');
       return false;
     }
     this._electionKey = electionKey;
     await this.deleteTrash();
-    await this.logMetrics();
     return true;
   }
 
@@ -153,6 +156,20 @@ export class Housekeeper {
   }
 
   /**
+   * Logs metrics if no other server is working on it or worked on it recently.
+   */
+  public async logMetricsExclusively(): Promise<boolean> {
+    const electionKey = await this._electionStore.getElection('logMetrics', LOG_METRICS_PERIOD_MS / 2.0);
+    if (!electionKey) {
+      log.info('Skipping logMetrics since another server is working on it or worked on it recently');
+      return false;
+    }
+    this._electionKey = electionKey;
+    await this.logMetrics();
+    return true;
+  }
+
+  /**
    * Logs metrics regardless of what other servers may be doing.
    */
   public async logMetrics() {
@@ -163,7 +180,7 @@ export class Housekeeper {
         telemetryManager?.logEvent('siteUsage', {
           siteId: summary.site_id,
           siteType: summary.site_type,
-          inGoodStanding: summary.in_good_standing,
+          inGoodStanding: Boolean(summary.in_good_standing),
           stripePlanId: summary.stripe_plan_id,
           numDocs: Number(summary.num_docs),
           numWorkspaces: Number(summary.num_workspaces),

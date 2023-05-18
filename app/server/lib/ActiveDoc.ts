@@ -68,6 +68,7 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
+import {hashId} from 'app/common/hashingUtils';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
@@ -131,10 +132,12 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, getPubSubPrefix, timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession,
+        timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
+import merge = require('lodash/merge');
 import pick = require('lodash/pick');
 import remove = require('lodash/remove');
 import sum = require('lodash/sum');
@@ -1389,10 +1392,9 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
       const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
       this.logTelemetryEvent(docSession, 'documentForked', {
-        forkId: forkIds.forkId,
-        forkDocId: forkIds.docId,
-        forkUrlId: forkIds.urlId,
-        trunkId: doc.trunkId,
+        forkIdDigest: hashId(forkIds.forkId),
+        forkDocIdDigest: hashId(forkIds.docId),
+        trunkIdDigest: doc.trunkId ? hashId(doc.trunkId) : undefined,
         isTemplate,
         lastActivity: doc.updatedAt,
       });
@@ -2314,7 +2316,6 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval'| 'docClose') {
     this.logTelemetryEvent(docSession, 'documentUsage', {
       triggeredBy,
-      access: this._doc?.access,
       isPublic: ((this._doc as unknown) as APIDocument)?.public ?? false,
       rowCount: this._docUsage?.rowCount?.total,
       dataSizeBytes: this._docUsage?.dataSizeBytes,
@@ -2434,22 +2435,22 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   private _getCustomWidgetMetrics() {
     const viewSections = this.docData?.getMetaTable('_grist_Views_section');
     const viewSectionRecords = viewSections?.getRecords() ?? [];
-    const customWidgetUrls: string[] = [];
+    const customWidgetIds: string[] = [];
     for (const r of viewSectionRecords) {
       const {customView} = safeJsonParse(r.options, {});
       if (!customView) { continue; }
 
-      const {url} = safeJsonParse(customView, {});
+      const {pluginId, url} = safeJsonParse(customView, {});
       if (!url) { continue; }
 
-      const isGristUrl = url.startsWith(commonUrls.gristLabsCustomWidgets);
-      customWidgetUrls.push(isGristUrl ? url : 'externalURL');
+      const isGristLabsWidget = url.startsWith(commonUrls.gristLabsCustomWidgets);
+      customWidgetIds.push(isGristLabsWidget ? pluginId : 'externalId');
     }
-    const numCustomWidgets = customWidgetUrls.length;
+    const numCustomWidgets = customWidgetIds.length;
 
     return {
       numCustomWidgets,
-      customWidgetUrls,
+      customWidgetIds,
     };
   }
 
@@ -2511,15 +2512,16 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   }
 
   private _getTelemetryMeta(docSession: OptDocSession|null) {
-    return {
-      ...(docSession ? {
-          ...getLogMetaFromDocSession(docSession),
-          altSessionId: getDocSessionAltSessionId(docSession),
-        } : {}),
-      docId: this._docName,
-      siteId: this._doc?.workspace.org.id,
-      siteType: this._product?.name,
-    };
+    const altSessionId = docSession ? getDocSessionAltSessionId(docSession) : undefined;
+    return merge(
+      docSession ? getTelemetryMetaFromDocSession(docSession) : {},
+      altSessionId ? {altSessionId} : undefined,
+      {
+        docIdDigest: hashId(this._docName),
+        siteId: this._doc?.workspace.org.id,
+        siteType: this._product?.name,
+      },
+    );
   }
 
   /**

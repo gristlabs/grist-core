@@ -36,7 +36,7 @@ const VIDEO_TOUR_YOUTUBE_EMBED_ID = 'qnr2Pfnxdlc';
       owner.onDispose(async () => {
         if (youtubePlayer.isLoading()) { return; }
 
-        await logTelemetryEvent('watchedVideoTour', {
+        logTelemetryEvent('watchedVideoTour', {
           watchTimeSeconds: Math.floor(youtubePlayer.getCurrentTime()),
         });
       });

@@ -433,6 +433,16 @@ export class Client {
     return meta;
   }
 
+  public getFullTelemetryMeta() {
+    const meta: Record<string, any> = {};
+    // We assume the _userId has already been cached, which will be true always (for all practical
+    // purposes) because it's set when the Authorizer checks this client.
+    if (this._userId) { meta.userId = this._userId; }
+    const altSessionId = this.getAltSessionId();
+    if (altSessionId) { meta.altSessionId = altSessionId; }
+    return meta;
+  }
+
   private async _refreshUser(dbManager: HomeDBManager) {
     if (this._profile) {
       const user = await this._fetchUser(dbManager);

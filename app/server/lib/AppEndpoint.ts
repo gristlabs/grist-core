@@ -9,6 +9,7 @@ import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
 import {ApiError} from 'app/common/ApiError';
 import {getSlugIfNeeded, parseSubdomainStrictly, parseUrlId} from 'app/common/gristUrls';
 import {removeTrailingSlash} from 'app/common/gutil';
+import {hashId} from 'app/common/hashingUtils';
 import {LocalPlugin} from "app/common/plugin";
 import {TelemetryTemplateSignupCookieName} from 'app/common/Telemetry';
 import {Document as APIDocument} from 'app/common/UserAPI';
@@ -308,7 +309,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
     if (isPublic || isTemplate) {
       gristServer.getTelemetryManager()?.logEvent('documentOpened', {
-        docId,
+        docIdDigest: hashId(docId),
         siteId: doc.workspace.org.id,
         siteType: doc.workspace.org.billingAccount.product.name,
         userId: mreq.userId,

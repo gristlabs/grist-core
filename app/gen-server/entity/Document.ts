@@ -1,5 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {DocumentUsage} from 'app/common/DocUsage';
+import {hashId} from 'app/common/hashingUtils';
 import {Role} from 'app/common/roles';
 import {DocumentOptions, DocumentProperties, documentPropertyKeys,
         DocumentType, NEW_DOCUMENT_CODE, TutorialMetadata} from "app/common/UserAPI";
@@ -164,8 +165,8 @@ export class Document extends Resource {
       ? Math.floor((lastSlideIndex / numSlides) * 100)
       : undefined;
     dbManager?.emit('tutorialProgressChange', {
-      tutorialForkId: this.id,
-      tutorialTrunkId: this.trunkId,
+      tutorialForkIdDigest: hashId(this.id),
+      tutorialTrunkIdDigest: this.trunkId ? hashId(this.trunkId) : undefined,
       lastSlideIndex,
       numSlides,
       percentComplete,

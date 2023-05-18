@@ -397,7 +397,8 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
   if (hasApiKey) {
     options.gristServer.getTelemetryManager()?.logEvent('apiUsage', {
-      ...meta,
+      method: mreq.method,
+      userId: mreq.userId,
       userAgent: req.headers['user-agent'],
     });
   }
