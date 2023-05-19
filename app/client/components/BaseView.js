@@ -578,11 +578,11 @@ BaseView.prototype._saveEditRowField = function(editRowModel, colName, value) {
       mainRowModel[colName](value);
     }
     const ret = DataRowModel.prototype._saveField.call(editRowModel, colName, value)
-      // Display this rowId, even if it doesn't match the filter
+      // Display this rowId, even if it doesn't match the filter,
+      // unless the filter is on a Bool column
       .then((result) => {
-        if (!this.isDisposed()) {
-          const colType = this.currentColumn().pureType();
-          this._sectionFilter.addTemporaryRow(rowId, colType);
+        if (!this.isDisposed() && this.currentColumn().pureType() !== 'Bool') {
+          this._sectionFilter.addTemporaryRow(rowId);
         }
         return result;
       })
