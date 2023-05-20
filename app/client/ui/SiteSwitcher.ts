@@ -1,5 +1,5 @@
 import {dom, makeTestId, styled} from 'grainjs';
-import {getSingleOrg, shouldHideUiElement} from 'app/common/gristUrls';
+import {getSingleOrg, isFeatureEnabled} from 'app/common/gristUrls';
 import {getOrgName} from 'app/common/UserAPI';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
@@ -17,7 +17,7 @@ const testId = makeTestId('test-site-switcher-');
  */
 export function maybeAddSiteSwitcherSection(appModel: AppModel) {
   const orgs = appModel.topAppModel.orgs;
-  return dom.maybe((use) => use(orgs).length > 0 && !getSingleOrg() && !shouldHideUiElement("multiSite"), () => [
+  return dom.maybe((use) => use(orgs).length > 0 && !getSingleOrg() && isFeatureEnabled("multiSite"), () => [
     menuDivider(),
     buildSiteSwitcher(appModel),
   ]);

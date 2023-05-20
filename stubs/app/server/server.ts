@@ -30,6 +30,8 @@ if (!process.env.GRIST_SINGLE_ORG) {
   setDefaultEnv('GRIST_ORG_IN_PATH', 'true');
 }
 
+setDefaultEnv('GRIST_UI_FEATURES', 'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive');
+
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';

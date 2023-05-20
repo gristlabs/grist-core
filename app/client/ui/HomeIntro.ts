@@ -9,7 +9,7 @@ import {bigBasicButton, cssButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Computed, dom, DomContents, styled} from 'grainjs';
@@ -90,7 +90,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
       testId('welcome-title')
     ),
     cssIntroLine(t("Get started by inviting your team and creating your first Grist document.")),
-    (shouldHideUiElement('helpCenter') ? null :
+    (!isFeatureEnabled('helpCenter') ? null :
       cssIntroLine(
         'Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',  // TODO i18n
         testId('welcome-text')
@@ -104,7 +104,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   return [
     css.docListHeader(t("Welcome to Grist, {{- name}}!", {name: user.name}), testId('welcome-title')),
     cssIntroLine(t("Get started by creating your first Grist document.")),
-    (shouldHideUiElement('helpCenter') ? null :
+    (!isFeatureEnabled('helpCenter') ? null :
       cssIntroLine(t("Visit our {{link}} to learn more.", { link: helpCenterLink() }),
         testId('welcome-text'))
     ),
@@ -118,7 +118,7 @@ function makeAnonIntro(homeModel: HomeModel) {
     css.docListHeader(t("Welcome to Grist!"), testId('welcome-title')),
     cssIntroLine(t("Get started by exploring templates, or creating your first Grist document.")),
     cssIntroLine(t("{{signUp}} to save your work. ", {signUp}),
-      (shouldHideUiElement('helpCenter') ? null : t("Visit our {{link}} to learn more.", { link: helpCenterLink() })),
+      (!isFeatureEnabled('helpCenter') ? null : t("Visit our {{link}} to learn more.", { link: helpCenterLink() })),
       testId('welcome-text')),
     makeCreateButtons(homeModel),
   ];
@@ -143,7 +143,7 @@ function buildButtons(homeModel: HomeModel, options: {
     !options.templates ? null :
     cssBtn(cssBtnIcon('FieldTable'), t("Browse Templates"), testId('intro-templates'),
       cssButton.cls('-primary'),
-      dom.hide(shouldHideUiElement("templates")),
+      dom.show(isFeatureEnabled("templates")),
       urlState().setLinkUrl({homePage: 'templates'}),
     ),
     !options.import ? null :

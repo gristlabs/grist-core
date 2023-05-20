@@ -584,8 +584,8 @@ export interface GristLoadConfig {
 
   activation?: Activation;
 
-  // Parts of the UI to hide
-  hideUiElements?: IHideableUiElement[];
+  // List of enabled features.
+  features?: IFeature[];
 
   // String to append to the end of the HTML document.title
   pageTitleSuffix?: string;
@@ -612,12 +612,19 @@ export interface GristLoadConfig {
   userLocale?: string;
 }
 
-export const HideableUiElements = StringUnion("helpCenter", "billing", "templates", "multiSite", "multiAccounts",
-"sendToDrive");
-export type IHideableUiElement = typeof HideableUiElements.type;
+export const Features = StringUnion(
+  "helpCenter",
+  "billing",
+  "templates",
+  "multiSite",
+  "multiAccounts",
+  "sendToDrive",
+  "tutorials",
+);
+export type IFeature = typeof Features.type;
 
-export function shouldHideUiElement(elem: IHideableUiElement): boolean {
-  return (getGristConfig().hideUiElements || []).includes(elem);
+export function isFeatureEnabled(feature: IFeature): boolean {
+  return (getGristConfig().features || []).includes(feature);
 }
 
 export function getPageTitleSuffix(config?: GristLoadConfig) {

@@ -43,8 +43,8 @@ Here are some specific feature highlights of Grist:
     - Any tool that can read SQLite can read numeric and text data from a Grist file.
     - Great format for [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can be confident you can restore in full.
     - Great format for moving between different hosts.
-	- Can be displayed on a static website with [grist-static](https://github.com/gristlabs/grist-static).
-	- There's a self-contained desktop app available for viewing and editing: [grist-electron](https://github.com/gristlabs/grist-electron).
+  - Can be displayed on a static website with [grist-static](https://github.com/gristlabs/grist-static).
+  - There's a self-contained desktop app available for viewing and editing: [grist-electron](https://github.com/gristlabs/grist-electron).
   * Convenient editing and formatting features.
     - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records without fuss.
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
@@ -78,7 +78,7 @@ Here are some specific feature highlights of Grist:
       [gVisor](https://github.com/google/gvisor) sandboxing at the individual
       document level.
     - On OSX, you can use native sandboxing.
-	- On any OS, including Windows, you can use a wasm-based sandbox.
+  - On any OS, including Windows, you can use a wasm-based sandbox.
   * Translated to many languages.
 
 If you are curious about where Grist is going heading,
@@ -93,7 +93,7 @@ If you just want a quick demo of Grist:
 
   * You can try Grist out at the hosted service run
     by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com)
-	(no registration needed).
+  (no registration needed).
   * Or you can see an experimental fully in-browser build of Grist
     at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-electron](https://github.com/gristlabs/grist-electron).
@@ -227,9 +227,9 @@ Grist benefits its users:
 ## Sponsors
 
 <p align="center">
-	<a href="https://www.dotphoton.com/">
-	 <img width="11%" src="https://user-images.githubusercontent.com/11277225/228914729-ae581352-b37a-4ca8-b220-b1463dd1ade0.png" />
-	</a>
+  <a href="https://www.dotphoton.com/">
+    <img width="11%" src="https://user-images.githubusercontent.com/11277225/228914729-ae581352-b37a-4ca8-b220-b1463dd1ade0.png" />
+  </a>
 </p>
 
 ## Reviews
@@ -260,7 +260,7 @@ GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of ne
 GRIST_DEFAULT_LOCALE  | Locale to use as fallback when Grist cannot honour the browser locale.
 GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
-GRIST_HIDE_UI_ELEMENTS | comma-separated list of parts of the UI to hide. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive`
+GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
 GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
 GRIST_HOST          | hostname to use when listening on a port.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
@@ -286,6 +286,7 @@ GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown b
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_USER_ROOT     | an extra path to look for plugins in.
+GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.
 GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest
 COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.

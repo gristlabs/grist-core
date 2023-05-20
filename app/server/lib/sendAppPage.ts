@@ -1,4 +1,4 @@
-import {getPageTitleSuffix, GristLoadConfig, HideableUiElements, IHideableUiElement} from 'app/common/gristUrls';
+import {Features, getPageTitleSuffix, GristLoadConfig, IFeature} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
@@ -13,6 +13,7 @@ import * as fse from 'fs-extra';
 import jsesc from 'jsesc';
 import * as handlebars from 'handlebars';
 import * as path from 'path';
+import difference = require('lodash/difference');
 
 const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args);
 
@@ -47,7 +48,7 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     pathOnly,
     supportAnon: shouldSupportAnon(),
     supportEngines: getSupportedEngineChoices(),
-    hideUiElements: getHiddenUiElements(),
+    features: getFeatures(),
     pageTitleSuffix: configuredPageTitleSuffix(),
     pluginUrl,
     stripeAPIKey: process.env.STRIPE_PUBLIC_API_KEY,
@@ -143,12 +144,10 @@ function shouldSupportAnon() {
   return process.env.GRIST_SUPPORT_ANON === "true";
 }
 
-function getHiddenUiElements(): IHideableUiElement[] {
-  const str = process.env.GRIST_HIDE_UI_ELEMENTS;
-  if (!str) {
-    return [];
-  }
-  return HideableUiElements.checkAll(str.split(","));
+function getFeatures(): IFeature[] {
+  const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(',') ?? [];
+  const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(',') ?? Features.values;
+  return Features.checkAll(difference(enabledFeatures, disabledFeatures));
 }
 
 function configuredPageTitleSuffix() {

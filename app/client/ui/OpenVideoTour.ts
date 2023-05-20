@@ -7,7 +7,7 @@ import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalCloseButton, modal} from 'app/client/ui2018/modals';
-import {shouldHideUiElement} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {dom, makeTestId, styled} from 'grainjs';
 
 const t = makeT('OpenVideoTour');
@@ -79,7 +79,7 @@ export function createVideoTourTextButton(): HTMLDivElement {
  * Shows the video tour on click.
  */
 export function createVideoTourToolsButton(): HTMLDivElement | null {
-  if (shouldHideUiElement('helpCenter')) { return null; }
+  if (!isFeatureEnabled('helpCenter')) { return null; }
 
   let iconElement: HTMLElement;
 

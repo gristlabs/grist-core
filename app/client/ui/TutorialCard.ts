@@ -2,7 +2,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {isNarrowScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {Computed, dom, IDisposableOwner, makeTestId, styled} from 'grainjs';
 
 const testId = makeTestId('test-tutorial-card-');
@@ -12,7 +12,7 @@ interface Options {
 }
 
 export function buildTutorialCard(owner: IDisposableOwner, options: Options) {
-  if (shouldHideUiElement('templates')) { return null; }
+  if (!isFeatureEnabled('tutorials')) { return null; }
 
   const {app} = options;
   const dismissed = app.dismissedPopup('tutorialFirstCard');

@@ -18,7 +18,7 @@ import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {dom, DomContents, Observable, styled} from 'grainjs';
 
 const t = makeT('LeftPanelCommon');
@@ -28,7 +28,7 @@ const t = makeT('LeftPanelCommon');
  * HelpCenter in a new tab.
  */
 export function createHelpTools(appModel: AppModel): DomContents {
-  if (shouldHideUiElement("helpCenter")) {
+  if (!isFeatureEnabled("helpCenter")) {
     return [];
   }
   return cssSplitPageEntry(

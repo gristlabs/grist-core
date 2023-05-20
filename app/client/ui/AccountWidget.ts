@@ -9,7 +9,7 @@ import {primaryButton} from 'app/client/ui2018/buttons';
 import {mediaDeviceNotSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {commonUrls, shouldHideUiElement} from 'app/common/gristUrls';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
@@ -107,7 +107,7 @@ export class AccountWidget extends Disposable {
 
       // In case of a single-org setup, skip all the account-switching UI. We'll also skip the
       // org-listing UI below.
-      this._appModel.topAppModel.isSingleOrg || shouldHideUiElement("multiAccounts") ? [] : [
+      this._appModel.topAppModel.isSingleOrg || !isFeatureEnabled("multiAccounts") ? [] : [
         menuDivider(),
         menuSubHeader(dom.text((use) => use(users).length > 1 ? t("Switch Accounts") : t("Accounts"))),
         dom.forEach(users, (_user) => {
