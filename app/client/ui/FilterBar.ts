@@ -38,9 +38,9 @@ function makeFilterField(filterInfo: FilterInfo, popupControls: WeakMap<ColumnRe
   const {fieldOrColumn, filter, pinned, isPinned} = filterInfo;
   return cssFilterBarItem(
     testId('filter-field'),
-    primaryButton(
+    cssFilterBarItemButton(
       testId('btn'),
-      cssIcon('FilterSimple'),
+      cssFilterBarItemIcon('FilterSimple'),
       cssMenuTextLabel(dom.text(fieldOrColumn.origCol().label)),
       cssBtn.cls('-grayed', use => use(filter.isSaved) && use(pinned.isSaved)),
       attachColumnFilterMenu(filterInfo, {
@@ -114,7 +114,7 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<C
     const filters = use(viewSectionRec.filters);
     return cssPlusButton(
       cssBtn.cls('-grayed'),
-      cssIcon('Plus'),
+      cssPlusIcon('Plus'),
       addFilterMenu(filters, popupControls, {
         allowedColumns: 'unpinned-or-unfiltered',
       }),
@@ -126,35 +126,40 @@ function makePlusButton(viewSectionRec: ViewSectionRec, popupControls: WeakMap<C
 const cssFilterBar = styled('div.filter_bar', `
   display: flex;
   flex-direction: row;
-  margin-bottom: 8px;
-  margin-left: -4px;
-  overflow-x: scroll;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  flex-wrap: wrap;
+  row-gap: 8px;
+  margin: 8px 0px 8px -4px;
   &-hidden {
     display: none;
   }
 `);
 const cssFilterBarItem = styled('div', `
+  flex: 1 1 80px;
+  min-width: 0px;
+  max-width: max-content;
   border-radius: ${vars.controlBorderRadius};
-  flex-shrink: 0;
   margin: 0 4px;
   &-unpinned {
     display: none;
   }
 `);
+const cssFilterBarItemIcon = styled(icon, `
+  flex-shrink: 0;
+`);
 const cssMenuTextLabel = styled('span', `
   flex-grow: 1;
-  padding: 0 4px;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 `);
-const cssIcon = styled(icon, `
+const cssPlusIcon = styled(icon, `
   margin-top: -3px;
 `);
 const cssBtn = styled('div', `
+  display: flex;
+  align-items: center;
+  column-gap: 4px;
+
   height: 24px;
   padding: 3px 8px;
   .${cssFilterBar.className} > & {
@@ -171,10 +176,10 @@ const cssBtn = styled('div', `
     border-color: ${theme.filterBarButtonSavedHoverBg};
   }
 `);
-const primaryButton = (...args: IDomArgs<HTMLDivElement>) => (
+const cssFilterBarItemButton = (...args: IDomArgs<HTMLDivElement>) => (
   dom('div', cssButton.cls(''), cssButton.cls('-primary'),
       cssBtn.cls(''), ...args)
 );
-const cssPlusButton = styled(primaryButton, `
+const cssPlusButton = styled(cssFilterBarItemButton, `
   padding: 3px 3px
 `);
