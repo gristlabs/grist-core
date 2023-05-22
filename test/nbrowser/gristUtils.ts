@@ -3068,6 +3068,19 @@ export async function assertIsRickRowing(expected: boolean) {
   assert.equal(await driver.find('iframe#youtube-player-dQw4w9WgXcQ').isPresent(), expected);
 }
 
+
+export function produceUncaughtError(message: string) {
+  // Simply throwing an error from driver.executeScript() may produce a sanitized "Script error",
+  // depending on browser/webdriver version. This is a trick to ensure the uncaught error is
+  // considered same-origin by the main window.
+  return driver.executeScript((msg: string) => {
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.innerText = 'setTimeout(() => { throw new Error(' + JSON.stringify(msg) + '); }, 0)';
+    document.head.appendChild(script);
+  }, message);
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

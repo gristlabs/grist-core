@@ -70,6 +70,18 @@ export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions
   return reportMessage(msg, {level: 'success', ...options});
 }
 
+// Errors from cross-origin scripts, and some add-ons, show up as unhelpful sanitized "Script
+// error." messages. We want to know if they occur, but they are useless to the user, and useless
+// to report multiple times. We report them just once to the server.
+//
+// In particular, this addresses a bug on iOS version of Firefox, which produces uncaught
+// sanitized errors on load AND on attempts to report them, leading to a loop that hangs the
+// browser. Reporting just once is a sufficient workaround.
+function isUnhelpful(ev: ErrorEvent) {
+  return !ev.filename && !ev.lineno && ev.message?.toLowerCase().includes('script error');
+}
+let unhelpfulErrors = 0;
+
 /**
  * Report an error to the user using the global Notifier instance. If the argument is a UserError
  * or an error with a status in the 400 range, it indicates a user error. Otherwise, it's an
@@ -78,12 +90,21 @@ export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions
  * Not all errors will be shown as an error toast, depending on the content of the error
  * this function might show a simple toast message.
  */
-export function reportError(err: Error|string): void {
+export function reportError(err: Error|string, ev?: ErrorEvent): void {
   log.error(`ERROR:`, err);
   if (String(err).match(/GristWSConnection disposed/)) {
     // This error can be emitted while a page is reloaded, and isn't worth reporting.
     return;
   }
+  if (ev && isUnhelpful(ev)) {
+    // Report just once to the server. There is little point reporting subsequent such errors once
+    // we know they happen, since each individual error has no useful information.
+    if (++unhelpfulErrors <= 1) {
+      logError(err);
+    }
+    return;
+  }
+
   logError(err);
   if (_notifier && !_notifier.isDisposed()) {
     if (!isError(err)) {
@@ -154,8 +175,7 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
   }
 
   // Report also uncaught JS errors and unhandled Promise rejections.
-  G.window.onerror = ((ev: any, url: any, lineNo: any, colNo: any, err: any) =>
-    doReportError(err || ev));
+  G.window.addEventListener('error', (ev: ErrorEvent) => doReportError(ev.error || ev.message, ev));
 
   G.window.addEventListener('unhandledrejection', (ev: any) => {
     const reason = ev.reason || (ev.detail && ev.detail.reason);
