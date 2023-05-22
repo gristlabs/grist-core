@@ -126,7 +126,8 @@
         "Duplicate rows_one": "Dupliquer la ligne",
         "Duplicate rows_other": "Dupliquer les lignes",
         "Insert column to the right": "Insérer une colonne à droite",
-        "Insert column to the left": "Insérer une colonne à gauche"
+        "Insert column to the left": "Insérer une colonne à gauche",
+        "Copy": "Copier"
     },
     "ChartView": {
         "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
