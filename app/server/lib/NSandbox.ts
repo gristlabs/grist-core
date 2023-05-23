@@ -141,49 +141,10 @@ export class NSandbox implements ISandbox {
 
     if (this.childProc) {
       if (options.minimalPipeMode) {
-        log.rawDebug("3-pipe Sandbox started", this._logMeta);
-        if (sandboxProcess.dataToSandboxDescriptor) {
-          this._streamToSandbox =
-            (this.childProc.stdio as Stream[])[sandboxProcess.dataToSandboxDescriptor] as Writable;
-        } else {
-          this._streamToSandbox = this.childProc.stdin!;
-        }
-        if (sandboxProcess.dataFromSandboxDescriptor) {
-          this._streamFromSandbox =
-            (this.childProc.stdio as Stream[])[sandboxProcess.dataFromSandboxDescriptor];
-        } else {
-          this._streamFromSandbox = this.childProc.stdout!;
-        }
+        this._initializeMinimalPipeMode(sandboxProcess);
       } else {
-        log.rawDebug("5-pipe Sandbox started", this._logMeta);
-        if (sandboxProcess.dataFromSandboxDescriptor || sandboxProcess.dataToSandboxDescriptor) {
-          throw new Error('cannot override file descriptors in 5 pipe mode');
-        }
-        this._streamToSandbox = (this.childProc.stdio as Stream[])[3] as Writable;
-        this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
-        this.childProc.stdout!.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
+        this._initializeFivePipeMode(sandboxProcess);
       }
-      const sandboxStderrLogger = sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta);
-      this.childProc.stderr!.on('data', data => {
-        this._lastStderr = data;
-        sandboxStderrLogger(data);
-      });
-
-      this.childProc.on('close', this._onExit.bind(this));
-      this.childProc.on('error', this._onError.bind(this));
-
-      this._streamFromSandbox.on('data', (data) => this._onSandboxData(data));
-      this._streamFromSandbox.on('end', () => this._onSandboxClose());
-      this._streamFromSandbox.on('error', (err) => {
-        log.rawError(`Sandbox error reading: ${err}`, this._logMeta);
-        this._onSandboxClose();
-      });
-
-      this._streamToSandbox.on('error', (err) => {
-        if (!this._isWriteClosed) {
-          log.rawError(`Sandbox error writing: ${err}`, this._logMeta);
-        }
-      });
     } else {
       // No child process. In this case, there should be a callback for
       // receiving and sending data.
@@ -263,6 +224,82 @@ export class NSandbox implements ISandbox {
   public async reportMemoryUsage() {
     const {memory} = await this._control.getUsage();
     log.rawDebug('Sandbox memory', {memory, ...this._logMeta});
+  }
+
+  /**
+   * Get ready to communicate with a sandbox process using stdin,
+   * stdout, and stderr.
+   */
+  private _initializeMinimalPipeMode(sandboxProcess: SandboxProcess) {
+    log.rawDebug("3-pipe Sandbox started", this._logMeta);
+    if (!this.childProc) {
+      throw new Error('child process required');
+    }
+    if (sandboxProcess.dataToSandboxDescriptor) {
+      this._streamToSandbox =
+        (this.childProc.stdio as Stream[])[sandboxProcess.dataToSandboxDescriptor] as Writable;
+    } else {
+      this._streamToSandbox = this.childProc.stdin!;
+    }
+    if (sandboxProcess.dataFromSandboxDescriptor) {
+      this._streamFromSandbox =
+        (this.childProc.stdio as Stream[])[sandboxProcess.dataFromSandboxDescriptor];
+    } else {
+      this._streamFromSandbox = this.childProc.stdout!;
+    }
+    this._initializeStreamEvents();
+  }
+
+  /**
+   * Get ready to communicate with a sandbox process using stdin,
+   * stdout, and stderr, and two extra FDs. This was a nice way
+   * to have a clean, separate data channel, when supported.
+   */
+  private _initializeFivePipeMode(sandboxProcess: SandboxProcess) {
+    log.rawDebug("5-pipe Sandbox started", this._logMeta);
+    if (!this.childProc) {
+      throw new Error('child process required');
+    }
+    if (sandboxProcess.dataFromSandboxDescriptor || sandboxProcess.dataToSandboxDescriptor) {
+      throw new Error('cannot override file descriptors in 5 pipe mode');
+    }
+    this._streamToSandbox = (this.childProc.stdio as Stream[])[3] as Writable;
+    this._streamFromSandbox = (this.childProc.stdio as Stream[])[4];
+    this.childProc.stdout!.on('data', sandboxUtil.makeLinePrefixer('Sandbox stdout: ', this._logMeta));
+    this._initializeStreamEvents();
+  }
+
+  /**
+   * Set up logging and events on streams to/from a sandbox.
+   */
+  private _initializeStreamEvents() {
+    if (!this.childProc) {
+      throw new Error('child process required');
+    }
+    if (!this._streamToSandbox) {
+      throw new Error('expected streamToSandbox to be configured');
+    }
+    const sandboxStderrLogger = sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta);
+    this.childProc.stderr!.on('data', data => {
+      this._lastStderr = data;
+      sandboxStderrLogger(data);
+    });
+
+    this.childProc.on('close', this._onExit.bind(this));
+    this.childProc.on('error', this._onError.bind(this));
+
+    this._streamFromSandbox.on('data', (data) => this._onSandboxData(data));
+    this._streamFromSandbox.on('end', () => this._onSandboxClose());
+    this._streamFromSandbox.on('error', (err) => {
+      log.rawError(`Sandbox error reading: ${err}`, this._logMeta);
+      this._onSandboxClose();
+    });
+
+    this._streamToSandbox.on('error', (err) => {
+      if (!this._isWriteClosed) {
+        log.rawError(`Sandbox error writing: ${err}`, this._logMeta);
+      }
+    });
   }
 
   private async _pyCallWait(funcName: string, startTime: number): Promise<any> {
