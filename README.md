@@ -244,7 +244,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 
 Variable | Purpose
 -------- | -------
-ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com)
+ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com). You can set this to `*` to allow all domains, but if doing so, we recommend using a carefully locked-down proxy (see `GRIST_HTTPS_PROXY`) if you do not entirely trust users. Otherwise services on your internal network may become vulnerable to manipulation.
 APP_DOC_URL | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis)
 APP_HOME_URL | url prefix for home api (home and doc servers need this)
 APP_STATIC_URL | url prefix for static resources
@@ -263,6 +263,7 @@ GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
 GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
 GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
 GRIST_HOST          | hostname to use when listening on a port.
+GRIST_HTTPS_PROXY   | if set, use this proxy for webhook payload delivery.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
 GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication.
 GRIST_INST_DIR      | path to Grist instance configuration files, for Grist server.

@@ -1325,6 +1325,22 @@ export class FlexServer implements GristServer {
     }
   }
 
+  public checkOptionCombinations() {
+    // Check for some bad combinations we should warn about.
+    const allowedWebhookDomains = appSettings.section('integrations').flag('allowedWebhookDomains').readString({
+      envVar: 'ALLOWED_WEBHOOK_DOMAINS',
+    });
+    const proxy = appSettings.section('integrations').flag('proxy').readString({
+      envVar: 'GRIST_HTTPS_PROXY',
+    });
+    // If all webhook targets are accepted, and no proxy is defined, issue
+    // a warning. This warning can be removed by explicitly setting the proxy
+    // to the empty string.
+    if (allowedWebhookDomains === '*' && proxy === undefined) {
+      log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard without a GRIST_HTTPS_PROXY exposes your internal network");
+    }
+  }
+
   public async start() {
     if (this._check('start')) { return; }
 

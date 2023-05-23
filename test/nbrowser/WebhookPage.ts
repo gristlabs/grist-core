@@ -20,7 +20,7 @@ describe('WebhookPage', function () {
   before(async function () {
     oldEnv = new EnvironmentSnapshot();
     host = new URL(server.getHost()).host;
-    process.env.ALLOWED_WEBHOOK_DOMAINS = host;
+    process.env.ALLOWED_WEBHOOK_DOMAINS = '*';
     await server.restart();
     session = await gu.session().teamSite.login();
     const api = session.createHomeApi();

@@ -772,6 +772,17 @@ export function isUrlAllowed(urlString: string) {
     return false;
   }
 
+  // Support at most https and http.
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    return false;
+  }
+
+  // Support a wildcard that allows all domains.
+  // Allow either https or http if it is set.
+  if (process.env.ALLOWED_WEBHOOK_DOMAINS === '*') {
+    return true;
+  }
+
   // http (no s) is only allowed for localhost for testing.
   // localhost still needs to be explicitly permitted, and it shouldn't be outside dev
   if (url.protocol !== "https:" && url.hostname !== "localhost") {

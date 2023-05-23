@@ -141,6 +141,7 @@ export async function main(port: number, serverTypes: ServerType[],
 
   server.finalize();
 
+  server.checkOptionCombinations();
   server.summary();
   return server;
 }
