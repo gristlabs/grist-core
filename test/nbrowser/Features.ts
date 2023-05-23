@@ -30,7 +30,7 @@ describe('Features', function () {
   });
 
   it('can be disabled with the GRIST_HIDE_UI_ELEMENTS env variable', async function () {
-    delete process.env.GRIST_UI_FEATURES;
+    process.env.GRIST_UI_FEATURES = 'helpCenter,tutorials';
     process.env.GRIST_HIDE_UI_ELEMENTS = 'templates';
     await server.restart();
     await session.loadDocMenu('/');
@@ -39,7 +39,7 @@ describe('Features', function () {
     assert.isFalse(await driver.find('.test-dm-templates-page').isDisplayed());
   });
 
-  it('that are disabled take precedence if also enabled', async function () {
+  it('that are disabled take precedence over those that are also enabled', async function () {
     process.env.GRIST_UI_FEATURES = 'tutorials,templates';
     process.env.GRIST_HIDE_UI_ELEMENTS = 'helpCenter,templates';
     await server.restart();
