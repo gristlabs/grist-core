@@ -1,5 +1,6 @@
 import {ErrorOrValue, freezeError, mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
+import {SCHEMA_VERSION} from 'app/common/schema';
 import {DocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -814,6 +815,31 @@ describe('HostedStorageManager', function() {
           doc = await store.docManager.fetchDoc(docSession, forkId);
           assert.equal(`v${i}`, (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
         }
+        await store.end();
+      });
+
+      it('can access snapshots with old schema versions', async function() {
+        const snapshotId = `World~v=1`;
+        await workers.assignDocWorker(snapshotId);
+        await store.begin();
+        // Pretend we have a snapshot of World-v33.grist and fetch/load it.
+        await useFixtureDoc('World-v33.grist', store.storageManager, `${snapshotId}.grist`);
+        const doc = await store.docManager.fetchDoc(docSession, snapshotId);
+
+        // Check that the snapshot isn't broken.
+        assert.doesNotThrow(async () => await doc.waitForInitialization());
+
+        // Check that the snapshot was migrated to the latest schema version.
+        assert.equal(
+          SCHEMA_VERSION,
+          (await doc.docStorage.get("select schemaVersion from _grist_DocInfo where id = 1"))!.schemaVersion
+        );
+
+        // Check that the document is actually a snapshot.
+        await assert.isRejected(doc.replace(docSession, {sourceDocId: 'docId'}),
+          /Snapshots cannot be replaced/);
+        await assert.isRejected(doc.applyUserActions(docSession, [['AddTable', 'NewTable', [{id: 'A'}]]]),
+          /pyCall is not available in snapshots/);
         await store.end();
       });
 

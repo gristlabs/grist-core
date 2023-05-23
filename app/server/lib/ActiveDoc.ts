@@ -97,7 +97,7 @@ import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDo
 import {ISandbox} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
-import {NullSandbox} from 'app/server/lib/NullSandbox';
+import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
@@ -212,7 +212,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   private _log = new LogMethods('ActiveDoc ', (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _requests: DocRequests;
-  private _dataEngine: Promise<ISandbox>|undefined;
+  private _dataEngine: Promise<ISandbox>|null = null;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
@@ -1809,7 +1809,9 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       await this._beforeMigration(docSession, 'schema', docSchemaVersion, schemaVersion);
       let success: boolean = false;
       try {
-        await this._migrate(docSession);
+        await this._withDataEngine(() => this._migrate(docSession), {
+          shutdownAfter: this._isSnapshot,
+        });
         success = true;
       } finally {
         await this._afterMigration(docSession, 'schema', schemaVersion, success);
@@ -1825,8 +1827,11 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
         "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
     }
 
+    if (!this._isSnapshot) {
+      this._tableMetadataLoader.startStreamingToEngine();
+    }
+
     // Start loading the initial meta tables which determine the document schema.
-    this._tableMetadataLoader.startStreamingToEngine();
     this._tableMetadataLoader.startFetchingTable('_grist_Tables');
     this._tableMetadataLoader.startFetchingTable('_grist_Tables_column');
 
@@ -1977,7 +1982,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
         await Promise.all([
           this.docStorage.shutdown(),
           this.docPluginManager?.shutdown(),
-          dataEngine?.shutdown()
+          this._isSnapshot ? undefined : dataEngine?.shutdown(),
         ]);
         // The this.waitForInitialization promise may not yet have resolved, but
         // should do so quickly now we've killed everything it depends on.
@@ -2280,21 +2285,28 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
     try {
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
-      await this._loadTables(docSession, pendingTableNames);
 
-      const tableStats = await this._pyCall('get_table_stats');
-      log.rawInfo("Loading complete, table statistics retrieved...", {
-        ...this.getLogMeta(docSession),
-        ...tableStats,
-        num_on_demand_tables: onDemandNames.length,
-      });
+      if (this._isSnapshot) {
+        log.rawInfo("Loading complete", {
+          ...this.getLogMeta(docSession),
+          num_on_demand_tables: onDemandNames.length,
+        });
+      } else {
+        await this._loadTables(docSession, pendingTableNames);
+        const tableStats = await this._pyCall('get_table_stats');
+        log.rawInfo("Loading complete, table statistics retrieved...", {
+          ...this.getLogMeta(docSession),
+          ...tableStats,
+          num_on_demand_tables: onDemandNames.length,
+        });
+        await this._pyCall('initialize', this._options?.docUrl);
 
-      await this._pyCall('initialize', this._options?.docUrl);
+        // Calculations are not associated specifically with the user opening the document.
+        // TODO: be careful with which users can create formulas.
+        await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
+        await this._reportDataEngineMemory();
+      }
 
-      // Calculations are not associated specifically with the user opening the document.
-      // TODO: be careful with which users can create formulas.
-      await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
-      await this._reportDataEngineMemory();
       this._fullyLoaded = true;
       const endTime = Date.now();
       const loadMs = endTime - startTime;
@@ -2553,7 +2565,15 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
    */
   private async _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
     const dataEngine = await this._getEngine();
-    return dataEngine.pyCall(funcName, ...varArgs);
+    try {
+      return await dataEngine.pyCall(funcName, ...varArgs);
+    } catch (e) {
+      if (e instanceof UnavailableSandboxMethodError && this._isSnapshot) {
+        throw new UnavailableSandboxMethodError('pyCall is not available in snapshots');
+      }
+
+      throw e;
+    }
   }
 
   /**
@@ -2567,13 +2587,13 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
 
   private async _getEngine(): Promise<ISandbox> {
     if (this._shuttingDown) { throw new Error('shutting down, data engine unavailable'); }
-    this._dataEngine = this._dataEngine || this._makeEngine();
+    if (this._dataEngine) { return this._dataEngine; }
+
+    this._dataEngine = this._isSnapshot ? this._makeNullEngine() : this._makeEngine();
     return this._dataEngine;
   }
 
   private async _makeEngine(): Promise<ISandbox> {
-    if (this._isSnapshot) { return new NullSandbox(); }
-
     // Figure out what kind of engine we need for this document.
     let preferredPythonVersion: '2' | '3' = process.env.PYTHON_VERSION === '3' ? '3' : '2';
 
@@ -2610,6 +2630,10 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
         }
       },
     });
+  }
+
+  private async _makeNullEngine(): Promise<ISandbox> {
+    return new NullSandbox();
   }
 
   /**
@@ -2656,6 +2680,41 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       this._attachmentColumns = getAttachmentColumns(this.docData);
     }
     return this._attachmentColumns;
+  }
+
+  /**
+   * Waits for the data engine to be ready before calling `cb`, creating the
+   * engine if needed.
+   *
+   * Optionally shuts down and removes the engine after.
+   *
+   * NOTE: This method should be used with care, particularly when `shutdownAfter`
+   * is set. Currently, it's only used to run migrations on snapshots (which don't
+   * normally start the data engine).
+   */
+  private async _withDataEngine(
+    cb: () => Promise<void>,
+    options: {shutdownAfter?: boolean} = {}
+  ) {
+    const {shutdownAfter} = options;
+    this._dataEngine = this._dataEngine || this._makeEngine();
+    let engine = await this._dataEngine;
+    if (engine instanceof NullSandbox) {
+      // Make sure the current engine isn't a stub, which may be the case when the
+      // document is a snapshot. Normally, `shutdownAfter` will be true in such
+      // scenarios, so we'll revert back to using a stubbed engine after calling `cb`.
+      this._dataEngine = this._makeEngine();
+      engine = await this._dataEngine;
+    }
+
+    try {
+      await cb();
+    } finally {
+      if (shutdownAfter) {
+        await (await this._dataEngine)?.shutdown();
+        this._dataEngine = null;
+      }
+    }
   }
 }
 
