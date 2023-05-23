@@ -124,7 +124,11 @@
         "Reset {{count}} columns_one": "Сбросить столбец",
         "Reset {{count}} columns_other": "Сброс {{count}} столбцов",
         "Reset {{count}} entire columns_one": "Сбросить весь столбец",
-        "Reset {{count}} entire columns_other": "Сброс всех {{count}} столбцов"
+        "Reset {{count}} entire columns_other": "Сброс всех {{count}} столбцов",
+        "Comment": "Комментарий",
+        "Copy": "Копировать",
+        "Cut": "Вырезать",
+        "Paste": "Вставить"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Этот сайт группы приостановлен. Документы можно читать, но не изменять."
@@ -379,7 +383,9 @@
         "Engine (experimental {{span}} change at own risk):": "Engine (экспериментальный {{span}} менять на свой страх и риск):",
         "Local currency ({{currency}})": "Местная валюта ({{currency}})",
         "This document's ID (for API use):": "Идентификатор этого документа (для использования API):",
-        "Document ID copied to clipboard": "Идентификатор документа скопирован в буфер обмена"
+        "Document ID copied to clipboard": "Идентификатор документа скопирован в буфер обмена",
+        "Manage Webhooks": "Управление вебхуками",
+        "Webhooks": "Вебхуки"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -600,7 +606,8 @@
         "TRANSFORM": "ПРЕОБРАЗОВАНИЕ",
         "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА",
         "You do not have edit access to this document": "У вас нет прав на редактирование этого документа",
-        "Widget": "Виджет"
+        "Widget": "Виджет",
+        "Add referenced columns": "Добавить ссылочные столбцы"
     },
     "PermissionsWidget": {
         "Allow All": "Разрешить все",
@@ -702,7 +709,8 @@
         "DATA TABLE NAME": "НАЗВАНИЕ ТАБЛИЦЫ ДАННЫХ",
         "Override widget title": "Переопределить заголовок виджета",
         "Provide a table name": "Укажите имя таблицы",
-        "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА"
+        "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА",
+        "WIDGET DESCRIPTION": "ОПИСАНИЕ ВИДЖЕТА"
     },
     "duplicatePage": {
         "Duplicate page {{pageName}}": "Дублировать страницу {{pageName}}",
@@ -983,6 +991,23 @@
         "Add description": "Добавить описание",
         "Column description": "Описание столбца",
         "Save": "Сохранить",
-        "Provide a column label": "Укажите метку столбца"
+        "Provide a column label": "Укажите метку столбца",
+        "Close": "Закрыть"
+    },
+    "Clipboard": {
+        "Got it": "Понятно",
+        "Unavailable Command": "Недоступная команда"
+    },
+    "FieldContextMenu": {
+        "Clear field": "Очистить поле",
+        "Copy": "Копировать",
+        "Copy anchor link": "Скопировать якорную ссылку",
+        "Cut": "Вырезать",
+        "Paste": "Вставить",
+        "Hide field": "Скрыть поле"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Очистить очередь",
+        "Webhook Settings": "Настройки вебхука"
     }
 }

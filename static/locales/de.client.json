@@ -136,7 +136,11 @@
         "Reset {{count}} columns_one": "Spalte zurücksetzen",
         "Reset {{count}} columns_other": "{{count}} Spalten zurücksetzen",
         "Reset {{count}} entire columns_one": "Ganze Spalte zurücksetzen",
-        "Reset {{count}} entire columns_other": "{{count}} ganze Spalten zurücksetzen"
+        "Reset {{count}} entire columns_other": "{{count}} ganze Spalten zurücksetzen",
+        "Comment": "Kommentar",
+        "Copy": "Kopieren",
+        "Cut": "Schneiden",
+        "Paste": "Einfügen"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Erstellen Sie separate Datenreihen für jeden Wert der ausgewählten Spalte.",
@@ -280,7 +284,9 @@
         "Time Zone:": "Zeitzone:",
         "API": "API",
         "Document ID copied to clipboard": "Dokument-ID in die Zwischenablage kopiert",
-        "Ok": "OK"
+        "Ok": "OK",
+        "Webhooks": "Webhaken",
+        "Manage Webhooks": "Webhaken verwalten"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -1051,5 +1057,21 @@
         "Column label": "Spaltenbeschriftung",
         "Column ID copied to clipboard": "Spalten-ID in die Zwischenablage kopiert",
         "Close": "Schließen"
+    },
+    "FieldContextMenu": {
+        "Copy anchor link": "Ankerlink kopieren",
+        "Cut": "Schneiden",
+        "Clear field": "Feld löschen",
+        "Hide field": "Feld ausblenden",
+        "Copy": "Kopieren",
+        "Paste": "Einfügen"
+    },
+    "Clipboard": {
+        "Unavailable Command": "Nicht verfügbarer Befehl",
+        "Got it": "Verstanden"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Warteschlange löschen",
+        "Webhook Settings": "Webhaken Einstellungen"
     }
 }

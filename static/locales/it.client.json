@@ -381,7 +381,11 @@
         "Insert row below": "Inserisci riga sotto",
         "Reset {{count}} columns_one": "Resetta colonna",
         "Reset {{count}} columns_other": "Resetta {{count}} colonne",
-        "Reset {{count}} entire columns_one": "Resetta l'intera colonna"
+        "Reset {{count}} entire columns_one": "Resetta l'intera colonna",
+        "Comment": "Commenta",
+        "Copy": "Copia",
+        "Cut": "Taglia",
+        "Paste": "Incolla"
     },
     "AccountPage": {
         "API": "API",
@@ -603,7 +607,9 @@
         "Time Zone:": "Zona oraria:",
         "API": "API",
         "Document ID copied to clipboard": "ID del documento copiato",
-        "Ok": "OK"
+        "Ok": "OK",
+        "Manage Webhooks": "Gestisci web hook",
+        "Webhooks": "Web hook"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -987,5 +993,21 @@
         "Provide a column label": "Dare un'etichetta alla colonna",
         "Cancel": "Annulla",
         "Close": "Chiudi"
+    },
+    "FieldContextMenu": {
+        "Copy": "Copia",
+        "Copy anchor link": "Copia link ancora",
+        "Clear field": "Pulisci campo",
+        "Paste": "Incolla",
+        "Cut": "Taglia",
+        "Hide field": "Nascondi campo"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Pulisci la coda",
+        "Webhook Settings": "Impostazioni web hook"
+    },
+    "Clipboard": {
+        "Unavailable Command": "Comando non disponibile",
+        "Got it": "Ricevuto"
     }
 }

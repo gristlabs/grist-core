@@ -136,7 +136,11 @@
         "Reset {{count}} columns_other": "Reinicializar {{count}} colunas",
         "Reset {{count}} entire columns_one": "Reinicializar toda a coluna",
         "Reset {{count}} entire columns_other": "Reinicializar {{count}} colunas inteiras",
-        "Delete {{count}} columns_one": "Excluir coluna"
+        "Delete {{count}} columns_one": "Excluir coluna",
+        "Comment": "Comentário",
+        "Copy": "Copiar",
+        "Cut": "Cortar",
+        "Paste": "Colar"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Crie séries separadas para cada valor da coluna selecionada.",
@@ -280,7 +284,9 @@
         "Time Zone:": "Fuso horário:",
         "Ok": "OK",
         "Document ID copied to clipboard": "ID do documento copiado para a área de transferência",
-        "API": "API"
+        "API": "API",
+        "Manage Webhooks": "Gerenciar ganchos web",
+        "Webhooks": "Ganchos Web"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -1051,5 +1057,21 @@
         "COLUMN ID: ": "ID DA COLUNA: ",
         "Provide a column label": "Forneça um rótulo de coluna",
         "Close": "Fechar"
+    },
+    "Clipboard": {
+        "Got it": "Entendido",
+        "Unavailable Command": "Comando indisponível"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Limpar fila",
+        "Webhook Settings": "Configurações do gancho web"
+    },
+    "FieldContextMenu": {
+        "Copy anchor link": "Copiar link de âncora",
+        "Hide field": "Ocultar campo",
+        "Paste": "Colar",
+        "Clear field": "Limpar campo",
+        "Copy": "Copiar",
+        "Cut": "Cortar"
     }
 }
