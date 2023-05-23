@@ -2,7 +2,8 @@ import {DocCreationInfo} from 'app/common/DocListAPI';
 import {UserAPI} from 'app/common/UserAPI';
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 describe('DocTutorial', function () {
   this.timeout(30000);
@@ -11,10 +12,14 @@ describe('DocTutorial', function () {
   let doc: DocCreationInfo;
   let api: UserAPI;
   let session: gu.Session;
+  let oldEnv: EnvironmentSnapshot;
 
   const cleanup = setupTestSuite({team: true});
 
   before(async () => {
+    oldEnv = new EnvironmentSnapshot();
+    process.env.GRIST_UI_FEATURES = 'tutorials';
+    await server.restart();
     session = await gu.session().teamSite.user('support').login();
     doc = await session.tempDoc(cleanup, 'DocTutorial.grist');
     api = session.createHomeApi();
@@ -23,6 +28,11 @@ describe('DocTutorial', function () {
       'anon@getgrist.com': 'viewers',
       'everyone@getgrist.com': 'viewers',
     }});
+  });
+
+  after(async function () {
+    oldEnv.restore();
+    await server.restart();
   });
 
   describe('when logged out', function () {
