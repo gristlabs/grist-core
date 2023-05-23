@@ -10,14 +10,14 @@ export class BillingAccountManager extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({name: 'billing_account_id'})
+  @Column({name: 'billing_account_id', type: Number})
   public billingAccountId: number;
 
   @ManyToOne(type => BillingAccount, { onDelete: 'CASCADE' })
   @JoinColumn({name: 'billing_account_id'})
   public billingAccount: BillingAccount;
 
-  @Column({name: 'user_id'})
+  @Column({name: 'user_id', type: Number})
   public userId: number;
 
   @ManyToOne(type => User, { onDelete: 'CASCADE' })

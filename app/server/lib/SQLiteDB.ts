@@ -69,23 +69,24 @@
 
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {timeFormat} from 'app/common/timeFormat';
+import {create} from 'app/server/lib/create';
 import * as docUtils from 'app/server/lib/docUtils';
 import log from 'app/server/lib/log';
-import {fromCallback} from 'app/server/lib/serverUtils';
-
-import * as sqlite3 from '@gristlabs/sqlite3';
+import {MinDB, MinRunResult, PreparedStatement, ResultRow,
+        SqliteVariant, Statement} from 'app/server/lib/SqliteCommon';
+import {NodeSqliteVariant} from 'app/server/lib/SqliteNode';
 import assert from 'assert';
-import {each} from 'bluebird';
 import * as fse from 'fs-extra';
-import {RunResult} from 'sqlite3';
 import fromPairs = require('lodash/fromPairs');
 import isEqual = require('lodash/isEqual');
 import noop = require('lodash/noop');
 import range = require('lodash/range');
 
-// Describes the result of get() and all() database methods.
-export interface ResultRow {
-  [column: string]: any;
+export type {PreparedStatement, ResultRow, Statement};
+export type RunResult = MinRunResult;
+
+function getVariant(): SqliteVariant {
+  return create.getSqliteVariant?.() || new NodeSqliteVariant();
 }
 
 // Describes how to create a new DB or migrate an old one. Any changes to the DB must be reflected
@@ -136,7 +137,7 @@ export interface ISQLiteDB {
   run(sql: string, ...params: any[]): Promise<RunResult>;
   get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
-  prepare(sql: string, ...params: any[]): Promise<sqlite3.Statement>;
+  prepare(sql: string, ...params: any[]): Promise<PreparedStatement>;
   execTransaction<T>(callback: () => Promise<T>): Promise<T>;
   runAndGetId(sql: string, ...params: any[]): Promise<number>;
   requestVacuum(): Promise<boolean>;
@@ -196,18 +197,11 @@ export class SQLiteDB implements ISQLiteDB {
    */
   public static async openDBRaw(dbPath: string,
                                 mode: OpenMode = OpenMode.OPEN_CREATE): Promise<SQLiteDB> {
-    const sqliteMode: number =
-      // tslint:disable-next-line:no-bitwise
-      (mode === OpenMode.OPEN_READONLY ? sqlite3.OPEN_READONLY : sqlite3.OPEN_READWRITE) |
-      (mode === OpenMode.OPEN_CREATE || mode === OpenMode.CREATE_EXCL ? sqlite3.OPEN_CREATE : 0);
-
-    let _db: sqlite3.Database;
-    await fromCallback(cb => { _db = new sqlite3.Database(dbPath, sqliteMode, cb); });
-    limitAttach(_db!, 0);  // Outside of VACUUM, we don't allow ATTACH.
+    const minDb: MinDB = await getVariant().opener(dbPath, mode);
     if (SQLiteDB._addOpens(dbPath, 1) > 1) {
       log.warn("SQLiteDB[%s] avoid opening same DB more than once", dbPath);
     }
-    return new SQLiteDB(_db!, dbPath);
+    return new SQLiteDB(minDb, dbPath);
   }
 
   /**
@@ -261,12 +255,29 @@ export class SQLiteDB implements ISQLiteDB {
   private _migrationError: Error|null = null;
   private _needVacuum: boolean = false;
 
-  private constructor(private _db: sqlite3.Database, private _dbPath: string) {
-    // Default database to serialized execution. See https://github.com/mapbox/node-sqlite3/wiki/Control-Flow
-    // This isn't enough for transactions, which we serialize explicitly.
-    this._db.serialize();
+  private constructor(protected _db: MinDB, private _dbPath: string) {
   }
 
+  public async all(sql: string, ...args: any[]): Promise<ResultRow[]> {
+    const result = await this._db.all(sql, ...args);
+    return result;
+  }
+
+  public run(sql: string, ...args: any[]): Promise<MinRunResult> {
+    return this._db.run(sql, ...args);
+  }
+
+  public exec(sql: string): Promise<void> {
+    return this._db.exec(sql);
+  }
+
+  public prepare(sql: string): Promise<PreparedStatement> {
+    return this._db.prepare(sql);
+  }
+
+  public get(sql: string, ...args: any[]): Promise<ResultRow|undefined> {
+    return this._db.get(sql, ...args);
+  }
 
   /**
    * If a DB was migrated on open, this will be set to the path of the pre-migration backup copy.
@@ -285,40 +296,8 @@ export class SQLiteDB implements ISQLiteDB {
   // The following methods mirror https://github.com/mapbox/node-sqlite3/wiki/API, but return
   // Promises. We use fromCallback() rather than use promisify, to get better type-checking.
 
-  public exec(sql: string): Promise<void> {
-    return fromCallback(cb => this._db.exec(sql, cb));
-  }
-
-  public run(sql: string, ...params: any[]): Promise<RunResult> {
-    return new Promise((resolve, reject) => {
-      function callback(this: RunResult, err: Error | null) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this);
-        }
-      }
-      this._db.run(sql, ...params, callback);
-    });
-  }
-
-  public get(sql: string, ...params: any[]): Promise<ResultRow|undefined> {
-    return fromCallback(cb => this._db.get(sql, ...params, cb));
-  }
-
-  public all(sql: string, ...params: any[]): Promise<ResultRow[]> {
-    return fromCallback(cb => this._db.all(sql, ...params, cb));
-  }
-
-  public allMarshal(sql: string, ...params: any[]): Promise<Buffer> {
-    // allMarshal isn't in the typings, because it is our addition to our fork of sqlite3 JS lib.
-    return fromCallback(cb => (this._db as any).allMarshal(sql, ...params, cb));
-  }
-
-  public prepare(sql: string, ...params: any[]): Promise<sqlite3.Statement> {
-    let stmt: sqlite3.Statement;
-    // The original interface is a little strange; we resolve to Statement if prepare() succeeded.
-    return fromCallback(cb => { stmt = this._db.prepare(sql, ...params, cb); }).then(() => stmt);
+  public async allMarshal(sql: string, ...params: any[]): Promise<Buffer> {
+    return this._db.allMarshal(sql, ...params);
   }
 
   /**
@@ -336,11 +315,11 @@ export class SQLiteDB implements ISQLiteDB {
   }
 
   public async vacuum(): Promise<void> {
-    limitAttach(this._db, 1);  // VACUUM implementation uses ATTACH.
+    await this._db.limitAttach(1);  // VACUUM implementation uses ATTACH.
     try {
       await this.exec("VACUUM");
     } finally {
-      limitAttach(this._db, 0);  // Outside of VACUUM, we don't allow ATTACH.
+      await this._db.limitAttach(0);  // Outside of VACUUM, we don't allow ATTACH.
     }
   }
 
@@ -348,25 +327,24 @@ export class SQLiteDB implements ISQLiteDB {
    * Run each of the statements in turn. Each statement is either a string, or an array of arguments
    * to db.run, e.g. [sqlString, [params...]].
    */
-  public runEach(...statements: Array<string | [string, any[]]>): Promise<void> {
-    return each(statements,
-      async (stmt: any) => {
-        try {
-          return await (Array.isArray(stmt) ?
-              this.run(stmt[0], ...stmt[1]) :
-              this.exec(stmt)
-          );
-        } catch (err) {
-          log.warn(`SQLiteDB: Failed to run ${stmt}`);
-          throw err;
+  public async runEach(...statements: Array<string | [string, any[]]>): Promise<void> {
+    for (const stmt of statements) {
+      try {
+        if (Array.isArray(stmt)) {
+          await this.run(stmt[0], ...stmt[1]);
+        } else {
+          await this.exec(stmt);
         }
+      } catch (err) {
+        log.warn(`SQLiteDB: Failed to run ${stmt}`);
+        throw err;
       }
-    );
+    }
   }
 
-  public close(): Promise<void> {
-    return fromCallback(cb => this._db.close(cb))
-    .then(() => { SQLiteDB._addOpens(this._dbPath, -1); });
+  public async close(): Promise<void> {
+    await this._db.close();
+    SQLiteDB._addOpens(this._dbPath, -1);
   }
 
   /**
@@ -375,8 +353,7 @@ export class SQLiteDB implements ISQLiteDB {
    * is only useful if the sql is actually an INSERT operation, but we don't check this.
    */
   public async runAndGetId(sql: string, ...params: any[]): Promise<number> {
-    const result = await this.run(sql, ...params);
-    return result.lastID;
+    return this._db.runAndGetId(sql, ...params);
   }
 
   /**
@@ -566,13 +543,4 @@ async function createBackupFile(filePath: string, versionNum: number): Promise<s
 export function quoteIdent(ident: string): string {
   assert(/^[\w.]+$/.test(ident), `SQL identifier is not valid: ${ident}`);
   return `"${ident}"`;
-}
-
-/**
- * Limit the number of ATTACHed databases permitted.
- */
-export function limitAttach(db: sqlite3.Database, maxAttach: number) {
-  // Pardon the casts, types are out of date.
-  const SQLITE_LIMIT_ATTACHED = (sqlite3 as any).LIMIT_ATTACHED;
-  (db as any).configure('limit', SQLITE_LIMIT_ATTACHED, maxAttach);
 }

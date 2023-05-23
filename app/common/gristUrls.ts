@@ -198,7 +198,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
                           options: {
                             // make an api url - warning: just barely works, and
                             // only for documents
-                            api?: boolean
+                            api?: boolean,
+                            tweaks?: UrlTweaks,
                           } = {}): string {
   const url = new URL(baseLocation.href);
   const parts = ['/'];
@@ -269,8 +270,10 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     }
   }
   const queryStr = encodeQueryParams(queryParams);
+
   url.pathname = parts.join('');
   url.search = queryStr;
+
   if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
     url.hash = hashParts.join('.');
@@ -285,13 +288,23 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   } else {
     url.hash = '';
   }
+  options.tweaks?.postEncode?.({
+    url,
+    parts,
+    state,
+    baseLocation,
+  });
   return url.href;
 }
 
 /**
  * Parse a URL location into an IGristUrlState object. See encodeUrl() documentation.
  */
-export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Location | URL): IGristUrlState {
+export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Location | URL, options?: {
+  tweaks?: UrlTweaks,
+}): IGristUrlState {
+  location = new URL(location.href);  // Make sure location is a URL.
+  options?.tweaks?.preDecode?.({ url: location });
   const parts = location.pathname.slice(1).split('/');
   const map = new Map<string, string>();
   for (let i = 0; i < parts.length; i += 2) {
@@ -870,4 +883,29 @@ function nameToSlug(name: string): string {
 export function getSlugIfNeeded(doc: {id: string, urlId: string|null, name: string}): string|undefined {
   if (!shouldIncludeSlug(doc)) { return; }
   return nameToSlug(doc.name);
+}
+
+/**
+ * It is possible we want to remap Grist URLs in some way - specifically,
+ * grist-static does this. We allow for a hook that is called after
+ * encoding state as a URL, and a hook that is called before decoding
+ * state from a URL.
+ */
+export interface UrlTweaks {
+  /**
+   * Tweak an encoded URL. Operates on the URL directly, in place.
+   */
+  postEncode?(options: {
+    url: URL,
+    parts: string[],
+    state: IGristUrlState,
+    baseLocation: Location | URL,
+  }): void;
+
+  /**
+   * Tweak a URL prior to decoding it. Operates on the URL directly, in place.
+   */
+  preDecode?(options: {
+    url: URL,
+  }): void;
 }

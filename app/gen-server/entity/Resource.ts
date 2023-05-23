@@ -3,13 +3,13 @@ import {ApiError} from 'app/common/ApiError';
 import {CommonProperties} from "app/common/UserAPI";
 
 export class Resource extends BaseEntity {
-  @Column()
+  @Column({type: String})
   public name: string;
 
-  @Column({name: 'created_at', default: () => "CURRENT_TIMESTAMP"})
+  @Column({name: 'created_at', type: Date, default: () => "CURRENT_TIMESTAMP"})
   public createdAt: Date;
 
-  @Column({name: 'updated_at', default: () => "CURRENT_TIMESTAMP"})
+  @Column({name: 'updated_at', type: Date, default: () => "CURRENT_TIMESTAMP"})
   public updatedAt: Date;
 
   // a computed column which, when present, means the entity should be filtered out

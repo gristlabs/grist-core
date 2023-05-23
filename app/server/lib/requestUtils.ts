@@ -8,7 +8,6 @@ import {RequestWithGrist} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
-import {URL} from 'url';
 import _ from 'lodash';
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)

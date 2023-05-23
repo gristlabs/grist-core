@@ -15,7 +15,6 @@ import {
   HostedStorageOptions
 } from 'app/server/lib/HostedStorageManager';
 import log from 'app/server/lib/log';
-import {fromCallback} from 'app/server/lib/serverUtils';
 import {SQLiteDB} from 'app/server/lib/SQLiteDB';
 import * as bluebird from 'bluebird';
 import {assert} from 'chai';
@@ -931,9 +930,9 @@ describe('backupSqliteDatabase', async function() {
         // Silly code to make a long random string to insert.
         // We can make a big db faster this way.
         const str = (new Array(100)).fill(1).map((_: any) => Math.random().toString(2)).join();
-        stmt.run(str, str, str);
+        await stmt.run(str, str, str);
       }
-      await fromCallback(cb => stmt.finalize(cb));
+      await stmt.finalize();
     });
     const stat = await fse.stat(src);
     assert(stat.size > 150 * 1000 * 1000);

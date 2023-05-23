@@ -3,8 +3,8 @@
  */
 
 
+var log = require('app/server/lib/log');
 var Promise = require('bluebird');
-var log = require('./log');
 
 var cleanupHandlers = [];
 

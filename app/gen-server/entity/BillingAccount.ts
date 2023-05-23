@@ -34,14 +34,14 @@ export class BillingAccount extends BaseEntity {
   @JoinColumn({name: 'product_id'})
   public product: Product;
 
-  @Column()
+  @Column({type: Boolean})
   public individual: boolean;
 
   // A flag for when all is well with the user's subscription.
   // Probably shouldn't use this to drive whether service is provided or not.
   // Strip recommends updating an end-of-service datetime every time payment
   // is received, adding on a grace period of some days.
-  @Column({name: 'in_good_standing', default: nativeValues.trueValue})
+  @Column({name: 'in_good_standing', type: Boolean, default: nativeValues.trueValue})
   public inGoodStanding: boolean;
 
   @Column({type: nativeValues.jsonEntityType, nullable: true})

@@ -29,6 +29,7 @@ export class Organization extends Resource {
   public id: number;
 
   @Column({
+    type: String,
     nullable: true
   })
   public domain: string;
@@ -46,7 +47,7 @@ export class Organization extends Resource {
   @OneToMany(type => AclRuleOrg, aclRule => aclRule.organization)
   public aclRules: AclRuleOrg[];
 
-  @Column({name: 'billing_account_id'})
+  @Column({name: 'billing_account_id', type: Number})
   public billingAccountId: number;
 
   @ManyToOne(type => BillingAccount)

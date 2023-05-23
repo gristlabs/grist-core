@@ -169,7 +169,7 @@ export class Product extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
+  @Column({type: String})
   public name: string;
 
   @Column({type: nativeValues.jsonEntityType})

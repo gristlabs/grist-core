@@ -169,7 +169,10 @@ const UPDATE_DATA_SIZE_DELAY = {delayMs: 5 * 60 * 1000, varianceMs: 30 * 1000};
 const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
 // A hook for dependency injection.
-export const Deps = {ACTIVEDOC_TIMEOUT};
+export const Deps = {
+  ACTIVEDOC_TIMEOUT,
+  ACTIVEDOC_TIMEOUT_ACTION: 'shutdown' as 'shutdown'|'ignore',
+};
 
 interface UpdateUsageOptions {
   // Whether usage should be synced to the home database. Defaults to true.
@@ -242,7 +245,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => {
     this._log.debug(null, 'inactivity timeout');
-    return this.shutdown();
+    return this._onInactive();
   }, Deps.ACTIVEDOC_TIMEOUT * 1000);
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
@@ -1509,8 +1512,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
    */
   public async getUsersForViewAs(docSession: OptDocSession): Promise<PermissionDataWithExtraUsers> {
     // Make sure we have rights to view access rules.
-    const db = this.getHomeDbManager();
-    if (!db || !await this._granularAccess.hasAccessRulesPermission(docSession)) {
+    if (!await this._granularAccess.hasAccessRulesPermission(docSession)) {
       throw new Error('Cannot list ACL users');
     }
 
@@ -1525,12 +1527,15 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
     // Collect users the document is shared with.
     const userId = getDocSessionUserId(docSession);
     if (!userId) { throw new Error('Cannot determine user'); }
-    const access = db.unwrapQueryResult(
-      await db.getDocAccess({userId, urlId: this.docName}, {
-        flatten: true, excludeUsersWithoutAccess: true,
-      }));
-    result.users = access.users;
-    result.users.forEach(user => isShared.add(normalizeEmail(user.email)));
+    const db = this.getHomeDbManager();
+    if (db) {
+      const access = db.unwrapQueryResult(
+        await db.getDocAccess({userId, urlId: this.docName}, {
+          flatten: true, excludeUsersWithoutAccess: true,
+        }));
+      result.users = access.users;
+      result.users.forEach(user => isShared.add(normalizeEmail(user.email)));
+    }
 
     // Collect users from user attribute tables. Omit duplicates with users the document is
     // shared with.
@@ -2048,7 +2053,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       documentSettings.engine = (pythonVersion === '2') ? 'python2' : 'python3';
     }
     await this.docStorage.run('UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?',
-                              [timezone, JSON.stringify(documentSettings)]);
+                              timezone, JSON.stringify(documentSettings));
   }
 
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
@@ -2656,6 +2661,12 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       this._attachmentColumns = getAttachmentColumns(this.docData);
     }
     return this._attachmentColumns;
+  }
+
+  private async _onInactive() {
+    if (Deps.ACTIVEDOC_TIMEOUT_ACTION === 'shutdown') {
+      await this.shutdown();
+    }
   }
 }
 

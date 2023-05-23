@@ -5,13 +5,13 @@ import {Organization} from './Organization';
 
 @Entity({name: 'aliases'})
 export class Alias extends BaseEntity {
-  @PrimaryColumn({name: 'org_id'})
+  @PrimaryColumn({name: 'org_id', type: Number})
   public orgId: number;
 
-  @PrimaryColumn({name: 'url_id'})
+  @PrimaryColumn({name: 'url_id', type: String})
   public urlId: string;
 
-  @Column({name: 'doc_id'})
+  @Column({name: 'doc_id', type: String})
   public docId: string;
 
   @ManyToOne(type => Document)

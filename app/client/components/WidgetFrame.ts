@@ -1,5 +1,6 @@
 import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
@@ -157,6 +158,7 @@ export class WidgetFrame extends DisposableWithEvents {
     return onElem(
       (this._iframe = dom('iframe', dom.cls('clipboard_focus'), dom.cls('custom_view'), {
         src: fullUrl,
+        ...hooks.iframeAttributes,
       }))
     );
   }
