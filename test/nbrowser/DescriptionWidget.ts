@@ -12,9 +12,7 @@ describe('DescriptionWidget', function() {
     await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
 
     const newWidgetDesc = "This is the widget description\nIt is in two lines";
-    await driver.find('.test-right-opener').click();
-    // Sleep 100ms to let open the right panel and make the description input clickable
-    await driver.sleep(100);
+    await gu.toggleSidePanel('right', 'open');
     const rightPanelDescriptionInput = await driver.find('.test-right-panel .test-right-widget-description');
     await rightPanelDescriptionInput.click();
     await rightPanelDescriptionInput.sendKeys(newWidgetDesc);
