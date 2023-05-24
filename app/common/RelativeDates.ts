@@ -98,6 +98,14 @@ export function formatRelBounds(periods: IPeriod[]): string {
   );
 }
 
+/**
+ * Returns a new timestamp that is the UTC equivalent of the original local `timestamp`, offset
+ * according to the delta between`timezone` and UTC.
+ */
+export function localTimestampToUTC(timestamp: number, timezone: string): number {
+  return moment.unix(timestamp).utc().tz(timezone, true).unix();
+}
+
 function formatDay(quantity: number, refUnit: IPeriod['unit']): string {
 
   if (refUnit === 'week') {

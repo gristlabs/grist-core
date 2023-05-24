@@ -11,6 +11,7 @@ import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, Impor
 import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, CellValue, fromTableDataAction, UserAction} from 'app/common/DocActions';
 import * as gutil from 'app/common/gutil';
+import {localTimestampToUTC} from 'app/common/RelativeDates';
 import {DocStateComparison} from 'app/common/UserAPI';
 import {guessColInfoForImports} from 'app/common/ValueGuesser';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
@@ -689,6 +690,7 @@ function getMergeFunction({type}: MergeStrategy): MergeFunction {
  * columns using the values set for the column ids.
  * For columns of type Any, guess the type and parse data according to it, or mark as empty
  * formula columns when they should be empty.
+ * For columns of type DateTime, add the document timezone to the type.
  */
 function cleanColumnMetadata(columns: GristColumn[], tableData: unknown[][], activeDoc: ActiveDoc) {
   return columns.map((c, index) => {
@@ -704,6 +706,15 @@ function cleanColumnMetadata(columns: GristColumn[], tableData: unknown[][], act
       tableData[index] = values;
       if (colMetadata) {
         Object.assign(newCol, colMetadata);
+      }
+    }
+    const timezone = activeDoc.docData!.docInfo().timezone;
+    if (c.type === "DateTime" && timezone) {
+      newCol.type = `DateTime:${timezone}`;
+      for (const [i, localTimestamp] of tableData[index].entries()) {
+        if (typeof localTimestamp !== 'number') { continue; }
+
+        tableData[index][i] = localTimestampToUTC(localTimestamp, timezone);
       }
     }
     return newCol;
