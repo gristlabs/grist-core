@@ -7,7 +7,8 @@ import {IBilling} from 'app/server/lib/IBilling';
 import {INotifier} from 'app/server/lib/INotifier';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
-import {createSandbox} from 'app/server/lib/NSandbox';
+import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
+import {SqliteVariant} from 'app/server/lib/SqliteCommon';
 
 export interface ICreate {
 
@@ -31,6 +32,8 @@ export interface ICreate {
   // static page.
   getExtraHeadHtml?(): string;
   getStorageOptions?(name: string): ICreateStorageOptions|undefined;
+  getSqliteVariant?(): SqliteVariant;
+  getSandboxVariants?(): Record<string, SpawnFn>;
 }
 
 export interface ICreateActiveDocOptions {
@@ -62,6 +65,8 @@ export function makeSimpleCreator(opts: {
   sandboxFlavor?: string,
   shell?: IShell,
   getExtraHeadHtml?: () => string,
+  getSqliteVariant?: () => SqliteVariant,
+  getSandboxVariants?: () => Record<string, SpawnFn>,
 }): ICreate {
   const {sessionSecret, storage, notifier, billing} = opts;
   return {
@@ -121,6 +126,8 @@ export function makeSimpleCreator(opts: {
     },
     getStorageOptions(name: string) {
       return storage?.find(s => s.name === name);
-    }
+    },
+    getSqliteVariant: opts.getSqliteVariant,
+    getSandboxVariants: opts.getSandboxVariants,
   };
 }

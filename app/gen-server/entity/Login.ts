@@ -5,18 +5,18 @@ import {User} from "./User";
 @Entity({name: 'logins'})
 export class Login extends BaseEntity {
 
-  @PrimaryColumn()
+  @PrimaryColumn({type: Number})
   public id: number;
 
   // This is the normalized email address we use for equality and indexing.
-  @Column()
+  @Column({type: String})
   public email: string;
 
   // This is how the user's email address should be displayed.
-  @Column({name: 'display_email'})
+  @Column({name: 'display_email', type: String})
   public displayEmail: string;
 
-  @Column({name: 'user_id'})
+  @Column({name: 'user_id', type: Number})
   public userId: number;
 
   @ManyToOne(type => User)

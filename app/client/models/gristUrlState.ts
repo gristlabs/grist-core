@@ -23,6 +23,7 @@
  * Note that the form of URLs depends on the settings in window.gristConfig object.
  */
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
+import {hooks} from 'app/client/Hooks';
 import {UrlState} from 'app/client/lib/UrlState';
 import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState,
         parseFirstUrlPart} from 'app/common/gristUrls';
@@ -134,7 +135,9 @@ export class UrlStateImpl {
    */
   public encodeUrl(state: IGristUrlState, baseLocation: Location | URL): string {
     const gristConfig = this._window.gristConfig || {};
-    return encodeUrl(gristConfig, state, baseLocation);
+    return encodeUrl(gristConfig, state, baseLocation, {
+      tweaks: hooks.urlTweaks,
+    });
   }
 
   /**
@@ -142,7 +145,9 @@ export class UrlStateImpl {
    */
   public decodeUrl(location: Location | URL): IGristUrlState {
     const gristConfig = this._window.gristConfig || {};
-    return decodeUrl(gristConfig, location);
+    return decodeUrl(gristConfig, location, {
+      tweaks: hooks.urlTweaks,
+    });
   }
 
   /**

@@ -24,7 +24,7 @@ function isValidUrlId(urlId: string) {
 @Entity({name: 'docs'})
 export class Document extends Resource {
 
-  @PrimaryColumn()
+  @PrimaryColumn({type: String})
   public id: string;
 
   @ManyToOne(type => Workspace)
@@ -35,7 +35,7 @@ export class Document extends Resource {
   public aclRules: AclRuleDoc[];
 
   // Indicates whether the doc is pinned to the org it lives in.
-  @Column({name: 'is_pinned', default: false})
+  @Column({name: 'is_pinned', type: Boolean, default: false})
   public isPinned: boolean;
 
   // Property that may be returned when the doc is fetched to indicate the access the

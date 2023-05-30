@@ -60,7 +60,12 @@ export class WorkCoordinator {
 
   private _maybeSchedule() {
     if (this._isStepScheduled && !this._isStepRunning) {
-      setImmediate(this._tryNextStepCB);
+      try {
+        setImmediate(this._tryNextStepCB);
+      } catch (e) {
+        // setImmediate may not be available outside node.
+        setTimeout(this._tryNextStepCB, 0);
+      }
     }
   }
 }

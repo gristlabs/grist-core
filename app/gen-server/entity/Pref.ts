@@ -11,10 +11,10 @@ export class Pref {
   // one, but we haven't marked them as so in the DB since the SQL standard frowns
   // on nullable primary keys (and Postgres doesn't support them).  We could add
   // another primary key, but we don't actually need one.
-  @PrimaryColumn({name: 'user_id'})
+  @PrimaryColumn({name: 'user_id', type: Number})
   public userId: number|null;
 
-  @PrimaryColumn({name: 'org_id'})
+  @PrimaryColumn({name: 'org_id', type: Number})
   public orgId: number|null;
 
   @ManyToOne(type => User)

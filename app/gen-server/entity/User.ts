@@ -15,7 +15,7 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
+  @Column({type: String})
   public name: string;
 
   @Column({name: 'api_key', type: String, nullable: true})
@@ -46,7 +46,7 @@ export class User extends BaseEntity {
   })
   public groups: Group[];
 
-  @Column({name: 'is_first_time_user', default: false})
+  @Column({name: 'is_first_time_user', type: Boolean, default: false})
   public isFirstTimeUser: boolean;
 
   @Column({name: 'options', type: nativeValues.jsonEntityType, nullable: true})

@@ -13,7 +13,7 @@ export class AclRule extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
+  @Column({type: Number})
   public permissions: number;
 
   @OneToOne(type => Group, group => group.aclRule)
