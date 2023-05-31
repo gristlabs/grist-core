@@ -31,7 +31,8 @@ if (!process.env.GRIST_SINGLE_ORG) {
 }
 
 setDefaultEnv('GRIST_UI_FEATURES', 'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive');
-
+setDefaultEnv('GRIST_WIDGET_LIST_URL',
+  'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json');
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';
