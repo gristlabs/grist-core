@@ -20,7 +20,14 @@ if (document && window && document.cookie.indexOf("gristbrowser=accept") === -1)
       safari: ">=12.0.3",      // first 2019 version
       edge: ">=80",            // one of first Chromium-based Edge versions, early 2020
       opera: ">=66",           // first 2020 version
-    }
+    },
+    mobile: {
+      // These were tested using browserstack, for a basic layout and cell editing. Other browsers
+      // not attempted, so Grist will show a warning there.
+      safari: ">=15",       // 2021 version, first where layouts aren't broken
+      chrome: ">=92",       // 2021 version which works fine
+      firefox: ">=108",     // end-of-2022 version, couldn't try an earlier one
+    },
   });
   const isMobile = version.isPlatform('mobile') || version.isPlatform('tablet');
   if (!isHappyBrowser) {
