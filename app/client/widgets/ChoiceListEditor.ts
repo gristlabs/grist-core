@@ -66,7 +66,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
-    const startLabels: unknown[] = options.editValue || !Array.isArray(cellValue) ? [] : cellValue;
+    const startLabels: unknown[] = options.editValue !== undefined || !Array.isArray(cellValue) ? [] : cellValue;
     const startTokens = startLabels.map(label => new ChoiceItem(String(label), !choiceSet.has(String(label))));
 
     this._tokenField = TokenField.ctor<ChoiceItem>().create(this, {

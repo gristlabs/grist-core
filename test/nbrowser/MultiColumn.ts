@@ -1,5 +1,6 @@
 import {arrayRepeat} from 'app/plugin/gutil';
 import * as gu from 'test/nbrowser/gristUtils';
+import {ColumnType} from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {assert, driver, Key} from 'mocha-webdriver';
@@ -9,8 +10,10 @@ let doc: string;
 const transparent = 'rgba(0, 0, 0, 0)';
 const blue = '#0000FF';
 const red = '#FF0000';
-const types = ['Any', 'Text', 'Integer', 'Numeric', 'Toggle', 'Date', 'DateTime', 'Choice', 'Choice List',
-  'Reference', 'Reference List', 'Attachment'];
+const types: Array<ColumnType> = [
+  'Any', 'Text', 'Integer', 'Numeric', 'Toggle', 'Date', 'DateTime', 'Choice', 'Choice List',
+  'Reference', 'Reference List', 'Attachment'
+];
 
 describe('MultiColumn', function() {
   this.timeout(80000);
@@ -96,7 +99,7 @@ describe('MultiColumn', function() {
       await gu.assertFillColor(await gu.getCell('Test2', 1), transparent);
     });
 
-    for (const type of ['Choice', 'Text', 'Reference', 'Numeric']) {
+    for (const type of ['Choice', 'Text', 'Reference', 'Numeric'] as Array<ColumnType>) {
       it(`should reset all columns to first column type for ${type}`, async () => {
         // We start with empty columns, then we will change first one
         // to a data column, select all and then change all other to the same type.

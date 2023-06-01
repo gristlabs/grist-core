@@ -73,7 +73,7 @@ export class ReferenceListEditor extends NewBaseEditor {
 
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
-    const startRowIds: unknown[] = options.editValue || !Array.isArray(cellValue) ? [] : cellValue;
+    const startRowIds: unknown[] = options.editValue !== undefined || !Array.isArray(cellValue) ? [] : cellValue;
 
     // If referenced table hasn't loaded yet, hold off on initializing tokens.
     const needReload = (options.editValue === undefined && !this._utils.tableData.isLoaded);

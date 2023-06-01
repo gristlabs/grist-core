@@ -655,6 +655,20 @@ export async function checkTextEditor(value: RegExp|string) {
 }
 
 /**
+ * Checks that token editor in a cell has a correct value. Converts all tokens to text including the input field
+ * and joins them with newlines.
+ */
+export async function checkTokenEditor(value: RegExp|string) {
+  assert.equal(await driver.findWait('.test-widget-text-editor', 500).isDisplayed(), true);
+  const valueRe = typeof value === 'string' ? exactMatch(value) : value;
+  const allTokens = await driver.findAll(
+    '.test-widget-text-editor .test-tokenfield .test-tokenfield-token', e => e.getText());
+  const inputToken = await driver.find('.test-widget-text-editor .test-tokenfield .test-tokenfield-input').value();
+  const combined = [...allTokens, inputToken].join('\n').trim();
+  assert.match(combined, valueRe);
+}
+
+/**
  * Enter rows of values into a GridView, starting at the given cell. Values are specified as a
  * list of rows, for examples `[['foo'], ['bar']]` will enter two rows, with one value in each.
  */
@@ -1181,7 +1195,10 @@ export async function selectWidget(
   await waitForServer();
 }
 
-export async function changeWidget(type: string) {
+export type WidgetType = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom';
+
+
+export async function changeWidget(type: WidgetType) {
   await openWidgetPanel();
   await driver.findContent('.test-right-panel button', /Change Widget/).click();
   await selectWidget(type);
@@ -1406,6 +1423,7 @@ export async function waitForSidePanel() {
 export async function openWidgetPanel() {
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-pagewidget').click();
+  await driver.find(".test-config-widget").click();
 }
 
 /**
@@ -1585,11 +1603,15 @@ export async function deleteColumn(col: IColHeader|string) {
   await waitForServer();
 }
 
+export type ColumnType =
+  'Any' | 'Text' | 'Numeric' | 'Integer' | 'Toggle' | 'Date' | 'DateTime' |
+  'Choice' | 'Choice List' | 'Reference' | 'Reference List' | 'Attachment';
+
 /**
  * Sets the type of the currently selected field to value.
  */
 export async function setType(
-  type: RegExp|string,
+  type: RegExp|ColumnType,
   options: {skipWait?: boolean, apply?: boolean} = {}
 ) {
   const {skipWait, apply} = options;
@@ -2957,10 +2979,13 @@ export async function setWidgetUrl(url: string) {
   await waitForServer();
 }
 
+type BehaviorActions = 'Clear and reset' | 'Convert column to data' | 'Clear and make into formula' |
+                       'Convert columns to data';
 /**
  * Opens a behavior menu and clicks one of the option.
  */
-export async function changeBehavior(option: string|RegExp) {
+export async function changeBehavior(option: BehaviorActions|RegExp) {
+  await openColumnPanel();
   await driver.find('.test-field-behaviour').click();
   await driver.findContent('.grist-floating-menu li', option).click();
   await waitForServer();
