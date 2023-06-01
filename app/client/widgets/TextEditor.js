@@ -39,7 +39,7 @@ function TextEditor(options) {
 
   this.dom = dom('div.default_editor',
     kd.toggleClass("readonly_editor", options.readonly),
-    dom('div.celleditor_cursor_editor', dom.testId('TextEditor_editor'),
+    this.cellEditorDiv = dom('div.celleditor_cursor_editor', dom.testId('TextEditor_editor'),
       testId('widget-text-editor'),   // new-style testId matches NTextEditor, for more uniform tests.
       this.contentSizer = dom('div.celleditor_content_measure'),
       this.textInput = dom('textarea.celleditor_text_editor',

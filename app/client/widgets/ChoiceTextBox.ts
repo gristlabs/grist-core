@@ -4,7 +4,8 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {Style} from 'app/client/models/Styles';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {testId} from 'app/client/ui2018/cssVars';
+import {colors, testId} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
@@ -48,6 +49,8 @@ export class ChoiceTextBox extends NTextBox {
     return cssChoiceField(
       cssChoiceTextWrapper(
         dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
+        // FIXME ensure right access
+        cssChoiceEditIcon('Dropdown'),
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }
 
@@ -61,7 +64,7 @@ export class ChoiceTextBox extends NTextBox {
               invalid: !use(this._choiceValuesSet).has(formattedValue),
             },
             dom.cls(cssChoiceText.className),
-            testId('choice-token')
+            testId('choice-token'),
           );
         }),
       ),
@@ -85,6 +88,7 @@ export class ChoiceTextBox extends NTextBox {
       cssRow(
         dom.autoDispose(disabled),
         dom.autoDispose(mixed),
+        cssChoiceEditIcon('Dropdown'),
         dom.create(
           ChoiceListEntry,
           this._choiceValues,
@@ -149,4 +153,13 @@ const cssChoiceText = styled('div', `
   margin: 2px;
   height: min-content;
   line-height: 16px;
+`);
+
+const cssChoiceEditIcon = styled(icon, `
+  background-color: ${colors.slate};
+  display: none;
+  .g_record_detail_value & {
+    display: block;
+    height: inherit;
+  }
 `);
