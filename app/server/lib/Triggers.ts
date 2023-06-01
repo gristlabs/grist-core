@@ -1,4 +1,5 @@
 import {LocalActionBundle} from 'app/common/ActionBundle';
+import {summarizeAction} from 'app/common/ActionSummarizer';
 import {ActionSummary, TableDelta} from 'app/common/ActionSummary';
 import {ApiError} from 'app/common/ApiError';
 import {MapWithTTL} from 'app/common/AsyncCreate';
@@ -8,13 +9,13 @@ import {MetaRowRecord} from 'app/common/TableData';
 import {CellDelta} from 'app/common/TabularDiff';
 import {WebhookBatchStatus, WebhookStatus, WebhookSummary, WebhookUsage} from 'app/common/Triggers';
 import {decodeObject} from 'app/plugin/objtypes';
-import {summarizeAction} from 'app/common/ActionSummarizer';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
+import {proxyAgent} from 'app/server/lib/ProxyAgent';
 import {matchesBaseDomain} from 'app/server/lib/requestUtils';
 import {delayAbort} from 'app/server/lib/serverUtils';
-import {proxyAgent} from 'app/server/lib/ProxyAgent';
+import {LogSanitizer} from "app/server/utils/LogSanitizer";
 import {promisifyAll} from 'bluebird';
 import * as _ from 'lodash';
 import {AbortController, AbortSignal} from 'node-abort-controller';
@@ -126,6 +127,7 @@ export class DocTriggers {
   private _loopAbort: AbortController|undefined;
 
   private _stats: WebhookStatistics;
+  private _sanitizer = new LogSanitizer();
 
   constructor(private _activeDoc: ActiveDoc) {
     const redisUrl = process.env.REDIS_URL;
@@ -396,7 +398,15 @@ export class DocTriggers {
 
   private async _pushToRedisQueue(events: WebHookEvent[]) {
     const strings = events.map(e => JSON.stringify(e));
-    await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
+    try {
+      await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
+    }
+    catch(e){
+      // It's very hard to test this with integration tests, because it requires a redis failure.
+      // And it's not easy to simulate redis failure.
+      // So on this point we have only unit test in core/test/server/utils/LogSanitizer.ts
+      throw this._sanitizer.sanitize(e);
+    }
   }
 
   private async _getRedisQueue(redisClient: RedisClient) {
