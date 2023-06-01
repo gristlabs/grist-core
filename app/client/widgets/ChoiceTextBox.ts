@@ -49,7 +49,6 @@ export class ChoiceTextBox extends NTextBox {
     return cssChoiceField(
       cssChoiceTextWrapper(
         dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
-        // FIXME ensure right access
         cssChoiceEditIcon('Dropdown'),
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }
@@ -64,7 +63,7 @@ export class ChoiceTextBox extends NTextBox {
               invalid: !use(this._choiceValuesSet).has(formattedValue),
             },
             dom.cls(cssChoiceText.className),
-            testId('choice-token'),
+            testId('choice-token')
           );
         }),
       ),
