@@ -1,5 +1,6 @@
 import * as express from "express";
 import fetch, { RequestInit } from 'node-fetch';
+import {AbortController} from 'node-abort-controller';
 
 import { ApiError } from 'app/common/ApiError';
 import { removeTrailingSlash } from 'app/common/gutil';
@@ -95,14 +96,23 @@ export class DocApiForwarder {
       const hdr = req.get(key);
       if (hdr) { headers[key] = hdr; }
     }
+
+    const controller = new AbortController();
+
+    // If the original request is aborted, abort the forwarded request too. (Currently this only
+    // affects some export/download requests which can abort long-running work.)
+    req.on('close', () => controller.abort());
+
     const options: RequestInit = {
       method: req.method,
       headers,
+      signal: controller.signal,
     };
     if (['POST', 'PATCH', 'PUT'].includes(req.method)) {
       // uses `req` as a stream
       options.body = req;
     }
+
     const docWorkerRes = await fetch(url.href, options);
     res.status(docWorkerRes.status);
     for (const key of ['content-type', 'content-disposition', 'cache-control']) {

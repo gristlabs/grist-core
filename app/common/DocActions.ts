@@ -104,6 +104,10 @@ export function getTableId(action: DocAction): string {
   return action[1];   // It happens to always be in the same position in the action tuple.
 }
 
+export interface TableDataActionSet {
+  [tableId: string]: TableDataAction;
+}
+
 // Helper types used in the definitions above.
 
 export interface ColValues { [colId: string]: CellValue; }

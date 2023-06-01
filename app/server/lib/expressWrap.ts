@@ -36,7 +36,8 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       body: shouldLogBody !== false ? req.body : undefined,
       params: shouldLogParams !== false ? req.params : undefined,
     };
-    log.rawWarn(`Error during api call to ${meta.path}: ${err.message}`, meta);
+    const headersNote = res.headersSent ? " (headersSent)" : "";
+    log.rawWarn(`Error during api call to ${meta.path}${headersNote}: ${err.message}`, meta);
     let details = err.details && {...err.details};
     const status = details?.status || err.status || 500;
     if (details) {
@@ -45,7 +46,14 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       delete details.status;  // TODO: reconcile err.status and details.status, no need for both.
       if (Object.keys(details).length === 0) { details = undefined; }
     }
-    res.status(status).json({error: err.message || 'internal error', details});
+    if (res.headersSent) {
+      // If we've already sent headers, attempt to set them to something else will fail. E.g. this
+      // can happen with downloads if a request gets aborted. If so, just close the response; we
+      // already reported the error above.
+      res.end();
+    } else {
+      res.status(status).json({error: err.message || 'internal error', details});
+    }
   };
 };
 

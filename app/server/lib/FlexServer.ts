@@ -49,6 +49,7 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
+import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, optStringParam,
         RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
@@ -130,6 +131,7 @@ export class FlexServer implements GristServer {
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
   private _telemetryManager: TelemetryManager|undefined;
+  private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
   private _widgetRepository: IWidgetRepository;
   private _notifier: INotifier;
@@ -692,6 +694,9 @@ export class FlexServer implements GristServer {
 
     this._telemetryManager = new TelemetryManager(this._dbManager);
 
+    // Start up a monitor for memory and cpu usage.
+    this._processMonitorStop = ProcessMonitor.start(this._telemetryManager);
+
     this.app.post('/api/telemetry', async (req, resp) => {
       const mreq = req as RequestWithLogin;
       const name = stringParam(req.body.name, 'name', TelemetryEventNames);
@@ -705,6 +710,7 @@ export class FlexServer implements GristServer {
   }
 
   public async close() {
+    this._processMonitorStop?.();
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
     if (this._dbManager) {

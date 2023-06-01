@@ -1,6 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {buildColFilter} from 'app/common/ColumnFilterFunc';
-import {TableDataAction} from 'app/common/DocActions';
+import {TableDataAction, TableDataActionSet} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import * as gristTypes from 'app/common/gristTypes';
@@ -23,6 +23,30 @@ import * as _ from 'underscore';
 
 // Helper type for Cell Accessor
 type Access = (row: number) => any;
+
+// Interface to document data used from an exporter worker thread (workerExporter.ts). Note that
+// parameters and returned values are plain data that can be passed over a MessagePort.
+export interface ActiveDocSource {
+  getDocName(): Promise<string>;
+  fetchMetaTables(): Promise<TableDataActionSet>;
+  fetchTable(tableId: string): Promise<TableDataAction>;
+}
+
+// Implementation of ActiveDocSource using an ActiveDoc directly.
+export class ActiveDocSourceDirect implements ActiveDocSource {
+  private _req: RequestWithLogin;
+
+  constructor(private _activeDoc: ActiveDoc, req: express.Request) {
+    this._req = req as RequestWithLogin;
+  }
+
+  public async getDocName() { return this._activeDoc.docName; }
+  public fetchMetaTables() { return this._activeDoc.fetchMetaTables(docSessionFromRequest(this._req)); }
+  public async fetchTable(tableId: string) {
+    const {tableData} = await this._activeDoc.fetchTable(docSessionFromRequest(this._req), tableId, true);
+    return tableData;
+  }
+}
 
 // Helper interface with information about the column
 export interface ExportColumn {
@@ -69,25 +93,17 @@ export interface ExportData {
  * Export parameters that identifies a section, filters, sort order.
  */
 export interface ExportParameters {
-  tableId: string;
-  viewSectionId: number | undefined;
-  sortOrder: number[];
-  filters: Filter[];
+  tableId: string;          // Value of '' is an instruction to export all tables.
+  viewSectionId?: number;
+  sortOrder?: number[];
+  filters?: Filter[];
 }
 
 /**
  * Options parameters for CSV and XLSX export functions.
  */
-export interface DownloadOptions {
+export interface DownloadOptions extends ExportParameters {
   filename: string;
-  tableId: string;
-  viewSectionId: number | undefined;
-  filters: Filter[];
-  sortOrder: number[];
-}
-
-interface FilteredMetaTables {
-  [tableId: string]: TableDataAction;
 }
 
 /**
@@ -108,9 +124,8 @@ export function parseExportParameters(req: express.Request): ExportParameters {
 }
 
 // Helper for getting filtered metadata tables.
-async function getMetaTables(activeDoc: ActiveDoc, req: express.Request): Promise<FilteredMetaTables> {
-  const docSession = docSessionFromRequest(req as RequestWithLogin);
-  return safe(await activeDoc.fetchMetaTables(docSession), "No metadata available in active document");
+async function getMetaTables(activeDocSource: ActiveDocSource): Promise<TableDataActionSet> {
+  return safe(await activeDocSource.fetchMetaTables(), "No metadata available in active document");
 }
 
 // Makes assertion that value does exist or throws an error
@@ -120,7 +135,7 @@ function safe<T>(value: T, msg: string) {
 }
 
 // Helper for getting table from filtered metadata.
-function safeTable<TableId extends keyof SchemaTypes>(metaTables: FilteredMetaTables, tableId: TableId) {
+function safeTable<TableId extends keyof SchemaTypes>(metaTables: TableDataActionSet, tableId: TableId) {
   const table = safe(metaTables[tableId], `No table '${tableId}' in document`);
   const colTypes = safe(schema[tableId], `No table '${tableId}' in document schema`);
   return new MetaTableData<TableId>(tableId, table, colTypes);
@@ -140,22 +155,21 @@ function checkTableAccess(tables: MetaTableData<"_grist_Tables">, tableRef: numb
 
 /**
  * Builds export for all raw tables that are in doc.
- * @param activeDoc Active document
- * @param req Request
  */
-export async function exportDoc(
-  activeDoc: ActiveDoc,
-  req: express.Request) {
-  const metaTables = await getMetaTables(activeDoc, req);
+export async function doExportDoc(
+  activeDocSource: ActiveDocSource,
+  handleTable: (data: ExportData) => Promise<void>,
+): Promise<void> {
+  const metaTables = await getMetaTables(activeDocSource);
   const tables = safeTable(metaTables, '_grist_Tables');
   // select raw tables
   const tableRefs = tables.filterRowIds({ summarySourceTable: 0 });
-  const tableExports = await Promise.all(
-    tableRefs
-      .filter(tId => !isTableCensored(tables, tId))     // Omit censored tables
-      .map(tId => exportTable(activeDoc, tId, req, {metaTables}))
-  );
-  return tableExports;
+  for (const tableRef of tableRefs) {
+    if (!isTableCensored(tables, tableRef)) {    // Omit censored tables
+      const data = await doExportTable(activeDocSource, {metaTables, tableRef});
+      await handleTable(data);
+    }
+  }
 }
 
 /**
@@ -165,12 +179,31 @@ export async function exportTable(
   activeDoc: ActiveDoc,
   tableRef: number,
   req: express.Request,
-  {metaTables}: {metaTables?: FilteredMetaTables} = {},
+  {metaTables}: {metaTables?: TableDataActionSet} = {},
 ): Promise<ExportData> {
-  metaTables = metaTables || await getMetaTables(activeDoc, req);
+  return doExportTable(new ActiveDocSourceDirect(activeDoc, req), {metaTables, tableRef});
+}
+
+export async function doExportTable(
+  activeDocSource: ActiveDocSource,
+  options: {metaTables?: TableDataActionSet, tableRef?: number, tableId?: string},
+) {
+  const metaTables = options.metaTables || await getMetaTables(activeDocSource);
   const docData = new DocData((tableId) => { throw new Error("Unexpected DocData fetch"); }, metaTables);
   const tables = safeTable(metaTables, '_grist_Tables');
   const metaColumns = safeTable(metaTables, '_grist_Tables_column');
+
+  let tableRef: number;
+  if (options.tableRef) {
+    tableRef = options.tableRef;
+  } else {
+    if (!options.tableId) { throw new Error('doExportTable: tableRef or tableId must be given'); }
+    tableRef = tables.findRow('tableId', options.tableId);
+    if (tableRef === 0) {
+      throw new ApiError(`Table ${options.tableId} not found.`, 404);
+    }
+  }
+
   checkTableAccess(tables, tableRef);
   const table = safeRecord(tables, tableRef);
 
@@ -197,7 +230,7 @@ export async function exportTable(
   });
 
   // fetch actual data
-  const {tableData} = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
+  const tableData = await activeDocSource.fetchTable(table.tableId);
   const rowIds = tableData[2];
   const dataByColId = tableData[3];
   // sort rows
@@ -216,14 +249,15 @@ export async function exportTable(
 
   const docInfo = safeRecord(safeTable(metaTables, '_grist_DocInfo'), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
-  return {
+  const exportData: ExportData = {
     tableName,
-    docName: activeDoc.docName,
+    docName: await activeDocSource.getDocName(),
     rowIds,
     access,
     columns,
     docSettings
   };
+  return exportData;
 }
 
 /**
@@ -235,9 +269,20 @@ export async function exportSection(
   sortSpec: Sort.SortSpec | null,
   filters: Filter[] | null,
   req: express.Request,
-  {metaTables}: {metaTables?: FilteredMetaTables} = {},
+  {metaTables}: {metaTables?: TableDataActionSet} = {},
 ): Promise<ExportData> {
-  metaTables = metaTables || await getMetaTables(activeDoc, req);
+  return doExportSection(new ActiveDocSourceDirect(activeDoc, req), viewSectionId, sortSpec,
+    filters, {metaTables});
+}
+
+export async function doExportSection(
+  activeDocSource: ActiveDocSource,
+  viewSectionId: number,
+  sortSpec: Sort.SortSpec | null,
+  filters: Filter[] | null,
+  {metaTables}: {metaTables?: TableDataActionSet} = {},
+): Promise<ExportData> {
+  metaTables = metaTables || await getMetaTables(activeDocSource);
   const docData = new DocData((tableId) => { throw new Error("Unexpected DocData fetch"); }, metaTables);
   const viewSections = safeTable(metaTables, '_grist_Views_section');
   const viewSection = safeRecord(viewSections, viewSectionId);
@@ -298,7 +343,7 @@ export async function exportSection(
   });
 
   // fetch actual data
-  const {tableData} = await activeDoc.fetchTable(docSessionFromRequest(req as RequestWithLogin), table.tableId, true);
+  const tableData = await activeDocSource.fetchTable(table.tableId);
   let rowIds = tableData[2];
   const dataByColId = tableData[3];
   // sort rows
@@ -318,14 +363,15 @@ export async function exportSection(
   const docInfo = safeRecord(safeTable(metaTables, '_grist_DocInfo'), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});
 
-  return {
+  const exportData: ExportData = {
     rowIds,
     docSettings,
     tableName: table.tableId,
-    docName: activeDoc.docName,
+    docName: await activeDocSource.getDocName(),
     access: viewColumns.map(col => getters.getColGetter(col.id)!),
     columns: viewColumns
   };
+  return exportData;
 }
 
 type GristViewsSectionField = MetaRowRecord<'_grist_Views_section_field'>

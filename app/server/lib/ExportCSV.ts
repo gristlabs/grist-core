@@ -18,7 +18,7 @@ export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
   log.info('Generating .csv file...');
   const {filename, tableId, viewSectionId, filters, sortOrder} = options;
   const data = viewSectionId ?
-    await makeCSVFromViewSection(activeDoc, viewSectionId, sortOrder, filters, req) :
+    await makeCSVFromViewSection(activeDoc, viewSectionId, sortOrder || null, filters || null, req) :
     await makeCSVFromTable(activeDoc, tableId, req);
   res.set('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
@@ -39,8 +39,8 @@ export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
 export async function makeCSVFromViewSection(
   activeDoc: ActiveDoc,
   viewSectionId: number,
-  sortOrder: number[],
-  filters: Filter[],
+  sortOrder: number[] | null,
+  filters: Filter[] | null,
   req: express.Request) {
 
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, req);

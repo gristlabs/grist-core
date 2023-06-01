@@ -9,6 +9,7 @@ export const TelemetryEventNames = [
   'documentForked',
   'documentOpened',
   'documentUsage',
+  'processMonitor',
   'sendingWebhooks',
   'signupVerified',
   'siteMembership',
