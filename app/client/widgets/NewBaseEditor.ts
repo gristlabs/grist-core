@@ -17,7 +17,7 @@ export interface Options {
   gristDoc: GristDoc;
   cellValue: CellValue;
   rowId: number;
-  formulaError?: Observable<CellValue>;
+  formulaError: Observable<CellValue|undefined>;
   editValue?: string;
   cursorPos: number;
   commands: IEditorCommandGroup;
@@ -82,6 +82,11 @@ export abstract class NewBaseEditor extends Disposable {
    *   in size and position. Used by derived classes, e.g. to construct an EditorPlacement object.
    */
   public abstract attach(cellElem: Element): void;
+
+  /**
+   * Called to detach the editor and show it in the floating popup.
+   */
+  public detach(): HTMLElement|null { return null; }
 
   /**
    * Returns DOM container with the editor, typically present and attached after attach() has been

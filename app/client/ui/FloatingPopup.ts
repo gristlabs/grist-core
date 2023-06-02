@@ -1,7 +1,9 @@
+import {documentCursor} from 'app/client/lib/popupUtils';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {Disposable, dom, DomArg, DomContents, IDisposable, makeTestId, Observable, styled} from 'grainjs';
+import {Disposable, dom, DomContents, DomElementArg,
+        IDisposable, makeTestId, Observable, styled} from 'grainjs';
 
 const POPUP_INITIAL_PADDING_PX = 16;
 const POPUP_MIN_HEIGHT = 300;
@@ -15,9 +17,11 @@ export interface PopupOptions {
   content?: () => DomContents;
   onClose?: () => void;
   closeButton?: boolean;
+  closeButtonHover?: () => DomContents;
   autoHeight?: boolean;
   /** Defaults to false. */
   stopClickPropagationOnMove?: boolean;
+  args?: DomElementArg[];
 }
 
 export class FloatingPopup extends Disposable {
@@ -34,7 +38,7 @@ export class FloatingPopup extends Disposable {
   private _resize = false;
   private _cursorGrab: IDisposable|null = null;
 
-  constructor(protected _options: PopupOptions = {}, private _args: DomArg[] = []) {
+  constructor(protected _options: PopupOptions = {}) {
     super();
 
     if (_options.stopClickPropagationOnMove){
@@ -98,7 +102,7 @@ export class FloatingPopup extends Disposable {
   }
 
   protected _buildArgs(): any {
-    return this._args;
+    return this._options.args ?? [];
   }
 
   private _rememberPosition() {
@@ -272,11 +276,11 @@ export class FloatingPopup extends Disposable {
             // Copy buttons on the left side of the header, to automatically
             // center the title.
             cssPopupButtons(
-              !this._options.closeButton ? null : cssPopupHeaderButton(
-                icon('CrossSmall'),
-              ),
               cssPopupHeaderButton(
                 icon('Maximize')
+              ),
+              !this._options.closeButton ? null : cssPopupHeaderButton(
+                icon('CrossBig'),
               ),
               dom.style('visibility', 'hidden'),
             ),
@@ -285,18 +289,19 @@ export class FloatingPopup extends Disposable {
               testId('title'),
             ),
             cssPopupButtons(
-              !this._options.closeButton ? null : cssPopupHeaderButton(
-                icon('CrossSmall'),
-                dom.on('click', () => {
-                  this._options.onClose?.() ?? this._closePopup();
-                }),
-                testId('close'),
-              ),
               this._popupMinimizeButtonElement = cssPopupHeaderButton(
                 isMinimized ? icon('Maximize'): icon('Minimize'),
                 hoverTooltip(isMinimized ? 'Maximize' : 'Minimize', {key: 'docTutorialTooltip'}),
                 dom.on('click', () => this._minimizeOrMaximize()),
                 testId('minimize-maximize'),
+              ),
+              !this._options.closeButton ? null : cssPopupHeaderButton(
+                icon('CrossBig'),
+                dom.on('click', () => {
+                  this._options.onClose?.() ?? this._closePopup();
+                }),
+                testId('close'),
+                this._options.closeButtonHover && hoverTooltip(this._options.closeButtonHover())
               ),
               // Disable dragging when a button in the header is clicked.
               dom.on('mousedown', ev => ev.stopPropagation()),
@@ -345,20 +350,7 @@ export class FloatingPopup extends Disposable {
   private _forceCursor() {
     this._cursorGrab?.dispose();
     const type = this._resize ? 'ns-resize' : 'grabbing';
-    const cursorStyle: HTMLStyleElement = document.createElement('style');
-    cursorStyle.innerHTML = `*{cursor: ${type}!important;}`;
-    cursorStyle.id = 'cursor-style';
-    document.head.appendChild(cursorStyle);
-    const cursorOwner = {
-      dispose() {
-        if (this.isDisposed()) { return; }
-        document.head.removeChild(cursorStyle);
-      },
-      isDisposed() {
-        return !cursorStyle.isConnected;
-      }
-    };
-    this._cursorGrab = cursorOwner;
+    this._cursorGrab = documentCursor(type);
   }
 }
 
@@ -372,7 +364,7 @@ const POPUP_HEIGHT = `min(var(--height), calc(100% - (2 * ${POPUP_INITIAL_PADDIN
 const POPUP_HEIGHT_MOBILE = `min(var(--height), calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px) - (2 * 50px)))`;
 const POPUP_WIDTH = `min(436px, calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px)))`;
 
-const cssPopup = styled('div', `
+const cssPopup = styled('div.floating-popup', `
   position: fixed;
   display: flex;
   flex-direction: column;

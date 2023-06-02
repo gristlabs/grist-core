@@ -104,6 +104,8 @@ export const DismissedPopup = StringUnion(
   'deleteRecords', // confirmation for deleting records keyboard shortcut,
   'deleteFields',  // confirmation for deleting columns keyboard shortcut,
   'tutorialFirstCard', // first card of the tutorial,
+  'formulaHelpInfo', // formula help info shown in the popup editor,
+  'formulaAssistantInfo', // formula assistant info shown in the popup editor,
 );
 export type DismissedPopup = typeof DismissedPopup.type;
 

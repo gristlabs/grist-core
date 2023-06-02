@@ -8,18 +8,30 @@
  */
 
 import * as Mousetrap from 'app/client/lib/Mousetrap';
-import { arrayRemove } from 'app/common/gutil';
+import {arrayRemove, unwrap} from 'app/common/gutil';
 import dom from 'app/client/lib/dom';
-import 'app/client/lib/koUtil'; // for subscribeInit
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {CommandDef, CommandName, CommendGroupDef, groups} from 'app/client/components/commandList';
 
-import {Disposable} from 'grainjs';
+import {Disposable, Observable} from 'grainjs';
 import * as _ from 'underscore';
 import * as ko from 'knockout';
 
 const G = getBrowserGlobals('window');
-type BoolLike = boolean|ko.Observable<boolean>|ko.Computed<boolean>;
+type BoolLike = boolean|ko.Observable<boolean>|ko.Computed<boolean>|Observable<boolean>;
+
+/**
+ * A helper method that can create a subscription to ko or grains observables.
+ */
+function subscribe(value: Exclude<BoolLike, boolean>, fn: (value: boolean) => void) {
+  if (ko.isObservable(value)) {
+    return value.subscribe(fn);
+  } else if (value instanceof Observable) {
+    return value.addListener(fn);
+  } else {
+    throw new Error('Expected an observable');
+  }
+}
 
 // Same logic as used by mousetrap to map 'Mod' key to platform-specific key.
 export const isMac = (typeof navigator !== 'undefined' && navigator &&
@@ -291,10 +303,11 @@ export class CommandGroup extends Disposable {
     this.onDispose(this._removeGroup.bind(this));
 
     // Finally, set the activation status of the command group, subscribing if an observable.
-    if (ko.isObservable(activate)) {
-      this.autoDispose((activate as any).subscribeInit(this.activate, this));
-    } else {
-      this.activate(activate as boolean);
+    if (typeof activate === 'boolean' || activate === undefined) {
+      this.activate(activate ?? false);
+    } else if (activate) {
+      this.autoDispose(subscribe(activate, (val) => this.activate(val)));
+      this.activate(unwrap(activate));
     }
   }
 
@@ -343,8 +356,8 @@ type BoundedMap<T> = { [key in CommandName]?: BoundedFunc<T> };
 /**
  * Just a shorthand for CommandGroup.create constructor.
  */
-export function createGroup<T>(commands: BoundedMap<T>, context: T, activate?: BoolLike) {
-  return CommandGroup.create(null, commands, context, activate);
+export function createGroup<T>(commands: BoundedMap<T>|null, context: T, activate?: BoolLike) {
+  return CommandGroup.create(null, commands ?? {}, context, activate);
 }
 
 //----------------------------------------------------------------------

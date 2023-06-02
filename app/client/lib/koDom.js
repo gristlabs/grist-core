@@ -249,7 +249,7 @@ function toggleDisabled(boolValueOrFunc) {
 exports.toggleDisabled = toggleDisabled;
 
 /**
- * Adds a css class named by an observable value. If the value changes, the previous class will be
+ * Adds a css class (one or many) named by an observable value. If the value changes, the previous class will be
  * removed and the new one added. The value may be empty to avoid adding any class.
  * Similar to knockout's `css` binding with a dynamic class.
  * @param {Object} valueOrFunc An observable, a constant, or a function for a computed observable.
@@ -258,11 +258,15 @@ function cssClass(valueOrFunc) {
   var prevClass;
   return makeBinding(valueOrFunc, function(elem, value) {
     if (prevClass) {
-      elem.classList.remove(prevClass);
+      for(const name of prevClass.split(' ')) {
+        elem.classList.remove(name);
+      }
     }
     prevClass = value;
     if (value) {
-      elem.classList.add(value);
+      for (const name of value.split(' ')) {
+        elem.classList.add(name);
+      }
     }
   });
 }

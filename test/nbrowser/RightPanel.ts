@@ -13,7 +13,7 @@ describe('RightPanel', function() {
     await mainSession.tempNewDoc(cleanup);
 
     // Reset prefs.
-    await driver.executeScript('resetSeenPopups();');
+    await driver.executeScript('resetDismissedPopups();');
     await gu.waitForServer();
 
     // Refresh for a clean start.

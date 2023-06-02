@@ -114,9 +114,9 @@ AceEditor.prototype.enable = function(bool) {
  *  Note: Ace defers to standard behavior when false is returned.
  */
 AceEditor.prototype.attachCommandGroup = function(commandGroup) {
-  _.each(commandGroup.knownKeys, (command, key) => {
+  _.each(commandGroup.knownKeys, (commandName, key) => {
     this.editor.commands.addCommand({
-      name: command,
+      name: commandName,
       // We are setting readonly as true to enable all commands
       // in a readonly mode.
       // Because FieldEditor in readonly mode will rewire all commands that
@@ -129,7 +129,7 @@ AceEditor.prototype.attachCommandGroup = function(commandGroup) {
       },
       // AceEditor wants a command to return true if it got handled, whereas our command returns
       // true to avoid stopPropagation/preventDefault, i.e. if it hasn't been handled.
-      exec: () => !commandGroup.commands[command]()
+      exec: () => !commandGroup.commands[commandName]()
     });
   });
 };
@@ -270,7 +270,7 @@ AceEditor.prototype.resize = function() {
   // This won't help for zooming (where the same problem occurs but in many more places), but will
   // help for Windows users who have different pixel ratio.
   this.editorDom.style.width = size.width ? Math.ceil(size.width) + 'px' : 'auto';
-  this.editorDom.style.height = Math.ceil(size.height) + 'px';
+  this.editorDom.style.height = size.height ? Math.ceil(size.height) + 'px' : 'auto';
   this.editor.resize();
 };
 

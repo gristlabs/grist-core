@@ -49,6 +49,9 @@ const {parsePasteForView} = require("./BaseView2");
 const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
+const {makeT} = require('app/client/lib/localization');
+
+const t = makeT('GridView');
 
 // A threshold for interpreting a motionless click as a click rather than a drag.
 // Anything longer than this time (in milliseconds) should be interpreted as a drag
@@ -219,6 +222,14 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
 
   // Holds column index that is hovered, works only in full-edit formula mode.
   this.hoverColumn = ko.observable(-1);
+
+  // Checks if there is active formula editor for a column in this table.
+  this.editingFormula = ko.pureComputed(() => {
+    const isEditing = this.gristDoc.docModel.editingFormula();
+    if (!isEditing) { return false; }
+    return this.viewSection.viewFields().all().some(field => field.editingFormula());
+  });
+
   // Debounced method to change current hover column, this is needed
   // as mouse when moved from field to field will switch the hover-column
   // observable from current index to -1 and then immediately back to current index.
@@ -226,7 +237,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   // will be discarded.
   this.changeHover = debounce((index) => {
     if (this.isDisposed()) { return; }
-    if (this.gristDoc.docModel.editingFormula()) {
+    if (this.editingFormula()) {
       this.hoverColumn(index);
     }
   }, 0);
@@ -1054,8 +1065,9 @@ GridView.prototype.buildDom = function() {
 
               let filterTriggerCtl;
               const isTooltip = ko.pureComputed(() =>
-                  self.gristDoc.docModel.editingFormula() &&
-                  ko.unwrap(self.hoverColumn) === field._index());
+                self.editingFormula() &&
+                ko.unwrap(self.hoverColumn) === field._index()
+              );
               return dom(
                 'div.column_name.field',
                 kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()))),
@@ -1070,7 +1082,7 @@ GridView.prototype.buildDom = function() {
                      dom.autoDispose(tooltip),
                      dom.autoDispose(isTooltip.subscribe((show) => {
                       if (show) {
-                        tooltip.show(`Click to insert $${field.colId.peek()}`);
+                        tooltip.show(t(`Click to insert`) + ` $${field.origCol.peek().colId.peek()}`);
                       } else {
                         tooltip.hide();
                       }
@@ -1316,7 +1328,7 @@ GridView.prototype.buildDom = function() {
             dom.autoDispose(isSelected),
             dom.on("mouseenter", () => self.changeHover(field._index())),
             kd.toggleClass("hover-column", () =>
-              self.gristDoc.docModel.editingFormula() &&
+              self.editingFormula() &&
               ko.unwrap(self.hoverColumn) === (field._index())),
             kd.style('width', field.widthPx),
             //TODO: Ensure that fields in a row resize when
@@ -1624,7 +1636,7 @@ GridView.prototype.dropCols = function() {
   // column movement, propose renaming the column.
   if (Date.now() - this._colClickTime < SHORT_CLICK_IN_MS && oldIndices.length === 1 &&
       idx === oldIndices[0]) {
-    this.currentEditingColumnIndex(idx);
+    commands.allCommands.renameField.run();
   }
   this._colClickTime = 0;
   this.cellSelector.currentDragType(selector.NONE);

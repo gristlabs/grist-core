@@ -3,7 +3,6 @@ import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
-import {buildAiButton} from 'app/client/ui/FormulaAssistance';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
@@ -13,7 +12,6 @@ import {testId, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {IconName} from 'app/client/ui2018/IconList';
-import {GRIST_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
 import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
 import {sanitizeIdent} from 'app/common/gutil';
@@ -134,6 +132,8 @@ export function buildFormulaConfig(
 
   // Helper function to clear temporary state (will be called when column changes or formula editor closes)
   const clearState = () => bundleChanges(() => {
+    // For a detached editor, we may have already been disposed when user switched page.
+    if (owner.isDisposed()) { return; }
     maybeFormula.set(false);
     maybeTrigger.set(false);
     formulaField = null;
@@ -277,6 +277,8 @@ export function buildFormulaConfig(
 
   // Converts column to formula column.
   const onSaveConvertToFormula = async (column: ColumnRec, formula: string) => {
+    // For a detached editor, we may have already been disposed when user switched page.
+    if (owner.isDisposed()) { return; }
     // For non formula column, we will not convert it to formula column when expression is empty,
     // as it means we were trying to convert data column to formula column, but changed our mind.
     const notBlank = Boolean(formula);
@@ -362,7 +364,6 @@ export function buildFormulaConfig(
         ]),
         formulaBuilder(onSaveConvertToFormula),
         cssEmptySeparator(),
-        dom.maybe(GRIST_FORMULA_ASSISTANT(), () => cssRow(buildAiButton(gristDoc, origColumn))),
         cssRow(textButton(
           t("Convert to trigger formula"),
           dom.on("click", convertFormulaToTrigger),

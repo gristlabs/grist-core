@@ -285,7 +285,7 @@ export class AppModelImpl extends Disposable implements AppModel {
       this.showNewSiteModal(state.params?.planType);
     }
 
-    G.window.resetSeenPopups = (seen = false) => {
+    G.window.resetDismissedPopups = (seen = false) => {
       this.dismissedPopups.set(seen ? DismissedPopup.values : []);
       this.behavioralPromptsManager.reset();
     };

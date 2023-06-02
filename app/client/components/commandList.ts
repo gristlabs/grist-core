@@ -108,6 +108,8 @@ export type CommandName =
   | 'clearSectionLinks'
   | 'transformUpdate'
   | 'clearCopySelection'
+  | 'detachEditor'
+  | 'activateAssistant'
   ;
 
 
@@ -259,6 +261,11 @@ export const groups: CommendGroupDef[] = [{
       keys: [],
       desc: 'Shortcut to open video tour from home left panel',
     },
+    {
+      name: 'activateAssistant',
+      keys: [],
+      desc: 'Activate assistant',
+    },
   ]
 }, {
   group: 'Navigation',
@@ -391,6 +398,10 @@ export const groups: CommendGroupDef[] = [{
       name: 'fieldEditSave',
       keys: ['Enter'],
       desc: 'Finish editing a cell, saving the value'
+    }, {
+      name: 'detachEditor',
+      keys: [''],
+      desc: 'Detach active editor'
     }, {
       name: 'fieldEditSaveHere',
       keys: [],

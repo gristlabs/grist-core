@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>Icons / UI / Robot</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Icons-/-UI-/-Robot" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M16 2V0H10V2H12V4H4V2H6V0H0V2H2V4H0V16H16V4H14V2H16ZM10 7C10.6 7 11 7.4 11 8C11 8.6 10.6 9 10 9C9.4 9 9 8.6 9 8C9 7.4 9.4 7 10 7ZM6 7C6.6 7 7 7.4 7 8C7 8.6 6.6 9 6 9C5.4 9 5 8.6 5 8C5 7.4 5.4 7 6 7ZM12 13H4V11H12V13Z" id="Combined-Shape" fill="#000000" fill-rule="nonzero"></path>
+    </g>
+</svg>

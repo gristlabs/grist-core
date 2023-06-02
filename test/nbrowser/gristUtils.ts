@@ -960,9 +960,15 @@ export async function waitForServer(optTimeout: number = 2000) {
  * Sends UserActions using client api from the browser.
  */
 export async function sendActions(actions: UserAction[]) {
-  await driver.executeScript(`
-    gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
+  const result = await driver.executeAsyncScript(`
+    const done = arguments[arguments.length - 1];
+    const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
+    prom.then(() => done(null));
+    prom.catch((err) => done(String(err?.message || err)));
   `);
+  if (result) {
+    throw new Error(result as string);
+  }
   await waitForServer();
 }
 

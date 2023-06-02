@@ -4,6 +4,8 @@ import { FormulaTransform } from 'app/client/components/FormulaTransform';
 import { GristDoc } from 'app/client/components/GristDoc';
 import { addColTypeSuffix } from 'app/client/components/TypeConversion';
 import { TypeTransform } from 'app/client/components/TypeTransform';
+import { FloatingEditor } from 'app/client/widgets/FloatingEditor';
+import { UnsavedChange } from 'app/client/components/UnsavedChanges';
 import dom from 'app/client/lib/dom';
 import { KoArray } from 'app/client/lib/koArray';
 import * as kd from 'app/client/lib/koDom';
@@ -23,7 +25,7 @@ import { theme } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
-import { FieldEditor, saveWithoutEditor, setupEditorCleanup } from 'app/client/widgets/FieldEditor';
+import { FieldEditor, saveWithoutEditor } from 'app/client/widgets/FieldEditor';
 import { CellDiscussionPopup, EmptyCell } from 'app/client/widgets/DiscussionEditor';
 import { openFormulaEditor } from 'app/client/widgets/FormulaEditor';
 import { NewAbstractWidget } from 'app/client/widgets/NewAbstractWidget';
@@ -34,7 +36,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import { CellValue } from 'app/plugin/GristData';
 import { Computed, Disposable, fromKo, dom as grainjsDom,
-         Holder, IDisposable, makeTestId, MultiHolder, styled, toKo } from 'grainjs';
+         makeTestId, MultiHolder, Observable, styled, toKo } from 'grainjs';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -100,19 +102,19 @@ export class FieldBuilder extends Disposable {
   private readonly _rowMap: Map<DataRowModel, Element>;
   private readonly _isTransformingFormula: ko.Computed<boolean>;
   private readonly _isTransformingType: ko.Computed<boolean>;
-  private readonly _fieldEditorHolder: Holder<IDisposable>;
   private readonly _widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
   private readonly _docModel: DocModel;
   private readonly _readonly: Computed<boolean>;
   private readonly _comments: ko.Computed<boolean>;
   private readonly _showRefConfigPopup: ko.Observable<boolean>;
+  private readonly _isEditorActive = Observable.create(this, false);
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
     super();
 
     this._docModel = gristDoc.docModel;
-    this.origColumn = field.column();
+    this.origColumn = field.origCol();
     this.options = field.widgetOptionsJson;
     this._comments = ko.pureComputed(() => toKo(ko, COMMENTS())());
 
@@ -182,10 +184,6 @@ export class FieldBuilder extends Disposable {
       return (this.field.column().isTransforming() || this.isCallPending()) &&
         (this.columnTransform instanceof TypeTransform);
     }));
-
-    // This holds a single FieldEditor. When a new FieldEditor is created (on edit), it replaces the
-    // previous one if any.
-    this._fieldEditorHolder = Holder.create(this);
 
     // Map from rowModel to cell dom for the field to which this fieldBuilder applies.
     this._rowMap = new Map();
@@ -580,7 +578,7 @@ export class FieldBuilder extends Disposable {
       if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
       const value = row.cells[this.field.colId()];
       const cell = value && value();
-      if ((value) && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
+      if ((value as any) && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
         return this.widgetImpl();
       } else if (gristTypes.isVersions(cell)) {
         return this.diffImpl;
@@ -677,39 +675,40 @@ export class FieldBuilder extends Disposable {
       return;
     }
 
+    // Clear previous editor. Some caveats:
+    // - The floating editor has an async cleanup routine, but it promises that it won't affect as.
+    // - All other editors should be synchronous, so this line will remove all opened editors.
+    const holder = this.gristDoc.fieldEditorHolder;
+    // If the global editor is from our own field, we will dispose it immediately, otherwise we will
+    // rely on the clipboard to dispose it by grabbing focus.
+    const clearOwn = () => this.isEditorActive() && holder.clear();
+
     // If this is censored value, don't open up the editor, unless it is a formula field.
     const cell = editRow.cells[this.field.colId()];
     const value = cell && cell();
     if (gristTypes.isCensored(value) && !this.origColumn.isFormula.peek()) {
-      this._fieldEditorHolder.clear();
-      return;
+      return clearOwn();
     }
 
     const editorCtor: typeof NewBaseEditor =
       UserTypeImpl.getEditorConstructor(this.options().widget, this._readOnlyPureType());
     // constructor may be null for a read-only non-formula field, though not today.
     if (!editorCtor) {
-      // Actually, we only expect buildEditorDom() to be called when isEditorActive() is false (i.e.
-      // _fieldEditorHolder is already clear), but clear here explicitly for clarity.
-      this._fieldEditorHolder.clear();
-      return;
+      return clearOwn();
     }
 
-    // if editor doesn't support readonly mode, don't show it
     if (this._readonly.get() && editorCtor.supportsReadonly && !editorCtor.supportsReadonly()) {
-      this._fieldEditorHolder.clear();
-      return;
+      return clearOwn();
     }
 
     if (!this._readonly.get() && saveWithoutEditor(editorCtor, editRow, this.field, options.init)) {
-      this._fieldEditorHolder.clear();
-      return;
+      return clearOwn();
     }
 
     const cellElem = this._rowMap.get(mainRowModel)!;
 
     // The editor may dispose itself; the Holder will know to clear itself in this case.
-    const fieldEditor = FieldEditor.create(this._fieldEditorHolder, {
+    const fieldEditor = FieldEditor.create(holder, {
       gristDoc: this.gristDoc,
       field: this.field,
       cursor: this._cursor,
@@ -720,15 +719,13 @@ export class FieldBuilder extends Disposable {
       startVal: this._readonly.get() ? undefined : options.init, // don't start with initial value
       readonly: this._readonly.get() // readonly for editor will not be observable
     });
-
-    // Put the FieldEditor into a holder in GristDoc too. This way any existing FieldEditor (perhaps
-    // for another field, or for another BaseView) will get disposed at this time. The reason to
-    // still maintain a Holder in this FieldBuilder is mainly to match older behavior; changing that
-    // will entail a number of other tweaks related to the order of creating and disposal.
-    this.gristDoc.fieldEditorHolder.autoDispose(fieldEditor);
+    this._isEditorActive.set(true);
 
     // expose the active editor in a grist doc as an observable
-    fieldEditor.onDispose(() => this.gristDoc.activeEditor.set(null));
+    fieldEditor.onDispose(() => {
+      this._isEditorActive.set(false);
+      this.gristDoc.activeEditor.set(null);
+    });
     this.gristDoc.activeEditor.set(fieldEditor);
   }
 
@@ -742,11 +739,12 @@ export class FieldBuilder extends Disposable {
     if (editRow._isAddRow.peek() || this._readonly.get()) {
       return;
     }
+    const holder = this.gristDoc.fieldEditorHolder;
 
     const cell = editRow.cells[this.field.colId()];
     const value = cell && cell();
     if (gristTypes.isCensored(value)) {
-      this._fieldEditorHolder.clear();
+      holder.clear();
       return;
     }
 
@@ -770,7 +768,8 @@ export class FieldBuilder extends Disposable {
   }
 
   public isEditorActive() {
-    return !this._fieldEditorHolder.isEmpty();
+    const holder = this.gristDoc.fieldEditorHolder;
+    return !holder.isEmpty() && this._isEditorActive.get();
   }
 
   /**
@@ -782,19 +781,74 @@ export class FieldBuilder extends Disposable {
     editValue?: string,
     onSave?: (column: ColumnRec, formula: string) => Promise<void>,
     onCancel?: () => void) {
-    const editorHolder = openFormulaEditor({
+    // Remember position when the popup was opened.
+    const position = this.gristDoc.cursorPosition.get();
+
+    // Create a controller for the floating editor. It is primarily responsible for moving the editor
+    // dom from the place where it was rendered to the popup (and moving it back).
+    const floatController = {
+      attach: async (content: HTMLElement) => {
+        // If we haven't change page and the element is still in the DOM, move the editor to the
+        // back to where it was rendered. It still has it's content, so no need to dispose it.
+        if (refElem.isConnected) {
+          formulaEditor.attach(refElem);
+        } else {
+          // Else, we will navigate to the position we left off, dispose the editor and the content.
+          formulaEditor.dispose();
+          grainjsDom.domDispose(content);
+          await this.gristDoc.recursiveMoveToCursorPos(position!, true);
+        }
+      },
+      detach() {
+        return formulaEditor.detach();
+      },
+      autoDispose(el: Disposable) {
+        return formulaEditor.autoDispose(el);
+      },
+      dispose() {
+        formulaEditor.dispose();
+      }
+    };
+
+    // Create a custom cleanup method, that won't destroy us when we loose focus while being detached.
+    function setupEditorCleanup(
+      owner: MultiHolder, gristDoc: GristDoc,
+      editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
+    ) {
+      // Just override the behavior on focus lost.
+      const saveOnFocus = () => floatingExtension.active.get() ? void 0 : _saveEdit().catch(reportError);
+      UnsavedChange.create(owner, async () => { await saveOnFocus(); });
+      gristDoc.app.on('clipboard_focus', saveOnFocus);
+      owner.onDispose(() => {
+        gristDoc.app.off('clipboard_focus', saveOnFocus);
+        editingFormula(false);
+      });
+    }
+
+    // Get the field model from metatables, as the one provided by the caller might be some floating one, that
+    // will change when user navigates around.
+    const field = this.gristDoc.docModel.viewFields.getRowModel(this.field.getRowId());
+
+    // Finally create the editor passing only the field, which will enable detachable flavor of formula editor.
+    const formulaEditor = openFormulaEditor({
       gristDoc: this.gristDoc,
-      column: this.field.column(),
+      field,
       editingFormula: this.field.editingFormula,
       setupCleanup: setupEditorCleanup,
       editRow,
       refElem,
       editValue,
+      canDetach: true,
       onSave,
       onCancel
     });
+
+    // And now create the floating editor itself. It is just a floating wrapper that will grab the dom
+    // from the editor and show it in the popup. It also overrides various parts of Grist to make smoother experience.
+    const floatingExtension = FloatingEditor.create(formulaEditor, floatController, this.gristDoc);
+
     // Add editor to document holder - this will prevent multiple formula editor instances.
-    this.gristDoc.fieldEditorHolder.autoDispose(editorHolder);
+    this.gristDoc.fieldEditorHolder.autoDispose(formulaEditor);
   }
 }
 

@@ -1,5 +1,5 @@
 import * as commands from 'app/client/components/commands';
-import {Cursor} from 'app/client/components/Cursor';
+import {Cursor, CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {makeT} from 'app/client/lib/localization';
@@ -12,9 +12,10 @@ import {IEditorCommandGroup, NewBaseEditor} from 'app/client/widgets/NewBaseEdit
 import {asyncOnce} from "app/common/AsyncCreate";
 import {CellValue} from "app/common/DocActions";
 import * as gutil from 'app/common/gutil';
-import {Disposable, Emitter, Holder, MultiHolder} from 'grainjs';
-import isEqual = require('lodash/isEqual');
 import {CellPosition} from "app/client/components/CellPosition";
+import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
+import isEqual = require('lodash/isEqual');
+import {Disposable, dom, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
 
 type IEditorConstructor = typeof NewBaseEditor;
 
@@ -63,6 +64,7 @@ export class FieldEditor extends Disposable {
   public readonly saveEmitter = this.autoDispose(new Emitter());
   public readonly cancelEmitter = this.autoDispose(new Emitter());
   public readonly changeEmitter = this.autoDispose(new Emitter());
+  public floatingEditor: FloatingEditor;
 
   private _gristDoc: GristDoc;
   private _field: ViewFieldRec;
@@ -76,6 +78,8 @@ export class FieldEditor extends Disposable {
   private _editorHasChanged = false;
   private _isFormula = false;
   private _readonly = false;
+  private _detached = Observable.create(this, false);
+  private _detachedAt: CursorPos|null = null;
 
   constructor(options: {
     gristDoc: GristDoc,
@@ -154,6 +158,9 @@ export class FieldEditor extends Disposable {
 
     this.rebuildEditor(editValue, Number.POSITIVE_INFINITY, options.state);
 
+    // Create a floating editor, which will be used to display the editor in a popup.
+    this.floatingEditor = FloatingEditor.create(this, this, this._gristDoc);
+
     if (offerToMakeFormula) {
       this._offerToMakeFormula();
     }
@@ -162,9 +169,16 @@ export class FieldEditor extends Disposable {
     // when user or server refreshes the browser
     this._gristDoc.editorMonitor.monitorEditor(this);
 
+    // For detached editor, we don't need to cleanup anything.
+    // It will be cleanuped automatically.
+    const onCleanup = async () => {
+      if (this._detached.get()) { return; }
+      await this._saveEdit();
+    };
+
     // for readonly field we don't need to do anything special
     if (!options.readonly) {
-      setupEditorCleanup(this, this._gristDoc, this._field.editingFormula, this._saveEdit);
+      setupEditorCleanup(this, this._gristDoc, this._field.editingFormula, onCleanup);
     } else {
       setupReadonlyEditorCleanup(this, this._gristDoc, this._field, () => this._cancelEdit());
     }
@@ -190,7 +204,13 @@ export class FieldEditor extends Disposable {
       cellValue = cellCurrentValue;
     }
 
-    const error = getFormulaError(this._gristDoc, this._editRow, column);
+    const errorHolder = new MultiHolder();
+
+    const error = getFormulaError(errorHolder, {
+      gristDoc: this._gristDoc,
+      editRow: this._editRow,
+      field: this._field
+    });
 
     // For readonly mode use the default behavior of Formula Editor
     // TODO: cleanup this flag - it gets modified in too many places
@@ -198,9 +218,11 @@ export class FieldEditor extends Disposable {
       // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
       // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),
       // we defer this mode until the user types something.
-      this._field.editingFormula(this._isFormula && editValue !== undefined);
+      const active = this._isFormula && editValue !== undefined;
+      this._field.editingFormula(active);
     }
 
+    this._detached.set(false);
     this._editorHasChanged = false;
     // Replace the item in the Holder with a new one, disposing the previous one.
     const editor = this._editorHolder.autoDispose(editorCtor.create({
@@ -214,9 +236,12 @@ export class FieldEditor extends Disposable {
       editValue,
       cursorPos,
       state,
+      canDetach: true,
       commands: this._editCommands,
       readonly : this._readonly
     }));
+
+    editor.autoDispose(errorHolder);
 
     // if editor supports live changes, connect it to the change emitter
     if (editor.editorState) {
@@ -235,6 +260,28 @@ export class FieldEditor extends Disposable {
     editor.attach(this._cellElem);
   }
 
+  public detach() {
+    this._detached.set(true);
+    this._detachedAt = this._gristDoc.cursorPosition.get()!;
+    return this._editorHolder.get()!.detach()!;
+  }
+
+  public async attach(content: HTMLElement) {
+    // If we are disconnected from the dom (maybe page was changed or something), we can't
+    // simply attach the editor back, we need to rebuild it.
+    if (!this._cellElem.isConnected) {
+      dom.domDispose(content);
+      if (await this._gristDoc.recursiveMoveToCursorPos(this._detachedAt!, true)) {
+        await this._gristDoc.activateEditorAtCursor();
+      }
+      this.dispose();
+      return;
+    }
+    this._detached.set(false);
+    this._editorHolder.get()?.attach(this._cellElem);
+    this._field.viewSection.peek().hasFocus(true);
+  }
+
   public getDom() {
     return this._editorHolder.get()?.getDom();
   }
@@ -242,7 +289,7 @@ export class FieldEditor extends Disposable {
   // calculate current cell's absolute position
   public cellPosition() {
     const rowId = this._editRow.getRowId();
-    const colRef = this._field.colRef.peek();
+    const colRef = this._field.column.peek().origColRef.peek();
     const sectionId = this._field.viewSection.peek().id.peek();
     const position = {
       rowId,
@@ -344,7 +391,7 @@ export class FieldEditor extends Disposable {
           col.updateColValues({isFormula, formula}),
           // If we're saving a non-empty formula, then also add an empty record to the table
           // so that the formula calculation is visible to the user.
-          (this._editRow._isAddRow.peek() && formula !== "" ?
+          (!this._detached.get() && this._editRow._isAddRow.peek() && formula !== "" ?
             this._editRow.updateColValues({}) : undefined),
         ]));
       }

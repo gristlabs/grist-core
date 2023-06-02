@@ -33,7 +33,7 @@ export class NTextEditor extends NewBaseEditor {
         options.editValue, String(options.cellValue ?? ""));
     this.editorState = Observable.create<string>(this, initialValue);
 
-    this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
+    this.commandGroup = this.autoDispose(createGroup(options.commands, this, true));
     this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
     this._dom =
     dom('div.default_editor',

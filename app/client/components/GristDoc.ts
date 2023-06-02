@@ -28,7 +28,7 @@ import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
-import {reportError} from 'app/client/models/AppModel';
+import {AppModel, reportError} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
@@ -205,6 +205,7 @@ export class GristDoc extends DisposableWithEvents {
 
   constructor(
     public readonly app: App,
+    public readonly appModel: AppModel,
     public readonly docComm: DocComm,
     public readonly docPageModel: DocPageModel,
     openDocResponse: OpenLocalDocResult,
@@ -440,13 +441,7 @@ export class GristDoc extends DisposableWithEvents {
 
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
-      setCursor(rowModel: BaseRowModel, fieldModel?: ViewFieldRec) {
-        return this.setCursorPos({
-          rowIndex: rowModel?._index() || 0,
-          fieldIndex: fieldModel?._index() || 0,
-          sectionId: fieldModel?.viewSection().getRowId(),
-        });
-      },
+      setCursor: this.onSetCursorPos.bind(this),
     }, this, true));
 
     this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);
@@ -612,6 +607,14 @@ export class GristDoc extends DisposableWithEvents {
     const pos = { sectionId: this.viewModel.activeSectionId() };
     const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
     return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
+  }
+
+  public async onSetCursorPos(rowModel: BaseRowModel|undefined, fieldModel?: ViewFieldRec) {
+    return this.setCursorPos({
+      rowIndex: rowModel?._index() || 0,
+      fieldIndex: fieldModel?._index() || 0,
+      sectionId: fieldModel?.viewSection().getRowId(),
+    });
   }
 
   public async setCursorPos(cursorPos: CursorPos) {
@@ -1149,7 +1152,7 @@ export class GristDoc extends DisposableWithEvents {
    * Opens up an editor at cursor position
    * @param input Optional. Cell's initial value
    */
-  public async activateEditorAtCursor(options: { init?: string, state?: any}) {
+  public async activateEditorAtCursor(options?: { init?: string, state?: any}) {
     const view = await this._waitForView();
     view?.activateEditorAtCursor(options);
   }

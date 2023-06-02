@@ -200,7 +200,11 @@ export interface ChatMessage {
   /**
    * The formula returned from the AI. It is only set when the sender is the AI.
    */
-  formula?: string;
+  formula?: string|null;
+  /**
+   * Suggested actions returned from the AI.
+   */
+  action?: any;
 }
 
 /**

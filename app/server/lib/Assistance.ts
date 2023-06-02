@@ -238,9 +238,73 @@ export class HuggingFaceAssistant implements Assistant {
 }
 
 /**
+ * Test assistant that mimics ChatGPT and just returns the input.
+ */
+export class EchoAssistant implements Assistant {
+  public async apply(doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
+    const messages = request.state?.messages || [];
+    if (messages.length === 0) {
+      messages.push({
+        role: 'system',
+        content: ''
+      });
+      messages.push({
+        role: 'user', content: request.text,
+      });
+    } else {
+      if (request.regenerate) {
+        if (messages[messages.length - 1].role !== 'user') {
+          messages.pop();
+        }
+      }
+      messages.push({
+        role: 'user', content: request.text,
+      });
+    }
+    let completion = request.text;
+    const reply = completion;
+    const history = { messages };
+    history.messages.push({
+      role: 'assistant',
+      content: completion,
+    });
+    // This model likes returning markdown. Code will typically
+    // be in a code block with ``` delimiters.
+    let lines = completion.split('\n');
+    if (lines[0].startsWith('```')) {
+      lines.shift();
+      completion = lines.join('\n');
+      const parts = completion.split('```');
+      if (parts.length > 1) {
+        completion = parts[0];
+      }
+      lines = completion.split('\n');
+    }
+    // This model likes repeating the function signature and
+    // docstring, so we try to strip that out.
+    completion = lines.join('\n');
+    while (completion.includes('"""')) {
+      const parts = completion.split('"""');
+      completion = parts[parts.length - 1];
+    }
+
+    // If there's no code block, don't treat the answer as a formula.
+    if (!reply.includes('```')) {
+      completion = '';
+    }
+    const response = await completionToResponse(doc, request, completion, reply);
+    response.state = history;
+    return response;
+  }
+}
+
+/**
  * Instantiate an assistant, based on environment variables.
  */
 function getAssistant() {
+  if (process.env.OPENAI_API_KEY === 'test') {
+    return new EchoAssistant();
+  }
   if (process.env.OPENAI_API_KEY) {
     return new OpenAIAssistant();
   }

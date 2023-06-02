@@ -74,7 +74,7 @@ describe('DocTutorial', function () {
       await gu.skipWelcomeQuestions();
 
       // Make sure we have clean start.
-      await driver.executeScript('resetSeenPopups();');
+      await driver.executeScript('resetDismissedPopups();');
       await gu.waitForServer();
       await driver.navigate().refresh();
       await gu.waitForDocMenuToLoad();

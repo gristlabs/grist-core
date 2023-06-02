@@ -113,6 +113,7 @@ export type IconName = "ChartArea" |
   "ResizePanel" |
   "Revert" |
   "RightAlign" |
+  "Robot" |
   "Script" |
   "Search" |
   "Settings" |
@@ -254,6 +255,7 @@ export const IconList: IconName[] = ["ChartArea",
   "ResizePanel",
   "Revert",
   "RightAlign",
+  "Robot",
   "Script",
   "Search",
   "Settings",

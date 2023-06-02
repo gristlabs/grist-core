@@ -1,4 +1,5 @@
 import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
+import {commonUrls} from 'app/common/gristUrls';
 import * as ace from 'brace';
 
 export interface ICompletionOptions {
@@ -265,7 +266,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: TokenInfo[]):
 
   // Include into new tokens a special token that will be hidden, but include the link URL. On
   // click, we find it to know what URL to open.
-  const href = 'https://support.getgrist.com/functions/#' +
+  const href = `${commonUrls.functions}/#` +
     rowData.funcname.slice(linkStart, linkEnd).toLowerCase();
   newTokens.push({value: href, type: 'grist_link_hidden'});
 

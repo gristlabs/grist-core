@@ -303,6 +303,10 @@ export class EnvironmentSnapshot {
       }
     }
   }
+
+  public get(key: string): string|undefined {
+    return this._oldEnv[key];
+  }
 }
 
 export async function getBuildFile(relativePath: string): Promise<string> {

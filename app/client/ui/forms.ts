@@ -86,6 +86,7 @@ function resize(el: HTMLTextAreaElement) {
 export function autoGrow(text: Observable<string>) {
   return (el: HTMLTextAreaElement) => {
     el.addEventListener('input', () => resize(el));
+    dom.autoDisposeElem(el, text.addListener(() => resize(el)));
     setTimeout(() => resize(el), 10);
     dom.autoDisposeElem(el, text.addListener(val => {
       // Changes to the text are not reflected by the input event (witch is used by the autoGrow)

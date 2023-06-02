@@ -200,6 +200,7 @@ export class ConditionalStyle extends Disposable {
           editRow: vsi?.moveEditRowToCursor(),
           refElem,
           setupCleanup: setupEditorCleanup,
+          canDetach: false,
         });
         // Add editor to document holder - this will prevent multiple formula editor instances.
         this._gristDoc.fieldEditorHolder.autoDispose(editorHolder);

@@ -375,7 +375,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     const comparison = comparisonUrlId ?
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
 
-    const gristDoc = gdModule.GristDoc.create(flow, this._appObj, docComm, this, openDocResponse,
+    const gristDoc = gdModule.GristDoc.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
                                               this.appModel.topAppModel.plugins, {comparison});
 
     // Move ownership of docComm to GristDoc.

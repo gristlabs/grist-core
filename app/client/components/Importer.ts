@@ -31,8 +31,8 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {byteString} from 'app/common/gutil';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
-import {Computed, dom, DomContents, fromKo, Holder, IDisposable, MultiHolder, MutableObsArray, obsArray, Observable,
-        styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, fromKo, Holder, IDisposable,
+        MultiHolder, MutableObsArray, obsArray, Observable, styled} from 'grainjs';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
 import debounce = require('lodash/debounce');
@@ -824,6 +824,7 @@ export class Importer extends DisposableWithEvents {
       editingFormula: field.editingFormula,
       refElem,
       editRow,
+      canDetach: false,
       setupCleanup: this._setupFormulaEditorCleanup.bind(this),
       onSave: async (column, formula) => {
         if (formula === column.formula.peek()) { return; }
@@ -842,7 +843,7 @@ export class Importer extends DisposableWithEvents {
    * focus.
    */
   private _setupFormulaEditorCleanup(
-    owner: MultiHolder, _doc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
+    owner: Disposable, _doc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>
   ) {
     const saveEdit = () => _saveEdit().catch(reportError);
 

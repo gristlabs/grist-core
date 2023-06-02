@@ -135,9 +135,26 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // CSS class to add to formula cells, incl. to show that we are editing this field's formula.
   this.formulaCssClass = ko.pureComputed<string|null>(() => {
     const col = this.column();
-    return this.column().isTransforming() ? "transform_field" :
-      (this.editingFormula() ? "formula_field_edit" :
-        (col.isFormula() && col.formula() !== "" ? "formula_field" : null));
+
+    // If the current column is transforming, assign the CSS class "transform_field"
+    if (col.isTransforming()) {
+      if ( col.origCol().isFormula() && col.origCol().formula() !== "") {
+        return "transform_field formula_field";
+      }
+      return "transform_field";
+    }
+    // If the column is not transforming but a formula is being edited
+    else if (this.editingFormula()) {
+      return "formula_field_edit";
+    }
+    // If a formula exists and it is not empty
+    else if (col.isFormula() && col.formula() !== "") {
+      return "formula_field";
+    }
+    // If none of the above conditions are met, assign null
+    else {
+      return null;
+    }
   });
 
   // The fields's display column
