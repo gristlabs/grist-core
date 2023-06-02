@@ -4,6 +4,7 @@
  * By default, starts up on port 8484.
  */
 
+import {commonUrls} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
@@ -31,7 +32,7 @@ if (!process.env.GRIST_SINGLE_ORG) {
 }
 
 setDefaultEnv('GRIST_UI_FEATURES', 'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive');
-
+setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';
