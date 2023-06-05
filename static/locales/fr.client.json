@@ -19,7 +19,7 @@
         "Lookup Column": "Colonne cible",
         "Default Rules": "Règles par défaut",
         "Condition": "Condition",
-        "Permissions": "Permissions",
+        "Permissions": "Droits",
         "Rules for table ": "Règles pour la table ",
         "Add Column Rule": "Ajouter une règle de colonne",
         "Add Default Rule": "Ajouter une règle par défaut",
@@ -127,11 +127,14 @@
         "Duplicate rows_other": "Dupliquer les lignes",
         "Insert column to the right": "Insérer une colonne à droite",
         "Insert column to the left": "Insérer une colonne à gauche",
-        "Copy": "Copier"
+        "Copy": "Copier",
+        "Comment": "Commenter",
+        "Cut": "Couper",
+        "Paste": "Coller"
     },
     "ChartView": {
-        "Each Y series is followed by a series for the length of error bars.": "Each Y series is followed by a series for the length of error bars.",
-        "Each Y series is followed by two series, for top and bottom error bars.": "Each Y series is followed by two series, for top and bottom error bars.",
+        "Each Y series is followed by a series for the length of error bars.": "Chaque série Y est suivi par une série correspondant à la longueur des barres d'erreur.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Chaque série Y est suivie par deux séries, pour les barres d'erreur d'en haut et d'en bas.",
         "Create separate series for each value of the selected column.": "Créer une série séparée pour chaque valeur de la colonne sélectionnée.",
         "Pick a column": "Choisir une colonne",
         "selected new group data columns": "nouveau groupe de colonnes sélectionné",
@@ -180,8 +183,8 @@
         "Widget needs {{fullAccess}} to this document.": "Le widget a besoin de {{fullAccess}} à ce document.",
         "Widget needs to {{read}} the current table.": "Le widget a besoin de {{read}} la table actuelle.",
         "Widget does not require any permissions.": "La vue ne nécessite aucune autorisation.",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} non-{{columnType}} columns are not shown"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} colonnes non-{{columnType}} masquées",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} colonnes de type non-{{columnType}} masquées"
     },
     "DataTables": {
         "Raw Data Tables": "Données sources",
@@ -254,8 +257,8 @@
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document"
     },
     "DocTour": {
-        "No valid document tour": "No valid document tour",
-        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location."
+        "No valid document tour": "Visite de document invalide",
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Impossible de construire un index à partir des données de ce document. Assurez-vous qu'il y ai bien une table nommée GristDocTour, avec des colonnes Title, Body, Placement et Location."
     },
     "DocumentSettings": {
         "Document Settings": "Paramètres du document",
@@ -269,7 +272,9 @@
         "Save and Reload": "Enregistrer et recharger",
         "Document ID copied to clipboard": "Identifiant de document copié",
         "API": "API",
-        "Ok": "OK"
+        "Ok": "OK",
+        "Manage Webhooks": "Gérer les points d’ancrage Web",
+        "Webhooks": "Points d’ancrage Web"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -277,7 +282,7 @@
         "Data Size": "Taille des données",
         "Usage": "Utilisation",
         "Contact the site owner to upgrade the plan to raise limits.": "Contactez l’administrateur pour mettre à niveau le plan afin de relever les limites.",
-        "start your 30-day free trial of the Pro plan.": "start your 30-day free trial of the Pro plan.",
+        "start your 30-day free trial of the Pro plan.": "démarrer votre essai gratuit de 30 jours pour le plan Pro.",
         "For higher limits, ": "Pour des limites plus élevées, ",
         "Rows": "Lignes"
     },
@@ -300,10 +305,10 @@
         "Welcome to the Investment Research template": "Bienvenue sur le modèle de recherche d'investissements",
         "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Consulter le tutoriel associé pour apprendre à créer des tableaux récapitulatifs et des graphiques, et pour relier les graphiques de façon dynamique.",
         "Tutorial: Analyze & Visualize": "Tutoriel : analyser et visualiser",
-        "Afterschool Program": "Afterschool Program",
-        "Welcome to the Afterschool Program template": "Welcome to the Afterschool Program template",
+        "Afterschool Program": "Activités périscolaires",
+        "Welcome to the Afterschool Program template": "Bienvenu sur le modèle d'activités périscolaires",
         "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Consultez e tutoriel associé pour savoir comment modéliser des données d'entreprise, utiliser les formules et gérer la complexité.",
-        "Tutorial: Manage Business Data": "Tutorial: Manage Business Data"
+        "Tutorial: Manage Business Data": "Tutoriel : Gérer des données d'affaire"
     },
     "FieldConfig": {
         "COLUMN LABEL AND ID": "LABEL ET ID DE LA COLONNE",
@@ -383,7 +388,7 @@
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",
         "Added new linked section to view {{viewName}}": "Création d'une nouvelle section à la page {{viewName}}",
-        "Saved linked section {{title}} in view {{name}}": "Sauvegarder la section {{title}} dans la page {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Section liée {{title}} sauvegardée dans la page {{name}}"
     },
     "HomeIntro": {
         "Sign up": "S'inscrire",
@@ -965,7 +970,7 @@
         "relational": "relationnelles",
         "Access Rules": "Règles d'accès",
         "Learn more.": "En savoir plus.",
-        "They allow for one record to point (or refer) to another.": "Ils permettent à une entrée de pointer (ou de faire référence) à une autre entrée.",
+        "They allow for one record to point (or refer) to another.": "Ils permettent à un enregistrement de pointer (ou de faire référence) vers un autre.",
         "Add New": "Nouveau",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
@@ -990,5 +995,21 @@
     "PagePanels": {
         "Open Creator Panel": "Ouvrir le panneau de création",
         "Close Creator Panel": "Fermer le panneau de création"
+    },
+    "Clipboard": {
+        "Got it": "J'ai compris",
+        "Unavailable Command": "Commande non disponible"
+    },
+    "FieldContextMenu": {
+        "Clear field": "Effacer le champ",
+        "Copy": "Copier",
+        "Copy anchor link": "Copier un lien",
+        "Cut": "Couper",
+        "Hide field": "Masquer le champ",
+        "Paste": "Coller"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Effacer la file d'attente",
+        "Webhook Settings": "Paramètres des points d’ancrage Web"
     }
 }

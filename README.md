@@ -288,7 +288,7 @@ GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support power
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_USER_ROOT     | an extra path to look for plugins in.
 GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.
-GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest
+GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default `https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json` is used
 COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
 PORT                | port number to listen on for Grist server

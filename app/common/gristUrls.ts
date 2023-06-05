@@ -81,6 +81,7 @@ export const commonUrls = {
   basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
   gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
+  gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
 };
 
 /**
