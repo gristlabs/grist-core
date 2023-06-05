@@ -1009,5 +1009,26 @@
     "WebhookPage": {
         "Clear Queue": "Clear Queue",
         "Webhook Settings": "Webhook Settings"
+    },
+    "FormulaAssistant": {
+        "Ask the bot.": "Ask the bot.",
+        "Capabilities": "Capabilities",
+        "Community": "Community",
+        "Data": "Data",
+        "Formula Cheat Sheet": "Formula Cheat Sheet",
+        "Formula Help. ": "Formula Help. ",
+        "Function List": "Function List",
+        "Grist's AI Assistance": "Grist's AI Assistance",
+        "Grist's AI Formula Assistance. ": "Grist's AI Formula Assistance. ",
+        "Need help? Our AI assistant can help.": "Need help? Our AI assistant can help.",
+        "New Chat": "New Chat",
+        "Preview": "Preview",
+        "Regenerate": "Regenerate",
+        "Save": "Save",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.",
+        "Tips": "Tips"
+    },
+    "GridView": {
+        "Click to insert": "Click to insert"
     }
 }
