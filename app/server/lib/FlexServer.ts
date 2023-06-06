@@ -1,12 +1,12 @@
 import {ApiError} from 'app/common/ApiError';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
-import {encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState, isOrgInPathOnly,
-        parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
+import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
+        GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
+        sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
-import {TelemetryEventName, TelemetryEventNames} from 'app/common/Telemetry';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
@@ -57,7 +57,7 @@ import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
-import {TelemetryManager} from 'app/server/lib/TelemetryManager';
+import {ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
@@ -117,7 +117,9 @@ export class FlexServer implements GristServer {
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
   public readonly i18Instance: i18n;
+  private _activations: Activations;
   private _comm: Comm;
+  private _deploymentType: GristDeploymentType;
   private _dbManager: HomeDBManager;
   private _defaultBaseDomain: string|undefined;
   private _pluginUrl: string|undefined;
@@ -130,7 +132,7 @@ export class FlexServer implements GristServer {
   private _sessions: Sessions;
   private _sessionStore: SessionStore;
   private _storageManager: IDocStorageManager;
-  private _telemetryManager: TelemetryManager|undefined;
+  private _telemetry: ITelemetry;
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
   private _docWorkerMap: IDocWorkerMap;
   private _widgetRepository: IWidgetRepository;
@@ -198,6 +200,11 @@ export class FlexServer implements GristServer {
     fse.mkdirpSync(docsRoot);
     this.docsRoot = fse.realpathSync(docsRoot);
     this.info.push(['docsRoot', this.docsRoot]);
+
+    this._deploymentType = this.create.deploymentType();
+    if (process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE) {
+      this._deploymentType = GristDeploymentTypes.check(process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE);
+    }
 
     const homeUrl = process.env.APP_HOME_URL;
     // The "base domain" is only a thing if orgs are encoded as a subdomain.
@@ -328,9 +335,18 @@ export class FlexServer implements GristServer {
     return this._comm;
   }
 
+  public getDeploymentType(): GristDeploymentType {
+    return this._deploymentType;
+  }
+
   public getHosts(): Hosts {
     if (!this._hosts) { throw new Error('no hosts available'); }
     return this._hosts;
+  }
+
+  public getActivations(): Activations {
+    if (!this._activations) { throw new Error('no activations available'); }
+    return this._activations;
   }
 
   public getHomeDBManager(): HomeDBManager {
@@ -343,8 +359,9 @@ export class FlexServer implements GristServer {
     return this._storageManager;
   }
 
-  public getTelemetryManager(): TelemetryManager|undefined {
-    return this._telemetryManager;
+  public getTelemetry(): ITelemetry {
+    if (!this._telemetry) { throw new Error('no telemetry available'); }
+    return this._telemetry;
   }
 
   public getWidgetRepository(): IWidgetRepository {
@@ -553,8 +570,8 @@ export class FlexServer implements GristServer {
     // Report which database we are using, without sensitive credentials.
     this.info.push(['database', getDatabaseUrl(this._dbManager.connection.options, false)]);
     // If the installation appears to be new, give it an id and a creation date.
-    const activations = new Activations(this._dbManager);
-    await activations.current();
+    this._activations = new Activations(this._dbManager);
+    await this._activations.current();
   }
 
   public addDocWorkerMap() {
@@ -689,24 +706,14 @@ export class FlexServer implements GristServer {
     });
   }
 
-  public addTelemetryEndpoint() {
-    if (this._check('telemetry-endpoint', 'json', 'api-mw', 'homedb')) { return; }
+  public addTelemetry() {
+    if (this._check('telemetry', 'homedb', 'json', 'api-mw')) { return; }
 
-    this._telemetryManager = new TelemetryManager(this._dbManager);
+    this._telemetry = this.create.Telemetry(this._dbManager, this);
+    this._telemetry.addEndpoints(this.app);
 
     // Start up a monitor for memory and cpu usage.
-    this._processMonitorStop = ProcessMonitor.start(this._telemetryManager);
-
-    this.app.post('/api/telemetry', async (req, resp) => {
-      const mreq = req as RequestWithLogin;
-      const name = stringParam(req.body.name, 'name', TelemetryEventNames);
-      this._telemetryManager?.logEvent(name as TelemetryEventName, {
-        userId: mreq.userId,
-        altSessionId: mreq.altSessionId,
-        ...req.body.metadata,
-      });
-      return resp.status(200).send();
-    });
+    this._processMonitorStop = ProcessMonitor.start(this._telemetry);
   }
 
   public async close() {
@@ -828,7 +835,7 @@ export class FlexServer implements GristServer {
 
     // Initialize _sendAppPage helper.
     this._sendAppPage = makeSendAppPage({
-      server: isSingleUserMode() ? null : this,
+      server: this,
       staticDir: getAppPathTo(this.appRoot, 'static'),
       tag: this.tag,
       testLogin: allowTestLogin(),
@@ -1108,7 +1115,7 @@ export class FlexServer implements GristServer {
   // Add document-related endpoints and related support.
   public async addDoc() {
     this._check('doc', 'start', 'tag', 'json', isSingleUserMode() ?
-      null : 'homedb', 'api-mw', 'map', 'telemetry-endpoint');
+      null : 'homedb', 'api-mw', 'map', 'telemetry');
     // add handlers for cleanup, if we are in charge of the doc manager.
     if (!this._docManager) { this.addCleanup(); }
     await this.loadConfig();
@@ -1368,7 +1375,11 @@ export class FlexServer implements GristServer {
   }
 
   public getGristConfig(): GristLoadConfig {
-    return makeGristConfig(this.getDefaultHomeUrl(), {}, this._defaultBaseDomain);
+    return makeGristConfig({
+      homeUrl: this.getDefaultHomeUrl(),
+      extra: {},
+      baseDomain: this._defaultBaseDomain,
+    });
   }
 
   /**

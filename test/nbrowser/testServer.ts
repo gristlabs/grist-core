@@ -205,7 +205,11 @@ export class TestServerMerged implements IMochaServer {
     }
     const state: IGristUrlState = { org: team };
     const baseDomain = parseSubdomain(new URL(this.getHost()).hostname).base;
-    const gristConfig = makeGristConfig(this.getHost(), {}, baseDomain);
+    const gristConfig = makeGristConfig({
+      homeUrl: this.getHost(),
+      extra: {},
+      baseDomain,
+    });
     const url = encodeUrl(gristConfig, state, new URL(this.getHost())).replace(/\/$/, "");
     return `${url}${relPath}`;
   }

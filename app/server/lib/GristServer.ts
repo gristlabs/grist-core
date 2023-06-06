@@ -1,8 +1,9 @@
-import { GristLoadConfig } from 'app/common/gristUrls';
+import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Workspace } from 'app/gen-server/entity/Workspace';
+import { Activations } from 'app/gen-server/lib/Activations';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
@@ -16,7 +17,7 @@ import { IPermitStore } from 'app/server/lib/Permit';
 import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Sessions } from 'app/server/lib/Sessions';
-import { TelemetryManager } from 'app/server/lib/TelemetryManager';
+import { ITelemetry } from 'app/server/lib/Telemetry';
 import * as express from 'express';
 import { IncomingMessage } from 'http';
 
@@ -40,10 +41,12 @@ export interface GristServer {
   getExternalPermitStore(): IPermitStore;
   getSessions(): Sessions;
   getComm(): Comm;
+  getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
+  getActivations(): Activations;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
-  getTelemetryManager(): TelemetryManager|undefined;
+  getTelemetry(): ITelemetry;
   getNotifier(): INotifier;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -117,14 +120,24 @@ export function createDummyGristServer(): GristServer {
     getResourceUrl() { return Promise.resolve(''); },
     getSessions() { throw new Error('no sessions'); },
     getComm() { throw new Error('no comms'); },
+    getDeploymentType() { return 'core'; },
     getHosts() { throw new Error('no hosts'); },
+    getActivations() { throw new Error('no activations'); },
     getHomeDBManager() { throw new Error('no db'); },
     getStorageManager() { throw new Error('no storage manager'); },
-    getTelemetryManager() { return undefined; },
+    getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
     getDocTemplate() { throw new Error('no doc template'); },
     getTag() { return 'tag'; },
     sendAppPage() { return Promise.resolve(); },
     getAccessTokens() { throw new Error('no access tokens'); },
+  };
+}
+
+export function createDummyTelemetry(): ITelemetry {
+  return {
+    logEvent() { return Promise.resolve(); },
+    addEndpoints() { /* do nothing */ },
+    getTelemetryLevel() { return 'off'; },
   };
 }

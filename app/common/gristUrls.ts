@@ -4,6 +4,7 @@ import {EngineCode} from 'app/common/DocumentSettings';
 import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
+import {TelemetryLevel} from 'app/common/Telemetry';
 import {UIRowId} from 'app/common/UIRowId';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
@@ -627,6 +628,12 @@ export interface GristLoadConfig {
 
   // Current user locale, read from the user options;
   userLocale?: string;
+
+  // Telemetry config.
+  telemetry?: TelemetryConfig;
+
+  // The Grist deployment type (e.g. core, enterprise).
+  deploymentType?: GristDeploymentType;
 }
 
 export const Features = StringUnion(
@@ -647,6 +654,13 @@ export function isFeatureEnabled(feature: IFeature): boolean {
 export function getPageTitleSuffix(config?: GristLoadConfig) {
   return config?.pageTitleSuffix ?? " - Grist";
 }
+
+export interface TelemetryConfig {
+  telemetryLevel: TelemetryLevel;
+}
+
+export const GristDeploymentTypes = StringUnion('saas', 'core', 'enterprise', 'electron', 'static');
+export type GristDeploymentType = typeof GristDeploymentTypes.type;
 
 /**
  * For a packaged version of Grist that requires activation, this

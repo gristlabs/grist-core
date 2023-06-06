@@ -89,13 +89,13 @@ export const NotifierEvents = StringUnion(
 
 export type NotifierEvent = typeof NotifierEvents.type;
 
-export const TelemetryEvents = StringUnion(
-  'tutorialProgressChange',
+export const HomeDBTelemetryEvents = StringUnion(
+  'tutorialProgressChanged',
 );
 
-export type TelemetryEvent = typeof TelemetryEvents.type;
+export type HomeDBTelemetryEvent = typeof HomeDBTelemetryEvents.type;
 
-export type Event = NotifierEvent | TelemetryEvent;
+export type Event = NotifierEvent | HomeDBTelemetryEvent;
 
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';

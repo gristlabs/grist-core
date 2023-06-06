@@ -164,12 +164,14 @@ export class Document extends Resource {
     const percentComplete = lastSlideIndex !== undefined && numSlides !== undefined
       ? Math.floor((lastSlideIndex / numSlides) * 100)
       : undefined;
-    dbManager?.emit('tutorialProgressChange', {
-      tutorialForkIdDigest: hashId(this.id),
-      tutorialTrunkIdDigest: this.trunkId ? hashId(this.trunkId) : undefined,
-      lastSlideIndex,
-      numSlides,
-      percentComplete,
+    dbManager?.emit('tutorialProgressChanged', {
+      full: {
+        tutorialForkIdDigest: hashId(this.id),
+        tutorialTrunkIdDigest: this.trunkId ? hashId(this.trunkId) : undefined,
+        lastSlideIndex,
+        numSlides,
+        percentComplete,
+      },
     });
   }
 }

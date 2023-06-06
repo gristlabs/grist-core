@@ -11,7 +11,7 @@ import {getSlugIfNeeded, parseSubdomainStrictly, parseUrlId} from 'app/common/gr
 import {removeTrailingSlash} from 'app/common/gutil';
 import {hashId} from 'app/common/hashingUtils';
 import {LocalPlugin} from "app/common/plugin";
-import {TelemetryTemplateSignupCookieName} from 'app/common/Telemetry';
+import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
 import {Document as APIDocument} from 'app/common/UserAPI';
 import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
@@ -308,18 +308,23 @@ export function attachAppEndpoint(options: AttachOptions): void {
     // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
     const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
     if (isPublic || isTemplate) {
-      gristServer.getTelemetryManager()?.logEvent('documentOpened', {
-        docIdDigest: hashId(docId),
-        siteId: doc.workspace.org.id,
-        siteType: doc.workspace.org.billingAccount.product.name,
-        userId: mreq.userId,
-        altSessionId: mreq.altSessionId,
-        access: doc.access,
-        isPublic,
-        isSnapshot,
-        isTemplate,
-        lastUpdated: doc.updatedAt,
-      });
+      gristServer.getTelemetry().logEvent('documentOpened', {
+        limited: {
+          docIdDigest: hashId(docId),
+          access: doc.access,
+          isPublic,
+          isSnapshot,
+          isTemplate,
+          lastUpdated: doc.updatedAt,
+        },
+        full: {
+          siteId: doc.workspace.org.id,
+          siteType: doc.workspace.org.billingAccount.product.name,
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      })
+      .catch(e => log.error('failed to log telemetry event documentOpened', e));
     }
 
     if (isTemplate) {
@@ -330,7 +335,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
         isAnonymous: isAnonymousUser(mreq),
         templateId: docId,
       };
-      res.cookie(TelemetryTemplateSignupCookieName, JSON.stringify(value), {
+      res.cookie(TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME, JSON.stringify(value), {
         maxAge: 1000 * 60 * 60,
         httpOnly: true,
         path: '/',

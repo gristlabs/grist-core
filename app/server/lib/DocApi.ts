@@ -916,8 +916,10 @@ export class DocWorkerApi {
           });
           const {forkId} = parseUrlId(scope.urlId);
           activeDoc.logTelemetryEvent(docSession, 'tutorialRestarted', {
-            tutorialForkIdDigest: forkId ? hashId(forkId) : undefined,
-            tutorialTrunkIdDigest: hashId(tutorialTrunkId),
+            full: {
+              tutorialForkIdDigest: forkId ? hashId(forkId) : undefined,
+              tutorialTrunkIdDigest: hashId(tutorialTrunkId),
+            },
           });
         }
       }

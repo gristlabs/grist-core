@@ -74,7 +74,7 @@ import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
-import {TelemetryEventName} from 'app/common/Telemetry';
+import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {UIRowId} from 'app/common/UIRowId';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {Document as APIDocument, DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
@@ -1395,11 +1395,13 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
       const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
       this.logTelemetryEvent(docSession, 'documentForked', {
-        forkIdDigest: hashId(forkIds.forkId),
-        forkDocIdDigest: hashId(forkIds.docId),
-        trunkIdDigest: doc.trunkId ? hashId(doc.trunkId) : undefined,
-        isTemplate,
-        lastActivity: doc.updatedAt,
+        limited: {
+          forkIdDigest: hashId(forkIds.forkId),
+          forkDocIdDigest: hashId(forkIds.docId),
+          trunkIdDigest: doc.trunkId ? hashId(doc.trunkId) : undefined,
+          isTemplate,
+          lastActivity: doc.updatedAt,
+        },
       });
     } finally {
       await permitStore.removePermit(permitKey);
@@ -1789,13 +1791,14 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
 
   public logTelemetryEvent(
     docSession: OptDocSession | null,
-    eventName: TelemetryEventName,
-    metadata?: Record<string, any>
+    event: TelemetryEvent,
+    metadata?: TelemetryMetadataByLevel
   ) {
-    this._docManager.gristServer.getTelemetryManager()?.logEvent(eventName, {
-      ...this._getTelemetryMeta(docSession),
-      ...metadata,
-    });
+    this._docManager.gristServer.getTelemetry().logEvent(event, merge(
+      this._getTelemetryMeta(docSession),
+      metadata,
+    ))
+    .catch(e => this._log.error(docSession, `failed to log telemetry event ${event}`, e));
   }
 
   /**
@@ -2332,18 +2335,20 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
 
   private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval'| 'docClose') {
     this.logTelemetryEvent(docSession, 'documentUsage', {
-      triggeredBy,
-      isPublic: ((this._doc as unknown) as APIDocument)?.public ?? false,
-      rowCount: this._docUsage?.rowCount?.total,
-      dataSizeBytes: this._docUsage?.dataSizeBytes,
-      attachmentsSize: this._docUsage?.attachmentsSizeBytes,
-      ...this._getAccessRuleMetrics(),
-      ...this._getAttachmentMetrics(),
-      ...this._getChartMetrics(),
-      ...this._getWidgetMetrics(),
-      ...this._getColumnMetrics(),
-      ...this._getTableMetrics(),
-      ...this._getCustomWidgetMetrics(),
+      limited: {
+        triggeredBy,
+        isPublic: ((this._doc as unknown) as APIDocument)?.public ?? false,
+        rowCount: this._docUsage?.rowCount?.total,
+        dataSizeBytes: this._docUsage?.dataSizeBytes,
+        attachmentsSize: this._docUsage?.attachmentsSizeBytes,
+        ...this._getAccessRuleMetrics(),
+        ...this._getAttachmentMetrics(),
+        ...this._getChartMetrics(),
+        ...this._getWidgetMetrics(),
+        ...this._getColumnMetrics(),
+        ...this._getTableMetrics(),
+        ...this._getCustomWidgetMetrics(),
+      },
     });
   }
 
@@ -2365,10 +2370,10 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       // Exclude the leading ".", if any.
       .map(r => r.fileExt?.trim()?.slice(1))
       .filter(ext => Boolean(ext));
-
+    const uniqueAttachmentTypes = [...new Set(attachmentTypes ?? [])];
     return {
       numAttachments,
-      attachmentTypes,
+      attachmentTypes: uniqueAttachmentTypes,
     };
   }
 
@@ -2528,15 +2533,19 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
     this._logDocMetrics(docSession, 'docOpen');
   }
 
-  private _getTelemetryMeta(docSession: OptDocSession|null) {
+  private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
     const altSessionId = docSession ? getDocSessionAltSessionId(docSession) : undefined;
     return merge(
       docSession ? getTelemetryMetaFromDocSession(docSession) : {},
-      altSessionId ? {altSessionId} : undefined,
+      altSessionId ? {altSessionId} : {},
       {
-        docIdDigest: hashId(this._docName),
-        siteId: this._doc?.workspace.org.id,
-        siteType: this._product?.name,
+        limited: {
+          docIdDigest: hashId(this._docName),
+        },
+        full: {
+          siteId: this._doc?.workspace.org.id,
+          siteType: this._product?.name,
+        },
       },
     );
   }

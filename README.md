@@ -285,6 +285,7 @@ GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
 GRIST_HELP_CENTER | set the help center link ref
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
+GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_USER_ROOT     | an extra path to look for plugins in.
 GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.

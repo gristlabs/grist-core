@@ -1,7 +1,6 @@
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
-import {buildUserMenuBillingItem} from 'app/client/ui/BillingButtons';
 import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
@@ -16,6 +15,7 @@ import {Disposable, dom, DomElementArg, styled} from 'grainjs';
 import {cssMenuItem} from 'popweasel';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 import {makeT} from 'app/client/lib/localization';
+import {getGristConfig} from 'app/common/urlUtils';
 
 const t = makeT('AccountWidget');
 
@@ -98,7 +98,8 @@ export class AccountWidget extends Disposable {
         // Don't show on doc pages, or for personal orgs.
         null),
 
-      buildUserMenuBillingItem(this._appModel),
+      this._maybeBuildBillingPageMenuItem(),
+      this._maybeBuildActivationPageMenuItem(),
 
       mobileModeToggle,
 
@@ -140,6 +141,33 @@ export class AccountWidget extends Disposable {
       return;
     }
     this._appModel.topAppModel.initialize();
+  }
+
+  private _maybeBuildBillingPageMenuItem() {
+    const {deploymentType} = getGristConfig();
+    if (deploymentType !== 'saas') { return null; }
+
+    const {currentValidUser, currentOrg, isTeamSite} = this._appModel;
+    const isBillingManager = Boolean(currentOrg && currentOrg.billingAccount &&
+      (currentOrg.billingAccount.isManager || currentValidUser?.isSupport));
+
+    return isTeamSite ?
+      // For links, disabling with just a class is hard; easier to just not make it a link.
+      // TODO weasel menus should support disabling menuItemLink.
+      (isBillingManager ?
+        menuItemLink(urlState().setLinkUrl({billing: 'billing'}), 'Billing Account') :
+        menuItem(() => null, 'Billing Account', dom.cls('disabled', true))
+      ) :
+      menuItem(() => this._appModel.showUpgradeModal(), 'Upgrade Plan');
+  }
+
+  private _maybeBuildActivationPageMenuItem() {
+    const {activation, deploymentType} = getGristConfig();
+    if (deploymentType !== 'enterprise' || !activation?.isManager) {
+      return null;
+    }
+
+    return menuItemLink('Activation', urlState().setLinkUrl({activation: 'activation'}));
   }
 }
 

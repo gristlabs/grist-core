@@ -3,7 +3,7 @@ import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
-import {isAnonymousUser, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
@@ -31,9 +31,16 @@ export interface ISendAppPageOptions {
   googleTagManager?: true | false | 'anon';
 }
 
-export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadConfig>,
-                                baseDomain?: string, req?: express.Request
-): GristLoadConfig {
+export interface MakeGristConfigOptons {
+  homeUrl: string|null;
+  extra: Partial<GristLoadConfig>;
+  baseDomain?: string;
+  req?: express.Request;
+  server?: GristServer|null;
+}
+
+export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig {
+  const {homeUrl, extra, baseDomain, req, server} = options;
   // .invalid is a TLD the IETF promises will never exist.
   const pluginUrl = process.env.APP_UNTRUSTED_URL || 'http://plugins.invalid';
   const pathOnly = (process.env.GRIST_ORG_IN_PATH === "true") ||
@@ -69,6 +76,8 @@ export function makeGristConfig(homeUrl: string|null, extra: Partial<GristLoadCo
     featureFormulaAssistant: isAffirmative(process.env.GRIST_FORMULA_ASSISTANT),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
+    telemetry: server ? getTelemetryConfig(server) : undefined,
+    deploymentType: server?.getDeploymentType(),
     ...extra,
   };
 }
@@ -94,14 +103,18 @@ export function makeMessagePage(staticDir: string) {
  * placeholders replaced.
  */
 export function makeSendAppPage(opts: {
-  server: GristServer|null, staticDir: string, tag: string, testLogin?: boolean,
+  server: GristServer, staticDir: string, tag: string, testLogin?: boolean,
   baseDomain?: string
 }) {
   const {server, staticDir, tag, testLogin} = opts;
   return async (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => {
-    // .invalid is a TLD the IETF promises will never exist.
-    const config = makeGristConfig(server ? server.getHomeUrl(req) : null, options.config,
-      opts.baseDomain, req);
+      const config = makeGristConfig({
+        homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
+        extra: options.config,
+        baseDomain: opts.baseDomain,
+        req,
+        server,
+      });
 
     // We could cache file contents in memory, but the filesystem does caching too, and compared
     // to that, the performance gain is unlikely to be meaningful. So keep it simple here.
@@ -112,7 +125,7 @@ export function makeSendAppPage(opts: {
     const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
     const staticOrigin = process.env.APP_STATIC_URL || "";
     const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
-    const customHeadHtmlSnippet = server?.create.getExtraHeadHtml?.() ?? "";
+    const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.
     const preloads = req.languages
@@ -127,7 +140,7 @@ export function makeSendAppPage(opts: {
       .replace("<!-- INSERT WARNING -->", warning)
       .replace("<!-- INSERT TITLE -->", getPageTitle(req, config))
       .replace("<!-- INSERT META -->", getPageMetadataHtmlSnippet(config))
-      .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server?.getGristConfig()))
+      .replace("<!-- INSERT TITLE SUFFIX -->", getPageTitleSuffix(server.getGristConfig()))
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT LOCALE -->", preloads)
       .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
@@ -148,6 +161,13 @@ function getFeatures(): IFeature[] {
   const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(',') ?? [];
   const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(',') ?? Features.values;
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
+}
+
+function getTelemetryConfig(server: GristServer) {
+  const telemetry = server.getTelemetry();
+  return {
+    telemetryLevel: telemetry.getTelemetryLevel(),
+  };
 }
 
 function configuredPageTitleSuffix() {

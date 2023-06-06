@@ -1,19 +1,22 @@
+import {GristDeploymentType} from 'app/common/gristUrls';
 import {getThemeBackgroundSnippet} from 'app/common/Themes';
 import {Document} from 'app/gen-server/entity/Document';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
-import {GristServer} from 'app/server/lib/GristServer';
+import {createDummyTelemetry, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
 import {INotifier} from 'app/server/lib/INotifier';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
+import {ITelemetry} from 'app/server/lib/Telemetry';
 
 export interface ICreate {
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
   Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
+  Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Shell?(): IShell;  // relevant to electron version of Grist only.
 
   // Create a space to store files externally, for storing either:
@@ -25,6 +28,7 @@ export interface ICreate {
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
+  deploymentType(): GristDeploymentType;
   sessionSecret(): string;
   // Check configuration of the app early enough to show on startup.
   configure?(): Promise<void>;
@@ -57,19 +61,26 @@ export interface ICreateBillingOptions {
   create(dbManager: HomeDBManager, gristConfig: GristServer): IBilling|undefined;
 }
 
+export interface ICreateTelemetryOptions {
+  create(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry|undefined;
+}
+
 export function makeSimpleCreator(opts: {
+  deploymentType: GristDeploymentType,
   sessionSecret?: string,
   storage?: ICreateStorageOptions[],
   billing?: ICreateBillingOptions,
   notifier?: ICreateNotifierOptions,
+  telemetry?: ICreateTelemetryOptions,
   sandboxFlavor?: string,
   shell?: IShell,
   getExtraHeadHtml?: () => string,
   getSqliteVariant?: () => SqliteVariant,
   getSandboxVariants?: () => Record<string, SpawnFn>,
 }): ICreate {
-  const {sessionSecret, storage, notifier, billing} = opts;
+  const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
   return {
+    deploymentType() { return deploymentType; },
     Billing(dbManager, gristConfig) {
       return billing?.create(dbManager, gristConfig) ?? {
         addEndpoints() { /* do nothing */ },
@@ -92,6 +103,9 @@ export function makeSimpleCreator(opts: {
         }
       }
       return undefined;
+    },
+    Telemetry(dbManager, gristConfig) {
+      return telemetry?.create(dbManager, gristConfig) ?? createDummyTelemetry();
     },
     NSandbox(options) {
       return createSandbox(opts.sandboxFlavor || 'unsandboxed', options);

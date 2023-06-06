@@ -37,6 +37,7 @@ export class Housekeeper {
   private _deleteTrashinterval?: NodeJS.Timeout;
   private _logMetricsInterval?: NodeJS.Timeout;
   private _electionKey?: string;
+  private _telemetry = this._server.getTelemetry();
 
   public constructor(private _dbManager: HomeDBManager, private _server: GristServer,
                      private _permitStore: IPermitStore, private _electionStore: IElectionStore) {
@@ -174,30 +175,37 @@ export class Housekeeper {
    */
   public async logMetrics() {
     await this._dbManager.connection.transaction('READ UNCOMMITTED', async (manager) => {
-      const telemetryManager = this._server.getTelemetryManager();
       const usageSummaries = await this._getOrgUsageSummaries(manager);
       for (const summary of usageSummaries) {
-        telemetryManager?.logEvent('siteUsage', {
-          siteId: summary.site_id,
-          siteType: summary.site_type,
-          inGoodStanding: Boolean(summary.in_good_standing),
-          stripePlanId: summary.stripe_plan_id,
-          numDocs: Number(summary.num_docs),
-          numWorkspaces: Number(summary.num_workspaces),
-          numMembers: Number(summary.num_members),
-          lastActivity: summary.last_activity,
-        });
+        this._telemetry.logEvent('siteUsage', {
+          limited: {
+            siteId: summary.site_id,
+            siteType: summary.site_type,
+            inGoodStanding: Boolean(summary.in_good_standing),
+            numDocs: Number(summary.num_docs),
+            numWorkspaces: Number(summary.num_workspaces),
+            numMembers: Number(summary.num_members),
+            lastActivity: summary.last_activity,
+          },
+          full: {
+            stripePlanId: summary.stripe_plan_id,
+          },
+        })
+        .catch(e => log.error('failed to log telemetry event siteUsage', e));
       }
 
       const membershipSummaries = await this._getOrgMembershipSummaries(manager);
       for (const summary of membershipSummaries) {
-        telemetryManager?.logEvent('siteMembership', {
-          siteId: summary.site_id,
-          siteType: summary.site_type,
-          numOwners: Number(summary.num_owners),
-          numEditors: Number(summary.num_editors),
-          numViewers: Number(summary.num_viewers),
-        });
+        this._telemetry.logEvent('siteMembership', {
+          limited: {
+            siteId: summary.site_id,
+            siteType: summary.site_type,
+            numOwners: Number(summary.num_owners),
+            numEditors: Number(summary.num_editors),
+            numViewers: Number(summary.num_viewers),
+          },
+        })
+        .catch(e => log.error('failed to log telemetry event siteMembership', e));
       }
     });
   }

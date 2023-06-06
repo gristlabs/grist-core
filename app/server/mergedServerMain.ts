@@ -119,19 +119,19 @@ export async function main(port: number, serverTypes: ServerType[],
     server.addHomeApi();
     server.addBillingApi();
     server.addNotifier();
+    server.addTelemetry();
     await server.addHousekeeper();
     await server.addLoginRoutes();
     server.addAccountPage();
     server.addBillingPages();
     server.addWelcomePaths();
     server.addLogEndpoint();
-    server.addTelemetryEndpoint();
     server.addGoogleAuthEndpoint();
   }
 
   if (includeDocs) {
     server.addJsonSupport();
-    server.addTelemetryEndpoint();
+    server.addTelemetry();
     await server.addDoc();
   }
 

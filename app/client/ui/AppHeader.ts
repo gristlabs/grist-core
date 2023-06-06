@@ -1,5 +1,4 @@
 import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
-import {buildAppMenuBillingItem} from 'app/client/ui/BillingButtons';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -14,6 +13,7 @@ import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
 import {BindableValue, Disposable, dom, DomContents, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import {getGristConfig} from 'app/common/urlUtils';
 
 const t = makeT('AppHeader');
 
@@ -71,7 +71,8 @@ export class AppHeader extends Disposable {
             // Don't show on doc pages, or for personal orgs.
             null),
 
-          buildAppMenuBillingItem(this._appModel, testId('orgmenu-billing')),
+          this._maybeBuildBillingPageMenuItem(),
+          this._maybeBuildActivationPageMenuItem(),
 
           maybeAddSiteSwitcherSection(this._appModel),
         ], { placement: 'bottom-start' }),
@@ -87,6 +88,40 @@ export class AppHeader extends Disposable {
     } else {
       return {href: getWelcomeHomeUrl()};
     }
+  }
+
+  private _maybeBuildBillingPageMenuItem() {
+    const {deploymentType} = getGristConfig();
+    if (deploymentType !== 'saas') { return null; }
+
+    const {currentOrg} = this._appModel;
+    const isBillingManager = this._appModel.isBillingManager() || this._appModel.isSupport();
+    return currentOrg && !currentOrg.owner ?
+      // For links, disabling with just a class is hard; easier to just not make it a link.
+      // TODO weasel menus should support disabling menuItemLink.
+      (isBillingManager
+        ? menuItemLink(
+          urlState().setLinkUrl({billing: 'billing'}),
+          'Billing Account',
+          testId('orgmenu-billing'),
+        )
+        : menuItem(
+          () => null,
+          'Billing Account',
+          dom.cls('disabled', true),
+          testId('orgmenu-billing'),
+        )
+      ) :
+      null;
+  }
+
+  private _maybeBuildActivationPageMenuItem() {
+    const {activation, deploymentType} = getGristConfig();
+    if (deploymentType !== 'enterprise' || !activation?.isManager) {
+      return null;
+    }
+
+    return menuItemLink('Activation', urlState().setLinkUrl({activation: 'activation'}));
   }
 }
 

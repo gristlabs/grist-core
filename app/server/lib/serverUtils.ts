@@ -7,6 +7,7 @@ import uuidv4 from 'uuid/v4';
 import {AbortSignal} from 'node-abort-controller';
 
 import {EngineCode} from 'app/common/DocumentSettings';
+import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import log from 'app/server/lib/log';
 import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import {getDocSessionAccessOrNull, getDocSessionUser, OptDocSession} from './DocSession';
@@ -166,14 +167,18 @@ export function getLogMetaFromDocSession(docSession: OptDocSession) {
 /**
  * Extract telemetry metadata from session.
  */
-export function getTelemetryMetaFromDocSession(docSession: OptDocSession) {
+export function getTelemetryMetaFromDocSession(docSession: OptDocSession): TelemetryMetadataByLevel {
   const client = docSession.client;
   const access = getDocSessionAccessOrNull(docSession);
   const user = getDocSessionUser(docSession);
   return {
-    access,
-    ...(user ? {userId: user.id} : {}),
-    ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
+    limited: {
+      access,
+    },
+    full: {
+      ...(user ? {userId: user.id} : {}),
+      ...(client ? client.getFullTelemetryMeta() : {}),   // Client if present will repeat and add to user info.
+    },
   };
 }
 

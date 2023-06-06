@@ -37,7 +37,7 @@ const VIDEO_TOUR_YOUTUBE_EMBED_ID = 'qnr2Pfnxdlc';
         if (youtubePlayer.isLoading()) { return; }
 
         logTelemetryEvent('watchedVideoTour', {
-          watchTimeSeconds: Math.floor(youtubePlayer.getCurrentTime()),
+          limited: {watchTimeSeconds: Math.floor(youtubePlayer.getCurrentTime())},
         });
       });
 

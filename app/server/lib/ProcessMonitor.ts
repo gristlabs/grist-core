@@ -1,4 +1,5 @@
-import { TelemetryManager } from 'app/server/lib/TelemetryManager';
+import log from 'app/server/lib/log';
+import { ITelemetry } from 'app/server/lib/Telemetry';
 
 const MONITOR_PERIOD_MS = 5_000;        // take a look at memory usage this often
 const MEMORY_DELTA_FRACTION = 0.1;      // fraction by which usage should change to get reported
@@ -16,7 +17,7 @@ let _lastReportedCpuAverage: number = 0;
  * Monitor process memory (heap) and CPU usage, reporting as telemetry on an interval, and more
  * often when usage ticks up or down by a big enough delta.
  *
- * There is a single global process monitor, reporting to the telemetryManager passed into the
+ * There is a single global process monitor, reporting to the `telemetry` object passed into the
  * first call to start().
  *
  * Returns a function that stops the monitor, or null if there was already a process monitor
@@ -30,12 +31,12 @@ let _lastReportedCpuAverage: number = 0;
  *  - intervalMs:   Interval (in milliseconds) over which cpuAverage is reported. Being much
  *                  higher than MONITOR_PERIOD_MS is a sign of being CPU bound for that long.
  */
-export function start(telemetryManager: TelemetryManager): (() => void) | undefined {
+export function start(telemetry: ITelemetry): (() => void) | undefined {
   if (!_timer) {
     // Initialize variables needed for accurate first-tick measurement.
     _lastTickTime = Date.now();
     _lastCpuUsage = process.cpuUsage();
-    _timer = setInterval(() => monitor(telemetryManager), MONITOR_PERIOD_MS);
+    _timer = setInterval(() => monitor(telemetry), MONITOR_PERIOD_MS);
 
     return function stop() {
       clearInterval(_timer);
@@ -44,7 +45,7 @@ export function start(telemetryManager: TelemetryManager): (() => void) | undefi
   }
 }
 
-function monitor(telemetryManager: TelemetryManager) {
+function monitor(telemetry: ITelemetry) {
   const memoryUsage = process.memoryUsage();
   const heapUsed = memoryUsage.heapUsed;
   const cpuUsage = process.cpuUsage();
@@ -66,12 +67,15 @@ function monitor(telemetryManager: TelemetryManager) {
     Math.abs(heapUsed - _lastReportedHeapUsed) > _lastReportedHeapUsed * MEMORY_DELTA_FRACTION ||
     Math.abs(cpuAverage - _lastReportedCpuAverage) > CPU_DELTA_FRACTION
   ) {
-    telemetryManager.logEvent('processMonitor', {
-      heapUsedMB: Math.round(memoryUsage.heapUsed/1024/1024),
-      heapTotalMB: Math.round(memoryUsage.heapTotal/1024/1024),
-      cpuAverage: Math.round(cpuAverage * 100) / 100,
-      intervalMs,
-    });
+    telemetry.logEvent('processMonitor', {
+      full: {
+        heapUsedMB: Math.round(memoryUsage.heapUsed/1024/1024),
+        heapTotalMB: Math.round(memoryUsage.heapTotal/1024/1024),
+        cpuAverage: Math.round(cpuAverage * 100) / 100,
+        intervalMs,
+      },
+    })
+    .catch(e => log.error('failed to log telemetry event processMonitor', e));
     _lastReportedHeapUsed = heapUsed;
     _lastReportedCpuAverage = cpuAverage;
     _lastReportTime = now;

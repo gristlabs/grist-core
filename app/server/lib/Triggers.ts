@@ -630,7 +630,7 @@ export class DocTriggers {
         meta = {numEvents: batch.length, webhookId: id, host: new URL(url).host};
         this._log("Sending batch of webhook events", meta);
         this._activeDoc.logTelemetryEvent(null, 'sendingWebhooks', {
-          numEvents: batch.length,
+          limited: {numEvents: meta.numEvents},
         });
         success = await this._sendWebhookWithRetries(id, url, body, batch.length, this._loopAbort.signal);
         if (this._loopAbort.signal.aborted) {

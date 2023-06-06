@@ -4,6 +4,7 @@ import {delay} from 'app/common/delay';
 import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'app/common/CommTypes';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {TelemetryMetadata} from 'app/common/Telemetry';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
@@ -433,8 +434,8 @@ export class Client {
     return meta;
   }
 
-  public getFullTelemetryMeta() {
-    const meta: Record<string, any> = {};
+  public getFullTelemetryMeta(): TelemetryMetadata {
+    const meta: TelemetryMetadata = {};
     // We assume the _userId has already been cached, which will be true always (for all practical
     // purposes) because it's set when the Authorizer checks this client.
     if (this._userId) { meta.userId = this._userId; }
