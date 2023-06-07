@@ -1,0 +1,14 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*.{ts,js}]
+end_of_line = lf
+insert_final_newline = false
+charset = utf-8
+# indent with 2 spaces
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
