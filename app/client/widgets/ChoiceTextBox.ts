@@ -46,10 +46,13 @@ export class ChoiceTextBox extends NTextBox {
 
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId()];
+    const isSingle = this.field.viewSection().parentKey() === "single";
+    const maybeDropDownCssChoiceEditIcon = isSingle ? cssChoiceEditIcon('Dropdown') : null;
+
     return cssChoiceField(
       cssChoiceTextWrapper(
         dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
-        cssChoiceEditIcon('Dropdown'),
+        maybeDropDownCssChoiceEditIcon,
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }
 
@@ -156,9 +159,6 @@ const cssChoiceText = styled('div', `
 
 const cssChoiceEditIcon = styled(icon, `
   background-color: ${colors.slate};
-  display: none;
-  .g_record_detail_value & {
-    display: block;
-    height: inherit;
-  }
+  display: block;
+  height: inherit;
 `);
