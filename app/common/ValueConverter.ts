@@ -10,6 +10,7 @@ import {
   ValueParser
 } from 'app/common/ValueParser';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
+import { TableDataActionSet } from "./DocActions";
 
 
 /**
@@ -192,22 +193,26 @@ export function createConverter(formatter: BaseFormatter, parser: ValueParser) {
  * The higher order function separates docData (passed by ActiveDoc)
  * from the arguments passed to call_external in Python.
  */
-export function convertFromColumn(docData: DocData) {
-  return function(
-    sourceColRef: number,
-    type: string,
-    widgetOpts: string,
-    visibleColRef: number,
-    values: ReadonlyArray<CellValue>,
-    displayColValues?: ReadonlyArray<CellValue>,
-  ): CellValue[] {
-    const formatter = createFullFormatterFromDocData(docData, sourceColRef);
-    const parser = createParserRaw(
-      ...createParserOrFormatterArgumentsRaw(docData, type, widgetOpts, visibleColRef)
-    );
-    const converter = createConverter(formatter, parser);
-    return convertValues(converter, values, displayColValues || values);
-  };
+export function convertFromColumn(
+  metaTables: TableDataActionSet,
+  sourceColRef: number,
+  type: string,
+  widgetOpts: string,
+  visibleColRef: number,
+  values: ReadonlyArray<CellValue>,
+  displayColValues?: ReadonlyArray<CellValue>,
+): CellValue[] {
+  const docData = new DocData(
+    (_tableId) => { throw new Error("Unexpected DocData fetch"); },
+    metaTables,
+  );
+
+  const formatter = createFullFormatterFromDocData(docData, sourceColRef);
+  const parser = createParserRaw(
+    ...createParserOrFormatterArgumentsRaw(docData, type, widgetOpts, visibleColRef)
+  );
+  const converter = createConverter(formatter, parser);
+  return convertValues(converter, values, displayColValues || values);
 }
 
 export function convertValues(

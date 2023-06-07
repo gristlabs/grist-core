@@ -79,7 +79,7 @@ import {UIRowId} from 'app/common/UIRowId';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {Document as APIDocument, DocReplacementOptions, DocState, DocStateComparison} from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
-import {guessColInfoWithDocData} from 'app/common/ValueGuesser';
+import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from 'app/gen-server/entity/Document';
@@ -2637,10 +2637,8 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       sandboxOptions: {
         exports: {
           request: (key: string, args: SandboxRequest) => this._requests.handleSingleRequestWithCache(key, args),
-          guessColInfo: (values: Array<string | null>) =>
-            guessColInfoWithDocData(values, this.docData!),
-          convertFromColumn: (...args: Parameters<ReturnType<typeof convertFromColumn>>) =>
-            convertFromColumn(this.docData!)(...args)
+          guessColInfo,
+          convertFromColumn,
         }
       },
     });

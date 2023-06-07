@@ -139,7 +139,7 @@ def _make_clean_col_info(col_info, col_id=None):
   return ret
 
 
-def guess_col_info(values):
+def guess_col_info(values, doc_model):
   """
   Returns a pair col_info, values
   where col_info is a dict which may contain a type and widgetOptions
@@ -154,7 +154,12 @@ def guess_col_info(values):
     # Use the exported guessColInfo if we're connected to JS
     from sandbox import default_sandbox
     if default_sandbox:
-      guess = default_sandbox.call_external("guessColInfo", values)
+      doc_info = doc_model.doc_info.lookupOne()
+      try:
+        doc_settings = json.loads(doc_info.documentSettings)
+      except ValueError:
+        doc_settings = {}
+      guess = default_sandbox.call_external("guessColInfo", values, doc_settings, doc_info.timezone)
       # When the result doesn't contain `values`, that means the guessed type is Text
       # so there was nothing to convert.
       values = guess.get("values", values)
@@ -906,7 +911,7 @@ class UserActions(object):
         # Guess the type when it starts out as Any. We unfortunately need to update the column
         # separately for type conversion, to recompute type-specific defaults
         # before they are used in formula->data conversion.
-        col_info, values = guess_col_info(values)
+        col_info, values = guess_col_info(values, self._docmodel)
         # If the values are all blank (None or empty string) leave the column empty
         if not col_info:
           return values
@@ -1555,8 +1560,20 @@ class UserActions(object):
     if src_col.displayCol:
       display_col = table.get_column(src_col.displayCol.colId)
       display_values = [encode_object(display_col.raw_get(r)) for r in row_ids]
+    meta_table_data = {
+      meta_table_id: actions.get_action_repr(
+        self._engine.fetch_table(meta_table_id, formulas=False)
+      )
+      for meta_table_id in [
+        "_grist_DocInfo",
+        "_grist_Tables",
+        "_grist_Tables_column",
+        "_grist_Views_section_field"
+      ]
+    }
     converted_values = call_external(
       "convertFromColumn",
+      meta_table_data,
       src_col.id,
       typ,
       widgetOptions,
