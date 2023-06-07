@@ -733,7 +733,7 @@ GridView.prototype.renameColumn = function(index) {
 };
 
 GridView.prototype.scrollPaneRight = function() {
-  this.scrollPane.scrollLeft = Number.MAX_SAFE_INTEGER;
+  this.scrollPane.scrollLeft = this.scrollPane.scrollWidth;
 };
 
 GridView.prototype.selectColumn = function(colIndex) {
@@ -958,8 +958,13 @@ GridView.prototype.buildDom = function() {
 
   var renameCommands = {
     nextField: function() {
-      editIndex(editIndex() + 1);
-      self.selectColumn(editIndex.peek());
+      if (editIndex() === v.viewFields().peekLength - 1) {
+        // Turn off editing if we're on the last field.
+        editIndex(-1);
+      } else {
+        editIndex(editIndex() + 1);
+        self.selectColumn(editIndex.peek());
+      }
     },
     prevField: function() {
       editIndex(editIndex() - 1);

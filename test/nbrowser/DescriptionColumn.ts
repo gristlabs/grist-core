@@ -364,6 +364,23 @@ describe('DescriptionColumn', function() {
     await revert();
   });
 
+  it('should reopen editor when adding new column', async () => {
+    // This partially worked before - there was a bug where if you pressed tab on
+    // the last column, and then clicked Add Column, the editor wasn't shown, and the
+    // auto-generated column name was used.
+    const revert = await gu.begin();
+    await doubleClickHeader('E');
+    await gu.sendKeys(Key.TAB);
+    assert.isFalse(await popupVisible());
+
+    await addColumn();
+    assert.isTrue(await popupVisible());
+
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitForServer();
+    await revert();
+  });
+
   it('should support basic edition on CardList', async () => {
     const mainSession = await gu.session().teamSite.login();
     const api = mainSession.createHomeApi();
