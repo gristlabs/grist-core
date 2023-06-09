@@ -1,3 +1,4 @@
+import { Level, TelemetryContracts } from 'app/common/Telemetry';
 import { version } from 'app/common/version';
 import { synchronizeProducts } from 'app/gen-server/entity/Product';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
@@ -5,6 +6,7 @@ import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
 import { getMigrations, getOrCreateConnection, getTypeORMSettings,
          undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
 import { getDatabaseUrl } from 'app/server/lib/serverUtils';
+import { getTelemetryLevel } from 'app/server/lib/Telemetry';
 import { Gristifier } from 'app/server/utils/gristify';
 import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
 import * as commander from 'commander';
@@ -43,6 +45,7 @@ export function getProgram(): commander.Command {
 
   addDbCommand(program, {nested: true});
   addHistoryCommand(program, {nested: true});
+  addSettingsCommand(program, {nested: true});
   addSiteCommand(program, {nested: true});
   addSqliteCommand(program);
   addVersionCommand(program);
@@ -61,6 +64,88 @@ export function addHistoryCommand(program: commander.Command, options: CommandOp
     .description('remove all but last N actions from doc')
     .argument('[N]', 'number of actions to keep', parseIntForCommander, 1)
     .action(pruneActionHistory);
+}
+
+// Add commands for general configuration
+export function addSettingsCommand(program: commander.Command,
+                                   options: CommandOptions) {
+  const sub = section(program, {
+    sectionName: 'settings',
+    sectionDescription: 'general configuration',
+    ...options
+  });
+  sub('telemetry')
+    .description('show telemetry settings')
+    .option('--json', 'show telemetry levels as json')
+    .option('--all', 'show all telemetry levels')
+    .action(showTelemetry);
+}
+
+function showTelemetry(options: {
+  json?: boolean,
+  all?: boolean,
+}) {
+  const contracts = TelemetryContracts;
+  const levelName = getTelemetryLevel();
+  const level = Level[levelName];
+  if (options.json) {
+    console.log(JSON.stringify({
+      contracts,
+      currentLevel: level,
+      currentLevelName: levelName,
+    }, null, 2));
+  } else {
+    if (options.all) {
+      console.log("# All telemetry levels");
+      console.log("");
+      for (const iLevel of [Level.off, Level.limited, Level.full]) {
+        describeTelemetryLevel(iLevel, '#');
+        console.log("");
+        showTelemetryAtLevel(iLevel, '##');
+        console.log("");
+      }
+    } else {
+      describeTelemetryLevel(level, '');
+      console.log("");
+      showTelemetryAtLevel(level, '#');
+    }
+  }
+}
+
+function describeTelemetryLevel(level: Level, nesting: ''|'#') {
+  switch (level) {
+    case Level.off:
+      console.log(nesting + "# Telemetry level: off");
+      console.log("No telemetry is recorded or transmitted.");
+      break;
+    case Level.limited:
+      console.log(nesting + "# Telemetry level: limited");
+      console.log("This is a telemetry level appropriate for self-hosting instances of Grist.");
+      console.log("Data is transmitted to Grist Labs.");
+      break;
+    case Level.full:
+      console.log(nesting + "# Telemetry level: full");
+      console.log("This is a telemetry level appropriate for internal use by a hosted service, with");
+      console.log("`GRIST_TELEMETRY_URL` set to an endpoint controlled by the operator of the service.");
+      break;
+  }
+}
+
+function showTelemetryAtLevel(level: Level, nesting: ''|'#'|'##') {
+  const contracts = TelemetryContracts;
+  for (const [name, contract] of Object.entries(contracts)) {
+    if (contract.minimumTelemetryLevel > level) { continue; }
+    console.log(nesting + "# " + name);
+    console.log(contract.description);
+    console.log("");
+    console.log("| Field | Type | Description |");
+    console.log("| ----- | ---- | ----------- |");
+    for (const [fieldName, metadata] of Object.entries(contract.metadataContracts || {})) {
+      if ((metadata.minimumTelemetryLevel || 0) > level) { continue; }
+      console.log("| " + fieldName + " | " + metadata.dataType + " | " + metadata.description + " |");
+    }
+    console.log("");
+  }
 }
 
 // Add commands related to sites:

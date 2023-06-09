@@ -162,11 +162,9 @@ export class Telemetry implements ITelemetry {
   }
 
   private async _initialize() {
+    this._telemetryLevel = getTelemetryLevel();
     if (process.env.GRIST_TELEMETRY_LEVEL !== undefined) {
-      this._telemetryLevel = TelemetryLevels.check(process.env.GRIST_TELEMETRY_LEVEL);
       this._checkTelemetryEvent = buildTelemetryEventChecker(this._telemetryLevel);
-    } else {
-      this._telemetryLevel = 'off';
     }
 
     const {id} = await this._gristServer.getActivations().current();
@@ -216,5 +214,13 @@ export class Telemetry implements ITelemetry {
       },
       body: payload,
     });
+  }
+}
+
+export function getTelemetryLevel(): TelemetryLevel {
+  if (process.env.GRIST_TELEMETRY_LEVEL !== undefined) {
+    return TelemetryLevels.check(process.env.GRIST_TELEMETRY_LEVEL);
+  } else {
+    return 'off';
   }
 }
