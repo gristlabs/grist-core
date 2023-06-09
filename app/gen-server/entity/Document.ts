@@ -130,12 +130,12 @@ export class Document extends Resource {
             this.options.tutorial = null;
           } else {
             this.options.tutorial = this.options.tutorial || {};
-            if (props.options.tutorial.lastSlideIndex !== undefined) {
-              this.options.tutorial.lastSlideIndex = props.options.tutorial.lastSlideIndex;
-            }
             if (props.options.tutorial.numSlides !== undefined) {
               this.options.tutorial.numSlides = props.options.tutorial.numSlides;
-              if (dbManager && props.options?.tutorial?.lastSlideIndex !== undefined) {
+            }
+            if (props.options.tutorial.lastSlideIndex !== undefined) {
+              this.options.tutorial.lastSlideIndex = props.options.tutorial.lastSlideIndex;
+              if (dbManager && this.options.tutorial.numSlides) {
                 this._emitTutorialProgressChangeEvent(dbManager, this.options.tutorial);
               }
             }

@@ -1,5 +1,5 @@
 import {GristDeploymentType} from 'app/common/gristUrls';
-import {TelemetryEvent, TelemetryLevel, TelemetryMetadata} from 'app/common/Telemetry';
+import {TelemetryEvent, TelemetryLevel} from 'app/common/Telemetry';
 import {ILogMeta, LogMethods} from 'app/server/lib/LogMethods';
 import {ITelemetry, Telemetry} from 'app/server/lib/Telemetry';
 import axios from 'axios';
@@ -27,10 +27,11 @@ describe('Telemetry', function() {
       let installationId: string;
       let server: TestServer;
       let telemetry: ITelemetry;
+      let forwardEventSpy: sinon.SinonSpy;
+      let postJsonPayloadStub: sinon.SinonStub;
 
       const sandbox = sinon.createSandbox();
       const loggedEvents: [TelemetryEvent, ILogMeta][] = [];
-      const forwardedEvents: [TelemetryEvent, TelemetryMetadata | undefined][] = [];
 
       before(async function() {
         process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = deploymentType;
@@ -43,11 +44,10 @@ describe('Telemetry', function() {
           .callsFake((_level: string, _info: unknown, name: string, meta: ILogMeta) => {
             loggedEvents.push([name as TelemetryEvent, meta]);
           });
-        sandbox
-          .stub(Telemetry.prototype, 'forwardEvent')
-          .callsFake((event: TelemetryEvent, metadata?: TelemetryMetadata) => {
-            forwardedEvents.push([event, metadata]);
-          });
+        forwardEventSpy = sandbox
+          .spy(Telemetry.prototype as any, '_forwardEvent');
+        postJsonPayloadStub = sandbox
+          .stub(Telemetry.prototype as any, '_postJsonPayload');
         telemetry = server.server.getTelemetry();
       });
 
@@ -106,7 +106,7 @@ describe('Telemetry', function() {
             }
 
             assert.equal(loggedEvents.length, 1);
-            assert.isEmpty(forwardedEvents);
+            assert.equal(forwardEventSpy.callCount, 0);
           });
         } else {
           it('forwards telemetry events', async function() {
@@ -117,7 +117,7 @@ describe('Telemetry', function() {
                   isPublic: false,
                 },
               });
-              assert.deepEqual(forwardedEvents[forwardedEvents.length - 1], [
+              assert.deepEqual(forwardEventSpy.lastCall.args, [
                 'documentOpened',
                 {
                   docIdDigest: 'digest',
@@ -136,7 +136,7 @@ describe('Telemetry', function() {
                   userId: 1,
                 },
               });
-              assert.deepEqual(forwardedEvents[forwardedEvents.length - 1], [
+              assert.deepEqual(forwardEventSpy.lastCall.args, [
                 'documentOpened',
                 {
                   docIdDigest: 'digest',
@@ -146,7 +146,7 @@ describe('Telemetry', function() {
               ]);
             }
 
-            assert.equal(forwardedEvents.length, 1);
+            assert.equal(forwardEventSpy.callCount, 1);
             assert.isEmpty(loggedEvents);
           });
         }
@@ -159,7 +159,7 @@ describe('Telemetry', function() {
             },
           });
           assert.isEmpty(loggedEvents);
-          assert.isEmpty(forwardedEvents);
+          assert.equal(forwardEventSpy.callCount, 0);
         });
       }
 
@@ -231,7 +231,7 @@ describe('Telemetry', function() {
               assert.equal(loggedEvents.length, 3);
               assert.equal(loggedEvents[1][0], 'apiUsage');
             }
-            assert.isEmpty(forwardedEvents);
+            assert.equal(forwardEventSpy.callCount, 0);
           });
 
           if (telemetryLevel === 'limited') {
@@ -256,7 +256,7 @@ describe('Telemetry', function() {
               assert.equal(metadata.watchTimeSeconds, 60);
               assert.equal(metadata.userId, 123);
               assert.equal(loggedEvents.length, 3);
-              assert.isEmpty(forwardedEvents);
+              assert.equal(forwardEventSpy.callCount, 0);
             });
           }
         } else {
@@ -267,7 +267,7 @@ describe('Telemetry', function() {
                 limited: {watchTimeSeconds: 30},
               },
             }, chimpy);
-            const [event, metadata] = forwardedEvents[forwardedEvents.length - 1];
+            const [event, metadata] = forwardEventSpy.lastCall.args;
             assert.equal(event, 'watchedVideoTour');
             if (telemetryLevel === 'limited') {
               assert.deepEqual(metadata, {
@@ -283,25 +283,48 @@ describe('Telemetry', function() {
                 'userId',
                 'altSessionId',
               ]);
-              assert.equal(metadata!.watchTimeSeconds, 30);
-              assert.equal(metadata!.userId, 1);
+              assert.equal(metadata.watchTimeSeconds, 30);
+              assert.equal(metadata.userId, 1);
             }
 
             if (telemetryLevel === 'limited') {
-              assert.equal(forwardedEvents.length, 2);
+              assert.equal(forwardEventSpy.callCount, 2);
             } else {
               // The POST above also triggers an "apiUsage" event.
-              assert.equal(forwardedEvents.length, 3);
-              assert.equal(forwardedEvents[1][0], 'apiUsage');
+              assert.equal(forwardEventSpy.callCount, 3);
+              assert.equal(forwardEventSpy.secondCall.args[0], 'apiUsage');
             }
             assert.isEmpty(loggedEvents);
+          });
+
+          it('skips forwarding events if too many requests are pending', async function() {
+            let numRequestsMade = 0;
+            postJsonPayloadStub.callsFake(async () => {
+              numRequestsMade += 1;
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            });
+            forwardEventSpy.resetHistory();
+
+            // Log enough events simultaneously to cause some to be skipped. (The limit is 25.)
+            for (let i = 0; i < 30; i++) {
+              void telemetry.logEvent('documentOpened', {
+                limited: {
+                  docIdDigest: 'digest',
+                  isPublic: false,
+                },
+              });
+            }
+
+            // Check that out of the 30 forwardEvent calls, only 25 made POST requests.
+            assert.equal(forwardEventSpy.callCount, 30);
+            assert.equal(numRequestsMade, 25);
           });
         }
       } else {
         it('does not log telemetry events sent to /api/telemetry', async function() {
           await telemetry.logEvent('apiUsage', {limited: {method: 'GET'}});
           assert.isEmpty(loggedEvents);
-          assert.isEmpty(forwardedEvents);
+          assert.equal(forwardEventSpy.callCount, 0);
         });
       }
     });

@@ -906,6 +906,7 @@ export class DocWorkerApi {
                 name: tutorialTrunk.name,
                 options: {
                   tutorial: {
+                    ...tutorialTrunk.options?.tutorial,
                     // For now, the only state we need to reset is the slide position.
                     lastSlideIndex: 0,
                   },

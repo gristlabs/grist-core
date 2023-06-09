@@ -23,764 +23,546 @@ export enum Level {
  * level.
  */
 export const TelemetryContracts: TelemetryContracts = {
-  /**
-   * Triggered when an HTTP request with an API key is made.
-   */
   apiUsage: {
+    description: 'Triggered when an HTTP request with an API key is made.',
     minimumTelemetryLevel: Level.full,
     metadataContracts: {
-      /**
-       * The HTTP request method (e.g. GET, POST, PUT).
-       */
       method: {
+        description: 'The HTTP request method (e.g. GET, POST, PUT).',
         dataType: 'string',
       },
-      /**
-       * The id of the user that triggered this event.
-       */
       userId: {
+        description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
-      /**
-       * The User-Agent HTTP request header.
-       */
       userAgent: {
+        description: 'The User-Agent HTTP request header.',
         dataType: 'string',
       },
     },
   },
-  /**
-   * Triggered when HelpScout Beacon is opened.
-   */
   beaconOpen: {
+    description: 'Triggered when HelpScout Beacon is opened.',
     minimumTelemetryLevel: Level.full,
     metadataContracts: {
-      /**
-       * The id of the user that triggered this event.
-       */
       userId: {
+        description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
       altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
         dataType: 'string',
       },
     },
   },
-  /**
-   * Triggered when an article is opened in HelpScout Beacon.
-   */
   beaconArticleViewed: {
+    description: 'Triggered when an article is opened in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
     metadataContracts: {
-      /**
-       * The id of the article.
-       */
       articleId: {
+        description: 'The id of the article.',
         dataType: 'string',
       },
-      /**
-       * The id of the user that triggered this event.
-       */
       userId: {
+        description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
       altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
         dataType: 'string',
       },
     },
   },
-  /**
-   * Triggered when an email is sent in HelpScout Beacon.
-   */
   beaconEmailSent: {
+    description: 'Triggered when an email is sent in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
     metadataContracts: {
-      /**
-       * The id of the user that triggered this event.
-       */
       userId: {
+        description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
       altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
         dataType: 'string',
       },
     },
   },
-  /**
-   * Triggered when a search is made in HelpScout Beacon.
-   */
   beaconSearch: {
+    description: 'Triggered when a search is made in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
     metadataContracts: {
-      /**
-       * The search query.
-       */
       searchQuery: {
+        description: 'The search query.',
         dataType: 'string',
       },
-      /**
-       * The id of the user that triggered this event.
-       */
       userId: {
+        description: 'The id of the user that triggered this event.',
         dataType: 'number',
       },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
       altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
         dataType: 'string',
       },
     },
   },
-  /**
-   * Triggered when a document is forked.
-   */
   documentForked: {
+    description: 'Triggered when a document is forked.',
     minimumTelemetryLevel: Level.limited,
     metadataContracts: {
-      /**
-       * A hash of the doc id.
-       */
       docIdDigest: {
+        description: 'A hash of the doc id.',
         dataType: 'string',
       },
-      /**
-       * The id of the site containing the forked document.
-       */
       siteId: {
+        description: 'The id of the site containing the forked document.',
         dataType: 'number',
         minimumTelemetryLevel: Level.full,
       },
-      /**
-       * The type of the site.
-       */
       siteType: {
+        description: 'The type of the site.',
         dataType: 'string',
         minimumTelemetryLevel: Level.full,
       },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
       altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
         dataType: 'string',
         minimumTelemetryLevel: Level.full,
       },
-      /**
-       * The id of the user that triggered this event.
-       */
-      userId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * A hash of the fork id.
-       */
-      forkIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * A hash of the full id of the fork, including the trunk id and fork id.
-       */
-      forkDocIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * A hash of the trunk id.
-       */
-      trunkIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * Whether the trunk is a template.
-       */
-      isTemplate: {
-        dataType: 'boolean',
-      },
-      /**
-       * Timestamp of the last update to the trunk document.
-       */
-      lastActivity: {
-        dataType: 'date',
-      },
-    },
-  },
-  /**
-   * Triggered when a public document or template is opened.
-   */
-  documentOpened: {
-    minimumTelemetryLevel: Level.limited,
-    metadataContracts: {
-      /**
-       * A hash of the doc id.
-       */
-      docIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * The site id.
-       */
-      siteId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The site type.
-       */
-      siteType: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The id of the user that triggered this event.
-       */
-      userId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
-      altSessionId: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The document access level of the user that triggered this event.
-       */
       access: {
-        dataType: 'boolean',
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
       },
-      /**
-       * Whether the document is public.
-       */
-      isPublic: {
-        dataType: 'boolean',
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
       },
-      /**
-       * Whether a snapshot was opened.
-       */
-      isSnapshot: {
-        dataType: 'boolean',
+      forkIdDigest: {
+        description: 'A hash of the fork id.',
+        dataType: 'string',
       },
-      /**
-       * Whether the document is a template.
-       */
+      forkDocIdDigest: {
+        description: 'A hash of the full id of the fork, including the trunk id and fork id.',
+        dataType: 'string',
+      },
+      trunkIdDigest: {
+        description: 'A hash of the trunk id.',
+        dataType: 'string',
+      },
       isTemplate: {
+        description: 'Whether the trunk is a template.',
         dataType: 'boolean',
       },
-      /**
-       * Timestamp of when the document was last updated.
-       */
-      lastUpdated: {
-        dataType: 'date',
-      },
-    },
-  },
-  /**
-   * Triggered on doc open and close, as well as hourly while a document is open.
-   */
-  documentUsage: {
-    minimumTelemetryLevel: Level.limited,
-    metadataContracts: {
-      /**
-       * A hash of the doc id.
-       */
-      docIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * The site id.
-       */
-      siteId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The site type.
-       */
-      siteType: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
-      altSessionId: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The id of the user that triggered this event.
-       */
-      userId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * What caused this event to trigger.
-       *
-       * May be either "docOpen", "interval", or "docClose".
-       */
-      triggeredBy: {
-        dataType: 'string',
-      },
-      /**
-       * Whether the document is public.
-       */
-      isPublic: {
-        dataType: 'boolean',
-      },
-      /**
-       * The number of rows in the document.
-       */
-      rowCount: {
-        dataType: 'number',
-      },
-      /**
-       * The total size of all data in the document, excluding attachments.
-       */
-      dataSizeBytes: {
-        dataType: 'number',
-      },
-      /**
-       * The total size of all attachments in the document.
-       */
-      attachmentsSize: {
-        dataType: 'number',
-      },
-      /**
-       * The number of access rules in the document.
-       */
-      numAccessRules: {
-        dataType: 'number',
-      },
-      /**
-       * The number of user attributes in the document.
-       */
-      numUserAttributes: {
-        dataType: 'number',
-      },
-      /**
-       * The number of attachments in the document.
-       */
-      numAttachments: {
-        dataType: 'number',
-      },
-      /**
-       * A list of unique file extensions compiled from all of the document's attachments.
-       */
-      attachmentTypes: {
-        dataType: 'string[]',
-      },
-      /**
-       * The number of charts in the document.
-       */
-      numCharts: {
-        dataType: 'number',
-      },
-      /**
-       * A list of chart types of every chart in the document.
-       */
-      chartTypes: {
-        dataType: 'string[]',
-      },
-      /**
-       * The number of linked charts in the document.
-       */
-      numLinkedCharts: {
-        dataType: 'number',
-      },
-      /**
-       * The number of linked widgets in the document.
-       */
-      numLinkedWidgets: {
-        dataType: 'number',
-      },
-      /**
-       * The number of columns in the document.
-       */
-      numColumns: {
-        dataType: 'number',
-      },
-      /**
-       * The number of columns with conditional formatting in the document.
-       */
-      numColumnsWithConditionalFormatting: {
-        dataType: 'number',
-      },
-      /**
-       * The number of formula columns in the document.
-       */
-      numFormulaColumns: {
-        dataType: 'number',
-      },
-      /**
-       * The number of trigger formula columns in the document.
-       */
-      numTriggerFormulaColumns: {
-        dataType: 'number',
-      },
-      /**
-       * The number of summary formula columns in the document.
-       */
-      numSummaryFormulaColumns: {
-        dataType: 'number',
-      },
-      /**
-       * The number of fields with conditional formatting in the document.
-       */
-      numFieldsWithConditionalFormatting: {
-        dataType: 'number',
-      },
-      /**
-       * The number of tables in the document.
-       */
-      numTables: {
-        dataType: 'number',
-      },
-      /**
-       * The number of on-demand tables in the document.
-       */
-      numOnDemandTables: {
-        dataType: 'number',
-      },
-      /**
-       * The number of tables with conditional formatting in the document.
-       */
-      numTablesWithConditionalFormatting: {
-        dataType: 'number',
-      },
-      /**
-       * The number of summary tables in the document.
-       */
-      numSummaryTables: {
-        dataType: 'number',
-      },
-      /**
-       * The number of custom widgets in the document.
-       */
-      numCustomWidgets: {
-        dataType: 'number',
-      },
-      /**
-       * A list of plugin ids for every custom widget in the document.
-       *
-       * The ids of widgets not created by Grist Labs are replaced with "externalId".
-       */
-      customWidgetIds: {
-        dataType: 'string[]',
-      },
-    },
-  },
-  /**
-   * Triggered every 5 seconds.
-   */
-  processMonitor: {
-    minimumTelemetryLevel: Level.full,
-    metadataContracts: {
-      /** Size of JS heap in use, in MiB. */
-      heapUsedMB: {
-        dataType: 'number',
-      },
-      /** Total heap size, in MiB, allocated for JS by V8. */
-      heapTotalMB: {
-        dataType: 'number',
-      },
-      /** Fraction (typically between 0 and 1) of CPU usage. Includes all threads, so may exceed 1. */
-      cpuAverage: {
-        dataType: 'number',
-      },
-      /** Interval (in milliseconds) over which `cpuAverage` is reported. */
-      intervalMs: {
-        dataType: 'number',
-      },
-    },
-  },
-  /**
-   * Triggered when sending webhooks.
-   */
-  sendingWebhooks: {
-    minimumTelemetryLevel: Level.limited,
-    metadataContracts: {
-      /**
-       * The number of events in the batch of webhooks being sent.
-       */
-      numEvents: {
-        dataType: 'number',
-      },
-      /**
-       * A hash of the doc id.
-       */
-      docIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * The site id.
-       */
-      siteId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The site type.
-       */
-      siteType: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
-      altSessionId: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The id of the user that triggered this event.
-       */
-      userId: {
-        dataType: 'number',
-        minimumTelemetryLevel: Level.full,
-      },
-    },
-  },
-  /**
-   * Triggered after a user successfully verifies their account during sign-up.
-   *
-   * Not triggered in grist-core.
-   */
-  signupVerified: {
-    minimumTelemetryLevel: Level.full,
-    metadataContracts: {
-      /**
-       * Whether the user viewed any templates before signing up.
-       */
-      isAnonymousTemplateSignup: {
-        dataType: 'boolean',
-      },
-      /**
-       * The doc id of the template the user last viewed before signing up, if any.
-       */
-      templateId: {
-        dataType: 'string',
-      },
-    },
-  },
-  /**
-   * Triggered daily.
-   */
-  siteMembership: {
-    minimumTelemetryLevel: Level.limited,
-    metadataContracts: {
-      /**
-       * The site id.
-       */
-      siteId: {
-        dataType: 'number',
-      },
-      /**
-       * The site type.
-       */
-      siteType: {
-        dataType: 'string',
-      },
-      /**
-       * The number of users with an owner role in this site.
-       */
-      numOwners: {
-        dataType: 'number',
-      },
-      /**
-       * The number of users with an editor role in this site.
-       */
-      numEditors: {
-        dataType: 'number',
-      },
-      /**
-       * The number of users with a viewer role in this site.
-       */
-      numViewers: {
-        dataType: 'number',
-      },
-    },
-  },
-  /**
-   * Triggered daily.
-   */
-  siteUsage: {
-    minimumTelemetryLevel: Level.limited,
-    metadataContracts: {
-      /**
-       * The site id.
-       */
-      siteId: {
-        dataType: 'number',
-      },
-      /**
-       * The site type.
-       */
-      siteType: {
-        dataType: 'string',
-      },
-      /**
-       * Whether the site's subscription is in good standing.
-       */
-      inGoodStanding: {
-        dataType: 'boolean',
-      },
-      /**
-       * The Stripe Plan id associated with this site.
-       */
-      stripePlanId: {
-        dataType: 'string',
-        minimumTelemetryLevel: Level.full,
-      },
-      /**
-       * The number of docs in this site.
-       */
-      numDocs: {
-        dataType: 'number',
-      },
-      /**
-       * The number of workspaces in this site.
-       */
-      numWorkspaces: {
-        dataType: 'number',
-      },
-      /**
-       * The number of site members.
-       */
-      numMembers: {
-        dataType: 'number',
-      },
-      /**
-       * A timestamp of the most recent update made to a site document.
-       */
       lastActivity: {
+        description: 'Timestamp of the last update to the trunk document.',
         dataType: 'date',
       },
     },
   },
-  /**
-   * Triggered on changes to tutorial progress.
-   */
-  tutorialProgressChanged: {
-    minimumTelemetryLevel: Level.full,
-    metadataContracts: {
-      /**
-       * A hash of the tutorial fork id.
-       */
-      tutorialForkIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * A hash of the tutorial trunk id.
-       */
-      tutorialTrunkIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * The 0-based index of the last tutorial slide the user had open.
-       */
-      lastSlideIndex: {
-        dataType: 'number',
-      },
-      /**
-       * The total number of slides in the tutorial.
-       */
-      numSlides: {
-        dataType: 'number',
-      },
-      /**
-       * Percentage of tutorial completion.
-       */
-      percentComplete: {
-        dataType: 'number',
-      },
-    },
-  },
-  /**
-   * Triggered when a tutorial is restarted.
-   */
-  tutorialRestarted: {
-    minimumTelemetryLevel: Level.full,
-    metadataContracts: {
-      /**
-       * A hash of the tutorial fork id.
-       */
-      tutorialForkIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * A hash of the tutorial trunk id.
-       */
-      tutorialTrunkIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * A hash of the doc id.
-       */
-      docIdDigest: {
-        dataType: 'string',
-      },
-      /**
-       * The site id.
-       */
-      siteId: {
-        dataType: 'number',
-      },
-      /**
-       * The site type.
-       */
-      siteType: {
-        dataType: 'string',
-      },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
-      altSessionId: {
-        dataType: 'string',
-      },
-      /**
-       * The id of the user that triggered this event.
-       */
-      userId: {
-        dataType: 'number',
-      },
-    },
-  },
-  /**
-   * Triggered when the video tour is closed.
-   */
-  watchedVideoTour: {
+  documentOpened: {
+    description: 'Triggered when a public document or template is opened.',
     minimumTelemetryLevel: Level.limited,
     metadataContracts: {
-      /**
-       * The number of seconds elapsed in the video player.
-       */
-      watchTimeSeconds: {
-        dataType: 'number',
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
       },
-      /**
-       * The id of the user that triggered this event.
-       */
-      userId: {
+      siteId: {
+        description: 'The site id.',
         dataType: 'number',
         minimumTelemetryLevel: Level.full,
       },
-      /**
-       * A random, session-based identifier for the user that triggered this event.
-       */
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
       altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      isPublic: {
+        description: 'Whether the document is public.',
+        dataType: 'boolean',
+      },
+      isSnapshot: {
+        description: 'Whether a snapshot was opened.',
+        dataType: 'boolean',
+      },
+      isTemplate: {
+        description: 'Whether the document is a template.',
+        dataType: 'boolean',
+      },
+      lastUpdated: {
+        description: 'Timestamp of when the document was last updated.',
+        dataType: 'date',
+      },
+    },
+  },
+  documentUsage: {
+    description: 'Triggered on doc open and close, as well as hourly while a document is open.',
+    minimumTelemetryLevel: Level.limited,
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      siteId: {
+        description: 'The site id.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
+      triggeredBy: {
+        description: 'What caused this event to trigger. May be either "docOpen", "interval", or "docClose".',
+        dataType: 'string',
+      },
+      isPublic: {
+        description: 'Whether the document is public.',
+        dataType: 'boolean',
+      },
+      rowCount: {
+        description: 'The number of rows in the document.',
+        dataType: 'number',
+      },
+      dataSizeBytes: {
+        description: 'The total size of all data in the document, excluding attachments.',
+        dataType: 'number',
+      },
+      attachmentsSize: {
+        description: 'The total size of all attachments in the document.',
+        dataType: 'number',
+      },
+      numAccessRules: {
+        description: 'The number of access rules in the document.',
+        dataType: 'number',
+      },
+      numUserAttributes: {
+        description: 'The number of user attributes in the document.',
+        dataType: 'number',
+      },
+      numAttachments: {
+        description: 'The number of attachments in the document.',
+        dataType: 'number',
+      },
+      attachmentTypes: {
+        description: "A list of unique file extensions compiled from all of the document's attachments.",
+        dataType: 'string[]',
+      },
+      numCharts: {
+        description: 'The number of charts in the document.',
+        dataType: 'number',
+      },
+      chartTypes: {
+        description: 'A list of chart types of every chart in the document.',
+        dataType: 'string[]',
+      },
+      numLinkedCharts: {
+        description: 'The number of linked charts in the document.',
+        dataType: 'number',
+      },
+      numLinkedWidgets: {
+        description: 'The number of linked widgets in the document.',
+        dataType: 'number',
+      },
+      numColumns: {
+        description: 'The number of columns in the document.',
+        dataType: 'number',
+      },
+      numColumnsWithConditionalFormatting: {
+        description: 'The number of columns with conditional formatting in the document.',
+        dataType: 'number',
+      },
+      numFormulaColumns: {
+        description: 'The number of formula columns in the document.',
+        dataType: 'number',
+      },
+      numTriggerFormulaColumns: {
+        description: 'The number of trigger formula columns in the document.',
+        dataType: 'number',
+      },
+      numSummaryFormulaColumns: {
+        description: 'The number of summary formula columns in the document.',
+        dataType: 'number',
+      },
+      numFieldsWithConditionalFormatting: {
+        description: 'The number of fields with conditional formatting in the document.',
+        dataType: 'number',
+      },
+      numTables: {
+        description: 'The number of tables in the document.',
+        dataType: 'number',
+      },
+      numOnDemandTables: {
+        description: 'The number of on-demand tables in the document.',
+        dataType: 'number',
+      },
+      numTablesWithConditionalFormatting: {
+        description: 'The number of tables with conditional formatting in the document.',
+        dataType: 'number',
+      },
+      numSummaryTables: {
+        description: 'The number of summary tables in the document.',
+        dataType: 'number',
+      },
+      numCustomWidgets: {
+        description: 'The number of custom widgets in the document.',
+        dataType: 'number',
+      },
+      customWidgetIds: {
+        description: 'A list of plugin ids for every custom widget in the document. '
+          + 'The ids of widgets not created by Grist Labs are replaced with "externalId".',
+        dataType: 'string[]',
+      },
+    },
+  },
+  processMonitor: {
+    description: 'Triggered every 5 seconds.',
+    minimumTelemetryLevel: Level.full,
+    metadataContracts: {
+      heapUsedMB: {
+        description: 'Size of JS heap in use, in MiB.',
+        dataType: 'number',
+      },
+      heapTotalMB: {
+        description: 'Total heap size, in MiB, allocated for JS by V8. ',
+        dataType: 'number',
+      },
+      cpuAverage: {
+        description: 'Fraction (typically between 0 and 1) of CPU usage. Includes all threads, so may exceed 1.',
+        dataType: 'number',
+      },
+      intervalMs: {
+        description: 'Interval (in milliseconds) over which `cpuAverage` is reported.',
+        dataType: 'number',
+      },
+    },
+  },
+  sendingWebhooks: {
+    description: 'Triggered when sending webhooks.',
+    minimumTelemetryLevel: Level.limited,
+    metadataContracts: {
+      numEvents: {
+        description: 'The number of events in the batch of webhooks being sent.',
+        dataType: 'number',
+      },
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      siteId: {
+        description: 'The site id.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
+    },
+  },
+  signupVerified: {
+    description: 'Triggered after a user successfully verifies their account during sign-up. '
+      + 'Not triggered in grist-core.',
+    minimumTelemetryLevel: Level.full,
+    metadataContracts: {
+      isAnonymousTemplateSignup: {
+        description: 'Whether the user viewed any templates before signing up.',
+        dataType: 'boolean',
+      },
+      templateId: {
+        description: 'The doc id of the template the user last viewed before signing up, if any.',
+        dataType: 'string',
+      },
+    },
+  },
+  siteMembership: {
+    description: 'Triggered daily.',
+    minimumTelemetryLevel: Level.limited,
+    metadataContracts: {
+      siteId: {
+        description: 'The site id.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+      },
+      numOwners: {
+        description: 'The number of users with an owner role in this site.',
+        dataType: 'number',
+      },
+      numEditors: {
+        description: 'The number of users with an editor role in this site.',
+        dataType: 'number',
+      },
+      numViewers: {
+        description: 'The number of users with a viewer role in this site.',
+        dataType: 'number',
+      },
+    },
+  },
+  siteUsage: {
+    description: 'Triggered daily.',
+    minimumTelemetryLevel: Level.limited,
+    metadataContracts: {
+      siteId: {
+        description: 'The site id.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+      },
+      inGoodStanding: {
+        description: "Whether the site's subscription is in good standing.",
+        dataType: 'boolean',
+      },
+      stripePlanId: {
+        description: 'The Stripe Plan id associated with this site.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+      numDocs: {
+        description: 'The number of docs in this site.',
+        dataType: 'number',
+      },
+      numWorkspaces: {
+        description: 'The number of workspaces in this site.',
+        dataType: 'number',
+      },
+      numMembers: {
+        description: 'The number of site members.',
+        dataType: 'number',
+      },
+      lastActivity: {
+        description: 'A timestamp of the most recent update made to a site document.',
+        dataType: 'date',
+      },
+    },
+  },
+  tutorialProgressChanged: {
+    description: 'Triggered on changes to tutorial progress.',
+    minimumTelemetryLevel: Level.full,
+    metadataContracts: {
+      tutorialForkIdDigest: {
+        description: 'A hash of the tutorial fork id.',
+        dataType: 'string',
+      },
+      tutorialTrunkIdDigest: {
+        description: 'A hash of the tutorial trunk id.',
+        dataType: 'string',
+      },
+      lastSlideIndex: {
+        description: 'The 0-based index of the last tutorial slide the user had open.',
+        dataType: 'number',
+      },
+      numSlides: {
+        description: 'The total number of slides in the tutorial.',
+        dataType: 'number',
+      },
+      percentComplete: {
+        description: 'Percentage of tutorial completion.',
+        dataType: 'number',
+      },
+    },
+  },
+  tutorialRestarted: {
+    description: 'Triggered when a tutorial is restarted.',
+    minimumTelemetryLevel: Level.full,
+    metadataContracts: {
+      tutorialForkIdDigest: {
+        description: 'A hash of the tutorial fork id.',
+        dataType: 'string',
+      },
+      tutorialTrunkIdDigest: {
+        description: 'A hash of the tutorial trunk id.',
+        dataType: 'string',
+      },
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      siteId: {
+        description: 'The site id.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  watchedVideoTour: {
+    description: 'Triggered when the video tour is closed.',
+    minimumTelemetryLevel: Level.limited,
+    metadataContracts: {
+      watchTimeSeconds: {
+        description: 'The number of seconds elapsed in the video player.',
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
         dataType: 'string',
         minimumTelemetryLevel: Level.full,
       },
@@ -811,11 +593,13 @@ export const TelemetryEvents = StringUnion(
 export type TelemetryEvent = typeof TelemetryEvents.type;
 
 interface TelemetryEventContract {
+  description: string;
   minimumTelemetryLevel: Level;
   metadataContracts?: Record<string, MetadataContract>;
 }
 
 interface MetadataContract {
+  description: string;
   dataType: 'boolean' | 'number' | 'string' | 'string[]' | 'date';
   minimumTelemetryLevel?: Level;
 }

@@ -25,6 +25,8 @@ export interface ITelemetry {
   getTelemetryLevel(): TelemetryLevel;
 }
 
+const MAX_PENDING_FORWARD_EVENT_REQUESTS = 25;
+
 /**
  * Manages telemetry for Grist.
  */
@@ -34,10 +36,11 @@ export class Telemetry implements ITelemetry {
   private _shouldForwardTelemetryEvents = this._deploymentType !== 'saas';
   private _forwardTelemetryEventsUrl = process.env.GRIST_TELEMETRY_URL ||
   'https://telemetry.getgrist.com/api/telemetry';
+  private _numPendingForwardEventRequests = 0;
 
   private _installationId: string | undefined;
 
-  private _errorLogger = new LogMethods('Telemetry ', () => ({}));
+  private _logger = new LogMethods('Telemetry ', () => ({}));
   private _telemetryLogger = new LogMethods('Telemetry ', () => ({
     eventType: 'telemetry',
   }));
@@ -46,7 +49,7 @@ export class Telemetry implements ITelemetry {
 
   constructor(private _dbManager: HomeDBManager, private _gristServer: GristServer) {
     this._initialize().catch((e) => {
-      this._errorLogger.error(undefined, 'failed to initialize', e);
+      this._logger.error(undefined, 'failed to initialize', e);
     });
   }
 
@@ -99,36 +102,13 @@ export class Telemetry implements ITelemetry {
     this._checkTelemetryEvent(event, metadata);
 
     if (this._shouldForwardTelemetryEvents) {
-      await this.forwardEvent(event, metadata);
+      await this._forwardEvent(event, metadata);
     } else {
       this._telemetryLogger.rawLog('info', null, event, {
         eventName: event,
         eventSource: `grist-${this._deploymentType}`,
         ...metadata,
       });
-    }
-  }
-
-  /**
-   * Forwards a telemetry event and its metadata to another server.
-   */
-  public async forwardEvent(
-    event: TelemetryEvent,
-    metadata?: TelemetryMetadata
-  ) {
-    try {
-      await fetch(this._forwardTelemetryEventsUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          event,
-          metadata,
-        }),
-      });
-    } catch (e) {
-      this._errorLogger.error(undefined, `failed to forward telemetry event ${event}`, e);
     }
   }
 
@@ -169,7 +149,7 @@ export class Telemetry implements ITelemetry {
             req.body.metadata,
           ));
         } catch (e) {
-          this._errorLogger.error(undefined, `failed to log telemetry event ${event}`, e);
+          this._logger.error(undefined, `failed to log telemetry event ${event}`, e);
           throw new ApiError(`Telemetry failed to log telemetry event ${event}`, 500);
         }
       }
@@ -195,7 +175,7 @@ export class Telemetry implements ITelemetry {
     for (const event of HomeDBTelemetryEvents.values) {
       this._dbManager.on(event, async (metadata) => {
         this.logEvent(event, metadata).catch(e =>
-          this._errorLogger.error(undefined, `failed to log telemetry event ${event}`, e));
+          this._logger.error(undefined, `failed to log telemetry event ${event}`, e));
       });
     }
   }
@@ -206,5 +186,35 @@ export class Telemetry implements ITelemetry {
     }
 
     this._checkEvent(event, metadata);
+  }
+
+  private async _forwardEvent(
+    event: TelemetryEvent,
+    metadata?: TelemetryMetadata
+  ) {
+    if (this._numPendingForwardEventRequests === MAX_PENDING_FORWARD_EVENT_REQUESTS) {
+      this._logger.warn(undefined, 'exceeded the maximum number of pending forwardEvent calls '
+        + `(${MAX_PENDING_FORWARD_EVENT_REQUESTS}). Skipping forwarding of event ${event}.`);
+      return;
+    }
+
+    try {
+      this._numPendingForwardEventRequests += 1;
+      await this._postJsonPayload(JSON.stringify({event, metadata}));
+    } catch (e) {
+      this._logger.error(undefined, `failed to forward telemetry event ${event}`, e);
+    } finally {
+      this._numPendingForwardEventRequests -= 1;
+    }
+  }
+
+  private async _postJsonPayload(payload: string) {
+    await fetch(this._forwardTelemetryEventsUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: payload,
+    });
   }
 }
