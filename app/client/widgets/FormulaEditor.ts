@@ -375,7 +375,15 @@ export class FormulaEditor extends NewBaseEditor {
     }
     // Resize editor in case it is needed.
     this._formulaEditor.resize();
+
+    // This focus method will try to focus a textarea immediately and again on setTimeout. But
+    // other things may happen by the setTimeout time, messing up focus. The reason the immediate
+    // call doesn't usually help is that this is called on 'mousedown' before its corresponding
+    // focus/blur occur. We can do a bit better by restoring focus immediately after blur occurs.
     aceObj.focus();
+    const lis = dom.onElem(aceObj.textInput.getElement(), 'blur', e => { lis.dispose(); aceObj.focus(); });
+    // If no blur right away, clear the listener, to avoid unexpected interference.
+    setTimeout(() => lis.dispose(), 0);
   }
 }
 
