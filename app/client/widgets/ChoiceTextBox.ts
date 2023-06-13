@@ -90,7 +90,6 @@ export class ChoiceTextBox extends NTextBox {
       cssRow(
         dom.autoDispose(disabled),
         dom.autoDispose(mixed),
-        cssChoiceEditIcon('Dropdown'),
         dom.create(
           ChoiceListEntry,
           this._choiceValues,
