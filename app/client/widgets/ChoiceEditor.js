@@ -7,9 +7,10 @@ const {ACIndexImpl, buildHighlightedDom} = require('app/client/lib/ACIndex');
 const {ChoiceItem, cssChoiceList, cssMatchText, cssPlusButton,
        cssPlusIcon} = require('app/client/widgets/ChoiceListEditor');
 const {menuCssClass} = require('app/client/ui2018/menus');
-const {testId} = require('app/client/ui2018/cssVars');
+const {testId, colors} = require('app/client/ui2018/cssVars');
 const {choiceToken, cssChoiceACItem} = require('app/client/widgets/ChoiceToken');
-const {dom} = require('grainjs');
+const {dom, styled} = require('grainjs');
+const {icon} = require('../ui2018/icons');
 
 /**
  * ChoiceEditor - TextEditor with a dropdown for possible choices.
@@ -19,7 +20,10 @@ function ChoiceEditor(options) {
 
   this.choices = options.field.widgetOptionsJson.peek().choices || [];
   this.choiceOptions = options.field.widgetOptionsJson.peek().choiceOptions || {};
-
+  if (!options.readonly && options.field.viewSection().parentKey() === "single") {
+    this.cellEditorDiv.classList.add(cssChoiceEditor.className);
+    this.cellEditorDiv.appendChild(cssChoiceEditIcon('Dropdown'));
+  }
   // Whether to include a button to show a new choice.
   // TODO: Disable when the user cannot change column configuration.
   this.enableAddNew = true;
@@ -106,5 +110,19 @@ ChoiceEditor.prototype.maybeShowAddNew = function(result, text) {
 
   return result;
 }
+
+const cssChoiceEditIcon = styled(icon, `
+  background-color: ${colors.slate};
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 3px 3px 0 3px;
+`);
+
+const cssChoiceEditor = styled('div', `
+  & > .celleditor_text_editor, & > .celleditor_content_measure {
+    padding-left: 18px;
+  }
+`);
 
 module.exports = ChoiceEditor;
