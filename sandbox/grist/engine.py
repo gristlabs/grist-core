@@ -24,6 +24,7 @@ from codebuilder import DOLLAR_REGEX
 import depend
 import docactions
 import docmodel
+from fake_std_streams import FakeStdStreams
 import gencode
 import logger
 import match_counter
@@ -944,9 +945,11 @@ class Engine(object):
         raise depend.CircularRefError("Circular Reference")
       if not col.is_formula():
         value = col.get_cell_value(int(record), restore=True)
-        result = col.method(record, table.user_table, value, self._user)
+        with FakeStdStreams():
+          result = col.method(record, table.user_table, value, self._user)
       else:
-        result = col.method(record, table.user_table)
+        with FakeStdStreams():
+          result = col.method(record, table.user_table)
       if self._cell_required_error:
         raise self._cell_required_error  # pylint: disable=raising-bad-type
       self.formula_tracer(col, record)
