@@ -20,11 +20,9 @@ function ChoiceEditor(options) {
 
   this.choices = options.field.widgetOptionsJson.peek().choices || [];
   this.choiceOptions = options.field.widgetOptionsJson.peek().choiceOptions || {};
-  if (!options.readonly) {
+  if (!options.readonly && options.field.viewSection().parentKey() === "single") {
     this.cellEditorDiv.classList.add(cssChoiceEditor.className);
-    if (options.field.viewSection().parentKey() === "single") {
-      this.cellEditorDiv.appendChild(cssChoiceEditIcon('Dropdown'));
-    }
+    this.cellEditorDiv.appendChild(cssChoiceEditIcon('Dropdown'));
   }
   // Whether to include a button to show a new choice.
   // TODO: Disable when the user cannot change column configuration.
