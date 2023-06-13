@@ -1,7 +1,7 @@
 import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
 import { handleSubmit, submitForm } from "app/client/lib/formUtils";
-import { AppModel, reportError } from "app/client/models/AppModel";
+import { AppModel } from "app/client/models/AppModel";
 import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { AppHeader } from 'app/client/ui/AppHeader';
@@ -10,11 +10,11 @@ import { pagePanels } from "app/client/ui/PagePanels";
 import { createUserImage } from 'app/client/ui/UserImage';
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
          cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
-import { basicButtonLink, bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink,
-         cssButton } from "app/client/ui2018/buttons";
+import { buildWelcomeSitePicker } from 'app/client/ui/WelcomeSitePicker';
+import { basicButtonLink, bigBasicButtonLink, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
-import { getOrgName, Organization } from "app/common/UserAPI";
+import { WelcomePage as WelcomePageEnum } from 'app/common/gristUrls';
 
 // Redirect from ..../welcome/thing to .../welcome/${name}
 function _redirectToSiblingPage(name: string) {
@@ -36,14 +36,15 @@ function handleSubmitForm(
 
 export class WelcomePage extends Disposable {
 
-  private _orgs: Organization[];
-  private _orgsLoaded = Observable.create(this, false);
-
   constructor(private _appModel: AppModel) {
     super();
   }
 
   public buildDom() {
+    return domComputed(urlState().state, state => this._buildDomInPagePanels(state.welcome));
+  }
+
+  private _buildDomInPagePanels(page?: WelcomePageEnum) {
     return pagePanels({
       leftPanel: {
         panelWidth: Observable.create(this, 240),
@@ -53,22 +54,21 @@ export class WelcomePage extends Disposable {
         content: null,
       },
       headerMain: [cssFlexSpace(), dom.create(AccountWidget, this._appModel)],
-      contentMain: this.buildPageContent()
+      contentMain: (
+        page === 'teams' ? dom.create(buildWelcomeSitePicker, this._appModel) :
+        this._buildPageContent(page)
+      ),
     });
   }
 
-  public buildPageContent(): Element {
+  private _buildPageContent(page?: WelcomePageEnum): Element {
     return cssScrollContainer(cssContainer(
       cssTitle('Welcome to Grist'),
       testId('welcome-page'),
-
-      domComputed(urlState().state, (state) => (
-        state.welcome === 'signup' ? dom.create(this._buildSignupForm.bind(this)) :
-        state.welcome === 'verify' ? dom.create(this._buildVerifyForm.bind(this)) :
-        state.welcome === 'teams' ? dom.create(this._buildOrgPicker.bind(this)) :
-        state.welcome === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
-        null
-      )),
+      page === 'signup' ? dom.create(this._buildSignupForm.bind(this)) :
+      page === 'verify' ? dom.create(this._buildVerifyForm.bind(this)) :
+      page === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
+      null
     ));
   }
 
@@ -189,44 +189,6 @@ export class WelcomePage extends Disposable {
     );
   }
 
-  private async _fetchOrgs() {
-    this._orgs = await this._appModel.api.getOrgs(true);
-    this._orgsLoaded.set(true);
-  }
-
-
-  private _buildOrgPicker(): DomContents {
-    this._fetchOrgs().catch(reportError);
-    return dom.maybe(this._orgsLoaded, () => {
-      let orgs = this._orgs;
-      if (orgs && orgs.length > 1) {
-
-        // Let's make sure that the first org is not the personal org.
-        if (orgs[0].owner) {
-          orgs = [...orgs.slice(1), orgs[0]];
-        }
-
-        return [
-          cssParagraph(
-            "You've been added to a team. ",
-            "Go to the team site, or to your personal site."
-          ),
-          cssParagraph(
-            "You can always switch sites using the account menu in the top-right corner."
-          ),
-          orgs.map((org, i) => (
-            cssOrgButton(
-              getOrgName(org),
-              urlState().setLinkUrl({org: org.domain || undefined}),
-              testId('org'),
-              i ? cssButton.cls('-primary', false) : null
-            )
-          )),
-        ];
-      }
-    });
-  }
-
   private _buildAccountPicker(): DomContents {
     function addUserToLink(email: string): string {
       const next = new URLSearchParams(location.search).get('next') || '';
@@ -332,16 +294,4 @@ const cssInput = styled(textInput, `
   line-height: 16px;
   padding: 13px;
   border-radius: 3px;
-`);
-
-const cssOrgButton = styled(bigPrimaryButtonLink, `
-  margin: 0 0 8px;
-  width: 200px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-
-  &:first-of-type {
-    margin-top: 16px;
-  }
 `);

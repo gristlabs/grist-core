@@ -483,4 +483,9 @@ export const GristLight: ThemeColors = {
   'highlighted-code-fg': '#929299',
   'highlighted-code-border': '#D9D9D9',
   'highlighted-code-bg-disabled': '#E8E8E8',
+
+  /* Login Page */
+  'login-page-bg': 'white',
+  'login-page-backdrop': '#F5F8FA',
+  'login-page-line': '#F7F7F7',
 };

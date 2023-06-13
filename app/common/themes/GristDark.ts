@@ -483,4 +483,9 @@ export const GristDark: ThemeColors = {
   'highlighted-code-fg': '#A4A4A4',
   'highlighted-code-border': '#69697D',
   'highlighted-code-bg-disabled': '#555563',
+
+  /* Login Page */
+  'login-page-bg': '#32323F',
+  'login-page-backdrop': '#404150',
+  'login-page-line': '#57575F',
 };

@@ -333,7 +333,7 @@ export interface DocStateComparisonDetails {
 
 export interface UserAPI {
   getSessionActive(): Promise<ActiveSessionInfo>;
-  setSessionActive(email: string): Promise<void>;
+  setSessionActive(email: string, org?: string): Promise<void>;
   getSessionAll(): Promise<{users: FullUser[], orgs: Organization[]}>;
   getOrgs(merged?: boolean): Promise<Organization[]>;
   getWorkspace(workspaceId: number): Promise<Workspace>;
@@ -487,8 +487,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/session/access/active`, {method: 'GET'});
   }
 
-  public async setSessionActive(email: string): Promise<void> {
-    const body = JSON.stringify({ email });
+  public async setSessionActive(email: string, org?: string): Promise<void> {
+    const body = JSON.stringify({ email, org });
     return this.requestJson(`${this._url}/api/session/access/active`, {method: 'POST', body});
   }
 

@@ -386,6 +386,9 @@ export const ThemeColors = t.iface([], {
   "highlighted-code-fg": "string",
   "highlighted-code-border": "string",
   "highlighted-code-bg-disabled": "string",
+  "login-page-bg": "string",
+  "login-page-backdrop": "string",
+  "login-page-line": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

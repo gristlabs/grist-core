@@ -13,7 +13,7 @@ import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
-        isParameterOn, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
+        isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 
 import {User} from './entity/User';
@@ -487,16 +487,20 @@ export class ApiServer {
 
     // POST /api/session/access/active
     // Body params: email (required)
+    // Body params: org (optional) - string subdomain or 'current', for which org's active user to modify.
     // Sets active user for active org
     this._app.post('/api/session/access/active', expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
-      const domain = getOrgFromRequest(mreq);
+      let domain = optStringParam(req.body.org);
+      if (!domain || domain === 'current') {
+        domain = getOrgFromRequest(mreq) || '';
+      }
       const email = req.body.email;
       if (!email) { throw new ApiError('email required', 400); }
       try {
         // Modify session copy in request. Will be saved to persistent storage before responding
         // by express-session middleware.
-        linkOrgWithEmail(mreq.session, req.body.email, domain || '');
+        linkOrgWithEmail(mreq.session, req.body.email, domain);
         clearSessionCacheIfNeeded(req, {sessionID: mreq.sessionID});
         return sendOkReply(req, res, {email});
       } catch (e) {

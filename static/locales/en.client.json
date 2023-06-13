@@ -1030,5 +1030,10 @@
     },
     "GridView": {
         "Click to insert": "Click to insert"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "Welcome back",
+        "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
+        "You have access to the following Grist sites.": "You have access to the following Grist sites."
     }
 }

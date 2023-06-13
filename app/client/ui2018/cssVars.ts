@@ -788,6 +788,11 @@ export const theme = {
     undefined, colors.darkGrey),
   highlightedCodeBgDisabled: new CustomProp('theme-highlighted-code-bg-disabled',
     undefined, colors.mediumGreyOpaque),
+
+  /* Login Page */
+  loginPageBg: new CustomProp('theme-login-page-bg', undefined, 'white'),
+  loginPageBackdrop: new CustomProp('theme-login-page-backdrop', undefined, '#F5F8FA'),
+  loginPageLine: new CustomProp('theme-login-page-line', undefined, colors.lightGrey),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

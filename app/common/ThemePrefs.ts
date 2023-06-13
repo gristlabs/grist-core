@@ -504,6 +504,11 @@ export interface ThemeColors {
   'highlighted-code-fg': string;
   'highlighted-code-border': string;
   'highlighted-code-bg-disabled': string;
+
+  /* Login Page */
+  'login-page-bg': string;
+  'login-page-backdrop': string;
+  'login-page-line': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

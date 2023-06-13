@@ -1,5 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
-import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain} from 'app/common/gristUrls';
+import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -70,7 +70,8 @@ export function addOrgToPath(req: RequestWithOrg, path: string): string {
  * Get url to the org associated with the request.
  */
 export function getOrgUrl(req: Request, path: string = '/') {
-  return getOriginUrl(req) + addOrgToPathIfNeeded(req, path);
+  // Be careful to include a leading slash in path, to ensure we don't modify the origin or org.
+  return getOriginUrl(req) + addOrgToPathIfNeeded(req, sanitizePathTail(path));
 }
 
 /**
