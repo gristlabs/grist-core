@@ -75,6 +75,8 @@ export interface GristLoginMiddleware {
   // or null if anonymous (and other methods of determining profile such
   // as a cookie should not be used), or undefined to use other methods.
   getProfile?(req: express.Request|IncomingMessage): Promise<UserProfile|null|undefined>;
+  // Called on first visit to an app page after a signup, for reporting or telemetry purposes.
+  onFirstVisit?(req: express.Request): void;
 }
 
 /**

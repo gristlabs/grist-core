@@ -404,6 +404,28 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  signupFirstVisit: {
+    description: 'Triggered when a new user first opens the Grist app',
+    minimumTelemetryLevel: Level.full,
+    metadataContracts: {
+      siteId: {
+        description: 'The site id of first visit after signup.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The site type of first visit after signup.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that signed up.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   signupVerified: {
     description: 'Triggered after a user successfully verifies their account during sign-up. '
       + 'Not triggered in grist-core.',
@@ -583,6 +605,7 @@ export const TelemetryEvents = StringUnion(
   'documentUsage',
   'processMonitor',
   'sendingWebhooks',
+  'signupFirstVisit',
   'signupVerified',
   'siteMembership',
   'siteUsage',

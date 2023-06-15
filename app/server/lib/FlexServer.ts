@@ -866,6 +866,9 @@ export class FlexServer implements GristServer {
             recordSignUpEvent: true
           }});
 
+          // Give a chance to the login system to react to the first visit after signup.
+          this._loginMiddleware.onFirstVisit?.(req);
+
           const domain = mreq.org ?? null;
           if (!process.env.GRIST_SINGLE_ORG && this._dbManager.isMergedOrg(domain)) {
             // We're logging in for the first time on the merged org; if the user has
