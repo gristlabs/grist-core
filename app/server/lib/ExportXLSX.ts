@@ -14,6 +14,7 @@
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {ActiveDocSource, ActiveDocSourceDirect, DownloadOptions, ExportParameters} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
+import {addAbortHandler} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import contentDisposition from 'content-disposition';
 import {Rpc} from 'grain-rpc';
@@ -78,7 +79,7 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
       req.off('close', cancelWorker);
     });
 
-    req.on('close', cancelWorker);
+    addAbortHandler(req, outputStream, cancelWorker);
 
     const run = (method: string, ...args: any[]) => exportPool.run({port: port2, testDates, args}, {
       name: method,

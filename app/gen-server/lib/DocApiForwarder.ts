@@ -10,6 +10,7 @@ import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { getAssignmentId } from "app/server/lib/idUtils";
+import { addAbortHandler } from "app/server/lib/requestUtils";
 
 /**
  * Forwards all /api/docs/:docId/tables requests to the doc worker handling the :docId document. Makes
@@ -101,7 +102,7 @@ export class DocApiForwarder {
 
     // If the original request is aborted, abort the forwarded request too. (Currently this only
     // affects some export/download requests which can abort long-running work.)
-    req.on('close', () => controller.abort());
+    addAbortHandler(req, res, () => controller.abort());
 
     const options: RequestInit = {
       method: req.method,

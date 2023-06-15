@@ -9,6 +9,7 @@ import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
 import _ from 'lodash';
+import {Writable} from 'stream';
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
 const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
@@ -334,4 +335,20 @@ export function clearSessionCacheIfNeeded(req: Request, options?: {
   sessionID?: string,
 }) {
   (req as RequestWithGrist).gristServer?.getSessions().clearCacheIfNeeded(options);
+}
+
+export function addAbortHandler(req: Request, res: Writable, op: () => void) {
+  // It became hard to detect aborted connections in node 16.
+  // In node 14, req.on('close', ...) did the job.
+  // The following is a work-around, until a better way is discovered
+  // or added. Aborting a req will typically lead to 'close' being called
+  // on the response, without writableFinished being set.
+  //   https://github.com/nodejs/node/issues/38924
+  //   https://github.com/nodejs/node/issues/40775
+  res.on('close', () => {
+    const aborted = !res.writableFinished;
+    if (aborted) {
+      op();
+    }
+  });
 }
