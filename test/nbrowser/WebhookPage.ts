@@ -249,6 +249,21 @@ describe('WebhookPage', function () {
     await driver.close();
     await driver.switchTo().window(ownerTab);
   });
+
+  /**
+   * Checks that a particular route to modifying cells in a virtual table
+   * is in place (previously it was not).
+   */
+  it('can paste into a cell without clicking into it', async function() {
+    await openWebhookPage();
+    await setField(1, 'Name', '1234');
+    await gu.waitForServer();
+    await gu.sendKeys(await gu.copyKey());
+    await gu.getDetailCell({col: 'Memo', rowNum: 1}).click();
+    await gu.sendKeys(await gu.pasteKey());
+    await gu.waitForServer();
+    assert.equal(await getField(1, 'Memo'), '1234');
+  });
 });
 
 async function setField(rowNum: number, col: string, text: string) {

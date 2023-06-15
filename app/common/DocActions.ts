@@ -90,11 +90,11 @@ export function isSchemaAction(action: DocAction):
   return SCHEMA_ACTIONS.has(action[0]);
 }
 
-export function isDataAction(action: DocAction):
+export function isDataAction(action: DocAction|UserAction):
     action is AddRecord | RemoveRecord | UpdateRecord |
               BulkAddRecord | BulkRemoveRecord | BulkUpdateRecord |
               ReplaceTableData | TableDataAction {
-  return DATA_ACTIONS.has(action[0]);
+  return DATA_ACTIONS.has(String(action[0]));
 }
 
 /**

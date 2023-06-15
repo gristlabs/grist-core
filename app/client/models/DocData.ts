@@ -7,7 +7,7 @@
 import {DocComm} from 'app/client/components/DocComm';
 import {MetaTableData, TableData} from 'app/client/models/TableData';
 import {ApplyUAOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
-import {CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
+import {CellValue, getTableId, isDataAction, TableDataAction, UserAction} from 'app/common/DocActions';
 import {DocData as BaseDocData} from 'app/common/DocData';
 import {SchemaTypes} from 'app/common/schema';
 import {ColTypeMap} from 'app/common/TableData';
@@ -192,9 +192,22 @@ export class DocData extends BaseDocData {
 
   // See documentation of sendActions().
   private async _sendActionsImpl(actions: UserAction[], optDesc?: string): Promise<any[]> {
-    if (this._virtualTablesFunc?.has(actions[0]?.[1] as any)) {
-      // It would be easy to pass along actions, but we don't need this functionality yet.
-      throw new Error('_sendActionsImpl needs updating to direct actions to virtual tables');
+    const tableName = String(actions[0]?.[1]);
+    if (this._virtualTablesFunc?.has(tableName)) {
+      // Actions applying to virtual tables are handled directly by their TableData instance.
+      for (const action of actions) {
+        if (!isDataAction(action)) {
+          throw new Error('virtual table received an action it cannot handle');
+        }
+        if (getTableId(action) !== tableName) {
+          throw new Error('virtual table actions mixed with other actions');
+        }
+      }
+      const tableActions = actions.map(a => [a[0], ...a.slice(2)]);
+      // The type on sendTableActions seems kind of misleading, and
+      // only working because UserAction is defined weakly. The first
+      // thing the method does is splice back in the table names...
+      return this.getTable(tableName)!.sendTableActions(tableActions, optDesc);
     }
     const eventData = {actions};
     this.sendActionsEmitter.emit(eventData);
