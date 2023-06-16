@@ -1,6 +1,9 @@
+import ast
 import json
+import re
 import textwrap
 
+import asttokens
 import six
 
 from column import is_visible_column, BaseReferenceColumn
@@ -180,6 +183,57 @@ def indent(text, prefix, predicate=None):
       yield (prefix + line if predicate(line) else line)
   return ''.join(prefixed_lines())
 
+
 def convert_completion(completion):
+  # Extract code from a markdown code block if needed.
+  match = re.search(r"```\w*\n(.*)```", completion, re.DOTALL)
+  if match:
+    completion = match.group(1)
+
   result = textwrap.dedent(completion)
-  return result
+
+  try:
+    atok = asttokens.ASTTokens(result, parse=True)
+  except SyntaxError:
+    # If we don't have valid Python code, don't suggest a formula at all
+    return ""
+
+  stmts = atok.tree.body
+
+  # If the code starts with imports, save them for later.
+  # In particular, the model may return something like:
+  #  from datetime import date
+  #  def my_column():
+  #     ...
+  # We want to return just the function body, but we need to keep the import,
+  # i.e. move it 'inside the function'.
+  imports = ""
+  while stmts and isinstance(stmts[0], (ast.Import, ast.ImportFrom)):
+    imports += atok.get_text(stmts.pop(0)) + "\n"
+
+  # If the non-import code consists only of a function definition, extract the body.
+  if len(stmts) == 1 and isinstance(stmts[0], ast.FunctionDef):
+    func_body_stmts = stmts[0].body
+    if (
+      len(func_body_stmts) > 1 and
+      isinstance(func_body_stmts[0], ast.Expr) and
+      isinstance(func_body_stmts[0].value, ast.Str)
+    ):
+      # Skip the docstring.
+      first_stmt = func_body_stmts[1]
+    else:
+      first_stmt = func_body_stmts[0]
+    result_lines = result.splitlines()[first_stmt.lineno - 1:]
+    result = "\n".join(result_lines)
+    result = textwrap.dedent(result)
+
+    if imports:
+      result = imports + "\n" + result
+
+    # Check that we still have valid code.
+    try:
+      ast.parse(result)
+    except SyntaxError:
+      return ""
+
+  return result.strip()

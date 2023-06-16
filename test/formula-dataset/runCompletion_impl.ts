@@ -67,7 +67,7 @@ const SEEMS_CHATTY = (process.env.COMPLETION_MODEL || '').includes('turbo');
 const SIMULATE_CONVERSATION = SEEMS_CHATTY;
 
 export async function runCompletion() {
-  ActiveDocDeps.ACTIVEDOC_TIMEOUT = 600000;
+  ActiveDocDeps.ACTIVEDOC_TIMEOUT = 600;
 
   // if template directory not exists, make it
   if (!fs.existsSync(path.join(PATH_TO_DOC))) {

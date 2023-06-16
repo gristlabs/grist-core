@@ -133,39 +133,13 @@ export class OpenAIAssistant implements Assistant {
       throw new Error(`OpenAI API returned status ${apiResponse.status}`);
     }
     const result = await apiResponse.json();
-    let completion: string = String(chatMode ? result.choices[0].message.content : result.choices[0].text);
-    const reply = completion;
+    const completion: string = String(chatMode ? result.choices[0].message.content : result.choices[0].text);
     const history = { messages };
     if (chatMode) {
       history.messages.push(result.choices[0].message);
-      // This model likes returning markdown. Code will typically
-      // be in a code block with ``` delimiters.
-      let lines = completion.split('\n');
-      if (lines[0].startsWith('```')) {
-        lines.shift();
-        completion = lines.join('\n');
-        const parts = completion.split('```');
-        if (parts.length > 1) {
-          completion = parts[0];
-        }
-        lines = completion.split('\n');
-      }
-
-      // This model likes repeating the function signature and
-      // docstring, so we try to strip that out.
-      completion = lines.join('\n');
-      while (completion.includes('"""')) {
-        const parts = completion.split('"""');
-        completion = parts[parts.length - 1];
-      }
-
-      // If there's no code block, don't treat the answer as a formula.
-      if (!reply.includes('```')) {
-        completion = '';
-      }
     }
 
-    const response = await completionToResponse(doc, request, completion, reply);
+    const response = await completionToResponse(doc, request, completion, completion);
     if (chatMode) {
       response.state = history;
     }
@@ -261,38 +235,13 @@ export class EchoAssistant implements Assistant {
         role: 'user', content: request.text,
       });
     }
-    let completion = request.text;
-    const reply = completion;
+    const completion = request.text;
     const history = { messages };
     history.messages.push({
       role: 'assistant',
       content: completion,
     });
-    // This model likes returning markdown. Code will typically
-    // be in a code block with ``` delimiters.
-    let lines = completion.split('\n');
-    if (lines[0].startsWith('```')) {
-      lines.shift();
-      completion = lines.join('\n');
-      const parts = completion.split('```');
-      if (parts.length > 1) {
-        completion = parts[0];
-      }
-      lines = completion.split('\n');
-    }
-    // This model likes repeating the function signature and
-    // docstring, so we try to strip that out.
-    completion = lines.join('\n');
-    while (completion.includes('"""')) {
-      const parts = completion.split('"""');
-      completion = parts[parts.length - 1];
-    }
-
-    // If there's no code block, don't treat the answer as a formula.
-    if (!reply.includes('```')) {
-      completion = '';
-    }
-    const response = await completionToResponse(doc, request, completion, reply);
+    const response = await completionToResponse(doc, request, completion, completion);
     response.state = history;
     return response;
   }
@@ -357,18 +306,6 @@ async function completionToResponse(doc: AssistanceDoc, request: AssistanceReque
     throw new Error('completionToResponse only works for formulas');
   }
   completion = await doc.assistanceFormulaTweak(completion);
-  // A leading newline is common.
-  if (completion.charAt(0) === '\n') {
-    completion = completion.slice(1);
-  }
-  // If all non-empty lines have four spaces, remove those spaces.
-  // They are common for GPT-3.5, which matches the prompt carefully.
-  const lines = completion.split('\n');
-  const ok = lines.every(line => line === '\n' || line.startsWith('    '));
-  if (ok) {
-    completion = lines.map(line => line === '\n' ? line : line.slice(4)).join('\n');
-  }
-
   // Suggest an action only if the completion is non-empty (that is,
   // it actually looked like code).
   const suggestedActions: DocAction[] = completion ? [[

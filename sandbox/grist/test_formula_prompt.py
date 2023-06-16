@@ -5,7 +5,7 @@ import test_engine
 import testutil
 
 from formula_prompt import (
-  values_type, column_type, referenced_tables, get_formula_prompt,
+  values_type, column_type, referenced_tables, get_formula_prompt, convert_completion,
 )
 from objtypes import RaisedException
 from records import Record as BaseRecord, RecordSet as BaseRecordSet
@@ -223,3 +223,33 @@ class Table3:
         description here
         """
 ''')
+
+  def test_convert_completion(self):
+    completion = """
+Here's some code:
+
+```python
+import os
+from x import (
+  y,
+  z,
+)
+
+@property
+def foo():
+    '''This is a docstring'''
+    x = 5
+    return 1
+```
+
+Hope you like it!
+"""
+    self.assertEqual(convert_completion(completion), """\
+import os
+from x import (
+  y,
+  z,
+)
+
+x = 5
+return 1""")
