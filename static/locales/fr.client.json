@@ -190,7 +190,7 @@
         "Raw Data Tables": "Données sources",
         "Click to copy": "Cliquez ici pour copier",
         "Table ID copied to clipboard": "Identifiant de table copié",
-        "Duplicate Table": "Dupliquer la page",
+        "Duplicate Table": "Dupliquer la table",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Supprimer les données de {{formattedTableName}} et les supprimer de toutes les pages ?"
     },
