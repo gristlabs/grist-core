@@ -5,10 +5,6 @@ const fs = require('fs/promises');
 const exec = util.promisify(childProcess.exec);
 
 const org = "grist-labs";
-// This may be used in editions of Grist where grist-core is a subtree under core/ directory;
-// detect that by checking if core/Dockerfile exists.
-const appRoot = fs.existsSync('core/Dockerfile') ? 'core' : '.';
-const configPath = `${appRoot}/fly.toml`;
 const configTemplatePath = 'buildtools/fly-template.toml';
 const expirationSec = 30 * 24 * 60 * 60;  // 30 days
 
@@ -22,6 +18,13 @@ const getBranchName = () => {
 
 async function main() {
   if (process.argv[2] === 'deploy') {
+    const appRoot = process.argv[3] || ".";
+    if (!fs.existsSync(`${appRoot}/Dockerfile`)) {
+      console.log(`Dockerfile not found in appRoot of ${appRoot}`);
+      process.exit(1);
+    }
+    const configPath = `${appRoot}/fly.toml`;
+
     const name = getAppName();
     const volName = getVolumeName();
     if (!await appExists(name)) {
@@ -35,8 +38,8 @@ async function main() {
         await volCreate(name, volName);
       }
     }
-    await prepConfig(name, volName);
-    await appDeploy(name);
+    await prepConfig(name, configPath, volName);
+    await appDeploy(name, appRoot);
   } else if (process.argv[2] === 'destroy') {
     const name = getAppName();
     if (await appExists(name)) {
@@ -49,7 +52,9 @@ async function main() {
     }
   } else {
     console.log(`Usage:
-  deploy:   create (if needed) and deploy fly app grist-{BRANCH_NAME}
+  deploy [appRoot]:
+            create (if needed) and deploy fly app grist-{BRANCH_NAME}.
+            appRoot may specify the working directory that contains the Dockerfile to build.
   destroy:  destroy fly app grist-{BRANCH_NAME}
   clean:    destroy all grist-* fly apps whose time has come
             (according to FLY_DEPLOY_EXPIRATION env var set at deploy time)
@@ -65,13 +70,13 @@ const appCreate = (name) => runAction(`flyctl apps create ${name} -o ${org}`);
 const appScale = (name) => runAction(`flyctl scale memory 1024 -a ${name}`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
-const appDeploy = (name) => runAction(`flyctl deploy ${appRoot} --remote-only`, {shell: true, stdio: 'inherit'});
+const appDeploy = (name, appRoot) => runAction(`flyctl deploy ${appRoot} --remote-only`, {shell: true, stdio: 'inherit'});
 
 async function appDestroy(name) {
   await runAction(`flyctl apps destroy ${name} -y`);
 }
 
-async function prepConfig(name, volName) {
+async function prepConfig(name, configPath, volName) {
   const template = await fs.readFile(configTemplatePath, {encoding: 'utf8'});
 
   // Calculate the time when we can destroy the app, used by findStaleApps.
