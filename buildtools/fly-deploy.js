@@ -1,6 +1,7 @@
 const util = require('util');
 const childProcess = require('child_process');
 const fs = require('fs/promises');
+const {existsSync} = require('fs');
 
 const exec = util.promisify(childProcess.exec);
 
@@ -19,7 +20,7 @@ const getBranchName = () => {
 async function main() {
   if (process.argv[2] === 'deploy') {
     const appRoot = process.argv[3] || ".";
-    if (!fs.existsSync(`${appRoot}/Dockerfile`)) {
+    if (!existsSync(`${appRoot}/Dockerfile`)) {
       console.log(`Dockerfile not found in appRoot of ${appRoot}`);
       process.exit(1);
     }
