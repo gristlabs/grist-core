@@ -101,6 +101,16 @@ Lost on what you can do to help? If you are new to Grist, you may just pick one 
 
 https://github.com/gristlabs/grist-core/labels/good%20first%20issue
 
+## Debug the server
+
+You can debug the NodeJS application using this command:
+
+```bash
+$ yarn start:debug
+```
+
+And start using your nodejs debugger client (like the Chrome Devtools). See https://nodejs.org/en/docs/guides/debugging-getting-started#inspector-clients
+
 ## Run tests
 
 You may run the tests using one of these commands:
