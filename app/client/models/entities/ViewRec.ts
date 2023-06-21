@@ -59,12 +59,14 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
     const collapsed = new Set(this.activeCollapsedSections());
     const visible = all.filter(x => !collapsed.has(x.id()));
 
-    return visible.length > 0 ? visible[0].getRowId() : 0;
+    // Default to the first leaf from layoutSpec (which corresponds to the top-left section), or
+    // fall back to the first item in the list if anything goes wrong (previous behavior).
+    const firstLeaf = getFirstLeaf(this.layoutSpecObj.peek());
+    return visible.find(s => s.getRowId() === firstLeaf) ? firstLeaf as number :
+      (visible[0]?.getRowId() || 0);
   });
 
   this.activeSection = refRecord(docModel.viewSections, this.activeSectionId);
-
-
 
   // If the active section is removed, set the next active section to be the default.
   this._isActiveSectionGone = this.autoDispose(ko.computed(() => this.activeSection()._isDeleted()));
@@ -73,4 +75,11 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
       this.activeSectionId(0);
     }
   }));
+}
+
+function getFirstLeaf(layoutSpec: BoxSpec|undefined): BoxSpec['leaf'] {
+  while (layoutSpec?.children?.length) {
+    layoutSpec = layoutSpec.children[0];
+  }
+  return layoutSpec?.leaf;
 }

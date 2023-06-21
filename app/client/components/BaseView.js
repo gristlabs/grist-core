@@ -147,6 +147,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
     }
   }));
 
+  this.isLinkSource = this.autoDispose(ko.pureComputed(() => this.viewSection.linkedSections().all().length > 0));
+
   // Indicated whether editing the section should be disabled given the current linking state.
   this.disableEditing = this.autoDispose(ko.computed(() => {
     const linking = this.viewSection.linkingState();

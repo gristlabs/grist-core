@@ -172,15 +172,14 @@
   top: 0px;
   width: 100%;
   height: 100%;
-  /* one pixel outline around the cell, and one inside the cell */
-  outline: 1px solid var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
-  box-shadow: inset 0 0 0 1px var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
   pointer-events: none;
 }
 
 .active_cursor {
+  /* one pixel outline around the cell, and one inside the cell */
   outline: 1px solid var(--grist-theme-cursor, var(--grist-color-cursor));
   box-shadow: inset 0 0 0 1px var(--grist-theme-cursor, var(--grist-color-cursor));
+  z-index: 1;
 }
 }
 
@@ -205,6 +204,22 @@
 .gridview_data_row_num.selected {
   color: var(--grist-theme-table-header-selected-fg, unset);
   background-color: var(--grist-theme-table-header-selected-bg, var(--grist-color-medium-grey-opaque));
+}
+
+.link_selector_row > .gridview_data_row_num {
+  color: var(--grist-theme-left-panel-active-page-fg, white);
+  background-color: var(--grist-theme-left-panel-active-page-bg, var(--grist-color-dark-bg));
+}
+
+.link_selector_row > .record::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: var(--grist-theme-selection, var(--grist-color-selection));
+  /* z-index should be higher than '.record .field.frozen' (10) to show for frozen columns,
+   * but lower than '.gridview_stick-top' (20) to stay under column headers. */
+  z-index: 15;
 }
 
 .gridview_data_row_info.linked_dst::before {

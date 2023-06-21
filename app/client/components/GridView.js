@@ -1226,6 +1226,8 @@ GridView.prototype.buildDom = function() {
       dom.autoDispose(fontUnderline),
       dom.autoDispose(fontStrikethrough),
 
+      kd.toggleClass('link_selector_row', () => self.isLinkSource() && isRowActive()),
+
       // rowid dom
       dom('div.gridview_data_row_num',
         kd.style("width", ROW_NUMBER_WIDTH + 'px'),

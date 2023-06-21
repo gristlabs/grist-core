@@ -358,7 +358,7 @@ export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: numbe
  * If rowNums are not shown (for single-card view), use rowNum of 1.
  */
 export async function getVisibleDetailCells(col: number|string, rows: number[], section?: string): Promise<string[]>;
-export async function getVisibleDetailCells<T = string>(options: IColSelect<T>): Promise<T[]>;
+export async function getVisibleDetailCells<T = string>(options: IColSelect<T>|IColsSelect<T>): Promise<T[]>;
 export async function getVisibleDetailCells<T>(
   colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string
 ): Promise<T[]> {

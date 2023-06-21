@@ -549,9 +549,7 @@ export class RightPanel extends Disposable {
       ]),
 
       domComputed((use) => {
-        const activeSectionRef = activeSection.getRowId();
-        const allViewSections = use(use(viewModel.viewSections).getObservable());
-        const selectorFor = allViewSections.filter((sec) => use(sec.linkSrcSectionRef) === activeSectionRef);
+        const selectorFor = use(use(activeSection.linkedSections).getObservable());
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [

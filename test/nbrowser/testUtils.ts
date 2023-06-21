@@ -25,6 +25,10 @@ import {server} from 'test/nbrowser/testServer';
 export {server};
 
 setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
+  if (process.env.TEST_CHROME_BINARY_PATH) {
+    chromeOpts.setChromeBinaryPath(process.env.TEST_CHROME_BINARY_PATH);
+  }
+
   // Set "kiosk" printing that saves to PDF without offering any dialogs. This applies to regular
   // (non-headless) Chrome. On headless Chrome, no dialog or output occurs regardless.
   chromeOpts.addArguments("--kiosk-printing");

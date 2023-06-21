@@ -314,14 +314,18 @@ class FinderImpl implements IFinder {
   private _initNewSectionShown() {
     this._initNewSectionCommon();
     const viewInstance = this._sectionStepper.value.viewInstance.peek()!;
-    this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
+    const skip = ['chart'].includes(this._sectionStepper.value.parentKey.peek());
+    this._rowStepper.array = skip ? [] : viewInstance.sortedRows.getKoArray().peek() as number[];
   }
 
   private async _initNewSectionAny() {
     const tableModel = this._initNewSectionCommon();
 
     const viewInstance = this._sectionStepper.value.viewInstance.peek();
-    if (viewInstance) {
+    const skip = ['chart'].includes(this._sectionStepper.value.parentKey.peek());
+    if (skip) {
+      this._rowStepper.array = [];
+    } else if (viewInstance) {
       this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
     } else {
       // If we are searching through another page (not currently loaded), we will NOT have a

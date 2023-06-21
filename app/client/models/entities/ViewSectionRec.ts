@@ -35,6 +35,9 @@ import defaults = require('lodash/defaults');
 export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleOwner {
   viewFields: ko.Computed<KoArray<ViewFieldRec>>;
 
+  // List of sections linked from this one, i.e. for whom this one is the selector or link source.
+  linkedSections: ko.Computed<KoArray<ViewSectionRec>>;
+
   // All table columns associated with this view section, excluding hidden helper columns.
   columns: ko.Computed<ColumnRec[]>;
 
@@ -273,6 +276,7 @@ export interface Filter {
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
   this.viewFields = recordSet(this, docModel.viewFields, 'parentId', {sortBy: 'parentPos'});
+  this.linkedSections = recordSet(this, docModel.viewSections, 'linkSrcSectionRef');
 
   // All table columns associated with this view section, excluding any hidden helper columns.
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().columns().all().filter(c => !c.isHiddenCol())));
