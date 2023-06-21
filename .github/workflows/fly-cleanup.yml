@@ -14,6 +14,7 @@ jobs:
   clean:
       name: Clean stale deployed apps
       runs-on: ubuntu-latest
+      if: github.repository_owner == 'gristlabs'
       steps:
         - uses: actions/checkout@v3
         - uses: superfly/flyctl-actions/setup-flyctl@master
