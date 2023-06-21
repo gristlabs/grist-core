@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     # Deploy when the 'preview' label is added, or when PR is updated with this label present.
     if: |
+          github.repository_owner == 'gristlabs' &&
           github.event_name == 'pull_request' && (
             github.event.action == 'labeled' ||
             github.event.action == 'opened' ||
@@ -50,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     # Remove the deployment when 'preview' label is removed, or the PR is closed.
     if: |
+          github.repository_owner == 'gristlabs' &&
           github.event_name == 'pull_request' &&
           (github.event.action == 'closed' ||
            (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
