@@ -1,0 +1,64 @@
+name: Fly Deploy
+on:
+  pull_request:
+    branches: [ main ]
+    types: [labeled, unlabeled, closed, opened, synchronize, reopened]
+
+  # Allows running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    # Deploy when the 'preview' label is added, or when PR is updated with this label present.
+    if: |
+          github.repository_owner == 'gristlabs' &&
+          github.event_name == 'pull_request' && (
+            github.event.action == 'labeled' ||
+            github.event.action == 'opened' ||
+            github.event.action == 'synchronize' ||
+            github.event.action == 'reopened'
+          ) &&
+          contains(github.event.pull_request.labels.*.name, 'preview')
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.0.525
+      - id: fly_deploy
+        run: |
+          node buildtools/fly-deploy.js deploy
+          flyctl config -c ./fly.toml env | awk '/APP_HOME_URL/{print "DEPLOY_URL=" $2}' >> $GITHUB_OUTPUT
+          flyctl config -c ./fly.toml env | awk '/FLY_DEPLOY_EXPIRATION/{print "EXPIRES=" $2}' >> $GITHUB_OUTPUT
+
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployed as ${{ steps.fly_deploy.outputs.DEPLOY_URL }} (until ${{ steps.fly_deploy.outputs.EXPIRES }})`
+            })
+
+  destroy:
+    name: Remove app
+    runs-on: ubuntu-latest
+    # Remove the deployment when 'preview' label is removed, or the PR is closed.
+    if: |
+          github.repository_owner == 'gristlabs' &&
+          github.event_name == 'pull_request' &&
+          (github.event.action == 'closed' ||
+           (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.0.525
+      - id: fly_destroy
+        run: node buildtools/fly-deploy.js destroy
