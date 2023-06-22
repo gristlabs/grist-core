@@ -6,12 +6,15 @@
  * We use why-is-node-running module to print something informative.
  */
 
-/* global after */
-
-const whyIsNodeRunning = require('why-is-node-running');
+// --no-exit|-E flag is interpreted by mocha-webdriver library to start REPL on failure, and we
+// do NOT want to output a big dump about that.
+const noexit = process.argv.includes("--no-exit") || process.argv.includes('-E');
+// Don't load why-is-node-running if we're not going to use it. It probably means that we're
+// in a debugging session, and this module creates async hooks that interfere with debugging.
+const whyIsNodeRunning = noexit ? null : require('why-is-node-running');
 
 function report() {
-  whyIsNodeRunning();
+  whyIsNodeRunning?.();
   console.warn("*******************************************************");
   console.warn("Something above prevented node from exiting on its own.");
   console.warn("*******************************************************");
@@ -21,9 +24,6 @@ function report() {
 }
 
 after(() => {
-  // --no-exit|-E flag is interpreted by mocha-webdriver library to start REPL on failure, and we
-  // do NOT want to output a big dump about that.
-  const noexit = process.argv.includes("--no-exit") || process.argv.includes('-E');
   if (noexit) {
     console.log("report-why-tests-hang silenced with --no-exit flag");
   } else {
