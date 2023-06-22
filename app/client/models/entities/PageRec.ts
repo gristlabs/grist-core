@@ -14,7 +14,7 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
   // Page is hidden when any of this is true:
   // - It has an empty name (or no name at all)
   // - It is GristDocTour (unless user wants to see it)
-  // - It is GristDocTutorial (and the document is a tutorial fork)
+  // - It is GristDocTutorial (unless user should see it)
   // - It is a page generated for a hidden table TODO: Follow up - don't create
   //   pages for hidden tables.
   // This is used currently only the left panel, to hide pages from the user.

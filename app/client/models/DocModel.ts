@@ -26,6 +26,7 @@ import MetaTableModel from 'app/client/models/MetaTableModel';
 import * as rowset from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {isHiddenTable, isSummaryTable} from 'app/common/isHiddenTable';
+import {canEdit} from 'app/common/roles';
 import {RowFilterFunc} from 'app/common/RowFilterFunc';
 import {schema, SchemaTypes} from 'app/common/schema';
 import {UIRowId} from 'app/common/UIRowId';
@@ -44,7 +45,7 @@ import {createViewSectionRec, ViewSectionRec} from 'app/client/models/entities/V
 import {CellRec, createCellRec} from 'app/client/models/entities/CellRec';
 import {RefListValue} from 'app/common/gristTypes';
 import {decodeObject} from 'app/plugin/objtypes';
-import { toKo } from 'grainjs';
+import {toKo} from 'grainjs';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
@@ -166,7 +167,12 @@ export class DocModel {
   // is initialized once on page load. If set, then the tour page (if any) will be visible.
   public showDocTourTable: boolean = (urlState().state.get().docPage === 'GristDocTour');
 
-  public showDocTutorialTable: boolean = !this._docPageModel.isTutorialFork.get();
+  // Whether the GristDocTutorial table should be shown. Initialized once on page load.
+  public showDocTutorialTable: boolean =
+    // We skip subscribing to the observables below since they normally shouldn't change during
+    // this object's lifetime. If that changes, this should be made into a computed observable.
+    !this._docPageModel.isTutorialFork.get() ||
+    canEdit(this._docPageModel.currentDoc.get()?.trunkAccess ?? null);
 
   // List of all the metadata tables.
   private _metaTables: Array<MetaTableModel<any>>;

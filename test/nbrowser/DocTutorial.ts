@@ -9,9 +9,12 @@ describe('DocTutorial', function () {
   this.timeout(30000);
   setupTestSuite();
 
+  gu.bigScreen();
+
   let doc: DocCreationInfo;
   let api: UserAPI;
-  let session: gu.Session;
+  let ownerSession: gu.Session;
+  let viewerSession: gu.Session;
   let oldEnv: EnvironmentSnapshot;
 
   const cleanup = setupTestSuite({team: true});
@@ -20,9 +23,9 @@ describe('DocTutorial', function () {
     oldEnv = new EnvironmentSnapshot();
     process.env.GRIST_UI_FEATURES = 'tutorials';
     await server.restart();
-    session = await gu.session().teamSite.user('support').login();
-    doc = await session.tempDoc(cleanup, 'DocTutorial.grist');
-    api = session.createHomeApi();
+    ownerSession = await gu.session().teamSite.user('support').login();
+    doc = await ownerSession.tempDoc(cleanup, 'DocTutorial.grist');
+    api = ownerSession.createHomeApi();
     await api.updateDoc(doc.id, {type: 'tutorial'});
     await api.updateDocPermissions(doc.id, {users: {
       'anon@getgrist.com': 'viewers',
@@ -37,11 +40,11 @@ describe('DocTutorial', function () {
 
   describe('when logged out', function () {
     before(async () => {
-      session = await gu.session().anon.login();
+      viewerSession = await gu.session().anon.login();
     });
 
     it('shows a tutorial card', async function() {
-      await session.loadRelPath('/');
+      await viewerSession.loadRelPath('/');
       await gu.waitForDocMenuToLoad();
       await gu.skipWelcomeQuestions();
 
@@ -54,7 +57,7 @@ describe('DocTutorial', function () {
     });
 
     it('redirects user to log in', async function() {
-      await session.loadDoc(`/doc/${doc.id}`, false);
+      await viewerSession.loadDoc(`/doc/${doc.id}`, false);
       await gu.checkLoginPage();
     });
   });
@@ -63,13 +66,13 @@ describe('DocTutorial', function () {
     let forkUrl: string;
 
     before(async () => {
-      session = await gu.session().teamSite.user('user1').login({showTips: true});
+      ownerSession = await gu.session().teamSite.user('user1').login({showTips: true});
     });
 
     afterEach(() => gu.checkForErrors());
 
     it('shows a tutorial card', async function() {
-      await session.loadRelPath('/');
+      await ownerSession.loadRelPath('/');
       await gu.waitForDocMenuToLoad();
       await gu.skipWelcomeQuestions();
 
@@ -97,7 +100,7 @@ describe('DocTutorial', function () {
     });
 
     it('creates a fork the first time the document is opened', async function() {
-      await session.loadDoc(`/doc/${doc.id}`);
+      await ownerSession.loadDoc(`/doc/${doc.id}`);
       await driver.wait(async () => {
         forkUrl = await driver.getCurrentUrl();
         return /~/.test(forkUrl);
@@ -298,7 +301,18 @@ describe('DocTutorial', function () {
       assert.isTrue(await driver.findWait('.test-doc-tutorial-popup', 2000).isDisplayed());
     });
 
-    it('does not show the GristDocTutorial page or table', async function() {
+    it('shows the GristDocTutorial page and table to editors', async function() {
+      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial']);
+      await driver.find('.test-tools-raw').click();
+      await driver.findWait('.test-raw-data-list', 1000);
+      await gu.waitForServer();
+      assert.isTrue(await driver.findContent('.test-raw-data-table-id',
+        /GristDocTutorial/).isPresent());
+    });
+
+    it('does not show the GristDocTutorial page or table to non-editors', async function() {
+      viewerSession = await gu.session().teamSite.user('user2').login();
+      await viewerSession.loadDoc(`/doc/${doc.id}`);
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2']);
       await driver.find('.test-tools-raw').click();
       await driver.findWait('.test-raw-data-list', 1000);
@@ -315,16 +329,15 @@ describe('DocTutorial', function () {
     });
 
     it('only allows users access to their own forks', async function() {
-      const otherSession = await gu.session().teamSite.user('user2').login();
       await driver.navigate().to(forkUrl);
       assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
-      await otherSession.loadDoc(`/doc/${doc.id}`);
+      await viewerSession.loadDoc(`/doc/${doc.id}`);
       let otherForkUrl: string;
       await driver.wait(async () => {
         otherForkUrl = await driver.getCurrentUrl();
         return /~/.test(forkUrl);
       });
-      session = await gu.session().teamSite.user('user1').login();
+      ownerSession = await gu.session().teamSite.user('user1').login();
       await driver.navigate().to(otherForkUrl!);
       assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
       await driver.navigate().to(forkUrl);
@@ -470,7 +483,7 @@ describe('DocTutorial', function () {
       await gu.getCell(0, 1).click();
       await gu.sendKeys('Redacted', Key.ENTER);
       await gu.waitForServer();
-      await session.loadDoc(`/doc/${doc.id}`);
+      await ownerSession.loadDoc(`/doc/${doc.id}`);
       let currentUrl: string;
       await driver.wait(async () => {
         currentUrl = await driver.getCurrentUrl();
@@ -481,7 +494,7 @@ describe('DocTutorial', function () {
     });
 
     it('skips starting or resuming a tutorial if the open mode is set to default', async function() {
-      await session.loadDoc(`/doc/${doc.id}/m/default`);
+      await ownerSession.loadDoc(`/doc/${doc.id}/m/default`);
       assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial']);
       await driver.find('.test-tools-raw').click();
       await gu.waitForServer();
@@ -501,7 +514,7 @@ describe('DocTutorial', function () {
       await driver.findWait('.test-doc-tutorial-popup', 2000);
 
       // Check that the new table isn't in the fork.
-      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2']);
+      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial']);
       assert.deepEqual(await gu.getVisibleGridCells({cols: [0], rowNums: [1]}), ['Redacted']);
 
       // Restart the tutorial.
@@ -527,13 +540,53 @@ describe('DocTutorial', function () {
       // Check that changes made to the tutorial since it was last started are included.
       assert.equal(await driver.find('.test-doc-tutorial-popup-header').getText(),
         'DocTutorial V2');
-      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'NewTable']);
+      assert.deepEqual(await gu.getPageNames(), ['Page 1', 'Page 2', 'GristDocTutorial', 'NewTable']);
+    });
+
+    it('allows editors to replace original', async function() {
+      // Make an edit to one of the tutorial slides.
+      await gu.openPage('GristDocTutorial');
+      await gu.getCell(1, 1).click();
+      await gu.sendKeys(
+        '# Intro',
+        Key.chord(Key.SHIFT, Key.ENTER),
+        Key.chord(Key.SHIFT, Key.ENTER),
+        'Welcome to the Grist Basics tutorial V2.',
+        Key.ENTER,
+      );
+      await gu.waitForServer();
+
+      // Check that the update is immediately reflected in the tutorial popup.
+      assert.equal(
+        await driver.find('.test-doc-tutorial-popup p').getText(),
+        'Welcome to the Grist Basics tutorial V2.'
+      );
+
+      // Replace the original via the Share menu.
+      await driver.find('.test-tb-share').click();
+      await driver.find('.test-replace-original').click();
+      await driver.findWait('.test-modal-confirm', 3000).click();
+      await gu.waitForServer();
+
+      // Switch to another user and restart the tutorial.
+      viewerSession = await gu.session().teamSite.user('user2').login();
+      await viewerSession.loadDoc(`/doc/${doc.id}`);
+      await driver.find('.test-doc-tutorial-popup-restart').click();
+      await driver.find('.test-modal-confirm').click();
+      await gu.waitForServer();
+      await driver.findWait('.test-doc-tutorial-popup', 2000);
+
+      // Check that the changes we made earlier are included.
+      assert.equal(
+        await driver.find('.test-doc-tutorial-popup p').getText(),
+        'Welcome to the Grist Basics tutorial V2.'
+      );
     });
 
     it('redirects to the last visited site when finished', async function() {
-      const otherSession = await gu.session().personalSite.user('user1').addLogin();
-      await otherSession.loadDocMenu('/');
-      await session.loadDoc(`/doc/${doc.id}`);
+      const otherSiteSession = await gu.session().personalSite.user('user1').addLogin();
+      await otherSiteSession.loadDocMenu('/');
+      await ownerSession.loadDoc(`/doc/${doc.id}`);
       await driver.findWait('.test-doc-tutorial-popup-slide-13', 2000).click();
       await driver.find('.test-doc-tutorial-popup-next').click();
       await gu.waitForDocMenuToLoad();
@@ -544,8 +597,8 @@ describe('DocTutorial', function () {
   describe('without tutorial flag set', function () {
     before(async () => {
       await api.updateDoc(doc.id, {type: null});
-      session = await gu.session().teamSite.user('user1').login();
-      await session.loadDoc(`/doc/${doc.id}`);
+      ownerSession = await gu.session().teamSite.user('user1').login();
+      await ownerSession.loadDoc(`/doc/${doc.id}`);
     });
 
     afterEach(() => gu.checkForErrors());
@@ -557,10 +610,7 @@ describe('DocTutorial', function () {
       assert.deepEqual(
         await gu.getVisibleGridCells({cols: [1, 2], rowNums: [1]}),
         [
-          "# Intro\n\nWelcome to the Grist Basics tutorial. We will cover"
-            + " the most important Grist concepts and features. Let’s get"
-            + " started.\n\n![Grist Basics Tutorial](\n"
-            + "https://www.getgrist.com/wp-content/uploads/2023/03/Row-1-Intro.png)",
+          '# Intro\n\nWelcome to the Grist Basics tutorial V2.',
           '',
         ]
       );

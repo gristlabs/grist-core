@@ -41,11 +41,15 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       return shareButton(t("Back to Current"), () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy(t("Save Copy"), doc, appModel),
-        menuOriginal(doc, appModel, true),
+        menuOriginal(doc, appModel, {isSnapshot: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: backToCurrent});
     } else if (doc.isTutorialFork) {
-      return null;
+      return shareButton(t("Save Copy"), () => [
+        menuSaveCopy(t("Save Copy"), doc, appModel),
+        menuOriginal(doc, appModel, {isTutorialFork: true}),
+        menuExports(doc, pageModel),
+      ], {buttonAction: saveCopy});
     } else if (doc.isPreFork || doc.isBareFork) {
       // A new unsaved document, or a fiddle, or a public example.
       const saveActionTitle = doc.isBareFork ? t("Save Document") : t("Save Copy");
@@ -63,14 +67,14 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         return shareButton(t("Save Copy"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy(t("Save Copy"), doc, appModel),
-          menuOriginal(doc, appModel, false),
+          menuOriginal(doc, appModel),
           menuExports(doc, pageModel),
         ], {buttonAction: saveCopy});
       } else {
         return shareButton(t("Unsaved"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy(t("Save Copy"), doc, appModel),
-          menuOriginal(doc, appModel, false),
+          menuOriginal(doc, appModel),
           menuExports(doc, pageModel),
         ]);
       }
@@ -142,9 +146,25 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   ];
 }
 
-// Renders "Return to Original" and "Replace Original" menu items. When used with snapshots, we
-// say "Current Version" in place of the word "Original".
-function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
+interface MenuOriginalOptions {
+  /** Defaults to false. */
+  isSnapshot?: boolean;
+  /** Defaults to false. */
+  isTutorialFork?: boolean;
+}
+
+/**
+ * Renders "Return to Original" and "Replace Original" menu items.
+ *
+ * When used with snapshots, we say "Current Version" in place of the word "Original".
+ *
+ * When used with tutorial forks, the "Return to Original" and "Compare to Original" menu
+ * items are excluded. Note that it's still possible to return to the original by manually
+ * setting the open mode in the URL to "/m/default" - if the menu item were to ever be included
+ * again, it should likely be a shortcut to setting the open mode back to default.
+ */
+function menuOriginal(doc: Document, appModel: AppModel, options: MenuOriginalOptions = {}) {
+  const {isSnapshot = false, isTutorialFork = false} = options;
   const termToUse = isSnapshot ? t("Current Version") : t("Original");
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
   const originalUrl = urlState().makeUrl({doc: origUrlId});
@@ -167,7 +187,7 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
     replaceTrunkWithFork(user, doc, appModel, origUrlId).catch(reportError);
   }
   return [
-    cssMenuSplitLink({href: originalUrl},
+    isTutorialFork ? null : cssMenuSplitLink({href: originalUrl},
       cssMenuSplitLinkText(t("Return to {{termToUse}}", {termToUse})), testId('return-to-original'),
       cssMenuIconLink({href: originalUrl, target: '_blank'}, testId('open-original'),
         cssMenuIcon('FieldLink'),
@@ -179,7 +199,7 @@ function menuOriginal(doc: Document, appModel: AppModel, isSnapshot: boolean) {
       dom.cls('disabled', !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId('replace-original'),
     ),
-    menuItemLink(compareHref, {target: '_blank'}, t("Compare to {{termToUse}}", {termToUse}),
+    isTutorialFork ? null : menuItemLink(compareHref, {target: '_blank'}, t("Compare to {{termToUse}}", {termToUse}),
       menuAnnotate('Beta'),
       testId('compare-original'),
     ),

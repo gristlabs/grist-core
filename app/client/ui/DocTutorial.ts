@@ -52,6 +52,11 @@ export class DocTutorial extends FloatingPopup {
   public async start() {
     this.showPopup();
     await this._loadSlides();
+
+    const tableData = this._docData.getTable('GristDocTutorial');
+    if (tableData) {
+      this.autoDispose(tableData.tableActionEmitter.addListener(() => this._reloadSlides()));
+    }
   }
 
   protected _buildTitle() {
@@ -212,6 +217,16 @@ export class DocTutorial extends FloatingPopup {
     }
 
     this._slides.set(slides);
+  }
+
+  private async _reloadSlides() {
+    await this._loadSlides();
+    const slides = this._slides.get();
+    if (!slides) { return; }
+
+    if (this._currentSlideIndex.get() > slides.length - 1) {
+      this._currentSlideIndex.set(slides.length - 1);
+    }
   }
 
   private async _saveCurrentSlidePosition() {
