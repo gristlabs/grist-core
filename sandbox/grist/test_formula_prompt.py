@@ -236,10 +236,12 @@ from x import (
 )
 
 @property
-def foo():
+def foo(rec):
     '''This is a docstring'''
-    x = 5
-    return 1
+    x = f"hello {rec.name} " + rec.name + "!"
+    if rec.bar.spam:
+      return 0
+    return rec.a * rec.b
 ```
 
 Hope you like it!
@@ -251,5 +253,7 @@ from x import (
   z,
 )
 
-x = 5
-return 1""")
+x = f"hello {rec.name} " + $name + "!"
+if $bar.spam:
+  return 0
+$a * $b""")

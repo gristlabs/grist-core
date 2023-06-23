@@ -4,6 +4,7 @@ import re
 import textwrap
 
 import asttokens
+import asttokens.util
 import six
 
 from column import is_visible_column, BaseReferenceColumn
@@ -230,10 +231,29 @@ def convert_completion(completion):
     if imports:
       result = imports + "\n" + result
 
-    # Check that we still have valid code.
-    try:
-      ast.parse(result)
-    except SyntaxError:
-      return ""
+  # Now convert `rec.` to `$` and remove redundant `return ` at the end.
+  try:
+    atok = asttokens.ASTTokens(result, parse=True)
+  except SyntaxError:
+    # In case the above extraction somehow messed things up
+    return ""
+
+  replacements = []
+  for node in ast.walk(atok.tree):
+    if isinstance(node, ast.Attribute):
+      start, end = atok.get_text_range(node.value)
+      end += 1
+      if result[start:end] == "rec.":
+        replacements.append((start, end, "$"))
+
+  last_stmt = atok.tree.body[-1]
+  if isinstance(last_stmt, ast.Return):
+    start, _ = atok.get_text_range(last_stmt)
+    expected = "return "
+    end = start + len(expected)
+    if result[start:end] == expected:
+      replacements.append((start, end, ""))
+
+  result = asttokens.util.replace(result, replacements)
 
   return result.strip()
