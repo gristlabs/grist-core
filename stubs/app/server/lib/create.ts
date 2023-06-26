@@ -1,4 +1,4 @@
-import { checkMinIOExternalStorage,
+import { checkMinIOBucket, checkMinIOExternalStorage,
          configureMinIOExternalStorage } from 'app/server/lib/configureMinIOExternalStorage';
 import { makeSimpleCreator } from 'app/server/lib/ICreate';
 import { Telemetry } from 'app/server/lib/Telemetry';
@@ -12,6 +12,7 @@ export const create = makeSimpleCreator({
     {
       name: 'minio',
       check: () => checkMinIOExternalStorage() !== undefined,
+      checkBackend: () => checkMinIOBucket(),
       create: configureMinIOExternalStorage,
     },
   ],
