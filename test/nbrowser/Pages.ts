@@ -259,6 +259,42 @@ describe('Pages', function() {
     assert.include(await gu.getPageNames(), 'People');
   });
 
+  it('should pull out emoji from page names', async () => {
+    // A regular character is used as an initial AND kept in the name.
+    assert.deepEqual(await getInitialAndName(/People/), ['P', 'People']);
+
+    // It looks like our version of Chromedriver does not support sending emojis using sendKeys
+    // (issue mentioned here https://stackoverflow.com/a/59139690), so we'll use executeScript to
+    // rename pages.
+    async function renamePage(origName: string, newName: string) {
+      await gu.openPageMenu(origName);
+      await driver.find('.test-docpage-rename').doClick();
+      const editor = await driver.find('.test-docpage-editor');
+      await driver.executeScript((el: HTMLInputElement, text: string) => { el.value = text; }, editor, newName);
+      await editor.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+    }
+
+    async function getInitialAndName(pageName: string|RegExp): Promise<[string, string]> {
+      return await driver.findContent('.test-treeview-itemHeader', pageName)
+      .findAll('.test-docpage-initial, .test-docpage-label', el => el.getText()) as [string,
+        string];
+    }
+
+    // An emoji is pulled into the initial, and is removed from the name.
+    await renamePage('People', '👥 People');
+
+    assert.deepEqual(await getInitialAndName(/People/), ['👥', 'People']);
+
+    // Two complex emojis -- the first one is the pulled-out initial.
+    await renamePage('People', '👨‍👩‍👧‍👦👨‍👩‍👧Guest List');
+    assert.deepEqual(await getInitialAndName(/Guest List/),
+      ['👨‍👩‍👧‍👦', '👨‍👩‍👧Guest List']);
+
+    await gu.undo(2);
+    assert.deepEqual(await getInitialAndName(/People/), ['P', 'People']);
+  });
+
   it('should show tooltip for long page names on hover', async () => {
     await gu.openPageMenu('People');
     await driver.find('.test-docpage-rename').doClick();

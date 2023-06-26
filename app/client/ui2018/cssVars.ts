@@ -426,6 +426,9 @@ export const theme = {
     undefined, colors.slate),
   pageInitialsFg: new CustomProp('theme-left-panel-page-initials-fg', undefined, 'white'),
   pageInitialsBg: new CustomProp('theme-left-panel-page-initials-bg', undefined, colors.slate),
+  pageInitialsEmojiBg: new CustomProp('theme-left-panel-page-emoji-fg', undefined, 'white'),
+  pageInitialsEmojiOutline: new CustomProp('theme-left-panel-page-emoji-outline', undefined,
+    colors.darkGrey),
 
   /* Right Panel */
   rightPanelTabFg: new CustomProp('theme-right-panel-tab-fg', undefined, colors.dark),
