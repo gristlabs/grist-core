@@ -46,7 +46,7 @@ export interface AssistanceSchemaPromptV1Context {
 
 /**
  * A flavor of assistant for use with the OpenAI API.
- * Tested primarily with text-davinci-002 and gpt-3.5-turbo.
+ * Tested primarily with gpt-3.5-turbo.
  */
 export class OpenAIAssistant implements Assistant {
   private _apiKey: string;
@@ -60,8 +60,11 @@ export class OpenAIAssistant implements Assistant {
       throw new Error('OPENAI_API_KEY not set');
     }
     this._apiKey = apiKey;
-    this._model = process.env.COMPLETION_MODEL || "text-davinci-002";
+    this._model = process.env.COMPLETION_MODEL || "gpt-3.5-turbo-0613";
     this._chatMode = this._model.includes('turbo');
+    if (!this._chatMode) {
+      throw new Error('Only turbo models are currently supported');
+    }
     this._endpoint = `https://api.openai.com/v1/${this._chatMode ? 'chat/' : ''}completions`;
   }
 
@@ -72,25 +75,27 @@ export class OpenAIAssistant implements Assistant {
       if (messages.length === 0) {
         messages.push({
           role: 'system',
-          content: 'The user gives you one or more Python classes, ' +
-            'with one last method that needs completing. Write the ' +
-            'method body as a single code block, ' +
-            'including the docstring the user gave. ' +
-            'Just give the Python code as a markdown block, ' +
-            'do not give any introduction, that will just be ' +
-            'awkward for the user when copying and pasting. ' +
-            'You are working with Grist, an environment very like ' +
-            'regular Python except `rec` (like record) is used ' +
-            'instead of `self`. ' +
-            'Include at least one `return` statement or the method ' +
-            'will fail, disappointing the user. ' +
-            'Your answer should be the body of a single method, ' +
-            'not a class, and should not include `dataclass` or ' +
-            '`class` since the user is counting on you to provide ' +
-            'a single method. Thanks!'
+          content: 'You are a helpful assistant for a user of software called Grist. ' +
+            'Below are one or more Python classes. ' +
+            'The last method needs completing. ' +
+            "The user will probably give a description of what they want the method (a 'formula') to return. " +
+            'If so, your response should include the method body as Python code in a markdown block. ' +
+            'Do not include the class or method signature, just the method body. ' +
+            'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
+            'You can import modules inside the method body if needed. ' +
+            'You cannot define additional functions or methods. ' +
+            'The method should be a pure function that performs some computation and returns a result. ' +
+            'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
+            'It CANNOT interact with files/databases/networks/etc. ' +
+            'It CANNOT display images/charts/graphs/maps/etc. ' +
+            'If the user asks for these things, tell them that you cannot help. ' +
+            'The method uses `rec` instead of `self` as the first parameter.\n\n' +
+            '```python\n' +
+            await makeSchemaPromptV1(doc, request) +
+            '\n```',
         });
         messages.push({
-          role: 'user', content: await makeSchemaPromptV1(doc, request),
+          role: 'user', content: request.text,
         });
       } else {
         if (request.regenerate) {
@@ -257,10 +262,11 @@ function getAssistant() {
   if (process.env.OPENAI_API_KEY) {
     return new OpenAIAssistant();
   }
-  if (process.env.HUGGINGFACE_API_KEY) {
-    return new HuggingFaceAssistant();
-  }
-  throw new Error('Please set OPENAI_API_KEY or HUGGINGFACE_API_KEY');
+  // Maintaining this is too much of a burden for now.
+  // if (process.env.HUGGINGFACE_API_KEY) {
+  //   return new HuggingFaceAssistant();
+  // }
+  throw new Error('Please set OPENAI_API_KEY');
 }
 
 /**

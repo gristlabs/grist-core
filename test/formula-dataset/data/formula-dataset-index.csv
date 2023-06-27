@@ -1,69 +1,76 @@
-table_id,col_id,doc_id,Description
-Contacts,Send_Email,hQHXqAQXceeQBPvRw5sSs1,"Link to compose an email, if there is one"
-Contacts,No_Notes,hQHXqAQXceeQBPvRw5sSs1,"Number of notes for this contact"
-Category,Contains_archived_project_,hQHXqAQXceeQBPvRw5sSs1,"Whether any projects in this category are archived"
-Tasks,Today,hQHXqAQXceeQBPvRw5sSs1,Needs to be done today (or every day)
-Tasks,Week_Day,hQHXqAQXceeQBPvRw5sSs1,Full name of deadline weekday
-Tasks,period,hQHXqAQXceeQBPvRw5sSs1,Whether this task was modified between (inclusive) the dates in the single row in Settings
-Expenses,Month,55Q2EtTbFvB1N6iizLh4Rk,e.g. 2022-01
-Payroll,Date_Range,5pHLanQNThxkEaEJHKJUf5,"The start date, followed by a dash (no spaces) and the end date if there is one. Dates are month/day with no leading zeroes."
-Payroll,Per_Hour,5pHLanQNThxkEaEJHKJUf5,The hourly rate of the latest rate for this role and person that started on or before this date
-Payroll,Payment,5pHLanQNThxkEaEJHKJUf5,"Total payment amount for hours worked, rounded to the nearest cent."
-Payroll_summary_Pay_Period_Person,Dates,5pHLanQNThxkEaEJHKJUf5,"All date ranges in the group, separated by a comma and a space"
-People,Full_Name,5pHLanQNThxkEaEJHKJUf5,"e.g. Doe, John"
-General_Ledger,Quarter,2YwYBWpREY2a1N2NV7cb55,e.g. 2020 Q4
-General_Ledger,Year,2YwYBWpREY2a1N2NV7cb55,"Just the year of the date, as a string"
-Time_Calculator,Time_Worked,np7TVHmuvFcHmo1K8h7Ur4,Formatted as hours:minutes. No leading zeroes for hours.
-Time_Calculator,Seconds_Worked,np7TVHmuvFcHmo1K8h7Ur4,"Number of seconds between start/end times, if they're both there"
-Funding_Source,Percentage,qprycQa2TVwajAe6Hb3bUZ,Ratio of the amount to the total across all rows
-Funding_Source_summary,Debt_to_Equity,qprycQa2TVwajAe6Hb3bUZ,Ratio of the total amounts in the group where the type is Debt vs Equity
-Invoices,Client,bReAxyLmzmEQfHF5L5Sc1e,Client's name followed by their address on the next line
-Invoices,Hours,bReAxyLmzmEQfHF5L5Sc1e,Total duration in hours across all time logs for this invoice
-Invoices,Due,bReAxyLmzmEQfHF5L5Sc1e,30 days after the invoice date
-Invoices,Invoice_ID,bReAxyLmzmEQfHF5L5Sc1e,Invoice date followed by the client's name in brackets
-Projects,Project_Name,bReAxyLmzmEQfHF5L5Sc1e,"Client name and project name, e.g. John Doe: Big project"
-Time_Log,Date,bReAxyLmzmEQfHF5L5Sc1e,Start date if there is one
-Time_Log,Duration_hrs_,bReAxyLmzmEQfHF5L5Sc1e,Duration (if there is one) in hours rounded to two decimal places
-Time_Log,Duration_min_,bReAxyLmzmEQfHF5L5Sc1e,"Number of minutes between start and end time. If either time is missing, leave blank. If end is before start, give 0."
-Filtered_By_Formula,LabelCount,9nNr9uQwoXWAvxcWQDygh6,"1 if the state is CA, otherwise 0"
-Objects,Address,pyMHqncEspfZN5zfShCwT8,"City and state, separated by comma space"
-Books,search_terms,hdXy57qLiyNf35oNLzzgBG,"Title and author name, with a space in between"
-BOM_Items,Cost,e4gEm7dt4cgBMkouVBNMeY,Total cost if both quantity and cost are given
-Bill_Of_Materials,Cost,e4gEm7dt4cgBMkouVBNMeY,Total cost
-All_Responses,Entry,qvND7WUcuNb2fU4n1vBJ7f,"Name and submitted date in the format ""Name - month-day"""
-All_Responses,Month,qvND7WUcuNb2fU4n1vBJ7f,Submitted month (full name) and year
-Cap_Table,Common_Stock,iXggjrCPHut9u2BuhJxJkk,"If the class is Options, RSUs, or Option Pool, return 0, otherwise return the fully diluted value."
-Cap_Table,Fully_Diluted,iXggjrCPHut9u2BuhJxJkk,"The granted amount, minus the total pool used if the class is Option Pool"
-Cap_Table,Fully_Diluted_,iXggjrCPHut9u2BuhJxJkk,Fully diluted as a fraction of the total
-Classes,Spots_Left,swLvb3Fic22gVzrdczcAoZ,or Full
-Classes,Count,swLvb3Fic22gVzrdczcAoZ,Number of enrollments for this class where the status is Confirmed
-All_Survey_Responses,Product_Experience_Score,4ktYzGV1mUipSiQFtkLGqm,"A number based on the experience:
+no_formula,table_id,col_id,doc_id,Description
+0,Contacts,Send_Email,hQHXqAQXceeQBPvRw5sSs1,"Link to compose an email, if there is one"
+0,Contacts,No_Notes,hQHXqAQXceeQBPvRw5sSs1,"Number of notes for this contact"
+0,Category,Contains_archived_project_,hQHXqAQXceeQBPvRw5sSs1,"Whether any projects in this category are archived"
+0,Tasks,Today,hQHXqAQXceeQBPvRw5sSs1,Needs to be done today (or every day)
+0,Tasks,Week_Day,hQHXqAQXceeQBPvRw5sSs1,Full name of deadline weekday
+0,Tasks,period,hQHXqAQXceeQBPvRw5sSs1,Whether this task was modified between (inclusive) the dates in the single row in Settings
+0,Expenses,Month,55Q2EtTbFvB1N6iizLh4Rk,e.g. 2022-01
+0,Payroll,Date_Range,5pHLanQNThxkEaEJHKJUf5,"The start date, followed by a dash (no spaces) and the end date if there is one. Dates are month/day with no leading zeroes."
+0,Payroll,Per_Hour,5pHLanQNThxkEaEJHKJUf5,The hourly rate of the latest rate for this role and person that started on or before this date
+0,Payroll,Payment,5pHLanQNThxkEaEJHKJUf5,"Total payment amount for hours worked, rounded to the nearest cent."
+0,Payroll_summary_Pay_Period_Person,Dates,5pHLanQNThxkEaEJHKJUf5,"All date ranges in the group, separated by a comma and a space"
+0,People,Full_Name,5pHLanQNThxkEaEJHKJUf5,"e.g. Doe, John"
+0,General_Ledger,Quarter,2YwYBWpREY2a1N2NV7cb55,e.g. 2020 Q4
+0,General_Ledger,Year,2YwYBWpREY2a1N2NV7cb55,"Just the year of the date, as a string"
+0,Time_Calculator,Time_Worked,np7TVHmuvFcHmo1K8h7Ur4,Formatted as hours:minutes. No leading zeroes for hours.
+0,Time_Calculator,Seconds_Worked,np7TVHmuvFcHmo1K8h7Ur4,"Number of seconds between start/end times, if they're both there"
+0,Funding_Source,Percentage,qprycQa2TVwajAe6Hb3bUZ,Ratio of the amount to the total across all rows
+0,Funding_Source_summary,Debt_to_Equity,qprycQa2TVwajAe6Hb3bUZ,Ratio of the total amounts in the group where the type is Debt vs Equity
+0,Invoices,Client,bReAxyLmzmEQfHF5L5Sc1e,Client's name followed by their address on the next line
+0,Invoices,Hours,bReAxyLmzmEQfHF5L5Sc1e,Total duration in hours across all time logs for this invoice
+0,Invoices,Due,bReAxyLmzmEQfHF5L5Sc1e,30 days after the invoice date
+0,Invoices,Invoice_ID,bReAxyLmzmEQfHF5L5Sc1e,Invoice date followed by the client's name in brackets
+0,Projects,Project_Name,bReAxyLmzmEQfHF5L5Sc1e,"Client name and project name, e.g. John Doe: Big project"
+0,Time_Log,Date,bReAxyLmzmEQfHF5L5Sc1e,Start date if there is one
+0,Time_Log,Duration_hrs_,bReAxyLmzmEQfHF5L5Sc1e,Duration (if there is one) in hours rounded to two decimal places
+0,Time_Log,Duration_min_,bReAxyLmzmEQfHF5L5Sc1e,"Number of minutes between start and end time. If either time is missing, leave blank. If end is before start, give 0."
+0,Filtered_By_Formula,LabelCount,9nNr9uQwoXWAvxcWQDygh6,"1 if the state is CA, otherwise 0"
+0,Objects,Address,pyMHqncEspfZN5zfShCwT8,"City and state, separated by comma space"
+0,Books,search_terms,hdXy57qLiyNf35oNLzzgBG,"Title and author name, with a space in between"
+0,BOM_Items,Cost,e4gEm7dt4cgBMkouVBNMeY,Total cost if both quantity and cost are given
+0,Bill_Of_Materials,Cost,e4gEm7dt4cgBMkouVBNMeY,Total cost
+1,Bill_Of_Materials,Cost,e4gEm7dt4cgBMkouVBNMeY,Calculate the mean cost and add a row showing the variance from the mean
+0,All_Responses,Entry,qvND7WUcuNb2fU4n1vBJ7f,"Name and submitted date in the format ""Name - month-day"""
+0,All_Responses,Month,qvND7WUcuNb2fU4n1vBJ7f,Submitted month (full name) and year
+0,Cap_Table,Common_Stock,iXggjrCPHut9u2BuhJxJkk,"If the class is Options, RSUs, or Option Pool, return 0, otherwise return the fully diluted value."
+0,Cap_Table,Fully_Diluted,iXggjrCPHut9u2BuhJxJkk,"The granted amount, minus the total pool used if the class is Option Pool"
+0,Cap_Table,Fully_Diluted_,iXggjrCPHut9u2BuhJxJkk,Fully diluted as a fraction of the total
+0,Classes,Spots_Left,swLvb3Fic22gVzrdczcAoZ,or Full
+0,Classes,Count,swLvb3Fic22gVzrdczcAoZ,Number of enrollments for this class where the status is Confirmed
+1,Classes,Count,swLvb3Fic22gVzrdczcAoZ,Add a row at the end with the total number
+0,All_Survey_Responses,Product_Experience_Score,4ktYzGV1mUipSiQFtkLGqm,"A number based on the experience:
 Very Dissatisfied: 1
 Somewhat Dissatisfied: 2
 Neutral: 3
 Somewhat Satisfied: 4
 Very Satisfied: 5"
-Time_Sheet_Entries_summary_Account_Employee_Month,Total_Spend,oGxD8EnzeVs6vSQK3QBrUv,Total hours worked times hourly rate
-Time_Sheets,Title,oGxD8EnzeVs6vSQK3QBrUv,Month number and employee full name separated by a space
-All_Products,SKU,sXsBGDTKau1F3fvxkCyoaJ,"Brand code, color code, and size, separated by dashes without spaces"
-All_Products,QTY_on_Order,sXsBGDTKau1F3fvxkCyoaJ,Total quantity minus total received quantity across all incoming order line items for this product
-All_Products,Stock_Alert,sXsBGDTKau1F3fvxkCyoaJ,"If the amount in stock and on order is more than 5: In Stock
+0,Time_Sheet_Entries_summary_Account_Employee_Month,Total_Spend,oGxD8EnzeVs6vSQK3QBrUv,Total hours worked times hourly rate
+0,Time_Sheets,Title,oGxD8EnzeVs6vSQK3QBrUv,Month number and employee full name separated by a space
+0,All_Products,SKU,sXsBGDTKau1F3fvxkCyoaJ,"Brand code, color code, and size, separated by dashes without spaces"
+0,All_Products,QTY_on_Order,sXsBGDTKau1F3fvxkCyoaJ,Total quantity minus total received quantity across all incoming order line items for this product
+0,All_Products,Stock_Alert,sXsBGDTKau1F3fvxkCyoaJ,"If the amount in stock and on order is more than 5: In Stock
 If it's 0: OUT OF STOCK
 Otherwise: Low Stock"
-Incoming_Order_Line_Items,Received_Qty,sXsBGDTKau1F3fvxkCyoaJ,"The quantity, but only if the order is received"
-Theaters,Latitude2,dKztiPYamcCpttT1LT1FnU,Coordinate before the comma
-Theaters,Longitude,dKztiPYamcCpttT1LT1FnU,Coordinate after the comma and space
-Families,Amount_Due,cJcSKdUC3nLNAv4wTjAxA6,"Total charged minus total paid, capped at 0"
-Families,Total_Applied,cJcSKdUC3nLNAv4wTjAxA6,Total charge for all paid sessions for this family
-Gifts_summary_Occasion_Who_Year,Over_Budget_,dr6epxpXUcy9rsFVUoXTEe,Did we spend more than the budget for this person?
-Gifts_summary_Year,Total_Budget,dr6epxpXUcy9rsFVUoXTEe,Total budget for all important dates this year
-Leases,Signer,5iMYwmESm33JpEECSqdZk2,The signing tenant for this lease
-Apartments,Have_Picture,5iMYwmESm33JpEECSqdZk2,Yes or No depending on if there's a picture
-Apartments,Current_Lease,5iMYwmESm33JpEECSqdZk2,The lease for this apartment whose current status is Active
-Current_Signers,Lease_Start_Date,5iMYwmESm33JpEECSqdZk2,The start date of the lease for this apartment whose current status is Active
-Leases,Lease_End_Date,5iMYwmESm33JpEECSqdZk2,Start date plus the lease term in years minus one day
-Tenancies,Minor,5iMYwmESm33JpEECSqdZk2,"1 if the age is less than 18, otherwise 0"
-Game_Schedule,Loser,1xJAp2uxM7tFCVUbEofKoF,The team that won fewer sets
-Standings,Win_Rate,1xJAp2uxM7tFCVUbEofKoF,Ratio of wins to total games
-Standings,Wins,1xJAp2uxM7tFCVUbEofKoF,Number of games won
-Prepare_Invoices,Due,9NH6D58FmxwPP43nw7uzQK,One month after the issued date if there is one
+0,Incoming_Order_Line_Items,Received_Qty,sXsBGDTKau1F3fvxkCyoaJ,"The quantity, but only if the order is received"
+0,Theaters,Latitude2,dKztiPYamcCpttT1LT1FnU,Coordinate before the comma
+1,Theaters,Latitude2,dKztiPYamcCpttT1LT1FnU,How can I see the coordinates on a map?
+0,Theaters,Longitude,dKztiPYamcCpttT1LT1FnU,Coordinate after the comma and space
+0,Families,Amount_Due,cJcSKdUC3nLNAv4wTjAxA6,"Total charged minus total paid, capped at 0"
+0,Families,Total_Applied,cJcSKdUC3nLNAv4wTjAxA6,Total charge for all paid sessions for this family
+0,Gifts_summary_Occasion_Who_Year,Over_Budget_,dr6epxpXUcy9rsFVUoXTEe,Did we spend more than the budget for this person?
+0,Gifts_summary_Year,Total_Budget,dr6epxpXUcy9rsFVUoXTEe,Total budget for all important dates this year
+0,Leases,Signer,5iMYwmESm33JpEECSqdZk2,The signing tenant for this lease
+1,Leases,Signer,5iMYwmESm33JpEECSqdZk2,Show the attached photo of the signing tenant
+0,Apartments,Have_Picture,5iMYwmESm33JpEECSqdZk2,Yes or No depending on if there's a picture
+0,Apartments,Current_Lease,5iMYwmESm33JpEECSqdZk2,The lease for this apartment whose current status is Active
+0,Current_Signers,Lease_Start_Date,5iMYwmESm33JpEECSqdZk2,The start date of the lease for this apartment whose current status is Active
+0,Leases,Lease_End_Date,5iMYwmESm33JpEECSqdZk2,Start date plus the lease term in years minus one day
+0,Tenancies,Minor,5iMYwmESm33JpEECSqdZk2,"1 if the age is less than 18, otherwise 0"
+0,Game_Schedule,Loser,1xJAp2uxM7tFCVUbEofKoF,The team that won fewer sets
+0,Standings,Win_Rate,1xJAp2uxM7tFCVUbEofKoF,Ratio of wins to total games
+0,Standings,Wins,1xJAp2uxM7tFCVUbEofKoF,Number of games won
+0,Prepare_Invoices,Due,9NH6D58FmxwPP43nw7uzQK,One month after the issued date if there is one
+1,Prepare_Invoices,Due,9NH6D58FmxwPP43nw7uzQK,Hello
+1,Prepare_Invoices,Due,9NH6D58FmxwPP43nw7uzQK,Can you help me?
+1,Prepare_Invoices,Due,9NH6D58FmxwPP43nw7uzQK,How do I create a new table?

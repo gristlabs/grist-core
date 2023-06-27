@@ -150,7 +150,7 @@ def class_schema(engine, table_id, exclude_col_id=None, lookups=False):
   return result
 
 
-def get_formula_prompt(engine, table_id, col_id, description,
+def get_formula_prompt(engine, table_id, col_id, _description,
                        include_all_tables=True,
                        lookups=True):
   result = ""
@@ -165,9 +165,7 @@ def get_formula_prompt(engine, table_id, col_id, description,
   result += "    @property\n"
   result += "    # rec is alias for self\n"
   result += "    def {}(rec) -> {}:\n".format(col_id, return_type)
-  result += '        """\n'
-  result += '{}\n'.format(indent(description, "        "))
-  result += '        """\n'
+  result += "        # Please fill in code only after this line, not the `def`\n"
   return result
 
 def indent(text, prefix, predicate=None):

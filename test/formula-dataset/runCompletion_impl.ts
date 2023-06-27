@@ -53,6 +53,7 @@ const TEMPLATE_URL = "https://grist-static.com/datasets/grist_dataset_formulai_2
 const oldFetch = DEPS.fetch;
 
 interface FormulaRec {
+  no_formula: string;
   table_id: string;
   col_id: string;
   doc_id: string;
@@ -169,6 +170,10 @@ where c.colId = ? and t.tableId = ?
           });
           if (result.state) {
             history = result.state;
+          }
+          if (rec.no_formula == "1") {
+            success = result.suggestedActions.length === 0;
+            return null;
           }
           suggestedActions = result.suggestedActions;
           // apply modification
