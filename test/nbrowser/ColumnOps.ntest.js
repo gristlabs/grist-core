@@ -7,7 +7,6 @@ describe('ColumnOps.ntest', function() {
   const cleanup = test.setupTestSuite(this);
 
   before(async function() {
-    this.timeout(Math.max(this.timeout(), 30000)); // Long-running test, unfortunately
     await gu.supportOldTimeyTestCode();
     await gu.useFixtureDoc(cleanup, "World.grist", true);
     await gu.toggleSidePanel('left', 'close');
