@@ -4,7 +4,8 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {Style} from 'app/client/models/Styles';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {testId} from 'app/client/ui2018/cssVars';
+import {colors, testId} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
@@ -45,9 +46,13 @@ export class ChoiceTextBox extends NTextBox {
 
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId()];
+    const isSingle = this.field.viewSection().parentKey() === "single";
+    const maybeDropDownCssChoiceEditIcon = isSingle ? cssChoiceEditIcon('Dropdown') : null;
+
     return cssChoiceField(
       cssChoiceTextWrapper(
         dom.style('justify-content', (use) => use(this.alignment) === 'right' ? 'flex-end' : use(this.alignment)),
+        maybeDropDownCssChoiceEditIcon,
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }
 
@@ -149,4 +154,10 @@ const cssChoiceText = styled('div', `
   margin: 2px;
   height: min-content;
   line-height: 16px;
+`);
+
+const cssChoiceEditIcon = styled(icon, `
+  background-color: ${colors.slate};
+  display: block;
+  height: inherit;
 `);

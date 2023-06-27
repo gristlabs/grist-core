@@ -7,6 +7,7 @@
   "repository": "git://github.com/gristlabs/grist-core.git",
   "scripts": {
     "start": "sandbox/watch.sh",
+    "start:debug": "NODE_INSPECT=1 sandbox/watch.sh",
     "install:python": "buildtools/prepare_python.sh",
     "install:python2": "buildtools/prepare_python2.sh",
     "install:python3": "buildtools/prepare_python3.sh",
