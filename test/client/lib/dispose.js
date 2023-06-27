@@ -1,5 +1,3 @@
-/* global describe, it, before, after */
-
 var dispose = require('app/client/lib/dispose');
 
 var bluebird = require('bluebird');
@@ -8,6 +6,8 @@ var sinon = require('sinon');
 
 var clientUtil = require('../clientUtil');
 var dom = require('app/client/lib/dom');
+
+require('chai').config.truncateThreshold = 10000;
 
 describe('dispose', function() {
 
@@ -153,9 +153,12 @@ describe('dispose', function() {
       assert.equal(baz.dispose.callCount, 1);
       assert(baz.dispose.calledBefore(bar.dispose));
 
-      assert.deepEqual(consoleErrors[0], ['Error constructing %s:', 'Foo', 'Error: test-error1']);
-      assert.deepEqual(consoleErrors[1], ['Error constructing %s:', 'Foo', 'Error: test-error2']);
-      assert.deepEqual(consoleErrors[2], ['Error constructing %s:', 'Foo', 'Error: test-error3']);
+      const name = consoleErrors[0][1];  // may be Foo, or minified.
+      assert(name === 'Foo' || name === 'o');  // this may not be reliable,
+                                               // just what I happen to see.
+      assert.deepEqual(consoleErrors[0], ['Error constructing %s:', name, 'Error: test-error1']);
+      assert.deepEqual(consoleErrors[1], ['Error constructing %s:', name, 'Error: test-error2']);
+      assert.deepEqual(consoleErrors[2], ['Error constructing %s:', name, 'Error: test-error3']);
       assert.equal(consoleErrors.length, 3);
     });
 

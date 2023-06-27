@@ -1,4 +1,4 @@
-/* global location, describe, it, afterEach, after */
+/* global location */
 
 var _ = require('underscore');
 var Chance = require('chance');

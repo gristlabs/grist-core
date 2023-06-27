@@ -1,5 +1,3 @@
-/* global describe, it, before */
-
 const assert = require('chai').assert;
 const ko     = require('knockout');
 

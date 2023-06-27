@@ -18,6 +18,7 @@ import {makeGristConfig} from 'app/server/lib/sendAppPage';
 import {exitPromise} from 'app/server/lib/serverUtils';
 import {connectTestingHooks, TestingHooksClient} from 'app/server/lib/TestingHooks';
 import {ChildProcess, execFileSync, spawn} from 'child_process';
+import EventEmitter from 'events';
 import * as fse from 'fs-extra';
 import {driver, IMochaServer, WebDriver} from 'mocha-webdriver';
 import fetch from 'node-fetch';
@@ -27,7 +28,7 @@ import {removeConnection} from 'test/gen-server/seed';
 import {HomeUtil} from 'test/nbrowser/homeUtil';
 import {getDatabase} from 'test/testUtils';
 
-export class TestServerMerged implements IMochaServer {
+export class TestServerMerged extends EventEmitter implements IMochaServer {
   public testDir: string;
   public testDocDir: string;
   public testingHooks: TestingHooksClient;
@@ -42,10 +43,12 @@ export class TestServerMerged implements IMochaServer {
   private _exitPromise: Promise<number|string>;
   private _starts: number = 0;
   private _dbManager?: HomeDBManager;
-  private _driver: WebDriver;
+  private _driver?: WebDriver;
 
   // The name is used to name the directory for server logs and data.
-  constructor(private _name: string) {}
+  constructor(private _name: string) {
+    super();
+  }
 
   public async start() {
     await this.restart(true);
@@ -66,9 +69,10 @@ export class TestServerMerged implements IMochaServer {
       if (process.env.TESTDIR) {
         this.testDir = process.env.TESTDIR;
       } else {
-        // Create a testDir of the form grist_test_{USER}_{SERVER_NAME}, removing any previous one.
+        const workerId = process.env.MOCHA_WORKER_ID || '0';
+        // Create a testDir of the form grist_test_{USER}_{SERVER_NAME}_{WORKER_ID}, removing any previous one.
         const username = process.env.USER || "nobody";
-        this.testDir = path.join(tmpdir(), `grist_test_${username}_${this._name}`);
+        this.testDir = path.join(tmpdir(), `grist_test_${username}_${this._name}_${workerId}`);
         await fse.remove(this.testDir);
       }
     }
@@ -95,6 +99,9 @@ export class TestServerMerged implements IMochaServer {
     // logging. Server code uses a global logger, so it's hard to separate out (especially so if
     // we ever run different servers for different tests).
     const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
+    const workerId = parseInt(process.env.MOCHA_WORKER_ID || '0', 10);
+    const corePort = String(8295 + workerId * 2);
+    const untrustedPort = String(8295 + workerId * 2 + 1);
     const env: Record<string, string> = {
       TYPEORM_DATABASE: this._getDatabaseFile(),
       GRIST_DATA_DIR: this.testDocDir,
@@ -107,23 +114,25 @@ export class TestServerMerged implements IMochaServer {
       GRIST_MAX_UPLOAD_ATTACHMENT_MB: '2',
       // The following line only matters for testing with non-localhost URLs, which some tests do.
       GRIST_SERVE_SAME_ORIGIN: 'true',
-      APP_UNTRUSTED_URL : "http://localhost:18096",
       // Run with HOME_PORT, STATIC_PORT, DOC_PORT, DOC_WORKER_COUNT in the environment to override.
       ...(useSinglePort ? {
         APP_HOME_URL: this.getHost(),
         GRIST_SINGLE_PORT: 'true',
       } : (isCore ? {
-        HOME_PORT: '8095',
-        STATIC_PORT: '8095',
-        DOC_PORT: '8095',
+        HOME_PORT: corePort,
+        STATIC_PORT: corePort,
+        DOC_PORT: corePort,
         DOC_WORKER_COUNT: '1',
-        PORT: '8095',
+        PORT: corePort,
+        APP_UNTRUSTED_URL: `http://localhost:${untrustedPort}`,
+        GRIST_SERVE_PLUGINS_PORT: untrustedPort,
       } : {
         HOME_PORT: '8095',
         STATIC_PORT: '8096',
         DOC_PORT: '8100',
         DOC_WORKER_COUNT: '5',
         PORT: '0',
+        APP_UNTRUSTED_URL : "http://localhost:18096",
       })),
       // This skips type-checking when running server, but reduces startup time a lot.
       TS_NODE_TRANSPILE_ONLY: 'true',
@@ -158,6 +167,7 @@ export class TestServerMerged implements IMochaServer {
 
     // Prepare testingHooks for certain behind-the-scenes interactions with the server.
     this.testingHooks = await connectTestingHooks(testingSocket);
+    this.emit('start');
   }
 
   public async stop() {
@@ -168,6 +178,7 @@ export class TestServerMerged implements IMochaServer {
       this.testingHooks.close();
     }
     await this._exitPromise;
+    this.emit('stop');
   }
 
   /**
@@ -261,7 +272,7 @@ export class TestServerMerged implements IMochaServer {
   }
 
   // substitute a custom driver
-  public setDriver(customDriver: WebDriver = driver) {
+  public setDriver(customDriver?: WebDriver) {
     this._driver = customDriver;
   }
 

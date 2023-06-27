@@ -1,5 +1,3 @@
-/* global describe, beforeEach, before, after, it */
-
 var _ = require('underscore');
 var sinon = require('sinon');
 var assert = require('chai').assert;

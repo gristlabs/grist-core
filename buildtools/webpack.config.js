@@ -15,6 +15,7 @@ module.exports = {
     account: "app/client/accountMain",
     billing: "app/client/billingMain",
     activation: "app/client/activationMain",
+    test: "test/client-harness/client",
   },
   output: {
     filename: "[name].bundle.js",
@@ -78,4 +79,10 @@ module.exports = {
     // To strip all locales except “en”
     new MomentLocalesPlugin()
   ],
+  externals: {
+    // for test bundle: jsdom should not be touched within browser
+    jsdom: 'alert',
+    // for test bundle: jquery will be available as jQuery
+    jquery: 'jQuery'
+  },
 };

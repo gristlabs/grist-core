@@ -3022,10 +3022,9 @@ function testDocApi() {
     });
 
     after(async function () {
-      if (!process.env.TEST_REDIS_URL) {
-        this.skip();
+      if (process.env.TEST_REDIS_URL) {
+        await redisClient.quitAsync();
       }
-      await redisClient.quitAsync();
     });
   });
 
@@ -3260,10 +3259,9 @@ function testDocApi() {
       });
 
       after(async function () {
-        if (!process.env.TEST_REDIS_URL) {
-          this.skip();
+        if (process.env.TEST_REDIS_URL) {
+          await redisMonitor.quitAsync();
         }
-        await redisMonitor.quitAsync();
       });
 
       it("delivers expected payloads from combinations of changes, with retrying and batching", async function () {

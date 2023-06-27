@@ -1,5 +1,3 @@
-/* global describe, it */
-
 var assert  = require('chai').assert;
 var marshal = require('app/common/marshal');
 var MemBuffer = require('app/common/MemBuffer');

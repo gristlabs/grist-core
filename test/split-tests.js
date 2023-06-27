@@ -18,36 +18,38 @@
  * parallel groups can be evened out as much as possible.
  */
 
-/* global before */
 const fs = require('fs');
 const { assert } = require('chai');
 
 const testSuite = process.env.TEST_SUITE_FOR_TIMINGS || "unset_suite";
 const timingsFile = process.env.TIMINGS_FILE || "test/timings-all.txt";
 
-before(function() {
-  const testSplits = process.env.TEST_SPLITS;
-  if (!testSplits) {
-    return;
-  }
-  const match = testSplits.match(/^(\d+)-of-(\d+)$/);
-  if (!match) {
-    assert.fail(`Invalid test split spec '${testSplits}': use format 'N-of-M'`);
-  }
+exports.mochaHooks = {
+  beforeAll(done) {
+    const testSplits = process.env.TEST_SPLITS;
+    if (!testSplits) {
+      return done();
+    }
+    const match = testSplits.match(/^(\d+)-of-(\d+)$/);
+    if (!match) {
+      assert.fail(`Invalid test split spec '${testSplits}': use format 'N-of-M'`);
+    }
 
-  const group = Number(match[1]);
-  const groupCount = Number(match[2]);
-  if (!(group >= 1 && group <= groupCount)) {
-    assert.fail(`Invalid test split spec '${testSplits}': index must be in range 1..{groupCount}`);
+    const group = Number(match[1]);
+    const groupCount = Number(match[2]);
+    if (!(group >= 1 && group <= groupCount)) {
+      assert.fail(`Invalid test split spec '${testSplits}': index must be in range 1..{groupCount}`);
+    }
+
+    const testParent = this.test.parent;
+    const timings = getTimings();
+    const groups = groupSuites(testParent.suites, timings, groupCount);
+
+    testParent.suites = groups[group - 1];  // Convert to a 0-based index.
+    console.log(`Split tests groups; will run group ${group} of ${groupCount}`);
+    done();
   }
-
-  const testParent = this.test.parent;
-  const timings = getTimings();
-  const groups = groupSuites(testParent.suites, timings, groupCount);
-
-  testParent.suites = groups[group - 1];  // Convert to a 0-based index.
-  console.log(`Split tests groups; will run group ${group} of ${groupCount}`);
-});
+};
 
 /**
  * Read timings from timingsFile into a Map mapping file-suite-title to duration.

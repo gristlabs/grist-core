@@ -4,8 +4,6 @@ const G = require('app/client/lib/browserGlobals').get('window', '$');
 const sinon = require('sinon');
 const assert = require('assert');
 
-/* global describe, it, after, before, beforeEach */
-
 describe("koDomScrolly", function() {
 
   clientUtil.setTmpMochaGlobals();

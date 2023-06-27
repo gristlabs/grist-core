@@ -15,8 +15,9 @@ import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import log from 'app/server/lib/log';
 import {TestingHooksClient} from 'app/server/lib/TestingHooks';
+import EventEmitter = require('events');
 
-export interface Server {
+export interface Server extends EventEmitter {
   driver: WebDriver;
   getTestingHooks(): Promise<TestingHooksClient>;
   getHost(): string;
@@ -53,7 +54,11 @@ export class HomeUtil {
   // of the home api available while making browser tests.
   private _apiKey = new Map<string, string>();
 
-  constructor(public fixturesRoot: string, public server: Server) {}
+  constructor(public fixturesRoot: string, public server: Server) {
+    server.on('stop', () => {
+      this._apiKey.clear();
+    });
+  }
 
   public get driver(): WebDriver { return this.server.driver; }
 
@@ -134,7 +139,8 @@ export class HomeUtil {
       // Take this opportunity to cache access info.
       if (!this._apiKey.has(email)) {
         await this.driver.get(this.server.getUrl(org || 'docs', ''));
-        this._apiKey.set(email, await this._getApiKey());
+        const apiKey = await this._getApiKey();
+        this._apiKey.set(email, apiKey);
       }
     }
   }

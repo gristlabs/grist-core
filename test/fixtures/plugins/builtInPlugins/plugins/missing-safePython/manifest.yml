@@ -1,0 +1,10 @@
+name: missing-safePython
+version: 0.0.1
+components:
+  # missing `safePython` component
+contributions:
+  fileParsers:
+    - fileExtensions: ["csv"]
+      parseFile:
+        component: "safePython"
+        name: "csv_parser"

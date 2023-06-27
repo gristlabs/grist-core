@@ -8,7 +8,7 @@ import { server } from 'test/nbrowser/testUtils';
 //import { Deps as TriggersDeps } from 'app/server/lib/Triggers';
 
 describe('WebhookPage', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   const cleanup = setupTestSuite();
 
   let session: gu.Session;

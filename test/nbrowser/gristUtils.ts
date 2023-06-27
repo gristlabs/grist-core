@@ -1,5 +1,5 @@
 /**
- * Replicates functionality of test/browser/gristUtils.ts for new-style tests.
+ * Replicates functionality of test/nbrowser/gristUtils.ts for new-style tests.
  *
  * The helpers are themselves tested in TestGristUtils.ts.
  */
@@ -33,15 +33,20 @@ import type { AssertionError } from 'assert';
 namespace gristUtils {
 
 // Allow overriding the global 'driver' to use in gristUtil.
-let driver: WebDriver;
+let _driver: WebDriver|undefined;
+const driver: WebDriver = new Proxy({} as any, {
+  get(_, prop) {
+    if (!_driver) {
+      return (driverOrig as any)[prop];
+    }
+    return (_driver as any)[prop];  // eslint-disable-line @typescript-eslint/no-unnecessary-type-assertion
+  }
+});
 
 export function currentDriver() { return driver; }
 
 // Substitute a custom driver to use with gristUtils functions. Omit argument to restore to default.
-export function setDriver(customDriver: WebDriver = driverOrig) { driver = customDriver; }
-
-// Set the 'driver' to use here in before() callback, because driverOrig isn't set until then.
-before(() => setDriver());
+export function setDriver(customDriver?: WebDriver) { _driver = customDriver; }
 
 const homeUtil = new HomeUtil(testUtils.fixturesRoot, server);
 

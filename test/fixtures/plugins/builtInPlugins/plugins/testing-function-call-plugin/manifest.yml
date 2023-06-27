@@ -1,0 +1,17 @@
+name: testPluginFunction
+version: 0.0.1
+components:
+  safePython: sandbox/main.py
+  unsafeNode: backend.js
+  safeBrowser: main.js
+
+# For the purpose of this unit-test contributions property is actually
+# NOT need and only provided for the sake of making this manifest
+# valid,
+
+contributions:
+  importSources:
+    - importSource:
+        component: "safeBrowser"
+        name: index.html
+      label: My safe importer

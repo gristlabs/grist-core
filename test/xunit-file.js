@@ -69,7 +69,7 @@ class XUnitFile extends reporters.Base {
 
     runner.on('suite end', (suite) => {
       // Every time a (top-level) suite ends, add a line to the timings file.
-      if (suite.titlePath().length == 1) {
+      if (suite.titlePath?.()?.length == 1) {
         const duration = Date.now() - startedSuites.get(suite);
         appendLine(timingsFd, `${testSuite} ${suite.fullTitle()} ${duration}`);
         startedSuites.delete(suite);

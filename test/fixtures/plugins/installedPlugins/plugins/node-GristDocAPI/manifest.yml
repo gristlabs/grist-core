@@ -1,0 +1,7 @@
+name: node-GristDocAPI
+version: 0.0.0
+description:
+components:
+  unsafeNode: main.js
+
+contributions: {}

@@ -1,0 +1,14 @@
+name: pluginName
+version: 0.0.1
+components:
+  safePython: sandbox/main.py
+  deactivate:
+    # Let's keep it low for tests to be fast, but big enough for test to be accurate.
+    inactivitySec: 0.1
+
+contributions:
+  fileParsers:
+    - fileExtensions: ["csv"]
+      parseFile:
+        component: "safePython"
+        name: "csv_parser"

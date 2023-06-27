@@ -16,7 +16,6 @@ function setTmpMochaGlobals() {
     return;
   }
 
-  /* global before, after */
   const {JSDOM} = require('jsdom');
 
   var prevGlobals;

@@ -1,5 +1,3 @@
-/* global describe, it, before, after */
-
 var _ = require('underscore');
 var assert = require('assert');
 var Chance = require('chance');

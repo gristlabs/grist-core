@@ -1,5 +1,3 @@
-/* global describe, it */
-
 var assert = require('chai').assert;
 var rowuid = require('app/client/models/rowuid');
 

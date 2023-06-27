@@ -6,8 +6,6 @@
  */
 
 
-/* global describe, it, before */
-
 var assert = require('chai').assert;
 
 var bluebird = require('bluebird');

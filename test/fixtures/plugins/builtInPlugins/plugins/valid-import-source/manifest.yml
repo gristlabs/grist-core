@@ -1,0 +1,10 @@
+name: pluginName
+version: 0.0.1
+components:
+  safeBrowser: '.'
+contributions:
+  importSources:
+    - importSource:
+        component: "safeBrowser"
+        name: index.html
+      label: My safe importer

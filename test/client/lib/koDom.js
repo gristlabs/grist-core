@@ -1,5 +1,3 @@
-/* global describe, it */
-
 var assert = require('assert');
 var ko = require('knockout');
 var sinon = require('sinon');

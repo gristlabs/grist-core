@@ -1,5 +1,3 @@
-/* global describe, it */
-
 var assert = require('chai').assert;
 var RecentItems = require('app/common/RecentItems');
 

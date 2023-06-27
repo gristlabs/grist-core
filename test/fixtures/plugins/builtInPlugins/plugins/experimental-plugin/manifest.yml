@@ -1,0 +1,12 @@
+name: crazy-plugin
+version: 0.0.1
+experimental: true
+components:
+  safePython: sandbox/main.py
+
+contributions:
+  fileParsers:
+    - fileExtensions: ["csv"]
+      parseFile:
+        component: "safePython"
+        name: "csv_parser"

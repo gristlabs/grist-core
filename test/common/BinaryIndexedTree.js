@@ -1,5 +1,3 @@
-/* global describe, before, it */
-
 var assert = require('assert');
 var BinaryIndexedTree = require('app/common/BinaryIndexedTree');
 

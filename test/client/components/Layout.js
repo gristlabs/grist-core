@@ -1,5 +1,3 @@
-/* global describe, beforeEach, afterEach, it */
-
 var assert = require('chai').assert;
 var clientUtil = require('../clientUtil');
 var dom = require('app/client/lib/dom');

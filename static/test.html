@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <base href="/v/gtag/">
+    <title>Grist Tests</title>
+    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="plotly/plotly-latest.min.js"></script>
+    <script src="./mocha.js"></script>
+    <script>mocha.setup('bdd')</script>
+    <script src="./test.bundle.js"></script>
+    <script>
+      onload = function() {
+        $('#app-test').ready(function() {
+            try {
+              window.loadTests();
+            } catch (err) {
+              console.log("ERROR", err);
+              mocha.failedTests = [];
+              mocha.failedTests.push({title: 'Failed to load', error: err.toString()});
+              document.getElementById('mocha-status').textContent = 'DONE - FAILED TO LOAD';
+              return;
+            }
+
+            mocha.checkLeaks();
+            // fxdriver_id is set by selenium, execWebdriverJQuery by webdriverjq.js.
+            mocha.globals(['cmd', 'fxdriver_id', 'execWebdriverJQuery']);
+            var runner = mocha.run();
+            mocha.failedTests = [];
+            runner.on('fail', function(test, err) {
+              mocha.failedTests.push({title: test.fullTitle(), error: err.toString()});
+            });
+            runner.on('end', function() {
+              document.getElementById('mocha-status').textContent = runner.failures > 0 ? 'DONE - FAILURE :(' : 'DONE - SUCCESS :)';
+            });
+        });
+      };
+
+      function scrollToBottom() {
+        var bottom = document.getElementById('mocha-end');
+        bottom.scrollIntoView(true);
+      }
+
+      afterEach(function() {
+        // keep scrolled to the bottom
+        return scrollToBottom();
+      });
+
+      after(function() {
+        // keep scrolled to the bottom
+        return scrollToBottom();
+      });
+    </script>
+
+    <style>
+      #mocha {
+        width: 50%;
+      }
+
+      #app-test {
+        position: fixed;
+        margin: -8px;
+        width: 40%;
+        height: 80%;
+        top: 20%;
+        left: 60%;
+      }
+
+      #mocha-status {
+        position: fixed;
+        bottom: 0px;
+        padding: 1rem;
+        border: 2px solid #cc9;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+
+      /* mostly match #mocha-stats class */
+      .extra-info {
+        position: fixed;
+        top: 60px;
+        right: 10px;
+        font-size: 12px;
+        color: #888;
+        z-index: 1;
+      }
+
+    </style>
+
+    <link rel="stylesheet" href="./mocha.css">
+  </head>
+
+  <body>
+    <div id="mocha">
+      <div class="extra-info">
+        <a href="/test.html?timing=1">Run tests with timings</a>
+      </div>
+    </div>
+    <div id="mocha-end">&nbsp;</div>
+    <div id="mocha-status">TBD - RUNNING...</div>
+  </body>
+
+</html>
+

@@ -13,6 +13,9 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     strategy:
+      # it is helpful to know which sets of tests would have succeeded,
+      # even when there is a failure.
+      fail-fast: false
       matrix:
         python-version: [3.9]
         node-version: [14.x]
@@ -20,11 +23,11 @@ jobs:
           - ':lint:python:client:common:smoke:'
           - ':server-1-of-2:'
           - ':server-2-of-2:'
-          - ':nbrowser-1-of-5:'
-          - ':nbrowser-2-of-5:'
-          - ':nbrowser-3-of-5:'
-          - ':nbrowser-4-of-5:'
-          - ':nbrowser-5-of-5:'
+          - ':nbrowser-^[A-G]:'
+          - ':nbrowser-^[H-L]:'
+          - ':nbrowser-^[M-O]:'
+          - ':nbrowser-^[P-S]:'
+          - ':nbrowser-^[^A-S]:'
     steps:
       - uses: actions/checkout@v3
 
@@ -95,8 +98,8 @@ jobs:
       - name: Run main tests without minio and redis
         if: contains(matrix.tests, ':nbrowser-')
         run: |
-          export TEST_SPLITS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
-          MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
+          export GREP_TESTS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
+          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser --parallel --jobs 3
         env:
           TESTS: ${{ matrix.tests }}
 

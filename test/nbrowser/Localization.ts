@@ -9,7 +9,7 @@ import os from "os";
 import path from 'path';
 
 describe("Localization", function() {
-  this.timeout(20000);
+  this.timeout(60000);
   setupTestSuite();
 
   before(async function() {

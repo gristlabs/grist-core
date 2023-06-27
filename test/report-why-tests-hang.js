@@ -23,12 +23,17 @@ function report() {
   process.kill(process.pid, 'SIGTERM');
 }
 
-after(() => {
-  if (noexit) {
-    console.log("report-why-tests-hang silenced with --no-exit flag");
-  } else {
-    // If still hanging after 5s after tests finish, say something. Unref() ensures that THIS
-    // timeout doesn't itself keep node from exiting.
-    setTimeout(report, 5000).unref();
+if (process.env.MOCHA_WORKER_ID === undefined) {
+  exports.mochaHooks = {
+    afterAll(done) {
+      if (noexit) {
+        console.log("report-why-tests-hang silenced with --no-exit flag");
+      } else {
+        // If still hanging after 5s after tests finish, say something. Unref() ensures that THIS
+        // timeout doesn't itself keep node from exiting.
+        setTimeout(report, 5000).unref();
+      }
+      done();
+    }
   }
-});
+}

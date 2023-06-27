@@ -1,0 +1,16 @@
+name: pluginName
+version: 0.0.1
+components:
+  safeBrowser: main.js
+  safePython: sandbox/main.py
+  unsafeNode: node/main.js
+contributions:
+  importSources:
+    - importSource:
+        component: safeBrowser
+        name: dummy
+      label: Dummy importer
+    - importSource:
+        component: safeBrowser
+        name: dummy-inlined
+      label: Inline Importer

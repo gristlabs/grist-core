@@ -1,0 +1,12 @@
+name: helloSection
+version: 0.0.0
+components:
+  safeBrowser: main.js
+contributions:
+  customSections:
+    - path: index.html
+      name: Hello World
+    - path: index-bis.html
+      name: Hello World (bis)
+    - path: test-subscribe-api.html
+      name: dataAPI test

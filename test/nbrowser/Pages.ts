@@ -7,7 +7,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import values = require('lodash/values');
 
 describe('Pages', function() {
-  this.timeout(30000);
+  this.timeout(60000);
   setupTestSuite();
   let doc: DocCreationInfo;
   let api: UserAPI;

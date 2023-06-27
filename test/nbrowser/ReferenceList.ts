@@ -4,7 +4,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {Session} from 'test/nbrowser/gristUtils';
 
 describe('ReferenceList', function() {
-  this.timeout(20000);
+  this.timeout(60000);
   setupTestSuite();
   let session: Session;
   const cleanup = setupTestSuite({team: true});

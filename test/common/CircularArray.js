@@ -1,5 +1,3 @@
-/* global describe, it */
-
 var assert = require('assert');
 var CircularArray = require('app/common/CircularArray');
 

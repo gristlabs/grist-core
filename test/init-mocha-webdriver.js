@@ -10,7 +10,7 @@
 // Increase the threshold since the default (of 40 characters) is often too low.
 // You can override it using CHAI_TRUNCATE_THRESHOLD env var; 0 disables it.
 require('chai').config.truncateThreshold = process.env.CHAI_TRUNCATE_THRESHOLD ?
-  parseFloat(process.env.CHAI_TRUNCATE_THRESHOLD) : 200;
+  parseFloat(process.env.CHAI_TRUNCATE_THRESHOLD) : 4000;
 
 // Set an explicit window size (if not set by an external variable), to ensure that manully-run
 // and Jenkins-run tests, headless or not, use a consistent size. (Not that height is still not
@@ -43,4 +43,23 @@ if (process.env.MOCHA_WEBDRIVER_IGNORE_CHROME_VERSION === undefined) {
 // swallow early clicks on page reload.
 if (process.env.MOCHA_WEBDRIVER_NO_CONTROL_BANNER === undefined) {
   process.env.MOCHA_WEBDRIVER_NO_CONTROL_BANNER = "1";
+}
+
+// Detect whether there is an nbrowser test. If so,
+// set an environment variable that will be available
+// in individual processes if --parallel is enabled.
+for (const arg of process.argv) {
+  if (arg.includes('/nbrowser/')) {
+    process.env.MOCHA_WEBDRIVER = '1';
+  }
+}
+
+// If --parallel is enabled, and we are in an individual
+// worker process, set up mochaHooks. Watch out: at the
+// time of writing, there's no way to have hooks run at the
+// start and end of the worker process.
+if (process.env.MOCHA_WORKER_ID !== undefined &&
+    process.env.MOCHA_WEBDRIVER !== undefined) {
+  const {getMochaHooks} = require('mocha-webdriver');
+  exports.mochaHooks = getMochaHooks();
 }

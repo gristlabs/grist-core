@@ -1,5 +1,3 @@
-/* global describe, it, before, after */
-
 var assert = require('chai').assert;
 var sinon = require('sinon');
 var Promise = require('bluebird');

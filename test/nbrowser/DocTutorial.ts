@@ -6,7 +6,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 describe('DocTutorial', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   setupTestSuite();
 
   gu.bigScreen();
@@ -578,7 +578,7 @@ describe('DocTutorial', function () {
 
       // Check that the changes we made earlier are included.
       assert.equal(
-        await driver.find('.test-doc-tutorial-popup p').getText(),
+        await driver.findWait('.test-doc-tutorial-popup p', 2000).getText(),
         'Welcome to the Grist Basics tutorial V2.'
       );
     });

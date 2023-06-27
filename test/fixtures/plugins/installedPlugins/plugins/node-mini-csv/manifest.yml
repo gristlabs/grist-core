@@ -1,0 +1,11 @@
+name: minicsv
+version: 0.0.0
+description: minicsv
+components:
+  unsafeNode: nodebox/main.js
+contributions:
+  fileParsers:
+    - fileExtensions: ["csv"]
+      parseFile:
+        component: unsafeNode
+        name: MiniCSV

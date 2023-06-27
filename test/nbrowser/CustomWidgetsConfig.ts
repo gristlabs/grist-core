@@ -158,7 +158,7 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
 }
 
 describe('CustomWidgetsConfig', function () {
-  this.timeout(30000); // almost 20 second on dev machine.
+  this.timeout(60000);
   const cleanup = setupTestSuite();
   let mainSession: gu.Session;
   gu.bigScreen();

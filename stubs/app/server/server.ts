@@ -110,6 +110,9 @@ export async function main() {
   if (process.env.GRIST_TESTING_SOCKET) {
     await server.addTestingHooks();
   }
+  if (process.env.GRIST_SERVE_PLUGINS_PORT) {
+    await server.startCopy('pluginServer', parseInt(process.env.GRIST_SERVE_PLUGINS_PORT, 10));
+  }
   return server;
 }
 

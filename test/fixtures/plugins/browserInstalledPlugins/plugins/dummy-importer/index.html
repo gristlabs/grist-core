@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <script src="/grist-plugin-api.js"></script>
+    <script src="script.js"></script>
+    <!-- jquery is required for running browser test (see: `test/browser/webdriverjq.js`) -->
+    <script src="/jquery/dist/jquery.min.js"></script>
+    <style type="text/css">
+      body {
+        background-color: #ffffffb0;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="call-safePython" type="button" value="call safePython">
+    <input id="call-unsafeNode" type="button" value="call unsafeNode">
+    <input id="cancel" type="button" value="cancel">
+    <br/>
+    "name of the file: "
+    <input id="name" type="text">
+    <input id="ok" type="button" value="validate">
+  </body>
+</html>

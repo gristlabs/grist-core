@@ -4,6 +4,7 @@ module.exports = {
   env: {
     node: true,
     es6: true,
+    mocha: true,
   },
   // Set parser to support, e.g. import() function for dynamic imports (see
   // https://stackoverflow.com/a/47833471/328565 and https://stackoverflow.com/a/69557309/328565).

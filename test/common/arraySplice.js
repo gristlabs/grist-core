@@ -1,5 +1,3 @@
-/* global describe, it */
-
 var _ = require('underscore');
 var assert = require('chai').assert;
 var gutil = require('app/common/gutil');
