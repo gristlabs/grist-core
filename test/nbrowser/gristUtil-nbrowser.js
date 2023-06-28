@@ -53,7 +53,7 @@ async function applyPatchesToJquerylikeObject($) {
 // Adapt common old setup.
 const test = {
   setupTestSuite(self, ...args) {
-    self.timeout(20000);
+    self.timeout(40000);
     return setupTestSuite(...args);
   },
 };

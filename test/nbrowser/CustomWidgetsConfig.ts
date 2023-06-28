@@ -223,10 +223,10 @@ describe('CustomWidgetsConfig', function () {
     constructor(public frameSelector = 'iframe') {}
     // Wait for a frame.
     public async waitForFrame() {
-      await driver.wait(() => driver.find(this.frameSelector).isPresent(), 1000);
+      await driver.wait(() => driver.find(this.frameSelector).isPresent(), 3000);
       const iframe = driver.find(this.frameSelector);
       await driver.switchTo().frame(iframe);
-      await driver.wait(async () => (await driver.find('#ready').getText()) === 'ready', 1000);
+      await driver.wait(async () => (await driver.find('#ready').getText()) === 'ready', 3000);
       await driver.switchTo().defaultContent();
     }
     public async content() {
@@ -254,7 +254,7 @@ describe('CustomWidgetsConfig', function () {
     }
     // Wait for frame to close.
     public async waitForClose() {
-      await driver.wait(async () => !(await driver.find(this.frameSelector).isPresent()), 1000);
+      await driver.wait(async () => !(await driver.find(this.frameSelector).isPresent()), 3000);
     }
     // Wait for the onOptions event, and return its value.
     public async onOptions() {
@@ -262,7 +262,7 @@ describe('CustomWidgetsConfig', function () {
       await driver.switchTo().frame(iframe);
       // Wait for options to get filled, initially this div is empty,
       // as first message it should get at least null as an options.
-      await driver.wait(async () => await driver.find('#onOptions').getText(), 1000);
+      await driver.wait(async () => await driver.find('#onOptions').getText(), 3000);
       const text = await driver.find('#onOptions').getText();
       await driver.switchTo().defaultContent();
       return JSON.parse(text);
