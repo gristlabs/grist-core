@@ -69,8 +69,7 @@ export async function checkMinIOBucket() {
 
   const externalStorage = new MinIOExternalStorage(options.bucket, options);
   if (!await externalStorage.hasVersioning()) {
-    console.error(`FATAL: the MinIO bucket "${options.bucket}" does not have versioning enabled`);
     await externalStorage.close();
-    process.exit(1);
+    throw new Error(`FATAL: the MinIO bucket "${options.bucket}" does not have versioning enabled`);
   }
 }
