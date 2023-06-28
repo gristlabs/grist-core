@@ -106,13 +106,16 @@ jobs:
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/mocha-webdriver-logs
 
       - name: Prepare a safe artifact name
-        run:
-          ARTIFACT_NAME="logs-${{ matrix.tests }}"
-          ARTIFACT_NAME=$(echo $ARTIFACT_NAME | sed 's/[^-a-zA-Z0-9]/_/g')
+        if: failure()
+        run: |
+          ARTIFACT_NAME=logs-$(echo $TESTS | sed 's/[^-a-zA-Z0-9]/_/g')
+          echo "Artifact name is '$ARTIFACT_NAME'"
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+        env:
+          TESTS: ${{ matrix.tests }}
 
       - name: Save artifacts on failure
-        if: ${{ failure() }}
+        if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
