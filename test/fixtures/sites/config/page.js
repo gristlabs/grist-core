@@ -4,27 +4,29 @@
 const urlParams = new URLSearchParams(window.location.search);
 const ready = urlParams.get('ready') ? JSON.parse(urlParams.get('ready')) : undefined;
 
-if (ready && ready.onEditOptions) {
-  ready.onEditOptions = () => {
-    document.getElementById('configure').innerHTML = 'called';
-  };
+function setup() {
+  if (ready && ready.onEditOptions) {
+    ready.onEditOptions = () => {
+      document.getElementById('configure').innerHTML = 'called';
+    };
+  }
+
+  grist.ready(ready);
+
+  grist.onOptions(data => {
+    document.getElementById('onOptions').innerHTML = JSON.stringify(data);
+  });
+
+  grist.onRecord((data, mappings) => {
+    document.getElementById('onRecord').innerHTML = JSON.stringify(data);
+    document.getElementById('onRecordMappings').innerHTML = JSON.stringify(mappings);
+  });
+
+  grist.onRecords((data, mappings) => {
+    document.getElementById('onRecords').innerHTML = JSON.stringify(data);
+    document.getElementById('onRecordsMappings').innerHTML = JSON.stringify(mappings);
+  });
 }
-
-grist.ready(ready);
-
-grist.onOptions(data => {
-  document.getElementById('onOptions').innerHTML = JSON.stringify(data);
-});
-
-grist.onRecord((data, mappings) => {
-  document.getElementById('onRecord').innerHTML = JSON.stringify(data);
-  document.getElementById('onRecordMappings').innerHTML = JSON.stringify(mappings);
-});
-
-grist.onRecords((data, mappings) => {
-  document.getElementById('onRecords').innerHTML = JSON.stringify(data);
-  document.getElementById('onRecordsMappings').innerHTML = JSON.stringify(mappings);
-});
 
 async function run(handler) {
   try {
@@ -66,6 +68,7 @@ async function configure() {
 }
 
 window.onload = () => {
+  setup();
   document.getElementById('ready').innerText = 'ready';
   document.getElementById('access').innerHTML = urlParams.get('access');
   document.getElementById('readonly').innerHTML = urlParams.get('readonly');
