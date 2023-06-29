@@ -195,7 +195,6 @@ const cssResizing = styled('div', `
 const cssMiniSection = styled('div.mini_section_container', `
   --icon-color: ${colors.lightGreen};
   display: flex;
-  background: ${theme.mainPanelBg};
   align-items: center;
   padding-right: 8px;
 `);

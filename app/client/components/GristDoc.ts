@@ -1578,13 +1578,14 @@ async function finalizeAnchor() {
 }
 
 const cssViewContentPane = styled('div', `
+  --view-content-page-margin: 12px;
   flex: auto;
   display: flex;
   flex-direction: column;
   overflow: visible;
   position: relative;
   min-width: 240px;
-  margin: 12px;
+  margin: var(--view-content-page-margin, 12px);
   @media ${mediaSmall} {
     & {
       margin: 4px;
