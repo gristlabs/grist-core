@@ -103,7 +103,8 @@ jobs:
           MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser --parallel --jobs 3
         env:
           TESTS: ${{ matrix.tests }}
-          MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/mocha-webdriver-logs
+          MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          TESTDIR: ${{ runner.temp }}/test-logs
 
       - name: Prepare a safe artifact name
         if: failure()
@@ -119,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ runner.temp }}/mocha-webdriver-logs  # only exists for webdriver tests
+          path: ${{ runner.temp }}/test-logs  # only exists for webdriver tests
 
     services:
       # https://github.com/bitnami/bitnami-docker-minio/issues/16
