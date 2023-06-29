@@ -3,7 +3,6 @@ import {addToRepl, assert, driver} from 'mocha-webdriver';
 import {enterRulePart, findDefaultRuleSet} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {openSelectByForSection} from "./RightPanelSelectBy";
 
 describe('SelectBySummary', function() {
   this.timeout(50000);
@@ -17,9 +16,6 @@ describe('SelectBySummary', function() {
       'SelectBySummary.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
     await gu.waitForDocToLoad();
-
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-data').click();
   });
 
   it('should filter a source table selected by a summary table', async function() {
@@ -219,7 +215,7 @@ async function checkSelectingRecords(
 ) {
   const summarySection = `TABLE1 [by ${groubyColumns.join(', ')}]`;
 
-  await openSelectByForSection(targetSection);
+  await gu.openSelectByForSection(targetSection);
   await driver.findContent('.test-select-row', summarySection).click();
   await gu.waitForServer();
 

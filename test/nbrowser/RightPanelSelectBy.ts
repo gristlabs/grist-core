@@ -12,9 +12,6 @@ describe('RightPanelSelectBy', function() {
     const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'Favorite_Films_With_Linked_Ref.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
     await gu.waitForDocToLoad();
-
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-data').click();
   }
 
   it('should allow linking section with same table', async function() {
@@ -24,7 +21,7 @@ describe('RightPanelSelectBy', function() {
     await driver.findContentWait('.test-treeview-itemHeader', /All/, 2000).click();
     await gu.waitForDocToLoad();
 
-    await openSelectByForSection('PERFORMANCES DETAIL');
+    await gu.openSelectByForSection('PERFORMANCES DETAIL');
 
     // the dollar in /...record$/ makes sure we match against the table main node and not a ref
     // columns such as '...record.Film'
@@ -52,7 +49,7 @@ describe('RightPanelSelectBy', function() {
   });
 
   it('should allow to remove link', async function() {
-    await openSelectByForSection('PERFORMANCES DETAIL');
+    await gu.openSelectByForSection('PERFORMANCES DETAIL');
     await driver.findContent('.test-select-row', /Select Widget/).click();
     await gu.waitForServer();
 
@@ -67,7 +64,7 @@ describe('RightPanelSelectBy', function() {
 
 
   it('should disallow creating cycles', async function() {
-    await openSelectByForSection('PERFORMANCES RECORD');
+    await gu.openSelectByForSection('PERFORMANCES RECORD');
     assert.equal(await driver.findContent('.test-select-row', /Performances detail/).isPresent(), false);
   });
 
@@ -81,7 +78,7 @@ describe('RightPanelSelectBy', function() {
     await gu.addNewSection(/Chart/, /Films/);
 
     // open `SELECT BY`
-    await openSelectByForSection('FILMS');
+    await gu.openSelectByForSection('FILMS');
 
     // check that there is a chart and we cannot link from it
     assert.equal(await gu.getSection('FILMS CHART').isPresent(), true);
@@ -96,7 +93,7 @@ describe('RightPanelSelectBy', function() {
     await gu.getPageItem('Friends').click();
     await gu.waitForServer();
     await gu.addNewSection(/Table/, /Performances/);
-    await openSelectByForSection('Performances');
+    await gu.openSelectByForSection('Performances');
     assert.equal(await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).isPresent(), true);
     await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).click();
     await gu.waitForServer();
@@ -135,7 +132,7 @@ describe('RightPanelSelectBy', function() {
     await gu.getPageItem('Friends').click();
     await gu.waitForServer();
     await gu.addNewSection(/Card/, /Films/);
-    await openSelectByForSection('Films Card');
+    await gu.openSelectByForSection('Films Card');
     assert.equal(await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).isPresent(), true);
     await driver.findContent('.test-select-row', /FRIENDS.*Favorite Film/).click();
     await gu.waitForServer();
@@ -194,8 +191,3 @@ describe('RightPanelSelectBy', function() {
   });
 
 });
-
-export async function openSelectByForSection(section: string) {
-  await gu.getSection(section).click();
-  await driver.find('.test-right-select-by').click();
-}
