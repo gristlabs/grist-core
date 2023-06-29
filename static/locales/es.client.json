@@ -1063,5 +1063,31 @@
     "WebhookPage": {
         "Clear Queue": "Borrar la cola",
         "Webhook Settings": "Ajustes del gancho web"
+    },
+    "FormulaAssistant": {
+        "Regenerate": "Regenerar",
+        "Save": "Guardar",
+        "Preview": "Vista previa",
+        "Need help? Our AI assistant can help.": "¿Necesitas ayuda? Nuestro asistente de IA puede ayudarle.",
+        "New Chat": "Nuevo chat",
+        "Ask the bot.": "Pregúntale al bot.",
+        "Capabilities": "Capacidades",
+        "Community": "Comunidad",
+        "Data": "Datos",
+        "Formula Cheat Sheet": "Hoja de trucos de fórmulas",
+        "Formula Help. ": "Ayuda de fórmula. ",
+        "Function List": "Lista de función",
+        "Grist's AI Assistance": "Asistencia de IA de Grist",
+        "Grist's AI Formula Assistance. ": "Asistencia de fórmula de IA de Grist. ",
+        "Tips": "Consejos",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Consulte nuestras páginas {{helpFunction}} y {{formulaCheat}}, o visite nuestra página {{community}} para obtener más ayuda."
+    },
+    "GridView": {
+        "Click to insert": "Haga clic para insertar"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "Bienvenido de nuevo",
+        "You can always switch sites using the account menu.": "Siempre puedes cambiar de sitio utilizando el menú de la cuenta.",
+        "You have access to the following Grist sites.": "Usted tiene acceso a los siguientes sitios de Grist."
     }
 }
