@@ -106,14 +106,16 @@ jobs:
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
           TESTDIR: ${{ runner.temp }}/test-logs
 
-      - name: Prepare a safe artifact name
+      - name: Prepare for saving artifact
         if: failure()
         run: |
           ARTIFACT_NAME=logs-$(echo $TESTS | sed 's/[^-a-zA-Z0-9]/_/g')
           echo "Artifact name is '$ARTIFACT_NAME'"
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          find $TESTDIR -iname "*.socket" -exec rm {} \;
         env:
           TESTS: ${{ matrix.tests }}
+          TESTDIR: ${{ runner.temp }}/test-logs
 
       - name: Save artifacts on failure
         if: failure()
