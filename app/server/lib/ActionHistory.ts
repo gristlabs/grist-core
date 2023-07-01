@@ -16,9 +16,7 @@
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {createEmptyActionSummary} from 'app/common/ActionSummary';
-import {getSelectionDesc, UserAction} from 'app/common/DocActions';
 import {DocState} from 'app/common/UserAPI';
-import toPairs = require('lodash/toPairs');
 import {summarizeAction} from 'app/common/ActionSummarizer';
 
 export interface ActionGroupOptions {
@@ -164,81 +162,6 @@ export abstract class ActionHistory {
 
 
 /**
- * Old helper to display the actionGroup in a human-readable way.  Being maintained
- * to avoid having to change too much at once.
- */
-export function humanDescription(actions: UserAction[]): string {
-  const action = actions[0];
-  if (!action) { return ""; }
-  let output = '';
-  // Common names for various action parameters
-  const name    = action[0];
-  const table   = action[1];
-  const rows    = action[2];
-  const colId   = action[2];
-  const columns: any = action[3];  // TODO - better typing - but code may evaporate
-  switch (name) {
-  case 'UpdateRecord':
-  case 'BulkUpdateRecord':
-  case 'AddRecord':
-  case 'BulkAddRecord':
-    output = name + ' ' + getSelectionDesc(action, columns);
-    break;
-  case 'ApplyUndoActions':
-    // Currently cannot display information about what action was undone, as the action comes
-    // with the description of the "undo" message, which might be very different
-    // Also, cannot currently properly log redos as they are not distinguished from others in any way
-    // TODO: make an ApplyRedoActions type for redoing actions
-    output = 'Undo Previous Action';
-    break;
-  case 'InitNewDoc':
-    output = 'Initialized new Document';
-    break;
-  case 'AddColumn':
-    output = 'Added column ' + colId + ' to ' + table;
-    break;
-  case 'RemoveColumn':
-    output = 'Removed column ' + colId + ' from ' + table;
-    break;
-  case 'RemoveRecord':
-  case 'BulkRemoveRecord':
-    output = 'Removed record(s) ' + rows + ' from ' + table;
-    break;
-  case 'EvalCode':
-    output = 'Evaluated Code ' + action[1];
-    break;
-  case 'AddTable':
-    output = 'Added table ' + table;
-    break;
-  case 'RemoveTable':
-    output = 'Removed table ' + table;
-    break;
-  case 'ModifyColumn':
-    // TODO: The Action Log currently only logs user actions,
-    // But ModifyColumn/Rename Column are almost always triggered from the client
-    // through a meta-table UpdateRecord.
-    // so, this is a case where making use of explicit sandbox engine 'looged' actions
-    // may be useful
-    output = 'Modify column ' + colId + ", ";
-    for (const [col, val] of toPairs(columns)) {
-      output += col + ": " + val + ", ";
-    }
-    output += ' in table ' + table;
-    break;
-  case 'RenameColumn': {
-    const newColId = action[3];
-    output = 'Renamed Column ' + colId + ' to ' + newColId + ' in ' + table;
-    break;
-  }
-  default:
-    output = name + ' [No Description]';
-  }
-  // A period for good grammar
-  output += '.';
-  return output;
-}
-
-/**
  * Convert an ActionBundle into an ActionGroup.  ActionGroups are the representation of
  * actions on the client.
  * @param history: interface to action history
@@ -260,7 +183,9 @@ export function asActionGroup(history: ActionHistory,
   return {
     actionNum: act.actionNum,
     actionHash: act.actionHash || "",
-    desc: info.desc || humanDescription(act.userActions),
+    // Desc is a human-readable description of the user action set in a few places by client-side
+    // code, but is mostly (or maybe completely) unused.
+    desc: info.desc,
     actionSummary: summarize ? summarizeAction(act) : createEmptyActionSummary(),
     fromSelf,
     linkId: info.linkId,

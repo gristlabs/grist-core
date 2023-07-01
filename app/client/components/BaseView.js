@@ -3,7 +3,6 @@
 const _ = require('underscore');
 const ko = require('knockout');
 const moment = require('moment-timezone');
-const {getSelectionDesc} = require('app/common/DocActions');
 const {nativeCompare, roundDownToMultiple, waitObs} = require('app/common/gutil');
 const gutil = require('app/common/gutil');
 const MANUALSORT  = require('app/common/gristTypes').MANUALSORT;
@@ -646,20 +645,7 @@ BaseView.prototype.sendPasteActions = function(cutCallback, actions) {
     // If the cut occurs on an edit restricted cell, there may be no cut action.
     if (cutAction) { actions.unshift(cutAction); }
   }
-  return this.gristDoc.docData.sendActions(actions,
-    this._getPasteDesc(actions[actions.length - 1], cutAction));
-};
-
-/**
- * Returns a string which describes a cut/copy action.
- */
-BaseView.prototype._getPasteDesc = function(pasteAction, optCutAction) {
-  if (optCutAction) {
-    return `Moved ${getSelectionDesc(optCutAction, true)} to ` +
-      `${getSelectionDesc(pasteAction, true)}.`;
-  } else {
-    return `Pasted data to ${getSelectionDesc(pasteAction, true)}.`;
-  }
+  return this.gristDoc.docData.sendActions(actions);
 };
 
 BaseView.prototype.buildDom = function() {
