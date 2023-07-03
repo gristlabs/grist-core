@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import {addToRepl, assert, driver} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {openSelectByForSection} from "./RightPanelSelectBy";
 
 describe('SelectByRefList', function() {
   this.timeout(60000);
@@ -16,9 +15,6 @@ describe('SelectByRefList', function() {
       'SelectByRefList.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
     await gu.waitForDocToLoad();
-
-    await gu.toggleSidePanel('right');
-    await driver.find('.test-config-data').click();
   }
 
   it('should filter a table selected by ref and reflist columns', async function() {
@@ -182,7 +178,7 @@ describe('SelectByRefList', function() {
  * The values will depend on the link and the last row selected in the driving table.
  */
 async function checkSelectingRecords(selectBy: string, sourceData: string[][], newRow: string[]) {
-  await openSelectByForSection('LINKTARGET');
+  await gu.openSelectByForSection('LINKTARGET');
   await driver.findContent('.test-select-row', new RegExp(selectBy + '$')).click();
   await gu.waitForServer();
 

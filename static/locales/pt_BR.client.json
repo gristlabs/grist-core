@@ -1073,5 +1073,31 @@
         "Clear field": "Limpar campo",
         "Copy": "Copiar",
         "Cut": "Cortar"
+    },
+    "FormulaAssistant": {
+        "Capabilities": "Capacidades",
+        "Formula Help. ": "Ajuda de Fórmula. ",
+        "Function List": "Lista de funções",
+        "Grist's AI Assistance": "Assistência de IA do Grist",
+        "Grist's AI Formula Assistance. ": "Assistência à Fórmula IA do Grist. ",
+        "Need help? Our AI assistant can help.": "Precisa de ajuda? Nosso assistente de IA pode ajudar.",
+        "New Chat": "Novo chat",
+        "Preview": "Prévisualizar",
+        "Regenerate": "Regenerar",
+        "Save": "Salvar",
+        "Tips": "Dicas",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Consulte nossos sites {{helpFunction}} e {{formulaCheat}}, ou visite nosso site {{community}} para obter mais ajuda.",
+        "Ask the bot.": "Pergunte ao bot.",
+        "Data": "Dados",
+        "Formula Cheat Sheet": "Folha de Consulta da Fórmula",
+        "Community": "Comunidade"
+    },
+    "GridView": {
+        "Click to insert": "Clique para inserir"
+    },
+    "WelcomeSitePicker": {
+        "You have access to the following Grist sites.": "Você tem acesso aos seguintes sites do Grist.",
+        "Welcome back": "Bem-vindo de volta",
+        "You can always switch sites using the account menu.": "Você sempre pode alternar entre sites usando o menu da conta."
     }
 }

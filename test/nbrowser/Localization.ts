@@ -116,8 +116,7 @@ describe("Localization", function() {
       // But only uz code is preloaded.
       notPresent(uzResponse, "uz-UZ");
 
-      // For Portuguese we have only en.
-      notPresent(ptResponse, "pt", "pt-PR", "uz", "en-US");
+      notPresent(ptResponse, "pt-PR", "uz", "en-US");
     });
 
     it("loads correct languages from file system", async function() {

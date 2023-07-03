@@ -65,14 +65,14 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       await this.stop();
     }
     this._starts++;
+    const workerIdText = process.env.MOCHA_WORKER_ID || '0';
     if (reset) {
       if (process.env.TESTDIR) {
-        this.testDir = process.env.TESTDIR;
+        this.testDir = path.join(process.env.TESTDIR, workerIdText);
       } else {
-        const workerId = process.env.MOCHA_WORKER_ID || '0';
         // Create a testDir of the form grist_test_{USER}_{SERVER_NAME}_{WORKER_ID}, removing any previous one.
         const username = process.env.USER || "nobody";
-        this.testDir = path.join(tmpdir(), `grist_test_${username}_${this._name}_${workerId}`);
+        this.testDir = path.join(tmpdir(), `grist_test_${username}_${this._name}_${workerIdText}`);
         await fse.remove(this.testDir);
       }
     }
@@ -99,7 +99,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     // logging. Server code uses a global logger, so it's hard to separate out (especially so if
     // we ever run different servers for different tests).
     const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
-    const workerId = parseInt(process.env.MOCHA_WORKER_ID || '0', 10);
+    const workerId = parseInt(workerIdText, 10);
     const corePort = String(8295 + workerId * 2);
     const untrustedPort = String(8295 + workerId * 2 + 1);
     const env: Record<string, string> = {

@@ -1,3 +1,4 @@
+const fs = require('fs');
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 const { ProvidePlugin } = require('webpack');
 const path = require('path');
@@ -15,7 +16,11 @@ module.exports = {
     account: "app/client/accountMain",
     billing: "app/client/billingMain",
     activation: "app/client/activationMain",
-    test: "test/client-harness/client",
+    // Include client test harness if it is present (it won't be in
+    // docker image).
+    ...(fs.existsSync("test/client-harness/client.js") ? {
+      test: "test/client-harness/client",
+    } : {}),
   },
   output: {
     filename: "[name].bundle.js",

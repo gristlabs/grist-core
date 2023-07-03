@@ -1759,6 +1759,16 @@ export async function openAccessRulesDropdown(): Promise<void> {
   await driver.findWait('.grist-floating-menu', 1000);
 }
 
+/**
+ * Open "Select By" area in creator panel.
+ */
+export async function openSelectByForSection(section: string) {
+  await toggleSidePanel('right', 'open');
+  await driver.find('.test-config-data').click();
+  await getSection(section).click();
+  await driver.find('.test-right-select-by').click();
+}
+
 export async function editOrgAcls(): Promise<void> {
   // To prevent a common flakiness problem, wait for a potentially open modal dialog
   // to close before attempting to open the account menu.

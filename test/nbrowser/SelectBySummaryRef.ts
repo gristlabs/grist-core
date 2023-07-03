@@ -1,7 +1,6 @@
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {openSelectByForSection} from "./RightPanelSelectBy";
 
 describe('SelectBySummaryRef', function() {
   this.timeout(20000);
@@ -14,9 +13,6 @@ describe('SelectBySummaryRef', function() {
       'SelectBySummaryRef.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
     await gu.waitForDocToLoad();
-
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-data').click();
   });
 
   it('should give correct options when linking with a summary table with ref/reflist columns', async () => {
@@ -174,7 +170,7 @@ describe('SelectBySummaryRef', function() {
 
 // Check that the 'Select by' menu in the right panel for the section has the expected options
 async function checkRightPanelSelectByOptions(section: string, expected: string[]) {
-  await openSelectByForSection(section);
+  await gu.openSelectByForSection(section);
 
   const actual = await driver.findAll('.test-select-menu .test-select-row', (e) => e.getText());
   assert.deepEqual(actual, ['Select Widget', ...expected]);
