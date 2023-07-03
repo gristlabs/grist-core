@@ -226,8 +226,9 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   }
 
   private _buildLogDom() {
-    this._loadActionSummaries().catch((error) => gristNotify(t("Action Log failed to load")));
+    this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
+        {tabIndex: '-1'},
         dom('div.preference_item',
             koForm.checkbox(this._showAllTables,
                             dom.testId('ActionLog_allTables'),
