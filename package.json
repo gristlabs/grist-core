@@ -1,6 +1,6 @@
 {
   "name": "grist-core",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "license": "Apache-2.0",
   "description": "Grist is the evolution of spreadsheets",
   "homepage": "https://github.com/gristlabs/grist-core",
@@ -190,11 +190,13 @@
     "@gristlabs/sqlite3": "5.1.4-grist.8"
   },
   "mocha": {
-    "require": ["test/setupPaths",
-                "source-map-support/register",
-                "test/report-why-tests-hang",
-                "test/init-mocha-webdriver",
-                "test/split-tests",
-                "test/chai-as-promised"]
+    "require": [
+      "test/setupPaths",
+      "source-map-support/register",
+      "test/report-why-tests-hang",
+      "test/init-mocha-webdriver",
+      "test/split-tests",
+      "test/chai-as-promised"
+    ]
   }
 }
