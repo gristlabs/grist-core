@@ -24,7 +24,9 @@ import pickBy = require('lodash/pickBy');
  * @param detail: TableRec for the table to check for being the detailed version.
  * @returns {Boolean} Whether the first argument is a summarized version of the second.
  */
-function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
+//TODO JV: exported to use in buildViewSectionDom, ultimately the functionality should be pushed back
+//         into this file I think and the export can be removed
+export function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
   const summarySource = summary.summarySourceTable();
   if (summarySource === detail.getRowId()) { return true; }
   const detailSource = detail.summarySourceTable();
