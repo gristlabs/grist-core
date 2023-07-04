@@ -13,9 +13,7 @@ module.exports = {
   entry: {
     main: "app/client/app",
     errorPages: "app/client/errorMain",
-    account: "app/client/accountMain",
     billing: "app/client/billingMain",
-    activation: "app/client/activationMain",
     // Include client test harness if it is present (it won't be in
     // docker image).
     ...(fs.existsSync("test/client-harness/client.js") ? {

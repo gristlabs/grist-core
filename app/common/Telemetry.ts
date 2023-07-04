@@ -1,5 +1,4 @@
 import {StringUnion} from 'app/common/StringUnion';
-import pickBy = require('lodash/pickBy');
 
 /**
  * Telemetry levels, in increasing order of data collected.
@@ -720,36 +719,3 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
 }
 
 export type TelemetryEventChecker = (event: TelemetryEvent, metadata?: TelemetryMetadata) => void;
-
-/**
- * Returns a new, filtered metadata object.
- *
- * Metadata in groups that don't meet `telemetryLevel` are removed from the
- * returned object, and the returned object is flattened.
- *
- * Returns undefined if `metadata` is undefined.
- */
-export function filterMetadata(
-  metadata: TelemetryMetadataByLevel | undefined,
-  telemetryLevel: TelemetryLevel
-): TelemetryMetadata | undefined {
-  if (!metadata) { return; }
-
-  let filteredMetadata = {};
-  for (const level of ['limited', 'full'] as const) {
-    if (Level[telemetryLevel] < Level[level]) { break; }
-
-    filteredMetadata = {...filteredMetadata, ...metadata[level]};
-  }
-
-  filteredMetadata = removeNullishKeys(filteredMetadata);
-
-  return removeNullishKeys(filteredMetadata);
-}
-
-/**
- * Returns a copy of `object` with all null and undefined keys removed.
- */
-export function removeNullishKeys(object: Record<string, any>) {
-  return pickBy(object, value => value !== null && value !== undefined);
-}

@@ -68,7 +68,6 @@ import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccess
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
-import {hashId} from 'app/common/hashingUtils';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
@@ -1396,9 +1395,9 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
       this.logTelemetryEvent(docSession, 'documentForked', {
         limited: {
-          forkIdDigest: hashId(forkIds.forkId),
-          forkDocIdDigest: hashId(forkIds.docId),
-          trunkIdDigest: doc.trunkId ? hashId(doc.trunkId) : undefined,
+          forkIdDigest: forkIds.forkId,
+          forkDocIdDigest: forkIds.docId,
+          trunkIdDigest: doc.trunkId,
           isTemplate,
           lastActivity: doc.updatedAt,
         },
@@ -2540,7 +2539,7 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
       altSessionId ? {altSessionId} : {},
       {
         limited: {
-          docIdDigest: hashId(this._docName),
+          docIdDigest: this._docName,
         },
         full: {
           siteId: this._doc?.workspace.org.id,

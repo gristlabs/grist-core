@@ -41,6 +41,9 @@ export type ActivationPage = typeof ActivationPage.type;
 export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
+export const SupportGristPage = StringUnion('support-grist');
+export type SupportGristPage = typeof SupportGristPage.type;
+
 // Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('light', 'full');
 export type InterfaceStyle = typeof InterfaceStyle.type;
@@ -72,6 +75,7 @@ export const commonUrls = {
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
+  helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
@@ -83,6 +87,8 @@ export const commonUrls = {
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
   gristLabsCustomWidgets: 'https://gristlabs.github.io/grist-widget/',
   gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
+  githubGristCore: 'https://github.com/gristlabs/grist-core',
+  githubSponsorGristLabs: 'https://github.com/sponsors/gristlabs',
 };
 
 /**
@@ -103,6 +109,7 @@ export interface IGristUrlState {
   activation?: ActivationPage;
   login?: LoginPage;
   welcome?: WelcomePage;
+  supportGrist?: SupportGristPage;
   welcomeTour?: boolean;
   docTour?: boolean;
   manageUsers?: boolean;
@@ -258,6 +265,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`welcome/${state.welcome}`);
   }
 
+  if (state.supportGrist) { parts.push(state.supportGrist); }
+
   const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as {[key: string]: string};
   for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
     queryParams[`${k}_`] = v;
@@ -320,7 +329,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   // the minimum length of a urlId prefix is longer than the maximum length
   // of any of the valid keys in the url.
   for (const key of map.keys()) {
-    if (key.length >= MIN_URLID_PREFIX_LENGTH && !LoginPage.guard(key)) {
+    if (key.length >= MIN_URLID_PREFIX_LENGTH && !LoginPage.guard(key) && !SupportGristPage.guard(key)) {
       map.set('doc', key);
       map.set('slug', map.get(key)!);
       map.delete(key);
@@ -358,6 +367,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.activation = ActivationPage.parse(map.get('activation')) || 'activation';
   }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
+  if (map.has('support-grist')) {
+    state.supportGrist = SupportGristPage.parse(map.get('support-grist')) || 'support-grist';
+  }
   if (sp.has('planType')) { state.params!.planType = sp.get('planType')!; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {

@@ -89,14 +89,6 @@ export const NotifierEvents = StringUnion(
 
 export type NotifierEvent = typeof NotifierEvents.type;
 
-export const HomeDBTelemetryEvents = StringUnion(
-  'tutorialProgressChanged',
-);
-
-export type HomeDBTelemetryEvent = typeof HomeDBTelemetryEvents.type;
-
-export type Event = NotifierEvent | HomeDBTelemetryEvent;
-
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
 
@@ -324,7 +316,7 @@ export class HomeDBManager extends EventEmitter {
     orgOnly: true
   }];
 
-  public emit(event: Event, ...args: any[]): boolean {
+  public emit(event: NotifierEvent, ...args: any[]): boolean {
     return super.emit(event, ...args);
   }
 
@@ -1960,7 +1952,7 @@ export class HomeDBManager extends EventEmitter {
       // Update the name and save.
       const doc: Document = queryResult.data;
       doc.checkProperties(props);
-      doc.updateFromProperties(props, this);
+      doc.updateFromProperties(props);
       if (forkId) {
         await manager.save(doc);
         return {status: 200};
