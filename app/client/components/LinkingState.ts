@@ -36,7 +36,12 @@ export function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
     gutil.isSubset(summary.summarySourceColRefs(), detail.summarySourceColRefs()));
 }
 
-export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
+export type FilterColValues = Pick<ClientQuery, "filters" | "operations"> & {
+  filterLabels: {
+    [colId:string]: string[]
+  }
+};
+const EmptyFilterColValues = {filters: {}, filterLabels: {}, operations: {}}
 
 /**
  * Maintains state useful for linking sections, i.e. auto-filtering and auto-scrolling.
@@ -46,8 +51,7 @@ export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
  *
  * There are several modes of linking:
  * (1) If tgtColId is set, tgtSection will be filtered to show rows whose values of target column
- *     are equal to the value of source column in srcSection at the cursor. With byAllShown set, all
- *     values in srcSection are used (rather than only the value in the cursor).
+ *     are equal to the value of source column in srcSection at the cursor.
  * (2) If srcSection is a summary of tgtSection, then tgtSection is filtered to show only those
  *     rows that match the row at the cursor of srcSection.
  * (3) If tgtColId is null, tgtSection is scrolled to the rowId determined by the value of the
@@ -58,47 +62,52 @@ export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
  * @param srcColId: Name of the column that drives the target section, or null to use rowId.
  * @param tgtSection: RowModel for the section that's being driven.
  * @param tgtColId: Name of the reference column to auto-filter by, or null to auto-scroll.
- * @param byAllShown: For auto-filter, filter by all values in srcSection rather than only the
- *    value at the cursor. The user can use column filters on srcSection to control what's shown
- *    in the linked tgtSection.
+
  */
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
   public readonly cursorPos?: ko.Computed<UIRowId>;
 
   // If linking affects filtering, this is a computed for the current filtering state, as a
-  // {[colId]: colValues} mapping, with a dependency on srcSection.activeRowId()
+  // {[colId]: colValues, [colId]: operations} mapping, with a dependency on srcSection.activeRowId()
   public readonly filterColValues?: ko.Computed<FilterColValues>;
 
   // Get default values for a new record so that it continues to satisfy the current linking filters
   public readonly getDefaultColValues: () => any;
 
+  private _docModel : DocModel;
   private _srcSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
   private _srcCol: ColumnRec;
   private _srcColId: string | undefined;
+  private _tgtCol: ColumnRec;
+  private _tgtColId: string | undefined;
 
   constructor(docModel: DocModel, linkConfig: LinkConfig) {
     super();
     const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
+    this._docModel = docModel;
     this._srcSection = srcSection;
     this._srcCol = srcCol;
     this._srcColId = srcColId;
+    this._tgtCol = tgtCol;
+    this._tgtColId = tgtColId;
     this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
 
-    if (tgtColId) {
+    if (tgtColId) { //normal filter link
       const operation = isRefListType(tgtCol.type()) ? 'intersects' : 'in';
       if (srcSection.parentKey() === 'custom') {
         this.filterColValues = this._srcCustomFilter(tgtColId, operation);
-      } else if (srcColId) {
-        this.filterColValues = this._srcCellFilter(tgtColId, operation);
-      } else {
-        this.filterColValues = this._simpleFilter(tgtColId, operation, (rowId => [rowId]));
+      } else if (srcColId) { //col->col filter
+        this.filterColValues = this._makeFilterObs(srcColId, tgtColId, operation);
+      } else { //row->col filter
+        this.filterColValues = this._makeFilterObs("id", tgtColId, operation);
       }
-    } else if (srcColId && isRefListType(srcCol.type())) {
-      this.filterColValues = this._srcCellFilter('id', 'in');
-    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {
+    } else if (srcColId) { //TODO JV TEMP: let's make ref-Lookup links work the same for both reflists and refs
+    //} else if (srcColId && isRefListType(srcCol.type())) { //"Lookup" Link && reflist
+      this.filterColValues = this._makeFilterObs(srcColId,'id', 'in');
+    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {  // row->row && summary, i.e. typical summary filter-linking
       // We filter summary tables when a summary section is linked to a more detailed one without
       // specifying src or target column. The filtering is on the shared group-by column (i.e. all
       // those in the srcSection).
@@ -114,7 +123,7 @@ export class LinkingState extends Disposable {
 
       _update();
       function _update() {
-        const result: FilterColValues = {filters: {}, operations: {}};
+        const result: FilterColValues = EmptyFilterColValues;
         if (srcSection.isDisposed()) {
           return result;
         }
@@ -123,6 +132,7 @@ export class LinkingState extends Disposable {
           const colId = c.colId();
           const srcValue = srcTableData.getValue(srcRowId as number, colId);
           result.filters[colId] = [srcValue];
+          result.filterLabels[colId] = [srcValue + ""]; //TODO JV TEMP
           result.operations[colId] = 'in';
           if (isDirectSummary && isListType(c.summarySource().type())) {
             // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
@@ -134,8 +144,8 @@ export class LinkingState extends Disposable {
       }
     } else if (srcSection.parentKey() === 'custom') {
       this.filterColValues = this._srcCustomFilter('id', 'in');
-    } else {
-      const srcValueFunc = srcColId ? this._makeSrcCellGetter() : identity;
+    } else { //!tgtCol && !summary-link && (!lookup-link || !reflist), either same-table cursor-link or non-reflist cursor link
+      const srcValueFunc = this._makeSrcCellGetter();
       if (srcValueFunc) {
         this.cursorPos = this.autoDispose(ko.computed(() =>
           srcValueFunc(srcSection.activeRowId()) as UIRowId
@@ -180,10 +190,10 @@ export class LinkingState extends Disposable {
       const srcRowId = this._srcSection.activeRowId();
       if (srcRowId === null) {
         console.warn("_simpleFilter activeRowId is null");
-        return { filters: {}, operations: {}};
+        return EmptyFilterColValues;
       }
       const values = valuesFunc(srcRowId);
-      return {filters: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
+      return {filters: {[colId]: values}, filterLabels: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
     }));
   }
 
@@ -208,6 +218,87 @@ export class LinkingState extends Disposable {
     }
   }
 
+  /**
+   * Makes a standard filter link (summary tables handled separately)
+   * if srcColId == "id", uses the currently selected rowId as the selector value
+   * else, gets the current value of srcCol in the selected row
+   *
+   * returns a FilterColValues with a single filter {[tgtColId] : (selectorVals:val[])}
+   * note: selectorVals is always a list of values: if reflist the leading "L" is trimmed
+   *
+   * If unable to initialize, returns undefined
+   *
+   * NOTE: srcColId and tgtColId MUST NOT both be "id"
+   *
+   * @param srcColId
+   * @param tgtColId
+   * @param operation
+   * @private
+   */
+  private _makeFilterObs(srcColId: string, tgtColId: string, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
+    //srcCellGetter is rowId => selectorVal
+    //if (srcCol), it's the value in that cell.
+    //if (!srcCol), it just returns the rowId, or null if the rowId is "new"
+    const selectorValGetter = this._makeValGetter(this._srcSection.table(), srcColId);
+
+    // Normally, if srcCol is a ref, we can just take the value from its display column and that will work correctly
+    // However, is srcColId == 'id', the value is the whole row. To figure out which field is the label, we need to use visibleCol field from tgtCol
+    // Note: if srcColId == 'id', tgtCol is guaranteed be a ref or reflist column
+    const displayColId = srcColId == "id" ? this._tgtCol.visibleColModel().colId() : this._srcCol.displayColModel().colId();
+    const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId)
+    //Note: if src is a reflist, its displayVal will be list of the visibleCol vals, i.e ["L", visVal1, visVal2], but not formatted
+    //TODO JV: sloppy that I have to pull out srcCol from this: won't generalize to summary sections
+
+
+    const displayValFormatter = srcColId == "id" ? this._tgtCol.visibleColFormatter() : this._srcCol.visibleColFormatter();
+
+
+
+    const isSrcRefList = this._srcCol && isRefListType(this._srcCol.type());
+
+    if (!selectorValGetter || !displayValGetter) { //TODO JV: Error? Shouldn't happen? Other places we return an empty FilterColValues, but here it's undefined
+      return undefined;
+    }
+
+    return this.autoDispose(ko.computed(() => {
+
+      //Get selector-rowId
+      const srcRowId = this._srcSection.activeRowId();
+      if (srcRowId === null) {
+        console.warn("_makeFilterObs activeRowId is null");
+        return EmptyFilterColValues;
+      }
+
+      //Get appropriate value from selected row
+      const selectorCellVal = selectorValGetter(srcRowId);
+      const displayCellVal  = displayValGetter(srcRowId);
+
+      // FilterColValues wants output as a list of 1 or more values to filter by.
+      let filterValues:any[];
+      let displayValues:any[];
+      if(!isSrcRefList) {
+        filterValues = [selectorCellVal];
+        displayValues = [displayCellVal];
+      } else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], ,must slice off the L
+        filterValues = selectorCellVal.slice(1);
+        displayValues = isList(displayCellVal) ? displayCellVal.slice(1) : ["ERROR"]; //TODO JV: when can this happen? i.e. busted displays
+      } else { //isRefList && !isList(), invalid cell value, filter should be empty
+        filterValues = [];
+        displayValues = [];
+      }
+
+
+      let filterLabelVals:string[] = displayValues.map(v => displayValFormatter.formatAny(v));
+
+      //const values = valuesFunc(srcRowId);
+      return {
+        filters: {[tgtColId]: filterValues},
+        filterLabels: {[tgtColId]: filterLabelVals},
+        operations: {[tgtColId]: operation}
+      } as FilterColValues;
+    }));
+  }
+
   // Value for this.filterColValues based on the values in srcSection.selectedRows
   private _srcCustomFilter(colId: string, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
     return this.autoDispose(ko.computed(() => {
@@ -220,20 +311,44 @@ export class LinkingState extends Disposable {
   // in srcCol in the selected record of srcSection.
   // Uses a row model to create a dependency on the cell's value,
   // so changes to the cell value will notify observers
+  // if no srcCol, uses 'id' as the srcCol
   private _makeSrcCellGetter() {
-    const srcRowModel = this.autoDispose(this._srcTableModel.createFloatingRowModel()) as DataRowModel;
-    const srcCellObs = srcRowModel.cells[this._srcColId!];
-    // If no srcCellObs, linking is broken; do nothing. This shouldn't happen, but may happen
+    if(this._srcColId == undefined) {
+      return (rowId:UIRowId|null) => rowId == "new" ? null : rowId;
+    } else {
+      return this._makeValGetter(this._srcSection.table(), this._srcColId || 'id')
+    }
+  }
+
+  /* Like srcCellGetter but more general
+     e.g.:
+     //row->col, reference in tgtCol, lookup values from table
+
+  */
+  //If colId == "id", will return the id unchanged
+  private _makeValGetter(table: TableRec, colId: string) {
+    if(colId == "id") { //passthrough for id cols
+      return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId };
+    }
+
+    const tableModel = this._docModel.dataTables[table.tableId()]
+    tableModel.tableData.getRowPropFunc(colId);
+    const rowModel = this.autoDispose(tableModel.createFloatingRowModel()) as DataRowModel;
+    const cellObs = rowModel.cells[colId];
+    // If no cellObs, can't make a val getter. This shouldn't happen, but may happen
     // transiently while the separate linking-related observables get updated.
-    if (!srcCellObs) {
+    if (!cellObs) {
       return null;
     }
+
     return (rowId: UIRowId | null) => {
-      srcRowModel.assign(rowId);
+      rowModel.assign(rowId);
       if (rowId === 'new') {
-        return 'new';
+        return null;
+      //   return 'new'; //TODO JV: the old one returned new, I don't think it's used anywhere, and null makes more sense?
       }
-      return srcCellObs();
+
+      return cellObs();
     };
   }
 }
