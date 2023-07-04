@@ -23,7 +23,7 @@ import * as imports from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
-import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, TableRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkId, selectBy} from 'app/client/ui/selectBy';
@@ -35,15 +35,20 @@ import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
-import {IconName} from 'app/client/ui2018/IconList';
+import {IconList, IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {StringUnion} from 'app/common/StringUnion';
-import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
-        DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
+import {
+  bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
+  DomElementArg, DomElementMethod, fromKo, IDomComponent, UseCBOwner
+} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
+import {ReferenceUtils} from "../lib/ReferenceUtils";
+import {isFullReferencingType} from "../../common/gristTypes";
+import assert from "assert";
 
 const t = makeT('RightPanel');
 
@@ -475,6 +480,268 @@ export class RightPanel extends Disposable {
       });
     });
 
+
+    const secToCursorPos = (use: UseCBOwner, sec:ViewSectionRec) => {
+      const vi = use(sec.viewInstance);
+      if (!Boolean(vi)) {return undefined}
+      return use(vi!.cursor.currentPosition);
+    }
+    const getCurrentViewField = (use: UseCBOwner, sec:ViewSectionRec):ViewFieldRec|undefined => {
+          const vi = use(sec.viewInstance);
+          if (Boolean(vi)) {
+            return use(use(sec.viewFields))[use(vi!.cursor.fieldIndex)];
+          }
+          return undefined;
+    }
+
+
+
+
+    let JV = (window as any).JV = (window as any).JV || {};  //JV DEBUG
+    JV._gristDoc = this._gristDoc;
+    JV.asec = this._gristDoc.viewModel.activeSection;//JV.asec || Computed.create(null, use => use())
+    JV.afield = Computed.create(owner, use=> getCurrentViewField(use, use(JV.asec)));
+    JV.pprint = ((obj:any) => JSON.stringify(obj, null, 2));
+    JV.nulluse = ((obs:any) => { obs = ('_getDepItem' in obs) ? obs : fromKo(obs); return obs.get()}); //use print without creating an observable
+    JV.poCol = (use: UseCBOwner, col:ColumnRec) => `C#${use(col.id)}:'${use(col.colId)}' type ${use(col.type)} @T#${use(use(col.table).id)}'`;
+    JV.poTab = (use: UseCBOwner, tab:TableRec) => `T#${use(tab.id)}:'${use(tab.formattedTableName)}'`;
+    JV.poFld = (use: UseCBOwner, field:ViewFieldRec) => `F#${use(field.id)}: '${use(field.label)}' (C#${use(use(field.column).id)}) @S#${use(use(field.viewSection).id)}`;
+
+    JV.poSec = (use: UseCBOwner, sec:ViewSectionRec) => `S#${use(sec.id)}: '${use(sec.titleDef)}'`; //curs:${JSON.stringify(secToCursorPos(use,sec))}`;
+    //helpers for peeking
+    JV.pCol = (x:any) => JV.poCol(JV.nulluse, x);
+    JV.pTab = (x:any) => JV.poTab(JV.nulluse, x);
+    JV.pFld = (x:any) => JV.poFld(JV.nulluse, x);
+    JV.pSec = (x:any) => JV.poSec(JV.nulluse, x);
+
+    const debugBox = styled('div', `
+      position:fixed;
+      z-index: 99999;
+      background-color: white;
+      border: 1px solid black;
+      min-width: 100px;
+      min-height: 40px;
+    `)
+
+    const paddedIcon = styled('div', "margin: 2px");
+    const makeIconBox = () => debugBox(
+        dom("div", dom.attr("style", "display:flex; flex-direction:row; flex-wrap: wrap; max-width:600px"),
+          IconList.map(iname => paddedIcon(icon(iname))),
+        ),
+        dom.on("click", (evt, elem) => {const box = elem; dom.domDispose(box); box.remove()})
+    );
+
+    //add debugbox to window if it doesn't already exist
+    const makeDebugBox = () => debugBox(
+        dom("button",
+            dom.text("X"), dom.style("float","right"), dom.style("color","red"),
+            dom.on("click", (event, elem) => { const box = elem.parentElement; dom.domDispose(box); box.remove(); JV.boxExists = false})
+        ),
+        dom.text("JV Debug info:"),
+        dom("br"),
+        dom.domComputed((use) => {
+
+          const docData = this._gristDoc.docData;
+          const aSec = use(JV._gristDoc.viewModel.activeSection) as ViewSectionRec;
+          const aField = getCurrentViewField(use, aSec);
+
+          const cursorPos = secToCursorPos(use, aSec);
+          let cellValue, cellValue2, cellType, cellRefValue,cellFormatterVal = null;
+          if(cursorPos && aField != null){
+            const rowId = cursorPos.rowId;
+            const col = use(aField!.column);
+            if(rowId != undefined) {
+              cellValue = docData.getTable(use(aSec.tableId))!.getValue(rowId,use(col.colId));
+              if(cellValue != null) {
+                cellValue2 = use(col.visibleColFormatter).formatAny(cellValue);
+                cellType = use(col.type);
+                if (isFullReferencingType(cellType)) {
+                  const RU = new ReferenceUtils(aField!, docData);
+                  cellRefValue = RU.isRefList ? (cellValue as any[]).slice(1).map(v => RU.idToText(v)) : RU.idToText(cellValue);
+                }
+
+                cellFormatterVal = use(aField!.formatter).formatAny(cellValue);
+                // const refData = docData.getTable(use(use(col.refTable)!.tableId));
+                // cellRefValue = use(col.visibleColFormatter).formatAny(refData!.getValue(cellValue as any, use(use(col.visibleColModel).colId) || 'id'));
+              }
+            }
+          }
+          return [
+              cssRow(JV.poSec(use, aSec)),
+              cssRow(aField ? JV.poFld(use,aField): "no field selected"),
+              cssRow(aField ? JV.poCol(use,use(aField.column)): "no field selected"),
+              cssRow(cellValue === null ? "no cell value": `cell: ${JSON.stringify(cellValue)},  ${cellValue2}, type ${cellType} ; '${cellRefValue}'`),
+              cssRow("formatterVal (.formatter, unreliable): " + cellFormatterVal || "null"),
+          ];
+        }),
+    );
+    if (!JV.boxExists) {
+      //window.document.body.append(makeIconBox());
+      window.document.body.append(makeDebugBox());
+      JV.boxExists = true;
+    }
+    const pprintedLinkInfo = (sec:ViewSectionRec) => Computed.create(owner, (use)=> {
+      //makes an observable for the passed-in section
+      const lstate = use(sec.linkingState)
+      if(lstate == null) { return "linkingState null"}
+
+      const srcSec = use(sec.linkSrcSection); //might be the empty section
+      const srcColId = use(use(sec.linkSrcCol).colId); // might be the empty column
+      const tgtColId = use(use(sec.linkTargetCol).colId);
+      //can use .getRowId(), 0 means empty
+      //can do use(srcCol.colId) == undefined for empty
+
+      /* ==================== TODO ===================
+    - (for linking state):
+    - show source section (section label)
+    - show source column (id, type) (or default to row)
+    - show selected row ID
+    - show filtering value at selected row
+      - if col -> any
+        - first show cell value
+        - then if col is a ref col, find it's display field and show "RefTable[$id]", then show "ref display value"
+      - if row -> col
+        - first show "SrcTable[$rowId]"
+        - then if target col is ref-type, show display value for selected ref row
+      - if row -> row
+        - show "cursor link, SrcTable[$rowId]"
+        - later, infer a good display col for it? try first col?
+    -aaaa
+    */
+
+      let wipStr = ""
+      if (!srcSec.getRowId()) { wipStr = "No Linking"; }
+      else {
+        const srcTable = use(srcSec.table);
+        const srcCursorPos = secToCursorPos(use,srcSec);
+        const rowIndex = srcCursorPos ? srcCursorPos.rowIndex : "null";
+        const rowId = use(srcSec.activeRowId)
+
+        let selectorVal = undefined; // if
+        let selectorType = "";//if filterL, use ref from srcCol, if lookup use ref from trgCol, if cursor link then we dont' have a display column
+        // if a summary table, then it's trickier. If it's a
+
+
+        // =============== Let's try making a descriptive sentence
+        wipStr = `Selected by ${JV.poSec(use,srcSec)}, at row#${typeof rowIndex == "number" ? rowIndex+1 : "(new)"}\n`
+        if(srcColId){
+          let srcColValue = undefined;
+          if(rowId) {
+            srcColValue = this._gristDoc.docData.getTable(use(srcSec.tableId))!.getValue(rowId, srcColId);
+          }
+
+
+
+          if (srcColValue == undefined) { srcColValue = "(undefined)"}
+          selectorVal = srcColValue;
+          wipStr += `using col='${srcColId}'; val='${srcColValue}' (from row ${use(srcSec.tableId)}[${rowId || "null"}]) `
+        } else { //selected by row
+          selectorVal = rowId;
+          wipStr +=`using row '${use(srcSec.tableId)}[${rowId || "null"}]'`
+        }
+
+        // === Selector value: format appropriately
+       /* let cellValue, cellValue2, cellType, cellRefValue = null;
+        cellValue = docData.getTable(use(aSec.tableId))!.getValue(rowId,use(col.colId));
+        cellValue2 = use(col.visibleColFormatter).formatAny(cellValue);
+        cellType = use(col.type);
+        if (isFullReferencingType(cellType)) {
+          const RU = new ReferenceUtils(aField!, docData);
+          cellRefValue = RU.isRefList ? (cellValue as any[]).slice(1).map(v => RU.idToText(v)) : RU.idToText(cellValue);
+        }*/
+
+        wipStr += "\n";
+
+        if(tgtColId) {
+          //target col specified, therefore doing filter-linking
+          wipStr += "Doing Filter-linking";
+        } else { //no target column, either same-table cursor linking, or lookup linking
+          if(srcColId) {
+              wipStr += "Lookup linking"
+            } else {
+            wipStr += "Cursor linking (same-table)"
+          }
+      }
+
+      }
+
+      // ========== Old debug description: just list out the stuff=================
+      const lcursor = Boolean(lstate.cursorPos) ? use(lstate.cursorPos!) : null;
+      const lfilter = use(sec.linkingFilter)
+
+      // Pretty print cursor info
+      const lcursorRec = lcursor ? `${use(sec.tableId)}[${lcursor}]`: null;
+      let resCursor = ""
+      if(lcursor != null){
+        resCursor += "cursor link: rowId=" + lcursorRec
+      }
+
+      let resFilter = "";
+      try {
+        // Pretty print filter info
+        if (lfilter != null && Object.keys(lfilter.filters).length != 0) {
+          resFilter = "Link Filters:"
+          for (let colId in lfilter.filters) {
+            if (colId == "id") { //lookup of reflist implemented as filter on id, handle separately
+              resFilter += "\n    " + colId + " = '" + lfilter.filters[colId] + "'";
+              if (lfilter.operations[colId] != "in") {
+                resFilter += "  (op=" + lfilter.operations[colId] + ")";
+              }
+              continue;
+            }
+
+            //lookup target column, to display references better and/or show date formatters
+            const fields: ViewFieldRec[] = use(use(sec.viewFields)).filter((field: ViewFieldRec) => use(field.colId) == colId);
+            assert(fields.length == 1, "Should have exactly 1 field matching colId '" + colId + "': " + JSON.stringify(fields));
+            const field = fields[0];
+            //TODO: bug? how to correctly use() koArray
+            //TODO: is there a better way to get field by colId?
+
+            console.log("!!!!Found field:" + JV.pFld(field))
+
+            const rawVals = lfilter.filters[colId]; //filters[colId] looks like [val, val, ...]
+            let formattedVals;
+            const cellType = use(use(field.column).type);
+            const formatter = use(use(field.column).visibleColFormatter);
+            const formatter2 = use(field.formatter);
+
+            JV.x = field;
+            JV.x2 = cellType;
+            JV.x3 = rawVals;
+            //formattedVals = rawVals.map(rv => formatter2.formatAny(rv))
+            if (isFullReferencingType(cellType)) {
+              const RU = new ReferenceUtils(field!, this._gristDoc.docData); //TODO: disposal?
+              if (!RU.tableData.isLoaded) {
+                formattedVals = rawVals.map(rv => `${use(use(use(field.column).refTable)!.tableId)}[${rv}]  (table not loaded)`);
+              } else {
+                formattedVals = rawVals.map(rv => `${use(use(use(field.column).refTable)!.tableId)}[${rv}]  (${RU.idToText(rv)})`);
+              }
+            } else { // //normal vals just get formatted (needed for dates and currencies and things)
+              formattedVals = rawVals.map(rv => formatter.formatAny(rv))
+            }
+
+
+            resFilter += "\n    " + colId + " = '" + formattedVals + "'";
+            if (lfilter.operations[colId] != "in") {
+              resFilter += "  (op=" + lfilter.operations[colId] + ")";
+            }
+          }
+        }
+      } catch(e) {
+        //filters not loaded yet
+        resFilter = "Failed to load fields: \n filters: " + JSON.stringify(lfilter.filters) + "\n labels: " + JSON.stringify(lfilter.filterLabels);
+      }
+
+      let LinkInfo = "";
+      LinkInfo+= `SrcSection: '${JV.poSec(use,srcSec)}'`;
+      LinkInfo+= `\nTgtSection: '${JV.poSec(use,sec)}'`;
+      LinkInfo += `\nSrcCol: ${srcColId}\nTgtCol: ${tgtColId}\n`;
+
+      if(resCursor == "" && resFilter == "") { resCursor = " no filters"; }
+      let res = resCursor + resFilter;
+      return "linkingState:" + "\nWIP:\n" + wipStr + "\n===Debug===\n" + LinkInfo + res + "\n filters: " + JSON.stringify(lfilter.filters) + "\n labels: " + JSON.stringify(lfilter.filterLabels);
+    });
+
     // This computed is not enough to make sure that the linkOptions are up to date. Indeed
     // the selectBy function depends on a much greater number of observables. Creating that many
     // dependencies does not seem a better approach. Instead, we refresh the list of
@@ -548,13 +815,35 @@ export class RightPanel extends Disposable {
         ),
       ]),
 
+
+      //JV Addition:
+      //Lets add a debug rendering of the current filters:
+      cssLabel(t("JV TEST LINKING DEBUG")),
+      cssRow("test test"),
+      cssRow(
+        dom("pre",dom.text(pprintedLinkInfo(activeSection)))
+      ),
+
+
+
       domComputed((use) => {
         const selectorFor = use(use(activeSection.linkedSections).getObservable());
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
+
+        JV.selectorFor = selectorFor;//JV TEMP DEBUG
+
+
         return selectorFor.length ? [
           cssLabel(t("SELECTOR FOR"), testId('selector-for')),
-          cssRow(cssList(selectorFor.map((sec) => this._buildSectionItem(sec))))
+          cssRow(cssList(selectorFor.map((sec) => this._buildSectionItem(sec)))),
+
+          //JV: lets also show link filters for this:
+          selectorFor.map( (sec) => [
+              cssRow(use(sec.titleDef) + " (T:" + use(sec.tableId).toUpperCase() + ")"),
+              //cssRow(dom("pre",dom.text("lorem ipsum"))),
+              cssRow(dom("pre",dom.text(pprintedLinkInfo(sec)))),
+          ]),
         ] : null;
       }),
     ];
