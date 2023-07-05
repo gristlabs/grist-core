@@ -1,5 +1,4 @@
 import {ActionGroup} from 'app/common/ActionGroup';
-import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
 import {UIRowId} from 'app/common/TableData';
@@ -319,11 +318,6 @@ export interface ActiveDocAPI {
    * Returns cell value with an error message (traceback) for one invalid formula cell.
    */
   getFormulaError(tableId: string, colId: string, rowId: number): Promise<CellValue>;
-
-  /**
-   * Generates a formula code based on the AI suggestions, it also modifies the column and sets it type to a formula.
-   */
-  getAssistance(request: AssistanceRequest): Promise<AssistanceResponse>;
 
   /**
    * Fetch content at a url.

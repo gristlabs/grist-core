@@ -185,6 +185,10 @@ export class GristDoc extends DisposableWithEvents {
 
   public readonly currentTheme = this.docPageModel.appModel.currentTheme;
 
+  public get docApi() {
+    return this.docPageModel.appModel.api.getDocAPI(this.docPageModel.currentDocId.get()!);
+  }
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;

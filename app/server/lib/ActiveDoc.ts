@@ -14,7 +14,6 @@ import {
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary} from "app/common/ActionSummary";
-import {AssistanceRequest, AssistanceResponse} from "app/common/AssistancePrompts";
 import {
   AclResources,
   AclTableDescription,
@@ -84,7 +83,7 @@ import {Document} from 'app/gen-server/entity/Document';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
-import {AssistanceDoc, AssistanceSchemaPromptV1Context, sendForCompletion} from 'app/server/lib/Assistance';
+import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -184,7 +183,7 @@ interface UpdateUsageOptions {
  * either .loadDoc() or .createEmptyDoc() is called.
  * @param {String} docName - The document's filename, without the '.grist' extension.
  */
-export class ActiveDoc extends EventEmitter implements AssistanceDoc {
+export class ActiveDoc extends EventEmitter {
   /**
    * Decorator for ActiveDoc methods that prevents shutdown while the method is running, i.e.
    * until the returned promise is resolved.
@@ -1264,28 +1263,19 @@ export class ActiveDoc extends EventEmitter implements AssistanceDoc {
     return this._pyCall('autocomplete', txt, tableId, columnId, rowId, user.toJSON());
   }
 
-  public async getAssistance(docSession: DocSession, request: AssistanceRequest): Promise<AssistanceResponse> {
-    return this.getAssistanceWithOptions(docSession, request);
-  }
-
-  public async getAssistanceWithOptions(docSession: DocSession,
-                                        request: AssistanceRequest): Promise<AssistanceResponse> {
+  // Callback to generate a prompt containing schema info for assistance.
+  public async assistanceSchemaPromptV1(
+    docSession: OptDocSession, options: AssistanceSchemaPromptV1Context): Promise<string> {
     // Making a prompt leaks names of tables and columns etc.
     if (!await this._granularAccess.canScanData(docSession)) {
       throw new Error("Permission denied");
     }
-    await this.waitForInitialization();
-    return sendForCompletion(this, request);
+    return await this._pyCall('get_formula_prompt', options.tableId, options.colId, options.docString);
   }
 
   // Callback to make a data-engine formula tweak for assistance.
   public assistanceFormulaTweak(txt: string) {
     return this._pyCall('convert_formula_completion', txt);
-  }
-
-  // Callback to generate a prompt containing schema info for assistance.
-  public assistanceSchemaPromptV1(options: AssistanceSchemaPromptV1Context): Promise<string> {
-    return this._pyCall('get_formula_prompt', options.tableId, options.colId, options.docString);
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {

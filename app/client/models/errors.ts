@@ -121,7 +121,7 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       const options: Partial<INotifyOptions> = {
         title: "Reached plan limit",
         key: `limit:${details.limit.quantity || message}`,
-        actions: ['upgrade'],
+        actions: details.tips?.some(t => t.action === 'manage') ? ['manage'] : ['upgrade'],
       };
       if (details.tips && details.tips.some(tip => tip.action === 'add-members')) {
         // When adding members would fix a problem, give more specific advice.

@@ -558,7 +558,7 @@ describe('DocTutorial', function () {
 
       // Check that the update is immediately reflected in the tutorial popup.
       assert.equal(
-        await driver.find('.test-doc-tutorial-popup p').getText(),
+        await driver.findWait('.test-doc-tutorial-popup p', 2000).getText(),
         'Welcome to the Grist Basics tutorial V2.'
       );
 
@@ -571,7 +571,7 @@ describe('DocTutorial', function () {
       // Switch to another user and restart the tutorial.
       viewerSession = await gu.session().teamSite.user('user2').login();
       await viewerSession.loadDoc(`/doc/${doc.id}`);
-      await driver.find('.test-doc-tutorial-popup-restart').click();
+      await driver.findWait('.test-doc-tutorial-popup-restart', 2000).click();
       await driver.find('.test-modal-confirm').click();
       await gu.waitForServer();
       await driver.findWait('.test-doc-tutorial-popup', 2000);

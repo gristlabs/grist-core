@@ -17,7 +17,6 @@ import {autoGrow} from 'app/client/ui/forms';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {DocAction} from 'app/common/DocActions';
 import {movable} from 'app/client/lib/popupUtils';
 
 import debounce from 'lodash/debounce';
@@ -61,7 +60,7 @@ export class FormulaAssistant extends Disposable {
   /** Is the request pending */
   private _waiting = Observable.create(this, false);
   /** Is this feature enabled at all */
-  private _assistantEnabled = GRIST_FORMULA_ASSISTANT();
+  private _assistantEnabled: Computed<boolean>;
   /** Preview column id */
   private _transformColId: string;
   /** Method to invoke when we are closed, it saves or reverts */
@@ -89,6 +88,12 @@ export class FormulaAssistant extends Disposable {
     editor: FormulaEditor
   }) {
     super();
+
+    this._assistantEnabled = Computed.create(this, use => {
+      const enabledByFlag = use(GRIST_FORMULA_ASSISTANT());
+      const notAnonymous = Boolean(this._options.gristDoc.appModel.currentValidUser);
+      return enabledByFlag && notAnonymous;
+    });
 
     if (!this._options.field) {
       // TODO: field is not passed only for rules (as there is no preview there available to the user yet)
@@ -263,6 +268,8 @@ export class FormulaAssistant extends Disposable {
         this._buildIntro(),
         this._chat.buildDom(),
         this._buildChatInput(),
+        // Stop propagation of mousedown events, as the formula editor will still focus.
+        dom.on('mousedown', (ev) => ev.stopPropagation()),
       );
     });
   }
@@ -516,7 +523,7 @@ export class FormulaAssistant extends Disposable {
     this._options.editor.setFormula(entry.formula!);
   }
 
-  private async _sendMessage(description: string, regenerate = false) {
+  private async _sendMessage(description: string, regenerate = false): Promise<ChatMessage> {
     // Destruct options.
     const {column, gristDoc} = this._options;
     // Get the state of the chat from the column.
@@ -539,7 +546,12 @@ export class FormulaAssistant extends Disposable {
     // some markdown text back, so we need to parse it.
     const prettyMessage = state ? (reply || formula || '') : (formula || reply || '');
     // Add it to the chat.
-    this._chat.addResponse(prettyMessage, formula, suggestedActions[0]);
+    return {
+      message: prettyMessage,
+      formula,
+      action: suggestedActions[0],
+      sender: 'ai',
+    };
   }
 
   private _clear() {
@@ -556,9 +568,7 @@ export class FormulaAssistant extends Disposable {
     if (!last) {
       return;
     }
-    this._chat.thinking();
-    this._waiting.set(true);
-    await this._sendMessage(last, true).finally(() => this._waiting.set(false));
+    await this._doAsk(last);
   }
 
   private async _ask() {
@@ -568,10 +578,22 @@ export class FormulaAssistant extends Disposable {
     const message= this._userInput.get();
     if (!message) { return; }
     this._chat.addQuestion(message);
-    this._chat.thinking();
     this._userInput.set('');
+    await this._doAsk(message);
+  }
+
+  private async _doAsk(message: string) {
+    this._chat.thinking();
     this._waiting.set(true);
-    await this._sendMessage(message, false).finally(() => this._waiting.set(false));
+    try {
+      const response = await this._sendMessage(message, false);
+      this._chat.addResponse(response);
+    } catch(err) {
+      this._chat.thinking(false);
+      throw err;
+    } finally {
+      this._waiting.set(false);
+    }
   }
 }
 
@@ -601,32 +623,36 @@ class ChatHistory extends Disposable {
     this.length = Computed.create(this, use => use(this.history).length); // ??
   }
 
-  public thinking() {
-    this.history.push({
-      message: '...',
-      sender: 'ai',
-    });
-    this.scrollDown();
+  public thinking(on = true) {
+    if (!on) {
+      // Find all index of all thinking messages.
+      const messages = [...this.history.get()].filter(m => m.message === '...');
+      // Remove all thinking messages.
+      for (const message of messages) {
+        this.history.splice(this.history.get().indexOf(message), 1);
+      }
+    } else {
+      this.history.push({
+        message: '...',
+        sender: 'ai',
+      });
+      this.scrollDown();
+    }
   }
 
   public supportsMarkdown() {
     return this._options.column.chatHistory.peek().get().state !== undefined;
   }
 
-  public addResponse(message: string, formula: string|null, action?: DocAction) {
+  public addResponse(message: ChatMessage) {
     // Clear any thinking from messages.
-    this.history.set(this.history.get().filter(x => x.message !== '...'));
-    this.history.push({
-      message,
-      sender: 'ai',
-      formula,
-      action
-    });
+    this.thinking(false);
+    this.history.push({...message, sender: 'ai'});
     this.scrollDown();
   }
 
   public addQuestion(message: string) {
-    this.history.set(this.history.get().filter(x => x.message !== '...'));
+    this.thinking(false);
     this.history.push({
       message,
       sender: 'user',
@@ -740,18 +766,13 @@ async function askAI(grist: GristDoc, options: {
   const {column, description, state, regenerate} = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
-  try {
-    const result = await grist.docComm.getAssistance({
-      context: {type: 'formula', tableId, colId},
-      text: description,
-      state,
-      regenerate,
-    });
-    return result;
-  } catch (error) {
-    reportError(error);
-    throw error;
-  }
+  const result = await grist.docApi.getAssistance({
+    context: {type: 'formula', tableId, colId},
+    text: description,
+    state,
+    regenerate,
+  });
+  return result;
 }
 
 /**

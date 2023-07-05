@@ -43,8 +43,8 @@ export interface CustomAction { label: string, action: () => void }
  */
 export type MessageType = string | (() => DomElementArg);
 // Identifies supported actions. These are implemented in NotifyUI.
-export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem' | 'ask-for-help' | CustomAction;
-
+export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem'
+                           | 'ask-for-help' | 'manage' | CustomAction;
 export interface INotifyOptions {
   message: MessageType;     // A string, or a function that builds dom.
   timestamp?: number;

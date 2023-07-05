@@ -2056,7 +2056,13 @@ export class Session {
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
                                 skipTutorial?: boolean, // By default true
+                                userName?: string,
+                                email?: string,
                                 retainExistingLogin?: boolean}) {
+    if (options?.userName) {
+      this.settings.name = options.userName;
+      this.settings.email = options.email || '';
+    }
     // Optimize testing a little bit, so if we are already logged in as the expected
     // user on the expected org, and there are no options set, we can just continue.
     if (!options && await this.isLoggedInCorrectly()) { return this; }
@@ -3150,20 +3156,26 @@ export async function availableBehaviorOptions() {
   return list;
 }
 
-export function withComments() {
-  let oldEnv: testUtils.EnvironmentSnapshot;
+/**
+ * Restarts the server ensuring that it is run with the given environment variables.
+ * If variables are already set, the server is not restarted.
+ *
+ * Useful for local testing of features that depend on environment variables, as it avoids the need
+ * to restart the server when those variables are already set.
+ */
+export function withEnvironmentSnapshot(vars: Record<string, any>) {
+  let oldEnv: testUtils.EnvironmentSnapshot|null = null;
   before(async () => {
-    if (process.env.COMMENTS !== 'true') {
-      oldEnv = new testUtils.EnvironmentSnapshot();
-      process.env.COMMENTS = 'true';
-      await server.restart();
-    }
+    // Test if the vars are already set, and if so, skip.
+    if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
+    oldEnv = new testUtils.EnvironmentSnapshot();
+    Object.assign(process.env, vars);
+    await server.restart();
   });
   after(async () => {
-    if (oldEnv) {
-      oldEnv.restore();
-      await server.restart();
-    }
+    if (!oldEnv) { return; }
+    oldEnv.restore();
+    await server.restart();
   });
 }
 

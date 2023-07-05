@@ -3,12 +3,13 @@ import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {nativeValues} from 'app/gen-server/lib/values';
+import {Limit} from 'app/gen-server/entity/Limit';
 
 // This type is for billing account status information.  Intended for stuff
 // like "free trial running out in N days".
-interface BillingAccountStatus {
+export interface BillingAccountStatus {
   stripeStatus?: string;
-  currentPeriodEnd?: Date;
+  currentPeriodEnd?: string;
   message?: string;
 }
 
@@ -67,6 +68,9 @@ export class BillingAccount extends BaseEntity {
 
   @OneToMany(type => Organization, org => org.billingAccount)
   public orgs: Organization[];
+
+  @OneToMany(type => Limit, limit => limit.billingAccount)
+  public limits: Limit[];
 
   // A calculated column that is true if it looks like there is a paid plan.
   @Column({name: 'paid', type: 'boolean', insert: false, select: false})

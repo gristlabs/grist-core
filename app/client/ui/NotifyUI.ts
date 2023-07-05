@@ -30,6 +30,10 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
         return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), {target: '_blank'},
           {href: commonUrls.plans});
       }
+    case 'manage':
+      if (urlState().state.get().billing === 'billing') { return null; }
+      return dom('a', cssToastAction.cls(''), t("Manage billing"), {target: '_blank'},
+        {href: urlState().makeUrl({billing: 'billing'})});
     case 'renew':
       // If already on the billing page, nothing to return.
       if (urlState().state.get().billing === 'billing') { return null; }

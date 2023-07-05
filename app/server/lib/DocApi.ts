@@ -1,5 +1,5 @@
 import {createEmptyActionSummary} from "app/common/ActionSummary";
-import {ApiError} from 'app/common/ApiError';
+import {ApiError, LimitType} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
 import {
   BulkColValues,
@@ -68,6 +68,7 @@ import {
 } from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
+import {sendForCompletion} from 'app/server/lib/Assistance';
 import {isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
 import * as assert from 'assert';
@@ -161,6 +162,8 @@ export class DocWorkerApi {
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
+    // check that limit can be increased by 1
+    const checkLimit = (type: LimitType) => expressWrap(this._checkLimit.bind(this, type));
 
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
@@ -1052,6 +1055,20 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/send-to-drive', canView, decodeGoogleToken, withDoc(exportToDrive));
 
+    /**
+     * Send a request to the formula assistant to get completions for a formula. Increases the
+     * usage of the formula assistant for the billing account in case of success.
+     */
+    this._app.post('/api/docs/:docId/assistant', canView, checkLimit('assistant'),
+      withDoc(async (activeDoc, req, res) => {
+        const docSession = docSessionFromRequest(req);
+        const request = req.body;
+        const result = await sendForCompletion(docSession, activeDoc, request);
+        await this._increaseLimit('assistant', req);
+        res.json(result);
+      })
+    );
+
     // Create a document.  When an upload is included, it is imported as the initial
     // state of the document.  Otherwise a fresh empty document is created.
     // A "timezone" option can be supplied.
@@ -1232,6 +1249,21 @@ export class DocWorkerApi {
 
     // Allow the request through.
     return false;
+  }
+
+  /**
+   * Creates a middleware that checks the current usage of a limit and rejects the request if it is exceeded.
+   */
+  private async _checkLimit(limit: LimitType, req: Request, res: Response, next: NextFunction) {
+    await this._dbManager.increaseUsage(getDocScope(req), limit, {dryRun: true, delta: 1});
+    next();
+  }
+
+  /**
+   * Increases the current usage of a limit by 1.
+   */
+  private async _increaseLimit(limit: LimitType, req: Request) {
+    await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
   }
 
   private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
