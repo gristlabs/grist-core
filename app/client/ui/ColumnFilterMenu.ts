@@ -470,9 +470,13 @@ function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
     editMode = false;
     inputEl.value = formatValue(obs.get());
 
-    // Make sure focus is trapped on input during calendar view, so that uses can still use keyboard
-    // to navigate relative date options just after picking a date on the calendar.
-    setTimeout(() => opts.isSelected.get() && inputEl.focus());
+    setTimeout(() => {
+      // Make sure focus is trapped on input during calendar view, so that uses can still use keyboard
+      // to navigate relative date options just after picking a date on the calendar.
+      if (opts.viewTypeObs.get() === 'calendarView' && opts.isSelected.get()) {
+        inputEl.focus();
+      }
+    });
   };
   const onInput = debounce(() => {
     if (isRelativeBound(obs.get())) { return; }
