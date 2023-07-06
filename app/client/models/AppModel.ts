@@ -284,7 +284,13 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly needsOrg: Observable<boolean> = Computed.create(
     this, urlState().state, (use, state) => {
-      return !(Boolean(state.welcome) || state.billing === 'scheduled');
+      return !(
+        Boolean(state.welcome) ||
+        state.billing === 'scheduled' ||
+        Boolean(state.account) ||
+        Boolean(state.activation) ||
+        Boolean(state.supportGrist)
+      );
     });
 
   public readonly notifier = this.topAppModel.notifier;
