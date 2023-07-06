@@ -12,6 +12,10 @@ import {TableData} from 'app/common/TableData';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Computed, Disposable, Observable} from 'grainjs';
 import debounce = require('lodash/debounce');
+import { makeT } from 'app/client/lib/localization';
+
+// Use 'tt' instade of 't', because 't' is already delared in the upper scope
+const tt = makeT('SearchModel');
 
 /**
  * SearchModel used to maintain the state of the search UI.
@@ -468,7 +472,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
 
     this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === 'data' ?
-        'Search all tables' : 'Search all pages');
+      tt('Search all tables') : tt('Search all pages'));
 
     // Schedule a search restart when user changes pages (otherwise search would resume from the
     // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.

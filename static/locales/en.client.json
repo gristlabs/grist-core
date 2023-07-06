@@ -39,7 +39,9 @@
         "View As": "View As",
         "Seed rules": "Seed rules",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access.",
-        "Permission to edit document structure": "Permission to edit document structure"
+        "Permission to edit document structure": "Permission to edit document structure",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns,       layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Allow editors to edit structure (e.g. modify and delete tables, columns,       layouts), and to write formulas, which give access to all data regardless of read restrictions.",
+        "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. "
     },
     "AccountPage": {
         "API": "API",
@@ -584,7 +586,8 @@
         "Send to Google Drive": "Send to Google Drive",
         "Show in folder": "Show in folder",
         "Unsaved": "Unsaved",
-        "Work on a Copy": "Work on a Copy"
+        "Work on a Copy": "Work on a Copy",
+        "Share": "Share"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -796,7 +799,8 @@
         "Find Next ": "Find Next ",
         "Find Previous ": "Find Previous ",
         "No results": "No results",
-        "Search in document": "Search in document"
+        "Search in document": "Search in document",
+        "Search": "Search"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Sending file to Google Drive"
@@ -1035,5 +1039,60 @@
         "Welcome back": "Welcome back",
         "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
         "You have access to the following Grist sites.": "You have access to the following Grist sites."
+    },
+    "DescriptionConfig copy": {
+        "DESCRIPTION": "DESCRIPTION"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "DESCRIPTION"
+    },
+    "UserManager": {
+        "Add {{member}} to your team": "Add {{member}} to your team",
+        "Allow anyone with the link to open.": "Allow anyone with the link to open.",
+        "Anyone with link ": "Anyone with link ",
+        "Cancel": "Cancel",
+        "Close": "Close",
+        "Collaborator": "Collaborator",
+        "Confirm": "Confirm",
+        "Copy Link": "Copy Link",
+        "Create a team to share with more people": "Create a team to share with more people",
+        "Grist support": "Grist support",
+        "Guest": "Guest",
+        "Invite multiple": "Invite multiple",
+        "Invite people to {{resourceType}}": "Invite people to {{resourceType}}",
+        "Link copied to clipboard": "Link copied to clipboard",
+        "Manage members of team site": "Manage members of team site",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.",
+        "Off": "Off",
+        "On": "On",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.",
+        "Open Access Rules": "Open Access Rules",
+        "Outside collaborator": "Outside collaborator",
+        "Public Access": "Public Access",
+        "Public access": "Public access",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
+        "Public access: ": "Public access: ",
+        "Remove my access": "Remove my access",
+        "Save & ": "Save & ",
+        "Team member": "Team member",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.",
+        "User may not modify their own access.": "User may not modify their own access.",
+        "You are about to remove your own access to this {{name}}": "You are about to remove your own access to this {{name}}",
+        "Your role for this team site": "Your role for this team site",
+        "Your role for this {{resourceType}}": "Your role for this {{resourceType}}",
+        "free collaborator": "free collaborator",
+        "guest": "guest",
+        "member": "member",
+        "team site": "team site",
+        "{{collaborator}} limit exceeded": "{{collaborator}} limit exceeded",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} of {{limitTop}} {{collaborator}}s",
+        "User has view access to {{ressource}} resulting from manually-set access           to resources inside. If removed here, this user will lose access to resources inside.": "User has view access to {{ressource}} resulting from manually-set access           to resources inside. If removed here, this user will lose access to resources inside."
+    },
+    "SearchModel": {
+        "Search all pages": "Search all pages",
+        "Search all tables": "Search all tables"
+    },
+    "searchDropdown": {
+        "Search": "Search"
     }
 }

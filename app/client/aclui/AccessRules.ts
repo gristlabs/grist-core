@@ -1178,8 +1178,8 @@ Useful for examples and templates, but not for sensitive data.`),
   },
   SchemaEdit: {
     name: t("Permission to edit document structure"),
-    description: t("Allow editors to edit structure (e.g. modify and delete tables, columns, " +
-        "layouts), and to write formulas, which give access to all data regardless of read restrictions."),
+    description: t("Allow editors to edit structure (e.g. modify and delete tables, columns, \
+      layouts), and to write formulas, which give access to all data regardless of read restrictions."),
     availableBits: ['schemaEdit'],
     ...schemaEditRules.denyEditors,
   },
@@ -1323,7 +1323,7 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
     return dom.maybe(
       (use) => use(this._body).every(rule => rule.isBuiltInOrEmpty(use)),
       () => cssConditionError({style: 'margin-left: 56px; margin-bottom: 8px;'},
-        "This default should be changed if editors' access is to be limited. ",
+        t("This default should be changed if editors' access is to be limited. "),
         dom('a', {style: 'color: inherit; text-decoration: underline'},
           'Dismiss', dom.on('click', () => this._allowEditors('confirm'))),
         testId('rule-schema-edit-warning'),

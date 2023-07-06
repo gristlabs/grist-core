@@ -5,6 +5,7 @@
  *
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
+import { makeT } from 'app/client/lib/localization';
 import {commonUrls} from 'app/common/gristUrls';
 import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
@@ -41,6 +42,8 @@ import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
         IModalControl, modal} from 'app/client/ui2018/modals';
+
+const t = makeT('UserManager');
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -103,13 +106,13 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
     if (model.isSelfRemoved.get()) {
       const name = resourceName(model.resourceType);
       confirmModal(
-        `You are about to remove your own access to this ${name}`,
-        'Remove my access', tryToSaveChanges,
+        t(`You are about to remove your own access to this {{name}}`, { name }),
+        t('Remove my access'), tryToSaveChanges,
         {
           explanation: (
-            'Once you have removed your own access, ' +
-            'you will not be able to get it back without assistance ' +
-            `from someone else with sufficient access to the ${name}.`
+            t(`Once you have removed your own access, \
+            you will not be able to get it back without assistance \
+             from someone else with sufficient access to the {{name}}.`, { name })
           ),
         }
       );
@@ -162,22 +165,22 @@ function buildUserManagerModal(
         cssModalButtons(
           { style: 'margin: 32px 64px; display: flex;' },
           (model.isPublicMember ? null :
-            bigPrimaryButton('Confirm',
+            bigPrimaryButton(t('Confirm'),
               dom.boolAttr('disabled', (use) => !use(model.isAnythingChanged)),
               dom.on('click', () => onConfirm(ctl)),
               testId('um-confirm')
             )
           ),
           bigBasicButton(
-            model.isPublicMember ? 'Close' : 'Cancel',
+            model.isPublicMember ? t('Close') : t('Cancel'),
             dom.on('click', () => ctl.close()),
             testId('um-cancel')
           ),
           (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
             ? withInfoTooltip(
                 cssLink({href: urlState().makeUrl({docPage: 'acl'})},
-                  dom.text(use => use(model.isAnythingChanged) ? 'Save & ' : ''),
-                  'Open Access Rules',
+                  dom.text(use => use(model.isAnythingChanged) ? t('Save & ') : ''),
+                  t('Open Access Rules'),
                   dom.on('click', (ev) => {
                     ev.preventDefault();
                     return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
@@ -268,7 +271,7 @@ export class UserManager extends Disposable {
     return dom('div',
       cssOptionRowMultiple(
         icon('AddUser'),
-        cssLabel('Invite multiple'),
+        cssLabel(t('Invite multiple')),
         dom.on('click', (_ev) => buildMultiUserManagerModal(
           this,
           this._model,
@@ -286,30 +289,31 @@ export class UserManager extends Disposable {
         ),
         publicMember ? dom('span', { style: `float: right;` },
           cssSmallPublicMemberIcon('PublicFilled'),
-          dom('span', 'Public access: '),
+          dom('span', t('Public access: ')),
           cssOptionBtn(
             menu(() => {
               tooltipControl?.close();
               return [
-                menuItem(() => publicMember.access.set(roles.VIEWER), 'On', testId(`um-public-option`)),
-                menuItem(() => publicMember.access.set(null), 'Off',
+                menuItem(() => publicMember.access.set(roles.VIEWER), t('On'), testId(`um-public-option`)),
+                menuItem(() => publicMember.access.set(null), t('Off'),
                   // Disable null access if anonymous access is inherited.
                   dom.cls('disabled', (use) => use(publicMember.inheritedAccess) !== null),
                   testId(`um-public-option`)
                 ),
                 // If the 'Off' setting is disabled, show an explanation.
                 dom.maybe((use) => use(publicMember.inheritedAccess) !== null, () => menuText(
-                  `Public access inherited from ${getResourceParent(this._model.resourceType)}. ` +
-                  `To remove, set 'Inherit access' option to 'None'.`))
+                  t(`Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.`,
+                    { parent: getResourceParent(this._model.resourceType) }
+                  )))
               ];
             }),
-            dom.text((use) => use(publicMember.effectiveAccess) ? 'On' : 'Off'),
+            dom.text((use) => use(publicMember.effectiveAccess) ? t('On') : t('Off')),
             cssCollapseIcon('Collapse'),
             testId('um-public-access')
           ),
           hoverTooltip((ctl) => {
             tooltipControl = ctl;
-            return 'Allow anyone with the link to open.';
+            return t('Allow anyone with the link to open.');
           }),
         ) : null,
       ),
@@ -373,19 +377,23 @@ export class UserManager extends Disposable {
       const annotation = annotations.users.get(member.email);
       if (!annotation) { return null; }
       if (annotation.isSupport) {
-        return cssMemberType('Grist support');
+        return cssMemberType(t('Grist support'));
       }
       if (annotation.isMember && annotations.hasTeam) {
-        return cssMemberType('Team member');
+        return cssMemberType(t('Team member'));
       }
-      const collaborator = annotations.hasTeam ? 'guest' : 'free collaborator';
+      const collaborator = annotations.hasTeam ? t('guest') : t('free collaborator');
       const limit = annotation.collaboratorLimit;
       if (!limit || !limit.top) { return null; }
       const elements: HTMLSpanElement[] = [];
       if (limit.at <= limit.top) {
-        elements.push(cssMemberType(`${limit.at} of ${limit.top} ${collaborator}s`));
+        elements.push(cssMemberType(
+          t(`{{limitAt}} of {{limitTop}} {{collaborator}}s`, { limitAt: limit.at, limitTop: limit.top, collaborator }))
+        );
       } else {
-        elements.push(cssMemberTypeProblem(`${capitalizeFirstWord(collaborator)} limit exceeded`));
+        elements.push(cssMemberTypeProblem(
+          t(`{{collaborator}} limit exceeded`, { collaborator: capitalizeFirstWord(collaborator) }))
+        );
       }
       if (annotations.hasTeam) {
         // Add a link for adding a member. For a doc, streamline this so user can make
@@ -401,10 +409,10 @@ export class UserManager extends Disposable {
                          { email: member.email }).catch(reportError);
             }
           }),
-          `Add ${member.name || 'member'} to your team`));
+          t(`Add {{member}} to your team`, { member: member.name || t('member') })));
       } else if (limit.at >= limit.top) {
         elements.push(cssLink({href: commonUrls.plans, target: '_blank'},
-                              'Create a team to share with more people'));
+          t('Create a team to share with more people')));
       }
       return elements;
     });
@@ -418,13 +426,13 @@ export class UserManager extends Disposable {
 
       let memberType: string;
       if (annotation.isSupport) {
-        memberType = 'Grist support';
+        memberType = t('Grist support');
       } else if (annotation.isMember && annotations.hasTeam) {
-        memberType = 'Team member';
+        memberType = t('Team member');
       } else if (annotations.hasTeam) {
-        memberType = 'Outside collaborator';
+        memberType = t('Outside collaborator');
       } else {
-        memberType = 'Collaborator';
+        memberType = t('Collaborator');
       }
 
       return cssMemberType(memberType, testId('um-member-annotation'));
@@ -439,8 +447,8 @@ export class UserManager extends Disposable {
         cssMemberListItem(
           cssPublicMemberIcon('PublicFilled'),
           cssMemberText(
-            cssMemberPrimary('Public Access'),
-            cssMemberSecondary('Anyone with link ', makeCopyBtn(this._options.linkToCopy)),
+            cssMemberPrimary(t('Public Access')),
+            cssMemberSecondary(t('Anyone with link '), makeCopyBtn(this._options.linkToCopy)),
           ),
           this._memberRoleSelector(publicMember.effectiveAccess, publicMember.inheritedAccess, false,
             this._model.publicUserSelectOptions
@@ -472,12 +480,12 @@ export class UserManager extends Disposable {
           cssMemberPrimary(name, testId('um-member-name')),
           activeUser?.email ? cssMemberSecondary(activeUser.email) : null,
           cssMemberPublicAccess(
-            dom('span', 'Public access', testId('um-member-annotation')),
+            dom('span', t('Public access'), testId('um-member-annotation')),
             cssPublicAccessIcon('PublicFilled'),
           ),
         ),
         cssRoleBtn(
-          accessLabel ?? 'Guest',
+          accessLabel ?? t('Guest'),
           cssCollapseIcon('Collapse'),
           dom.cls('disabled'),
           testId('um-member-role'),
@@ -522,23 +530,24 @@ export class UserManager extends Disposable {
           )
         ),
         // If the user's access is inherited, give an explanation on how to change it.
-        isActiveUser ? menuText(`User may not modify their own access.`) : null,
+        isActiveUser ? menuText(t(`User may not modify their own access.`)) : null,
         // If the user's access is inherited, give an explanation on how to change it.
         dom.maybe((use) => use(inherited) && !isActiveUser, () => menuText(
-          `User inherits permissions from ${getResourceParent(this._model.resourceType)}. To remove, ` +
-          `set 'Inherit access' option to 'None'.`)),
+          t(`User inherits permissions from {{parent})}. To remove, \
+          set 'Inherit access' option to 'None'.`, { parent: getResourceParent(this._model.resourceType) }))),
         // If the user is a guest, give a description of the guest permission.
         dom.maybe((use) => !this._model.isOrg && use(role) === roles.GUEST, () => menuText(
-          `User has view access to ${this._model.resourceType} resulting from manually-set access ` +
-          `to resources inside. If removed here, this user will lose access to resources inside.`)),
-        this._model.isOrg ? menuText(`No default access allows access to be ` +
-          `granted to individual documents or workspaces, rather than the full team site.`) : null
+          t(`User has view access to {{ressource}} resulting from manually-set access \
+          to resources inside. If removed here, this user will lose access to resources inside.`,
+            { ressource: this._model.resourceType }))),
+        this._model.isOrg ? menuText(t(`No default access allows access to be \
+        granted to individual documents or workspaces, rather than the full team site.`)) : null
       ]),
       dom.text((use) => {
         // Get the label of the active role. Note that the 'Guest' role is assigned when the role
         // is not found because it is not included as a selection.
         const activeRole = allRoles.find((_role: IOrgMemberSelectOption) => use(role) === _role.value);
-        return activeRole ? activeRole.label : "Guest";
+        return activeRole ? activeRole.label : t("Guest");
       }),
       cssCollapseIcon('Collapse'),
       this._model.isPersonal ? dom.cls('disabled') : null,
@@ -634,7 +643,7 @@ function getFullUser(member: IEditableMember): FullUser {
 
 // Create a "Copy Link" button.
 function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
-  return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), 'Copy Link',
+  return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), t('Copy Link'),
     dom.on('click', (ev, elem) => copyLink(elem, linkToCopy)),
     testId('um-copy-link'),
     ...domArgs,
@@ -646,7 +655,7 @@ function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) 
 async function copyLink(elem: HTMLElement, link: string) {
   await copyToClipboard(link);
   setTestState({clipboard: link});
-  showTransientTooltip(elem, 'Link copied to clipboard', {key: 'copy-doc-link'});
+  showTransientTooltip(elem, t('Link copied to clipboard'), { key: 'copy-doc-link' });
 }
 
 async function manageTeam(appModel: AppModel,
@@ -808,9 +817,9 @@ const cssMemberPublicAccess = styled(cssMemberSecondary, `
 function renderTitle(resourceType: ResourceType, resource?: Resource, personal?: boolean) {
   switch (resourceType) {
     case 'organization': {
-      if (personal) { return 'Your role for this team site'; }
+      if (personal) { return t('Your role for this team site'); }
       return [
-        'Manage members of team site',
+        t('Manage members of team site'),
         !resource ? null : cssOrgName(
           `${(resource as Organization).name} (`,
           cssOrgDomain(`${(resource as Organization).domain}.getgrist.com`),
@@ -819,12 +828,14 @@ function renderTitle(resourceType: ResourceType, resource?: Resource, personal?:
       ];
     }
     default: {
-      return personal ? `Your role for this ${resourceType}` : `Invite people to ${resourceType}`;
+      return personal ?
+        t(`Your role for this {{resourceType}}`, { resourceType }) :
+        t(`Invite people to {{resourceType}}`, { resourceType });
     }
   }
 }
 
 // Rename organization to team site.
 function resourceName(resourceType: ResourceType): string {
-  return resourceType === 'organization' ? 'team site' : resourceType;
+  return resourceType === 'organization' ? t('team site') : resourceType;
 }
