@@ -1233,9 +1233,11 @@ GridView.prototype.buildDom = function() {
         kd.style("width", ROW_NUMBER_WIDTH + 'px'),
         dom('div.gridview_data_row_info',
           kd.toggleClass('linked_dst', () => {
+            const myRowId = row.id();
+            const linkedRowId = self.linkedRowId();
             // Must ensure that linkedRowId is not null to avoid drawing on rows whose
             // row ids are null.
-            return self.linkedRowId() && self.linkedRowId() === row.getRowId();
+            return linkedRowId && linkedRowId === myRowId;
           })
         ),
         kd.text(function() { return row._index() + 1; }),

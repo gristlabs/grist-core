@@ -132,7 +132,7 @@ describe('Views.ntest', function() {
     await gu.openColumnMenu('A');
     await $(`.grist-floating-menu .test-sort-asc`).click();
     // Delete the table.
-    await gu.removeTable("Table4");
+    await gu.sendActions([['RemoveTable', 'Table4']]);
     await gu.actions.selectTabView('Table1');
     // Assert that the default section (Table1 record) is now active.
     assert.equal(await $('.active_section > .viewsection_title').text(), 'TABLE1');

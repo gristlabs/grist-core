@@ -8,11 +8,15 @@ import {
 import {getDefaultForType} from 'app/common/gristTypes';
 import {arrayRemove, arraySplice, getDistinctValues} from 'app/common/gutil';
 import {SchemaTypes} from "app/common/schema";
-import {UIRowId} from 'app/common/UIRowId';
 import isEqual = require('lodash/isEqual');
 import fromPairs = require('lodash/fromPairs');
 
 export interface ColTypeMap { [colId: string]: string; }
+
+// This is the row ID used in the client, but it's helpful to have available in some common code
+// as well, which is why it's declared in app/common. Note that for data actions and stored data,
+// 'new' is not used.
+export type UIRowId = number | 'new';
 
 type UIRowFunc<T> = (rowId: UIRowId) => T;
 

@@ -2,7 +2,7 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
-import {UIRowId} from 'app/common/UIRowId';
+import {UIRowId} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';

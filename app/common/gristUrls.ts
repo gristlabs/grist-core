@@ -5,7 +5,7 @@ import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
-import {UIRowId} from 'app/common/UIRowId';
+import {UIRowId} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');

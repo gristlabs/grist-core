@@ -29,8 +29,7 @@ import {isHiddenTable, isSummaryTable} from 'app/common/isHiddenTable';
 import {canEdit} from 'app/common/roles';
 import {RowFilterFunc} from 'app/common/RowFilterFunc';
 import {schema, SchemaTypes} from 'app/common/schema';
-import {UIRowId} from 'app/common/UIRowId';
-
+import {UIRowId} from 'app/common/TableData';
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
@@ -318,7 +317,7 @@ export class DocModel {
  */
 function createTablesArray(
   tablesModel: MetaTableModel<TableRec>,
-  filterFunc: RowFilterFunc<rowset.RowId> = (_row) => true
+  filterFunc: RowFilterFunc<UIRowId> = (_row) => true
 ) {
   const rowSource = new rowset.FilteredRowSource(filterFunc);
   rowSource.subscribeTo(tablesModel);

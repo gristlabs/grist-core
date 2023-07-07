@@ -1,9 +1,9 @@
 import {ColumnFilter} from 'app/client/models/ColumnFilter';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {RowId} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {buildColFilter, ColumnFilterFunc} from 'app/common/ColumnFilterFunc';
 import {buildRowFilter, RowFilterFunc, RowValueFunc } from 'app/common/RowFilterFunc';
+import {UIRowId} from 'app/common/TableData';
 import {Computed, Disposable, MutableObsArray, obsArray, Observable, UseCB} from 'grainjs';
 
 export type {ColumnFilterFunc};
@@ -26,10 +26,10 @@ type ColFilterCB = (fieldOrColumn: ViewFieldRec|ColumnRec, colFilter: ColumnFilt
  * results in their being displayed (obviating the need to maintain their rowId explicitly).
  */
 export class SectionFilter extends Disposable {
-  public readonly sectionFilterFunc: Observable<RowFilterFunc<RowId>>;
+  public readonly sectionFilterFunc: Observable<RowFilterFunc<UIRowId>>;
 
   private _openFilterOverride: Observable<OpenColumnFilter|null> = Observable.create(this, null);
-  private _tempRows: MutableObsArray<RowId> = obsArray();
+  private _tempRows: MutableObsArray<UIRowId> = obsArray();
 
   constructor(public viewSection: ViewSectionRec, private _tableData: TableData) {
     super();
@@ -89,8 +89,8 @@ export class SectionFilter extends Disposable {
     return this._addRowsToFilter(this._buildPlainFilterFunc(getFilterFunc, use), this._tempRows.get());
   }
 
-  private _addRowsToFilter(filterFunc: RowFilterFunc<RowId>, rows: RowId[]) {
-    return (rowId: RowId) => rows.includes(rowId) || (typeof rowId !== 'number') || filterFunc(rowId);
+  private _addRowsToFilter(filterFunc: RowFilterFunc<UIRowId>, rows: UIRowId[]) {
+    return (rowId: UIRowId) => rows.includes(rowId) || (typeof rowId !== 'number') || filterFunc(rowId);
   }
 
   /**
@@ -98,9 +98,9 @@ export class SectionFilter extends Disposable {
    * columns. You can use `getFilterFunc(column, colFilter)` to customize the filter func for each
    * column. It calls `getFilterFunc` right away.
    */
-  private _buildPlainFilterFunc(getFilterFunc: ColFilterCB, use: UseCB): RowFilterFunc<RowId> {
+  private _buildPlainFilterFunc(getFilterFunc: ColFilterCB, use: UseCB): RowFilterFunc<UIRowId> {
     const filters = use(this.viewSection.filters);
-    const funcs: Array<RowFilterFunc<RowId> | null> = filters.map(({filter, fieldOrColumn}) => {
+    const funcs: Array<RowFilterFunc<UIRowId> | null> = filters.map(({filter, fieldOrColumn}) => {
       const colFilter = buildColFilter(use(filter), use(use(fieldOrColumn.origCol).type));
       const filterFunc = getFilterFunc(fieldOrColumn, colFilter);
 
@@ -108,9 +108,9 @@ export class SectionFilter extends Disposable {
 
       if (!filterFunc || !getter) { return null; }
 
-      return buildRowFilter(getter as RowValueFunc<RowId>, filterFunc);
+      return buildRowFilter(getter as RowValueFunc<UIRowId>, filterFunc);
     }).filter(f => f !== null); // Filter out columns that don't have a filter
 
-    return (rowId: RowId) => funcs.every(f => Boolean(f && f(rowId)));
+    return (rowId: UIRowId) => funcs.every(f => Boolean(f && f(rowId)));
   }
 }
