@@ -489,6 +489,7 @@ export class RightPanel extends Disposable {
     const getCurrentViewField = (use: UseCBOwner, sec:ViewSectionRec):ViewFieldRec|undefined => {
           const vi = use(sec.viewInstance);
           if (Boolean(vi)) {
+            // @ts-ignore (it's a debug function)
             return use(use(sec.viewFields))[use(vi!.cursor.fieldIndex)];
           }
           return undefined;
@@ -500,7 +501,7 @@ export class RightPanel extends Disposable {
     let JV = (window as any).JV = (window as any).JV || {};  //JV DEBUG
     JV._gristDoc = this._gristDoc;
     JV.asec = this._gristDoc.viewModel.activeSection;//JV.asec || Computed.create(null, use => use())
-    JV.afield = Computed.create(owner, use=> getCurrentViewField(use, use(JV.asec)));
+    JV.afield = Computed.create(owner, use=> getCurrentViewField(use, use(JV.asec) as ViewSectionRec));
     JV.pprint = ((obj:any) => JSON.stringify(obj, null, 2));
     JV.nulluse = ((obs:any) => { obs = ('_getDepItem' in obs) ? obs : fromKo(obs); return obs.get()}); //use print without creating an observable
     JV.poCol = (use: UseCBOwner, col:ColumnRec) => `C#${use(col.id)}:'${use(col.colId)}' type ${use(col.type)} @T#${use(use(col.table).id)}'`;
@@ -524,6 +525,7 @@ export class RightPanel extends Disposable {
     `)
 
     const paddedIcon = styled('div', "margin: 2px");
+    // @ts-ignore
     const makeIconBox = () => debugBox(
         dom("div", dom.attr("style", "display:flex; flex-direction:row; flex-wrap: wrap; max-width:600px"),
           IconList.map(iname => paddedIcon(icon(iname))),
@@ -532,10 +534,17 @@ export class RightPanel extends Disposable {
     );
 
     //add debugbox to window if it doesn't already exist
+    // @ts-ignore
     const makeDebugBox = () => debugBox(
         dom("button",
             dom.text("X"), dom.style("float","right"), dom.style("color","red"),
-            dom.on("click", (event, elem) => { const box = elem.parentElement; dom.domDispose(box); box.remove(); JV.boxExists = false})
+            dom.on("click", (event, elem) => {
+              const box = elem.parentElement;
+              if(box == null)
+                { return; }
+              dom.domDispose(box);
+              box.remove();
+              JV.boxExists = false})
         ),
         dom.text("JV Debug info:"),
         dom("br"),
@@ -609,15 +618,19 @@ export class RightPanel extends Disposable {
     -aaaa
     */
 
+      // @ts-ignore
       let wipStr = ""
       if (!srcSec.getRowId()) { wipStr = "No Linking"; }
       else {
+        // @ts-ignore
         const srcTable = use(srcSec.table);
         const srcCursorPos = secToCursorPos(use,srcSec);
         const rowIndex = srcCursorPos ? srcCursorPos.rowIndex : "null";
         const rowId = use(srcSec.activeRowId)
 
+        // @ts-ignore
         let selectorVal = undefined; // if
+        // @ts-ignore
         let selectorType = "";//if filterL, use ref from srcCol, if lookup use ref from trgCol, if cursor link then we dont' have a display column
         // if a summary table, then it's trickier. If it's a
 
@@ -691,6 +704,7 @@ export class RightPanel extends Disposable {
             }
 
             //lookup target column, to display references better and/or show date formatters
+            // @ts-ignore
             const fields: ViewFieldRec[] = use(use(sec.viewFields)).filter((field: ViewFieldRec) => use(field.colId) == colId);
             assert(fields.length == 1, "Should have exactly 1 field matching colId '" + colId + "': " + JSON.stringify(fields));
             const field = fields[0];
@@ -703,7 +717,7 @@ export class RightPanel extends Disposable {
             let formattedVals;
             const cellType = use(use(field.column).type);
             const formatter = use(use(field.column).visibleColFormatter);
-            const formatter2 = use(field.formatter);
+            //const formatter2 = use(field.formatter);
 
             JV.x = field;
             JV.x2 = cellType;
@@ -738,7 +752,7 @@ export class RightPanel extends Disposable {
       LinkInfo += `\nSrcCol: ${srcColId}\nTgtCol: ${tgtColId}\n`;
 
       if(resCursor == "" && resFilter == "") { resCursor = " no filters"; }
-      let res = resCursor + resFilter;
+      //let res = resCursor + resFilter;
       return "===Linking State Debug===\n" + LinkInfo + "\nLinkingState:\n"
         + Object.keys(lfilter).map(key => `-${key}: ${JSON.stringify((lfilter as any)[key])}`).join("\n")
     });

@@ -13,7 +13,6 @@ import {encodeObject} from 'app/plugin/objtypes';
 import {Disposable, toKo} from "grainjs";
 import * as  ko from "knockout";
 import _ from "lodash";
-import identity = require('lodash/identity');
 import mapValues = require('lodash/mapValues');
 import pickBy = require('lodash/pickBy');
 
@@ -81,7 +80,7 @@ export class LinkingState extends Disposable {
   private _docModel : DocModel;
   private _srcSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
-  private _srcCol: ColumnRec;
+  //private _srcCol: ColumnRec;
   private _srcColId: string | undefined;
   //private _tgtCol: ColumnRec;
   //private _tgtColId: string | undefined;
@@ -91,7 +90,7 @@ export class LinkingState extends Disposable {
     const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
     this._docModel = docModel;
     this._srcSection = srcSection;
-    this._srcCol = srcCol;
+    //this._srcCol = srcCol;
     this._srcColId = srcColId;
     //this._tgtCol = tgtCol;
     //this._tgtColId = tgtColId;
