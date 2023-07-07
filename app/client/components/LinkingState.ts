@@ -158,7 +158,7 @@ export class LinkingState extends Disposable {
     } else if (srcSection.parentKey() === 'custom') {
       this.filterColValues = this._srcCustomFilter(null, 'in');
     } else { //!tgtCol && !summary-link && (!lookup-link || !reflist), either same-table cursor-link or non-reflist cursor link
-      const srcValueFunc = this._makeSrcCellGetter();
+      const srcValueFunc = this._makeValGetter(this._srcSection.table(), this._srcColId || 'id');
       if (srcValueFunc) {
         this.cursorPos = this.autoDispose(ko.computed(() =>
           srcValueFunc(srcSection.activeRowId()) as UIRowId
@@ -341,7 +341,7 @@ export class LinkingState extends Disposable {
 
   // Value for this.filterColValues based on the values in srcSection.selectedRows
   //"null" for column implies id column
-  private _srcCustomFilter(column: ColumnRec, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
+  private _srcCustomFilter(column: ColumnRec|null, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
     const colId = column == null ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
       const values = toKo(ko, this._srcSection.selectedRows)();
@@ -349,8 +349,8 @@ export class LinkingState extends Disposable {
         filters: {[colId]: values},
         filterLabels: {[colId]: values.map(v => v+"")},
         operations: {[colId]: operation},
-        colTypes: {[colId]: column.type()}
-      } as FilterColValues; //TODO JV: actually fix filterLabels
+        colTypes: {[colId]: column?.type() || ""} //TODO JV NO REALLY FIX THIS
+      } as FilterColValues; //TODO JV: actually fix filterLabels and coltype
     }));
   }
 
