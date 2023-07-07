@@ -739,7 +739,10 @@ export class RightPanel extends Disposable {
 
       if(resCursor == "" && resFilter == "") { resCursor = " no filters"; }
       let res = resCursor + resFilter;
-      return "linkingState:" + "\nWIP:\n" + wipStr + "\n===Debug===\n" + LinkInfo + res + "\n filters: " + JSON.stringify(lfilter.filters) + "\n labels: " + JSON.stringify(lfilter.filterLabels);
+      return "linkingState:" + "\nWIP:\n" + wipStr + "\n===Debug===\n" + LinkInfo + res
+        + "\n filters: " + JSON.stringify(lfilter.filters)
+        + "\n labels:  " + JSON.stringify(lfilter.filterLabels)
+        + "\n ops:     " + JSON.stringify(lfilter.operations) ;
     });
 
     // This computed is not enough to make sure that the linkOptions are up to date. Indeed
