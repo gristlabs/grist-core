@@ -577,13 +577,13 @@ export class RightPanel extends Disposable {
     );
     if (!JV.boxExists) {
       //window.document.body.append(makeIconBox());
-      window.document.body.append(makeDebugBox());
+      //window.document.body.append(makeDebugBox());
       JV.boxExists = true;
     }
     const pprintedLinkInfo = (sec:ViewSectionRec) => Computed.create(owner, (use)=> {
       //makes an observable for the passed-in section
       const lstate = use(sec.linkingState)
-      if(lstate == null) { return "linkingState null"}
+      if(lstate == null) { return "No Link"}
 
       const srcSec = use(sec.linkSrcSection); //might be the empty section
       const srcColId = use(use(sec.linkSrcCol).colId); // might be the empty column
@@ -739,10 +739,8 @@ export class RightPanel extends Disposable {
 
       if(resCursor == "" && resFilter == "") { resCursor = " no filters"; }
       let res = resCursor + resFilter;
-      return "linkingState:" + "\nWIP:\n" + wipStr + "\n===Debug===\n" + LinkInfo + res
-        + "\n filters: " + JSON.stringify(lfilter.filters)
-        + "\n labels:  " + JSON.stringify(lfilter.filterLabels)
-        + "\n ops:     " + JSON.stringify(lfilter.operations) ;
+      return "===Linking State Debug===\n" + LinkInfo + "\nLinkingState:\n"
+        + Object.keys(lfilter).map(key => `-${key}: ${JSON.stringify((lfilter as any)[key])}`).join("\n")
     });
 
     // This computed is not enough to make sure that the linkOptions are up to date. Indeed
@@ -821,8 +819,7 @@ export class RightPanel extends Disposable {
 
       //JV Addition:
       //Lets add a debug rendering of the current filters:
-      cssLabel(t("JV TEST LINKING DEBUG")),
-      cssRow("test test"),
+      cssLabel(domComputed((use) => t(`DEBUG: INCOMING LINK FOR "${JV.poSec(use,activeSection)}"`))),
       cssRow(
         dom("pre",dom.text(pprintedLinkInfo(activeSection)))
       ),
@@ -843,7 +840,7 @@ export class RightPanel extends Disposable {
 
           //JV: lets also show link filters for this:
           selectorFor.map( (sec) => [
-              cssRow(use(sec.titleDef) + " (T:" + use(sec.tableId).toUpperCase() + ")"),
+              cssRow(`DEBUG: OUTGOING LINK TO: "${use(sec.titleDef)}" (T:${use(sec.tableId).toUpperCase()})`),
               //cssRow(dom("pre",dom.text("lorem ipsum"))),
               cssRow(dom("pre",dom.text(pprintedLinkInfo(sec)))),
           ]),
