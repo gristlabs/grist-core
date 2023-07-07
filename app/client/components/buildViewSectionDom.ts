@@ -88,6 +88,14 @@ function buildLinkStateIndicatorDom(options: {
         if(lstate == null) {
             return null;
         }
+
+
+        const lfilter = use(tgtSec.linkingFilter)
+        if(lfilter == null) {
+          console.error("ERROR: lfilter undefined");
+          return "ERROR: lfilter undefined";
+        }
+
         //assert(lstate != null, "LinkStateIndicator should only be constructed for sections with incoming links");
 
         const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
@@ -97,15 +105,15 @@ function buildLinkStateIndicatorDom(options: {
         //can do use(srcCol.colId) == undefined for empty
 
 
-        // ========== Old debug description: just list out the stuff=================
-        const lfilter = use(tgtSec.linkingFilter)
 
 
         // Pretty print filter info
-        let filterValsFormatted: {[colId:string]:any[]} = {};
-        let filterTypes: {[colId:string]:string} = {};
-        const defaultRefFormat = (rowId: number|string, refTableId:string) => `${refTableId}[${rowId}]`;
+        //let filterValsFormatted: {[colId:string]:any[]} = {};
+        //let filterTypes: {[colId:string]:string} = {};
+        //const defaultRefFormat = (rowId: number|string, refTableId:string) => `${refTableId}[${rowId}]`;
 
+
+        /*
         try{
             //filters is a map {column: [vals...]}
             if(lfilter != null) {
@@ -163,6 +171,8 @@ function buildLinkStateIndicatorDom(options: {
             console.warn("Error in creating linkstate tooltip:\n" + e.toString())
         }
 
+         */
+
 
         // crunch filterVals into compact string for display in bubble (not tooltip),
         // eg "USA", "USA;2022", "(USA +3 others)"
@@ -171,8 +181,9 @@ function buildLinkStateIndicatorDom(options: {
         //filters is a map {column: [vals...]}
         //  if multiple filters, join each with ";"
         //    each filter can have multiple vals (if reflist), show as "(SomeValue +3 others)",
-        const filterValsShortLabel: string[] = Object.keys(filterValsFormatted).map(colId => {
-            const vals = filterValsFormatted[colId]
+        console.log(lfilter)//TODO JV TEMP
+        const filterValsShortLabel = Object.keys(lfilter.filterLabels).map(colId => {
+            const vals = lfilter.filterLabels[colId]
             const dispVal = vals[0] || '- blank -';
             return vals.length == 1 ? dispVal: `(${dispVal} +${vals.length - 1} others)`;
         }).join("; ");
@@ -196,12 +207,12 @@ function buildLinkStateIndicatorDom(options: {
             srcStringWithColumn += ` ${BLACK_CIRCLE} ${use(use(tgtSec.linkSrcCol).label)}`;
         }
 
-        let numFilters = Object.keys(filterValsFormatted).length - (filterValsFormatted.hasOwnProperty("id") ? 1 : 0);
+        let numFilters = Object.keys(lfilter.filterLabels).length - (lfilter.filterLabels.hasOwnProperty("id") ? 1 : 0);
         let filtersTable = dom("table",
             dom.style("margin-left","8px"),
-            Object.keys(filterValsFormatted).map(
+            Object.keys(lfilter.filterLabels).map(
                 (colId) => {
-                    const vals = filterValsFormatted[colId];
+                    const vals = lfilter.filterLabels[colId];
                     let operationSymbol = "=";
                     //if filter (reflist) <- ref, op="intersects", symbol = "??"
                     //if filter (ref) <- reflist, op="in", vals.length>1
@@ -216,7 +227,7 @@ function buildLinkStateIndicatorDom(options: {
                                 `${colId}`),
                             dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')), //add some spacing around the =
                             dom("td",
-                              isFullReferencingType(filterTypes[colId]) ? cssLinkstateFilterIconInline("FieldReference"): null,
+                              isFullReferencingType(lfilter.colTypes[colId]) ? cssLinkstateFilterIconInline("FieldReference"): null, //TODO JV TEMP: PUT REF ICON BACK IN
                               `${vals}`),
                         )
                     }
@@ -232,7 +243,7 @@ function buildLinkStateIndicatorDom(options: {
 
         } else if (srcColId && !tgtColId) { // === Ref-Lookup Linking
             //(window as any).JV.tmp=filterValsFormatted;
-          const displayValues = filterValsFormatted["id"];
+          const displayValues = lfilter.filterLabels["id"];
           const numRecords = displayValues ? displayValues.length : 0;
           //console.log("!!! DEBUG: ", displayValues);//TODO JV TEMP
           //These might be ref display vals like ["USA", ...], or if not they might be like ["Countries[1]", ...]
@@ -243,7 +254,7 @@ function buildLinkStateIndicatorDom(options: {
                 cssLinkTooltipRow(`Showing Referenced Record${numRecords > 1?"s":""}:`),
                 cssLinkTooltipRow(dom.style('border','1px solid white'), dom.style('padding', '2px 4px 2px 4px'), dom.style('align-self','center'),
                   cssLinkstateFilterIconInline("FieldReference"),
-                  `${filterValsFormatted["id"]}`),
+                  `${lfilter.filterLabels["id"]}`),
                 cssLinkTooltipRow(`from "${srcStringWithColumn}"`)];
 
         } else if(tgtColId) { // === Standard Filter Linking (row->col || col->col)
