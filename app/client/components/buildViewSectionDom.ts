@@ -300,7 +300,7 @@ const tempIconSVGString= `url('data:image/svg+xml;utf8,<svg width="16px" height=
 
 //TODO JV TEMP: Shamelessly copied from icon.ts
 const customIcon = styled('div', `
-  mask-image: ${tempIconSVGString};
+  -webkit-mask-image: ${tempIconSVGString};
   position: relative;
   display: inline-block;
   vertical-align: middle;
