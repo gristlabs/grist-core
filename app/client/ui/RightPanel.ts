@@ -481,39 +481,39 @@ export class RightPanel extends Disposable {
     });
 
 
-    const secToCursorPos = (use: UseCBOwner, sec:ViewSectionRec) => {
+    const secToCursorPos = (use: UseCBOwner, sec: ViewSectionRec) => {
       const vi = use(sec.viewInstance);
-      if (!Boolean(vi)) {return undefined}
-      return use(vi!.cursor.currentPosition);
-    }
-    const getCurrentViewField = (use: UseCBOwner, sec:ViewSectionRec):ViewFieldRec|undefined => {
+      if (!vi) { return undefined; }
+      return use(vi.cursor.currentPosition);
+    };
+    const getCurrentViewField = (use: UseCBOwner, sec: ViewSectionRec): ViewFieldRec|undefined => {
           const vi = use(sec.viewInstance);
-          if (Boolean(vi)) {
+          if (vi) {
             // @ts-ignore (it's a debug function)
-            return use(use(sec.viewFields))[use(vi!.cursor.fieldIndex)];
+            return use(use(sec.viewFields))[use(vi.cursor.fieldIndex)];
           }
           return undefined;
-    }
+    };
 
 
 
 
-    let JV = (window as any).JV = (window as any).JV || {};  //JV DEBUG
+    const JV = (window as any).JV = (window as any).JV || {};  //JV DEBUG
     JV._gristDoc = this._gristDoc;
     JV.asec = this._gristDoc.viewModel.activeSection;//JV.asec || Computed.create(null, use => use())
     JV.afield = Computed.create(owner, use=> getCurrentViewField(use, use(JV.asec) as ViewSectionRec));
-    JV.pprint = ((obj:any) => JSON.stringify(obj, null, 2));
-    JV.nulluse = ((obs:any) => { obs = ('_getDepItem' in obs) ? obs : fromKo(obs); return obs.get()}); //use print without creating an observable
-    JV.poCol = (use: UseCBOwner, col:ColumnRec) => `C#${use(col.id)}:'${use(col.colId)}' type ${use(col.type)} @T#${use(use(col.table).id)}'`;
-    JV.poTab = (use: UseCBOwner, tab:TableRec) => `T#${use(tab.id)}:'${use(tab.formattedTableName)}'`;
-    JV.poFld = (use: UseCBOwner, field:ViewFieldRec) => `F#${use(field.id)}: '${use(field.label)}' (C#${use(use(field.column).id)}) @S#${use(use(field.viewSection).id)}`;
+    JV.pprint = ((obj: any) => JSON.stringify(obj, null, 2));
+    JV.nulluse = ((obs: any) => { obs = ('_getDepItem' in obs) ? obs : fromKo(obs); return obs.get(); }); //use print without creating an observable
+    JV.poCol = (use: UseCBOwner, col: ColumnRec) => `C#${use(col.id)}:'${use(col.colId)}' type ${use(col.type)} @T#${use(use(col.table).id)}'`;
+    JV.poTab = (use: UseCBOwner, tab: TableRec) => `T#${use(tab.id)}:'${use(tab.formattedTableName)}'`;
+    JV.poFld = (use: UseCBOwner, field: ViewFieldRec) => `F#${use(field.id)}: '${use(field.label)}' (C#${use(use(field.column).id)}) @S#${use(use(field.viewSection).id)}`;
 
-    JV.poSec = (use: UseCBOwner, sec:ViewSectionRec) => `S#${use(sec.id)}: '${use(sec.titleDef)}'`; //curs:${JSON.stringify(secToCursorPos(use,sec))}`;
+    JV.poSec = (use: UseCBOwner, sec: ViewSectionRec) => `S#${use(sec.id)}: '${use(sec.titleDef)}'`; //curs:${JSON.stringify(secToCursorPos(use,sec))}`;
     //helpers for peeking
-    JV.pCol = (x:any) => JV.poCol(JV.nulluse, x);
-    JV.pTab = (x:any) => JV.poTab(JV.nulluse, x);
-    JV.pFld = (x:any) => JV.poFld(JV.nulluse, x);
-    JV.pSec = (x:any) => JV.poSec(JV.nulluse, x);
+    JV.pCol = (x: any) => JV.poCol(JV.nulluse, x);
+    JV.pTab = (x: any) => JV.poTab(JV.nulluse, x);
+    JV.pFld = (x: any) => JV.poFld(JV.nulluse, x);
+    JV.pSec = (x: any) => JV.poSec(JV.nulluse, x);
 
     const debugBox = styled('div', `
       position:fixed;
@@ -522,7 +522,7 @@ export class RightPanel extends Disposable {
       border: 1px solid black;
       min-width: 100px;
       min-height: 40px;
-    `)
+    `);
 
     const paddedIcon = styled('div', "margin: 2px");
     // @ts-ignore
@@ -530,21 +530,21 @@ export class RightPanel extends Disposable {
         dom("div", dom.attr("style", "display:flex; flex-direction:row; flex-wrap: wrap; max-width:600px"),
           IconList.map(iname => paddedIcon(icon(iname))),
         ),
-        dom.on("click", (evt, elem) => {const box = elem; dom.domDispose(box); box.remove()})
+        dom.on("click", (evt, elem) => { const box = elem; dom.domDispose(box); box.remove(); })
     );
 
     //add debugbox to window if it doesn't already exist
     // @ts-ignore
     const makeDebugBox = () => debugBox(
         dom("button",
-            dom.text("X"), dom.style("float","right"), dom.style("color","red"),
+            dom.text("X"), dom.style("float", "right"), dom.style("color", "red"),
             dom.on("click", (event, elem) => {
               const box = elem.parentElement;
               if(box == null)
                 { return; }
               dom.domDispose(box);
               box.remove();
-              JV.boxExists = false})
+              JV.boxExists = false; })
         ),
         dom.text("JV Debug info:"),
         dom("br"),
@@ -555,21 +555,21 @@ export class RightPanel extends Disposable {
           const aField = getCurrentViewField(use, aSec);
 
           const cursorPos = secToCursorPos(use, aSec);
-          let cellValue, cellValue2, cellType, cellRefValue,cellFormatterVal = null;
+          let cellValue, cellValue2, cellType, cellRefValue, cellFormatterVal = null;
           if(cursorPos && aField != null){
             const rowId = cursorPos.rowId;
-            const col = use(aField!.column);
+            const col = use(aField.column);
             if(rowId != undefined) {
-              cellValue = docData.getTable(use(aSec.tableId))!.getValue(rowId,use(col.colId));
+              cellValue = docData.getTable(use(aSec.tableId))!.getValue(rowId, use(col.colId));
               if(cellValue != null) {
                 cellValue2 = use(col.visibleColFormatter).formatAny(cellValue);
                 cellType = use(col.type);
                 if (isFullReferencingType(cellType)) {
-                  const RU = new ReferenceUtils(aField!, docData);
+                  const RU = new ReferenceUtils(aField, docData);
                   cellRefValue = RU.isRefList ? (cellValue as any[]).slice(1).map(v => RU.idToText(v)) : RU.idToText(cellValue);
                 }
 
-                cellFormatterVal = use(aField!.formatter).formatAny(cellValue);
+                cellFormatterVal = use(aField.formatter).formatAny(cellValue);
                 // const refData = docData.getTable(use(use(col.refTable)!.tableId));
                 // cellRefValue = use(col.visibleColFormatter).formatAny(refData!.getValue(cellValue as any, use(use(col.visibleColModel).colId) || 'id'));
               }
@@ -577,8 +577,8 @@ export class RightPanel extends Disposable {
           }
           return [
               cssRow(JV.poSec(use, aSec)),
-              cssRow(aField ? JV.poFld(use,aField): "no field selected"),
-              cssRow(aField ? JV.poCol(use,use(aField.column)): "no field selected"),
+              cssRow(aField ? JV.poFld(use, aField): "no field selected"),
+              cssRow(aField ? JV.poCol(use, use(aField.column)): "no field selected"),
               cssRow(cellValue === null ? "no cell value": `cell: ${JSON.stringify(cellValue)},  ${cellValue2}, type ${cellType} ; '${cellRefValue}'`),
               cssRow("formatterVal (.formatter, unreliable): " + cellFormatterVal || "null"),
           ];
@@ -589,10 +589,10 @@ export class RightPanel extends Disposable {
       //window.document.body.append(makeDebugBox());
       JV.boxExists = true;
     }
-    const pprintedLinkInfo = (sec:ViewSectionRec) => Computed.create(owner, (use)=> {
+    const pprintedLinkInfo = (sec: ViewSectionRec) => Computed.create(owner, (use)=> {
       //makes an observable for the passed-in section
-      const lstate = use(sec.linkingState)
-      if(lstate == null) { return "No Link"}
+      const lstate = use(sec.linkingState);
+      if(lstate == null) { return "No Link"; }
 
       const srcSec = use(sec.linkSrcSection); //might be the empty section
       const srcColId = use(use(sec.linkSrcCol).colId); // might be the empty column
@@ -619,24 +619,24 @@ export class RightPanel extends Disposable {
     */
 
       // @ts-ignore
-      let wipStr = ""
+      let wipStr = "";
       if (!srcSec.getRowId()) { wipStr = "No Linking"; }
       else {
         // @ts-ignore
         const srcTable = use(srcSec.table);
-        const srcCursorPos = secToCursorPos(use,srcSec);
+        const srcCursorPos = secToCursorPos(use, srcSec);
         const rowIndex = srcCursorPos ? srcCursorPos.rowIndex : "null";
-        const rowId = use(srcSec.activeRowId)
+        const rowId = use(srcSec.activeRowId);
 
         // @ts-ignore
         let selectorVal = undefined; // if
         // @ts-ignore
-        let selectorType = "";//if filterL, use ref from srcCol, if lookup use ref from trgCol, if cursor link then we dont' have a display column
+        const selectorType = "";//if filterL, use ref from srcCol, if lookup use ref from trgCol, if cursor link then we dont' have a display column
         // if a summary table, then it's trickier. If it's a
 
 
         // =============== Let's try making a descriptive sentence
-        wipStr = `Selected by ${JV.poSec(use,srcSec)}, at row#${typeof rowIndex == "number" ? rowIndex+1 : "(new)"}\n`
+        wipStr = `Selected by ${JV.poSec(use, srcSec)}, at row#${typeof rowIndex == "number" ? rowIndex+1 : "(new)"}\n`;
         if(srcColId){
           let srcColValue = undefined;
           if(rowId) {
@@ -645,12 +645,12 @@ export class RightPanel extends Disposable {
 
 
 
-          if (srcColValue == undefined) { srcColValue = "(undefined)"}
+          if (srcColValue == undefined) { srcColValue = "(undefined)"; }
           selectorVal = srcColValue;
-          wipStr += `using col='${srcColId}'; val='${srcColValue}' (from row ${use(srcSec.tableId)}[${rowId || "null"}]) `
+          wipStr += `using col='${srcColId}'; val='${srcColValue}' (from row ${use(srcSec.tableId)}[${rowId || "null"}]) `;
         } else { //selected by row
           selectorVal = rowId;
-          wipStr +=`using row '${use(srcSec.tableId)}[${rowId || "null"}]'`
+          wipStr +=`using row '${use(srcSec.tableId)}[${rowId || "null"}]'`;
         }
 
         // === Selector value: format appropriately
@@ -670,31 +670,31 @@ export class RightPanel extends Disposable {
           wipStr += "Doing Filter-linking";
         } else { //no target column, either same-table cursor linking, or lookup linking
           if(srcColId) {
-              wipStr += "Lookup linking"
+              wipStr += "Lookup linking";
             } else {
-            wipStr += "Cursor linking (same-table)"
+            wipStr += "Cursor linking (same-table)";
           }
       }
 
       }
 
       // ========== Old debug description: just list out the stuff=================
-      const lcursor = Boolean(lstate.cursorPos) ? use(lstate.cursorPos!) : null;
-      const lfilter = use(sec.linkingFilter)
+      const lcursor = lstate.cursorPos ? use(lstate.cursorPos) : null;
+      const lfilter = use(sec.linkingFilter);
 
       // Pretty print cursor info
       const lcursorRec = lcursor ? `${use(sec.tableId)}[${lcursor}]`: null;
-      let resCursor = ""
+      let resCursor = "";
       if(lcursor != null){
-        resCursor += "cursor link: rowId=" + lcursorRec
+        resCursor += "cursor link: rowId=" + lcursorRec;
       }
 
       let resFilter = "";
       try {
         // Pretty print filter info
         if (lfilter != null && Object.keys(lfilter.filters).length != 0) {
-          resFilter = "Link Filters:"
-          for (let colId in lfilter.filters) {
+          resFilter = "Link Filters:";
+          for (const colId in lfilter.filters) {
             if (colId == "id") { //lookup of reflist implemented as filter on id, handle separately
               resFilter += "\n    " + colId + " = '" + lfilter.filters[colId] + "'";
               if (lfilter.operations[colId] != "in") {
@@ -711,7 +711,7 @@ export class RightPanel extends Disposable {
             //TODO: bug? how to correctly use() koArray
             //TODO: is there a better way to get field by colId?
 
-            console.log("!!!!Found field:" + JV.pFld(field))
+            console.log("!!!!Found field:" + JV.pFld(field));
 
             const rawVals = lfilter.filters[colId]; //filters[colId] looks like [val, val, ...]
             let formattedVals;
@@ -724,14 +724,14 @@ export class RightPanel extends Disposable {
             JV.x3 = rawVals;
             //formattedVals = rawVals.map(rv => formatter2.formatAny(rv))
             if (isFullReferencingType(cellType)) {
-              const RU = new ReferenceUtils(field!, this._gristDoc.docData); //TODO: disposal?
+              const RU = new ReferenceUtils(field, this._gristDoc.docData); //TODO: disposal?
               if (!RU.tableData.isLoaded) {
                 formattedVals = rawVals.map(rv => `${use(use(use(field.column).refTable)!.tableId)}[${rv}]  (table not loaded)`);
               } else {
                 formattedVals = rawVals.map(rv => `${use(use(use(field.column).refTable)!.tableId)}[${rv}]  (${RU.idToText(rv)})`);
               }
             } else { // //normal vals just get formatted (needed for dates and currencies and things)
-              formattedVals = rawVals.map(rv => formatter.formatAny(rv))
+              formattedVals = rawVals.map(rv => formatter.formatAny(rv));
             }
 
 
@@ -747,14 +747,14 @@ export class RightPanel extends Disposable {
       }
 
       let LinkInfo = "";
-      LinkInfo+= `SrcSection: '${JV.poSec(use,srcSec)}'`;
-      LinkInfo+= `\nTgtSection: '${JV.poSec(use,sec)}'`;
+      LinkInfo+= `SrcSection: '${JV.poSec(use, srcSec)}'`;
+      LinkInfo+= `\nTgtSection: '${JV.poSec(use, sec)}'`;
       LinkInfo += `\nSrcCol: ${srcColId}\nTgtCol: ${tgtColId}\n`;
 
       if(resCursor == "" && resFilter == "") { resCursor = " no filters"; }
       //let res = resCursor + resFilter;
       return "===Linking State Debug===\n" + LinkInfo + "\nLinkingState:\n"
-        + Object.keys(lfilter).map(key => `-${key}: ${JSON.stringify((lfilter as any)[key])}`).join("\n")
+        + Object.keys(lfilter).map(key => `-${key}: ${JSON.stringify((lfilter as any)[key])}`).join("\n");
     });
 
     // This computed is not enough to make sure that the linkOptions are up to date. Indeed
@@ -833,9 +833,9 @@ export class RightPanel extends Disposable {
 
       //JV Addition:
       //Lets add a debug rendering of the current filters:
-      cssLabel(domComputed((use) => t(`DEBUG: INCOMING LINK FOR "${JV.poSec(use,activeSection)}"`))),
+      cssLabel(domComputed((use) => t(`DEBUG: INCOMING LINK FOR "${JV.poSec(use, activeSection)}"`))),
       cssRow(
-        dom("pre",dom.text(pprintedLinkInfo(activeSection)))
+        dom("pre", dom.text(pprintedLinkInfo(activeSection)))
       ),
 
 
@@ -856,7 +856,7 @@ export class RightPanel extends Disposable {
           selectorFor.map( (sec) => [
               cssRow(`DEBUG: OUTGOING LINK TO: "${use(sec.titleDef)}" (T:${use(sec.tableId).toUpperCase()})`),
               //cssRow(dom("pre",dom.text("lorem ipsum"))),
-              cssRow(dom("pre",dom.text(pprintedLinkInfo(sec)))),
+              cssRow(dom("pre", dom.text(pprintedLinkInfo(sec)))),
           ]),
         ] : null;
       }),

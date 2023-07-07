@@ -73,13 +73,13 @@ function buildLinkStateIndicatorDom(options: {
 
     return dom.domComputed((use) => {
         //makes an observable for the passed-in section
-        const lstate = use(tgtSec.linkingState)
+        const lstate = use(tgtSec.linkingState);
         if(lstate == null) {
             return null;
         }
 
 
-        const lfilter = use(tgtSec.linkingFilter)
+        const lfilter = use(tgtSec.linkingFilter);
         if(lfilter == null) {
           console.error("ERROR: lfilter undefined");
           return "ERROR: lfilter undefined";
@@ -170,9 +170,9 @@ function buildLinkStateIndicatorDom(options: {
         //filters is a map {column: [vals...]}
         //  if multiple filters, join each with ";"
         //    each filter can have multiple vals (if reflist), show as "(SomeValue +3 others)",
-        console.log(lfilter)//TODO JV TEMP
+        console.log(lfilter);//TODO JV TEMP
         const filterValsShortLabel = Object.keys(lfilter.filterLabels).map(colId => {
-            const vals = lfilter.filterLabels[colId]
+            const vals = lfilter.filterLabels[colId];
             const dispVal = vals[0] || '- blank -';
             return vals.length == 1 ? dispVal: `(${dispVal} +${vals.length - 1} others)`;
         }).join("; ");
@@ -185,9 +185,9 @@ function buildLinkStateIndicatorDom(options: {
         //Figure out link type:
         const srcTable = use(srcSec.table);
         const tgtTable = use(tgtSec.table);
-        let bubbleContent:DomElementArg[] = ["Linkstate (ERROR: UNSET)"];
-        let toolTipContent:DomElementArg[] = ["Link State Tooltip (ERROR: UNSET)"];
-        const toolTipOptions:IHoverTipOptions = { key: "linkstate-bubble", openOnClick: true, placement:"bottom",};
+        let bubbleContent: DomElementArg[] = ["Linkstate (ERROR: UNSET)"];
+        let toolTipContent: DomElementArg[] = ["Link State Tooltip (ERROR: UNSET)"];
+        const toolTipOptions: IHoverTipOptions = { key: "linkstate-bubble", openOnClick: true, placement:"bottom", };
 
 
         const srcSecTitle = use(srcSec.titleDef);
@@ -196,9 +196,9 @@ function buildLinkStateIndicatorDom(options: {
             srcStringWithColumn += ` ${BLACK_CIRCLE} ${use(use(tgtSec.linkSrcCol).label)}`;
         }
 
-        let numFilters = Object.keys(lfilter.filterLabels).length - (lfilter.filterLabels.hasOwnProperty("id") ? 1 : 0);
-        let filtersTable = dom("table",
-            dom.style("margin-left","8px"),
+        const numFilters = Object.keys(lfilter.filterLabels).length - (lfilter.filterLabels.hasOwnProperty("id") ? 1 : 0);
+        const filtersTable = dom("table",
+            dom.style("margin-left", "8px"),
             Object.keys(lfilter.filterLabels).map(
                 (colId) => {
                     const vals = lfilter.filterLabels[colId];
@@ -206,10 +206,10 @@ function buildLinkStateIndicatorDom(options: {
                     //if filter (reflist) <- ref, op="intersects", symbol = "??"
                     //if filter (ref) <- reflist, op="in", vals.length>1
                     if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; } //TODO temp, find intersect symbol? ?contains?
-                    else if (vals.length > 1) { operationSymbol = ELEMENTOF;}
+                    else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
 
                     if(colId == "id") {
-                        return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`)
+                        return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
                     } else {
                         return dom("tr",
                             dom("td", cssLinkstateFilterIconInline("FilterSimple"),
@@ -218,15 +218,15 @@ function buildLinkStateIndicatorDom(options: {
                             dom("td",
                               isFullReferencingType(lfilter.colTypes[colId]) ? cssLinkstateFilterIconInline("FieldReference"): null, //TODO JV TEMP: PUT REF ICON BACK IN
                               `${vals}`),
-                        )
+                        );
                     }
             })
-        )
+        );
 
 
 
         if(!srcColId && !tgtColId && !isSummaryOf(srcTable, tgtTable) ) { // === Cursor Linking (same-record)
-            bubbleContent = [ cssLinkstateFilterIcon("FieldSpinner")] //TODO need better icon for cursor linking
+            bubbleContent = [ cssLinkstateFilterIcon("FieldSpinner")]; //TODO need better icon for cursor linking
 
             toolTipContent = [`Cursor Linked from "${srcStringWithColumn}"`];
 
@@ -241,14 +241,14 @@ function buildLinkStateIndicatorDom(options: {
           bubbleContent = [cssLinkstateFilterIcon("FieldReference")];
           toolTipContent = [
                 cssLinkTooltipRow(`Showing Referenced Record${numRecords > 1?"s":""}:`),
-                cssLinkTooltipRow(dom.style('border','1px solid white'), dom.style('padding', '2px 4px 2px 4px'), dom.style('align-self','center'),
+                cssLinkTooltipRow(dom.style('border', '1px solid white'), dom.style('padding', '2px 4px 2px 4px'), dom.style('align-self', 'center'),
                   cssLinkstateFilterIconInline("FieldReference"),
                   `${lfilter.filterLabels["id"]}`),
                 cssLinkTooltipRow(`from "${srcStringWithColumn}"`)];
 
         } else if(tgtColId) { // === Standard Filter Linking (row->col || col->col)
             bubbleContent = [
-              dom("div",dom.style('width', '2px'), dom.style('display','inline-block')), //spacer for text
+              dom("div", dom.style('width', '2px'), dom.style('display', 'inline-block')), //spacer for text
               filterValsShortLabel,
             ];
             toolTipContent = [
@@ -260,13 +260,13 @@ function buildLinkStateIndicatorDom(options: {
         } else if(!srcColId && !tgtColId && isSummaryOf(srcTable, tgtTable)) { // === Filter Linking (from a summary table)
             bubbleContent = [
               //cssLinkstateFilterIcon("PivotLight", dom.style('margin','0 6px 0 2px')),
-              dom("div",dom.style('width', '2px'), dom.style('display','inline-block')), //spacer for text
+              dom("div", dom.style('width', '2px'), dom.style('display', 'inline-block')), //spacer for text
               filterValsShortLabel,
             ];
             toolTipContent = [
                 cssLinkTooltipRow(`Linked Filter${numFilters>1?"s":""}:`),
                 filtersTable,
-                cssLinkTooltipRow([`from `, cssLinkstateFilterIcon("PivotLight", dom.style('margin','0 4px 0 2px')), `${srcStringWithColumn}"`]),
+                cssLinkTooltipRow([`from `, cssLinkstateFilterIcon("PivotLight", dom.style('margin', '0 4px 0 2px')), `${srcStringWithColumn}"`]),
             ];
         }
         //TODO: these cases are hacked together, need to do them properly
@@ -274,7 +274,7 @@ function buildLinkStateIndicatorDom(options: {
 
 
         //Div wrapping dom?
-        let toolTipDom = cssLinkTooltip(...toolTipContent)
+        const toolTipDom = cssLinkTooltip(...toolTipContent);
 
         return [
             linkStateBubble(
@@ -290,7 +290,7 @@ function buildLinkStateIndicatorDom(options: {
 
         ];
 
-    })
+    });
 
 }
 
@@ -299,7 +299,7 @@ function buildLinkStateIndicatorDom(options: {
 const tempIconSVGString= `url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"> <ellipse style="stroke: rgb(0, 0, 0);" cx="2.426" cy="13.913" rx="1.361" ry="1.361"/> <ellipse style="stroke: rgb(0, 0, 0);" cx="13.827" cy="3.039" rx="1.222" ry="1.222"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 2.396 12.802 C 2.363 7.985 6.014 2.893 11.895 3.027"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 8.49 1.047 L 12.265 2.871 L 8.986 5.874"/> </svg>')`;
 
 //TODO JV TEMP: Shamelessly copied from icon.ts
-const customIcon = styled('div',`
+const customIcon = styled('div', `
   mask-image: ${tempIconSVGString};
   position: relative;
   display: inline-block;
@@ -311,7 +311,7 @@ const customIcon = styled('div',`
   height: 16px;
   background-color: var(--icon-color, var(--grist-theme-text, black));
 
-`)
+`);
 
 const linkStateBubble = styled('div', `
   cursor: pointer;
@@ -338,7 +338,7 @@ const linkStateBubble = styled('div', `
 
 //height on a td acts as min-height;  22px matches real field size, +2 for borders
 //font-size is set larger by tooltip CSS, reset it to root font size to match field css
-const cssLinkTooltip = styled('div',`
+const cssLinkTooltip = styled('div', `
   display: flex;
   flex-flow: column;
   align-items: start;
@@ -363,10 +363,10 @@ const cssLinkTooltip = styled('div',`
 `);
 
 // rows withing the linkstate-bubble tooltip
-const cssLinkTooltipRow = styled('div',`
+const cssLinkTooltipRow = styled('div', `
 
 
-`)
+`);
 
 
 //If inline with text, icons look better shifted up slightly
@@ -422,7 +422,7 @@ export function buildViewSectionDom(options: {
       buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
       dom.maybe((use) => use(vs.linkSrcSectionRef) != 0, () =>
           buildLinkStateIndicatorDom({gristDoc, sectionRowId}, testId("viewsection-linkstate"))),
-      dom("div",dom.style("flex","1 0 0px")), //spacer, 0 size by default, grows to take up remaining space
+      dom("div", dom.style("flex", "1 0 0px")), //spacer, 0 size by default, grows to take up remaining space
       viewInstance.buildTitleControls(),
       dom('div.viewsection_buttons',
 

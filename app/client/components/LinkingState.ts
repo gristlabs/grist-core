@@ -38,12 +38,12 @@ export function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
 
 export type FilterColValues = Pick<ClientQuery, "filters" | "operations"> & {
   filterLabels: {
-    [colId:string]: string[]
+    [colId: string]: string[]
   };
-  colTypes: {[colId:string] : string;}
+  colTypes: {[colId: string]: string;}
 };
 
-export const EmptyFilterColValues = {filters: {}, filterLabels: {}, operations: {}, colTypes: {}}
+export const EmptyFilterColValues = {filters: {}, filterLabels: {}, operations: {}, colTypes: {}};
 
 /**
  * Maintains state useful for linking sections, i.e. auto-filtering and auto-scrolling.
@@ -77,7 +77,7 @@ export class LinkingState extends Disposable {
   // Get default values for a new record so that it continues to satisfy the current linking filters
   public readonly getDefaultColValues: () => any;
 
-  private _docModel : DocModel;
+  private _docModel: DocModel;
   private _srcSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
   //private _srcCol: ColumnRec;
@@ -107,7 +107,7 @@ export class LinkingState extends Disposable {
         this.filterColValues = this._makeFilterObs(null, tgtCol, operation);
       }
     } else if (srcColId) { // && isRefListType(srcCol.type())) {  // "Lookup link"   TODO JV TEMP: originally we only filtered for reflists, refs were cursor-linked
-      this.filterColValues = this._makeFilterObs(srcCol,null, 'in');
+      this.filterColValues = this._makeFilterObs(srcCol, null, 'in');
     } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {  // row->row && summary, i.e. typical summary filter-linking
       // We filter summary tables when a summary section is linked to a more detailed one without
       // specifying src or target column. The filtering is on the shared group-by column (i.e. all
@@ -268,7 +268,7 @@ export class LinkingState extends Disposable {
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
     if(srcCol == null && tgtCol == null) {
-      throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be null")
+      throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be null");
     }
 
     //srcCellGetter is rowId => selectorVal
@@ -280,7 +280,7 @@ export class LinkingState extends Disposable {
     // However, is srcColId == 'id', the value is the whole row. To figure out which field is the label, we need to use visibleCol field from tgtCol
     // Note: if srcColId == 'id', tgtCol is guaranteed be a ref or reflist column
     const displayColId = srcCol == null ? tgtCol!.visibleColModel().colId() : srcCol.displayColModel().colId();
-    const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId)
+    const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId);
     //Note: if src is a reflist, its displayVal will be list of the visibleCol vals, i.e ["L", visVal1, visVal2], but not formatted
     //TODO JV: sloppy that I have to pull out srcCol from this: won't generalize to summary sections
 
@@ -292,7 +292,7 @@ export class LinkingState extends Disposable {
     const isSrcRefList = srcCol && isRefListType(srcCol.type());
 
     if (!selectorValGetter || !displayValGetter) {
-      throw Error("ERROR in _makeFilterObs: couldn't create valGetters for srcSection")
+      throw Error("ERROR in _makeFilterObs: couldn't create valGetters for srcSection");
       //TODO JV: Error? Shouldn't happen?
       //Originally this case returned undefined, not sure what the error logic was/should be
       //return undefined;
@@ -312,8 +312,8 @@ export class LinkingState extends Disposable {
       const displayCellVal  = displayValGetter(srcRowId);
 
       // FilterColValues wants output as a list of 1 or more values to filter by.
-      let filterValues:any[];
-      let displayValues:any[];
+      let filterValues: any[];
+      let displayValues: any[];
       if(!isSrcRefList) {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
@@ -326,7 +326,7 @@ export class LinkingState extends Disposable {
       }
 
 
-      let filterLabelVals:string[] = displayValues.map(v => displayValFormatter.formatAny(v));
+      const filterLabelVals: string[] = displayValues.map(v => displayValFormatter.formatAny(v));
 
       //const values = valuesFunc(srcRowId);
       return {
@@ -381,7 +381,7 @@ export class LinkingState extends Disposable {
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId };
     }
 
-    const tableModel = this._docModel.dataTables[table.tableId()]
+    const tableModel = this._docModel.dataTables[table.tableId()];
     tableModel.tableData.getRowPropFunc(colId);
     const rowModel = this.autoDispose(tableModel.createFloatingRowModel()) as DataRowModel;
     const cellObs = rowModel.cells[colId];
