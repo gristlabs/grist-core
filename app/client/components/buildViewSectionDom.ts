@@ -1,6 +1,6 @@
 import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {makeT} from 'app/client/lib/localization';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {cssIcon} from 'app/client/ui/RightPanelStyles';
@@ -13,28 +13,17 @@ import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
-import assert from 'assert';
 import {isFullReferencingType} from "../../common/gristTypes";
-import {ReferenceUtils} from "../lib/ReferenceUtils";
-import {IconName} from "../ui2018/IconList";
-import {isSummaryTable} from "../../common/isHiddenTable";
 import {isSummaryOf} from "./LinkingState";
 import {
-    descriptionInfoTooltip,
     IHoverTipOptions,
-    ITipOptions,
-    ITooltipContent,
-    setClickTooltip,
     setHoverTooltip
 } from "../ui/tooltips";
-import {MEMBER} from "../../common/roles";
 
 const t = makeT('ViewSection');
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
-const SIGMA = '\u03a3';
-const NBSP = '\u0020'; //blank space, &nbsp; gets escaped out
 const ELEMENTOF = '\u2208'; //220A for small elementof
 
 export function buildCollapsedSectionDom(options: {
