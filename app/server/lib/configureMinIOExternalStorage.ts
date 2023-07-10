@@ -60,3 +60,16 @@ export function checkMinIOExternalStorage() {
     region
   };
 }
+
+export async function checkMinIOBucket() {
+  const options = checkMinIOExternalStorage();
+  if (!options) {
+    throw new Error('Configuration check failed for MinIO backend storage.');
+  }
+
+  const externalStorage = new MinIOExternalStorage(options.bucket, options);
+  if (!await externalStorage.hasVersioning()) {
+    await externalStorage.close();
+    throw new Error(`FATAL: the MinIO bucket "${options.bucket}" does not have versioning enabled`);
+  }
+}

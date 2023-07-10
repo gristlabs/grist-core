@@ -106,45 +106,50 @@ export async function main(port: number, serverTypes: ServerType[],
   server.addApiMiddleware();
   await server.addBillingMiddleware();
 
-  await server.start();
+  try {
+    await server.start();
 
-  if (includeHome) {
-    server.addUsage();
-    if (!includeDocs) {
-      server.addDocApiForwarder();
+    if (includeHome) {
+      server.addUsage();
+      if (!includeDocs) {
+        server.addDocApiForwarder();
+      }
+      server.addJsonSupport();
+      await server.addLandingPages();
+      // todo: add support for home api to standalone app
+      server.addHomeApi();
+      server.addBillingApi();
+      server.addNotifier();
+      await server.addTelemetry();
+      await server.addHousekeeper();
+      await server.addLoginRoutes();
+      server.addAccountPage();
+      server.addBillingPages();
+      server.addWelcomePaths();
+      server.addLogEndpoint();
+      server.addGoogleAuthEndpoint();
+      server.addInstallEndpoints();
     }
-    server.addJsonSupport();
-    await server.addLandingPages();
-    // todo: add support for home api to standalone app
-    server.addHomeApi();
-    server.addBillingApi();
-    server.addNotifier();
-    await server.addTelemetry();
-    await server.addHousekeeper();
-    await server.addLoginRoutes();
-    server.addAccountPage();
-    server.addBillingPages();
-    server.addWelcomePaths();
-    server.addLogEndpoint();
-    server.addGoogleAuthEndpoint();
-    server.addInstallEndpoints();
+
+    if (includeDocs) {
+      server.addJsonSupport();
+      await server.addTelemetry();
+      await server.addDoc();
+    }
+
+    if (includeHome) {
+      server.addClientSecrets();
+    }
+
+    server.finalize();
+
+    server.checkOptionCombinations();
+    server.summary();
+    return server;
+  } catch(e) {
+    await server.close();
+    throw e;
   }
-
-  if (includeDocs) {
-    server.addJsonSupport();
-    await server.addTelemetry();
-    await server.addDoc();
-  }
-
-  if (includeHome) {
-    server.addClientSecrets();
-  }
-
-  server.finalize();
-
-  server.checkOptionCombinations();
-  server.summary();
-  return server;
 }
 
 
