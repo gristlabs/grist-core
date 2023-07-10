@@ -1124,7 +1124,6 @@ export class FlexServer implements GristServer {
     await this.loadConfig();
     this.addComm();
 
-    await this.create.configure?.();
     if (!isSingleUserMode()) {
       const externalStorage = appSettings.section('externalStorage');
       const haveExternalStorage = Object.values(externalStorage.nested)
@@ -1135,6 +1134,7 @@ export class FlexServer implements GristServer {
         this._disableExternalStorage = true;
         externalStorage.flag('active').set(false);
       }
+      await this.create.configure?.();
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
