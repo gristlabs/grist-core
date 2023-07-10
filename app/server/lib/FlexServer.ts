@@ -1132,6 +1132,11 @@ export class FlexServer implements GristServer {
     await this.loadConfig();
     this.addComm();
 
+    // Temporary duplication of external storage configuration.
+    // This may break https://github.com/gristlabs/grist-core/pull/546,
+    // but will revive other uses of external storage. TODO: reconcile.
+    await this.create.configure?.();
+
     if (!isSingleUserMode()) {
       const externalStorage = appSettings.section('externalStorage');
       const haveExternalStorage = Object.values(externalStorage.nested)
