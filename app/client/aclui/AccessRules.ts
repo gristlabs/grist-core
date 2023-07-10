@@ -1179,7 +1179,7 @@ Useful for examples and templates, but not for sensitive data.`),
   SchemaEdit: {
     name: t("Permission to edit document structure"),
     description: t("Allow editors to edit structure (e.g. modify and delete tables, columns, \
-      layouts), and to write formulas, which give access to all data regardless of read restrictions."),
+layouts), and to write formulas, which give access to all data regardless of read restrictions."),
     availableBits: ['schemaEdit'],
     ...schemaEditRules.denyEditors,
   },

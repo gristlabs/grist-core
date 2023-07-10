@@ -104,15 +104,15 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
       }
     };
     if (model.isSelfRemoved.get()) {
-      const name = resourceName(model.resourceType);
+      const resourceType = resourceName(model.resourceType);
       confirmModal(
-        t(`You are about to remove your own access to this {{name}}`, { name }),
+        t(`You are about to remove your own access to this {{resourceType}}`, { resourceType }),
         t('Remove my access'), tryToSaveChanges,
         {
           explanation: (
             t(`Once you have removed your own access, \
-            you will not be able to get it back without assistance \
-             from someone else with sufficient access to the {{name}}.`, { name })
+you will not be able to get it back without assistance \
+from someone else with sufficient access to the {{resourceType}}.`, { resourceType })
           ),
         }
       );
@@ -533,15 +533,15 @@ export class UserManager extends Disposable {
         isActiveUser ? menuText(t(`User may not modify their own access.`)) : null,
         // If the user's access is inherited, give an explanation on how to change it.
         dom.maybe((use) => use(inherited) && !isActiveUser, () => menuText(
-          t(`User inherits permissions from {{parent})}. To remove, \
-          set 'Inherit access' option to 'None'.`, { parent: getResourceParent(this._model.resourceType) }))),
+          t(`User inherits permissions from {{parent}}. To remove, \
+set 'Inherit access' option to 'None'.`, { parent: getResourceParent(this._model.resourceType) }))),
         // If the user is a guest, give a description of the guest permission.
         dom.maybe((use) => !this._model.isOrg && use(role) === roles.GUEST, () => menuText(
-          t(`User has view access to {{ressource}} resulting from manually-set access \
-          to resources inside. If removed here, this user will lose access to resources inside.`,
-            { ressource: this._model.resourceType }))),
+          t(`User has view access to {{resource}} resulting from manually-set access \
+to resources inside. If removed here, this user will lose access to resources inside.`,
+            { resource: this._model.resourceType }))),
         this._model.isOrg ? menuText(t(`No default access allows access to be \
-        granted to individual documents or workspaces, rather than the full team site.`)) : null
+granted to individual documents or workspaces, rather than the full team site.`)) : null
       ]),
       dom.text((use) => {
         // Get the label of the active role. Note that the 'Guest' role is assigned when the role
