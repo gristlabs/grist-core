@@ -106,7 +106,7 @@ export class LinkingState extends Disposable {
       } else { //row->col filter
         this.filterColValues = this._makeFilterObs(null, tgtCol, operation);
       }
-    } else if (srcColId) { // && isRefListType(srcCol.type())) {  // "Lookup link"   TODO JV TEMP: originally we only filtered for reflists, refs were cursor-linked
+    } else if (srcColId && isRefListType(srcCol.type())) {  // "Lookup link"   TODO JV TEMP: originally we only filtered for reflists, refs were cursor-linked
       this.filterColValues = this._makeFilterObs(srcCol, null, 'in');
     } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {  // row->row && summary, i.e. typical summary filter-linking
       // We filter summary tables when a summary section is linked to a more detailed one without
