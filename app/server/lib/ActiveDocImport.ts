@@ -286,12 +286,20 @@ export class ActiveDocImport {
    */
   private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
                                       importOptions: FileImportOptions): Promise<ImportResult> {
-    const {originalFilename, parseOptions, mergeOptionsMap, isHidden, uploadFileIndex,
-           transformRuleMap} = importOptions;
+    const {originalFilename, parseOptions} = importOptions;
     log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
-    if (!this._activeDoc.docPluginManager) { throw new Error('no plugin manager available'); }
+    if (!this._activeDoc.docPluginManager) {
+      throw new Error('no plugin manager available');
+    }
     const optionsAndData: ParseFileResult =
       await this._activeDoc.docPluginManager.parseFile(tmpPath, originalFilename, parseOptions);
+    return this._importParsedFileAsNewTable(docSession, optionsAndData, importOptions);
+  }
+
+  private async _importParsedFileAsNewTable(
+    docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions
+  ): Promise<ImportResult> {
+    const {originalFilename, mergeOptionsMap, isHidden, uploadFileIndex, transformRuleMap} = importOptions;
     const options = optionsAndData.parseOptions;
 
     const parsedTables = optionsAndData.tables;
