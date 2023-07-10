@@ -204,7 +204,7 @@ class FinderImpl implements IFinder {
                               // sort in order that is the same as on the raw data list page,
                               .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
                               // get rawViewSection,
-                              .map(t => t.rawViewSection.peek())
+                              .map(table => table.rawViewSection.peek())
                               // and test if it isn't an empty record.
                               .filter(s => Boolean(s.id.peek()));
       // Pretend that those are pages.
@@ -221,7 +221,7 @@ class FinderImpl implements IFinder {
       // Else read all visible pages.
       const pages = this._gristDoc.docModel.visibleDocPages.peek();
       this._pageStepper.array = pages.map(p => new PageRecWrapper(p, this._openDocPageCB));
-      this._pageStepper.index = pages.findIndex(t => t.viewRef.peek() === this._gristDoc.activeViewId.get());
+      this._pageStepper.index = pages.findIndex(page => page.viewRef.peek() === this._gristDoc.activeViewId.get());
       if (this._pageStepper.index < 0) { return false; }
     }
 
