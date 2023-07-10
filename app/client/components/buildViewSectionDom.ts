@@ -102,66 +102,6 @@ function buildLinkStateIndicatorDom(options: {
         //const defaultRefFormat = (rowId: number|string, refTableId:string) => `${refTableId}[${rowId}]`;
 
 
-        /*
-        try{
-            //filters is a map {column: [vals...]}
-            if(lfilter != null) {
-                for (let colId in lfilter.filters) {
-                    const rawVals = lfilter.filters[colId];
-                    let fmtVals: string[];
-
-                    if (colId == "id") {
-                        fmtVals = rawVals.map(rv => defaultRefFormat(rv, use(tgtSec.tableId)));
-
-                        filterTypes[colId] = "id";
-                    } else { // Not ID, can lookup field
-                        const fields: ViewFieldRec[] = use(use(tgtSec.viewFields)).filter((field: ViewFieldRec) => use(field.colId) == colId);
-                        if(fields.length != 1) {
-                            console.warn("Should have exactly 1 field matching colId '" + colId + "': " + JSON.stringify(fields));
-                            continue;
-                        }
-                        const field = fields[0];
-                        //TODO: bug? how to correctly use() koArray
-                        //TODO: is there a better way to get field by colId?
-
-                        const col = use(field.column);
-                        const type = use(col.type);
-                        const vColFormatter = use(field.visibleColFormatter);
-                        const formatter = use(field.formatter);
-                        //fmtVals = rawVals.map(rv => vColFormatter.formatAny(rv));
-
-                        filterTypes[colId] = type;
-
-                        //Format each of the values
-                        let formatFunc: (a:any) => string;
-                        if (isFullReferencingType(type)) {
-                            const RU = new ReferenceUtils(field!, gristDoc.docData); //TODO: disposal?
-                            if(!RU.tableData.isLoaded) {
-                              formatFunc = (rv) => `${use(use(use(field.column).refTable)!.tableId)}[${rv}] (NL)`;
-                            } else {
-                              formatFunc = (rv) => `${RU.idToText(rv)}`;
-                            }
-                        } else { // //normal vals just get formatted (needed for dates and currencies and things)
-                            formatFunc = (rv) => formatter.formatAny(rv)
-                        }
-
-                        fmtVals = rawVals.map(rv => (rv == null || isFullReferencingType(type) && rv == 0) ? "" : formatFunc(rv)); //show blanks if empty value
-                    }
-
-
-                    filterValsFormatted[colId] = fmtVals;
-
-                    //if
-                }
-            }
-
-        } catch (e) {
-            filterValsFormatted = {};
-            console.warn("Error in creating linkstate tooltip:\n" + e.toString())
-        }
-
-         */
-
 
         // crunch filterVals into compact string for display in bubble (not tooltip),
         // eg "USA", "USA;2022", "(USA +3 others)"
@@ -196,7 +136,10 @@ function buildLinkStateIndicatorDom(options: {
             srcStringWithColumn += ` ${BLACK_CIRCLE} ${use(use(tgtSec.linkSrcCol).label)}`;
         }
 
-        const numFilters = Object.keys(lfilter.filterLabels).length - (lfilter.filterLabels.hasOwnProperty("id") ? 1 : 0);
+        const hasId = lfilter.filterLabels.hasOwnProperty("id");
+        //TODO JV: we should only ever have one id filter XOR one or more non-id filters
+        //         Can we ever have both together?
+        const numFilters = Object.keys(lfilter.filterLabels).length - (hasId ? 1 : 0);
         const filtersTable = dom("table",
             dom.style("margin-left", "8px"),
             Object.keys(lfilter.filterLabels).map(
@@ -205,7 +148,10 @@ function buildLinkStateIndicatorDom(options: {
                     let operationSymbol = "=";
                     //if filter (reflist) <- ref, op="intersects", symbol = "??"
                     //if filter (ref) <- reflist, op="in", vals.length>1
-                    if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; } //TODO temp, find intersect symbol? ?contains?
+                    //TODO JV temp: find intersect symbol? ?contains? This is when LHS is reflist and RHS is ref or list
+                    //  so the right symbol would be either a backwards elementof or an intersect symbol, but maybe
+                    //  that's overthinking it. Colon will be ok for now
+                    if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
                     else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
 
                     if(colId == "id") {
@@ -214,9 +160,10 @@ function buildLinkStateIndicatorDom(options: {
                         return dom("tr",
                             dom("td", cssLinkstateFilterIconInline("FilterSimple"),
                                 `${colId}`),
-                            dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')), //add some spacing around the =
+                            dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')), //padding for "="
                             dom("td",
-                              isFullReferencingType(lfilter.colTypes[colId]) ? cssLinkstateFilterIconInline("FieldReference"): null, //TODO JV TEMP: PUT REF ICON BACK IN
+                              isFullReferencingType(lfilter.colTypes[colId]) ?
+                                  cssLinkstateFilterIconInline("FieldReference"): null,
                               `${vals}`),
                         );
                     }
@@ -241,7 +188,10 @@ function buildLinkStateIndicatorDom(options: {
           bubbleContent = [cssLinkstateFilterIcon("FieldReference")];
           toolTipContent = [
                 cssLinkTooltipRow(`Showing Referenced Record${numRecords > 1?"s":""}:`),
-                cssLinkTooltipRow(dom.style('border', '1px solid white'), dom.style('padding', '2px 4px 2px 4px'), dom.style('align-self', 'center'),
+                cssLinkTooltipRow(
+                    dom.style('border', '1px solid white'), //Make RHS look like a cell value
+                    dom.style('padding', '2px 4px 2px 4px'),
+                    dom.style('align-self', 'center'),
                   cssLinkstateFilterIconInline("FieldReference"),
                   `${lfilter.filterLabels["id"]}`),
                 cssLinkTooltipRow(`from "${srcStringWithColumn}"`)];
@@ -257,7 +207,7 @@ function buildLinkStateIndicatorDom(options: {
                 cssLinkTooltipRow(`from "${srcStringWithColumn}"`)
             ];
 
-        } else if(!srcColId && !tgtColId && isSummaryOf(srcTable, tgtTable)) { // === Filter Linking (from a summary table)
+        } else if(!srcColId && !tgtColId && isSummaryOf(srcTable, tgtTable)) { // === Filter Linking (from summ. table)
             bubbleContent = [
               //cssLinkstateFilterIcon("PivotLight", dom.style('margin','0 6px 0 2px')),
               dom("div", dom.style('width', '2px'), dom.style('display', 'inline-block')), //spacer for text
@@ -266,7 +216,10 @@ function buildLinkStateIndicatorDom(options: {
             toolTipContent = [
                 cssLinkTooltipRow(`Linked Filter${numFilters>1?"s":""}:`),
                 filtersTable,
-                cssLinkTooltipRow([`from `, cssLinkstateFilterIcon("PivotLight", dom.style('margin', '0 4px 0 2px')), `${srcStringWithColumn}"`]),
+                cssLinkTooltipRow([
+                  `from `,
+                  cssLinkstateFilterIcon("PivotLight", dom.style('margin', '0 4px 0 2px')),
+                  `${srcStringWithColumn}"`]),
             ];
         }
         //TODO: these cases are hacked together, need to do them properly
@@ -279,8 +232,7 @@ function buildLinkStateIndicatorDom(options: {
         return [
             linkStateBubble(
                 customIcon(
-                    dom.style("background-color", theme.filterBarButtonSavedFg + ""), //TODO: make this a for-realsies icon
-                    //dom.style("margin-right", bubbleContent.length ? "4px" : "0")), //text bunches up too tight, but if empty then no margin so bubble stays square
+                    dom.style("background-color", theme.filterBarButtonSavedFg + ""), //TODO: put icon in proper place
                 ),
                 bubbleContent,
                 (elem) => setHoverTooltip(elem, toolTipDom, toolTipOptions),
@@ -295,7 +247,7 @@ function buildLinkStateIndicatorDom(options: {
 }
 
 
-
+// eslint-disable-next-line
 const tempIconSVGString= `url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"> <ellipse style="stroke: rgb(0, 0, 0);" cx="2.426" cy="13.913" rx="1.361" ry="1.361"/> <ellipse style="stroke: rgb(0, 0, 0);" cx="13.827" cy="3.039" rx="1.222" ry="1.222"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 2.396 12.802 C 2.363 7.985 6.014 2.893 11.895 3.027"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 8.49 1.047 L 12.265 2.871 L 8.986 5.874"/> </svg>')`;
 
 //TODO JV TEMP: Shamelessly copied from icon.ts

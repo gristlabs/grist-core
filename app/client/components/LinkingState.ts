@@ -106,9 +106,13 @@ export class LinkingState extends Disposable {
       } else { //row->col filter
         this.filterColValues = this._makeFilterObs(null, tgtCol, operation);
       }
-    } else if (srcColId && isRefListType(srcCol.type())) {  // "Lookup link"   TODO JV TEMP: originally we only filtered for reflists, refs were cursor-linked
+    } else if (srcColId && isRefListType(srcCol.type())) {  // "Lookup link"
+      //TODO JV: this make lookups filter if reflist, but if ref then goes to a different case (cursor-link)
+      //         Can change this back by removing "isReflistType" from the if
       this.filterColValues = this._makeFilterObs(srcCol, null, 'in');
-    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {  // row->row && summary, i.e. typical summary filter-linking
+    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {
+      // row->row && summary, i.e. typical summary filter-linking
+
       // We filter summary tables when a summary section is linked to a more detailed one without
       // specifying src or target column. The filtering is on the shared group-by column (i.e. all
       // those in the srcSection).
@@ -147,16 +151,20 @@ export class LinkingState extends Disposable {
 
 
           }
-          resultFilters.push(self._makeFilterObs(c, c,  result.operations[colId])!); //TODO JV I HAVENT THOUGHT ABOUT THE !, when will it be undefined? what to do?
+          //TODO JV I HAVENT THOUGHT ABOUT THE !, when will it be undefined? what to do?
+          resultFilters.push(self._makeFilterObs(c, c,  result.operations[colId])!);
 
         }
-        const resultComputed = self.autoDispose(ko.computed(() => _.merge({}, ...resultFilters.map(filtObs => filtObs())) as FilterColValues));
+        const resultComputed = self.autoDispose(ko.computed(() => {
+          return _.merge({}, ...resultFilters.map(filtObs => filtObs())) as FilterColValues;
+        }));
         console.log("LINKINGSTATE: Assigned filter  " + JSON.stringify(resultComputed())); //TODO JV: TEMP DEBUG
         _filterColValues(resultComputed());
       }
     } else if (srcSection.parentKey() === 'custom') {
       this.filterColValues = this._srcCustomFilter(null, 'in');
-    } else { //!tgtCol && !summary-link && (!lookup-link || !reflist), either same-table cursor-link or non-reflist cursor link
+    } else { //!tgtCol && !summary-link && (!lookup-link || !reflist),
+      //        either same-table cursor-link or non-reflist cursor link
       const srcValueFunc = this._makeValGetter(this._srcSection.table(), this._srcColId || 'id');
       if (srcValueFunc) {
         this.cursorPos = this.autoDispose(ko.computed(() =>
@@ -208,7 +216,10 @@ export class LinkingState extends Disposable {
         return EmptyFilterColValues;
       }
       const values = valuesFunc(srcRowId);
-      return {filters: {[colId]: values}, filterLabels: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
+      return {
+        filters: {[colId]: values},
+        filterLabels: {[colId]: values},
+        operations: {[colId]: operation}} as FilterColValues;
     }));
   }
 
@@ -254,10 +265,12 @@ export class LinkingState extends Disposable {
    * @param operation
    * @private
    */
-  private _makeFilterObs(srcCol: ColumnRec|null, tgtCol: ColumnRec|null, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
+  private _makeFilterObs(
+      srcCol: ColumnRec|null, tgtCol: ColumnRec|null, operation: QueryOperation
+  ): ko.Computed<FilterColValues> | undefined {
     const srcColId = srcCol == null || srcCol.colId() == undefined ? "id" : srcCol.colId();
     const tgtColId = tgtCol == null || tgtCol.colId() == undefined ? "id" : tgtCol.colId();
-    console.log(`in makeFilterObs: srcColId=${srcColId}, tgtColId=${tgtColId}`)
+    console.log(`in makeFilterObs: srcColId=${srcColId}, tgtColId=${tgtColId}`);
 
 
     /*if (isDirectSummary && isListType(c.summarySource().type())) {
@@ -279,13 +292,16 @@ export class LinkingState extends Disposable {
     const selectorValGetter = this._makeValGetter(this._srcSection.table(), srcColId);
 
     // Normally, if srcCol is a ref, we can just take the value from its display column and that will work correctly
-    // However, is srcColId == 'id', the value is the whole row. To figure out which field is the label, we need to use visibleCol field from tgtCol
+    // However, is srcColId == 'id', the value is the whole row. To figure out which field is the label,
+    //    we need to use visibleCol field from tgtCol
     // Note: if srcColId == 'id', tgtCol is guaranteed be a ref or reflist column
     // Note: if using visibleCol from tgtCol, visibleCol ColId might be undefined (if visible col is rowId)
-    const displayColId = srcColId == "id" ? tgtCol!.visibleColModel().colId() || "id" : srcCol!.displayColModel().colId();
+    const displayColId = srcColId == "id" ?
+        tgtCol!.visibleColModel().colId() || "id"
+      : srcCol!.displayColModel().colId();
     const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId);
-    //Note: if src is a reflist, its displayVal will be list of the visibleCol vals, i.e ["L", visVal1, visVal2], but not formatted
-    //TODO JV: sloppy that I have to pull out srcCol from this: won't generalize to summary sections
+    //Note: if src is a reflist, its displayVal will be list of the visibleCol vals,
+    // i.e ["L", visVal1, visVal2], but not formatted
 
 
     const displayValFormatter = srcColId == "id" ? tgtCol!.visibleColFormatter() : srcCol!.visibleColFormatter();
@@ -322,7 +338,8 @@ export class LinkingState extends Disposable {
         displayValues = [displayCellVal];
       } else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], ,must slice off the L
         filterValues = selectorCellVal.slice(1);
-        displayValues = isList(displayCellVal) ? displayCellVal.slice(1) : ["ERROR"]; //TODO JV: when can this happen? i.e. busted displays
+        displayValues = isList(displayCellVal) ? displayCellVal.slice(1) : ["ERROR"];
+        //TODO JV: when can this error even happen? i.e. it's a reflist but displayval isnt? only if bug?
       } else { //isRefList && !isList(), invalid cell value, filter should be empty
         filterValues = [];
         displayValues = [];
@@ -343,8 +360,9 @@ export class LinkingState extends Disposable {
 
   // Value for this.filterColValues based on the values in srcSection.selectedRows
   //"null" for column implies id column
-  private _srcCustomFilter(column: ColumnRec|null, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
-    const colId = column == null ? "id" : column.colId();
+  private _srcCustomFilter(
+      column: ColumnRec|null, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
+    const colId = column == null || column.colId() == undefined ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
       const values = toKo(ko, this._srcSection.selectedRows)();
       return {
@@ -381,7 +399,7 @@ export class LinkingState extends Disposable {
   //If colId == "id", will return the id unchanged
   private _makeValGetter(table: TableRec, colId: string) {
     if(colId == "id") { //passthrough for id cols
-      return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId };
+      return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
     }
 
     const tableModel = this._docModel.dataTables[table.tableId()];
@@ -391,7 +409,8 @@ export class LinkingState extends Disposable {
     // If no cellObs, can't make a val getter. This shouldn't happen, but may happen
     // transiently while the separate linking-related observables get updated.
     if (!cellObs) {
-      console.warn(`Issue in LinkingState._makeValGetter(${table.tableId()},${colId}): cellObs is nullish`) //TODO JV: temporary?
+      //TODO JV: temporary?
+      console.warn(`Issue in LinkingState._makeValGetter(${table.tableId()},${colId}): cellObs is nullish`);
       return null;
     }
 
@@ -399,7 +418,8 @@ export class LinkingState extends Disposable {
       rowModel.assign(rowId);
       if (rowId === 'new') {
         return null;
-      //   return 'new'; //TODO JV: the old one returned new, I don't think it's used anywhere, and null makes more sense?
+        //   return 'new';
+        // TODO JV: the old one returned 'new', but I don't think that's used anywhere, and null makes more sense?
       }
 
       return cellObs();

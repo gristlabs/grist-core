@@ -609,7 +609,7 @@ export class RightPanel extends Disposable {
       let LinkInfo = "";
       LinkInfo +=   ` SrcSection: '${JV.poSec(use, srcSec)}'`;
       LinkInfo += `\n(TgtSection) '${JV.poSec(use, sec)}'`;
-      LinkInfo += `\nSrcCol: ${JV.poCol(use, srcCol)}`
+      LinkInfo += `\nSrcCol: ${JV.poCol(use, srcCol)}`;
       LinkInfo += `\nTgtCol: ${JV.poCol(use, tgtCol)}\n`;
       //LinkInfo += `\nSrcCol: ${srcColId}`
       //LinkInfo += `\nTgtCol: ${tgtColId}\n`;
