@@ -1,4 +1,4 @@
-import {ApiError} from 'app/common/ApiError';
+import {ApiError, ApiErrorDetails, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
@@ -38,6 +38,7 @@ import {getDefaultProductNames, personalFreeFeatures, Product} from "app/gen-ser
 import {Secret} from "app/gen-server/entity/Secret";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
+import {Limit} from 'app/gen-server/entity/Limit';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
@@ -88,14 +89,6 @@ export const NotifierEvents = StringUnion(
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
-
-export const HomeDBTelemetryEvents = StringUnion(
-  'tutorialProgressChanged',
-);
-
-export type HomeDBTelemetryEvent = typeof HomeDBTelemetryEvents.type;
-
-export type Event = NotifierEvent | HomeDBTelemetryEvent;
 
 // Nominal email address of a user who can view anything (for thumbnails).
 export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
@@ -324,7 +317,7 @@ export class HomeDBManager extends EventEmitter {
     orgOnly: true
   }];
 
-  public emit(event: Event, ...args: any[]): boolean {
+  public emit(event: NotifierEvent, ...args: any[]): boolean {
     return super.emit(event, ...args);
   }
 
@@ -1960,7 +1953,7 @@ export class HomeDBManager extends EventEmitter {
       // Update the name and save.
       const doc: Document = queryResult.data;
       doc.checkProperties(props);
-      doc.updateFromProperties(props, this);
+      doc.updateFromProperties(props);
       if (forkId) {
         await manager.save(doc);
         return {status: 200};
@@ -2887,6 +2880,144 @@ export class HomeDBManager extends EventEmitter {
              options: QueryOptions = {}): SelectQueryBuilder<Organization> {
     return this._org(scope, scope.includeSupport || false, org, options);
   }
+
+  public async getLimits(accountId: number): Promise<Limit[]> {
+    const result = this._connection.transaction(async manager => {
+      return await manager.createQueryBuilder()
+        .select('limit')
+        .from(Limit, 'limit')
+        .innerJoin('limit.billingAccount', 'account')
+        .where('account.id = :accountId', {accountId})
+        .getMany();
+    });
+    return result;
+  }
+
+  public async getLimit(accountId: number, limitType: LimitType): Promise<Limit|null> {
+    return await this._getOrCreateLimit(accountId, limitType, true);
+  }
+
+  public async peekLimit(accountId: number, limitType: LimitType): Promise<Limit|null> {
+    return await this._getOrCreateLimit(accountId, limitType, false);
+  }
+
+  public async removeLimit(scope: Scope, limitType: LimitType): Promise<void> {
+    await this._connection.transaction(async manager => {
+      const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
+        .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
+        .innerJoinAndSelect('billing_account.product', 'product')
+        .leftJoinAndSelect('billing_account.limits', 'limit', 'limit.type = :limitType', {limitType})
+        .getOne();
+      const existing = org?.billingAccount?.limits?.[0];
+      if (existing) {
+        await manager.remove(existing);
+      }
+    });
+  }
+
+  /**
+   * Increases the usage of a limit for a given org. If the limit doesn't exist, it will be created.
+   * Pass `dryRun: true` to check if the limit can be increased without actually increasing it.
+   */
+  public async increaseUsage(scope: Scope, limitType: LimitType, options: {
+    delta: number,
+    dryRun?: boolean,
+  }): Promise<void> {
+    const limitError = await this._connection.transaction(async manager => {
+      const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
+        .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
+        .innerJoinAndSelect('billing_account.product', 'product')
+        .leftJoinAndSelect('billing_account.limits', 'limit', 'limit.type = :limitType', {limitType})
+        .getOne();
+      // If the org doesn't exists, or is a fake one (like for anonymous users), don't do anything.
+      if (!org || org.id === 0) {
+        // This API shouldn't be called, it should be checked first if the org is valid.
+        throw new ApiError(`Can't create a limit for non-existing organization`, 500);
+      }
+      let existing = org?.billingAccount?.limits?.[0];
+      if (!existing) {
+        const product = org?.billingAccount?.product;
+        if (!product) {
+          throw new ApiError(`getLimit: no product found for org`, 500);
+        }
+        if (product.features.baseMaxAssistantCalls === undefined) {
+          // If the product has no assistantLimit, then it is not billable yet, and we don't need to
+          // track usage as it is basically unlimited.
+          return;
+        }
+        existing = new Limit();
+        existing.billingAccountId = org.billingAccountId;
+        existing.type = limitType;
+        existing.limit = product.features.baseMaxAssistantCalls ?? 0;
+        existing.usage = 0;
+      }
+      const limitLess = existing.limit === -1; // -1 means no limit, it is not possible to do in stripe.
+      const usageAfter = existing.usage + options.delta;
+      if (!limitLess && usageAfter > existing.limit) {
+        const billable = Boolean(org?.billingAccount?.stripeCustomerId);
+        return {
+          limit: {
+            maximum: existing.limit,
+            projectedValue: existing.usage + options.delta,
+            quantity: limitType,
+            value: existing.usage,
+          },
+          tips: [{
+            // For non-billable accounts, suggest getting a plan, otherwise suggest visiting the billing page.
+            action: billable ? 'manage' : 'upgrade',
+            message: `Upgrade to a paid plan to increase your ${limitType} limit.`,
+          }]
+        } as ApiErrorDetails;
+      }
+      existing.usage += options.delta;
+      existing.usedAt = new Date();
+      if (!options.dryRun) {
+        await manager.save(existing);
+      }
+    });
+    if (limitError) {
+      let message = `Your ${limitType} limit has been reached. Please upgrade your plan to increase your limit.`;
+      if (limitType === 'assistant') {
+        message = 'You used all available credits. For a bigger limit upgrade you Assistant plan.';
+      }
+      throw new ApiError(message, 429, limitError);
+    }
+  }
+
+  private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
+    if (accountId === 0) {
+      throw new Error(`getLimit: called for not existing account`);
+    }
+    const result = this._connection.transaction(async manager => {
+      let existing = await manager.createQueryBuilder()
+        .select('limit')
+        .from(Limit, 'limit')
+        .innerJoin('limit.billingAccount', 'account')
+        .where('account.id = :accountId', {accountId})
+          .andWhere('limit.type = :limitType', {limitType})
+        .getOne();
+      if (!force && !existing) { return null; }
+      if (existing) { return existing; }
+      const product = await manager.createQueryBuilder()
+        .select('product')
+        .from(Product, 'product')
+        .innerJoinAndSelect('product.accounts', 'account')
+        .where('account.id = :accountId', {accountId})
+        .getOne();
+      if (!product) {
+        throw new Error(`getLimit: no product for account ${accountId}`);
+      }
+      existing = new Limit();
+      existing.billingAccountId = product.accounts[0].id;
+      existing.type = limitType;
+      existing.limit = product.features.baseMaxAssistantCalls ?? 0;
+      existing.usage = 0;
+      await manager.save(existing);
+      return existing;
+    });
+    return result;
+  }
+
 
   private _org(scope: Scope|null, includeSupport: boolean, org: string|number|null,
                options: QueryOptions = {}): SelectQueryBuilder<Organization> {

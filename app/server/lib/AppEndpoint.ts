@@ -9,7 +9,6 @@ import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
 import {ApiError} from 'app/common/ApiError';
 import {getSlugIfNeeded, parseSubdomainStrictly, parseUrlId} from 'app/common/gristUrls';
 import {removeTrailingSlash} from 'app/common/gutil';
-import {hashId} from 'app/common/hashingUtils';
 import {LocalPlugin} from "app/common/plugin";
 import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
 import {Document as APIDocument} from 'app/common/UserAPI';
@@ -304,13 +303,13 @@ export function attachAppEndpoint(options: AttachOptions): void {
     }
 
     const isPublic = ((doc as unknown) as APIDocument).public ?? false;
-    const isSnapshot = parseUrlId(urlId).snapshotId;
+    const isSnapshot = Boolean(parseUrlId(urlId).snapshotId);
     // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
     const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
     if (isPublic || isTemplate) {
       gristServer.getTelemetry().logEvent('documentOpened', {
         limited: {
-          docIdDigest: hashId(docId),
+          docIdDigest: docId,
           access: doc.access,
           isPublic,
           isSnapshot,

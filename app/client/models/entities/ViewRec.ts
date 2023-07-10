@@ -62,8 +62,9 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
     // Default to the first leaf from layoutSpec (which corresponds to the top-left section), or
     // fall back to the first item in the list if anything goes wrong (previous behavior).
     const firstLeaf = getFirstLeaf(this.layoutSpecObj.peek());
-    return visible.find(s => s.getRowId() === firstLeaf) ? firstLeaf as number :
-      (visible[0]?.getRowId() || 0);
+    const result = visible.find(s => s.id() === firstLeaf) ? firstLeaf as number :
+      (visible[0]?.id() || 0);
+    return result;
   });
 
   this.activeSection = refRecord(docModel.viewSections, this.activeSectionId);

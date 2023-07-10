@@ -6,7 +6,7 @@ import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
 import { getMigrations, getOrCreateConnection, getTypeORMSettings,
          undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
 import { getDatabaseUrl } from 'app/server/lib/serverUtils';
-import { getTelemetryLevel } from 'app/server/lib/Telemetry';
+import { getTelemetryPrefs } from 'app/server/lib/Telemetry';
 import { Gristifier } from 'app/server/utils/gristify';
 import { pruneActionHistory } from 'app/server/utils/pruneActionHistory';
 import * as commander from 'commander';
@@ -81,12 +81,14 @@ export function addSettingsCommand(program: commander.Command,
     .action(showTelemetry);
 }
 
-function showTelemetry(options: {
+async function showTelemetry(options: {
   json?: boolean,
   all?: boolean,
 }) {
   const contracts = TelemetryContracts;
-  const levelName = getTelemetryLevel();
+  const db = await getHomeDBManager();
+  const prefs = await getTelemetryPrefs(db);
+  const levelName = prefs.telemetryLevel.value;
   const level = Level[levelName];
   if (options.json) {
     console.log(JSON.stringify({

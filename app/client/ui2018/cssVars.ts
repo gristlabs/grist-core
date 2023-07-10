@@ -142,6 +142,7 @@ export const vars = {
   onboardingPopupZIndex: new CustomProp('onboarding-popup-z-index', '1000'),
   floatingPopupZIndex: new CustomProp('floating-popup-z-index', '1002'),
   tutorialModalZIndex: new CustomProp('tutorial-modal-z-index', '1003'),
+  pricingModalZIndex: new CustomProp('pricing-modal-z-index', '1004'),
   notificationZIndex: new CustomProp('notification-z-index', '1100'),
   browserCheckZIndex: new CustomProp('browser-check-z-index', '5000'),
   tooltipZIndex: new CustomProp('tooltip-z-index', '5000'),

@@ -28,7 +28,7 @@
  */
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DocModel} from 'app/client/models/DocModel';
-import {BaseFilteredRowSource, RowId, RowList, RowSource} from 'app/client/models/rowset';
+import {BaseFilteredRowSource, RowList, RowSource} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
 import {CellValue, TableDataAction} from 'app/common/DocActions';
@@ -37,7 +37,7 @@ import {isList} from "app/common/gristTypes";
 import {nativeCompare} from 'app/common/gutil';
 import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
 import {RowFilterFunc} from 'app/common/RowFilterFunc';
-import {TableData as BaseTableData} from 'app/common/TableData';
+import {TableData as BaseTableData, UIRowId} from 'app/common/TableData';
 import {tbind} from 'app/common/tbind';
 import {decodeObject} from "app/plugin/objtypes";
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
@@ -303,7 +303,7 @@ export class TableQuerySets {
 /**
  * Returns a filtering function which tells whether a row matches the given query.
  */
-export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFunc<RowId> {
+export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFunc<UIRowId> {
   // NOTE we rely without checking on tableId and colIds being valid.
   const tableData: BaseTableData = docData.getTable(query.tableId)!;
   const colFuncs = Object.keys(query.filters).sort().map(
@@ -312,22 +312,22 @@ export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFu
       const values = new Set(query.filters[colId]);
       switch (query.operations[colId]) {
         case "intersects":
-          return (rowId: RowId) => {
+          return (rowId: UIRowId) => {
             const value = getter(rowId) as CellValue;
             return isList(value) &&
               (decodeObject(value) as unknown[]).some(v => values.has(v));
           };
         case "empty":
-          return (rowId: RowId) => {
+          return (rowId: UIRowId) => {
             const value = getter(rowId);
             // `isList(value) && value.length === 1` means `value == ['L']` i.e. an empty list
             return !value || isList(value) && value.length === 1;
           };
         case "in":
-          return (rowId: RowId) => values.has(getter(rowId));
+          return (rowId: UIRowId) => values.has(getter(rowId));
       }
     });
-  return (rowId: RowId) => colFuncs.every(f => f(rowId));
+  return (rowId: UIRowId) => colFuncs.every(f => f(rowId));
 }
 
 /**

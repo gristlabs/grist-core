@@ -156,7 +156,8 @@ export class UrlStateImpl {
    */
   public updateState(prevState: IGristUrlState, newState: IGristUrlState): IGristUrlState {
     const keepState = (newState.org || newState.ws || newState.homePage || newState.doc || isEmpty(newState) ||
-                       newState.account || newState.billing  || newState.activation || newState.welcome) ?
+                       newState.account || newState.billing  || newState.activation || newState.welcome ||
+                       newState.supportGrist) ?
       (prevState.org ? {org: prevState.org} : {}) :
       prevState;
     return {...keepState, ...newState};
@@ -186,8 +187,11 @@ export class UrlStateImpl {
     // Reload when moving to/from the Grist sign-up page.
     const signupReload = [prevState.login, newState.login].includes('signup')
       && prevState.login !== newState.login;
-    return Boolean(orgReload || accountReload || billingReload || activationReload
-      || gristConfig.errPage || docReload || welcomeReload || linkKeysReload || signupReload);
+    // Reload when moving to/from the support Grist page.
+    const supportGristReload = Boolean(prevState.supportGrist) !== Boolean(newState.supportGrist);
+    return Boolean(orgReload || accountReload || billingReload || activationReload ||
+      gristConfig.errPage || docReload || welcomeReload || linkKeysReload || signupReload ||
+      supportGristReload);
   }
 
   /**

@@ -1,4 +1,5 @@
 import {GristDoc} from 'app/client/components/GristDoc';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
 import {cssPopupBody, FloatingPopup} from 'app/client/ui/FloatingPopup';
@@ -30,12 +31,12 @@ const TOOLTIP_KEY = 'docTutorialTooltip';
 export class DocTutorial extends FloatingPopup {
   private _appModel = this._gristDoc.docPageModel.appModel;
   private _currentDoc = this._gristDoc.docPageModel.currentDoc.get();
+  private _currentFork = this._currentDoc?.forks?.[0];
   private _docComm = this._gristDoc.docComm;
   private _docData = this._gristDoc.docData;
   private _docId = this._gristDoc.docId();
   private _slides: Observable<DocTutorialSlide[] | null> = Observable.create(this, null);
-  private _currentSlideIndex = Observable.create(this,
-    this._currentDoc?.forks?.[0]?.options?.tutorial?.lastSlideIndex ?? 0);
+  private _currentSlideIndex = Observable.create(this, this._currentFork?.options?.tutorial?.lastSlideIndex ?? 0);
 
 
   private _saveCurrentSlidePositionDebounced = debounce(this._saveCurrentSlidePosition, 1000, {
@@ -231,13 +232,29 @@ export class DocTutorial extends FloatingPopup {
 
   private async _saveCurrentSlidePosition() {
     const currentOptions = this._currentDoc?.options ?? {};
+    const currentSlideIndex = this._currentSlideIndex.get();
+    const numSlides = this._slides.get()?.length;
     await this._appModel.api.updateDoc(this._docId, {
       options: {
         ...currentOptions,
         tutorial: {
-          lastSlideIndex: this._currentSlideIndex.get(),
+          lastSlideIndex: currentSlideIndex,
         }
       }
+    });
+
+    let percentComplete: number | undefined = undefined;
+    if (numSlides !== undefined && numSlides > 0) {
+      percentComplete = Math.floor(((currentSlideIndex + 1) / numSlides) * 100);
+    }
+    logTelemetryEvent('tutorialProgressChanged', {
+      full: {
+        tutorialForkIdDigest: this._currentFork?.id,
+        tutorialTrunkIdDigest: this._currentFork?.trunkId,
+        lastSlideIndex: currentSlideIndex,
+        numSlides,
+        percentComplete,
+      },
     });
   }
 

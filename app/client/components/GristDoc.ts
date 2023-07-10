@@ -185,6 +185,10 @@ export class GristDoc extends DisposableWithEvents {
 
   public readonly currentTheme = this.docPageModel.appModel.currentTheme;
 
+  public get docApi() {
+    return this.docPageModel.appModel.api.getDocAPI(this.docPageModel.currentDocId.get()!);
+  }
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;
@@ -476,6 +480,7 @@ export class GristDoc extends DisposableWithEvents {
       const viewId = toKo(ko, this.activeViewId)();
       if (!isViewDocPage(viewId)) { return null; }
       const section = this.viewModel.activeSection();
+      if (section?.isDisposed()) { return null; }
       const view = section.viewInstance();
       return view;
     })));
@@ -620,6 +625,11 @@ export class GristDoc extends DisposableWithEvents {
   public async setCursorPos(cursorPos: CursorPos) {
     if (cursorPos.sectionId && cursorPos.sectionId !== this.externalSectionId.get()) {
       const desiredSection: ViewSectionRec = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
+      // If the section id is 0, the section doesn't exist (can happen during undo/redo), and should
+      // be fixed there. For now ignore it, to not create empty sections or views (peeking a view will create it).
+      if (!desiredSection.id.peek()) {
+        return;
+      }
       // If this is completely unknown section (without a parent), it is probably an import preview.
       if (!desiredSection.parentId.peek() && !desiredSection.isRaw.peek()) {
         const view = desiredSection.viewInstance.peek();

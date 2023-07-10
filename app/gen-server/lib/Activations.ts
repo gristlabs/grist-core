@@ -20,6 +20,7 @@ export class Activations {
       if (!activation) {
         activation = manager.create(Activation);
         activation.id = makeId();
+        activation.prefs = {};
         await activation.save();
       }
       return activation;

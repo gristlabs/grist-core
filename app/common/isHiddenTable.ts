@@ -1,5 +1,4 @@
-import {TableData} from 'app/common/TableData';
-import {UIRowId} from 'app/common/UIRowId';
+import {TableData, UIRowId} from 'app/common/TableData';
 
 /**
  * Return whether a table (identified by the rowId of its metadata record) should

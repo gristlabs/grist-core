@@ -2,15 +2,17 @@
  * A tip for fixing an error.
  */
 export interface ApiTip {
-  action: 'add-members' | 'upgrade' |'ask-for-help';
+  action: 'add-members' | 'upgrade' | 'ask-for-help' | 'manage';
   message: string;
 }
+
+export type LimitType = 'collaborators' | 'docs' | 'workspaces' | 'assistant';
 
 /**
  * Documentation of a limit relevant to an API error.
  */
 export interface ApiLimit {
-  quantity: 'collaborators' | 'docs' | 'workspaces';  // what are we counting
+  quantity: LimitType;  // what are we counting
   subquantity?: string;    // a nuance to what we are counting
   maximum: number;         // maximum allowed
   value: number;           // current value of quantity for user

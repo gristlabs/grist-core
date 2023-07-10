@@ -25,7 +25,7 @@
 
 
 import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
-import { DEPS } from "app/server/lib/Assistance";
+import { DEPS, sendForCompletion } from "app/server/lib/Assistance";
 import log from 'app/server/lib/log';
 import crypto from 'crypto';
 import parse from 'csv-parse/lib/sync';
@@ -163,7 +163,7 @@ where c.colId = ? and t.tableId = ?
 `, rec.col_id, rec.table_id);
           formula = colInfo?.formula;
 
-          const result = await activeDoc.getAssistanceWithOptions(session, {
+          const result = await sendForCompletion(session, activeDoc, {
             context: {type: 'formula', tableId, colId},
             state: history,
             text: followUp || description,

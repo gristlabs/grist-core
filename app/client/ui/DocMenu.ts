@@ -174,7 +174,14 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
       testId('doclist')
     ),
     dom.maybe(use => !use(isNarrowScreenObs()) && ['all', 'workspace'].includes(use(home.currentPage)),
-              () => upgradeButton.showUpgradeCard(css.upgradeCard.cls(''))),
+      () => {
+        // TODO: These don't currently clash (grist-core stubs the upgradeButton), but a way to
+        // manage card popups will be needed if more are added later.
+        return [
+          upgradeButton.showUpgradeCard(css.upgradeCard.cls('')),
+          home.app.supportGristNudge.showCard(),
+        ];
+      }),
   ));
 }
 

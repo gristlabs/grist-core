@@ -78,12 +78,13 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this._displayStack = koArray<ActionGroupWithState>();
 
     // Computed for the tableId of the table currently being viewed.
-    if (!this._gristDoc) {
-      this._selectedTableId = this.autoDispose(ko.computed(() => ""));
-    } else {
-      this._selectedTableId = this.autoDispose(ko.computed(
-        () => this._gristDoc!.viewModel.activeSection().table().tableId()));
-    }
+    this._selectedTableId = this.autoDispose(ko.computed(() => {
+      if (!this._gristDoc || this._gristDoc.viewModel.isDisposed()) { return ""; }
+      const section = this._gristDoc.viewModel.activeSection();
+      if (!section || section.isDisposed()) { return ""; }
+      const table = section.table();
+      return table && !table.isDisposed() ? table.tableId() : "";
+    }));
   }
 
   public buildDom() {
@@ -226,8 +227,9 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   }
 
   private _buildLogDom() {
-    this._loadActionSummaries().catch((error) => gristNotify(t("Action Log failed to load")));
+    this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
+        {tabIndex: '-1'},
         dom('div.preference_item',
             koForm.checkbox(this._showAllTables,
                             dom.testId('ActionLog_allTables'),

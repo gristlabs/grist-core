@@ -106,6 +106,7 @@ export const DismissedPopup = StringUnion(
   'tutorialFirstCard', // first card of the tutorial,
   'formulaHelpInfo', // formula help info shown in the popup editor,
   'formulaAssistantInfo', // formula assistant info shown in the popup editor,
+  'supportGrist', // nudge to opt in to telemetry,
 );
 export type DismissedPopup = typeof DismissedPopup.type;
 

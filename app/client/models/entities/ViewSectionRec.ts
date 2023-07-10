@@ -15,13 +15,13 @@ import {
   ViewRec
 } from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
-import {RowId} from 'app/client/models/rowset';
 import {LinkConfig} from 'app/client/ui/selectBy';
 import {getWidgetTypes} from 'app/client/ui/widgetTypes';
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
+import {UIRowId} from 'app/common/TableData';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
@@ -120,19 +120,30 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   hasFocus: ko.Computed<boolean>;
 
-  activeLinkSrcSectionRef: modelUtil.CustomComputed<number>;
-  activeLinkSrcColRef: modelUtil.CustomComputed<number>;
-  activeLinkTargetColRef: modelUtil.CustomComputed<number>;
-
-  // Whether current linking state is as saved. It may be different during editing.
-  isActiveLinkSaved: ko.Computed<boolean>;
-
   // Section-linking affects table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
   // srcCol is unset. If targetCol is set, we filter for all rows whose targetCol is equal to
   // the controller value. Otherwise, the controller value determines the rowId of the cursor.
+
+  /**
+   * Section selected in the `Select By` dropdown. Used for filtering this section.
+   */
   linkSrcSection: ko.Computed<ViewSectionRec>;
+  /**
+   * Column selected in the `Select By` dropdown in the remote section. It points to a column in remote section
+   * that contains a reference to this table (or common table - because we can be linked by having the same reference
+   * to some other section).
+   * Used for filtering this section. Can be empty as user can just link by section.
+   * Watch out, it is not cleared, so it is only valid when we have linkSrcSection.
+   * In UI it is shown as Target Section (dot) Target Column.
+   */
   linkSrcCol: ko.Computed<ColumnRec>;
+  /**
+   * In case we have multiple reference columns, that are shown as
+   *   Target Section -> My Column or
+   *   Target Section . Target Column -> My Column
+   * store the reference to the column (my column) to use.
+   */
   linkTargetCol: ko.Computed<ColumnRec>;
 
   // Linking state maintains .filterFunc and .cursorPos observables which we use for
@@ -142,7 +153,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   linkingFilter: ko.Computed<FilterColValues>;
 
-  activeRowId: ko.Observable<RowId | null>;     // May be null when there are no rows.
+  activeRowId: ko.Observable<UIRowId | null>;     // May be null when there are no rows.
 
   // If the view instance for section is instantiated, it will be accessible here.
   viewInstance: ko.Observable<BaseView | null>;
@@ -594,30 +605,20 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     write: (val) => { this.view().activeSectionId(val ? this.id() : 0); }
   });
 
-  this.activeLinkSrcSectionRef = modelUtil.customValue(this.linkSrcSectionRef);
-  this.activeLinkSrcColRef = modelUtil.customValue(this.linkSrcColRef);
-  this.activeLinkTargetColRef = modelUtil.customValue(this.linkTargetColRef);
-
-  // Whether current linking state is as saved. It may be different during editing.
-  this.isActiveLinkSaved = this.autoDispose(ko.pureComputed(() =>
-    this.activeLinkSrcSectionRef.isSaved() &&
-    this.activeLinkSrcColRef.isSaved() &&
-    this.activeLinkTargetColRef.isSaved()));
-
   // Section-linking affects this table if linkSrcSection is set. The controller value of the
   // link is the value of srcCol at activeRowId of linkSrcSection, or activeRowId itself when
   // srcCol is unset. If targetCol is set, we filter for all rows whose targetCol is equal to
   // the controller value. Otherwise, the controller value determines the rowId of the cursor.
-  this.linkSrcSection = refRecord(docModel.viewSections, this.activeLinkSrcSectionRef);
-  this.linkSrcCol = refRecord(docModel.columns, this.activeLinkSrcColRef);
-  this.linkTargetCol = refRecord(docModel.columns, this.activeLinkTargetColRef);
+  this.linkSrcSection = refRecord(docModel.viewSections, this.linkSrcSectionRef);
+  this.linkSrcCol = refRecord(docModel.columns, this.linkSrcColRef);
+  this.linkTargetCol = refRecord(docModel.columns, this.linkTargetColRef);
 
-  this.activeRowId = ko.observable<RowId|null>(null);
+  this.activeRowId = ko.observable<UIRowId|null>(null);
 
   this._linkingState = Holder.create(this);
   this.linkingState = this.autoDispose(ko.pureComputed(() => {
-    if (!this.activeLinkSrcSectionRef()) {
-      // This view section isn't selecting by anything.
+    if (!this.linkSrcSectionRef()) {
+      // This view section isn't selected by anything.
       return null;
     }
     try {

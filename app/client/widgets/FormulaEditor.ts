@@ -154,13 +154,14 @@ export class FormulaEditor extends NewBaseEditor {
       dom.on('mousedown', (ev) => {
         // If we are detached, allow user to click and select error text.
         if (this.isDetached.get()) {
-          // If the focus is already in this editor, don't steal it. This is needed for detached editor with
-          // some input elements (mainly the AI assistant).
-          const inInput = document.activeElement instanceof HTMLInputElement
-                       || document.activeElement instanceof HTMLTextAreaElement;
-          if (inInput && this._dom.contains(document.activeElement)) {
+          // If we clicked on input element in our dom, don't do anything. We probably clicked on chat input, in AI
+          // tools box.
+          const clickedOnInput = ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement;
+          if (clickedOnInput && this._dom.contains(ev.target)) {
+            // By not doing anything special here we assume that the input element will take the focus.
             return;
           }
+
           // Allow clicking the error message.
           if (ev.target instanceof HTMLElement && (
               ev.target.classList.contains('error_msg') ||

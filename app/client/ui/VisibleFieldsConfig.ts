@@ -217,10 +217,12 @@ export class VisibleFieldsConfig extends Disposable {
           primaryButton(
             dom.text((use) => t("Hide {{label}}", {label: use(this._fieldLabel)})),
             dom.on('click', () => this._removeSelectedFields()),
+            testId('visible-hide')
           ),
           basicButton(
             t("Clear"),
             dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, false)),
+            testId('visible-clear')
           ),
           testId('visible-batch-buttons')
         ),
@@ -259,10 +261,12 @@ export class VisibleFieldsConfig extends Disposable {
             primaryButton(
               dom.text((use) => t("Show {{label}}", {label: use(this._fieldLabel)})),
               dom.on('click', () => this._addSelectedFields()),
+              testId('hidden-show')
             ),
             basicButton(
               t("Clear"),
               dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, false)),
+              testId('hidden-clear')
             ),
             testId('hidden-batch-buttons')
           )

@@ -9,6 +9,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
+import {SupportGristNudge} from 'app/client/ui/SupportGristNudge';
 import {attachCssThemeVars, prefersDarkModeObs} from 'app/client/ui2018/cssVars';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, isLegacyPlan, Product} from 'app/common/Features';
@@ -31,7 +32,15 @@ const t = makeT('AppModel');
 // Reexported for convenience.
 export {reportError} from 'app/client/models/errors';
 
-export type PageType = "doc" | "home" | "billing" | "welcome";
+export type PageType =
+  | "doc"
+  | "home"
+  | "billing"
+  | "welcome"
+  | "account"
+  | "support-grist"
+  | "activation";
+
 const G = getBrowserGlobals('document', 'window');
 
 // TopAppModel is the part of the app model that persists across org and user switches.
@@ -106,6 +115,8 @@ export interface AppModel {
   planName: string|null;
 
   behavioralPromptsManager: BehavioralPromptsManager;
+
+  supportGristNudge: SupportGristNudge;
 
   refreshOrgUsage(): Promise<void>;
   showUpgradeModal(): void;
@@ -253,17 +264,41 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   // Get the current PageType from the URL.
   public readonly pageType: Observable<PageType> = Computed.create(this, urlState().state,
-    (use, state) => (state.doc ? "doc" : (state.billing ? "billing" : (state.welcome ? "welcome" : "home"))));
+    (_use, state) => {
+      if (state.doc) {
+        return 'doc';
+      } else if (state.billing) {
+        return 'billing';
+      } else if (state.welcome) {
+        return 'welcome';
+      } else if (state.account) {
+        return 'account';
+      } else if (state.supportGrist) {
+        return 'support-grist';
+      } else if (state.activation) {
+        return 'activation';
+      } else {
+        return 'home';
+      }
+    });
 
   public readonly needsOrg: Observable<boolean> = Computed.create(
     this, urlState().state, (use, state) => {
-      return !(Boolean(state.welcome) || state.billing === 'scheduled');
+      return !(
+        Boolean(state.welcome) ||
+        state.billing === 'scheduled' ||
+        Boolean(state.account) ||
+        Boolean(state.activation) ||
+        Boolean(state.supportGrist)
+      );
     });
 
   public readonly notifier = this.topAppModel.notifier;
 
   public readonly behavioralPromptsManager: BehavioralPromptsManager =
     BehavioralPromptsManager.create(this, this);
+
+  public readonly supportGristNudge: SupportGristNudge = SupportGristNudge.create(this, this);
 
   constructor(
     public readonly topAppModel: TopAppModel,

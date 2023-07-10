@@ -138,8 +138,11 @@ export function createDummyGristServer(): GristServer {
 
 export function createDummyTelemetry(): ITelemetry {
   return {
-    logEvent() { return Promise.resolve(); },
     addEndpoints() { /* do nothing */ },
-    getTelemetryLevel() { return 'off'; },
+    addPages() { /* do nothing */ },
+    start() { return Promise.resolve(); },
+    logEvent() { return Promise.resolve(); },
+    getTelemetryConfig() { return undefined; },
+    fetchTelemetryPrefs() { return Promise.resolve(); },
   };
 }

@@ -3,7 +3,7 @@ import {makeT} from 'app/client/lib/localization';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
 import {BehavioralPrompt} from 'app/common/Prefs';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
 
@@ -103,6 +103,7 @@ see or edit which parts of your document.')
 export interface BehavioralPromptContent {
   title: () => string;
   content: (...domArgs: DomElementArg[]) => DomContents;
+  deploymentTypes: GristDeploymentType[] | '*';
 }
 
 export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptContent> = {
@@ -118,6 +119,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   referenceColumnsConfig: {
     title: () => t('Reference Columns'),
@@ -132,6 +134,7 @@ record in that table, but you may select which column from that record to show.'
       ),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   rawDataPage: {
     title: () => t('Raw Data page'),
@@ -141,6 +144,7 @@ including summary tables and tables not included in page layouts.')),
       dom('div', cssLink({href: commonUrls.helpRawData, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   accessRules: {
     title: () => t('Access Rules'),
@@ -150,6 +154,7 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   filterButtons: {
     title: () => t('Pinning Filters'),
@@ -159,6 +164,7 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpFilterButtons, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   nestedFiltering: {
     title: () => t('Nested Filtering'),
@@ -167,6 +173,7 @@ to determine who can see or edit which parts of your document.')),
       dom('div', t('Only those rows will appear which match all of the filters.')),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   pageWidgetPicker: {
     title: () => t('Selecting Data'),
@@ -175,6 +182,7 @@ to determine who can see or edit which parts of your document.')),
       dom('div', t('Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.')),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   pageWidgetPickerSelectBy: {
     title: () => t('Linking Widgets'),
@@ -184,6 +192,7 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   editCardLayout: {
     title: () => t('Editing Card Layout'),
@@ -194,6 +203,7 @@ to determine who can see or edit which parts of your document.')),
       })),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   addNew: {
     title: () => t('Add New'),
@@ -201,6 +211,7 @@ to determine who can see or edit which parts of your document.')),
       dom('div', t('Click the Add New button to create new documents or workspaces, or import data.')),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   rickRow: {
     title: () => t('Anchor Links'),
@@ -214,6 +225,7 @@ to determine who can see or edit which parts of your document.')),
       ),
       ...args,
     ),
+    deploymentTypes: '*',
   },
   customURL: {
     title: () => t('Custom Widgets'),
@@ -226,5 +238,6 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
 };
