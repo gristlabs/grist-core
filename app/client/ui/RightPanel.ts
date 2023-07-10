@@ -590,14 +590,30 @@ export class RightPanel extends Disposable {
     }
     const pprintedLinkInfo = (sec: ViewSectionRec) => Computed.create(owner, (use)=> {
       //makes an observable for the passed-in section
-      const lstate = use(sec.linkingState);
-      if(lstate == null) { return "No Link"; }
+
 
       const srcSec = use(sec.linkSrcSection); //might be the empty section
+      const srcCol = use(sec.linkSrcCol); // might be the empty column
+      const tgtCol = use(sec.linkTargetCol);
       const srcColId = use(use(sec.linkSrcCol).colId); // might be the empty column
       const tgtColId = use(use(sec.linkTargetCol).colId);
       //can use .getRowId(), 0 means empty
       //can do use(srcCol.colId) == undefined for empty
+
+
+      const lstate = use(sec.linkingState);
+
+      if(srcSec.getRowId() == 0 && lstate == null) {
+        return "DEBUG: no incoming links";
+      }
+      let LinkInfo = "";
+      LinkInfo +=   ` SrcSection: '${JV.poSec(use, srcSec)}'`;
+      LinkInfo += `\n(TgtSection) '${JV.poSec(use, sec)}'`;
+      LinkInfo += `\nSrcCol: ${JV.poCol(use, srcCol)}`
+      LinkInfo += `\nTgtCol: ${JV.poCol(use, tgtCol)}\n`;
+      //LinkInfo += `\nSrcCol: ${srcColId}`
+      //LinkInfo += `\nTgtCol: ${tgtColId}\n`;
+
 
       /* ==================== TODO ===================
     - (for linking state):
@@ -618,15 +634,16 @@ export class RightPanel extends Disposable {
     */
 
 
+      if(lstate == null) { return "===Linking State Debug===\n" + LinkInfo + "\nLinkingState null"; }
+
       let wipStr = "";
       JV.tsIgnoreUnused(wipStr);
-      if (!srcSec.getRowId()) { wipStr = "No Linking"; }
+      if (!srcSec.getRowId()) { wipStr = "DEBUG: linkingstate non-null, but srcSec is ViewSectionRec 0"; }
       else {
         //const srcTable = use(srcSec.table);
         const srcCursorPos = secToCursorPos(use, srcSec);
         const rowIndex = srcCursorPos ? srcCursorPos.rowIndex : "null";
         const rowId = use(srcSec.activeRowId);
-
 
         let selectorVal = undefined;
         JV.tsIgnoreUnused(selectorVal);
@@ -649,15 +666,6 @@ export class RightPanel extends Disposable {
           wipStr +=`using row '${use(srcSec.tableId)}[${rowId || "null"}]'`;
         }
 
-        // === Selector value: format appropriately
-       /* let cellValue, cellValue2, cellType, cellRefValue = null;
-        cellValue = docData.getTable(use(aSec.tableId))!.getValue(rowId,use(col.colId));
-        cellValue2 = use(col.visibleColFormatter).formatAny(cellValue);
-        cellType = use(col.type);
-        if (isFullReferencingType(cellType)) {
-          const RU = new ReferenceUtils(aField!, docData);
-          cellRefValue = RU.isRefList ? (cellValue as any[]).slice(1).map(v => RU.idToText(v)) : RU.idToText(cellValue);
-        }*/
 
         wipStr += "\n";
 
@@ -741,10 +749,7 @@ export class RightPanel extends Disposable {
         resFilter = "Failed to load fields: \n filters: " + JSON.stringify(lfilter.filters) + "\n labels: " + JSON.stringify(lfilter.filterLabels);
       }
 
-      let LinkInfo = "";
-      LinkInfo+= `SrcSection: '${JV.poSec(use, srcSec)}'`;
-      LinkInfo+= `\nTgtSection: '${JV.poSec(use, sec)}'`;
-      LinkInfo += `\nSrcCol: ${srcColId}\nTgtCol: ${tgtColId}\n`;
+
 
       if(resCursor == "" && resFilter == "") { resCursor = " no filters"; }
       //let res = resCursor + resFilter;

@@ -255,8 +255,10 @@ export class LinkingState extends Disposable {
    * @private
    */
   private _makeFilterObs(srcCol: ColumnRec|null, tgtCol: ColumnRec|null, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
-    const srcColId = srcCol == null ? "id" : srcCol.colId();
-    const tgtColId = tgtCol == null ? "id" : tgtCol.colId();
+    const srcColId = srcCol == null || srcCol.colId() == undefined ? "id" : srcCol.colId();
+    const tgtColId = tgtCol == null || tgtCol.colId() == undefined ? "id" : tgtCol.colId();
+    console.log(`in makeFilterObs: srcColId=${srcColId}, tgtColId=${tgtColId}`)
+
 
     /*if (isDirectSummary && isListType(c.summarySource().type())) {
             // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
@@ -279,17 +281,18 @@ export class LinkingState extends Disposable {
     // Normally, if srcCol is a ref, we can just take the value from its display column and that will work correctly
     // However, is srcColId == 'id', the value is the whole row. To figure out which field is the label, we need to use visibleCol field from tgtCol
     // Note: if srcColId == 'id', tgtCol is guaranteed be a ref or reflist column
-    const displayColId = srcCol == null ? tgtCol!.visibleColModel().colId() : srcCol.displayColModel().colId();
+    // Note: if using visibleCol from tgtCol, visibleCol ColId might be undefined (if visible col is rowId)
+    const displayColId = srcColId == "id" ? tgtCol!.visibleColModel().colId() || "id" : srcCol!.displayColModel().colId();
     const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId);
     //Note: if src is a reflist, its displayVal will be list of the visibleCol vals, i.e ["L", visVal1, visVal2], but not formatted
     //TODO JV: sloppy that I have to pull out srcCol from this: won't generalize to summary sections
 
 
-    const displayValFormatter = srcCol == null ? tgtCol!.visibleColFormatter() : srcCol.visibleColFormatter();
+    const displayValFormatter = srcColId == "id" ? tgtCol!.visibleColFormatter() : srcCol!.visibleColFormatter();
 
 
 
-    const isSrcRefList = srcCol && isRefListType(srcCol.type());
+    const isSrcRefList = srcColId != "id" && isRefListType(srcCol!.type());
 
     if (!selectorValGetter || !displayValGetter) {
       throw Error("ERROR in _makeFilterObs: couldn't create valGetters for srcSection");
@@ -388,6 +391,7 @@ export class LinkingState extends Disposable {
     // If no cellObs, can't make a val getter. This shouldn't happen, but may happen
     // transiently while the separate linking-related observables get updated.
     if (!cellObs) {
+      console.warn(`Issue in LinkingState._makeValGetter(${table.tableId()},${colId}): cellObs is nullish`) //TODO JV: temporary?
       return null;
     }
 
