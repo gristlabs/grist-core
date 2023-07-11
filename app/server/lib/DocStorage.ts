@@ -378,7 +378,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           const colListSql = newCols.map(c => `${quoteIdent(c.colId)}=?`).join(', ');
           const types = newCols.map(c => c.type);
           const sqlParams = DocStorage._encodeColumnsToRows(types, newCols.map(c => [PENDING_VALUE]));
-          await db.run(`UPDATE ${quoteIdent(tableId)} SET ${colListSql}`, sqlParams[0]);
+          await db.run(`UPDATE ${quoteIdent(tableId)} SET ${colListSql}`, ...sqlParams[0]);
         }
       },
 
@@ -1130,7 +1130,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       const stmt = await this.prepare(preSql + chunkParams + postSql);
       for (const index of _.range(0, numChunks * chunkSize, chunkSize)) {
         debuglog("DocStorage.BulkRemoveRecord: chunk delete " + index + "-" + (index + chunkSize - 1));
-        await stmt.run(rowIds.slice(index, index + chunkSize));
+        await stmt.run(...rowIds.slice(index, index + chunkSize));
       }
       await stmt.finalize();
     }
@@ -1139,7 +1139,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       debuglog("DocStorage.BulkRemoveRecord: leftover delete " + (numChunks * chunkSize) + "-" + (rowIds.length - 1));
       const leftoverParams = _.range(numLeftovers).map(q).join(',');
       await this.run(preSql + leftoverParams + postSql,
-                     rowIds.slice(numChunks * chunkSize, rowIds.length));
+                     ...rowIds.slice(numChunks * chunkSize, rowIds.length));
     }
   }
 
