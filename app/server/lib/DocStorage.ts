@@ -1093,7 +1093,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   public _process_RemoveRecord(tableId: string, rowId: string): Promise<RunResult> {
     const sql = "DELETE FROM " + quoteIdent(tableId) + " WHERE id=?";
     debuglog("RemoveRecord SQL: " + sql, [rowId]);
-    return this.run(sql, [rowId]);
+    return this.run(sql, rowId);
   }
 
 
