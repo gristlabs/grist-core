@@ -110,7 +110,7 @@ function buildLinkStateIndicatorDom(options: {
         //filters is a map {column: [vals...]}
         //  if multiple filters, join each with ";"
         //    each filter can have multiple vals (if reflist), show as "(SomeValue +3 others)",
-        console.log(lfilter);//TODO JV TEMP
+        //console.log(lfilter);//TODO JV TEMP
         const filterValsShortLabel = Object.keys(lfilter.filterLabels).map(colId => {
             const vals = lfilter.filterLabels[colId];
             const dispVal = vals[0] || '- blank -';
