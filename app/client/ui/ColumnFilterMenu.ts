@@ -10,7 +10,7 @@ import {ColumnFilter, NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
-import {RowId, RowSource} from 'app/client/models/rowset';
+import {RowSource} from 'app/client/models/rowset';
 import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
 import {cssInput} from 'app/client/ui/cssInput';
@@ -46,6 +46,7 @@ import {relativeDatesControl} from 'app/client/ui/ColumnFilterMenuUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {DateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
 import {createFormatter} from 'app/common/ValueFormatter';
+import {UIRowId} from 'app/common/TableData';
 
 const t = makeT('ColumnFilterMenu');
 
@@ -470,9 +471,13 @@ function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
     editMode = false;
     inputEl.value = formatValue(obs.get());
 
-    // Make sure focus is trapped on input during calendar view, so that uses can still use keyboard
-    // to navigate relative date options just after picking a date on the calendar.
-    setTimeout(() => opts.isSelected.get() && inputEl.focus());
+    setTimeout(() => {
+      // Make sure focus is trapped on input during calendar view, so that uses can still use keyboard
+      // to navigate relative date options just after picking a date on the calendar.
+      if (opts.viewTypeObs.get() === 'calendarView' && opts.isSelected.get()) {
+        inputEl.focus();
+      }
+    });
   };
   const onInput = debounce(() => {
     if (isRelativeBound(obs.get())) { return; }
@@ -829,7 +834,7 @@ interface ICountOptions {
  * the possible choices as keys).
  * Note that this logic is replicated in BaseView.prototype.filterByThisCellValue.
  */
-function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: RowId[],
+function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: UIRowId[],
                         { keyMapFunc = identity, labelMapFunc = identity, columnType,
                           areHiddenRows = false, valueMapFunc }: ICountOptions) {
 

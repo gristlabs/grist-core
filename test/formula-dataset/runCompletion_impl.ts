@@ -25,7 +25,7 @@
 
 
 import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
-import { DEPS } from "app/server/lib/Assistance";
+import { DEPS, sendForCompletion } from "app/server/lib/Assistance";
 import log from 'app/server/lib/log';
 import crypto from 'crypto';
 import parse from 'csv-parse/lib/sync';
@@ -53,6 +53,7 @@ const TEMPLATE_URL = "https://grist-static.com/datasets/grist_dataset_formulai_2
 const oldFetch = DEPS.fetch;
 
 interface FormulaRec {
+  no_formula: string;
   table_id: string;
   col_id: string;
   doc_id: string;
@@ -162,13 +163,17 @@ where c.colId = ? and t.tableId = ?
 `, rec.col_id, rec.table_id);
           formula = colInfo?.formula;
 
-          const result = await activeDoc.getAssistanceWithOptions(session, {
+          const result = await sendForCompletion(session, activeDoc, {
             context: {type: 'formula', tableId, colId},
             state: history,
             text: followUp || description,
           });
           if (result.state) {
             history = result.state;
+          }
+          if (rec.no_formula == "1") {
+            success = result.suggestedActions.length === 0;
+            return null;
           }
           suggestedActions = result.suggestedActions;
           // apply modification

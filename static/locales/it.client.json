@@ -1009,5 +1009,31 @@
     "Clipboard": {
         "Unavailable Command": "Comando non disponibile",
         "Got it": "Ricevuto"
+    },
+    "FormulaAssistant": {
+        "Ask the bot.": "Chiedi al bot.",
+        "Capabilities": "Capacità",
+        "Community": "Comunità",
+        "Data": "Dati",
+        "Formula Cheat Sheet": "Azioni tipiche con le formule",
+        "Formula Help. ": "Aiuto con le formule. ",
+        "Function List": "Lista delle funzioni",
+        "Grist's AI Assistance": "Assistenza dalla IA di Grist",
+        "Need help? Our AI assistant can help.": "Bisogno di aiuto? Prova il nostro assistente IA.",
+        "New Chat": "Nuova chat",
+        "Preview": "Anteprima",
+        "Regenerate": "Rigenera",
+        "Save": "Salva",
+        "Tips": "Suggerimenti",
+        "Grist's AI Formula Assistance. ": "Assistenza dalla IA di Grist per le formule. ",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Vedi {{helpFunction}} e {{formulaCheat}}, o visita la {{community}} per ulteriore aiuto."
+    },
+    "GridView": {
+        "Click to insert": "Clicca per inserire"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "Bentornato",
+        "You can always switch sites using the account menu.": "Puoi sempre cambiare sito usando il menu del tuo profilo.",
+        "You have access to the following Grist sites.": "Hai accesso a questi siti di Grist."
     }
 }

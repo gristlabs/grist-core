@@ -83,21 +83,7 @@ export class BehavioralPromptsManager extends Disposable {
   }
 
   private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
-    if (
-      this._isDisabled ||
-      // Don't show tips if surveying is disabled.
-      // TODO: Move this into a dedicated variable - this is only a short-term fix for hiding
-      // tips in grist-core.
-      (!getGristConfig().survey && prompt !== 'rickRow') ||
-      // Or if this tip shouldn't be shown on mobile.
-      (isNarrowScreen() && !options.showOnMobile) ||
-      // Or if "Don't show tips" was checked in the past.
-      (this._prefs.get().dontShowTips && !options.forceShow) ||
-      // Or if this tip has been shown and dismissed in the past.
-      this.hasSeenTip(prompt)
-    ) {
-      return;
-    }
+    if (!this._shouldQueueTip(prompt, options)) { return; }
 
     this._queuedTips.push({prompt, refElement, options});
     if (this._queuedTips.length > 1) {
@@ -155,5 +141,27 @@ export class BehavioralPromptsManager extends Disposable {
   private _dontShowTips() {
     this._prefs.set({...this._prefs.get(), dontShowTips: true});
     this._queuedTips = [];
+  }
+
+  private _shouldQueueTip(prompt: BehavioralPrompt, options: AttachOptions) {
+    if (
+      this._isDisabled ||
+      (isNarrowScreen() && !options.showOnMobile) ||
+      (this._prefs.get().dontShowTips && !options.forceShow) ||
+      this.hasSeenTip(prompt)
+    ) {
+      return false;
+    }
+
+    const {deploymentType} = getGristConfig();
+    const {deploymentTypes} = GristBehavioralPrompts[prompt];
+    if (
+      deploymentTypes !== '*' &&
+      (!deploymentType || !deploymentTypes.includes(deploymentType))
+    ) {
+      return false;
+    }
+
+    return true;
   }
 }

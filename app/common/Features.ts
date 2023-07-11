@@ -58,6 +58,11 @@ export interface Features {
                                                 // for attached files in a document
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
+
+  baseMaxAssistantCalls?: number; // Maximum number of AI assistant calls. Defaults to 0 if not set, use -1 to indicate
+                                  // unbound limit. This is total limit, not per month or per day, it is used as a seed
+                                  // value for the limits table. To create a per-month limit, there must be a separate
+                                  // task that resets the usage in the limits table.
 }
 
 // Check whether it is possible to add members at the org level.  There's no flag

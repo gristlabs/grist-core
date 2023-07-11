@@ -220,6 +220,8 @@ export const GristDark: ThemeColors = {
   'left-panel-page-options-selected-hover-bg': '#A4A4A4',
   'left-panel-page-initials-fg': 'white',
   'left-panel-page-initials-bg': '#929299',
+  'left-panel-page-emoji-fg': 'black',
+  'left-panel-page-emoji-outline': '#69697D',
 
   /* Right Panel */
   'right-panel-tab-fg': '#EFEFEF',

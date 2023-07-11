@@ -50,6 +50,7 @@ export interface ICreateActiveDocOptions {
 export interface ICreateStorageOptions {
   name: string;
   check(): boolean;
+  checkBackend?(): Promise<void>;
   create(purpose: 'doc'|'meta', extraPrefix: string): ExternalStorage|undefined;
 }
 
@@ -119,7 +120,10 @@ export function makeSimpleCreator(opts: {
     },
     async configure() {
       for (const s of storage || []) {
-        if (s.check()) { break; }
+        if (s.check()) {
+          await s.checkBackend?.();
+          break;
+        }
       }
     },
     ...(opts.shell && {

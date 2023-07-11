@@ -1,6 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {makeT} from 'app/client/lib/localization';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {cssIcon} from 'app/client/ui/RightPanelStyles';
 import {makeCollapsedLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
@@ -13,6 +14,7 @@ import {menu} from 'app/client/ui2018/menus';
 import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
 
+const t = makeT('ViewSection');
 
 export function buildCollapsedSectionDom(options: {
   gristDoc: GristDoc,
@@ -69,8 +71,13 @@ export function buildViewSectionDom(options: {
 
   // Creating normal section dom
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
+  const selectedBySectionTitle = Computed.create(null, (use) => {
+    if (!use(vs.linkSrcSectionRef)) { return null; }
+    return use(use(vs.linkSrcSection).titleDef);
+  });
   return dom('div.view_leaf.viewsection_content.flexvbox.flexauto',
     testId(`viewlayout-section-${sectionRowId}`),
+    dom.autoDispose(selectedBySectionTitle),
     !options.isResizing ? dom.autoDispose(isResizing) : null,
     cssViewLeaf.cls(''),
     cssViewLeafInactive.cls('', (use) => !vs.isDisposed() && !use(vs.hasFocus)),
@@ -96,10 +103,14 @@ export function buildViewSectionDom(options: {
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),
         dom.maybe(viewInstance.disableEditing, () =>
-          dom('div.disable_viewpane.flexvbox', 'No data')
+          dom('div.disable_viewpane.flexvbox',
+            dom.domComputed(selectedBySectionTitle, (title) => title
+              ? t(`No row selected in {{title}}`, {title})
+              : t('No data')),
+          )
         ),
         dom.maybe(viewInstance.isTruncated, () =>
-          dom('div.viewsection_truncated', 'Not all data is shown')
+          dom('div.viewsection_truncated', t('Not all data is shown'))
         ),
         dom.cls((use) => 'viewsection_type_' + use(vs.parentKey)),
         viewInstance.viewPane
@@ -195,7 +206,6 @@ const cssResizing = styled('div', `
 const cssMiniSection = styled('div.mini_section_container', `
   --icon-color: ${colors.lightGreen};
   display: flex;
-  background: ${theme.mainPanelBg};
   align-items: center;
   padding-right: 8px;
 `);

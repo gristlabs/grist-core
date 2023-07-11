@@ -6,7 +6,6 @@ import * as dispose from 'app/client/lib/dispose';
 import dom from 'app/client/lib/dom';
 import {timeFormat} from 'app/common/timeFormat';
 import * as ko from 'knockout';
-import map = require('lodash/map');
 
 import koArray from 'app/client/lib/koArray';
 import {KoArray} from 'app/client/lib/koArray';
@@ -17,8 +16,8 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
         LabelDelta} from 'app/common/ActionSummary';
-import {CellDelta} from 'app/common/TabularDiff';
-import {IDomComponent} from 'grainjs';
+import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
+import {DomContents, IDomComponent} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
 /**
@@ -79,12 +78,13 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this._displayStack = koArray<ActionGroupWithState>();
 
     // Computed for the tableId of the table currently being viewed.
-    if (!this._gristDoc) {
-      this._selectedTableId = this.autoDispose(ko.computed(() => ""));
-    } else {
-      this._selectedTableId = this.autoDispose(ko.computed(
-        () => this._gristDoc!.viewModel.activeSection().table().tableId()));
-    }
+    this._selectedTableId = this.autoDispose(ko.computed(() => {
+      if (!this._gristDoc || this._gristDoc.viewModel.isDisposed()) { return ""; }
+      const section = this._gristDoc.viewModel.activeSection();
+      if (!section || section.isDisposed()) { return ""; }
+      const table = section.table();
+      return table && !table.isDisposed() ? table.tableId() : "";
+    }));
   }
 
   public buildDom() {
@@ -141,12 +141,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * @param {string} txt - a textual description of the action
    * @param {ActionGroupWithState} ag - the full action information we have
    */
-  public renderTabularDiffs(sum: ActionSummary, txt: string, ag?: ActionGroupWithState) {
+  public renderTabularDiffs(sum: ActionSummary, txt: string, ag?: ActionGroupWithState): HTMLElement {
     const act = asTabularDiffs(sum);
     const editDom = dom('div',
       this._renderTableSchemaChanges(sum, ag),
       this._renderColumnSchemaChanges(sum, ag),
-      map(act, (tdiff, table) => {
+      Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
         if (tdiff.cells.length === 0) { return dom('div'); }
         return dom('table.action_log_table',
           koDom.show(() => this._showForTable(table, ag)),
@@ -227,8 +227,9 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   }
 
   private _buildLogDom() {
-    this._loadActionSummaries().catch((error) => gristNotify(t("Action Log failed to load")));
+    this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
+        {tabIndex: '-1'},
         dom('div.preference_item',
             koForm.checkbox(this._showAllTables,
                             dom.testId('ActionLog_allTables'),
@@ -238,7 +239,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
           'Loading...'),
         koDom.foreach(this._displayStack, (ag: ActionGroupWithState) => {
         const timestamp = ag.time ? timeFormat("D T", new Date(ag.time)) : "";
-        let desc = ag.desc || "";
+        let desc: DomContents = ag.desc || "";
         if (ag.actionSummary) {
           desc = this.renderTabularDiffs(ag.actionSummary, desc, ag);
         }

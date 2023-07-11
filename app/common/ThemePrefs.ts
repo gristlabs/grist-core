@@ -241,6 +241,8 @@ export interface ThemeColors {
   'left-panel-page-options-selected-hover-bg': string;
   'left-panel-page-initials-fg': string;
   'left-panel-page-initials-bg': string;
+  'left-panel-page-emoji-fg': string;
+  'left-panel-page-emoji-outline': string;
 
   /* Right Panel */
   'right-panel-tab-fg': string;

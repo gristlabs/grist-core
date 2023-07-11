@@ -1,4 +1,4 @@
-import {buildTelemetryEventChecker, filterMetadata, TelemetryEvent} from 'app/common/Telemetry';
+import {buildTelemetryEventChecker, TelemetryEvent} from 'app/common/Telemetry';
 import {assert} from 'chai';
 
 describe('Telemetry', function() {
@@ -130,86 +130,6 @@ describe('Telemetry', function() {
         // eslint-disable-next-line max-len
         /Telemetry metadata userId of event watchedVideoTour requires a minimum telemetry level of 2 but the current level is 1/
       );
-    });
-  });
-
-  describe('filterMetadata', function() {
-    it('returns filtered and flattened metadata when maxLevel is "full"', function() {
-      const metadata = {
-        limited: {
-          foo: 'abc',
-        },
-        full: {
-          bar: '123',
-        },
-      };
-      assert.deepEqual(filterMetadata(metadata, 'full'), {
-        foo: 'abc',
-        bar: '123',
-      });
-    });
-
-    it('returns filtered and flattened metadata when maxLevel is "limited"', function() {
-      const metadata = {
-        limited: {
-          foo: 'abc',
-        },
-        full: {
-          bar: '123',
-        },
-      };
-      assert.deepEqual(filterMetadata(metadata, 'limited'), {
-        foo: 'abc',
-      });
-    });
-
-    it('returns undefined when maxLevel is "off"', function() {
-      assert.isUndefined(filterMetadata(undefined, 'off'));
-    });
-
-    it('returns an empty object when metadata is empty', function() {
-      assert.isEmpty(filterMetadata({}, 'full'));
-    });
-
-    it('returns undefined when metadata is undefined', function() {
-      assert.isUndefined(filterMetadata(undefined, 'full'));
-    });
-
-    it('does not mutate metadata', function() {
-      const metadata = {
-        limited: {
-          foo: 'abc',
-        },
-        full: {
-          bar: '123',
-        },
-      };
-      filterMetadata(metadata, 'limited');
-      assert.deepEqual(metadata, {
-        limited: {
-          foo: 'abc',
-        },
-        full: {
-          bar: '123',
-        },
-      });
-    });
-
-    it('excludes keys with nullish values', function() {
-      const metadata = {
-        limited: {
-          foo1: null,
-          foo2: 'abc',
-        },
-        full: {
-          bar1: undefined,
-          bar2: '123',
-        },
-      };
-      assert.deepEqual(filterMetadata(metadata, 'full'), {
-        foo2: 'abc',
-        bar2: '123',
-      });
     });
   });
 });

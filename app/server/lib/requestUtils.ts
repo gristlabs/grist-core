@@ -2,7 +2,7 @@ import {ApiError} from 'app/common/ApiError';
 import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
-import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {getUser, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
@@ -351,4 +351,10 @@ export function addAbortHandler(req: Request, res: Writable, op: () => void) {
       op();
     }
   });
+}
+
+export function isDefaultUser(req: Request) {
+  const defaultEmail = process.env.GRIST_DEFAULT_EMAIL;
+  const {loginEmail} = getUser(req);
+  return defaultEmail && defaultEmail === loginEmail;
 }

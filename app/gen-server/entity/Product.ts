@@ -13,7 +13,11 @@ export const personalLegacyFeatures: Features = {
   // no vanity domain
   maxDocsPerOrg: 10,
   maxSharesPerDoc: 2,
-  maxWorkspacesPerOrg: 1
+  maxWorkspacesPerOrg: 1,
+  /**
+   * One time limit of 100 requests.
+   */
+  baseMaxAssistantCalls: 100,
 };
 
 /**
@@ -23,7 +27,12 @@ export const teamFeatures: Features = {
   workspaces: true,
   vanityDomain: true,
   maxSharesPerWorkspace: 0,   // all workspace shares need to be org members.
-  maxSharesPerDoc: 2
+  maxSharesPerDoc: 2,
+  /**
+   * Limit of 100 requests, but unlike for personal/free orgs the usage for this limit is reset at every billing cycle
+   * through Stripe webhook. For canceled subscription the usage is not reset, as the billing cycle is not changed.
+   */
+  baseMaxAssistantCalls: 100,
 };
 
 /**
@@ -40,6 +49,10 @@ export const teamFreeFeatures: Features = {
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
   gracePeriodDays: 14,
+  /**
+   * One time limit of 100 requests.
+   */
+  baseMaxAssistantCalls: 100,
 };
 
 /**
@@ -55,6 +68,7 @@ export const teamFreeFeatures: Features = {
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
   gracePeriodDays: 14,
+  baseMaxAssistantCalls: 100,
 };
 
 export const testDailyApiLimitFeatures = {
@@ -79,6 +93,7 @@ export const suspendedFeatures: Features = {
   maxDocsPerOrg: 0,
   maxSharesPerDoc: 0,
   maxWorkspacesPerOrg: 0,
+  baseMaxAssistantCalls: 0,
 };
 
 /**

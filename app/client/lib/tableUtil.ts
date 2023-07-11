@@ -8,7 +8,6 @@ import {safeJsonParse} from 'app/common/gutil';
 import type {TableData} from 'app/common/TableData';
 import {tsvEncode} from 'app/common/tsvFormat';
 import {dom} from 'grainjs';
-import map = require('lodash/map');
 import zipObject = require('lodash/zipObject');
 
 const G = getBrowserGlobals('document', 'DOMParser');
@@ -134,8 +133,11 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
 }
 
 // Helper function to add css style properties to an html tag
-function _styleAttr(style: object) {
-  return map(style, (value, prop) => `${prop}: ${value};`).join(' ');
+function _styleAttr(style: object|undefined) {
+  if (typeof style !== 'object') {
+    return '';
+  }
+  return Object.entries(style).map(([prop, value]) => `${prop}: ${value};`).join(' ');
 }
 
 /**

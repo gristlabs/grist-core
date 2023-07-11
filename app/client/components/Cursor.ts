@@ -8,12 +8,12 @@ import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import {LazyArrayModel} from 'app/client/models/DataTableModel';
-import type {RowId} from 'app/client/models/rowset';
+import type {UIRowId} from 'app/common/TableData';
 import {Disposable} from 'grainjs';
 import * as ko from 'knockout';
 
 export interface CursorPos {
-  rowId?: RowId;
+  rowId?: UIRowId;
   rowIndex?: number;
   fieldIndex?: number;
   sectionId?: number;
@@ -60,7 +60,7 @@ export class Cursor extends Disposable {
   public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
 
-  private _rowId: ko.Observable<RowId|null>;     // May be null when there are no rows.
+  private _rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
 
   // The cursor's _rowId property is always fixed across data changes. When isLive is true,
   // the rowIndex of the cursor is recalculated to match _rowId. When false, they will
@@ -68,13 +68,15 @@ export class Cursor extends Disposable {
   private _isLive: ko.Observable<boolean> = ko.observable(true);
   private _sectionId: ko.Computed<number>;
 
+  private _properRowId: ko.Computed<UIRowId|null>;
+
   constructor(baseView: BaseView, optCursorPos?: CursorPos) {
     super();
     optCursorPos = optCursorPos || {};
     this.viewData = baseView.viewData;
 
     this._sectionId = this.autoDispose(ko.computed(() => baseView.viewSection.id()));
-    this._rowId = ko.observable<RowId|null>(optCursorPos.rowId || 0);
+    this._rowId = ko.observable<UIRowId|null>(optCursorPos.rowId || 0);
     this.rowIndex = this.autoDispose(ko.computed({
       read: () => {
         if (!this._isLive()) { return this.rowIndex.peek(); }
@@ -82,7 +84,7 @@ export class Cursor extends Disposable {
         return rowId == null ? null : this.viewData.clampIndex(this.viewData.getRowIndexWithSub(rowId));
       },
       write: (index) => {
-        const rowIndex = this.viewData.clampIndex(index!);
+        const rowIndex = index === null ? null : this.viewData.clampIndex(index);
         this._rowId(rowIndex == null ? null : this.viewData.getRowId(rowIndex));
       },
     }));
@@ -90,8 +92,16 @@ export class Cursor extends Disposable {
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
     this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasFocus));
 
-    // Update the section's activeRowId when the cursor's rowId changes.
-    this.autoDispose(this._rowId.subscribe((rowId) => baseView.viewSection.activeRowId(rowId)));
+    // RowId might diverge from the one stored in _rowId when the data changes (it is filtered out). So here
+    // we will calculate rowId based on rowIndex (so in reverse order), to have a proper value.
+    this._properRowId = this.autoDispose(ko.computed(() => {
+      const rowIndex = this.rowIndex();
+      const rowId = rowIndex === null ? null : this.viewData.getRowId(rowIndex);
+      return rowId;
+    }));
+
+    // Update the section's activeRowId when the cursor's rowIndex is changed.
+    this.autoDispose(this._properRowId.subscribe((rowId) => baseView.viewSection.activeRowId(rowId)));
 
     // On dispose, save the current cursor position to the section model.
     this.onDispose(() => { baseView.viewSection.lastCursorPos = this.getCursorPos(); });
@@ -103,7 +113,7 @@ export class Cursor extends Disposable {
   // Returns the cursor position with rowId, rowIndex, and fieldIndex.
   public getCursorPos(): CursorPos {
     return {
-      rowId: nullAsUndefined(this._rowId()),
+      rowId: nullAsUndefined(this._properRowId()),
       rowIndex: nullAsUndefined(this.rowIndex()),
       fieldIndex: this.fieldIndex(),
       sectionId: this._sectionId()
@@ -117,7 +127,7 @@ export class Cursor extends Disposable {
    */
   public setCursorPos(cursorPos: CursorPos): void {
     if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
-      this._rowId(cursorPos.rowId);
+      this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId) );
     } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
       this.rowIndex(cursorPos.rowIndex);
     } else {

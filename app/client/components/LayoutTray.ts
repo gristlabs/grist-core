@@ -1164,7 +1164,7 @@ const cssFloaterWrapper = styled('div', `
   max-width: 140px;
   background: ${theme.tableBodyBg};
   border: 1px solid ${theme.widgetBorder};
-  border-radius: 3px;
+  border-radius: 4px;
   -webkit-transform: rotate(5deg) scale(0.8) translate(-10px, 0px);
   transform: rotate(5deg) scale(0.8) translate(-10px, 0px);
   & .mini_section_container {
@@ -1174,16 +1174,17 @@ const cssFloaterWrapper = styled('div', `
 `);
 
 const cssCollapsedTray = styled('div.collapsed_layout', `
-  border-radius: 3px;
   display: flex;
   flex-direction: column;
-  border-radius: 3px;
-  display: flex;
   overflow: hidden;
   transition: height 0.2s;
   position: relative;
-  margin-bottom: 10px;
+  margin: calc(-1 * var(--view-content-page-margin, 12px));
+  margin-bottom: 0;
   user-select: none;
+  background-color: ${theme.pageBg};
+  border-bottom: 1px solid ${theme.pagePanelsBorder};
+  outline-offset: -1px;
 
   &-is-active {
     outline: 2px dashed ${theme.widgetBorder};
@@ -1197,8 +1198,9 @@ const cssCollapsedTray = styled('div.collapsed_layout', `
 
 const cssRow = styled('div', `display: flex`);
 const cssLayout = styled(cssRow, `
-  padding: 12px;
-  gap: 10px;
+  padding: 8px 24px;
+  column-gap: 16px;
+  row-gap: 8px;
   flex-wrap: wrap;
   position: relative;
 `);

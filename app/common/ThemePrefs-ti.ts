@@ -185,6 +185,8 @@ export const ThemeColors = t.iface([], {
   "left-panel-page-options-selected-hover-bg": "string",
   "left-panel-page-initials-fg": "string",
   "left-panel-page-initials-bg": "string",
+  "left-panel-page-emoji-fg": "string",
+  "left-panel-page-emoji-outline": "string",
   "right-panel-tab-fg": "string",
   "right-panel-tab-bg": "string",
   "right-panel-tab-icon": "string",

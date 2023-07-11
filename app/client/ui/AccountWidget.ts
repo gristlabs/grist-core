@@ -65,7 +65,7 @@ export class AccountWidget extends Disposable {
       t("Toggle Mobile Mode"),
       cssCheckmark('Tick', dom.show(viewport.viewportEnabled)),
       testId('usermenu-toggle-mobile'),
-    );
+     );
 
     if (!user) {
       return [
@@ -100,6 +100,7 @@ export class AccountWidget extends Disposable {
 
       this._maybeBuildBillingPageMenuItem(),
       this._maybeBuildActivationPageMenuItem(),
+      this._maybeBuildSupportGristPageMenuItem(),
 
       mobileModeToggle,
 
@@ -155,10 +156,10 @@ export class AccountWidget extends Disposable {
       // For links, disabling with just a class is hard; easier to just not make it a link.
       // TODO weasel menus should support disabling menuItemLink.
       (isBillingManager ?
-        menuItemLink(urlState().setLinkUrl({billing: 'billing'}), 'Billing Account') :
-        menuItem(() => null, 'Billing Account', dom.cls('disabled', true))
+        menuItemLink(urlState().setLinkUrl({billing: 'billing'}), t('Billing Account')) :
+        menuItem(() => null, t('Billing Account'), dom.cls('disabled', true))
       ) :
-      menuItem(() => this._appModel.showUpgradeModal(), 'Upgrade Plan');
+      menuItem(() => this._appModel.showUpgradeModal(), t('Upgrade Plan'));
   }
 
   private _maybeBuildActivationPageMenuItem() {
@@ -167,7 +168,21 @@ export class AccountWidget extends Disposable {
       return null;
     }
 
-    return menuItemLink('Activation', urlState().setLinkUrl({activation: 'activation'}));
+    return menuItemLink(t('Activation'), urlState().setLinkUrl({activation: 'activation'}));
+  }
+
+  private _maybeBuildSupportGristPageMenuItem() {
+    const {deploymentType} = getGristConfig();
+    if (deploymentType !== 'core') {
+      return null;
+    }
+
+    return menuItemLink(
+      t('Support Grist'),
+      cssHeartIcon('💛'),
+      urlState().setLinkUrl({supportGrist: 'support-grist'}),
+      testId('usermenu-support-grist'),
+    );
   }
 }
 
@@ -181,6 +196,10 @@ export const cssUserIcon = styled('div', `
   width: 48px;
   padding: 8px;
   cursor: pointer;
+`);
+
+const cssHeartIcon = styled('span', `
+  margin-left: 8px;
 `);
 
 const cssUserInfo = styled('div', `

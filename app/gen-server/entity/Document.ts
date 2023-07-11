@@ -1,10 +1,8 @@
 import {ApiError} from 'app/common/ApiError';
 import {DocumentUsage} from 'app/common/DocUsage';
-import {hashId} from 'app/common/hashingUtils';
 import {Role} from 'app/common/roles';
-import {DocumentOptions, DocumentProperties, documentPropertyKeys,
-        DocumentType, NEW_DOCUMENT_CODE, TutorialMetadata} from "app/common/UserAPI";
-import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
+import {DocumentOptions, DocumentProperties, documentPropertyKeys, DocumentType,
+        NEW_DOCUMENT_CODE} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
 import {AclRuleDoc} from "./AclRule";
@@ -92,7 +90,7 @@ export class Document extends Resource {
     return super.checkProperties(props, documentPropertyKeys);
   }
 
-  public updateFromProperties(props: Partial<DocumentProperties>, dbManager?: HomeDBManager) {
+  public updateFromProperties(props: Partial<DocumentProperties>) {
     super.updateFromProperties(props);
     if (props.isPinned !== undefined) { this.isPinned = props.isPinned; }
     if (props.urlId !== undefined) {
@@ -135,9 +133,6 @@ export class Document extends Resource {
             }
             if (props.options.tutorial.lastSlideIndex !== undefined) {
               this.options.tutorial.lastSlideIndex = props.options.tutorial.lastSlideIndex;
-              if (dbManager && this.options.tutorial.numSlides) {
-                this._emitTutorialProgressChangeEvent(dbManager, this.options.tutorial);
-              }
             }
           }
         }
@@ -153,26 +148,6 @@ export class Document extends Resource {
         }
       }
     }
-  }
-
-  private _emitTutorialProgressChangeEvent(
-    dbManager: HomeDBManager,
-    tutorialMetadata: TutorialMetadata
-  ) {
-    const lastSlideIndex = tutorialMetadata.lastSlideIndex;
-    const numSlides = tutorialMetadata.numSlides;
-    const percentComplete = lastSlideIndex !== undefined && numSlides !== undefined
-      ? Math.floor((lastSlideIndex / numSlides) * 100)
-      : undefined;
-    dbManager?.emit('tutorialProgressChanged', {
-      full: {
-        tutorialForkIdDigest: hashId(this.id),
-        tutorialTrunkIdDigest: this.trunkId ? hashId(this.trunkId) : undefined,
-        lastSlideIndex,
-        numSlides,
-        percentComplete,
-      },
-    });
   }
 }
 

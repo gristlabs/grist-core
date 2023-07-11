@@ -5,6 +5,7 @@
 import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
+import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
 
@@ -15,7 +16,7 @@ export const DEPS = { fetch };
  * by interfacing with an external LLM endpoint.
  */
 export interface Assistant {
-  apply(doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse>;
+  apply(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse>;
 }
 
 /**
@@ -30,8 +31,7 @@ export interface AssistanceDoc {
    * Marked "V1" to suggest that it is a particular prompt and it would
    * be great to try variants.
    */
-  assistanceSchemaPromptV1(options: AssistanceSchemaPromptV1Context): Promise<string>;
-
+  assistanceSchemaPromptV1(session: OptDocSession, options: AssistanceSchemaPromptV1Context): Promise<string>;
   /**
    * Some tweaks to a formula after it has been generated.
    */
@@ -46,7 +46,7 @@ export interface AssistanceSchemaPromptV1Context {
 
 /**
  * A flavor of assistant for use with the OpenAI API.
- * Tested primarily with text-davinci-002 and gpt-3.5-turbo.
+ * Tested primarily with gpt-3.5-turbo.
  */
 export class OpenAIAssistant implements Assistant {
   private _apiKey: string;
@@ -60,37 +60,43 @@ export class OpenAIAssistant implements Assistant {
       throw new Error('OPENAI_API_KEY not set');
     }
     this._apiKey = apiKey;
-    this._model = process.env.COMPLETION_MODEL || "text-davinci-002";
+    this._model = process.env.COMPLETION_MODEL || "gpt-3.5-turbo-0613";
     this._chatMode = this._model.includes('turbo');
+    if (!this._chatMode) {
+      throw new Error('Only turbo models are currently supported');
+    }
     this._endpoint = `https://api.openai.com/v1/${this._chatMode ? 'chat/' : ''}completions`;
   }
 
-  public async apply(doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
+  public async apply(
+    optSession: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     const messages = request.state?.messages || [];
     const chatMode = this._chatMode;
     if (chatMode) {
       if (messages.length === 0) {
         messages.push({
           role: 'system',
-          content: 'The user gives you one or more Python classes, ' +
-            'with one last method that needs completing. Write the ' +
-            'method body as a single code block, ' +
-            'including the docstring the user gave. ' +
-            'Just give the Python code as a markdown block, ' +
-            'do not give any introduction, that will just be ' +
-            'awkward for the user when copying and pasting. ' +
-            'You are working with Grist, an environment very like ' +
-            'regular Python except `rec` (like record) is used ' +
-            'instead of `self`. ' +
-            'Include at least one `return` statement or the method ' +
-            'will fail, disappointing the user. ' +
-            'Your answer should be the body of a single method, ' +
-            'not a class, and should not include `dataclass` or ' +
-            '`class` since the user is counting on you to provide ' +
-            'a single method. Thanks!'
+          content: 'You are a helpful assistant for a user of software called Grist. ' +
+            'Below are one or more Python classes. ' +
+            'The last method needs completing. ' +
+            "The user will probably give a description of what they want the method (a 'formula') to return. " +
+            'If so, your response should include the method body as Python code in a markdown block. ' +
+            'Do not include the class or method signature, just the method body. ' +
+            'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
+            'You can import modules inside the method body if needed. ' +
+            'You cannot define additional functions or methods. ' +
+            'The method should be a pure function that performs some computation and returns a result. ' +
+            'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
+            'It CANNOT interact with files/databases/networks/etc. ' +
+            'It CANNOT display images/charts/graphs/maps/etc. ' +
+            'If the user asks for these things, tell them that you cannot help. ' +
+            'The method uses `rec` instead of `self` as the first parameter.\n\n' +
+            '```python\n' +
+            await makeSchemaPromptV1(optSession, doc, request) +
+            '\n```',
         });
         messages.push({
-          role: 'user', content: await makeSchemaPromptV1(doc, request),
+          role: 'user', content: request.text,
         });
       } else {
         if (request.regenerate) {
@@ -105,7 +111,7 @@ export class OpenAIAssistant implements Assistant {
     } else {
       messages.length = 0;
       messages.push({
-        role: 'user', content: await makeSchemaPromptV1(doc, request),
+        role: 'user', content: await makeSchemaPromptV1(optSession, doc, request),
       });
     }
 
@@ -173,11 +179,12 @@ export class HuggingFaceAssistant implements Assistant {
 
   }
 
-  public async apply(doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
+  public async apply(
+    optSession: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     if (request.state) {
       throw new Error("HuggingFaceAssistant does not support state");
     }
-    const prompt = await makeSchemaPromptV1(doc, request);
+    const prompt = await makeSchemaPromptV1(optSession, doc, request);
     const response = await DEPS.fetch(
       this._completionUrl,
       {
@@ -215,7 +222,10 @@ export class HuggingFaceAssistant implements Assistant {
  * Test assistant that mimics ChatGPT and just returns the input.
  */
 export class EchoAssistant implements Assistant {
-  public async apply(doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
+  public async apply(sess: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
+    if (request.text === "ERROR") {
+      throw new Error(`ERROR`);
+    }
     const messages = request.state?.messages || [];
     if (messages.length === 0) {
       messages.push({
@@ -250,25 +260,28 @@ export class EchoAssistant implements Assistant {
 /**
  * Instantiate an assistant, based on environment variables.
  */
-function getAssistant() {
+export function getAssistant() {
   if (process.env.OPENAI_API_KEY === 'test') {
     return new EchoAssistant();
   }
   if (process.env.OPENAI_API_KEY) {
     return new OpenAIAssistant();
   }
-  if (process.env.HUGGINGFACE_API_KEY) {
-    return new HuggingFaceAssistant();
-  }
-  throw new Error('Please set OPENAI_API_KEY or HUGGINGFACE_API_KEY');
+  // Maintaining this is too much of a burden for now.
+  // if (process.env.HUGGINGFACE_API_KEY) {
+  //   return new HuggingFaceAssistant();
+  // }
+  throw new Error('Please set OPENAI_API_KEY');
 }
 
 /**
  * Service a request for assistance, with a little retry logic
  * since these endpoints can be a bit flakey.
  */
-export async function sendForCompletion(doc: AssistanceDoc,
-                                        request: AssistanceRequest): Promise<AssistanceResponse> {
+export async function sendForCompletion(
+  optSession: OptDocSession,
+  doc: AssistanceDoc,
+  request: AssistanceRequest): Promise<AssistanceResponse> {
   const assistant = getAssistant();
 
   let retries: number = 0;
@@ -276,7 +289,7 @@ export async function sendForCompletion(doc: AssistanceDoc,
   let response: AssistanceResponse|null = null;
   while(retries++ < 3) {
     try {
-      response = await assistant.apply(doc, request);
+      response = await assistant.apply(optSession, doc, request);
       break;
     } catch(e) {
       log.error(`Completion error: ${e}`);
@@ -289,11 +302,11 @@ export async function sendForCompletion(doc: AssistanceDoc,
   return response;
 }
 
-async function makeSchemaPromptV1(doc: AssistanceDoc, request: AssistanceRequest) {
+async function makeSchemaPromptV1(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest) {
   if (request.context.type !== 'formula') {
     throw new Error('makeSchemaPromptV1 only works for formulas');
   }
-  return doc.assistanceSchemaPromptV1({
+  return doc.assistanceSchemaPromptV1(session, {
     tableId: request.context.tableId,
     colId: request.context.colId,
     docString: request.text,

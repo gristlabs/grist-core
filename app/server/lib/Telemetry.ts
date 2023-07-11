@@ -1,8 +1,10 @@
 import {ApiError} from 'app/common/ApiError';
+import {TelemetryConfig} from 'app/common/gristUrls';
+import {assertIsDefined} from 'app/common/gutil';
 import {
   buildTelemetryEventChecker,
-  filterMetadata,
-  removeNullishKeys,
+  Level,
+  TelemetryContracts,
   TelemetryEvent,
   TelemetryEventChecker,
   TelemetryEvents,
@@ -11,18 +13,28 @@ import {
   TelemetryMetadata,
   TelemetryMetadataByLevel,
 } from 'app/common/Telemetry';
-import {HomeDBManager, HomeDBTelemetryEvents} from 'app/gen-server/lib/HomeDBManager';
+import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
+import {Activation} from 'app/gen-server/entity/Activation';
+import {Activations} from 'app/gen-server/lib/Activations';
+import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
+import {expressWrap} from 'app/server/lib/expressWrap';
 import {GristServer} from 'app/server/lib/GristServer';
+import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {stringParam} from 'app/server/lib/requestUtils';
 import * as express from 'express';
+import fetch from 'node-fetch';
 import merge = require('lodash/merge');
+import pickBy = require('lodash/pickBy');
 
 export interface ITelemetry {
+  start(): Promise<void>;
   logEvent(name: TelemetryEvent, metadata?: TelemetryMetadataByLevel): Promise<void>;
   addEndpoints(app: express.Express): void;
-  getTelemetryLevel(): TelemetryLevel;
+  addPages(app: express.Express, middleware: express.RequestHandler[]): void;
+  getTelemetryConfig(): TelemetryConfig | undefined;
+  fetchTelemetryPrefs(): Promise<void>;
 }
 
 const MAX_PENDING_FORWARD_EVENT_REQUESTS = 25;
@@ -31,26 +43,30 @@ const MAX_PENDING_FORWARD_EVENT_REQUESTS = 25;
  * Manages telemetry for Grist.
  */
 export class Telemetry implements ITelemetry {
-  private _telemetryLevel: TelemetryLevel;
-  private _deploymentType = this._gristServer.getDeploymentType();
-  private _shouldForwardTelemetryEvents = this._deploymentType !== 'saas';
-  private _forwardTelemetryEventsUrl = process.env.GRIST_TELEMETRY_URL ||
-  'https://telemetry.getgrist.com/api/telemetry';
+  private _activation: Activation | undefined;
+  private readonly _deploymentType = this._gristServer.getDeploymentType();
+
+  private _telemetryPrefs: TelemetryPrefsWithSources | undefined;
+
+  private readonly _shouldForwardTelemetryEvents = this._deploymentType !== 'saas';
+  private readonly _forwardTelemetryEventsUrl = process.env.GRIST_TELEMETRY_URL ||
+    'https://telemetry.getgrist.com/api/telemetry';
   private _numPendingForwardEventRequests = 0;
 
-  private _installationId: string | undefined;
 
-  private _logger = new LogMethods('Telemetry ', () => ({}));
-  private _telemetryLogger = new LogMethods('Telemetry ', () => ({
+  private readonly _logger = new LogMethods('Telemetry ', () => ({}));
+  private readonly _telemetryLogger = new LogMethods('Telemetry ', () => ({
     eventType: 'telemetry',
   }));
 
-  private _checkEvent: TelemetryEventChecker | undefined;
+  private _checkTelemetryEvent: TelemetryEventChecker | undefined;
 
   constructor(private _dbManager: HomeDBManager, private _gristServer: GristServer) {
-    this._initialize().catch((e) => {
-      this._logger.error(undefined, 'failed to initialize', e);
-    });
+
+  }
+
+  public async start() {
+    await this.fetchTelemetryPrefs();
   }
 
   /**
@@ -96,19 +112,29 @@ export class Telemetry implements ITelemetry {
     event: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ) {
-    if (this._telemetryLevel === 'off') { return; }
+    if (!this._checkTelemetryEvent) {
+      this._logger.error(undefined, 'logEvent called but telemetry event checker is undefined');
+      return;
+    }
 
-    metadata = filterMetadata(metadata, this._telemetryLevel);
+    const prefs = this._telemetryPrefs;
+    if (!prefs) {
+      this._logger.error(undefined, 'logEvent called but telemetry preferences are undefined');
+      return;
+    }
+
+    const {telemetryLevel} = prefs;
+    if (TelemetryContracts[event] && TelemetryContracts[event].minimumTelemetryLevel > Level[telemetryLevel.value]) {
+      return;
+    }
+
+    metadata = filterMetadata(metadata, telemetryLevel.value);
     this._checkTelemetryEvent(event, metadata);
 
     if (this._shouldForwardTelemetryEvents) {
       await this._forwardEvent(event, metadata);
     } else {
-      this._telemetryLogger.rawLog('info', null, event, {
-        eventName: event,
-        eventSource: `grist-${this._deploymentType}`,
-        ...metadata,
-      });
+      this._logEvent(event, metadata);
     }
   }
 
@@ -125,7 +151,7 @@ export class Telemetry implements ITelemetry {
      * source. Otherwise, the event will only be logged after passing various
      * checks.
      */
-    app.post('/api/telemetry', async (req, resp) => {
+    app.post('/api/telemetry', expressWrap(async (req, resp) => {
       const mreq = req as RequestWithLogin;
       const event = stringParam(req.body.event, 'event', TelemetryEvents.values);
       if ('eventSource' in req.body.metadata) {
@@ -135,11 +161,12 @@ export class Telemetry implements ITelemetry {
         });
       } else {
         try {
+          this._assertTelemetryIsReady();
           await this.logEvent(event as TelemetryEvent, merge(
             {
               limited: {
                 eventSource: `grist-${this._deploymentType}`,
-                ...(this._deploymentType !== 'saas' ? {installationId: this._installationId} : {}),
+                ...(this._deploymentType !== 'saas' ? {installationId: this._activation!.id} : {}),
               },
               full: {
                 userId: mreq.userId,
@@ -154,36 +181,49 @@ export class Telemetry implements ITelemetry {
         }
       }
       return resp.status(200).send();
+    }));
+  }
+
+  public addPages(app: express.Application, middleware: express.RequestHandler[]) {
+    if (this._deploymentType === 'core') {
+      app.get('/support-grist', ...middleware, expressWrap(async (req, resp) => {
+        return this._gristServer.sendAppPage(req, resp,
+          {path: 'app.html', status: 200, config: {}});
+      }));
+    }
+  }
+
+  public getTelemetryConfig(): TelemetryConfig | undefined {
+    const prefs = this._telemetryPrefs;
+    if (!prefs) {
+      this._logger.error(undefined, 'getTelemetryConfig called but telemetry preferences are undefined');
+      return undefined;
+    }
+
+    return {
+      telemetryLevel: prefs.telemetryLevel.value,
+    };
+  }
+
+  public async fetchTelemetryPrefs() {
+    this._activation = await this._gristServer.getActivations().current();
+    await this._fetchTelemetryPrefs();
+  }
+
+  private async _fetchTelemetryPrefs() {
+    this._telemetryPrefs = await getTelemetryPrefs(this._dbManager, this._activation);
+    this._checkTelemetryEvent = buildTelemetryEventChecker(this._telemetryPrefs.telemetryLevel.value);
+  }
+
+  private _logEvent(
+    event: TelemetryEvent,
+    metadata?: TelemetryMetadata
+  ) {
+    this._telemetryLogger.rawLog('info', null, event, {
+      eventName: event,
+      eventSource: `grist-${this._deploymentType}`,
+      ...metadata,
     });
-  }
-
-  public getTelemetryLevel() {
-    return this._telemetryLevel;
-  }
-
-  private async _initialize() {
-    this._telemetryLevel = getTelemetryLevel();
-    if (process.env.GRIST_TELEMETRY_LEVEL !== undefined) {
-      this._checkTelemetryEvent = buildTelemetryEventChecker(this._telemetryLevel);
-    }
-
-    const {id} = await this._gristServer.getActivations().current();
-    this._installationId = id;
-
-    for (const event of HomeDBTelemetryEvents.values) {
-      this._dbManager.on(event, async (metadata) => {
-        this.logEvent(event, metadata).catch(e =>
-          this._logger.error(undefined, `failed to log telemetry event ${event}`, e));
-      });
-    }
-  }
-
-  private _checkTelemetryEvent(event: TelemetryEvent, metadata?: TelemetryMetadata) {
-    if (!this._checkEvent) {
-      throw new Error('Telemetry._checkEvent is undefined');
-    }
-
-    this._checkEvent(event, metadata);
   }
 
   private async _forwardEvent(
@@ -198,7 +238,7 @@ export class Telemetry implements ITelemetry {
 
     try {
       this._numPendingForwardEventRequests += 1;
-      await this._postJsonPayload(JSON.stringify({event, metadata}));
+      await this._doForwardEvent(JSON.stringify({event, metadata}));
     } catch (e) {
       this._logger.error(undefined, `failed to forward telemetry event ${event}`, e);
     } finally {
@@ -206,7 +246,7 @@ export class Telemetry implements ITelemetry {
     }
   }
 
-  private async _postJsonPayload(payload: string) {
+  private async _doForwardEvent(payload: string) {
     await fetch(this._forwardTelemetryEventsUrl, {
       method: 'POST',
       headers: {
@@ -215,12 +255,90 @@ export class Telemetry implements ITelemetry {
       body: payload,
     });
   }
+
+  private _assertTelemetryIsReady() {
+    try {
+      assertIsDefined('activation', this._activation);
+    } catch (e) {
+      this._logger.error(null, 'activation is undefined', e);
+      throw new ApiError('Telemetry is not ready', 500);
+    }
+  }
 }
 
-export function getTelemetryLevel(): TelemetryLevel {
-  if (process.env.GRIST_TELEMETRY_LEVEL !== undefined) {
-    return TelemetryLevels.check(process.env.GRIST_TELEMETRY_LEVEL);
-  } else {
-    return 'off';
+export async function getTelemetryPrefs(
+  db: HomeDBManager,
+  activation?: Activation
+): Promise<TelemetryPrefsWithSources> {
+  const GRIST_TELEMETRY_LEVEL = process.env.GRIST_TELEMETRY_LEVEL;
+  if (GRIST_TELEMETRY_LEVEL !== undefined) {
+    const value = TelemetryLevels.check(GRIST_TELEMETRY_LEVEL);
+    return {
+      telemetryLevel: {
+        value,
+        source: 'environment-variable',
+      },
+    };
   }
+
+  const {prefs} = activation ?? await new Activations(db).current();
+  return {
+    telemetryLevel: {
+      value: prefs?.telemetry?.telemetryLevel ?? 'off',
+      source: 'preferences',
+    }
+  };
+}
+
+/**
+ * Returns a new, filtered metadata object, or undefined if `metadata` is undefined.
+ *
+ * Filtering currently:
+ *  - removes keys in groups that exceed `telemetryLevel`
+ *  - removes keys with values of null or undefined
+ *  - hashes the values of keys suffixed with "Digest" (e.g. doc ids, fork ids)
+ *  - flattens the entire metadata object (i.e. removes the nesting of keys under
+ *    "limited" or "full")
+ */
+export function filterMetadata(
+  metadata: TelemetryMetadataByLevel | undefined,
+  telemetryLevel: TelemetryLevel
+): TelemetryMetadata | undefined {
+  if (!metadata) { return; }
+
+  let filteredMetadata: TelemetryMetadata = {};
+  for (const level of ['limited', 'full'] as const) {
+    if (Level[telemetryLevel] < Level[level]) { break; }
+
+    filteredMetadata = {...filteredMetadata, ...metadata[level]};
+  }
+
+  filteredMetadata = removeNullishKeys(filteredMetadata);
+  filteredMetadata = hashDigestKeys(filteredMetadata);
+
+  return filteredMetadata;
+}
+
+/**
+ * Returns a copy of `object` with all null and undefined keys removed.
+ */
+export function removeNullishKeys(object: Record<string, any>) {
+  return pickBy(object, value => value !== null && value !== undefined);
+}
+
+/**
+ * Returns a copy of `metadata`, replacing the values of all keys suffixed
+ * with "Digest" with the result of hashing the value. The hash is prefixed with
+ * the first 4 characters of the original value, to assist with troubleshooting.
+ */
+export function hashDigestKeys(metadata: TelemetryMetadata): TelemetryMetadata {
+  const filteredMetadata: TelemetryMetadata = {};
+  Object.entries(metadata).forEach(([key, value]) => {
+    if (key.endsWith('Digest') && typeof value === 'string') {
+      filteredMetadata[key] = hashId(value);
+    } else {
+      filteredMetadata[key] = value;
+    }
+  });
+  return filteredMetadata;
 }

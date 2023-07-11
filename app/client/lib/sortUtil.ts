@@ -5,6 +5,7 @@ import * as rowset from 'app/client/models/rowset';
 import { MANUALSORT } from 'app/common/gristTypes';
 import { SortFunc } from 'app/common/SortFunc';
 import { Sort } from 'app/common/SortSpec';
+import { UIRowId } from 'app/common/TableData';
 import * as ko from 'knockout';
 import range = require('lodash/range');
 
@@ -44,7 +45,7 @@ export async function updatePositions(gristDoc: GristDoc, section: ViewSectionRe
   sortFunc.updateSpec(section.activeDisplaySortSpec.peek());
   const sortedRows = rowset.SortedRowSet.create(
     null,
-    (a: rowset.RowId, b: rowset.RowId) => sortFunc.compare(a as number, b as number),
+    (a: UIRowId, b: UIRowId) => sortFunc.compare(a as number, b as number),
     tableModel.tableData
   );
   sortedRows.subscribeTo(tableModel);

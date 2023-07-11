@@ -1,5 +1,6 @@
 import {ActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, ForkResult, PermissionDataWithExtraUsers, QueryFilters} from 'app/common/ActiveDocAPI';
+import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
@@ -462,6 +463,8 @@ export interface DocAPI {
   // Update webhook
   updateWebhook(webhook: WebhookUpdate): Promise<void>;
   flushWebhooks(): Promise<void>;
+
+  getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1010,6 +1013,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       headers: {...this.defaultHeadersWithoutContentType()},
     });
     return response.data[0];
+  }
+
+  public async getAssistance(params: AssistanceRequest): Promise<AssistanceResponse> {
+    return await this.requestJson(`${this._url}/assistant`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {

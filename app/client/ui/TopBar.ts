@@ -26,7 +26,7 @@ const t = makeT('TopBar');
 export function createTopBarHome(appModel: AppModel) {
   return [
     cssFlexSpace(),
-
+    appModel.supportGristNudge.showButton(),
     (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
       [
         basicButton(

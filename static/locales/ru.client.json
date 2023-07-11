@@ -1009,5 +1009,31 @@
     "WebhookPage": {
         "Clear Queue": "Очистить очередь",
         "Webhook Settings": "Настройки вебхука"
+    },
+    "FormulaAssistant": {
+        "Ask the bot.": "Спроси у бота.",
+        "Capabilities": "Возможности",
+        "Community": "Сообщество",
+        "Data": "Данные",
+        "Formula Cheat Sheet": "Шпаргалка по формуле",
+        "Formula Help. ": "Справка по формуле. ",
+        "Function List": "Список функций",
+        "Grist's AI Assistance": "Помощь AI Grist'а",
+        "Grist's AI Formula Assistance. ": "Помощник по формуле AI Grist'a. ",
+        "New Chat": "Новый чат",
+        "Preview": "Предпросмотр",
+        "Regenerate": "Регенерировать",
+        "Save": "Сохранить",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Посмотрите наш {{helpFunction}} и {{formulaCheat}}, или поситите наше {{community}} для получения дополнительной помощи.",
+        "Tips": "Советы",
+        "Need help? Our AI assistant can help.": "Нужна помощь? Наш AI помощник может помочь."
+    },
+    "GridView": {
+        "Click to insert": "Нажмите для вставки"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "С возвращением",
+        "You can always switch sites using the account menu.": "Вы всегда можете переключиться с одного сайта на другой, используя меню учетной записи.",
+        "You have access to the following Grist sites.": "У вас есть доступ к следующим сайтам Grist."
     }
 }

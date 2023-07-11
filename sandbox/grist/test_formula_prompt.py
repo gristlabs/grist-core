@@ -151,9 +151,7 @@ class Table2:
     @property
     # rec is alias for self
     def new_formula(rec) -> float:
-        """
-        description here
-        """
+        # Please fill in code only after this line, not the `def`
 ''')
 
   def test_get_formula_prompt(self):
@@ -183,9 +181,7 @@ class Table1:
     @property
     # rec is alias for self
     def text(rec) -> str:
-        """
-        description here
-        """
+        # Please fill in code only after this line, not the `def`
 ''')
 
     self.assert_prompt("Table2", "ref", '''\
@@ -199,9 +195,7 @@ class Table2:
     @property
     # rec is alias for self
     def ref(rec) -> Table1:
-        """
-        description here
-        """
+        # Please fill in code only after this line, not the `def`
 ''')
 
     self.assert_prompt("Table3", "reflist", '''\
@@ -219,9 +213,7 @@ class Table3:
     @property
     # rec is alias for self
     def reflist(rec) -> List[Table2]:
-        """
-        description here
-        """
+        # Please fill in code only after this line, not the `def`
 ''')
 
   def test_convert_completion(self):

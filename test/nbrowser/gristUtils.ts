@@ -1467,6 +1467,29 @@ export async function moveToHidden(col: string) {
   await waitForServer();
 }
 
+/**
+ * Clicks `Select All` in visible columns section.
+ */
+export async function selectAllVisibleColumns() {
+  await driver.find('.test-vfc-visible-fields-select-all').click();
+}
+
+/**
+ * Toggle checkbox for a column in visible columns section.
+ */
+export async function toggleVisibleColumn(col: string) {
+  const row = await driver.findContent(".test-vfc-visible-fields .kf_draggable_content", exactMatch(col));
+  await row.find('input').click();
+}
+
+/**
+ * Clicks `Hide Columns` button in visible columns section.
+ */
+export async function hideVisibleColumns() {
+  await driver.find('.test-vfc-visible-hide').click();
+  await waitForServer();
+}
+
 export async function search(what: string) {
   await driver.find('.test-tb-search-icon').click();
   await driver.sleep(500);
@@ -1759,6 +1782,16 @@ export async function openAccessRulesDropdown(): Promise<void> {
   await driver.findWait('.grist-floating-menu', 1000);
 }
 
+/**
+ * Open "Select By" area in creator panel.
+ */
+export async function openSelectByForSection(section: string) {
+  await toggleSidePanel('right', 'open');
+  await driver.find('.test-config-data').click();
+  await getSection(section).click();
+  await driver.find('.test-right-select-by').click();
+}
+
 export async function editOrgAcls(): Promise<void> {
   // To prevent a common flakiness problem, wait for a potentially open modal dialog
   // to close before attempting to open the account menu.
@@ -2023,7 +2056,13 @@ export class Session {
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
                                 skipTutorial?: boolean, // By default true
+                                userName?: string,
+                                email?: string,
                                 retainExistingLogin?: boolean}) {
+    if (options?.userName) {
+      this.settings.name = options.userName;
+      this.settings.email = options.email || '';
+    }
     // Optimize testing a little bit, so if we are already logged in as the expected
     // user on the expected org, and there are no options set, we can just continue.
     if (!options && await this.isLoggedInCorrectly()) { return this; }
@@ -2805,18 +2844,123 @@ export async function scrollActiveViewTop() {
  * Filters a column in a Grid using the filter menu.
  */
 export async function filterBy(col: IColHeader|string, save: boolean, values: (string|RegExp)[]) {
-  await openColumnMenu(col, 'Filter');
-  // Select none at start
-  await driver.findContent('.test-filter-menu-bulk-action', /None/).click();
-  for(const value of values) {
-    await driver.findContent('.test-filter-menu-list label', value).click();
+  const filter = await openColumnFilter(col);
+  await filter.none();
+  for (const value of values) {
+    await filter.toggleValue(value);
   }
-  // Save filters
-  await driver.find('.test-filter-menu-apply-btn').click();
+  await filter.close();
   if (save) {
-    await driver.find('.test-section-menu-small-btn-save').click();
+    await filter.save();
   }
-  await waitForServer();
+}
+
+/**
+ * Opens a filter menu for a column and returns a controller for it.
+ */
+export async function openColumnFilter(col: IColHeader|string) {
+  await openColumnMenu(col, 'Filter');
+  return filterController;
+}
+
+/**
+ * Opens a filter menu for a column and returns a controller for it.
+ */
+export async function openPinnedFilter(col: string) {
+  const filterBar = driver.find('.active_section .test-filter-bar');
+  const pinnedFilter = filterBar.findContent('.test-filter-field', col);
+  await pinnedFilter.click();
+  return filterController;
+}
+
+const filterController = {
+  async toggleValue(value: string|RegExp) {
+    await driver.findContent('.test-filter-menu-list label', value).click();
+    return this;
+  },
+  async none() {
+    await driver.findContent('.test-filter-menu-bulk-action', /None/).click();
+    return this;
+  },
+  async all() {
+    await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
+    return this;
+  },
+  async close() {
+    await driver.find('.test-filter-menu-apply-btn').click();
+    return this;
+  },
+  async cancel() {
+    await driver.find('.test-filter-menu-cancel-btn').click();
+    return this;
+  },
+  async save() {
+    await driver.find('.test-section-menu-small-btn-save').click();
+    await waitForServer();
+    return this;
+  }
+};
+
+/**
+ * Opens the filter menu in the current section, and removes all filters. Optionally saves it.
+ */
+export async function removeFilters(save = false) {
+  const sectionFilter = await sortAndFilter();
+  for(const filter of await sectionFilter.filters()) {
+    await filter.remove();
+  }
+  if (save) {
+    await sectionFilter.save();
+  } else {
+    await sectionFilter.click();
+  }
+}
+
+/**
+ * Clicks on the filter icon in the current section, and returns a controller for it for interactions.
+ */
+export async function sortAndFilter() {
+  const ctrl = {
+    async addColumn() {
+      await driver.find('.test-filter-config-add-filter-btn').click();
+      return this;
+    },
+    async clickColumn(col: string) {
+      await driver.findContent(".test-sd-searchable-list-item", col).click();
+      return this;
+    },
+    async close() {
+      await driver.find('.test-filter-menu-apply-btn').click();
+      return this;
+    },
+    async save() {
+      await driver.find('.test-section-menu-btn-save').click();
+      await waitForServer();
+      return this;
+    },
+    /**
+     * Clicks the filter icon in the current section (can be used to close the filter menu or open it)
+     */
+    async click() {
+      await driver.find('.active_section .test-section-menu-filter-icon').click();
+      return this;
+    },
+    async filters() {
+      const items = await driver.findAll('.test-filter-config-filter');
+      return items.map(item => ({
+        async remove() {
+          await item.find('.test-filter-config-remove-filter').click();
+          return this;
+        },
+        async togglePin() {
+          await item.find('.test-filter-config-pin-filter').click();
+          return this;
+        }
+      }));
+    }
+  };
+  await ctrl.click();
+  return ctrl;
 }
 
 export interface PinnedFilter {
@@ -3012,20 +3156,26 @@ export async function availableBehaviorOptions() {
   return list;
 }
 
-export function withComments() {
-  let oldEnv: testUtils.EnvironmentSnapshot;
+/**
+ * Restarts the server ensuring that it is run with the given environment variables.
+ * If variables are already set, the server is not restarted.
+ *
+ * Useful for local testing of features that depend on environment variables, as it avoids the need
+ * to restart the server when those variables are already set.
+ */
+export function withEnvironmentSnapshot(vars: Record<string, any>) {
+  let oldEnv: testUtils.EnvironmentSnapshot|null = null;
   before(async () => {
-    if (process.env.COMMENTS !== 'true') {
-      oldEnv = new testUtils.EnvironmentSnapshot();
-      process.env.COMMENTS = 'true';
-      await server.restart();
-    }
+    // Test if the vars are already set, and if so, skip.
+    if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
+    oldEnv = new testUtils.EnvironmentSnapshot();
+    Object.assign(process.env, vars);
+    await server.restart();
   });
   after(async () => {
-    if (oldEnv) {
-      oldEnv.restore();
-      await server.restart();
-    }
+    if (!oldEnv) { return; }
+    oldEnv.restore();
+    await server.restart();
   });
 }
 

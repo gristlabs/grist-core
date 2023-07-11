@@ -5,6 +5,7 @@ import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
+import {InstallProperties} from 'app/common/InstallAPI';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
@@ -50,14 +51,15 @@ import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/place
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
-import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, optStringParam,
-        RequestWithGristInfo, stringParam, TEST_HTTPS_OFFSET, trustOrigin} from 'app/server/lib/requestUtils';
+import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, isDefaultUser, optStringParam,
+        RequestWithGristInfo, sendOkReply, stringParam, TEST_HTTPS_OFFSET,
+        trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
-import {ITelemetry} from 'app/server/lib/Telemetry';
+import {getTelemetryPrefs, ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
@@ -706,11 +708,17 @@ export class FlexServer implements GristServer {
     });
   }
 
-  public addTelemetry() {
+  public async addTelemetry() {
     if (this._check('telemetry', 'homedb', 'json', 'api-mw')) { return; }
 
     this._telemetry = this.create.Telemetry(this._dbManager, this);
     this._telemetry.addEndpoints(this.app);
+    this._telemetry.addPages(this.app, [
+      this._redirectToHostMiddleware,
+      this._userIdMiddleware,
+      this._redirectToLoginWithoutExceptionsMiddleware,
+    ]);
+    await this._telemetry.start();
 
     // Start up a monitor for memory and cpu usage.
     this._processMonitorStop = ProcessMonitor.start(this._telemetry);
@@ -1124,7 +1132,11 @@ export class FlexServer implements GristServer {
     await this.loadConfig();
     this.addComm();
 
+    // Temporary duplication of external storage configuration.
+    // This may break https://github.com/gristlabs/grist-core/pull/546,
+    // but will revive other uses of external storage. TODO: reconcile.
     await this.create.configure?.();
+
     if (!isSingleUserMode()) {
       const externalStorage = appSettings.section('externalStorage');
       const haveExternalStorage = Object.values(externalStorage.nested)
@@ -1135,6 +1147,7 @@ export class FlexServer implements GristServer {
         this._disableExternalStorage = true;
         externalStorage.flag('active').set(false);
       }
+      await this.create.configure?.();
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 
@@ -1198,7 +1211,7 @@ export class FlexServer implements GristServer {
     ];
 
     this.app.get('/account', ...middleware, expressWrap(async (req, resp) => {
-      return this._sendAppPage(req, resp, {path: 'account.html', status: 200, config: {}});
+      return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
   }
 
@@ -1458,6 +1471,43 @@ export class FlexServer implements GristServer {
     if (this._check('google-auth')) { return; }
     const messagePage = makeMessagePage(getAppPathTo(this.appRoot, 'static'));
     addGoogleAuthEndpoint(this.app, messagePage);
+  }
+
+  public addInstallEndpoints() {
+    if (this._check('install')) { return; }
+
+    const isManager = expressWrap(
+      (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        if (!isDefaultUser(req)) { throw new ApiError('Access denied', 403); }
+
+        next();
+      }
+    );
+
+    this.app.get('/api/install/prefs', expressWrap(async (_req, resp) => {
+      const activation = await this._activations.current();
+
+      return sendOkReply(null, resp, {
+        telemetry: await getTelemetryPrefs(this._dbManager, activation),
+      });
+    }));
+
+    this.app.patch('/api/install/prefs', isManager, expressWrap(async (req, resp) => {
+      const props = {prefs: req.body};
+      const activation = await this._activations.current();
+      activation.checkProperties(props);
+      activation.updateFromProperties(props);
+      await activation.save();
+
+      if ((props as Partial<InstallProperties>).prefs?.telemetry) {
+        // Make sure the Telemetry singleton picks up the changes to telemetry preferences.
+        // TODO: if there are multiple home server instances, notify them all of changes to
+        // preferences (via Redis Pub/Sub).
+        await this._telemetry.fetchTelemetryPrefs();
+      }
+
+      return resp.status(200).send();
+    }));
   }
 
   // Get the HTML template sent for document pages.

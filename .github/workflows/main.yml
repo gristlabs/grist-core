@@ -98,10 +98,31 @@ jobs:
       - name: Run main tests without minio and redis
         if: contains(matrix.tests, ':nbrowser-')
         run: |
+          mkdir -p $MOCHA_WEBDRIVER_LOGDIR
           export GREP_TESTS=$(echo $TESTS | sed "s/.*:nbrowser-\([^:]*\).*/\1/")
           MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser --parallel --jobs 3
         env:
           TESTS: ${{ matrix.tests }}
+          MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          TESTDIR: ${{ runner.temp }}/test-logs
+
+      - name: Prepare for saving artifact
+        if: failure()
+        run: |
+          ARTIFACT_NAME=logs-$(echo $TESTS | sed 's/[^-a-zA-Z0-9]/_/g')
+          echo "Artifact name is '$ARTIFACT_NAME'"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          find $TESTDIR -iname "*.socket" -exec rm {} \;
+        env:
+          TESTS: ${{ matrix.tests }}
+          TESTDIR: ${{ runner.temp }}/test-logs
+
+      - name: Save artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ runner.temp }}/test-logs  # only exists for webdriver tests
 
     services:
       # https://github.com/bitnami/bitnami-docker-minio/issues/16

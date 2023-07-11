@@ -14,8 +14,6 @@ export interface AllCellVersions {
 }
 export type CellVersions = Partial<AllCellVersions>;
 
-import map = require('lodash/map');
-
 export type AddRecord = ['AddRecord', string, number, ColValues];
 export type BulkAddRecord = ['BulkAddRecord', string, number[], BulkColValues];
 export type RemoveRecord = ['RemoveRecord', string, number];
@@ -149,21 +147,6 @@ export type UserAction = Array<string|number|object|boolean|null|undefined>;
 
 // Actions that trigger formula calculations in the data engine
 export const CALCULATING_USER_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime', 'RespondToRequests']);
-
-/**
- * Gives a description for an action which involves setting values to a selection.
- * @param {Array} action - The (Bulk)AddRecord/(Bulk)UpdateRecord action to describe.
- * @param {Boolean} optExcludeVals - Indicates whether the values should be excluded from
- *  the description.
- */
-export function getSelectionDesc(action: UserAction, optExcludeVals: boolean): string {
-  const table   = action[1];
-  const rows    = action[2];
-  const colValues: number[]  = action[3] as any;  // TODO: better typing - but code may evaporate
-  const columns = map(colValues, (values, col) => optExcludeVals ? col : `${col}: ${values}`);
-  const s = typeof rows === 'object' ? 's' : '';
-  return `table ${table}, row${s} ${rows}; ${columns.join(", ")}`;
-}
 
 export function getNumRows(action: DocAction): number {
   return !isDataAction(action) ? 0

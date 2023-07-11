@@ -3,7 +3,7 @@ import {makeT} from 'app/client/lib/localization';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
 import {BehavioralPrompt} from 'app/common/Prefs';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
 
@@ -104,6 +104,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
 export interface BehavioralPromptContent {
   title: () => string;
   content: (...domArgs: DomElementArg[]) => DomContents;
+  deploymentTypes: GristDeploymentType[] | '*';
 }
 
 export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptContent> = {
@@ -119,6 +120,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   referenceColumnsConfig: {
     title: () => t('Reference Columns'),
@@ -133,6 +135,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   rawDataPage: {
     title: () => t('Raw Data page'),
@@ -142,6 +145,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', cssLink({href: commonUrls.helpRawData, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   accessRules: {
     title: () => t('Access Rules'),
@@ -151,6 +155,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   filterButtons: {
     title: () => t('Pinning Filters'),
@@ -160,6 +165,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', cssLink({href: commonUrls.helpFilterButtons, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   nestedFiltering: {
     title: () => t('Nested Filtering'),
@@ -168,6 +174,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', t('Only those rows will appear which match all of the filters.')),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   pageWidgetPicker: {
     title: () => t('Selecting Data'),
@@ -176,6 +183,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', t('Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.')),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   pageWidgetPickerSelectBy: {
     title: () => t('Linking Widgets'),
@@ -185,6 +193,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   editCardLayout: {
     title: () => t('Editing Card Layout'),
@@ -195,6 +204,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       })),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   addNew: {
     title: () => t('Add New'),
@@ -203,6 +213,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
         + 'or import data.')),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
   rickRow: {
     title: () => t('Anchor Links'),
@@ -217,6 +228,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ),
       ...args,
     ),
+    deploymentTypes: '*',
   },
   customURL: {
     title: () => t('Custom Widgets'),
@@ -230,5 +242,6 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
+    deploymentTypes: ['saas'],
   },
 };

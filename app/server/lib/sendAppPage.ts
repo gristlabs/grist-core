@@ -76,7 +76,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     featureFormulaAssistant: isAffirmative(process.env.GRIST_FORMULA_ASSISTANT),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
-    telemetry: server ? getTelemetryConfig(server) : undefined,
+    telemetry: server?.getTelemetry().getTelemetryConfig(),
     deploymentType: server?.getDeploymentType(),
     ...extra,
   };
@@ -161,13 +161,6 @@ function getFeatures(): IFeature[] {
   const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(',') ?? [];
   const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(',') ?? Features.values;
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
-}
-
-function getTelemetryConfig(server: GristServer) {
-  const telemetry = server.getTelemetry();
-  return {
-    telemetryLevel: telemetry.getTelemetryLevel(),
-  };
 }
 
 function configuredPageTitleSuffix() {

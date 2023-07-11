@@ -220,6 +220,8 @@ export const GristLight: ThemeColors = {
   'left-panel-page-options-selected-hover-bg': '#929299',
   'left-panel-page-initials-fg': 'white',
   'left-panel-page-initials-bg': '#929299',
+  'left-panel-page-emoji-fg': 'white',
+  'left-panel-page-emoji-outline': '#BDBDBD',
 
   /* Right Panel */
   'right-panel-tab-fg': '#262633',

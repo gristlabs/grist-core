@@ -43,6 +43,16 @@ export interface IBillingPlan {
   active: boolean;
 }
 
+export interface ILimitTier {
+  name?: string;
+  volume: number;
+  price: number;
+  flatFee: number;
+  type: string;
+  planId: string;
+  interval: string; // probably 'month'|'year';
+}
+
 // Utility type that requires all properties to be non-nullish.
 // type NonNullableProperties<T> = { [P in keyof T]: Required<NonNullable<T[P]>>; };
 
@@ -69,6 +79,7 @@ export interface IBillingDiscount {
 export interface IBillingSubscription {
   // All standard plan options.
   plans: IBillingPlan[];
+  tiers: ILimitTier[];
   // Index in the plans array of the plan currently in effect.
   planIndex: number;
   // Index in the plans array of the plan to be in effect after the current period end.
@@ -111,6 +122,14 @@ export interface IBillingSubscription {
   lastInvoiceUrl?: string;    // URL of the Stripe-hosted page with the last invoice.
   lastChargeError?: string;   // The last charge error, if any, to show in case of a bad status.
   lastChargeTime?: number;    // The time of the last charge attempt.
+  limit?: ILimit|null;
+}
+
+export interface ILimit {
+  limitValue: number;
+  currentUsage: number;
+  type: string; // Limit type, for now only assistant is supported.
+  price: number; // If this is 0, it means it is a free plan.
 }
 
 export interface IBillingOrgSettings {
@@ -139,6 +158,7 @@ export interface BillingAPI {
   downgradePlan(planName: string): Promise<void>;
   renewPlan(): string;
   customerPortal(): string;
+  updateAssistantPlan(tier: number): Promise<void>;
 }
 
 export class BillingAPIImpl extends BaseAPI implements BillingAPI {
@@ -228,6 +248,13 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
 
   public renewPlan(): string {
     return `${this._url}/api/billing/renew`;
+  }
+
+  public async updateAssistantPlan(tier: number): Promise<void> {
+    await this.request(`${this._url}/api/billing/upgrade-assistant`, {
+      method: 'POST',
+      body: JSON.stringify({ tier })
+    });
   }
 
   /**

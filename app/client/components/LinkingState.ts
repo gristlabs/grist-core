@@ -4,7 +4,7 @@ import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {TableRec} from "app/client/models/entities/TableRec";
 import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {RowId} from "app/client/models/rowset";
+import {UIRowId} from "app/common/TableData";
 import {LinkConfig} from "app/client/ui/selectBy";
 import {ClientQuery, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isListType, isRefListType} from "app/common/gristTypes";
@@ -62,7 +62,7 @@ export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
  */
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
-  public readonly cursorPos?: ko.Computed<RowId>;
+  public readonly cursorPos?: ko.Computed<UIRowId>;
 
   // If linking affects filtering, this is a computed for the current filtering state, as a
   // {[colId]: colValues} mapping, with a dependency on srcSection.activeRowId()
@@ -136,7 +136,7 @@ export class LinkingState extends Disposable {
       const srcValueFunc = srcColId ? this._makeSrcCellGetter() : identity;
       if (srcValueFunc) {
         this.cursorPos = this.autoDispose(ko.computed(() =>
-          srcValueFunc(srcSection.activeRowId()) as RowId
+          srcValueFunc(srcSection.activeRowId()) as UIRowId
         ));
       }
 
@@ -172,7 +172,7 @@ export class LinkingState extends Disposable {
 
   // Value for this.filterColValues filtering based on a single column
   private _simpleFilter(
-    colId: string, operation: QueryOperation, valuesFunc: (rowId: RowId|null) => any[]
+    colId: string, operation: QueryOperation, valuesFunc: (rowId: UIRowId|null) => any[]
   ): ko.Computed<FilterColValues> {
     return this.autoDispose(ko.computed(() => {
       const srcRowId = this._srcSection.activeRowId();
@@ -226,7 +226,7 @@ export class LinkingState extends Disposable {
     if (!srcCellObs) {
       return null;
     }
-    return (rowId: RowId | null) => {
+    return (rowId: UIRowId | null) => {
       srcRowModel.assign(rowId);
       if (rowId === 'new') {
         return 'new';
