@@ -32,6 +32,8 @@ export interface ICreate {
   sessionSecret(): string;
   // Check configuration of the app early enough to show on startup.
   configure?(): Promise<void>;
+  // Optionally perform sanity checks on the configured storage, throwing a fatal error if it is not functional
+  checkBackend?(): Promise<void>;
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
@@ -119,6 +121,13 @@ export function makeSimpleCreator(opts: {
       return secret;
     },
     async configure() {
+      for (const s of storage || []) {
+        if (s.check()) {
+          break;
+        }
+      }
+    },
+    async checkBackend() {
       for (const s of storage || []) {
         if (s.check()) {
           await s.checkBackend?.();
