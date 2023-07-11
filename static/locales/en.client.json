@@ -70,7 +70,11 @@
         "Sign Out": "Sign Out",
         "Sign in": "Sign in",
         "Switch Accounts": "Switch Accounts",
-        "Toggle Mobile Mode": "Toggle Mobile Mode"
+        "Toggle Mobile Mode": "Toggle Mobile Mode",
+        "Activation": "Activation",
+        "Billing Account": "Billing Account",
+        "Support Grist": "Support Grist",
+        "Upgrade Plan": "Upgrade Plan"
     },
     "ViewAsDropdown": {
         "View As": "View As",
@@ -475,7 +479,8 @@
         "Notifications": "Notifications",
         "Renew": "Renew",
         "Report a problem": "Report a problem",
-        "Upgrade Plan": "Upgrade Plan"
+        "Upgrade Plan": "Upgrade Plan",
+        "Manage billing": "Manage billing"
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
@@ -1035,5 +1040,37 @@
         "Welcome back": "Welcome back",
         "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
         "You have access to the following Grist sites.": "You have access to the following Grist sites."
+    },
+    "SupportGristNudge": {
+        "Close": "Close",
+        "Contribute": "Contribute",
+        "Help Center": "Help Center",
+        "Opt in to Telemetry": "Opt in to Telemetry",
+        "Opted In": "Opted In",
+        "Support Grist": "Support Grist",
+        "Support Grist page": "Support Grist page"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "GitHub Sponsors page": "GitHub Sponsors page",
+        "Help Center": "Help Center",
+        "Home": "Home",
+        "Manage Sponsorship": "Manage Sponsorship",
+        "Opt in to Telemetry": "Opt in to Telemetry",
+        "Opt out of Telemetry": "Opt out of Telemetry",
+        "Sponsor Grist Labs on GitHub": "Sponsor Grist Labs on GitHub",
+        "Support Grist": "Support Grist",
+        "Telemetry": "Telemetry",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "This instance is opted in to telemetry. Only the site administrator has permission to change this.",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "This instance is opted out of telemetry. Only the site administrator has permission to change this.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "We only collect usage statistics, as detailed in our {{link}}, never document contents.",
+        "You can opt out of telemetry at any time from this page.": "You can opt out of telemetry at any time from this page.",
+        "You have opted in to telemetry. Thank you!": "You have opted in to telemetry. Thank you!",
+        "You have opted out of telemetry.": "You have opted out of telemetry."
+    },
+    "buildViewSectionDom": {
+        "No data": "No data",
+        "No row selected in {{title}}": "No row selected in {{title}}",
+        "Not all data is shown": "Not all data is shown"
     }
 }
