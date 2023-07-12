@@ -227,76 +227,11 @@ export class ActiveDocImport {
   }
 
   /**
-   * Imports all files as new tables, using the given transform rules and import options.
-   * The isHidden flag indicates whether to create temporary hidden tables, or final ones.
+   * Import data resulting from parsing a file into a new table.
+   * In normal circumstances this is only used internally.
+   * It's exposed publicly for use by grist-static which doesn't use the plugin system.
    */
-  private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
-                             {parseOptions = {}, mergeOptionMaps = []}: ImportOptions,
-                             isHidden: boolean): Promise<ImportResult> {
-
-    // Check that upload size is within the configured limits.
-    const limit = (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || Infinity;
-    const totalSize = upload.files.reduce((acc, f) => acc + f.size, 0);
-    if (totalSize > limit) {
-      throw new ApiError(`Imported files must not exceed ${gutil.byteString(limit)}`, 413);
-    }
-
-    // The upload must be within the plugin-accessible directory. Once moved, subsequent calls to
-    // moveUpload() will return without having to do anything.
-    if (!this._activeDoc.docPluginManager) { throw new Error('no plugin manager available'); }
-    await moveUpload(upload, this._activeDoc.docPluginManager.tmpDir());
-
-    const importResult: ImportResult = {options: parseOptions, tables: []};
-    for (const [index, file] of upload.files.entries()) {
-      // If we have a better guess for the file's extension, replace it in origName, to ensure
-      // that DocPluginManager has access to it to guess the best parser type.
-      let origName: string = file.origName;
-      if (file.ext) {
-        origName = path.basename(origName, path.extname(origName)) + file.ext;
-      }
-      const res = await this._importFileAsNewTable(docSession, file.absPath, {
-        parseOptions,
-        mergeOptionsMap: mergeOptionMaps[index] || {},
-        isHidden,
-        originalFilename: origName,
-        uploadFileIndex: index,
-        transformRuleMap: transforms[index] || {}
-      });
-      if (index === 0) {
-        // Returned parse options from the first file should be used for all files in one upload.
-        importResult.options = parseOptions = res.options;
-      }
-      importResult.tables.push(...res.tables);
-    }
-    return importResult;
-  }
-
-  /**
-   * Imports the data stored at tmpPath.
-   *
-   * Currently it starts a python parser as a child process
-   * outside the sandbox, and supports xlsx, csv, and perhaps some other formats. It may
-   * result in the import of multiple tables, in case of e.g. Excel formats.
-   * @param {OptDocSession} docSession: Session instance to use for importing.
-   * @param {String} tmpPath: The path from of the original file.
-   * @param {FileImportOptions} importOptions: File import options.
-   * @returns {Promise<ImportResult>} with `options` property containing parseOptions as serialized JSON as adjusted
-   * or guessed by the plugin, and `tables`, which is which is a list of objects with information about
-   * tables, such as `hiddenTableId`, `uploadFileIndex`, `origTableName`, `transformSectionRef`, `destTableId`.
-   */
-  private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
-                                      importOptions: FileImportOptions): Promise<ImportResult> {
-    const {originalFilename, parseOptions} = importOptions;
-    log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
-    if (!this._activeDoc.docPluginManager) {
-      throw new Error('no plugin manager available');
-    }
-    const optionsAndData: ParseFileResult =
-      await this._activeDoc.docPluginManager.parseFile(tmpPath, originalFilename, parseOptions);
-    return this._importParsedFileAsNewTable(docSession, optionsAndData, importOptions);
-  }
-
-  private async _importParsedFileAsNewTable(
+  public async importParsedFileAsNewTable(
     docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions
   ): Promise<ImportResult> {
     const {originalFilename, mergeOptionsMap, isHidden, uploadFileIndex, transformRuleMap} = importOptions;
@@ -380,6 +315,76 @@ export class ActiveDocImport {
     await this._fixReferences(docSession, tables, fixedColumnIdsByTable, references, isHidden);
 
     return ({options, tables});
+  }
+
+  /**
+   * Imports all files as new tables, using the given transform rules and import options.
+   * The isHidden flag indicates whether to create temporary hidden tables, or final ones.
+   */
+  private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
+                             {parseOptions = {}, mergeOptionMaps = []}: ImportOptions,
+                             isHidden: boolean): Promise<ImportResult> {
+
+    // Check that upload size is within the configured limits.
+    const limit = (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || Infinity;
+    const totalSize = upload.files.reduce((acc, f) => acc + f.size, 0);
+    if (totalSize > limit) {
+      throw new ApiError(`Imported files must not exceed ${gutil.byteString(limit)}`, 413);
+    }
+
+    // The upload must be within the plugin-accessible directory. Once moved, subsequent calls to
+    // moveUpload() will return without having to do anything.
+    if (!this._activeDoc.docPluginManager) { throw new Error('no plugin manager available'); }
+    await moveUpload(upload, this._activeDoc.docPluginManager.tmpDir());
+
+    const importResult: ImportResult = {options: parseOptions, tables: []};
+    for (const [index, file] of upload.files.entries()) {
+      // If we have a better guess for the file's extension, replace it in origName, to ensure
+      // that DocPluginManager has access to it to guess the best parser type.
+      let origName: string = file.origName;
+      if (file.ext) {
+        origName = path.basename(origName, path.extname(origName)) + file.ext;
+      }
+      const res = await this._importFileAsNewTable(docSession, file.absPath, {
+        parseOptions,
+        mergeOptionsMap: mergeOptionMaps[index] || {},
+        isHidden,
+        originalFilename: origName,
+        uploadFileIndex: index,
+        transformRuleMap: transforms[index] || {}
+      });
+      if (index === 0) {
+        // Returned parse options from the first file should be used for all files in one upload.
+        importResult.options = parseOptions = res.options;
+      }
+      importResult.tables.push(...res.tables);
+    }
+    return importResult;
+  }
+
+  /**
+   * Imports the data stored at tmpPath.
+   *
+   * Currently it starts a python parser as a child process
+   * outside the sandbox, and supports xlsx, csv, and perhaps some other formats. It may
+   * result in the import of multiple tables, in case of e.g. Excel formats.
+   * @param {OptDocSession} docSession: Session instance to use for importing.
+   * @param {String} tmpPath: The path from of the original file.
+   * @param {FileImportOptions} importOptions: File import options.
+   * @returns {Promise<ImportResult>} with `options` property containing parseOptions as serialized JSON as adjusted
+   * or guessed by the plugin, and `tables`, which is which is a list of objects with information about
+   * tables, such as `hiddenTableId`, `uploadFileIndex`, `origTableName`, `transformSectionRef`, `destTableId`.
+   */
+  private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
+                                      importOptions: FileImportOptions): Promise<ImportResult> {
+    const {originalFilename, parseOptions} = importOptions;
+    log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
+    if (!this._activeDoc.docPluginManager) {
+      throw new Error('no plugin manager available');
+    }
+    const optionsAndData: ParseFileResult =
+      await this._activeDoc.docPluginManager.parseFile(tmpPath, originalFilename, parseOptions);
+    return this.importParsedFileAsNewTable(docSession, optionsAndData, importOptions);
   }
 
   /**
