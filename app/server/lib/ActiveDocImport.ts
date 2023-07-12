@@ -44,7 +44,7 @@ interface ReferenceDescription {
   refTableId: string;
 }
 
-interface FileImportOptions {
+export interface FileImportOptions {
   // Suggested name of the import file. It is sometimes used as a suggested table name, e.g. for csv imports.
   originalFilename: string;
   // Containing parseOptions as serialized JSON to pass to the import plugin.
