@@ -129,7 +129,8 @@
     },
     "WelcomeSitePicker": {
         "You can always switch sites using the account menu.": "Sempre pode alternar entre sites através do menu da conta.",
-        "Welcome back": "Bem-vindo de volta"
+        "Welcome back": "Bem-vindo de volta",
+        "You have access to the following Grist sites.": "Tens acesso aos seguintes sítios Grist."
     },
     "MakeCopyMenu": {
         "Cancel": "Cancelar",
