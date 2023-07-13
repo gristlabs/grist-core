@@ -2123,6 +2123,9 @@ export class ActiveDoc extends EventEmitter {
 
   private async _checkDataSizeLimitRatio(docSession: OptDocSession | null) {
     const start = Date.now();
+    if (!this.docStorage.isInitialized()) {
+      return;
+    }
     const dataSizeBytes = await this._updateDataSize();
     const timeToMeasure = Date.now() - start;
     log.rawInfo('Data size from dbstat...', {
