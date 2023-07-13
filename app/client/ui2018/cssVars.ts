@@ -82,7 +82,7 @@ export const colors = {
 
 export const vars = {
   /* Fonts */
-  fontFamily: new CustomProp('font-family', `-apple-system,BlinkMacSystemFont,Segoe UI,DejaVu Sans,
+  fontFamily: new CustomProp('font-family', `-apple-system,BlinkMacSystemFont,Segoe UI,Liberation Sans,
     Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol`),
 
   // This is more monospace and looks better for data that should often align (e.g. to have 00000
