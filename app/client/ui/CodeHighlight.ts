@@ -1,14 +1,15 @@
+import * as ace from 'ace-builds';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {Theme} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
-import * as ace from 'brace';
 import {BindableValue, Computed, dom, DomElementArg, Observable, styled, subscribeElem} from 'grainjs';
 
-// tslint:disable:no-var-requires
-require('brace/ext/static_highlight');
-require("brace/mode/python");
-require("brace/theme/chrome");
-require('brace/theme/dracula');
+// ace-builds also has a minified build (src-min-noconflict), but we don't
+// use it since webpack already handles minification.
+require('ace-builds/src-noconflict/ext-static_highlight');
+require('ace-builds/src-noconflict/mode-python');
+require('ace-builds/src-noconflict/theme-chrome');
+require('ace-builds/src-noconflict/theme-dracula');
 
 export interface ICodeOptions {
   gristTheme: Computed<Theme>;
@@ -22,10 +23,11 @@ export function buildHighlightedCode(
   const {gristTheme, placeholder, maxLines} = options;
   const {enableCustomCss} = getGristConfig();
 
-  const highlighter = ace.acequire('ace/ext/static_highlight');
-  const PythonMode = ace.acequire('ace/mode/python').Mode;
-  const chrome = ace.acequire('ace/theme/chrome');
-  const dracula = ace.acequire('ace/theme/dracula');
+  const highlighter = ace.require('ace/ext/static_highlight');
+  const PythonMode = ace.require('ace/mode/python').Mode;
+  const aceDom = ace.require('ace/lib/dom');
+  const chrome = ace.require('ace/theme/chrome');
+  const dracula = ace.require('ace/theme/dracula');
   const mode = new PythonMode();
 
   const codeText = Observable.create(null, '');
@@ -33,21 +35,37 @@ export function buildHighlightedCode(
 
   function updateHighlightedCode(elem: HTMLElement) {
     let text = codeText.get();
-    if (text) {
-      if (maxLines) {
-        // If requested, trim to maxLines, and add an ellipsis at the end.
-        // (Long lines are also truncated with an ellpsis via text-overflow style.)
-        const lines = text.split(/\n/);
-        if (lines.length > maxLines) {
-          text = lines.slice(0, maxLines).join("\n") + " \u2026";  // Ellipsis
-        }
-      }
-
-      const aceTheme = codeTheme.get().appearance === 'dark' && !enableCustomCss ? dracula : chrome;
-      elem.innerHTML = highlighter.render(text, mode, aceTheme, 1, true).html;
-    } else {
+    if (!text) {
       elem.textContent = placeholder || '';
+      return;
     }
+
+    if (maxLines) {
+      // If requested, trim to maxLines, and add an ellipsis at the end.
+      // (Long lines are also truncated with an ellpsis via text-overflow style.)
+      const lines = text.split(/\n/);
+      if (lines.length > maxLines) {
+        text = lines.slice(0, maxLines).join("\n") + " \u2026";  // Ellipsis
+      }
+    }
+
+    let aceThemeName: 'chrome' | 'dracula';
+    let aceTheme: any;
+    if (codeTheme.get().appearance === 'dark' && !enableCustomCss) {
+      aceThemeName = 'dracula';
+      aceTheme = dracula;
+    } else {
+      aceThemeName = 'chrome';
+      aceTheme = chrome;
+    }
+
+    // Rendering highlighted code gives you back the HTML to insert into the DOM, as well
+    // as the CSS styles needed to apply the theme. The latter typically isn't included in
+    // the document until an Ace editor is opened, so we explicitly import it here to avoid
+    // leaving highlighted code blocks without a theme applied.
+    const {html, css} = highlighter.render(text, mode, aceTheme, 1, true);
+    elem.innerHTML = html;
+    aceDom.importCssString(css, `${aceThemeName}-highlighted-code`);
   }
 
   return cssHighlightedCode(

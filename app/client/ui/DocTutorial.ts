@@ -2,7 +2,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
-import {cssPopupBody, FloatingPopup} from 'app/client/ui/FloatingPopup';
+import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup} from 'app/client/ui/FloatingPopup';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {hoverTooltip, setHoverTooltip} from 'app/client/ui/tooltips';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
@@ -26,8 +26,6 @@ interface DocTutorialSlide {
 
 const testId = makeTestId('test-doc-tutorial-');
 
-const TOOLTIP_KEY = 'docTutorialTooltip';
-
 export class DocTutorial extends FloatingPopup {
   private _appModel = this._gristDoc.docPageModel.appModel;
   private _currentDoc = this._gristDoc.docPageModel.currentDoc.get();
@@ -47,7 +45,10 @@ export class DocTutorial extends FloatingPopup {
   });
 
   constructor(private _gristDoc: GristDoc) {
-    super({stopClickPropagationOnMove: true});
+    super({
+      minimizable: true,
+      stopClickPropagationOnMove: true,
+    });
   }
 
   public async start() {
@@ -102,7 +103,7 @@ export class DocTutorial extends FloatingPopup {
           return [
               cssFooterButtonsLeft(
               cssPopupFooterButton(icon('Undo'),
-                hoverTooltip('Restart Tutorial', {key: TOOLTIP_KEY}),
+                hoverTooltip('Restart Tutorial', {key: FLOATING_POPUP_TOOLTIP_KEY}),
                 dom.on('click', () => this._restartTutorial()),
                 testId('popup-restart'),
               ),
@@ -111,7 +112,7 @@ export class DocTutorial extends FloatingPopup {
               range(slides.length).map((i) => cssProgressBarDot(
                 hoverTooltip(slides[i].slideTitle, {
                   closeOnClick: false,
-                  key: TOOLTIP_KEY,
+                  key: FLOATING_POPUP_TOOLTIP_KEY,
                 }),
                 cssProgressBarDot.cls('-current', i === slideIndex),
                 i === slideIndex ? null : dom.on('click', () => this._changeSlide(i)),
@@ -315,7 +316,7 @@ export class DocTutorial extends FloatingPopup {
           img.src = img.src;
 
           setHoverTooltip(img, 'Click to expand', {
-            key: TOOLTIP_KEY,
+            key: FLOATING_POPUP_TOOLTIP_KEY,
             modifiers: {
               flip: {
                 boundariesElement: 'scrollParent',

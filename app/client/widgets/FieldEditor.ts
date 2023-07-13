@@ -159,7 +159,11 @@ export class FieldEditor extends Disposable {
     this.rebuildEditor(editValue, Number.POSITIVE_INFINITY, options.state);
 
     // Create a floating editor, which will be used to display the editor in a popup.
-    this.floatingEditor = FloatingEditor.create(this, this, this._gristDoc);
+    this.floatingEditor = FloatingEditor.create(this, this, {
+      gristDoc: this._gristDoc,
+      refElem: this._cellElem,
+      placement: 'adjacent',
+    });
 
     if (offerToMakeFormula) {
       this._offerToMakeFormula();
@@ -318,6 +322,10 @@ export class FieldEditor extends Disposable {
 
   private _unmakeFormula() {
     const editor = this._editorHolder.get();
+    if (editor instanceof FormulaEditor && editor.isDetached.get()) {
+      return true;
+    }
+
     // Only convert to data if we are undoing a to-formula conversion. To convert formula to
     // data, use column menu option, or delete the formula first (which makes the column "empty").
     if (editor && this._field.editingFormula.peek() && editor.getCursorPos() === 0 &&

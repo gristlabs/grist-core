@@ -29,6 +29,7 @@ export function documentCursor(type: 'ns-resize' | 'grabbing'): IDisposable {
 export function movable<T>(options: {
   onMove: (dx: number, dy: number, state: T) => void,
   onStart: () => T,
+  onEnd?: () => void,
 }) {
   return (el: HTMLElement) => {
     // Remember the initial position of the mouse.
@@ -53,6 +54,7 @@ export function movable<T>(options: {
         options.onMove(dx, dy, state);
       }));
       owner.autoDispose(dom.onElem(document, 'mouseup', () => {
+        options.onEnd?.();
         holder.clear();
       }));
       owner.autoDispose(documentCursor('ns-resize'));

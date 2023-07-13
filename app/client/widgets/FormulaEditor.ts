@@ -8,12 +8,14 @@ import {ColumnRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
 import {GRIST_FORMULA_ASSISTANT} from 'app/client/models/features';
-import {colors, testId, theme} from 'app/client/ui2018/cssVars';
+import {hoverTooltip} from 'app/client/ui/tooltips';
+import {textButton} from 'app/client/ui2018/buttons';
+import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {createMobileButtons, getButtonMargins} from 'app/client/widgets/EditorButtons';
 import {EditorPlacement, ISize} from 'app/client/widgets/EditorPlacement';
 import {createDetachedIcon} from 'app/client/widgets/FloatingEditor';
-import {buildRobotIcon, FormulaAssistant} from 'app/client/widgets/FormulaAssistant';
+import {FormulaAssistant} from 'app/client/widgets/FormulaAssistant';
 import {NewBaseEditor, Options} from 'app/client/widgets/NewBaseEditor';
 import {asyncOnce} from 'app/common/AsyncCreate';
 import {CellValue} from 'app/common/DocActions';
@@ -55,6 +57,8 @@ export class FormulaEditor extends NewBaseEditor {
   private _dom: HTMLElement;
   private _editorPlacement!: EditorPlacement;
   private _placementHolder = Holder.create(this);
+  private _canDetach: boolean;
+  private _isEmpty: Computed<boolean>;
 
   constructor(options: IFormulaEditorOptions) {
     super(options);
@@ -64,6 +68,8 @@ export class FormulaEditor extends NewBaseEditor {
     const initialValue = undef(options.state as string | undefined, options.editValue, String(options.cellValue));
     // create editor state observable (used by draft and latest position memory)
     this.editorState = Observable.create(this, initialValue);
+
+    this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === '');
 
     this._formulaEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
@@ -101,8 +107,7 @@ export class FormulaEditor extends NewBaseEditor {
         return true;
       }
       // Else invoke regular command.
-      commands.allCommands[name]?.run();
-      return false;
+      return commands.allCommands[name]?.run() ?? false;
     };
     const detachedCommands = this.autoDispose(commands.createGroup({
       nextField: passThrough('nextField'),
@@ -140,11 +145,17 @@ export class FormulaEditor extends NewBaseEditor {
     // the DOM to update before resizing.
     this.autoDispose(errorDetails.addListener(() => setTimeout(this.resize.bind(this), 0)));
 
-    const canDetach = GRIST_FORMULA_ASSISTANT().get() &&  options.canDetach && !options.readonly;
+    this._canDetach = Boolean(GRIST_FORMULA_ASSISTANT().get() && options.canDetach && !options.readonly);
 
     this.autoDispose(this._formulaEditor);
+
+    // Show placeholder text when the formula is blank.
+    this._isEmpty.addListener(() => this._updateEditorPlaceholder());
+
+    // Update the placeholder text when expanding or collapsing the editor.
+    this.isDetached.addListener(() => this._updateEditorPlaceholder());
+
     this._dom = cssFormulaEditor(
-      buildRobotIcon(),
       // switch border shadow
       dom.cls("readonly_editor", options.readonly),
       createMobileButtons(options.commands),
@@ -173,7 +184,10 @@ export class FormulaEditor extends NewBaseEditor {
         ev.preventDefault();
         this.focus();
       }),
-      canDetach ? createDetachedIcon(dom.hide(this.isDetached)) : null,
+      !this._canDetach ? null : createDetachedIcon(
+        hoverTooltip(t('Expand Editor')),
+        dom.hide(this.isDetached),
+      ),
       cssFormulaEditor.cls('-detached', this.isDetached),
       dom('div.formula_editor.formula_field_edit', testId('formula-editor'),
         this._formulaEditor.buildDom((aceObj: any) => {
@@ -198,6 +212,11 @@ export class FormulaEditor extends NewBaseEditor {
           aceObj.once("change", () => {
             editingFormula?.(true);
           });
+
+          if (val === '') {
+            // Show placeholder text if the formula is blank.
+            this._updateEditorPlaceholder();
+          }
         })
       ),
       dom.maybe(options.formulaError, () => [
@@ -305,6 +324,40 @@ export class FormulaEditor extends NewBaseEditor {
     return this._dom;
   }
 
+  private _updateEditorPlaceholder() {
+    const editor = this._formulaEditor.getEditor();
+    const shouldShowPlaceholder = editor.session.getValue().length === 0;
+    const placeholderNode = editor.renderer.emptyMessageNode;
+    if (placeholderNode) {
+      // Remove the current placeholder if one is present.
+      editor.renderer.scroller.removeChild(placeholderNode);
+    }
+    if (!shouldShowPlaceholder) {
+      editor.renderer.emptyMessageNode = null;
+    } else {
+      editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
+        !this._canDetach || this.isDetached.get()
+          ? t('Enter formula.')
+          : t('Enter formula or {{button}}.', {
+            button: cssUseAssistantButton(
+              t('use AI Assistant'),
+              dom.on('click', (ev) => this._handleUseAssistantButtonClick(ev)),
+              testId('formula-editor-use-ai-assistant'),
+            ),
+          }),
+      );
+      editor.renderer.scroller.appendChild(editor.renderer.emptyMessageNode);
+    }
+    this._formulaEditor.resize();
+  }
+
+  private _handleUseAssistantButtonClick(ev: MouseEvent) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    commands.allCommands.detachEditor.run();
+    commands.allCommands.activateAssistant.run();
+  }
+
   private _calcSize(elem: HTMLElement, desiredElemSize: ISize) {
     if (this.isDetached.get()) {
       // If we are detached, we will stop autosizing.
@@ -313,6 +366,16 @@ export class FormulaEditor extends NewBaseEditor {
         width: 0
       };
     }
+
+    const placeholder: HTMLElement | undefined = this._formulaEditor.getEditor().renderer.emptyMessageNode;
+    if (placeholder) {
+      // If we are showing the placeholder, fit it all on the same line.
+      return this._editorPlacement.calcSizeWithPadding(elem, {
+        width: placeholder.scrollWidth,
+        height: placeholder.scrollHeight,
+      });
+    }
+
     const errorBox: HTMLElement|null = this._dom.querySelector('.error_details');
     const errorBoxStartHeight = errorBox?.getBoundingClientRect().height || 0;
     const errorBoxDesiredHeight = errorBox?.scrollHeight || 0;
@@ -652,6 +715,9 @@ const cssCollapseIcon = styled(icon, `
   margin: -3px 4px 0 4px;
   --icon-color: ${colors.slate};
   cursor: pointer;
+  position: sticky;
+  top: 0px;
+  flex-shrink: 0;
 `);
 
 export const cssError = styled('div', `
@@ -666,11 +732,15 @@ const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
   }
   &-detached .formula_editor {
     flex-grow: 1;
+    min-height: 100px;
   }
 
   &-detached .error_msg, &-detached .error_details {
-    flex-grow: 0;
-    flex-shrink: 1;
+    max-height: 100px;
+    flex-shrink: 0;
+  }
+
+  &-detached .error_msg {
     cursor: default;
   }
 
@@ -683,12 +753,14 @@ const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
     height: 100% !important;
     width: 100% !important;
   }
+`);
 
-  .floating-popup .formula_editor {
-    min-height: 100px;
-  }
+const cssFormulaPlaceholder = styled('div', `
+  color: ${theme.lightText};
+  font-style: italic;
+  white-space: nowrap;
+`);
 
-  .floating-popup .error_details {
-    min-height: 100px;
-  }
+const cssUseAssistantButton = styled(textButton, `
+  font-size: ${vars.smallFontSize};
 `);

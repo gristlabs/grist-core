@@ -333,7 +333,6 @@ export const ThemeColors = t.iface([], {
   "cell-fg": "string",
   "cell-bg": "string",
   "cell-zebra-bg": "string",
-  "formula-editor-bg": "string",
   "chart-fg": "string",
   "chart-bg": "string",
   "chart-legend-bg": "string",
@@ -359,6 +358,7 @@ export const ThemeColors = t.iface([], {
   "tutorials-popup-border": "string",
   "tutorials-popup-header-fg": "string",
   "tutorials-popup-box-bg": "string",
+  "ace-editor-bg": "string",
   "ace-autocomplete-primary-fg": "string",
   "ace-autocomplete-secondary-fg": "string",
   "ace-autocomplete-highlighted-fg": "string",
@@ -391,6 +391,9 @@ export const ThemeColors = t.iface([], {
   "login-page-bg": "string",
   "login-page-backdrop": "string",
   "login-page-line": "string",
+  "formula-assistant-header-bg": "string",
+  "formula-assistant-border": "string",
+  "formula-assistant-preformatted-text-bg": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

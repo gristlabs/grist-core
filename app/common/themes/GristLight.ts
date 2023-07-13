@@ -415,9 +415,6 @@ export const GristLight: ThemeColors = {
   'cell-bg': 'white',
   'cell-zebra-bg': '#F8F8F8',
 
-  /* Formula Editor */
-  'formula-editor-bg': 'white',
-
   /* Charts */
   'chart-fg': '#444',
   'chart-bg': '#fff',
@@ -451,7 +448,8 @@ export const GristLight: ThemeColors = {
   'tutorials-popup-header-fg': '#FFFFFF',
   'tutorials-popup-box-bg': '#F5F5F5',
 
-  /* Ace Autocomplete */
+  /* Ace */
+  'ace-editor-bg': 'white',
   'ace-autocomplete-primary-fg': '#444',
   'ace-autocomplete-secondary-fg': '#8F8F8F',
   'ace-autocomplete-highlighted-fg': '#000',
@@ -490,4 +488,9 @@ export const GristLight: ThemeColors = {
   'login-page-bg': 'white',
   'login-page-backdrop': '#F5F8FA',
   'login-page-line': '#F7F7F7',
+
+  /* Formula Assistant */
+  'formula-assistant-header-bg': '#F7F7F7',
+  'formula-assistant-border': '#D9D9D9',
+  'formula-assistant-preformatted-text-bg': '#F7F7F7',
 };

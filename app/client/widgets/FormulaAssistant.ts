@@ -1,29 +1,29 @@
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
+import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {ChatMessage} from 'app/client/models/entities/ColumnRec';
 import {GRIST_FORMULA_ASSISTANT} from 'app/client/models/features';
+import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {createUserImage} from 'app/client/ui/UserImage';
-import {loadingDots} from 'app/client/ui2018/loaders';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {AssistanceResponse, AssistanceState} from 'app/common/AssistancePrompts';
-import {commonUrls} from 'app/common/gristUrls';
-import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {theme} from 'app/client/ui2018/cssVars';
+import {basicButton, bigPrimaryButtonLink, primaryButton} from 'app/client/ui2018/buttons';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {autoGrow} from 'app/client/ui/forms';
-import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
+import {commonUrls} from 'app/common/gristUrls';
 import {movable} from 'app/client/lib/popupUtils';
-
-import debounce from 'lodash/debounce';
-import {Computed, Disposable, dom, DomContents, DomElementArg, keyframes,
-  makeTestId,
+import {loadingDots} from 'app/client/ui2018/loaders';
+import {menu, menuCssClass, menuItem} from "app/client/ui2018/menus";
+import {Computed, Disposable, dom, DomElementArg, makeTestId,
   MutableObsArray, obsArray, Observable, styled} from 'grainjs';
-  import noop from 'lodash/noop';
+import debounce from 'lodash/debounce';
+import noop from 'lodash/noop';
 import {marked} from 'marked';
 
 const t = makeT('FormulaEditor');
@@ -34,29 +34,21 @@ const testId = makeTestId('test-formula-editor-');
  * It renders itself in the detached FormulaEditor and adds some extra UI elements.
  * - Save button: a subscription for the Enter key that saves the formula and closes the assistant.
  * - Preview button: a new functionality that allows to preview the formula in a temporary column.
- * - Two info cards: that describes what this is and how to use it.
+ * - Cancel button: a subscription for the Escape key that discards all changes and closes the assistant.
  * - A chat component: that allows to communicate with the assistant.
  */
 export class FormulaAssistant extends Disposable {
+  private _gristDoc = this._options.gristDoc;
   /** Chat component */
   private _chat: ChatHistory;
   /** State of the user input */
   private _userInput = Observable.create(this, '');
-  /** Is formula description card dismissed */
-  private _isFormulaInfoClosed: Observable<boolean>;
-  /** Is Ai card dismissed */
-  private _isAssistantInfoClosed: Observable<boolean>;
-  /** Are any cards dismissed */
-  private _cardsVisible: Observable<boolean>;
   /** Dom element that holds the user input */
   // TODO: move it to a separate component
   private _input: HTMLTextAreaElement;
-  /** Do we need to show an intro, we show it when history is empty */
-  private _introVisible: Observable<boolean>;
-  /** Do we need to show a robot icon, we show it when history is empty and assistant is disabled */
-  private _robotIconVisible: Observable<boolean>;
-  /** Is chat active, we show it when history is not empty */
-  private _chatActive = Observable.create(this, false);
+  /** Is the formula assistant expanded */
+  private _assistantExpanded = this.autoDispose(localStorageBoolObs(
+    `u:${this._options.gristDoc.appModel.currentUser?.id ?? 0};formulaAssistantExpanded`, true));
   /** Is the request pending */
   private _waiting = Observable.create(this, false);
   /** Is this feature enabled at all */
@@ -71,6 +63,19 @@ export class FormulaAssistant extends Disposable {
   private _domElement: HTMLElement;
   // Input wrapper element (used for resizing).
   private _inputWrapper: HTMLElement;
+  /** Chat panel body element. */
+  private _chatPanelBody: HTMLElement;
+  /** Client height of the chat panel body element. */
+  private _chatPanelBodyClientHeight = Observable.create<number>(this, 0);
+  /**
+   * Last known height of the chat panel.
+   *
+   * This is like `_chatPanelBodyClientHeight`, but updated only for the purposes of
+   * being able to collapse and expand the panel to a known height.
+   */
+  private _lastChatPanelHeight: number|undefined;
+  /** True if the chat panel is being resized via dragging. */
+  private _isResizing = Observable.create(this, false);
   /**
    * Debounced version of the method that will force parent editor to resize, we call it often
    * as we have an ability to resize the chat window.
@@ -90,9 +95,7 @@ export class FormulaAssistant extends Disposable {
     super();
 
     this._assistantEnabled = Computed.create(this, use => {
-      const enabledByFlag = use(GRIST_FORMULA_ASSISTANT());
-      const notAnonymous = Boolean(this._options.gristDoc.appModel.currentValidUser);
-      return enabledByFlag && notAnonymous;
+      return use(GRIST_FORMULA_ASSISTANT());
     });
 
     if (!this._options.field) {
@@ -104,64 +107,17 @@ export class FormulaAssistant extends Disposable {
 
     this._chat = ChatHistory.create(this, {
       ...this._options,
-      copyClicked: this._copyClicked.bind(this),
+      apply: this._apply.bind(this),
     });
-
-    const hasHistory = Computed.create(this, use => use(this._chat.length) > 0);
-    if (hasHistory.get()) {
-      this._chatActive.set(true);
-    }
 
     this.autoDispose(commands.createGroup({
       activateAssistant: () => {
-        this._robotIconClicked();
+        this._expandChatPanel();
         setTimeout(() => {
-          this._input.focus();
+          this._focusChatInput();
         }, 0);
       }
     }, this, true));
-
-    // Calculate some flags what to show when.
-    this._isFormulaInfoClosed = this.autoDispose(_options.gristDoc.appModel.dismissedPopup('formulaHelpInfo'));
-    this._isAssistantInfoClosed = this.autoDispose(_options.gristDoc.appModel.dismissedPopup('formulaAssistantInfo'));
-    this._cardsVisible = Computed.create(this, use => {
-      const seenInfo = use(this._isFormulaInfoClosed);
-      const seenAi = use(this._isAssistantInfoClosed);
-      const aiEnable = use(this._assistantEnabled);
-      const nothingToShow = seenInfo && (seenAi || !aiEnable);
-      if (nothingToShow) {
-        return false;
-      }
-      if (use(hasHistory)) {
-        return false;
-      }
-      if (use(this._chatActive)) {
-        return false;
-      }
-      return true;
-    });
-    this._introVisible = Computed.create(this, use => {
-      if (use(hasHistory)) {
-        return false;
-      }
-      if (use(this._chatActive)) {
-        return true;
-      }
-      return false;
-    });
-    this._robotIconVisible = Computed.create(this, use => {
-      if (!use(this._assistantEnabled)) { return false; }
-      if (use(hasHistory)) {
-        return false;
-      }
-      if (use(this._introVisible)) {
-        return false;
-      }
-      if (use(this._chatActive)) {
-        return false;
-      }
-      return true;
-    });
 
     // Unfortunately we need to observe the size of the formula editor dom and resize it accordingly.
     const observer = new ResizeObserver(this._resizeEditor);
@@ -200,85 +156,116 @@ export class FormulaAssistant extends Disposable {
       (el) => observer.observe(el),
       dom.onDispose(() => observer.disconnect()),
       cssButtons(
-        primaryButton(t('Save'), dom.on('click', () => {
-          this.saveOrClose();
-        }), testId('save-button')),
+        basicButton(t('Cancel'), dom.on('click', () => {
+          this._cancel();
+        }), testId('cancel-button')),
         basicButton(t('Preview'), dom.on('click', async () => {
-          await this.preview();
+          await this._preview();
         }), testId('preview-button')),
-        this.buildInlineRobotButton(),
+        primaryButton(t('Save'), dom.on('click', () => {
+          this._saveOrClose();
+        }), testId('save-button')),
       ),
-      this.buildInfoCards(),
-      this.buildChat(),
+      this._buildChatPanel(),
     );
+
+    if (!this._assistantExpanded.get()) {
+      this._chatPanelBody.style.setProperty('height', '0px');
+    } else {
+      // The actual height doesn't matter too much here, so we just pick
+      // a value that guarantees the assistant will fill as much of the
+      // available space as possible.
+      this._chatPanelBody.style.setProperty('height', '999px');
+    }
+
     return this._domElement;
   }
 
-  public buildInfoCards() {
-    return cssCardList(
-      dom.show(this._cardsVisible),
-      dom.maybe(use => use(this._assistantEnabled) && !use(this._isAssistantInfoClosed), () =>
-        buildCard({
-          close: () => this._isAssistantInfoClosed.set(true),
-          icon: "Robot",
-          title: t("Grist's AI Formula Assistance. "),
-          content: dom('span',
-            t('Need help? Our AI assistant can help.'), ' ',
-            textButton(t('Ask the bot.'), dom.on('click', this._robotIconClicked.bind(this)),),
-          ),
-          args: [testId('ai-well')]
-        }),
-      ),
-      dom.maybe(use => !use(this._isFormulaInfoClosed), () =>
-        buildCard({
-          close: () => this._isFormulaInfoClosed.set(true),
-          icon: 'Help',
-          title: t("Formula Help. "),
-          content: dom('span',
-            t('See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.', {
-            helpFunction: cssLink(t('Function List'), {href: commonUrls.functions, target: '_blank'}),
-            formulaCheat: cssLink(t('Formula Cheat Sheet'), {href: commonUrls.formulaSheet, target: '_blank'}),
-            community: cssLink(t('Community'), {href: commonUrls.community, target: '_blank'}),
-          })),
-          args: [testId('formula-well')]
-        })
-      ),
-    );
-  }
-
-  public buildChat() {
+  private _buildChatPanel() {
     return dom.maybe(this._assistantEnabled, () => {
-      setTimeout(() => {
-        if (!this.isDisposed()) {
-          // Scroll to the bottom of the chat right after it is rendered without the animation.
-          this._chat.scrollDown(false);
-        }
-        this._options.editor.resize();
-      }, 0);
-      return cssChat(
-        testId('chat'),
-        dom.maybe(this._chatActive, () => [
-          cssTopGreenBorder(
-            movable({
-              onStart: this._onResizeStart.bind(this),
-              onMove: this._onResizeMove.bind(this),
-            })
-          ),
-        ]),
-        this._buildIntro(),
-        this._chat.buildDom(),
-        this._buildChatInput(),
-        // Stop propagation of mousedown events, as the formula editor will still focus.
-        dom.on('mousedown', (ev) => ev.stopPropagation()),
+      return cssChatPanel(
+        cssChatPanelHeaderResizer(
+          movable({
+            onStart: this._onResizeStart.bind(this),
+            onMove: this._onResizeMove.bind(this),
+            onEnd: this._onResizeEnd.bind(this),
+          }),
+          cssChatPanelHeaderResizer.cls('-collapsed', use => !use(this._assistantExpanded)),
+        ),
+        this._buildChatPanelHeader(),
+        this._buildChatPanelBody(),
       );
     });
   }
 
+  private _buildChatPanelHeader() {
+    return cssChatPanelHeader(
+      cssChatPanelHeaderTitle(
+        icon('Robot'),
+        t('AI Assistant'),
+      ),
+      cssChatPanelHeaderButtons(
+        cssChatPanelHeaderButton(
+          dom.domComputed(this._assistantExpanded, isExpanded => isExpanded
+            ? icon('Dropdown') : icon('DropdownUp')),
+          dom.on('click', () => {
+            if (this._assistantExpanded.get()) {
+              this._collapseChatPanel();
+            } else {
+              this._expandChatPanel();
+            }
+          }),
+          testId('ai-assistant-expand-collapse'),
+        ),
+        cssChatPanelHeaderButton(
+          icon('Dots'),
+          menu(() => [
+            menuItem(
+              () => this._clear(),
+              t('Clear Conversation'),
+              testId('ai-assistant-options-clear-conversation'),
+            ),
+          ], {menuCssClass: menuCssClass + ' ' + cssChatOptionsMenu.className}),
+          testId('ai-assistant-options'),
+        ),
+      ),
+    );
+  }
+
+  private _buildChatPanelBody() {
+    setTimeout(() => {
+      if (!this.isDisposed()) {
+        // Scroll to the bottom of the chat right after it is rendered without the animation.
+        this._chat.scrollDown(false);
+      }
+      this._options.editor.resize();
+    }, 0);
+
+    const observer = new ResizeObserver(() => {
+      // Keep track of changes to the chat panel body height; its children need to know it to adjust
+      // their max heights accordingly.
+      this._chatPanelBodyClientHeight.set(this._chatPanelBody.clientHeight);
+    });
+
+    this._chatPanelBody = cssChatPanelBody(
+      dom.onDispose(() => observer.disconnect()),
+      testId('ai-assistant-chat-panel'),
+      this._chat.buildDom(),
+      this._gristDoc.appModel.currentValidUser ? this._buildChatInput() : this._buildSignupNudge(),
+      cssChatPanelBody.cls('-resizing', this._isResizing),
+      // Stop propagation of mousedown events, as the formula editor will still focus.
+      dom.on('mousedown', (ev) => ev.stopPropagation()),
+    );
+
+    observer.observe(this._chatPanelBody);
+
+    return this._chatPanelBody;
+  }
 
   /**
    * Save button handler. We just store the action and wait for the bundler to finalize.
    */
-  public saveOrClose() {
+  private _saveOrClose() {
     this._action = 'save';
     this._triggerFinalize();
   }
@@ -286,7 +273,7 @@ export class FormulaAssistant extends Disposable {
   /**
    * Cancel button handler.
    */
-  public async cancel() {
+  private _cancel() {
     this._action = 'cancel';
     this._triggerFinalize();
   }
@@ -294,9 +281,8 @@ export class FormulaAssistant extends Disposable {
   /**
    * Preview button handler.
    */
-  public async preview() {
+  private async _preview() {
     const tableId = this._options.column.table.peek().tableId.peek();
-    // const colId = this._options.column.colId.peek();
     const formula = this._options.editor.getCellValue();
     const isFormula = true;
     await this._options.gristDoc.docData.sendAction(
@@ -305,15 +291,6 @@ export class FormulaAssistant extends Disposable {
     if (!this.isDisposed()) {
       this._options.editor.focus();
     }
-  }
-
-  public buildInlineRobotButton() {
-    return cssRobotButton(
-      icon('Robot'),
-      dom.show(this._robotIconVisible),
-      dom.on('click', this._robotIconClicked.bind(this)),
-      testId('robot-button'),
-    );
   }
 
   private async _preparePreview() {
@@ -382,7 +359,44 @@ export class FormulaAssistant extends Disposable {
     }
   }
 
+  private _collapseChatPanel() {
+    this._assistantExpanded.set(false);
+    // The panel's height and client height may differ; to ensure the collapse transition
+    // appears linear, temporarily disable the transition and sync the height and client
+    // height.
+    this._chatPanelBody.style.setProperty('transition', 'none');
+    this._chatPanelBody.style.setProperty('height', `${this._chatPanelBody.clientHeight}px`);
+    // eslint-disable-next-line no-unused-expressions
+    this._chatPanelBody.offsetHeight; // Flush CSS changes.
+    this._chatPanelBody.style.removeProperty('transition');
+    this._chatPanelBody.style.setProperty('height', '0px');
+    this._resizeEditor();
+  }
+
+  private _expandChatPanel() {
+    this._assistantExpanded.set(true);
+    const editor = this._options.editor.getDom();
+    let availableSpace = editor.clientHeight - MIN_FORMULA_EDITOR_HEIGHT_PX
+      - FORMULA_EDITOR_BUTTONS_HEIGHT_PX - CHAT_PANEL_HEADER_HEIGHT_PX;
+    if (editor.querySelector('.error_msg')) {
+      availableSpace -= editor.querySelector('.error_msg')!.clientHeight;
+    }
+    if (editor.querySelector('.error_details')) {
+      availableSpace -= editor.querySelector('.error_details')!.clientHeight;
+    }
+    if (this._lastChatPanelHeight) {
+      const height = Math.min(Math.max(this._lastChatPanelHeight, 220), availableSpace);
+      this._chatPanelBody.style.setProperty('height', `${height}px`);
+      this._lastChatPanelHeight = height;
+    } else {
+      this._lastChatPanelHeight = availableSpace;
+      this._chatPanelBody.style.setProperty('height', `${this._lastChatPanelHeight}px`);
+    }
+    this._resizeEditor();
+  }
+
   private _onResizeStart() {
+    this._isResizing.set(true);
     const start = this._domElement?.clientHeight;
     const total = this._options.editor.getDom().clientHeight;
     return {
@@ -393,17 +407,43 @@ export class FormulaAssistant extends Disposable {
   /**
    * Resize handler for the chat window.
    */
-  private _onResizeMove(x: number, y: number, {start, total}: {start: number, total: number}) {
-    // We want to keep the formula well at least 100px tall.
-    const minFormulaHeight = 100;
-    // The total height of the tools, input and resize line.
-    const toolsHeight = 43 + this._inputWrapper.clientHeight + 7;
-    const desiredHeight = start - y;
-    // Calculate the correct height in the allowed range.
-    const calculatedHeight = Math.max(toolsHeight + 10,  Math.min(total - minFormulaHeight, desiredHeight));
-    this._domElement.style.height = `${calculatedHeight}px`;
+  private _onResizeMove(x: number, y: number, {start, total}: {start: number, total: number}): void {
+    // The y axis includes the panel header and formula editor buttons; excluded them from the
+    // new height of the panel body.
+    const newChatPanelBodyHeight = start - y - CHAT_PANEL_HEADER_HEIGHT_PX - FORMULA_EDITOR_BUTTONS_HEIGHT_PX;
+
+    // Toggle `_isResizing` whenever the new panel body height crosses the threshold for the minimum
+    // height. As of now, the sole purpose of this observable is to control when the animation for
+    // expanding and collapsing is shown.
+    if (newChatPanelBodyHeight < MIN_CHAT_PANEL_BODY_HEIGHT_PX && this._isResizing.get()) {
+      this._isResizing.set(false);
+    } else if (newChatPanelBodyHeight >= MIN_CHAT_PANEL_BODY_HEIGHT_PX && !this._isResizing.get()) {
+      this._isResizing.set(true);
+    }
+
+    const collapseThreshold = 78;
+    if (newChatPanelBodyHeight < collapseThreshold) {
+      if (this._assistantExpanded.get()) {
+        this._collapseChatPanel();
+      }
+    } else {
+      if (!this._assistantExpanded.get()) {
+        this._expandChatPanel();
+      }
+      const calculatedHeight = Math.max(
+        MIN_CHAT_PANEL_BODY_HEIGHT_PX,
+        Math.min(total - MIN_FORMULA_EDITOR_HEIGHT_PX, newChatPanelBodyHeight)
+      );
+      this._chatPanelBody.style.height = `${calculatedHeight}px`;
+    }
   }
 
+  private _onResizeEnd() {
+    this._isResizing.set(false);
+    if (this._assistantExpanded.get()) {
+      this._lastChatPanelHeight = this._chatPanelBody.clientHeight;
+    }
+  }
   /**
    * Builds the chat input at the bottom of the chat.
    */
@@ -412,7 +452,7 @@ export class FormulaAssistant extends Disposable {
     if (this._input) {
       dom.domDispose(this._input);
     }
-    const ask = () => this._ask();
+
     // Input is created by hand, as we need a finer control of the user input than what is available
     // in generic textInput control.
     this._input = cssInput(
@@ -420,107 +460,105 @@ export class FormulaAssistant extends Disposable {
         this._userInput.set((ev.target as HTMLInputElement).value);
       }),
       autoGrow(this._userInput),
+      dom.style('max-height', use => {
+        // Set an upper bound on the height the input can grow to, so that when the chat panel
+        // is resized, the input is automatically resized to fit and doesn't overflow.
+        const panelHeight = use(this._chatPanelBodyClientHeight);
+        // The available input height is computed by taking the the panel height, and subtracting
+        // the heights of all the other elements (except for the input).
+        const availableInputHeight = panelHeight -
+          ((this._inputWrapper?.clientHeight ?? 0) - (this._input?.clientHeight ?? 0)) -
+          MIN_CHAT_HISTORY_HEIGHT_PX;
+        return `${Math.max(availableInputHeight, MIN_CHAT_INPUT_HEIGHT_PX)}px`;
+      }),
       dom.onKeyDown({
-        Enter$: (ev) => {
-          // If shift is pressed, we want to insert a new line.
-          if (!ev.shiftKey) {
-            ev.preventDefault();
-            ask().catch(reportError);
-          }
-        },
-        Escape: this.cancel.bind(this),
+        Enter$: (ev) => this._handleChatEnterKeyDown(ev),
+        Escape: () => this._cancel(),
       }),
       dom.autoDispose(this._userInput.addListener(value => this._input.value = value)),
       dom.prop('disabled', this._waiting),
+      dom.prop('placeholder', use => {
+        const lastFormula  = use(this._chat.lastSuggestedFormula);
+        if (lastFormula) {
+          return t('Press Enter to apply suggested formula.');
+        } else {
+          return t('What do you need help with?');
+        }
+      }),
       dom.autoDispose(this._waiting.addListener(value => {
         if (!value) {
-          setTimeout(() => this._input.focus(), 0);
+          setTimeout(() => this._focusChatInput(), 0);
         }
       })),
     );
+
     return this._inputWrapper = cssHContainer(
-      testId('chat-input'),
-      dom.style('margin-top', 'auto'),
+      testId('ai-assistant-chat-input'),
       dom.cls(cssTopBorder.className),
       dom.cls(cssVSpace.className),
-      dom.on('click', () => this._input.focus()),
-      dom.show(this._chatActive),
       cssInputWrapper(
         dom.cls(cssTypography.className),
         this._input,
-        dom.domComputed(this._waiting, (waiting) => {
-          if (!waiting) { return cssClickableIcon('FieldAny', dom.on('click', ask)); }
-          else { return cssLoadingDots(); }
-        })
-      ),
-      cssVContainer(
-        cssHBox(
-          cssPlainButton(
-            icon('Script'),
-            t('New Chat'),
-            dom.on('click', this._clear.bind(this)),
-            testId('chat-new')
+        cssInputButtonsRow(
+          cssSendMessageButton(
+            icon('FieldAny'),
+            dom.on('click', this._handleSendMessageClick.bind(this)),
+            cssSendMessageButton.cls('-disabled', use =>
+              use(this._waiting) || use(this._userInput).length === 0
+            ),
           ),
-          cssPlainButton(icon('Revert'), t('Regenerate'),
-            dom.on('click', this._regenerate.bind(this)), dom.style('margin-left', '8px'),
-            testId('chat-regenerate')
-          ),
+          dom.on('click', (ev) => {
+            ev.stopPropagation();
+            this._focusChatInput();
+          }),
+          cssInputButtonsRow.cls('-disabled', this._waiting),
         ),
-        dom.style('padding-bottom', '0'),
-        dom.style('padding-top', '12px'),
-      )
+        cssInputWrapper.cls('-disabled', this._waiting),
+      ),
     );
   }
 
   /**
-   * Builds the intro section of the chat panel. TODO the copy.
+   * Builds the signup nudge shown to anonymous users at the bottom of the chat.
    */
-  private _buildIntro() {
-    return dom.maybe(this._introVisible, () => cssInfo(
-      testId('chat-intro'),
-      cssTopHeader(t("Grist's AI Assistance")),
-      cssHeader(t('Tips')),
-      cssCardList(
-        buildCard({
-          title: 'Example prompt: ',
-          content: 'Some instructions for how to draft a prompt. A link to even more examples in support. ',
-        }),
-        buildCard({
-          title: 'Example Values: ',
-          content: 'Some instructions for how to draft a prompt. A link to even more examples in support. ',
-        }),
+  private _buildSignupNudge() {
+    return cssSignupNudgeWrapper(
+      cssSignupNudgeParagraph(
+        t('Sign up for a free Grist account to start using the Formula AI Assistant.'),
       ),
-      cssHeader(t('Capabilities')),
-      cssCardList(
-        buildCard({
-          title: 'Example prompt: ',
-          content: 'Some instructions for how to draft a prompt. A link to even more examples in support. ',
-        }),
-        buildCard({
-          title: 'Example Values: ',
-          content: 'Some instructions for how to draft a prompt. A link to even more examples in support. ',
-        }),
+      cssSignupNudgeButtonsRow(
+        bigPrimaryButtonLink(
+          t('Sign Up for Free'),
+          {href: getLoginOrSignupUrl()},
+          testId('ai-assistant-sign-up'),
+        ),
       ),
-      cssHeader(t('Data')),
-      cssCardList(
-        buildCard({
-          title: 'Data usage. ',
-          content: 'Some instructions for how to draft a prompt. A link to even more examples in support. ',
-        }),
-        buildCard({
-          title: 'Data sharing. ',
-          content: 'Some instructions for how to draft a prompt. A link to even more examples in support. ',
-        }),
-      )
-    ));
+    );
   }
 
-  private _robotIconClicked() {
-    this._chatActive.set(true);
+  private async _handleChatEnterKeyDown(ev: KeyboardEvent) {
+    // If shift is pressed, we want to insert a new line.
+    if (ev.shiftKey) { return; }
+
+    ev.preventDefault();
+    const lastFormula = this._chat.lastSuggestedFormula.get();
+    if (this._input.value === '' && lastFormula) {
+      this._apply(lastFormula).catch(reportError);
+    } else {
+      this._ask().catch(reportError);
+    }
   }
 
-  private _copyClicked(entry: ChatMessage) {
-    this._options.editor.setFormula(entry.formula!);
+  private async _handleSendMessageClick(ev: MouseEvent) {
+    if (this._waiting.get() || this._input.value.length === 0) { return; }
+
+    await this._ask();
+  }
+
+  private async _apply(formula: string) {
+    this._options.editor.setFormula(formula);
+    this._resizeEditor();
+    await this._preview();
   }
 
   private async _sendMessage(description: string, regenerate = false): Promise<ChatMessage> {
@@ -554,28 +592,27 @@ export class FormulaAssistant extends Disposable {
     };
   }
 
+  private _focusChatInput() {
+    if (!this._input) { return; }
+
+    this._input.focus();
+    if (this._input.value.length > 0) {
+      // Make sure focus moves to the last character.
+      this._input.selectionStart = this._input.value.length;
+      this._input.scrollTop = this._input.scrollHeight;
+    }
+  }
+
   private _clear() {
     this._chat.clear();
     this._userInput.set('');
-  }
-
-  private async _regenerate() {
-    if (this._waiting.get()) {
-      return;
-    }
-    this._chat.removeLastResponse();
-    const last = this._chat.lastQuestion();
-    if (!last) {
-      return;
-    }
-    await this._doAsk(last);
   }
 
   private async _ask() {
     if (this._waiting.get()) {
       return;
     }
-    const message= this._userInput.get();
+    const message = this._userInput.get();
     if (!message) { return; }
     this._chat.addQuestion(message);
     this._userInput.set('');
@@ -604,13 +641,14 @@ export class FormulaAssistant extends Disposable {
 class ChatHistory extends Disposable {
   public history: MutableObsArray<ChatMessage>;
   public length: Computed<number>;
+  public lastSuggestedFormula: Computed<string|null>;
 
   private _element: HTMLElement;
 
   constructor(private _options: {
     column: ColumnRec,
     gristDoc: GristDoc,
-    copyClicked: (entry: ChatMessage) => void,
+    apply: (formula: string) => void,
   }) {
     super();
     const column = this._options.column;
@@ -621,6 +659,9 @@ class ChatHistory extends Disposable {
       chatHistory.set({...chatHistory.get(), messages: [...cur]});
     }));
     this.length = Computed.create(this, use => use(this.history).length); // ??
+    this.lastSuggestedFormula = Computed.create(this, use => {
+      return [...use(this.history)].reverse().find(entry => entry.formula)?.formula ?? null;
+    });
   }
 
   public thinking(on = true) {
@@ -695,31 +736,87 @@ class ChatHistory extends Disposable {
 
   public buildDom() {
     return this._element = cssHistory(
+      this._buildIntroMessage(),
       dom.forEach(this.history, entry => {
         if (entry.sender === 'user') {
           return cssMessage(
-            cssAvatar(buildAvatar(this._options.gristDoc)),
             dom('span',
               dom.text(entry.message),
-              testId('user-message'),
-              testId('chat-message'),
-            )
+              testId('ai-assistant-message-user'),
+              testId('ai-assistant-message'),
+            ),
+            cssAvatar(buildAvatar(this._options.gristDoc)),
           );
         } else {
-          return cssAiMessage(
-            cssAvatar(cssAiImage()),
-            entry.message === '...' ? cssCursor() :
-            this._render(entry.message,
-              testId('assistant-message'),
-              testId('chat-message'),
+          return dom('div',
+            cssAiMessage(
+              cssAvatar(cssAiImage()),
+                entry.message === '...' ? cssLoadingDots() :
+              this._render(entry.message,
+                dom.cls('formula-assistant-message'),
+                testId('ai-assistant-message-ai'),
+                testId('ai-assistant-message'),
+              ),
             ),
-            cssCopyIconWrapper(
+            cssAiMessageButtonsRow(
+              cssAiMessageButtons(
+                primaryButton(t('Apply'), dom.on('click', () => {
+                  this._options.apply(entry.formula!);
+                })),
+              ),
               dom.show(Boolean(entry.formula)),
-              icon('Copy', dom.on('click', () => this._options.copyClicked(entry))),
-            )
+            ),
           );
         }
-      })
+      }),
+    );
+  }
+
+  private _buildIntroMessage() {
+    return cssAiIntroMessage(
+      cssAvatar(cssAiImage()),
+      dom('div',
+        cssAiMessageParagraph(t(`Hi, I'm the Grist Formula AI Assistant.`)),
+        cssAiMessageParagraph(t(`There are some things you should know when working with me:`)),
+        cssAiMessageParagraph(
+          cssAiMessageBullet(
+            cssTickIcon('Tick'),
+            t('I can only help with formulas. I cannot build tables, columns, and views, or write access rules.'),
+          ),
+          cssAiMessageBullet(
+            cssTickIcon('Tick'),
+            t(
+              'Talk to me like a person. No need to specify tables and column names. For example, you can ask ' +
+              '"Please calculate the total invoice amount."'
+            ),
+          ),
+          cssAiMessageBullet(
+            cssTickIcon('Tick'),
+            dom('div',
+              t(
+                'When you talk to me, your questions and your document structure (visible in {{codeView}}) ' +
+                'are sent to OpenAI. {{learnMore}}.',
+                {
+                  codeView: cssLink(t('Code View'), urlState().setLinkUrl({docPage: 'code'})),
+                  learnMore: cssLink(t('Learn more'), {href: commonUrls.help, target: '_blank'}),
+                }
+              ),
+            ),
+          ),
+        ),
+        cssAiMessageParagraph(
+          t(
+            'For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, ' +
+            'or visit our {{community}} for more help.',
+            {
+              functionList: cssLink(t('Function List'), {href: commonUrls.functions, target: '_blank'}),
+              formulaCheatSheet: cssLink(t('Formula Cheat Sheet'), {href: commonUrls.formulaSheet, target: '_blank'}),
+              community: cssLink(t('Community'), {href: commonUrls.community, target: '_blank'}),
+            }
+          ),
+        ),
+      ),
+      testId('ai-assistant-message-intro'),
     );
   }
 
@@ -736,7 +833,7 @@ class ChatHistory extends Disposable {
               const codeBlock = buildHighlightedCode(code, {
                 gristTheme: doc.currentTheme,
                 maxLines: 60,
-              }, cssCodeStyles.cls(''));
+              });
               return codeBlock.innerHTML;
             },
           }));
@@ -749,7 +846,7 @@ class ChatHistory extends Disposable {
       return buildHighlightedCode(message, {
         gristTheme: doc.currentTheme,
         maxLines: 100,
-      }, cssCodeStyles.cls(''));
+      });
     }
   }
 }
@@ -775,32 +872,6 @@ async function askAI(grist: GristDoc, options: {
   return result;
 }
 
-/**
- * Builds a card with the given title and content.
- */
-function buildCard(options: {
-  icon?: IconName,
-  title: string,
-  content: DomContents,
-  close?: () => void,
-  args?: DomElementArg[]
-}) {
-  return cssCard(
-    options.icon && dom('div', cssCard.cls(`-icon`), icon(options.icon)),
-    dom('div', cssCard.cls('-body'), dom('span',
-      dom('span', cssCard.cls('-title'), options.title),
-      dom('span', cssCard.cls('-content'), options.content),
-    )),
-    options.icon && dom('div',
-      dom.on('click', options.close ?? noop),
-      cssCard.cls('-close'),
-      icon('CrossSmall'),
-      testId('well-close'),
-    ),
-    ...(options.args ?? [])
-  );
-}
-
 /** Builds avatar image for user or assistant. */
 function buildAvatar(grist: GristDoc) {
   const user = grist.app.topAppModel.appObs.get()?.currentUser || null;
@@ -812,135 +883,86 @@ function buildAvatar(grist: GristDoc) {
   }
 }
 
-// TODO: for now this icon is hidden as more design is needed. It overlaps various elements.
-const detachRobotVisible = false;
-export function buildRobotIcon() {
-  if (!detachRobotVisible) { return null; }
-  return dom.maybe(GRIST_FORMULA_ASSISTANT(), () =>
-    cssDetachedRobotIcon(
-      'Robot',
-      dom.on('click', () => {
-        commands.allCommands.detachEditor.run();
-        commands.allCommands.activateAssistant.run();
-      }),
-      testId('detached-robot-icon'),
-    )
-  );
-}
+const MIN_FORMULA_EDITOR_HEIGHT_PX = 100;
 
-const cssDetachedRobotIcon = styled(icon, `
-  left: -25px;
-  --icon-color: ${theme.iconButtonPrimaryBg};
-  position: absolute;
+const FORMULA_EDITOR_BUTTONS_HEIGHT_PX = 42;
+
+const MIN_CHAT_HISTORY_HEIGHT_PX = 100;
+
+const MIN_CHAT_PANEL_BODY_HEIGHT_PX = 120;
+
+const CHAT_PANEL_HEADER_HEIGHT_PX = 30;
+
+const MIN_CHAT_INPUT_HEIGHT_PX = 42;
+
+const cssChatPanel = styled('div', `
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow:hidden;
+  flex-grow: 1;
+`);
+
+const cssChatPanelHeader = styled('div', `
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0px 8px 0px 8px;
+  background-color: ${theme.formulaAssistantHeaderBg};
+  height: ${CHAT_PANEL_HEADER_HEIGHT_PX}px;
+  border-top: 1px solid ${theme.formulaAssistantBorder};
+  border-bottom: 1px solid ${theme.formulaAssistantBorder};
+`);
+
+const cssChatPanelHeaderTitle = styled('div', `
+  display: flex;
+  align-items: center;
+  color: ${theme.lightText};
+  --icon-color: ${theme.accentIcon};
+  column-gap: 8px;
+  user-select: none;
+`);
+
+const cssChatPanelHeaderButtons = styled('div', `
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+`);
+
+const cssChatPanelHeaderButton = styled('div', `
+  --icon-color: ${theme.controlSecondaryFg};
+  border-radius: 3px;
+  padding: 3px;
   cursor: pointer;
-  &:hover {
-    --icon-color: ${theme.iconButtonPrimaryHoverBg};
+  user-select: none;
+  &:hover, &.weasel-popup-open {
+    background-color: ${theme.hover};
   }
 `);
 
-const cssInfo = styled('div', `
-  overflow: auto;
-  height: 100%;
-`);
-
-const cssTopHeader = styled('div', `
-  font-size: 20px;
-  padding-left: 16px;
-  padding-right: 16px;
-  margin-top: 20px;
-  color: ${theme.inputFg};
-`);
-
-const cssHeader = styled('div', `
-  font-size: 16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  margin: 10px 0px;
-  color: ${theme.inputFg};
-`);
-
-
-const cssTopGreenBorder = styled('div', `
-  background: ${theme.accentBorder};
+const cssChatPanelHeaderResizer = styled('div', `
+  position: absolute;
+  top: -3px;
   height: 7px;
-  border-top: 3px solid ${theme.pageBg};
-  border-bottom: 3px solid ${theme.pageBg};
+  width: 100%;
   cursor: ns-resize;
-  flex: none;
 `);
 
-const cssChat = styled('div', `
+const cssChatPanelBody = styled('div', `
   overflow: hidden;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-`);
+  transition: height 0.4s;
 
-
-const cssRobotButton = styled('div', `
-  padding-left: 9px;
-  padding-right: 9px;
-  padding-top: 4px;
-  padding-bottom: 6px;
-  margin-left: -8px;
-  --icon-color: ${theme.controlPrimaryBg};
-  cursor: pointer;
-  &:hover {
-    --icon-color: ${theme.controlPrimaryHoverBg};
-  }
-`);
-
-const cssCardList = styled('div', `
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  padding-top: 0px;
-  & a {
-    font-weight: bold;
-  }
-`);
-
-const cssCard = styled('div', `
-  position: relative;
-  display: flex;
-  column-gap: 8px;
-  padding: 8px;
-  padding-bottom: 12px;
-  color: ${theme.inputFg};
-  border-radius: 4px;
-  background-color: ${theme.cardCompactWidgetBg};
-  &-icon {
-    --icon-color: ${theme.accentText};
-  }
-  &-title {
-    font-weight: 600;
-  }
-  &-close {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    height: 20px;
-    width: 20px;
-    cursor: pointer;
-  }
-  &-close:hover {
-    background-color: ${theme.pageHoverBg};
-    --icon-color: ${theme.linkHover};
-    border-radius: 4px;
-  }
-  &-body {
-    padding-top: 2px;
-    padding-right: 12px;
-    line-height: 1.6em;
-  }
-  & button {
-    font-weight: 600;
+  &-resizing {
+    transition: unset;
   }
 `);
 
 const cssTopBorder = styled('div', `
-  border-top: 1px solid ${theme.inputBorder};
+  border-top: 1px solid ${theme.formulaAssistantBorder};
 `);
 
 const cssVSpace = styled('div', `
@@ -949,8 +971,10 @@ const cssVSpace = styled('div', `
 `);
 
 const cssHContainer = styled('div', `
+  margin-top: auto;
   padding-left: 18px;
   padding-right: 18px;
+  min-height: ${MIN_CHAT_PANEL_BODY_HEIGHT_PX}px;
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
@@ -960,18 +984,6 @@ const cssTypography = styled('div', `
   color: ${theme.inputFg};
 `);
 
-const cssHBox = styled('div',  `
-  display: flex;
-`);
-
-const cssVContainer = styled('div', `
-  padding-top: 18px;
-  padding-bottom: 18px;
-  display: flex;
-  flex-direction: column;
-`);
-
-
 const cssHistory = styled('div', `
   overflow: auto;
   display: flex;
@@ -979,30 +991,15 @@ const cssHistory = styled('div', `
   color: ${theme.inputFg};
 `);
 
-
-const cssPlainButton = styled(basicButton, `
-  border-color: ${theme.inputBorder};
-  color: ${theme.controlSecondaryFg};
-  --icon-color: ${theme.controlSecondaryFg};
-  display: inline-flex;
-  gap: 10px;
-  align-items: flex-end;
-  border-radius: 3px;
-  padding: 5px 7px;
-  padding-right: 13px;
-`);
-
 const cssInputWrapper = styled('div', `
   display: flex;
+  flex-direction: column;
   border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
-  background-color: ${theme.mainPanelBg};
   align-items: center;
-  gap: 8px;
-  padding-right: 8px !important;
   --icon-color: ${theme.controlSecondaryFg};
-  &:hover, &:focus-within {
-    --icon-color: ${theme.accentIcon};
+  &-disabled {
+    background-color: ${theme.inputDisabledBg};
   }
   & > input {
     outline: none;
@@ -1016,31 +1013,39 @@ const cssInputWrapper = styled('div', `
 
 const cssMessage = styled('div', `
   display: grid;
-  grid-template-columns: 60px 1fr;
-  padding-right: 54px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  grid-template-columns: 1fr 60px;
+  border-top: 1px solid ${theme.formulaAssistantBorder};
+  padding: 20px 0px 20px 20px;
 `);
 
 const cssAiMessage = styled('div', `
+  position: relative;
   display: grid;
-  grid-template-columns: 60px 1fr 54px;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  background: #D9D9D94f;
+  grid-template-columns: 60px 1fr;
+  border-top: 1px solid ${theme.formulaAssistantBorder};
+  padding: 20px 20px 20px 0px;
+
   & pre {
-    background: ${theme.cellBg};
+    border: none;
+    background: ${theme.formulaAssistantPreformattedTextBg};
     font-size: 10px;
+  }
+
+  & pre .ace-chrome, & pre .ace-dracula {
+    background: ${theme.formulaAssistantPreformattedTextBg} !important;
+  }
+
+  & p > code {
+    background: #FFFFFF;
+    border: 1px solid #E1E4E5;
+    color: #333333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 `);
 
-const cssCodeStyles = styled('div', `
-  background: #E3E3E3;
-  border: none;
-  & .ace-chrome {
-    background: #E3E3E3;
-    border: none;
-  }
+const cssAiIntroMessage = styled(cssAiMessage, `
+  border-top: unset;
 `);
 
 const cssAvatar = styled('div', `
@@ -1061,36 +1066,6 @@ const cssAiImage = styled('div', `
   background-position: center;
 `);
 
-
-const cssCopyIconWrapper = styled('div', `
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  cursor: pointer;
-  .${cssAiMessage.className}:hover & {
-    display: flex;
-  }
-`);
-
-const blink = keyframes(`
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
-`);
-
-const cssCursor = styled('div', `
-  height: 1rem;
-  width: 3px;
-  background-color: ${theme.darkText};
-  animation: ${blink} 1s infinite;
-`);
-
-const cssLoadingDots = styled(loadingDots, `
-  --dot-size: 4px;
-`);
-
-
 const cssButtons = styled('div', `
   display: flex;
   justify-content: flex-end;
@@ -1104,19 +1079,116 @@ const cssTools = styled('div._tools_container', `
   overflow: hidden;
 `);
 
-const cssClickableIcon = styled(icon, `
-  cursor: pointer;
+const cssInputButtonsRow = styled('div', `
+  padding-top: 8px;
+  width: 100%;
+  justify-content: flex-end;
+  cursor: text;
+  display: flex;
+
+  &-disabled {
+    cursor: default;
+  }
 `);
 
+const cssSendMessageButton = styled('div', `
+  padding: 3px;
+  border-radius: 4px;
+  align-self: flex-end;
+  margin-bottom: 6px;
+  margin-right: 6px;
+
+  &-disabled {
+    --icon-color: ${theme.controlSecondaryFg};
+  }
+
+  &:not(&-disabled) {
+    cursor: pointer;
+    --icon-color: ${theme.controlPrimaryFg};
+    color: ${theme.controlPrimaryFg};
+    background-color: ${theme.controlPrimaryBg};
+  }
+
+  &:hover:not(&-disabled) {
+    background-color: ${theme.controlPrimaryHoverBg};
+  }
+`);
 
 const cssInput = styled('textarea', `
   border: 0px;
   flex-grow: 1;
   outline: none;
+  width: 100%;
   padding: 4px 6px;
   padding-top: 6px;
   resize: none;
-  min-height: 28px;
+  min-height: ${MIN_CHAT_INPUT_HEIGHT_PX}px;
   background: transparent;
-}
+
+  &:disabled {
+    background-color: ${theme.inputDisabledBg};
+    color: ${theme.inputDisabledFg};
+  }
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+`);
+
+const cssChatOptionsMenu = styled('div', `
+  z-index: ${vars.floatingPopupMenuZIndex};
+`);
+
+const cssAiMessageButtonsRow = styled('div', `
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px;
+`);
+
+const cssAiMessageButtons = styled('div', `
+  display: flex;
+  column-gap: 8px;
+`);
+
+const cssAiMessageParagraph = styled('div', `
+  margin-bottom: 8px;
+`);
+
+const cssAiMessageBullet = styled('div', `
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6px;
+`);
+
+const cssTickIcon = styled(icon, `
+  --icon-color: ${theme.accentIcon};
+  margin-right: 8px;
+  flex-shrink: 0;
+`);
+
+const cssLoadingDots = styled(loadingDots, `
+  --dot-size: 5px;
+  align-items: center;
+`);
+
+const cssSignupNudgeWrapper = styled('div', `
+  border-top: 1px solid ${theme.formulaAssistantBorder};
+  padding: 16px;
+  margin-top: auto;
+  min-height: ${MIN_CHAT_PANEL_BODY_HEIGHT_PX}px;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+`);
+
+const cssSignupNudgeParagraph = styled('div', `
+  font-size: ${vars.mediumFontSize};
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-align: center;
+`);
+
+const cssSignupNudgeButtonsRow = styled('div', `
+  display: flex;
+  justify-content: center;
 `);

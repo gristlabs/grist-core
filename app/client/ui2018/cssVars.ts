@@ -143,6 +143,7 @@ export const vars = {
   floatingPopupZIndex: new CustomProp('floating-popup-z-index', '1002'),
   tutorialModalZIndex: new CustomProp('tutorial-modal-z-index', '1003'),
   pricingModalZIndex: new CustomProp('pricing-modal-z-index', '1004'),
+  floatingPopupMenuZIndex: new CustomProp('floating-popup-menu-z-index', '1004'),
   notificationZIndex: new CustomProp('notification-z-index', '1100'),
   browserCheckZIndex: new CustomProp('browser-check-z-index', '5000'),
   tooltipZIndex: new CustomProp('tooltip-z-index', '5000'),
@@ -686,9 +687,6 @@ export const theme = {
   cellBg: new CustomProp('theme-cell-bg', undefined, '#FFFFFF00'),
   cellZebraBg: new CustomProp('theme-cell-zebra-bg', undefined, '#F8F8F8'),
 
-  /* Formula Editor */
-  formulaEditorBg: new CustomProp('theme-formula-editor-bg', undefined, 'white'),
-
   /* Charts */
   chartFg: new CustomProp('theme-chart-fg', undefined, '#444'),
   chartBg: new CustomProp('theme-chart-bg', undefined, '#fff'),
@@ -736,7 +734,8 @@ export const theme = {
     colors.lightGreen),
   tutorialsPopupBoxBg: new CustomProp('theme-tutorials-popup-box-bg', undefined, '#F5F5F5'),
 
-  /* Ace Autocomplete */
+  /* Ace */
+  aceEditorBg: new CustomProp('theme-ace-editor-bg', undefined, 'white'),
   aceAutocompletePrimaryFg: new CustomProp('theme-ace-autocomplete-primary-fg', undefined, '#444'),
   aceAutocompleteSecondaryFg: new CustomProp('theme-ace-autocomplete-secondary-fg', undefined,
     '#8f8f8f'),
@@ -797,6 +796,14 @@ export const theme = {
   loginPageBg: new CustomProp('theme-login-page-bg', undefined, 'white'),
   loginPageBackdrop: new CustomProp('theme-login-page-backdrop', undefined, '#F5F8FA'),
   loginPageLine: new CustomProp('theme-login-page-line', undefined, colors.lightGrey),
+
+  /* Formula Assistant */
+  formulaAssistantHeaderBg: new CustomProp(
+    'theme-formula-assistant-header-bg', undefined, colors.lightGrey),
+  formulaAssistantBorder: new CustomProp(
+    'theme-formula-assistant-border', undefined, colors.darkGrey),
+  formulaAssistantPreformattedTextBg: new CustomProp(
+    'theme-formula-assistant-preformatted-text-bg', undefined, colors.lightGrey),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');

@@ -1,8 +1,8 @@
+import ace, {Ace} from 'ace-builds';
 import {setupAceEditorCompletions} from 'app/client/components/AceEditorCompletions';
 import {theme} from 'app/client/ui2018/cssVars';
 import {Theme} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
-import * as ace from 'brace';
 import {Computed, dom, DomArg, Listener, Observable, styled} from 'grainjs';
 import debounce from 'lodash/debounce';
 
@@ -13,13 +13,13 @@ export interface ACLFormulaOptions {
   placeholder: DomArg;
   setValue: (value: string) => void;
   getSuggestions: (prefix: string) => string[];
-  customiseEditor?: (editor: ace.Editor) => void;
+  customiseEditor?: (editor: Ace.Editor) => void;
 }
 
 export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Create an element and an editor within it.
   const editorElem = dom('div');
-  const editor: ace.Editor = ace.edit(editorElem);
+  const editor: Ace.Editor = ace.edit(editorElem);
 
   // Set various editor options.
   function setAceTheme(gristTheme: Theme) {
@@ -40,7 +40,7 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   editor.renderer.setShowGutter(false);       // Default line numbers to hidden
   editor.renderer.setPadding(5);
   editor.renderer.setScrollMargin(4, 4, 0, 0);
-  editor.$blockScrolling = Infinity;
+  (editor as any).$blockScrolling = Infinity;
   editor.setReadOnly(options.readOnly);
   editor.setFontSize('12');
   editor.setHighlightActiveLine(false);

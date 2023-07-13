@@ -42,8 +42,8 @@
 /* Make overflow hidden, since editor might be 1 pixel bigger due to fix for devices
  * with different pixel ratio */
 .formula_editor {
-  background-color: var(--grist-theme-formula-editor-bg, white);
-  padding: 4px 0 2px 21px;
+  background-color: var(--grist-theme-ace-editor-bg, white);
+  padding: 4px 4px 2px 21px;
   z-index: 10;
   overflow: hidden;
   flex: none;
@@ -109,12 +109,14 @@
 }
 
 .error_msg {
+  display: flex;
   background-color: #ffb6c1;
   padding: 4px;
   color: black;
   cursor: pointer;
   white-space: pre-wrap;
   flex: none;
+  overflow: auto;
 }
 
 .error_details {
