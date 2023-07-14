@@ -1,3 +1,11 @@
+export interface WebhookSubscribeCollection{
+  webhooks: Array<Webhook>
+}
+
+export interface Webhook {
+  fields: WebhookFields;
+}
+
 export interface WebhookFields {
   url: string;
   eventTypes: Array<"add"|"update">;
@@ -23,6 +31,8 @@ export interface WebhookSubscribe {
   name?: string;
   memo?: string;
 }
+
+
 
 export interface WebhookSummary {
   id: string;

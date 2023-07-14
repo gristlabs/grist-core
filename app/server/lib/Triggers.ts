@@ -294,7 +294,7 @@ export class DocTriggers {
     return result;
   }
 
-  public getWebhookTriggerRecord(webhookId: string, tableRef?: number) {
+  public getWebhookTriggerRecord(webhookId: string) {
     const docData = this._activeDoc.docData!;
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const trigger = triggersTable.getRecords().find(t => {
@@ -303,9 +303,6 @@ export class DocTriggers {
     });
     if (!trigger) {
       throw new ApiError(`Webhook not found "${webhookId || ''}"`, 404);
-    }
-    if (tableRef && trigger.tableRef !== tableRef) {
-      throw new ApiError(`Wrong table`, 400);
     }
     return trigger;
   }

@@ -1,13 +1,8 @@
+import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer";
 import {createEmptyActionSummary} from "app/common/ActionSummary";
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
-import {
-  BulkColValues,
-  ColValues,
-  fromTableDataAction,
-  TableColValues,
-  TableRecordValue
-} from 'app/common/DocActions';
+import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
@@ -15,8 +10,9 @@ import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
-import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
+import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
+import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager, makeDocAuthResult} from 'app/gen-server/lib/HomeDBManager';
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
@@ -28,8 +24,8 @@ import {
   TableOperationsImpl,
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
-import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer";
 import {ActiveDoc, colIdToRef as colIdToReference, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {sendForCompletion} from 'app/server/lib/Assistance';
 import {
   assertAccess,
   getOrSetDocAuth,
@@ -44,8 +40,8 @@ import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
 import {downloadCSV} from "app/server/lib/ExportCSV";
-import {downloadXLSX} from "app/server/lib/ExportXLSX";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
+import {downloadXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
@@ -110,7 +106,8 @@ for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, Colum
 // Schema validators for api endpoints that creates or updates records.
 const {
   WebhookPatch,
-  WebhookSubscribe
+  WebhookSubscribe,
+  WebhookSubscribeCollection,
 } = t.createCheckers(TriggersTI);
 
 /**
@@ -240,13 +237,77 @@ export class DocWorkerApi {
         activeDoc.fetchMetaTables(docSessionFromRequest(req)));
     }
 
-    async function getWebhookSettings(activeDoc: ActiveDoc, req: RequestWithLogin, webhookId: string|null) {
+    const registerWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, webhook: WebhookFields) => {
+      const {fields, url} = await getWebhookSettings(activeDoc, req, null, webhook);
+      if (!fields.eventTypes?.length) {
+        throw new ApiError(`eventTypes must be a non-empty array`, 400);
+      }
+      if (!isUrlAllowed(url)) {
+        throw new ApiError('Provided url is forbidden', 403);
+      }
+      if (!fields.tableRef) {
+        throw new ApiError(`tableId is required`, 400);
+      }
+
+      const unsubscribeKey = uuidv4();
+      const webhookSecret: WebHookSecret = {unsubscribeKey, url};
+      const secretValue = JSON.stringify(webhookSecret);
+      const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
+
+      try {
+
+        const webhookAction: WebhookAction = {type: "webhook", id: webhookId};
+        const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+          docSessionFromRequest(req),
+          [['AddRecord', "_grist_Triggers", null, {
+            enabled: true,
+            ...fields,
+            actions: JSON.stringify([webhookAction])
+          }]]));
+        return {
+            unsubscribeKey,
+            triggerId: sandboxRes.retValues[0],
+            webhookId,
+        };
+
+      } catch (err) {
+
+        // remove webhook
+        await this._dbManager.removeWebhook(webhookId, activeDoc.docName, '', false);
+        throw err;
+      } finally {
+        await activeDoc.sendWebhookNotification();
+      }
+    };
+
+    const removeWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, res: Response) => {
+      const {unsubscribeKey} = req.body as WebhookSubscription;
+      const webhookId = req.params.webhookId??req.body.webhookId;
+
+      // owner does not need to provide unsubscribeKey
+      const checkKey = !(await this._isOwner(req));
+      const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
+      // Validate unsubscribeKey before deleting trigger from document
+      await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey, checkKey);
+      activeDoc.triggers.webhookDeleted(webhookId);
+
+      await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+        docSessionFromRequest(req),
+        [['RemoveRecord', "_grist_Triggers", triggerRowId]]));
+
+      await activeDoc.sendWebhookNotification();
+
+      res.json({success: true});
+    };
+
+    async function getWebhookSettings(activeDoc: ActiveDoc, req: RequestWithLogin,
+                                      webhookId: string|null, webhook: WebhookFields) {
       const metaTables = await getMetaTables(activeDoc, req);
       const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
       let currentTableId = trigger ? tablesTable.getValue(trigger.tableRef, 'tableId')! : undefined;
-      const {url, eventTypes, isReadyColumn, name} = req.body;
-      const tableId = req.params.tableId || req.body.tableId;
+      const {url, eventTypes, isReadyColumn, name} = webhook;
+      const tableId = req.params.tableId || webhook.tableId;
       const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
 
       if (url && !isUrlAllowed(url)) {
@@ -282,7 +343,7 @@ export class DocWorkerApi {
       }
 
       // assign other field properties
-      Object.assign(fields, _.pick(req.body, ['enabled', 'memo']));
+      Object.assign(fields, _.pick(webhook, ['enabled', 'memo']));
       if (name) {
         fields.label = name;
       }
@@ -622,78 +683,48 @@ export class DocWorkerApi {
     );
 
     // Add a new webhook and trigger
+    this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
+      withDoc(async (activeDoc, req, res) => {
+        const registeredWebhooks: Array<WebhookSubscription> = [];
+        for(const webhook of req.body.webhooks) {
+          const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
+          registeredWebhooks.push(registeredWebhook);
+        }
+        res.json({webhooks:  registeredWebhooks.map(rw=> {
+          return {id: rw.webhookId};
+        })});
+      })
+    );
+
+    /**
+     @deprecated please call to POST /webhooks instead, this endpoint is only for sake of backward compatibility
+     */
     this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner, validate(WebhookSubscribe),
       withDoc(async (activeDoc, req, res) => {
-        const {fields, url} = await getWebhookSettings(activeDoc, req, null);
-        if (!fields.eventTypes?.length) {
-          throw new ApiError(`eventTypes must be a non-empty array`, 400);
-        }
-        if (!isUrlAllowed(url)) {
-          throw new ApiError('Provided url is forbidden', 403);
-        }
-        if (!fields.tableRef) {
-          throw new ApiError(`tableId is required`, 400);
-        }
+        const registeredWebhook = await registerWebhook(activeDoc, req, req.body);
+        res.json(registeredWebhook);
+      })
+    );
 
-        const unsubscribeKey = uuidv4();
-        const webhook: WebHookSecret = {unsubscribeKey, url};
-        const secretValue = JSON.stringify(webhook);
-        const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
-
-        try {
-
-          const webhookAction: WebhookAction = {type: "webhook", id: webhookId};
-          const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
-            docSessionFromRequest(req),
-            [['AddRecord', "_grist_Triggers", null, {
-              enabled: true,
-              ...fields,
-              actions: JSON.stringify([webhookAction])
-            }]]));
-
-          res.json({
-            unsubscribeKey,
-            triggerId: sandboxRes.retValues[0],
-            webhookId,
-          });
-
-        } catch (err) {
-
-          // remove webhook
-          await this._dbManager.removeWebhook(webhookId, activeDoc.docName, '', false);
-          throw err;
-        } finally {
-          await activeDoc.sendWebhookNotification();
-        }
+    // Clears all outgoing webhooks in the queue for this document.
+    this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        await activeDoc.clearWebhookQueue();
+        await activeDoc.sendWebhookNotification();
+        res.json({success: true});
       })
     );
 
     // Remove webhook and trigger created above
+    this._app.delete('/api/docs/:docId/webhooks/:webhookId', isOwner,
+      withDoc(removeWebhook)
+    );
+
+    /**
+     @deprecated please call to DEL /webhooks instead, this endpoint is only for sake of backward compatibility
+     */
     this._app.post('/api/docs/:docId/tables/:tableId/_unsubscribe', canEdit,
-      withDoc(async (activeDoc, req, res) => {
-        const metaTables = await getMetaTables(activeDoc, req);
-        const tableRef = tableIdToRef(metaTables, req.params.tableId);
-        const {unsubscribeKey, webhookId} = req.body as WebhookSubscription;
-
-        // Validate combination of triggerId, webhookId, and tableRef.
-        // This is overly strict, webhookId should be enough,
-        // but it should be easy to relax that later if we want.
-        const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId, tableRef).id;
-
-        const checkKey = !(await this._isOwner(req));
-        // Validate unsubscribeKey before deleting trigger from document
-        await this._dbManager.removeWebhook(webhookId, activeDoc.docName, unsubscribeKey, checkKey);
-        activeDoc.triggers.webhookDeleted(webhookId);
-
-        // TODO handle trigger containing other actions when that becomes possible
-        await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
-          docSessionFromRequest(req),
-          [['RemoveRecord', "_grist_Triggers", triggerRowId]]));
-
-        await activeDoc.sendWebhookNotification();
-
-        res.json({success: true});
-      })
+      withDoc(removeWebhook)
     );
 
     // Update a webhook
@@ -702,7 +733,7 @@ export class DocWorkerApi {
 
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
-        const {fields, trigger, url} = await getWebhookSettings(activeDoc, req, webhookId);
+        const {fields, trigger, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
 
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
@@ -731,14 +762,7 @@ export class DocWorkerApi {
       })
     );
 
-    // Clears all outgoing webhooks in the queue for this document.
-    this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
-      withDoc(async (activeDoc, req, res) => {
-        await activeDoc.clearWebhookQueue();
-        await activeDoc.sendWebhookNotification();
-        res.json({success: true});
-      })
-    );
+
 
     // Lists all webhooks and their current status in the document.
     this._app.get('/api/docs/:docId/webhooks', isOwner,
@@ -1109,7 +1133,6 @@ export class DocWorkerApi {
       return res.status(200).json(docId);
     }));
   }
-
   /**
    * Check for read access to the given document, and return its
    * canonical docId.  Throws error if read access not available.
@@ -1127,11 +1150,10 @@ export class DocWorkerApi {
 
   private _getDownloadOptions(req: Request, name: string): DownloadOptions {
     const params = parseExportParameters(req);
-    const options: DownloadOptions = {
+    return {
       ...params,
       filename: name + (params.tableId === name ? '' : '-' + params.tableId),
     };
-    return options;
   }
 
   private _getActiveDoc(req: RequestWithLogin): Promise<ActiveDoc> {
