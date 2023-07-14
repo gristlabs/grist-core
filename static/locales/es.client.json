@@ -66,7 +66,11 @@
         "Sign Out": "Cerrar Sesión",
         "Sign in": "Iniciar Sesión",
         "Switch Accounts": "Cambiar de Cuenta",
-        "Toggle Mobile Mode": "Alternar Modo Móvil"
+        "Toggle Mobile Mode": "Alternar Modo Móvil",
+        "Activation": "Activación",
+        "Billing Account": "Cuenta de facturación",
+        "Support Grist": "Soporte Grist",
+        "Upgrade Plan": "Actualizar el Plan"
     },
     "AddNewButton": {
         "Add New": "Agregar Nuevo"
@@ -430,7 +434,8 @@
         "Notifications": "Notificaciones",
         "Renew": "Renovar",
         "Report a problem": "Reportar un problema",
-        "Upgrade Plan": "Actualizar el Plan"
+        "Upgrade Plan": "Actualizar el Plan",
+        "Manage billing": "Administrar la facturación"
     },
     "OnBoardingPopups": {
         "Finish": "Finalizar",
@@ -1089,5 +1094,37 @@
         "Welcome back": "Bienvenido de nuevo",
         "You can always switch sites using the account menu.": "Siempre puedes cambiar de sitio utilizando el menú de la cuenta.",
         "You have access to the following Grist sites.": "Usted tiene acceso a los siguientes sitios de Grist."
+    },
+    "SupportGristNudge": {
+        "Help Center": "Centro de ayuda",
+        "Opted In": "Optado por participar",
+        "Support Grist": "Soporte Grist",
+        "Opt in to Telemetry": "Participar en Telemetría",
+        "Support Grist page": "Página de soporte de Grist",
+        "Close": "Cerrar",
+        "Contribute": "Contribuir"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "GitHub Sponsors page": "Página de patrocinadores de GitHub",
+        "Help Center": "Centro de ayuda",
+        "Manage Sponsorship": "Gestionar el patrocinio",
+        "Opt in to Telemetry": "Optar por la telemetría",
+        "Opt out of Telemetry": "Darse de baja de la telemetría",
+        "Telemetry": "Telemetría",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Esta instancia está habilitada para la telemetría. Solo el administrador del sitio tiene permiso para cambiar esto.",
+        "Sponsor Grist Labs on GitHub": "Patrocinar Grist Labs en GitHub",
+        "Support Grist": "Soporte Grist",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Esta instancia está inhabilitada para la telemetría. Solo el administrador del sitio tiene permiso para cambiar esto.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Solo recopilamos estadísticas de uso, como se detalla en nuestro {{link}}, nunca el contenido de los documentos.",
+        "You can opt out of telemetry at any time from this page.": "Puede cancelar la telemetría en cualquier momento desde esta página.",
+        "You have opted in to telemetry. Thank you!": "Ha optado por la telemetría. ¡Gracias!",
+        "You have opted out of telemetry.": "Ha optado por no participar en la telemetría.",
+        "Home": "Inicio"
+    },
+    "buildViewSectionDom": {
+        "No data": "Sin datos",
+        "No row selected in {{title}}": "Ninguna fila seleccionada en {{title}}",
+        "Not all data is shown": "No se muestran todos los datos"
     }
 }
