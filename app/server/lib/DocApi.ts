@@ -64,7 +64,6 @@ import {
 } from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
-import {sendForCompletion} from 'app/server/lib/Assistance';
 import {isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
 import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
 import * as assert from 'assert';
