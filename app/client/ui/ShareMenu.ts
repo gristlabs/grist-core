@@ -102,7 +102,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
     return cssHoverCircle({ style: `margin: 5px;` },
       cssTopBarBtn('Share', dom.cls('tour-share-icon')),
       menu(menuCreateFunc, {placement: 'bottom-end'}),
-      hoverTooltip('Share', {key: 'topBarBtnTooltip'}),
+      hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
       testId('tb-share'),
     );
   } else if (options.buttonAction) {
@@ -115,7 +115,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
       cssShareCircle(
         cssShareIcon('Share'),
         menu(menuCreateFunc, {placement: 'bottom-end'}),
-        hoverTooltip('Share', {key: 'topBarBtnTooltip'}),
+        hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
         testId('tb-share'),
       ),
     );
@@ -128,7 +128,7 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
         cssShareIcon('Share')
       ),
       menu(menuCreateFunc, {placement: 'bottom-end'}),
-      hoverTooltip('Share', {key: 'topBarBtnTooltip'}),
+      hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
       testId('tb-share'),
     );
   }

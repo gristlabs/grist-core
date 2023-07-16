@@ -12,6 +12,9 @@ import {TableData} from 'app/common/TableData';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Computed, Disposable, Observable} from 'grainjs';
 import debounce = require('lodash/debounce');
+import { makeT } from 'app/client/lib/localization';
+
+const t = makeT('SearchModel');
 
 /**
  * SearchModel used to maintain the state of the search UI.
@@ -201,7 +204,7 @@ class FinderImpl implements IFinder {
                               // sort in order that is the same as on the raw data list page,
                               .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
                               // get rawViewSection,
-                              .map(t => t.rawViewSection.peek())
+                              .map(table => table.rawViewSection.peek())
                               // and test if it isn't an empty record.
                               .filter(s => Boolean(s.id.peek()));
       // Pretend that those are pages.
@@ -218,7 +221,7 @@ class FinderImpl implements IFinder {
       // Else read all visible pages.
       const pages = this._gristDoc.docModel.visibleDocPages.peek();
       this._pageStepper.array = pages.map(p => new PageRecWrapper(p, this._openDocPageCB));
-      this._pageStepper.index = pages.findIndex(t => t.viewRef.peek() === this._gristDoc.activeViewId.get());
+      this._pageStepper.index = pages.findIndex(page => page.viewRef.peek() === this._gristDoc.activeViewId.get());
       if (this._pageStepper.index < 0) { return false; }
     }
 
@@ -468,7 +471,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     this.autoDispose(this.multiPage.addListener(v => { if (v) { this.noMatch.set(false); } }));
 
     this.allLabel = Computed.create(this, use => use(this._gristDoc.activeViewId) === 'data' ?
-        'Search all tables' : 'Search all pages');
+      t('Search all tables') : t('Search all pages'));
 
     // Schedule a search restart when user changes pages (otherwise search would resume from the
     // previous page that is not shown anymore). Also revert noMatch flag when in single page mode.
