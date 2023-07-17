@@ -1132,9 +1132,6 @@ export class FlexServer implements GristServer {
     await this.loadConfig();
     this.addComm();
 
-    // Temporary duplication of external storage configuration.
-    // This may break https://github.com/gristlabs/grist-core/pull/546,
-    // but will revive other uses of external storage. TODO: reconcile.
     await this.create.configure?.();
 
     if (!isSingleUserMode()) {
@@ -1147,7 +1144,7 @@ export class FlexServer implements GristServer {
         this._disableExternalStorage = true;
         externalStorage.flag('active').set(false);
       }
-      await this.create.configure?.();
+      await this.create.checkBackend?.();
       const workers = this._docWorkerMap;
       const docWorkerId = await this._addSelfAsWorker(workers);
 

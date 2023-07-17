@@ -7,23 +7,23 @@ export class Limit extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column()
+  @Column({type: Number})
   public limit: number;
 
-  @Column()
+  @Column({type: Number})
   public usage: number;
 
-  @Column()
+  @Column({type: String})
   public type: string;
 
-  @Column({name: 'billing_account_id'})
+  @Column({name: 'billing_account_id', type: Number})
   public billingAccountId: number;
 
   @ManyToOne(type => BillingAccount)
   @JoinColumn({name: 'billing_account_id'})
   public billingAccount: BillingAccount;
 
-  @Column({name: 'created_at', default: () => "CURRENT_TIMESTAMP"})
+  @Column({name: 'created_at', type: nativeValues.dateTimeType, default: () => "CURRENT_TIMESTAMP"})
   public createdAt: Date;
 
   /**

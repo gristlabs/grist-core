@@ -177,7 +177,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
       cssTopBarBtn('Search',
         testId('icon'),
         dom.on('click', focusAndSelect),
-        hoverTooltip('Search', {key: 'topBarBtnTooltip'}),
+        hoverTooltip(t('Search'), {key: 'topBarBtnTooltip'}),
       )
     ),
     expandedSearch(

@@ -78,7 +78,8 @@
         "No notifications": "Nessuna notifica",
         "Renew": "Rinnova",
         "Report a problem": "Segnala un problema",
-        "Upgrade Plan": "Aggiorna il tuo piano"
+        "Upgrade Plan": "Aggiorna il tuo piano",
+        "Manage billing": "Gestisci modalità di addebito"
     },
     "Pages": {
         "Delete data and this page.": "Elimina i dati e questa pagina.",
@@ -345,7 +346,11 @@
         "Pricing": "Prezzi",
         "Profile Settings": "Impostazioni utente",
         "Sign in": "Accedi",
-        "Switch Accounts": "Cambia account"
+        "Switch Accounts": "Cambia account",
+        "Activation": "Attivazione",
+        "Upgrade Plan": "Cambia il tuo piano",
+        "Billing Account": "Conto di addebito",
+        "Support Grist": "Sostieni Grist"
     },
     "ActionLog": {
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonna {{colId}} è stata successivamente rimossa nell'azione #{{action.actionNum}}",
@@ -1035,5 +1040,37 @@
         "Welcome back": "Bentornato",
         "You can always switch sites using the account menu.": "Puoi sempre cambiare sito usando il menu del tuo profilo.",
         "You have access to the following Grist sites.": "Hai accesso a questi siti di Grist."
+    },
+    "SupportGristNudge": {
+        "Support Grist page": "Pagina Sostieni Grist",
+        "Close": "Chiudi",
+        "Contribute": "Contribuisci",
+        "Help Center": "Centro Aiuto",
+        "Opt in to Telemetry": "Accetta la telemetria",
+        "Opted In": "Accettato",
+        "Support Grist": "Sostieni Grist"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "Help Center": "Centro Aiuto",
+        "Home": "Pagina iniziale",
+        "Manage Sponsorship": "Gestisci sponsorizzazione",
+        "Opt out of Telemetry": "Disattiva la telemetria",
+        "Sponsor Grist Labs on GitHub": "Sostieni Grist Labs su GitHub",
+        "Support Grist": "Sostieni Grist",
+        "Telemetry": "Telemetria",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Questa istanza accetta la telemetria. Solo un amministratore può cambiare questa impostazione.",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Questa istanza ha disattivato la telemetria. Solo un amministratore può cambiare questa opzione.",
+        "You can opt out of telemetry at any time from this page.": "Puoi disattivare la telemetria in qualsiasi momento da questa pagina.",
+        "You have opted in to telemetry. Thank you!": "Hai accettato la telemetria. Grazie!",
+        "You have opted out of telemetry.": "Hai disattivato la telemetria.",
+        "GitHub Sponsors page": "Pagina Sponsor GitHub",
+        "Opt in to Telemetry": "Accetta la telemetria",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Raccogliamo solo statistiche di utilizzo, mai contenuti dei documenti, come spiegato in {{link}}."
+    },
+    "buildViewSectionDom": {
+        "No row selected in {{title}}": "Nessuna riga selezionata in {{title}}",
+        "Not all data is shown": "Non tutti i dati sono mostrati",
+        "No data": "Nessun dato"
     }
 }

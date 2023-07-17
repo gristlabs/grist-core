@@ -10,7 +10,7 @@ import { dom, styled } from "grainjs";
 
 const t = makeT('WelcomeTour');
 
-export const welcomeTour: IOnBoardingMsg[] = [
+export const WelcomeTour: IOnBoardingMsg[] = [
   {
     title: t('Editing Data'),
     body: () => [
@@ -97,7 +97,7 @@ export const welcomeTour: IOnBoardingMsg[] = [
 
 export function startWelcomeTour(onFinishCB: () => void) {
   commands.allCommands.fieldTabOpen.run();
-  startOnBoarding(welcomeTour, onFinishCB);
+  startOnBoarding(WelcomeTour, onFinishCB);
 }
 
 const TopBarButtonIcon = styled(icon, `
