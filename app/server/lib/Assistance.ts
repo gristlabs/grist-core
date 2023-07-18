@@ -2,14 +2,16 @@
  * Module with functions used for AI formula assistance.
  */
 
-import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
+import {AssistanceMessage, AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
 import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
 
-export const DEPS = { fetch };
+// These are mocked/replaced in tests.
+// fetch is also replacing in the runCompletion script to add caching.
+export const DEPS = { fetch, delayTime: 1000 };
 
 /**
  * An assistant can help a user do things with their document,
@@ -44,13 +46,58 @@ export interface AssistanceSchemaPromptV1Context {
   docString: string,
 }
 
+class SwitchToLongerContext extends Error {
+}
+
+class NonRetryableError extends Error {
+}
+
+class TokensExceededFirstMessage extends NonRetryableError {
+  constructor() {
+    super(
+      "Sorry, there's too much information for the AI to process. " +
+      "You'll need to either shorten your message or delete some columns."
+    );
+  }
+}
+
+class TokensExceededLaterMessage extends NonRetryableError {
+  constructor() {
+    super(
+      "Sorry, there's too much information for the AI to process. " +
+      "You'll need to either shorten your message, restart the conversation, or delete some columns."
+    );
+  }
+}
+
+class QuotaExceededError extends NonRetryableError {
+  constructor() {
+    super(
+      "Sorry, the assistant is facing some long term capacity issues. " +
+      "Maybe try again tomorrow."
+    );
+  }
+}
+
+class RetryableError extends Error {
+  constructor(message: string) {
+    super(
+      "Sorry, the assistant is unavailable right now. " +
+      "Try again in a few minutes. \n" +
+      `(${message})`
+    );
+  }
+}
+
 /**
  * A flavor of assistant for use with the OpenAI API.
  * Tested primarily with gpt-3.5-turbo.
  */
 export class OpenAIAssistant implements Assistant {
+  public static DEFAULT_MODEL = "gpt-3.5-turbo-0613";
+  public static LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
+
   private _apiKey: string;
-  private _model: string;
   private _chatMode: boolean;
   private _endpoint: string;
 
@@ -60,8 +107,7 @@ export class OpenAIAssistant implements Assistant {
       throw new Error('OPENAI_API_KEY not set');
     }
     this._apiKey = apiKey;
-    this._model = process.env.COMPLETION_MODEL || "gpt-3.5-turbo-0613";
-    this._chatMode = this._model.includes('turbo');
+    this._chatMode = true;
     if (!this._chatMode) {
       throw new Error('Only turbo models are currently supported');
     }
@@ -114,7 +160,15 @@ export class OpenAIAssistant implements Assistant {
         role: 'user', content: await makeSchemaPromptV1(optSession, doc, request),
       });
     }
+    const completion: string = await this._getCompletion(messages);
+    const response = await completionToResponse(doc, request, completion, completion);
+    if (chatMode) {
+      response.state = {messages};
+    }
+    return response;
+  }
 
+  private async _fetchCompletion(messages: AssistanceMessage[], longerContext: boolean) {
     const apiResponse = await DEPS.fetch(
       this._endpoint,
       {
@@ -126,30 +180,62 @@ export class OpenAIAssistant implements Assistant {
         body: JSON.stringify({
           ...(!this._chatMode ? {
             prompt: messages[messages.length - 1].content,
-          } : { messages }),
-          max_tokens: 1500,
+          } : {messages}),
           temperature: 0,
-          model: this._model,
+          model: longerContext ? OpenAIAssistant.LONGER_CONTEXT_MODEL : OpenAIAssistant.DEFAULT_MODEL,
           stop: this._chatMode ? undefined : ["\n\n"],
         }),
       },
     );
+    const resultText = await apiResponse.text();
+    const result = JSON.parse(resultText);
+    const errorCode = result.error?.code;
+    if (errorCode === "context_length_exceeded" || result.choices?.[0].finish_reason === "length") {
+      if (!longerContext) {
+        log.info("Switching to longer context model...");
+        throw new SwitchToLongerContext();
+      } else if (messages.length <= 2) {
+        throw new TokensExceededFirstMessage();
+      } else {
+        throw new TokensExceededLaterMessage();
+      }
+    }
+    if (errorCode === "insufficient_quota") {
+      log.error("OpenAI billing quota exceeded!!!");
+      throw new QuotaExceededError();
+    }
     if (apiResponse.status !== 200) {
-      log.error(`OpenAI API returned ${apiResponse.status}: ${await apiResponse.text()}`);
-      throw new Error(`OpenAI API returned status ${apiResponse.status}`);
+      throw new Error(`OpenAI API returned status ${apiResponse.status}: ${resultText}`);
     }
-    const result = await apiResponse.json();
-    const completion: string = String(chatMode ? result.choices[0].message.content : result.choices[0].text);
-    const history = { messages };
-    if (chatMode) {
-      history.messages.push(result.choices[0].message);
-    }
+    return result;
+  }
 
-    const response = await completionToResponse(doc, request, completion, completion);
-    if (chatMode) {
-      response.state = history;
+  private async _fetchCompletionWithRetries(messages: AssistanceMessage[], longerContext: boolean): Promise<any> {
+    const maxAttempts = 3;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this._fetchCompletion(messages, longerContext);
+      } catch (e) {
+        if (e instanceof SwitchToLongerContext) {
+          return await this._fetchCompletionWithRetries(messages, true);
+        } else if (e instanceof NonRetryableError) {
+          throw e;
+        } else if (attempt === maxAttempts) {
+          throw new RetryableError(e.toString());
+        }
+        log.warn(`Waiting and then retrying after error: ${e}`);
+        await delay(DEPS.delayTime);
+      }
     }
-    return response;
+  }
+
+  private async _getCompletion(messages: AssistanceMessage[]) {
+    const result = await this._fetchCompletionWithRetries(messages, false);
+    const completion: string = String(this._chatMode ? result.choices[0].message.content : result.choices[0].text);
+    if (this._chatMode) {
+      messages.push(result.choices[0].message);
+    }
+    return completion;
   }
 }
 
@@ -275,31 +361,15 @@ export function getAssistant() {
 }
 
 /**
- * Service a request for assistance, with a little retry logic
- * since these endpoints can be a bit flakey.
+ * Service a request for assistance.
  */
 export async function sendForCompletion(
   optSession: OptDocSession,
   doc: AssistanceDoc,
-  request: AssistanceRequest): Promise<AssistanceResponse> {
+  request: AssistanceRequest,
+): Promise<AssistanceResponse> {
   const assistant = getAssistant();
-
-  let retries: number = 0;
-
-  let response: AssistanceResponse|null = null;
-  while(retries++ < 3) {
-    try {
-      response = await assistant.apply(optSession, doc, request);
-      break;
-    } catch(e) {
-      log.error(`Completion error: ${e}`);
-      await delay(1000);
-    }
-  }
-  if (!response) {
-    throw new Error('Failed to get response from assistant');
-  }
-  return response;
+  return await assistant.apply(optSession, doc, request);
 }
 
 async function makeSchemaPromptV1(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest) {
