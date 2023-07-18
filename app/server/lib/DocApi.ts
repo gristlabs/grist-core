@@ -763,6 +763,16 @@ export class DocWorkerApi {
 
 
 
+    // Clears a single webhook in the queue for this document.
+    this._app.delete('/api/docs/:docId/webhooks/queue/:webhookId', isOwner,
+      withDoc(async (activeDoc, req, res) => {
+        const webhookId = req.params.webhookId;
+        await activeDoc.clearSingleWebhookQueue(webhookId);
+        await activeDoc.sendWebhookNotification();
+        res.json({success: true});
+      })
+    );
+
     // Lists all webhooks and their current status in the document.
     this._app.get('/api/docs/:docId/webhooks', isOwner,
       withDoc(async (activeDoc, req, res) => {

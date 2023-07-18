@@ -1,11 +1,9 @@
-import { DocCreationInfo } from 'app/common/DocListAPI';
-import { DocAPI } from 'app/common/UserAPI';
-import { assert, driver, Key } from 'mocha-webdriver';
+import {DocCreationInfo} from 'app/common/DocListAPI';
+import {DocAPI} from 'app/common/UserAPI';
+import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { setupTestSuite } from 'test/nbrowser/testUtils';
-import { EnvironmentSnapshot } from 'test/server/testUtils';
-import { server } from 'test/nbrowser/testUtils';
-//import { Deps as TriggersDeps } from 'app/server/lib/Triggers';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 describe('WebhookPage', function () {
   this.timeout(60000);

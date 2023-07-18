@@ -35,6 +35,7 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
+import {WebhookMessageType} from 'app/common/CommTypes';
 import {
   BulkAddRecord,
   BulkRemoveRecord,
@@ -129,8 +130,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession,
-        timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -1769,6 +1769,10 @@ export class ActiveDoc extends EventEmitter {
     await this._triggers.clearWebhookQueue();
   }
 
+  public async clearSingleWebhookQueue(webhookId: string) {
+    await this._triggers.clearSingleWebhookQueue(webhookId);
+  }
+
   /**
    * Returns the list of outgoing webhook for a table in this document.
    */
@@ -1778,13 +1782,13 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Send a message to clients connected to the document that something
-   * webhook-related has happened (a change in configuration, or a
-   * delivery, or an error). There is room to give details in future,
-   * if that proves useful, but for now no details are needed.
+   * webhook-related has happened (a change in configuration, a delivery,
+   * or an error). It passes information about the type of event (currently data being updated in some way
+   * or an OverflowError, i.e., too many events waiting to be sent). More data may be added when necessary.
    */
-  public async sendWebhookNotification() {
+  public async sendWebhookNotification(type: WebhookMessageType = WebhookMessageType.Update) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
-      webhooks: {},
+      webhooks: {type},
     });
   }
 

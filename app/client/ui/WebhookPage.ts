@@ -1,19 +1,26 @@
-import { GristDoc } from 'app/client/components/GristDoc';
-import { ViewSectionHelper } from 'app/client/components/ViewLayout';
-import { makeT } from 'app/client/lib/localization';
-import { reportMessage, reportSuccess } from 'app/client/models/errors';
-import { IEdit, IExternalTable, VirtualTable } from 'app/client/models/VirtualTable';
-import { docListHeader } from 'app/client/ui/DocMenuCss';
-import { bigPrimaryButton } from 'app/client/ui2018/buttons';
-import { mediaSmall, testId } from 'app/client/ui2018/cssVars';
-import { ApiError } from 'app/common/ApiError';
-import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
-import { DocAction, getColIdsFromDocAction, getColValues,
-         isDataAction, TableDataAction, UserAction } from 'app/common/DocActions';
-import { WebhookSummary } from 'app/common/Triggers';
-import { DocAPI } from 'app/common/UserAPI';
-import { GristObjCode, RowRecord } from 'app/plugin/GristData';
-import { dom, styled } from 'grainjs';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {ViewSectionHelper} from 'app/client/components/ViewLayout';
+import {makeT} from 'app/client/lib/localization';
+import {reportMessage, reportSuccess} from 'app/client/models/errors';
+import {IEdit, IExternalTable, VirtualTable} from 'app/client/models/VirtualTable';
+import {docListHeader} from 'app/client/ui/DocMenuCss';
+import {bigPrimaryButton} from 'app/client/ui2018/buttons';
+import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
+import {ApiError} from 'app/common/ApiError';
+import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
+import {
+  DocAction,
+  getColIdsFromDocAction,
+  getColValues,
+  isDataAction,
+  TableDataAction,
+  UserAction
+} from 'app/common/DocActions';
+import {WebhookSummary} from 'app/common/Triggers';
+import {DocAPI} from 'app/common/UserAPI';
+import {GristObjCode, RowRecord} from 'app/plugin/GristData';
+import {dom, styled} from 'grainjs';
+import {observableArray, ObservableArray} from "knockout";
 import omit = require('lodash/omit');
 import pick = require('lodash/pick');
 import range = require('lodash/range');
@@ -122,21 +129,26 @@ class WebhookExternalTable implements IExternalTable {
   public saveableFields = [
     'tableId', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
+  public webhooks: ObservableArray<WebhookSummary> =  observableArray<WebhookSummary>([]);
 
-  public constructor(private _docApi: DocAPI) {}
+  public constructor(private _docApi: DocAPI) {
+  }
 
   public async fetchAll(): Promise<TableDataAction> {
     const webhooks = await this._docApi.getWebhooks();
+    this._initalizeWebhookList(webhooks);
     const indices = range(webhooks.length);
     return ['TableData', this.name, indices.map(i => i + 1),
-          getColValues(indices.map(rowId => _mapWebhookValues(webhooks[rowId])))];
+      getColValues(indices.map(rowId => _mapWebhookValues(webhooks[rowId])))];
   }
 
   public async beforeEdit(editor: IEdit) {
     const results = editor.actions;
     for (const r of results) {
       for (const d of r.stored) {
-        if (!isDataAction(d)) { continue; }
+        if (!isDataAction(d)) {
+          continue;
+        }
         const colIds = new Set(getColIdsFromDocAction(d) || []);
         if (colIds.has('webhookId') || colIds.has('status')) {
           throw new Error(`Sorry, not all fields can be edited.`);
@@ -146,7 +158,9 @@ class WebhookExternalTable implements IExternalTable {
     const delta = editor.delta;
     for (const recId of delta.removeRows) {
       const rec = editor.getRecord(recId);
-      if (!rec) { continue; }
+      if (!rec) {
+        continue;
+      }
       await this._removeWebhook(rec);
       reportMessage(`Removed webhook.`);
     }
@@ -159,13 +173,16 @@ class WebhookExternalTable implements IExternalTable {
       }
     }
   }
+
   public async afterEdit(editor: IEdit) {
     const {delta} = editor;
     const updates = new Set(delta.updateRows);
     const addsAndUpdates = new Set([...delta.addRows, ...delta.updateRows]);
     for (const recId of addsAndUpdates) {
       const rec = editor.getRecord(recId);
-      if (!rec) { continue; }
+      if (!rec) {
+        continue;
+      }
       const notes: string[] = [];
       const values: Record<string, any> = {};
       if (!rec.webhookId) {
@@ -192,6 +209,12 @@ class WebhookExternalTable implements IExternalTable {
     }
   }
 
+  private _initalizeWebhookList(webhooks: WebhookSummary[]){
+
+    this.webhooks.removeAll();
+    this.webhooks.push(...webhooks);
+  }
+
   public async sync(editor: IEdit): Promise<void> {
     // Map from external webhookId to local arbitrary rowId.
     const rowMap = new Map(editor.getRowIds().map(rowId => [editor.getRecord(rowId)!.webhookId, rowId]));
@@ -206,6 +229,7 @@ class WebhookExternalTable implements IExternalTable {
     // webhooks, or that "updating" something that hasn't actually
     // changed is not disruptive.
     const webhooks = await this._docApi.getWebhooks();
+    this._initalizeWebhookList(webhooks);
     for (const webhook of webhooks) {
       const values = _mapWebhookValues(webhook);
       const rowId = rowMap.get(webhook.id);
@@ -240,12 +264,12 @@ class WebhookExternalTable implements IExternalTable {
     const choices = editor.gristDoc.docModel.visibleTables.all().map(tableRec => tableRec.tableId());
     editor.gristDoc.docData.receiveAction([
       'UpdateRecord', '_grist_Tables_column', 'vt_webhook_fc1' as any, {
-      widgetOptions: JSON.stringify({
-        widget: 'TextBox',
-        alignment: 'left',
-        choices,
-      })
-    }]);
+        widgetOptions: JSON.stringify({
+          widget: 'TextBox',
+          alignment: 'left',
+          choices,
+        })
+      }]);
   }
 
   private _getErrorString(e: ApiError): string {
@@ -296,15 +320,21 @@ export class WebhookPage extends DisposableWithEvents {
 
   public docApi = this.gristDoc.docPageModel.appModel.api.getDocAPI(this.gristDoc.docId());
   public sharedTable: VirtualTable;
+  private _webhookExternalTable: WebhookExternalTable;
+
 
   constructor(public gristDoc: GristDoc) {
     super();
-
-    const table = new VirtualTable(this, gristDoc, new WebhookExternalTable(this.docApi));
+    //this._webhooks = observableArray<WebhookSummary>();
+    this._webhookExternalTable = new WebhookExternalTable(this.docApi);
+    const table = new VirtualTable(this, gristDoc, this._webhookExternalTable);
     this.listenTo(gristDoc, 'webhooks', async () => {
       await table.lazySync();
+
     });
   }
+
+
 
   public buildDom() {
     const viewSectionModel = this.gristDoc.docModel.viewSections.getRowModel('vt_webhook_fs1' as any);
@@ -313,9 +343,9 @@ export class WebhookPage extends DisposableWithEvents {
       cssHeader(t('Webhook Settings')),
       cssControlRow(
         bigPrimaryButton(t("Clear Queue"),
-                         dom.on('click', () => this.reset()),
-                         testId('webhook-reset'),
-                        ),
+          dom.on('click', () => this.reset()),
+          testId('webhook-reset'),
+        )
       ),
       // active_section here is a bit of a hack, to allow tests to run
       // more easily.
@@ -326,6 +356,11 @@ export class WebhookPage extends DisposableWithEvents {
   public async reset() {
     await this.docApi.flushWebhooks();
     reportSuccess('Cleared webhook queue.');
+  }
+
+  public async resetSelected(id: string) {
+    await this.docApi.flushWebhook(id);
+    reportSuccess(`Cleared webhook ${id} queue.`);
   }
 }
 
@@ -369,15 +404,15 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
   return [[
     // Add the virtual table.
     'AddTable', tableId,
-      WEBHOOK_COLUMNS.map(col => ({
-        isFormula: true,
-        type: 'Any',
-        formula: '',
-        id: col.colId
-      }))
+    WEBHOOK_COLUMNS.map(col => ({
+      isFormula: true,
+      type: 'Any',
+      formula: '',
+      id: col.colId
+    }))
   ], [
     // Add an entry for the virtual table.
-    'AddRecord', '_grist_Tables', 'vt_webhook_ft1' as any, { tableId, primaryViewId: 0 },
+    'AddRecord', '_grist_Tables', 'vt_webhook_ft1' as any, {tableId, primaryViewId: 0},
   ], [
     // Add entries for the columns of the virtual table.
     'BulkAddRecord', '_grist_Tables_column',
@@ -391,10 +426,10 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
   ], [
     // Add a view section.
     'AddRecord', '_grist_Views_section', 'vt_webhook_fs1' as any,
-      { tableRef: 'vt_webhook_ft1', parentKey: 'detail', title: '', borderWidth: 1, defaultWidth: 100, theme: 'blocks' }
+    {tableRef: 'vt_webhook_ft1', parentKey: 'detail', title: '', borderWidth: 1, defaultWidth: 100, theme: 'blocks'}
   ], [
     // List the fields shown in the view section.
-    'BulkAddRecord', '_grist_Views_section_field', WEBHOOK_VIEW_FIELDS.map((_, i) => `vt_webhook_ff${i+1}`) as any, {
+    'BulkAddRecord', '_grist_Views_section_field', WEBHOOK_VIEW_FIELDS.map((_, i) => `vt_webhook_ff${i + 1}`) as any, {
       colRef: WEBHOOK_VIEW_FIELDS.map(colId => WEBHOOK_COLUMNS.find(r => r.colId === colId)!.id),
       parentId: WEBHOOK_VIEW_FIELDS.map(() => 'vt_webhook_fs1'),
       parentPos: WEBHOOK_VIEW_FIELDS.map((_, i) => i),
