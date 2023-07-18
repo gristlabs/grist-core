@@ -1011,5 +1011,29 @@
     "WebhookPage": {
         "Clear Queue": "Effacer la file d'attente",
         "Webhook Settings": "Paramètres des points d’ancrage Web"
+    },
+    "FormulaAssistant": {
+        "Grist's AI Formula Assistance. ": "Assistance des formules de l'IA de Grist ",
+        "Ask the bot.": "Demandez au bot.",
+        "Function List": "Liste des fonctions",
+        "Tips": "Conseils"
+    },
+    "SupportGristNudge": {
+        "Help Center": "Centre d'aide",
+        "Close": "Fermer",
+        "Contribute": "Contribuer",
+        "Support Grist": "Support Grist"
+    },
+    "GridView": {
+        "Click to insert": "Cliquer pour insérer"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "Help Center": "Centre d'aide",
+        "Home": "Accueil",
+        "Sponsor Grist Labs on GitHub": "Sponsoriser Grist Labs sur GitHub"
+    },
+    "buildViewSectionDom": {
+        "No data": "Aucune donnée"
     }
 }
