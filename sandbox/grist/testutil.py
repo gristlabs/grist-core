@@ -6,18 +6,6 @@ import re
 import six
 
 import actions
-import logger
-
-def limit_log_stderr(min_level):
-  """
-  Returns a log handler suitable for logger.set_handler(), which logs using log_stderr but only
-  messages at the given level or higher.
-  """
-  def handler(level, name, msg):
-    if level >= min_level:
-      logger.log_stderr(level, name, msg)
-  return handler
-
 
 def table_data_from_rows(table_id, col_names, rows):
   """

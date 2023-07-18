@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long
+import logging
 import six
 
-import logger
 import testutil
 import test_engine
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestTypes(test_engine.EngineTestCase):
   sample = testutil.parse_test_sample({

@@ -1,9 +1,9 @@
 import time
-import logger
+import logging
 import testutil
 import test_engine
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestDefaultFormulas(test_engine.EngineTestCase):
   sample = testutil.parse_test_sample({

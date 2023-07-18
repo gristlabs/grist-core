@@ -2,6 +2,7 @@ import ast
 import contextlib
 import itertools
 import linecache
+import logging
 import re
 import textwrap
 
@@ -11,8 +12,7 @@ import six
 
 import friendly_errors
 import textbuilder
-import logger
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 DOLLAR_REGEX = re.compile(r'\$(?=[a-zA-Z_][a-zA-Z_0-9]*)')

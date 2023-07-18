@@ -1,10 +1,10 @@
-import logger
+import logging
 
 import testutil
 import test_engine
 from test_engine import Table, Column, View, Section, Field
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestTableActions(test_engine.EngineTestCase):
 

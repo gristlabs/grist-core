@@ -1,5 +1,6 @@
 import collections
 import itertools
+import logging
 import types
 
 import six
@@ -9,13 +10,12 @@ import column
 import depend
 import docmodel
 import functions
-import logger
 import lookup
 from records import adjust_record, Record as BaseRecord, RecordSet as BaseRecordSet
 import relation as relation_module    # "relation" is used too much as a variable name below.
 import usertypes
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 def get_default_func_name(col_id):

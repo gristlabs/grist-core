@@ -1,10 +1,9 @@
+import unittest
+import sys
 import relabeling
 
 from sortedcontainers import SortedListWithKey
 from six.moves import zip as izip, xrange
-
-import unittest
-import sys
 
 # Shortcut to keep code more concise.
 r = relabeling

@@ -4,16 +4,17 @@ and returns a object formatted so that it can be used by grist for a bulk add re
 """
 import logging
 
-import six
 import openpyxl
 from openpyxl.utils.datetime import from_excel
-from openpyxl.worksheet import _reader
+from openpyxl.worksheet import _reader    # pylint:disable=no-name-in-module
+import six
 from six.moves import zip
 
 import parse_data
 from imports import import_utils
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
 
 
 # Some strange Excel files have values that are marked as dates but are invalid as dates.

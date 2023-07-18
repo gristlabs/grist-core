@@ -1,11 +1,11 @@
+import logging
 import actions
-import logger
 
 import testsamples
 import testutil
 import test_engine
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 def _bulk_update(table_name, col_names, row_data):
   return actions.BulkUpdateRecord(

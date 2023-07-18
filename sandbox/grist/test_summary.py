@@ -3,16 +3,15 @@ Test of Summary tables. This has many test cases, so to keep files smaller, it's
 files: test_summary.py and test_summary2.py.
 """
 
+import logging
 import actions
-import logger
 import summary
 import testutil
 import test_engine
+from test_engine import Table, Column, View, Section, Field
 from useractions import allowed_summary_change
 
-from test_engine import Table, Column, View, Section, Field
-
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 class TestSummary(test_engine.EngineTestCase):

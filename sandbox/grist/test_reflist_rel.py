@@ -2,11 +2,11 @@
 This test replicates a bug involving a column conversion after a table rename in the presence of
 a RefList. A RefList column type today only appears as a result of detaching a summary table.
 """
-import logger
+import logging
 import test_engine
 from test_engine import Table, Column
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestRefListRelation(test_engine.EngineTestCase):
   def test_ref_list_relation(self):

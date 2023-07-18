@@ -1,4 +1,5 @@
 import json
+import logging
 import types
 from collections import namedtuple
 from numbers import Number
@@ -11,10 +12,9 @@ import usertypes
 import relabeling
 import relation
 import moment
-import logger
 from sortedcontainers import SortedListWithKey
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 MANUAL_SORT = 'manualSort'
 MANUAL_SORT_COL_INFO = {

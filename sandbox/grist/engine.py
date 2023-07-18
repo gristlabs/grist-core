@@ -4,6 +4,7 @@ The data engine ties the code generated from the schema with the document data, 
 dependency tracking.
 """
 import itertools
+import logging
 import re
 import rlcompleter
 import sys
@@ -13,7 +14,7 @@ from collections import namedtuple, OrderedDict, defaultdict
 
 import six
 from six.moves import zip
-from six.moves.collections_abc import Hashable  # pylint:disable-all
+from six.moves.collections_abc import Hashable  # pylint:disable=import-error,no-name-in-module
 from sortedcontainers import SortedSet
 
 import acl
@@ -26,7 +27,6 @@ import docactions
 import docmodel
 from fake_std_streams import FakeStdStreams
 import gencode
-import logger
 import match_counter
 import objtypes
 from objtypes import strict_equal
@@ -40,7 +40,7 @@ import useractions
 import column
 import urllib_patch  # noqa imported for side effect # pylint:disable=unused-import
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 if six.PY2:
   reload(sys)
@@ -451,7 +451,7 @@ class Engine(object):
     if n:
       matched_cols = matched_cols[:n]
 
-    log.info('Found column from values in %.3fs' % (time.time() - start_time))
+    log.info('Found column from values in %.3fs', time.time() - start_time)
     return [c[1] for c in matched_cols]
 
   def assert_schema_consistent(self):
@@ -495,9 +495,9 @@ class Engine(object):
     self.dump_recompute_map()
 
   def dump_recompute_map(self):
-    log.debug("Recompute map (%d nodes):" % len(self.recompute_map))
+    log.debug("Recompute map (%d nodes):", len(self.recompute_map))
     for node, dirty_rows in six.iteritems(self.recompute_map):
-      log.debug("  Node %s: %s" % (node, dirty_rows))
+      log.debug("  Node %s: %s", node, dirty_rows)
 
   def _use_node(self, node, relation, row_ids=[]):
     # This is used whenever a formula accesses any part of any record. It's hot code, and
@@ -849,7 +849,7 @@ class Engine(object):
           is_first = node not in self._is_node_exception_reported
           if is_first:
             self._is_node_exception_reported.add(node)
-            log.info(value.details)
+            log.info("Formula error in %s: %s", node, value.details)
             # strip out details after logging
             value = objtypes.RaisedException(value.error, user_input=value.user_input)
 
@@ -1304,7 +1304,7 @@ class Engine(object):
       # If we get an exception, we should revert all changes applied so far, to keep things
       # consistent internally as well as with the clients and database outside of the sandbox
       # (which won't see any changes in case of an error).
-      log.info("Failed to apply useractions; reverting: %r" % (e,))
+      log.info("Failed to apply useractions; reverting: %r", e)
       self._undo_to_checkpoint(checkpoint)
 
       # Check schema consistency again. If this fails, something is really wrong (we tried to go
@@ -1313,7 +1313,7 @@ class Engine(object):
         if self._schema_updated:
           self.assert_schema_consistent()
       except Exception:
-        log.error("Inconsistent schema after revert on failure: %s" % traceback.format_exc())
+        log.error("Inconsistent schema after revert on failure: %s", traceback.format_exc())
 
       # Re-raise the original exception
       # In Python 2, 'raise' raises the most recent exception,
@@ -1354,7 +1354,7 @@ class Engine(object):
     Applies a single user action to the document, without running any triggered updates.
     A UserAction is a tuple whose first element is the name of the action.
     """
-    log.debug("applying user_action %s" % (user_action,))
+    log.debug("applying user_action %s", user_action)
     return getattr(self.user_actions, user_action.__class__.__name__)(*user_action)
 
   def apply_doc_action(self, doc_action):
@@ -1362,7 +1362,6 @@ class Engine(object):
     Applies a doc action, which is a step of a user action. It is represented by an Action object
     as defined in actions.py.
     """
-    #log.warn("Engine.apply_doc_action %s" % (doc_action,))
     self._gone_columns = []
 
     action_name = doc_action.__class__.__name__
@@ -1385,7 +1384,7 @@ class Engine(object):
         try:
           self.rebuild_usercode()
         except Exception:
-          log.error("Error rebuilding usercode after restoring schema: %s" % traceback.format_exc())
+          log.error("Error rebuilding usercode after restoring schema: %s", traceback.format_exc())
 
       # Re-raise the original exception
       # In Python 2, 'raise' raises the most recent exception,
@@ -1524,7 +1523,7 @@ class Engine(object):
     if new_checkpoint != checkpoint:
       (len_calc, len_stored, len_undo, len_ret) = checkpoint
       undo_actions = self.out_actions.undo[len_undo:]
-      log.info("Reverting %d doc actions" % len(undo_actions))
+      log.info("Reverting %d doc actions", len(undo_actions))
       self.user_actions.ApplyUndoActions([actions.get_action_repr(a) for a in undo_actions])
       del self.out_actions.calc[len_calc:]
       del self.out_actions.stored[len_stored:]

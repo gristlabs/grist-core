@@ -15,7 +15,7 @@ The schema for grist data is:
     "formula": <opt_string>,
   }
 """
-import linecache
+import logging
 import re
 import imp
 from collections import OrderedDict
@@ -28,8 +28,7 @@ import summary
 import table
 import textbuilder
 from usertypes import get_type_default
-import logger
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 indent_str = "  "
 

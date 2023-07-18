@@ -1,6 +1,7 @@
 import difflib
 import functools
 import json
+import logging
 import unittest
 from collections import namedtuple
 from pprint import pprint
@@ -10,12 +11,11 @@ import six
 import actions
 import column
 import engine
-import logger
 import useractions
 import testutil
 import objtypes
 
-log = logger.Logger(__name__, logger.DEBUG)
+log = logging.getLogger(__name__)
 
 # These are for use in verifying metadata using assertTables/assertViews methods. E.g.
 #   self.assertViews([View(1, sections=[Section(1, parentKey="record", tableRef=1, fields=[
@@ -35,17 +35,14 @@ class EngineTestCase(unittest.TestCase):
   Provides functionality for verifying engine actions and data, which is general enough to be
   useful for other tests. It is also used by TestEngine below.
   """
-  # Place to keep the original log handler (which we modify for the duration of the test).
-  # We can't use cls._orig_log_handler directly because then Python it's an actual class method.
-  _orig_log_handler = []
-
   @classmethod
   def setUpClass(cls):
-    cls._orig_log_handler.append(logger.set_handler(testutil.limit_log_stderr(logger.WARN)))
+    cls._orig_log_level = logging.root.level
+    logging.root.setLevel(logging.WARNING)
 
   @classmethod
   def tearDownClass(cls):
-    logger.set_handler(cls._orig_log_handler.pop())
+    logging.root.setLevel(cls._orig_log_level)
 
 
   def setUp(self):
@@ -247,7 +244,10 @@ class EngineTestCase(unittest.TestCase):
     if sort:
       row_ids.sort(key=lambda r: sort(table.get_record(r)))
 
-    observed_col_data = {c.col_id: [c.raw_get(r) for r in row_ids] for c in columns if c.col_id != "id"}
+    observed_col_data = {
+      c.col_id: [c.raw_get(r) for r in row_ids]
+      for c in columns if c.col_id != "id"
+    }
     observed = actions.TableData(table_name, row_ids, observed_col_data)
     self.assertEqualDocData({table_name: observed}, {table_name: expected},
                             col_names=col_names)
@@ -353,7 +353,7 @@ class EngineTestCase(unittest.TestCase):
 
   def apply_user_action(self, user_action_repr, is_undo=False, user=None):
     if not is_undo:
-      log.debug("Applying user action %r" % (user_action_repr,))
+      log.debug("Applying user action %r", user_action_repr)
       if self._undo_state_tracker is not None:
         doc_state = self.getFullEngineData()
 
@@ -384,7 +384,7 @@ def test_undo(test_method):
     self._undo_state_tracker = []
     test_method(self)
     for (expected_engine_data, undo_actions) in reversed(self._undo_state_tracker):
-      log.debug("Applying undo actions %r" % (undo_actions,))
+      log.debug("Applying undo actions %r", undo_actions)
       self.apply_undo_actions(undo_actions)
       self.assertEqualDocData(self.getFullEngineData(), expected_engine_data)
   return wrapped
