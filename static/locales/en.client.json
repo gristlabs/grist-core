@@ -898,7 +898,11 @@
         "Error in the cell": "Error in the cell",
         "Errors in all {{numErrors}} cells": "Errors in all {{numErrors}} cells",
         "Errors in {{numErrors}} of {{numCells}} cells": "Errors in {{numErrors}} of {{numCells}} cells",
-        "editingFormula is required": "editingFormula is required"
+        "editingFormula is required": "editingFormula is required",
+        "Enter formula or {{button}}.": "Enter formula or {{button}}.",
+        "Enter formula.": "Enter formula.",
+        "Expand Editor": "Expand Editor",
+        "use AI Assistant": "use AI Assistant"
     },
     "HyperLinkEditor": {
         "[link label] url": "[link label] URL"
@@ -1037,7 +1041,20 @@
         "Regenerate": "Regenerate",
         "Save": "Save",
         "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.",
-        "Tips": "Tips"
+        "Tips": "Tips",
+        "AI Assistant": "AI Assistant",
+        "Apply": "Apply",
+        "Cancel": "Cancel",
+        "Clear Conversation": "Clear Conversation",
+        "Code View": "Code View",
+        "Hi, I'm the Grist Formula AI Assistant.": "Hi, I'm the Grist Formula AI Assistant.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.",
+        "Learn more": "Learn more",
+        "Press Enter to apply suggested formula.": "Press Enter to apply suggested formula.",
+        "Sign Up for Free": "Sign Up for Free",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Sign up for a free Grist account to start using the Formula AI Assistant.",
+        "There are some things you should know when working with me:": "There are some things you should know when working with me:",
+        "What do you need help with?": "What do you need help with?"
     },
     "GridView": {
         "Click to insert": "Click to insert"
@@ -1133,5 +1150,12 @@
         "No data": "No data",
         "No row selected in {{title}}": "No row selected in {{title}}",
         "Not all data is shown": "Not all data is shown"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Collapse Editor"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximize",
+        "Minimize": "Minimize"
     }
 }
