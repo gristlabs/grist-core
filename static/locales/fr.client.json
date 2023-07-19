@@ -74,7 +74,8 @@
         "Sign Out": "Se déconnecter",
         "Upgrade Plan": "Version Premium",
         "Support Grist": "Centre d'aide",
-        "Billing Account": "Facturation"
+        "Billing Account": "Facturation",
+        "Activation": "Activer"
     },
     "ActionLog": {
         "Action Log failed to load": "Impossible de charger le journal des actions",
@@ -475,7 +476,8 @@
         "Ask for help": "Demander de l’aide",
         "Notifications": "Notifications",
         "Give feedback": "Donnez votre avis",
-        "No notifications": "Aucune notification"
+        "No notifications": "Aucune notification",
+        "Manage billing": "Gérer la facturation"
     },
     "OnBoardingPopups": {
         "Finish": "Terminer",
