@@ -70,6 +70,14 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       return module.SearchModelImpl.create(use.owner, gristDoc);
     });
 
+  const isUndoRedoAvailable = Computed.create(owner, use => {
+    const gristDoc = use(pageModel.gristDoc);
+    if (!gristDoc) { return false; }
+
+    const undoStack = gristDoc.getUndoStack();
+    return !use(undoStack.isDisabled);
+  });
+
   return [
     // TODO Before gristDoc is loaded, we could show doc-name without the page. For now, we delay
     // showing of breadcrumbs until gristDoc is loaded.
@@ -98,14 +106,14 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       topBarUndoBtn('Undo',
         dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
         hoverTooltip('Undo', {key: 'topBarBtnTooltip'}),
-        cssHoverCircle.cls('-disabled', state.isUndoDisabled),
-        testId('undo')
+        cssHoverCircle.cls('-disabled', use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
+        testId('undo'),
       ),
       topBarUndoBtn('Redo',
         dom.on('click', () => state.isRedoDisabled.get() || allCommands.redo.run()),
         hoverTooltip('Redo', {key: 'topBarBtnTooltip'}),
-        cssHoverCircle.cls('-disabled', state.isRedoDisabled),
-        testId('redo')
+        cssHoverCircle.cls('-disabled', use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
+        testId('redo'),
       ),
       cssSpacer(),
     ]),

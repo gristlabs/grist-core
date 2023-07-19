@@ -25,7 +25,7 @@ export interface IUndoState {
  * position in this stack. Undo and redo actions are generated and sent to the server here.
  */
 export class UndoStack extends dispose.Disposable {
-
+  public isDisabled: Observable<boolean>;
   public undoDisabledObs: ko.Observable<boolean>;
   public redoDisabledObs: ko.Observable<boolean>;
   private _gristDoc: GristDoc;
@@ -39,6 +39,8 @@ export class UndoStack extends dispose.Disposable {
 
   public create(log: MinimalActionGroup[], options: {gristDoc: GristDoc}) {
     this._gristDoc = options.gristDoc;
+
+    this.isDisabled = Observable.create(this, false);
 
     // TODO: _stack and _linkMap grow without bound within a single session.
     // The top of the stack is stack.length - 1. The pointer points above the most
@@ -99,13 +101,25 @@ export class UndoStack extends dispose.Disposable {
   }
 
   // Send an undo action. This should be called when the user presses 'undo'.
-  public sendUndoAction(): Promise<void> {
+  public async sendUndoAction(): Promise<void> {
+    if (this.isDisabled.get()) { return; }
+
     return this._undoChain.add(() => this._sendAction(true));
   }
 
   // Send a redo action. This should be called when the user presses 'redo'.
-  public sendRedoAction(): Promise<void> {
+  public async sendRedoAction(): Promise<void> {
+    if (this.isDisabled.get()) { return; }
+
     return this._undoChain.add(() => this._sendAction(false));
+  }
+
+  public enable(): void {
+    this.isDisabled.set(false);
+  }
+
+  public disable(): void {
+    this.isDisabled.set(true);
   }
 
   private async _sendAction(isUndo: boolean): Promise<void> {

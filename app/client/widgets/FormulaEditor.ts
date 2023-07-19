@@ -153,7 +153,20 @@ export class FormulaEditor extends NewBaseEditor {
     this._isEmpty.addListener(() => this._updateEditorPlaceholder());
 
     // Update the placeholder text when expanding or collapsing the editor.
-    this.isDetached.addListener(() => this._updateEditorPlaceholder());
+    this.isDetached.addListener((isDetached) => {
+      // TODO: look into whether we can support undo/redo while the editor is detached.
+      if (isDetached) {
+        options.gristDoc.getUndoStack().disable();
+      } else {
+        options.gristDoc.getUndoStack().enable();
+      }
+
+      this._updateEditorPlaceholder();
+    });
+
+    this.onDispose(() => {
+      options.gristDoc.getUndoStack().enable();
+    });
 
     this._dom = cssFormulaEditor(
       // switch border shadow
