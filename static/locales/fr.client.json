@@ -71,7 +71,10 @@
         "Switch Accounts": "Changer de compte",
         "Accounts": "Comptes",
         "Add Account": "Ajouter un compte",
-        "Sign Out": "Se déconnecter"
+        "Sign Out": "Se déconnecter",
+        "Upgrade Plan": "Version Premium",
+        "Support Grist": "Centre d'aide",
+        "Billing Account": "Facturation"
     },
     "ActionLog": {
         "Action Log failed to load": "Impossible de charger le journal des actions",
