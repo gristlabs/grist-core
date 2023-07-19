@@ -6,7 +6,7 @@ import {TableRec} from "app/client/models/entities/TableRec";
 import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
 import {UIRowId} from "app/common/TableData";
 import {LinkConfig} from "app/client/ui/selectBy";
-import {ClientQuery, QueryOperation} from "app/common/ActiveDocAPI";
+import {FilterColValues, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isListType, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import {encodeObject} from 'app/plugin/objtypes';
@@ -33,8 +33,6 @@ function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
     summary.getRowId() !== detail.getRowId() &&
     gutil.isSubset(summary.summarySourceColRefs(), detail.summarySourceColRefs()));
 }
-
-export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
 
 /**
  * Maintains state useful for linking sections, i.e. auto-filtering and auto-scrolling.

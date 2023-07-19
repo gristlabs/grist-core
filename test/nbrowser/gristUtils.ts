@@ -11,6 +11,7 @@ import { assert, driver as driverOrig, error, Key, WebElement, WebElementPromise
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
 
+import {csvDecodeRow} from 'app/common/csvFormat';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
@@ -29,6 +30,7 @@ import { server } from 'test/nbrowser/testServer';
 import { Cleanup } from 'test/nbrowser/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
+import axios from 'axios';
 
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
@@ -3076,6 +3078,24 @@ export function produceUncaughtError(message: string) {
     script.innerText = 'setTimeout(() => { throw new Error(' + JSON.stringify(msg) + '); }, 0)';
     document.head.appendChild(script);
   }, message);
+}
+
+export async function downloadSectionCsv(
+  section: string, headers: any = {Authorization: 'Bearer api_key_for_chimpy'}
+) {
+  await openSectionMenu("viewLayout", section);
+  const href = await driver.findWait('.test-download-section', 1000).getAttribute('href');
+  await driver.sendKeys(Key.ESCAPE);  // Close section menu
+  const resp = await axios.get(href, { responseType: 'text', headers });
+  return resp.data as string;
+}
+
+export async function downloadSectionCsvGridCells(
+  section: string, headers: any = {Authorization: 'Bearer api_key_for_chimpy'}
+): Promise<string[]> {
+  const csvString = await downloadSectionCsv(section, headers);
+  const csvRows = csvString.split('\n').slice(1).map(csvDecodeRow);
+  return ([] as string[]).concat(...csvRows);
 }
 
 } // end of namespace gristUtils

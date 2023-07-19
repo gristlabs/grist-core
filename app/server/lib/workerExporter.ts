@@ -1,4 +1,5 @@
 import {PassThrough} from 'stream';
+import {FilterColValues} from "app/common/ActiveDocAPI";
 import {ActiveDocSource, doExportDoc, doExportSection, doExportTable, ExportData, Filter} from 'app/server/lib/Export';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
 import * as log from 'app/server/lib/log';
@@ -87,8 +88,9 @@ async function doMakeXLSXFromViewSection(
   viewSectionId: number,
   sortOrder: number[],
   filters: Filter[],
+  linkingFilter: FilterColValues,
 ) {
-  const data = await doExportSection(activeDocSource, viewSectionId, sortOrder, filters);
+  const data = await doExportSection(activeDocSource, viewSectionId, sortOrder, filters, linkingFilter);
   const {exportTable, end} = convertToExcel(stream, testDates);
   exportTable(data);
   await end();

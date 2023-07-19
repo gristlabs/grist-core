@@ -57,7 +57,7 @@ import {invokePrompt} from 'app/client/ui2018/modals';
 import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {ClientQuery} from "app/common/ActiveDocAPI";
+import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
 import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -1518,18 +1518,20 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   private _getDocApiDownloadParams() {
-    const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
+    const activeSection = this.viewModel.activeSection();
+    const filters = activeSection.activeFilters.get().map(filterInfo => ({
       colRef: filterInfo.fieldOrColumn.origCol().origColRef(),
       filter: filterInfo.filter()
     }));
+    const linkingFilter: FilterColValues = activeSection.linkingFilter();
 
-    const params = {
+    return {
       viewSection: this.viewModel.activeSectionId(),
-      tableId: this.viewModel.activeSection().table().tableId(),
-      activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
+      tableId: activeSection.table().tableId(),
+      activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
       filters: JSON.stringify(filters),
+      linkingFilter: JSON.stringify(linkingFilter),
     };
-    return params;
   }
 
   /**

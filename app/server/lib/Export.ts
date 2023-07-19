@@ -1,3 +1,4 @@
+import {FilterColValues} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {buildColFilter} from 'app/common/ColumnFilterFunc';
 import {TableDataAction, TableDataActionSet} from 'app/common/DocActions';
@@ -7,7 +8,7 @@ import * as gristTypes from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {nativeCompare} from 'app/common/gutil';
 import {isTableCensored} from 'app/common/isHiddenTable';
-import {buildRowFilter} from 'app/common/RowFilterFunc';
+import {buildRowFilter, getLinkingFilterFunc} from 'app/common/RowFilterFunc';
 import {schema, SchemaTypes} from 'app/common/schema';
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
@@ -97,6 +98,7 @@ export interface ExportParameters {
   viewSectionId?: number;
   sortOrder?: number[];
   filters?: Filter[];
+  linkingFilter?: FilterColValues;
 }
 
 /**
@@ -114,12 +116,14 @@ export function parseExportParameters(req: express.Request): ExportParameters {
   const viewSectionId = optIntegerParam(req.query.viewSection);
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
+  const linkingFilter: FilterColValues = optJsonParam(req.query.linkingFilter, null);
 
   return {
     tableId,
     viewSectionId,
     sortOrder,
     filters,
+    linkingFilter,
   };
 }
 
@@ -268,11 +272,12 @@ export async function exportSection(
   viewSectionId: number,
   sortSpec: Sort.SortSpec | null,
   filters: Filter[] | null,
+  linkingFilter: FilterColValues | null = null,
   req: express.Request,
   {metaTables}: {metaTables?: TableDataActionSet} = {},
 ): Promise<ExportData> {
   return doExportSection(new ActiveDocSourceDirect(activeDoc, req), viewSectionId, sortSpec,
-    filters, {metaTables});
+    filters, linkingFilter, {metaTables});
 }
 
 export async function doExportSection(
@@ -280,6 +285,7 @@ export async function doExportSection(
   viewSectionId: number,
   sortSpec: Sort.SortSpec | null,
   filters: Filter[] | null,
+  linkingFilter: FilterColValues | null = null,
   {metaTables}: {metaTables?: TableDataActionSet} = {},
 ): Promise<ExportData> {
   metaTables = metaTables || await getMetaTables(activeDocSource);
@@ -359,6 +365,10 @@ export async function doExportSection(
     .reduce((prevFilter, curFilter) => (id) => prevFilter(id) && curFilter(id), () => true);
   // filter rows numbers
   rowIds = rowIds.filter(rowFilter);
+
+  if (linkingFilter) {
+    rowIds = rowIds.filter(getLinkingFilterFunc(getters, linkingFilter));
+  }
 
   const docInfo = safeRecord(safeTable(metaTables, '_grist_DocInfo'), 1);
   const docSettings = gutil.safeJsonParse(docInfo.documentSettings, {});

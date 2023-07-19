@@ -116,6 +116,8 @@ export interface ClientQuery extends BaseQuery {
   };
 }
 
+export type FilterColValues = Pick<ClientQuery, "filters" | "operations">;
+
 /**
  * Query intended to be sent to a server.
  */

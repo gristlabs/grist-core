@@ -55,7 +55,7 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
 export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
                                  outputStream: Writable, options: ExportParameters) {
   log.debug(`Generating .xlsx file`);
-  const {tableId, viewSectionId, filters, sortOrder} = options;
+  const {tableId, viewSectionId, filters, sortOrder, linkingFilter} = options;
   const testDates = (req.hostname === 'localhost');
 
   const { port1, port2 } = new MessageChannel();
@@ -90,7 +90,7 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
     // hanlding 3 cases : full XLSX export (full file), view xlsx export, table xlsx export
     try {
       if (viewSectionId) {
-        await run('makeXLSXFromViewSection', viewSectionId, sortOrder, filters);
+        await run('makeXLSXFromViewSection', viewSectionId, sortOrder, filters, linkingFilter);
       } else if (tableId) {
         await run('makeXLSXFromTable', tableId);
       } else {

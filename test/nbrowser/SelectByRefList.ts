@@ -198,6 +198,12 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
       }),
       sourceGroup
     );
+    const csvCells = await gu.downloadSectionCsvGridCells('LINKTARGET');
+    const expectedCsvCells = sourceGroup.slice(0, -3)  // remove 'add new' row of empty strings
+      // visible cells text uses newlines to separate list items,
+      // CSV export uses commas
+      .map(s => s.replace("\n", ", "));
+    assert.deepEqual(csvCells, expectedCsvCells);
   }
 
   for (let i = 0; i < sourceData.length; i++) {
