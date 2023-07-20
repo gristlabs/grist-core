@@ -147,6 +147,8 @@ export const GristDark: ThemeColors = {
 
   /* Selection */
   'selection': 'rgba(22,179,120,0.15)',
+  'selection-darker': 'rgba(22,179,120,0.25)',
+  'selection-darkest': 'rgba(22,179,120,0.35)',
   'selection-opaque-fg': 'white',
   'selection-opaque-bg': '#2F4748',
   'selection-opaque-dark-bg': '#253E3E',

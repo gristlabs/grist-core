@@ -337,6 +337,8 @@ export const theme = {
 
   /* Selection */
   selection: new CustomProp('theme-selection', undefined, colors.selection),
+  selectionDarker: new CustomProp('theme-selection-darker', undefined, 'rgba(22,179,120,0.25)'),
+  selectionDarkest: new CustomProp('theme-selection-darkest', undefined, 'rgba(22,179,120,0.35)'),
   selectionOpaqueFg: new CustomProp('theme-selection-opaque-fg', undefined, 'unset'),
   selectionOpaqueBg: new CustomProp('theme-selection-opaque-bg', undefined,
     colors.selectionOpaque),

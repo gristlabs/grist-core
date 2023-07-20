@@ -168,6 +168,8 @@ export interface ThemeColors {
 
   /* Selection */
   'selection': string;
+  'selection-darker': string;
+  'selection-darkest': string;
   'selection-opaque-fg': string;
   'selection-opaque-bg': string;
   'selection-opaque-dark-bg': string;

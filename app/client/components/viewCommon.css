@@ -110,8 +110,15 @@
   color: var(--grist-actual-cell-color, unset);
 }
 
-.field.selected > .field_selection {
+.gridview_row .field.selected > .selection {
   background-color: var(--grist-theme-selection, var(--grist-color-selection));
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.field.transform_field > .selection {
+  background-color: var(--grist-theme-selection-darker, rgba(22,179,120,0.25));
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -123,6 +130,10 @@
 }
 
 .field_clip.invalid:empty {
+  background-color: unset;
+}
+
+.field.transform_field > .field_clip.invalid + .selection {
   background-color: unset;
 }
 

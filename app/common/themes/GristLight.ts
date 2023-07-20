@@ -147,6 +147,8 @@ export const GristLight: ThemeColors = {
 
   /* Selection */
   'selection': 'rgba(22,179,120,0.15)',
+  'selection-darker': 'rgba(22,179,120,0.25)',
+  'selection-darkest': 'rgba(22,179,120,0.35)',
   'selection-opaque-fg': 'black',
   'selection-opaque-bg': '#DCF4EB',
   'selection-opaque-dark-bg': '#D6EEE5',

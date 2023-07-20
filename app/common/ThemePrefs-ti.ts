@@ -132,6 +132,8 @@ export const ThemeColors = t.iface([], {
   "card-list-form-border": "string",
   "card-list-blocks-border": "string",
   "selection": "string",
+  "selection-darker": "string",
+  "selection-darkest": "string",
   "selection-opaque-fg": "string",
   "selection-opaque-bg": "string",
   "selection-opaque-dark-bg": "string",

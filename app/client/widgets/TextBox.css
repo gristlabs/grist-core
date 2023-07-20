@@ -1,10 +1,6 @@
 .record-add .field_clip {
   background-color: var(--grist-theme-table-add-new-bg, inherit);
 }
-.transform_field {
-  color: black;
-  background-color: #FEFFE8;
-}
 
 @media not print {
   .formula_field, .formula_field_edit {

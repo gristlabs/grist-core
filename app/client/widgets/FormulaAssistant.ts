@@ -56,6 +56,8 @@ export class FormulaAssistant extends Disposable {
   private _waiting = Observable.create(this, false);
   /** Is this feature enabled at all */
   private _assistantEnabled: Computed<boolean>;
+  /** Preview column ref */
+  private _transformColRef: string;
   /** Preview column id */
   private _transformColId: string;
   /** Method to invoke when we are closed, it saves or reverts */
@@ -136,14 +138,20 @@ export class FormulaAssistant extends Disposable {
       description: 'Formula Editor',
       prepare: () => this._preparePreview(),
       finalize: () => this._cleanupPreview(),
-      shouldIncludeInBundle: (a) => {
-        const tableId = this._options.column.table.peek().tableId.peek();
-        const allowed = a.length === 1
-          && a[0][0] === 'ModifyColumn'
-          && a[0][1] === tableId
-          && typeof a[0][2] === 'string'
-          && [this._transformColId, this._options.column.id.peek()].includes(a[0][2]);
-        return allowed;
+      shouldIncludeInBundle: (actions) => {
+        if (actions.length !== 1) { return false; }
+
+        const actionName = actions[0][0];
+        if (actionName === 'ModifyColumn') {
+          const tableId = this._options.column.table.peek().tableId.peek();
+          return actions[0][1] === tableId
+            && typeof actions[0][2] === 'string'
+            && [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
+        } else if (actionName === 'UpdateRecord') {
+          return actions[0][1] === '_grist_Tables_column' && actions[0][2] === this._transformColRef;
+        } else {
+          return false;
+        }
       }
     });
 
@@ -342,14 +350,25 @@ export class FormulaAssistant extends Disposable {
     const tableId = this._options.column.table.peek().tableId.peek();
 
     // Add a new column to the table, and set it as the transform column.
-    const colInfo = await docData.sendAction(['AddColumn', tableId, 'gristHelper_Transform', {
+    const {colRef, colId} = await docData.sendAction(['AddColumn', tableId, 'gristHelper_Transform', {
       type: this._options.column.type.peek(),
       label: this._options.column.colId.peek(),
       isFormula: true,
       formula: this._options.column.formula.peek(),
+      widgetOptions: JSON.stringify(this._options.field?.widgetOptionsJson()),
     }]);
-    this._options.field?.colRef(colInfo.colRef); // Don't save, it is only in browser.
-    this._transformColId = colInfo.colId;
+
+    this._transformColRef = colRef;
+    this._transformColId = colId;
+
+    const rules = this._options.field?.rulesList();
+    if (rules) {
+      await docData.sendAction(['UpdateRecord', '_grist_Tables_column', colRef, {
+        rules: this._options.field?.rulesList(),
+      }]);
+    }
+
+    this._options.field?.colRef(colRef); // Don't save, it is only in browser.
 
     // Update the transform column so that it points to the original column.
     const transformColumn = this._options.field?.column.peek();
