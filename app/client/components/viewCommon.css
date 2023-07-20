@@ -184,8 +184,11 @@
 }
 
 .column_name {
-  color: var(--grist-theme-table-header-fg, unset);
-  background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey));
+  color: var(--grist-header-color,
+         var(--grist-theme-table-header-fg), unset);
+  background-color: var(--grist-header-background-color,
+                    var(--grist-theme-table-header-bg,
+                    var(--grist-color-light-grey)));
   text-align: center;
   cursor: pointer;
   /* Column headers always show vertical gridlines, to make it clear how to resize them */
@@ -197,8 +200,14 @@
 }
 
 .column_name.selected {
-  color: var(--grist-theme-table-header-selected-fg, unset);
-  background-color: var(--grist-theme-table-header-selected-bg, var(--grist-color-medium-grey-opaque));
+  /* TODO : the default background color does not work, it remain white */
+  --grist-header-color-selected: color-mix(in srgb,var(--grist-header-color),#000 5%);
+  --grist-header-background-color-selected: color-mix(in srgb,var(--grist-header-background-color, white),#000 5%);
+  color: var(--grist-header-color-selected, 
+         var(--grist-theme-table-header-selected-fg, unset));
+  background-color: var(--grist-header-background-color-selected, 
+                    var(--grist-theme-table-header-selected-bg, 
+                    var(--grist-color-medium-grey-opaque)));
 }
 
 .gridview_data_row_num.selected {

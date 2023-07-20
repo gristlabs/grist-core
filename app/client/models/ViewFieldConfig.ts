@@ -319,8 +319,7 @@ export class ViewFieldConfig {
         // Property has empty value, if all options are empty (are null, undefined, empty Array or empty Object).
         empty: prop => ko.pureComputed(() => allEmpty(fields.map(f => f.widgetOptionsJson.prop(prop)()))),
       });
-      // TODO : correct error here
-      result.revert = () => { zip(fields, state).forEach(([f, s]) => f!.style(s!)); };
+      result.revert = () => { zip(fields, state).forEach(([f, s]) => f!.headerStyle(s!)); };
       return result;
     });
   }

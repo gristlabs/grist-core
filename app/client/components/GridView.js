@@ -1074,8 +1074,6 @@ GridView.prototype.buildDom = function() {
                 ko.unwrap(self.hoverColumn) === field._index()
               );
 
-              console.log("--------- j'affiche un header - " + field.label());
-
               const headerTextColor = ko.computed(() => field.headerTextColor());
               const headerFillColor = ko.computed(() => field.headerFillColor());
               const headerFontBold = ko.computed(() => field.headerFontBold());
@@ -1085,17 +1083,15 @@ GridView.prototype.buildDom = function() {
 
               return dom(
                 'div.column_name.field',
-                // kd.style('color', field.headerTextColor()),
-                // kd.style('background-color', field.headerFillColor()),
                 dom.autoDispose(headerTextColor),
                 dom.autoDispose(headerFillColor),
                 dom.autoDispose(headerFontBold),
                 dom.autoDispose(headerFontItalic),
                 dom.autoDispose(headerFontUnderline),
                 dom.autoDispose(headerFontStrikethrough),
-                // TODO : rendre dynamic le changement de ces deux styles
-                kd.style('color', headerTextColor),
-                kd.style('background-color', headerFillColor),
+                // TODO : when we cancel the new style the color and background color are not visually cancelled
+                kd.style('--grist-header-color', headerTextColor),
+                kd.style('--grist-header-background-color', headerFillColor),
                 kd.toggleClass('font-bold', headerFontBold),
                 kd.toggleClass('font-italic', headerFontItalic),
                 kd.toggleClass('font-underline', headerFontUnderline),
