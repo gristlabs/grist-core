@@ -827,7 +827,9 @@
         "Cell Style": "Cell Style",
         "Default cell style": "Default cell style",
         "Mixed style": "Mixed style",
-        "Open row styles": "Open row styles"
+        "Open row styles": "Open row styles",
+        "Default header style": "Default header style",
+        "HEADER STYLE": "HEADER STYLE"
     },
     "ChoiceTextBox": {
         "CHOICES": "CHOICES"
