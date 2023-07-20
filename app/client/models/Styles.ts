@@ -7,6 +7,15 @@ export interface Style {
   fontStrikethrough?: boolean|undefined;
 }
 
+export interface HeaderStyle {
+  headerTextColor?: string | undefined; // this can be string, undefined or an absent key.
+  headerFillColor?: string | undefined;
+  headerFontBold?: boolean | undefined;
+  headerFontUnderline?: boolean | undefined;
+  headerFontItalic?: boolean | undefined;
+  headerFontStrikethrough?: boolean | undefined;
+}
+
 export class CombinedStyle implements Style {
   public readonly textColor?: string;
   public readonly fillColor?: string;

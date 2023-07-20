@@ -2,7 +2,7 @@ import {ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRe
 import {formatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import {Style} from 'app/client/models/Styles';
+import { HeaderStyle, Style } from 'app/client/models/Styles';
 import {ViewFieldConfig} from 'app/client/models/ViewFieldConfig';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
@@ -84,7 +84,7 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   headerFontStrikethrough: modelUtil.KoSaveableObservable<boolean|undefined>;
   // Helper computed to change style of a cell and headerStyle without saving it.
   style: ko.PureComputed<Style>;
-  headerStyle: ko.PureComputed<Style>;
+  headerStyle: ko.PureComputed<HeaderStyle>;
 
   config: ViewFieldConfig;
 
@@ -272,8 +272,8 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
       headerFontUnderline: this.headerFontUnderline(),
       headerFontItalic: this.headerFontItalic(),
       headerFontStrikethrough: this.headerFontStrikethrough(),
-    }) as Style,
-    write: (headerStyle: Style) => {
+    }) as HeaderStyle,
+    write: (headerStyle: HeaderStyle) => {
       this.widgetOptionsJson.update(headerStyle);
     },
   });
