@@ -40,7 +40,9 @@
         "View As": "Ver como",
         "Seed rules": "Regras de propagação",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Ao adicionar regras de tabela, adicione automaticamente uma regra para conceder ao PROPRIETÁRIO acesso total.",
-        "Permission to edit document structure": "Permissão para editar a estrutura do documento"
+        "Permission to edit document structure": "Permissão para editar a estrutura do documento",
+        "This default should be changed if editors' access is to be limited. ": "Esse padrão deve ser alterado se o acesso dos editores for limitado. ",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permita que os editores editem a estrutura (por exemplo, modifiquem e excluam tabelas, colunas, layouts) e escrevam fórmulas, que dão acesso a todos os dados, independentemente das restrições de leitura."
     },
     "AccountPage": {
         "API": "API",
@@ -636,7 +638,8 @@
         "Send to Google Drive": "Enviar ao Google Drive",
         "Show in folder": "Mostrar na pasta",
         "Unsaved": "Não Salvo",
-        "Work on a Copy": "Trabalho em uma cópia"
+        "Work on a Copy": "Trabalho em uma cópia",
+        "Share": "Compartilhar"
     },
     "SiteSwitcher": {
         "Create new team site": "Criar novo site de equipe",
@@ -857,7 +860,8 @@
         "Find Next ": "Encontrar Próximo ",
         "Find Previous ": "Encontrar Anterior ",
         "No results": "Sem resultados",
-        "Search in document": "Procurar no documento"
+        "Search in document": "Procurar no documento",
+        "Search": "Procurar"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Enviando arquivo ao Google Drive"
@@ -1043,7 +1047,9 @@
         "relational": "relacionais",
         "Unpin to hide the the button while keeping the filter.": "Desfixe para ocultar o botão enquanto mantém o filtro.",
         "Anchor Links": "Links de âncora",
-        "Custom Widgets": "Widgets personalizados"
+        "Custom Widgets": "Widgets personalizados",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para criar um link âncora que leve o usuário a uma célula específica, clique em uma linha e pressione {{shortcut}}.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Você pode escolher um dos nossos widgets pré-feitos ou incorporar seu próprio, fornecendo sua URL completa."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1136,5 +1142,60 @@
         "No data": "Sem dados",
         "No row selected in {{title}}": "Nenhuma linha selecionada em {{title}}",
         "Not all data is shown": "Nem todos os dados são mostrados"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "DESCRIÇÃO"
+    },
+    "UserManager": {
+        "Add {{member}} to your team": "Adicionar {{member}} à sua equipe",
+        "Allow anyone with the link to open.": "Permita que qualquer pessoa com o link abra.",
+        "Anyone with link ": "Qualquer pessoa com link ",
+        "Cancel": "Cancelar",
+        "Close": "Fechar",
+        "Collaborator": "Colaborador",
+        "Confirm": "Confirmar",
+        "Copy Link": "Copiar link",
+        "Create a team to share with more people": "Crie uma equipe para compartilhar com mais pessoas",
+        "Guest": "Convidado",
+        "Invite multiple": "Convidar vários",
+        "Invite people to {{resourceType}}": "Convidar pessoas para {{resourceType}}",
+        "Manage members of team site": "Gerenciar membros do site da equipe",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Nenhum acesso padrão permite que o acesso seja concedido a documentos ou espaços de trabalho individuais, em vez do site de equipe completo.",
+        "On": "Ligado",
+        "Open Access Rules": "Regras de acesso aberto",
+        "Outside collaborator": "Colaborador externo",
+        "Public Access": "Acesso Público",
+        "Public access": "Acesso Público",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Acesso público herdado de {{parent}}. Para remover, defina a opção 'Herdar acesso' para 'Nenhum'.",
+        "Public access: ": "Acesso público: ",
+        "Remove my access": "Remover meu acesso",
+        "Save & ": "Salvar & ",
+        "Team member": "Membro da equipe",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "O usuário herda as permissões de {{parent})}. Para remover, defina a opção 'Herdar acesso' para 'Nenhum'.",
+        "User may not modify their own access.": "O usuário não pode modificar seu próprio acesso.",
+        "Your role for this team site": "Seu papel para este site de equipe",
+        "Your role for this {{resourceType}}": "Seu papel para este {{resourceType}}",
+        "free collaborator": "colaborador livre",
+        "member": "membro",
+        "team site": "site da equipe",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Depois de remover seu próprio acesso, você não poderá recuperá-lo sem a ajuda de outra pessoa com acesso suficiente ao {{resourceType}}.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "O usuário tem acesso de visualização a {{resource}} resultante do acesso definido manualmente aos recursos internos. Se removido aqui, esse usuário perderá o acesso aos recursos internos.",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "O usuário herda as permissões de {{parent}}. Para remover, defina a opção 'Herdar acesso' para 'Nenhum'.",
+        "Grist support": "Suporte Grist",
+        "Link copied to clipboard": "Link copiado para a área de transferência",
+        "guest": "convidado",
+        "Off": "Desligado",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Depois de remover seu próprio acesso, você não poderá recuperá-lo sem a ajuda de outra pessoa com acesso suficiente ao {{name}}.",
+        "{{collaborator}} limit exceeded": "Limite de {{collaborator}} excedido",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} de {{limitTop}} {{collaborator}}s",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Nenhum acesso padrão permite que o acesso seja concedido a documentos ou espaços de trabalho individuais, em vez do site de equipe completo.",
+        "You are about to remove your own access to this {{resourceType}}": "Você está prestes a remover seu próprio acesso a este {{resourceType}}"
+    },
+    "SearchModel": {
+        "Search all tables": "Procurar todas as tabelas",
+        "Search all pages": "Procurar todas as páginas"
+    },
+    "searchDropdown": {
+        "Search": "Procurar"
     }
 }
