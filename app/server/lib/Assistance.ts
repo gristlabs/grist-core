@@ -6,9 +6,11 @@ import {AssistanceMessage, AssistanceRequest, AssistanceResponse} from 'app/comm
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {OptDocSession} from 'app/server/lib/DocSession';
+import {getDocSessionUser, OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
+import {createHash} from "crypto";
+import {getLogMetaFromDocSession} from "./serverUtils";
 
 // These are mocked/replaced in tests.
 // fetch is also replacing in the runCompletion script to add caching.
@@ -179,7 +181,8 @@ export class OpenAIAssistant implements Assistant {
       });
     }
 
-    const completion: string = await this._getCompletion(messages);
+    const userIdHash = getUserHash(optSession);
+    const completion: string = await this._getCompletion(messages, userIdHash);
     const response = await completionToResponse(doc, request, completion, completion);
     if (chatMode) {
       response.state = {messages};
@@ -198,7 +201,7 @@ export class OpenAIAssistant implements Assistant {
     return response;
   }
 
-  private async _fetchCompletion(messages: AssistanceMessage[], longerContext: boolean) {
+  private async _fetchCompletion(messages: AssistanceMessage[], userIdHash: string, longerContext: boolean) {
     const apiResponse = await DEPS.fetch(
       this._endpoint,
       {
@@ -214,6 +217,7 @@ export class OpenAIAssistant implements Assistant {
           temperature: 0,
           model: longerContext ? OpenAIAssistant.LONGER_CONTEXT_MODEL : OpenAIAssistant.DEFAULT_MODEL,
           stop: this._chatMode ? undefined : ["\n\n"],
+          user: userIdHash,
         }),
       },
     );
@@ -240,14 +244,16 @@ export class OpenAIAssistant implements Assistant {
     return result;
   }
 
-  private async _fetchCompletionWithRetries(messages: AssistanceMessage[], longerContext: boolean): Promise<any> {
+  private async _fetchCompletionWithRetries(
+    messages: AssistanceMessage[], userIdHash: string, longerContext: boolean
+  ): Promise<any> {
     const maxAttempts = 3;
     for (let attempt = 1; ; attempt++) {
       try {
-        return await this._fetchCompletion(messages, longerContext);
+        return await this._fetchCompletion(messages, userIdHash, longerContext);
       } catch (e) {
         if (e instanceof SwitchToLongerContext) {
-          return await this._fetchCompletionWithRetries(messages, true);
+          return await this._fetchCompletionWithRetries(messages, userIdHash, true);
         } else if (e instanceof NonRetryableError) {
           throw e;
         } else if (attempt === maxAttempts) {
@@ -259,8 +265,8 @@ export class OpenAIAssistant implements Assistant {
     }
   }
 
-  private async _getCompletion(messages: AssistanceMessage[]) {
-    const result = await this._fetchCompletionWithRetries(messages, false);
+  private async _getCompletion(messages: AssistanceMessage[], userIdHash: string) {
+    const result = await this._fetchCompletionWithRetries(messages, userIdHash, false);
     const completion: string = String(this._chatMode ? result.choices[0].message.content : result.choices[0].text);
     if (this._chatMode) {
       messages.push(result.choices[0].message);
@@ -432,4 +438,16 @@ async function completionToResponse(doc: AssistanceDoc, request: AssistanceReque
     suggestedActions,
     reply,
   };
+}
+
+function getUserHash(session: OptDocSession): string {
+  const user = getDocSessionUser(session);
+  // Make it a bit harder to guess the user ID.
+  const salt = "7a8sb6987asdb678asd687sad6boas7f8b6aso7fd";
+  const hashSource = `${user?.id} ${user?.ref} ${salt}`;
+  const hash = createHash('sha256').update(hashSource).digest('base64');
+  // So that if we get feedback about a user ID hash, we can
+  // search for the hash in the logs to find the original user ID.
+  log.rawInfo("getUserHash", {...getLogMetaFromDocSession(session), userRef: user?.ref, hash});
+  return hash;
 }
