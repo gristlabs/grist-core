@@ -25,19 +25,21 @@ type MinIOBucketItemStat = minio.BucketItemStat & {
  * will work with MinIO and other S3-compatible storage.
  */
 export class MinIOExternalStorage implements ExternalStorage {
-  private _s3: MinIOClient;
-
   // Specify bucket to use, and optionally the max number of keys to request
   // in any call to listObjectVersions (used for testing)
-  constructor(public bucket: string, public options: {
-    endPoint: string,
-    port?: number,
-    useSSL?: boolean,
-    accessKey: string,
-    secretKey: string,
-    region: string
-  }, private _batchSize?: number) {
-    this._s3 = new minio.Client(options) as MinIOClient;
+  constructor(
+    public bucket: string,
+    public options: {
+      endPoint: string,
+      port?: number,
+      useSSL?: boolean,
+      accessKey: string,
+      secretKey: string,
+      region: string
+    },
+    private _batchSize?: number,
+    private _s3 = new minio.Client(options) as MinIOClient
+  ) {
   }
 
   public async exists(key: string, snapshotId?: string) {
@@ -131,7 +133,10 @@ export class MinIOExternalStorage implements ExternalStorage {
         (options?.includeDeleteMarkers || !(v as any).isDeleteMarker))
       .map(v => ({
         lastModified: v.lastModified.toISOString(),
-        snapshotId: (v as any).versionId!,
+        // Circumvent inconsistency of MinIO API with versionId by casting it to string
+        // PR to MinIO so we don't have to do that anymore:
+        // https://github.com/minio/minio-js/pull/1193
+        snapshotId: String((v as any).versionId!),
       }));
   }
 
