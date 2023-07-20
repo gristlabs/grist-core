@@ -76,8 +76,15 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   fontUnderline: modelUtil.KoSaveableObservable<boolean|undefined>;
   fontItalic: modelUtil.KoSaveableObservable<boolean|undefined>;
   fontStrikethrough: modelUtil.KoSaveableObservable<boolean|undefined>;
-  // Helper computed to change style of a cell without saving it.
+  headerTextColor: modelUtil.KoSaveableObservable<string|undefined>;
+  headerFillColor: modelUtil.KoSaveableObservable<string|undefined>;
+  headerFontBold: modelUtil.KoSaveableObservable<boolean|undefined>;
+  headerFontUnderline: modelUtil.KoSaveableObservable<boolean|undefined>;
+  headerFontItalic: modelUtil.KoSaveableObservable<boolean|undefined>;
+  headerFontStrikethrough: modelUtil.KoSaveableObservable<boolean|undefined>;
+  // Helper computed to change style of a cell and headerStyle without saving it.
   style: ko.PureComputed<Style>;
+  headerStyle: ko.PureComputed<Style>;
 
   config: ViewFieldConfig;
 
@@ -236,6 +243,12 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.fontUnderline = this.widgetOptionsJson.prop('fontUnderline');
   this.fontItalic = this.widgetOptionsJson.prop('fontItalic');
   this.fontStrikethrough = this.widgetOptionsJson.prop('fontStrikethrough');
+  this.headerTextColor = this.widgetOptionsJson.prop('headerTextColor');
+  this.headerFillColor = this.widgetOptionsJson.prop('headerFillColor');
+  this.headerFontBold = this.widgetOptionsJson.prop('headerFontBold');
+  this.headerFontUnderline = this.widgetOptionsJson.prop('headerFontUnderline');
+  this.headerFontItalic = this.widgetOptionsJson.prop('headerFontItalic');
+  this.headerFontStrikethrough = this.widgetOptionsJson.prop('headerFontStrikethrough');
 
   this.documentSettings = ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson());
   this.style = ko.pureComputed({
@@ -249,6 +262,19 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     }) as Style,
     write: (style: Style) => {
       this.widgetOptionsJson.update(style);
+    },
+  });
+  this.headerStyle = ko.pureComputed({
+    read: () => ({
+      headerTextColor: this.headerTextColor(),
+      headerFillColor: this.headerFillColor(),
+      headerFontBold: this.headerFontBold(),
+      headerFontUnderline: this.headerFontUnderline(),
+      headerFontItalic: this.headerFontItalic(),
+      headerFontStrikethrough: this.headerFontStrikethrough(),
+    }) as Style,
+    write: (headerStyle: Style) => {
+      this.widgetOptionsJson.update(headerStyle);
     },
   });
 
