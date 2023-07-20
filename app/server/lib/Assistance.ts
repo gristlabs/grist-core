@@ -5,6 +5,7 @@
 import {AssistanceMessage, AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
@@ -17,7 +18,7 @@ export const DEPS = { fetch, delayTime: 1000 };
  * An assistant can help a user do things with their document,
  * by interfacing with an external LLM endpoint.
  */
-export interface Assistant {
+interface Assistant {
   apply(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse>;
 }
 
@@ -25,7 +26,7 @@ export interface Assistant {
  * Document-related methods for use in the implementation of assistants.
  * Somewhat ad-hoc currently.
  */
-export interface AssistanceDoc {
+interface AssistanceDoc extends ActiveDoc {
   /**
    * Generate a particular prompt coded in the data engine for some reason.
    * It makes python code for some tables, and starts a function body with
@@ -117,10 +118,11 @@ export class OpenAIAssistant implements Assistant {
   public async apply(
     optSession: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     const messages = request.state?.messages || [];
+    const newMessages = [];
     const chatMode = this._chatMode;
     if (chatMode) {
       if (messages.length === 0) {
-        messages.push({
+        newMessages.push({
           role: 'system',
           content: 'You are a helpful assistant for a user of software called Grist. ' +
             'Below are one or more Python classes. ' +
@@ -141,7 +143,7 @@ export class OpenAIAssistant implements Assistant {
             await makeSchemaPromptV1(optSession, doc, request) +
             '\n```',
         });
-        messages.push({
+        newMessages.push({
           role: 'user', content: request.text,
         });
       } else {
@@ -150,21 +152,49 @@ export class OpenAIAssistant implements Assistant {
             messages.pop();
           }
         }
-        messages.push({
+        newMessages.push({
           role: 'user', content: request.text,
         });
       }
     } else {
       messages.length = 0;
-      messages.push({
+      newMessages.push({
         role: 'user', content: await makeSchemaPromptV1(optSession, doc, request),
       });
     }
+    messages.push(...newMessages);
+
+    const newMessagesStartIndex = messages.length - newMessages.length;
+    for (const [index, {role, content}] of newMessages.entries()) {
+      doc.logTelemetryEvent(optSession, 'assistantSend', {
+        full: {
+          conversationId: request.conversationId,
+          context: request.context,
+          prompt: {
+            index: newMessagesStartIndex + index,
+            role,
+            content,
+          },
+        },
+      });
+    }
+
     const completion: string = await this._getCompletion(messages);
     const response = await completionToResponse(doc, request, completion, completion);
     if (chatMode) {
       response.state = {messages};
     }
+    doc.logTelemetryEvent(optSession, 'assistantReceive', {
+      full: {
+        conversationId: request.conversationId,
+        context: request.context,
+        message: {
+          index: messages.length - 1,
+          content: completion,
+        },
+        suggestedFormula: (response.suggestedActions[0]?.[3] as any)?.formula,
+      },
+    });
     return response;
   }
 
@@ -307,7 +337,7 @@ export class HuggingFaceAssistant implements Assistant {
 /**
  * Test assistant that mimics ChatGPT and just returns the input.
  */
-export class EchoAssistant implements Assistant {
+class EchoAssistant implements Assistant {
   public async apply(sess: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     if (request.text === "ERROR") {
       throw new Error(`ERROR`);

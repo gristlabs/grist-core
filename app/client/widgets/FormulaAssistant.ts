@@ -1,5 +1,6 @@
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
@@ -10,7 +11,7 @@ import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {AssistanceResponse, AssistanceState} from 'app/common/AssistancePrompts';
+import {AssistanceResponse, AssistanceState, FormulaAssistanceContext} from 'app/common/AssistancePrompts';
 import {basicButton, bigPrimaryButtonLink, primaryButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {autoGrow} from 'app/client/ui/forms';
@@ -19,12 +20,14 @@ import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls} from 'app/common/gristUrls';
 import {movable} from 'app/client/lib/popupUtils';
 import {loadingDots} from 'app/client/ui2018/loaders';
-import {menu, menuCssClass, menuItem} from "app/client/ui2018/menus";
+import {menu, menuCssClass, menuItem} from 'app/client/ui2018/menus';
+import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
 import {Computed, Disposable, dom, DomElementArg, makeTestId,
   MutableObsArray, obsArray, Observable, styled} from 'grainjs';
 import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import {marked} from 'marked';
+import {v4 as uuidv4} from 'uuid';
 
 const t = makeT('FormulaEditor');
 const testId = makeTestId('test-formula-editor-');
@@ -67,6 +70,8 @@ export class FormulaAssistant extends Disposable {
   private _chatPanelBody: HTMLElement;
   /** Client height of the chat panel body element. */
   private _chatPanelBodyClientHeight = Observable.create<number>(this, 0);
+  /** Set to true once the panel has been expanded (including by default). */
+  private _hasExpanded = false;
   /**
    * Last known height of the chat panel.
    *
@@ -108,6 +113,7 @@ export class FormulaAssistant extends Disposable {
     this._chat = ChatHistory.create(this, {
       ...this._options,
       apply: this._apply.bind(this),
+      logTelemetryEvent: this._logTelemetryEvent.bind(this),
     });
 
     this.autoDispose(commands.createGroup({
@@ -143,6 +149,15 @@ export class FormulaAssistant extends Disposable {
 
     this._triggerFinalize = bundleInfo.triggerFinalize;
     this.onDispose(() => {
+      if (this._hasExpanded) {
+        this._logTelemetryEvent('assistantClose', false, {
+          suggestionApplied: this._chat.conversationSuggestedFormulas.get()
+            .includes(this._options.column.formula.peek()),
+          conversationLength: this._chat.conversationLength.get(),
+          conversationHistoryLength: this._chat.conversationHistoryLength.get(),
+        });
+      }
+
       // This will be noop if already called.
       this._triggerFinalize();
     });
@@ -178,6 +193,11 @@ export class FormulaAssistant extends Disposable {
       this._chatPanelBody.style.setProperty('height', '999px');
     }
 
+    if (this._assistantEnabled.get() && this._assistantExpanded.get()) {
+      this._logTelemetryEvent('assistantOpen', true);
+      this._hasExpanded = true;
+    }
+
     return this._domElement;
   }
 
@@ -195,6 +215,21 @@ export class FormulaAssistant extends Disposable {
         this._buildChatPanelHeader(),
         this._buildChatPanelBody(),
       );
+    });
+  }
+
+  private _logTelemetryEvent(event: TelemetryEvent, includeContext = false, metadata: TelemetryMetadata = {}) {
+    logTelemetryEvent(event, {
+      full: {
+        docIdDigest: this._gristDoc.docId,
+        conversationId: this._chat.conversationId.get(),
+        ...(!includeContext ? {} : {context: {
+          type: 'formula',
+          tableId: this._options.column.table.peek().tableId.peek(),
+          colId: this._options.column.colId.peek(),
+        } as FormulaAssistanceContext}),
+        ...metadata,
+      },
     });
   }
 
@@ -266,6 +301,12 @@ export class FormulaAssistant extends Disposable {
    * Save button handler. We just store the action and wait for the bundler to finalize.
    */
   private _saveOrClose() {
+    if (this._hasExpanded) {
+      this._logTelemetryEvent('assistantSave', true, {
+        newFormula: this._options.column.formula.peek(),
+        oldFormula: this._options.editor.getTextValue(),
+      });
+    }
     this._action = 'save';
     this._triggerFinalize();
   }
@@ -274,6 +315,9 @@ export class FormulaAssistant extends Disposable {
    * Cancel button handler.
    */
   private _cancel() {
+    if (this._hasExpanded) {
+      this._logTelemetryEvent('assistantCancel', true);
+    }
     this._action = 'cancel';
     this._triggerFinalize();
   }
@@ -374,6 +418,11 @@ export class FormulaAssistant extends Disposable {
   }
 
   private _expandChatPanel() {
+    if (!this._hasExpanded) {
+      this._logTelemetryEvent('assistantOpen', true);
+      this._hasExpanded = true;
+    }
+
     this._assistantExpanded.set(true);
     const editor = this._options.editor.getDom();
     let availableSpace = editor.clientHeight - MIN_FORMULA_EDITOR_HEIGHT_PX
@@ -565,13 +614,17 @@ export class FormulaAssistant extends Disposable {
     // Destruct options.
     const {column, gristDoc} = this._options;
     // Get the state of the chat from the column.
+    const conversationId = this._chat.conversationId.get();
     const prevState = column.chatHistory.peek().get().state;
     // Send the message back to the AI with previous state and a mark that we want to regenerate.
     // We can't modify the state here as we treat it as a black box, so we only removed last message
     // from ai from the chat, we grabbed last question and we are sending it back to the AI with a
     // flag that it should clear last response and regenerate it.
     const {reply, suggestedActions, state} = await askAI(gristDoc, {
-      column, description, state: prevState,
+      conversationId,
+      column,
+      description,
+      state: prevState,
       regenerate,
     });
     console.debug('suggestedActions', {suggestedActions, reply, state});
@@ -639,8 +692,12 @@ export class FormulaAssistant extends Disposable {
  * sending messages to the AI.
  */
 class ChatHistory extends Disposable {
-  public history: MutableObsArray<ChatMessage>;
-  public length: Computed<number>;
+  public conversationId: Observable<string>;
+  public conversation: MutableObsArray<ChatMessage>;
+  public conversationHistory: MutableObsArray<ChatMessage>;
+  public conversationLength: Computed<number>;
+  public conversationHistoryLength: Computed<number>;
+  public conversationSuggestedFormulas: Computed<string[]>;
   public lastSuggestedFormula: Computed<string|null>;
 
   private _element: HTMLElement;
@@ -649,31 +706,56 @@ class ChatHistory extends Disposable {
     column: ColumnRec,
     gristDoc: GristDoc,
     apply: (formula: string) => void,
+    logTelemetryEvent: (event: TelemetryEvent, includeContext?: boolean, metadata?: TelemetryMetadata) => void,
   }) {
     super();
+
     const column = this._options.column;
+    let conversationId = column.chatHistory.peek().get().conversationId;
+    if (!conversationId) {
+      conversationId = uuidv4();
+      const chatHistory = column.chatHistory.peek();
+      chatHistory.set({...chatHistory.get(), conversationId});
+    }
+    this.conversationId = Observable.create(this, conversationId);
+    this.autoDispose(this.conversationId.addListener((newConversationId) => {
+      // If a new conversation id was generated (e.g. on Clear Conversation), save it
+      // to the column's history.
+      const chatHistory = column.chatHistory.peek();
+      chatHistory.set({...chatHistory.get(), conversationId: newConversationId});
+    }));
+
     // Create observable array of messages that is connected to the column's chatHistory.
-    this.history = this.autoDispose(obsArray(column.chatHistory.peek().get().messages));
-    this.autoDispose(this.history.addListener((cur) => {
+    this.conversationHistory = this.autoDispose(obsArray(column.chatHistory.peek().get().messages));
+    this.autoDispose(this.conversationHistory.addListener((cur) => {
       const chatHistory = column.chatHistory.peek();
       chatHistory.set({...chatHistory.get(), messages: [...cur]});
     }));
-    this.length = Computed.create(this, use => use(this.history).length); // ??
+    this.conversation = this.autoDispose(obsArray());
+
+    this.conversationHistoryLength = Computed.create(this, use => use(this.conversationHistory).length);
+    this.conversationLength = Computed.create(this, use => use(this.conversation).length);
+
+    this.conversationSuggestedFormulas = Computed.create(this, use => {
+      return use(this.conversation)
+        .map(({formula}) => formula)
+        .filter((formula): formula is string => Boolean(formula));
+    });
     this.lastSuggestedFormula = Computed.create(this, use => {
-      return [...use(this.history)].reverse().find(entry => entry.formula)?.formula ?? null;
+      return [...use(this.conversationHistory)].reverse().find(({formula}) => formula)?.formula ?? null;
     });
   }
 
   public thinking(on = true) {
     if (!on) {
       // Find all index of all thinking messages.
-      const messages = [...this.history.get()].filter(m => m.message === '...');
+      const messages = [...this.conversationHistory.get()].filter(m => m.message === '...');
       // Remove all thinking messages.
       for (const message of messages) {
-        this.history.splice(this.history.get().indexOf(message), 1);
+        this.conversationHistory.splice(this.conversationHistory.get().indexOf(message), 1);
       }
     } else {
-      this.history.push({
+      this.conversationHistory.push({
         message: '...',
         sender: 'ai',
       });
@@ -688,20 +770,21 @@ class ChatHistory extends Disposable {
   public addResponse(message: ChatMessage) {
     // Clear any thinking from messages.
     this.thinking(false);
-    this.history.push({...message, sender: 'ai'});
+    const entry: ChatMessage = {...message, sender: 'ai'};
+    this.conversationHistory.push(entry);
+    this.conversation.push(entry);
     this.scrollDown();
   }
 
   public addQuestion(message: string) {
     this.thinking(false);
-    this.history.push({
-      message,
-      sender: 'user',
-    });
+    const entry: ChatMessage = {message, sender: 'user'};
+    this.conversationHistory.push(entry);
+    this.conversation.push(entry);
   }
 
   public lastQuestion() {
-    const list = this.history.get();
+    const list = this.conversationHistory.get();
     if (list.length === 0) {
       return null;
     }
@@ -713,14 +796,16 @@ class ChatHistory extends Disposable {
   }
 
   public removeLastResponse() {
-    const lastMessage = this.history.get()[this.history.get().length - 1];
+    const lastMessage = this.conversationHistory.get()[this.conversationHistory.get().length - 1];
     if (lastMessage?.sender === 'ai') {
-      this.history.pop();
+      this.conversationHistory.pop();
     }
   }
 
   public clear() {
-    this.history.set([]);
+    this._options.logTelemetryEvent('assistantClearConversation', true);
+    this.conversationId.set(uuidv4());
+    this.conversationHistory.set([]);
     const {column} = this._options;
     // Get the state of the chat from the column.
     const prevState = column.chatHistory.peek().get();
@@ -737,7 +822,7 @@ class ChatHistory extends Disposable {
   public buildDom() {
     return this._element = cssHistory(
       this._buildIntroMessage(),
-      dom.forEach(this.history, entry => {
+      dom.forEach(this.conversationHistory, entry => {
         if (entry.sender === 'user') {
           return cssMessage(
             dom('span',
@@ -857,13 +942,15 @@ class ChatHistory extends Disposable {
 async function askAI(grist: GristDoc, options: {
   column: ColumnRec,
   description: string,
+  conversationId: string,
   regenerate?: boolean,
   state?: AssistanceState
 }): Promise<AssistanceResponse> {
-  const {column, description, state, regenerate} = options;
+  const {column, description, conversationId, state, regenerate} = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
   const result = await grist.docApi.getAssistance({
+    conversationId,
     context: {type: 'formula', tableId, colId},
     text: description,
     state,

@@ -35,6 +35,7 @@ export type AssistanceContext = FormulaAssistanceContext;
  * A request for assistance.
  */
 export interface AssistanceRequest {
+  conversationId: string;
   context: AssistanceContext;
   state?: AssistanceState;
   text: string;

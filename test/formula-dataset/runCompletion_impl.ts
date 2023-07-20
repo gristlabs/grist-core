@@ -164,6 +164,7 @@ where c.colId = ? and t.tableId = ?
           formula = colInfo?.formula;
 
           const result = await sendForCompletion(session, activeDoc, {
+            conversationId: 'conversationId',
             context: {type: 'formula', tableId, colId},
             state: history,
             text: followUp || description,
