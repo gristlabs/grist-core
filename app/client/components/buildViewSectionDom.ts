@@ -111,16 +111,26 @@ function buildLinkStateIndicatorDom(options: {
         //  if multiple filters, join each with ";"
         //    each filter can have multiple vals (if reflist), show as "(SomeValue +3 others)",
         //console.log(lfilter);//TODO JV TEMP
+
         const filterValsShortLabel = Object.keys(lfilter.filterLabels).map(colId => {
             const vals = lfilter.filterLabels[colId];
+            //selector can be an empty reflist (filterLabels[colId] = [])
+            if(vals.length == 0)
+              {return '- blank -';}
+
+
+            // Even if vals != [], selector might be a null/empty cell value.
+            //  - if a null reference: filter[colId] = [0], but filterLabels would be ['']
+            //  - if an empty string/choice filter = [''], label = ['']
+            //  - if an empty number/date/etc: filter[colId] = [null], but filterLabel will be ['']
+            //Note: numeric 0 won't become blank, since filterLabel will be "0", which is truthy
             const dispVal = vals[0] || '- blank -';
-            return vals.length == 1 ? dispVal: `(${dispVal} +${vals.length - 1} others)`;
+
+            //If 2 or more vals, abbreviate it
+            return vals.length <= 1 ? dispVal: `(${dispVal} +${vals.length - 1} others)`;
+            //TODO JV TEMP: could show multiple if short, or let css overflow handle it?
         }).join("; ");
 
-        //oops wait we don't handle cursor linking here, let's just blank it out
-        //if(lfilter.filters.hasOwnProperty("id")) {
-        //    filterValsLabel = "";
-        //}
 
         //Figure out link type:
         const srcTable = use(srcSec.table);
@@ -148,6 +158,7 @@ function buildLinkStateIndicatorDom(options: {
                     let operationSymbol = "=";
                     //if filter (reflist) <- ref, op="intersects", symbol = "??"
                     //if filter (ref) <- reflist, op="in", vals.length>1
+                    //Sometimes operation will be 'empty', but in that case "=" still works fine
                     //TODO JV temp: find intersect symbol? ?contains? This is when LHS is reflist and RHS is ref or list
                     //  so the right symbol would be either a backwards elementof or an intersect symbol, but maybe
                     //  that's overthinking it. Colon will be ok for now
