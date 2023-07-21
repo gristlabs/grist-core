@@ -902,7 +902,7 @@ class ChatHistory extends Disposable {
                 'are sent to OpenAI. {{learnMore}}.',
                 {
                   codeView: cssLink(t('Code View'), urlState().setLinkUrl({docPage: 'code'})),
-                  learnMore: cssLink(t('Learn more'), {href: commonUrls.help, target: '_blank'}),
+                  learnMore: cssLink(t('Learn more'), {href: commonUrls.helpAssistantDataUse, target: '_blank'}),
                 }
               ),
             ),
