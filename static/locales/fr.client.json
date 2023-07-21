@@ -40,7 +40,9 @@
         "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}",
         "Seed rules": "Règles par défaut",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
-        "Permission to edit document structure": "Droits d'édition de la structure"
+        "Permission to edit document structure": "Droits d'édition de la structure",
+        "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page...) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture."
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -586,7 +588,8 @@
         "Download": "Télécharger",
         "Export CSV": "Exporter en CSV",
         "Export XLSX": "Exporter en XLSX",
-        "Send to Google Drive": "Envoyer vers Google Drive"
+        "Send to Google Drive": "Envoyer vers Google Drive",
+        "Share": "Partager"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
