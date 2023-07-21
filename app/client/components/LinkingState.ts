@@ -106,7 +106,8 @@ export class LinkingState extends Disposable {
       } else { //row->col filter
         this.filterColValues = this._makeFilterObs(null, tgtCol, operation);
       }
-    } else if (srcColId && isRefListType(srcCol.type())) {  // "Lookup link"
+    } else if (srcColId) {  // "Lookup link"
+    //} else if (srcColId && isRefListType(srcCol.type())) {  // "Lookup link"
       //TODO JV: this make lookups filter if reflist, but if ref then goes to a different case (cursor-link)
       //         Can change this back by removing "isReflistType" from the if
       this.filterColValues = this._makeFilterObs(srcCol, null, 'in');
@@ -114,47 +115,30 @@ export class LinkingState extends Disposable {
       // row->row && summary, i.e. typical summary filter-linking
 
       // We filter summary tables when a summary section is linked to a more detailed one without
-      // specifying src or target column. The filtering is on the shared group-by column (i.e. all
-      // those in the srcSection).
-      // TODO: This approach doesn't help cursor-linking (the other direction). If we have the
-      //       inverse of summary-table's 'group' column, we could implement both, and more efficiently.
-      const isDirectSummary = srcSection.table().summarySourceTable() === tgtSection.table().getRowId();
-      const _filterColValues = ko.observable<FilterColValues>();
-      this.filterColValues = this.autoDispose(ko.computed(() => _filterColValues()));
+      // specifying src or target column.
+      // We make a filter for each column in the srcSection's groupByColumns
 
       // source data table could still be loading (this could happen after changing the group by
       // columns of a linked summary table for instance), hence the below listener.
+      const _filterColValues = ko.observable<FilterColValues>();
+      this.filterColValues = this.autoDispose(ko.computed(() => _filterColValues()));
       this.autoDispose(srcTableData.dataLoadedEmitter.addListener(_update));
 
       const self = this;
-
-      console.log("LINKINGSTATE: reconstructed");
       _update();
       function _update() {
-        const result: FilterColValues = EmptyFilterColValues;
-        if (srcSection.isDisposed()) {
-          return result;
-        }
-        const resultFilters: ko.Computed<FilterColValues>[] = []; // we'll return a computed merging these
-        const srcRowId = srcSection.activeRowId();
-        for (const c of srcSection.table().groupByColumns()) {
-          const colId = c.colId();
-          const srcValue = srcTableData.getValue(srcRowId as number, colId);
-          //result.filters[colId] = [srcValue];
-          //result.filterLabels[colId] = [srcValue + ""]; //TODO JV TEMP
-          result.operations[colId] = 'in';
-          if (isDirectSummary && isListType(c.summarySource().type())) {
-            // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
-            // should match against an empty list in the source table.
-            //result.operations[colId] = srcValue ? 'intersects' : 'empty'; //TODO JV TEMP: original
-            result.operations[colId] = srcValue ? 'intersects' : 'empty';
+        if (srcSection.isDisposed())
+          { return EmptyFilterColValues; }
+
+        //Make one filter for each groupBycolumn
+        const resultFilters: ko.Computed<FilterColValues>[] = srcSection.table().groupByColumns().map(col =>
+          self._makeFilterObs(col, col.summarySource(),  null)!
+          //NOTE: '!' is because _makeFilterObs can return undefined in some error cases. What does this mean?
+          //TODO JV: Think about error case. Can we ignore this? should console.warn about this? do we need to handle it?
+        );
 
 
-          }
-          //TODO JV I HAVENT THOUGHT ABOUT THE !, when will it be undefined? what to do?
-          resultFilters.push(self._makeFilterObs(c, c,  result.operations[colId])!);
-
-        }
+        //Merge them together in a computed
         const resultComputed = self.autoDispose(ko.computed(() => {
           return _.merge({}, ...resultFilters.map(filtObs => filtObs())) as FilterColValues;
         }));
@@ -246,7 +230,7 @@ export class LinkingState extends Disposable {
    */
 
   /**
-   * Makes a standard filter link (summary tables handled separately)
+   * Makes a standard filter link (summary tables and cursor links handled separately)
    *
    * treats (srcCol == undefined) as srcColId == "id", same for tgt
    *
@@ -273,12 +257,69 @@ export class LinkingState extends Disposable {
     console.log(`in makeFilterObs: srcColId=${srcColId}, tgtColId=${tgtColId}`);
 
 
+    // Note: Terminology is "filter LHS (tgtcol) to match RHS (srccol / selectorval)"
+    //if tgtCol (LHS of filter, "filter: [tgtCol || id]  (=/in/intersects) [selectorVal]")
+    //implementation-wise, selectorVal is always a list
+    //if LHS (tgtCol) is a single value (id or a non-reflist), then operation "in" works fine for the "=" case, or when selector is empty
+    //if LHS (tgtCol) is a reflist
+
+    // Currently: if RHS is a reflist, we just use "intersects"
+    // - col <- col (LHS ref, RHS reflist), empty RHS means select nothing (TODO VERIFY)
+    // - id <- col (LHS ref (lookup), RHS reflist), empty RHS means select nothing (CORRECT) (TODO VERIFY)
+    // - col <- col (reflist reflist), empty RHS means select nothing (incorrect?) (TODO VERIFY)
+    // - special case: RHS reflist or choicelist && RHS from summary table && RHS in groupby:
+    //      - summary table by a reflist/choicelist splits out each ref/choice into its own row,
+    //        effectively turning it into a (LHS reflist, RHS ref) situation
+    //        currently handled with explicit check in summary table portion
+
+
+    // Other cases: RHS ref, LHS reflist
+    // - reflist <- ref
+
+    // Solution:
+    //  - if selector=[0] && tgtCol is RefList, we change operation to "empty" (note: can't be choicelist, since choicelist would have [""])
+    //  - if selector=[""] && tgtCol is ChoiceList, we change operation to "empty" ???
+    //  - if selector=[] && tgtCol is Reflist, we change operation to "empty" (WORKS)
+    // - if selector=[] && tgtCol is Ref, empty WONT WORK! (since null ref is [0], doesn't intersect []). Need to explicitly and forcibly change [] to [0]
+
+    //CHOICELIST NOTES:
+    // - choicelist can only ever be tgtcol (non-ref cols can only be linked if summarizing, and src can only be summary)
+    // - empty choice is [""]
+    // - single choice (e.g. in summary by choicelist) can be ["0"], but not [0]
+    // Note: other datatypes might have falsey values (e.g. for numbers, 0 is a valid value, but blank cell is null)
+    // However, we should only check for falsey values when tgtCol is Reflist or Choicelist
+
+    // Weird cases: choicelists?
+    //OH NO Turns out attachments are also a list type and you can filter by attachments
+
+    //for empty: if RHS (srcCol) is an empty list (not a null!), we have a few cases:
+    //    -if LHS is id, then it's a reflist lookup, we just want "interesects" or "in"
+    //    -if LHS is a ref
+
+
+
+
+
+
+    //RULE:
+    // default: operation = in
+    //    if tgtCol && isListType(tgtCol): intersect
+    //
+    //    if isRefList (tgtCol) && srcValue == [0], operation = empty
+    //    if isRefList (tgtCol) && srcValue == [], operation = empty
+    //    if isChoiceList (tgtCol) && srcValue == [""]. operation = empty ;    SPECIAL CASE: ONLY WHEN Summary from choicelist: results in  choice -> choicelist
+    //    (Attachments? they fall under isReflistType, and act like a reflist to _grist_Attachments)
+
+    //const operation = isRefListType(tgtCol.type()) ? 'intersects' : 'in';
+
     /*if (isDirectSummary && isListType(c.summarySource().type())) {
             // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
             // should match against an empty list in the source table.
             result.operations[colId] = srcValue ? 'intersects' : 'empty';
 
-    }*/
+    }
+
+    */
 
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
@@ -309,6 +350,11 @@ export class LinkingState extends Disposable {
 
 
     const isSrcRefList = srcColId != "id" && isRefListType(srcCol!.type());
+    const isTgtRefList = tgtColId != "id" && isRefListType(tgtCol!.type());
+    console.log(`makeFilterObs: srcRefList: ${isSrcRefList}; tgtRefList: ${isTgtRefList}`)
+    const JV = (window as any).JV;
+    JV && console.log(`makeFilterObs: srcCol: ${JV.pCol(srcCol)}; tgtCol: ${JV.pCol(tgtCol)}`)
+
 
     if (!selectorValGetter || !displayValGetter) {
       throw Error("ERROR in _makeFilterObs: couldn't create valGetters for srcSection");
@@ -330,17 +376,44 @@ export class LinkingState extends Disposable {
       const selectorCellVal = selectorValGetter(srcRowId);
       const displayCellVal  = displayValGetter(srcRowId);
 
+      //TODO JV TEMP: I'm rewriting/refactoring the 'operation' logic, let's keep both for now for ease of swapping
+      //Need to use interesects for both ChoiceLists, as well as RefLists(which include attachments)
+      let newOperation = (tgtCol && isListType(tgtCol.type())) ? 'intersects' : 'in';
+
+
       // FilterColValues wants output as a list of 1 or more values to filter by.
       let filterValues: any[];
       let displayValues: any[];
       if(!isSrcRefList) {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
+
+        // If selectorval is null reference and tgt is reflist, we want to match reflists like []
+        // Similar behavior happens with a special case of choiceLists:
+        //    (NOTE: a "ChoiceList" tgtcol can only happen in  "Summary [by choicelistCol]",
+        //     in which case srcCol will be "Choice" type, and its blank val is "")
+        if(isTgtRefList && selectorCellVal == 0) {
+          newOperation = 'empty';
+
+
+        } else if (tgtCol && tgtCol.type() == "ChoiceList" && selectorCellVal == "") {
+          newOperation = 'empty';
+        }
       } else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], ,must slice off the L
         filterValues = selectorCellVal.slice(1);
         displayValues = isList(displayCellVal) ? displayCellVal.slice(1) : ["ERROR"];
         //TODO JV: when can this error even happen? i.e. it's a reflist but displayval isnt? only if bug?
-      } else { //isRefList && !isList(), invalid cell value, filter should be empty
+
+        if(filterValues.length == 0 && isTgtRefList) { //If selectorVal is blank, and tgtCol is RefList, we need to use empty
+          newOperation = 'empty';
+        } else if (filterValues.length == 0) { //else, tgtCol is Ref, empty won't work, we need to change selectorVal to [0]
+          filterValues = [0];
+          displayValues = [''];
+        }
+
+      } else { //isRefList && !isList(), invalid cell value/error case, filter should be empty
+        console.error("Errorin in LinkingState: makeFilterObs(), srcVal is reflist but has non-list value");
+        console.error(selectorCellVal);
         filterValues = [];
         displayValues = [];
       }
@@ -352,7 +425,8 @@ export class LinkingState extends Disposable {
       return {
         filters: {[tgtColId]: filterValues},
         filterLabels: {[tgtColId]: filterLabelVals},
-        operations: {[tgtColId]: operation},
+        //operations: {[tgtColId]: operation},
+        operations: {[tgtColId]: newOperation}, //TODO JV TEMP
         colTypes: {[tgtColId]: (tgtCol || srcCol)!.type()} //they must have same type, && at least one must be not-null
       } as FilterColValues;
     }));
