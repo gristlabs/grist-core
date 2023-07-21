@@ -23,7 +23,7 @@ import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuCssClass, menuItem} from 'app/client/ui2018/menus';
 import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
 import {Computed, Disposable, dom, DomElementArg, makeTestId,
-  MutableObsArray, obsArray, Observable, styled} from 'grainjs';
+  MutableObsArray, obsArray, Observable, styled, subscribeElem} from 'grainjs';
 import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import {marked} from 'marked';
@@ -931,7 +931,7 @@ class ChatHistory extends Disposable {
     const doc = this._options.gristDoc;
     if (this.supportsMarkdown()) {
       return dom('div',
-        (el) => {
+        (el) => subscribeElem(el, doc.currentTheme, () => {
           const content = sanitizeHTML(marked(message, {
             highlight: (code) => {
               const codeBlock = buildHighlightedCode(code, {
@@ -942,10 +942,9 @@ class ChatHistory extends Disposable {
             },
           }));
           el.innerHTML = content;
-        },
+        }),
         ...args
       );
-
     } else {
       return buildHighlightedCode(message, {
         gristTheme: doc.currentTheme,
