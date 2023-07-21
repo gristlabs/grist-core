@@ -504,11 +504,11 @@ export class RightPanel extends Disposable {
     JV.afield = Computed.create(owner, use=> getCurrentViewField(use, use(JV.asec) as ViewSectionRec));
     JV.pprint = ((obj: any) => JSON.stringify(obj, null, 2));
     JV.nulluse = ((obs: any) => { obs = ('_getDepItem' in obs) ? obs : fromKo(obs); return obs.get(); }); //use print without creating an observable
-    JV.poCol = (use: UseCBOwner, col: ColumnRec) => `C#${use(col.id)}:'${use(col.colId)}' type ${use(col.type)} @T#${use(use(col.table).id)}'`;
-    JV.poTab = (use: UseCBOwner, tab: TableRec) => `T#${use(tab.id)}:'${use(tab.formattedTableName)}'`;
-    JV.poFld = (use: UseCBOwner, field: ViewFieldRec) => `F#${use(field.id)}: '${use(field.label)}' (C#${use(use(field.column).id)}) @S#${use(use(field.viewSection).id)}`;
+    JV.poCol = (use: UseCBOwner, col: ColumnRec) => (col == null || col.id == undefined) ? `C#null` : `C#${use(col.id)}:'${use(col.colId)}' type ${use(col.type)} @T#${use(use(col.table).id)}'`;
+    JV.poTab = (use: UseCBOwner, tab: TableRec) => (tab == null) ? `T#null` : `T#${use(tab.id)}:'${use(tab.formattedTableName)}'`;
+    JV.poFld = (use: UseCBOwner, field: ViewFieldRec) => (field == null) ? `F#null` : `F#${use(field.id)}: '${use(field.label)}' (C#${use(use(field.column).id)}) @S#${use(use(field.viewSection).id)}`;
 
-    JV.poSec = (use: UseCBOwner, sec: ViewSectionRec) => `S#${use(sec.id)}: '${use(sec.titleDef)}'`; //curs:${JSON.stringify(secToCursorPos(use,sec))}`;
+    JV.poSec = (use: UseCBOwner, sec: ViewSectionRec) => (sec == null) ? `S#null` : `S#${use(sec.id)}: '${use(sec.titleDef)}'`; //curs:${JSON.stringify(secToCursorPos(use,sec))}`;
     //helpers for peeking
     JV.pCol = (x: any) => JV.poCol(JV.nulluse, x);
     JV.pTab = (x: any) => JV.poTab(JV.nulluse, x);
