@@ -598,7 +598,7 @@
     "SortConfig": {
         "Add Column": "Ajouter une colonne",
         "Update Data": "Mettre à jour les données",
-        "Use choice position": "Use choice position",
+        "Use choice position": "Utiliser l'ordre des choix",
         "Natural sort": "Trier",
         "Empty values last": "Valeurs vides en dernier",
         "Search Columns": "Rechercher"
