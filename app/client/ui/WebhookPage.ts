@@ -209,12 +209,6 @@ class WebhookExternalTable implements IExternalTable {
     }
   }
 
-  private _initalizeWebhookList(webhooks: WebhookSummary[]){
-
-    this.webhooks.removeAll();
-    this.webhooks.push(...webhooks);
-  }
-
   public async sync(editor: IEdit): Promise<void> {
     // Map from external webhookId to local arbitrary rowId.
     const rowMap = new Map(editor.getRowIds().map(rowId => [editor.getRecord(rowId)!.webhookId, rowId]));
@@ -270,6 +264,12 @@ class WebhookExternalTable implements IExternalTable {
           choices,
         })
       }]);
+  }
+
+  private _initalizeWebhookList(webhooks: WebhookSummary[]){
+
+    this.webhooks.removeAll();
+    this.webhooks.push(...webhooks);
   }
 
   private _getErrorString(e: ApiError): string {
