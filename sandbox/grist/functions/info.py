@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import datetime
 import hashlib
 import json
+import json as json_module
 import math
 import numbers
 import re
@@ -19,6 +20,7 @@ from functions.unimplemented import unimplemented
 from objtypes import CellError
 from usertypes import AltText   # pylint: disable=import-error
 from records import Record, RecordSet
+import urllib.parse
 
 @unimplemented
 def ISBLANK(value):
@@ -653,20 +655,72 @@ def is_error(value):
       or (isinstance(value, float) and math.isnan(value)))
 
 
+def _replicate_requests_body_args(data=None, json=None):
+  """
+  Replicate some of the behaviour of requests.post, specifically the data and 
+  json args.
+
+  From testing manually with requests 2.28.2, data overrides json if both supplied.
+
+  Returns a tuple of (body, extra_headers)
+  """
+  if data is not None:
+    if isinstance(data, str):
+        body = data
+        extra_headers = {}
+    else:
+        body = urllib.parse.urlencode(data)
+        extra_headers = {
+          "Content-Type": "application/x-www-form-urlencoded",
+        }
+    return body, extra_headers
+
+  if json is not None:
+    if isinstance(json, str):
+        body = json
+    else:
+        body = json_module.dumps(json)
+    extra_headers = {
+      "Content-Type": "application/json",
+    }
+    return body, extra_headers
+
+  return None, {}
+
+
 @unimplemented
 # ^ This excludes this function from autocomplete while in beta
 # and marks it as unimplemented in the docs.
 # It also makes grist-help expect to see the string 'raise NotImplemented' in the function source,
 # which it does now, because of this comment. Removing this comment will currently break the docs.
-def REQUEST(url, params=None, headers=None):
+def REQUEST(url, params=None, headers=None, method=None, data=None, json=None):
   # Makes a GET HTTP request with an API similar to `requests.get`.
   # Actually jumps through hoops internally to make the request asynchronously (usually)
   # while feeling synchronous to the formula writer.
 
+  # REQUEST also has a similar interfact to requests.post, if you change method to be POST.
+  # Support requests data and json args:
+  body, extra_headers = _replicate_requests_body_args(data=data, json=json)
+
+  # Extra headers that make us consistent with requests.post must not override
+  # user-supplied headers.
+  _headers = {}
+  _headers.update(extra_headers)
+
+  if headers is not None:
+      _headers.update(headers)
+
   # Requests are identified by a string key in various places.
   # The same arguments should produce the same key so the request is only made once.
   args = dict(url=url, params=params, headers=headers)
-  args_json = json.dumps(args, sort_keys=True)
+
+  if method is not None:
+    args["method"] = method
+
+  if body is not None:
+    args["body"] = body
+
+  args_json = json_module.dumps(args, sort_keys=True)
   key = hashlib.sha256(args_json.encode()).hexdigest()
 
   # This may either return the raw response data or it may raise a special exception

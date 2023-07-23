@@ -4,6 +4,7 @@ import unittest
 import test_engine
 import testutil
 from functions import CaseInsensitiveDict, Response, HTTPError
+from functions.info import _replicate_requests_body_args
 
 
 class TestCaseInsensitiveDict(unittest.TestCase):
@@ -71,6 +72,47 @@ class TestResponse(unittest.TestCase):
     self.assertEqual(r.apparent_encoding, encoding)
     self.assertEqual(r.content, content)
     self.assertEqual(r.text, text)
+
+
+class TestRequestsPostInterface(unittest.TestCase):
+    def test_no_post_args(self):
+        body, headers = _replicate_requests_body_args()
+
+        assert body is None
+        assert headers == {}
+
+    def test_data_as_dict(self):
+        body, headers = _replicate_requests_body_args(data={"foo": "bar"})
+
+        assert body == "foo=bar"
+        assert headers == {"Content-Type": "application/x-www-form-urlencoded"}
+
+    def test_data_as_string(self):
+        body, headers = _replicate_requests_body_args(data="some_content")
+
+        assert body == "some_content"
+        assert headers == {}
+
+    def test_json_as_dict(self):
+        body, headers = _replicate_requests_body_args(json={"foo": "bar"})
+
+        assert body == '{"foo": "bar"}'
+        assert headers == {"Content-Type": "application/json"}
+
+    def test_json_as_string(self):
+        body, headers = _replicate_requests_body_args(json="invalid_but_ignored")
+
+        assert body == "invalid_but_ignored"
+        assert headers == {"Content-Type": "application/json"}
+
+    def test_data_overrides_json(self):
+        body, headers = _replicate_requests_body_args(
+            json={"foo": "bar"},
+            data={"quux": "jazz"}
+        )
+
+        assert body == 'quux=jazz'
+        assert headers == {"Content-Type": "application/x-www-form-urlencoded"}
 
 
 class TestRequestFunction(test_engine.EngineTestCase):

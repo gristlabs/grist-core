@@ -83,13 +83,18 @@ export class DocRequests {
       if (process.env.GRIST_EXPERIMENTAL_PLUGINS != '1') {
         throw new Error("REQUEST is not enabled");
       }
-      const {url, params, headers} = request;
+      const {url, method, body, params, headers} = request;
       const urlObj = new URL(url);
       log.rawInfo("Handling sandbox request", {host: urlObj.host, docId: this._activeDoc.docName});
       for (const [param, value] of Object.entries(params || {})) {
         urlObj.searchParams.append(param, value);
       }
-      const response = await fetch(urlObj.toString(), {headers: headers || {}, agent: proxyAgent(urlObj)});
+      const response = await fetch(urlObj.toString(), {
+        headers: headers || {},
+        agent: proxyAgent(urlObj),
+        method: method || "GET",
+        body: body
+      });
       const content = await response.buffer();
       const {status, statusText} = response;
       const encoding = httpEncoding(response.headers.get('content-type'), content);
