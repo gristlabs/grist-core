@@ -116,6 +116,7 @@ describe('TypeChange.ntest', function() {
     // Revise formula to get text length and accept
     await $('.test-type-transform-revise').wait().click();
     await $('.test-type-transform-formula').click();
+    await gu.waitAppFocus(false);
     await gu.sendKeys($.SELECT_ALL, $.DELETE, 'return len($F) + 1');
 
     // Check that updating the type conversion works
@@ -126,6 +127,7 @@ describe('TypeChange.ntest', function() {
     // Check that applying the type conversion without first updating works
     // (the weird formula keeps other tests consistent with past behaviour)
     await $('.test-type-transform-formula').click();
+    await gu.waitAppFocus(false);
     await gu.sendKeys($.SELECT_ALL, $.DELETE, 'return len($F.replace("0", "0.0"))');
     await gu.waitForServer();
     await gu.applyTypeConversion();

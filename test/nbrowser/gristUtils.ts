@@ -22,7 +22,8 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
 
-import { GristWebDriverUtils, PageWidgetPickerOptions, WindowDimensions } from 'test/nbrowser/gristWebDriverUtils';
+import { GristWebDriverUtils, PageWidgetPickerOptions,
+         WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
 import { Cleanup } from 'test/nbrowser/testUtils';
@@ -84,6 +85,8 @@ export const fixturesRoot: string = testUtils.fixturesRoot;
 
 // it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
 export const noCleanup = Boolean(process.env.NO_CLEANUP);
+
+export type WindowDimensions = WindowDimensionsBase;
 
 // Most test code uses simulateLogin through the server reference. Keep them to reduce unnecessary
 // code changes.
