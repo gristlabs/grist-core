@@ -85,6 +85,7 @@ import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
+import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -1287,6 +1288,16 @@ export class ActiveDoc extends EventEmitter {
   // Callback to make a data-engine formula tweak for assistance.
   public assistanceFormulaTweak(txt: string) {
     return this._pyCall('convert_formula_completion', txt);
+  }
+
+  // Callback to compute an existing formula and return the result along with recorded values
+  // of (possibly nested) attributes of `rec`.
+  // Used by AI assistance to fix an incorrect formula.
+  public assistanceEvaluateFormula(options: AssistanceContext) {
+    if (!options.evaluateCurrentFormula) {
+      throw new Error('evaluateCurrentFormula must be true');
+    }
+    return this._pyCall('evaluate_formula', options.tableId, options.colId, options.rowId);
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {

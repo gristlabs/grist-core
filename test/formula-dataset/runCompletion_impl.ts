@@ -64,8 +64,8 @@ const _stats = {
   callCount: 0,
 };
 
-const SEEMS_CHATTY = (process.env.COMPLETION_MODEL || '').includes('turbo');
-const SIMULATE_CONVERSATION = SEEMS_CHATTY;
+const SIMULATE_CONVERSATION = true;
+const FOLLOWUP_EVALUATE = false;
 
 export async function runCompletion() {
   ActiveDocDeps.ACTIVEDOC_TIMEOUT = 600;
@@ -132,40 +132,48 @@ export async function runCompletion() {
       let success: boolean = false;
       let suggestedActions: AssistanceResponse['suggestedActions'] | undefined;
       let newValues: CellValue[] | undefined;
-      let expected: CellValue[] | undefined;
       let formula: string | undefined;
       let history: AssistanceState = {messages: []};
       let lastFollowUp: string | undefined;
 
-      try {
-        async function sendMessage(followUp?: string) {
-          // load new document
-          if (!activeDoc || activeDoc.docName !== rec.doc_id) {
-            const docPath = path.join(PATH_TO_DOC, rec.doc_id + '.grist');
-            activeDoc = await docTools.loadLocalDoc(docPath);
-            await activeDoc.waitForInitialization();
-          }
+      // load new document
+      if (!activeDoc || activeDoc.docName !== rec.doc_id) {
+        const docPath = path.join(PATH_TO_DOC, rec.doc_id + '.grist');
+        activeDoc = await docTools.loadLocalDoc(docPath);
+        await activeDoc.waitForInitialization();
+      }
 
-          if (!activeDoc) { throw new Error("No doc"); }
+      // get values
+      await activeDoc.docData!.fetchTable(rec.table_id);
+      const expected = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
 
-          // get values
-          await activeDoc.docData!.fetchTable(rec.table_id);
-          expected = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
+      async function sendMessage(followUp?: string, rowId?: number) {
+        if (!activeDoc) {
+          throw new Error("No doc");
+        }
 
-          // send prompt
-          const tableId = rec.table_id;
-          const colId = rec.col_id;
-          const description = rec.Description;
-          const colInfo = await activeDoc.docStorage.get(`
-select * from _grist_Tables_column as c
-left join _grist_Tables as t on t.id = c.parentId
-where c.colId = ? and t.tableId = ?
-`, rec.col_id, rec.table_id);
+        // send prompt
+        const tableId = rec.table_id;
+        const colId = rec.col_id;
+        const description = rec.Description;
+        const colInfo = await activeDoc.docStorage.get(`
+          select *
+          from _grist_Tables_column as c
+                 left join _grist_Tables as t on t.id = c.parentId
+          where c.colId = ?
+            and t.tableId = ?
+        `, rec.col_id, rec.table_id);
           formula = colInfo?.formula;
 
           const result = await sendForCompletion(session, activeDoc, {
             conversationId: 'conversationId',
-            context: {type: 'formula', tableId, colId},
+            context: {
+              type: 'formula',
+              tableId,
+              colId,
+              evaluateCurrentFormula: Boolean(followUp) && FOLLOWUP_EVALUATE,
+              rowId,
+            },
             state: history,
             text: followUp || description,
           });
@@ -174,63 +182,50 @@ where c.colId = ? and t.tableId = ?
           }
           if (rec.no_formula == "1") {
             success = result.suggestedActions.length === 0;
-            return null;
+            return;
           }
           suggestedActions = result.suggestedActions;
+          if (!suggestedActions.length) {
+            success = false;
+            return;
+          }
+
           // apply modification
           const {actionNum} = await activeDoc.applyUserActions(session, suggestedActions);
 
           // get new values
           newValues = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
 
-          // revert modification
-          const [bundle] = await activeDoc.getActions([actionNum]);
-          await activeDoc.applyUserActionsById(session, [bundle!.actionNum], [bundle!.actionHash!], true);
-
           // compare values
           success = isEqual(expected, newValues);
 
-          if (!success) {
-            const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
-            const result = await activeDoc.getFormulaError({client: null, mode: 'system'} as any, rec.table_id,
-                                                           rec.col_id, rowIds[0]);
-            if (Array.isArray(result) && result[0] === 'E') {
-              result.shift();
-              const txt = `I got a \`${result.shift()}\` error:\n` +
-                '```\n' +
-                result.shift() + '\n' +
-                result.shift() + '\n' +
-                '```\n' +
-                'Please answer with the code block you (the assistant) just gave, ' +
-                'revised based on this error. Your answer must include a code block. ' +
-                'If you have to explain anything, do it after. ' +
-                'It is perfectly acceptable (and may be necessary) to do ' +
-                'imports from within a method body.\n';
-              return { followUp: txt };
-            } else {
-              for (let i = 0; i < expected.length; i++) {
-                const e = expected[i];
-                const v = newValues[i];
-                if (String(e) !== String(v)) {
-                  const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
-                    'Please answer with the code block you (the assistant) just gave, ' +
-                    'revised based on this information. Your answer must include a code ' +
-                    'block. If you have to explain anything, do it after.\n';
-                  return { followUp: txt };
+          if (!success && SIMULATE_CONVERSATION) {
+            for (let i = 0; i < expected.length; i++) {
+              const e = expected[i];
+              const v = newValues[i];
+              if (String(e) !== String(v)) {
+                const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
+                  'Please answer with the code block you (the assistant) just gave, ' +
+                  'revised based on this information. Your answer must include a code ' +
+                  'block. If you have to explain anything, do it after.\n';
+                const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
+                const rowId = rowIds[i];
+                if (followUp) {
+                  lastFollowUp = txt;
+                } else {
+                  await sendMessage(txt, rowId);
                 }
+                break;
               }
             }
           }
-          return null;
-        }
-        const result = await sendMessage();
-        if (result?.followUp && SIMULATE_CONVERSATION) {
-          // Allow one follow up message, based on error or differences.
-          const result2 = await sendMessage(result.followUp);
-          if (result2?.followUp) {
-            lastFollowUp = result2.followUp;
-          }
-        }
+        // revert modification
+        const [bundle] = await activeDoc.getActions([actionNum]);
+        await activeDoc.applyUserActionsById(session, [bundle!.actionNum], [bundle!.actionHash!], true);
+      }
+
+      try {
+        await sendMessage();
       } catch (e) {
         console.error(e);
       }

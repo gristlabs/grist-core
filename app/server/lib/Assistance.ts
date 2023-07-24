@@ -2,7 +2,12 @@
  * Module with functions used for AI formula assistance.
  */
 
-import {AssistanceMessage, AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
+import {
+  AssistanceContext,
+  AssistanceMessage,
+  AssistanceRequest,
+  AssistanceResponse
+} from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -37,10 +42,29 @@ interface AssistanceDoc extends ActiveDoc {
    * be great to try variants.
    */
   assistanceSchemaPromptV1(session: OptDocSession, options: AssistanceSchemaPromptV1Context): Promise<string>;
+
   /**
    * Some tweaks to a formula after it has been generated.
    */
   assistanceFormulaTweak(txt: string): Promise<string>;
+
+  /**
+   * Compute the existing formula and return the result along with recorded values
+   * of (possibly nested) attributes of `rec`.
+   * Used by AI assistance to fix an incorrect formula.
+   */
+  assistanceEvaluateFormula(options: AssistanceContext): Promise<AssistanceFormulaEvaluationResult>;
+}
+
+export interface AssistanceFormulaEvaluationResult {
+  error: boolean;  // true if an exception was raised
+  result: string;  // repr of the return value OR exception message
+
+  // Recorded attributes of `rec` at the time of evaluation.
+  // Keys may be e.g. "rec.foo.bar" for nested attributes.
+  attributes: Record<string, string>;
+
+  formula: string;  // the code that was evaluated, without special grist syntax
 }
 
 export interface AssistanceSchemaPromptV1Context {
@@ -101,7 +125,6 @@ export class OpenAIAssistant implements Assistant {
   public static LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
 
   private _apiKey: string;
-  private _chatMode: boolean;
   private _endpoint: string;
 
   public constructor() {
@@ -110,60 +133,52 @@ export class OpenAIAssistant implements Assistant {
       throw new Error('OPENAI_API_KEY not set');
     }
     this._apiKey = apiKey;
-    this._chatMode = true;
-    if (!this._chatMode) {
-      throw new Error('Only turbo models are currently supported');
-    }
-    this._endpoint = `https://api.openai.com/v1/${this._chatMode ? 'chat/' : ''}completions`;
+    this._endpoint = `https://api.openai.com/v1/chat/completions`;
   }
 
   public async apply(
     optSession: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     const messages = request.state?.messages || [];
     const newMessages = [];
-    const chatMode = this._chatMode;
-    if (chatMode) {
-      if (messages.length === 0) {
-        newMessages.push({
-          role: 'system',
-          content: 'You are a helpful assistant for a user of software called Grist. ' +
-            'Below are one or more Python classes. ' +
-            'The last method needs completing. ' +
-            "The user will probably give a description of what they want the method (a 'formula') to return. " +
-            'If so, your response should include the method body as Python code in a markdown block. ' +
-            'Do not include the class or method signature, just the method body. ' +
-            'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
-            'You can import modules inside the method body if needed. ' +
-            'You cannot define additional functions or methods. ' +
-            'The method should be a pure function that performs some computation and returns a result. ' +
-            'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
-            'It CANNOT interact with files/databases/networks/etc. ' +
-            'It CANNOT display images/charts/graphs/maps/etc. ' +
-            'If the user asks for these things, tell them that you cannot help. ' +
-            'The method uses `rec` instead of `self` as the first parameter.\n\n' +
-            '```python\n' +
-            await makeSchemaPromptV1(optSession, doc, request) +
-            '\n```',
-        });
-        newMessages.push({
-          role: 'user', content: request.text,
-        });
-      } else {
-        if (request.regenerate) {
-          if (messages[messages.length - 1].role !== 'user') {
-            messages.pop();
-          }
-        }
-        newMessages.push({
-          role: 'user', content: request.text,
-        });
-      }
-    } else {
-      messages.length = 0;
+    if (messages.length === 0) {
       newMessages.push({
-        role: 'user', content: await makeSchemaPromptV1(optSession, doc, request),
+        role: 'system',
+        content: 'You are a helpful assistant for a user of software called Grist. ' +
+          'Below are one or more Python classes. ' +
+          'The last method needs completing. ' +
+          "The user will probably give a description of what they want the method (a 'formula') to return. " +
+          'If so, your response should include the method body as Python code in a markdown block. ' +
+          'Do not include the class or method signature, just the method body. ' +
+          'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
+          'You can import modules inside the method body if needed. ' +
+          'You cannot define additional functions or methods. ' +
+          'The method should be a pure function that performs some computation and returns a result. ' +
+          'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
+          'It CANNOT interact with files/databases/networks/etc. ' +
+          'It CANNOT display images/charts/graphs/maps/etc. ' +
+          'If the user asks for these things, tell them that you cannot help. ' +
+          'The method uses `rec` instead of `self` as the first parameter.\n\n' +
+          '```python\n' +
+          await makeSchemaPromptV1(optSession, doc, request) +
+          '\n```',
       });
     }
+    if (request.context.evaluateCurrentFormula) {
+      const result = await doc.assistanceEvaluateFormula(request.context);
+      let message = "Evaluating this code:\n\n```python\n" + result.formula + "\n```\n\n";
+      if (Object.keys(result.attributes).length > 0) {
+        const attributes = Object.entries(result.attributes).map(([k, v]) => `${k} = ${v}`).join('\n');
+        message += `where:\n\n${attributes}\n\n`;
+      }
+      message += `${result.error ? 'raises an exception' : 'returns'}: ${result.result}`;
+      newMessages.push({
+        role: 'system',
+        content: message,
+      });
+    }
+    newMessages.push({
+      role: 'user', content: request.text,
+    });
     messages.push(...newMessages);
 
     const newMessagesStartIndex = messages.length - newMessages.length;
@@ -184,9 +199,7 @@ export class OpenAIAssistant implements Assistant {
     const userIdHash = getUserHash(optSession);
     const completion: string = await this._getCompletion(messages, userIdHash);
     const response = await completionToResponse(doc, request, completion, completion);
-    if (chatMode) {
-      response.state = {messages};
-    }
+    response.state = {messages};
     doc.logTelemetryEvent(optSession, 'assistantReceive', {
       full: {
         conversationId: request.conversationId,
@@ -211,12 +224,9 @@ export class OpenAIAssistant implements Assistant {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(!this._chatMode ? {
-            prompt: messages[messages.length - 1].content,
-          } : {messages}),
+          messages,
           temperature: 0,
           model: longerContext ? OpenAIAssistant.LONGER_CONTEXT_MODEL : OpenAIAssistant.DEFAULT_MODEL,
-          stop: this._chatMode ? undefined : ["\n\n"],
           user: userIdHash,
         }),
       },
@@ -267,11 +277,9 @@ export class OpenAIAssistant implements Assistant {
 
   private async _getCompletion(messages: AssistanceMessage[], userIdHash: string) {
     const result = await this._fetchCompletionWithRetries(messages, userIdHash, false);
-    const completion: string = String(this._chatMode ? result.choices[0].message.content : result.choices[0].text);
-    if (this._chatMode) {
-      messages.push(result.choices[0].message);
-    }
-    return completion;
+    const {message} = result.choices[0];
+    messages.push(message);
+    return message.content;
   }
 }
 
@@ -404,6 +412,9 @@ export async function sendForCompletion(
   doc: AssistanceDoc,
   request: AssistanceRequest,
 ): Promise<AssistanceResponse> {
+  if (request.regenerate) {
+    throw new Error('regenerate no longer supported');
+  }
   const assistant = getAssistant();
   return await assistant.apply(optSession, doc, request);
 }

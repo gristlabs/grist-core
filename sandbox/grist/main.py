@@ -153,6 +153,10 @@ def run(sandbox):
   def convert_formula_completion(completion):
     return formula_prompt.convert_completion(completion)
 
+  @export
+  def evaluate_formula(table_id, col_id, row_id):
+    return formula_prompt.evaluate_formula(eng, table_id, col_id, row_id)
+
   export(parse_acl_formula)
   export(eng.load_empty)
   export(eng.load_done)

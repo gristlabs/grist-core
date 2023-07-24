@@ -27,6 +27,8 @@ export interface FormulaAssistanceContext {
   type: 'formula';
   tableId: string;
   colId: string;
+  evaluateCurrentFormula?: boolean;
+  rowId?: number;
 }
 
 export type AssistanceContext = FormulaAssistanceContext;
@@ -39,10 +41,8 @@ export interface AssistanceRequest {
   context: AssistanceContext;
   state?: AssistanceState;
   text: string;
-  regenerate?: boolean;  // Set if there was a previous request
-                         // and response that should be omitted
-                         // from history, or (if available) an
-                         // alternative response generated.
+  // TODO this is no longer used and should be removed
+  regenerate?: boolean;
 }
 
 /**

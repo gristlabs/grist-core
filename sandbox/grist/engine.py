@@ -20,6 +20,7 @@ from sortedcontainers import SortedSet
 import acl
 import actions
 import action_obj
+from attribute_recorder import AttributeRecorder
 from autocomplete_context import AutocompleteContext, lookup_autocomplete_options, eval_suggestion
 from codebuilder import DOLLAR_REGEX
 import depend
@@ -694,22 +695,27 @@ class Engine(object):
     not recomputing the whole column and dependent columns as well. So it recomputes the formula
     for this cell and returns error message with details.
     """
+    result = self.get_formula_value(table_id, col_id, row_id)
+    table = self.tables[table_id]
+    col = table.get_column(col_id)
+    # If the error is gone for a trigger formula
+    if col.has_formula() and not col.is_formula():
+      if not isinstance(result, objtypes.RaisedException):
+        # Get the error stored in the cell
+        # and change it to show to the user that no traceback is available
+        error_in_cell = objtypes.decode_object(col.raw_get(row_id))
+        assert isinstance(error_in_cell, objtypes.RaisedException)
+        return error_in_cell.no_traceback()
+    return result
+
+  def get_formula_value(self, table_id, col_id, row_id, record_attributes=None):
     table = self.tables[table_id]
     col = table.get_column(col_id)
     checkpoint = self._get_undo_checkpoint()
     # Makes calls to REQUEST synchronous, since raising a RequestingError can't work here.
     self._sync_request = True
     try:
-      result = self._recompute_one_cell(table, col, row_id)
-      # If the error is gone for a trigger formula
-      if col.has_formula() and not col.is_formula():
-        if not isinstance(result, objtypes.RaisedException):
-          # Get the error stored in the cell
-          # and change it to show to the user that no traceback is available
-          error_in_cell = objtypes.decode_object(col.raw_get(row_id))
-          assert isinstance(error_in_cell, objtypes.RaisedException)
-          return error_in_cell.no_traceback()
-      return result
+      return self._recompute_one_cell(table, col, row_id, record_attributes=record_attributes)
     finally:
       # It is possible for formula evaluation to have side-effects that produce DocActions (e.g.
       # lookupOrAddDerived() creates those). In case of get_formula_error(), these aren't fully
@@ -920,7 +926,7 @@ class Engine(object):
 
     raise RequestingError()
 
-  def _recompute_one_cell(self, table, col, row_id, cycle=False, node=None):
+  def _recompute_one_cell(self, table, col, row_id, cycle=False, node=None, record_attributes=None):
     """
     Recomputes an one formula cell and returns a value.
     The value can be:
@@ -939,6 +945,11 @@ class Engine(object):
 
     checkpoint = self._get_undo_checkpoint()
     record = table.Record(row_id, table._identity_relation)
+    if record_attributes is not None:
+      assert isinstance(record_attributes, dict)
+      assert col.is_formula()
+      assert not cycle
+      record = AttributeRecorder(record, "rec", record_attributes)
     value = None
     try:
       if cycle:
