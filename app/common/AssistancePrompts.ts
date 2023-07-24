@@ -41,8 +41,6 @@ export interface AssistanceRequest {
   context: AssistanceContext;
   state?: AssistanceState;
   text: string;
-  // TODO this is no longer used and should be removed
-  regenerate?: boolean;
 }
 
 /**

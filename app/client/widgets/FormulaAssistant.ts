@@ -629,22 +629,17 @@ export class FormulaAssistant extends Disposable {
     await this._preview();
   }
 
-  private async _sendMessage(description: string, regenerate = false): Promise<ChatMessage> {
+  private async _sendMessage(description: string): Promise<ChatMessage> {
     // Destruct options.
     const {column, gristDoc} = this._options;
     // Get the state of the chat from the column.
     const conversationId = this._chat.conversationId.get();
     const prevState = column.chatHistory.peek().get().state;
-    // Send the message back to the AI with previous state and a mark that we want to regenerate.
-    // We can't modify the state here as we treat it as a black box, so we only removed last message
-    // from ai from the chat, we grabbed last question and we are sending it back to the AI with a
-    // flag that it should clear last response and regenerate it.
     const {reply, suggestedActions, state} = await askAI(gristDoc, {
       conversationId,
       column,
       description,
       state: prevState,
-      regenerate,
     });
     console.debug('suggestedActions', {suggestedActions, reply, state});
     // If back-end is capable of conversation, keep its state.
@@ -695,7 +690,7 @@ export class FormulaAssistant extends Disposable {
     this._chat.thinking();
     this._waiting.set(true);
     try {
-      const response = await this._sendMessage(message, false);
+      const response = await this._sendMessage(message);
       this._chat.addResponse(response);
     } catch(err) {
       this._chat.thinking(false);
@@ -961,20 +956,17 @@ async function askAI(grist: GristDoc, options: {
   column: ColumnRec,
   description: string,
   conversationId: string,
-  regenerate?: boolean,
   state?: AssistanceState
 }): Promise<AssistanceResponse> {
-  const {column, description, conversationId, state, regenerate} = options;
+  const {column, description, conversationId, state} = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
-  const result = await grist.docApi.getAssistance({
+  return await grist.docApi.getAssistance({
     conversationId,
     context: {type: 'formula', tableId, colId},
     text: description,
     state,
-    regenerate,
   });
-  return result;
 }
 
 /** Builds avatar image for user or assistant. */

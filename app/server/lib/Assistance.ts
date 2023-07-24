@@ -362,19 +362,10 @@ class EchoAssistant implements Assistant {
         role: 'system',
         content: ''
       });
-      messages.push({
-        role: 'user', content: request.text,
-      });
-    } else {
-      if (request.regenerate) {
-        if (messages[messages.length - 1].role !== 'user') {
-          messages.pop();
-        }
-      }
-      messages.push({
-        role: 'user', content: request.text,
-      });
     }
+    messages.push({
+      role: 'user', content: request.text,
+    });
     const completion = request.text;
     const history = { messages };
     history.messages.push({
@@ -412,9 +403,6 @@ export async function sendForCompletion(
   doc: AssistanceDoc,
   request: AssistanceRequest,
 ): Promise<AssistanceResponse> {
-  if (request.regenerate) {
-    throw new Error('regenerate no longer supported');
-  }
   const assistant = getAssistant();
   return await assistant.apply(optSession, doc, request);
 }
