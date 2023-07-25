@@ -1,4 +1,5 @@
 import itertools
+import logging
 from abc import abstractmethod
 
 import six
@@ -11,8 +12,7 @@ import twowaymap
 import usertypes
 from functions.lookup import _Contains
 
-import logger
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 def _extract(cell_value):

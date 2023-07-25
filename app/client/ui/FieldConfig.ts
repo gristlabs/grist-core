@@ -89,12 +89,22 @@ export function buildNameConfig(
   ];
 }
 
+export interface BuildEditorOptions {
+  // Element to attach to.
+  refElem: Element;
+  // Should the detach button be shown?
+  canDetach: boolean;
+  // Simulate user typing on the cell - open editor with an initial value.
+  editValue?: string;
+  // Custom save handler.
+  onSave?: SaveHandler;
+  // Custom cancel handler.
+  onCancel?: () => void;
+}
+
 type SaveHandler = (column: ColumnRec, formula: string) => Promise<void>;
-type BuildEditor = (
-  cellElem: Element,
-  editValue?: string,
-  onSave?: SaveHandler,
-  onCancel?: () => void) => void;
+
+type BuildEditor = (options: BuildEditorOptions) => void;
 
 export function buildFormulaConfig(
   owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc, buildEditor: BuildEditor
@@ -315,14 +325,14 @@ export function buildFormulaConfig(
 
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
   // Helper that will create different flavors for formula builder.
-  const formulaBuilder = (onSave: SaveHandler) => [
+  const formulaBuilder = (onSave: SaveHandler, canDetach?: boolean) => [
     cssRow(formulaField = buildFormula(
       origColumn,
       buildEditor,
       {
         gristTheme: gristDoc.currentTheme,
-        placeholder: t("Enter formula"),
         disabled: disableOtherActions,
+        canDetach,
         onSave,
         onCancel: clearState,
       })),
@@ -386,7 +396,7 @@ export function buildFormulaConfig(
         // If data column is or wants to be a trigger formula:
         dom.maybe((use) => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
           cssLabel(t("TRIGGER FORMULA")),
-          formulaBuilder(onSaveConvertToTrigger),
+          formulaBuilder(onSaveConvertToTrigger, false),
           dom.create(buildFormulaTriggers, origColumn, {
             disabled: disableOtherActions,
             notTrigger: maybeTrigger,
@@ -411,8 +421,8 @@ export function buildFormulaConfig(
 
 interface BuildFormulaOptions {
   gristTheme: Computed<Theme>;
-  placeholder: string;
   disabled: Observable<boolean>;
+  canDetach?: boolean;
   onSave?: SaveHandler;
   onCancel?: () => void;
 }
@@ -422,8 +432,8 @@ function buildFormula(
   buildEditor: BuildEditor,
   options: BuildFormulaOptions
 ) {
-  const {gristTheme, placeholder, disabled, onSave, onCancel} = options;
-  return cssFieldFormula(column.formula, {gristTheme, placeholder, maxLines: 2},
+  const {gristTheme, disabled, canDetach = true, onSave, onCancel} = options;
+  return cssFieldFormula(column.formula, {gristTheme, maxLines: 2},
     dom.cls('formula_field_sidepane'),
     cssFieldFormula.cls('-disabled', disabled),
     cssFieldFormula.cls('-disabled-icon', use => !use(column.formula)),
@@ -431,7 +441,13 @@ function buildFormula(
     {tabIndex: '-1'},
     // Focus event use used by a user to edit an existing formula.
     // It can also be triggered manually to open up the editor.
-    dom.on('focus', (_, elem) => buildEditor(elem, undefined, onSave, onCancel)),
+    dom.on('focus', (_, refElem) => buildEditor({
+      refElem,
+      editValue: undefined,
+      canDetach,
+      onSave,
+      onCancel,
+    })),
   );
 }
 

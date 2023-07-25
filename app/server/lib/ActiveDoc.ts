@@ -35,6 +35,7 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
+import {WebhookMessageType} from 'app/common/CommTypes';
 import {
   BulkAddRecord,
   BulkRemoveRecord,
@@ -80,7 +81,7 @@ import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from 'app/gen-server/entity/Document';
-import {ParseOptions} from 'app/plugin/FileParserAPI';
+import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
@@ -113,7 +114,7 @@ import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
-import {ActiveDocImport} from './ActiveDocImport';
+import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
 import {DocClients} from './DocClients';
 import {DocPluginManager} from './DocPluginManager';
 import {
@@ -129,8 +130,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession,
-        timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -771,6 +771,17 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   public async oneStepImport(docSession: OptDocSession, uploadInfo: UploadInfo): Promise<void> {
     await this._activeDocImport.oneStepImport(docSession, uploadInfo);
+  }
+
+  /**
+   * Import data resulting from parsing a file into a new table.
+   * In normal circumstances this is only used internally.
+   * It's exposed publicly for use by grist-static which doesn't use the plugin system.
+   */
+  public async importParsedFileAsNewTable(
+    docSession: OptDocSession, optionsAndData: ParseFileResult, importOptions: FileImportOptions
+  ): Promise<ImportResult> {
+    return this._activeDocImport.importParsedFileAsNewTable(docSession, optionsAndData, importOptions);
   }
 
   /**
@@ -1758,6 +1769,10 @@ export class ActiveDoc extends EventEmitter {
     await this._triggers.clearWebhookQueue();
   }
 
+  public async clearSingleWebhookQueue(webhookId: string) {
+    await this._triggers.clearSingleWebhookQueue(webhookId);
+  }
+
   /**
    * Returns the list of outgoing webhook for a table in this document.
    */
@@ -1767,13 +1782,13 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Send a message to clients connected to the document that something
-   * webhook-related has happened (a change in configuration, or a
-   * delivery, or an error). There is room to give details in future,
-   * if that proves useful, but for now no details are needed.
+   * webhook-related has happened (a change in configuration, a delivery,
+   * or an error). It passes information about the type of event (currently data being updated in some way
+   * or an OverflowError, i.e., too many events waiting to be sent). More data may be added when necessary.
    */
-  public async sendWebhookNotification() {
+  public async sendWebhookNotification(type: WebhookMessageType = WebhookMessageType.Update) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
-      webhooks: {},
+      webhooks: {type},
     });
   }
 
@@ -2123,6 +2138,9 @@ export class ActiveDoc extends EventEmitter {
 
   private async _checkDataSizeLimitRatio(docSession: OptDocSession | null) {
     const start = Date.now();
+    if (!this.docStorage.isInitialized()) {
+      return;
+    }
     const dataSizeBytes = await this._updateDataSize();
     const timeToMeasure = Date.now() - start;
     log.rawInfo('Data size from dbstat...', {

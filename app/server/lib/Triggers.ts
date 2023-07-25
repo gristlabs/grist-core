@@ -3,6 +3,7 @@ import {summarizeAction} from 'app/common/ActionSummarizer';
 import {ActionSummary, TableDelta} from 'app/common/ActionSummary';
 import {ApiError} from 'app/common/ApiError';
 import {MapWithTTL} from 'app/common/AsyncCreate';
+import {WebhookMessageType} from "app/common/CommTypes";
 import {fromTableDataAction, RowRecord, TableColValues, TableDataAction} from 'app/common/DocActions';
 import {StringUnion} from 'app/common/StringUnion';
 import {MetaRowRecord} from 'app/common/TableData';
@@ -234,7 +235,9 @@ export class DocTriggers {
 
     // Prevent further document activity while the queue is too full.
     while (this._drainingQueue && !this._shuttingDown) {
-      await delayAbort(1000, this._loopAbort?.signal);
+      const sendNotificationPromise =  this._activeDoc.sendWebhookNotification(WebhookMessageType.Overflow);
+      const delayPromise = delayAbort(5000, this._loopAbort?.signal);
+      await Promise.all([sendNotificationPromise, delayPromise]);
     }
 
     return summary;
@@ -294,7 +297,7 @@ export class DocTriggers {
     return result;
   }
 
-  public getWebhookTriggerRecord(webhookId: string, tableRef?: number) {
+  public getWebhookTriggerRecord(webhookId: string) {
     const docData = this._activeDoc.docData!;
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const trigger = triggersTable.getRecords().find(t => {
@@ -303,9 +306,6 @@ export class DocTriggers {
     });
     if (!trigger) {
       throw new ApiError(`Webhook not found "${webhookId || ''}"`, 404);
-    }
-    if (tableRef && trigger.tableRef !== tableRef) {
-      throw new ApiError(`Wrong table`, 400);
     }
     return trigger;
   }
@@ -334,6 +334,36 @@ export class DocTriggers {
     // will require some kind of locking over the queue (or a rewrite)
     if (removed && this._redisClient) {
       await this._redisClient.multi().del(this._redisQueueKey).execAsync();
+    }
+    await this._stats.clear();
+  }
+
+  public async clearSingleWebhookQueue(webhookId: string) {
+    // Make sure we are after start and in sync with redis.
+    if (this._getRedisQueuePromise) {
+      await this._getRedisQueuePromise;
+    }
+    // Clear in-memory queue for given webhook key.
+    let removed = 0;
+    for(let i=0; i< this._webHookEventQueue.length; i++){
+      if(this._webHookEventQueue[i].id == webhookId){
+        this._webHookEventQueue.splice(i, 1);
+        removed++;
+      }
+    }
+    // Notify the loop that it should restart.
+    this._loopAbort?.abort();
+    // If we have backup in redis, clear it also.
+    // NOTE: this is subject to a race condition, currently it is not possible, but any future modification probably
+    // will require some kind of locking over the queue (or a rewrite)
+    if (removed && this._redisClient) {
+      const multi = this._redisClient.multi();
+      multi.del(this._redisQueueKey);
+
+      // Re-add all the remaining events to the queue.
+      const strings = this._webHookEventQueue.map(e => JSON.stringify(e));
+      multi.rpush(this._redisQueueKey, ...strings);
+      await multi.execAsync();
     }
     await this._stats.clear();
   }

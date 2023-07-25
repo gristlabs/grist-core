@@ -147,6 +147,8 @@ export const GristDark: ThemeColors = {
 
   /* Selection */
   'selection': 'rgba(22,179,120,0.15)',
+  'selection-darker': 'rgba(22,179,120,0.25)',
+  'selection-darkest': 'rgba(22,179,120,0.35)',
   'selection-opaque-fg': 'white',
   'selection-opaque-bg': '#2F4748',
   'selection-opaque-dark-bg': '#253E3E',
@@ -415,9 +417,6 @@ export const GristDark: ThemeColors = {
   'cell-bg': '#32323F',
   'cell-zebra-bg': '#262633',
 
-  /* Formula Editor */
-  'formula-editor-bg': '#282A36',
-
   /* Charts */
   'chart-fg': '#A4A4A4',
   'chart-bg': '#32323F',
@@ -451,7 +450,8 @@ export const GristDark: ThemeColors = {
   'tutorials-popup-header-fg': '#FFFFFF',
   'tutorials-popup-box-bg': '#57575F',
 
-  /* Ace Autocomplete */
+  /* Ace */
+  'ace-editor-bg': '#32323F',
   'ace-autocomplete-primary-fg': '#EFEFEF',
   'ace-autocomplete-secondary-fg': '#A4A4A4',
   'ace-autocomplete-highlighted-fg': '#FFFFFF',
@@ -490,4 +490,9 @@ export const GristDark: ThemeColors = {
   'login-page-bg': '#32323F',
   'login-page-backdrop': '#404150',
   'login-page-line': '#57575F',
+
+  /* Formula Assistant */
+  'formula-assistant-header-bg': '#262633',
+  'formula-assistant-border': '#69697D',
+  'formula-assistant-preformatted-text-bg': '#262633',
 };

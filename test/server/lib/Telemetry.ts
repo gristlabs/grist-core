@@ -111,6 +111,7 @@ describe('Telemetry', function() {
                   eventSource: `grist-${deploymentType}`,
                   docIdDigest: 'dige:Vq9L3nCkeufQ8euzDkXtM2Fl1cnsALqakjEeM6QlbXQ=',
                   isPublic: false,
+                  installationId,
                 }
               ]);
             }
@@ -133,6 +134,7 @@ describe('Telemetry', function() {
                   docIdDigest: 'dige:Vq9L3nCkeufQ8euzDkXtM2Fl1cnsALqakjEeM6QlbXQ=',
                   isPublic: false,
                   userId: 1,
+                  installationId,
                 }
               ]);
             }
@@ -239,6 +241,7 @@ describe('Telemetry', function() {
                 eventName: 'watchedVideoTour',
                 eventSource: `grist-${deploymentType}`,
                 watchTimeSeconds: 30,
+                installationId,
               });
             } else {
               assert.containsAllKeys(metadata, [
@@ -298,14 +301,10 @@ describe('Telemetry', function() {
             assert.equal(event, 'watchedVideoTour');
             if (telemetryLevel === 'limited') {
               assert.deepEqual(metadata, {
-                eventSource: `grist-${deploymentType}`,
-                installationId,
                 watchTimeSeconds: 30,
               });
             } else {
               assert.containsAllKeys(metadata, [
-                'eventSource',
-                'installationId',
                 'watchTimeSeconds',
                 'userId',
                 'altSessionId',

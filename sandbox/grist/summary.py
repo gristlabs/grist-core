@@ -1,13 +1,13 @@
 from collections import namedtuple
 import json
+import logging
 
 import six
 
 from column import is_visible_column
 import sort_specs
 
-import logger
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 ColInfo = namedtuple('ColInfo', ('colId', 'type', 'isFormula', 'formula',
                                  'widgetOptions', 'label'))
@@ -134,7 +134,7 @@ def _update_sort_spec(sort_spec, old_table, new_table):
     new_sort_spec = [col_spec for col_spec in new_sort_spec if sort_specs.col_ref(col_spec)]
     return json.dumps(new_sort_spec, separators=(',', ':'))
   except Exception:
-    log.warn("update_summary_section: can't parse sortColRefs JSON; clearing sortColRefs")
+    log.warning("update_summary_section: can't parse sortColRefs JSON; clearing sortColRefs")
     return ''
 
 

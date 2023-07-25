@@ -1,10 +1,10 @@
+import logging
 from six.moves import zip
 
 import column
 import identifiers
-import logger
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 # Prefix for transform columns created during imports.
 _import_transform_col_prefix = 'gristHelper_Import_'
@@ -133,11 +133,11 @@ class ImportActions(object):
     tables = self._docmodel.tables
     hidden_table_rec = tables.lookupOne(tableId=hidden_table_id)
     src_cols = {c.colId for c in hidden_table_rec.columns}
-    log.debug("destCols:" + repr(transform_rule['destCols']))
+    log.debug("destCols: %r", transform_rule['destCols'])
 
     dest_cols = transform_rule['destCols']
 
-    log.debug("_MakeImportTransformColumns: {}".format("gen_all" if gen_all else "optimize"))
+    log.debug("_MakeImportTransformColumns: %s", "gen_all" if gen_all else "optimize")
 
     # Calling rebuild_usercode once per added column is wasteful and can be very slow.
     self._engine._should_rebuild_usercode = False

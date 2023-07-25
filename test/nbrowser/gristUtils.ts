@@ -22,6 +22,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
 import { create } from 'app/server/lib/create';
 
+import { GristWebDriverUtils, PageWidgetPickerOptions, WindowDimensions } from 'test/nbrowser/gristWebDriverUtils';
 import { HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
 import { Cleanup } from 'test/nbrowser/testUtils';
@@ -49,6 +50,7 @@ export function currentDriver() { return driver; }
 export function setDriver(customDriver?: WebDriver) { _driver = customDriver; }
 
 const homeUtil = new HomeUtil(testUtils.fixturesRoot, server);
+const webdriverUtils = new GristWebDriverUtils(driver);
 
 export const createNewDoc = homeUtil.createNewDoc.bind(homeUtil);
 // importFixturesDoc has a custom implementation that supports 'load' flag.
@@ -66,6 +68,17 @@ export const isOnGristLoginPage = homeUtil.isOnLoginPage.bind(homeUtil);
 export const checkLoginPage = homeUtil.checkLoginPage.bind(homeUtil);
 export const checkGristLoginPage = homeUtil.checkGristLoginPage.bind(homeUtil);
 export const copyDoc = homeUtil.copyDoc.bind(homeUtil);
+
+export const isSidePanelOpen = webdriverUtils.isSidePanelOpen.bind(webdriverUtils);
+export const waitForServer = webdriverUtils.waitForServer.bind(webdriverUtils);
+export const waitForSidePanel = webdriverUtils.waitForSidePanel.bind(webdriverUtils);
+export const toggleSidePanel = webdriverUtils.toggleSidePanel.bind(webdriverUtils);
+export const getWindowDimensions = webdriverUtils.getWindowDimensions.bind(webdriverUtils);
+export const addNewSection = webdriverUtils.addNewSection.bind(webdriverUtils);
+export const selectWidget = webdriverUtils.selectWidget.bind(webdriverUtils);
+export const dismissBehavioralPrompts = webdriverUtils.dismissBehavioralPrompts.bind(webdriverUtils);
+export const toggleSelectable = webdriverUtils.toggleSelectable.bind(webdriverUtils);
+export const waitToPass = webdriverUtils.waitToPass.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -780,25 +793,6 @@ export async function waitForDocMenuToLoad(): Promise<void> {
   await driver.wait(() => driver.find('.test-dm-doclist').isDisplayed(), 2000);
 }
 
-export async function waitToPass(check: () => Promise<void>, timeMs: number = 4000) {
-  try {
-    let delay: number = 10;
-    await driver.wait(async () => {
-      try {
-        await check();
-      } catch (e) {
-        // Throttle operations a little bit.
-        await driver.sleep(delay);
-        if (delay < 50) { delay += 10; }
-        return false;
-      }
-      return true;
-    }, timeMs);
-  } catch (e) {
-    await check();
-  }
-}
-
 // Checks if we are configured to store docs in s3, and returns access to s3 if so.
 // For this to be useful in tests against deployments, s3-related env variables should
 // be set to match the deployment.
@@ -945,23 +939,6 @@ export async function waitForLabelInput(): Promise<void> {
 }
 
 /**
- * Waits for all pending comm requests from the client to the doc worker to complete. This taps into
- * Grist's communication object in the browser to get the count of pending requests.
- *
- * Simply call this after some request has been made, and when it resolves, you know that request
- * has been processed.
- * @param optTimeout: Timeout in ms, defaults to 2000.
- */
-export async function waitForServer(optTimeout: number = 2000) {
-  await driver.wait(() => driver.executeScript(
-    "return window.gristApp && (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
-    + " && window.gristApp.testNumPendingApiRequests() === 0",
-    optTimeout,
-    "Timed out waiting for server requests to complete"
-  ));
-}
-
-/**
  * Sends UserActions using client api from the browser.
  */
 export async function sendActions(actions: UserAction[]) {
@@ -1085,18 +1062,6 @@ export async function addNewTable(name?: string) {
   await waitForServer();
 }
 
-export interface PageWidgetPickerOptions {
-  tableName?: string;
-  /** Optional pattern of SELECT BY option to pick. */
-  selectBy?: RegExp|string;
-  /** Optional list of patterns to match Group By columns. */
-  summarize?: (RegExp|string)[];
-  /** If true, configure the widget selection without actually adding to the page. */
-  dontAdd?: boolean;
-  /** If true, dismiss any tooltips that are shown. */
-  dismissTips?: boolean;
-}
-
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
 export async function addNewPage(
   typeRe: RegExp|'Table'|'Card'|'Card List'|'Chart'|'Custom',
@@ -1115,95 +1080,9 @@ export async function addNewPage(
   await driver.wait(async () => (await driver.getCurrentUrl()) !== url, 2000);
 }
 
-type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom';
-
-// Add a new widget to the current page using the 'Add New' menu.
-export async function addNewSection(
-  typeRe: RegExp|SectionTypes, tableRe: RegExp|string, options?: PageWidgetPickerOptions
-) {
-  // Click the 'Add widget to page' entry in the 'Add New' menu
-  await driver.findWait('.test-dp-add-new', 2000).doClick();
-  await driver.findWait('.test-dp-add-widget-to-page', 500).doClick();
-
-  // add widget
-  await selectWidget(typeRe, tableRe, options);
-}
-
 export async function openAddWidgetToPage() {
   await driver.findWait('.test-dp-add-new', 2000).doClick();
   await driver.findWait('.test-dp-add-widget-to-page', 2000).doClick();
-}
-
-// Select type and table that matches respectively typeRe and tableRe and save. The widget picker
-// must be already opened when calling this function.
-export async function selectWidget(
-  typeRe: RegExp|string,
-  tableRe: RegExp|string = '',
-  options: PageWidgetPickerOptions = {}
-) {
-  if (options.dismissTips) { await dismissBehavioralPrompts(); }
-
-  // select right type
-  await driver.findContent('.test-wselect-type', typeRe).doClick();
-
-  if (options.dismissTips) { await dismissBehavioralPrompts(); }
-
-  if (tableRe) {
-    const tableEl = driver.findContent('.test-wselect-table', tableRe);
-
-    // unselect all selected columns
-    for (const col of (await driver.findAll('.test-wselect-column[class*=-selected]'))) {
-      await col.click();
-    }
-
-    // let's select table
-    await tableEl.click();
-
-    if (options.dismissTips) { await dismissBehavioralPrompts(); }
-
-    const pivotEl = tableEl.find('.test-wselect-pivot');
-    if (await pivotEl.isPresent()) {
-      await toggleSelectable(pivotEl, Boolean(options.summarize));
-    }
-
-    if (options.summarize) {
-      for (const columnEl of await driver.findAll('.test-wselect-column')) {
-        const label = await columnEl.getText();
-        // TODO: Matching cols with regexp calls for trouble and adds no value. I think function should be
-        // rewritten using string matching only.
-        const goal = Boolean(options.summarize.find(r => label.match(r)));
-        await toggleSelectable(columnEl, goal);
-      }
-    }
-
-    if (options.selectBy) {
-      // select link
-      await driver.find('.test-wselect-selectby').doClick();
-      await driver.findContent('.test-wselect-selectby option', options.selectBy).doClick();
-    }
-  }
-
-
-  if (options.dontAdd) {
-    return;
-  }
-
-  // add the widget
-  await driver.find('.test-wselect-addBtn').doClick();
-
-  // if we selected a new table, there will be a popup for a name
-  const prompts = await driver.findAll(".test-modal-prompt");
-  const prompt = prompts[0];
-  if (prompt) {
-    if (options.tableName) {
-      await prompt.doClear();
-      await prompt.click();
-      await driver.sendKeys(options.tableName);
-    }
-    await driver.find(".test-modal-confirm").click();
-  }
-
-  await waitForServer();
 }
 
 export type WidgetType = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom';
@@ -1214,17 +1093,6 @@ export async function changeWidget(type: WidgetType) {
   await driver.findContent('.test-right-panel button', /Change Widget/).click();
   await selectWidget(type);
   await waitForServer();
-}
-
-/**
- * Toggle elem if not selected. Expects elem to be clickable and to have a class ending with
- * -selected when selected.
- */
-async function toggleSelectable(elem: WebElement, goal: boolean) {
-  const isSelected = await elem.matches('[class*=-selected]');
-  if (goal !== isSelected) {
-    await elem.click();
-  }
 }
 
 /**
@@ -1394,38 +1262,6 @@ export async function redo(optCount: number = 1, optTimeout?: number) {
 export async function checkForErrors() {
   const errors = await driver.executeScript<string[]>(() => (window as any).getAppErrors());
   assert.deepEqual(errors, []);
-}
-
-export function isSidePanelOpen(which: 'right'|'left'): Promise<boolean> {
-  return driver.find(`.test-${which}-panel`).matches('[class*=-open]');
-}
-
-/*
- * Toggles (opens or closes) the right or left panel and wait for the transition to complete. An optional
- * argument can specify the desired state.
- */
-export async function toggleSidePanel(which: 'right'|'left', goal: 'open'|'close'|'toggle' = 'toggle') {
-  if ((goal === 'open' && await isSidePanelOpen(which)) ||
-      (goal === 'close' && !await isSidePanelOpen(which))) {
-    return;
-  }
-
-  // Adds '-ns' when narrow screen
-  const suffix = (await getWindowDimensions()).width < 768 ? '-ns' : '';
-
-  // click the opener and wait for the duration of the transition
-  await driver.find(`.test-${which}-opener${suffix}`).doClick();
-  await waitForSidePanel();
-}
-
-export async function waitForSidePanel() {
-  // 0.4 is the duration of the transition setup in app/client/ui/PagePanels.ts for opening the
-  // side panes
-  const transitionDuration = 0.4;
-
-  // let's add an extra delay of 0.1 for even more robustness
-  const delta = 0.1;
-  await driver.sleep((transitionDuration + delta) * 1000);
 }
 
 /**
@@ -2450,19 +2286,6 @@ export async function selectColumn(col: string) {
   await getColumnHeader({col}).click();
 }
 
-export interface WindowDimensions {
-  width: number;
-  height: number;
-}
-
-/**
- * Gets browser window dimensions.
- */
- export async function getWindowDimensions(): Promise<WindowDimensions> {
-  const {width, height} = await driver.manage().window().getRect();
-  return {width, height};
-}
-
 /**
  * Sets browser window dimensions.
  */
@@ -3012,21 +2835,6 @@ export async function refreshDismiss() {
   await driver.navigate().refresh();
   await (await driver.switchTo().alert()).accept();
   await waitForDocToLoad();
-}
-
-/**
- * Dismisses all behavioral prompts that are present.
- */
-export async function dismissBehavioralPrompts() {
-  let i = 0;
-  const max = 10;
-
-  // Keep dismissing prompts until there are no more, up to a maximum of 10 times.
-  while (i < max && await driver.find('.test-behavioral-prompt').isPresent()) {
-    await driver.find('.test-behavioral-prompt-dismiss').click();
-    await waitForServer();
-    i += 1;
-  }
 }
 
 /**

@@ -1,11 +1,11 @@
+import logging
 import six
 
 import actions
-import logger
 import schema
 from objtypes import strict_equal
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class DocActions(object):
   def __init__(self, engine):

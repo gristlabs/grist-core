@@ -49,7 +49,7 @@ import {toKo} from 'grainjs';
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 export type {ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
-    ViewFieldRec, ViewRec, ViewSectionRec, CellRec};
+  ViewFieldRec, ViewRec, ViewSectionRec, CellRec};
 
 /**
  * Creates the type for a MetaRowModel containing a KoSaveableObservable for each field listed in

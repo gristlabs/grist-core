@@ -1,4 +1,6 @@
+# pylint:disable=too-many-lines
 import json
+import logging
 import re
 from collections import defaultdict
 
@@ -10,10 +12,9 @@ import identifiers
 import schema
 import summary
 import table_data_set
-import logger
 from column import is_visible_column
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 # PHILOSOPHY OF MIGRATIONS.
 #
@@ -388,8 +389,8 @@ def migration7(tdset):
     new_name = summary.encode_summary_table_name(source_table_name, groupby_col_ids)
     new_name = identifiers.pick_table_ident(new_name, avoid=table_name_set)
     table_name_set.add(new_name)
-    log.warn("Upgrading summary table %s for %s(%s) to %s" % (
-      t.tableId, source_table_name, groupby_colrefs, new_name))
+    log.warning("Upgrading summary table %s for %s(%s) to %s",
+      t.tableId, source_table_name, groupby_colrefs, new_name)
 
     # Remove the "lookupOrAddDerived" column from the source table (which is named using the
     # summary table name for its colId).
@@ -418,7 +419,7 @@ def migration7(tdset):
         groupby_cols.add(sum_col)
         source_cols.append((sum_col, src_col.id))
       else:
-        log.warn("Upgrading summary table %s: couldn't find column %s" % (t.tableId, col_ref))
+        log.warning("Upgrading summary table %s: couldn't find column %s", t.tableId, col_ref)
 
     # Finally, we have to remove all non-formula columns that are not groupby-columns (e.g.
     # 'manualSort'), because the new approach assumes ALL non-formula columns are for groupby.
@@ -1050,8 +1051,8 @@ def migration31(tdset):
       continue
     new_name = identifiers.pick_table_ident(new_name, avoid=table_name_set)
     table_name_set.add(new_name)
-    log.warn("Upgrading summary table %s for %s(%s) to %s" % (
-      t.tableId, source_table.tableId, groupby_col_ids, new_name))
+    log.warning("Upgrading summary table %s for %s(%s) to %s",
+      t.tableId, source_table.tableId, groupby_col_ids, new_name)
 
     # Schedule a rename of the summary table.
     table_renames.append((t, new_name))

@@ -7,6 +7,7 @@ processes = []
   APP_DOC_URL="https://{APP_NAME}.fly.dev"
   APP_HOME_URL="https://{APP_NAME}.fly.dev"
   APP_STATIC_URL="https://{APP_NAME}.fly.dev"
+  ALLOWED_WEBHOOK_DOMAINS="webhook.site"
   GRIST_SINGLE_ORG="docs"
   PORT = "8080"
   FLY_DEPLOY_EXPIRATION = "{FLY_DEPLOY_EXPIRATION}"

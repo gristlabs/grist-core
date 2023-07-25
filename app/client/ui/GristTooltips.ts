@@ -50,8 +50,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
       t('Formulas that trigger in certain cases, and store the calculated value as data.')
     ),
     dom('div',
-      t('Useful for storing the timestamp or author of a new record, data cleaning, and '
-      + 'more.')
+      t('Useful for storing the timestamp or author of a new record, data cleaning, and more.')
     ),
     dom('div',
       cssLink({href: commonUrls.helpTriggerFormulas, target: '_blank'}, t('Learn more.')),
@@ -76,8 +75,8 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
   ),
   openAccessRules: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div',
-      t('Access rules give you the power to create nuanced rules to determine who can '
-      + 'see or edit which parts of your document.')
+      t('Access rules give you the power to create nuanced rules to determine who can \
+see or edit which parts of your document.')
     ),
     dom('div',
       cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.')),
@@ -126,8 +125,8 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
     title: () => t('Reference Columns'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Select the table to link to.')),
-      dom('div', t('Cells in a reference column always identify an {{entire}} ' +
-        'record in that table, but you may select which column from that record to show.', {
+      dom('div', t('Cells in a reference column always identify an {{entire}} \
+record in that table, but you may select which column from that record to show.', {
           entire: cssItalicizedText(t('entire'))
         })),
       dom('div',
@@ -140,8 +139,8 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
   rawDataPage: {
     title: () => t('Raw Data page'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('The Raw Data page lists all data tables in your document, '
-        + 'including summary tables and tables not included in page layouts.')),
+      dom('div', t('The Raw Data page lists all data tables in your document, \
+including summary tables and tables not included in page layouts.')),
       dom('div', cssLink({href: commonUrls.helpRawData, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
@@ -150,8 +149,8 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
   accessRules: {
     title: () => t('Access Rules'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Access rules give you the power to create nuanced rules '
-        + 'to determine who can see or edit which parts of your document.')),
+      dom('div', t('Access rules give you the power to create nuanced rules \
+to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
@@ -209,8 +208,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
   addNew: {
     title: () => t('Add New'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Click the Add New button to create new documents or workspaces, '
-        + 'or import data.')),
+      dom('div', t('Click the Add New button to create new documents or workspaces, or import data.')),
       ...args,
     ),
     deploymentTypes: ['saas'],
@@ -219,8 +217,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
     title: () => t('Anchor Links'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
-        t('To make an anchor link that takes the user to a specific cell, click on'
-          + ' a row and press {{shortcut}}.',
+        t('To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.',
           {
             shortcut: ShortcutKey(ShortcutKeyContent(commands.allCommands.copyLink.humanKeys[0])),
           }
@@ -235,8 +232,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
         t(
-          'You can choose one of our pre-made widgets or embed your own ' +
-          'by providing its full URL.'
+          'You can choose one of our pre-made widgets or embed your own by providing its full URL.'
         ),
       ),
       dom('div', cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.'))),

@@ -775,12 +775,16 @@ export class FieldBuilder extends Disposable {
   /**
    * Open the formula editor in the side pane. It will be positioned over refElem.
    */
-  public openSideFormulaEditor(
+  public openSideFormulaEditor(options: {
     editRow: DataRowModel,
     refElem: Element,
+    canDetach: boolean,
     editValue?: string,
     onSave?: (column: ColumnRec, formula: string) => Promise<void>,
-    onCancel?: () => void) {
+    onCancel?: () => void
+  }) {
+    const {editRow, refElem, canDetach, editValue, onSave, onCancel} = options;
+
     // Remember position when the popup was opened.
     const position = this.gristDoc.cursorPosition.get();
 
@@ -838,14 +842,18 @@ export class FieldBuilder extends Disposable {
       editRow,
       refElem,
       editValue,
-      canDetach: true,
+      canDetach,
       onSave,
       onCancel
     });
 
     // And now create the floating editor itself. It is just a floating wrapper that will grab the dom
     // from the editor and show it in the popup. It also overrides various parts of Grist to make smoother experience.
-    const floatingExtension = FloatingEditor.create(formulaEditor, floatController, this.gristDoc);
+    const floatingExtension = FloatingEditor.create(formulaEditor, floatController, {
+      gristDoc: this.gristDoc,
+      refElem,
+      placement: 'overlapping',
+    });
 
     // Add editor to document holder - this will prevent multiple formula editor instances.
     this.gristDoc.fieldEditorHolder.autoDispose(formulaEditor);

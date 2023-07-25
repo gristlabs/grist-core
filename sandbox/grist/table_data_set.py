@@ -1,11 +1,11 @@
+import logging
 from six.moves import zip as izip
 import six
 
 import actions
 from usertypes import get_type_default
 
-import logger
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TableDataSet(object):
   """
@@ -32,7 +32,7 @@ class TableDataSet(object):
     try:
       getattr(self, action.__class__.__name__)(*action)
     except Exception as e:
-      log.warn("ERROR applying action %s: %s" % (action, e))
+      log.warning("ERROR applying action %s: %s", action, e)
       raise
 
   def apply_doc_actions(self, doc_actions):

@@ -1,6 +1,7 @@
 import {ColumnRec, DocModel} from 'app/client/models/DocModel';
 import {Style} from 'app/client/models/Styles';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {GristObjCode} from 'app/plugin/GristData';
 
 export interface RuleOwner {
   // Field or Section can have a list of conditional styling rules. Each style is a combination of a formula and options
@@ -9,6 +10,8 @@ export interface RuleOwner {
   tableId: ko.Computed<string>;
   // If this field (or column) has a list of conditional styling rules.
   hasRules: ko.Computed<boolean>;
+  // List of rules.
+  rulesList: ko.Computed<[GristObjCode.List, ...number[]] | null>;
   // List of columns that are used as rules for conditional styles.
   rulesCols: ko.Computed<ColumnRec[]>;
   // List of columns ids that are used as rules for conditional styles.

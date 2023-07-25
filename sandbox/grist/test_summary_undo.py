@@ -1,11 +1,11 @@
 """
 Some more test cases for summary tables, involving UNDO.
 """
-import logger
+import logging
 import testutil
 import test_engine
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestSummaryUndo(test_engine.EngineTestCase):
   sample = testutil.parse_test_sample({

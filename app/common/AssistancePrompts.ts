@@ -11,10 +11,12 @@ import {DocAction} from 'app/common/DocActions';
  * model at this time (it is a bit early for that).
  */
 export interface AssistanceState {
-  messages?: Array<{
-    role: string;
-    content: string;
-  }>;
+  messages?: AssistanceMessage[];
+}
+
+export interface AssistanceMessage {
+  role: string;
+  content: string;
 }
 
 /**
@@ -33,6 +35,7 @@ export type AssistanceContext = FormulaAssistanceContext;
  * A request for assistance.
  */
 export interface AssistanceRequest {
+  conversationId: string;
   context: AssistanceContext;
   state?: AssistanceState;
   text: string;

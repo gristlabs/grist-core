@@ -18,7 +18,6 @@ import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
 import {Importer} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
-import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -43,6 +42,7 @@ import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
 import {DocTutorial} from 'app/client/ui/DocTutorial';
+import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
@@ -54,8 +54,8 @@ import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
-import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
+import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {ClientQuery} from "app/common/ActiveDocAPI";
 import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
@@ -120,8 +120,9 @@ const RightPanelTool = StringUnion("none", "docHistory", "validations", "discuss
 export interface IExtraTool {
   icon: IconName;
   label: DomContents;
-  content: TabContent[]|IDomComponent;
+  content: TabContent[] | IDomComponent;
 }
+
 interface RawSectionOptions {
   viewSection: ViewSectionRec;
   hash: HashLink;
@@ -137,10 +138,10 @@ export class GristDoc extends DisposableWithEvents {
   public docInfo: DocInfoRec;
   public docPluginManager: DocPluginManager;
   public querySetManager: QuerySetManager;
-  public rightPanelTool: Observable<IExtraTool|null>;
+  public rightPanelTool: Observable<IExtraTool | null>;
   public isReadonly = this.docPageModel.isReadonly;
   public isReadonlyKo = toKo(ko, this.isReadonly);
-  public comparison: DocStateComparison|null;
+  public comparison: DocStateComparison | null;
   // component for keeping track of latest cursor position
   public cursorMonitor: CursorMonitor;
   // component for keeping track of a cell that is being edited
@@ -174,11 +175,11 @@ export class GristDoc extends DisposableWithEvents {
   // section (or raw data section) that is not part of this view. Maximized section is a section
   // in the view, so there is no need to render it twice, layout just hides all other sections to make
   // the space.
-  public maximizedSectionId: Observable<number|null> = Observable.create(this, null);
+  public maximizedSectionId: Observable<number | null> = Observable.create(this, null);
   // This is id of the section that is currently shown in the popup. Probably this is an external
   // section, like raw data view, or a section from another view..
-  public externalSectionId: Computed<number|null>;
-  public viewLayout: ViewLayout|null = null;
+  public externalSectionId: Computed<number | null>;
+  public viewLayout: ViewLayout | null = null;
 
   // Holder for the popped up formula editor.
   public readonly formulaPopup = Holder.create(this);
@@ -191,15 +192,15 @@ export class GristDoc extends DisposableWithEvents {
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
-  private _lastOwnActionGroup: ActionGroupWithCursorPos|null = null;
+  private _lastOwnActionGroup: ActionGroupWithCursorPos | null = null;
   private _rightPanelTabs = new Map<string, TabContent[]>();
   private _docHistory: DocHistory;
   private _discussionPanel: DiscussionPanel;
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
-  private _rawSectionOptions: Observable<RawSectionOptions|null> = Observable.create(this, null);
-  private _activeContent: Computed<IDocPage|RawSectionOptions>;
+  private _rawSectionOptions: Observable<RawSectionOptions | null> = Observable.create(this, null);
+  private _activeContent: Computed<IDocPage | RawSectionOptions>;
   private _docTutorialHolder = Holder.create<DocTutorial>(this);
   private _isRickRowing: Observable<boolean> = Observable.create(this, false);
   private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
@@ -285,9 +286,13 @@ export class GristDoc extends DisposableWithEvents {
       }
     }));
 
+
     // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
-      if (!state.hash) { return; }
+      if (!state.hash) {
+        return;
+      }
+
 
       try {
         if (state.hash.popup) {
@@ -321,7 +326,9 @@ export class GristDoc extends DisposableWithEvents {
           this._waitForView()
             .then(() => {
               const cursor = document.querySelector('.selected_cursor.active_cursor');
-              if (!cursor) { return; }
+              if (!cursor) {
+                return;
+              }
 
               this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
                 forceShow: true,
@@ -427,8 +434,8 @@ export class GristDoc extends DisposableWithEvents {
     // Set the available import sources in the DocPageModel.
     this.docPageModel.importSources = importMenuItems;
 
-    this._actionLog = this.autoDispose(ActionLog.create({ gristDoc: this }));
-    this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, { gristDoc: this }));
+    this._actionLog = this.autoDispose(ActionLog.create({gristDoc: this}));
+    this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {gristDoc: this}));
     this._docHistory = DocHistory.create(this, this.docPageModel, this._actionLog);
     this._discussionPanel = DiscussionPanel.create(this, this);
 
@@ -439,9 +446,15 @@ export class GristDoc extends DisposableWithEvents {
 
     /* Command binding */
     this.autoDispose(commands.createGroup({
-      undo() { this._undoStack.sendUndoAction().catch(reportError); },
-      redo() { this._undoStack.sendRedoAction().catch(reportError); },
-      reloadPlugins() { void this.docComm.reloadPlugins().then(() => G.window.location.reload(false)); },
+      undo() {
+        this._undoStack.sendUndoAction().catch(reportError);
+      },
+      redo() {
+        this._undoStack.sendRedoAction().catch(reportError);
+      },
+      reloadPlugins() {
+        void this.docComm.reloadPlugins().then(() => G.window.location.reload(false));
+      },
 
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
@@ -453,6 +466,8 @@ export class GristDoc extends DisposableWithEvents {
     this.listenTo(app.comm, 'docUsage', this.onDocUsageMessage);
 
     this.listenTo(app.comm, 'docChatter', this.onDocChatter);
+
+    this._handleTriggerQueueOverflowMessage();
 
     this.autoDispose(DocConfigTab.create({gristDoc: this}));
 
@@ -478,7 +493,9 @@ export class GristDoc extends DisposableWithEvents {
     // switch for a moment to knockout to fix this.
     const viewInstance = fromKo(this.autoDispose(ko.pureComputed(() => {
       const viewId = toKo(ko, this.activeViewId)();
-      if (!isViewDocPage(viewId)) { return null; }
+      if (!isViewDocPage(viewId)) {
+        return null;
+      }
       const section = this.viewModel.activeSection();
       if (section?.isDisposed()) { return null; }
       const view = section.viewInstance();
@@ -490,7 +507,9 @@ export class GristDoc extends DisposableWithEvents {
       if (view) {
         await view.getLoadingDonePromise();
       }
-      if (view?.isDisposed()) { return; }
+      if (view?.isDisposed()) {
+        return;
+      }
       // finally set the current view as fully loaded
       this.currentView.set(view);
     }));
@@ -499,12 +518,18 @@ export class GristDoc extends DisposableWithEvents {
     this.cursorPosition = Computed.create<ViewCursorPos | undefined>(this, use => {
       // get the BaseView
       const view = use(this.currentView);
-      if (!view) { return undefined; }
+      if (!view) {
+        return undefined;
+      }
       const viewId = use(this.activeViewId);
-      if (!isViewDocPage(viewId)) { return undefined; }
+      if (!isViewDocPage(viewId)) {
+        return undefined;
+      }
       // read latest position
       const currentPosition = use(view.cursor.currentPosition);
-      if (currentPosition) { return { ...currentPosition, viewId }; }
+      if (currentPosition) {
+        return {...currentPosition, viewId};
+      }
       return undefined;
     });
 
@@ -520,7 +545,9 @@ export class GristDoc extends DisposableWithEvents {
     // When active section is changed to a chart or custom widget, change the tab in the creator
     // panel to the table.
     this.autoDispose(this.viewModel.activeSection.subscribe((section) => {
-      if (section.isDisposed() || section._isDeleted.peek()) { return; }
+      if (section.isDisposed() || section._isDeleted.peek()) {
+        return;
+      }
       if (['chart', 'custom'].includes(section.parentKey.peek())) {
         commands.allCommands.viewTabFocus.run();
       }
@@ -609,12 +636,12 @@ export class GristDoc extends DisposableWithEvents {
    * fields { sectionId, rowId, fieldIndex }. Fields may be missing if no section is active.
    */
   public getCursorPos(): CursorPos {
-    const pos = { sectionId: this.viewModel.activeSectionId() };
+    const pos = {sectionId: this.viewModel.activeSectionId()};
     const viewInstance = this.viewModel.activeSection.peek().viewInstance.peek();
     return Object.assign(pos, viewInstance ? viewInstance.cursor.getCursorPos() : {});
   }
 
-  public async onSetCursorPos(rowModel: BaseRowModel|undefined, fieldModel?: ViewFieldRec) {
+  public async onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec) {
     return this.setCursorPos({
       rowIndex: rowModel?._index() || 0,
       fieldIndex: fieldModel?._index() || 0,
@@ -669,7 +696,7 @@ export class GristDoc extends DisposableWithEvents {
     }
     try {
       await this.setCursorPos(cursorPos);
-    } catch(e) {
+    } catch (e) {
       reportError(e);
     }
   }
@@ -732,7 +759,9 @@ export class GristDoc extends DisposableWithEvents {
    * observables.
    */
   public onDocUsageMessage(message: CommDocUsage) {
-    if (!this.docComm.isActionFromThisDoc(message)) { return; }
+    if (!this.docComm.isActionFromThisDoc(message)) {
+      return;
+    }
 
     bundleChanges(() => {
       this.docPageModel.updateCurrentDocUsage(message.data.docUsage);
@@ -741,8 +770,15 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public onDocChatter(message: CommDocChatter) {
-    if (!this.docComm.isActionFromThisDoc(message)) { return; }
-    if (message.data.webhooks) {
+    if (!this.docComm.isActionFromThisDoc(message) ||
+      !message.data.webhooks) {
+      return;
+    }
+    if (message.data.webhooks.type == 'webhookOverflowError') {
+      this.trigger('webhookOverflowError',
+        t('New changes are temporarily suspended. Webhooks queue overflowed.' +
+          ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
+    } else {
       this.trigger('webhooks', message.data.webhooks);
     }
   }
@@ -755,7 +791,9 @@ export class GristDoc extends DisposableWithEvents {
   // in effect.
   public getTableModelMaybeWithDiff(tableId: string): DataTableModel {
     const tableModel = this.getTableModel(tableId);
-    if (!this.comparison?.details) { return tableModel; }
+    if (!this.comparison?.details) {
+      return tableModel;
+    }
     // TODO: cache wrapped models and share between views.
     return new DataTableModelWithDiff(tableModel, this.comparison.details);
   }
@@ -765,7 +803,9 @@ export class GristDoc extends DisposableWithEvents {
    */
   public async addEmptyTable(): Promise<void> {
     const name = await this._promptForName();
-    if (name === undefined) { return; }
+    if (name === undefined) {
+      return;
+    }
     const tableInfo = await this.docData.sendAction(['AddEmptyTable', name || null]);
     await this.openDocPage(this.docModel.tables.getRowModel(tableInfo.id).primaryViewId());
   }
@@ -776,7 +816,7 @@ export class GristDoc extends DisposableWithEvents {
   public async addWidgetToPage(val: IPageWidget) {
     const docData = this.docModel.docData;
     const viewName = this.viewModel.name.peek();
-    let tableId: string|null|undefined;
+    let tableId: string | null | undefined;
     if (val.table === 'New Table') {
       tableId = await this._promptForName();
       if (tableId === undefined) {
@@ -797,7 +837,7 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * The actual implementation of addWidgetToPage
    */
-  public async addWidgetToPageImpl(val: IPageWidget, tableId: string|null = null) {
+  public async addWidgetToPageImpl(val: IPageWidget, tableId: string | null = null) {
     const viewRef = this.activeViewId.get();
     const tableRef = val.table === 'New Table' ? 0 : val.table;
     const result = await this.docData.sendAction(
@@ -816,7 +856,9 @@ export class GristDoc extends DisposableWithEvents {
   public async addNewPage(val: IPageWidget) {
     if (val.table === 'New Table') {
       const name = await this._promptForName();
-      if (name === undefined) { return; }
+      if (name === undefined) {
+        return;
+      }
       const result = await this.docData.sendAction(['AddEmptyTable', name]);
       await this.openDocPage(result.views[0].id);
     } else {
@@ -842,8 +884,10 @@ export class GristDoc extends DisposableWithEvents {
    * primary view.
    */
   public async uploadNewTable(): Promise<void> {
-    const uploadResult = await selectFiles({docWorkerUrl: this.docComm.docWorkerUrl,
-                                            multiple: true});
+    const uploadResult = await selectFiles({
+      docWorkerUrl: this.docComm.docWorkerUrl,
+      multiple: true
+    });
     if (uploadResult) {
       const dataSource = {uploadId: uploadResult.uploadId, transforms: []};
       const importResult = await this.docComm.finishImportFiles(dataSource, [], {});
@@ -865,7 +909,7 @@ export class GristDoc extends DisposableWithEvents {
     }
 
     return await this.viewLayout!.freezeUntil(docData.bundleActions(
-      t("Saved linked section {{title}} in view {{name}}", {title:section.title(), name: viewModel.name()}),
+      t("Saved linked section {{title}} in view {{name}}", {title: section.title(), name: viewModel.name()}),
       async () => {
 
         // if table changes or a table is made a summary table, let's replace the view section by a
@@ -932,7 +976,9 @@ export class GristDoc extends DisposableWithEvents {
 
     // adds new view fields; ignore colIds that do not exist in new table.
     await Promise.all(colIds.map((colId, i) => {
-      if (!mapColIdToColumn.has(colId)) { return; }
+      if (!mapColIdToColumn.has(colId)) {
+        return;
+      }
       const colInfo = {
         parentId: section.id(),
         colRef: mapColIdToColumn.get(colId).id(),
@@ -983,7 +1029,7 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   // Turn the given columns into empty columns, losing any data stored in them.
-  public async clearColumns(colRefs: number[], {keepType}: {keepType?: boolean} = {}): Promise<void> {
+  public async clearColumns(colRefs: number[], {keepType}: { keepType?: boolean } = {}): Promise<void> {
     await this.docModel.columns.sendTableAction(
       ['BulkUpdateRecord', colRefs, {
         isFormula: colRefs.map(f => true),
@@ -1003,7 +1049,7 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   // Convert the given columns to data, saving the calculated values and unsetting the formulas.
-  public async convertIsFormula(colRefs: number[], opts: {toFormula: boolean, noRecalc?: boolean}): Promise<void> {
+  public async convertIsFormula(colRefs: number[], opts: { toFormula: boolean, noRecalc?: boolean }): Promise<void> {
     return this.docModel.columns.sendTableAction(
       ['BulkUpdateRecord', colRefs, {
         isFormula: colRefs.map(f => opts.toFormula),
@@ -1076,8 +1122,12 @@ export class GristDoc extends DisposableWithEvents {
     setAsActiveSection: boolean,
     silent: boolean = false): Promise<boolean> {
     try {
-      if (!cursorPos.sectionId) { throw new Error('sectionId required'); }
-      if (!cursorPos.rowId) { throw new Error('rowId required'); }
+      if (!cursorPos.sectionId) {
+        throw new Error('sectionId required');
+      }
+      if (!cursorPos.rowId) {
+        throw new Error('rowId required');
+      }
       const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
       if (!section.id.peek()) {
         throw new Error(`Section ${cursorPos.sectionId} does not exist`);
@@ -1125,7 +1175,9 @@ export class GristDoc extends DisposableWithEvents {
           }
           srcRowId = srcTable.getRowIds().find(getFilterFunc(this.docData, query));
         }
-        if (!srcRowId || typeof srcRowId !== 'number') { throw new Error('cannot trace rowId'); }
+        if (!srcRowId || typeof srcRowId !== 'number') {
+          throw new Error('cannot trace rowId');
+        }
         await this.recursiveMoveToCursorPos({
           rowId: srcRowId,
           sectionId: srcSection.id.peek(),
@@ -1133,14 +1185,20 @@ export class GristDoc extends DisposableWithEvents {
       }
       const view: ViewRec = section.view.peek();
       const docPage: ViewDocPage = section.isRaw.peek() ? "data" : view.getRowId();
-      if (docPage != this.activeViewId.get()) { await this.openDocPage(docPage); }
-      if (setAsActiveSection) { view.activeSectionId(cursorPos.sectionId); }
+      if (docPage != this.activeViewId.get()) {
+        await this.openDocPage(docPage);
+      }
+      if (setAsActiveSection) {
+        view.activeSectionId(cursorPos.sectionId);
+      }
       const fieldIndex = cursorPos.fieldIndex;
       const viewInstance = await waitObs(section.viewInstance);
-      if (!viewInstance) { throw new Error('view not found'); }
+      if (!viewInstance) {
+        throw new Error('view not found');
+      }
       // Give any synchronous initial cursor setting a chance to happen.
       await delay(0);
-      viewInstance.setCursorPos({ ...cursorPos, fieldIndex });
+      viewInstance.setCursorPos({...cursorPos, fieldIndex});
       // TODO: column selection not working on card/detail view, or getting overridden -
       // look into it (not a high priority for now since feature not easily discoverable
       // in this view).
@@ -1162,7 +1220,7 @@ export class GristDoc extends DisposableWithEvents {
    * Opens up an editor at cursor position
    * @param input Optional. Cell's initial value
    */
-  public async activateEditorAtCursor(options?: { init?: string, state?: any}) {
+  public async activateEditorAtCursor(options?: { init?: string, state?: any }) {
     const view = await this._waitForView();
     view?.activateEditorAtCursor(options);
   }
@@ -1183,7 +1241,9 @@ export class GristDoc extends DisposableWithEvents {
    */
   public async openPopup(hash: HashLink) {
     // We can only open a popup for a section.
-    if (!hash.sectionId) { return; }
+    if (!hash.sectionId) {
+      return;
+    }
     // We might open popup either for a section in this view or some other section (like Raw Data Page).
     if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
       if (this.viewLayout) {
@@ -1196,7 +1256,7 @@ export class GristDoc extends DisposableWithEvents {
         const fieldIndex = activeSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
         if (fieldIndex >= 0) {
           const view = await this._waitForView(activeSection);
-          view?.setCursorPos({ sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex });
+          view?.setCursorPos({sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex});
         }
       }
       this.viewLayout?.maximized.set(hash.sectionId);
@@ -1219,17 +1279,23 @@ export class GristDoc extends DisposableWithEvents {
       viewSection: popupSection,
       close: () => {
         // In case we are already close, do nothing.
-        if (!this._rawSectionOptions.get()) { return; }
+        if (!this._rawSectionOptions.get()) {
+          return;
+        }
         if (popupSection !== prevSection) {
           // We need to blur raw view section. Otherwise it will automatically be opened
           // on raw data view. Note: raw data section doesn't have its own view, it uses
           // empty row model as a parent (which feels like a hack).
-          if (!popupSection.isDisposed()) { popupSection.hasFocus(false); }
+          if (!popupSection.isDisposed()) {
+            popupSection.hasFocus(false);
+          }
           // We need to restore active viewSection for a view that we borrowed.
           // When this popup was opened we tricked active view by setting its activeViewSection
           // to our viewSection (which might be a completely diffrent section or a raw data section) not
           // connected to this view.
-          if (!prevSection.isDisposed()) { prevSection.hasFocus(true); }
+          if (!prevSection.isDisposed()) {
+            prevSection.hasFocus(true);
+          }
         }
         // Clearing popup data will close this popup.
         this._rawSectionOptions.set(null);
@@ -1240,7 +1306,7 @@ export class GristDoc extends DisposableWithEvents {
       const fieldIndex = popupSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
       if (fieldIndex >= 0) {
         const view = await this._waitForView(popupSection);
-        view?.setCursorPos({ sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex });
+        view?.setCursorPos({sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex});
       }
     }
   }
@@ -1250,7 +1316,9 @@ export class GristDoc extends DisposableWithEvents {
    */
   public async playRickRollVideo() {
     const backgroundVideoPlayer = this._backgroundVideoPlayerHolder.get();
-    if (!backgroundVideoPlayer) { return; }
+    if (!backgroundVideoPlayer) {
+      return;
+    }
 
     await backgroundVideoPlayer.isLoaded();
     backgroundVideoPlayer.play();
@@ -1272,7 +1340,9 @@ export class GristDoc extends DisposableWithEvents {
     await setVolume(0, 100, 5);
 
     await delay(190 * 1000);
-    if (!this._isRickRowing.get()) { return; }
+    if (!this._isRickRowing.get()) {
+      return;
+    }
 
     await setVolume(100, 0, 5);
 
@@ -1289,6 +1359,7 @@ export class GristDoc extends DisposableWithEvents {
     if (!sectionToCheck.getRowId()) {
       return null;
     }
+
     async function singleWait(s: ViewSectionRec): Promise<BaseView> {
       const view = await waitObs(
         sectionToCheck.viewInstance,
@@ -1296,6 +1367,7 @@ export class GristDoc extends DisposableWithEvents {
       );
       return view!;
     }
+
     let view = await singleWait(sectionToCheck);
     if (view.isDisposed()) {
       // If the view is disposed (it can happen, as wait is not reliable enough, because it uses
@@ -1324,7 +1396,7 @@ export class GristDoc extends DisposableWithEvents {
         return content ? {icon: 'Validation', label: 'Validation Rules', content} : null;
       }
       case 'discussion': {
-        return  {icon: 'Chat', label: this._discussionPanel.buildMenu(), content: this._discussionPanel};
+        return {icon: 'Chat', label: this._discussionPanel.buildMenu(), content: this._discussionPanel};
       }
       case 'none':
       default: {
@@ -1350,7 +1422,9 @@ export class GristDoc extends DisposableWithEvents {
     await commands.allCommands.rightPanelOpen.run();
 
     const editLayoutButton = document.querySelector('.behavioral-prompt-edit-card-layout');
-    if (!editLayoutButton) { throw new Error('GristDoc failed to find edit card layout button'); }
+    if (!editLayoutButton) {
+      throw new Error('GristDoc failed to find edit card layout button');
+    }
 
     this.behavioralPromptsManager.showTip(editLayoutButton, 'editCardLayout', {
       popupOptions: {
@@ -1424,7 +1498,7 @@ export class GristDoc extends DisposableWithEvents {
    * Helper called before an action is sent to the server. It saves cursor position to come back to
    * in case of Undo.
    */
-  private _onSendActionsStart(ev: {cursorPos: CursorPos}) {
+  private _onSendActionsStart(ev: { cursorPos: CursorPos }) {
     this._lastOwnActionGroup = null;
     ev.cursorPos = this.getCursorPos();
   }
@@ -1433,7 +1507,7 @@ export class GristDoc extends DisposableWithEvents {
    * Helper called when server responds to an action. It attaches the saved cursor position to the
    * received action (if any), and stores also the resulting position.
    */
-  private _onSendActionsEnd(ev: {cursorPos: CursorPos}) {
+  private _onSendActionsEnd(ev: { cursorPos: CursorPos }) {
     const a = this._lastOwnActionGroup;
     if (a) {
       a.cursorPos = ev.cursorPos;
@@ -1445,15 +1519,15 @@ export class GristDoc extends DisposableWithEvents {
 
   private _getDocApiDownloadParams() {
     const filters = this.viewModel.activeSection.peek().activeFilters.get().map(filterInfo => ({
-      colRef : filterInfo.fieldOrColumn.origCol().origColRef(),
-      filter : filterInfo.filter()
+      colRef: filterInfo.fieldOrColumn.origCol().origColRef(),
+      filter: filterInfo.filter()
     }));
 
     const params = {
       viewSection: this.viewModel.activeSectionId(),
       tableId: this.viewModel.activeSection().table().tableId(),
       activeSortSpec: JSON.stringify(this.viewModel.activeSection().activeSortSpec()),
-      filters : JSON.stringify(filters),
+      filters: JSON.stringify(filters),
     };
     return params;
   }
@@ -1485,10 +1559,14 @@ export class GristDoc extends DisposableWithEvents {
 
   private async _getTableData(section: ViewSectionRec): Promise<TableData> {
     const viewInstance = await waitObs(section.viewInstance);
-    if (!viewInstance) { throw new Error('view not found'); }
+    if (!viewInstance) {
+      throw new Error('view not found');
+    }
     await viewInstance.getLoadingDonePromise();
     const table = this.docData.getTable(section.table.peek().tableId.peek());
-    if (!table) { throw new Error('no section table'); }
+    if (!table) {
+      throw new Error('no section table');
+    }
     return table;
   }
 
@@ -1496,13 +1574,15 @@ export class GristDoc extends DisposableWithEvents {
    * Convert a url hash to a cursor position.
    */
   private _getCursorPosFromHash(hash: HashLink): CursorPos {
-    const cursorPos: CursorPos = { rowId: hash.rowId, sectionId: hash.sectionId };
-    if (cursorPos.sectionId != undefined && hash.colRef !== undefined){
+    const cursorPos: CursorPos = {rowId: hash.rowId, sectionId: hash.sectionId};
+    if (cursorPos.sectionId != undefined && hash.colRef !== undefined) {
       // translate colRef to a fieldIndex
       const section = this.docModel.viewSections.getRowModel(cursorPos.sectionId);
       const fieldIndex = section.viewFields.peek().all()
-          .findIndex(x=> x.colRef.peek() == hash.colRef);
-      if (fieldIndex >= 0) { cursorPos.fieldIndex = fieldIndex; }
+        .findIndex(x => x.colRef.peek() == hash.colRef);
+      if (fieldIndex >= 0) {
+        cursorPos.fieldIndex = fieldIndex;
+      }
     }
     return cursorPos;
   }
@@ -1556,11 +1636,13 @@ export class GristDoc extends DisposableWithEvents {
     const viewFields = viewSection.viewFields.peek().peek();
 
     // If no y-series, then simply return.
-    if (viewFields.length === 1) { return; }
+    if (viewFields.length === 1) {
+      return;
+    }
 
     const field = viewSection.viewFields.peek().peek()[1];
     if (isNumericOnly(viewSection.chartTypeDef.peek()) &&
-        !isNumericLike(field.column.peek())) {
+      !isNumericLike(field.column.peek())) {
       const actions: UserAction[] = [];
 
       // remove non-numeric field
@@ -1580,10 +1662,28 @@ export class GristDoc extends DisposableWithEvents {
       await this.docModel.viewFields.sendTableActions(actions);
     }
   }
+
+  private _handleTriggerQueueOverflowMessage() {
+    this.listenTo(this, 'webhookOverflowError', (err: any) => {
+      this.app.topAppModel.notifier.createNotification({
+        message: err.toString(),
+        canUserClose: false,
+        level: "error",
+        badgeCounter: true,
+        expireSec: 5,
+        key: 'webhookOverflowError',
+        actions: [{
+          label: t('go to webhook settings'), action: async () => {
+            await urlState().pushUrl({docPage: 'webhook'});
+          }
+        }]
+      });
+    });
+  }
 }
 
 async function finalizeAnchor() {
-  await urlState().pushUrl({ hash: {} }, { replace: true });
+  await urlState().pushUrl({hash: {}}, {replace: true});
   setTestState({anchorApplied: true});
 }
 

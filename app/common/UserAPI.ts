@@ -4,18 +4,18 @@ import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompt
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
+import {ICustomWidget} from 'app/common/CustomWidget';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
-import {ICustomWidget} from 'app/common/CustomWidget';
 import {isClient} from 'app/common/gristUrls';
+import {encodeQueryParams} from 'app/common/gutil';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
-import {encodeQueryParams} from 'app/common/gutil';
 import {WebhookFields, WebhookSubscribe, WebhookSummary, WebhookUpdate} from 'app/common/Triggers';
+import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import omitBy from 'lodash/omitBy';
 
 
@@ -463,6 +463,7 @@ export interface DocAPI {
   // Update webhook
   updateWebhook(webhook: WebhookUpdate): Promise<void>;
   flushWebhooks(): Promise<void>;
+  flushWebhook(webhookId: string): Promise<void>;
 
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
 }
@@ -945,6 +946,12 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async flushWebhooks(): Promise<void> {
     await this.request(`${this._url}/webhooks/queue`, {
+      method: 'DELETE'
+    });
+  }
+
+  public async flushWebhook(id: string): Promise<void> {
+    await this.request(`${this._url}/webhooks/queue/${id}`, {
       method: 'DELETE'
     });
   }

@@ -1,9 +1,9 @@
 import copy
+import logging
 import time
 
 import six
 
-import logger
 import objtypes
 import testutil
 import test_engine
@@ -11,7 +11,7 @@ from schema import RecalcWhen
 
 # pylint: disable=line-too-long
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 def column_error(table, column, user_input):
   return objtypes.RaisedException(

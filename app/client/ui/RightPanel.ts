@@ -29,6 +29,7 @@ import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/P
 import {linkId, selectBy} from 'app/client/ui/selectBy';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
+import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
@@ -300,19 +301,20 @@ export class RightPanel extends Disposable {
   }
 
   // Helper to activate the side-pane formula editor over the given HTML element.
-  private _activateFormulaEditor(
-    // Element to attach to.
-    refElem: Element,
-    // Simulate user typing on the cell - open editor with an initial value.
-    editValue?: string,
-    // Custom save handler.
-    onSave?: (column: ColumnRec, formula: string) => Promise<void>,
-    // Custom cancel handler.
-    onCancel?: () => void) {
+  private _activateFormulaEditor(options: BuildEditorOptions) {
     const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
     if (!vsi) { return; }
-    const editRowModel = vsi.moveEditRowToCursor();
-    return vsi.activeFieldBuilder.peek().openSideFormulaEditor(editRowModel, refElem, editValue, onSave, onCancel);
+
+    const {refElem, editValue, canDetach, onSave, onCancel} = options;
+    const editRow = vsi.moveEditRowToCursor();
+    return vsi.activeFieldBuilder.peek().openSideFormulaEditor({
+      editRow,
+      refElem,
+      canDetach,
+      editValue,
+      onSave,
+      onCancel,
+    });
   }
 
   private _buildPageWidgetContent(_owner: MultiHolder) {

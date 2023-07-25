@@ -66,6 +66,7 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 export const commonUrls = {
   help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
+  helpAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
   helpColRefs: "https://support.getgrist.com/col-refs",
   helpConditionalFormatting: "https://support.getgrist.com/conditional-formatting",
   helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",

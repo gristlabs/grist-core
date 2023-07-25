@@ -1,11 +1,11 @@
 import textwrap
 import unittest
 
-import logger
+import logging
 import six
 import test_engine
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 def _replace_col_name(data, old_name, new_name):

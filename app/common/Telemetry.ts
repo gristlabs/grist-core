@@ -25,6 +25,7 @@ export const TelemetryContracts: TelemetryContracts = {
   apiUsage: {
     description: 'Triggered when an HTTP request with an API key is made.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       method: {
         description: 'The HTTP request method (e.g. GET, POST, PUT).',
@@ -40,9 +41,254 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  assistantOpen: {
+    description: 'Triggered when the AI Assistant is first opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      context: {
+        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        dataType: 'object',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  assistantSend: {
+    description: 'Triggered when a message is sent to the AI Assistant.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      siteId: {
+        description: 'The id of the site.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The type of the site.',
+        dataType: 'string',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      context: {
+        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        dataType: 'object',
+      },
+      prompt: {
+        description: 'The role ("user" or "system"), content, and index of the message sent to the AI Assistant.',
+        dataType: 'object',
+      },
+    },
+  },
+  assistantReceive: {
+    description: 'Triggered when a message is received from the AI Assistant is received.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      siteId: {
+        description: 'The id of the site.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The type of the site.',
+        dataType: 'string',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      context: {
+        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        dataType: 'object',
+      },
+      message: {
+        description: 'The content and index of the message received from the AI Assistant.',
+        dataType: 'object',
+      },
+      suggestedFormula: {
+        description: 'The formula suggested by the AI Assistant, if present.',
+        dataType: 'string',
+      },
+    },
+  },
+  assistantSave: {
+    description: 'Triggered when changes in the expanded formula editor are saved after the AI Assistant ' +
+      'was opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      context: {
+        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        dataType: 'object',
+      },
+      newFormula: {
+        description: 'The formula that was saved.',
+        dataType: 'string',
+      },
+      oldFormula: {
+        description: 'The formula that was overwritten.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  assistantCancel: {
+    description: 'Triggered when changes in the expanded formula editor are discarded after the AI Assistant ' +
+      'was opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      context: {
+        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        dataType: 'object',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  assistantClearConversation: {
+    description: 'Triggered when a conversation in the AI Assistant is cleared.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      context: {
+        description: 'The type of assistant (e.g. "formula"), table id, and column id.',
+        dataType: 'object',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  assistantClose: {
+    description: 'Triggered when a formula is saved or discarded after the AI Assistant was opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      suggestionApplied: {
+        description: 'True if a suggested formula from one of the received messages was applied.',
+        dataType: 'boolean',
+      },
+      conversationLength: {
+        description: 'The number of messages sent and received since opening the AI Assistant.',
+        dataType: 'number',
+      },
+      conversationHistoryLength: {
+        description: "The number of messages in the conversation's history. May be less than conversationLength "
+          + "if the conversation history was cleared in the same session.",
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   beaconOpen: {
     description: 'Triggered when HelpScout Beacon is opened.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       userId: {
         description: 'The id of the user that triggered this event.',
@@ -57,6 +303,7 @@ export const TelemetryContracts: TelemetryContracts = {
   beaconArticleViewed: {
     description: 'Triggered when an article is opened in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       articleId: {
         description: 'The id of the article.',
@@ -75,6 +322,7 @@ export const TelemetryContracts: TelemetryContracts = {
   beaconEmailSent: {
     description: 'Triggered when an email is sent in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       userId: {
         description: 'The id of the user that triggered this event.',
@@ -89,6 +337,7 @@ export const TelemetryContracts: TelemetryContracts = {
   beaconSearch: {
     description: 'Triggered when a search is made in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       searchQuery: {
         description: 'The search query.',
@@ -107,6 +356,7 @@ export const TelemetryContracts: TelemetryContracts = {
   documentForked: {
     description: 'Triggered when a document is forked.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       docIdDigest: {
         description: 'A hash of the doc id.',
@@ -161,6 +411,7 @@ export const TelemetryContracts: TelemetryContracts = {
   documentOpened: {
     description: 'Triggered when a public document or template is opened.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       docIdDigest: {
         description: 'A hash of the doc id.',
@@ -211,6 +462,7 @@ export const TelemetryContracts: TelemetryContracts = {
   documentUsage: {
     description: 'Triggered on doc open and close, as well as hourly while a document is open.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       docIdDigest: {
         description: 'A hash of the doc id.',
@@ -346,6 +598,7 @@ export const TelemetryContracts: TelemetryContracts = {
   processMonitor: {
     description: 'Triggered every 5 seconds.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       heapUsedMB: {
         description: 'Size of JS heap in use, in MiB.',
@@ -368,6 +621,7 @@ export const TelemetryContracts: TelemetryContracts = {
   sendingWebhooks: {
     description: 'Triggered when sending webhooks.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       numEvents: {
         description: 'The number of events in the batch of webhooks being sent.',
@@ -406,6 +660,7 @@ export const TelemetryContracts: TelemetryContracts = {
   signupFirstVisit: {
     description: 'Triggered when a new user first opens the Grist app',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       siteId: {
         description: 'The site id of first visit after signup.',
@@ -429,6 +684,7 @@ export const TelemetryContracts: TelemetryContracts = {
     description: 'Triggered after a user successfully verifies their account during sign-up. '
       + 'Not triggered in grist-core.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       isAnonymousTemplateSignup: {
         description: 'Whether the user viewed any templates before signing up.',
@@ -443,6 +699,7 @@ export const TelemetryContracts: TelemetryContracts = {
   siteMembership: {
     description: 'Triggered daily.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       siteId: {
         description: 'The site id.',
@@ -469,6 +726,7 @@ export const TelemetryContracts: TelemetryContracts = {
   siteUsage: {
     description: 'Triggered daily.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       siteId: {
         description: 'The site id.',
@@ -508,6 +766,7 @@ export const TelemetryContracts: TelemetryContracts = {
   tutorialProgressChanged: {
     description: 'Triggered on changes to tutorial progress.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       tutorialForkIdDigest: {
         description: 'A hash of the tutorial fork id.',
@@ -529,11 +788,20 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'Percentage of tutorial completion.',
         dataType: 'number',
       },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
     },
   },
   tutorialRestarted: {
     description: 'Triggered when a tutorial is restarted.',
     minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       tutorialForkIdDigest: {
         description: 'A hash of the tutorial fork id.',
@@ -572,6 +840,7 @@ export const TelemetryContracts: TelemetryContracts = {
   watchedVideoTour: {
     description: 'Triggered when the video tour is closed.',
     minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
     metadataContracts: {
       watchTimeSeconds: {
         description: 'The number of seconds elapsed in the video player.',
@@ -595,6 +864,13 @@ type TelemetryContracts = Record<TelemetryEvent, TelemetryEventContract>;
 
 export const TelemetryEvents = StringUnion(
   'apiUsage',
+  'assistantOpen',
+  'assistantSend',
+  'assistantReceive',
+  'assistantSave',
+  'assistantCancel',
+  'assistantClearConversation',
+  'assistantClose',
   'beaconOpen',
   'beaconArticleViewed',
   'beaconEmailSent',
@@ -617,12 +893,15 @@ export type TelemetryEvent = typeof TelemetryEvents.type;
 interface TelemetryEventContract {
   description: string;
   minimumTelemetryLevel: Level;
+  retentionPeriod: TelemetryRetentionPeriod;
   metadataContracts?: Record<string, MetadataContract>;
 }
 
+export type TelemetryRetentionPeriod = 'short' | 'indefinitely';
+
 interface MetadataContract {
   description: string;
-  dataType: 'boolean' | 'number' | 'string' | 'string[]' | 'date';
+  dataType: 'boolean' | 'number' | 'string' | 'string[]' | 'date' | 'object';
   minimumTelemetryLevel?: Level;
 }
 
@@ -642,9 +921,6 @@ export type TelemetryMetadata = Record<string, any>;
  * sign-up to track which templates were viewed before sign-up.
  */
 export const TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME = 'gr_template_signup_trk';
-
-// A set of metadata keys that are always allowed when logging.
-const ALLOWED_METADATA_KEYS = new Set(['eventSource', 'installationId']);
 
 /**
  * Returns a function that accepts a telemetry event and metadata, and performs various
@@ -670,8 +946,6 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
     }
 
     for (const [key, value] of Object.entries(metadata ?? {})) {
-      if (ALLOWED_METADATA_KEYS.has(key))  { continue; }
-
       const metadataContract = eventContract.metadataContracts?.[key];
       if (!metadataContract) {
         throw new Error(`Unknown metadata for telemetry event ${event}: ${key}`);

@@ -14,6 +14,10 @@ export const WebhookFields = t.iface([], {
   "memo": t.opt("string"),
 });
 
+export const Webhook = t.iface([], {
+  "fields": "WebhookFields",
+});
+
 export const WebhookBatchStatus = t.union(t.lit('success'), t.lit('failure'), t.lit('rejected'));
 
 export const WebhookStatus = t.union(t.lit('idle'), t.lit('sending'), t.lit('retrying'), t.lit('postponed'), t.lit('error'), t.lit('invalid'));
@@ -25,6 +29,10 @@ export const WebhookSubscribe = t.iface([], {
   "isReadyColumn": t.opt(t.union("string", "null")),
   "name": t.opt("string"),
   "memo": t.opt("string"),
+});
+
+export const WebhookSubscribeCollection = t.iface([], {
+  "webhooks": t.array("Webhook"),
 });
 
 export const WebhookSummary = t.iface([], {
@@ -80,9 +88,11 @@ export const WebhookUsage = t.iface([], {
 
 const exportedTypeSuite: t.ITypeSuite = {
   WebhookFields,
+  Webhook,
   WebhookBatchStatus,
   WebhookStatus,
   WebhookSubscribe,
+  WebhookSubscribeCollection,
   WebhookSummary,
   WebhookUpdate,
   WebhookPatch,
