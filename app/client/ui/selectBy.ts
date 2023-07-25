@@ -276,6 +276,8 @@ function fromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[]
   const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
     isSummary,
+    isAttachments: false, // hmm, we should need a check here in case attachments col is on the main-node link
+    // (e.g.: link from summary table with Attachments in group-by) but it seems to work fine as is
     groupbyColumns,
     widgetType: pageWidget.type,
     ancestors: new Set(),
