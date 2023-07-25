@@ -16,7 +16,6 @@ describe('WebhookOverflow', function () {
 
   before(async function () {
     oldEnv = new EnvironmentSnapshot();
-    //host = new URL(server.getHost()).host;
     process.env.ALLOWED_WEBHOOK_DOMAINS = '*';
     process.env.GRIST_MAX_QUEUE_SIZE = '2';
     await server.restart();
@@ -50,44 +49,30 @@ describe('WebhookOverflow', function () {
     await driver.sendKeys(...keys);
   }
 
-  it('should show a message when overflown', async function () {
+  it('should show a message when overflowed', async function () {
     await gu.openPage('Table2');
     await gu.getCell('A', 1).click();
     await gu.enterCell('123');
     await gu.getCell('B', 1).click();
     await enterCellWithoutWaitingOnServer('124');
-    const toast = await driver.wait(() => gu.getToasts(), 10000);
-    assert.include(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
-      ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
+    await gu.waitToPass(async () => {
+      const toast = await gu.getToasts();
+      assert.include(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
+        ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
+    }, 4000);
   });
 
   it('message should disappear after clearing queue', async function () {
     await openWebhookPageWithoutWaitForServer();
     await driver.findContent('button', /Clear Queue/).click();
     await gu.waitForServer();
-    await waitForOverflownMessageToDisappear();
-    const toast = await driver.wait(() => gu.getToasts());
-    assert.notInclude(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
-      ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
+    await gu.waitToPass(async () => {
+      const toast = await gu.getToasts();
+      assert.notInclude(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
+        ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
+    }, 12500);
   });
 });
-
-async function waitForOverflownMessageToDisappear(maxWait = 12500) {
-  await driver.wait(async () => {
-    try {
-      for (;;) {
-        const toasts = await gu.getToasts();
-        const filteredToasts = toasts.find(t => t=='New changes are temporarily suspended. Webhooks queue overflowed.' +
-          ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
-        if (!filteredToasts) {
-          return true;
-        }
-      }
-    } catch (e) {
-      return false;
-    }
-  }, maxWait, 'Overflown message did not disappear');
-}
 
 async function openWebhookPageWithoutWaitForServer() {
   await openDocumentSettings();
