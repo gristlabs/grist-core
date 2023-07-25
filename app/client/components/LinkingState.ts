@@ -187,48 +187,6 @@ export class LinkingState extends Disposable {
   }
 
 
-  /*
-
-  // Value for this.filterColValues filtering based on a single column
-  private _simpleFilter(
-    colId: string, operation: QueryOperation, valuesFunc: (rowId: UIRowId|null) => any[]
-  ): ko.Computed<FilterColValues> {
-    return this.autoDispose(ko.computed(() => {
-      const srcRowId = this._srcSection.activeRowId();
-      if (srcRowId === null) {
-        console.warn("_simpleFilter activeRowId is null");
-        return EmptyFilterColValues;
-      }
-      const values = valuesFunc(srcRowId);
-      return {
-        filters: {[colId]: values},
-        filterLabels: {[colId]: values},
-        operations: {[colId]: operation}} as FilterColValues;
-    }));
-  }
-
-  // Value for this.filterColValues based on the value in srcCol at the selected row
-  private _srcCellFilter(colId: string, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
-    const srcCellGetter = this._makeSrcCellGetter();
-    if (srcCellGetter) {
-      const isSrcRefList = isRefListType(this._srcCol.type());
-      return this._simpleFilter(colId, operation, rowId => {
-        const value = srcCellGetter(rowId);
-        if (isSrcRefList) {
-          if (isList(value)) {
-            return value.slice(1);
-          } else {
-            // The cell value is invalid, so the filter should be empty
-            return [];
-          }
-        } else {
-          return [value];
-        }
-      });
-    }
-  }
-   */
-
   /**
    * Makes a standard filter link (summary tables and cursor links handled separately)
    *
@@ -250,11 +208,11 @@ export class LinkingState extends Disposable {
    * @private
    */
   private _makeFilterObs(
-      srcCol: ColumnRec|null, tgtCol: ColumnRec|null, operation: QueryOperation
+      srcCol: ColumnRec|null, tgtCol: ColumnRec|null, operation: QueryOperation | null
   ): ko.Computed<FilterColValues> | undefined {
-    const srcColId = srcCol == null || srcCol.colId() == undefined ? "id" : srcCol.colId();
-    const tgtColId = tgtCol == null || tgtCol.colId() == undefined ? "id" : tgtCol.colId();
-    console.log(`in makeFilterObs: srcColId=${srcColId}, tgtColId=${tgtColId}`);
+    const srcColId = srcCol?.colId();
+    const tgtColId = tgtCol?.colId();
+    console.log(`in makeFilterObs: srcColId=${srcColId || "id" }, tgtColId=${tgtColId || "id" }`);
 
 
     // Note: Terminology is "filter LHS (tgtcol) to match RHS (srccol / selectorval)"
@@ -263,67 +221,9 @@ export class LinkingState extends Disposable {
     //if LHS (tgtCol) is a single value (id or a non-reflist), then operation "in" works fine for the "=" case, or when selector is empty
     //if LHS (tgtCol) is a reflist
 
-    // Currently: if RHS is a reflist, we just use "intersects"
-    // - col <- col (LHS ref, RHS reflist), empty RHS means select nothing (TODO VERIFY)
-    // - id <- col (LHS ref (lookup), RHS reflist), empty RHS means select nothing (CORRECT) (TODO VERIFY)
-    // - col <- col (reflist reflist), empty RHS means select nothing (incorrect?) (TODO VERIFY)
-    // - special case: RHS reflist or choicelist && RHS from summary table && RHS in groupby:
-    //      - summary table by a reflist/choicelist splits out each ref/choice into its own row,
-    //        effectively turning it into a (LHS reflist, RHS ref) situation
-    //        currently handled with explicit check in summary table portion
-
-
-    // Other cases: RHS ref, LHS reflist
-    // - reflist <- ref
-
-    // Solution:
-    //  - if selector=[0] && tgtCol is RefList, we change operation to "empty" (note: can't be choicelist, since choicelist would have [""])
-    //  - if selector=[""] && tgtCol is ChoiceList, we change operation to "empty" ???
-    //  - if selector=[] && tgtCol is Reflist, we change operation to "empty" (WORKS)
-    // - if selector=[] && tgtCol is Ref, empty WONT WORK! (since null ref is [0], doesn't intersect []). Need to explicitly and forcibly change [] to [0]
-
-    //CHOICELIST NOTES:
-    // - choicelist can only ever be tgtcol (non-ref cols can only be linked if summarizing, and src can only be summary)
-    // - empty choice is [""]
-    // - single choice (e.g. in summary by choicelist) can be ["0"], but not [0]
-    // Note: other datatypes might have falsey values (e.g. for numbers, 0 is a valid value, but blank cell is null)
-    // However, we should only check for falsey values when tgtCol is Reflist or Choicelist
-
-    // Weird cases: choicelists?
-    //OH NO Turns out attachments are also a list type and you can filter by attachments
-
-    //for empty: if RHS (srcCol) is an empty list (not a null!), we have a few cases:
-    //    -if LHS is id, then it's a reflist lookup, we just want "interesects" or "in"
-    //    -if LHS is a ref
-
-
-
-
-
-
-    //RULE:
-    // default: operation = in
-    //    if tgtCol && isListType(tgtCol): intersect
-    //
-    //    if isRefList (tgtCol) && srcValue == [0], operation = empty
-    //    if isRefList (tgtCol) && srcValue == [], operation = empty
-    //    if isChoiceList (tgtCol) && srcValue == [""]. operation = empty ;    SPECIAL CASE: ONLY WHEN Summary from choicelist: results in  choice -> choicelist
-    //    (Attachments? they fall under isReflistType, and act like a reflist to _grist_Attachments)
-
-    //const operation = isRefListType(tgtCol.type()) ? 'intersects' : 'in';
-
-    /*if (isDirectSummary && isListType(c.summarySource().type())) {
-            // If the source groupby column is a ChoiceList or RefList, then null or '' in the summary table
-            // should match against an empty list in the source table.
-            result.operations[colId] = srcValue ? 'intersects' : 'empty';
-
-    }
-
-    */
-
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
-    if(srcCol == null && tgtCol == null) {
+    if(srcColId == null && tgtColId == null) {
       throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be null");
     }
 
@@ -332,25 +232,27 @@ export class LinkingState extends Disposable {
     //if (!srcCol), it just returns the rowId, or null if the rowId is "new"
     const selectorValGetter = this._makeValGetter(this._srcSection.table(), srcColId);
 
-    // Normally, if srcCol is a ref, we can just take the value from its display column and that will work correctly
-    // However, is srcColId == 'id', the value is the whole row. To figure out which field is the label,
-    //    we need to use visibleCol field from tgtCol
-    // Note: if srcColId == 'id', tgtCol is guaranteed be a ref or reflist column
-    // Note: if using visibleCol from tgtCol, visibleCol ColId might be undefined (if visible col is rowId)
-    const displayColId = srcColId == "id" ?
-        tgtCol!.visibleColModel().colId() || "id"
-      : srcCol!.displayColModel().colId();
+    // What's the display value we should use to represent the selectorVal? (relevant for Reference values)
+    // if srcCol is a ref, we display its displayColModel(), which is what is shown in the cell
+    // However, if srcColId == 'id', there is no srcCol.displayColModel.
+    // We also can't use tgtCol.displayColModel, since we're getting values from the source section.
+    // The value we want to display therefore is srcRow[tgtCol.visibleColModel.colId]
+    //
+    // Note: when srcColId == 'id', tgtCol is guaranteed be a ref or reflist column (for this func)
+    // Note: if using visibleCol from tgtCol, visibleCol.colId can be undefined (if visible col is rowId)
+    const displayColId = srcColId ?
+        srcCol!.displayColModel().colId() :
+        tgtCol!.visibleColModel().colId();
     const displayValGetter = this._makeValGetter(this._srcSection.table(), displayColId);
-    //Note: if src is a reflist, its displayVal will be list of the visibleCol vals,
-    // i.e ["L", visVal1, visVal2], but not formatted
+    //Note: if src is a reflist, its displayVal will be a list of the visibleCol vals,
+    // i.e ["L", visVal1, visVal2], but they won't be formatter()-ed
+
+    //Grab the formatter (for numerics, dates, etc)
+    const displayValFormatter = srcColId ? srcCol!.visibleColFormatter() : tgtCol!.visibleColFormatter();
 
 
-    const displayValFormatter = srcColId == "id" ? tgtCol!.visibleColFormatter() : srcCol!.visibleColFormatter();
-
-
-
-    const isSrcRefList = srcColId != "id" && isRefListType(srcCol!.type());
-    const isTgtRefList = tgtColId != "id" && isRefListType(tgtCol!.type());
+    const isSrcRefList = srcColId && isRefListType(srcCol!.type());
+    const isTgtRefList = tgtColId && isRefListType(tgtCol!.type());
     console.log(`makeFilterObs: srcRefList: ${isSrcRefList}; tgtRefList: ${isTgtRefList}`)
     const JV = (window as any).JV;
     JV && console.log(`makeFilterObs: srcCol: ${JV.pCol(srcCol)}; tgtCol: ${JV.pCol(tgtCol)}`)
@@ -363,6 +265,8 @@ export class LinkingState extends Disposable {
       //return undefined;
     }
 
+    //Now, we've set up all the stuff independent of rowId.
+    //Time to create the actual observable that updates with activeRowId
     return this.autoDispose(ko.computed(() => {
 
       //Get selector-rowId
@@ -376,10 +280,6 @@ export class LinkingState extends Disposable {
       const selectorCellVal = selectorValGetter(srcRowId);
       const displayCellVal  = displayValGetter(srcRowId);
 
-      //TODO JV TEMP: I'm rewriting/refactoring the 'operation' logic, let's keep both for now for ease of swapping
-      //Need to use interesects for both ChoiceLists, as well as RefLists(which include attachments)
-      let newOperation = (tgtCol && isListType(tgtCol.type())) ? 'intersects' : 'in';
-
 
       // FilterColValues wants output as a list of 1 or more values to filter by.
       let filterValues: any[];
@@ -388,46 +288,59 @@ export class LinkingState extends Disposable {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
 
-        // If selectorval is null reference and tgt is reflist, we want to match reflists like []
-        // Similar behavior happens with a special case of choiceLists:
-        //    (NOTE: a "ChoiceList" tgtcol can only happen in  "Summary [by choicelistCol]",
-        //     in which case srcCol will be "Choice" type, and its blank val is "")
-        if(isTgtRefList && selectorCellVal == 0) {
-          newOperation = 'empty';
-
-
-        } else if (tgtCol && tgtCol.type() == "ChoiceList" && selectorCellVal == "") {
-          newOperation = 'empty';
-        }
       } else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], ,must slice off the L
         filterValues = selectorCellVal.slice(1);
-        displayValues = isList(displayCellVal) ? displayCellVal.slice(1) : ["ERROR"];
-        //TODO JV: when can this error even happen? i.e. it's a reflist but displayval isnt? only if bug?
 
-        if(filterValues.length == 0 && isTgtRefList) { //If selectorVal is blank, and tgtCol is RefList, we need to use empty
-          newOperation = 'empty';
-        } else if (filterValues.length == 0) { //else, tgtCol is Ref, empty won't work, we need to change selectorVal to [0]
-          filterValues = [0];
-          displayValues = [''];
+        //selectorValue and displayValue might not match up? shouldn't happen but let's yell about it loudly if it crops up
+        if (!isList(displayCellVal) || displayCellVal.length != selectorCellVal.length) {
+          console.error("Error in LinkingState: displayVal list doesn't match selectorVal list ")
+          displayValues = filterValues; //fallback to unformatted values for error
+        } else {
+          displayValues = displayCellVal.slice(1);
         }
 
-      } else { //isRefList && !isList(), invalid cell value/error case, filter should be empty
-        console.error("Errorin in LinkingState: makeFilterObs(), srcVal is reflist but has non-list value");
-        console.error(selectorCellVal);
+      } else { //isRefList && !isList(), invalid cell value, happens with null reflists, cursor on the 'new' row
+        if(selectorCellVal != null) { // Just to make sure there's no other weird cases
+          console.warn("Error in LinkingState.makeFilterObs(), srcVal is reflist but has non-list non-null value");
+        }
         filterValues = [];
         displayValues = [];
       }
 
 
+      //Need to use intersects for both ChoiceLists and RefLists
+      let newOperation = (tgtColId && isListType(tgtCol!.type())) ? 'intersects' : 'in';
+
+      // Operation needs to change to handle empty selectorVal correctly
+      // Blank selector shouldn't mean "show no records", it should mean "show records where that column is also blank"
+      if(srcRowId != 'new') { //Don't do any of this on the add-row, that's when we ACTUALLY want to show no records
+
+        // NOTE: choicelist can only ever be in tgtcol (can only be linked from summary table, but summary flattens lists)
+        // NOTE: empty choicelist is [""].
+        // Note: other types can have falsey values too (e.g. for numbers, 0 is a valid value, but blank cell is null)
+        // However, we only check for falsey values when tgtCol is Reflist or Choicelist, so we won't see other types
+
+        // If tgtCol is a list (RefList or Choicelist) and selectorVal is null/blank, operation must be 'empty'
+        if (tgtCol?.type() == "ChoiceList" && !isSrcRefList && selectorCellVal == "")    { newOperation = 'empty'; }
+        else if (isTgtRefList              && !isSrcRefList && selectorCellVal == 0)     { newOperation = 'empty'; }
+        else if (isTgtRefList              &&  isSrcRefList && filterValues.length == 0) { newOperation = 'empty'; }
+
+        // If tgtCol is a single ref, nullness is represented by [0], not by [], so we need to create that null explicitly
+        else if (!isTgtRefList && isSrcRefList && filterValues.length == 0) {
+          filterValues = [0];
+          displayValues = [''];
+        }
+      }
+
       const filterLabelVals: string[] = displayValues.map(v => displayValFormatter.formatAny(v));
 
       //const values = valuesFunc(srcRowId);
       return {
-        filters: {[tgtColId]: filterValues},
-        filterLabels: {[tgtColId]: filterLabelVals},
-        //operations: {[tgtColId]: operation},
-        operations: {[tgtColId]: newOperation}, //TODO JV TEMP
-        colTypes: {[tgtColId]: (tgtCol || srcCol)!.type()} //they must have same type, && at least one must be not-null
+        filters:      {[tgtColId || "id"]: filterValues},
+        filterLabels: {[tgtColId || "id"]: filterLabelVals},
+        //operations: {[tgtColId || "id"]: operation},
+        operations:   {[tgtColId || "id"]: newOperation}, //TODO JV TEMP
+        colTypes:     {[tgtColId || "id"]: (tgtCol || srcCol)!.type()} //they must have same type, && at least one must be not-null
       } as FilterColValues;
     }));
   }
@@ -443,36 +356,18 @@ export class LinkingState extends Disposable {
         filters: {[colId]: values},
         filterLabels: {[colId]: values.map(v => v+"")},
         operations: {[colId]: operation},
-        colTypes: {[colId]: column?.type() || ""} //TODO JV NO REALLY FIX THIS
+        colTypes: {[colId]: column?.type() || `Ref:${column?.table().tableId}`} //TODO JV NO REALLY FIX THIS
       } as FilterColValues; //TODO JV: actually fix filterLabels and coltype
     }));
   }
 
-  /*
 
-  // Returns a function which returns the value of the cell
-  // in srcCol in the selected record of srcSection.
+  // Returns a function (rowId) => cellValue, for the specifified table and colId
   // Uses a row model to create a dependency on the cell's value,
   // so changes to the cell value will notify observers
-  // if no srcCol, uses 'id' as the srcCol
-  private _makeSrcCellGetter() {
-    if(this._srcColId == undefined) {
-      return (rowId:UIRowId|null) => rowId == "new" ? null : rowId;
-    } else {
-      return this._makeValGetter(this._srcSection.table(), this._srcColId || 'id')
-    }
-  }
-
-  */
-
-  /* Like srcCellGetter but more general
-     e.g.:
-     //row->col, reference in tgtCol, lookup values from table
-
-  */
-  //If colId == "id", will return the id unchanged
-  private _makeValGetter(table: TableRec, colId: string) {
-    if(colId == "id") { //passthrough for id cols
+  // An undefined colId means to use the 'id' column, i.e. just return the rowId
+  private _makeValGetter(table: TableRec, colId: string | undefined) {
+    if(colId == undefined) { //passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
     }
 
@@ -483,7 +378,6 @@ export class LinkingState extends Disposable {
     // If no cellObs, can't make a val getter. This shouldn't happen, but may happen
     // transiently while the separate linking-related observables get updated.
     if (!cellObs) {
-      //TODO JV: temporary?
       console.warn(`Issue in LinkingState._makeValGetter(${table.tableId()},${colId}): cellObs is nullish`);
       return null;
     }
