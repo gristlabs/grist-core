@@ -135,7 +135,7 @@ class WebhookExternalTable implements IExternalTable {
   }
 
   public async fetchAll(): Promise<TableDataAction> {
-    const webhooks = await this._docApi.getWebhooks();
+    const webhooks = (await this._docApi.getWebhooks()).webhooks;
     this._initalizeWebhookList(webhooks);
     const indices = range(webhooks.length);
     return ['TableData', this.name, indices.map(i => i + 1),
@@ -222,7 +222,7 @@ class WebhookExternalTable implements IExternalTable {
     // brute force, on the assumption that there won't be many
     // webhooks, or that "updating" something that hasn't actually
     // changed is not disruptive.
-    const webhooks = await this._docApi.getWebhooks();
+    const webhooks = (await this._docApi.getWebhooks()).webhooks;
     this._initalizeWebhookList(webhooks);
     for (const webhook of webhooks) {
       const values = _mapWebhookValues(webhook);

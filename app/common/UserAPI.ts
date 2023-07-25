@@ -14,7 +14,12 @@ import {encodeQueryParams} from 'app/common/gutil';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {OrgPrefs, UserOrgPrefs, UserPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {WebhookFields, WebhookSubscribe, WebhookSummary, WebhookUpdate} from 'app/common/Triggers';
+import {
+  WebhookFields,
+  WebhookSubscribe,
+  WebhookSummaryCollection,
+  WebhookUpdate
+} from 'app/common/Triggers';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
 import omitBy from 'lodash/omitBy';
 
@@ -457,7 +462,7 @@ export interface DocAPI {
   // Get users that are worth proposing to "View As" for access control purposes.
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 
-  getWebhooks(): Promise<WebhookSummary[]>;
+  getWebhooks(): Promise<WebhookSummaryCollection>;
   addWebhook(webhook: WebhookFields): Promise<{webhookId: string}>;
   removeWebhook(webhookId: string, tableId: string): Promise<void>;
   // Update webhook
@@ -915,7 +920,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/usersForViewAs`);
   }
 
-  public async getWebhooks(): Promise<WebhookSummary[]> {
+  public async getWebhooks(): Promise<WebhookSummaryCollection> {
     return this.requestJson(`${this._url}/webhooks`);
   }
 

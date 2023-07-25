@@ -33,7 +33,9 @@ export interface WebhookSubscribe {
 }
 
 
-
+export interface  WebhookSummaryCollection {
+  webhooks: Array<WebhookSummary>;
+}
 export interface WebhookSummary {
   id: string;
   fields: {

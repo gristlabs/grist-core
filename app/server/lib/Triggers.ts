@@ -8,7 +8,13 @@ import {fromTableDataAction, RowRecord, TableColValues, TableDataAction} from 'a
 import {StringUnion} from 'app/common/StringUnion';
 import {MetaRowRecord} from 'app/common/TableData';
 import {CellDelta} from 'app/common/TabularDiff';
-import {WebhookBatchStatus, WebhookStatus, WebhookSummary, WebhookUsage} from 'app/common/Triggers';
+import {
+  WebhookBatchStatus,
+  WebhookStatus,
+  WebhookSummary,
+  WebhookSummaryCollection,
+  WebhookUsage
+} from 'app/common/Triggers';
 import {decodeObject} from 'app/plugin/objtypes';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
@@ -246,7 +252,7 @@ export class DocTriggers {
   /**
    * Creates summary for all webhooks in the document.
    */
-  public async summary(): Promise<WebhookSummary[]> {
+  public async summary(): Promise<WebhookSummaryCollection> {
     // Prepare some data we will use.
     const docData = this._activeDoc.docData!;
     const triggersTable = docData.getMetaTable("_grist_Triggers");
@@ -254,7 +260,7 @@ export class DocTriggers {
     const getColId = docData.getMetaTable("_grist_Tables_column").getRowPropFunc("colId");
     const getUrl = async (id: string) => (await this._getWebHook(id))?.url ?? '';
     const getUnsubscribeKey = async (id: string) => (await this._getWebHook(id))?.unsubscribeKey ?? '';
-    const result: WebhookSummary[] = [];
+    const resultTable: WebhookSummary[] = [];
 
     // Go through all triggers int the document that we have.
     for (const t of triggersTable.getRecords()) {
@@ -291,10 +297,10 @@ export class DocTriggers {
           // Create some statics and status info.
           usage: await this._stats.getUsage(act.id, this._webHookEventQueue),
         };
-        result.push(entry);
+        resultTable.push(entry);
       }
     }
-    return result;
+    return {webhooks: resultTable};
   }
 
   public getWebhookTriggerRecord(webhookId: string) {

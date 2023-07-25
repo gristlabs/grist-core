@@ -2800,9 +2800,23 @@ function testDocApi() {
       return resp.data;
     }
 
+    it("GET /docs/{did}/webhooks retrieves a list of webhooks", async function () {
+      const registerResponse = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
+      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
+      try{
+      assert.equal(resp.status, 200);
+      assert.isAtLeast(resp.data.webhooks.length, 1);
+      assert.containsAllKeys(resp.data.webhooks[0], ['id', 'fields']);
+      assert.containsAllKeys(resp.data.webhooks[0].fields,
+        ['enabled', 'isReadyColumn', 'memo', 'name', 'tableId', 'eventTypes', 'url']);
+      }
+      finally{
+        //cleanup
+        await deleteWebhookCheck(registerResponse.webhooks[0].id);
+      }
+    });
+
     it("POST /docs/{did}/tables/{tid}/_subscribe validates inputs", async function () {
-
-
       await oldSubscribeCheck({}, 400, /eventTypes is missing/);
       await oldSubscribeCheck({eventTypes: 0}, 400, /url is missing/, /eventTypes is not an array/);
       await oldSubscribeCheck({eventTypes: []}, 400, /url is missing/);
@@ -2922,7 +2936,7 @@ function testDocApi() {
     async function getRegisteredWebhooks() {
       const response = await axios.get(
         `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
-      return response.data;
+      return response.data.webhooks;
     }
 
     async function deleteWebhookCheck(webhookId: any) {
@@ -3311,7 +3325,7 @@ function testDocApi() {
         `${serverUrl}/api/docs/${docId}/webhooks`, chimpy
       );
       assert.equal(result.status, 200);
-      return result.data;
+      return result.data.webhooks;
     }
 
     before(async function () {

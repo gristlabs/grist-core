@@ -4,6 +4,14 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const WebhookSubscribeCollection = t.iface([], {
+  "webhooks": t.array("Webhook"),
+});
+
+export const Webhook = t.iface([], {
+  "fields": "WebhookFields",
+});
+
 export const WebhookFields = t.iface([], {
   "url": "string",
   "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"))),
@@ -12,10 +20,6 @@ export const WebhookFields = t.iface([], {
   "isReadyColumn": t.opt(t.union("string", "null")),
   "name": t.opt("string"),
   "memo": t.opt("string"),
-});
-
-export const Webhook = t.iface([], {
-  "fields": "WebhookFields",
 });
 
 export const WebhookBatchStatus = t.union(t.lit('success'), t.lit('failure'), t.lit('rejected'));
@@ -31,8 +35,8 @@ export const WebhookSubscribe = t.iface([], {
   "memo": t.opt("string"),
 });
 
-export const WebhookSubscribeCollection = t.iface([], {
-  "webhooks": t.array("Webhook"),
+export const WebhookSummaryCollection = t.iface([], {
+  "webhooks": t.array("WebhookSummary"),
 });
 
 export const WebhookSummary = t.iface([], {
@@ -87,12 +91,13 @@ export const WebhookUsage = t.iface([], {
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
-  WebhookFields,
+  WebhookSubscribeCollection,
   Webhook,
+  WebhookFields,
   WebhookBatchStatus,
   WebhookStatus,
   WebhookSubscribe,
-  WebhookSubscribeCollection,
+  WebhookSummaryCollection,
   WebhookSummary,
   WebhookUpdate,
   WebhookPatch,
