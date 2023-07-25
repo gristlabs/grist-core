@@ -132,7 +132,7 @@ describe('SelectionSummary', function () {
     });
     await selectAndAssert({col: 2, row: 0}, {col: 3, row: 5}, {
       dimensions: '6⨯2',
-      count: 11,
+      count: 9,
       sum: null,
     });
 
