@@ -42,6 +42,9 @@ interface LinkNode {
   // is the table a summary table
   isSummary: boolean;
 
+  // does this node involve an "Attachments" column. Can be tricky if Attachments is one of groupby cols
+  isAttachments: boolean;
+
   // For a summary table, the set of col refs of the groupby columns of the underlying table
   groupbyColumns?: Set<number>;
 
@@ -113,6 +116,12 @@ function isValidLink(source: LinkNode, target: LinkNode) {
   ) {
     return false;
   }
+
+  //cannot select from attachments, even though they're implemented as reflists
+  if(source.isAttachments || target.isAttachments) {
+    return false;
+  }
+
 
   // cannot select from chart
   if (source.widgetType === 'chart') {
@@ -230,6 +239,7 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
   const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
     isSummary,
+    isAttachments: isSummary && table.groupByColumns.peek().filter(col => col.type.peek() == "Attachments").length > 0,
     groupbyColumns: isSummary ? table.summarySourceColRefs.peek() : undefined,
     widgetType: section.parentKey.peek(),
     ancestors,
@@ -284,7 +294,7 @@ function fromColumns(table: TableRec, mainNode: LinkNode, tableExists: boolean =
     }
     const tableId = getReferencedTableId(column.type.peek());
     if (tableId) {
-      nodes.push({...mainNode, tableId, column});
+      nodes.push({...mainNode, tableId, column, isAttachments: column.type.peek() == "Attachments"});
     }
   }
   return nodes;
