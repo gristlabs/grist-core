@@ -938,7 +938,11 @@
         "Errors in all {{numErrors}} cells": "Ошибки во всех {{numErrors}} ячейках",
         "Errors in {{numErrors}} of {{numCells}} cells": "Ошибки в {{numErrors}} из {{numCells}} ячеек",
         "Error in the cell": "Ошибка в ячейке",
-        "editingFormula is required": "editingFormula обязательно"
+        "editingFormula is required": "editingFormula обязательно",
+        "Enter formula or {{button}}.": "Введите формулу или {{button}}.",
+        "Enter formula.": "Введите формулу.",
+        "Expand Editor": "Развернуть редактор",
+        "use AI Assistant": "использовать AI Помощника"
     },
     "HyperLinkEditor": {
         "[link label] url": "[link label] URL"
@@ -1037,7 +1041,20 @@
         "Save": "Сохранить",
         "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Посмотрите наш {{helpFunction}} и {{formulaCheat}}, или поситите наше {{community}} для получения дополнительной помощи.",
         "Tips": "Советы",
-        "Need help? Our AI assistant can help.": "Нужна помощь? Наш AI помощник может помочь."
+        "Need help? Our AI assistant can help.": "Нужна помощь? Наш AI помощник может помочь.",
+        "AI Assistant": "AI Помощник",
+        "Apply": "Применить",
+        "Cancel": "Отмена",
+        "Clear Conversation": "Очистить беседу",
+        "Code View": "Просмотр кода",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Я могу помочь только с формулами. Я не могу создавать таблицы, столбцы и представления или устанавливать правила доступа.",
+        "Learn more": "Узнать больше",
+        "Press Enter to apply suggested formula.": "Нажмите Enter, чтобы применить предложенную формулу.",
+        "Sign Up for Free": "Бесплатно зарегестрироваться",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Зарегистрируйте бесплатную учетную запись Grist, чтобы начать использовать AI Помощника по формулам.",
+        "There are some things you should know when working with me:": "Есть некоторые вещи, которые вы должны знать, работая со мной:",
+        "What do you need help with?": "Как я могу вам помочь?",
+        "Hi, I'm the Grist Formula AI Assistant.": "Привет, я AI Помощник по формулам Grist."
     },
     "GridView": {
         "Click to insert": "Нажмите для вставки"
@@ -1098,7 +1115,7 @@
         "Opt in to Telemetry": "Включить телеметрию",
         "Support Grist": "Поддержка Grist",
         "Support Grist page": "Страница поддержки Grist",
-        "Contribute": "Contribute",
+        "Contribute": "Участвовать",
         "Opted In": "Подключено"
     },
     "SupportGristPage": {
@@ -1133,5 +1150,12 @@
     "SearchModel": {
         "Search all pages": "Искать на всех страницах",
         "Search all tables": "Поиск по всем таблицам"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Свернуть редактор"
+    },
+    "FloatingPopup": {
+        "Maximize": "Максимизировать",
+        "Minimize": "Минимизировать"
     }
 }

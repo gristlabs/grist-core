@@ -960,7 +960,11 @@
         "editingFormula is required": "ediçãoFórmula é obrigatório",
         "Errors in all {{numErrors}} cells": "Erro em todas as {{numErrors}} células",
         "Errors in {{numErrors}} of {{numCells}} cells": "Erros em {{numErrors}} de {{numCells}} células",
-        "Error in the cell": "Erro na célula"
+        "Error in the cell": "Erro na célula",
+        "Enter formula or {{button}}.": "Digite a fórmula ou {{button}}.",
+        "Enter formula.": "Digite a fórmula.",
+        "Expand Editor": "Expandir editor",
+        "use AI Assistant": "usar o Assistente de IA"
     },
     "HyperLinkEditor": {
         "[link label] url": "[rótulo do link] URL"
@@ -1101,7 +1105,20 @@
         "Ask the bot.": "Pergunte ao bot.",
         "Data": "Dados",
         "Formula Cheat Sheet": "Folha de Consulta da Fórmula",
-        "Community": "Comunidade"
+        "Community": "Comunidade",
+        "AI Assistant": "Assistente de IA",
+        "Apply": "Aplicar",
+        "Cancel": "Cancelar",
+        "Clear Conversation": "Limpar conversa",
+        "Code View": "Vista do Código",
+        "Hi, I'm the Grist Formula AI Assistant.": "Olá, sou o Assistente de IA de Fórmula Grist.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Só posso ajudar com fórmulas. Não posso criar tabelas, colunas e exibições, nem escrever regras de acesso.",
+        "Press Enter to apply suggested formula.": "Pressione Enter para aplicar a fórmula sugerida.",
+        "Sign Up for Free": "Inscreva-se gratuitamente",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Inscreva-se para uma conta gratuita do Grist para começar a usar o Assistente de Fórmula AI.",
+        "What do you need help with?": "Em que você precisa de ajuda?",
+        "There are some things you should know when working with me:": "Há algumas coisas que você deve saber ao trabalhar comigo:",
+        "Learn more": "Saiba mais"
     },
     "GridView": {
         "Click to insert": "Clique para inserir"
@@ -1197,5 +1214,12 @@
     },
     "searchDropdown": {
         "Search": "Procurar"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Recolher editor"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximizar",
+        "Minimize": "Minimizar"
     }
 }

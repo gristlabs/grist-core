@@ -82,13 +82,13 @@ export const colors = {
 
 export const vars = {
   /* Fonts */
-  fontFamily: new CustomProp('font-family', `-apple-system,BlinkMacSystemFont,Segoe UI,
+  fontFamily: new CustomProp('font-family', `-apple-system,BlinkMacSystemFont,Segoe UI,Liberation Sans,
     Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol`),
 
   // This is more monospace and looks better for data that should often align (e.g. to have 00000
   // take similar space to 11111). This is the main font for user data.
   fontFamilyData: new CustomProp('font-family-data',
-    `Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol`),
+    `Liberation Sans,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol`),
 
   /* Font sizes */
   xxsmallFontSize:  new CustomProp('xx-font-size',        '8px'),
