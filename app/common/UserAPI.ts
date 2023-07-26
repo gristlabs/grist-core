@@ -20,7 +20,7 @@ import {
   WebhookSummaryCollection,
   WebhookUpdate
 } from 'app/common/Triggers';
-import {addCurrentOrgToPath} from 'app/common/urlUtils';
+import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
 import omitBy from 'lodash/omitBy';
 
 
@@ -92,11 +92,14 @@ export function getOrgName(org: Organization): string {
 }
 
 /**
- * Returns whether the given org is the templates org, which contains the public templates.
+ * Returns whether the given org is the templates org, which contains the public
+ * templates and tutorials.
  */
-export function isTemplatesOrg(org: Organization): boolean {
-  // TODO: It would be nice to have a more robust way to detect the templates org.
-  return org.domain === 'templates' || org.domain === 'templates-s';
+export function isTemplatesOrg(org: {domain: Organization['domain']}|null): boolean {
+  if (!org) { return false; }
+
+  const {templateOrg} = getGristConfig();
+  return org.domain === templateOrg;
 }
 
 export type WorkspaceProperties = CommonProperties;
@@ -117,7 +120,7 @@ export interface Workspace extends WorkspaceProperties {
   isSupportWorkspace?: boolean;
 }
 
-export type DocumentType = 'tutorial';
+export type DocumentType = 'tutorial'|'template';
 
 // Non-core options for a document.
 // "Non-core" means bundled into a single options column in the database.

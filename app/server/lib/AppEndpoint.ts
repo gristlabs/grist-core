@@ -12,7 +12,6 @@ import {removeTrailingSlash} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
 import {Document as APIDocument} from 'app/common/UserAPI';
-import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from "app/gen-server/entity/Document";
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
@@ -24,7 +23,7 @@ import {getCookieDomain} from 'app/server/lib/gristSessions';
 import {getAssignmentId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {adaptServerUrl, addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
-import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
+import {getTemplateOrg, ISendAppPageOptions} from 'app/server/lib/sendAppPage';
 
 export interface AttachOptions {
   app: express.Application;                // Express app to which to add endpoints
@@ -304,8 +303,9 @@ export function attachAppEndpoint(options: AttachOptions): void {
 
     const isPublic = ((doc as unknown) as APIDocument).public ?? false;
     const isSnapshot = Boolean(parseUrlId(urlId).snapshotId);
-    // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
-    const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
+    // TODO: Remove the right side once all template docs have their type set to "template".
+    const isTemplate = doc.type === 'template' ||
+      (doc.workspace.org.domain === getTemplateOrg() && doc.type !== 'tutorial');
     if (isPublic || isTemplate) {
       gristServer.getTelemetry().logEvent('documentOpened', {
         limited: {

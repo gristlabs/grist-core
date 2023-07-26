@@ -3,6 +3,7 @@ import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
@@ -78,6 +79,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(),
     deploymentType: server?.getDeploymentType(),
+    templateOrg: getTemplateOrg(),
     ...extra,
   };
 }
@@ -150,6 +152,18 @@ export function makeSendAppPage(opts: {
       );
     resp.status(options.status).type('html').send(content);
   };
+}
+
+export function getTemplateOrg() {
+  let org = appSettings.section('templates').flag('org').readString({
+    envVar: 'GRIST_TEMPLATE_ORG',
+  });
+  if (!org) { return null; }
+
+  if (process.env.GRIST_ID_PREFIX) {
+    org += `-${process.env.GRIST_ID_PREFIX}`;
+  }
+  return org;
 }
 
 function shouldSupportAnon() {

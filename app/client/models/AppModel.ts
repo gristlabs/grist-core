@@ -13,7 +13,7 @@ import {SupportGristNudge} from 'app/client/ui/SupportGristNudge';
 import {attachCssThemeVars, prefersDarkModeObs} from 'app/client/ui2018/cssVars';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, isLegacyPlan, Product} from 'app/common/Features';
-import {GristLoadConfig} from 'app/common/gristUrls';
+import {GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {LocalPlugin} from 'app/common/plugin';
 import {DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
@@ -23,7 +23,7 @@ import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
         ThemePrefsChecker} from 'app/common/ThemePrefs';
 import {getThemeColors} from 'app/common/Themes';
 import {getGristConfig} from 'app/common/urlUtils';
-import {getOrgName, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
+import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs, markAsSeen, markAsUnSeen} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
@@ -93,6 +93,7 @@ export interface AppModel {
   isPersonal: boolean;                  // Is it a personal site?
   isTeamSite: boolean;                  // Is it a team site?
   isLegacySite: boolean;                // Is it a legacy site?
+  isTemplatesSite: boolean;             // Is it the templates site?
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
   lastVisitedOrgDomain: Observable<string|null>;
 
@@ -249,6 +250,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly isPersonal = Boolean(this.currentOrg?.owner);
   public readonly isTeamSite = Boolean(this.currentOrg) && !this.isPersonal;
   public readonly isLegacySite = Boolean(this.currentProduct && isLegacyPlan(this.currentProduct.name));
+  public readonly isTemplatesSite = isTemplatesOrg(this.currentOrg);
 
   public readonly userPrefsObs = getUserPrefsObs(this);
   public readonly themePrefs = getUserPrefObs(this.userPrefsObs, 'theme', {
@@ -325,12 +327,8 @@ export class AppModelImpl extends Disposable implements AppModel {
       this.behavioralPromptsManager.reset();
     };
 
-    this.autoDispose(subscribe(urlState().state, async (_use, {doc, org}) => {
-      // Keep track of the last valid org domain the user visited, ignoring those
-      // with a document id in the URL.
-      if (!this.currentOrg || doc) { return; }
-
-      this.lastVisitedOrgDomain.set(org ?? null);
+    this.autoDispose(subscribe(urlState().state, this.topAppModel.orgs, async (_use, s, orgs) => {
+      this._updateLastVisitedOrgDomain(s, orgs);
     }));
   }
 
@@ -402,6 +400,23 @@ export class AppModelImpl extends Disposable implements AppModel {
       }
     });
     return computed;
+  }
+
+  private _updateLastVisitedOrgDomain({doc, org}: IGristUrlState, availableOrgs: Organization[]) {
+    if (
+      !org ||
+      // Invalid or inaccessible sites shouldn't be counted as visited.
+      !this.currentOrg ||
+      // Visits to a document shouldn't be counted either.
+      doc
+    ) {
+      return;
+    }
+
+    // Only count sites that a user has access to (i.e. those listed in the Site Switcher).
+    if (!availableOrgs.some(({domain}) => domain === org)) { return; }
+
+    this.lastVisitedOrgDomain.set(org);
   }
 
   /**

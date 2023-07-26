@@ -139,6 +139,12 @@ describe("DuplicateDocument", function() {
     await gu.session().teamSite2.createHomeApi().updateOrgPermissions('current', {users: {
       [session2.email]: 'owners',
     }});
+
+    // Reset tracking of the last visited site. We seem to need this now to get consistent
+    // behavior across Jenkins and local test runs. (May have something to do with newer
+    // versions of chromedriver and headless Chrome.)
+    await driver.executeScript('window.sessionStorage.clear();');
+
     await session2.login();
     await session2.loadDoc(`/doc/${urlId}`);
 

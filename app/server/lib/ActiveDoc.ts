@@ -79,7 +79,6 @@ import {Document as APIDocument, DocReplacementOptions, DocState, DocStateCompar
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
-import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from 'app/gen-server/entity/Document';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
@@ -98,6 +97,7 @@ import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
+import {getTemplateOrg} from 'app/server/lib/sendAppPage';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {DocTriggers} from "app/server/lib/Triggers";
@@ -1402,8 +1402,9 @@ export class ActiveDoc extends EventEmitter {
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
 
-      // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
-      const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
+      // TODO: Remove the right side once all template docs have their type set to "template".
+      const isTemplate = doc.type === 'template' ||
+        (doc.workspace.org.domain === getTemplateOrg() && doc.type !== 'tutorial');
       this.logTelemetryEvent(docSession, 'documentForked', {
         limited: {
           forkIdDigest: forkIds.forkId,

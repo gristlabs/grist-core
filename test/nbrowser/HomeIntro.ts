@@ -10,6 +10,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 describe('HomeIntro', function() {
   this.timeout(40000);
   setupTestSuite({samples: true});
+  gu.withEnvironmentSnapshot({'GRIST_TEMPLATE_ORG': 'templates'});
 
   describe("Anonymous on merged-org", function() {
     it('should show welcome for anonymous user', async function() {

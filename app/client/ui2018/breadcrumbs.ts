@@ -100,10 +100,13 @@ export function docBreadcrumbs(
     isRecoveryMode: Observable<boolean>,
     isSnapshot?: Observable<boolean>,
     isPublic?: Observable<boolean>,
+    isTemplate?: Observable<boolean>,
+    isAnonymous?: boolean,
   }
   ): Element {
+    const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
     return cssBreadcrumbs(
-      dom.domComputed<[boolean, PartialWorkspace|null]>(
+      !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace|null]>(
         (use) => [use(options.isBareFork), use(workspace)],
         ([isBareFork, ws]) => {
           if (isBareFork || !ws) { return null; }

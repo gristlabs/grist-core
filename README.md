@@ -282,6 +282,7 @@ GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - oth
 GRIST_SESSION_SECRET | a key used to encode sessions
 GRIST_FORCE_LOGIN    | when set to 'true' disables anonymous access
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
+GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org
 GRIST_HELP_CENTER | set the help center link ref
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.

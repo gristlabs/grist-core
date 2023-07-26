@@ -110,7 +110,7 @@ function pagePanelsError(appModel: AppModel, header: string, content: DomElement
       panelWidth: observable(240),
       panelOpen,
       hideOpener: true,
-      header: dom.create(AppHeader, appModel.currentOrgName, appModel),
+      header: dom.create(AppHeader, appModel),
       content: leftPanelBasic(appModel, panelOpen),
     },
     headerMain: createTopBarHome(appModel),

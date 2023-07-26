@@ -50,7 +50,7 @@ export class WelcomePage extends Disposable {
         panelWidth: Observable.create(this, 240),
         panelOpen: Observable.create(this, false),
         hideOpener: true,
-        header: dom.create(AppHeader, '', this._appModel),
+        header: dom.create(AppHeader, this._appModel),
         content: null,
       },
       headerMain: [cssFlexSpace(), dom.create(AccountWidget, this._appModel)],
