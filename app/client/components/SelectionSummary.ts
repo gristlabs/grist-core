@@ -244,7 +244,7 @@ export class SelectionSummary extends Disposable {
           } else {
             for (const i of rowIndices) {
               const value = values[i];
-              if (value !== null && value !== undefined && value !== '' && value!==false && !isEmpty?.(value)) {
+              if (value !== null && value !== undefined && value !== '' && value !== false && !isEmpty?.(value)) {
                 countNonEmpty++;
               }
             }
