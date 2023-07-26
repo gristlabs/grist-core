@@ -6,7 +6,7 @@
 #
 astroid==2.14.2
     # via -r core/sandbox/requirements3.in
-asttokens==2.0.5
+asttokens==2.2.1
     # via
     #   friendly-traceback
     #   stack-data
@@ -51,5 +51,5 @@ typing-extensions==4.4.0
     # via astroid
 unittest-xml-reporting==2.0.0
     # via -r core/sandbox/requirements3.in
-wrapt==1.12.1
+wrapt==1.15.0
     # via astroid
