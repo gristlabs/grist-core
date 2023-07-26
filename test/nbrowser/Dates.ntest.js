@@ -391,6 +391,7 @@ describe('Dates.ntest', function() {
     await gu.clickCellRC(0, 1);
     await gu.sendKeys([$.ALT, '=']);
     await gu.waitForServer();
+    await gu.waitAppFocus(false);
     await gu.sendKeys("Diff", $.ENTER);
     await gu.waitForServer();
     await gu.sendKeys('=');
