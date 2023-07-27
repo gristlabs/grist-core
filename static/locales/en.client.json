@@ -397,7 +397,8 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
         "Import from file": "Import from file",
-        "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
+        "go to webhook settings": "go to webhook settings"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
