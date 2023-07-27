@@ -77,13 +77,23 @@ export class UrlState<IUrlState extends object> extends Disposable {
 
     if (samePage) {
       await this._stateImpl.delayPushUrl(prevState, newState);
-      if (options.replace) {
-        this._window.history.replaceState(null, '', newUrl);
-      } else {
-        this._window.history.pushState(null, '', newUrl);
+      try {
+        if (options.replace) {
+          this._window.history.replaceState(null, '', newUrl);
+        } else {
+          this._window.history.pushState(null, '', newUrl);
+        }
+        // pushState/replaceState above do not trigger 'popstate' event, so we call loadState() manually.
+        this.loadState();
+      } catch (e) {
+        // If we fail, we may be in a context where Grist doesn't have
+        // control over history, e.g. an iframe with srcdoc. Go ahead
+        // and apply the application state change (e.g. switching to a
+        // different Grist page). The back button won't work, but what
+        // it should do in an embedded context is full of nuance anyway.
+        log.debug(`pushUrl failure: ${e}`);
+        this.state.set(this._stateImpl.decodeUrl(new URL(newUrl)));
       }
-      // pushState/replaceState above do not trigger 'popstate' event, so we call loadState() manually.
-      this.loadState();
     } else {
       this._window._urlStateLoadPage!(newUrl);
     }
