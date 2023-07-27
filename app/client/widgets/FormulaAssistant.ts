@@ -311,8 +311,8 @@ export class FormulaAssistant extends Disposable {
   private _saveOrClose() {
     if (this._hasExpanded) {
       this._logTelemetryEvent('assistantSave', true, {
-        newFormula: this._options.column.formula.peek(),
-        oldFormula: this._options.editor.getTextValue(),
+        oldFormula: this._options.column.formula.peek(),
+        newFormula: this._options.editor.getTextValue(),
       });
     }
     this._action = 'save';
