@@ -17,7 +17,7 @@ jobs:
       # even when there is a failure.
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: [3.9]
         node-version: [14.x]
         tests:
           - ':lint:python:client:common:smoke:'
@@ -28,6 +28,11 @@ jobs:
           - ':nbrowser-^[M-O]:'
           - ':nbrowser-^[P-S]:'
           - ':nbrowser-^[^A-S]:'
+        include:
+          - tests: ':lint:python:client:common:smoke:'
+            python-version: '3.10'
+          - tests: ':lint:python:client:common:smoke:'
+            python-version: '3.11'
     steps:
       - uses: actions/checkout@v3
 
