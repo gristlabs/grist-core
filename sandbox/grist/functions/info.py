@@ -4,7 +4,6 @@
 from __future__ import absolute_import
 import datetime
 import hashlib
-import json
 import json as json_module
 import math
 import numbers
@@ -12,6 +11,7 @@ import re
 
 import chardet
 import six
+from six.moves import urllib_parse
 
 import column
 import docmodel
@@ -20,7 +20,6 @@ from functions.unimplemented import unimplemented
 from objtypes import CellError
 from usertypes import AltText   # pylint: disable=import-error
 from records import Record, RecordSet
-import urllib.parse
 
 @unimplemented
 def ISBLANK(value):
@@ -664,28 +663,32 @@ def _replicate_requests_body_args(data=None, json=None):
 
   Returns a tuple of (body, extra_headers)
   """
-  if data is not None:
+  if data is None and json is None:
+      return None, {}
+
+  elif data is not None:
     if isinstance(data, str):
-        body = data
-        extra_headers = {}
+      body = data
+      extra_headers = {}
     else:
-        body = urllib.parse.urlencode(data)
-        extra_headers = {
-          "Content-Type": "application/x-www-form-urlencoded",
-        }
+      body = urllib_parse.urlencode(data)
+      extra_headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+      }
     return body, extra_headers
 
-  if json is not None:
+  elif json is not None:
     if isinstance(json, str):
-        body = json
+      body = json
     else:
-        body = json_module.dumps(json)
+      body = json_module.dumps(json)
     extra_headers = {
       "Content-Type": "application/json",
     }
     return body, extra_headers
 
-  return None, {}
+  else:
+    raise ValueError("`data` and `json` cannot be supplied to REQUEST at the same time")
 
 
 @unimplemented
@@ -693,13 +696,17 @@ def _replicate_requests_body_args(data=None, json=None):
 # and marks it as unimplemented in the docs.
 # It also makes grist-help expect to see the string 'raise NotImplemented' in the function source,
 # which it does now, because of this comment. Removing this comment will currently break the docs.
-def REQUEST(url, params=None, headers=None, method=None, data=None, json=None):
-  # Makes a GET HTTP request with an API similar to `requests.get`.
+def REQUEST(url, params=None, headers=None, method="GET", data=None, json=None):
+  # Makes an HTTP request with an API similar to `requests.request`.
   # Actually jumps through hoops internally to make the request asynchronously (usually)
   # while feeling synchronous to the formula writer.
 
   # REQUEST also has a similar interfact to requests.post, if you change method to be POST.
-  # Support requests data and json args:
+  # Support requests `data` and `json` args:
+  #   - `args` as str: Used as the request body
+  #   - `args` as other types: Form encoded and used as the request body. The correct header is also set.
+  #   - `json` as str: Used as the request body. The correct header is also set.
+  #   - `json` as other types: JSON encoded and set as the request body. The correct header is also set.
   body, extra_headers = _replicate_requests_body_args(data=data, json=json)
 
   # Extra headers that make us consistent with requests.post must not override
@@ -708,13 +715,13 @@ def REQUEST(url, params=None, headers=None, method=None, data=None, json=None):
   _headers.update(extra_headers)
 
   if headers is not None:
-      _headers.update(headers)
+    _headers.update(headers)
 
   # Requests are identified by a string key in various places.
   # The same arguments should produce the same key so the request is only made once.
   args = dict(url=url, params=params, headers=headers)
 
-  if method is not None:
+  if method != "GET":
     args["method"] = method
 
   if body is not None:
@@ -755,7 +762,7 @@ class Response(object):
     return self.content.decode(self.encoding)
 
   def json(self, **kwargs):
-    return json.loads(self.text, **kwargs)
+    return json_module.loads(self.text, **kwargs)
 
   @property
   def ok(self):

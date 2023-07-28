@@ -93,7 +93,7 @@ export class DocRequests {
         headers: headers || {},
         agent: proxyAgent(urlObj),
         method: method || "GET",
-        body: body
+        body
       });
       const content = await response.buffer();
       const {status, statusText} = response;

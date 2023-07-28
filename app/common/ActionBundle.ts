@@ -72,8 +72,8 @@ export interface SandboxActionBundle {
 // Represents a unique call to the Python REQUEST function
 export interface SandboxRequest {
   url: string;
-  method: string;
-  body: string;
+  method?: string;
+  body?: string;
   params: Record<string, string> | null;
   headers: Record<string, string> | null;
   deps: unknown;  // pass back to the sandbox unchanged in the response
