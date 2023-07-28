@@ -17,7 +17,7 @@ jobs:
       # even when there is a failure.
       fail-fast: false
       matrix:
-        python-version: [3.9]
+        python-version: ["3.9", "3.10", "3.11"]
         node-version: [14.x]
         tests:
           - ':lint:python:client:common:smoke:'
