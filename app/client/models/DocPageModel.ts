@@ -119,13 +119,13 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly currentWorkspace = Computed.create(this, this.currentDoc, (use, doc) => doc && doc.workspace);
   public readonly currentOrg = Computed.create(this, this.currentWorkspace, (use, ws) => ws && ws.org);
   public readonly currentOrgName = Computed.create(this, this.currentOrg,
-    (use, org) => getOrgNameOrGuest(org, this.appModel.currentUser));
+                                                   (use, org) => getOrgNameOrGuest(org, this.appModel.currentUser));
   public readonly currentDocTitle = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.name : '');
   public readonly isReadonly = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isReadonly : false);
   public readonly isPrefork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isPreFork : false);
   public readonly isFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isFork : false);
   public readonly isRecoveryMode = Computed.create(this, this.currentDoc,
-    (use, doc) => doc ? doc.isRecoveryMode : false);
+                                                   (use, doc) => doc ? doc.isRecoveryMode : false);
   public readonly userOverride = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.userOverride : null);
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSnapshot = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSnapshot : false);
@@ -173,7 +173,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
           FlowRunner.create(this._openerHolder,
             (flow: AsyncFlow) => this._openDoc(flow, urlId, urlOpenMode, state.params?.compare, linkParameters)
           )
-            .resultPromise.catch(err => this._onOpenError(err));
+          .resultPromise.catch(err => this._onOpenError(err));
         }
       }
     }));
@@ -270,7 +270,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         explanation: (
           isDocOwner
             ? t("You can try reloading the document, or using recovery mode. \
-              Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. \
+Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. \
 It also disables formulas. [{{error}}]", {error: err.message})
             : isDenied
               ? t('Sorry, access to this document has been denied. [{{error}}]', {error: err.message})
@@ -305,7 +305,7 @@ It also disables formulas. [{{error}}]", {error: err.message})
                          comparisonUrlId: string | undefined,
                          linkParameters: Record<string, string> | undefined): Promise<void> {
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
-      (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
+                (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
     const gristDocModulePromise = loadGristDoc();
 
     const docResponse = await retryOnNetworkError(flow, getDoc.bind(null, this._api, urlId));
@@ -379,7 +379,7 @@ It also disables formulas. [{{error}}]", {error: err.message})
       await this._api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }) : undefined;
 
     const gristDoc = gdModule.GristDoc.create(flow, this._appObj, this.appModel, docComm, this, openDocResponse,
-      this.appModel.topAppModel.plugins, {comparison});
+                                              this.appModel.topAppModel.plugins, {comparison});
 
     // Move ownership of docComm to GristDoc.
     gristDoc.autoDispose(flow.release(docComm));
@@ -403,13 +403,13 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   return [
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
-        {isNewPage: true, buttonLabel: 'Add Page'}),
+                                     {isNewPage: true, buttonLabel: 'Add Page'}),
       menuIcon("Page"), t("Add Page"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
-        {isNewPage: false, selectBy}),
+                                     {isNewPage: false, selectBy}),
       menuIcon("Widget"), t("Add Widget to Page"), testId('dp-add-widget-to-page'),
       // disable for readonly doc and all special views
       dom.cls('disabled', (use) => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),

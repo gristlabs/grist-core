@@ -657,8 +657,9 @@ def TASTEME(food):
 @unimplemented
 def TEXT(number, format_type):    # pylint: disable=unused-argument
   """
-  Converts a number into text according to a specified format. It is not yet implemented in
-  Grist.
+  Converts a number into text according to a specified format. It is not yet implemented in 
+  Grist. You can use the similar Python functions str() to convert numbers into strings, and
+  optionally format() to specify the number format. 
   """
   raise NotImplementedError()
 
