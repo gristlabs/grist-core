@@ -659,8 +659,6 @@ def _replicate_requests_body_args(data=None, json=None):
   Replicate some of the behaviour of requests.post, specifically the data and 
   json args.
 
-  From testing manually with requests 2.28.2, data overrides json if both supplied.
-
   Returns a tuple of (body, extra_headers)
   """
   if data is None and json is None:
@@ -688,6 +686,9 @@ def _replicate_requests_body_args(data=None, json=None):
     return body, extra_headers
 
   else:
+    # From testing manually with requests 2.28.2, data overrides json if both
+    # supplied. However, this is probably a mistake on behalf of the caller, so
+    # we choose to throw an error instead
     raise ValueError("`data` and `json` cannot be supplied to REQUEST at the same time")
 
 
@@ -701,8 +702,7 @@ def REQUEST(url, params=None, headers=None, method="GET", data=None, json=None):
   # Actually jumps through hoops internally to make the request asynchronously (usually)
   # while feeling synchronous to the formula writer.
 
-  # REQUEST also has a similar interfact to requests.post, if you change method to be POST.
-  # Support requests `data` and `json` args:
+  # When making a POST or PUT request, REQUEST supports `data` and `json` args, from `requests.request`:
   #   - `args` as str: Used as the request body
   #   - `args` as other types: Form encoded and used as the request body. The correct header is also set.
   #   - `json` as str: Used as the request body. The correct header is also set.
