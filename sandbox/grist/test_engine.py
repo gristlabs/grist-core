@@ -2,6 +2,7 @@ import difflib
 import functools
 import json
 import logging
+import sys
 import unittest
 from collections import namedtuple
 from pprint import pprint
@@ -273,7 +274,16 @@ class EngineTestCase(unittest.TestCase):
     self.assertIsInstance(exc.error, type_)
     self.assertEqual(exc._message, message)
     if tracebackRegexp:
-      self.assertRegex(exc.details, tracebackRegexp)
+      traceback_string = exc.details
+      if sys.version_info >= (3, 11) and type_ != SyntaxError:
+        # Python 3.11+ adds lines with only spaces and ^ to indicate the location of the error.
+        # We remove those lines to make the test work with both old and new versions.
+        # This doesn't apply to SyntaxError, which has those lines in all versions.
+        traceback_string = "\n".join(
+          line for line in traceback_string.splitlines()
+          if set(line) != {" ", "^"}
+        )
+      self.assertRegex(traceback_string.strip(), tracebackRegexp.strip())
 
   def assertViews(self, list_of_views):
     """

@@ -61,8 +61,8 @@ class Address:
     return {'US': 'North America', 'UK': 'Europe'}.get(rec.country, 'N/A')
 
   def badSyntax(rec, table):
-    # for a in b
+    # for a in
     # 10
-    raise SyntaxError('invalid syntax', ('usercode', 1, 11, u'for a in b'))
+    raise SyntaxError('invalid syntax', ('usercode', 1, 9, u'for a in'))
 ======================================================================
 """

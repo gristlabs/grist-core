@@ -1,4 +1,5 @@
 import datetime
+import sys
 
 import test_engine
 import testsamples
@@ -69,16 +70,13 @@ class TestCompletion(test_engine.EngineTestCase):
     self.assertEqual(self.autocomplete("valu", "Schools", "lastModifier"),
                      ["value"])
     # Should have same type as column.
-    self.assertGreaterEqual(
-      set(self.autocomplete("value.", "Schools", "lastModifier")),
+    self.assert_autocomplete_includes("value.", "Schools", "lastModifier",
       {'value.startswith(', 'value.replace(', 'value.title('}
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("value.", "Schools", "lastModified")),
+    self.assert_autocomplete_includes("value.", "Schools", "lastModified",
       {'value.month', 'value.strftime(', 'value.replace('}
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("value.m", "Schools", "lastModified")),
+    self.assert_autocomplete_includes("value.m", "Schools", "lastModified",
       {'value.month', 'value.minute'}
     )
 
@@ -158,14 +156,14 @@ class TestCompletion(test_engine.EngineTestCase):
 
   def test_function(self):
     self.assertEqual(self.autocomplete("MEDI", "Address", "city"),
-        [('MEDIAN', '(value, *more_values)', True)])
-    self.assertEqual(self.autocomplete("ma", "Address", "city"), [
+                     [('MEDIAN', '(value, *more_values)', True)])
+    self.assert_autocomplete_includes("ma", "Address", "city", {
       ('MAX', '(value, *more_values)', True),
       ('MAXA', '(value, *more_values)', True),
       'map(',
       'math',
       'max(',
-    ])
+    })
 
   def test_member(self):
     self.assertEqual(self.autocomplete("datetime.tz", "Address", "city"),
@@ -294,34 +292,28 @@ class TestCompletion(test_engine.EngineTestCase):
 
   def test_suggest_column_type_methods(self):
     # Should treat columns as correct types.
-    self.assertGreaterEqual(
-      set(self.autocomplete("$firstName.", "Students", "firstName")),
+    self.assert_autocomplete_includes("$firstName.", "Students", "firstName",
       {'$firstName.startswith(', '$firstName.replace(', '$firstName.title('}
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("$birthDate.", "Students", "lastName")),
+    self.assert_autocomplete_includes("$birthDate.", "Students", "lastName",
       {'$birthDate.month', '$birthDate.strftime(', '$birthDate.replace('}
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("$lastVisit.m", "Students", "firstName")),
+    self.assert_autocomplete_includes("$lastVisit.m", "Students", "firstName",
       {'$lastVisit.month', '$lastVisit.minute'}
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("$school.", "Students", "firstName")),
+    self.assert_autocomplete_includes("$school.", "Students", "firstName",
       {'$school.address', '$school.name', '$school.yearFounded', '$school.budget'}
     )
     self.assertEqual(self.autocomplete("$school.year", "Students", "lastName"),
                      ['$school.yearFounded'])
-    self.assertGreaterEqual(
-      set(self.autocomplete("$yearFounded.", "Schools", "budget")),
+    self.assert_autocomplete_includes("$yearFounded.", "Schools", "budget",
       {
         '$yearFounded.denominator',    # Only integers have this
         '$yearFounded.bit_length(',    # and this
         '$yearFounded.real'
       }
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("$budget.", "Schools", "budget")),
+    self.assert_autocomplete_includes("$budget.", "Schools", "budget",
       {'$budget.is_integer(', '$budget.real'}    # Only floats have this
     )
 
@@ -331,8 +323,7 @@ class TestCompletion(test_engine.EngineTestCase):
       self.autocomplete("$school.name.st", "Students", "firstName"),
       ['$school.name.startswith(', '$school.name.strip(']
     )
-    self.assertGreaterEqual(
-      set(self.autocomplete("$school.yearFounded.","Students", "firstName")),
+    self.assert_autocomplete_includes("$school.yearFounded.","Students", "firstName",
       {
         '$school.yearFounded.denominator',
         '$school.yearFounded.bit_length(',
@@ -497,6 +488,20 @@ class TestCompletion(test_engine.EngineTestCase):
       return [result for result, value in results]
     else:
       return results
+
+  def assert_autocomplete_includes(self, formula, table, column, expected, user=None, row_id=None):
+    completions = self.autocomplete(formula, table, column, user=user, row_id=row_id)
+
+    def replace_completion(completion):
+      if isinstance(completion, str) and completion.endswith('()'):
+        # Python 3.10+ autocompletes the closing paren for methods with no arguments.
+        # This allows the test to check for `somestring.title(` and work across Python versions.
+        assert sys.version_info >= (3, 10)
+        return completion[:-1]
+      return completion
+
+    completions = set(replace_completion(completion) for completion in completions)
+    self.assertGreaterEqual(completions, expected)
 
   def test_example_values(self):
     self.assertEqual(

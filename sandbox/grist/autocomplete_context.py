@@ -52,7 +52,10 @@ class AutocompleteContext(object):
     }
     for key, value in six.iteritems(self._context):
       if value and callable(value):
-        argspec = inspect.formatargspec(*inspect.getargspec(value))
+        if six.PY2:
+          argspec = inspect.formatargspec(*inspect.getargspec(value))
+        else:
+          argspec = str(inspect.signature(value))  # pylint: disable=no-member
         self._functions[key] = Completion(key, argspec, is_grist_func(value))
 
     for key, value in self._context.copy().items():
