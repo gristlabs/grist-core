@@ -76,7 +76,10 @@
         "Activation": "Activation",
         "Billing Account": "Billing Account",
         "Support Grist": "Support Grist",
-        "Upgrade Plan": "Upgrade Plan"
+        "Upgrade Plan": "Upgrade Plan",
+        "Sign In": "Sign In",
+        "Sign Up": "Sign Up",
+        "Use This Template": "Use This Template"
     },
     "ViewAsDropdown": {
         "View As": "View As",
@@ -112,7 +115,8 @@
         "Home Page": "Home Page",
         "Legacy": "Legacy",
         "Personal Site": "Personal Site",
-        "Team Site": "Team Site"
+        "Team Site": "Team Site",
+        "Grist Templates": "Grist Templates"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
