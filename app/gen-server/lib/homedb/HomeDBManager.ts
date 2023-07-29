@@ -26,7 +26,8 @@ import {
   PREVIEWER_EMAIL,
   UserAccessData,
   UserOptions,
-  WorkspaceProperties
+  WorkspaceProperties,
+  DocStateComparison
 } from 'app/common/UserAPI';
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
 import {Alias} from 'app/gen-server/entity/Alias';
@@ -97,6 +98,7 @@ import {
 } from 'typeorm';
 import {v4 as uuidv4} from 'uuid';
 
+import { Offer } from 'app/gen-server/entity/Offer';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -1659,6 +1661,33 @@ export class HomeDBManager {
       await manager.save([secret]);
       return secret;
     });
+  }
+
+  public setOffer(docId: string, comparison: DocStateComparison) {
+    return this._connection.transaction(async manager => {
+      const result = await manager.createQueryBuilder()
+        .insert()
+        .into(Offer, ['docId', 'offer'])
+        .values({docId, offer: {comparison}})
+        .orUpdate(['offer'], ['doc_id'])
+        .setParameter('docId', docId)
+        .execute();
+      return result;
+    });
+  }
+
+  public async getOffers(docId: string) {
+    const result = await this._connection.createQueryBuilder()
+      .select('offers')
+      .from(Offer, 'offers')
+      .leftJoinAndSelect('offers.doc', 'src_doc')
+      .leftJoinAndSelect('src_doc.creator', 'src_user')
+      .leftJoinAndSelect('src_user.logins', 'src_logins')
+      .where('src_doc.trunk_id = :docId', {docId})
+      .getMany();
+    const result2 = this._normalizeQueryResults(result);
+    console.log("RESUTL", {result2});
+    return result2;
   }
 
   // Updates the secret matching id and docId, to the new value.

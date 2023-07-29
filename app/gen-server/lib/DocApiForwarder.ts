@@ -82,6 +82,8 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/forms/:vsId', withDoc);
 
     app.use('/api/docs/:docId/copy', withoutDoc);
+    app.use('/api/docs/:docId/offer', withDoc);
+    app.use('/api/docs/:docId/offers', withDoc);
     app.use('^/api/docs$', withoutDoc);
     app.use('/api/workspaces/:wid/import', withoutDoc);
   }

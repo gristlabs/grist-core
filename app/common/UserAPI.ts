@@ -577,6 +577,7 @@ export interface DocAPI {
   flushWebhook(webhookId: string): Promise<void>;
 
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
+
   /**
    * Check if the document is currently in timing mode.
    * Status is either
@@ -612,6 +613,9 @@ export interface DocAPI {
    * If there is one store available it means that external storage is configured and can be used by this document.
    */
   getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
+
+  makeOffer(): Promise<void>;
+  getOffers(): Promise<any>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1304,6 +1308,20 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       method: 'POST',
       body: JSON.stringify({type}),
     });
+  }
+
+  public async makeOffer() {
+    await this.requestJson(`${this._url}/offer`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  public async getOffers() {
+    const result = await this.requestJson(`${this._url}/offers`, {
+      method: 'GET',
+    });
+    return result;
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {

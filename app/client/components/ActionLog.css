@@ -132,3 +132,7 @@
 .action_info {
   color: var(--grist-theme-document-history-activity-text-light, #929299);
 }
+
+.action_accepted {
+  filter: opacity(0.25);
+}

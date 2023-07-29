@@ -50,6 +50,7 @@ import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
 import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {TimingPage} from 'app/client/ui/TimingPage';
+import {VersionsPage} from 'app/client/ui/VersionsPage';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
 import {getTelemetryWidgetTypeFromPageWidget} from 'app/client/ui/widgetTypesMap';
@@ -780,6 +781,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'webhook' ? dom.create(WebhookPage, this) :
           content === 'timing' ? dom.create(TimingPage, this) :
+          content === 'versions' ? dom.create(VersionsPage, this) :
           content === 'GristDocTour' ? null :
           [
             dom.create((owner) => {

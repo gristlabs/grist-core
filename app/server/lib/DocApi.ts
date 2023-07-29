@@ -1334,62 +1334,13 @@ export class DocWorkerApi {
         nullable: true,
         isValid: (n) => n > 0,
       });
-      const docSession = docSessionFromRequest(req);
-      const {states} = await this._getStates(docSession, activeDoc);
-      const ref = await fetch(this._grist.getHomeInternalUrl(`/api/docs/${req.params.docId2}/states`), {
-        headers: {
-          ...getTransitiveHeaders(req, { includeOrigin: false }),
-          'Content-Type': 'application/json',
-        }
+      const docId2 = req.params.docId2;
+      const comp = await this._compareDoc(req, activeDoc, {
+        showDetails,
+        docId2,
+        maxRows,
       });
-      if (!ref.ok) {
-        res.status(ref.status).send(await ref.text());
-        return;
-      }
-      const states2: DocState[] = (await ref.json()).states;
-      const left = states[0];
-      const right = states2[0];
-      if (!left || !right) {
-        // This should not arise unless there's a bug.
-        throw new Error('document with no history');
-      }
-      const rightHashes = new Set(states2.map(state => state.h));
-      const parent = states.find(state => rightHashes.has(state.h )) || null;
-      const leftChanged = parent && parent.h !== left.h;
-      const rightChanged = parent && parent.h !== right.h;
-      const summary = leftChanged ? (rightChanged ? 'both' : 'left') :
-        (rightChanged ? 'right' : (parent ? 'same' : 'unrelated'));
-      const comparison: DocStateComparison = {
-        left, right, parent, summary
-      };
-      if (showDetails && parent) {
-        // Calculate changes from the parent to the current version of this document.
-        const leftChanges = (
-          await this._getChanges(activeDoc, {
-            states,
-            leftHash: parent.h,
-            rightHash: "HEAD",
-            maxRows,
-          })
-        ).details!.rightChanges;
-
-        // Calculate changes from the (common) parent to the current version of the other document.
-        let url = `/api/docs/${req.params.docId2}/compare?left=${parent.h}`;
-        if (maxRows !== undefined) {
-          url += `&maxRows=${maxRows}`;
-        }
-        const rightChangesReq = await fetch(this._grist.getHomeInternalUrl(url), {
-          headers: {
-            ...getTransitiveHeaders(req, { includeOrigin: false }),
-            'Content-Type': 'application/json',
-          }
-        });
-        const rightChanges = (await rightChangesReq.json()).details!.rightChanges;
-
-        // Add the left and right changes as details to the result.
-        comparison.details = { leftChanges, rightChanges };
-      }
-      res.json(comparison);
+      res.json(comp);
     }));
 
     // Give details about what changed between two versions of a document.
@@ -1601,6 +1552,39 @@ export class DocWorkerApi {
       return res.status(200).json(docId);
     }));
 
+    this._app.post('/api/docs/:docId/offer', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        console.log("OFFER");
+        const docSession = docSessionFromRequest(req);
+        const urlId = activeDoc.docName;
+        const parts = parseUrlId(urlId || '');
+        if (urlId && parts.trunkId && parts.forkId) {
+          const comparisonUrlId = parts.trunkId;
+          console.log({comparisonUrlId});
+          const comp = await this._compareDoc(req, activeDoc, {
+            showDetails: true,
+            docId2: comparisonUrlId,
+            maxRows: null,
+          });
+          console.log({comp});
+          console.log({work: 'offer', docSession});
+          await this._dbManager.setOffer(parts.forkId, comp);
+          res.json(comp);
+          return;
+        }
+        res.json(22);
+      })
+    );
+
+    this._app.get('/api/docs/:docId/offers', canEdit,
+     withDoc(async (activeDoc, req, res) => {
+       // const docSession = docSessionFromRequest(req);
+       const urlId = activeDoc.docName;
+       const result = await this._dbManager.getOffers(urlId);
+       sendReply(req, res, {data: {result}, status: 200});
+     })
+    );
+    
     this._app.post('/api/docs/:docId/copy', canView, expressWrap(async (req, res) => {
       const userId = getUserId(req);
 
@@ -2553,6 +2537,71 @@ export class DocWorkerApi {
         }
       },
     });
+  }
+
+  private async _compareDoc(req: RequestWithLogin, activeDoc: ActiveDoc,
+                            options: {
+                              showDetails: boolean,
+                              docId2: string,
+                              maxRows: number|null|undefined,
+                            }) {
+    const {showDetails, docId2, maxRows} = options;
+    const docSession = docSessionFromRequest(req);
+    const {states} = await this._getStates(docSession, activeDoc);
+    const ref = await fetch(this._grist.getHomeInternalUrl(`/api/docs/${docId2}/states`), {
+      headers: {
+        ...getTransitiveHeaders(req, { includeOrigin: false }),
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!ref.ok) {
+      throw new ApiError(await ref.text(), ref.status);
+    }
+    const states2: DocState[] = (await ref.json()).states;
+    const left = states[0];
+    const right = states2[0];
+    if (!left || !right) {
+      // This should not arise unless there's a bug.
+      throw new Error('document with no history');
+    }
+    const rightHashes = new Set(states2.map(state => state.h));
+    const parent = states.find(state => rightHashes.has(state.h )) || null;
+    const leftChanged = parent && parent.h !== left.h;
+    const rightChanged = parent && parent.h !== right.h;
+    const summary = leftChanged ? (rightChanged ? 'both' : 'left') :
+        (rightChanged ? 'right' : (parent ? 'same' : 'unrelated'));
+    const comparison: DocStateComparison = {
+      left, right, parent, summary
+    };
+    if (showDetails && parent) {
+      // Calculate changes from the parent to the current version of this document.
+      const leftChanges = (
+        await this._getChanges(activeDoc, {
+          states,
+          leftHash: parent.h,
+          rightHash: "HEAD",
+          maxRows,
+        })
+      ).details!.rightChanges;
+
+      // Calculate changes from the (common) parent to the current version of the other document.
+      let url = `/api/docs/${docId2}/compare?left=${parent.h}`;
+      if (maxRows !== undefined) {
+        url += `&maxRows=${maxRows}`;
+      }
+      const rightChangesReq = await fetch(this._grist.getHomeInternalUrl(url), {
+        headers: {
+          ...getTransitiveHeaders(req, { includeOrigin: false }),
+          'Content-Type': 'application/json',
+        }
+      });
+      const rightChanges = (await rightChangesReq.json()).details!.rightChanges;
+
+      // Add the left and right changes as details to the result.
+      comparison.details = { leftChanges, rightChanges };
+    }
+
+    return comparison;
   }
 }
 

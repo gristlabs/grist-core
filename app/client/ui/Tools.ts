@@ -88,8 +88,10 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       )
     ),
     cssPageEntry(
-      cssPageLink(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
-        dom.on('click', () => gristDoc.showTool('docHistory')))
+      cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'versions'),
+      cssPageLink(cssPageIcon('Log'), cssLinkText(t("Document Versions")), testId('log'),
+                  urlState().setLinkUrl({docPage: 'versions'}),
+                  dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),

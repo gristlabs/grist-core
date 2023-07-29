@@ -225,6 +225,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
       dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
       testId('return-to-original'),
     ),
+    menuItem(() => 1, "Offer"),
     menuItem(replaceOriginal, t("Replace {{termToUse}}...", {termToUse}),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
