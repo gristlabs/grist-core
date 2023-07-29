@@ -719,7 +719,7 @@ def REQUEST(url, params=None, headers=None, method="GET", data=None, json=None):
 
   # Requests are identified by a string key in various places.
   # The same arguments should produce the same key so the request is only made once.
-  args = dict(url=url, params=params, headers=headers)
+  args = dict(url=url, params=params, headers=_headers)
 
   if method != "GET":
     args["method"] = method
