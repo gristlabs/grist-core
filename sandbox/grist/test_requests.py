@@ -105,14 +105,12 @@ class TestRequestsPostInterface(unittest.TestCase):
         assert body == "invalid_but_ignored"
         assert headers == {"Content-Type": "application/json"}
 
-    def test_data_overrides_json(self):
-        body, headers = _replicate_requests_body_args(
-            json={"foo": "bar"},
-            data={"quux": "jazz"}
-        )
-
-        assert body == 'quux=jazz'
-        assert headers == {"Content-Type": "application/x-www-form-urlencoded"}
+    def test_data_and_json_together(self):
+        with self.assertRaises(ValueError):
+            body, headers = _replicate_requests_body_args(
+                json={"foo": "bar"},
+                data={"quux": "jazz"}
+            )
 
 
 class TestRequestFunction(test_engine.EngineTestCase):

@@ -664,7 +664,7 @@ def _replicate_requests_body_args(data=None, json=None):
   if data is None and json is None:
       return None, {}
 
-  elif data is not None:
+  elif data is not None and json is None:
     if isinstance(data, str):
       body = data
       extra_headers = {}
@@ -675,7 +675,7 @@ def _replicate_requests_body_args(data=None, json=None):
       }
     return body, extra_headers
 
-  elif json is not None:
+  elif json is not None and data is None:
     if isinstance(json, str):
       body = json
     else:
@@ -685,7 +685,7 @@ def _replicate_requests_body_args(data=None, json=None):
     }
     return body, extra_headers
 
-  else:
+  elif data is not None and json is not None:
     # From testing manually with requests 2.28.2, data overrides json if both
     # supplied. However, this is probably a mistake on behalf of the caller, so
     # we choose to throw an error instead
