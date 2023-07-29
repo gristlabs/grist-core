@@ -9,6 +9,7 @@ import {AclRuleDoc} from "./AclRule";
 import {Alias} from "./Alias";
 import {Resource} from "./Resource";
 import {Secret} from "./Secret";
+import { User } from './User';
 import {Workspace} from "./Workspace";
 
 // Acceptable ids for use in document urls.
@@ -78,6 +79,10 @@ export class Document extends Resource {
 
   @Column({name: 'created_by', type: 'integer', nullable: true})
   public createdBy: number|null;
+
+  @ManyToOne(_type => User)
+  @JoinColumn({name: 'created_by'})
+  public creator: User;
 
   @Column({name: 'trunk_id', type: 'text', nullable: true})
   public trunkId: string|null;

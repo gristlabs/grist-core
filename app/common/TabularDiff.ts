@@ -19,10 +19,17 @@ export type CellDelta = [[any]|"?"|null, [any]|"?"|null];
 /** a special column indicating what changes happened on row (addition, update, removal) */
 export type RowChangeType = string;
 
+interface TabularDiffRow {
+  type: RowChangeType;
+  rowId: number;
+  cellDeltas: CellDelta[];
+  accepted?: boolean;
+}
+
 /** differences for an individual table */
 export interface TabularDiff {
   header: string[];  /** labels for columns */
-  cells: Array<[RowChangeType, number, CellDelta[]]>;  // "number" is rowId
+  cells: Array<TabularDiffRow>;  // "number" is rowId
 }
 
 /** differences for a collection of tables */

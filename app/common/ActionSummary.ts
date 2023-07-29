@@ -90,6 +90,11 @@ export interface TableDelta {
   /** Partial record of cell-level changes - large bulk changes not included. */
   columnDeltas: {[colId: string]: ColumnDelta};
   columnRenames: LabelDelta[];  /** a list of column renames/additions/removals */
+  accepted?: {
+    updateRows?: number[];
+    removeRows?: number[];
+    addRows?: number[];
+  };
 }
 
 /**
@@ -158,6 +163,10 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
       .filter(x => !presentRows.has(x))
       .sort((a, b) => a - b);
 
+    const acceptedAddRows = new Set(td.accepted?.addRows);
+    const acceptedRemoveRows = new Set(td.accepted?.removeRows);
+    const acceptedUpdateRows = new Set(td.accepted?.updateRows);
+    
     // Now that we have pulled together rows of changes, we will add a summary cell
     // to each row to show whether they were caused by row updates, additions or removals.
     // We also at this point make sure the cells of the row are output in a consistent
@@ -168,8 +177,8 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
         // We signal this visually with a "..." row.  The order of where this should
         // go isn't well defined at this point (there's a row number TODO above).
         if (rowId > droppedRows[0]) {
-          tableChanges.cells.push(['...', droppedRows[0],
-                                   activeColsWithoutManualSort.map(x => [null, null] as [null, null])]);
+          tableChanges.cells.push({type: '...', rowId: droppedRows[0],
+                                   cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null])});
           while (rowId > droppedRows[0]) {
             droppedRows.shift();
           }
@@ -179,18 +188,28 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
       // if the rowId is both added and removed - in this scenario, the rows
       // before and after are unrelated.  In all other cases, the before and
       // after values refer to the same row.
-      const versions: Array<[string, (diff: CellDelta) => CellDelta]> = [];
+      const versions: Array<[boolean, string, (diff: CellDelta) => CellDelta]> = [];
       if (addedRows.has(rowId) && removedRows.has(rowId)) {
-        versions.push(['-', (diff) => [diff[0], null]]);
-        versions.push(['+', (diff) => [null, diff[1]]]);
+        versions.push([acceptedRemoveRows.has(rowId), '-', (diff) => [diff[0], null]]);
+        versions.push([acceptedAddRows.has(rowId), '+', (diff) => [null, diff[1]]]);
       } else {
         let code: string = '...';
-        if (updatedRows.has(rowId)) { code = '→'; }
-        if (addedRows.has(rowId))   { code = '+';  }
-        if (removedRows.has(rowId)) { code = '-';  }
-        versions.push([code, (diff) => diff]);
+        let accepted: boolean = false;
+        if (updatedRows.has(rowId)) {
+          code = '→';
+          accepted = acceptedUpdateRows.has(rowId);
+        }
+        if (addedRows.has(rowId)) {
+          code = '+';
+          accepted = acceptedAddRows.has(rowId);
+        }
+        if (removedRows.has(rowId)) {
+          code = '-';
+          accepted = acceptedRemoveRows.has(rowId);
+        }
+        versions.push([accepted, code, (diff) => diff]);
       }
-      for (const [code, transform] of versions) {
+      for (const [accept, code, transform] of versions) {
         const acc: CellDelta[] = [];
         const perCol = perRow[rowId];
         activeColsWithoutManualSort.forEach(col => {
@@ -201,7 +220,7 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
             acc.push(transform(diff));
           }
         });
-        tableChanges.cells.push([code, rowId, acc]);
+        tableChanges.cells.push({accepted: accept, type: code, rowId, cellDeltas: acc});
       }
     }
   }

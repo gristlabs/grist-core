@@ -16,7 +16,7 @@ import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
 import slugify from 'slugify';
 
-export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
+export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing', 'versions');
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
 
