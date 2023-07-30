@@ -148,7 +148,6 @@ r.__dict__
       'body': None,
       'deps': deps,
     }
-    print(out_actions.requests)
     self.assertEqual(out_actions.requests, {key: args})
     self.assertTableData("Table1", cols="subset", data=[
       ["id", "Request"],
