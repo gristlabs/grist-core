@@ -80,7 +80,7 @@ export class DocRequests {
 
   private async _handleSingleRequestRaw(request: SandboxRequest): Promise<Response> {
     try {
-      if (process.env.GRIST_EXPERIMENTAL_PLUGINS != '1' || process.env.GRIST_ENABLE_REQUEST_FUNCTION != '1') {
+      if (process.env.GRIST_ENABLE_REQUEST_FUNCTION != '1') {
         throw new Error("REQUEST is not enabled");
       }
       const {url, method, body, params, headers} = request;
@@ -92,7 +92,7 @@ export class DocRequests {
       const response = await fetch(urlObj.toString(), {
         headers: headers || {},
         agent: proxyAgent(urlObj),
-        method: method || "GET",
+        method,
         body
       });
       const content = await response.buffer();

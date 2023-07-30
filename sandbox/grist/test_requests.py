@@ -138,14 +138,17 @@ r = REQUEST('my_url', headers={'foo': 'bar'}, params={'b': 1, 'a': 2})
 r.__dict__
 """
     out_actions = self.modify_column("Table1", "Request", formula=formula)
-    key = '9d305be9664924aaaf7ebb0bab2e4155d1fa1b9dcde53e417f1a9f9a2c7e09b9'
+    key = 'd7f8cedf177ab538bf7dadf66e77a525486a29a41ce4520b2c89a33e39095fed'
     deps = {'Table1': {'Request': [1, 2]}}
     args = {
       'url': 'my_url',
       'headers': {'foo': 'bar'},
       'params': {'a': 2, 'b': 1},
+      'method': 'GET',
+      'body': None,
       'deps': deps,
     }
+    print(out_actions.requests)
     self.assertEqual(out_actions.requests, {key: args})
     self.assertTableData("Table1", cols="subset", data=[
       ["id", "Request"],

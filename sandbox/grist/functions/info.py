@@ -715,13 +715,7 @@ def REQUEST(url, params=None, headers=None, method="GET", data=None, json=None):
 
   # Requests are identified by a string key in various places.
   # The same arguments should produce the same key so the request is only made once.
-  args = dict(url=url, params=params, headers=_headers)
-
-  if method != "GET":
-    args["method"] = method
-
-  if body is not None:
-    args["body"] = body
+  args = dict(url=url, params=params, headers=_headers, method=method, body=body)
 
   args_json = json_module.dumps(args, sort_keys=True)
   key = hashlib.sha256(args_json.encode()).hexdigest()
