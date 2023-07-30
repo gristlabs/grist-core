@@ -707,15 +707,11 @@ def REQUEST(url, params=None, headers=None, method="GET", data=None, json=None):
   #   - `args` as other types: Form encoded and used as the request body. The correct header is also set.
   #   - `json` as str: Used as the request body. The correct header is also set.
   #   - `json` as other types: JSON encoded and set as the request body. The correct header is also set.
-  body, extra_headers = _replicate_requests_body_args(data=data, json=json)
+  body, _headers = _replicate_requests_body_args(data=data, json=json)
 
   # Extra headers that make us consistent with requests.post must not override
   # user-supplied headers.
-  _headers = {}
-  _headers.update(extra_headers)
-
-  if headers is not None:
-    _headers.update(headers)
+  _headers.update(headers or {})
 
   # Requests are identified by a string key in various places.
   # The same arguments should produce the same key so the request is only made once.
