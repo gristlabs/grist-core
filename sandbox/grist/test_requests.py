@@ -72,6 +72,13 @@ class TestResponse(unittest.TestCase):
     self.assertEqual(r.content, content)
     self.assertEqual(r.text, text)
 
+  def test_unknown_undetectable_encoding_json(self):
+    content = b''
+    r = Response(content, 200, "OK", {}, encoding=None)
+
+    # Not knowing the encoding should not break json() or text
+    self.assertEqual(r.text, "")
+
 
 class TestRequestFunction(test_engine.EngineTestCase):
   sample = testutil.parse_test_sample({
