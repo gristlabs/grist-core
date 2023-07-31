@@ -1089,7 +1089,6 @@ GridView.prototype.buildDom = function() {
                 dom.autoDispose(headerFontItalic),
                 dom.autoDispose(headerFontUnderline),
                 dom.autoDispose(headerFontStrikethrough),
-                // TODO : when we cancel the new style the color and background color are not visually cancelled
                 kd.style('--grist-header-color', headerTextColor),
                 kd.style('--grist-header-background-color', headerFillColor),
                 kd.toggleClass('font-bold', headerFontBold),
