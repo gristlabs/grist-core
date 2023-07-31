@@ -5,7 +5,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
-import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
+import {AddOrUpdateRecord, ColumnsPut, Record as ApiRecord} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {
   applyQueryParameters,
@@ -840,6 +840,37 @@ function testDocApi() {
     resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/_grist_Tables/data/delete`,
       [2, 3, 4, 5, 6], chimpy);
     assert.equal(resp.status, 200);
+  });
+
+  describe("PUT /docs/{did}/columns", function () {
+
+    it('should create new columns and update existing ones', async function () {
+      // given
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'ColumnsPut'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
+
+      {
+        const body: ColumnsPut = {
+          columns: [{
+            id: "Foo",
+            fields: {
+              type: "Text",
+              colId: "Foo",
+              label: "Foo"
+            }
+          }]
+        }
+        // when
+        const resp = await axios.put(url, body, chimpy);
+
+        // then
+        console.log("resp.statusText = ", resp.statusText);
+        console.log("url = ", url);
+        console.log("resp.data = ", resp.data);
+        assert.equal(resp.status, 200);
+      }
+    });
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {

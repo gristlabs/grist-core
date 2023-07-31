@@ -88,6 +88,10 @@ export interface ColumnsPatch {
   columns: [RecordWithStringId, ...RecordWithStringId[]]; // at least one column is required
 }
 
+export interface ColumnsPut {
+  columns: [RecordWithStringId, ...RecordWithStringId[]]; // at least one column is required
+}
+
 /**
  * Creating tables requires a list of columns.
  * `fields` is not accepted because it's not generally sensible to set the metadata fields on new tables.

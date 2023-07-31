@@ -94,7 +94,7 @@ type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Respon
 // Schema validators for api endpoints that creates or updates records.
 const {
   RecordsPatch, RecordsPost, RecordsPut,
-  ColumnsPost, ColumnsPatch,
+  ColumnsPost, ColumnsPatch, ColumnsPut,
   TablesPost, TablesPatch,
 } = t.createCheckers(DocApiTypesTI, GristDataTI);
 
@@ -678,6 +678,44 @@ export class DocWorkerApi {
         };
         await ops.upsert(body.records, options);
         res.json(null);
+      })
+    );
+
+    // Add or update records given in records format
+    this._app.put('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPut),
+      withDoc(async (activeDoc, req, res) => {
+        console.log("HOY");
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
+        const {tableId} = req.params;
+        const tableRef = tablesTable.findMatchingRowId({tableId});
+        if (!tableRef) {
+          throw new ApiError(`Table not found "${tableId}"`, 404);
+        }
+        const body = req.body as Types.ColumnsPut;
+        // interface TriagedColumnsToOperate {
+        //   columnsToAdd: Types.Record[];
+        //   columnsToUpdate: Types.Record[];
+        // }
+        // const { columnsToAdd, columnsToUpdate } = body.columns.reduce<TriagedColumnsToOperate>((acc, col) => {
+        //   const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
+        //   const columnDesc = {...col, id};
+        //   return {
+        //     columnsToAdd: [...acc.columnsToAdd, ...(id ? [] : [columnDesc])],
+        //     columnsToUpdate: [...acc.columnsToUpdate, ...(id ? [columnDesc] : [])]
+        //   }
+        // }, { columnsToAdd: [], columnsToUpdate: [] });
+        const ops = getTableOperations(req, activeDoc, "_grist_Tables_column");
+        const records: Types.AddOrUpdateRecord[] = body.columns.map(col => {
+          const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
+          return { require: { id }, fields: col.fields };
+        });
+        const options = {
+          add: !isAffirmative(req.query.noadd),
+          update: !isAffirmative(req.query.noupdate),
+          allowEmptyRequire: isAffirmative(req.query.allow_empty_require),
+        };
+        await ops.upsert(records, options);
       })
     );
 
