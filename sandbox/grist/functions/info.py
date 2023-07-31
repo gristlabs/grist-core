@@ -4,13 +4,14 @@
 from __future__ import absolute_import
 import datetime
 import hashlib
-import json
+import json as json_module
 import math
 import numbers
 import re
 
 import chardet
 import six
+from six.moves import urllib_parse
 
 import column
 import docmodel
@@ -653,20 +654,70 @@ def is_error(value):
       or (isinstance(value, float) and math.isnan(value)))
 
 
+def _replicate_requests_body_args(data=None, json=None):
+  """
+  Replicate some of the behaviour of requests.post, specifically the data and 
+  json args.
+
+  Returns a tuple of (body, extra_headers)
+  """
+  if data is None and json is None:
+      return None, {}
+
+  elif data is not None and json is None:
+    if isinstance(data, str):
+      body = data
+      extra_headers = {}
+    else:
+      body = urllib_parse.urlencode(data)
+      extra_headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+      }
+    return body, extra_headers
+
+  elif json is not None and data is None:
+    if isinstance(json, str):
+      body = json
+    else:
+      body = json_module.dumps(json)
+    extra_headers = {
+      "Content-Type": "application/json",
+    }
+    return body, extra_headers
+
+  elif data is not None and json is not None:
+    # From testing manually with requests 2.28.2, data overrides json if both
+    # supplied. However, this is probably a mistake on behalf of the caller, so
+    # we choose to throw an error instead
+    raise ValueError("`data` and `json` cannot be supplied to REQUEST at the same time")
+
+
 @unimplemented
 # ^ This excludes this function from autocomplete while in beta
 # and marks it as unimplemented in the docs.
 # It also makes grist-help expect to see the string 'raise NotImplemented' in the function source,
 # which it does now, because of this comment. Removing this comment will currently break the docs.
-def REQUEST(url, params=None, headers=None):
-  # Makes a GET HTTP request with an API similar to `requests.get`.
+def REQUEST(url, params=None, headers=None, method="GET", data=None, json=None):
+  # Makes an HTTP request with an API similar to `requests.request`.
   # Actually jumps through hoops internally to make the request asynchronously (usually)
   # while feeling synchronous to the formula writer.
 
+  # When making a POST or PUT request, REQUEST supports `data` and `json` args, from `requests.request`:
+  #   - `args` as str: Used as the request body
+  #   - `args` as other types: Form encoded and used as the request body. The correct header is also set.
+  #   - `json` as str: Used as the request body. The correct header is also set.
+  #   - `json` as other types: JSON encoded and set as the request body. The correct header is also set.
+  body, _headers = _replicate_requests_body_args(data=data, json=json)
+
+  # Extra headers that make us consistent with requests.post must not override
+  # user-supplied headers.
+  _headers.update(headers or {})
+
   # Requests are identified by a string key in various places.
   # The same arguments should produce the same key so the request is only made once.
-  args = dict(url=url, params=params, headers=headers)
-  args_json = json.dumps(args, sort_keys=True)
+  args = dict(url=url, params=params, headers=_headers, method=method, body=body)
+
+  args_json = json_module.dumps(args, sort_keys=True)
   key = hashlib.sha256(args_json.encode()).hexdigest()
 
   # This may either return the raw response data or it may raise a special exception
@@ -701,7 +752,7 @@ class Response(object):
     return self.content.decode(self.encoding)
 
   def json(self, **kwargs):
-    return json.loads(self.text, **kwargs)
+    return json_module.loads(self.text, **kwargs)
 
   @property
   def ok(self):

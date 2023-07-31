@@ -4,6 +4,14 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const WebhookSubscribeCollection = t.iface([], {
+  "webhooks": t.array("Webhook"),
+});
+
+export const Webhook = t.iface([], {
+  "fields": "WebhookFields",
+});
+
 export const WebhookFields = t.iface([], {
   "url": "string",
   "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"))),
@@ -25,6 +33,10 @@ export const WebhookSubscribe = t.iface([], {
   "isReadyColumn": t.opt(t.union("string", "null")),
   "name": t.opt("string"),
   "memo": t.opt("string"),
+});
+
+export const WebhookSummaryCollection = t.iface([], {
+  "webhooks": t.array("WebhookSummary"),
 });
 
 export const WebhookSummary = t.iface([], {
@@ -79,10 +91,13 @@ export const WebhookUsage = t.iface([], {
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
+  WebhookSubscribeCollection,
+  Webhook,
   WebhookFields,
   WebhookBatchStatus,
   WebhookStatus,
   WebhookSubscribe,
+  WebhookSummaryCollection,
   WebhookSummary,
   WebhookUpdate,
   WebhookPatch,

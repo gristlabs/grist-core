@@ -10,6 +10,9 @@ import { icon } from "app/client/ui2018/icons";
 import { cssMenuItem, defaultMenuOptions, IOpenController, IPopupOptions, setPopupToFunc } from "popweasel";
 import { mergeWith } from "lodash";
 import { getOptionFull, SimpleList } from "../lib/simpleList";
+import { makeT } from 'app/client/lib/localization';
+
+const t = makeT('searchDropdown');
 
 const testId = makeTestId('test-sd-');
 
@@ -92,7 +95,7 @@ class DropdownWithSearch<T> extends Disposable {
       cssMenuHeader(
         cssSearchIcon('Search'),
         this._inputElem = cssSearch(
-          {placeholder: this._options.placeholder || 'Search'},
+          {placeholder: this._options.placeholder || t('Search')},
           dom.on('input', () => { this._update(); }),
           dom.on('blur', () => setTimeout(() => this._inputElem.focus(), 0)),
         ),

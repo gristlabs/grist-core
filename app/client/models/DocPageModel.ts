@@ -42,6 +42,7 @@ export interface DocInfo extends Document {
   isSnapshot: boolean;
   isTutorialTrunk: boolean;
   isTutorialFork: boolean;
+  isTemplate: boolean;
   idParts: UrlIdParts;
   openMode: OpenDocMode;
 }
@@ -76,6 +77,7 @@ export interface DocPageModel {
   isSnapshot: Observable<boolean>;
   isTutorialTrunk: Observable<boolean>;
   isTutorialFork: Observable<boolean>;
+  isTemplate: Observable<boolean>;
 
   importSources: ImportSource[];
 
@@ -128,9 +130,11 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly isBareFork = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isBareFork : false);
   public readonly isSnapshot = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.isSnapshot : false);
   public readonly isTutorialTrunk = Computed.create(this, this.currentDoc,
-                                                    (use, doc) => doc ? doc.isTutorialTrunk : false);
+    (use, doc) => doc ? doc.isTutorialTrunk : false);
   public readonly isTutorialFork = Computed.create(this, this.currentDoc,
-                                                    (use, doc) => doc ? doc.isTutorialFork : false);
+    (use, doc) => doc ? doc.isTutorialFork : false);
+  public readonly isTemplate = Computed.create(this, this.currentDoc,
+    (use, doc) => doc ? doc.isTemplate : false);
 
   public readonly importSources: ImportSource[] = [];
 
@@ -265,10 +269,9 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       {
         explanation: (
           isDocOwner
-            ? t("You can try reloading the document, or using recovery mode. " +
-                "Recovery mode opens the document to be fully accessible to " +
-                "owners, and inaccessible to others. It also disables " +
-                "formulas. [{{error}}]", {error: err.message})
+            ? t("You can try reloading the document, or using recovery mode. \
+Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. \
+It also disables formulas. [{{error}}]", {error: err.message})
             : isDenied
               ? t('Sorry, access to this document has been denied. [{{error}}]', {error: err.message})
               : t("Document owners can attempt to recover the document. [{{error}}]", {error: err.message})
@@ -432,24 +435,33 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
 function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const idParts = parseUrlId(doc.urlId || doc.id);
   const isFork = Boolean(idParts.forkId || idParts.snapshotId);
+  const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
+  const isSnapshot = Boolean(idParts.snapshotId);
+  const isTutorial = doc.type === 'tutorial';
+  const isTutorialTrunk = isTutorial && !isFork && mode !== 'default';
+  const isTutorialFork = isTutorial && isFork;
 
   let openMode = mode;
   if (!openMode) {
-    if (isFork) {
-      // Ignore the document 'openMode' setting if the doc is an unsaved fork.
+    if (isFork || isTutorialTrunk || isTutorialFork) {
+      // Tutorials (if no explicit /m/default mode is set) automatically get or
+      // create a fork on load, which then behaves as a document that is in default
+      // mode. Since the document's 'openMode' has no effect, don't bother trying
+      // to set it here, as it'll potentially be confusing for other code reading it.
       openMode = 'default';
+    } else if (!isFork && doc.type === 'template') {
+      // Templates should always open in fork mode by default.
+      openMode = 'fork';
     } else {
       // Try to use the document's 'openMode' if it's set.
       openMode = doc.options?.openMode ?? 'default';
     }
   }
 
-  const isPreFork = (openMode === 'fork');
-  const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
-  const isSnapshot = Boolean(idParts.snapshotId);
-  const isTutorialTrunk = !isFork && doc.type === 'tutorial' && mode !== 'default';
-  const isTutorialFork = isFork && doc.type === 'tutorial';
+  const isPreFork = openMode === 'fork';
+  const isTemplate = doc.type === 'template' && (isFork || isPreFork);
   const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
+
   return {
     ...doc,
     isFork,
@@ -460,6 +472,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
     isSnapshot,
     isTutorialTrunk,
     isTutorialFork,
+    isTemplate,
     isReadonly: !isEditable,
     idParts,
     openMode,

@@ -3,13 +3,13 @@
 # and to produce the ActionBundles expected by other code.
 
 import json
+import logging
 
 from acl_formula import parse_acl_grist_entities, parse_acl_formula_json
 import action_obj
-import logger
 import textbuilder
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 class Permissions(object):
@@ -68,7 +68,7 @@ def prepare_acl_table_renames(docmodel, useractions, table_renames_dict):
           rule_info["tableId"] = table_renames_dict[rule_info.get("tableId")]
           rule_updates.append((rule_rec, {'userAttributes': json.dumps(rule_info)}))
       except Exception as e:
-        log.warn("Error examining aclRule: %s" % (e,))
+        log.warning("Error examining aclRule: %s", e)
 
   def do_renames():
     useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)
@@ -104,7 +104,7 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
           rule_info["lookupColId"] = new_col_id
           rule_updates.append((rule_rec, {'userAttributes': json.dumps(rule_info)}))
       except Exception as e:
-        log.warn("Error examining aclRule: %s" % (e,))
+        log.warning("Error examining aclRule: %s", e)
 
   # Go through again checking if anything in ACL formulas is affected by the rename.
   for rule_rec in docmodel.aclRules.all:

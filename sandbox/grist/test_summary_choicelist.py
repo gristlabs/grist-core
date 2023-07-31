@@ -1,13 +1,14 @@
+# pylint: disable=line-too-long
 """
 Test of Summary tables grouped by ChoiceList columns.
 """
+import logging
 import column
-import logger
 import lookup
 import testutil
 from test_engine import EngineTestCase, Table, Column, test_undo
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 class TestSummaryChoiceList(EngineTestCase):

@@ -1,14 +1,25 @@
 import * as log from 'app/client/lib/log';
 import {ConnectState, ConnectStateManager} from 'app/client/models/ConnectState';
+import {isNarrowScreenObs, testId} from 'app/client/ui2018/cssVars';
 import {delay} from 'app/common/delay';
 import {isLongerThan} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {timeFormat} from 'app/common/timeFormat';
-import {bundleChanges, Disposable, Holder, IDisposable, IDisposableOwner } from 'grainjs';
-import {Computed, dom, DomElementArg, MutableObsArray, obsArray, Observable} from 'grainjs';
+import {
+  bundleChanges,
+  Computed,
+  Disposable,
+  dom,
+  DomElementArg,
+  Holder,
+  IDisposable,
+  IDisposableOwner,
+  MutableObsArray,
+  obsArray,
+  Observable
+} from 'grainjs';
 import clamp = require('lodash/clamp');
 import defaults = require('lodash/defaults');
-import {isNarrowScreenObs, testId} from 'app/client/ui2018/cssVars';
 
 // When rendering app errors, we'll only show the last few.
 const maxAppErrors = 5;
@@ -79,9 +90,11 @@ export class Expirable extends Disposable {
   /**
    * Sets status to 'expiring', then calls dispose after a short delay.
    */
-  public async expire(): Promise<void> {
+  public async expire(withoutDelay: boolean = false): Promise<void> {
     this.status.set('expiring');
-    await delay(Expirable.fadeDelay);
+    if(!withoutDelay) {
+      await delay(Expirable.fadeDelay);
+    }
     if (!this.isDisposed()) {
       this.dispose();
     }
@@ -339,7 +352,7 @@ export class Notifier extends Disposable implements INotifier {
     if (key) {
       const prev = this._keyedItems.get(key);
       if (prev) {
-        await prev.expire();
+        await prev.expire(true);
       }
       this._keyedItems.set(key, n);
       n.onDispose(() => this.isDisposed() || this._keyedItems.delete(key));

@@ -39,7 +39,9 @@
         "View As": "View As",
         "Seed rules": "Seed rules",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access.",
-        "Permission to edit document structure": "Permission to edit document structure"
+        "Permission to edit document structure": "Permission to edit document structure",
+        "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. ",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions."
     },
     "AccountPage": {
         "API": "API",
@@ -74,7 +76,10 @@
         "Activation": "Activation",
         "Billing Account": "Billing Account",
         "Support Grist": "Support Grist",
-        "Upgrade Plan": "Upgrade Plan"
+        "Upgrade Plan": "Upgrade Plan",
+        "Sign In": "Sign In",
+        "Sign Up": "Sign Up",
+        "Use This Template": "Use This Template"
     },
     "ViewAsDropdown": {
         "View As": "View As",
@@ -110,7 +115,8 @@
         "Home Page": "Home Page",
         "Legacy": "Legacy",
         "Personal Site": "Personal Site",
-        "Team Site": "Team Site"
+        "Team Site": "Team Site",
+        "Grist Templates": "Grist Templates"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -395,7 +401,8 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
         "Import from file": "Import from file",
-        "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Saved linked section {{title}} in view {{name}}",
+        "go to webhook settings": "go to webhook settings"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -589,7 +596,8 @@
         "Send to Google Drive": "Send to Google Drive",
         "Show in folder": "Show in folder",
         "Unsaved": "Unsaved",
-        "Work on a Copy": "Work on a Copy"
+        "Work on a Copy": "Work on a Copy",
+        "Share": "Share"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -801,7 +809,8 @@
         "Find Next ": "Find Next ",
         "Find Previous ": "Find Previous ",
         "No results": "No results",
-        "Search in document": "Search in document"
+        "Search in document": "Search in document",
+        "Search": "Search"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Sending file to Google Drive"
@@ -896,7 +905,11 @@
         "Error in the cell": "Error in the cell",
         "Errors in all {{numErrors}} cells": "Errors in all {{numErrors}} cells",
         "Errors in {{numErrors}} of {{numCells}} cells": "Errors in {{numErrors}} of {{numCells}} cells",
-        "editingFormula is required": "editingFormula is required"
+        "editingFormula is required": "editingFormula is required",
+        "Enter formula or {{button}}.": "Enter formula or {{button}}.",
+        "Enter formula.": "Enter formula.",
+        "Expand Editor": "Expand Editor",
+        "use AI Assistant": "use AI Assistant"
     },
     "HyperLinkEditor": {
         "[link label] url": "[link label] URL"
@@ -981,7 +994,9 @@
         "Add New": "Add New",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.",
         "Anchor Links": "Anchor Links",
-        "Custom Widgets": "Custom Widgets"
+        "Custom Widgets": "Custom Widgets",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "You can choose one of our pre-made widgets or embed your own by providing its full URL."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1033,7 +1048,20 @@
         "Regenerate": "Regenerate",
         "Save": "Save",
         "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.",
-        "Tips": "Tips"
+        "Tips": "Tips",
+        "AI Assistant": "AI Assistant",
+        "Apply": "Apply",
+        "Cancel": "Cancel",
+        "Clear Conversation": "Clear Conversation",
+        "Code View": "Code View",
+        "Hi, I'm the Grist Formula AI Assistant.": "Hi, I'm the Grist Formula AI Assistant.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.",
+        "Learn more": "Learn more",
+        "Press Enter to apply suggested formula.": "Press Enter to apply suggested formula.",
+        "Sign Up for Free": "Sign Up for Free",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Sign up for a free Grist account to start using the Formula AI Assistant.",
+        "There are some things you should know when working with me:": "There are some things you should know when working with me:",
+        "What do you need help with?": "What do you need help with?"
     },
     "GridView": {
         "Click to insert": "Click to insert"
@@ -1042,6 +1070,61 @@
         "Welcome back": "Welcome back",
         "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
         "You have access to the following Grist sites.": "You have access to the following Grist sites."
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "DESCRIPTION"
+    },
+    "UserManager": {
+        "Add {{member}} to your team": "Add {{member}} to your team",
+        "Allow anyone with the link to open.": "Allow anyone with the link to open.",
+        "Anyone with link ": "Anyone with link ",
+        "Cancel": "Cancel",
+        "Close": "Close",
+        "Collaborator": "Collaborator",
+        "Confirm": "Confirm",
+        "Copy Link": "Copy Link",
+        "Create a team to share with more people": "Create a team to share with more people",
+        "Grist support": "Grist support",
+        "Guest": "Guest",
+        "Invite multiple": "Invite multiple",
+        "Invite people to {{resourceType}}": "Invite people to {{resourceType}}",
+        "Link copied to clipboard": "Link copied to clipboard",
+        "Manage members of team site": "Manage members of team site",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.",
+        "Off": "Off",
+        "On": "On",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.",
+        "Open Access Rules": "Open Access Rules",
+        "Outside collaborator": "Outside collaborator",
+        "Public Access": "Public Access",
+        "Public access": "Public access",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
+        "Public access: ": "Public access: ",
+        "Remove my access": "Remove my access",
+        "Save & ": "Save & ",
+        "Team member": "Team member",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.",
+        "User may not modify their own access.": "User may not modify their own access.",
+        "Your role for this team site": "Your role for this team site",
+        "Your role for this {{resourceType}}": "Your role for this {{resourceType}}",
+        "free collaborator": "free collaborator",
+        "guest": "guest",
+        "member": "member",
+        "team site": "team site",
+        "{{collaborator}} limit exceeded": "{{collaborator}} limit exceeded",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} of {{limitTop}} {{collaborator}}s",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
+        "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}"
+    },
+    "SearchModel": {
+        "Search all pages": "Search all pages",
+        "Search all tables": "Search all tables"
+    },
+    "searchDropdown": {
+        "Search": "Search"
     },
     "SupportGristNudge": {
         "Close": "Close",
@@ -1074,5 +1157,12 @@
         "No data": "No data",
         "No row selected in {{title}}": "No row selected in {{title}}",
         "Not all data is shown": "Not all data is shown"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Collapse Editor"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximize",
+        "Minimize": "Minimize"
     }
 }

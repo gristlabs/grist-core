@@ -1,6 +1,6 @@
 import BaseView from 'app/client/components/BaseView';
 import {CursorPos} from 'app/client/components/Cursor';
-import {FilterColValues, LinkingState} from 'app/client/components/LinkingState';
+import {LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';
 import {
   ColumnRec,
@@ -17,6 +17,7 @@ import {
 import * as modelUtil from 'app/client/models/modelUtil';
 import {LinkConfig} from 'app/client/ui/selectBy';
 import {getWidgetTypes} from 'app/client/ui/widgetTypes';
+import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';

@@ -5,7 +5,7 @@ import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 describe('Features', function () {
   this.timeout(20000);
-  setupTestSuite();
+  setupTestSuite({samples: true});
 
   let session: gu.Session;
   let oldEnv: EnvironmentSnapshot;
@@ -21,6 +21,7 @@ describe('Features', function () {
   });
 
   it('can be enabled with the GRIST_UI_FEATURES env variable', async function () {
+    process.env.GRIST_TEMPLATE_ORG = 'templates';
     process.env.GRIST_UI_FEATURES = 'helpCenter,templates';
     await server.restart();
     await session.loadDocMenu('/');

@@ -14,16 +14,12 @@ import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
+import {getTemplateOrg} from 'app/server/lib/sendAppPage';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 
 import {User} from './entity/User';
 import {HomeDBManager, QueryResult, Scope} from './lib/HomeDBManager';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
-
-// Special public organization that contains examples and templates.
-export const TEMPLATES_ORG_DOMAIN = process.env.GRIST_ID_PREFIX ?
-  `templates-${process.env.GRIST_ID_PREFIX}` :
-  'templates';
 
 // exposed for testing purposes
 export const Deps = {
@@ -247,10 +243,15 @@ export class ApiServer {
     // GET /api/templates/
     // Get all templates (or only featured templates if `onlyFeatured` is set).
     this._app.get('/api/templates/', expressWrap(async (req, res) => {
+      const templateOrg = getTemplateOrg();
+      if (!templateOrg) {
+        throw new ApiError('Template org is not configured', 500);
+      }
+
       const onlyFeatured = isParameterOn(req.query.onlyFeatured);
       const query = await this._dbManager.getOrgWorkspaces(
         {...getScope(req), showOnlyPinned: onlyFeatured},
-        TEMPLATES_ORG_DOMAIN
+        templateOrg
       );
       return sendReply(req, res, query);
     }));

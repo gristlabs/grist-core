@@ -2772,11 +2772,111 @@ function testDocApi() {
     }
   });
 
-  it("POST /docs/{did}/tables/{tid}/_subscribe validates inputs", async function () {
-    async function check(requestBody: any, status: number, ...errors: RegExp[]) {
+  describe('webhooks related endpoints', async function () {
+
+      /*
+        Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
+      */
+      async function oldSubscribeCheck(requestBody: any, status: number, ...errors: RegExp[]) {
+        const resp = await axios.post(
+          `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
+          requestBody, chimpy
+        );
+        assert.equal(resp.status, status);
+        for (const error of errors) {
+          assert.match(resp.data.details?.userError || resp.data.error, error);
+        }
+      }
+
+    async function postWebhookCheck(requestBody: any, status: number, ...errors: RegExp[]) {
       const resp = await axios.post(
-        `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
+        `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`,
         requestBody, chimpy
+      );
+      assert.equal(resp.status, status);
+      for (const error of errors) {
+        assert.match(resp.data.details?.userError || resp.data.error, error);
+      }
+      return resp.data;
+    }
+
+    it("GET /docs/{did}/webhooks retrieves a list of webhooks", async function () {
+      const registerResponse = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
+      const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
+      try{
+      assert.equal(resp.status, 200);
+      assert.isAtLeast(resp.data.webhooks.length, 1);
+      assert.containsAllKeys(resp.data.webhooks[0], ['id', 'fields']);
+      assert.containsAllKeys(resp.data.webhooks[0].fields,
+        ['enabled', 'isReadyColumn', 'memo', 'name', 'tableId', 'eventTypes', 'url']);
+      }
+      finally{
+        //cleanup
+        await deleteWebhookCheck(registerResponse.webhooks[0].id);
+      }
+    });
+
+    it("POST /docs/{did}/tables/{tid}/_subscribe validates inputs", async function () {
+      await oldSubscribeCheck({}, 400, /eventTypes is missing/);
+      await oldSubscribeCheck({eventTypes: 0}, 400, /url is missing/, /eventTypes is not an array/);
+      await oldSubscribeCheck({eventTypes: []}, 400, /url is missing/);
+      await oldSubscribeCheck({eventTypes: [], url: "https://example.com"}, 400, /eventTypes must be a non-empty array/);
+      await oldSubscribeCheck({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0] is none of "add", "update"/);
+      await oldSubscribeCheck({eventTypes: ["add"]}, 400, /url is missing/);
+      await oldSubscribeCheck({eventTypes: ["add"], url: "https://evil.com"}, 403, /Provided url is forbidden/);
+      await oldSubscribeCheck({eventTypes: ["add"], url: "http://example.com"}, 403, /Provided url is forbidden/);  // not https
+      await oldSubscribeCheck({eventTypes: ["add"], url: "https://example.com", isReadyColumn: "bar"}, 404, /Column not found "bar"/);
+    });
+
+    // in this endpoint webhookID is in body, not in path, so it also should be verified
+    it("POST /docs/{did}/webhooks validates inputs", async function () {
+
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1"}}]}, 400,
+        /eventTypes is missing/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: 0}}]}, 400,
+        /url is missing/, /eventTypes is not an array/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: []}}]},
+        400, /url is missing/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: [],
+              url: "https://example.com"}}]},
+        400, /eventTypes must be a non-empty array/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["foo"],
+              url: "https://example.com"}}]},
+        400, /eventTypes\[0] is none of "add", "update"/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"]}}]},
+        400, /url is missing/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
+              url: "https://evil.com"}}]},
+        403, /Provided url is forbidden/);
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
+              url: "http://example.com"}}]},
+        403, /Provided url is forbidden/);  // not https
+      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
+              url: "https://example.com", isReadyColumn: "bar"}}]},
+        404, /Column not found "bar"/);
+      await postWebhookCheck({webhooks:[{fields: {eventTypes: ["add"], url: "https://example.com"}}]},
+        400, /tableId is missing/);
+      await postWebhookCheck({}, 400, /webhooks is missing/);
+
+
+    });
+
+    async function userCheck(user: AxiosRequestConfig, requestBody: any, status: number, responseBody: any) {
+      const resp = await axios.post(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_unsubscribe`,
+        requestBody, user
+      );
+      assert.equal(resp.status, status);
+      if (status !== 200) {
+        responseBody = {error: responseBody};
+      }
+      assert.deepEqual(resp.data, responseBody);
+    }
+
+    async function userDeleteCheck(user: AxiosRequestConfig, webhookId: string, status: number, ...errors: RegExp[]) {
+      const resp = await axios.delete(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks/${webhookId}`,
+        user
       );
       assert.equal(resp.status, status);
       for (const error of errors) {
@@ -2784,81 +2884,147 @@ function testDocApi() {
       }
     }
 
-    await check({}, 400, /eventTypes is missing/);
-    await check({eventTypes: 0}, 400, /url is missing/, /eventTypes is not an array/);
-    await check({eventTypes: []}, 400, /url is missing/);
-    await check({eventTypes: [], url: "https://example.com"}, 400, /eventTypes must be a non-empty array/);
-    await check({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0] is none of "add", "update"/);
-    await check({eventTypes: ["add"]}, 400, /url is missing/);
-    await check({eventTypes: ["add"], url: "https://evil.com"}, 403, /Provided url is forbidden/);
-    await check({eventTypes: ["add"], url: "http://example.com"}, 403, /Provided url is forbidden/);  // not https
-    await check({eventTypes: ["add"], url: "https://example.com", isReadyColumn: "bar"}, 404, /Column not found "bar"/);
-  });
-
-  async function userCheck(user: AxiosRequestConfig, requestBody: any, status: number, responseBody: any) {
-    const resp = await axios.post(
-      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_unsubscribe`,
-      requestBody, user
-    );
-    assert.equal(resp.status, status);
-    if (status !== 200) {
-      responseBody = {error: responseBody};
+    interface SubscriptionInfo{
+      unsubscribeKey: string;
+      webhookId: string;
     }
-    assert.deepEqual(resp.data, responseBody);
-  }
+    async function subscribeWebhook(): Promise<SubscriptionInfo> {
+      const subscribeResponse = await axios.post(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
+        {eventTypes: ["add"], url: "https://example.com"}, chimpy
+      );
+      assert.equal(subscribeResponse.status, 200);
+      // Editor needs unsubscribeKey.
+      const {unsubscribeKey, webhookId} = subscribeResponse.data;
+      return {unsubscribeKey, webhookId};
+    }
 
-  it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for owners", async function () {
-    const subscribeResponse = await axios.post(
-      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
-      {eventTypes: ["add"], url: "https://example.com"}, chimpy
-    );
-    assert.equal(subscribeResponse.status, 200);
-    // Owner doesn't need unsubscribeKey.
-    const {webhookId} = subscribeResponse.data;
+    it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for owners", async function () {
+      // Owner doesn't need unsubscribeKey.
+      const {webhookId} = await subscribeWebhook();
 
-    const check = userCheck.bind(null, chimpy);
+      const check = userCheck.bind(null, chimpy);
 
-    await check({webhookId: "foo"}, 404, `Webhook not found "foo"`);
-    await check({}, 404, `Webhook not found ""`);
+      await check({webhookId: "foo"}, 404, `Webhook not found "foo"`);
+      await check({}, 404, `Webhook not found ""`);
 
-    // Actually unsubscribe
-    await check({webhookId}, 200, {success: true});
+      // Actually unsubscribe
+      await check({webhookId}, 200, {success: true});
 
-    // Trigger is now deleted!
-    await check({webhookId}, 404, `Webhook not found "${webhookId}"`);
-  });
+      // Trigger is now deleted!
+      await check({webhookId}, 404, `Webhook not found "${webhookId}"`);
+    });
 
-  it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
-    const subscribeResponse = await axios.post(
-      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
-      {eventTypes: ["add"], url: "https://example.com"}, chimpy
-    );
-    assert.equal(subscribeResponse.status, 200);
-    // Editor needs unsubscribeKey.
-    const {unsubscribeKey, webhookId} = subscribeResponse.data;
+    it("DELETE /docs/{did}/tables/webhooks validates inputs for owners", async function () {
+      // Owner doesn't need unsubscribeKey.
+      const {webhookId} = await subscribeWebhook();
 
-    const delta = {
-      users: {"kiwi@getgrist.com": 'editors' as string | null}
-    };
-    let accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
-    assert.equal(accessResp.status, 200);
+      const check = userDeleteCheck.bind(null, chimpy);
 
-    const check = userCheck.bind(null, kiwi);
+      await check("foo", 404, /Webhook not found "foo"/);
 
-    await check({webhookId: "foo"}, 404, `Webhook not found "foo"`);
-    await check({webhookId}, 400, 'Bad request: unsubscribeKey required');
-    await check({webhookId, unsubscribeKey: "foo"}, 401, 'Wrong unsubscribeKey');
+      await check("", 404, /not found/, new RegExp(`/api/docs/${docIds.Timesheets}/webhooks/`));
 
-    // Actually unsubscribe
-    await check({webhookId, unsubscribeKey}, 200, {success: true});
 
-    // Trigger is now deleted!
-    await check({webhookId, unsubscribeKey}, 404, `Webhook not found "${webhookId}"`);
+      // Actually unsubscribe
+      await check(webhookId, 200);
 
-    // Remove editor access
-    delta.users['kiwi@getgrist.com'] = null;
-    accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
-    assert.equal(accessResp.status, 200);
+      // Trigger is now deleted!
+      await check(webhookId, 404, new RegExp(`Webhook not found "${webhookId}"`));
+    });
+
+    async function getRegisteredWebhooks() {
+      const response = await axios.get(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
+      return response.data.webhooks;
+    }
+
+    async function deleteWebhookCheck(webhookId: any) {
+      const response = await axios.delete(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/webhooks/${webhookId}`, chimpy);
+      return response.data;
+    }
+
+    it("POST /docs/{did}/webhooks is adding new webhook to table "+
+       "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function(){
+        const registeredWebhook = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
+        let webhookList = await getRegisteredWebhooks();
+        assert.equal(webhookList.length, 1);
+        assert.equal(webhookList[0].id, registeredWebhook.webhooks[0].id);
+        await deleteWebhookCheck(registeredWebhook.webhooks[0].id);
+        webhookList = await getRegisteredWebhooks();
+        assert.equal(webhookList.length, 0);
+    });
+
+    it("POST /docs/{did}/webhooks is adding new webhook should be able to add many webhooks at once", async function(){
+      const response = await postWebhookCheck(
+        {
+          webhooks:[
+            {fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}},
+            {fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com/2"}},
+            {fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com/3"}},
+          ]}, 200);
+      assert.equal(response.webhooks.length, 3);
+      const webhookList = await getRegisteredWebhooks();
+      assert.equal(webhookList.length, 3);
+    });
+
+
+
+    it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
+
+      const subscribeResponse = await subscribeWebhook();
+
+      const delta = {
+        users: {"kiwi@getgrist.com": 'editors' as string | null}
+      };
+      let accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
+      assert.equal(accessResp.status, 200);
+
+      const check = userCheck.bind(null, kiwi);
+
+      await check({webhookId: "foo"}, 404, `Webhook not found "foo"`);
+      //no unsubscribeKey - should be not accepted for role other that owner
+      await check({webhookId: subscribeResponse.webhookId}, 400, 'Bad request: unsubscribeKey required');
+      //wrong unsubscribeKey - it should not be accepted
+      //subscribeResponse = await subscribeWebhook();
+      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey: "foo"},
+        401, 'Wrong unsubscribeKey');
+      //subscribeResponse = await subscribeWebhook();
+      // Actually unsubscribe with the same unsubscribeKey that was returned by registration
+      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey:subscribeResponse.unsubscribeKey},
+        200, {success: true});
+
+      // Trigger is now deleted!
+      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey:subscribeResponse.unsubscribeKey},
+        404, `Webhook not found "${subscribeResponse.webhookId}"`);
+
+      // Remove editor access
+      delta.users['kiwi@getgrist.com'] = null;
+      accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
+      assert.equal(accessResp.status, 200);
+    });
+
+    it("DELETE /docs/{did}/tables/webhooks should not be allowed for not-owner", async function () {
+
+      const subscribeResponse = await subscribeWebhook();
+      const check = userDeleteCheck.bind(null, kiwi);
+
+      const delta = {
+        users: {"kiwi@getgrist.com": 'editors' as string | null}
+      };
+      let accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
+      assert.equal(accessResp.status, 200);
+
+      // Actually unsubscribe with the same unsubscribeKey that was returned by registration - it shouldn't be accepted
+      await check(subscribeResponse.webhookId, 403, /No owner access/);
+
+
+      // Remove editor access
+      delta.users['kiwi@getgrist.com'] = null;
+      accessResp = await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
+      assert.equal(accessResp.status, 200);
+    });
   });
 
   describe("Daily API Limit", () => {
@@ -2924,7 +3090,8 @@ function testDocApi() {
       for (let i = 1; i <= 9; i++) {
         const last = i === 9;
         m = moment.utc();  // get this before delaying to calculate accurate keys below
-        const response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
+        const response = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`,
+          chimpy);
         // Allow time for redis to be updated.
         await delay(100);
         if (i <= 4) {
@@ -3158,7 +3325,7 @@ function testDocApi() {
         `${serverUrl}/api/docs/${docId}/webhooks`, chimpy
       );
       assert.equal(result.status, 200);
-      return result.data;
+      return result.data.webhooks;
     }
 
     before(async function () {
@@ -3184,7 +3351,8 @@ function testDocApi() {
         });
         app.post('/404', ({body}, res) => {
           notFoundCalled.emit(body[0].A);
-          res.sendStatus(404); // Webhooks treats it as an error and will retry. Probably it shouldn't work this way.
+          // Webhooks treats it as an error and will retry. Probably it shouldn't work this way.
+          res.sendStatus(404);
           res.end();
         });
         app.post('/probe', async ({body}, res) => {
@@ -3264,7 +3432,8 @@ function testDocApi() {
         }
       });
 
-      it("delivers expected payloads from combinations of changes, with retrying and batching", async function () {
+      it("delivers expected payloads from combinations of changes, with retrying and batching",
+        async function () {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({name: 'testdoc'}, ws1);

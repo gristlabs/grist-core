@@ -35,7 +35,9 @@
         "View As": "Ver como",
         "Seed rules": "Reglas de semillas",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Al agregar reglas de tabla, agregue automáticamente una regla para otorgar acceso completo al PROPIETARIO.",
-        "Permission to edit document structure": "Permiso para editar la estructura del documento"
+        "Permission to edit document structure": "Permiso para editar la estructura del documento",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permitir a los editores editar la estructura (por ejemplo, modificar y eliminar tablas, columnas, diseños), y escribir fórmulas, que dan acceso a todos los datos independientemente de las restricciones de lectura.",
+        "This default should be changed if editors' access is to be limited. ": "Este valor predeterminado debe cambiarse si se quiere limitar el acceso de los editores. "
     },
     "AccountPage": {
         "API": "API",
@@ -66,7 +68,11 @@
         "Sign Out": "Cerrar Sesión",
         "Sign in": "Iniciar Sesión",
         "Switch Accounts": "Cambiar de Cuenta",
-        "Toggle Mobile Mode": "Alternar Modo Móvil"
+        "Toggle Mobile Mode": "Alternar Modo Móvil",
+        "Activation": "Activación",
+        "Billing Account": "Cuenta de facturación",
+        "Support Grist": "Soporte Grist",
+        "Upgrade Plan": "Actualizar el Plan"
     },
     "AddNewButton": {
         "Add New": "Agregar Nuevo"
@@ -430,7 +436,8 @@
         "Notifications": "Notificaciones",
         "Renew": "Renovar",
         "Report a problem": "Reportar un problema",
-        "Upgrade Plan": "Actualizar el Plan"
+        "Upgrade Plan": "Actualizar el Plan",
+        "Manage billing": "Administrar la facturación"
     },
     "OnBoardingPopups": {
         "Finish": "Finalizar",
@@ -525,7 +532,8 @@
         "Send to Google Drive": "Enviar a Google Drive",
         "Show in folder": "Mostrar en la carpeta",
         "Unsaved": "No guardado",
-        "Work on a Copy": "Trabajar en una copia"
+        "Work on a Copy": "Trabajar en una copia",
+        "Share": "Compartir"
     },
     "SiteSwitcher": {
         "Create new team site": "Crear nuevo sitio de equipo",
@@ -857,7 +865,8 @@
         "Find Next ": "Buscar siguiente ",
         "Find Previous ": "Buscar anterior ",
         "No results": "Sin resultados",
-        "Search in document": "Buscar en el documento"
+        "Search in document": "Buscar en el documento",
+        "Search": "Buscar"
     },
     "ACLUsers": {
         "Users from table": "Usuarios de la tabla",
@@ -925,7 +934,11 @@
         "Column or field is required": "Se requiere columna o campo",
         "Error in the cell": "Error en la celda",
         "Errors in all {{numErrors}} cells": "Errores en todas las {{numErrors}} celdas",
-        "editingFormula is required": "ediciónFórmula es necesaria"
+        "editingFormula is required": "ediciónFórmula es necesaria",
+        "use AI Assistant": "usar el Asistente de IA",
+        "Enter formula or {{button}}.": "Introduzca la fórmula o {{button}}.",
+        "Enter formula.": "Introducir fórmula.",
+        "Expand Editor": "Expandir Editor"
     },
     "WelcomeTour": {
         "Add New": "Agregar Nuevo",
@@ -1028,7 +1041,9 @@
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilice el icono 𝚺 para crear tablas resumen (o dinámicas), para totales o subtotales.",
         "Unpin to hide the the button while keeping the filter.": "Desancla para ocultar el botón mientras mantienes el filtro.",
         "Anchor Links": "Enlaces fijados",
-        "Custom Widgets": "Widgets personalizados"
+        "Custom Widgets": "Widgets personalizados",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para crear un enlace de anclaje que lleve al usuario a una celda específica, haga clic en una fila y pulse {{shortcut}}.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puede elegir uno de nuestros widgets prediseñados o incrustar el suyo proporcionando su URL completa."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1080,7 +1095,20 @@
         "Grist's AI Assistance": "Asistencia de IA de Grist",
         "Grist's AI Formula Assistance. ": "Asistencia de fórmula de IA de Grist. ",
         "Tips": "Consejos",
-        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Consulte nuestras páginas {{helpFunction}} y {{formulaCheat}}, o visite nuestra página {{community}} para obtener más ayuda."
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Consulte nuestras páginas {{helpFunction}} y {{formulaCheat}}, o visite nuestra página {{community}} para obtener más ayuda.",
+        "AI Assistant": "Asistente de IA",
+        "Apply": "Aplicar",
+        "Cancel": "Cancelar",
+        "Clear Conversation": "Limpiar conversación",
+        "Learn more": "Más información",
+        "Press Enter to apply suggested formula.": "Pulse Intro para aplicar la fórmula sugerida.",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Regístrese para obtener una cuenta gratuita en Grist y empezar a utilizar el Asistente de Fórmula de IA.",
+        "What do you need help with?": "¿Con qué necesitas ayuda?",
+        "Code View": "Vista de código",
+        "Hi, I'm the Grist Formula AI Assistant.": "Hola, soy el Asistente de IA de Fórmula Grist.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Sólo puedo ayudar con fórmulas. No puedo construir tablas, columnas y vistas, ni escribir reglas de acceso.",
+        "Sign Up for Free": "Regístrate gratis",
+        "There are some things you should know when working with me:": "Hay algunas cosas que debes saber cuando trabajes conmigo:"
     },
     "GridView": {
         "Click to insert": "Haga clic para insertar"
@@ -1089,5 +1117,99 @@
         "Welcome back": "Bienvenido de nuevo",
         "You can always switch sites using the account menu.": "Siempre puedes cambiar de sitio utilizando el menú de la cuenta.",
         "You have access to the following Grist sites.": "Usted tiene acceso a los siguientes sitios de Grist."
+    },
+    "SupportGristNudge": {
+        "Help Center": "Centro de ayuda",
+        "Opted In": "Optado por participar",
+        "Support Grist": "Soporte Grist",
+        "Opt in to Telemetry": "Participar en Telemetría",
+        "Support Grist page": "Página de soporte de Grist",
+        "Close": "Cerrar",
+        "Contribute": "Contribuir"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "GitHub Sponsors page": "Página de patrocinadores de GitHub",
+        "Help Center": "Centro de ayuda",
+        "Manage Sponsorship": "Gestionar el patrocinio",
+        "Opt in to Telemetry": "Optar por la telemetría",
+        "Opt out of Telemetry": "Darse de baja de la telemetría",
+        "Telemetry": "Telemetría",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Esta instancia está habilitada para la telemetría. Solo el administrador del sitio tiene permiso para cambiar esto.",
+        "Sponsor Grist Labs on GitHub": "Patrocinar Grist Labs en GitHub",
+        "Support Grist": "Soporte Grist",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Esta instancia está inhabilitada para la telemetría. Solo el administrador del sitio tiene permiso para cambiar esto.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Solo recopilamos estadísticas de uso, como se detalla en nuestro {{link}}, nunca el contenido de los documentos.",
+        "You can opt out of telemetry at any time from this page.": "Puede cancelar la telemetría en cualquier momento desde esta página.",
+        "You have opted in to telemetry. Thank you!": "Ha optado por la telemetría. ¡Gracias!",
+        "You have opted out of telemetry.": "Ha optado por no participar en la telemetría.",
+        "Home": "Inicio"
+    },
+    "buildViewSectionDom": {
+        "No data": "Sin datos",
+        "No row selected in {{title}}": "Ninguna fila seleccionada en {{title}}",
+        "Not all data is shown": "No se muestran todos los datos"
+    },
+    "UserManager": {
+        "Copy Link": "Copiar enlace",
+        "Grist support": "Soporte técnico de Grist",
+        "Off": "Apagado",
+        "Manage members of team site": "Administrar miembros del sitio del equipo",
+        "Open Access Rules": "Abrir reglas de acceso",
+        "Outside collaborator": "Colaborador externo",
+        "Save & ": "Guardar & ",
+        "Team member": "Miembro del equipo",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent})}. Para eliminarlo, establezca la opción \"Heredar acceso\" en \"Ninguno\".",
+        "member": "miembro",
+        "team site": "sitio del equipo",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ningún acceso predeterminado permite el acceso a documentos individuales o espacios de trabajo, en lugar del sitio completo del equipo.",
+        "Anyone with link ": "Cualquiera con enlace ",
+        "Cancel": "Cancelar",
+        "Close": "Cerrar",
+        "Collaborator": "Colaborador",
+        "Confirm": "Confirmar",
+        "Create a team to share with more people": "Crear un equipo para compartir con más personas",
+        "Invite people to {{resourceType}}": "Invita personas a {{resourceType}}",
+        "Guest": "Invitado",
+        "Invite multiple": "Invitar a varios",
+        "Link copied to clipboard": "Enlace copiado al portapapeles",
+        "On": "Encendido",
+        "Public Access": "Acceso público",
+        "Public access: ": "Acceso público: ",
+        "User may not modify their own access.": "El usuario no puede modificar su propio acceso.",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} de {{limitTop}} {{collaborator}}s",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Una vez que haya eliminado su propio acceso, no podrá recuperarlo sin la ayuda de otra persona con suficiente acceso al {{resourceType}}.",
+        "Add {{member}} to your team": "Añadir {{member}} a tu equipo",
+        "Allow anyone with the link to open.": "Permita que cualquiera que tenga el enlace lo abra.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Ningún acceso predeterminado permite el acceso a documentos individuales o espacios de trabajo, en lugar del sitio completo del equipo.",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Una vez que haya eliminado su propio acceso, no podrá recuperarlo sin la ayuda de otra persona con suficiente acceso al {{name}}.",
+        "Public access": "Acceso público",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Acceso público heredado de {{parent}}. Para eliminar, establezca la opción 'Heredar acceso' en 'Ninguno'.",
+        "Remove my access": "Quitar mi acceso",
+        "Your role for this team site": "Su papel para este sitio de equipo",
+        "Your role for this {{resourceType}}": "Su papel para este {{resourceType}}",
+        "free collaborator": "colaborador libre",
+        "guest": "invitado",
+        "{{collaborator}} limit exceeded": "límite de {{collaborator}} excedido",
+        "You are about to remove your own access to this {{resourceType}}": "Usted está a punto de quitar su propio acceso a este {{resourceType}}",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent})}. Para eliminarlo, establezca la opción \"Heredar acceso\" a \"Ninguno\".",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "El usuario tiene acceso de visualización a {{resource}} como resultado del acceso configurado manualmente a los recursos que contiene. Si se elimina aquí, este usuario perderá el acceso a los recursos que contiene."
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "DESCRIPCIÓN"
+    },
+    "SearchModel": {
+        "Search all pages": "Buscar en todas las páginas",
+        "Search all tables": "Buscar en todas las tablas"
+    },
+    "searchDropdown": {
+        "Search": "Buscar"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Contraer editor"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximizar",
+        "Minimize": "Minimizar"
     }
 }

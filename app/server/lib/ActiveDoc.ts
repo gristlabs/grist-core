@@ -35,6 +35,7 @@ import {
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AttachmentColumns, gatherAttachmentIds, getAttachmentColumns} from 'app/common/AttachmentColumns';
+import {WebhookMessageType} from 'app/common/CommTypes';
 import {
   BulkAddRecord,
   BulkRemoveRecord,
@@ -78,12 +79,12 @@ import {Document as APIDocument, DocReplacementOptions, DocState, DocStateCompar
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
-import {TEMPLATES_ORG_DOMAIN} from 'app/gen-server/ApiServer';
 import {Document} from 'app/gen-server/entity/Document';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
+import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
@@ -96,6 +97,7 @@ import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
+import {getTemplateOrg} from 'app/server/lib/sendAppPage';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {DocTriggers} from "app/server/lib/Triggers";
@@ -129,8 +131,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession,
-        timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession, timeoutReached} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -1289,6 +1290,16 @@ export class ActiveDoc extends EventEmitter {
     return this._pyCall('convert_formula_completion', txt);
   }
 
+  // Callback to compute an existing formula and return the result along with recorded values
+  // of (possibly nested) attributes of `rec`.
+  // Used by AI assistance to fix an incorrect formula.
+  public assistanceEvaluateFormula(options: AssistanceContext) {
+    if (!options.evaluateCurrentFormula) {
+      throw new Error('evaluateCurrentFormula must be true');
+    }
+    return this._pyCall('evaluate_formula', options.tableId, options.colId, options.rowId);
+  }
+
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
     return fetchURL(url, this.makeAccessId(docSession.authorizer.getUserId()), options);
   }
@@ -1391,8 +1402,9 @@ export class ActiveDoc extends EventEmitter {
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
 
-      // TODO: Need a more precise way to identify a template. (This org now also has tutorials.)
-      const isTemplate = TEMPLATES_ORG_DOMAIN === doc.workspace.org.domain && doc.type !== 'tutorial';
+      // TODO: Remove the right side once all template docs have their type set to "template".
+      const isTemplate = doc.type === 'template' ||
+        (doc.workspace.org.domain === getTemplateOrg() && doc.type !== 'tutorial');
       this.logTelemetryEvent(docSession, 'documentForked', {
         limited: {
           forkIdDigest: forkIds.forkId,
@@ -1769,6 +1781,10 @@ export class ActiveDoc extends EventEmitter {
     await this._triggers.clearWebhookQueue();
   }
 
+  public async clearSingleWebhookQueue(webhookId: string) {
+    await this._triggers.clearSingleWebhookQueue(webhookId);
+  }
+
   /**
    * Returns the list of outgoing webhook for a table in this document.
    */
@@ -1778,13 +1794,13 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Send a message to clients connected to the document that something
-   * webhook-related has happened (a change in configuration, or a
-   * delivery, or an error). There is room to give details in future,
-   * if that proves useful, but for now no details are needed.
+   * webhook-related has happened (a change in configuration, a delivery,
+   * or an error). It passes information about the type of event (currently data being updated in some way
+   * or an OverflowError, i.e., too many events waiting to be sent). More data may be added when necessary.
    */
-  public async sendWebhookNotification() {
+  public async sendWebhookNotification(type: WebhookMessageType = WebhookMessageType.Update) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
-      webhooks: {},
+      webhooks: {type},
     });
   }
 
@@ -2134,6 +2150,9 @@ export class ActiveDoc extends EventEmitter {
 
   private async _checkDataSizeLimitRatio(docSession: OptDocSession | null) {
     const start = Date.now();
+    if (!this.docStorage.isInitialized()) {
+      return;
+    }
     const dataSizeBytes = await this._updateDataSize();
     const timeToMeasure = Date.now() - start;
     log.rawInfo('Data size from dbstat...', {

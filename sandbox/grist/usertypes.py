@@ -15,6 +15,7 @@ the extra complexity.
 import csv
 import datetime
 import json
+import logging
 import math
 
 import six
@@ -22,9 +23,9 @@ from six import integer_types
 import objtypes
 from objtypes import AltText, is_int_short
 import moment
-import logger
 from records import Record, RecordSet
-log = logger.Logger(__name__, logger.INFO)
+
+log = logging.getLogger(__name__)
 
 NoneType = type(None)
 

@@ -37,7 +37,7 @@ schema_data = [
     [28, "country",     "Text",       False, "'US'", "country", ''],
     [29, "region",      "Any",        True,
           "{'US': 'North America', 'UK': 'Europe'}.get(rec.country, 'N/A')", "region", ''],
-    [30, "badSyntax",   "Any",        True, "for a in b\n10", "", ""],
+    [30, "badSyntax",   "Any",        True, "for a in\n10", "", ""],
   ]]
 ]
 
@@ -72,11 +72,10 @@ class TestGenCode(unittest.TestCase):
     generated = gcode.get_user_text()
     if six.PY3:
       saved_sample = saved_sample.replace(
-        "raise SyntaxError('invalid syntax', ('usercode', 1, 11, u'for a in b'))",
+        "raise SyntaxError('invalid syntax', ('usercode', 1, 9, u'for a in'))",
         "raise SyntaxError('invalid syntax\\n\\n"
-        "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n"
-        "You wrote a `for` loop but\\nforgot to add a colon `:` at the end\\n\\n', "
-        "('usercode', 1, 11, 'for a in b'))"
+        "A `SyntaxError` occurs when Python cannot understand your code.\\n\\n', "
+        "('usercode', 1, 9, 'for a in'))"
       )
     self.assertEqual(generated, saved_sample, "Generated code doesn't match sample:\n" +
                      "".join(difflib.unified_diff(generated.splitlines(True),

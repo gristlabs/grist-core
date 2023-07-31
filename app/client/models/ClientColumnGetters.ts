@@ -1,8 +1,9 @@
 import DataTableModel from 'app/client/models/DataTableModel';
-import { ColumnGetter, ColumnGetters } from 'app/common/ColumnGetters';
+import {ColumnGetter, ColumnGetters, ColumnGettersByColId} from 'app/common/ColumnGetters';
 import * as gristTypes from 'app/common/gristTypes';
-import { choiceGetter } from 'app/common/SortFunc';
-import { Sort } from 'app/common/SortSpec';
+import {choiceGetter} from 'app/common/SortFunc';
+import {Sort} from 'app/common/SortSpec';
+import {TableData} from 'app/common/TableData';
 
 /**
  *
@@ -54,5 +55,15 @@ export class ClientColumnGetters implements ColumnGetters {
       return null;
     }
     return this.getColGetter(manualSortCol.getRowId());
+  }
+}
+
+
+export class ClientColumnGettersByColId implements ColumnGettersByColId {
+  constructor(private _tableData: TableData) {
+  }
+
+  public getColGetterByColId(colId: string): ColumnGetter {
+    return this._tableData.getRowPropFunc(colId);
   }
 }

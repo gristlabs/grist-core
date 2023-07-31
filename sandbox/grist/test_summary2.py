@@ -1,16 +1,16 @@
+# pylint:disable=too-many-lines
 """
 Test of Summary tables. This has many test cases, so to keep files smaller, it's split into two
 files: test_summary.py and test_summary2.py.
 """
+import logging
 import actions
-import logger
 import test_engine
+from test_engine import Table, Column, View, Section, Field
 import test_summary
 import testutil
 
-from test_engine import Table, Column, View, Section, Field
-
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 class TestSummary2(test_engine.EngineTestCase):

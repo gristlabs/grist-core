@@ -2,6 +2,7 @@
 from collections import namedtuple, Counter, OrderedDict
 import re
 import json
+import logging
 import sys
 from contextlib import contextmanager
 
@@ -27,8 +28,7 @@ import treeview
 
 from table import get_validation_func_name
 
-import logger
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 _current_module = sys.modules[__name__]

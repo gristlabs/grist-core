@@ -168,6 +168,8 @@ export interface ThemeColors {
 
   /* Selection */
   'selection': string;
+  'selection-darker': string;
+  'selection-darkest': string;
   'selection-opaque-fg': string;
   'selection-opaque-bg': string;
   'selection-opaque-dark-bg': string;
@@ -436,9 +438,6 @@ export interface ThemeColors {
   'cell-bg': string;
   'cell-zebra-bg': string;
 
-  /* Formula Editor */
-  'formula-editor-bg': string;
-
   /* Charts */
   'chart-fg': string;
   'chart-bg': string;
@@ -472,7 +471,8 @@ export interface ThemeColors {
   'tutorials-popup-header-fg': string;
   'tutorials-popup-box-bg': string;
 
-  /* Ace Autocomplete */
+  /* Ace */
+  'ace-editor-bg': string;
   'ace-autocomplete-primary-fg': string;
   'ace-autocomplete-secondary-fg': string;
   'ace-autocomplete-highlighted-fg': string;
@@ -511,6 +511,11 @@ export interface ThemeColors {
   'login-page-bg': string;
   'login-page-backdrop': string;
   'login-page-line': string;
+
+  /* Formula Assistant */
+  'formula-assistant-header-bg': string;
+  'formula-assistant-border': string;
+  'formula-assistant-preformatted-text-bg': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;

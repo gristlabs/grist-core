@@ -16,6 +16,7 @@ import {
 import {createParser} from 'app/common/ValueParser';
 import {Observable} from 'grainjs';
 import * as ko from 'knockout';
+import {v4 as uuidv4} from 'uuid';
 
 // Column behavior type, used primarily in the UI.
 export type BEHAVIOR = "empty"|"formula"|"data";
@@ -165,7 +166,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     const docId = urlState().state.get().doc ?? '';
     // Changed key name from history to history-v2 when ChatHistory changed in incompatible way.
     const key = `formula-assistant-history-v2-${docId}-${this.table().tableId()}-${this.colId()}`;
-    return localStorageJsonObs(key, {messages: []} as ChatHistory);
+    return localStorageJsonObs(key, {messages: [], conversationId: uuidv4()} as ChatHistory);
   }));
 }
 
@@ -217,5 +218,6 @@ export interface ChatMessage {
  */
 export interface ChatHistory {
   messages: ChatMessage[];
+  conversationId?: string;
   state?: AssistanceState;
 }

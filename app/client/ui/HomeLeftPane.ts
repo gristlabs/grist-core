@@ -18,6 +18,7 @@ import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/cli
 import {confirmModal} from 'app/client/ui2018/modals';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Workspace} from 'app/common/UserAPI';
 import {computed, dom, domComputed, DomElementArg, observable, Observable, styled} from 'grainjs';
 import {createHelpTools, cssLeftPanel, cssScrollPane,
@@ -28,6 +29,7 @@ const t = makeT('HomeLeftPane');
 export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: HomeModel) {
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace|null>(null);
+  const isAnonymous = !home.app.currentValidUser;
 
   return cssContent(
     dom.autoDispose(creating),
@@ -109,14 +111,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       )),
       cssTools(
         cssPageEntry(
-          dom.show(isFeatureEnabled("templates")),
+          dom.show(isFeatureEnabled("templates") && Boolean(getGristConfig().templateOrg)),
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "templates"),
           cssPageLink(cssPageIcon('Board'), cssLinkText(t("Examples & Templates")),
             urlState().setLinkUrl({homePage: "templates"}),
             testId('dm-templates-page'),
           ),
         ),
-        cssPageEntry(
+        isAnonymous ? null : cssPageEntry(
           cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "trash"),
           cssPageLink(cssPageIcon('RemoveBig'), cssLinkText(t("Trash")),
             urlState().setLinkUrl({homePage: "trash"}),

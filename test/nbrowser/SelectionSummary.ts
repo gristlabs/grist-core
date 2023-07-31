@@ -130,11 +130,6 @@ describe('SelectionSummary', function () {
       count: 2,
       sum: null,
     });
-    await selectAndAssert({col: 2, row: 0}, {col: 3, row: 5}, {
-      dimensions: '6⨯2',
-      count: 11,
-      sum: null,
-    });
 
     // Scroll horizontally to the end of the table.
     await gu.sendKeys(Key.END);
@@ -147,6 +142,15 @@ describe('SelectionSummary', function () {
     await selectAndAssert({col: 10, row: 0}, {col: 12, row: 6}, {
       dimensions: '7⨯3',
       count: 5,
+      sum: null,
+    });
+  });
+
+  it('does not count false values', async function () {
+    // False values in boolean columns should not be included in count
+    await selectAndAssert({col: 2, row: 0}, {col: 3, row: 5}, {
+      dimensions: '6⨯2',
+      count: 9,
       sum: null,
     });
   });

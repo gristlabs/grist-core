@@ -35,8 +35,8 @@ export function createForbiddenPage(appModel: AppModel, message?: string) {
   return pagePanelsError(appModel, t("Access denied{{suffix}}", {suffix: ''}), [
     dom.domComputed(appModel.currentValidUser, user => user ? [
       cssErrorText(message || t("You do not have access to this organization's documents.")),
-      cssErrorText(t("You are signed in as {{email}}. You can sign in with a different " +
-                     "account, or ask an administrator for access.", {email: dom('b', user.email)})),
+      cssErrorText(t("You are signed in as {{email}}. You can sign in with a different \
+account, or ask an administrator for access.", {email: dom('b', user.email)})),
     ] : [
       // This page is not normally shown because a logged out user with no access will get
       // redirected to log in. But it may be seen if a user logs out and returns to a cached
@@ -110,7 +110,7 @@ function pagePanelsError(appModel: AppModel, header: string, content: DomElement
       panelWidth: observable(240),
       panelOpen,
       hideOpener: true,
-      header: dom.create(AppHeader, appModel.currentOrgName, appModel),
+      header: dom.create(AppHeader, appModel),
       content: leftPanelBasic(appModel, panelOpen),
     },
     headerMain: createTopBarHome(appModel),

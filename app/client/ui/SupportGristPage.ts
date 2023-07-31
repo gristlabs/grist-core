@@ -47,7 +47,7 @@ export class SupportGristPage extends Disposable {
         panelWidth: Observable.create(this, 240),
         panelOpen,
         hideOpener: true,
-        header: dom.create(AppHeader, this._appModel.currentOrgName, this._appModel),
+        header: dom.create(AppHeader, this._appModel),
         content: leftPanelBasic(this._appModel, panelOpen),
       },
       headerMain: this._buildMainHeader(),

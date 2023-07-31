@@ -346,23 +346,23 @@
   }
 }
 
-/* Column hover effect */
+/* Highlight the entire column when the "Click to insert" tooltip is shown. */
+.column_name.hover-column > .selection,
+.column_name.hover-column.selected > .selection,
+.gridview_row .field.hover-column > .selection {
+  background-color: var(--grist-theme-selection, var(--grist-color-selection));
+  inset: 0;
+  position: absolute;
+}
 
-.gridview_row .field.hover-column, /* normal field in a row */
-.gridview_row .field.hover-column .field_clip,
-.column_name.hover-column, /* column name */
-.column_name.hover-column.selected, /* selected column name */
-.gridview_row .field.frozen.hover-column /* frozen field in a row */ {
-  /* for frozen fields can't use alpha channel */
-  background-color: var(--grist-theme-selection-opaque-bg, var(--grist-color-selection-opaque));
-  color: var(--grist-theme-selection-opaque-fg, unset);
+/* Use a darker highlight if the column is being transformed. */
+.gridview_row .field.transform_field.hover-column > .selection {
+  background-color: var(--grist-theme-selection-darkest, rgba(22,179,120,0.35));
+  inset: 0;
+  position: absolute;
 }
-/* For zebra stripes, make the selection little darker */
-.record-zebra.record-even .field.hover-column {
-  background-color: var(--grist-theme-selection-opaque-dark-bg, var(--grist-color-selection-darker-opaque));
-  color: var(--grist-theme-selection-opaque-fg, unset);
-}
-/* When column has a hover, remove menu button. */
+
+/* And hide the column menu button. */
 .column_name.hover-column .menu_toggle {
   visibility: hidden;
 }

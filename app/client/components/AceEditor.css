@@ -1,3 +1,7 @@
+.ace_editor {
+  background-color: var(--grist-theme-ace-editor-bg, white);
+}
+
 .ace_grist_link_hidden {
   display: none;
 }
@@ -14,6 +18,7 @@
 
 .ace_editor.ace_autocomplete .ace_completion-highlight {
   color: var(--grist-theme-ace-autocomplete-highlighted-fg, #000) !important;
+  text-shadow: 0 0 0.01em;
 }
 
 .ace_editor.ace_autocomplete .ace_completion-highlight.ace_grist_link {
@@ -40,4 +45,9 @@
 
 .ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {
   background-color: var(--grist-theme-ace-autocomplete-active-line-bg, #CAD6FA) !important;
+}
+
+.ace_autocomplete .ace_line .ace_ {
+  /* Ace collapses whitespace by default, which breaks alignment changes made in AceEditorCompletions.ts. */
+  white-space: pre !important;
 }

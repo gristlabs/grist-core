@@ -14,6 +14,7 @@ from imports import import_utils
 
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
 
 SCHEMA = [
           {

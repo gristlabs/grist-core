@@ -4,14 +4,15 @@ import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import * as version from 'app/common/version';
 import {menu, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
-import {isTemplatesOrg, Organization} from 'app/common/UserAPI';
+import {commonUrls} from 'app/common/gristUrls';
+import {getOrgName, isTemplatesOrg, Organization} from 'app/common/UserAPI';
 import {AppModel} from 'app/client/models/AppModel';
 import {icon} from 'app/client/ui2018/icons';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import * as roles from 'app/common/roles';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
 import {maybeAddSiteSwitcherSection} from 'app/client/ui/SiteSwitcher';
-import {BindableValue, Disposable, dom, DomContents, styled} from 'grainjs';
+import {Computed, Disposable, dom, DomContents, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 import {getGristConfig} from 'app/common/urlUtils';
 
@@ -28,46 +29,95 @@ const productPills: {[name: string]: string|null} = {
   // Other plans are either personal, or grandfathered, or for testing.
 };
 
+interface AppLogoOrgNameAndLink {
+  name: string;
+  link: AppLogoLink;
+  org?: string;
+  href?: string;
+}
+
+type AppLogoLink = AppLogoOrgDomain | AppLogoHref;
+
+interface AppLogoOrgDomain {
+  type: 'domain';
+  domain: string;
+}
+
+interface AppLogoHref {
+  type: 'href';
+  href: string;
+}
+
 export class AppHeader extends Disposable {
-  constructor(private _orgName: BindableValue<string>, private _appModel: AppModel,
-              private _docPageModel?: DocPageModel) {
+  private _currentOrg = this._appModel.currentOrg;
+
+  /**
+   * The name and link of the site shown next to the logo.
+   *
+   * The last visited site is used, if known. Otherwise, the current site is used.
+   */
+  private _appLogoOrg = Computed.create<AppLogoOrgNameAndLink>(this, (use) => {
+    const availableOrgs = use(this._appModel.topAppModel.orgs);
+    const currentOrgName = (this._appModel.currentOrgName ||
+      (this._docPageModel && use(this._docPageModel.currentOrgName))) ?? '';
+    const lastVisitedOrgDomain = use(this._appModel.lastVisitedOrgDomain);
+    return this._getAppLogoOrgNameAndLink({availableOrgs, currentOrgName, lastVisitedOrgDomain});
+  });
+
+  private _appLogoOrgName = Computed.create(this, this._appLogoOrg, (_use, {name}) => name);
+
+  private _appLogoOrgLink = Computed.create(this, this._appLogoOrg, (_use, {link}) => link);
+
+  constructor(private _appModel: AppModel, private _docPageModel?: DocPageModel) {
     super();
   }
 
   public buildDom() {
     const productFlavor = getTheme(this._appModel.topAppModel.productFlavor);
 
-    const currentOrg = this._appModel.currentOrg;
-
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),
-      // Show version when hovering over the application icon.
-      // Include gitcommit when known. Cast version.gitcommit since, depending
-      // on how Grist is compiled, tsc may believe it to be a constant and
-      // believe that testing it is unnecessary.
-      cssAppLogo(
+      dom.domComputed(this._appLogoOrgLink, orgLink => cssAppLogo(
+        // Show version when hovering over the application icon.
+        // Include gitcommit when known. Cast version.gitcommit since, depending
+        // on how Grist is compiled, tsc may believe it to be a constant and
+        // believe that testing it is unnecessary.
         {title: `Version ${version.version}` +
           ((version.gitcommit as string) !== 'unknown' ? ` (${version.gitcommit})` : '')},
-        this._setHomePageUrl(),
+        this._setHomePageUrl(orgLink),
         testId('dm-logo')
-      ),
-      cssOrg(
-        cssOrgName(dom.text(this._orgName), testId('dm-orgname')),
-        productPill(currentOrg),
-        this._orgName && cssDropdownIcon('Dropdown'),
+      )),
+      this._buildOrgLinkOrMenu(),
+    );
+  }
+
+  private _buildOrgLinkOrMenu() {
+    const {currentValidUser, isPersonal, isTemplatesSite} = this._appModel;
+    if (!currentValidUser && (isPersonal || isTemplatesSite)) {
+      return cssOrgLink(
+        cssOrgName(dom.text(this._appLogoOrgName), testId('dm-orgname')),
+        {href: commonUrls.templates},
+        testId('dm-org'),
+      );
+    } else {
+      return cssOrg(
+        cssOrgName(dom.text(this._appLogoOrgName), testId('dm-orgname')),
+        productPill(this._currentOrg),
+        dom.maybe(this._appLogoOrgName, () => cssDropdownIcon('Dropdown')),
         menu(() => [
           menuSubHeader(
-            this._appModel.isTeamSite ? t("Team Site") : t("Personal Site")
-              + (this._appModel.isLegacySite ? ` (${t("Legacy")})` : ''),
+            this._appModel.isPersonal
+              ? t("Personal Site") + (this._appModel.isLegacySite ? ` (${t("Legacy")})` : '')
+              : t("Team Site"),
             testId('orgmenu-title'),
           ),
           menuItemLink(urlState().setLinkUrl({}), t("Home Page"), testId('orgmenu-home-page')),
 
           // Show 'Organization Settings' when on a home page of a valid org.
-          (!this._docPageModel && currentOrg && !currentOrg.owner ?
+          (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
             menuItem(() => manageTeamUsersApp(this._appModel),
               'Manage Team', testId('orgmenu-manage-team'),
-              dom.cls('disabled', !roles.canEditAccess(currentOrg.access))) :
+              dom.cls('disabled', !roles.canEditAccess(this._currentOrg.access))) :
             // Don't show on doc pages, or for personal orgs.
             null),
 
@@ -77,16 +127,15 @@ export class AppHeader extends Disposable {
           maybeAddSiteSwitcherSection(this._appModel),
         ], { placement: 'bottom-start' }),
         testId('dm-org'),
-      ),
-    );
+      );
+    }
   }
 
-  private _setHomePageUrl() {
-    const lastVisitedOrg = this._appModel.lastVisitedOrgDomain.get();
-    if (lastVisitedOrg) {
-      return urlState().setLinkUrl({org: lastVisitedOrg});
+  private _setHomePageUrl(link: AppLogoLink) {
+    if (link.type === 'href') {
+      return {href: link.href};
     } else {
-      return {href: getWelcomeHomeUrl()};
+      return urlState().setLinkUrl({org: link.domain});
     }
   }
 
@@ -122,6 +171,50 @@ export class AppHeader extends Disposable {
     }
 
     return menuItemLink('Activation', urlState().setLinkUrl({activation: 'activation'}));
+  }
+
+  private _getAppLogoOrgNameAndLink(params: {
+    availableOrgs: Organization[],
+    currentOrgName: string,
+    lastVisitedOrgDomain: string|null,
+  }): AppLogoOrgNameAndLink {
+    const {
+      currentValidUser,
+      isPersonal,
+      isTemplatesSite,
+    } = this._appModel;
+    if (!currentValidUser && (isPersonal || isTemplatesSite)) {
+      // When signed out and not on a team site, link to the templates site.
+      return {
+        name: t('Grist Templates'),
+        link: {
+          type: 'href',
+          href: commonUrls.templates,
+        },
+      };
+    }
+
+    const {availableOrgs, currentOrgName, lastVisitedOrgDomain} = params;
+    if (lastVisitedOrgDomain) {
+      const lastVisitedOrg = availableOrgs.find(({domain}) => domain === lastVisitedOrgDomain);
+      if (lastVisitedOrg) {
+        return {
+          name: getOrgName(lastVisitedOrg),
+          link: {
+            type: 'domain',
+            domain: lastVisitedOrgDomain,
+          },
+        };
+      }
+    }
+
+    return {
+      name: currentOrgName ?? '',
+      link: {
+        type: 'href',
+        href: getWelcomeHomeUrl(),
+      },
+    };
   }
 }
 
@@ -190,6 +283,31 @@ const cssOrg = styled('div', `
   font-weight: 500;
 
   &:hover {
+    background-color: ${theme.hover};
+  }
+
+  .${cssLeftPane.className}-open & {
+    display: flex;
+  }
+`);
+
+const cssOrgLink = styled('a', `
+  display: none;
+  flex-grow: 1;
+  align-items: center;
+  max-width: calc(100% - 48px);
+  cursor: pointer;
+  height: 100%;
+  font-weight: 500;
+  color: ${theme.text};
+  user-select: none;
+
+  &, &:hover, &:focus {
+    text-decoration: none;
+  }
+
+  &:hover {
+    color: ${theme.text};
     background-color: ${theme.hover};
   }
 

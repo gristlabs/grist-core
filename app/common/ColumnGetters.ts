@@ -26,4 +26,12 @@ export interface ColumnGetters {
   getManualSortGetter(): ColumnGetter | null;
 }
 
+/**
+ * Like ColumnGetters, but takes the string `colId` rather than a `ColSpec`
+ * or numeric row ID.
+ */
+export interface ColumnGettersByColId {
+  getColGetterByColId(colId: string): ColumnGetter | null;
+}
+
 export type ColumnGetter = (rowId: number) => any;

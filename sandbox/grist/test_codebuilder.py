@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import unittest
+
 import codebuilder
 import six
 import test_engine
@@ -195,6 +197,23 @@ return rec
     self.assertEqual(type(make_body("foo")), six.text_type)
     self.assertEqual(type(make_body(u"foo")), six.text_type)
 
+  @unittest.skipUnless(six.PY3, "Only Python 3 supports non-ascii variable names")
+  def test_make_formula_body_unicode_token_bug(self):
+    # Python < 3.12 has a bug in tokenizing certain unicode characters in variable names.
+    # This was worked around in https://github.com/gristlabs/asttokens/pull/82
+    # Surprisingly this test passes either way, but keeping it as a potentially tricky case.
+    self.assertEqual(
+      make_body(
+        "℘℘··℘℘2=℘℘··℘℘2($foo+℘℘··℘℘2*℘℘··℘℘2+$bar)\n"
+        "℘℘··℘℘2=1+a℘℘··℘℘b+a℘℘··℘℘2b\n"
+        "℘℘··℘℘2==℘℘··℘℘2($foo+℘℘··℘℘2*℘℘··℘℘2+$bar)"
+      ),
+      (
+        "℘℘··℘℘2=℘℘··℘℘2(rec.foo+℘℘··℘℘2*℘℘··℘℘2+rec.bar)\n"
+        "℘℘··℘℘2=1+a℘℘··℘℘b+a℘℘··℘℘2b\n"
+        "return ℘℘··℘℘2==℘℘··℘℘2(rec.foo+℘℘··℘℘2*℘℘··℘℘2+rec.bar)"
+      ),
+    )
 
   def test_wrap_logical(self):
     self.assertEqual(make_body("IF($foo, $bar, $baz)"),

@@ -10,9 +10,12 @@ Usage:
 """
 
 import os
+import logging
 import marshal
 import sys
 import traceback
+
+log = logging.getLogger(__name__)
 
 class CarefulReader(object):
   """
@@ -40,9 +43,6 @@ class CarefulReader(object):
   def __getattr__(self, attr):
     return getattr(self._file, attr)
 
-def log(msg):
-  sys.stderr.write(str(msg) + "\n")
-  sys.stderr.flush()
 
 class Sandbox(object):
   """
@@ -93,6 +93,7 @@ class Sandbox(object):
 
   @classmethod
   def use_pyodide(cls):
+    # pylint: disable=import-error,no-member
     import js  # Get pyodide object.
     external_input = CarefulReader(sys.stdin.buffer)
     external_output_method = lambda data: js.sendFromSandbox(data)
@@ -146,7 +147,7 @@ class Sandbox(object):
         ret = self._functions[fname](*args)
         self._send_to_js(Sandbox.DATA, ret)
       except Exception as e:
-        traceback.print_exc()
+        log.warn("Call error in %s: %s", fname, traceback.format_exc())
         self._send_to_js(Sandbox.EXC, "%s %s" % (type(e).__name__, e))
     if break_on_response:
       raise Exception("Sandbox disconnected unexpectedly")

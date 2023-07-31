@@ -66,6 +66,7 @@ export const MIN_URLID_PREFIX_LENGTH = 12;
 export const commonUrls = {
   help: getHelpCenterUrl(),
   helpAccessRules: "https://support.getgrist.com/access-rules",
+  helpAssistantDataUse: "https://support.getgrist.com/ai-assistant/#data-use-policy",
   helpColRefs: "https://support.getgrist.com/col-refs",
   helpConditionalFormatting: "https://support.getgrist.com/conditional-formatting",
   helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",
@@ -79,6 +80,7 @@ export const commonUrls = {
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
+  templates: 'https://www.getgrist.com/templates',
   community: 'https://community.getgrist.com',
   functions: 'https://support.getgrist.com/functions',
   formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
@@ -646,6 +648,9 @@ export interface GristLoadConfig {
 
   // The Grist deployment type (e.g. core, enterprise).
   deploymentType?: GristDeploymentType;
+
+  // The org containing public templates and tutorials.
+  templateOrg?: string|null;
 }
 
 export const Features = StringUnion(

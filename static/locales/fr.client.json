@@ -40,7 +40,9 @@
         "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}",
         "Seed rules": "Règles par défaut",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
-        "Permission to edit document structure": "Droits d'édition de la structure"
+        "Permission to edit document structure": "Droits d'édition de la structure",
+        "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page...) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture."
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -71,7 +73,11 @@
         "Switch Accounts": "Changer de compte",
         "Accounts": "Comptes",
         "Add Account": "Ajouter un compte",
-        "Sign Out": "Se déconnecter"
+        "Sign Out": "Se déconnecter",
+        "Upgrade Plan": "Version Premium",
+        "Support Grist": "Centre d'aide",
+        "Billing Account": "Facturation",
+        "Activation": "Activer"
     },
     "ActionLog": {
         "Action Log failed to load": "Impossible de charger le journal des actions",
@@ -472,7 +478,8 @@
         "Ask for help": "Demander de l’aide",
         "Notifications": "Notifications",
         "Give feedback": "Donnez votre avis",
-        "No notifications": "Aucune notification"
+        "No notifications": "Aucune notification",
+        "Manage billing": "Gérer la facturation"
     },
     "OnBoardingPopups": {
         "Finish": "Terminer",
@@ -581,7 +588,8 @@
         "Download": "Télécharger",
         "Export CSV": "Exporter en CSV",
         "Export XLSX": "Exporter en XLSX",
-        "Send to Google Drive": "Envoyer vers Google Drive"
+        "Send to Google Drive": "Envoyer vers Google Drive",
+        "Share": "Partager"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -590,7 +598,7 @@
     "SortConfig": {
         "Add Column": "Ajouter une colonne",
         "Update Data": "Mettre à jour les données",
-        "Use choice position": "Use choice position",
+        "Use choice position": "Utiliser l'ordre des choix",
         "Natural sort": "Trier",
         "Empty values last": "Valeurs vides en dernier",
         "Search Columns": "Rechercher"
@@ -1011,5 +1019,29 @@
     "WebhookPage": {
         "Clear Queue": "Effacer la file d'attente",
         "Webhook Settings": "Paramètres des points d’ancrage Web"
+    },
+    "FormulaAssistant": {
+        "Grist's AI Formula Assistance. ": "Assistance des formules de l'IA de Grist ",
+        "Ask the bot.": "Demandez au bot.",
+        "Function List": "Liste des fonctions",
+        "Tips": "Conseils"
+    },
+    "SupportGristNudge": {
+        "Help Center": "Centre d'aide",
+        "Close": "Fermer",
+        "Contribute": "Contribuer",
+        "Support Grist": "Support Grist"
+    },
+    "GridView": {
+        "Click to insert": "Cliquer pour insérer"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "Help Center": "Centre d'aide",
+        "Home": "Accueil",
+        "Sponsor Grist Labs on GitHub": "Sponsoriser Grist Labs sur GitHub"
+    },
+    "buildViewSectionDom": {
+        "No data": "Aucune donnée"
     }
 }

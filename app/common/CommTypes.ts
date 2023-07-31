@@ -2,8 +2,8 @@ import {ActionGroup} from 'app/common/ActionGroup';
 import {DocAction} from 'app/common/DocActions';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
-import {StringUnion} from 'app/common/StringUnion';
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {StringUnion} from 'app/common/StringUnion';
 
 export const ValidEvent = StringUnion(
   'docListAction', 'docUserAction', 'docShutdown', 'docError',
@@ -90,11 +90,17 @@ export interface CommDocUserAction extends CommMessageBase {
   };
 }
 
+
+export enum WebhookMessageType {
+  Update = 'webhookUpdate',
+  Overflow = 'webhookOverflowError'
+}
 export interface CommDocChatter extends CommMessageBase {
   type: 'docChatter';
   docFD: number;
   data: {
     webhooks?: {
+      type: WebhookMessageType,
       // If present, something happened related to webhooks.
       // Currently, we give no details, leaving it to client
       // to call back for details if it cares.

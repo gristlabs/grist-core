@@ -7,6 +7,9 @@ import asttokens
 import asttokens.util
 import six
 
+import attribute_recorder
+import objtypes
+from codebuilder import make_formula_body
 from column import is_visible_column, BaseReferenceColumn
 from objtypes import RaisedException
 import records
@@ -255,3 +258,25 @@ def convert_completion(completion):
   result = asttokens.util.replace(result, replacements)
 
   return result.strip()
+
+
+def evaluate_formula(engine, table_id, col_id, row_id):
+  grist_formula = engine.docmodel.get_column_rec(table_id, col_id).formula
+  assert grist_formula
+  plain_formula = make_formula_body(grist_formula, default_value=None).get_text()
+
+  attributes = {}
+  result = engine.get_formula_value(table_id, col_id, row_id, record_attributes=attributes)
+  if isinstance(result, objtypes.RaisedException):
+    name, message = result.encode_args()[:2]
+    result = "%s: %s" % (name, message)
+    error = True
+  else:
+    result = attribute_recorder.safe_repr(result)
+    error = False
+  return dict(
+    error=error,
+    formula=plain_formula,
+    result=result,
+    attributes=attributes,
+  )

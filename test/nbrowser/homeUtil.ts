@@ -116,9 +116,8 @@ export class HomeUtil {
       // When running against an external server, we log in through the Grist login page.
       await this.driver.get(this.server.getUrl(org, ""));
       if (!await this.isOnLoginPage()) {
-        // Explicitly click sign-in link if necessary.
-        await this.driver.findWait('.test-user-signin', 4000).click();
-        await this.driver.findContentWait('.grist-floating-menu a', 'Sign in', 500).click();
+        // Explicitly click Sign In button if necessary.
+        await this.driver.findWait('.test-user-sign-in', 4000).click();
       }
 
       // Fill the login form (either test or Grist).
@@ -382,8 +381,7 @@ export class HomeUtil {
     await this.deleteCurrentUser();
     await this.removeLogin(org);
     await this.driver.get(this.server.getUrl(org, ""));
-    await this.driver.findWait('.test-user-signin', 4000).click();
-    await this.driver.findContentWait('.grist-floating-menu a', 'Sign in', 500).click();
+    await this.driver.findWait('.test-user-sign-in', 4000).click();
     await this.checkLoginPage();
     // Fill the login form (either test or Grist).
     if (await this.isOnTestLoginPage()) {

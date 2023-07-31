@@ -279,7 +279,7 @@ export class NSandbox implements ISandbox {
     if (!this._streamToSandbox) {
       throw new Error('expected streamToSandbox to be configured');
     }
-    const sandboxStderrLogger = sandboxUtil.makeLinePrefixer('Sandbox stderr: ', this._logMeta);
+    const sandboxStderrLogger = sandboxUtil.makeLogLinePrefixer('Sandbox stderr: ', this._logMeta);
     this.childProc.stderr!.on('data', data => {
       this._lastStderr = data;
       sandboxStderrLogger(data);

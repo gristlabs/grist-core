@@ -266,7 +266,7 @@ describe('Pages', function() {
     // It looks like our version of Chromedriver does not support sending emojis using sendKeys
     // (issue mentioned here https://stackoverflow.com/a/59139690), so we'll use executeScript to
     // rename pages.
-    async function renamePage(origName: string, newName: string) {
+    async function renamePage(origName: string|RegExp, newName: string) {
       await gu.openPageMenu(origName);
       await driver.find('.test-docpage-rename').doClick();
       const editor = await driver.find('.test-docpage-editor');
@@ -291,7 +291,11 @@ describe('Pages', function() {
     assert.deepEqual(await getInitialAndName(/Guest List/),
       ['👨‍👩‍👧‍👦', '👨‍👩‍👧Guest List']);
 
-    await gu.undo(2);
+    // Digits should not be considered emoji (even though they match /\p{Emoji}/...)
+    await renamePage(/Guest List/, '5Guest List');
+    assert.deepEqual(await getInitialAndName(/Guest List/), ['5', '5Guest List']);
+
+    await gu.undo(3);
     assert.deepEqual(await getInitialAndName(/People/), ['P', 'People']);
   });
 

@@ -1,6 +1,7 @@
+# pylint:disable=too-many-lines
 import json
 import types
-import logger
+import logging
 import useractions
 
 import testutil
@@ -8,7 +9,7 @@ import test_engine
 from test_engine import Table, Column, View, Section, Field
 from schema import RecalcWhen
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestUserActions(test_engine.EngineTestCase):
   sample = testutil.parse_test_sample({

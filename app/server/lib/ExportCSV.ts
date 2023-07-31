@@ -1,5 +1,6 @@
 import {ApiError} from 'app/common/ApiError';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {FilterColValues} from "app/common/ActiveDocAPI";
 import {DownloadOptions, ExportData, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
 import * as bluebird from 'bluebird';
@@ -16,9 +17,10 @@ bluebird.promisifyAll(csv);
 export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
                                   res: express.Response, options: DownloadOptions) {
   log.info('Generating .csv file...');
-  const {filename, tableId, viewSectionId, filters, sortOrder} = options;
+  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter} = options;
   const data = viewSectionId ?
-    await makeCSVFromViewSection(activeDoc, viewSectionId, sortOrder || null, filters || null, req) :
+    await makeCSVFromViewSection(
+      activeDoc, viewSectionId, sortOrder || null, filters || null, linkingFilter || null, req) :
     await makeCSVFromTable(activeDoc, tableId, req);
   res.set('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
@@ -41,9 +43,10 @@ export async function makeCSVFromViewSection(
   viewSectionId: number,
   sortOrder: number[] | null,
   filters: Filter[] | null,
+  linkingFilter: FilterColValues | null,
   req: express.Request) {
 
-  const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, req);
+  const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, linkingFilter, req);
   const file = convertToCsv(data);
   return file;
 }

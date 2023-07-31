@@ -232,9 +232,6 @@ async function checkSelectingRecords(
     const targetGroup = targetData[targetGroupIndex];
     const countCell = await gu.getCell({section: summarySection, col: 'count', rowNum: targetGroupIndex + 1});
     const numTargetRows = targetGroup.length / 3;
-    if (targetSection === 'TABLE1') {
-      assert.equal(await countCell.getText(), numTargetRows.toString());
-    }
     await countCell.click();
     assert.deepEqual(
       await gu.getVisibleGridCells({
@@ -244,6 +241,13 @@ async function checkSelectingRecords(
       }),
       targetGroup
     );
+    if (targetSection === 'TABLE1') {
+      assert.equal(await countCell.getText(), numTargetRows.toString());
+      const csvCells = await gu.downloadSectionCsvGridCells(targetSection);
+      // visible cells text uses newlines to separate list items, CSV export uses commas
+      const expectedCsvCells = targetGroup.map(s => s.replace("\n", ", "));
+      assert.deepEqual(csvCells, expectedCsvCells);
+    }
   }
 
   for (let i = 0; i < targetData.length; i++) {

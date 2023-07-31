@@ -24,6 +24,8 @@ import {Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, style
 const t = makeT('TopBar');
 
 export function createTopBarHome(appModel: AppModel) {
+  const isAnonymous = !appModel.currentValidUser;
+
   return [
     cssFlexSpace(),
     appModel.supportGristNudge.showButton(),
@@ -40,7 +42,7 @@ export function createTopBarHome(appModel: AppModel) {
     ),
 
     buildLanguageMenu(appModel),
-    buildNotifyMenuButton(appModel.notifier, appModel),
+    isAnonymous ? null : buildNotifyMenuButton(appModel.notifier, appModel),
     dom('div', dom.create(AccountWidget, appModel)),
   ];
 }
@@ -70,6 +72,16 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       return module.SearchModelImpl.create(use.owner, gristDoc);
     });
 
+  const isUndoRedoAvailable = Computed.create(owner, use => {
+    const gristDoc = use(pageModel.gristDoc);
+    if (!gristDoc) { return false; }
+
+    const undoStack = gristDoc.getUndoStack();
+    return !use(undoStack.isDisabled);
+  });
+
+  const isAnonymous = !pageModel.appModel.currentValidUser;
+
   return [
     // TODO Before gristDoc is loaded, we could show doc-name without the page. For now, we delay
     // showing of breadcrumbs until gristDoc is loaded.
@@ -88,6 +100,8 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isFiddle: Computed.create(owner, (use) => use(pageModel.isPrefork)),
           isSnapshot: pageModel.isSnapshot,
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
+          isTemplate: pageModel.isTemplate,
+          isAnonymous,
         })
       )
     ),
@@ -98,14 +112,14 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       topBarUndoBtn('Undo',
         dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
         hoverTooltip('Undo', {key: 'topBarBtnTooltip'}),
-        cssHoverCircle.cls('-disabled', state.isUndoDisabled),
-        testId('undo')
+        cssHoverCircle.cls('-disabled', use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
+        testId('undo'),
       ),
       topBarUndoBtn('Redo',
         dom.on('click', () => state.isRedoDisabled.get() || allCommands.redo.run()),
         hoverTooltip('Redo', {key: 'topBarBtnTooltip'}),
-        cssHoverCircle.cls('-disabled', state.isRedoDisabled),
-        testId('redo')
+        cssHoverCircle.cls('-disabled', use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
+        testId('redo'),
       ),
       cssSpacer(),
     ]),
@@ -113,23 +127,21 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       const model = use(searchModelObs);
       return model && use(moduleObs)?.searchBar(model, makeTestId('test-tb-search-'));
     }),
-
-    buildShareMenuButton(pageModel),
-
-    dom.maybe(use =>
-      (
-        use(pageModel.gristDoc)
-        && !use(use(pageModel.gristDoc)!.isReadonly)
-        && use(COMMENTS())
+    dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
+      buildShareMenuButton(pageModel),
+      dom.maybe(use =>
+        (
+          use(pageModel.gristDoc)
+          && !use(use(pageModel.gristDoc)!.isReadonly)
+          && use(COMMENTS())
+        ),
+        () => buildShowDiscussionButton(pageModel)),
+      dom.update(
+        buildNotifyMenuButton(appModel.notifier, appModel),
+        cssHideForNarrowScreen.cls(''),
       ),
-      () => buildShowDiscussionButton(pageModel)),
-
-    dom.update(
-      buildNotifyMenuButton(appModel.notifier, appModel),
-      cssHideForNarrowScreen.cls(''),
-    ),
-
-    dom('div', dom.create(AccountWidget, appModel, pageModel))
+    ]),
+    dom('div', dom.create(AccountWidget, appModel, pageModel)),
   ];
 }
 

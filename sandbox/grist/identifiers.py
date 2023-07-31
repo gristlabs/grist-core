@@ -3,6 +3,7 @@
 A module for creating and sanitizing identifiers
 """
 import itertools
+import logging
 import re
 import unicodedata
 from keyword import iskeyword
@@ -10,9 +11,7 @@ from string import ascii_uppercase
 
 import six
 
-import logger
-
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 _invalid_ident_char_re = re.compile(r'[^a-zA-Z0-9_]+')
 _invalid_ident_start_re = re.compile(r'^(?=[0-9_])')

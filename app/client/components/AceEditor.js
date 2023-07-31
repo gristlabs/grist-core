@@ -1,10 +1,11 @@
-var ace = require('brace');
+var ace = require('ace-builds');
 var _ = require('underscore');
-// Used to load python language settings and color themes
-require('brace/mode/python');
-require('brace/theme/chrome');
-require('brace/theme/dracula');
-require('brace/ext/language_tools');
+// ace-builds also has a minified build (src-min-noconflict), but we don't
+// use it since webpack already handles minification.
+require('ace-builds/src-noconflict/mode-python');
+require('ace-builds/src-noconflict/theme-chrome');
+require('ace-builds/src-noconflict/theme-dracula');
+require('ace-builds/src-noconflict/ext-language_tools');
 var {setupAceEditorCompletions} = require('./AceEditorCompletions');
 var {getGristConfig} = require('../../common/urlUtils');
 var dom = require('../lib/dom');
@@ -291,7 +292,7 @@ AceEditor.prototype._setAceTheme = function(gristTheme) {
 
 let _RangeConstructor = null; //singleton, load it lazily
 AceEditor.makeRange = function(a, b, c, d) {
-  _RangeConstructor = _RangeConstructor || ace.acequire('ace/range').Range;
+  _RangeConstructor = _RangeConstructor || ace.require('ace/range').Range;
   return new _RangeConstructor(a, b, c, d);
 };
 

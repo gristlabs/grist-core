@@ -1160,7 +1160,8 @@ GridView.prototype.buildDom = function() {
                   },
                   menu(ctl => this.columnContextMenu(ctl, this.getSelection(), field, filterTriggerCtl)),
                   testId('column-menu-trigger'),
-                )
+                ),
+                dom('div.selection'),
               );
             }),
             this.isPreview ? null : kd.maybe(() => !this.gristDoc.isReadonlyKo(), () => (
@@ -1367,7 +1368,7 @@ GridView.prototype.buildDom = function() {
 
             kd.toggleClass('selected', isSelected),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
-            dom('div.field_selection')
+            dom('div.selection'),
           );
         })
       )

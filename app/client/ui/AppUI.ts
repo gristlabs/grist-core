@@ -106,7 +106,7 @@ function pagePanelsHome(owner: IDisposableOwner, appModel: AppModel, app: App) {
       panelWidth: Observable.create(owner, 240),
       panelOpen: leftPanelOpen,
       hideOpener: true,
-      header: dom.create(AppHeader, appModel.currentOrgName, appModel),
+      header: dom.create(AppHeader, appModel),
       content: createHomeLeftPane(leftPanelOpen, pageModel),
     },
     headerMain: createTopBarHome(appModel),
@@ -153,7 +153,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     leftPanel: {
       panelWidth: leftPanelWidth,
       panelOpen: leftPanelOpen,
-      header: dom.create(AppHeader, appModel.currentOrgName || pageModel.currentOrgName, appModel, pageModel),
+      header: dom.create(AppHeader, appModel, pageModel),
       content: pageModel.createLeftPane(leftPanelOpen),
     },
     rightPanel: {

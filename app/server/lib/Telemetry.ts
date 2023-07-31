@@ -12,6 +12,7 @@ import {
   TelemetryLevels,
   TelemetryMetadata,
   TelemetryMetadataByLevel,
+  TelemetryRetentionPeriod,
 } from 'app/common/Telemetry';
 import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {Activation} from 'app/gen-server/entity/Activation';
@@ -44,19 +45,15 @@ const MAX_PENDING_FORWARD_EVENT_REQUESTS = 25;
  */
 export class Telemetry implements ITelemetry {
   private _activation: Activation | undefined;
-  private readonly _deploymentType = this._gristServer.getDeploymentType();
-
   private _telemetryPrefs: TelemetryPrefsWithSources | undefined;
-
+  private readonly _deploymentType = this._gristServer.getDeploymentType();
   private readonly _shouldForwardTelemetryEvents = this._deploymentType !== 'saas';
   private readonly _forwardTelemetryEventsUrl = process.env.GRIST_TELEMETRY_URL ||
     'https://telemetry.getgrist.com/api/telemetry';
   private _numPendingForwardEventRequests = 0;
-
-
   private readonly _logger = new LogMethods('Telemetry ', () => ({}));
-  private readonly _telemetryLogger = new LogMethods('Telemetry ', () => ({
-    eventType: 'telemetry',
+  private readonly _telemetryLogger = new LogMethods<string>('Telemetry ', (eventType) => ({
+    eventType,
   }));
 
   private _checkTelemetryEvent: TelemetryEventChecker | undefined;
@@ -153,21 +150,17 @@ export class Telemetry implements ITelemetry {
      */
     app.post('/api/telemetry', expressWrap(async (req, resp) => {
       const mreq = req as RequestWithLogin;
-      const event = stringParam(req.body.event, 'event', TelemetryEvents.values);
+      const event = stringParam(req.body.event, 'event', TelemetryEvents.values) as TelemetryEvent;
       if ('eventSource' in req.body.metadata) {
-        this._telemetryLogger.rawLog('info', null, event, {
-          eventName: event,
+        this._telemetryLogger.rawLog('info', getEventType(event), event, {
           ...(removeNullishKeys(req.body.metadata)),
+          eventName: event,
         });
       } else {
         try {
           this._assertTelemetryIsReady();
-          await this.logEvent(event as TelemetryEvent, merge(
+          await this.logEvent(event, merge(
             {
-              limited: {
-                eventSource: `grist-${this._deploymentType}`,
-                ...(this._deploymentType !== 'saas' ? {installationId: this._activation!.id} : {}),
-              },
               full: {
                 userId: mreq.userId,
                 altSessionId: mreq.altSessionId,
@@ -219,10 +212,11 @@ export class Telemetry implements ITelemetry {
     event: TelemetryEvent,
     metadata?: TelemetryMetadata
   ) {
-    this._telemetryLogger.rawLog('info', null, event, {
+    this._telemetryLogger.rawLog('info', getEventType(event), event, {
+      ...metadata,
       eventName: event,
       eventSource: `grist-${this._deploymentType}`,
-      ...metadata,
+      installationId: this._activation!.id,
     });
   }
 
@@ -238,7 +232,15 @@ export class Telemetry implements ITelemetry {
 
     try {
       this._numPendingForwardEventRequests += 1;
-      await this._doForwardEvent(JSON.stringify({event, metadata}));
+      await this._doForwardEvent(JSON.stringify({
+        event,
+        metadata: {
+          ...metadata,
+          eventName: event,
+          eventSource: `grist-${this._deploymentType}`,
+          installationId: this._activation!.id,
+        }
+      }));
     } catch (e) {
       this._logger.error(undefined, `failed to forward telemetry event ${event}`, e);
     } finally {
@@ -341,4 +343,16 @@ export function hashDigestKeys(metadata: TelemetryMetadata): TelemetryMetadata {
     }
   });
   return filteredMetadata;
+}
+
+type TelemetryEventType = 'telemetry' | 'telemetry-short-retention';
+
+const EventTypeByRetentionPeriod: Record<TelemetryRetentionPeriod, TelemetryEventType> = {
+  indefinitely: 'telemetry',
+  short: 'telemetry-short-retention',
+};
+
+function getEventType(event: TelemetryEvent) {
+  const {retentionPeriod} = TelemetryContracts[event];
+  return EventTypeByRetentionPeriod[retentionPeriod];
 }

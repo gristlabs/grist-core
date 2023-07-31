@@ -15,6 +15,7 @@ import six
 from six.moves import zip, xrange
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
 
 
 # Typecheck using type(value) instead of isinstance(value, some_type) makes parsing 25% faster

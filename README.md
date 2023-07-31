@@ -260,6 +260,7 @@ GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of ne
 GRIST_DEFAULT_LOCALE  | Locale to use as fallback when Grist cannot honour the browser locale.
 GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
+GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default.
 GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
 GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
 GRIST_HOST          | hostname to use when listening on a port.
@@ -282,6 +283,7 @@ GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - oth
 GRIST_SESSION_SECRET | a key used to encode sessions
 GRIST_FORCE_LOGIN    | when set to 'true' disables anonymous access
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
+GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org
 GRIST_HELP_CENTER | set the help center link ref
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
@@ -296,6 +298,7 @@ PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
+OPENAI_API_KEY      | optional. Used for the AI formula assistant. Sign up for an account on OpenAI and then generate a secret key [here](https://platform.openai.com/account/api-keys). You also need to set `GRIST_FORMULA_ASSISTANT=1`.
 
 Sandbox related variables:
 

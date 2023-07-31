@@ -31,17 +31,16 @@ import {DocModel} from 'app/client/models/DocModel';
 import {BaseFilteredRowSource, RowList, RowSource} from 'app/client/models/rowset';
 import {TableData} from 'app/client/models/TableData';
 import {ActiveDocAPI, ClientQuery, QueryOperation} from 'app/common/ActiveDocAPI';
-import {CellValue, TableDataAction} from 'app/common/DocActions';
+import {TableDataAction} from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {isList} from "app/common/gristTypes";
 import {nativeCompare} from 'app/common/gutil';
 import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
-import {RowFilterFunc} from 'app/common/RowFilterFunc';
+import {getLinkingFilterFunc, RowFilterFunc} from 'app/common/RowFilterFunc';
 import {TableData as BaseTableData, UIRowId} from 'app/common/TableData';
 import {tbind} from 'app/common/tbind';
-import {decodeObject} from "app/plugin/objtypes";
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
 import * as ko from 'knockout';
+import {ClientColumnGettersByColId} from 'app/client/models/ClientColumnGetters';
 import debounce = require('lodash/debounce');
 
 // Limit on the how many rows to request for OnDemand tables.
@@ -306,28 +305,9 @@ export class TableQuerySets {
 export function getFilterFunc(docData: DocData, query: ClientQuery): RowFilterFunc<UIRowId> {
   // NOTE we rely without checking on tableId and colIds being valid.
   const tableData: BaseTableData = docData.getTable(query.tableId)!;
-  const colFuncs = Object.keys(query.filters).sort().map(
-    (colId) => {
-      const getter = tableData.getRowPropFunc(colId)!;
-      const values = new Set(query.filters[colId]);
-      switch (query.operations[colId]) {
-        case "intersects":
-          return (rowId: UIRowId) => {
-            const value = getter(rowId) as CellValue;
-            return isList(value) &&
-              (decodeObject(value) as unknown[]).some(v => values.has(v));
-          };
-        case "empty":
-          return (rowId: UIRowId) => {
-            const value = getter(rowId);
-            // `isList(value) && value.length === 1` means `value == ['L']` i.e. an empty list
-            return !value || isList(value) && value.length === 1;
-          };
-        case "in":
-          return (rowId: UIRowId) => values.has(getter(rowId));
-      }
-    });
-  return (rowId: UIRowId) => colFuncs.every(f => f(rowId));
+  const colGetters = new ClientColumnGettersByColId(tableData);
+  const rowFilterFunc = getLinkingFilterFunc(colGetters, query);
+  return (rowId: UIRowId) => rowId !== "new" && rowFilterFunc(rowId);
 }
 
 /**

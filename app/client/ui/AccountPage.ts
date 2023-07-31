@@ -47,7 +47,7 @@ export class AccountPage extends Disposable {
         panelWidth: Observable.create(this, 240),
         panelOpen,
         hideOpener: true,
-        header: dom.create(AppHeader, this._appModel.currentOrgName, this._appModel),
+        header: dom.create(AppHeader, this._appModel),
         content: leftPanelBasic(this._appModel, panelOpen),
       },
       headerMain: this._buildHeaderMain(),
@@ -131,9 +131,8 @@ export class AccountPage extends Disposable {
           ),
           css.subHeader(t("Two-factor authentication")),
           css.description(
-            t("Two-factor authentication is an extra layer of security for your Grist account " +
-              "designed to ensure that you're the only person who can access your account, " +
-              "even if someone knows your password.")
+            t("Two-factor authentication is an extra layer of security for your Grist account \
+designed to ensure that you're the only person who can access your account, even if someone knows your password.")
           ),
           dom.create(MFAConfig, user),
         ),

@@ -11,6 +11,7 @@ import {IHomePage} from 'app/common/gristUrls';
 import {isLongerThan} from 'app/common/gutil';
 import {SortPref, UserOrgPrefs, ViewPref} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Document, Organization, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 import moment from 'moment';
@@ -311,7 +312,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       //     now, but it is good to show names to highlight the possibility of adding more.
       const nonSupportWss = Array.isArray(wss) ? wss.filter(ws => !ws.isSupportWorkspace) : null;
       this.singleWorkspace.set(
-        !!nonSupportWss && nonSupportWss.length === 1 && _isSingleWorkspaceMode(this._app)
+        // The anon personal site always has 0 non-support workspaces.
+        nonSupportWss?.length === 0 ||
+        nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app)
       );
     });
   }
@@ -357,6 +360,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
    * Only fetches featured (pinned) templates on the All Documents page.
    */
   private async _maybeFetchTemplates(): Promise<Workspace[] | null> {
+    const {templateOrg} = getGristConfig();
+    if (!templateOrg) { return null; }
+
     const currentPage = this.currentPage.get();
     const shouldFetchTemplates = ['all', 'templates'].includes(currentPage);
     if (!shouldFetchTemplates) { return null; }
@@ -366,10 +372,10 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       const onlyFeatured = currentPage === 'all';
       templateWss = await this._app.api.getTemplates(onlyFeatured);
     } catch {
-      // If the org doesn't exist (404), return nothing and don't report error to user.
-      return null;
+      reportError('Failed to load templates');
     }
     if (this.isDisposed()) { return null; }
+
     for (const ws of templateWss) {
       for (const doc of ws.docs) {
         // Populate doc.workspace, which is used by DocMenu/PinnedDocs and

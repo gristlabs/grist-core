@@ -1,10 +1,10 @@
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, urlState} from 'app/client/models/gristUrlState';
+import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
-import {primaryButton} from 'app/client/ui2018/buttons';
+import {bigPrimaryButtonLink, primaryButtonLink} from 'app/client/ui2018/buttons';
 import {mediaDeviceNotSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuDivider, menuItem, menuItemLink, menuSubHeader} from 'app/client/ui2018/menus';
@@ -20,8 +20,12 @@ import {getGristConfig} from 'app/common/urlUtils';
 const t = makeT('AccountWidget');
 
 /**
- * Render the user-icon that opens the account menu. When no user is logged in, render a Sign-in
- * button instead.
+ * Render the user-icon that opens the account menu.
+ *
+ * When no user is logged in, render "Sign In" and "Sign Up" buttons.
+ *
+ * When no user is logged in and a template document is open, render a "Use This Template"
+ * button.
  */
 export class AccountWidget extends Disposable {
   constructor(private _appModel: AppModel, private _docPageModel?: DocPageModel) {
@@ -30,20 +34,60 @@ export class AccountWidget extends Disposable {
 
   public buildDom() {
     return cssAccountWidget(
-      dom.domComputed(this._appModel.currentValidUser, (user) =>
-        (user ?
-          cssUserIcon(createUserImage(user, 'medium', testId('user-icon')),
-            menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
-          ) :
-          cssSignInButton(t("Sign in"), icon('Collapse'), testId('user-signin'),
-            menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
-          )
-        )
-      ),
+      dom.domComputed(use => {
+        const isTemplate = Boolean(this._docPageModel && use(this._docPageModel.isTemplate));
+        const user = this._appModel.currentValidUser;
+        if (!user && isTemplate) {
+          return this._buildUseThisTemplateButton();
+        } else if (!user) {
+          return this._buildSignInAndSignUpButtons();
+        } else {
+          return this._buildAccountMenuButton(user);
+        }
+      }),
       testId('dm-account'),
     );
   }
 
+  private _buildAccountMenuButton(user: FullUser|null) {
+    return cssUserIcon(
+      createUserImage(user, 'medium', testId('user-icon')),
+      menu(() => this._makeAccountMenu(user), {placement: 'bottom-end'}),
+    );
+  }
+
+  private _buildSignInAndSignUpButtons() {
+    return [
+      cssSigninButton(t('Sign In'),
+        cssSigninButton.cls('-secondary'),
+        dom.attr('href', use => {
+          // Keep the redirect param of the login URL fresh.
+          use(urlState().state);
+          return getLoginUrl();
+        }),
+        testId('user-sign-in'),
+      ),
+      cssSigninButton(t('Sign Up'),
+        dom.attr('href', use => {
+          // Keep the redirect param of the signup URL fresh.
+          use(urlState().state);
+          return getSignupUrl();
+        }),
+        testId('user-sign-up'),
+      ),
+    ];
+  }
+
+  private _buildUseThisTemplateButton() {
+    return cssUseThisTemplateButton(t('Use This Template'),
+      dom.attr('href', use => {
+        // Keep the redirect param of the login/signup URL fresh.
+        use(urlState().state);
+        return getLoginOrSignupUrl();
+      }),
+      testId('dm-account-use-this-template'),
+    );
+  }
 
   /**
    * Renders the content of the account menu, with a list of available orgs, settings, and sign-out.
@@ -187,6 +231,7 @@ export class AccountWidget extends Disposable {
 }
 
 const cssAccountWidget = styled('div', `
+  display: flex;
   margin-right: 16px;
   white-space: nowrap;
 `);
@@ -251,8 +296,22 @@ const cssSmallDeviceOnly = styled(menuItem, `
   }
 `);
 
-const cssSignInButton = styled(primaryButton, `
+const cssSigninButton = styled(bigPrimaryButtonLink, `
   display: flex;
+  align-items: center;
+  font-weight: 700;
+  min-height: unset;
+  height: 36px;
+  padding: 8px 16px 8px 16px;
+  font-size: ${vars.mediumFontSize};
+
+  &-secondary, &-secondary:hover {
+    background-color: transparent;
+    border-color: transparent;
+    color: ${theme.text};
+  }
+`);
+
+const cssUseThisTemplateButton = styled(primaryButtonLink, `
   margin: 8px;
-  gap: 4px;
 `);

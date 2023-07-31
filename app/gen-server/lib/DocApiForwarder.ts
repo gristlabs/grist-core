@@ -70,7 +70,7 @@ export class DocApiForwarder {
     let docId: string|null = null;
     if (withDocId) {
       const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager,
-                                            this._gristServer, req.params.docId);
+        this._gristServer, req.params.docId);
       if (role) {
         assertAccess(role, docAuth, {allowRemoved: true});
       }

@@ -1,15 +1,16 @@
+# pylint: disable=line-too-long
 import datetime
+import logging
 import actions
-import logger
 import moment
 import objtypes
+from objtypes import RecordStub
 
 import testsamples
 import testutil
 import test_engine
-from objtypes import RecordStub
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 def _bulk_update(table_name, col_names, row_data):
   return actions.BulkUpdateRecord(

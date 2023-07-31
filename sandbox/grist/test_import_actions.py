@@ -1,8 +1,8 @@
 # pylint: disable=line-too-long
-import logger
+import logging
 import test_engine
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 
 class TestImportActions(test_engine.EngineTestCase):

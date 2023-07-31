@@ -1,31 +1,45 @@
+import {makeT} from 'app/client/lib/localization';
 import {documentCursor} from 'app/client/lib/popupUtils';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
+import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {Disposable, dom, DomContents, DomElementArg,
         IDisposable, makeTestId, Observable, styled} from 'grainjs';
 
 const POPUP_INITIAL_PADDING_PX = 16;
-const POPUP_MIN_HEIGHT = 300;
+const POPUP_DEFAULT_MIN_HEIGHT = 300;
 const POPUP_MAX_HEIGHT = 711;
 const POPUP_HEADER_HEIGHT = 30;
 
+const t = makeT('FloatingPopup');
+
 const testId = makeTestId('test-floating-popup-');
+
+export const FLOATING_POPUP_TOOLTIP_KEY = 'floatingPopupTooltip';
 
 export interface PopupOptions {
   title?: () => DomContents;
   content?: () => DomContents;
   onClose?: () => void;
   closeButton?: boolean;
+  closeButtonIcon?: IconName;
   closeButtonHover?: () => DomContents;
+  minimizable?: boolean;
   autoHeight?: boolean;
+  /** Minimum height in pixels. */
+  minHeight?: number;
   /** Defaults to false. */
   stopClickPropagationOnMove?: boolean;
+  initialPosition?: [left: number, top: number];
   args?: DomElementArg[];
 }
 
 export class FloatingPopup extends Disposable {
   protected _isMinimized = Observable.create(this, false);
+  private _closable = this._options.closeButton ?? false;
+  private _minimizable = this._options.minimizable ?? false;
+  private _minHeight = this._options.minHeight ?? POPUP_DEFAULT_MIN_HEIGHT;
   private _isFinishingMove = false;
   private _popupElement: HTMLElement | null = null;
   private _popupMinimizeButtonElement: HTMLElement | null = null;
@@ -71,7 +85,7 @@ export class FloatingPopup extends Disposable {
     this.autoDispose(isNarrowScreenObs().addListener(() => this._repositionPopup()));
 
     this.onDispose(() => {
-      this._closePopup();
+      this._disposePopup();
       this._cursorGrab?.dispose();
     });
   }
@@ -79,18 +93,22 @@ export class FloatingPopup extends Disposable {
   public showPopup() {
     this._popupElement = this._buildPopup();
     document.body.appendChild(this._popupElement);
-    const topPaddingPx = getTopPopupPaddingPx();
-    const initialLeft = document.body.offsetWidth - this._popupElement.offsetWidth - POPUP_INITIAL_PADDING_PX;
-    const initialTop = document.body.offsetHeight - this._popupElement.offsetHeight - topPaddingPx;
-    this._popupElement.style.left = `${initialLeft}px`;
-    this._popupElement.style.top = `${initialTop}px`;
+
+    const {initialPosition} = this._options;
+    if (initialPosition) {
+      this._setPosition(initialPosition);
+      this._repositionPopup();
+    } else {
+      const left = document.body.offsetWidth - this._popupElement.offsetWidth - POPUP_INITIAL_PADDING_PX;
+      const top = document.body.offsetHeight - this._popupElement.offsetHeight - getTopPopupPaddingPx();
+      this._setPosition([left, top]);
+    }
   }
 
   protected _closePopup() {
-    if (!this._popupElement) { return; }
-    document.body.removeChild(this._popupElement);
-    dom.domDispose(this._popupElement);
-    this._popupElement = null;
+    if (!this._closable) { return; }
+
+    this._disposePopup();
   }
 
   protected _buildTitle(): DomContents {
@@ -103,6 +121,21 @@ export class FloatingPopup extends Disposable {
 
   protected _buildArgs(): any {
     return this._options.args ?? [];
+  }
+
+  private _disposePopup() {
+    if (!this._popupElement) { return; }
+
+    document.body.removeChild(this._popupElement);
+    dom.domDispose(this._popupElement);
+    this._popupElement = null;
+  }
+
+  private _setPosition([left, top]: [left: number, top: number]) {
+    if (!this._popupElement) { return; }
+
+    this._popupElement.style.left = `${left}px`;
+    this._popupElement.style.top = `${top}px`;
   }
 
   private _rememberPosition() {
@@ -151,7 +184,7 @@ export class FloatingPopup extends Disposable {
 
       // First just how much we can resize the popup.
       let minTop = this._initialBottom - POPUP_MAX_HEIGHT;
-      let maxTop = this._initialBottom - POPUP_MIN_HEIGHT;
+      let maxTop = this._initialBottom - this._minHeight;
 
       // Now how far we can move top (leave at least some padding for mobile).
       minTop = Math.max(minTop, getTopPopupPaddingPx());
@@ -250,6 +283,8 @@ export class FloatingPopup extends Disposable {
   }
 
   private _minimizeOrMaximize() {
+    if (!this._minimizable) { return; }
+
     this._isMinimized.set(!this._isMinimized.get());
     this._repositionPopup();
   }
@@ -258,6 +293,7 @@ export class FloatingPopup extends Disposable {
     const body = cssPopup(
       {tabIndex: '-1'},
       cssPopup.cls('-auto', this._options.autoHeight ?? false),
+      dom.style('min-height', `${this._minHeight}px`),
       cssPopupHeader(
         cssBottomHandle(testId('move-handle')),
         dom.maybe(use => !use(this._isMinimized), () => {
@@ -277,10 +313,12 @@ export class FloatingPopup extends Disposable {
             // center the title.
             cssPopupButtons(
               cssPopupHeaderButton(
-                icon('Maximize')
+                icon('Maximize'),
+                dom.show(this._minimizable),
               ),
-              !this._options.closeButton ? null : cssPopupHeaderButton(
+              cssPopupHeaderButton(
                 icon('CrossBig'),
+                dom.show(this._closable),
               ),
               dom.style('visibility', 'hidden'),
             ),
@@ -291,17 +329,23 @@ export class FloatingPopup extends Disposable {
             cssPopupButtons(
               this._popupMinimizeButtonElement = cssPopupHeaderButton(
                 isMinimized ? icon('Maximize'): icon('Minimize'),
-                hoverTooltip(isMinimized ? 'Maximize' : 'Minimize', {key: 'docTutorialTooltip'}),
+                hoverTooltip(isMinimized ? t('Maximize') : t('Minimize'), {
+                  key: FLOATING_POPUP_TOOLTIP_KEY,
+                }),
                 dom.on('click', () => this._minimizeOrMaximize()),
+                dom.show(this._minimizable),
                 testId('minimize-maximize'),
               ),
-              !this._options.closeButton ? null : cssPopupHeaderButton(
-                icon('CrossBig'),
+              cssPopupHeaderButton(
+                icon(this._options.closeButtonIcon ?? 'CrossBig'),
+                this._options.closeButtonHover && hoverTooltip(this._options.closeButtonHover(), {
+                  key: FLOATING_POPUP_TOOLTIP_KEY,
+                }),
                 dom.on('click', () => {
                   this._options.onClose?.() ?? this._closePopup();
                 }),
+                dom.show(this._closable),
                 testId('close'),
-                this._options.closeButtonHover && hoverTooltip(this._options.closeButtonHover())
               ),
               // Disable dragging when a button in the header is clicked.
               dom.on('mousedown', ev => ev.stopPropagation()),
@@ -362,7 +406,9 @@ function getTopPopupPaddingPx(): number {
 
 const POPUP_HEIGHT = `min(var(--height), calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px)))`;
 const POPUP_HEIGHT_MOBILE = `min(var(--height), calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px) - (2 * 50px)))`;
-const POPUP_WIDTH = `min(436px, calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px)))`;
+
+export const FLOATING_POPUP_MAX_WIDTH_PX = 436;
+const POPUP_WIDTH = `min(${FLOATING_POPUP_MAX_WIDTH_PX}px, calc(100% - (2 * ${POPUP_INITIAL_PADDING_PX}px)))`;
 
 const cssPopup = styled('div.floating-popup', `
   position: fixed;
@@ -374,7 +420,6 @@ const cssPopup = styled('div.floating-popup', `
   --height: ${POPUP_MAX_HEIGHT}px;
   height: ${POPUP_HEIGHT};
   width: ${POPUP_WIDTH};
-  min-height: ${POPUP_MIN_HEIGHT}px;
   background-color: ${theme.popupBg};
   box-shadow: 0 2px 18px 0 ${theme.popupInnerShadow}, 0 0 1px 0 ${theme.popupOuterShadow};
   outline: unset;

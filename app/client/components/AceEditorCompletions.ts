@@ -1,14 +1,14 @@
+import ace, {Ace} from 'ace-builds';
 import {ISuggestionWithValue} from 'app/common/ActiveDocAPI';
 import {commonUrls} from 'app/common/gristUrls';
-import * as ace from 'brace';
 
 export interface ICompletionOptions {
   getSuggestions(prefix: string): Promise<ISuggestionWithValue[]>;
 }
 
-const completionOptions = new WeakMap<ace.Editor, ICompletionOptions>();
+const completionOptions = new WeakMap<Ace.Editor, ICompletionOptions>();
 
-export function setupAceEditorCompletions(editor: ace.Editor, options: ICompletionOptions) {
+export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompletionOptions) {
   initCustomCompleter();
   completionOptions.set(editor, options);
 
@@ -17,7 +17,7 @@ export function setupAceEditorCompletions(editor: ace.Editor, options: ICompleti
   // It is important for autoSelect to be off so that hitting enter doesn't automatically
   // use a suggestion, a change of behavior that doesn't seem particularly desirable and
   // which also breaks several existing tests.
-  const {Autocomplete} = ace.acequire('ace/autocomplete'); // lives in brace/ext/language_tools
+  const {Autocomplete} = ace.require('ace/autocomplete');
 
   const completer = new Autocomplete();
   completer.autoSelect = false;
@@ -69,7 +69,7 @@ export function setupAceEditorCompletions(editor: ace.Editor, options: ICompleti
   // it adds to body even when it detaches itself. Ace's AutoCompleter doesn't expose any
   // interface for this, so this takes some hacking. (One reason for this is that Ace seems to
   // expect that a single AutoCompleter would be used for all editor instances.)
-  editor.on('destroy', () => {
+  editor.on('destroy' as any, () => {
     if (completer.editor) {
       completer.detach();
     }
@@ -91,10 +91,10 @@ function initCustomCompleter() {
   const prefixMatchRegex = /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$|[\w.$\u00A2-\uFFFF]+$/;
 
   // Monkey-patch getCompletionPrefix. This is based on the source code in
-  // node_modules/brace/ext/language_tools.js, simplified to do the one thing we want here (since
-  // the original method's generality doesn't help us here).
-  const util = ace.acequire('ace/autocomplete/util');   // lives in brace/ext/language_tools
-  util.getCompletionPrefix = function getCompletionPrefix(this: any, editor: ace.Editor) {
+  // node_modules/ace-builds/src-noconflict/ext-language_tools.js, simplified to do the one thing
+  // we want here (since the original method's generality doesn't help us here).
+  const util = ace.require('ace/autocomplete/util');
+  util.getCompletionPrefix = function getCompletionPrefix(this: any, editor: Ace.Editor) {
     const pos = editor.getCursorPosition();
     const line = editor.session.getLine(pos.row);
     const match = line.slice(0, pos.column).match(prefixMatchRegex);
@@ -102,14 +102,14 @@ function initCustomCompleter() {
   };
 
   // Add some autocompletion with partial access to document
-  const aceLanguageTools = ace.acequire('ace/ext/language_tools');
+  const aceLanguageTools = ace.require('ace/ext/language_tools');
   aceLanguageTools.setCompleters([]);
   aceLanguageTools.addCompleter({
     // For autocompletion we ship text to the sandbox and run standard completion there.
     async getCompletions(
-      editor: ace.Editor,
-      session: ace.IEditSession,
-      pos: ace.Position,
+      editor: Ace.Editor,
+      session: Ace.EditSession,
+      pos: Ace.Position,
       prefix: string,
       callback: any
     ) {
@@ -120,12 +120,13 @@ function initCustomCompleter() {
       // in the case where one function is being switched with another. Since we normally
       // append a "(" when completing such suggestions, we need to be careful not to do
       // so if a "(" is already present. One way to do this in ACE is to check if the
-      // current token is an identifier, and the next token is a lparen; if both are true,
-      // we skip appending a "(" to each suggestion.
+      // current token is a function/identifier, and the next token is a lparen; if both are
+      // true, we skip appending a "(" to each suggestion.
       const wordRange = session.getWordRange(pos.row, pos.column);
-      const token = session.getTokenAt(pos.row, wordRange.end.column) as TokenInfo;
-      const nextToken = session.getTokenAt(pos.row, wordRange.end.column + 1) as TokenInfo|null;
-      const isRenamingFunc = token.type === 'identifier' && nextToken?.type === 'paren.lparen';
+      const token = session.getTokenAt(pos.row, wordRange.end.column) as Ace.Token;
+      const nextToken = session.getTokenAt(pos.row, wordRange.end.column + 1);
+      const isRenamingFunc = ['function.support', 'identifier'].includes(token.type)
+        && nextToken?.type === 'paren.lparen';
 
       const suggestions = await options.getSuggestions(prefix);
       // ACE autocompletions are very poorly documented. This is somewhat helpful:
@@ -209,7 +210,8 @@ interface AceSuggestion {
  * them to look like links, and handle clicks to open the destination URL.
  *
  * This implementation relies a lot on the details of the implementation in
- * node_modules/brace/ext/language_tools.js. Updates to brace module may easily break it.
+ * node_modules/ace-builds/src-noconflict/ext-language_tools.js. Updates to ace-builds module may
+ * easily break it.
  */
 function aceCompleterAddHelpLinks(completer: any) {
   // Replace the $init function in order to intercept the creation of the autocomplete popup.
@@ -239,11 +241,7 @@ function customizeAceCompleterPopup(completer: any, popup: any) {
   });
 }
 
-interface TokenInfo extends ace.TokenInfo {
-  type: string;
-}
-
-function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: TokenInfo[]): TokenInfo[] {
+function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]): Ace.Token[] {
   if (!(rowData.funcname || rowData.example)) {
     // Not a special completion, pass through the result of ACE's original tokenizing.
     return tokens;

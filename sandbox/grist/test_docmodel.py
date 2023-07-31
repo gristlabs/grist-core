@@ -1,11 +1,11 @@
+import logging
 import actions
-import logger
 
 import testsamples
 import test_engine
 from test_engine import Table, Column
 
-log = logger.Logger(__name__, logger.INFO)
+log = logging.getLogger(__name__)
 
 class TestDocModel(test_engine.EngineTestCase):
 

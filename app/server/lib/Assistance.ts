@@ -2,20 +2,30 @@
  * Module with functions used for AI formula assistance.
  */
 
-import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
+import {
+  AssistanceContext,
+  AssistanceMessage,
+  AssistanceRequest,
+  AssistanceResponse
+} from 'app/common/AssistancePrompts';
 import {delay} from 'app/common/delay';
 import {DocAction} from 'app/common/DocActions';
-import {OptDocSession} from 'app/server/lib/DocSession';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {getDocSessionUser, OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import fetch from 'node-fetch';
+import {createHash} from "crypto";
+import {getLogMetaFromDocSession} from "./serverUtils";
 
-export const DEPS = { fetch };
+// These are mocked/replaced in tests.
+// fetch is also replacing in the runCompletion script to add caching.
+export const DEPS = { fetch, delayTime: 1000 };
 
 /**
  * An assistant can help a user do things with their document,
  * by interfacing with an external LLM endpoint.
  */
-export interface Assistant {
+interface Assistant {
   apply(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse>;
 }
 
@@ -23,7 +33,7 @@ export interface Assistant {
  * Document-related methods for use in the implementation of assistants.
  * Somewhat ad-hoc currently.
  */
-export interface AssistanceDoc {
+interface AssistanceDoc extends ActiveDoc {
   /**
    * Generate a particular prompt coded in the data engine for some reason.
    * It makes python code for some tables, and starts a function body with
@@ -32,10 +42,29 @@ export interface AssistanceDoc {
    * be great to try variants.
    */
   assistanceSchemaPromptV1(session: OptDocSession, options: AssistanceSchemaPromptV1Context): Promise<string>;
+
   /**
    * Some tweaks to a formula after it has been generated.
    */
   assistanceFormulaTweak(txt: string): Promise<string>;
+
+  /**
+   * Compute the existing formula and return the result along with recorded values
+   * of (possibly nested) attributes of `rec`.
+   * Used by AI assistance to fix an incorrect formula.
+   */
+  assistanceEvaluateFormula(options: AssistanceContext): Promise<AssistanceFormulaEvaluationResult>;
+}
+
+export interface AssistanceFormulaEvaluationResult {
+  error: boolean;  // true if an exception was raised
+  result: string;  // repr of the return value OR exception message
+
+  // Recorded attributes of `rec` at the time of evaluation.
+  // Keys may be e.g. "rec.foo.bar" for nested attributes.
+  attributes: Record<string, string>;
+
+  formula: string;  // the code that was evaluated, without special grist syntax
 }
 
 export interface AssistanceSchemaPromptV1Context {
@@ -44,14 +73,58 @@ export interface AssistanceSchemaPromptV1Context {
   docString: string,
 }
 
+class SwitchToLongerContext extends Error {
+}
+
+class NonRetryableError extends Error {
+}
+
+class TokensExceededFirstMessage extends NonRetryableError {
+  constructor() {
+    super(
+      "Sorry, there's too much information for the AI to process. " +
+      "You'll need to either shorten your message or delete some columns."
+    );
+  }
+}
+
+class TokensExceededLaterMessage extends NonRetryableError {
+  constructor() {
+    super(
+      "Sorry, there's too much information for the AI to process. " +
+      "You'll need to either shorten your message, restart the conversation, or delete some columns."
+    );
+  }
+}
+
+class QuotaExceededError extends NonRetryableError {
+  constructor() {
+    super(
+      "Sorry, the assistant is facing some long term capacity issues. " +
+      "Maybe try again tomorrow."
+    );
+  }
+}
+
+class RetryableError extends Error {
+  constructor(message: string) {
+    super(
+      "Sorry, the assistant is unavailable right now. " +
+      "Try again in a few minutes. \n" +
+      `(${message})`
+    );
+  }
+}
+
 /**
  * A flavor of assistant for use with the OpenAI API.
  * Tested primarily with gpt-3.5-turbo.
  */
 export class OpenAIAssistant implements Assistant {
+  public static DEFAULT_MODEL = "gpt-3.5-turbo-0613";
+  public static LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
+
   private _apiKey: string;
-  private _model: string;
-  private _chatMode: boolean;
   private _endpoint: string;
 
   public constructor() {
@@ -60,61 +133,88 @@ export class OpenAIAssistant implements Assistant {
       throw new Error('OPENAI_API_KEY not set');
     }
     this._apiKey = apiKey;
-    this._model = process.env.COMPLETION_MODEL || "gpt-3.5-turbo-0613";
-    this._chatMode = this._model.includes('turbo');
-    if (!this._chatMode) {
-      throw new Error('Only turbo models are currently supported');
-    }
-    this._endpoint = `https://api.openai.com/v1/${this._chatMode ? 'chat/' : ''}completions`;
+    this._endpoint = `https://api.openai.com/v1/chat/completions`;
   }
 
   public async apply(
     optSession: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     const messages = request.state?.messages || [];
-    const chatMode = this._chatMode;
-    if (chatMode) {
-      if (messages.length === 0) {
-        messages.push({
-          role: 'system',
-          content: 'You are a helpful assistant for a user of software called Grist. ' +
-            'Below are one or more Python classes. ' +
-            'The last method needs completing. ' +
-            "The user will probably give a description of what they want the method (a 'formula') to return. " +
-            'If so, your response should include the method body as Python code in a markdown block. ' +
-            'Do not include the class or method signature, just the method body. ' +
-            'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
-            'You can import modules inside the method body if needed. ' +
-            'You cannot define additional functions or methods. ' +
-            'The method should be a pure function that performs some computation and returns a result. ' +
-            'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
-            'It CANNOT interact with files/databases/networks/etc. ' +
-            'It CANNOT display images/charts/graphs/maps/etc. ' +
-            'If the user asks for these things, tell them that you cannot help. ' +
-            'The method uses `rec` instead of `self` as the first parameter.\n\n' +
-            '```python\n' +
-            await makeSchemaPromptV1(optSession, doc, request) +
-            '\n```',
-        });
-        messages.push({
-          role: 'user', content: request.text,
-        });
-      } else {
-        if (request.regenerate) {
-          if (messages[messages.length - 1].role !== 'user') {
-            messages.pop();
-          }
-        }
-        messages.push({
-          role: 'user', content: request.text,
-        });
+    const newMessages = [];
+    if (messages.length === 0) {
+      newMessages.push({
+        role: 'system',
+        content: 'You are a helpful assistant for a user of software called Grist. ' +
+          'Below are one or more Python classes. ' +
+          'The last method needs completing. ' +
+          "The user will probably give a description of what they want the method (a 'formula') to return. " +
+          'If so, your response should include the method body as Python code in a markdown block. ' +
+          'Do not include the class or method signature, just the method body. ' +
+          'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
+          'You can import modules inside the method body if needed. ' +
+          'You cannot define additional functions or methods. ' +
+          'The method should be a pure function that performs some computation and returns a result. ' +
+          'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
+          'It CANNOT interact with files/databases/networks/etc. ' +
+          'It CANNOT display images/charts/graphs/maps/etc. ' +
+          'If the user asks for these things, tell them that you cannot help. ' +
+          'The method uses `rec` instead of `self` as the first parameter.\n\n' +
+          '```python\n' +
+          await makeSchemaPromptV1(optSession, doc, request) +
+          '\n```',
+      });
+    }
+    if (request.context.evaluateCurrentFormula) {
+      const result = await doc.assistanceEvaluateFormula(request.context);
+      let message = "Evaluating this code:\n\n```python\n" + result.formula + "\n```\n\n";
+      if (Object.keys(result.attributes).length > 0) {
+        const attributes = Object.entries(result.attributes).map(([k, v]) => `${k} = ${v}`).join('\n');
+        message += `where:\n\n${attributes}\n\n`;
       }
-    } else {
-      messages.length = 0;
-      messages.push({
-        role: 'user', content: await makeSchemaPromptV1(optSession, doc, request),
+      message += `${result.error ? 'raises an exception' : 'returns'}: ${result.result}`;
+      newMessages.push({
+        role: 'system',
+        content: message,
+      });
+    }
+    newMessages.push({
+      role: 'user', content: request.text,
+    });
+    messages.push(...newMessages);
+
+    const newMessagesStartIndex = messages.length - newMessages.length;
+    for (const [index, {role, content}] of newMessages.entries()) {
+      doc.logTelemetryEvent(optSession, 'assistantSend', {
+        full: {
+          conversationId: request.conversationId,
+          context: request.context,
+          prompt: {
+            index: newMessagesStartIndex + index,
+            role,
+            content,
+          },
+        },
       });
     }
 
+    const userIdHash = getUserHash(optSession);
+    const completion: string = await this._getCompletion(messages, userIdHash);
+    const response = await completionToResponse(doc, request, completion, completion);
+    response.state = {messages};
+    doc.logTelemetryEvent(optSession, 'assistantReceive', {
+      full: {
+        conversationId: request.conversationId,
+        context: request.context,
+        message: {
+          index: messages.length - 1,
+          content: completion,
+        },
+        suggestedFormula: (response.suggestedActions[0]?.[3] as any)?.formula,
+      },
+    });
+    return response;
+  }
+
+  private async _fetchCompletion(messages: AssistanceMessage[], userIdHash: string, longerContext: boolean) {
     const apiResponse = await DEPS.fetch(
       this._endpoint,
       {
@@ -124,32 +224,62 @@ export class OpenAIAssistant implements Assistant {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(!this._chatMode ? {
-            prompt: messages[messages.length - 1].content,
-          } : { messages }),
-          max_tokens: 1500,
+          messages,
           temperature: 0,
-          model: this._model,
-          stop: this._chatMode ? undefined : ["\n\n"],
+          model: longerContext ? OpenAIAssistant.LONGER_CONTEXT_MODEL : OpenAIAssistant.DEFAULT_MODEL,
+          user: userIdHash,
         }),
       },
     );
+    const resultText = await apiResponse.text();
+    const result = JSON.parse(resultText);
+    const errorCode = result.error?.code;
+    if (errorCode === "context_length_exceeded" || result.choices?.[0].finish_reason === "length") {
+      if (!longerContext) {
+        log.info("Switching to longer context model...");
+        throw new SwitchToLongerContext();
+      } else if (messages.length <= 2) {
+        throw new TokensExceededFirstMessage();
+      } else {
+        throw new TokensExceededLaterMessage();
+      }
+    }
+    if (errorCode === "insufficient_quota") {
+      log.error("OpenAI billing quota exceeded!!!");
+      throw new QuotaExceededError();
+    }
     if (apiResponse.status !== 200) {
-      log.error(`OpenAI API returned ${apiResponse.status}: ${await apiResponse.text()}`);
-      throw new Error(`OpenAI API returned status ${apiResponse.status}`);
+      throw new Error(`OpenAI API returned status ${apiResponse.status}: ${resultText}`);
     }
-    const result = await apiResponse.json();
-    const completion: string = String(chatMode ? result.choices[0].message.content : result.choices[0].text);
-    const history = { messages };
-    if (chatMode) {
-      history.messages.push(result.choices[0].message);
-    }
+    return result;
+  }
 
-    const response = await completionToResponse(doc, request, completion, completion);
-    if (chatMode) {
-      response.state = history;
+  private async _fetchCompletionWithRetries(
+    messages: AssistanceMessage[], userIdHash: string, longerContext: boolean
+  ): Promise<any> {
+    const maxAttempts = 3;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this._fetchCompletion(messages, userIdHash, longerContext);
+      } catch (e) {
+        if (e instanceof SwitchToLongerContext) {
+          return await this._fetchCompletionWithRetries(messages, userIdHash, true);
+        } else if (e instanceof NonRetryableError) {
+          throw e;
+        } else if (attempt === maxAttempts) {
+          throw new RetryableError(e.toString());
+        }
+        log.warn(`Waiting and then retrying after error: ${e}`);
+        await delay(DEPS.delayTime);
+      }
     }
-    return response;
+  }
+
+  private async _getCompletion(messages: AssistanceMessage[], userIdHash: string) {
+    const result = await this._fetchCompletionWithRetries(messages, userIdHash, false);
+    const {message} = result.choices[0];
+    messages.push(message);
+    return message.content;
   }
 }
 
@@ -221,7 +351,7 @@ export class HuggingFaceAssistant implements Assistant {
 /**
  * Test assistant that mimics ChatGPT and just returns the input.
  */
-export class EchoAssistant implements Assistant {
+class EchoAssistant implements Assistant {
   public async apply(sess: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest): Promise<AssistanceResponse> {
     if (request.text === "ERROR") {
       throw new Error(`ERROR`);
@@ -232,19 +362,10 @@ export class EchoAssistant implements Assistant {
         role: 'system',
         content: ''
       });
-      messages.push({
-        role: 'user', content: request.text,
-      });
-    } else {
-      if (request.regenerate) {
-        if (messages[messages.length - 1].role !== 'user') {
-          messages.pop();
-        }
-      }
-      messages.push({
-        role: 'user', content: request.text,
-      });
     }
+    messages.push({
+      role: 'user', content: request.text,
+    });
     const completion = request.text;
     const history = { messages };
     history.messages.push({
@@ -275,31 +396,15 @@ export function getAssistant() {
 }
 
 /**
- * Service a request for assistance, with a little retry logic
- * since these endpoints can be a bit flakey.
+ * Service a request for assistance.
  */
 export async function sendForCompletion(
   optSession: OptDocSession,
   doc: AssistanceDoc,
-  request: AssistanceRequest): Promise<AssistanceResponse> {
+  request: AssistanceRequest,
+): Promise<AssistanceResponse> {
   const assistant = getAssistant();
-
-  let retries: number = 0;
-
-  let response: AssistanceResponse|null = null;
-  while(retries++ < 3) {
-    try {
-      response = await assistant.apply(optSession, doc, request);
-      break;
-    } catch(e) {
-      log.error(`Completion error: ${e}`);
-      await delay(1000);
-    }
-  }
-  if (!response) {
-    throw new Error('Failed to get response from assistant');
-  }
-  return response;
+  return await assistant.apply(optSession, doc, request);
 }
 
 async function makeSchemaPromptV1(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest) {
@@ -332,4 +437,16 @@ async function completionToResponse(doc: AssistanceDoc, request: AssistanceReque
     suggestedActions,
     reply,
   };
+}
+
+function getUserHash(session: OptDocSession): string {
+  const user = getDocSessionUser(session);
+  // Make it a bit harder to guess the user ID.
+  const salt = "7a8sb6987asdb678asd687sad6boas7f8b6aso7fd";
+  const hashSource = `${user?.id} ${user?.ref} ${salt}`;
+  const hash = createHash('sha256').update(hashSource).digest('base64');
+  // So that if we get feedback about a user ID hash, we can
+  // search for the hash in the logs to find the original user ID.
+  log.rawInfo("getUserHash", {...getLogMetaFromDocSession(session), userRef: user?.ref, hash});
+  return hash;
 }
