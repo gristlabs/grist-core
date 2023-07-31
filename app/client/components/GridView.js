@@ -1137,6 +1137,7 @@ GridView.prototype.buildDom = function() {
                     optCommands: renameCommands
                   }),
                 ),
+                dom('div.column_name_selection'),
                 dom.on("mouseenter", () => self.changeHover(field._index())),
                 dom.on("mouseleave", () => self.changeHover(-1)),
                 self.isPreview ? null : menuToggle(null,

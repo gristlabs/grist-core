@@ -24,9 +24,6 @@ export class ViewFieldConfig {
   public wrap: modelUtil.KoSaveableObservable<boolean|undefined>;
   public widget: ko.Computed<string|undefined>;
   public alignment: modelUtil.KoSaveableObservable<string|undefined>;
-  // public textColor: modelUtil.KoSaveableObservable<string | undefined>;
-  // public fillColor: modelUtil.KoSaveableObservable<string | undefined>;
-  // public fontBold: modelUtil.KoSaveableObservable<string | undefined>;
   public fields: ko.PureComputed<ViewFieldRec[]>;
   constructor(private _field: ViewFieldRec, private _docModel: DocModel) {
     // Everything here will belong to a _field, this class is just a builder.

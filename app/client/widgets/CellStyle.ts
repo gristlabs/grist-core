@@ -4,7 +4,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
-import {theme, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {ConditionalStyle} from 'app/client/widgets/ConditionalStyle';
 import {Computed, Disposable, dom, DomContents, fromKo, styled} from 'grainjs';
 
@@ -26,6 +26,7 @@ export class CellStyle extends Disposable {
         cssLabel(t('HEADER STYLE')),
       ),
       cssRow(
+        testId('header-color-select'),
         dom.domComputedOwned(fromKo(this._field.config.headerStyle), (holder, options) => {
           const headerTextColor = fromKo(options.prop("headerTextColor"));
           const headerFillColor = fromKo(options.prop("headerFillColor"));
@@ -70,6 +71,7 @@ export class CellStyle extends Disposable {
         cssButton(t('Open row styles'), dom.on('click', allCommands.viewTabOpen.run)),
       ),
       cssRow(
+        testId('cell-color-select'),
         dom.domComputedOwned(fromKo(this._field.config.style), (holder, options) => {
           const textColor = fromKo(options.prop("textColor"));
           const fillColor = fromKo(options.prop("fillColor"));

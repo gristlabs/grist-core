@@ -199,15 +199,11 @@
   border-left-color: var(--grist-theme-table-header-border, var(--grist-color-dark-grey));
 }
 
-.column_name.selected {
-  /* TODO : the default background color does not work, it remain white */
-  --grist-header-color-selected: color-mix(in srgb,var(--grist-header-color),#000 5%);
-  --grist-header-background-color-selected: color-mix(in srgb,var(--grist-header-background-color, white),#000 5%);
-  color: var(--grist-header-color-selected, 
-         var(--grist-theme-table-header-selected-fg, unset));
-  background-color: var(--grist-header-background-color-selected, 
-                    var(--grist-theme-table-header-selected-bg, 
-                    var(--grist-color-medium-grey-opaque)));
+.column_name.selected > .column_name_selection {
+  background-color: var(--grist-theme-table-header-selected, var(--grist-color-header-selection));
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .gridview_data_row_num.selected {
