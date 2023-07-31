@@ -18,7 +18,7 @@ describe('SelectBySummary', function() {
     };
   });
 
-  it('should filter a source table selected by a summary table', async function() {
+  it('should filter a source table selected by a summary table (first option)', async function() {
     await checkSelectingRecords(
       headers,
       ['onetwo'],
@@ -41,7 +41,9 @@ describe('SelectBySummary', function() {
         ],
       ],
     );
+  });
 
+  it('should filter a source table selected by a summary table (second option)', async function() {
     await checkSelectingRecords(
       headers,
       ['choices'],
@@ -69,8 +71,9 @@ describe('SelectBySummary', function() {
         ],
       ],
     );
+  });
 
-
+  it('should filter a source table selected by a summary table (both options)', async function() {
     await checkSelectingRecords(
       headers,
       ['onetwo', 'choices'],
@@ -107,7 +110,6 @@ describe('SelectBySummary', function() {
         ],
       ],
     );
-
   });
 
   it('should create new rows in the source table (link target) with correct default values',
