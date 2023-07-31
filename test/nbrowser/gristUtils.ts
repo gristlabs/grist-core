@@ -2192,6 +2192,14 @@ export function openHeaderColorPicker() {
   return driver.find('.test-header-color-select .test-color-select').click();
 }
 
+export async function assertHeaderTextColor(col: string, color: string) {
+  await assertTextColor(await getColumnHeader(col), color);
+}
+
+export async function assertHeaderFillColor(col: string, color: string) {
+  await assertFillColor(await getColumnHeader(col), color);
+}
+
 /**
  * Opens a color picker, either the default one or the one for a specific style rule.
  */

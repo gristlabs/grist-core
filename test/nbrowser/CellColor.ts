@@ -23,7 +23,7 @@ describe('CellColor', function() {
   it('should save by clicking away', async function() {
     await gu.getCell('A', 1).click();
     // open color picker
-    await gu.openColorPicker();
+    await gu.openCellColorPicker();
     await gu.setFillColor('red');
     await gu.setTextColor('blue');
     // Save by clicking B column
@@ -46,7 +46,7 @@ describe('CellColor', function() {
   it('should undo and redo colors when clicked away', async function() {
     await gu.getCell('A', 1).click();
     // open color picker
-    await gu.openColorPicker();
+    await gu.openCellColorPicker();
     await gu.setFillColor('red');
     await gu.setTextColor('blue');
     // Save by clicking B column
@@ -77,8 +77,8 @@ describe('CellColor', function() {
     clip = cell.find('.field_clip');
 
     await cell.click();
-    // open color picker
-    await driver.find('.test-color-select').click();
+    // open colir picker
+    await gu.openCellColorPicker();
 
     // set cell colors
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -247,7 +247,7 @@ describe('CellColor', function() {
     assert.equal(await cell.matches('.test-attachment-widget'), true);
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cellColor
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -277,7 +277,7 @@ describe('CellColor', function() {
     assert.equal(await cell.find('.widget_checkbox').isPresent(), true);
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cell color
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -310,7 +310,7 @@ describe('CellColor', function() {
     const clip = cell.find('.field_clip');
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cell color
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -337,7 +337,7 @@ describe('CellColor', function() {
     const cell = gu.getCell('A', 1).find('.field_clip');
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cell color
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -368,7 +368,7 @@ describe('CellColor', function() {
     await gu.enterCell(Key.DELETE);
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cell color
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -399,7 +399,7 @@ describe('CellColor', function() {
     await gu.enterCell('foo');
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cell color
     const cell = await gu.getCell('A', 1).find('.field_clip');
@@ -429,7 +429,7 @@ describe('CellColor', function() {
     let cell = gu.getCell('A', 1).find('.field_clip');
 
     // open color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // set and check cell color
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
@@ -464,7 +464,7 @@ describe('CellColor', function() {
     await gu.setType(/Toggle/);
 
     // open the color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // check color preview is correct
     assert.equal(await driver.find('.test-text-hex').value(), '#606060');
@@ -478,7 +478,7 @@ describe('CellColor', function() {
     await gu.waitForServer();
 
     // open the color picker
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
 
     // check color preview is correct
     assert.equal(await driver.find('.test-text-hex').value(), '#2CB0AF');
@@ -504,7 +504,7 @@ describe('CellColor', function() {
     assert.equal(await cell().find('.checkmark_stem').getCssValue('background-color'), gu.hexToRgb('#606060'));
 
     // open the color picker and press ESC
-    await driver.find('.test-color-select').click();
+    await gu.openCellColorPicker();
     await driver.wait(() => driver.find('.test-fill-palette').isPresent(), 3000);
     await driver.sendKeys(Key.ESCAPE);
     await driver.wait(async () => !(await driver.find('.test-fill-palette').isPresent()), 3000);
