@@ -17,7 +17,7 @@ echo "###############################################################"
 echo "## Prepare python packages"
 
 cd _build/pyodide
-git checkout main
+git checkout 0.23.4 || (git fetch && git checkout 0.23.4)
 ./run_docker make
 cp ../../../requirements3.txt .
 ./run_docker "source emsdk/emsdk/emsdk_env.sh && pyodide build -r requirements3.txt --outdir grist-packages"
