@@ -61,6 +61,8 @@ async function findOnDisk(src, dest) {
     });
   }
   libs = await listLibs(dest);
+  fs.writeFileSync(path.join(__dirname, `package_filenames.json`),
+    JSON.stringify(libs.available.map(lib => lib.fileName), null, 2));
   console.log(`Cached`, {libs: libs.available.map(lib => lib.name)});
   console.log(`Missing`, {libs: libs.misses.map(lib => lib.name)});
 }

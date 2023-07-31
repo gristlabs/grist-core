@@ -17,14 +17,16 @@ echo "###############################################################"
 echo "## Prepare python packages"
 
 cd _build/pyodide
+git checkout main
 ./run_docker make
 cp ../../../requirements3.txt .
-./run_docker pyodide build -r requirements3.txt --output-lockfile result.txt
-cat result.txt
+./run_docker "source emsdk/emsdk/emsdk_env.sh && pyodide build -r requirements3.txt --outdir grist-packages"
+./run_docker pyodide py-compile grist-packages
 cd ../..
 
 echo ""
 echo "###############################################################"
 echo "## Copy out python packages"
 
-node ./packages.js _build/pyodide/dist/ _build/packages/
+rm -rf _build/packages/
+node ./packages.js _build/pyodide/grist-packages/ _build/packages/
