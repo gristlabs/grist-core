@@ -1,25 +1,26 @@
 import * as _ from 'lodash';
-import {addToRepl, assert, driver} from 'mocha-webdriver';
+import {assert, driver} from 'mocha-webdriver';
 import {enterRulePart, findDefaultRuleSet} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('SelectBySummary', function() {
   this.timeout(50000);
-  setupTestSuite();
-  addToRepl('gu2', gu);
+  const cleanup = setupTestSuite();
+  let headers: Record<string, string>;
   gu.bigScreen();
 
   before(async function() {
-    await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
-    const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon',
-      'SelectBySummary.grist', false);
-    await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
-    await gu.waitForDocToLoad();
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, 'SelectBySummary.grist');
+    headers = {
+      Authorization: `Bearer ${session.getApiKey()}`
+    };
   });
 
-  it('should filter a source table selected by a summary table', async function() {
+  it('should filter a source table selected by a summary table (first option)', async function() {
     await checkSelectingRecords(
+      headers,
       ['onetwo'],
       [
         '1', '16',
@@ -40,8 +41,11 @@ describe('SelectBySummary', function() {
         ],
       ],
     );
+  });
 
+  it('should filter a source table selected by a summary table (second option)', async function() {
     await checkSelectingRecords(
+      headers,
       ['choices'],
       [
         'a', '14',
@@ -67,9 +71,11 @@ describe('SelectBySummary', function() {
         ],
       ],
     );
+  });
 
-
+  it('should filter a source table selected by a summary table (both options)', async function() {
     await checkSelectingRecords(
+      headers,
       ['onetwo', 'choices'],
       [
         '1', 'a', '6',
@@ -104,7 +110,6 @@ describe('SelectBySummary', function() {
         ],
       ],
     );
-
   });
 
   it('should create new rows in the source table (link target) with correct default values',
@@ -153,6 +158,7 @@ describe('SelectBySummary', function() {
     // selecting by the two less detailed summaries.
     // There was a bug previously that this would not work while the summary source table (Table1) was hidden.
     await checkSelectingRecords(
+      headers,
       ['onetwo'],
       [
         '1', '16',
@@ -175,6 +181,7 @@ describe('SelectBySummary', function() {
     );
 
     await checkSelectingRecords(
+      headers,
       ['choices'],
       [
         'a', '14',
@@ -208,6 +215,7 @@ describe('SelectBySummary', function() {
  * to the corresponding subarray of `targetData`.
  */
 async function checkSelectingRecords(
+  headers: Record<string, string>,
   groubyColumns: string[],
   summaryData: string[],
   targetData: string[][],
@@ -243,7 +251,7 @@ async function checkSelectingRecords(
     );
     if (targetSection === 'TABLE1') {
       assert.equal(await countCell.getText(), numTargetRows.toString());
-      const csvCells = await gu.downloadSectionCsvGridCells(targetSection);
+      const csvCells = await gu.downloadSectionCsvGridCells(targetSection, headers);
       // visible cells text uses newlines to separate list items, CSV export uses commas
       const expectedCsvCells = targetGroup.map(s => s.replace("\n", ", "));
       assert.deepEqual(csvCells, expectedCsvCells);
@@ -259,7 +267,7 @@ async function checkSelectingRecords(
     for (let rowNum = 1; rowNum <= 8; rowNum++) {
       // Click an anchor link
       const anchorCell = gu.getCell({section: "Anchors", rowNum, col: 1});
-      await anchorCell.find('.test-tb-link').click();
+      await driver.withActions(a => a.click(anchorCell.find('.test-tb-link')));
 
       // Check that navigation to the link target worked
       assert.equal(await gu.getActiveSectionTitle(), "TABLE1");

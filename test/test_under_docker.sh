@@ -41,6 +41,7 @@ docker run --name $DOCKER_CONTAINER --rm \
   --env GRIST_LOG_LEVEL=$GRIST_LOG_LEVEL \
   --env GRIST_LOG_SKIP_HTTP=${DEBUG:-false} \
   --env TEST_SUPPORT_API_KEY=api_key_for_support \
+  --env GRIST_TEMPLATE_ORG=templates \
   ${TEST_IMAGE:-gristlabs/grist} &
 
 DOCKER_PID="$!"
