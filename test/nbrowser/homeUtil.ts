@@ -316,9 +316,14 @@ export class HomeUtil {
   // A helper to create a UserAPI instance for a given useranme and org, that targets the home server
   // Username can be null for anonymous access.
   public createHomeApi(username: string|null, org: string, email?: string): UserAPIImpl {
+    const apiKey = this.getApiKey(username, email);
+    return this._createHomeApiUsingApiKey(apiKey, org);
+  }
+
+  public getApiKey(username: string|null, email?: string): string | null {
     const name = (username || '').toLowerCase();
     const apiKey = username && ((email && this._apiKey.get(email)) || `api_key_for_${name}`);
-    return this._createHomeApiUsingApiKey(apiKey, org);
+    return apiKey;
   }
 
   /**
