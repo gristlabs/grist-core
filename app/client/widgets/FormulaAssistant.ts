@@ -635,25 +635,24 @@ export class FormulaAssistant extends Disposable {
     // Get the state of the chat from the column.
     const conversationId = this._chat.conversationId.get();
     const prevState = column.chatHistory.peek().get().state;
-    const {reply, suggestedActions, state} = await askAI(gristDoc, {
+    const {reply, suggestedActions, suggestedFormula, state} = await askAI(gristDoc, {
       conversationId,
       column,
       description,
       state: prevState,
     });
-    console.debug('suggestedActions', {suggestedActions, reply, state});
+    console.debug('received formula assistant response: ', {suggestedActions, suggestedFormula, reply, state});
     // If back-end is capable of conversation, keep its state.
     const chatHistoryNew = column.chatHistory.peek();
     const value = chatHistoryNew.get();
     value.state = state;
-    const formula = (suggestedActions[0]?.[3] as any)?.formula as string;
     // If model has a conversational skills (and maintains a history), we might get actually
     // some markdown text back, so we need to parse it.
-    const prettyMessage = state ? (reply || formula || '') : (formula || reply || '');
+    const prettyMessage = state ? (reply || suggestedFormula || '') : (suggestedFormula || reply || '');
     // Add it to the chat.
     return {
       message: prettyMessage,
-      formula,
+      formula: suggestedFormula,
       action: suggestedActions[0],
       sender: 'ai',
     };

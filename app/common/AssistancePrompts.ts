@@ -50,6 +50,7 @@ export interface AssistanceRequest {
  */
 export interface AssistanceResponse {
   suggestedActions: DocAction[];
+  suggestedFormula?: string;
   state?: AssistanceState;
   // If the model can be trusted to issue a self-contained
   // markdown-friendly string, it can be included here.
