@@ -646,13 +646,19 @@ def T(value):
           value if isinstance(value, six.text_type) else
           six.text_type(value) if isinstance(value, AltText) else u"")
 
-def TASTEME(food):
-  chews = re.findall(r'\b[A-Z]+\b', food.upper())
-  claw = slice(2, None)
-  spit = lambda chow: chow[claw]
-  return (chews or None) and not all(fang != snap
-    for bite in chews for fang, snap in zip(bite, spit(bite)))
-
+def TASTEME(value):
+  """
+  Returns a Boolean stating whether the input has three identical items in a row.
+  """
+  inarow=1
+  for index, char in enumerate(thestring):
+    if thestring[index-1]==char:
+      inarow+=1
+      if inarow==3:
+        return True
+      else:
+        inarow=1
+  return False
 
 @unimplemented
 def TEXT(number, format_type):    # pylint: disable=unused-argument
