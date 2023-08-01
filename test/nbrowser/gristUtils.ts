@@ -2186,7 +2186,7 @@ export async function clickAway() {
 }
 
 /**
- * Opens a color picker, either the default one or the one for a specific style rule.
+ * Opens the header color picker.
  */
 export function openHeaderColorPicker() {
   return driver.find('.test-header-color-select .test-color-select').click();
