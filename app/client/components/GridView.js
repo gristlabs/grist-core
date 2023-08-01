@@ -1074,8 +1074,8 @@ GridView.prototype.buildDom = function() {
                 ko.unwrap(self.hoverColumn) === field._index()
               );
 
-              const headerTextColor = ko.computed(() => field.headerTextColor());
-              const headerFillColor = ko.computed(() => field.headerFillColor());
+              const headerTextColor = ko.computed(() => field.headerTextColor() || '');
+              const headerFillColor = ko.computed(() => field.headerFillColor() || '');
               const headerFontBold = ko.computed(() => field.headerFontBold());
               const headerFontItalic = ko.computed(() => field.headerFontItalic());
               const headerFontUnderline = ko.computed(() => field.headerFontUnderline());
