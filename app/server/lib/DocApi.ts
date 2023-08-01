@@ -693,29 +693,27 @@ export class DocWorkerApi {
           throw new ApiError(`Table not found "${tableId}"`, 404);
         }
         const body = req.body as Types.ColumnsPut;
-        // interface TriagedColumnsToOperate {
-        //   columnsToAdd: Types.Record[];
-        //   columnsToUpdate: Types.Record[];
-        // }
-        // const { columnsToAdd, columnsToUpdate } = body.columns.reduce<TriagedColumnsToOperate>((acc, col) => {
-        //   const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
-        //   const columnDesc = {...col, id};
-        //   return {
-        //     columnsToAdd: [...acc.columnsToAdd, ...(id ? [] : [columnDesc])],
-        //     columnsToUpdate: [...acc.columnsToUpdate, ...(id ? [columnDesc] : [])]
-        //   }
-        // }, { columnsToAdd: [], columnsToUpdate: [] });
-        const ops = getTableOperations(req, activeDoc, "_grist_Tables_column");
-        const records: Types.AddOrUpdateRecord[] = body.columns.map(col => {
+        interface TriagedColumnsToOperate {
+          columnsToAdd: Types.RecordWithStringId[];
+          columnsToUpdate: Types.Record[];
+        }
+        const { columnsToAdd, columnsToUpdate } = body.columns.reduce<TriagedColumnsToOperate>((acc, col) => {
           const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
-          return { require: { id }, fields: col.fields };
-        });
-        const options = {
-          add: !isAffirmative(req.query.noadd),
-          update: !isAffirmative(req.query.noupdate),
-          allowEmptyRequire: isAffirmative(req.query.allow_empty_require),
-        };
-        await ops.upsert(records, options);
+          return {
+            columnsToAdd: [...acc.columnsToAdd, ...(id ? [] : [ col ])],
+            columnsToUpdate: [...acc.columnsToUpdate, ...(id ? [{ ...col, id }] : [])]
+          };
+        }, { columnsToAdd: [], columnsToUpdate: [] });
+        const addActions = columnsToAdd.map(
+          ({id, fields}) => ['AddVisibleColumn', tableId, id, fields || {}]
+        );
+        const updateActions = columnsToUpdate.map(
+          ({id: colId, fields}) => ['UpdateRecord', '_grist_Tables_column', colId, fields || {}]
+        );
+        await handleSandboxError(tableId, [],
+          activeDoc.applyUserActions(docSessionFromRequest(req), [...updateActions, ...addActions])
+        );
+        res.json(null);
       })
     );
 

@@ -5,7 +5,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
-import {AddOrUpdateRecord, ColumnsPut, Record as ApiRecord} from 'app/plugin/DocApiTypes';
+import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {
   applyQueryParameters,
@@ -856,19 +856,84 @@ function testDocApi() {
             id: "Foo",
             fields: {
               type: "Text",
-              colId: "Foo",
-              label: "Foo"
+              label: "FooLabel"
             }
           }]
-        }
+        };
         // when
         const resp = await axios.put(url, body, chimpy);
 
         // then
-        console.log("resp.statusText = ", resp.statusText);
-        console.log("url = ", url);
-        console.log("resp.data = ", resp.data);
         assert.equal(resp.status, 200);
+      }
+
+      {
+        // when
+        const resp = await axios.get(url, chimpy);
+
+        // then
+        assert.equal(resp.status, 200);
+        const fooColumn = resp.data.columns.find((col: {id: string}) => col.id === "Foo");
+        assert.exists(fooColumn, 'Expecting to have a column with id "Foo"');
+        assert.deepInclude(fooColumn.fields, { type: "Text", label: "FooLabel" });
+      }
+
+      {
+        const NEW_COLUMN_ID = "Bar";
+        const EXISTING_COLUMN_ID = "Foo";
+        const NEW_EXISTING_COLUMN_ID = "FooNew";
+        const body: ColumnsPut = {
+          columns: [{
+            id: NEW_COLUMN_ID,
+            fields: {
+              type: "Text",
+              label: "Bar",
+            }
+          }, {
+            id: EXISTING_COLUMN_ID,
+            fields: {
+              type: "Numeric",
+              colId: NEW_EXISTING_COLUMN_ID
+            }
+          }]
+        };
+
+        // when
+        const resp = await axios.put(url, body, chimpy);
+
+        // then
+        assert.equal(resp.status, 200);
+      }
+
+      {
+        // when
+        const resp = await axios.get(url, chimpy);
+
+        // then
+        assert.equal(resp.status, 200);
+        const fieldsByColId = new Map(
+          resp.data.columns.map(
+            ({id, fields}: {id: string, fields: object}) => [id, fields]
+          )
+        );
+
+        const fooNewFields = fieldsByColId.get("FooNew");
+        assert.exists(fooNewFields, 'Expecting to have a column with id "FooNew"');
+        assert.deepInclude(
+          fooNewFields,
+          { type: "Numeric", label: "FooLabel" },
+          "Expecting to have type changed to Numeric and label unchanged"
+        );
+
+        assert.isFalse(
+          fieldsByColId.has("Foo"),
+          'Expecting to not have a column with id "Foo" anymore as the ID has been renamed'
+        );
+
+        const barFields = fieldsByColId.get('Bar');
+        assert.exists(barFields, 'Bar column should have been added');
+        assert.deepInclude(barFields, { type: "Text", label: "Bar" });
+
       }
     });
   });
