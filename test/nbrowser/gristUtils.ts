@@ -2201,7 +2201,7 @@ export async function assertHeaderFillColor(col: string, color: string) {
 }
 
 /**
- * Opens a color picker, either the default one or the one for a specific style rule.
+ * Opens a cell color picker, either the default one or the one for a specific style rule.
  */
 export function openCellColorPicker(nr?: number) {
   if (nr !== undefined) {
