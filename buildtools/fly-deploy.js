@@ -28,7 +28,6 @@ async function main() {
     const volName = getVolumeName();
     if (!await appExists(name)) {
       await appCreate(name);
-      await appScale(name);
       await volCreate(name, volName);
     } else {
       // Check if volume exists, and create it if not. This is needed because there was an API
@@ -65,8 +64,7 @@ async function main() {
 }
 
 const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true).catch(() => false);
-const appCreate = (name) => runAction(`flyctl apps create ${name} -o ${org}`);
-const appScale = (name) => runAction(`flyctl scale memory 1024 -a ${name}`);
+const appCreate = (name) => runAction(`flyctl launch --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
 const appDeploy = (name, appRoot) => runAction(`flyctl deploy ${appRoot} --remote-only`, {shell: true, stdio: 'inherit'});
