@@ -409,7 +409,7 @@ describe('MultiColumn', function() {
       await gu.assertFillColor(await gu.getColumnHeader('Test2'), transparent);
       assert.equal(await headerColorLabel(), "Default header style");
 
-      // Change one cell to red
+      // Change one header to red
       await selectColumns('Test1');
       await gu.openHeaderColorPicker();
       await gu.setFillColor(red);
