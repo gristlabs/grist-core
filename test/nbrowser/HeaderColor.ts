@@ -2,6 +2,7 @@ import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
+const defaultHeaderBackgroundColor = '#f7f7f7';
 
 describe('HeaderColor', function () {
   this.timeout(20000);
@@ -31,14 +32,14 @@ describe('HeaderColor', function () {
     // Make sure the color is saved.
     await gu.assertHeaderFillColor('A', 'red');
     await gu.assertHeaderTextColor('A', 'blue');
-    await gu.assertHeaderFillColor('B', 'transparent');
+    await gu.assertHeaderFillColor('B', defaultHeaderBackgroundColor);
     await gu.assertHeaderTextColor('B', 'black');
     // Make sure it sticks after reload.
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();
     await gu.assertHeaderFillColor('A', 'red');
     await gu.assertHeaderTextColor('A', 'blue');
-    await gu.assertHeaderFillColor('B', 'transparent');
+    await gu.assertHeaderFillColor('B', defaultHeaderBackgroundColor);
     await gu.assertHeaderTextColor('B', 'black');
   });
 
@@ -54,18 +55,18 @@ describe('HeaderColor', function () {
     // Make sure the color is saved.
     await gu.assertHeaderFillColor('A', 'red');
     await gu.assertHeaderTextColor('A', 'blue');
-    await gu.assertHeaderFillColor('B', 'transparent');
+    await gu.assertHeaderFillColor('B', defaultHeaderBackgroundColor);
     await gu.assertHeaderTextColor('B', 'black');
     // Make sure then undoing works.
     await gu.undo();
-    await gu.assertHeaderFillColor('A', 'transparent');
+    await gu.assertHeaderFillColor('A', defaultHeaderBackgroundColor);
     await gu.assertHeaderTextColor('A', 'black');
-    await gu.assertHeaderFillColor('B', 'transparent');
+    await gu.assertHeaderFillColor('B', defaultHeaderBackgroundColor);
     await gu.assertHeaderTextColor('B', 'black');
     await gu.redo();
     await gu.assertHeaderFillColor('A', 'red');
     await gu.assertHeaderTextColor('A', 'blue');
-    await gu.assertHeaderFillColor('B', 'transparent');
+    await gu.assertHeaderFillColor('B', defaultHeaderBackgroundColor);
     await gu.assertHeaderTextColor('B', 'black');
   });
 
