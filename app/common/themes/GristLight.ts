@@ -152,6 +152,7 @@ export const GristLight: ThemeColors = {
   'selection-opaque-fg': 'black',
   'selection-opaque-bg': '#DCF4EB',
   'selection-opaque-dark-bg': '#D6EEE5',
+  'selection-header': 'rgba(217,217,217,0.6)',
 
   /* Widgets */
   'widget-bg': 'white',

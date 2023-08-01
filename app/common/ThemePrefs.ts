@@ -173,6 +173,7 @@ export interface ThemeColors {
   'selection-opaque-fg': string;
   'selection-opaque-bg': string;
   'selection-opaque-dark-bg': string;
+  'selection-header': string;
 
   /* Widgets */
   'widget-bg': string;

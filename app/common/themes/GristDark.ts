@@ -152,6 +152,7 @@ export const GristDark: ThemeColors = {
   'selection-opaque-fg': 'white',
   'selection-opaque-bg': '#2F4748',
   'selection-opaque-dark-bg': '#253E3E',
+  'selection-header': 'rgba(107,107,144,0.4)',
 
   /* Widgets */
   'widget-bg': '#32323F',

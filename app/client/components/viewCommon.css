@@ -210,8 +210,8 @@
   border-left-color: var(--grist-theme-table-header-border, var(--grist-color-dark-grey));
 }
 
-.column_name.selected > .column_name_selection {
-  background-color: var(--grist-theme-table-header-selected, var(--grist-color-header-selection));
+.column_name.selected > .selection {
+  background-color: var(--grist-theme-selection-header);
   position: absolute;
   inset: 0;
   pointer-events: none;
