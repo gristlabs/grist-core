@@ -77,7 +77,7 @@ describe('CellColor', function() {
     clip = cell.find('.field_clip');
 
     await cell.click();
-    // open colir picker
+    // open color picker
     await gu.openCellColorPicker();
 
     // set cell colors
