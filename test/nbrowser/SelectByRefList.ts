@@ -232,7 +232,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   for (let rowNum = 1; rowNum <= 3; rowNum++) {
     // Click an anchor link
     const anchorCell = gu.getCell({section: "Anchors", rowNum, col: 1});
-    await anchorCell.find('.test-tb-link').click();
+    await driver.withActions(a => a.click(anchorCell.find('.test-tb-link')));
 
     // Check that navigation to the link target worked
     assert.equal(await gu.getActiveSectionTitle(), "LINKTARGET");

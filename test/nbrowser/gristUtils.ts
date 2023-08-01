@@ -61,6 +61,7 @@ export const uploadFixtureDoc = homeUtil.uploadFixtureDoc.bind(homeUtil);
 export const getWorkspaceId = homeUtil.getWorkspaceId.bind(homeUtil);
 export const listDocs = homeUtil.listDocs.bind(homeUtil);
 export const createHomeApi = homeUtil.createHomeApi.bind(homeUtil);
+export const getApiKey = homeUtil.getApiKey.bind(homeUtil);
 export const simulateLogin = homeUtil.simulateLogin.bind(homeUtil);
 export const removeLogin = homeUtil.removeLogin.bind(homeUtil);
 export const enableTips = homeUtil.enableTips.bind(homeUtil);
@@ -2045,6 +2046,13 @@ export class Session {
       return createHomeApi(null, this.settings.orgDomain);
     }
     return createHomeApi(this.settings.name, this.settings.orgDomain, this.settings.email);
+  }
+
+  public getApiKey(): string|null {
+    if (this.settings.email === 'anon@getgrist.com') {
+      return getApiKey(null);
+    }
+    return getApiKey(this.settings.name, this.settings.email);
   }
 
   // Get the id of this user.

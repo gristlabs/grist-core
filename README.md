@@ -260,6 +260,7 @@ GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of ne
 GRIST_DEFAULT_LOCALE  | Locale to use as fallback when Grist cannot honour the browser locale.
 GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
+GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default.
 GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
 GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
 GRIST_HOST          | hostname to use when listening on a port.

@@ -66,6 +66,11 @@ export async function main() {
     process.env.GRIST_EXPERIMENTAL_PLUGINS = "1";
   }
 
+  // Experimental plugins are enabled by default for devs
+  if (!process.env.GRIST_ENABLE_REQUEST_FUNCTION) {
+    process.env.GRIST_ENABLE_REQUEST_FUNCTION = "1";
+  }
+
   // For tests, it is useful to start with the database in a known state.
   // If TEST_CLEAN_DATABASE is set, we reset the database before starting.
   if (process.env.TEST_CLEAN_DATABASE) {

@@ -306,6 +306,7 @@ describe('CellColor', function() {
     // Empty cell to clear error from converting toggle to date
     await cell.click();
     await driver.sendKeys(Key.DELETE);
+    await gu.waitAppFocus(true);
 
     const clip = cell.find('.field_clip');
 
