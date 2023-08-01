@@ -402,11 +402,11 @@ describe('MultiColumn', function() {
       assert.equal(await headerColorLabel(), "Default header style");
       await gu.openHeaderColorPicker();
       await gu.setFillColor(blue);
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), blue);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), blue);
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
       await driver.sendKeys(Key.ESCAPE);
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), transparent);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), transparent);
+      await gu.assertHeaderFillColor('Test1', transparent);
+      await gu.assertHeaderFillColor('Test2', transparent);
       assert.equal(await headerColorLabel(), "Default header style");
 
       // Change one header to red
@@ -415,8 +415,8 @@ describe('MultiColumn', function() {
       await gu.setFillColor(red);
       await driver.sendKeys(Key.ENTER);
       await gu.waitForServer();
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), red);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), transparent);
+      await gu.assertHeaderFillColor('Test1', red);
+      await gu.assertHeaderFillColor('Test2', transparent);
 
       // Check label and colors for multicolumn selection.
       await selectColumns('Test1', 'Test2');
@@ -424,12 +424,12 @@ describe('MultiColumn', function() {
       // Try to change to blue, but press escape.
       await gu.openHeaderColorPicker();
       await gu.setFillColor(blue);
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), blue);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), blue);
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
       await driver.sendKeys(Key.ESCAPE);
 
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), red);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), transparent);
+      await gu.assertHeaderFillColor('Test1', red);
+      await gu.assertHeaderFillColor('Test2', transparent);
 
       // Change both colors.
       await gu.openHeaderColorPicker();
@@ -437,15 +437,15 @@ describe('MultiColumn', function() {
       await driver.sendKeys(Key.ENTER);
       await gu.waitForServer();
       assert.equal(await headerColorLabel(), "Default header style");
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), blue);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), blue);
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
 
       // Make sure they stick.
       await driver.navigate().refresh();
       await gu.waitForDocToLoad();
       assert.equal(await headerColorLabel(), "Default header style");
-      await gu.assertFillColor(await gu.getColumnHeader('Test1'), blue);
-      await gu.assertFillColor(await gu.getColumnHeader('Test2'), blue);
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
     });
   });
 
