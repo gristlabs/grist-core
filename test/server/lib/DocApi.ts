@@ -844,7 +844,7 @@ function testDocApi() {
 
   describe("PUT /docs/{did}/columns", function () {
 
-    async function init() {
+    async function generateDocAndUrl() {
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'ColumnsPut'}, wid);
       return `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
@@ -860,20 +860,29 @@ function testDocApi() {
       )
     }
 
-    const FOO_COLUMN_DESCRIPTION = {
+    const COLUMN_TO_ADD = {
       id: "Foo",
       fields: {
         type: "Text",
-        label: "FooLabel"
+        label: "FooLabel",
+      }
+    };
+
+    const EXISTING_COLUMN_LABEL = "A";
+    const COLUMN_TO_UPDATE = {
+      id: "A",
+      fields: {
+        type: "Numeric",
+        colId: "NewA"
       }
     };
 
     it('should create new columns', async function () {
 
       // given
-      const url = await init();
+      const url = await generateDocAndUrl();
       const body: ColumnsPut = {
-        columns: [FOO_COLUMN_DESCRIPTION]
+        columns: [COLUMN_TO_ADD]
       };
       // when
       const resp = await axios.put(url, body, chimpy);
@@ -881,31 +890,15 @@ function testDocApi() {
       const columnFieldsMap = await getColumnFieldsMapById(url);
       assert.equal(resp.status, 200);
 
-      assert.isTrue(columnFieldsMap.has(FOO_COLUMN_DESCRIPTION.id), 'Expecting to have a column with id "Foo"');
-      assert.deepInclude(columnFieldsMap.get(FOO_COLUMN_DESCRIPTION.id), { type: "Text", label: "FooLabel" });
+      assert.isTrue(columnFieldsMap.has(COLUMN_TO_ADD.id), `Expecting to have a column with id "${COLUMN_TO_ADD.id}"`);
+      assert.deepInclude(columnFieldsMap.get(COLUMN_TO_ADD.id), COLUMN_TO_ADD.fields);
     });
 
     it('should update existing columns and create new ones', async function () {
       // given
-      const url = await init();
-      const NEW_COLUMN_ID = "Bar";
-      const EXISTING_COLUMN_ID = "A";
-      const EXISTING_COLUMN_LABEL = "A";
-      const UPDATED_EXISTING_COLUMN_ID = "NewA";
+      const url = await generateDocAndUrl();
       const submittedColumns: ColumnsPut = {
-        columns: [{
-          id: NEW_COLUMN_ID,
-          fields: {
-            type: "Text",
-            label: "Bar",
-          }
-        }, {
-          id: EXISTING_COLUMN_ID,
-          fields: {
-            type: "Numeric",
-            colId: UPDATED_EXISTING_COLUMN_ID
-          }
-        }]
+        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
       };
 
       // when
@@ -915,23 +908,88 @@ function testDocApi() {
       assert.equal(resp.status, 200);
       const fieldsByColId = await getColumnFieldsMapById(url);
 
-      const updatedColFields = fieldsByColId.get(UPDATED_EXISTING_COLUMN_ID);
-      assert.exists(updatedColFields, `Expecting to have a column with id "${NEW_COLUMN_ID}"`);
+      const updatedColFields = fieldsByColId.get(COLUMN_TO_UPDATE.fields.colId);
+      assert.exists(updatedColFields, `Expecting to have a column with id "${COLUMN_TO_UPDATE.fields.colId}"`);
       assert.deepInclude(
         updatedColFields,
-        { type: "Numeric", label: EXISTING_COLUMN_LABEL },
-        "Expecting to have type changed to Numeric and label unchanged"
+        { type: COLUMN_TO_UPDATE.fields.type, label: EXISTING_COLUMN_LABEL },
+        `Expecting to have type changed to ${COLUMN_TO_UPDATE.fields.type} and label unchanged`
       );
 
       assert.isFalse(
-        fieldsByColId.has(EXISTING_COLUMN_ID),
-        `Expecting to not have a column with id "${EXISTING_COLUMN_ID}" anymore as the ID has been renamed`
+        fieldsByColId.has(COLUMN_TO_UPDATE.id),
+        `Expecting to not have a column with id "${COLUMN_TO_UPDATE.id}" anymore as the ID has been renamed`
       );
 
-      const newColFields = fieldsByColId.get(NEW_COLUMN_ID);
-      assert.exists(newColFields, `Column with id "${NEW_COLUMN_ID}" should have been added`);
-      assert.deepInclude(newColFields, { type: "Text", label: "Bar" });
+      const newColFields = fieldsByColId.get(COLUMN_TO_ADD.id);
+      assert.exists(newColFields, `Column with id "${COLUMN_TO_ADD.id}" should have been added`);
+      assert.deepInclude(newColFields, COLUMN_TO_ADD.fields);
     });
+
+    it('should only update existing columns when noadd is set', async function () {
+      // given
+      const url = await generateDocAndUrl();
+      const EXISTING_COLUMN_LABEL = "A";
+      const submittedColumns: ColumnsPut = {
+        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
+      };
+      const params = { noadd: "1" };
+
+      // when
+      const resp = await axios.put(url, submittedColumns, {...chimpy, params });
+
+      // then
+      assert.equal(resp.status, 200);
+      const fieldsByColId = await getColumnFieldsMapById(url);
+
+      const updatedColFields = fieldsByColId.get(COLUMN_TO_UPDATE.fields.colId);
+      assert.exists(updatedColFields, `Expecting to have a column with id "${COLUMN_TO_UPDATE.fields.colId}"`);
+      assert.deepInclude(
+        updatedColFields,
+        { type: COLUMN_TO_UPDATE.fields.type, label: EXISTING_COLUMN_LABEL },
+        `Expecting to have type changed to ${COLUMN_TO_UPDATE.fields.type} and label unchanged`
+      );
+
+      assert.isFalse(
+        fieldsByColId.has(COLUMN_TO_ADD.id),
+        `Expecting to not have added the column with id "${COLUMN_TO_ADD.id}" as noadd has been set`
+      );
+    });
+
+    it('should only add columns when noupdate is set', async function () {
+      // given
+      const url = await generateDocAndUrl();
+      const submittedColumns: ColumnsPut = {
+        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
+      };
+      const params = { noupdate: "1" };
+
+      // when
+      const resp = await axios.put(url, submittedColumns, {...chimpy, params });
+
+      // then
+      assert.equal(resp.status, 200);
+      const fieldsByColId = await getColumnFieldsMapById(url);
+
+      const updatedColFields = fieldsByColId.get(COLUMN_TO_UPDATE.id);
+      assert.exists(
+        updatedColFields,
+        `Expecting to have the column with id "${COLUMN_TO_UPDATE.id}" unchanged as noupdate is set`
+      );
+      assert.deepInclude(
+        updatedColFields,
+        { type: "Any", label: EXISTING_COLUMN_LABEL },
+        `Expecting to have type and label unchanged as noupdate is set`
+      );
+
+      const addedColFields = fieldsByColId.get(COLUMN_TO_ADD.id);
+      assert.exists(
+        addedColFields,
+        `Expecting to have added the column with id "${COLUMN_TO_ADD.id}"`
+      );
+      assert.deepInclude(addedColFields, COLUMN_TO_ADD.fields, "Expecting to have the fields set for the added column")
+    });
+
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {

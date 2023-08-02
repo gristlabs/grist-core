@@ -684,7 +684,6 @@ export class DocWorkerApi {
     // Add or update records given in records format
     this._app.put('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPut),
       withDoc(async (activeDoc, req, res) => {
-        console.log("HOY");
         const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
         const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
         const {tableId} = req.params;
@@ -704,12 +703,12 @@ export class DocWorkerApi {
             columnsToUpdate: [...acc.columnsToUpdate, ...(id ? [{ ...col, id }] : [])]
           };
         }, { columnsToAdd: [], columnsToUpdate: [] });
-        const addActions = columnsToAdd.map(
+        const addActions = !isAffirmative(req.query.noadd) ? columnsToAdd.map(
           ({id, fields}) => ['AddVisibleColumn', tableId, id, fields || {}]
-        );
-        const updateActions = columnsToUpdate.map(
+        ) : [];
+        const updateActions = !isAffirmative(req.query.noupdate) ? columnsToUpdate.map(
           ({id: colId, fields}) => ['UpdateRecord', '_grist_Tables_column', colId, fields || {}]
-        );
+        ) : [];
         await handleSandboxError(tableId, [],
           activeDoc.applyUserActions(docSessionFromRequest(req), [...updateActions, ...addActions])
         );
