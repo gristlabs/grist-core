@@ -976,6 +976,14 @@ export async function confirm(save = true, remember = false) {
   }
 }
 
+/** Hides all top banners by injecting css style */
+export async function hideBanners() {
+  const style = `.test-banner-element { display: none !important; }`;
+  await driver.executeScript(`const style = document.createElement('style');
+    style.innerHTML = ${JSON.stringify(style)};
+    document.head.appendChild(style);`);
+}
+
 /**
  * Returns the left-panel item for the given page, given by a full string name, or a RegExp.
  * You may simply click it to switch to that page.
@@ -1582,10 +1590,11 @@ export async function sendKeys(...keys: string[]) {
 }
 
 /**
- * Clears active input by sending HOME + SHIFT END + DELETE.
+ * Clears active input/textarea by sending CTRL HOME + CTRL + SHIFT END + DELETE.
  */
 export async function clearInput() {
-  return sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE);
+  const ctrl = await modKey();
+  return sendKeys(Key.chord(ctrl, Key.HOME), Key.chord(ctrl, Key.SHIFT, Key.END), Key.DELETE);
 }
 
 /**

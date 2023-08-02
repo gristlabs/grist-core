@@ -5,7 +5,6 @@
  */
 
 // Client libraries
-import * as AceEditor from 'app/client/components/AceEditor';
 import {ColumnTransform} from 'app/client/components/ColumnTransform';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {cssButtonRow} from 'app/client/ui/RightPanelStyles';
@@ -26,10 +25,6 @@ export class FormulaTransform extends ColumnTransform {
    * Build the transform menu for a formula transform
    */
   public buildDom() {
-    this.editor = this.autoDispose(AceEditor.create({
-      gristDoc: this.gristDoc,
-      observable: this.transformColumn.formula,
-    }));
     return [
       dom('div.transform_menu',
         dom('div.transform_editor',
@@ -40,7 +35,7 @@ export class FormulaTransform extends ColumnTransform {
       cssButtonRow(
         basicButton(dom.on('click', () => this.cancel()),
           'Cancel', testId("formula-transform-cancel")),
-        basicButton(dom.on('click', () => this.editor.writeObservable()),
+        basicButton(dom.on('click', () => this.preview()),
           'Preview',
           dom.cls('disabled', this.formulaUpToDate),
           { title: 'Update formula (Shift+Enter)' },

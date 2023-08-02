@@ -4,6 +4,7 @@
  * and TypeTransform.
  */
 import * as commands from 'app/client/components/commands';
+import * as AceEditor from 'app/client/components/AceEditor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -88,6 +89,13 @@ export class ColumnTransform extends Disposable {
    * @param {String} optInit - Optional initial value for the editor.
    */
   protected buildEditorDom(optInit?: string) {
+    if (!this.editor) {
+      this.editor = this.autoDispose(AceEditor.create({
+        gristDoc: this.gristDoc,
+        observable: this.transformColumn.formula,
+        saveValueOnBlurEvent: false,
+      }));
+    }
     return this.editor.buildDom((aceObj: any) => {
       this.editor.adjustContentToWidth();
       this.editor.attachSaveCommand();
@@ -238,6 +246,7 @@ export class ColumnTransform extends Disposable {
      {...this.origWidgetOptions as object, ...this._fieldBuilder.options.peek()} :
      this._fieldBuilder.options.peek();
     return [
+      ...this.previewActions(),
       [
         'CopyFromColumn',
         this._tableData.tableId,
@@ -267,5 +276,24 @@ export class ColumnTransform extends Disposable {
 
   protected isFinalizing(): boolean {
     return this._isFinalizing;
+  }
+
+  protected preview() {
+    if (!this.editor) { return; }
+    return this.editor.writeObservable();
+  }
+
+  /**
+   * Generates final actions before executing the transform. Used only when the editor was created.
+   */
+  protected previewActions(): UserAction[] {
+    if (!this.editor) { return []; }
+    const formula = this.editor.getValue();
+    const oldFormula = this.transformColumn.formula();
+    if (formula === oldFormula) { return []; }
+    if (!formula && !oldFormula) { return []; }
+    return [
+      ['UpdateRecord', '_grist_Tables_column', this.transformColumn.getRowId(), {formula}]
+    ];
   }
 }
