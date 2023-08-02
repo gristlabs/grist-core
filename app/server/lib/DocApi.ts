@@ -705,7 +705,7 @@ export class DocWorkerApi {
         for (const col of body.columns) {
           const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
           if (id) {
-            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields || {}] )
+            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields || {}] );
           } else {
             addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields || {}] );
           }

@@ -848,7 +848,7 @@ function testDocApi() {
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'ColumnsPut'}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
-      return { url, docId }
+      return { url, docId };
     }
 
     async function getColumnFieldsMapById(url: string) {
@@ -858,7 +858,7 @@ function testDocApi() {
           result.data.columns.map(
             ({id, fields}: {id: string, fields: object}) => [id, fields]
           )
-      )
+      );
     }
 
     const COLUMN_TO_ADD = {
@@ -988,7 +988,7 @@ function testDocApi() {
         addedColFields,
         `Expecting to have added the column with id "${COLUMN_TO_ADD.id}"`
       );
-      assert.deepInclude(addedColFields, COLUMN_TO_ADD.fields, "Expecting to have the fields set for the added column")
+      assert.deepInclude(addedColFields, COLUMN_TO_ADD.fields, "Expecting to have the fields set for the added column");
     });
 
     it('should forbid update by viewers', async function () {
