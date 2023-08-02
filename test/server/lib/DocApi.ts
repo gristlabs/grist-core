@@ -847,7 +847,8 @@ function testDocApi() {
     async function generateDocAndUrl() {
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({name: 'ColumnsPut'}, wid);
-      return `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
+      return { url, docId }
     }
 
     async function getColumnFieldsMapById(url: string) {
@@ -880,7 +881,7 @@ function testDocApi() {
     it('should create new columns', async function () {
 
       // given
-      const url = await generateDocAndUrl();
+      const { url } = await generateDocAndUrl();
       const body: ColumnsPut = {
         columns: [COLUMN_TO_ADD]
       };
@@ -896,7 +897,7 @@ function testDocApi() {
 
     it('should update existing columns and create new ones', async function () {
       // given
-      const url = await generateDocAndUrl();
+      const { url } = await generateDocAndUrl();
       const submittedColumns: ColumnsPut = {
         columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
       };
@@ -928,7 +929,7 @@ function testDocApi() {
 
     it('should only update existing columns when noadd is set', async function () {
       // given
-      const url = await generateDocAndUrl();
+      const { url } = await generateDocAndUrl();
       const EXISTING_COLUMN_LABEL = "A";
       const submittedColumns: ColumnsPut = {
         columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
@@ -958,7 +959,7 @@ function testDocApi() {
 
     it('should only add columns when noupdate is set', async function () {
       // given
-      const url = await generateDocAndUrl();
+      const { url } = await generateDocAndUrl();
       const submittedColumns: ColumnsPut = {
         columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
       };
@@ -990,6 +991,21 @@ function testDocApi() {
       assert.deepInclude(addedColFields, COLUMN_TO_ADD.fields, "Expecting to have the fields set for the added column")
     });
 
+    it('should forbid update by viewers', async function () {
+      // given
+      const { url, docId } = await generateDocAndUrl();
+      await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
+      const submittedColumns: ColumnsPut = {
+        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
+      };
+      const params = { noupdate: "1" };
+
+      // when
+      const resp = await axios.put(url, submittedColumns, {...kiwi, params });
+
+      // then
+      assert.equal(resp.status, 403);
+    });
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {
