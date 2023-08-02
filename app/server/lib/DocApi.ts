@@ -692,25 +692,31 @@ export class DocWorkerApi {
           throw new ApiError(`Table not found "${tableId}"`, 404);
         }
         const body = req.body as Types.ColumnsPut;
-        interface TriagedColumnsToOperate {
-          columnsToAdd: Types.RecordWithStringId[];
-          columnsToUpdate: Types.Record[];
-        }
-        const { columnsToAdd, columnsToUpdate } = body.columns.reduce<TriagedColumnsToOperate>((acc, col) => {
+
+        const addActions = new Array<[
+          'AddVisibleColumn', string,
+          Types.RecordWithStringId["id"], Types.RecordWithStringId["fields"]
+        ]>();
+        const updateActions = new Array<[
+          'UpdateRecord', string,
+          Types.Record["id"], Types.Record["fields"]
+        ]>();
+
+        for (const col of body.columns) {
           const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
-          return {
-            columnsToAdd: [...acc.columnsToAdd, ...(id ? [] : [ col ])],
-            columnsToUpdate: [...acc.columnsToUpdate, ...(id ? [{ ...col, id }] : [])]
-          };
-        }, { columnsToAdd: [], columnsToUpdate: [] });
-        const addActions = !isAffirmative(req.query.noadd) ? columnsToAdd.map(
-          ({id, fields}) => ['AddVisibleColumn', tableId, id, fields || {}]
-        ) : [];
-        const updateActions = !isAffirmative(req.query.noupdate) ? columnsToUpdate.map(
-          ({id: colId, fields}) => ['UpdateRecord', '_grist_Tables_column', colId, fields || {}]
-        ) : [];
+          if (id) {
+            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields || {}] )
+          } else {
+            addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields || {}] );
+          }
+        }
+
+        const actions = [
+          ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
+          ...(!isAffirmative(req.query.noadd) ? addActions : []),
+        ];
         await handleSandboxError(tableId, [],
-          activeDoc.applyUserActions(docSessionFromRequest(req), [...updateActions, ...addActions])
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
         );
         res.json(null);
       })
