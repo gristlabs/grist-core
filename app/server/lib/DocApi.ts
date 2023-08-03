@@ -701,9 +701,6 @@ export class DocWorkerApi {
           'UpdateRecord', '_grist_Tables_column',
           Types.Record["id"], Types.Record["fields"]
         ]>();
-        const removeActions = new Array<[
-          'BulkRemoveRecord', '_grist_Tables_column', Array<Types.Record["id"]>
-        ]>();
 
         for (const col of body.columns) {
           const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
@@ -714,21 +711,22 @@ export class DocWorkerApi {
           }
         }
 
-        if (isAffirmative(req.query.replaceall)) {
+        const getRemoveAction = async () => {
           const columns = await handleSandboxError('', [],
             activeDoc.getTableCols(docSessionFromRequest(req), tableId, true));
-          const updatedColumnsIds = new Set(updateActions.map(item => item[2]));
+          const ID_IN_UPDATE_ACTIONS_IDX = 2;
+          const updatedColumnsIds = new Set(updateActions.map(item => item[ID_IN_UPDATE_ACTIONS_IDX]));
           const columnsToRemove = columns
             .filter(col => !updatedColumnsIds.has(col.fields.colRef as number))
             .map(col => col.fields.colRef as number);
 
-          removeActions.push([ 'BulkRemoveRecord', '_grist_Tables_column', columnsToRemove ]);
-        }
+          return [ 'BulkRemoveRecord', '_grist_Tables_column', columnsToRemove ];
+        };
 
         const actions = [
           ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
           ...(!isAffirmative(req.query.noadd) ? addActions : []),
-          ...removeActions
+          ...(isAffirmative(req.query.replaceall) ? [ await getRemoveAction() ] : [] )
         ];
         await handleSandboxError(tableId, [],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
