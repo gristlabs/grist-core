@@ -1036,6 +1036,22 @@ function testDocApi() {
       // then
       assert.equal(resp.status, 403);
     });
+
+    it("should return 404 when table is not found", async function() {
+      // given
+      const { url } = await generateDocAndUrl();
+      const notFoundUrl = url.replace("Table1", "NonExistingTable");
+      const submittedColumns: ColumnsPut = {
+        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
+      };
+
+      // when
+      const resp = await axios.put(notFoundUrl, submittedColumns, chimpy);
+
+      // then
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.error, 'Table not found "NonExistingTable"');
+    });
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {
