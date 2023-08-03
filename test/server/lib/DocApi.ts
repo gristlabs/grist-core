@@ -925,6 +925,8 @@ function testDocApi() {
       const newColFields = fieldsByColId.get(COLUMN_TO_ADD.id);
       assert.exists(newColFields, `Column with id "${COLUMN_TO_ADD.id}" should have been added`);
       assert.deepInclude(newColFields, COLUMN_TO_ADD.fields);
+
+      assert.equal(fieldsByColId.size, 4, "Should have kept the 3 existing columns + added the new one");
     });
 
     it('should only update existing columns when noadd is set', async function () {
@@ -989,6 +991,34 @@ function testDocApi() {
         `Expecting to have added the column with id "${COLUMN_TO_ADD.id}"`
       );
       assert.deepInclude(addedColFields, COLUMN_TO_ADD.fields, "Expecting to have the fields set for the added column");
+    });
+
+    it('should remove existing columns if replaceall is set', async function () {
+      // given
+      const { url } = await generateDocAndUrl();
+      const submittedColumns: ColumnsPut = {
+        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
+      };
+      const params = { replaceall: "1" };
+
+      // when
+      const resp = await axios.put(url, submittedColumns, {...chimpy, params });
+
+      // then
+      assert.equal(resp.status, 200);
+      const fieldsByColId = await getColumnFieldsMapById(url);
+
+      assert.isTrue(
+        fieldsByColId.has(COLUMN_TO_UPDATE.fields.colId),
+        `Expecting to have the column with id "${COLUMN_TO_UPDATE.id}" changed`
+      );
+
+      assert.isTrue(
+        fieldsByColId.has(COLUMN_TO_ADD.id),
+        `Expecting to have added the column with id "${COLUMN_TO_ADD.id}"`
+      );
+
+      assert.equal(fieldsByColId.size, 2, "Expecting to have removed the other columns");
     });
 
     it('should forbid update by viewers', async function () {

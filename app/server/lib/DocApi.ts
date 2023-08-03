@@ -698,8 +698,11 @@ export class DocWorkerApi {
           Types.RecordWithStringId["id"], Types.RecordWithStringId["fields"]
         ]>();
         const updateActions = new Array<[
-          'UpdateRecord', string,
+          'UpdateRecord', '_grist_Tables_column',
           Types.Record["id"], Types.Record["fields"]
+        ]>();
+        const removeActions = new Array<[
+          'BulkRemoveRecord', '_grist_Tables_column', Array<Types.Record["id"]>
         ]>();
 
         for (const col of body.columns) {
@@ -711,9 +714,21 @@ export class DocWorkerApi {
           }
         }
 
+        if (isAffirmative(req.query.replaceall)) {
+          const columns = await handleSandboxError('', [],
+            activeDoc.getTableCols(docSessionFromRequest(req), tableId, true));
+          const updatedColumnsIds = new Set(updateActions.map(item => item[2]));
+          const columnsToRemove = columns
+            .filter(col => !updatedColumnsIds.has(col.fields.colRef as number))
+            .map(col => col.fields.colRef as number);
+
+          removeActions.push([ 'BulkRemoveRecord', '_grist_Tables_column', columnsToRemove ]);
+        }
+
         const actions = [
           ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
           ...(!isAffirmative(req.query.noadd) ? addActions : []),
+          ...removeActions
         ];
         await handleSandboxError(tableId, [],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
