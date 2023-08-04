@@ -421,15 +421,13 @@ export class FormulaEditor extends NewBaseEditor {
 
     const colId = col.origCol.peek().colId.peek();
 
-    const aceObj = this._aceEditor.getEditor();
-
-    // Rect only to columns in the same table.
     if (col.tableId.peek() !== this.options.column.table.peek().tableId.peek()) {
-      // aceObj.focus();
+      // Fall back to default behavior if cursor didn't move to a column in the same table.
       this.options.gristDoc.onSetCursorPos(row, col).catch(reportError);
       return;
     }
 
+    const aceObj = this._aceEditor.getEditor();
     if (!aceObj.selection.isEmpty()) {
       // If text selected, replace whole selection
       aceObj.session.replace(aceObj.selection.getRange(), '$' + colId);

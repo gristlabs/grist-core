@@ -1097,7 +1097,6 @@ GridView.prototype.buildDom = function() {
                 kd.toggleClass('font-strikethrough', headerFontStrikethrough),
                 kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()))),
                 kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()))),
-                kd.toggleClass("hover-column", isTooltip),
                 dom.autoDispose(isEditingLabel),
                 dom.autoDispose(isTooltip),
                 dom.testId("GridView_columnLabel"),
@@ -1136,8 +1135,7 @@ GridView.prototype.buildDom = function() {
                     optCommands: renameCommands
                   }),
                 ),
-                dom.on("mouseenter", () => self.changeHover(field._index())),
-                dom.on("mouseleave", () => self.changeHover(-1)),
+                self._showTooltipOnHover(field, isTooltip),
                 self.isPreview ? null : menuToggle(null,
                   kd.cssClass('g-column-main-menu'),
                   kd.cssClass('g-column-menu-btn'),
@@ -1347,6 +1345,12 @@ GridView.prototype.buildDom = function() {
               ko.unwrap(self.isColSelected.at(field._index())) &&
               self.cellSelector.isRowSelected(row._index());
           });
+
+          var isTooltip = ko.pureComputed(() =>
+            self.editingFormula() &&
+            ko.unwrap(self.hoverColumn) === field._index()
+          );
+
           return dom(
             'div.field',
             kd.style('--frozen-position', () => ko.unwrap(self.frozenPositions.at(field._index()))),
@@ -1356,10 +1360,7 @@ GridView.prototype.buildDom = function() {
             dom.autoDispose(isCellSelected),
             dom.autoDispose(isCellActive),
             dom.autoDispose(isSelected),
-            dom.on("mouseenter", () => self.changeHover(field._index())),
-            kd.toggleClass("hover-column", () =>
-              self.editingFormula() &&
-              ko.unwrap(self.hoverColumn) === (field._index())),
+            self._showTooltipOnHover(field, isTooltip),
             kd.style('width', field.widthPx),
             //TODO: Ensure that fields in a row resize when
             //a cell in that row becomes larger
@@ -1435,11 +1436,15 @@ GridView.prototype._createColSelectedObs = function(col) {
 // Callbacks for mouse events for the selector object
 
 GridView.prototype.cellMouseDown = function(elem, event) {
+  let col = this.domToColModel(elem, selector.CELL);
+  if (this.hoverColumn() === col._index()) {
+    return this._tooltipMouseDown(elem, selector.CELL);
+  }
+
   if (event.shiftKey) {
     // Change focus before running command so that the correct viewsection's cursor is moved.
     this.viewSection.hasFocus(true);
     let row = this.domToRowModel(elem, selector.CELL);
-    let col = this.domToColModel(elem, selector.CELL);
     this.cellSelector.selectArea(this.cursor.rowIndex(), this.cursor.fieldIndex(),
                                  row._index(), col._index());
   } else {
@@ -1448,10 +1453,22 @@ GridView.prototype.cellMouseDown = function(elem, event) {
 };
 
 GridView.prototype.colMouseDown = function(elem, event) {
+  let col = this.domToColModel(elem, selector.COL);
+  if (this.hoverColumn() === col._index()) {
+    return this._tooltipMouseDown(elem, selector.COL);
+  }
+
   this._colClickTime = Date.now();
   this.assignCursor(elem, selector.COL);
   // Clicking the column header selects all rows except the add row.
   this.cellSelector.row.end(this.getLastDataRowIndex());
+};
+
+GridView.prototype._tooltipMouseDown = function(elem, elemType) {
+  let row = this.domToRowModel(elem, elemType);
+  let col = this.domToColModel(elem, elemType);
+  // FormulaEditor.ts overrides this command to insert the column id of the clicked column.
+  commands.allCommands.setCursor.run(row, col);
 };
 
 GridView.prototype.rowMouseDown = function(elem, event) {
@@ -1468,12 +1485,16 @@ GridView.prototype.rowMouseMove = function(event) {
 };
 
 GridView.prototype.colMouseMove = function(event) {
+  if (this.editingFormula()) { return; }
+
   var currentCol = Math.min(this.getMousePosCol(event.pageX),
                             this.viewSection.viewFields().peekLength - 1);
   this.cellSelector.col.end(currentCol);
 };
 
 GridView.prototype.cellMouseMove = function(event) {
+  if (this.editingFormula()) { return; }
+
   this.colMouseMove(event);
   this.rowMouseMove(event);
   // Maintain single cells cannot be selected invariant
@@ -1783,6 +1804,20 @@ GridView.prototype._duplicateRows = async function() {
 
 GridView.prototype._clearCopySelection = function() {
   this.copySelection(null);
+};
+
+GridView.prototype._showTooltipOnHover = function(field, isShowingTooltip) {
+  return [
+    kd.toggleClass("hover-column", isShowingTooltip),
+    dom.on('mouseenter', () => {
+      this.changeHover(field._index());
+    }),
+    dom.on('mousedown', (ev) => {
+      if (isShowingTooltip()) {
+        ev.preventDefault();
+      }
+    }),
+  ];
 };
 
 function buildStyleOption(owner, computedRule, optionName) {
