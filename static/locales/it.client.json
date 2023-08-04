@@ -354,7 +354,10 @@
         "Activation": "Attivazione",
         "Upgrade Plan": "Cambia il tuo piano",
         "Billing Account": "Conto di addebito",
-        "Support Grist": "Sostieni Grist"
+        "Support Grist": "Sostieni Grist",
+        "Sign In": "Accedi",
+        "Use This Template": "Usa questo template",
+        "Sign Up": "Registrati"
     },
     "ActionLog": {
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonna {{colId}} è stata successivamente rimossa nell'azione #{{action.actionNum}}",
@@ -480,7 +483,8 @@
         "Home Page": "Home page",
         "Legacy": "Vecchia versione",
         "Personal Site": "Sito personale",
-        "Team Site": "Sito del team"
+        "Team Site": "Sito del team",
+        "Grist Templates": "Template di Grist"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Creare serie separate per ciascun valore delle colonne selezionate.",
@@ -733,7 +737,8 @@
     "GristDoc": {
         "Import from file": "Importa da file",
         "Saved linked section {{title}} in view {{name}}": "Salvata la sezione collegata {{title}} nella vista {{name}}",
-        "Added new linked section to view {{viewName}}": "Aggiunta nuova sezione collegata alla vista {{viewName}}"
+        "Added new linked section to view {{viewName}}": "Aggiunta nuova sezione collegata alla vista {{viewName}}",
+        "go to webhook settings": "vai alle impostazioni dei webhook"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro assistenza"
