@@ -8,6 +8,7 @@
 import {prepareForTransition} from 'app/client/ui/transitions';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {makeLinks} from 'app/client/ui2018/links';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
 import Popper from 'popper.js';
@@ -138,7 +139,8 @@ export function showTooltip(
 
   // Add the content element.
   const content = cssTooltip({role: 'tooltip'}, tipContent(ctl), testId(`tooltip`));
-  document.body.appendChild(content);
+  // Prepending instead of appending allows better text selection, as this element is on top.
+  document.body.prepend(content);
 
   // Create a popper for positioning the tooltip content relative to refElem.
   const popperOptions: Popper.PopperOptions = {
@@ -203,26 +205,56 @@ export function setHoverTooltip(
   // Controller for closing the tooltip, if one is open.
   let tipControl: ITooltipControl|undefined;
 
+  // A marker, that the tooltip should be closed, but we are waiting for the mouseup event.
+  const POSTPONED = Symbol();
+
   // Timer to open or close the tooltip, depending on whether tipControl is set.
-  let timer: ReturnType<typeof setTimeout>|undefined;
+  let timer: ReturnType<typeof setTimeout>|undefined|typeof POSTPONED;
+
+  // To allow user select text, we will monitor if the selection has started in the tooltip (by listening
+  // to the mousedown event). If it has and mouse goes outside, we will mark that the tooltip should be closed.
+  // When the selection is over (by listening to mouseup on window), a new close is scheduled with 1.4s, to allow
+  // user to press Ctrl+C (but only if the marker - POSTPONED - is still set).
+  let mouseGrabbed = false;
+  function grabMouse(tip: Element) {
+    mouseGrabbed = true;
+    const listener = dom.onElem(window, 'mouseup', () => {
+      mouseGrabbed = false;
+      if (timer === POSTPONED) {
+        scheduleCloseIfOpen(1400);
+      }
+    });
+    dom.autoDisposeElem(tip, listener);
+
+    // Disable text selection in any other element except this one. This class sets user-select: none to all
+    // elements except the tooltip. This helps to avoid accidental selection of text in other elements, once
+    // the mouse leaves the tooltip.
+    document.body.classList.add(cssDisableSelectOnAll.className);
+    dom.onDisposeElem(tip, () => document.body.classList.remove(cssDisableSelectOnAll.className));
+  }
 
   function clearTimer() {
-    if (timer) { clearTimeout(timer); timer = undefined; }
+    if (timer !== POSTPONED) { clearTimeout(timer); }
+    timer = undefined;
   }
-  function resetTimer(func: () => void, delay: number) {
+  function resetTimer(func: () => void, delay: number|typeof POSTPONED) {
     clearTimer();
-    timer = setTimeout(func, delay);
+    timer = delay === POSTPONED ? POSTPONED : setTimeout(func, delay);
   }
-  function scheduleCloseIfOpen() {
+  function scheduleCloseIfOpen(timeout = closeDelay) {
     clearTimer();
-    if (tipControl) { resetTimer(close, closeDelay); }
+    if (tipControl) {
+      resetTimer(close, mouseGrabbed ? POSTPONED : timeout);
+    }
   }
   function open() {
     clearTimer();
     tipControl = showTooltip(refElem, ctl => tipContentFunc({...ctl, close}), options);
-    dom.onElem(tipControl.getDom(), 'mouseenter', clearTimer);
-    dom.onElem(tipControl.getDom(), 'mouseleave', scheduleCloseIfOpen);
-    dom.onDisposeElem(tipControl.getDom(), () => close());
+    const tipDom = tipControl.getDom();
+    dom.onElem(tipDom, 'mouseenter', clearTimer);
+    dom.onElem(tipDom, 'mouseleave', () => scheduleCloseIfOpen());
+    dom.onElem(tipDom, 'mousedown', grabMouse.bind(null, tipDom));
+    dom.onDisposeElem(tipDom, () => close());
     if (timeoutMs) { resetTimer(close, timeoutMs); }
   }
   function close() {
@@ -247,7 +279,7 @@ export function setHoverTooltip(
     }
   });
 
-  dom.onElem(refElem, 'mouseleave', scheduleCloseIfOpen);
+  dom.onElem(refElem, 'mouseleave', () => scheduleCloseIfOpen());
 
   if (openOnClick) {
     // If requested, re-open on click.
@@ -354,30 +386,49 @@ export function withInfoTooltip(
  * Renders an description info icon that shows a tooltip with the specified `content` on click.
  */
 export function descriptionInfoTooltip(
-  content: DomContents,
+  content: string,
   testPrefix: string,
   ...domArgs: DomElementArg[]) {
+  const body = makeLinks(content);
+  const options = {
+    closeDelay: 200,
+    key: 'columnDescription',
+    openOnClick: true,
+  };
+  const builder = () => cssDescriptionInfoTooltip(
+    body,
+    // Used id test to find the origin of the tooltip regardless webdriver implementation (some of them start)
+    cssTooltipCorner(testId('tooltip-origin')),
+    testId(`${testPrefix}-info-tooltip-popup`),
+    {tabIndex: '-1'}
+  );
   return cssDescriptionInfoTooltipButton(
     icon('Info', dom.cls("info_toggle_icon")),
     testId(`${testPrefix}-info-tooltip`),
     dom.on('mousedown', (e) => e.stopPropagation()),
     dom.on('click', (e) => e.stopPropagation()),
-    hoverTooltip(() => cssDescriptionInfoTooltip(content, testId(`${testPrefix}-info-tooltip-popup`)), {
-      closeDelay: 200,
-      key: 'columnDescription',
-      openOnClick: true,
-    }),
+    hoverTooltip(builder, options),
     dom.cls("info_toggle_icon_wrapper"),
     ...domArgs,
   );
 }
 
+const cssTooltipCorner = styled('div', `
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+`);
 
 const cssDescriptionInfoTooltip = styled('div', `
+  position: relative;
   white-space: pre-wrap;
   text-align: left;
   text-overflow: ellipsis;
   overflow: hidden;
+  line-height: 1.4;
   max-width: min(500px, calc(100vw - 80px)); /* can't use 100%, 500px and 80px are picked by hand */
 `);
 
@@ -412,6 +463,13 @@ const cssTooltip = styled('div', `
   padding: 8px 16px;
   margin: 4px;
   transition: opacity 0.2s;
+  user-select: auto;
+`);
+
+const cssDisableSelectOnAll = styled('div', `
+  & *:not(.${cssTooltip.className}, .${cssTooltip.className} *) {
+    user-select: none;
+  }
 `);
 
 const cssTooltipCloseButton = styled('div', `

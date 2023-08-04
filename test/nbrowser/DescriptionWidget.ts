@@ -7,14 +7,17 @@ describe('DescriptionWidget', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
-  it('should support basic edition in right panel', async () => {
+  before(async () => {
     const mainSession = await gu.session().teamSite.login();
     await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
+    await gu.openWidgetPanel();
+  });
 
+  it('should support basic edition in right panel', async () => {
     const newWidgetDesc = "This is the widget description\nIt is in two lines";
-    await gu.toggleSidePanel('right', 'open');
     const rightPanelDescriptionInput = await driver.find('.test-right-panel .test-right-widget-description');
     await rightPanelDescriptionInput.click();
+    await gu.clearInput();
     await rightPanelDescriptionInput.sendKeys(newWidgetDesc);
     // Click on other input to unselect descriptionInput
     await driver.find('.test-right-panel .test-right-widget-title').click();
@@ -22,9 +25,6 @@ describe('DescriptionWidget', function() {
   });
 
   it('should support basic edition in widget popup', async () => {
-    const mainSession = await gu.session().teamSite.login();
-    await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
-
     const widgetName = "Table";
     const newWidgetDescFirstLine = "First line of the description";
     const newWidgetDescSecondLine = "Second line of the description";
@@ -34,9 +34,6 @@ describe('DescriptionWidget', function() {
   });
 
   it('should show info tooltip only if there is a description', async () => {
-    const mainSession = await gu.session().teamSite.login();
-    await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
-
     const newWidgetDesc = "New description for widget Table";
 
     await addWidgetDescription("Table", newWidgetDesc);
@@ -45,6 +42,21 @@ describe('DescriptionWidget', function() {
     assert.isTrue(await getWidgetTooltip("Table").isPresent());
 
     await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
+  });
+
+  it('shows link in a description', async () => {
+    await addWidgetDescription("Table", "Some text with a https://www.grist.com link");
+
+    assert.isFalse(await getWidgetTooltip("Single card").isPresent());
+    assert.isTrue(await getWidgetTooltip("Table").isPresent());
+
+    await getWidgetTooltip("Table").click();
+    await waitForTooltip();
+    const descriptionTooltip = await driver
+      .find('.test-widget-info-tooltip-popup');
+    assert.equal(await descriptionTooltip.getText(), "Some text with a \nhttps://www.grist.com link");
+    assert.equal(await descriptionTooltip.find(".test-text-link a").getAttribute('href'), "https://www.grist.com/");
+    assert.equal(await descriptionTooltip.find(".test-text-link").getText(), "https://www.grist.com");
   });
 });
 
@@ -77,6 +89,7 @@ async function addWidgetDescription(widgetName: string, desc: string, descSecond
 
   // Edit the description of the widget inside the popup
   await widgetDescInput.click();
+  await gu.clearInput();
   await widgetDescInput.sendKeys(desc);
   if (descSecondLine !== "") {
     await widgetDescInput.sendKeys(Key.ENTER, descSecondLine);

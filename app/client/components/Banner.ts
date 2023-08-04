@@ -68,6 +68,7 @@ export class Banner extends Disposable {
       cssBanner.cls(`-${this._options.style}`),
       this._buildContent(),
       this._buildButtons(),
+      testId('element')
     );
   }
 

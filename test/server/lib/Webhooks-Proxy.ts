@@ -51,11 +51,8 @@ function backupEnvironmentVariables() {
   });
 }
 
-/*
-TODO: this hardcoded port numbers might cause conflicts in parallel tests executions. replace with someone more generic
-*/
-const webhooksTestPort = 34365;
-const webhooksTestProxyPort = 22335;
+const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT);
+const webhooksTestProxyPort = Number(process.env.WEBHOOK_TEST_PROXY_PORT);
 
 describe('Webhooks-Proxy', function () {
   // A testDir of the form grist_test_{USER}_{SERVER_NAME}

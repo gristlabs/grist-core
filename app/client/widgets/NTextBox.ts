@@ -1,15 +1,13 @@
 import { fromKoSave } from 'app/client/lib/fromKoSave';
-import { findLinks } from 'app/client/lib/textUtils';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { cssRow } from 'app/client/ui/RightPanelStyles';
 import { alignmentSelect, cssButtonSelect, makeButtonSelect } from 'app/client/ui2018/buttonSelect';
-import { colors, testId } from 'app/client/ui2018/cssVars';
-import { cssIconBackground, icon } from 'app/client/ui2018/icons';
-import { gristLink } from 'app/client/ui2018/links';
+import { testId } from 'app/client/ui2018/cssVars';
+import { makeLinks } from 'app/client/ui2018/links';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
-import { Computed, dom, DomArg, DomContents, fromKo, Observable, styled } from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import { Computed, dom, DomContents, fromKo, Observable } from 'grainjs';
+import { makeT } from 'app/client/lib/localization';
 
 const t = makeT('NTextBox');
 
@@ -69,64 +67,3 @@ export class NTextBox extends NewAbstractWidget {
     );
   }
 }
-
-function makeLinks(text: string) {
-  try {
-    const domElements: DomArg[] = [];
-    for (const {value, isLink} of findLinks(text)) {
-      if (isLink) {
-        // Wrap link with a span to provide hover on and to override wrapping.
-        domElements.push(cssMaybeWrap(
-          gristLink(value,
-            cssIconBackground(
-              icon("FieldLink", testId('tb-link-icon')),
-              dom.cls(cssHoverInText.className),
-            ),
-          ),
-          linkColor(value),
-          testId("text-link")
-        ));
-      } else {
-        domElements.push(value);
-      }
-    }
-    return domElements;
-  } catch(ex) {
-    // In case when something went wrong, simply log and return original text, as showing
-    // links is not that important.
-    console.warn("makeLinks failed", ex);
-    return text;
-  }
-}
-
-// For links we want to break all the parts, not only words.
-const cssMaybeWrap = styled('span', `
-  white-space: inherit;
-  .text_wrapping & {
-    word-break: break-all;
-    white-space: pre-wrap;
-  }
-`);
-
-// A gentle transition effect on hover in, and the same effect on hover out with a little delay.
-export const cssHoverIn = (parentClass: string) => styled('span', `
-  --icon-color: var(--grist-actual-cell-color, ${colors.lightGreen});
-  margin: -1px 2px 2px 0;
-  border-radius: 3px;
-  transition-property: background-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-  transition-delay: 90ms;
-  .${parentClass}:hover & {
-    --icon-background: ${colors.lightGreen};
-    --icon-color: white;
-    transition-duration: 80ms;
-    transition-delay: 0ms;
-  }
-`);
-
-const cssHoverInText = cssHoverIn(cssMaybeWrap.className);
-
-const linkColor = styled('span', `
-  color: var(--grist-actual-cell-color, ${colors.lightGreen});;
-`);
