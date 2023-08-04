@@ -371,6 +371,12 @@ export const GristLight: ThemeColors = {
   'importer-preview-border': '#D9D9D9',
   'importer-skipped-table-overlay': 'rgba(217,217,217,0.6)',
   'importer-match-icon': '#D9D9D9',
+  'importer-outside-bg': '#F7F7F7',
+  'importer-main-content-bg': '#FFFFFF',
+  'importer-active-file-bg': '#16B378',
+  'importer-active-file-fg': '#FFFFFF',
+  'importer-inactive-file-bg': 'rgba(217,217,217,0.6)',
+  'importer-inactive-file-fg': '#FFFFFF',
 
   /* Menu Toggles */
   'menu-toggle-fg': '#929299',

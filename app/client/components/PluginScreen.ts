@@ -1,8 +1,8 @@
 import { makeT } from 'app/client/lib/localization';
 import { bigBasicButton } from 'app/client/ui2018/buttons';
-import { testId } from 'app/client/ui2018/cssVars';
+import { testId, theme } from 'app/client/ui2018/cssVars';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { cssModalButtons, cssModalTitle, IModalControl, modal } from 'app/client/ui2018/modals';
+import { cssModalButtons, cssModalTitle, IModalControl, IModalOptions, modal } from 'app/client/ui2018/modals';
 import { PluginInstance } from 'app/common/PluginInstance';
 import { RenderTarget } from 'app/plugin/RenderOptions';
 import { Disposable, dom, DomContents, Observable, styled } from 'grainjs';
@@ -15,6 +15,7 @@ const t = makeT('PluginScreen');
 export interface RenderOptions {
   // Maximizes modal to fill the viewport.
   fullscreen?: boolean;
+  fullbody?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ export class PluginScreen extends Disposable {
   private _openModalCtl: IModalControl | null = null;
   private _importerContent = Observable.create<DomContents>(this, null);
   private _fullscreen = Observable.create(this, false);
+  private _fullbody = Observable.create(this, false);
 
   constructor(private _title: string) {
     super();
@@ -46,13 +48,15 @@ export class PluginScreen extends Disposable {
   }
 
   public render(content: DomContents, options?: RenderOptions) {
+    this._fullscreen.set(Boolean(options?.fullscreen));
+    this._fullbody.set(Boolean(options?.fullbody));
     this.showImportDialog();
     this._importerContent.set(content);
-    this._fullscreen.set(Boolean(options?.fullscreen));
   }
 
   // The importer state showing just an error.
   public renderError(message: string) {
+    this._fullbody.set(false);
     this.render([
       this._buildModalTitle(),
       cssModalBody(t("Import failed: "), message, testId('importer-error')),
@@ -66,6 +70,7 @@ export class PluginScreen extends Disposable {
   // The importer state showing just a spinner, when the user has to wait. We don't even let the
   // user cancel it, because the cleanup can only happen properly once the wait completes.
   public renderSpinner() {
+    this._fullbody.set(false);
     this.render([this._buildModalTitle(), cssSpinner(loadingSpinner())]);
   }
 
@@ -74,19 +79,28 @@ export class PluginScreen extends Disposable {
     this._openModalCtl = null;
   }
 
-  public showImportDialog() {
+  public showImportDialog(options?: IModalOptions) {
     if (this._openModalCtl) { return; }
-    modal((ctl) => {
+    modal((ctl, ctlOwner) => {
       this._openModalCtl = ctl;
+
+      // Make sure we are close when parent is closed.
+      this.onDispose(() => {
+        if (ctlOwner.isDisposed()) { return; }
+        ctl.close();
+      });
+
       return [
         cssModalOverrides.cls(''),
         cssModalOverrides.cls('-fullscreen', this._fullscreen),
+        cssModalOverrides.cls('-fullbody', this._fullbody),
         dom.domComputed(this._importerContent),
         testId('importer-dialog'),
       ];
     }, {
       noClickAway: true,
       noEscapeKey: true,
+      ...options,
     });
   }
 
@@ -107,6 +121,11 @@ const cssModalOverrides = styled('div', `
   &-fullscreen {
     height: 100%;
     margin: 32px;
+  }
+
+  &-fullbody {
+    padding: 0px;
+    background-color: ${theme.importerOutsideBg};
   }
 `);
 

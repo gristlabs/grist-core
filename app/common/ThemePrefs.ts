@@ -392,6 +392,12 @@ export interface ThemeColors {
   'importer-preview-border': string;
   'importer-skipped-table-overlay': string;
   'importer-match-icon': string;
+  'importer-outside-bg': string;
+  'importer-main-content-bg': string;
+  'importer-active-file-bg': string;
+  'importer-active-file-fg': string;
+  'importer-inactive-file-bg': string;
+  'importer-inactive-file-fg': string;
 
   /* Menu Toggles */
   'menu-toggle-fg': string;

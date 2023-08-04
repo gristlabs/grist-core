@@ -626,6 +626,14 @@ export const theme = {
   importerSkippedTableOverlay: new CustomProp('theme-importer-skipped-table-overlay', undefined,
     colors.mediumGrey),
   importerMatchIcon: new CustomProp('theme-importer-match-icon', undefined, colors.darkGrey),
+  importerOutsideBg: new CustomProp('theme-importer-outside-bg', undefined, colors.lightGrey),
+  importerMainContentBg: new CustomProp('theme-importer-main-content-bg', undefined, '#FFFFFF'),
+
+  // tabs
+  importerActiveFileBg: new CustomProp('theme-importer-active-file-bg', undefined, colors.lightGreen),
+  importerActiveFileFg: new CustomProp('theme-importer-active-file-fg', undefined, colors.light),
+  importerInactiveFileBg: new CustomProp('theme-importer-inactive-file-bg', undefined, colors.mediumGrey),
+  importerInactiveFileFg: new CustomProp('theme-importer-inactive-file-fg', undefined, colors.light),
 
   /* Menu Toggles */
   menuToggleFg: new CustomProp('theme-menu-toggle-fg', undefined, colors.slate),

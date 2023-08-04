@@ -447,7 +447,11 @@
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
         "Select fields to match on": "Select fields to match on",
-        "Update existing records": "Update existing records"
+        "Update existing records": "Update existing records",
+        "{{count}} unmatched field in import_one": "{{count}} unmatched field in import",
+        "{{count}} unmatched field in import_other": "{{count}} unmatched fields in import",
+        "{{count}} unmatched field_one": "{{count}} unmatched field",
+        "{{count}} unmatched field_other": "{{count}} unmatched fields"
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center"

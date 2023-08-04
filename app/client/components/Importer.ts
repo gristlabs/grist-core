@@ -16,144 +16,255 @@ import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocMode
 import {SortedRowSet} from 'app/client/models/rowset';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {openFilePicker} from 'app/client/ui/FileDialog';
-import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
+import {cssPageIcon} from 'app/client/ui/LeftPanelCommon';
+import {hoverTooltip, overflowTooltip} from 'app/client/ui/tooltips';
+import {bigBasicButton, bigPrimaryButton, textButton} from 'app/client/ui2018/buttons';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {testId as baseTestId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {IOptionFull, linkSelect, menu,
-        menuDivider, menuItem, multiSelect} from 'app/client/ui2018/menus';
-import {cssModalButtons, cssModalTitle} from 'app/client/ui2018/modals';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {IOptionFull, menuDivider, menuItem, multiSelect, selectMenu, selectOption} from 'app/client/ui2018/menus';
+import {cssModalTitle} from 'app/client/ui2018/modals';
 import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {DataSourceTransformed, DestId, ImportResult, ImportTableResult, MergeOptions,
-        MergeOptionsMap, MergeStrategy, NEW_TABLE, SKIP_TABLE,
-        TransformColumn, TransformRule, TransformRuleMap} from 'app/common/ActiveDocAPI';
+import {
+  DataSourceTransformed,
+  DestId,
+  ImportResult,
+  ImportTableResult,
+  MergeOptions,
+  MergeOptionsMap,
+  MergeStrategy,
+  NEW_TABLE,
+  SKIP_TABLE,
+  TransformColumn,
+  TransformRule,
+  TransformRuleMap
+} from 'app/common/ActiveDocAPI';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {byteString} from 'app/common/gutil';
+import {byteString, not} from 'app/common/gutil';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
-import {Computed, Disposable, dom, DomContents, fromKo, Holder, IDisposable,
-        MultiHolder, MutableObsArray, obsArray, Observable, styled} from 'grainjs';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {ACCESS_DENIED, AUTH_INTERRUPTED, canReadPrivateFiles, getGoogleCodeForReading} from 'app/client/ui/googleAuth';
+import {
+  BindableValue,
+  Computed,
+  Disposable,
+  dom,
+  DomContents,
+  fromKo,
+  Holder,
+  IDisposable,
+  MultiHolder,
+  MutableObsArray,
+  obsArray,
+  Observable,
+  styled,
+  UseCBOwner
+} from 'grainjs';
 import debounce = require('lodash/debounce');
 
 const t = makeT('Importer');
+// Custom testId that can be appended conditionally.
+const testId = (id: string, obs?: BindableValue<boolean>) => dom.cls('test-importer-' + id, obs ?? true);
 
 
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
 type CreatePreviewFunc = (vs: ViewSectionRec) => GridView;
 type GridView = IDisposable & {viewPane: HTMLElement, sortedRows: SortedRowSet, listenTo: (...args: any[]) => void};
+const TABLE_MAPPING = 1;
+const COLUMN_MAPPING = 2;
+type ViewType = typeof TABLE_MAPPING | typeof COLUMN_MAPPING;
 
+/**
+ * Information returned by the backend of the current import state, and how the table and sections look there.
+ * Also contains some UI state, so it is updated with the data that comes from the backend.
+ */
 export interface SourceInfo {
-  // The source table id.
+  /** Table id that holds the imported data. */
   hiddenTableId: string;
+  /** Uploaded file index */
   uploadFileIndex: number;
+  /** Table name that was figured out by the backend. File name or tab in excel name */
   origTableName: string;
+  /**
+   * Section that contains only imported columns. It is not shown to the user.
+   * Table besides the imported data have formula columns that are used to finalize import. Those formula
+   * columns are not part of this section.
+   */
   sourceSection: ViewSectionRec;
-  // A viewsection containing transform (formula) columns pointing to the original source columns.
+  /**
+   * A viewSection containing transform (formula) columns pointing to the original source columns.
+   * When user selects New table, they are basically formulas pointing to the source columns.
+   * When user selects Existing table, new formula columns are created that look like the selected table, and this
+   * section contains those formula columns.
+   */
   transformSection: Observable<ViewSectionRec|null>;
-  // The destination table id.
+  /** The destination table id, selected by the user. Can be null for skip and empty string for `New table`  */
   destTableId: Observable<DestId>;
-  // True if there is at least one request in progress to create a new transform section.
+  /** True if there is at least one request in progress to create a new transform section. */
   isLoadingSection: Observable<boolean>;
-  // Reference to last promise for the GenImporterView action (which creates `transformSection`).
+  /** Reference to last promise for the GenImporterView action (which creates `transformSection`). */
   lastGenImporterViewPromise: Promise<any>|null;
+  /** Selected view, can be table mapping or column mapping, used only in UI. */
+  selectedView: Observable<ViewType>;
+  /** List of columns that were customized (have custom formulas) */
+  customizedColumns: Observable<Set<string>>;
 }
 
+/** Changes the customization flag for the column */
+function toggleCustomized(info: SourceInfo, colId: string, on: boolean): void {
+  const customizedColumns = info.customizedColumns.get();
+  if (!on) {
+    customizedColumns.delete(colId);
+  } else {
+    customizedColumns.add(colId);
+  }
+  info.customizedColumns.set(new Set(customizedColumns));
+}
+
+
+/**
+ * UI state for each imported table (file). Maps table id to the info object.
+ */
 interface MergeOptionsStateMap {
   [hiddenTableId: string]: MergeOptionsState|undefined;
 }
 
-// UI state of merge options for a SourceInfo.
+/**
+ * UI state of merge options for a SourceInfo.
+ */
 interface MergeOptionsState {
+  /**
+   * Whether to update existing records or only add new ones. If false, mergeCols is empty.
+   */
   updateExistingRecords: Observable<boolean>;
+  /**
+   * List of column ids to merge on if user set `updateExistingRecords` to true. Those are columns from the
+   * target table.
+   */
   mergeCols: MutableObsArray<string>;
+  /**
+   * Merge strategy to use, not used currently.
+   */
   mergeStrategy: Observable<MergeStrategy>;
+  /**
+   * Whether mergeCols contains invalid columns (set in the code to show error message).
+   */
   hasInvalidMergeCols: Observable<boolean>;
 }
+
+/**
+ * Imports using the given plugin importer.
+ */
+export async function selectAndImport(
+  gristDoc: GristDoc,
+  imports: ImportSourceElement[],
+  importSourceElem: ImportSourceElement,
+  createPreview: CreatePreviewFunc
+) {
+  // HACK: The url plugin does not support importing from google drive, and we don't want to
+  // ask a user for permission to access all his files (needed to download a single file from an URL).
+  // So to have a nice user experience, we will switch to the built-in google drive plugin and allow
+  // user to chose a file manually.
+  // Suggestion for the future is:
+  // (1) ask the user for the greater permission,
+  // (2) detect when the permission is not granted, and open the picker-based plugin in that case.
+  try {
+    // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
+    await Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(null);
+  } catch(err1) {
+    // If the url was a Google Drive Url, run the google drive plugin.
+    if (!(err1 instanceof GDriveUrlNotSupported)) {
+      reportError(err1);
+    } else {
+      const gdrivePlugin = imports.find((p) => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
+      if (!gdrivePlugin) {
+        reportError(err1);
+      } else {
+        try {
+          await Importer.create(null, gristDoc, gdrivePlugin, createPreview).pickAndUploadSource(null);
+        } catch(err2) {
+          reportError(err2);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Imports from file.
+ */
+export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePreviewFunc) {
+  // In case of using built-in file picker we want to get upload result before instantiating Importer
+  // because if the user dismisses the dialog without picking a file,
+  // there is no good way to detect this and dispose Importer.
+  let uploadResult: UploadResult|null = null;
+  // Use the built-in file picker. On electron, it uses the native file selector (without
+  // actually uploading anything), which is why this requires a slightly different flow.
+  const files: File[] = await openFilePicker({multiple: true});
+  // Important to fork first before trying to import, so we end up uploading to a
+  // consistent doc worker.
+  await gristDoc.forkIfNeeded();
+  const label = files.map(f => f.name).join(', ');
+  const size = files.reduce((acc, f) => acc + f.size, 0);
+  const app = gristDoc.app.topAppModel.appObs.get();
+  const progress = app ? app.notifier.createProgressIndicator(label, byteString(size)) : null;
+  const onProgress = (percent: number) => progress && progress.setProgress(percent);
+  try {
+    onProgress(0);
+    uploadResult = await uploadFiles(files, {docWorkerUrl: gristDoc.docComm.docWorkerUrl,
+                                              sizeLimit: 'import'}, onProgress);
+    onProgress(100);
+  } finally {
+    if (progress) {
+      progress.dispose();
+    }
+  }
+  // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
+  await Importer.create(null, gristDoc, null, createPreview).pickAndUploadSource(uploadResult);
+}
+
 
 /**
  * Importer manages an import files to Grist tables and shows Preview
  */
 export class Importer extends DisposableWithEvents {
-  /**
-   * Imports using the given plugin importer, or the built-in file-picker when null is passed in.
-   */
-  public static async selectAndImport(
-    gristDoc: GristDoc,
-    imports: ImportSourceElement[],
-    importSourceElem: ImportSourceElement|null,
-    createPreview: CreatePreviewFunc
-  ) {
-    // In case of using built-in file picker we want to get upload result before instantiating Importer
-    // because if the user dismisses the dialog without picking a file,
-    // there is no good way to detect this and dispose Importer.
-    let uploadResult: UploadResult|null = null;
-    if (!importSourceElem) {
-      // Use the built-in file picker. On electron, it uses the native file selector (without
-      // actually uploading anything), which is why this requires a slightly different flow.
-      const files: File[] = await openFilePicker({multiple: true});
-      // Important to fork first before trying to import, so we end up uploading to a
-      // consistent doc worker.
-      await gristDoc.forkIfNeeded();
-      const label = files.map(f => f.name).join(', ');
-      const size = files.reduce((acc, f) => acc + f.size, 0);
-      const app = gristDoc.app.topAppModel.appObs.get();
-      const progress = app ? app.notifier.createProgressIndicator(label, byteString(size)) : null;
-      const onProgress = (percent: number) => progress && progress.setProgress(percent);
-      try {
-        onProgress(0);
-        uploadResult = await uploadFiles(files, {docWorkerUrl: gristDoc.docComm.docWorkerUrl,
-                                                 sizeLimit: 'import'}, onProgress);
-        onProgress(100);
-      } finally {
-        if (progress) {
-          progress.dispose();
-        }
-      }
-    }
-    // HACK: The url plugin does not support importing from google drive, and we don't want to
-    // ask a user for permission to access all his files (needed to download a single file from an URL).
-    // So to have a nice user experience, we will switch to the built-in google drive plugin and allow
-    // user to chose a file manually.
-    // Suggestion for the future is:
-    // (1) ask the user for the greater permission,
-    // (2) detect when the permission is not granted, and open the picker-based plugin in that case.
-    try {
-      // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
-      await Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(uploadResult);
-    } catch(err1) {
-      // If the url was a Google Drive Url, run the google drive plugin.
-      if (!(err1 instanceof GDriveUrlNotSupported)) {
-        reportError(err1);
-      } else {
-        const gdrivePlugin = imports.find((p) => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
-        if (!gdrivePlugin) {
-          reportError(err1);
-        } else {
-          try {
-            await Importer.create(null, gristDoc, gdrivePlugin, createPreview).pickAndUploadSource(uploadResult);
-          } catch(err2) {
-            reportError(err2);
-          }
-        }
-      }
-    }
-  }
 
   private _docComm = this._gristDoc.docComm;
   private _uploadResult?: UploadResult;
 
   private _screen: PluginScreen;
+  private _optionsScreenHolder = Holder.create(this);
+  /**
+   * Merge information (for updating existing rows).
+   */
   private _mergeOptions: MergeOptionsStateMap = {};
+  /**
+   * Parsing options (for parsing the file), passed to the backend directly.
+   */
   private _parseOptions = Observable.create<ParseOptions>(this, {});
+  /**
+   * Info about the data that was parsed from the imported files (or tabs in excel).
+   */
   private _sourceInfoArray = Observable.create<SourceInfo[]>(this, []);
+  /**
+   * Currently selected table to import (a file or a tab in excel).
+   */
   private _sourceInfoSelected = Observable.create<SourceInfo|null>(this, null);
+
+  // Owner of the observables in the _sourceInfoArray
+  private readonly _sourceInfoHolder = Holder.create(this);
 
   // Holder for the column mapping formula editor.
   private readonly _formulaEditorHolder = Holder.create(this);
 
+  /**
+   * Helper for the preview section (the transformSection from the backend). The naming is misleading a bit, sorry
+   * about that, but this transform section is shown to the user as a Grid.
+   *
+   * We need a helper to make sure section is in good state before showing it to the user.
+   */
   private _previewViewSection: Observable<ViewSectionRec|null> =
     Computed.create(this, this._sourceInfoSelected, (use, info) => {
       if (!info) { return null; }
@@ -162,10 +273,12 @@ export class Importer extends DisposableWithEvents {
       if (isLoading) { return null; }
 
       const viewSection = use(info.transformSection);
-      return viewSection && !use(viewSection._isDeleted) ? viewSection : null;
+      return viewSection && !viewSection.isDisposed() && !use(viewSection._isDeleted) ? viewSection : null;
     });
 
-  // True if there is at least one request in progress to generate an import diff.
+  /**
+   * True if there is at least one request in progress to generate an import diff.
+   */
   private _isLoadingDiff = Observable.create(this, false);
   // Promise for the most recent generateImportDiff action.
   private _lastGenImportDiffPromise: Promise<any>|null = null;
@@ -181,16 +294,22 @@ export class Importer extends DisposableWithEvents {
    */
   private _hasScheduledDiffUpdate = false;
 
-  // destTables is a list of options for import destinations, and includes all tables in the
-  // document, plus two values: to import as a new table, and to skip a table.
+  /**
+   * destTables is a list of tables user can choose to import data into, in the format suitable for the UI to consume.
+   */
   private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, (use) => [
-    {value: NEW_TABLE, label: 'New Table'},
-    ...(use(this._sourceInfoArray).length > 1 ? [{value: SKIP_TABLE, label: 'Skip'}] : []),
     ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map((id) => ({value: id, label: id})),
   ]);
 
-  // List of transform fields, i.e. those formula fields of the transform section whose values
-  // will be used to populate the destination columns.
+  /**
+   * List of transform fields, i.e. those formula fields of the transform section whose values will be used to
+   * populate the destination columns.
+   * For `New table` those fields are 1-1 with columns imported from the file.
+   * For `Existing table` those are fields that simulate the target table columns.
+   * In UI we will call it `GRIST COLUMNS`, whereas source columns will be called `SOURCE COLUMNS`.
+   *
+   * This is helper that makes sure that those fields from the transformSection are in a good state to show.
+   */
   private _transformFields: Computed<ViewFieldRec[]|null> = Computed.create(
       this, this._sourceInfoSelected, (use, info) => {
     const section = info && use(info.transformSection);
@@ -198,8 +317,30 @@ export class Importer extends DisposableWithEvents {
     return use(use(section.viewFields).getObservable());
   });
 
-  // Prepare a Map, mapping of colRef of each transform column to the set of options to offer in
-  // the dropdown. The options are represented as a Map too, mapping formula to label.
+  /**
+   * Prepare a Map, mapping of colRef of each transform column to the set of options to offer in
+   * the dropdown. The options are represented as a Map too, mapping formula to label.
+   *
+   * It only matters for importing into existing table. Transform column are perceived as GRIST COLUMNS, so those
+   * columns that will be updated or imported into.
+   *
+   * For each of such column, this will create a map of possible options to choose in from (except SKIP).
+   * The result is a map (treated as just list of Records), with a formula and label to show in the UI.
+   * This formula will be used to update the target helper column, when user selects it.
+   *
+   * For example:
+   * File has those columns: `Name`, `Age`, `City`, `Country`
+   * Existing table has those: `First name`, `Last name`.
+   *
+   * So for `First name` (and `Last name`) we will have a map of options:
+   * - `$Name` -> `Name`
+   * - `$City` -> `City`
+   * - `$Country` -> `Country`
+   * - `$Age` -> `Age`
+   * (and skip added in the UI).
+   *
+   * There are some special cases for References and column ids.
+   */
   private _transformColImportOptions: Computed<Map<number, Map<string, string>>> = Computed.create(
       this, this._transformFields, this._sourceInfoSelected, (use, fields, info) => {
     if (!fields || !info) { return new Map(); }
@@ -207,18 +348,42 @@ export class Importer extends DisposableWithEvents {
       [use(f.colRef), this._makeImportOptionsForCol(use(f.column), info)]));
   });
 
-  // List of labels of destination columns that aren't mapped to a source column, i.e. transform
-  // columns with empty formulas.
-  private _unmatchedFields: Computed<string[]|undefined> = Computed.create(
-      this, this._transformFields, (use, fields) => {
-    return fields?.filter(f => (use(use(f.column).formula).trim() === '')).map(f => use(f.label));
+  /**
+   * List of labels of destination columns that aren't mapped to a source column, i.e. transform
+   * columns with empty formulas.
+   *
+   * In other words, this is a list of GRIST COLUMNS that are not mapped to any SOURCE COLUMNS, so
+   * columns that won't be imported.
+   */
+  private _unmatchedFieldsMap: Computed<Map<SourceInfo, string[]|null>> = Computed.create(this, use => {
+    const sources = use(this._sourceInfoArray);
+    const result = new Map<SourceInfo, string[]|null>();
+    const unmatched = (info: SourceInfo) => {
+      // If Skip import selected, ignore.
+      if (use(info.destTableId) === SKIP_TABLE) { return null; }
+      // If New table selected, ignore.
+      if (use(info.destTableId) === NEW_TABLE) { return null; }
+      // Otherwise, return list of labels of unmatched fields.
+      const section = info && use(info.transformSection);
+      if (!section || section.isDisposed() || use(section._isDeleted)) { return null; }
+      const fields = use(use(section.viewFields).getObservable());
+      const labels = fields?.filter(f => (use(use(f.column).formula).trim() === ''))
+                            .map(f => use(f.label)) ?? null;
+      return labels?.length ? labels : null;
+    };
+    for (const info of sources) {
+      result.set(info, unmatched(info));
+    }
+    return result;
   });
 
-  // null tells to use the built-in file picker.
-  constructor(private _gristDoc: GristDoc, private _importSourceElem: ImportSourceElement|null,
+  constructor(private _gristDoc: GristDoc,
+              // null tells to use the built-in file picker.
+              private _importSourceElem: ImportSourceElement|null,
               private _createPreview: CreatePreviewFunc) {
     super();
-    this._screen = PluginScreen.create(this, _importSourceElem?.importSource.label || "Import from file");
+    const label = _importSourceElem?.importSource.label || "Import from file";
+    this._screen = PluginScreen.create(this, label);
 
     this.onDispose(() => {
       this._resetImportDiffState();
@@ -226,9 +391,9 @@ export class Importer extends DisposableWithEvents {
   }
 
   /*
-   * Get new import sources and update the current one.
+   * Uploads file to the server using the built-in file picker or a plugin instance.
    */
-  public async pickAndUploadSource(uploadResult: UploadResult|null) {
+  public async pickAndUploadSource(uploadResult: UploadResult|null = null) {
     try {
       if (!this._importSourceElem) {
         // Use upload result if it was passed in or the built-in file picker.
@@ -237,6 +402,7 @@ export class Importer extends DisposableWithEvents {
         uploadResult = uploadResult || await selectFiles({docWorkerUrl: this._docComm.docWorkerUrl,
                                                           multiple: true, sizeLimit: 'import'});
       } else {
+        // Need to use plugin to get the data, and manually upload it.
         const plugin = this._importSourceElem.plugin;
         const handle = this._screen.renderPlugin(plugin);
         const importSource = await this._importSourceElem.importSourceStub.getImportSource(handle);
@@ -316,6 +482,9 @@ export class Importer extends DisposableWithEvents {
     this._gristDoc.viewModel.activeSectionId(transformSectionRef);
   }
 
+  /**
+   * Reads the configuration from the temporary table and creates a configuration map for each table.
+   */
   private _getTransformedDataSource(upload: UploadResult): DataSourceTransformed {
     const transforms: TransformRuleMap[] = upload.files.map((file, i) => this._createTransformRuleMap(i));
     return {uploadId: upload.uploadId, transforms};
@@ -387,46 +556,80 @@ export class Importer extends DisposableWithEvents {
     this._screen.renderSpinner();
     this._resetImportDiffState();
     try {
+      // Initialize parsing options with NUM_ROWS=0 (a whole file).
       const parseOptions = {...this._parseOptions.get(), NUM_ROWS: 0};
+
+      // Create the temporary tables and import the files into it.
       const importResult: ImportResult = await this._docComm.importFiles(
         this._getTransformedDataSource(upload), parseOptions, this._getHiddenTableIds());
 
+      // Update the parsing options with the actual one used by the importer (it might have changed)
       this._parseOptions.set(importResult.options);
 
+      this._sourceInfoHolder.clear();
+      const owner = MultiHolder.create(this._sourceInfoHolder);
+
+      // Read the information from what was imported in a better representation and some metadata, we
+      // will allow to change by the user.
       this._sourceInfoArray.set(importResult.tables.map((info: ImportTableResult) => ({
         hiddenTableId: info.hiddenTableId,
         uploadFileIndex: info.uploadFileIndex,
         origTableName: info.origTableName,
+        // This is the section with the data imported.
         sourceSection: this._getPrimaryViewSection(info.hiddenTableId)!,
-        transformSection: Observable.create(null, this._getSectionByRef(info.transformSectionRef)),
-        destTableId: Observable.create<DestId>(null, info.destTableId ?? NEW_TABLE),
-        isLoadingSection: Observable.create(null, false),
-        lastGenImporterViewPromise: null
+        // This is the section created every time user changes the configuration, used for the preview.
+        transformSection: Observable.create(owner, this._getSectionByRef(info.transformSectionRef)),
+        // This is the table where the data will be imported, either a new table or an existing one.
+        // If a new one, it will be hidden for a while, until the user confirms the import.
+        destTableId: Observable.create<DestId>(owner, info.destTableId ?? NEW_TABLE),
+        // Helper to show the spinner.
+        isLoadingSection: Observable.create(owner, false),
+        // and another one.
+        lastGenImporterViewPromise: null,
+        // Which view to show or was shown previously.
+        selectedView: Observable.create(owner, TABLE_MAPPING),
+        // List of customized
+        customizedColumns: Observable.create(owner, new Set<string>()),
       })));
 
       if (this._sourceInfoArray.get().length === 0) {
         throw new Error("No data was imported");
       }
 
-      this._mergeOptions = {};
-      this._getHiddenTableIds().forEach(tableId => {
-        this._mergeOptions[tableId] = {
-          updateExistingRecords: Observable.create(null, false),
-          mergeCols: obsArray(),
-          mergeStrategy: Observable.create(null, {type: 'replace-with-nonblank-source'}),
-          hasInvalidMergeCols: Observable.create(null, false),
-        };
-      });
+      this._prepareMergeOptions();
 
       // Select the first sourceInfo to show in preview.
       this._sourceInfoSelected.set(this._sourceInfoArray.get()[0] || null);
 
+      // And finally render the main screen.
       this._renderMain(upload);
-
     } catch (e) {
       console.warn("Import failed", e);
       this._screen.renderError(e.message);
     }
+  }
+
+  /**
+   * Create a merging options. This is an extension to the configuration above (_sourceInfoArray).
+   * By default, we are pointing to new tables, so it is empty. This method is used to communicate
+   * with the user about what they want and how they want to merge the data.
+   * For an existing table, it will be filled by the user with columns to merge on (how to identify
+   * existing rows).
+   */
+  private _prepareMergeOptions() {
+    this._mergeOptions = {};
+    this._getHiddenTableIds().forEach(tableId => {
+      this._mergeOptions[tableId] = {
+        // By default no, as we are importing into new tables.
+        updateExistingRecords: Observable.create(null, false),
+        // Empty, user will select it for existing table.
+        mergeCols: obsArray(),
+        // Strategy for the backend (from UI we don't care about it).
+        mergeStrategy: Observable.create(null, {type: 'replace-with-nonblank-source'}),
+        // Helper to show the validation that something is wrong with the columns selected to merge.
+        hasInvalidMergeCols: Observable.create(null, false),
+      };
+    });
   }
 
   private async _maybeFinishImport(upload: UploadResult) {
@@ -442,6 +645,7 @@ export class Importer extends DisposableWithEvents {
     const importResult: ImportResult = await this._docComm.finishImportFiles(
       this._getTransformedDataSource(upload), this._getHiddenTableIds(), {mergeOptionMaps, parseOptions});
 
+    // This is not hidden table anymore, it was renamed to the name of the final table.
     if (importResult.tables[0]?.hiddenTableId) {
       const tableRowModel = this._gristDoc.docModel.dataTables[importResult.tables[0].hiddenTableId].tableMetaRow;
       const primaryViewId = tableRowModel.primaryViewId();
@@ -493,6 +697,10 @@ export class Importer extends DisposableWithEvents {
   private _buildModalTitle(rightElement?: DomContents) {
     const title =  this._importSourceElem ? this._importSourceElem.importSource.label : 'Import from file';
     return cssModalHeader(cssModalTitle(title), rightElement);
+  }
+
+  private _buildStaticTitle() {
+    return cssStaticHeader(cssModalTitle(t('Import from file')));
   }
 
   /**
@@ -575,219 +783,416 @@ export class Importer extends DisposableWithEvents {
   // The importer state showing import in progress, with a list of tables, and a preview.
   private _renderMain(upload: UploadResult) {
     const schema = this._parseOptions.get().SCHEMA;
-    const content = cssContainer(
-      dom.autoDispose(this._formulaEditorHolder),
-      {tabIndex: '-1'},
-      this._buildModalTitle(
-        schema ? cssActionLink(cssLinkIcon('Settings'), 'Import options',
-          testId('importer-options-link'),
-          dom.on('click', () => this._renderParseOptions(schema, upload))
-        ) : null,
-      ),
-      cssPreviewWrapper(
-        cssTableList(
-          dom.forEach(this._sourceInfoArray, (info) => {
-            const destTableId = Computed.create(null, (use) => use(info.destTableId))
-              .onWrite(async (destId) => {
-                // Prevent changing destination of un-selected sources if current configuration is invalid.
-                if (info !== this._sourceInfoSelected.get() && !this._validateImportConfiguration()) {
-                  return;
-                }
+    const header = this._buildModalTitle();
+    const options = schema ? cssActionLink(cssLinkIcon('Settings'), 'Import options',
+      testId('options-link'),
+      dom.on('click', () => this._renderParseOptions(schema, upload))
+    ) : null;
 
-                info.destTableId.set(destId);
-                this._resetTableMergeOptions(info.hiddenTableId);
-                if (destId !== SKIP_TABLE) {
-                  await this._updateTransformSection(info);
-                }
-              });
-            return cssTableInfo(
-              dom.autoDispose(destTableId),
-              cssTableLine(cssToFrom('From'),
-                cssTableSource(getSourceDescription(info, upload), testId('importer-from'))),
-              cssTableLine(cssToFrom('To'), linkSelect<DestId>(destTableId, this._destTables)),
-              cssTableInfo.cls('-selected', (use) => use(this._sourceInfoSelected) === info),
-              dom.on('click', async () => {
-                // Ignore click if source is already selected.
-                if (info === this._sourceInfoSelected.get()) { return; }
+    const selectTab = async (info: SourceInfo) => {
+      // Ignore click if source is already selected.
+      if (info === this._sourceInfoSelected.get()) { return; }
+      // Prevent changing selected source if current configuration is invalid.
+      if (!this._validateImportConfiguration()) { return; }
+      this._cancelPendingDiffRequests();
+      this._sourceInfoSelected.set(info);
+      await this._updateImportDiff(info);
+    };
 
-                // Prevent changing selected source if current configuration is invalid.
-                if (!this._validateImportConfiguration()) { return; }
+    const tabs = cssTableList(
+      dom.forEach(this._sourceInfoArray, (info) => {
+        const owner = MultiHolder.create(null);
+        const destTableId = Computed.create(owner, (use) => use(info.destTableId));
+        destTableId.onWrite(async (destId) => {
+          // Prevent changing destination of un-selected sources if current configuration is invalid.
+          if (info !== this._sourceInfoSelected.get() && !this._validateImportConfiguration()) {
+            return;
+          }
+          info.destTableId.set(destId);
+          this._resetTableMergeOptions(info.hiddenTableId);
+          if (destId !== SKIP_TABLE) {
+            await this._updateTransformSection(info);
+          }
+        });
 
-                this._cancelPendingDiffRequests();
-                this._sourceInfoSelected.set(info);
-                await this._updateImportDiff(info);
-              }),
-              testId('importer-source'),
-            );
-          }),
-        ),
-        dom.maybe(this._sourceInfoSelected, (info) => {
-          const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
+        // If this is selected source.
+        const isSelected = Computed.create(owner, (use) => use(this._sourceInfoSelected) === info);
 
-          return cssConfigAndPreview(
-            dom.maybe(info.destTableId, () => cssConfigColumn(
-              dom.maybe(info.transformSection, section => {
-                const updateRecordsListener = updateExistingRecords.addListener(async () => {
-                  await this._updateImportDiff(info);
-                });
+        const unmatchedCount = Computed.create(owner, use => {
+          const map = use(this._unmatchedFieldsMap);
+          return map.get(info)?.length ?? 0;
+        });
 
-                return [
-                  cssMergeOptions(
-                    cssMergeOptionsToggle(labeledSquareCheckbox(
-                      updateExistingRecords,
-                      t("Update existing records"),
-                      dom.autoDispose(updateRecordsListener),
-                      testId('importer-update-existing-records')
-                    )),
-                    dom.maybe(updateExistingRecords, () => {
-                      const mergeColsListener = mergeCols.addListener(async val => {
-                        // Reset the error state of the multiSelect on change.
-                        if (val.length !== 0 && hasInvalidMergeCols.get()) {
-                          hasInvalidMergeCols.set(false);
-                        }
-                        await this._updateImportDiff(info);
-                      });
-
-                      return [
-                        cssMergeOptionsMessage(
-                          t("Merge rows that match these fields:"),
-                          testId('importer-merge-fields-message')
-                        ),
-                        multiSelect(
-                          mergeCols,
-                          section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
-                          {
-                            placeholder: t("Select fields to match on"),
-                            error: hasInvalidMergeCols
-                          },
-                          dom.autoDispose(mergeColsListener),
-                          testId('importer-merge-fields-select')
-                        )
-                      ];
-                    })
-                  ),
-                  dom.domComputed(this._unmatchedFields, fields =>
-                    fields && fields.length > 0 ?
-                      cssUnmatchedFields(
-                        dom('div',
-                          cssAccentText(
-                            `${fields.length} unmatched ${fields.length > 1 ? 'fields' : 'field'}`
-                          ),
-                          ' in import:'
-                        ),
-                        cssUnmatchedFieldsList(fields.join(', ')),
-                        testId('importer-unmatched-fields')
-                      ) : null
-                  ),
-                  cssColumnMatchOptions(
-                    dom.forEach(fromKo(section.viewFields().getObservable()), field => cssColumnMatchRow(
-                      cssColumnMatchIcon('ImportArrow'),
-                      cssSourceAndDestination(
-                        cssDestinationFieldRow(
-                          cssDestinationFieldLabel(
-                            dom.text(field.label),
-                          ),
-                          cssDestinationFieldSettings(
-                            icon('Dots'),
-                            menu(() => this._makeImportOptionsMenu(field.origCol.peek(), info),
-                              { placement: 'right-start' },
-                            ),
-                            testId('importer-column-match-destination-settings')
-                          ),
-                          testId('importer-column-match-destination')
-                        ),
-                        dom.create(owner => this._buildColMappingFormula(owner, field, info)),
-                        testId('importer-column-match-source-destination'),
-                      )
-                    )),
-                    testId('importer-column-match-options'),
-                  )
-                ];
-              }),
+        return cssTabItem(
+          dom.autoDispose(owner),
+          cssBorderBottom(),
+          cssTabItem.cls('-not-selected', not(isSelected)),
+          testId('source'),
+          testId('source-selected', isSelected),
+          testId('source-not-selected', not(isSelected)),
+          cssTabItemContent(
+            cssFileTypeIcon(getSourceFileExtension(info, upload),
+              cssFileTypeIcon.cls('-active', isSelected),
+            ),
+            cssTabItemContent.cls('-selected', isSelected),
+            cssTableLine(cssTableSource(
+              getSourceDescription(info, upload),
+              testId('from'),
+              overflowTooltip(),
             )),
-            cssPreviewColumn(
-              cssSectionHeader('Preview'),
-              dom.domComputed(use => {
-                const previewSection = use(this._previewViewSection);
-                if (use(this._isLoadingDiff) || !previewSection) {
-                  return cssPreviewSpinner(loadingSpinner(), testId('importer-preview-spinner'));
-                }
-
-                const gridView = this._createPreview(previewSection);
-                return cssPreviewGrid(
-                  dom.maybe(use1 => SKIP_TABLE === use1(info.destTableId),
-                    () => cssOverlay(testId("importer-preview-overlay"))),
-                  dom.autoDispose(gridView),
-                  gridView.viewPane,
-                  testId('importer-preview'),
-                );
-              })
-            )
-          );
-        }),
-      ),
-      cssModalButtons(
-        bigPrimaryButton('Import',
-          dom.on('click', () => this._maybeFinishImport(upload)),
-          dom.boolAttr('disabled', use => {
-            return use(this._previewViewSection) === null ||
-                   use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
-          }),
-          testId('modal-confirm'),
-        ),
-        bigBasicButton('Cancel',
-          dom.on('click', () => this._cancelImport()),
-          testId('modal-cancel'),
-        ),
-      ),
+            dom.on('click', () => selectTab(info)),
+          ),
+          dom.maybe(unmatchedCount, (count) => cssError(
+            'Exclamation',
+            testId('error'),
+            hoverTooltip(t('{{count}} unmatched field', {count}))
+          )),
+        );
+      }),
     );
-    this._addFocusLayer(content);
-    this._screen.render(content, {fullscreen: true});
+    const previewAndConfig = dom.maybeOwned(this._sourceInfoSelected, (owner, info) => {
+      const {mergeCols, updateExistingRecords, hasInvalidMergeCols} = this._mergeOptions[info.hiddenTableId]!;
+
+      // Computed for transform section if we have destination table selected.
+      const configSection = Computed.create(owner,
+        use => use(info.destTableId) && use(info.transformSection) ? use(info.transformSection) : null);
+
+      // Computed to show the loader while we are waiting for the preview.
+      const showLoader = Computed.create(owner, use => {
+        return use(this._isLoadingDiff) || !use(this._previewViewSection);
+      });
+
+      // The same computed as configSection, but will evaluate to null while we are waiting for the preview
+      const previewSection = Computed.create(owner, use => {
+        return use(showLoader) ? null : use(this._previewViewSection);
+      });
+
+      // Use helper for checking if destination is selected.
+      const isSelected = (destId: DestId) => (use: UseCBOwner) => use(info.destTableId) === destId;
+
+      // True if user selected `Skip import`
+      const isSkipTable = Computed.create(owner, isSelected(SKIP_TABLE));
+
+      // True if user selected a valid destination table.
+      const isMergeTable = Computed.create(owner, use => ![NEW_TABLE, SKIP_TABLE].includes(use(info.destTableId)));
+
+      // Changes the class if the item is selected. Creates a dom method that can be attached to element.
+      const selectIfDestIs = (destId: DestId) => cssDestination.cls('-selected', isSelected(destId));
+
+      // Helper to toggle visibility if target is selected.
+      const visibleIfDestIs = (destId: DestId) => dom.show(isSelected(destId));
+
+      // Creates a click handler that changes the destination table to the given value.
+      const onClickChangeDestTo = (destId: DestId) => dom.on('click', async () => {
+        if (info !== this._sourceInfoSelected.get() && !this._validateImportConfiguration()) {
+          return;
+        }
+        info.selectedView.set(TABLE_MAPPING);
+        info.destTableId.set(destId);
+        this._resetTableMergeOptions(info.hiddenTableId);
+        if (destId !== SKIP_TABLE) {
+          await this._updateTransformSection(info);
+        }
+      });
+
+      // Should we show the right panel with the column mapping.
+      const showRightPanel = Computed.create(owner, use => {
+        return use(isMergeTable) && use(info.selectedView) === COLUMN_MAPPING;
+      });
+
+      // Handler to switch the view, between destination and column mapping panes.
+      const onClickShowView = (view: ViewType) => dom.on('click', () => {
+        info.selectedView.set(view);
+      });
+
+      // Pattern to create a computed value that can create and dispose objects in its callback.
+      Computed.create(owner, use => {
+        // This value must be returned for this pattern to work.
+        const holder = MultiHolder.create(use.owner);
+        // Now we can safely take ownership of things we create here - the subscriber.
+        if (use(configSection)) {
+          holder.autoDispose(updateExistingRecords.addListener(async () => {
+            if (holder.isDisposed()) { return; }
+            await this._updateImportDiff(info);
+          }));
+        }
+        return holder;
+      });
+
+      return cssConfigAndPreview(
+        cssConfigPanel(
+          cssConfigPanel.cls('-right', showRightPanel),
+          cssConfigLeft(
+            cssTitle('Destination table', testId('target-top')),
+            cssDestinationWrapper(cssDestination(
+              cssPageIcon('Plus'),
+              dom('span', 'New Table'),
+              selectIfDestIs(NEW_TABLE),
+              onClickChangeDestTo(NEW_TABLE),
+              testId('target'),
+              testId('target-new-table'),
+              testId('target-selected', isSelected(NEW_TABLE)),
+            )),
+            dom.maybe(use => use(this._sourceInfoArray).length > 1, () => [
+              cssDestinationWrapper(cssDestination(
+                cssPageIcon('CrossBig'),
+                dom('span', t('Skip Import')),
+                selectIfDestIs(SKIP_TABLE),
+                onClickChangeDestTo(SKIP_TABLE),
+                testId('target'),
+                testId('target-skip'),
+                testId('target-selected', isSelected(SKIP_TABLE)),
+              )),
+            ]),
+            dom.forEach(this._destTables, (destTable) => {
+              return cssDestinationWrapper(
+                testId('target'),
+                testId('target-existing-table'),
+                testId('target-selected', isSelected(destTable.value)),
+                cssDestination(
+                  cssPageIcon('TypeTable'),
+                  dom('span', destTable.label),
+                  selectIfDestIs(destTable.value),
+                  onClickChangeDestTo(destTable.value),
+                  onClickShowView(COLUMN_MAPPING),
+                ),
+                cssDetailsIcon('ArrowRight',
+                  onClickShowView(COLUMN_MAPPING),
+                  visibleIfDestIs(destTable.value),
+                  hoverTooltip(t('Column mapping')),
+                  testId('target-column-mapping'),
+                )
+              );
+            }),
+          ),
+          cssConfigRight(
+            cssNavigation(
+              cssFlexBaseline(
+                cssDestinationTableSecondary(
+                  cssNavigationIcon('ArrowLeft'),
+                  t('Destination table'),
+                  onClickShowView(TABLE_MAPPING),
+                  testId('table-mapping')
+                ),
+                cssSlash(' / '),
+                cssColumnMappingNav(t('Column Mapping')),
+              )
+            ),
+            cssMergeOptions(
+              dom.maybe(isMergeTable, () => cssMergeOptionsToggle(labeledSquareCheckbox(
+                updateExistingRecords,
+                t("Update existing records"),
+                testId('update-existing-records')
+              ))),
+              dom.maybe(configSection, (section) => {
+                return dom.maybeOwned(updateExistingRecords, (owner2) => {
+                  owner2.autoDispose(mergeCols.addListener(async val => {
+                    // Reset the error state of the multiSelect on change.
+                    if (val.length !== 0 && hasInvalidMergeCols.get()) {
+                      hasInvalidMergeCols.set(false);
+                    }
+                    await this._updateImportDiff(info);
+                  }));
+                  return [
+                    cssMergeOptionsMessage(
+                      t("Merge rows that match these fields:"),
+                      testId('merge-fields-message')
+                    ),
+                    multiSelect(
+                      mergeCols,
+                      section.viewFields().peek().map(f => ({label: f.label(), value: f.colId()})) ?? [],
+                      {
+                        placeholder: t("Select fields to match on"),
+                        error: hasInvalidMergeCols
+                      },
+                      testId('merge-fields-select')
+                    )
+                  ];
+                });
+              }),
+            ),
+            dom.maybeOwned(configSection, (owner1, section) => {
+              owner1.autoDispose(updateExistingRecords.addListener(async () => {
+                await this._updateImportDiff(info);
+              }));
+              return dom('div',
+                cssColumnMatchHeader(
+                  dom('span', t('Grist column')),
+                  dom('div', null),
+                  dom('span', t('Source column')),
+                ),
+                dom.forEach(fromKo(section.viewFields().getObservable()), field => {
+                  const owner2 = MultiHolder.create(null);
+                  const isCustomFormula = Computed.create(owner2, use => {
+                    return use(info.customizedColumns).has(field.colId());
+                  });
+                  return cssColumnMatchRow(
+                    testId('column-match-source-destination'),
+                    dom.autoDispose(owner2),
+                    dom.domComputed(field.label, () => cssDestinationFieldLabel(
+                      dom.text(field.label),
+                      overflowTooltip(),
+                      testId('column-match-destination'),
+                    )),
+                    cssIcon180('ArrowRightOutlined'),
+                    dom.domComputedOwned(isCustomFormula, (owner3, isCustom) => {
+                      if (isCustom) {
+                        return this._buildCustomFormula(owner3, field, info);
+                      } else {
+                        return this._buildSourceSelector(owner3, field, info);
+                      }
+                    }),
+                    dom('div',
+                      dom.maybe(isCustomFormula, () => icon('Revert',
+                        dom.style('cursor', 'pointer'),
+                        hoverTooltip(t('Revert')),
+                        dom.on('click', async () => {
+                          toggleCustomized(info, field.colId(), false);
+                          // Try to set the default label.
+                          const transformCol = field.column.peek();
+                          const possibilities = this._transformColImportOptions.get().get(transformCol.getRowId())
+                                                ?? new Map<string, string>();
+                          const matched = [...possibilities.entries()].find(([, v]) => v === transformCol.label.peek());
+                          if (matched) {
+                            await this._setColumnFormula(transformCol, matched[0], info);
+                          } else {
+                            await this._gristDoc.clearColumns([field.colRef()]);
+                          }
+                        }),
+                      )),
+                    ),
+                  );
+                }),
+                testId('column-match-options'),
+              );
+            }),
+          )
+        ),
+        cssPreviewColumn(
+          dom.maybe(showLoader, () => cssPreviewSpinner(loadingSpinner(), testId('preview-spinner'))),
+          dom.maybe(previewSection, () => [
+            cssOptions(
+              dom.domComputed(info.destTableId, destId => cssTableName(
+                destId === NEW_TABLE ? t("New Table") :
+                destId === SKIP_TABLE ? t("Skip Import") :
+                dom.domComputed(this._destTables, list =>
+                  list.find(dt => dt.value === destId)?.label ?? t("New Table")
+                )
+              )),
+              options,
+            )
+          ]),
+          dom.domComputed(use => {
+            if (use(isSkipTable)) {
+              return cssOverlay(t('Skip Table on Import'), testId('preview-overlay'));
+            }
+            const section = use(previewSection);
+            if (!section || section.isDisposed()) { return null; }
+            const gridView = this._createPreview(section);
+            return cssPreviewGrid(
+              dom.autoDispose(gridView),
+              gridView.viewPane,
+              testId('preview'),
+            );
+          })
+        )
+      );
+    });
+    const buttons = cssImportButtons(cssImportButtonsLine(
+      bigPrimaryButton('Import',
+        dom.on('click', () => this._maybeFinishImport(upload)),
+        dom.boolAttr('disabled', use => {
+          return use(this._previewViewSection) === null ||
+                 use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
+        }),
+        baseTestId('modal-confirm'),
+      ),
+      bigBasicButton('Cancel',
+        dom.on('click', () => this._cancelImport()),
+        baseTestId('modal-cancel'),
+      ),
+      dom.domComputed(this._unmatchedFieldsMap, fields => {
+        const piles: HTMLElement[] = [];
+        let count = 0;
+        for(const [info, list] of fields) {
+          if (!list?.length) { continue; }
+          count += list.length;
+          piles.push(cssUnmatchedFieldsList(
+            list.join(', '),
+            dom.on('click', () => selectTab(info)),
+            hoverTooltip(getSourceDescription(info, upload)),
+          ));
+        }
+        if (!count) { return null; }
+        return cssUnmatchedFields(
+          cssUnmatchedFieldsIntro(
+            cssUnmatchedIcon('Exclamation'),
+            t('{{count}} unmatched field in import', {count}), ': ',
+          ),
+          ...piles,
+          testId('unmatched-fields'),
+        );
+      }),
+    ));
+    const body = cssContainer(
+      {tabIndex: '-1'},
+      header,
+      cssPreviewWrapper(
+        cssTabsWrapper(
+          tabs,
+        ),
+        previewAndConfig,
+      ),
+      buttons,
+    );
+    this._addFocusLayer(body);
+    this._screen.render(body, {
+      fullscreen: true,
+      fullbody: true
+    });
   }
 
-  private _makeImportOptionsForCol(transformCol: ColumnRec, info: SourceInfo) {
+  private _makeImportOptionsForCol(gristCol: ColumnRec, info: SourceInfo) {
     const options = new Map<string, string>();  // Maps formula to label.
-    const importedFields = info.sourceSection.viewFields.peek().peek();
+    const sourceFields = info.sourceSection.viewFields.peek().peek();
 
     // Reference columns are populated using lookup formulas, so figure out now if this is a
     // reference column, and if so, its destination table and the lookup column ID.
-    const refTable = transformCol.refTable.peek();
+    const refTable = gristCol.refTable.peek();
     const refTableId = refTable ? refTable.tableId.peek() : undefined;
-    const visibleColId = transformCol.visibleColModel.peek().colId.peek();
-    const isRefDest = Boolean(info.destTableId.get() && transformCol.pureType.peek() === 'Ref');
 
-    for (const f of importedFields) {
-      const importedCol = f.column.peek();
-      const colId = importedCol.colId.peek();
-      const colLabel = importedCol.label.peek();
+    const visibleColId = gristCol.visibleColModel.peek().colId.peek();
+    const isRefDest = Boolean(info.destTableId.get() && gristCol.pureType.peek() === 'Ref');
+
+    for (const sourceField of sourceFields) {
+      const sourceCol = sourceField.column.peek();
+      const sourceId = sourceCol.colId.peek();
+      const sourceLabel = sourceCol.label.peek();
       if (isRefDest && visibleColId) {
-        const formula = `${refTableId}.lookupOne(${visibleColId}=$${colId}) or ($${colId} and str($${colId}))`;
-        options.set(formula, colLabel);
+        const formula = `${refTableId}.lookupOne(${visibleColId}=$${sourceId}) or ($${sourceId} and str($${sourceId}))`;
+        options.set(formula, sourceLabel);
       } else {
-        options.set(`$${colId}`, colLabel);
+        options.set(`$${sourceId}`, sourceLabel);
       }
-      if (isRefDest && ['Numeric', 'Int'].includes(importedCol.type.peek())) {
-        options.set(`${refTableId}.lookupOne(id=NUM($${colId})) or ($${colId} and str(NUM($${colId})))`,
-          `${colLabel} (as row ID)`);
+      if (isRefDest && ['Numeric', 'Int'].includes(sourceCol.type.peek())) {
+        options.set(`${refTableId}.lookupOne(id=NUM($${sourceId})) or ($${sourceId} and str(NUM($${sourceId})))`,
+          `${sourceLabel} (as row ID)`);
       }
     }
     return options;
   }
 
-  private _makeImportOptionsMenu(transformCol: ColumnRec, info: SourceInfo) {
-    const transformColRef = transformCol.id();
-    const options = this._transformColImportOptions.get().get(transformCol.getRowId());
+  private _makeImportOptionsMenu(transformCol: ColumnRec, others: [string, string][], info: SourceInfo) {
     return [
-      menuItem(() => this._setColumnFormula(transformColRef, null, info),
+      menuItem(() => this._setColumnFormula(transformCol, null, info),
         'Skip',
-        testId('importer-column-match-menu-item')),
-      menuDivider(),
-      ...Array.from(options || [], ([formula, label]) =>
-        menuItem(() => this._setColumnFormula(transformColRef, formula, info),
+        testId('column-match-menu-item')),
+      others.length ? menuDivider() : null,
+      ...others.map(([formula, label]) =>
+        menuItem(() => this._setColumnFormula(transformCol, formula, info),
           label,
-          testId('importer-column-match-menu-item'))
-      ),
-      testId('importer-column-match-menu'),
+          testId('column-match-menu-item'))
+      )
     ];
   }
 
@@ -800,9 +1205,13 @@ export class Importer extends DisposableWithEvents {
   }
 
   /**
-   * Updates the formula on column `colRef` to `formula`.
+   * Updates the formula on column `colRef` to `formula`, when user wants to match it to a source column.
    */
-  private async _setColumnFormula(transformColRef: number, formula: string|null, info: SourceInfo) {
+  private async _setColumnFormula(transformCol: ColumnRec, formula: string|null, info: SourceInfo) {
+    const transformColRef = transformCol.id();
+    const customized = info.customizedColumns.get();
+    customized.delete(transformCol.colId());
+    info.customizedColumns.set(customized);
     if (formula === null) {
       await this._gristDoc.clearColumns([transformColRef], {keepType: true});
     } else {
@@ -815,7 +1224,7 @@ export class Importer extends DisposableWithEvents {
   /**
    * Opens a formula editor for `field` over `refElem`.
    */
-  private _activateFormulaEditor(refElem: Element, field: ViewFieldRec, onSave: () => Promise<void>) {
+  private _activateFormulaEditor(refElem: Element, field: ViewFieldRec, onSave: (formula: string) => Promise<void>) {
     const vsi = this._gristDoc.viewModel.activeSection().viewInstance();
     const editRow = vsi?.moveEditRowToCursor();
     const editorHolder = openFormulaEditor({
@@ -828,9 +1237,11 @@ export class Importer extends DisposableWithEvents {
       setupCleanup: this._setupFormulaEditorCleanup.bind(this),
       onSave: async (column, formula) => {
         if (formula === column.formula.peek()) { return; }
-
+        // Sorry for this hack. We need to store somewhere an info that the formula was edited
+        // unfortunately, we don't have a better place to store it. So we will save this by setting
+        // display column to the same column. This won't break anything as this is a default value.
         await column.updateColValues({formula});
-        await onSave();
+        await onSave(formula);
       }
     });
     this._formulaEditorHolder.autoDispose(editorHolder);
@@ -861,34 +1272,109 @@ export class Importer extends DisposableWithEvents {
    * in the column mapping section of Importer. On click, opens
    * an editor for the formula for `column`.
    */
-  private _buildColMappingFormula(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
-    const displayFormula = Computed.create(owner, use => {
-      const column = use(field.column);
-      const formula = use(column.formula);
-      const importOptions = use(this._transformColImportOptions).get(column.getRowId());
-      return importOptions?.get(formula) ?? formula;
+  private _buildSourceSelector(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
+    const anyOtherColumns = Computed.create(owner, use => {
+      const transformCol = field.column.peek();
+      const options = use(this._transformColImportOptions)!.get(transformCol.getRowId()) ?? new Map<string, string>();
+      const otherFilter = ([formula]: [string, string] ) => {
+        // Notice how this is only reactive to the formula value, every other observable is
+        // just picked without being tracked. This is because we only want to recompute this
+        // when the formula is changed (so the target column is changed). If anything other is
+        // changed, we don't care here as this whole computed will be recreated by the caller.
+        const myFormula = use(transformCol.formula);
+        const anyOther = info.transformSection.get()?.viewFields.peek().all()
+            .filter(f => f.column.peek() !== transformCol)
+            .map(f => use(f.column.peek().formula));
+        // If we picked this formula thats ok.
+        if (formula === myFormula) { return true; }
+        // If any other column picked this formula, then we should not show it.
+        if (anyOther?.includes(formula)) { return false; }
+        // Otherwise, show it.
+        return true;
+      };
+      const possibleSources = Array.from(options).filter(otherFilter);
+
+      return this._makeImportOptionsMenu(transformCol, possibleSources, info);
     });
 
-    return cssFieldFormula(displayFormula,
-      {gristTheme: this._gristDoc.currentTheme, placeholder: 'Skip', maxLines: 1},
+    const selectedSource = Computed.create(owner, use => {
+      const column = use(field.column);
+      const importOptions = use(this._transformColImportOptions).get(column.getRowId());
+      // Now translate the formula generated (which is unique) to the source label.
+      const label = importOptions?.get(use(column.formula)) || null;
+      return label;
+    });
+    const selectedSourceText = Computed.create(owner, use => use(selectedSource) || t('Skip'));
+
+    const selectedOption = cssSelected(
+      dom.text(selectedSourceText),
+      testId('column-match-formula'),
+      cssSelected.cls('-skip', not(selectedSource)),
+      overflowTooltip(),
+    );
+    const otherColsOptions = dom.domComputed(anyOtherColumns, x => x);
+    const formulaOption = selectOption(
+      () => {
+        this._activateFormulaEditor(selectMenuElement, field, async (newFormula) => {
+          toggleCustomized(info, field.colId.peek(), !!newFormula);
+          await this._updateImportDiff(info);
+        });
+      },
+      "Apply Formula",
+      "Lighting",
+      testId('apply-formula'),
+      cssGreenIcon.cls(''),
+    );
+    const selectMenuElement = selectMenu(selectedOption, () => [
+      otherColsOptions,
+      menuDivider(),
+      formulaOption,
+    ], testId('column-match-source'));
+    return selectMenuElement;
+  }
+
+  /**
+   * Builds an editable formula component that is displayed
+   * in the column mapping section of Importer. On click, opens
+   * an editor for the formula for `column`.
+   */
+  private _buildCustomFormula(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
+    const formula = Computed.create(owner, use => {
+      const column = use(field.column);
+      return use(column.formula);
+    });
+    const codeOptions = {gristTheme: this._gristDoc.currentTheme, placeholder: 'Skip', maxLines: 1};
+    return cssFieldFormula(formula, codeOptions,
       dom.cls('disabled'),
+      dom.cls('formula_field_sidepane'),
       {tabIndex: '-1'},
-      dom.on('focus', (_ev, elem) =>
-        this._activateFormulaEditor(elem, field, () => this._updateImportDiff(info))),
-      testId('importer-column-match-formula'),
+      dom.on('focus', (_ev, elem) => this._activateFormulaEditor(elem, field, async (newFormula) => {
+        toggleCustomized(info, field.colId.peek(), !!newFormula);
+        await this._updateImportDiff(info);
+      })),
+      testId('column-match-formula'),
     );
   }
 
   // The importer state showing parse options that may be changed.
   private _renderParseOptions(schema: ParseOptionSchema[], upload: UploadResult) {
-    this._screen.render([
-      this._buildModalTitle(),
+    const anotherScreen = PluginScreen.create(this._optionsScreenHolder, 'Import from file');
+    anotherScreen.showImportDialog({
+      noClickAway: false,
+      noEscapeKey: false,
+    });
+    anotherScreen.render([
+      this._buildStaticTitle(),
       dom.create(buildParseOptionsForm, schema, this._parseOptions.get() as ParseOptionValues,
         (p: ParseOptions) => {
+          anotherScreen.dispose();
           this._parseOptions.set(p);
           this._reImport(upload).catch((err) => reportError(err));
         },
-        () => { this._renderMain(upload); },
+        () => {
+          anotherScreen.dispose();
+          this._renderMain(upload);
+        },
       )
     ]);
   }
@@ -946,6 +1432,11 @@ function getSourceDescription(sourceInfo: SourceInfo, upload: UploadResult) {
   return sourceInfo.origTableName ? `${sourceInfo.origTableName} - ${origName}` : origName;
 }
 
+function getSourceFileExtension(sourceInfo: SourceInfo, upload: UploadResult) {
+  const origName = upload.files[sourceInfo.uploadFileIndex].origName;
+  return origName.includes(".") ? origName.split('.').pop() : "file";
+}
+
 const cssContainer = styled('div', `
   height: 100%;
   display: flex;
@@ -970,7 +1461,7 @@ const cssLinkIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssModalHeader = styled('div', `
+const cssStaticHeader = styled('div', `
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -980,82 +1471,160 @@ const cssModalHeader = styled('div', `
   }
 `);
 
+const cssModalHeader = styled(cssStaticHeader, `
+  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-top: var(--css-modal-dialog-padding-vertical, 0px);
+`);
+
 const cssPreviewWrapper = styled('div', `
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  overflow-y: auto;
 `);
 
-// This partly duplicates cssSectionHeader from HomeLeftPane.ts
-const cssSectionHeader = styled('div', `
-  margin-bottom: 8px;
-  color: ${theme.lightText};
+const cssBorderBottom = styled('div', `
+  border-bottom: 1px solid ${theme.importerTableInfoBorder};
+  display: none;
+  height: 0px;
+  bottom: 0px;
+  position: absolute;
+  width: 100%;
+`);
+
+
+const cssFileTypeIcon = styled('div', `
+  background: ${theme.importerInactiveFileBg};
+  color: ${theme.importerInactiveFileFg};
+  border-radius: 4px;
+  height: 2em;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  padding: 1em;
+  font-size: 15px;
+  font-weight: 600;
   text-transform: uppercase;
-  font-weight: 500;
-  font-size: ${vars.xsmallFontSize};
-  letter-spacing: 1px;
+  &-active{
+    background: ${theme.importerActiveFileBg};
+    color: ${theme.importerActiveFileFg};
+  }
+`);
+
+const cssTabsWrapper = styled('div', `
+  border-bottom: 1px solid ${theme.importerTableInfoBorder};
+  display: flex;
+  flex-direction: column;
 `);
 
 const cssTableList = styled('div', `
-  max-height: 50%;
-  column-gap: 32px;
+  align-self: flex-start;
+  max-width: 100%;
   display: flex;
-  flex-flow: row wrap;
-  margin-bottom: 16px;
-  align-items: flex-start;
-  overflow-y: auto;
+  padding: 0px var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
-const cssTableInfo = styled('div', `
-  padding: 4px 8px;
-  margin: 4px 0px;
-  width: 300px;
-  border-radius: 3px;
-  border: 1px solid ${theme.importerTableInfoBorder};
-  &:hover, &-selected {
-    background-color: ${theme.hover};
+const cssTabItemContent = styled('div', `
+  border: 1px solid transparent;
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex;
+  align-items: center;
+  align-content: flex-end;
+  overflow: hidden;
+  border-radius: 4px 4px 0px 0px;
+  height: 56px;
+  column-gap: 8px;
+  &-selected {
+    border: 1px solid ${theme.importerTableInfoBorder};
+    border-bottom-color: ${theme.importerMainContentBg};
+    background-color: ${theme.importerMainContentBg};
+  }
+`);
+
+const cssTabItem = styled('div', `
+  background: ${theme.importerOutsideBg};
+  position: relative;
+  cursor: pointer;
+  margin-bottom: -2px;
+  border-bottom: 1px solid ${theme.importerMainContentBg};
+  flex: 1;
+  &-not-selected + &-not-selected::after{
+    content: '';
+    position: absolute;
+    left: 0px;
+    top: 20%;
+    height: 60%;
+    border-left: 1px solid ${theme.importerTableInfoBorder};
+  }
+  &-not-selected .${cssBorderBottom.className} {
+    display: block;
+  }
+  &-not-selected .${cssFileTypeIcon.className} {
+    display: none;
+  }
+  &-not-selected {
+    min-width: 0px;
+  }
+  &-not-selected:first-child .${cssTabItemContent.className} {
+    padding-left: 0px;
   }
 `);
 
 const cssTableLine = styled('div', `
   display: flex;
   align-items: center;
-  margin: 4px 0;
-`);
-
-const cssToFrom = styled('span', `
-  flex: none;
-  margin-right: 8px;
-  color: ${theme.lightText};
-  text-transform: uppercase;
-  font-weight: 500;
-  font-size: ${vars.xsmallFontSize};
-  letter-spacing: 1px;
-  width: 40px;
-  text-align: right;
+  overflow: hidden;
+  flex-shrink: 1;
+  height: 100%;
 `);
 
 const cssTableSource = styled('div', `
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  flex-shrink: 1;
 `);
 
 const cssConfigAndPreview = styled('div', `
   display: flex;
-  gap: 32px;
+  gap: 8px;
   flex-grow: 1;
   height: 0px;
+  background-color: ${theme.importerMainContentBg};
+  padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
-const cssConfigColumn = styled('div', `
-  width: 300px;
+const cssConfigLeft = styled('div', `
   padding-right: 8px;
+  padding-top: 16px;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  width: 100%;
+  transition: transform 0.2s ease-in-out;
 `);
+
+const cssConfigRight = styled(cssConfigLeft, `
+  left: 100%;
+  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
+`);
+
+const cssConfigPanel = styled('div', `
+  width: 360px;
+  height: 100%;
+  position: relative;
+  overflow-x: hidden;
+  &-right .${cssConfigLeft.className} {
+    transform: translateX(-100%);
+  }
+  &-right .${cssConfigRight.className} {
+    transform: translateX(-100%);
+  }
+`);
+
 
 const cssPreviewColumn = styled('div', `
   display: flex;
@@ -1074,13 +1643,10 @@ const cssPreviewSpinner = styled(cssPreview, `
 `);
 
 const cssOverlay = styled('div', `
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  height: 100%;
-  width: 100%;
-  z-index: 10;
   background: ${theme.importerSkippedTableOverlay};
+  flex: 1;
+  display: grid;
+  place-items: center;
 `);
 
 const cssPreviewGrid = styled(cssPreview, `
@@ -1094,6 +1660,7 @@ const cssMergeOptions = styled('div', `
 
 const cssMergeOptionsToggle = styled('div', `
   margin-bottom: 8px;
+  margin-top: 8px;
 `);
 
 const cssMergeOptionsMessage = styled('div', `
@@ -1101,43 +1668,33 @@ const cssMergeOptionsMessage = styled('div', `
   margin-bottom: 8px;
 `);
 
-const cssColumnMatchOptions = styled('div', `
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+const cssColumnMatchHeader = styled('div', `
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr;
+  text-transform: uppercase;
+  color: ${theme.lightText};
+  letter-spacing: 1px;
+  font-size: ${vars.xsmallFontSize};
+  margin-bottom: 12px;
 `);
 
 const cssColumnMatchRow = styled('div', `
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr 20px;
+  gap: 4px;
   align-items: center;
+  --icon-color: ${theme.iconDisabled};
+  & + & {
+    margin-top: 16px;
+  }
 `);
 
 const cssFieldFormula = styled(buildHighlightedCode, `
   flex: auto;
   cursor: pointer;
   margin-top: 1px;
-  padding-left: 4px;
+  padding-left: 24px;
   --icon-color: ${theme.accentIcon};
-`);
-
-const cssColumnMatchIcon = styled(icon, `
-  flex-shrink: 0;
-  width: 20px;
-  height: 32px;
-  background-color: ${theme.importerMatchIcon};
-  margin-right: 4px;
-`);
-
-const cssDestinationFieldRow = styled('div', `
-  align-items: center;
-  display: flex;
-`);
-
-const cssSourceAndDestination = styled('div', `
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
 `);
 
 const cssDestinationFieldLabel = styled('div', `
@@ -1145,26 +1702,37 @@ const cssDestinationFieldLabel = styled('div', `
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-left: 4px;
+  cursor: unset;
+  background-color: ${theme.pageBg};
+  color: ${theme.text};
+  width: 100%;
+  height: 30px;
+  line-height: 16px;
+  font-size: ${vars.mediumFontSize};
+  padding: 5px;
+  border: 1px solid ${theme.selectButtonBorder};
+  border-radius: 3px;
+  user-select: none;
+  outline: none;
 `);
 
-const cssDestinationFieldSettings = styled('div', `
-  flex: none;
-  margin: 0 4px 0 auto;
-  height: 24px;
-  width: 24px;
-  padding: 4px;
-  line-height: 0px;
-  border-radius: 3px;
-  cursor: pointer;
+const cssUnmatchedIcon = styled(icon, `
+  height: 12px;
   --icon-color: ${theme.lightText};
-
-  &:hover, &.weasel-popup-open {
-    background-color: ${theme.hover};
-  }
+  vertical-align: bottom;
+  margin-bottom: 2px;
 `);
 
 const cssUnmatchedFields = styled('div', `
-  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  column-gap: 4px;
+  align-items: flex-start;
+`);
+
+const cssUnmatchedFieldsIntro = styled('div', `
+  padding: 4px 8px;
 `);
 
 const cssUnmatchedFieldsList = styled('div', `
@@ -1172,9 +1740,158 @@ const cssUnmatchedFieldsList = styled('div', `
   text-overflow: ellipsis;
   overflow: hidden;
   padding-right: 16px;
+  color: ${theme.text};
+  border-radius: 8px;
+  padding: 4px 8px;
+  background-color: ${theme.pagePanelsBorder};
+  max-width: 160px;
+  cursor: pointer;
+`);
+
+const cssImportButtons = styled('div', `
+  padding-top: 40px;
+  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-bottom: calc(var(--css-modal-dialog-padding-vertical, 0px) - 12px);
+  background-color: ${theme.importerMainContentBg};
+`);
+
+const cssImportButtonsLine = styled('div', `
+  height: 52px;
+  overflow: hidden;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+`);
+
+
+const cssTitle = styled('span._cssToFrom', `
+  color: ${theme.darkText};
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: ${vars.smallFontSize};
+  letter-spacing: 0.5px;
+  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
+  text-align: left;
+  margin-bottom: 16px;
+`);
+
+const cssDestinationWrapper = styled('div', `
+  margin-bottom: 1px;
+  /* Reuse the modal padding but move 16px to left if possible */
+  margin-left: max(0px, calc(var(--css-modal-dialog-padding-horizontal, 0px) - 16px));
+  display: flex;
+  align-items: center;
+`);
+
+const cssDestination = styled('div', `
+  --icon-color: ${theme.lightText};
+  align-items: center;
+  border-radius: 0 3px 3px 0;
+  padding-left: 16px;
+  color: ${theme.text};
+  cursor: pointer;
+  display: flex;
+  height: 32px;
+  line-height: 32px;
+  flex: 1;
+  &:hover {
+    background-color: ${theme.pageHoverBg};
+  }
+  &-selected, &-selected:hover {
+    background-color: ${theme.activePageBg};
+    color: ${theme.activePageFg};
+    --icon-color: ${theme.activePageFg};
+  }
+`);
+
+const cssOptions = styled('div', `
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 8px;
+  justify-content: space-between;
+  height: 36px;
+`);
+
+const cssTableName = styled('span', `
+  font-weight: 600;
+`);
+
+const cssNavigation = styled('div', `
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+`);
+
+const cssDetailsIcon = styled(icon, `
+  flex: none;
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
+  margin-left: 4px;
+  margin-top: -4px;
+  cursor: pointer;
+  &:hover {
+    --icon-color: ${theme.controlHoverFg};
+  }
+`);
+
+const cssError = styled(icon, `
+  --icon-color: ${theme.iconError};
+  right: 2px;
+  position: absolute;
+  z-index: 1;
+  top: calc(50% - 8px);
+`);
+
+const cssNavigationIcon = styled(icon, `
+  flex: none;
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
+  margin-right: 4px;
+  margin-top: -3px;
+  width: 12px;
+`);
+
+const cssFlexBaseline = styled('div', `
+  display: flex;
+  align-items: baseline;
+`);
+
+const cssSelected = styled(cssTableSource, `
+  &-skip {
+    color: ${theme.lightText};
+  }
+`);
+
+const cssIcon180 = styled(icon, `
+  transform: rotate(180deg);
+`);
+
+const cssGreenIcon = styled(`div`, `
+--icon-color: ${theme.accentIcon};
+`);
+
+
+const cssColumnMappingNav = styled('span', `
+  text-transform: uppercase;
+  color: ${theme.darkText};
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: ${vars.smallFontSize};
+  letter-spacing: 0.5px;
+`);
+
+const cssSlash = styled('div', `
+  padding: 0px 4px;
+  font-size: ${vars.xsmallFontSize};
   color: ${theme.lightText};
 `);
 
-const cssAccentText = styled('span', `
-  color: ${theme.accentText};
+const cssDestinationTableSecondary = styled(textButton, `
+  text-transform: uppercase;
+  font-size: ${vars.smallFontSize};
+  letter-spacing: 0.5px;
+  text-align: left;
+  margin-bottom: 16px;
+  color: ${theme.lightText};
 `);

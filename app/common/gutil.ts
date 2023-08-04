@@ -1,5 +1,6 @@
 import {delay} from 'app/common/delay';
-import {BindableValue, DomElementMethod, ISubscribable, Listener, Observable, subscribeElem, UseCB} from 'grainjs';
+import {BindableValue, DomElementMethod, IKnockoutReadObservable, ISubscribable, Listener, Observable,
+        subscribeElem, UseCB, UseCBOwner} from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
 import identity = require('lodash/identity');
 
@@ -76,7 +77,7 @@ export function clamp(value: number, min: number, max: number): number {
 /**
  * Checks if ele is contained within the given bounds.
  * @param {Number} value
- * @param {Number} bound1 - does not have to be less than/eqal to bound2
+ * @param {Number} bound1 - does not have to be less than/equal to bound2
  * @param {Number} bound2
  * @returns {Boolean} - True/False
  */
@@ -713,7 +714,7 @@ export function cloneFunc(fn: Function): Function {     // tslint:disable-line:b
 
 /**
  * Generates a random id using a sequence of uppercase alphanumeric characters
- * preceeded by an optional prefix.
+ * preceded by an optional prefix.
  */
 export function genRandomId(len: number, optPrefix?: string): string {
   const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -925,6 +926,11 @@ export const unwrap: UseCB = (obs: ISubscribable) => {
   }
   return (obs as ko.Observable).peek();
 };
+
+/**
+ * Use helper for simple boolean negation.
+ */
+export const not = (obs: Observable<any>|IKnockoutReadObservable<any>) => (use: UseCBOwner) => !use(obs);
 
 /**
  * Get a set of up to `count` distinct values of `values`.

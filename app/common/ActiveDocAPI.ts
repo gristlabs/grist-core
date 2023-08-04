@@ -45,21 +45,51 @@ export interface TransformRuleMap {
 
 // Special values for import destinations; null means "new table", "" means skip table.
 // Both special options exposed as consts.
-export type DestId = string | null;
 export const NEW_TABLE = null;
 export const SKIP_TABLE = "";
+export type DestId = string | typeof NEW_TABLE | typeof SKIP_TABLE;
 
+/**
+ * How to import data into an existing table or a new one.
+ */
 export interface TransformRule {
+  /**
+   * The destination table for the transformed data. If null, the data is imported into a new table.
+   */
   destTableId: DestId;
+  /**
+   * The list of columns to update (existing or new columns).
+   */
   destCols: TransformColumn[];
+  /**
+   * The list of columns to read from the source table (just the headers name).
+   */
   sourceCols: string[];
 }
 
+/**
+ * Existing or new column to update. It is created based on the temporary table that was imported.
+ */
 export interface TransformColumn {
+  /**
+   * Label of the column to update. For new table it is the same name as the source column.
+   */
   label: string;
+  /**
+   * Column id to update (null for a new table).
+   */
   colId: string|null;
+  /**
+   * Type of the column (important for new columns).
+   */
   type: string;
+  /**
+   * Formula to apply to the target column.
+   */
   formula: string;
+  /**
+   * Widget options when we need to create a column (copied from the source).
+   */
   widgetOptions: string;
 }
 
