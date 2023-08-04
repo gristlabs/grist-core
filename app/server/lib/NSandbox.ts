@@ -1021,9 +1021,13 @@ function findPython(command: string|undefined, preferredVersion?: string) {
     }
   }
   // Fall back on system python.
-  return which.sync(preferredVersion === '2' ? 'python2' : 'python3', {nothrow: true})
-    || which.sync(preferredVersion === '2' ? 'python2.7' : 'python3.9', {nothrow: true})
-    || which.sync('python');
+  const systemPrefs = preferredVersion === '2' ? ['2.7', '2', ''] : ['3.11', '3.10', '3.9', '3', ''];
+  for (const version of systemPrefs) {
+    const pythonPath = which.sync(`python${version}`, {nothrow: true});
+    if (pythonPath) {
+      return pythonPath;
+    }
+  }
 }
 
 /**

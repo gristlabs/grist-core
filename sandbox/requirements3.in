@@ -12,3 +12,4 @@ python-dateutil
 six
 sortedcontainers
 unittest-xml-reporting
+typing-extensions  # used by astroid before Python 3.11

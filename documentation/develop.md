@@ -10,8 +10,7 @@ To setup your environment, you would need to install the following dependencies:
  - git
  - [nvm](https://github.com/nvm-sh/nvm/blob/master/README.md) (recommended) or nodejs installed on your system
  - Chromium to run the end-to-end tests
- - Python (preferably Python 3.9) and virtualenv
-    - :warning: As of 2023-06-06, Python 3.11 is not supported due to the version of the [wrapt dependency](https://github.com/GrahamDumpleton/wrapt/issues/196)
+ - Python (preferably Python 3.11, minimum 3.9) and virtualenv
 
 ### Clone the repository
 
@@ -61,7 +60,7 @@ You can also use nodejs installed in your system. To prevent incompatibilities, 
 Be sure to have Python and virtualenv installed. On debian-based Linux distributions, you can simply run the following command as root:
 
 ```bash
-# apt install python3.9 python3.9-venv
+# apt install python3.11 python3.11-venv
 ```
 
 ### Install the project dependencies and build
