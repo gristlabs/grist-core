@@ -666,6 +666,10 @@ export interface GristLoadConfig {
   // TODO: remove once released.
   featureFormulaAssistant?: boolean;
 
+  // Used to determine which disclosure links should be provided to user of
+  // formula assistance.
+  assistantService?: 'OpenAI' | undefined;
+
   // Email address of the support user.
   supportEmail?: string;
 

@@ -6,7 +6,7 @@ import {movable} from 'app/client/lib/popupUtils';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {ChatMessage} from 'app/client/models/entities/ColumnRec';
-import {HAS_FORMULA_ASSISTANT} from 'app/client/models/features';
+import {HAS_FORMULA_ASSISTANT, WHICH_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {autoGrow} from 'app/client/ui/forms';
@@ -879,7 +879,7 @@ class ChatHistory extends Disposable {
               '"Please calculate the total invoice amount."'
             ),
           ),
-          cssAiMessageBullet(
+          (WHICH_FORMULA_ASSISTANT() === 'OpenAI') ? cssAiMessageBullet(
             cssTickIcon('Tick'),
             dom('div',
               t(
@@ -891,7 +891,7 @@ class ChatHistory extends Disposable {
                 }
               ),
             ),
-          ),
+          ) : null,
         ),
         cssAiMessageParagraph(
           t(
