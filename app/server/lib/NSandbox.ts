@@ -999,7 +999,7 @@ const FAKETIME = '2020-01-01 00:00:00';
  * Find a plausible version of python to run, if none provided.
  * The preferred version is only used if command is not specified.
  */
-function findPython(command: string|undefined, preferredVersion?: string) {
+function findPython(command: string|undefined, preferredVersion?: string): string {
   if (command) { return command; }
   // No command specified.  In this case, grist-core looks for a "venv"
   // virtualenv; a python3 virtualenv would be in "sandbox_venv3".
@@ -1028,6 +1028,7 @@ function findPython(command: string|undefined, preferredVersion?: string) {
       return pythonPath;
     }
   }
+  throw new Error('Cannot find Python');
 }
 
 /**
