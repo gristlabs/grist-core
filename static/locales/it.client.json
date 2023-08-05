@@ -289,7 +289,11 @@
         "Errors in {{numErrors}} of {{numCells}} cells": "Errori in {{numErrors}} su {{numCells}} celle",
         "Column or field is required": "Richiesta una colonna o un campo",
         "Errors in all {{numErrors}} cells": "Errori in {{numErrors}} celle",
-        "editingFormula is required": "editingFormula è necessario"
+        "editingFormula is required": "editingFormula è necessario",
+        "Enter formula or {{button}}.": "Inserisci una formula o {{button}}.",
+        "Enter formula.": "Inserisci una formula.",
+        "Expand Editor": "Espandi l'editor",
+        "use AI Assistant": "usa l'assistente IA"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Non dovrebbe essere possibile salvare un valore semplice in una colonna di formule",
@@ -445,7 +449,9 @@
         "Type a message...": "Inserisci un messaggio…",
         "User Attributes": "Attributi dell'utente",
         "Seed rules": "Regole pre-inserite",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER."
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER.",
+        "This default should be changed if editors' access is to be limited. ": "Questo valore di default può essere cambiato se si vuole limitare l'accesso agli editor. ",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permette agli editor di modificare la struttura (es., modificare ed eliminare tabelle, colonne, viste) e scrivere formule, cosa che permette l'accesso ai dati indipendentemente dalle restrizioni in lettura."
     },
     "ACUserManager": {
         "Enter email address": "Inserisci indirizzo e-mail",
@@ -785,7 +791,8 @@
         "Send to Google Drive": "Invia a Google Drive",
         "Show in folder": "Mostra nella cartella",
         "Unsaved": "Non salvato",
-        "Work on a Copy": "Lavora su una copia"
+        "Work on a Copy": "Lavora su una copia",
+        "Share": "Condividi"
     },
     "SiteSwitcher": {
         "Create new team site": "Crea un nuovo sito per il team",
@@ -908,7 +915,8 @@
         "Find Next ": "Trova successivo ",
         "Find Previous ": "Trova precedente ",
         "No results": "Nessun risultato",
-        "Search in document": "Cerca nel documento"
+        "Search in document": "Cerca nel documento",
+        "Search": "Cerca"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Invio i file a Google Drive"
@@ -979,7 +987,9 @@
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Le regole di accesso ti danno il potere di creare regole sofisticate per decidere chi può vedere o modificare il tuo documento, e quali parti.",
         "Reference columns are the key to {{relational}} data in Grist.": "Le colonne con riferimenti sono il motore {{relational}} dei dati in Grist.",
         "Anchor Links": "Link interno",
-        "Custom Widgets": "Widget personalizzati"
+        "Custom Widgets": "Widget personalizzati",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puoi scegliere uno dei nostri widget pronti all'uso, o inserirne uno fatto da te, immettendo la sua URL completa.",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Per creare un link che porta l'utente a una cella specifica, fai clic su una riga e premi {{shortcut}}."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -1031,7 +1041,20 @@
         "Save": "Salva",
         "Tips": "Suggerimenti",
         "Grist's AI Formula Assistance. ": "Assistenza dalla IA di Grist per le formule. ",
-        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Vedi {{helpFunction}} e {{formulaCheat}}, o visita la {{community}} per ulteriore aiuto."
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Vedi {{helpFunction}} e {{formulaCheat}}, o visita la {{community}} per ulteriore aiuto.",
+        "Cancel": "Annulla",
+        "Clear Conversation": "Cancella conversazione",
+        "AI Assistant": "Assistente IA",
+        "Apply": "Applica",
+        "Code View": "Vista codice",
+        "Hi, I'm the Grist Formula AI Assistant.": "Ciao, sono l'assistente IA per le formule di Grist.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Posso solo aiutare con le formule. Non posso costruire tabelle, colonne e viste, o scrivere regole di accesso.",
+        "Learn more": "Per saperne di più",
+        "Press Enter to apply suggested formula.": "Premi Invio per applicare la formula suggerita.",
+        "Sign Up for Free": "Iscriviti gratis",
+        "There are some things you should know when working with me:": "Ecco alcune cose da sapere quando lavori con me:",
+        "What do you need help with?": "In che cosa posso aiutarti?",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Iscriviti a un account gratuito di Grist per usare l'Assistente IA per le formule."
     },
     "GridView": {
         "Click to insert": "Clicca per inserire"
@@ -1072,5 +1095,67 @@
         "No row selected in {{title}}": "Nessuna riga selezionata in {{title}}",
         "Not all data is shown": "Non tutti i dati sono mostrati",
         "No data": "Nessun dato"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "DESCRIZIONE"
+    },
+    "UserManager": {
+        "Add {{member}} to your team": "Aggiungi {{member}} al tuo team",
+        "Allow anyone with the link to open.": "Consenti l'accesso a chiunque ha il link.",
+        "Anyone with link ": "Chiunque ha il link ",
+        "Cancel": "Annulla",
+        "Copy Link": "Copia link",
+        "Create a team to share with more people": "Crea un team per condividere con più persone",
+        "Grist support": "Supporto di Grist",
+        "Guest": "Ospite",
+        "Invite multiple": "Invita più persone",
+        "Invite people to {{resourceType}}": "Invita delle persone a {{resourceType}}",
+        "Link copied to clipboard": "Link copiato negli Appunti",
+        "Off": "Spento",
+        "Manage members of team site": "Gestisci i membri del tuo team",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Nessun accesso di default, permette di autorizzare l'accesso a singoli documenti o spazi di lavoro, invece che a tutto il sito del team.",
+        "On": "Acceso",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Se togli l'accesso a te stesso, non potrai riaverlo senza l'aiuto di qualcuno con permessi sufficienti a {{name}}.",
+        "Open Access Rules": "Apri le regole di accesso",
+        "Outside collaborator": "Collaboratore esterno",
+        "Public Access": "Accesso pubblico",
+        "Public access: ": "Accesso pubblico: ",
+        "Public access": "Accesso pubblico",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utente eredita i permessi da {{parent})}. Per rimuoverli, imposta l'opzione 'Eredita l'accesso' a 'Nessuno'.",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'utente eredita i permessi da {{parent}}. Per rimuoverli, imposta l'opzione 'Eredita l'accesso' a 'Nessuno'.",
+        "You are about to remove your own access to this {{resourceType}}": "Stai per rimuovere il tuo stesso accesso da questa {{resourceType}}",
+        "Close": "Chiudi",
+        "Collaborator": "Collaboratore",
+        "Remove my access": "Rimuovi il mio accesso",
+        "Confirm": "Conferma",
+        "Save & ": "Salva e ",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Accesso pubblico ereditato da {{parent}}. Per rimuoverlo, imposta l'opzione 'Eredita l'accesso' a 'Nessuno'.",
+        "Team member": "Membro del team",
+        "User may not modify their own access.": "L'utente non può modificare le sue stesse opzioni di accesso.",
+        "Your role for this team site": "Il tuo ruolo per questo sito del team",
+        "Your role for this {{resourceType}}": "Il tuo ruolo per {{resourceType}}",
+        "free collaborator": "collaboratore libero",
+        "guest": "ospite",
+        "member": "membro",
+        "team site": "sito del team",
+        "{{collaborator}} limit exceeded": "limite superato per {{collaborator}}",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} di {{limitTop}} {{collaborator}}",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Nessun accesso di default, permette di autorizzare l'accesso a singoli documenti o spazi di lavoro, invece che a tutto il sito del team.",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Se togli l'accesso a te stesso, non potrai riaverlo senza l'aiuto di qualcuno con permessi sufficienti a {{resourceType}}.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utente può visualizzare {{resource}} a causa di regole di accesso alle risorse interne impostate manualmente. Se rimuovi qui, l'utente perderà l'accesso alle risorse interne."
+    },
+    "SearchModel": {
+        "Search all pages": "Cerca in tutte le pagine",
+        "Search all tables": "Cerca in tutte le tabelle"
+    },
+    "searchDropdown": {
+        "Search": "Cerca"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Contrai l'editor"
+    },
+    "FloatingPopup": {
+        "Maximize": "Espandi",
+        "Minimize": "Riduci"
     }
 }

@@ -72,7 +72,10 @@
         "Activation": "Activación",
         "Billing Account": "Cuenta de facturación",
         "Support Grist": "Soporte Grist",
-        "Upgrade Plan": "Actualizar el Plan"
+        "Upgrade Plan": "Actualizar el Plan",
+        "Sign In": "Ingresar",
+        "Sign Up": "Regístrate",
+        "Use This Template": "Usa esta plantilla"
     },
     "AddNewButton": {
         "Add New": "Agregar Nuevo"
@@ -97,7 +100,8 @@
         "Home Page": "Portada",
         "Legacy": "Legado",
         "Personal Site": "Sitio Personal",
-        "Team Site": "Sitio de Equipo"
+        "Team Site": "Sitio de Equipo",
+        "Grist Templates": "Plantillas Grist"
     },
     "CellContextMenu": {
         "Clear cell": "Borrar celda",
@@ -699,7 +703,8 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Añadido nueva sección vinculada a la vista {{viewName}}",
         "Import from file": "Importar desde archivo",
-        "Saved linked section {{title}} in view {{name}}": "Sección vinculada guardada {{title}} a la vista {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Sección vinculada guardada {{title}} a la vista {{name}}",
+        "go to webhook settings": "ir a la configuración webhook"
     },
     "ACUserManager": {
         "Enter email address": "Introduzca la dirección de correo electrónico",

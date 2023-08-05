@@ -740,12 +740,12 @@ class Response(object):
   """
   Similar to the Response class from the `requests` library.
   """
-  def __init__(self, content, status, statusText, headers, encoding):
+  def __init__(self, content, status, statusText, headers, encoding=None):
     self.content = content  # raw bytes
     self.status_code = status  # e.g. 404
     self.reason = statusText  # e.g. "Not Found"
     self.headers = CaseInsensitiveDict(headers)
-    self.encoding = encoding or self.apparent_encoding
+    self.encoding = encoding or self.apparent_encoding or "utf-8"
 
   @property
   def text(self):
