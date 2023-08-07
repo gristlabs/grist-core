@@ -148,6 +148,11 @@ export class Comm extends EventEmitter {
   public async testServerShutdown() {
     if (this._wss) {
       for (const wssi of this._wss) {
+        // Terminate all clients. WebSocket.Server used to do it automatically in close() but no
+        // longer does (see https://github.com/websockets/ws/pull/1904#discussion_r668844565).
+        for (const ws of wssi.clients) {
+          ws.terminate();
+        }
         await fromCallback((cb) => wssi.close(cb));
       }
       this._wss = null;
@@ -259,7 +264,6 @@ export class Comm extends EventEmitter {
           await this._onWebSocketConnection(websocket, req);
         } catch (e) {
           log.error("Comm connection for %s threw exception: %s", req.url, e.message);
-          websocket.removeAllListeners();
           websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
         }
       });

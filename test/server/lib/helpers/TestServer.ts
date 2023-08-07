@@ -1,24 +1,28 @@
 import {connectTestingHooks, TestingHooksClient} from "app/server/lib/TestingHooks";
 import {ChildProcess, execFileSync, spawn} from "child_process";
+import FormData from 'form-data';
 import path from "path";
 import * as fse from "fs-extra";
 import * as testUtils from "test/server/testUtils";
+import {UserAPIImpl} from "app/common/UserAPI";
 import {exitPromise} from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {delay} from "bluebird";
 import fetch from "node-fetch";
 
+/**
+ * This starts a server in a separate process.
+ */
 export class TestServer {
-  public static async startServer
-  (serverTypes: string,
-   tempDirectory: string,
-   suitename: string,
-   additionalConfig?: Object,
-   _homeUrl?: string): Promise<TestServer> {
+  public static async startServer(
+    serverTypes: string,
+    tempDirectory: string,
+    suitename: string,
+    customEnv?: NodeJS.ProcessEnv,
+    _homeUrl?: string,
+  ): Promise<TestServer> {
+
     const server = new TestServer(serverTypes, tempDirectory, suitename);
-    // Override some env variables in server configuration to serve our test purpose:
-    const customEnv = {
-      ...additionalConfig};
     await server.start(_homeUrl, customEnv);
     return server;
   }
@@ -33,9 +37,10 @@ export class TestServer {
 
   private readonly _defaultEnv;
 
-  constructor(private _serverTypes: string, private _tmpDir: string, private _suiteName: string) {
+  constructor(private _serverTypes: string, public readonly rootDir: string, private _suiteName: string) {
     this._defaultEnv = {
-      GRIST_INST_DIR: this._tmpDir,
+      GRIST_INST_DIR: this.rootDir,
+      GRIST_DATA_DIR: path.join(this.rootDir, "data"),
       GRIST_SERVERS: this._serverTypes,
       // with port '0' no need to hard code a port number (we can use testing hooks to find out what
       // port server is listening on).
@@ -50,14 +55,14 @@ export class TestServer {
       ...process.env
     };
   }
-  public async start(_homeUrl?: string, customEnv?: object) {
+  public async start(_homeUrl?: string, customEnv?: NodeJS.ProcessEnv) {
     // put node logs into files with meaningful name that relate to the suite name and server type
     const fixedName = this._serverTypes.replace(/,/, '_');
-    const nodeLogPath = path.join(this._tmpDir, `${this._suiteName}-${fixedName}-node.log`);
+    const nodeLogPath = path.join(this.rootDir, `${this._suiteName}-${fixedName}-node.log`);
     const nodeLogFd = await fse.open(nodeLogPath, 'a');
     const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
     // use a path for socket that relates to suite name and server types
-    this.testingSocket = path.join(this._tmpDir, `${this._suiteName}-${fixedName}.socket`);
+    this.testingSocket = path.join(this.rootDir, `${this._suiteName}-${fixedName}.socket`);
     const env = {
       APP_HOME_URL: _homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
@@ -116,10 +121,25 @@ export class TestServer {
       // wait for check
       return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
     } catch (err) {
+      log.warn("Failed to initialize server", err);
       return false;
     }
   }
 
+  // Get access to the ChildProcess object for this server, e.g. to get its PID.
+  public getChildProcess(): ChildProcess { return this._server; }
+
+  // Returns the promise for the ChildProcess's signal or exit code.
+  public getExitPromise(): Promise<string|number> { return this._exitPromise; }
+
+  public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
+    return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
+      headers: {Authorization: `Bearer api_key_for_${user}`},
+      fetch: fetch as unknown as typeof globalThis.fetch,
+      newFormData: () => new FormData() as any,
+      logger: log
+    });
+  }
 
   private async _waitServerReady() {
     // It's important to clear the timeout, because it can prevent node from exiting otherwise,

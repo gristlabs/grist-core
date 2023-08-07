@@ -15,6 +15,7 @@ import type {Comm} from 'app/server/lib/Comm';
 import {DocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {MemoryPool} from 'app/server/lib/MemoryPool';
 import {shortDesc} from 'app/server/lib/shortDesc';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {i18n} from 'i18next';
@@ -22,8 +23,11 @@ import * as crypto from 'crypto';
 import moment from 'moment';
 import * as WebSocket from 'ws';
 
-/// How many messages to accumulate for a disconnected client before booting it.
+// How many messages and bytes to accumulate for a disconnected client before booting it.
+// The benefit is that a client who temporarily disconnects and reconnects without missing much,
+// would not need to reload the document.
 const clientMaxMissedMessages = 100;
+const clientMaxMissedBytes = 1_000_000;
 
 export type ClientMethod = (client: Client, ...args: any[]) => Promise<unknown>;
 
@@ -32,6 +36,14 @@ const clientRemovalTimeoutMs = 300 * 1000;   // 300s = 5 minutes.
 
 // A hook for dependency injection.
 export const Deps = {clientRemovalTimeoutMs};
+
+// How much memory to allow using for large JSON responses before waiting for some to clear.
+// Max total across all clients and all JSON responses.
+const jsonResponseTotalReservation = 500 * 1024 * 1024;
+// Estimate of a single JSON response, used before we know how large it is. Together with the
+// above, it works to limit parallelism (to 25 responses that can be started in parallel).
+const jsonResponseReservation = 20 * 1024 * 1024;
+export const jsonMemoryPool = new MemoryPool(jsonResponseTotalReservation);
 
 /**
  * Generates and returns a random string to use as a clientId. This is better
@@ -81,9 +93,11 @@ export class Client {
   private _docFDs: Array<DocSession|null> = [];
 
   private _missedMessages = new Map<number, string>();
+  private _missedMessagesTotalLength: number = 0;
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
   private _websocket: WebSocket|null;
+  private _websocketEventHandlers: Array<{event: string, handler: (...args: any[]) => void}> = [];
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
   private _userId: number|null = null;
@@ -124,9 +138,13 @@ export class Client {
     this._counter = counter;
     this.browserSettings = browserSettings;
 
-    websocket.on('error', (err) => this._onError(err));
-    websocket.on('close', () => this._onClose());
-    websocket.on('message', (msg: string) => this._onMessage(msg));
+    const addHandler = (event: string, handler: (...args: any[]) => void) => {
+      websocket.on(event, handler);
+      this._websocketEventHandlers.push({event, handler});
+    };
+    addHandler('error', (err: unknown) => this._onError(err));
+    addHandler('close', () => this._onClose());
+    addHandler('message', (msg: string) => this._onMessage(msg));
   }
 
   /**
@@ -173,7 +191,7 @@ export class Client {
 
   public interruptConnection() {
     if (this._websocket) {
-      this._websocket.removeAllListeners();
+      this._removeWebsocketListeners();
       this._websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
       this._websocket = null;
     }
@@ -187,36 +205,69 @@ export class Client {
       return;
     }
 
-    const seqId = this._nextSeqId++;
-    const message: string = JSON.stringify({...messageObj, seqId});
+    // Large responses require memory; with many connected clients this can crash the server. We
+    // manage it using a MemoryPool, waiting for free space to appear. This only controls the
+    // memory used to hold the JSON.stringify result. Once sent, the reservation is released.
+    //
+    // Actual process memory will go up also as the outgoing data is sitting in socket buffers,
+    // but this isn't part of Node's heap. If an outgoing buffer is full, websocket.send may
+    // block, and MemoryPool will delay other responses. There is a risk here of unresponsive
+    // clients exhausing the MemoryPool, perhaps intentionally. To mitigate, we could destroy
+    // clients that are too slow in reading. This isn't currently done.
+    //
+    // Also, we do not manage memory of responses moved to a client's _missedMessages queue. But
+    // we do limit those in size.
+    //
+    // Overall, a better solution would be to stream large responses, or to have the client
+    // request data piecemeal (as we'd have to for handling large data).
 
-    // Log something useful about the message being sent.
-    if ('error' in messageObj && messageObj.error) {
-      this._log.warn(null, "responding to #%d ERROR %s", messageObj.reqId, messageObj.error);
-    }
-
-    if (this._websocket) {
-      // If we have a websocket, send the message.
-      try {
-        await this._sendToWebsocket(message);
-      } catch (err) {
-        // Sending failed. Add the message to missedMessages.
-        this._log.warn(null, "sendMessage: queuing after send error:", err.toString());
-        this._missedMessages.set(seqId, message);
-
-        // NOTE: A successful send does NOT mean the message was received. For a better system, see
-        // https://docs.microsoft.com/en-us/azure/azure-web-pubsub/howto-develop-reliable-clients
-        // (keeping a copy of messages until acked). With our system, we are more likely to be
-        // lacking the needed messages on reconnect, and having to reset the client.
+    await jsonMemoryPool.withReserved(jsonResponseReservation, async (updateReservation) => {
+      if (this._destroyed) {
+        // If this Client got destroyed while waiting, stop here and release the reservation.
+        return;
       }
-    } else if (this._missedMessages.size < clientMaxMissedMessages) {
-      // Queue up the message.
-      this._missedMessages.set(seqId, message);
-    } else {
-      // Too many messages queued. Boot the client now, to make it reset when/if it reconnects.
-      this._log.warn(null, "sendMessage: too many messages queued; booting client");
-      this.destroy();
-    }
+      const seqId = this._nextSeqId++;
+      const message: string = JSON.stringify({...messageObj, seqId});
+      const size = Buffer.byteLength(message, 'utf8');
+      updateReservation(size);
+
+      // Log something useful about the message being sent.
+      if ('error' in messageObj && messageObj.error) {
+        this._log.warn(null, "responding to #%d ERROR %s", messageObj.reqId, messageObj.error);
+      }
+
+      if (this._websocket) {
+        // If we have a websocket, send the message.
+        try {
+          await this._sendToWebsocket(message);
+          // NOTE: A successful send does NOT mean the message was received. For a better system, see
+          // https://docs.microsoft.com/en-us/azure/azure-web-pubsub/howto-develop-reliable-clients
+          // (keeping a copy of messages until acked). With our system, we are more likely to be
+          // lacking the needed messages on reconnect, and having to reset the client.
+          return;
+        } catch (err) {
+          // Sending failed. Add the message to missedMessages.
+          this._log.warn(null, "sendMessage: queuing after send error:", err.toString());
+        }
+      }
+      if (this._missedMessages.size < clientMaxMissedMessages &&
+          this._missedMessagesTotalLength + message.length <= clientMaxMissedBytes) {
+        // Queue up the message.
+        // TODO: this keeps the memory but releases jsonMemoryPool reservation, which is wrong --
+        // it may allow too much memory to be used. This situation is rare, however, so maybe OK
+        // as is. Ideally, the queued messages could reserve memory in a "nice to have" mode, and
+        // if memory is needed for something more important, the queue would get dropped.
+        // (Holding on to the memory reservation here would creates a risk of freezing future
+        // responses, which seems *more* dangerous than a crash because a crash would at least
+        // lead to an eventual recovery.)
+        this._missedMessages.set(seqId, message);
+        this._missedMessagesTotalLength += message.length;
+      } else {
+        // Too many messages queued. Boot the client now, to make it reset when/if it reconnects.
+        this._log.warn(null, "sendMessage: too many messages queued; booting client");
+        this.destroy();
+      }
+    });
   }
 
   /**
@@ -256,6 +307,7 @@ export class Client {
 
     // We collected any missed messages we need; clear the stored map of them.
     this._missedMessages.clear();
+    this._missedMessagesTotalLength = 0;
 
     let docsClosed: number|null = null;
     if (!seamlessReconnect) {
@@ -344,6 +396,7 @@ export class Client {
       this._destroyTimer = null;
     }
     this._missedMessages.clear();
+    this._missedMessagesTotalLength = 0;
     this._comm.removeClient(this);
     this._destroyed = true;
   }
@@ -557,18 +610,31 @@ export class Client {
    * Processes the closing of a websocket.
    */
   private _onClose() {
-    this._websocket?.removeAllListeners();
+    this._removeWebsocketListeners();
 
     // Remove all references to the websocket.
     this._websocket = null;
 
-    // Schedule the client to be destroyed after a timeout. The timer gets cleared if the same
-    // client reconnects in the interim.
-    if (this._destroyTimer) {
-      this._log.warn(null, "clearing previously scheduled destruction");
-      clearTimeout(this._destroyTimer);
+    if (!this._destroyed) {
+      // Schedule the client to be destroyed after a timeout. The timer gets cleared if the same
+      // client reconnects in the interim.
+      if (this._destroyTimer) {
+        this._log.warn(null, "clearing previously scheduled destruction");
+        clearTimeout(this._destroyTimer);
+      }
+      this._log.info(null, "websocket closed; will discard client in %s sec", Deps.clientRemovalTimeoutMs / 1000);
+      this._destroyTimer = setTimeout(() => this.destroy(), Deps.clientRemovalTimeoutMs);
     }
-    this._log.info(null, "websocket closed; will discard client in %s sec", Deps.clientRemovalTimeoutMs / 1000);
-    this._destroyTimer = setTimeout(() => this.destroy(), Deps.clientRemovalTimeoutMs);
+  }
+
+  private _removeWebsocketListeners() {
+    if (this._websocket) {
+      // Avoiding websocket.removeAllListeners() because WebSocket.Server registers listeners
+      // internally for websockets it keeps track of, and we should not accidentally remove those.
+      for (const {event, handler} of this._websocketEventHandlers) {
+        this._websocket.off(event, handler);
+      }
+      this._websocketEventHandlers = [];
+    }
   }
 }

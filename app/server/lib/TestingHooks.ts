@@ -4,6 +4,7 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {Deps as ActiveDocDeps} from 'app/server/lib/ActiveDoc';
 import {Deps as DiscourseConnectDeps} from 'app/server/lib/DiscourseConnect';
 import {Deps as CommClientDeps} from 'app/server/lib/Client';
+import * as Client from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
 import log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
@@ -39,6 +40,8 @@ export function startTestingHooks(socketPath: string, port: number,
 
 function connectToSocket(rpc: Rpc, socket: net.Socket): Rpc {
   socket.setEncoding('utf8');
+  // Poor-man's JSON processing, only OK because this is for testing only. If multiple messages
+  // are received quickly, they may arrive in the same buf, and JSON.parse will fail.
   socket.on('data', (buf: string) => rpc.receiveMessage(JSON.parse(buf)));
   rpc.setSendMessage((m: IMessage) => fromCallback(cb => socket.write(JSON.stringify(m), 'utf8', cb)));
   return rpc;
@@ -118,10 +121,17 @@ export class TestingHooks implements ITestingHooks {
   // Set how long new clients will persist after disconnection.
   // Returns the previous value.
   public async commSetClientPersistence(ttlMs: number): Promise<number> {
-    log.info("TestingHooks.setClientPersistence called with", ttlMs);
+    log.info("TestingHooks.commSetClientPersistence called with", ttlMs);
     const prev = CommClientDeps.clientRemovalTimeoutMs;
     CommClientDeps.clientRemovalTimeoutMs = ttlMs;
     return prev;
+  }
+
+  // Set the amount of memory Client.ts can use for JSON responses, in bytes.
+  // Returns the old limit.
+  public async commSetClientJsonMemoryLimit(newTotalSize: number): Promise<number> {
+    log.info("TestingHooks.commSetClientJsonMemoryLimit called with", newTotalSize);
+    return Client.jsonMemoryPool.setTotalSize(newTotalSize);
   }
 
   public async closeDocs(): Promise<void> {
@@ -214,5 +224,9 @@ export class TestingHooks implements ITestingHooks {
       throw new Error("Unsupported widget repository");
     }
     repo.testOverrideUrl(url);
+  }
+
+  public async getMemoryUsage(): Promise<NodeJS.MemoryUsage> {
+    return process.memoryUsage();
   }
 }

@@ -9,6 +9,7 @@ export interface ITestingHooks {
   commShutdown(): Promise<void>;
   commRestart(): Promise<void>;
   commSetClientPersistence(ttlMs: number): Promise<number>;
+  commSetClientJsonMemoryLimit(newTotalSize: number): Promise<number>;
   closeDocs(): Promise<void>;
   setDocWorkerActivation(workerId: string, active: 'active'|'inactive'|'crash'): Promise<void>;
   flushAuthorizerCache(): Promise<void>;
@@ -17,4 +18,5 @@ export interface ITestingHooks {
   setActiveDocTimeout(seconds: number): Promise<number>;
   setDiscourseConnectVar(varName: string, value: string|null): Promise<string|null>;
   setWidgetRepositoryUrl(url: string): Promise<void>;
+  getMemoryUsage(): Promise<object>;  // actually NodeJS.MemoryUsage
 }

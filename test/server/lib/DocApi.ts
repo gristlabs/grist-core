@@ -218,7 +218,7 @@ function testDocApi() {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     // Make sure kiwi isn't allowed here.
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
-    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor for the org.
     await assert.isRejected(kiwiApi.getOrgAccess(ORG_NAME), /Forbidden/);
@@ -238,7 +238,7 @@ function testDocApi() {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
     // Make sure kiwi isn't allowed here.
-    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor of this workspace.
     await userApi.updateWorkspacePermissions(ws1, {users: {[kiwiEmail]: 'editors'}});
@@ -257,7 +257,7 @@ function testDocApi() {
   it("should allow only owners to remove a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdeleteme1'}, ws1);
-    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't delete it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -273,7 +273,7 @@ function testDocApi() {
   it("should allow only owners to rename a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testrenameme1'}, ws1);
-    const kiwiApi = makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't rename it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -3039,7 +3039,7 @@ function testDocApi() {
 
     it("limits daily API usage", async function () {
       // Make a new document in a test product with a low daily limit
-      const api = makeUserApi('testdailyapilimit');
+      const api = home.makeUserApi('testdailyapilimit');
       const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
       const docId = await api.newDoc({name: 'TestDoc1'}, workspaceId);
       const max = testDailyApiLimitFeatures.baseMaxApiUnitsPerDocumentPerDay;
@@ -3067,7 +3067,7 @@ function testDocApi() {
     it("limits daily API usage and sets the correct keys in redis", async function () {
       this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
-      const freeTeamApi = makeUserApi('freeteam');
+      const freeTeamApi = home.makeUserApi('freeteam');
       const workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
       const docId = await freeTeamApi.newDoc({name: 'TestDoc2'}, workspaceId);
       // Rather than making 5000 requests, set high counts directly for the current and next daily and hourly keys
@@ -4329,7 +4329,7 @@ function setup(name: string, cb: () => Promise<void>) {
     await cb();
 
     // create TestDoc as an empty doc into Private workspace
-    userApi = api = makeUserApi(ORG_NAME);
+    userApi = api = home.makeUserApi(ORG_NAME);
     const wid = await getWorkspaceId(api, 'Private');
     docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
   });
@@ -4342,15 +4342,6 @@ function setup(name: string, cb: () => Promise<void>) {
     // stop all servers
     await home.stop();
     await docs.stop();
-  });
-}
-
-function makeUserApi(org: string, user?: string) {
-  return new UserAPIImpl(`${home.serverUrl}/o/${org}`, {
-    headers: {Authorization: `Bearer api_key_for_${user || 'chimpy'}`},
-    fetch: fetch as any,
-    newFormData: () => new FormData() as any,
-    logger: log
   });
 }
 

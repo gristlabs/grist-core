@@ -310,7 +310,11 @@ describe('Comm', function() {
         `Expected to see a failed send:\n${logMessages.join('\n')}`);
     }
 
-    it("should receive all server messages in order when send doesn't fail", async function() {
+    it("should receive all server messages (small) in order when send doesn't fail", async function() {
+      await testSendOrdering({noFailedSend: true, useSmallMsgs: true});
+    });
+
+    it("should receive all server messages (large) in order when send doesn't fail", async function() {
       await testSendOrdering({noFailedSend: true});
     });
 
@@ -322,17 +326,15 @@ describe('Comm', function() {
       await testSendOrdering({closeHappensFirst: true});
     });
 
-    async function testSendOrdering(options: {noFailedSend?: boolean, closeHappensFirst?: boolean}) {
+    async function testSendOrdering(
+      options: {noFailedSend?: boolean, closeHappensFirst?: boolean, useSmallMsgs?: boolean}
+    ) {
       const eventsSeen: Array<'failedSend'|'close'> = [];
 
       // Server-side Client object.
       let ssClient!: Client;
 
-      const {cliComm, forwarder} = await startManagedConnection({
-        ...assortedMethods,
-        // A method just to help us get a handle on the server-side Client object.
-        setClient: async (client) => { ssClient = client; },
-      });
+      const {cliComm, forwarder} = await startManagedConnection(assortedMethods);
 
       // Intercept the call to _onClose to know when it occurs, since we are trying to hit a
       // situation where 'close' and 'failedSend' events happen in either order.
@@ -366,6 +368,7 @@ describe('Comm', function() {
       // in the clientConnect message, we are expected to reload the app. In the test, we replace
       // the GristWSConnection.
       cliComm.on('clientConnect', async (msg: CommClientConnect) => {
+        ssClient = comm!.getClient(msg.clientId);
         if (msg.needReload) {
           await delay(0);
           cliComm.releaseDocConnection(docId);
@@ -373,11 +376,11 @@ describe('Comm', function() {
         }
       });
 
-      // Make the first event that gives us access to the Client object (ssClient).
-      await cliComm._makeRequest(null, null, "setClient", "foo", 1);
+      // Wait for a connect call, which we rely on to get access to the Client object (ssClient).
+      await waitForCondition(() => (clientConnectSpy.callCount > 0), 1000);
 
       // Send large buffers, to fill up the socket's buffers to get it to block.
-      const data = "x".repeat(1.0e7);
+      const data = "x".repeat(options.useSmallMsgs ? 100_000 : 10_000_000);
       const makeMessage = (n: number) => ({type: 'docUserAction', n, data});
 
       let n = 0;
@@ -425,7 +428,12 @@ describe('Comm', function() {
       // This test helper is used for 3 different situations. Check that we observed that
       // situations we were trying to hit.
       if (options.noFailedSend) {
-        assert.deepEqual(eventsSeen, ['close']);
+        if (options.useSmallMsgs) {
+          assert.deepEqual(eventsSeen, ['close']);
+        } else {
+          // Large messages now cause a send to fail, after filling up buffer, and close the socket.
+          assert.deepEqual(eventsSeen, ['close', 'close']);
+        }
       } else if (options.closeHappensFirst) {
         assert.equal(eventsSeen[0], 'close');
         assert.include(eventsSeen, 'failedSend');

@@ -1,11 +1,8 @@
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {WebhookSubscription} from 'app/server/lib/DocApi';
-import log from 'app/server/lib/log';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
 import {assert} from 'chai';
-import FormData from 'form-data';
-import fetch from 'node-fetch';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import {createClient} from 'redis';
@@ -75,7 +72,7 @@ describe('Webhooks-Proxy', function () {
       await cb();
 
       // create TestDoc as an empty doc into Private workspace
-      userApi = api = makeUserApi(ORG_NAME, home.serverUrl);
+      userApi = api = home.makeUserApi(ORG_NAME);
       const wid = await getWorkspaceId(api, 'Private');
       docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
     });
@@ -102,7 +99,7 @@ describe('Webhooks-Proxy', function () {
   });
 
 
-  function runServerConfigurations(additionaEnvConfiguration: object, subTestCall: Function) {
+  function runServerConfigurations(additionaEnvConfiguration: NodeJS.ProcessEnv, subTestCall: Function) {
     additionaEnvConfiguration = {
       ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
       GRIST_DATA_DIR: dataDir,
@@ -321,16 +318,6 @@ describe('Webhooks-Proxy', function () {
 });
 
 const ORG_NAME = 'docs-1';
-
-
-function makeUserApi(org: string, homeServerUrl: string, user?: string) {
-  return new UserAPIImpl(`${homeServerUrl}/o/${org}`, {
-    headers: {Authorization: `Bearer api_key_for_${user || 'chimpy'}`},
-    fetch: fetch as any,
-    newFormData: () => new FormData() as any,
-    logger: log
-  });
-}
 
 async function getWorkspaceId(api: UserAPIImpl, name: string) {
   const workspaces = await api.getOrgWorkspaces('current');

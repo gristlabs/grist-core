@@ -12,6 +12,7 @@
 
 import * as _ from 'underscore';
 import { assert } from 'chai';
+import {tmpdir} from 'os';
 import * as path from 'path';
 import * as fse from 'fs-extra';
 import clone = require('lodash/clone');
@@ -307,6 +308,18 @@ export class EnvironmentSnapshot {
   public get(key: string): string|undefined {
     return this._oldEnv[key];
   }
+}
+
+export async function createTestDir(suiteName: string): Promise<string> {
+  const tmpRootDir = process.env.TESTDIR || tmpdir();
+  const workerIdText = process.env.MOCHA_WORKER_ID || '0';
+  const username = process.env.USER || "nobody";
+  const testDir = path.join(tmpRootDir, `grist_test_${username}_${suiteName}_${workerIdText}`);
+  // Remove any previous tmp dir, and create the new one.
+  await fse.remove(testDir);
+  await fse.mkdirs(testDir);
+  log.warn(`Test logs and data are at: ${testDir}/`);
+  return testDir;
 }
 
 export async function getBuildFile(relativePath: string): Promise<string> {

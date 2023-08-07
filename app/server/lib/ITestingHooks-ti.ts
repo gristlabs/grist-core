@@ -13,6 +13,7 @@ export const ITestingHooks = t.iface([], {
   "commShutdown": t.func("void"),
   "commRestart": t.func("void"),
   "commSetClientPersistence": t.func("number", t.param("ttlMs", "number")),
+  "commSetClientJsonMemoryLimit": t.func("number", t.param("newTotalSize", "number")),
   "closeDocs": t.func("void"),
   "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit('active'), t.lit('inactive'), t.lit('crash')))),
   "flushAuthorizerCache": t.func("void"),
@@ -21,6 +22,7 @@ export const ITestingHooks = t.iface([], {
   "setActiveDocTimeout": t.func("number", t.param("seconds", "number")),
   "setDiscourseConnectVar": t.func(t.union("string", "null"), t.param("varName", "string"), t.param("value", t.union("string", "null"))),
   "setWidgetRepositoryUrl": t.func("void", t.param("url", "string")),
+  "getMemoryUsage": t.func("object"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

@@ -110,6 +110,7 @@ export class GristWSSettingsBrowser implements GristWSSettings {
 export class GristWSConnection extends Disposable {
   public useCount: number = 0;
   public on: BackboneEvents['on'];    // set by Backbone
+  public off: BackboneEvents['off'];    // set by Backbone
 
   protected trigger: BackboneEvents['trigger']; // set by Backbone
 
