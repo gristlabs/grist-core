@@ -68,7 +68,7 @@ export function buildParseOptionsForm(
     cssModalButtons(
       dom.domComputed((use) => items.every((item) => use(optionsMap.get(item.name)!) === values[item.name]),
         (unchanged) => (unchanged ?
-          bigBasicButton('Back to preview', dom.on('click', doCancel), testId('parseopts-back')) :
+          bigBasicButton('Close', dom.on('click', doCancel), testId('parseopts-back')) :
           bigPrimaryButton('Update preview', dom.on('click', () => doUpdate(collectParseOptions())),
             testId('parseopts-update'))
         )

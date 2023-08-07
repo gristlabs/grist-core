@@ -16,7 +16,7 @@ import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
 import * as GridView from 'app/client/components/GridView';
-import {Importer} from 'app/client/components/Importer';
+import {importFromFile, selectAndImport} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
@@ -423,11 +423,11 @@ export class GristDoc extends DisposableWithEvents {
     const importMenuItems = [
       {
         label: t("Import from file"),
-        action: () => Importer.selectAndImport(this, importSourceElems, null, createPreview),
+        action: () => importFromFile(this, createPreview),
       },
       ...importSourceElems.map(importSourceElem => ({
         label: importSourceElem.importSource.label,
-        action: () => Importer.selectAndImport(this, importSourceElems, importSourceElem, createPreview)
+        action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview)
       }))
     ];
 

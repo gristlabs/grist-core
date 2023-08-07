@@ -20,10 +20,11 @@ import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
+import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import {getAssignmentId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {adaptServerUrl, addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
-import {getTemplateOrg, ISendAppPageOptions} from 'app/server/lib/sendAppPage';
+import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
 
 export interface AttachOptions {
   app: express.Application;                // Express app to which to add endpoints

@@ -198,7 +198,14 @@ export class OpenAIAssistant implements Assistant {
 
     const userIdHash = getUserHash(optSession);
     const completion: string = await this._getCompletion(messages, userIdHash);
-    const response = await completionToResponse(doc, request, completion, completion);
+    const response = await completionToResponse(doc, request, completion);
+    if (response.suggestedFormula) {
+      // Show the tweaked version of the suggested formula to the user (i.e. the one that's
+      // copied when the Apply button is clicked).
+      response.reply = replaceMarkdownCode(completion, response.suggestedFormula);
+    } else {
+      response.reply = completion;
+    }
     response.state = {messages};
     doc.logTelemetryEvent(optSession, 'assistantReceive', {
       full: {
@@ -208,7 +215,7 @@ export class OpenAIAssistant implements Assistant {
           index: messages.length - 1,
           content: completion,
         },
-        suggestedFormula: (response.suggestedActions[0]?.[3] as any)?.formula,
+        suggestedFormula: response.suggestedFormula,
       },
     });
     return response;
@@ -407,6 +414,14 @@ export async function sendForCompletion(
   return await assistant.apply(optSession, doc, request);
 }
 
+/**
+ * Returns a new Markdown string with the contents of its first multi-line code block
+ * replaced with `replaceValue`.
+ */
+export function replaceMarkdownCode(markdown: string, replaceValue: string) {
+  return markdown.replace(/```\w*\n(.*)```/s, '```python\n' + replaceValue + '\n```');
+}
+
 async function makeSchemaPromptV1(session: OptDocSession, doc: AssistanceDoc, request: AssistanceRequest) {
   if (request.context.type !== 'formula') {
     throw new Error('makeSchemaPromptV1 only works for formulas');
@@ -418,23 +433,28 @@ async function makeSchemaPromptV1(session: OptDocSession, doc: AssistanceDoc, re
   });
 }
 
-async function completionToResponse(doc: AssistanceDoc, request: AssistanceRequest,
-                                    completion: string, reply?: string): Promise<AssistanceResponse> {
+async function completionToResponse(
+  doc: AssistanceDoc,
+  request: AssistanceRequest,
+  completion: string,
+  reply?: string
+): Promise<AssistanceResponse> {
   if (request.context.type !== 'formula') {
     throw new Error('completionToResponse only works for formulas');
   }
-  completion = await doc.assistanceFormulaTweak(completion);
+  const suggestedFormula = await doc.assistanceFormulaTweak(completion) || undefined;
   // Suggest an action only if the completion is non-empty (that is,
   // it actually looked like code).
-  const suggestedActions: DocAction[] = completion ? [[
+  const suggestedActions: DocAction[] = suggestedFormula ? [[
     "ModifyColumn",
     request.context.tableId,
     request.context.colId, {
-      formula: completion,
+      formula: suggestedFormula,
     }
   ]] : [];
   return {
     suggestedActions,
+    suggestedFormula,
     reply,
   };
 }

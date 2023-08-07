@@ -100,6 +100,43 @@ describe('DescriptionColumn', function() {
     assert.isFalse(await gu.getColumnHeader({col: 'D'}).isPresent());
   });
 
+
+  it('shows links in the column description', async () => {
+    const revert = await gu.begin();
+
+    // Add a column and add a description with a link.
+    await addColumn();
+    await clickAddDescription();
+    await gu.sendKeys('First line');
+    await gu.sendKeys(Key.SHIFT, Key.ENTER, Key.NULL);
+    await gu.sendKeys('Second line https://example.com');
+    await gu.sendKeys(Key.SHIFT, Key.ENTER, Key.NULL);
+    await gu.sendKeys('Third line');
+    await pressSave();
+
+    const header = await gu.getColumnHeader({col: 'D'});
+    // Make sure it has a tooltip.
+    assert.isTrue(await header.find(".test-column-info-tooltip").isDisplayed());
+    // Click the tooltip.
+    await header.find(".test-column-info-tooltip").click();
+
+    // Make sure we have a link there.
+    const testTooltip = async () => {
+      const tooltip = driver.find(".test-tooltip");
+      assert.equal(await tooltip.find(".test-text-link a").getAttribute('href'), "https://example.com/");
+      assert.equal(await tooltip.find(".test-text-link").getText(), "https://example.com");
+      assert.equal(await tooltip.getText(), "First line\nSecond line \nhttps://example.com\nThird line");
+    };
+    await testTooltip();
+
+    // Convert it to a card view.
+    await gu.changeWidget('Card');
+    await openCardColumnTooltip('D');
+    await testTooltip();
+
+    await revert();
+  });
+
   it('should close popup by enter and escape', async () => {
     // Add another column, make sure that enter and escape work.
     await addColumn();
@@ -387,13 +424,14 @@ describe('DescriptionColumn', function() {
     const doc = await mainSession.tempDoc(cleanup, "CardView.grist", { load: true });
     const docId = doc.id;
 
+    // Make more room for switching between columns.
+    await gu.toggleSidePanel('left', 'close');
+    await gu.openColumnPanel();
+
     await addColumnDescription(api, docId, 'B');
 
     // Column description editable in right panel
-    await driver.find('.test-right-opener').click();
-
     await gu.getCell({ rowNum: 1, col: 'B' }).click();
-    await driver.find('.test-right-tab-field').click();
     assert.equal(await getDescriptionInput().value(), 'This is the column description\nIt is in two lines');
 
     await gu.getCell({ rowNum: 1, col: 'A' }).click();
@@ -408,6 +446,7 @@ describe('DescriptionColumn', function() {
 
     await gu.getCell({ rowNum: 1, col: 'B' }).click();
     assert.equal(await getDescriptionInput().value(), '');
+    await gu.toggleSidePanel('left', 'open');
   });
 
   it('should show info tooltip only if there is a description', async () => {
@@ -428,16 +467,7 @@ describe('DescriptionColumn', function() {
         .isPresent()
     );
 
-    const detailDescribedColumnFirstRow = await gu.getDetailCell('B', 1);
-    const toggle = await detailDescribedColumnFirstRow
-      .findClosest(".g_record_detail_el")
-      .find(".test-column-info-tooltip");
-    // The toggle to show the description is present if there is a description
-    assert.isTrue(await toggle.isPresent());
-
-    // Open the tooltip
-    await toggle.click();
-    await waitForTooltip();
+    await openCardColumnTooltip('B');
 
     // Check the content of the tooltip
     const descriptionTooltip = await driver
@@ -560,4 +590,16 @@ async function saveVisible() {
 
 async function cancelVisible() {
   return await driver.find(".test-column-title-cancel").isDisplayed();
+}
+
+async function openCardColumnTooltip(col: string) {
+  const detailDescribedColumnFirstRow = await gu.getDetailCell(col, 1);
+  const toggle = await detailDescribedColumnFirstRow
+    .findClosest(".g_record_detail_el")
+    .find(".test-column-info-tooltip");
+  // The toggle to show the description is present if there is a description
+  assert.isTrue(await toggle.isPresent());
+  // Open the tooltip
+  await toggle.click();
+  await waitForTooltip();
 }

@@ -77,7 +77,10 @@
         "Activation": "Aktivierung",
         "Billing Account": "Abrechnungskonto",
         "Support Grist": "Grist Support",
-        "Upgrade Plan": "Upgrade-Plan"
+        "Upgrade Plan": "Upgrade-Plan",
+        "Sign Up": "Registrieren Sie sich",
+        "Use This Template": "Diese Vorlage verwenden",
+        "Sign In": "Anmelden"
     },
     "ActionLog": {
         "Action Log failed to load": "Aktionsprotokoll konnte nicht geladen werden",
@@ -108,7 +111,8 @@
         "Home Page": "Startseite",
         "Legacy": "Hinterlassenschaft",
         "Personal Site": "Persönliche Seite",
-        "Team Site": "Teamseite"
+        "Team Site": "Teamseite",
+        "Grist Templates": "Grist Vorlagen"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Diese Teamseite ist gesperrt. Die Dokumente können gelesen, aber nicht geändert werden."
@@ -428,7 +432,8 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
         "Import from file": "Aus Datei importieren",
-        "Saved linked section {{title}} in view {{name}}": "Gespeicherter verlinkter Abschnitt {{title}} in Ansicht {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Gespeicherter verlinkter Abschnitt {{title}} in Ansicht {{name}}",
+        "go to webhook settings": "gehen sie zu webhook Einstellungen"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", oder finden Sie einen Experten über unseren",

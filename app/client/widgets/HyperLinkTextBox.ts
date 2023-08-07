@@ -3,8 +3,8 @@ import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { constructUrl } from 'app/client/models/gristUrlState';
 import { colors, testId } from 'app/client/ui2018/cssVars';
 import { cssIconBackground, icon } from 'app/client/ui2018/icons';
-import { gristLink } from 'app/client/ui2018/links';
-import { cssHoverIn, NTextBox } from 'app/client/widgets/NTextBox';
+import { cssHoverIn, gristLink } from 'app/client/ui2018/links';
+import { NTextBox } from 'app/client/widgets/NTextBox';
 import { CellValue } from 'app/common/DocActions';
 import { Computed, dom, styled } from 'grainjs';
 

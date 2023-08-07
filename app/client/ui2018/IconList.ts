@@ -37,6 +37,9 @@ export type IconName = "ChartArea" |
   "GristLogo" |
   "ThumbPreview" |
   "AddUser" |
+  "ArrowLeft" |
+  "ArrowRight" |
+  "ArrowRightOutlined" |
   "BarcodeQR" |
   "BarcodeQR2" |
   "Board" |
@@ -56,6 +59,7 @@ export type IconName = "ChartArea" |
   "Dropdown" |
   "DropdownUp" |
   "Empty" |
+  "Exclamation" |
   "Expand" |
   "EyeHide" |
   "EyeShow" |
@@ -80,6 +84,7 @@ export type IconName = "ChartArea" |
   "ImportArrow" |
   "Info" |
   "LeftAlign" |
+  "Lighting" |
   "Lock" |
   "Log" |
   "Mail" |
@@ -180,6 +185,9 @@ export const IconList: IconName[] = ["ChartArea",
   "GristLogo",
   "ThumbPreview",
   "AddUser",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowRightOutlined",
   "BarcodeQR",
   "BarcodeQR2",
   "Board",
@@ -199,6 +207,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Dropdown",
   "DropdownUp",
   "Empty",
+  "Exclamation",
   "Expand",
   "EyeHide",
   "EyeShow",
@@ -223,6 +232,7 @@ export const IconList: IconName[] = ["ChartArea",
   "ImportArrow",
   "Info",
   "LeftAlign",
+  "Lighting",
   "Lock",
   "Log",
   "Mail",

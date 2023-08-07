@@ -266,7 +266,7 @@ DetailView.prototype.buildFieldDom = function(field, row) {
       kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
       dom('div.g_record_detail_label_container',
         dom('div.g_record_detail_label', kd.text(field.label)),
-        kd.scope(field.description, desc => desc ? descriptionInfoTooltip(kd.text(field.description), "colmun") : null)
+        kd.scope(field.description, desc => desc ? descriptionInfoTooltip(desc, "colmun") : null)
       ),
       dom('div.g_record_detail_value'),
     );
@@ -299,7 +299,7 @@ DetailView.prototype.buildFieldDom = function(field, row) {
     kd.cssClass(function() { return 'detail_theme_field_' + self.viewSection.themeDef(); }),
     dom('div.g_record_detail_label_container',
       dom('div.g_record_detail_label', kd.text(field.displayLabel)),
-      kd.scope(field.description, desc => desc ? descriptionInfoTooltip(kd.text(field.description), "column") : null)
+      kd.scope(field.description, desc => desc ? descriptionInfoTooltip(desc, "column") : null)
     ),
     dom('div.g_record_detail_value',
       kd.toggleClass('scissors', isCopyActive),

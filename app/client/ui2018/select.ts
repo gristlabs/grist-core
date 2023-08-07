@@ -41,7 +41,7 @@ export const cssSelectBtn = styled('div', `
     box-shadow: 0px 0px 2px 2px #5E9ED6;
   }
 
-  &.disabled {
+  &.disabled, &-disabled {
     --icon-color: ${theme.selectButtonDisabledFg};
     color: ${theme.selectButtonDisabledFg};
     cursor: pointer;

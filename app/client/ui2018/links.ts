@@ -1,7 +1,9 @@
+import {findLinks} from 'app/client/lib/textUtils';
 import { sameDocumentUrlState, urlState } from 'app/client/models/gristUrlState';
-import { hideInPrintView, theme } from 'app/client/ui2018/cssVars';
+import { colors, hideInPrintView, testId, theme } from 'app/client/ui2018/cssVars';
+import {cssIconBackground, icon} from 'app/client/ui2018/icons';
 import { CellValue } from 'app/plugin/GristData';
-import { dom, IDomArgs, Observable, styled } from 'grainjs';
+import { dom, DomArg, IDomArgs, Observable, styled } from 'grainjs';
 
 /**
  * Styling for a simple <A HREF> link.
@@ -49,3 +51,67 @@ export async function onClickHyperLink(ev: MouseEvent, url: CellValue) {
   ev.preventDefault();
   await urlState().pushUrl(newUrlState);
 }
+
+/**
+ * Generates dom contents out of a text with clickable links.
+ */
+export function makeLinks(text: string) {
+  try {
+    const domElements: DomArg[] = [];
+    for (const {value, isLink} of findLinks(text)) {
+      if (isLink) {
+        // Wrap link with a span to provide hover on and to override wrapping.
+        domElements.push(cssMaybeWrap(
+          gristLink(value,
+            cssIconBackground(
+              icon("FieldLink", testId('tb-link-icon')),
+              dom.cls(cssHoverInText.className),
+            ),
+          ),
+          linkColor(value),
+          testId("text-link")
+        ));
+      } else {
+        domElements.push(value);
+      }
+    }
+    return domElements;
+  } catch(ex) {
+    // In case when something went wrong, simply log and return original text, as showing
+    // links is not that important.
+    console.warn("makeLinks failed", ex);
+    return text;
+  }
+}
+
+// For links we want to break all the parts, not only words.
+const cssMaybeWrap = styled('span', `
+  white-space: inherit;
+  .text_wrapping & {
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+`);
+
+// A gentle transition effect on hover in, and the same effect on hover out with a little delay.
+export const cssHoverIn = (parentClass: string) => styled('span', `
+  --icon-color: var(--grist-actual-cell-color, ${colors.lightGreen});
+  margin: -1px 2px 2px 0;
+  border-radius: 3px;
+  transition-property: background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  transition-delay: 90ms;
+  .${parentClass}:hover & {
+    --icon-background: ${colors.lightGreen};
+    --icon-color: white;
+    transition-duration: 80ms;
+    transition-delay: 0ms;
+  }
+`);
+
+const cssHoverInText = cssHoverIn(cssMaybeWrap.className);
+
+const linkColor = styled('span', `
+  color: var(--grist-actual-cell-color, ${colors.lightGreen});;
+`);

@@ -173,9 +173,9 @@ if not include_python2:
   # We expect python3 in /usr/bin or /usr/local/bin.
   candidates = [
     path
-    # Pick the most generic python if not matching python3.9.
+    # Pick the most generic python if not matching python3.11.
     # Sorry this is delicate because of restores, mounts, symlinks.
-    for pattern in ['python3.9', 'python3', 'python3*']
+    for pattern in ['python3.11', 'python3.10', 'python3.9', 'python3', 'python3*']
     for root in ['/usr/local', '/usr']
     for path in glob.glob(f'{root}/bin/{pattern}')
     if os.path.exists(path)

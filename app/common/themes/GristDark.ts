@@ -372,6 +372,12 @@ export const GristDark: ThemeColors = {
   'importer-preview-border': '#69697D',
   'importer-skipped-table-overlay': 'rgba(111,111,117,0.6)',
   'importer-match-icon': '#69697D',
+  'importer-outside-bg': '#32323F',
+  'importer-main-content-bg': '#262633',
+  'importer-active-file-bg': '#16B378',
+  'importer-active-file-fg': '#FFFFFF',
+  'importer-inactive-file-bg': '#808080',
+  'importer-inactive-file-fg': '#FFFFFF',
 
   /* Menu Toggles */
   'menu-toggle-fg': '#A4A4A4',

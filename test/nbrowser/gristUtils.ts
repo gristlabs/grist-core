@@ -61,6 +61,7 @@ export const uploadFixtureDoc = homeUtil.uploadFixtureDoc.bind(homeUtil);
 export const getWorkspaceId = homeUtil.getWorkspaceId.bind(homeUtil);
 export const listDocs = homeUtil.listDocs.bind(homeUtil);
 export const createHomeApi = homeUtil.createHomeApi.bind(homeUtil);
+export const getApiKey = homeUtil.getApiKey.bind(homeUtil);
 export const simulateLogin = homeUtil.simulateLogin.bind(homeUtil);
 export const removeLogin = homeUtil.removeLogin.bind(homeUtil);
 export const enableTips = homeUtil.enableTips.bind(homeUtil);
@@ -975,6 +976,14 @@ export async function confirm(save = true, remember = false) {
   }
 }
 
+/** Hides all top banners by injecting css style */
+export async function hideBanners() {
+  const style = `.test-banner-element { display: none !important; }`;
+  await driver.executeScript(`const style = document.createElement('style');
+    style.innerHTML = ${JSON.stringify(style)};
+    document.head.appendChild(style);`);
+}
+
 /**
  * Returns the left-panel item for the given page, given by a full string name, or a RegExp.
  * You may simply click it to switch to that page.
@@ -1581,10 +1590,11 @@ export async function sendKeys(...keys: string[]) {
 }
 
 /**
- * Clears active input by sending HOME + SHIFT END + DELETE.
+ * Clears active input/textarea by sending CTRL HOME + CTRL + SHIFT END + DELETE.
  */
 export async function clearInput() {
-  return sendKeys(Key.HOME, Key.chord(Key.SHIFT, Key.END), Key.DELETE);
+  const ctrl = await modKey();
+  return sendKeys(Key.chord(ctrl, Key.HOME), Key.chord(ctrl, Key.SHIFT, Key.END), Key.DELETE);
 }
 
 /**
@@ -2045,6 +2055,13 @@ export class Session {
       return createHomeApi(null, this.settings.orgDomain);
     }
     return createHomeApi(this.settings.name, this.settings.orgDomain, this.settings.email);
+  }
+
+  public getApiKey(): string|null {
+    if (this.settings.email === 'anon@getgrist.com') {
+      return getApiKey(null);
+    }
+    return getApiKey(this.settings.name, this.settings.email);
   }
 
   // Get the id of this user.

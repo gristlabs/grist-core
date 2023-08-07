@@ -39,8 +39,8 @@ RUN yarn run build:prod
 ## Python collection stage
 ################################################################################
 
-# Fetch python3.9 and python2.7
-FROM python:3.9-slim-buster as collector
+# Fetch python3.11 and python2.7
+FROM python:3.11-slim-buster as collector
 
 # Install all python dependencies.
 ADD sandbox/requirements.txt requirements.txt
@@ -89,13 +89,13 @@ COPY --from=builder /grist/static /grist/static-built
 COPY --from=collector /usr/bin/python2.7 /usr/bin/python2.7
 COPY --from=collector /usr/lib/python2.7 /usr/lib/python2.7
 COPY --from=collector /usr/local/lib/python2.7 /usr/local/lib/python2.7
-COPY --from=collector /usr/local/bin/python3.9 /usr/bin/python3.9
-COPY --from=collector /usr/local/lib/python3.9 /usr/local/lib/python3.9
-COPY --from=collector /usr/local/lib/libpython3.9.* /usr/local/lib/
+COPY --from=collector /usr/local/bin/python3.11 /usr/bin/python3.11
+COPY --from=collector /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=collector /usr/local/lib/libpython3.11.* /usr/local/lib/
 # Set default to python3
 RUN \
-  ln -s /usr/bin/python3.9 /usr/bin/python && \
-  ln -s /usr/bin/python3.9 /usr/bin/python3 && \
+  ln -s /usr/bin/python3.11 /usr/bin/python && \
+  ln -s /usr/bin/python3.11 /usr/bin/python3 && \
   ldconfig
 
 # Copy runsc.

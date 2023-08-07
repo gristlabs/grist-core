@@ -5,7 +5,6 @@
  * to be pre-entered for certain transforms (to Reference / Date) which the user can modify via dropdown menus.
  */
 
-import * as AceEditor from 'app/client/components/AceEditor';
 import {ColumnTransform} from 'app/client/components/ColumnTransform';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as TypeConversion from 'app/client/components/TypeConversion';
@@ -50,12 +49,7 @@ export class TypeTransform extends ColumnTransform {
   public buildDom() {
     // An observable to disable all buttons before the dom get removed.
     const disableButtons = Observable.create(null, false);
-
     this._reviseTypeChange.set(false);
-    this.editor = this.autoDispose(AceEditor.create({
-      gristDoc: this.gristDoc,
-      observable: this.transformColumn.formula,
-    }));
     return dom('div',
       testId('type-transform-top'),
       dom.maybe(this._transformWidget, transformWidget => transformWidget.buildTransformConfigDom()),
@@ -71,7 +65,7 @@ export class TypeTransform extends ColumnTransform {
         ),
         dom.domComputed(this._reviseTypeChange, revising => {
           if (revising) {
-            return basicButton(dom.on('click', () => this.editor.writeObservable()),
+            return basicButton(dom.on('click', () => this.preview()),
               t('Preview'), testId("type-transform-update"),
               dom.cls('disabled', (use) => use(disableButtons) || use(this.formulaUpToDate)),
               { title: t('Update formula (Shift+Enter)') }

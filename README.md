@@ -43,7 +43,7 @@ Here are some specific feature highlights of Grist:
     - Any tool that can read SQLite can read numeric and text data from a Grist file.
     - Great format for [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can be confident you can restore in full.
     - Great format for moving between different hosts.
-  - Can be displayed on a static website with [grist-static](https://github.com/gristlabs/grist-static).
+  - Can be displayed on a static website with [grist-static](https://github.com/gristlabs/grist-static), no special server needed.
   - There's a self-contained desktop app available for viewing and editing: [grist-electron](https://github.com/gristlabs/grist-electron).
   * Convenient editing and formatting features.
     - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records without fuss.
@@ -65,6 +65,7 @@ Here are some specific feature highlights of Grist:
     - A [REST API](https://support.getgrist.com/api/), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
     - Import/export to Google drive, Excel format, CSV.
     - Can link data with custom widgets hosted externally.
+    - You can set up outgoing webhooks.
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
     - (You'll need SSO logins set up to make use of these options; [grist-omnibus](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
@@ -78,8 +79,11 @@ Here are some specific feature highlights of Grist:
       [gVisor](https://github.com/google/gvisor) sandboxing at the individual
       document level.
     - On OSX, you can use native sandboxing.
-  - On any OS, including Windows, you can use a wasm-based sandbox.
+    - On any OS, including Windows, you can use a wasm-based sandbox.
   * Translated to many languages.
+  * Support for an AI Formula Assistant (using OpenAI gpt-3.5-turbo).
+  * `F1` key brings up some quick help. This used to go without saying. In general Grist has good keyboard support.
+  * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist).
 
 If you are curious about where Grist is going heading,
 see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a
@@ -377,7 +381,7 @@ Then, you can run the main test suite like so:
 yarn test
 ```
 
-Python tests may also be run locally. (Note: currently requires Python 3.9.)
+Python tests may also be run locally. (Note: currently requires Python 3.9 - 3.11.)
 
 ```
 yarn test:python

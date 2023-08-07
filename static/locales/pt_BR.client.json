@@ -77,7 +77,10 @@
         "Activation": "Ativação",
         "Billing Account": "Conta de faturamento",
         "Support Grist": "Suporte Grist",
-        "Upgrade Plan": "Atualizar o Plano"
+        "Upgrade Plan": "Atualizar o Plano",
+        "Sign Up": "Cadastre-se",
+        "Use This Template": "Use este modelo",
+        "Sign In": "Ingressar"
     },
     "ActionLog": {
         "Action Log failed to load": "Falha ao carregar o Log de Ações",
@@ -108,7 +111,8 @@
         "Home Page": "Página inicial",
         "Legacy": "Legado",
         "Personal Site": "Site pessoal",
-        "Team Site": "Site da Equipe"
+        "Team Site": "Site da Equipe",
+        "Grist Templates": "Modelos de Grist"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Este site da equipe está suspenso. Os documentos podem ser lidos, mas não modificados."
@@ -428,7 +432,8 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
         "Import from file": "Importação de arquivo",
-        "Saved linked section {{title}} in view {{name}}": "Seção vinculada salva {{title}} em exibição {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Seção vinculada salva {{title}} em exibição {{name}}",
+        "go to webhook settings": "ir para configurações webhook"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", ou encontre um especialista através do nosso",
@@ -1114,8 +1119,8 @@
         "Hi, I'm the Grist Formula AI Assistant.": "Olá, sou o Assistente de IA de Fórmula Grist.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Só posso ajudar com fórmulas. Não posso criar tabelas, colunas e exibições, nem escrever regras de acesso.",
         "Press Enter to apply suggested formula.": "Pressione Enter para aplicar a fórmula sugerida.",
-        "Sign Up for Free": "Inscreva-se gratuitamente",
-        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Inscreva-se para uma conta gratuita do Grist para começar a usar o Assistente de Fórmula AI.",
+        "Sign Up for Free": "Cadastre-se gratuitamente",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Cadastre-se para uma conta gratuita do Grist para começar a usar o Assistente de Fórmula AI.",
         "What do you need help with?": "Em que você precisa de ajuda?",
         "There are some things you should know when working with me:": "Há algumas coisas que você deve saber ao trabalhar comigo:",
         "Learn more": "Saiba mais"

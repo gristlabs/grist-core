@@ -11,10 +11,10 @@ import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
+import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
-import {getTemplateOrg} from 'app/server/lib/sendAppPage';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
 
 import {User} from './entity/User';

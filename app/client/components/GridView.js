@@ -1125,7 +1125,7 @@ GridView.prototype.buildDom = function() {
                   if (btn) { btn.click(); }
                 }),
                 dom('div.g-column-label',
-                  kd.scope(field.description, desc => desc ? descriptionInfoTooltip(kd.text(field.description), "column") : null),
+                  kd.scope(field.description, desc => desc ? descriptionInfoTooltip(desc, "column") : null),
                   dom.on('mousedown', ev => isEditingLabel() ? ev.stopPropagation() : true),
                   // We are using editableLabel here, but we don't use it for editing.
                   kf.editableLabel(self.isPreview ? field.label : field.displayLabel, ko.observable(false)),

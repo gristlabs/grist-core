@@ -42,6 +42,7 @@ describe("GridOptions.ntest", function() {
     await gu.supportOldTimeyTestCode();
     await gu.useFixtureDoc(cleanup, "World-v10.grist", true);
     await $('.test-gristdoc').wait();
+    await gu.hideBanners();
   });
 
   beforeEach(async function() {
@@ -109,6 +110,7 @@ describe("GridOptions.ntest", function() {
     await driver.navigate().refresh();
     //await $.injectIntoPage();
     await gu.waitForDocToLoad();
+    await gu.hideBanners();
     await assertHVZ(0, true, true, true);     // all on
     await assertHVZ(1, false, false, false);  // all off
     await assertHVZ(2, false, true, true);    // -h +v +z

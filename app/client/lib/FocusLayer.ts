@@ -10,7 +10,7 @@
 import * as Mousetrap from 'app/client/lib/Mousetrap';
 import {arrayRemove} from 'app/common/gutil';
 import {RefCountMap} from 'app/common/RefCountMap';
-import {Disposable, dom} from 'grainjs';
+import {Disposable, dom, DomMethod} from 'grainjs';
 
 /**
  * The default focus is organized into layers. A layer determines when focus should move to the
@@ -134,6 +134,17 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
   // FocusLayer.grabFocus() allows triggering the focus check manually.
   public static grabFocus() {
     _focusLayerManager.get(null)?.grabFocus();
+  }
+
+  /**
+   * Creates a new FocusLayer and attaches it to the given element. The layer will be disposed
+   * automatically when the element is removed from the DOM.
+   */
+  public static attach(options: Partial<FocusLayerOptions>): DomMethod<HTMLElement> {
+    return (element: HTMLElement) => {
+      const layer = FocusLayer.create(null, {defaultFocusElem: element, ...options});
+      dom.autoDisposeElem(element, layer);
+    };
   }
 
   public defaultFocusElem: HTMLElement;

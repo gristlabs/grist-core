@@ -1,4 +1,5 @@
 import { Command } from 'app/client/components/commands';
+import { FocusLayer } from 'app/client/lib/FocusLayer';
 import { makeT } from 'app/client/lib/localization';
 import { NeedUpgradeError, reportError } from 'app/client/models/errors';
 import { textButton } from 'app/client/ui2018/buttons';
@@ -203,6 +204,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
     return cssMultiSelectMenu(
       { tabindex: '-1' }, // Allow menu to be focused.
       dom.cls(menuCssClass),
+      FocusLayer.attach({pauseMousetrap: true}),
       dom.onKeyDown({
         Enter: () => ctl.close(),
         Escape: () => ctl.close()
@@ -508,12 +510,6 @@ const cssSelectBtnLink = styled('div', `
   }
 `);
 
-const cssOptionIcon = styled(icon, `
-  height: 16px;
-  width: 16px;
-  background-color: ${theme.menuItemIconFg};
-  margin: -3px 8px 0 2px;
-`);
 
 export const cssOptionRow = styled('span', `
   display: flex;
@@ -521,7 +517,11 @@ export const cssOptionRow = styled('span', `
   width: 100%;
 `);
 
-export const cssOptionRowIcon = styled(cssOptionIcon, `
+export const cssOptionRowIcon = styled(icon, `
+  height: 16px;
+  width: 16px;
+  background-color: var(--icon-color, ${theme.menuItemIconFg});
+  margin: -3px 8px 0 2px;
   margin: 0 8px 0 0;
   flex: none;
 

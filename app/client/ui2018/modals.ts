@@ -524,17 +524,35 @@ export const cssModalTooltip = styled(cssMenuElem, `
   }
 `);
 
+export const cssModalTopPadding = styled('div', `
+  padding-top: var(--css-modal-dialog-padding-vertical);
+`);
+
+export const cssModalBottomPadding = styled('div', `
+  padding-bottom: var(--css-modal-dialog-padding-vertical);
+`);
+
+export const cssModalHorizontalPadding = styled('div', `
+  padding-left: var(--css-modal-dialog-padding-horizontal);
+  padding-right: var(--css-modal-dialog-padding-horizontal);
+`);
+
 // For centering, we use 'margin: auto' on the flex item instead of 'justify-content: center' on
 // the flex container, to ensure the full item can be scrolled in case of overflow.
 // See https://stackoverflow.com/a/33455342/328565
-const cssModalDialog = styled('div', `
+//
+// If you want to control the padding yourself, use the cssModalTopPadding and other classes above and add -full-body
+// variant to the modal.
+export const cssModalDialog = styled('div', `
+  --css-modal-dialog-padding-horizontal: 64px;
+  --css-modal-dialog-padding-vertical: 40px;
   background-color: ${theme.modalBg};
   min-width: 428px;
   color: ${theme.darkText};
   margin: auto;
   border-radius: 3px;
   box-shadow: 0 2px 18px 0 ${theme.modalInnerShadow}, 0 0 1px 0 ${theme.modalOuterShadow};
-  padding: 40px 64px;
+  padding: var(--css-modal-dialog-padding-vertical) var(--css-modal-dialog-padding-horizontal);
   outline: none;
 
   &-normal {
@@ -552,8 +570,12 @@ const cssModalDialog = styled('div', `
     & {
       width: unset;
       min-width: unset;
-      padding: 24px 16px;
+      --css-modal-dialog-padding-horizontal: 16px;
+      --css-modal-dialog-padding-vertical: 24px;
     }
+  }
+  &-full-body {
+    padding: 0;
   }
 `);
 

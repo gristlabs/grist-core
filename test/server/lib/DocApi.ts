@@ -4359,9 +4359,7 @@ async function getWorkspaceId(api: UserAPIImpl, name: string) {
   return workspaces.find((w) => w.name === name)!.id;
 }
 
-// TODO: deal with safe port allocation
-const webhooksTestPort = 34365;
-
+const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT);
 
 async function setupDataDir(dir: string) {
   // we'll be serving Hello.grist content for various document ids, so let's make copies of it in

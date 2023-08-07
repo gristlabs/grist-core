@@ -999,7 +999,7 @@ const FAKETIME = '2020-01-01 00:00:00';
  * Find a plausible version of python to run, if none provided.
  * The preferred version is only used if command is not specified.
  */
-function findPython(command: string|undefined, preferredVersion?: string) {
+function findPython(command: string|undefined, preferredVersion?: string): string {
   if (command) { return command; }
   // No command specified.  In this case, grist-core looks for a "venv"
   // virtualenv; a python3 virtualenv would be in "sandbox_venv3".
@@ -1021,9 +1021,14 @@ function findPython(command: string|undefined, preferredVersion?: string) {
     }
   }
   // Fall back on system python.
-  return which.sync(preferredVersion === '2' ? 'python2' : 'python3', {nothrow: true})
-    || which.sync(preferredVersion === '2' ? 'python2.7' : 'python3.9', {nothrow: true})
-    || which.sync('python');
+  const systemPrefs = preferredVersion === '2' ? ['2.7', '2', ''] : ['3.11', '3.10', '3.9', '3', ''];
+  for (const version of systemPrefs) {
+    const pythonPath = which.sync(`python${version}`, {nothrow: true});
+    if (pythonPath) {
+      return pythonPath;
+    }
+  }
+  throw new Error('Cannot find Python');
 }
 
 /**
