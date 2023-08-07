@@ -479,7 +479,11 @@
     "Importer": {
         "Merge rows that match these fields:": "Zeilen zusammenführen, die mit diesen Feldern übereinstimmen:",
         "Select fields to match on": "Wählen Sie Felder zum Abgleichen aus",
-        "Update existing records": "Vorhandene Datensätze aktualisieren"
+        "Update existing records": "Vorhandene Datensätze aktualisieren",
+        "{{count}} unmatched field in import_other": "{{count}} unangepasste Felder im Import",
+        "{{count}} unmatched field_one": "{{count}} unangepasstes Feld",
+        "{{count}} unmatched field_other": "{{count}} unangepasste Felder",
+        "{{count}} unmatched field in import_one": "{{count}} unangepasst Feld im Import"
     },
     "LeftPanelCommon": {
         "Help Center": "Hilfe-Center"
