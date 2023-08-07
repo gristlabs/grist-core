@@ -89,4 +89,24 @@ describe('HeaderColor', function () {
     assert.equal(await columnHeader.getCssValue('color'), 'rgba(255, 0, 0, 1)');
     assert.equal(await columnHeader.getCssValue('background-color'), 'rgba(0, 0, 255, 1)');
   });
+
+  it('should not exist in Detail view', async function () {
+    // Color the A column in Grid View
+    const columnHeader = gu.getColumnHeader('A');
+    await columnHeader.click();
+    await gu.openHeaderColorPicker();
+    await gu.setColor(driver.find('.test-text-input'), 'rgb(255, 0, 0)');
+    await driver.sendKeys(Key.ENTER);
+
+    // Add a card list widget of Table1
+    await gu.addNewSection(/Card List/, /Table1/);
+
+    // check header colors
+    const detailHeader = await driver.findContent('.g_record_detail_label', gu.exactMatch('A'));
+    assert.equal(await detailHeader.getCssValue('color'), 'rgba(146, 146, 153, 1)');
+
+    // There is no header color picker
+    assert.isFalse(await driver.find('.test-header-color-select .test-color-select').isPresent());
+
+  });
 });
