@@ -405,7 +405,8 @@ describe('MultiColumn', function() {
       await gu.assertHeaderFillColor('Test1', blue);
       await gu.assertHeaderFillColor('Test2', blue);
       await driver.sendKeys(Key.ESCAPE);
-      await gu.assertHeaderFillColor('Test1', transparent);
+      const defaultHeaderFillColor = 'rgba(247, 247, 247, 1)';
+      await gu.assertHeaderFillColor('Test1', defaultHeaderFillColor);
       await gu.assertHeaderFillColor('Test2', transparent);
       assert.equal(await headerColorLabel(), "Default header style");
 
