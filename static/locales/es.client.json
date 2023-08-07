@@ -782,7 +782,11 @@
     "Importer": {
         "Merge rows that match these fields:": "Combinar filas que coincidan con estos campos:",
         "Select fields to match on": "Seleccionar campos para que coincidan",
-        "Update existing records": "Actualizar los registros existentes"
+        "Update existing records": "Actualizar los registros existentes",
+        "{{count}} unmatched field in import_one": "{{count}} campo no coincide con la importación",
+        "{{count}} unmatched field_one": "{{count}} campo sin equivalente",
+        "{{count}} unmatched field_other": "{{count}} campos sin equivalentes",
+        "{{count}} unmatched field in import_other": "{{count}} campos sin equivalente en la importación"
     },
     "PermissionsWidget": {
         "Allow All": "Permitir todo",
