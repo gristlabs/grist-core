@@ -479,7 +479,11 @@
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
         "Select fields to match on": "Selecione os campos a serem correspondidos em",
-        "Update existing records": "Atualizar os registros existentes"
+        "Update existing records": "Atualizar os registros existentes",
+        "{{count}} unmatched field_other": "{{count}} campos sem equivalente",
+        "{{count}} unmatched field in import_other": "{{count}} campos sem equivalente na importação",
+        "{{count}} unmatched field in import_one": "{{count}} campo sem equivalente na importação",
+        "{{count}} unmatched field_one": "{{count}} campo sem equivalente"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de Ajuda"
