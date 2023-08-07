@@ -451,7 +451,18 @@
         "{{count}} unmatched field in import_one": "{{count}} unmatched field in import",
         "{{count}} unmatched field in import_other": "{{count}} unmatched fields in import",
         "{{count}} unmatched field_one": "{{count}} unmatched field",
-        "{{count}} unmatched field_other": "{{count}} unmatched fields"
+        "{{count}} unmatched field_other": "{{count}} unmatched fields",
+        "Column Mapping": "Column Mapping",
+        "Column mapping": "Column mapping",
+        "Destination table": "Destination table",
+        "Grist column": "Grist column",
+        "Import from file": "Import from file",
+        "New Table": "New Table",
+        "Revert": "Revert",
+        "Skip": "Skip",
+        "Skip Import": "Skip Import",
+        "Skip Table on Import": "Skip Table on Import",
+        "Source column": "Source column"
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center"
