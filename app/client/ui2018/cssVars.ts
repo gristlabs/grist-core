@@ -344,6 +344,7 @@ export const theme = {
     colors.selectionOpaque),
   selectionOpaqueDarkBg: new CustomProp('theme-selection-opaque-dark-bg', undefined,
     colors.selectionDarkerOpaque),
+  selectionHeader: new CustomProp('theme-selection-header', undefined, colors.mediumGrey),
 
   /* Widgets */
   widgetBg: new CustomProp('theme-widget-bg', undefined, 'white'),

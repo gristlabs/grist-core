@@ -1073,8 +1073,28 @@ GridView.prototype.buildDom = function() {
                 self.editingFormula() &&
                 ko.unwrap(self.hoverColumn) === field._index()
               );
+
+              const headerTextColor = ko.computed(() => field.headerTextColor() || '');
+              const headerFillColor = ko.computed(() => field.headerFillColor() || '');
+              const headerFontBold = ko.computed(() => field.headerFontBold());
+              const headerFontItalic = ko.computed(() => field.headerFontItalic());
+              const headerFontUnderline = ko.computed(() => field.headerFontUnderline());
+              const headerFontStrikethrough = ko.computed(() => field.headerFontStrikethrough());
+
               return dom(
                 'div.column_name.field',
+                dom.autoDispose(headerTextColor),
+                dom.autoDispose(headerFillColor),
+                dom.autoDispose(headerFontBold),
+                dom.autoDispose(headerFontItalic),
+                dom.autoDispose(headerFontUnderline),
+                dom.autoDispose(headerFontStrikethrough),
+                kd.style('--grist-header-color', headerTextColor),
+                kd.style('--grist-header-background-color', headerFillColor),
+                kd.toggleClass('font-bold', headerFontBold),
+                kd.toggleClass('font-italic', headerFontItalic),
+                kd.toggleClass('font-underline', headerFontUnderline),
+                kd.toggleClass('font-strikethrough', headerFontStrikethrough),
                 kd.style('--frozen-position', () => ko.unwrap(this.frozenPositions.at(field._index()))),
                 kd.toggleClass("frozen", () => ko.unwrap(this.frozenMap.at(field._index()))),
                 kd.toggleClass("hover-column", isTooltip),

@@ -2203,15 +2203,30 @@ export async function clickAway() {
 }
 
 /**
- * Opens a color picker, either the default one or the one for a specific style rule.
+ * Opens the header color picker.
  */
-export function openColorPicker(nr?: number) {
+export function openHeaderColorPicker() {
+  return driver.find('.test-header-color-select .test-color-select').click();
+}
+
+export async function assertHeaderTextColor(col: string, color: string) {
+  await assertTextColor(await getColumnHeader(col), color);
+}
+
+export async function assertHeaderFillColor(col: string, color: string) {
+  await assertFillColor(await getColumnHeader(col), color);
+}
+
+/**
+ * Opens a cell color picker, either the default one or the one for a specific style rule.
+ */
+export function openCellColorPicker(nr?: number) {
   if (nr !== undefined) {
     return driver
-      .find(`.test-widget-style-conditional-rule-${nr} .test-color-select`)
+      .find(`.test-widget-style-conditional-rule-${nr} .test-cell-color-select  .test-color-select`)
       .click();
   }
-  return driver.find('.test-color-select').click();
+  return driver.find('.test-cell-color-select .test-color-select').click();
 }
 
 export async function assertCellTextColor(col: string, row: number, color: string) {

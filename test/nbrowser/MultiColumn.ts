@@ -86,7 +86,7 @@ describe('MultiColumn', function() {
       await gu.getCell('Test2', 3).click();
       await gu.enterCell('Table1', Key.ENTER);
       await selectColumns('Test1', 'Test2');
-      await gu.openColorPicker();
+      await gu.openCellColorPicker();
       await gu.setFillColor(blue);
       // Clicking on one of the cell caused that the color was not saved.
       await gu.getCell('Test2', 1).click();
@@ -346,21 +346,21 @@ describe('MultiColumn', function() {
       await removeColumn('Test1');
       await removeColumn('Test2');
     });
-    it('should change background for multiple columns', async () => {
+    it('should change cell background for multiple columns', async () => {
       await selectColumns('Test1', 'Test2');
-      assert.equal(await colorLabel(), "Default cell style");
-      await gu.openColorPicker();
+      assert.equal(await cellColorLabel(), "Default cell style");
+      await gu.openCellColorPicker();
       await gu.setFillColor(blue);
       await gu.assertFillColor(await gu.getCell('Test1', 1).find(".field_clip"), blue);
       await gu.assertFillColor(await gu.getCell('Test2', 1).find(".field_clip"), blue);
       await driver.sendKeys(Key.ESCAPE);
       await gu.assertFillColor(await gu.getCell('Test1', 1).find(".field_clip"), transparent);
       await gu.assertFillColor(await gu.getCell('Test2', 1).find(".field_clip"), transparent);
-      assert.equal(await colorLabel(), "Default cell style");
+      assert.equal(await cellColorLabel(), "Default cell style");
 
       // Change one cell to red
       await selectColumns('Test1');
-      await gu.openColorPicker();
+      await gu.openCellColorPicker();
       await gu.setFillColor(red);
       await driver.sendKeys(Key.ENTER);
       await gu.waitForServer();
@@ -369,9 +369,9 @@ describe('MultiColumn', function() {
 
       // Check label and colors for multicolumn selection.
       await selectColumns('Test1', 'Test2');
-      assert.equal(await colorLabel(), "Mixed style");
+      assert.equal(await cellColorLabel(), "Mixed style");
       // Try to change to blue, but press escape.
-      await gu.openColorPicker();
+      await gu.openCellColorPicker();
       await gu.setFillColor(blue);
       await gu.assertFillColor(await gu.getCell('Test1', 1).find(".field_clip"), blue);
       await gu.assertFillColor(await gu.getCell('Test2', 1).find(".field_clip"), blue);
@@ -381,20 +381,72 @@ describe('MultiColumn', function() {
       await gu.assertFillColor(await gu.getCell('Test2', 1).find(".field_clip"), transparent);
 
       // Change both colors.
-      await gu.openColorPicker();
+      await gu.openCellColorPicker();
       await gu.setFillColor(blue);
       await driver.sendKeys(Key.ENTER);
       await gu.waitForServer();
-      assert.equal(await colorLabel(), "Default cell style");
+      assert.equal(await cellColorLabel(), "Default cell style");
       await gu.assertFillColor(await gu.getCell('Test1', 1).find(".field_clip"), blue);
       await gu.assertFillColor(await gu.getCell('Test2', 1).find(".field_clip"), blue);
 
       // Make sure they stick.
       await driver.navigate().refresh();
       await gu.waitForDocToLoad();
-      assert.equal(await colorLabel(), "Default cell style");
+      assert.equal(await cellColorLabel(), "Default cell style");
       await gu.assertFillColor(await gu.getCell('Test1', 1).find(".field_clip"), blue);
       await gu.assertFillColor(await gu.getCell('Test2', 1).find(".field_clip"), blue);
+    });
+
+    it('should change header background for multiple columns', async () => {
+      const defaultHeaderFillColor = 'rgba(247, 247, 247, 1)';
+      await selectColumns('Test1', 'Test2');
+      assert.equal(await headerColorLabel(), "Default header style");
+      await gu.openHeaderColorPicker();
+      await gu.setFillColor(blue);
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
+      await driver.sendKeys(Key.ESCAPE);
+      await gu.assertHeaderFillColor('Test1', defaultHeaderFillColor);
+      await gu.assertHeaderFillColor('Test2', defaultHeaderFillColor);
+      assert.equal(await headerColorLabel(), "Default header style");
+
+      // Change one header to red
+      await selectColumns('Test1');
+      await gu.openHeaderColorPicker();
+      await gu.setFillColor(red);
+      await driver.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+      await gu.assertHeaderFillColor('Test1', red);
+      await gu.assertHeaderFillColor('Test2', defaultHeaderFillColor);
+
+      // Check label and colors for multicolumn selection.
+      await selectColumns('Test1', 'Test2');
+      assert.equal(await headerColorLabel(), "Mixed style");
+      // Try to change to blue, but press escape.
+      await gu.openHeaderColorPicker();
+      await gu.setFillColor(blue);
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
+      await driver.sendKeys(Key.ESCAPE);
+
+      await gu.assertHeaderFillColor('Test1', red);
+      await gu.assertHeaderFillColor('Test2', defaultHeaderFillColor);
+
+      // Change both colors.
+      await gu.openHeaderColorPicker();
+      await gu.setFillColor(blue);
+      await driver.sendKeys(Key.ENTER);
+      await gu.waitForServer();
+      assert.equal(await headerColorLabel(), "Default header style");
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
+
+      // Make sure they stick.
+      await driver.navigate().refresh();
+      await gu.waitForDocToLoad();
+      assert.equal(await headerColorLabel(), "Default header style");
+      await gu.assertHeaderFillColor('Test1', blue);
+      await gu.assertHeaderFillColor('Test2', blue);
     });
   });
 
@@ -1344,8 +1396,14 @@ async function slider(value?: number) {
   return parseInt(await driver.find(".test-pw-thumbnail-size").getAttribute('value'));
 }
 
-async function colorLabel() {
+async function cellColorLabel() {
   // Text actually contains T symbol before.
-  const label = await driver.find(".test-color-select").getText();
+  const label = await driver.find(".test-cell-color-select .test-color-select").getText();
+  return label.replace(/^T/, '').trim();
+}
+
+async function headerColorLabel() {
+  // Text actually contains T symbol before.
+  const label = await driver.find(".test-header-color-select .test-color-select").getText();
   return label.replace(/^T/, '').trim();
 }
