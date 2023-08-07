@@ -51,8 +51,8 @@ function backupEnvironmentVariables() {
   });
 }
 
-const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT);
-const webhooksTestProxyPort = Number(process.env.WEBHOOK_TEST_PROXY_PORT);
+const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
+const webhooksTestProxyPort = Number(process.env.WEBHOOK_TEST_PROXY_PORT || 22335);
 
 describe('Webhooks-Proxy', function () {
   // A testDir of the form grist_test_{USER}_{SERVER_NAME}
