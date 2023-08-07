@@ -398,6 +398,7 @@ describe('MultiColumn', function() {
     });
 
     it('should change header background for multiple columns', async () => {
+      const defaultHeaderFillColor = 'rgba(247, 247, 247, 1)';
       await selectColumns('Test1', 'Test2');
       assert.equal(await headerColorLabel(), "Default header style");
       await gu.openHeaderColorPicker();
@@ -405,9 +406,8 @@ describe('MultiColumn', function() {
       await gu.assertHeaderFillColor('Test1', blue);
       await gu.assertHeaderFillColor('Test2', blue);
       await driver.sendKeys(Key.ESCAPE);
-      const defaultHeaderFillColor = 'rgba(247, 247, 247, 1)';
       await gu.assertHeaderFillColor('Test1', defaultHeaderFillColor);
-      await gu.assertHeaderFillColor('Test2', transparent);
+      await gu.assertHeaderFillColor('Test2', defaultHeaderFillColor);
       assert.equal(await headerColorLabel(), "Default header style");
 
       // Change one header to red
@@ -417,7 +417,7 @@ describe('MultiColumn', function() {
       await driver.sendKeys(Key.ENTER);
       await gu.waitForServer();
       await gu.assertHeaderFillColor('Test1', red);
-      await gu.assertHeaderFillColor('Test2', transparent);
+      await gu.assertHeaderFillColor('Test2', defaultHeaderFillColor);
 
       // Check label and colors for multicolumn selection.
       await selectColumns('Test1', 'Test2');
@@ -430,7 +430,7 @@ describe('MultiColumn', function() {
       await driver.sendKeys(Key.ESCAPE);
 
       await gu.assertHeaderFillColor('Test1', red);
-      await gu.assertHeaderFillColor('Test2', transparent);
+      await gu.assertHeaderFillColor('Test2', defaultHeaderFillColor);
 
       // Change both colors.
       await gu.openHeaderColorPicker();
