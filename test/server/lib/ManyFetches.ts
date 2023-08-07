@@ -2,6 +2,7 @@ import {GristWSConnection} from 'app/client/components/GristWSConnection';
 import {TableFetchResult} from 'app/common/ActiveDocAPI';
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {delay} from 'app/common/delay';
+import {cookieName} from 'app/server/lib/gristSessions';
 import * as log from 'app/server/lib/log';
 import {getGristConfig} from 'test/gen-server/testUtils';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
@@ -159,13 +160,13 @@ describe('ManyFetches', function() {
   async function prepareGristWSConnection(docId: string): Promise<() => GristWSConnection> {
     // Use cookies for access to stay as close as possible to regular operation.
     const resp = await fetch(`${home.serverUrl}/test/session`);
-    const sid = cookie.parse(resp.headers.get('set-cookie')).grist_sid;
+    const sid = cookie.parse(resp.headers.get('set-cookie'))[cookieName]
     if (!sid) { throw new Error('no session available'); }
     await home.testingHooks.setLoginSessionProfile(sid, {name: userName, email}, org);
 
     // Load the document html.
     const pageUrl = `${home.serverUrl}/o/docs/doc/${docId}`;
-    const headers = {Cookie: `grist_sid=${sid}`};
+    const headers = {Cookie: `${cookieName}=${sid}`};
     const doc = await fetch(pageUrl, {headers});
     const pageBody = await doc.text();
 
