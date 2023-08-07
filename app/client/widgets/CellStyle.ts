@@ -4,7 +4,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
-import {theme, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {ConditionalStyle} from 'app/client/widgets/ConditionalStyle';
 import {Computed, Disposable, dom, DomContents, fromKo, styled} from 'grainjs';
 
@@ -21,12 +21,61 @@ export class CellStyle extends Disposable {
   }
 
   public buildDom(): DomContents {
+    const isTableWidget = this._field.viewSection().parentKey() === 'record';
     return [
+      dom.maybe(use => isTableWidget, () => {
+        return [
+          cssLine(
+            cssLabel(t('HEADER STYLE')),
+          ),
+          cssRow(
+            testId('header-color-select'),
+            dom.domComputedOwned(fromKo(this._field.config.headerStyle), (holder, options) => {
+              const headerTextColor = fromKo(options.prop("headerTextColor"));
+              const headerFillColor = fromKo(options.prop("headerFillColor"));
+              const headerFontBold = fromKo(options.prop("headerFontBold"));
+              const headerFontUnderline = fromKo(options.prop("headerFontUnderline"));
+              const headerFontItalic = fromKo(options.prop("headerFontItalic"));
+              const headerFontStrikethrough = fromKo(options.prop("headerFontStrikethrough"));
+              const hasMixedStyle = Computed.create(holder, use => {
+                if (!use(this._field.config.multiselect)) { return false; }
+                const commonStyle = [
+                  use(options.mixed('headerTextColor')),
+                  use(options.mixed('headerFillColor')),
+                  use(options.mixed('headerFontBold')),
+                  use(options.mixed('headerFontUnderline')),
+                  use(options.mixed('headerFontItalic')),
+                  use(options.mixed('headerFontStrikethrough'))
+                ];
+                return commonStyle.some(Boolean);
+              });
+              return colorSelect(
+                {
+                  textColor: new ColorOption(
+                    { color: headerTextColor, defaultColor: this._defaultTextColor, noneText: 'default' }
+                  ),
+                  fillColor: new ColorOption(
+                    { color: headerFillColor, allowsNone: true, noneText: 'none' }
+                  ),
+                  fontBold: headerFontBold,
+                  fontItalic: headerFontItalic,
+                  fontUnderline: headerFontUnderline,
+                  fontStrikethrough: headerFontStrikethrough
+                }, {
+                onSave: () => options.save(),
+                onRevert: () => options.revert(),
+                placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default header style')
+              }
+              );
+            }),
+          )];
+      }),
       cssLine(
         cssLabel(t('CELL STYLE')),
         cssButton(t('Open row styles'), dom.on('click', allCommands.viewTabOpen.run)),
       ),
       cssRow(
+        testId('cell-color-select'),
         dom.domComputedOwned(fromKo(this._field.config.style), (holder, options) => {
           const textColor = fromKo(options.prop("textColor"));
           const fillColor = fromKo(options.prop("fillColor"));

@@ -195,8 +195,11 @@
 }
 
 .column_name {
-  color: var(--grist-theme-table-header-fg, unset);
-  background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey));
+  color: var(--grist-header-color,
+         var(--grist-theme-table-header-fg), unset);
+  background-color: var(--grist-header-background-color,
+                    var(--grist-theme-table-header-bg,
+                    var(--grist-color-light-grey)));
   text-align: center;
   cursor: pointer;
   /* Column headers always show vertical gridlines, to make it clear how to resize them */
@@ -207,9 +210,11 @@
   border-left-color: var(--grist-theme-table-header-border, var(--grist-color-dark-grey));
 }
 
-.column_name.selected {
-  color: var(--grist-theme-table-header-selected-fg, unset);
-  background-color: var(--grist-theme-table-header-selected-bg, var(--grist-color-medium-grey-opaque));
+.column_name.selected > .selection {
+  background-color: var(--grist-theme-selection-header);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .gridview_data_row_num.selected {

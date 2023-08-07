@@ -367,6 +367,9 @@
   visibility: hidden;
 }
 
+.column_name .menu_toggle {
+  z-index: 1;
+}
 /* Etc */
 
 .g-column-main-menu {
@@ -408,11 +411,13 @@
   width: 13px;
   height: 13px;
   margin-right: 4px;
+  z-index: 1;
 }
 
 .g-column-label .kf_editable_label {
   padding-left: 1px;
   padding-right: 1px;
+  z-index: 1;
 }
 
 .g-column-label-spacer {

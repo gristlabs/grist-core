@@ -17,6 +17,8 @@ export class ViewFieldConfig {
   public options: CommonOptions;
   /** Style options for a field or multiple fields  */
   public style: ko.Computed<StyleOptions>;
+  /** Header style options for a field or multiple fields  */
+  public headerStyle: ko.Computed<StyleOptions>;
 
   // Rest of the options mimic the same options from ViewFieldRec.
   public wrap: modelUtil.KoSaveableObservable<boolean|undefined>;
@@ -253,6 +255,68 @@ export class ViewFieldConfig {
         empty: prop => ko.pureComputed(() => allEmpty(fields.map(f => f.widgetOptionsJson.prop(prop)()))),
       });
       result.revert = () => { zip(fields, state).forEach(([f, s]) => f!.style(s!)); };
+      return result;
+    });
+
+    this.headerStyle = ko.pureComputed(() => {
+      const fields = this.fields();
+      const multiSelect = fields.length > 1;
+      const savableOptions = modelUtil.savingComputed({
+        read: () => {
+          // For one column, just proxy this to the field.
+          if (!multiSelect) {
+            return this._field.widgetOptionsJson();
+          }
+          // Assemble final json object.
+          const result: any = {};
+          // First get all widgetOption jsons from all columns/fields.
+          const optionList = fields.map(f => f.widgetOptionsJson());
+          // And fill only those that are common
+          for(const key of ['headerTextColor', 'headerFillColor', 'headerFontBold',
+                            'headerFontItalic', 'headerFontUnderline', 'headerFontStrikethrough']) {
+            // Setting null means that this options is there, but has no value.
+            result[key] = null;
+            // If all columns have the same value, use it.
+            if (allSame(optionList.map(v => v[key]))) {
+              result[key] = optionList[0][key] ?? null;
+            }
+          }
+          return result;
+        },
+        write: (setter, value) => {
+          if (!multiSelect) {
+            return setter(this._field.widgetOptionsJson, value);
+          }
+          // When the creator panel is saving widgetOptions, it will pass
+          // our virtual widgetObject, which has nulls for mixed values.
+          // If this option wasn't changed (set), we don't want to save it.
+          value = {...value};
+          for(const key of Object.keys(value)) {
+            if (value[key] === null) {
+              delete value[key];
+            }
+          }
+          // Now update all options, for all fields, by amending the options
+          // object from the field/column.
+          for(const item of fields) {
+            const previous = item.widgetOptionsJson.peek();
+            setter(item.widgetOptionsJson, {
+              ...previous,
+              ...value,
+            });
+          }
+        }
+      });
+      // Style picker needs to be able revert to previous value, if user cancels.
+      const state = fields.map(f => f.headerStyle.peek());
+      // We need some additional information about each property.
+      const result: StyleOptions = extendObservable(modelUtil.objObservable(savableOptions), {
+        // Property has mixed value, if not all options are the same.
+        mixed: prop => ko.pureComputed(() => !allSame(fields.map(f => f.widgetOptionsJson.prop(prop)()))),
+        // Property has empty value, if all options are empty (are null, undefined, empty Array or empty Object).
+        empty: prop => ko.pureComputed(() => allEmpty(fields.map(f => f.widgetOptionsJson.prop(prop)()))),
+      });
+      result.revert = () => { zip(fields, state).forEach(([f, s]) => f!.headerStyle(s!)); };
       return result;
     });
   }
