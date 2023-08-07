@@ -160,7 +160,7 @@ describe('ManyFetches', function() {
   async function prepareGristWSConnection(docId: string): Promise<() => GristWSConnection> {
     // Use cookies for access to stay as close as possible to regular operation.
     const resp = await fetch(`${home.serverUrl}/test/session`);
-    const sid = cookie.parse(resp.headers.get('set-cookie'))[cookieName]
+    const sid = cookie.parse(resp.headers.get('set-cookie'))[cookieName];
     if (!sid) { throw new Error('no session available'); }
     await home.testingHooks.setLoginSessionProfile(sid, {name: userName, email}, org);
 
