@@ -83,7 +83,7 @@ export const displayPlanName: { [key: string]: string } = {
   [PERSONAL_LEGACY_PLAN]: 'Free Personal (Legacy)',
   [PERSONAL_FREE_PLAN]: 'Free Personal',
   [TEAM_FREE_PLAN]: 'Team Free',
-  [TEAM_PLAN]: 'Team'
+  [TEAM_PLAN]: 'Pro'
 } as const;
 
 // Returns true if `planName` is for a personal product.

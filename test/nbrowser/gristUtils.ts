@@ -2223,7 +2223,7 @@ export async function assertHeaderFillColor(col: string, color: string) {
 export function openCellColorPicker(nr?: number) {
   if (nr !== undefined) {
     return driver
-      .find(`.test-widget-style-conditional-rule-${nr} .test-cell-color-select  .test-color-select`)
+      .find(`.test-widget-style-conditional-rule-${nr} .test-color-select`)
       .click();
   }
   return driver.find('.test-cell-color-select .test-color-select').click();
