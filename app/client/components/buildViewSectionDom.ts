@@ -93,6 +93,7 @@ export function buildViewSectionDom(options: {
       dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
         cssSigmaIcon('Pivot', testId('sigma'))),
       buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
+      dom("div", dom.style("flex", "1 0 0px")), //spacer, 0 size by default, grows to take up remaining space
       viewInstance.buildTitleControls(),
       dom('div.viewsection_buttons',
         dom.create(viewSectionMenu, gristDoc, vs)
