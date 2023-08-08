@@ -186,6 +186,7 @@ export class Housekeeper {
             numWorkspaces: Number(summary.num_workspaces),
             numMembers: Number(summary.num_members),
             lastActivity: summary.last_activity,
+            earliestDocCreatedAt: summary.earliest_doc_created_at,
           },
           full: {
             stripePlanId: summary.stripe_plan_id,
@@ -324,6 +325,7 @@ export class Housekeeper {
       .addSelect('COUNT(DISTINCT workspaces.id)', 'num_workspaces')
       .addSelect('COUNT(DISTINCT org_member_users.id)', 'num_members')
       .addSelect('MAX(docs.updated_at)', 'last_activity')
+      .addSelect('MIN(docs.created_at)', 'earliest_doc_created_at')
       .from(Organization, 'orgs')
       .leftJoin('orgs.workspaces', 'workspaces')
       .leftJoin('workspaces.docs', 'docs')

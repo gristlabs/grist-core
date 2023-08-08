@@ -137,6 +137,7 @@ export const ThemeColors = t.iface([], {
   "selection-opaque-fg": "string",
   "selection-opaque-bg": "string",
   "selection-opaque-dark-bg": "string",
+  "selection-header": "string",
   "widget-bg": "string",
   "widget-border": "string",
   "widget-active-border": "string",

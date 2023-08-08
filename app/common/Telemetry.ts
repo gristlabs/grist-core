@@ -761,6 +761,10 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'A timestamp of the most recent update made to a site document.',
         dataType: 'date',
       },
+      earliestDocCreatedAt: {
+        description: 'A timestamp of the earliest non-deleted document creation time.',
+        dataType: 'date',
+      },
     },
   },
   tutorialProgressChanged: {

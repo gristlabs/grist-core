@@ -23,6 +23,7 @@ describe('Telemetry', function() {
         numWorkspaces: 1,
         numMembers: 1,
         lastActivity: new Date('2022-12-30T01:23:45'),
+        earliestDocCreatedAt: new Date('2022-12-29T00:01:02'),
       }));
       assert.doesNotThrow(() => checker('watchedVideoTour', {
         watchTimeSeconds: 30,
@@ -54,6 +55,7 @@ describe('Telemetry', function() {
         numWorkspaces: 1,
         numMembers: 1,
         lastActivity: new Date('2022-12-30T01:23:45'),
+        earliestDocCreatedAt: new Date('2022-12-29T00:01:02'),
       }));
       assert.doesNotThrow(() => checker('watchedVideoTour', {
         watchTimeSeconds: 30,
