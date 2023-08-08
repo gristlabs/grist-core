@@ -23,7 +23,7 @@ import * as imports from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
-import {ViewSectionRec} from 'app/client/models/DocModel';
+import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkId, selectBy} from 'app/client/ui/selectBy';
@@ -41,10 +41,18 @@ import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {StringUnion} from 'app/common/StringUnion';
-import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
-        DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
+import {
+  bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
+  DomElementArg, DomElementMethod, IDomComponent
+} from 'grainjs';
 import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
 import * as ko from 'knockout';
+import {EmptyFilterState} from "../components/LinkingState";
+import {isFullReferencingType} from "../../common/gristTypes";
+
+// some unicode characters
+const BLACK_CIRCLE = '\u2022';
+const ELEMENTOF = '\u2208'; //220A for small elementof
 
 const t = makeT('RightPanel');
 
@@ -464,6 +472,205 @@ export class RightPanel extends Disposable {
     return dom.maybe(viewConfigTab, (vct) => vct.buildSortFilterDom());
   }
 
+  private _buildLinkInfo(owner: MultiHolder, activeSection: ViewSectionRec, ...domArgs: DomElementArg[]) {
+    const tgtSec = activeSection;
+    return dom.domComputed((use) => {
+
+        const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
+        const srcCol = use(tgtSec.linkSrcCol);
+        const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
+        //const tgtColId = use(use(tgtSec.linkTargetCol).colId);
+        const srcTable = use(srcSec.table);
+        const tgtTable = use(tgtSec.table);
+
+        const lstate = use(tgtSec.linkingState);
+        if(lstate == null) { return null; }
+
+        // if not filter-linking, this will be incorrect, but we don't use it then
+        const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;
+
+        //If it's null then no cursor-link is set, but in that case we won't show the string anyway.
+        const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
+        const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : '';
+
+        // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
+        const fromTableDom = [
+            dom.maybe((use2) => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
+            use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
+            dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
+          ];
+
+        //Count filters for proper pluralization
+        const hasId = lfilter.filterLabels?.hasOwnProperty("id");
+        const numFilters = Object.keys(lfilter.filterLabels).length - (hasId ? 1 : 0);
+
+        // ================== Link-info Helpers
+
+        //For each col-filter in lfilters, makes a row showing "${icon} colName = [filterVals]"
+        // FilterVals is in a box to look like a grid cell
+        const makeFiltersTable = (): DomContents => {
+          return cssLinkInfoBody(
+            dom.style("width", "100%"), //width100 keeps table from growing outside bounds of flex parent if overfull
+            dom("table",
+            dom.style("margin-left", "8px"),
+            Object.keys(lfilter.filterLabels).map(
+                (colId) => {
+                    const vals = lfilter.filterLabels[colId];
+                    let operationSymbol = "=";
+                    //if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
+                    //if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
+                    //Sometimes operation will be 'empty', but in that case "=" still works fine, "list = []"
+                    if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
+                    else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
+
+                    if(colId == "id") {
+                        return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
+                    } else {
+                        return dom("tr",
+                            dom("td", cssLinkInfoIcon("Filter"),
+                                `${colId}`),
+                            dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')),
+                            dom("td", cssLinkInfoValuesBox(
+                              isFullReferencingType(lfilter.colTypes[colId]) ?
+                                  cssLinkInfoIcon("FieldReference"): null,
+                              `${vals.join(', ')}`)),
+                        );
+                    }
+            })
+          ));
+        };
+
+        //Given a list of filterLabels, show them all in a box, as if a grid cell
+        //Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
+        const makeValuesBox = (valueLabels: string[]): DomContents => {
+          return cssLinkInfoBody((
+              cssLinkInfoValuesBox(
+              cssLinkInfoIcon("FieldReference"),
+              valueLabels.join(', '), ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+          ));
+        };
+
+        const linkType = lstate.linkTypeDescription();
+
+        return cssLinkInfoPanel(() => { switch (linkType) {
+            case "Filter:Summary-Group":
+            case "Filter:Col->Col":
+            case "Filter:Row->Col":
+            case "Summary":
+              return [
+                dom("div", `Link applies filter${numFilters > 1 ? "s" : ""}:`),
+                makeFiltersTable(),
+                dom("div", `Linked from `, fromTableDom),
+              ];
+            case "Show-Referenced-Records": {
+              const displayValues = lfilter.filterLabels["id"];
+              const numRecords = displayValues ? displayValues.length : 0;
+              return [
+                dom("div", `Link shows record${numRecords > 1 ? "s" : ""}:`),
+                makeValuesBox(lfilter.filterLabels["id"]),
+                dom("div", `from `, fromTableDom),
+              ];
+            }
+            case "Cursor:Same-Table":
+            case "Cursor:Reference":
+              return [
+                dom("div", `Link sets cursor to:`),
+                makeValuesBox([linkedCursorStr]),
+                dom("div", `from `, fromTableDom),
+              ];
+            case "Error:Invalid":
+            default:
+              return dom("div", `Error: Couldn't identify link state`);
+          } },
+          ...domArgs
+        ); // End of cssLinkInfoPanel
+
+    });
+
+}
+
+
+
+  private _buildLinkInfoAdvanced(owner: MultiHolder, activeSection: ViewSectionRec) {
+    return  dom.domComputed(Computed.create(owner, (use): DomContents => {
+
+      const isCollapsed = Observable.create(owner, true);
+
+      //TODO: if this just outputs a string, this could really be in LinkingState as a toDebugStr function
+      //      but the fact that it's all observables makes that trickier to do correctly, so let's leave it here
+      const srcSec = use(activeSection.linkSrcSection); //might be the empty section
+      const tgtSec = activeSection;
+      const srcCol = use(activeSection.linkSrcCol); // might be the empty column
+      const tgtCol = use(activeSection.linkTargetCol);
+      // columns might be the empty column
+      // to check nullness, use `.getRowId() == 0` or `use(srcCol.colId) == undefined`
+
+      const secToStr = (sec: ViewSectionRec) => (!sec || !sec.getRowId()) ?
+          'null' :
+          `#${use(sec.id)} "${use(sec.titleDef)}", (table "${use(use(sec.table).tableId)}")`;
+      const colToStr = (col: ColumnRec) => (!col || !col.getRowId()) ?
+          'null' :
+          `#${use(col.id)} "${use(col.colId)}", type "${use(col.type)}")`;
+
+
+      // linkingstate can be null if the constructor throws, so for debugging we want to show link info
+      // if either the viewSection or the linkingState claim there's a link
+      const hasLink = use(srcSec.id) != undefined || use(tgtSec.linkingState) != null;
+      const lstate = use(tgtSec.linkingState);
+      const lfilter = lstate?.filterState ? use(lstate.filterState) : undefined;
+
+      const cursorPosStr = lstate?.cursorPos ? `${tgtSec.tableId()}[${use(lstate.cursorPos)}]` : "N/A";
+
+
+      const preString = () => {
+        if (!hasLink) {
+                return "No Incoming Link";
+              } else {
+          return [
+            `From Sec: ${secToStr(srcSec)}`,
+            `To   Sec: ${secToStr(tgtSec)}`,
+            '',
+            `From Col: ${colToStr(srcCol)}`,
+            `To   Col: ${colToStr(tgtCol)}`,
+            '===========================',
+
+
+            // Show linkstate
+            lstate == null ? "LinkState: null" :
+              [
+                `Link Type: ${use(lstate.linkTypeDescription)}`,
+                ``,
+
+                "Cursor Pos: " + cursorPosStr,
+                !lfilter ? "Filter State: null" :
+                  ["Filter State:", ...(Object.keys(lfilter).map(key =>
+                    `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
+              ].join('\n')
+          ].join('\n');
+        }
+      };
+
+
+     return dom.maybe(hasLink, () => {
+       return [
+          cssRow(
+            icon('Dropdown', dom.style('transform', (use2) => use2(isCollapsed) ? 'rotate(-90deg)' : '')),
+            "Advanced Link info",
+            dom.style('font-size', `${vars.smallFontSize}`),
+            dom.style('text-transform', 'uppercase'),
+            dom.style('cursor', 'pointer'),
+            dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
+          ),
+         dom.maybe((use2) => !use2(isCollapsed), () => cssRow(cssLinkInfoPre(preString)))
+       ];
+     });
+    }));
+  }
+
+
+
+
+
   private _buildPageDataConfig(owner: MultiHolder, activeSection: ViewSectionRec) {
     const viewConfigTab = this._createViewConfigTab(owner);
     const viewModel = this._gristDoc.viewModel;
@@ -476,6 +683,8 @@ export class RightPanel extends Disposable {
         targetColRef: use(activeSection.linkTargetColRef)
       });
     });
+
+
 
     // This computed is not enough to make sure that the linkOptions are up to date. Indeed
     // the selectBy function depends on a much greater number of observables. Creating that many
@@ -550,15 +759,22 @@ export class RightPanel extends Disposable {
         ),
       ]),
 
+      dom.maybe((use) => use(activeSection.linkingState), () => cssRow(this._buildLinkInfo(owner, activeSection))),
+
       domComputed((use) => {
         const selectorFor = use(use(activeSection.linkedSections).getObservable());
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
           cssLabel(t("SELECTOR FOR"), testId('selector-for')),
-          cssRow(cssList(selectorFor.map((sec) => this._buildSectionItem(sec))))
+          cssRow(cssList(selectorFor.map((sec) => [
+            this._buildSectionItem(owner, sec)
+          ]))),
         ] : null;
       }),
+
+      //Advanced link info is a little too JSON-ish for general use. But it's very useful for debugging
+      this._buildLinkInfoAdvanced(owner, activeSection),
     ];
   }
 
@@ -574,9 +790,10 @@ export class RightPanel extends Disposable {
   }
 
   // Returns dom for a section item.
-  private _buildSectionItem(sec: ViewSectionRec) {
+  private _buildSectionItem(owner: MultiHolder, sec: ViewSectionRec) {
     return cssListItem(
       dom.text(sec.titleDef),
+      this._buildLinkInfo(owner, sec, dom.style("border", "none")),
       testId('selector-for-entry')
     );
   }
@@ -844,4 +1061,72 @@ const cssTextInput = styled(textInput, `
 
 const cssSection = styled('div', `
   position: relative;
+`);
+
+
+//============ LinkInfo CSS ============
+
+//LinkInfoPanel is a flex-column
+//LinkInfoPanel > table shows linked filters
+
+//height on a td acts as min-height;  22px matches real field size, +2 for borders
+//font-size is set larger by tooltip CSS, reset it to root font size to match field css
+const cssLinkInfoPanel = styled('div', `
+  width: 100%;
+
+  display: flex;
+  flex-flow: column;
+  align-items: start;
+  text-align: left;
+
+  font-size: 1rem;
+  font-family: ${vars.fontFamily};
+
+  border: 1px solid ${theme.pagePanelsBorder};
+  border-radius: 4px;
+
+  padding: 6px;
+
+  white-space: nowrap;
+  overflow-x: auto;
+
+& table {
+    border-spacing: 2px;
+    border-collapse: separate;
+}
+`);
+
+// Center table / values box inside LinkInfoPanel
+// width 100% keeps it from escaping its container flexbox
+const cssLinkInfoBody= styled('div', `
+    margin: 2px 0 2px 0;
+    align-self: center;
+`);
+
+// Intended to imitate style of a grid cell
+// white-space: normal allows multiple values to wrap
+const cssLinkInfoValuesBox = styled('div', `
+  border: 1px solid ${'#CCC'};
+  padding: 3px 3px 0px 3px;
+  min-width: 60px;
+  min-height: 24px;
+
+  white-space: normal;
+
+`);
+
+
+//If inline with text, icons look better shifted up slightly
+//since icons are position:relative, bottom:1 should shift it without affecting layout
+const cssLinkInfoIcon = styled(icon, `
+  bottom: 1px;
+  margin-right: 3px;
+  background-color: ${theme.controlSecondaryFg};
+`);
+
+// ============== Advanced LinkInfo styles
+const cssLinkInfoPre = styled("pre", `
+  padding: 6px;
+  font-size: ${vars.smallFontSize};
+  line-height: 1.2;
 `);

@@ -1,6 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import {CursorPos} from 'app/client/components/Cursor';
-import {LinkingState} from 'app/client/components/LinkingState';
+
+import {EmptyFilterColValues, LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';
 import {
   ColumnRec,
@@ -634,7 +635,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
 
   this.linkingFilter = this.autoDispose(ko.pureComputed(() => {
-    return this.linkingState()?.filterColValues?.() || {filters: {}, operations: {}};
+    return this.linkingState()?.filterColValues?.() || EmptyFilterColValues;
   }));
 
   // If the view instance for this section is instantiated, it will be accessible here.
