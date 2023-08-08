@@ -74,7 +74,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     featureComments: isAffirmative(process.env.COMMENTS),
-    featureFormulaAssistant: isAffirmative(process.env.GRIST_FORMULA_ASSISTANT),
+    featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(),

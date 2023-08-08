@@ -7,7 +7,7 @@ import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ColumnRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {reportError} from 'app/client/models/errors';
-import {GRIST_FORMULA_ASSISTANT} from 'app/client/models/features';
+import {HAS_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -53,7 +53,7 @@ export class FormulaEditor extends NewBaseEditor {
   public isDetached = Observable.create(this, false);
   protected options: IFormulaEditorOptions;
 
-  private _formulaEditor: any;
+  private _aceEditor: any;
   private _dom: HTMLElement;
   private _editorPlacement!: EditorPlacement;
   private _placementHolder = Holder.create(this);
@@ -71,7 +71,7 @@ export class FormulaEditor extends NewBaseEditor {
 
     this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === '');
 
-    this._formulaEditor = AceEditor.create({
+    this._aceEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
       // and _editorPlacement created.
       column: options.column,
@@ -145,14 +145,14 @@ export class FormulaEditor extends NewBaseEditor {
     // the DOM to update before resizing.
     this.autoDispose(errorDetails.addListener(() => setTimeout(this.resize.bind(this), 0)));
 
-    this._canDetach = Boolean(GRIST_FORMULA_ASSISTANT().get() && options.canDetach && !options.readonly);
+    this._canDetach = Boolean(options.canDetach && !options.readonly);
 
-    this.autoDispose(this._formulaEditor);
+    this.autoDispose(this._aceEditor);
 
     // Show placeholder text when the formula is blank.
     this._isEmpty.addListener(() => this._updateEditorPlaceholder());
 
-    // Update the placeholder text when expanding or collapsing the editor.
+    // Disable undo/redo while the editor is detached.
     this.isDetached.addListener((isDetached) => {
       // TODO: look into whether we can support undo/redo while the editor is detached.
       if (isDetached) {
@@ -160,8 +160,6 @@ export class FormulaEditor extends NewBaseEditor {
       } else {
         options.gristDoc.getUndoStack().enable();
       }
-
-      this._updateEditorPlaceholder();
     });
 
     this.onDispose(() => {
@@ -203,22 +201,22 @@ export class FormulaEditor extends NewBaseEditor {
       ),
       cssFormulaEditor.cls('-detached', this.isDetached),
       dom('div.formula_editor.formula_field_edit', testId('formula-editor'),
-        this._formulaEditor.buildDom((aceObj: any) => {
+        this._aceEditor.buildDom((aceObj: any) => {
           aceObj.setFontSize(11);
           aceObj.setHighlightActiveLine(false);
           aceObj.getSession().setUseWrapMode(false);
           aceObj.renderer.setPadding(0);
           const val = initialValue;
           const pos = Math.min(options.cursorPos, val.length);
-          this._formulaEditor.setValue(val, pos);
-          this._formulaEditor.attachCommandGroup(aceCommands);
+          this._aceEditor.setValue(val, pos);
+          this._aceEditor.attachCommandGroup(aceCommands);
 
           // enable formula editing if state was passed
           if (options.state || options.readonly) {
             editingFormula(true);
           }
           if (options.readonly) {
-            this._formulaEditor.enable(false);
+            this._aceEditor.enable(false);
             aceObj.gotoLine(0, 0); // By moving, ace editor won't highlight anything
           }
           // This catches any change to the value including e.g. via backspace or paste.
@@ -238,7 +236,7 @@ export class FormulaEditor extends NewBaseEditor {
             if (this.isDetached.get()) { return; }
             if (errorDetails.get()){
               hideErrDetails.set(!hideErrDetails.get());
-              this._formulaEditor.resize();
+              this._aceEditor.resize();
             }
           }),
           dom.maybe(errorDetails, () =>
@@ -249,7 +247,7 @@ export class FormulaEditor extends NewBaseEditor {
                 if (!this.isDetached.get()) { return; }
                 if (errorDetails.get()){
                   hideErrDetails.set(!hideErrDetails.get());
-                  this._formulaEditor.resize();
+                  this._aceEditor.resize();
                 }
               })
             ))
@@ -281,9 +279,10 @@ export class FormulaEditor extends NewBaseEditor {
     this._editorPlacement = EditorPlacement.create(
       this._placementHolder, this._dom, cellElem, {margins: getButtonMargins()});
     // Reposition the editor if needed for external reasons (in practice, window resize).
-    this.autoDispose(this._editorPlacement.onReposition.addListener(this._formulaEditor.resize, this._formulaEditor));
-    this._formulaEditor.onAttach();
-    this._formulaEditor.resize();
+    this.autoDispose(this._editorPlacement.onReposition.addListener(this._aceEditor.resize, this._aceEditor));
+    this._aceEditor.onAttach();
+    this._updateEditorPlaceholder();
+    this._aceEditor.resize();
     this.focus();
   }
 
@@ -292,33 +291,33 @@ export class FormulaEditor extends NewBaseEditor {
   }
 
   public setFormula(formula: string) {
-    this._formulaEditor.setValue(formula);
+    this._aceEditor.setValue(formula);
   }
 
   public getCellValue() {
-    const value = this._formulaEditor.getValue();
+    const value = this._aceEditor.getValue();
     // Strip the leading "=" sign, if any, in case users think it should start the formula body (as
     // it does in Excel, and because the equal sign is also used for formulas in Grist UI).
     return (value[0] === '=') ? value.slice(1) : value;
   }
 
   public getTextValue() {
-    return this._formulaEditor.getValue();
+    return this._aceEditor.getValue();
   }
 
   public getCursorPos() {
-    const aceObj = this._formulaEditor.getEditor();
+    const aceObj = this._aceEditor.getEditor();
     return aceObj.getSession().getDocument().positionToIndex(aceObj.getCursorPosition());
   }
 
   public focus() {
     if (this.isDisposed()) { return; }
-    this._formulaEditor.getEditor().focus();
+    this._aceEditor.getEditor().focus();
   }
 
   public resize() {
     if (this.isDisposed()) { return; }
-    this._formulaEditor.resize();
+    this._aceEditor.resize();
   }
 
   public detach() {
@@ -331,25 +330,26 @@ export class FormulaEditor extends NewBaseEditor {
     this._placementHolder.clear();
     // We are going in the full formula edit mode right away.
     this.options.editingFormula(true);
+    this._updateEditorPlaceholder();
     // Set the focus in timeout, as the dom is added after this function.
-    setTimeout(() => !this.isDisposed() && this._formulaEditor.resize(), 0);
+    setTimeout(() => !this.isDisposed() && this._aceEditor.resize(), 0);
     // Return the dom, it will be moved to the floating editor.
     return this._dom;
   }
 
   private _updateEditorPlaceholder() {
-    const editor = this._formulaEditor.getEditor();
+    const editor = this._aceEditor.getEditor();
     const shouldShowPlaceholder = editor.session.getValue().length === 0;
-    const placeholderNode = editor.renderer.emptyMessageNode;
-    if (placeholderNode) {
+    if (editor.renderer.emptyMessageNode) {
       // Remove the current placeholder if one is present.
-      editor.renderer.scroller.removeChild(placeholderNode);
+      editor.renderer.scroller.removeChild(editor.renderer.emptyMessageNode);
     }
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
     } else {
+      const withAiButton = this._canDetach && !this.isDetached.get() && HAS_FORMULA_ASSISTANT();
       editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
-        !this._canDetach || this.isDetached.get()
+          !withAiButton
           ? t('Enter formula.')
           : t('Enter formula or {{button}}.', {
             button: cssUseAssistantButton(
@@ -361,7 +361,6 @@ export class FormulaEditor extends NewBaseEditor {
       );
       editor.renderer.scroller.appendChild(editor.renderer.emptyMessageNode);
     }
-    this._formulaEditor.resize();
   }
 
   private _handleUseAssistantButtonClick(ev: MouseEvent) {
@@ -380,7 +379,7 @@ export class FormulaEditor extends NewBaseEditor {
       };
     }
 
-    const placeholder: HTMLElement | undefined = this._formulaEditor.getEditor().renderer.emptyMessageNode;
+    const placeholder: HTMLElement | undefined = this._aceEditor.getEditor().renderer.emptyMessageNode;
     if (placeholder) {
       // If we are showing the placeholder, fit it all on the same line.
       return this._editorPlacement.calcSizeWithPadding(elem, {
@@ -422,7 +421,7 @@ export class FormulaEditor extends NewBaseEditor {
 
     const colId = col.origCol.peek().colId.peek();
 
-    const aceObj = this._formulaEditor.getEditor();
+    const aceObj = this._aceEditor.getEditor();
 
     // Rect only to columns in the same table.
     if (col.tableId.peek() !== this.options.column.table.peek().tableId.peek()) {
@@ -451,7 +450,7 @@ export class FormulaEditor extends NewBaseEditor {
       // Else touching a normal identifier, don't mangle it
     }
     // Resize editor in case it is needed.
-    this._formulaEditor.resize();
+    this._aceEditor.resize();
 
     // This focus method will try to focus a textarea immediately and again on setTimeout. But
     // other things may happen by the setTimeout time, messing up focus. The reason the immediate

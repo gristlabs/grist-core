@@ -3,6 +3,9 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {Observable} from 'grainjs';
 
+/**
+ * Are comments enabled by feature flag.
+ */
 export function COMMENTS(): Observable<boolean> {
   const G = getBrowserGlobals('document', 'window');
   if (!G.window.COMMENTS) {
@@ -11,11 +14,9 @@ export function COMMENTS(): Observable<boolean> {
   return G.window.COMMENTS;
 }
 
-export function GRIST_FORMULA_ASSISTANT(): Observable<boolean> {
-  const G = getBrowserGlobals('document', 'window');
-  if (!G.window.GRIST_FORMULA_ASSISTANT) {
-    G.window.GRIST_FORMULA_ASSISTANT =
-      localStorageBoolObs('GRIST_FORMULA_ASSISTANT', Boolean(getGristConfig().featureFormulaAssistant));
-  }
-  return G.window.GRIST_FORMULA_ASSISTANT;
+/**
+ * Does backend supports AI assistant.
+ */
+export function HAS_FORMULA_ASSISTANT() {
+  return Boolean(getGristConfig().featureFormulaAssistant);
 }

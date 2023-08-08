@@ -3014,7 +3014,13 @@ export function withEnvironmentSnapshot(vars: Record<string, any>) {
     // Test if the vars are already set, and if so, skip.
     if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
     oldEnv = new testUtils.EnvironmentSnapshot();
-    Object.assign(process.env, vars);
+    for(const key of Object.keys(vars)) {
+      if (vars[key] === undefined || vars[key] === null) {
+        delete process.env[key];
+      } else {
+        process.env[key] = vars[key];
+      }
+    }
     await server.restart();
   });
   after(async () => {

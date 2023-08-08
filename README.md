@@ -302,7 +302,7 @@ PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
-OPENAI_API_KEY      | optional. Used for the AI formula assistant. Sign up for an account on OpenAI and then generate a secret key [here](https://platform.openai.com/account/api-keys). You also need to set `GRIST_FORMULA_ASSISTANT=1`.
+OPENAI_API_KEY      | optional. Used for the AI formula assistant. Sign up for an account on OpenAI and then generate a secret key [here](https://platform.openai.com/account/api-keys).
 
 Sandbox related variables:
 

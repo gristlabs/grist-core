@@ -1,29 +1,30 @@
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
+import {movable} from 'app/client/lib/popupUtils';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {ChatMessage} from 'app/client/models/entities/ColumnRec';
-import {GRIST_FORMULA_ASSISTANT} from 'app/client/models/features';
+import {HAS_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
+import {autoGrow} from 'app/client/ui/forms';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {createUserImage} from 'app/client/ui/UserImage';
-import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {AssistanceResponse, AssistanceState, FormulaAssistanceContext} from 'app/common/AssistancePrompts';
 import {basicButton, bigPrimaryButtonLink, primaryButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
-import {autoGrow} from 'app/client/ui/forms';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls} from 'app/common/gristUrls';
-import {movable} from 'app/client/lib/popupUtils';
 import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuCssClass, menuItem} from 'app/client/ui2018/menus';
+import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
+import {AssistanceResponse, AssistanceState, FormulaAssistanceContext} from 'app/common/AssistancePrompts';
+import {commonUrls} from 'app/common/gristUrls';
 import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
-import {Computed, Disposable, dom, DomElementArg, makeTestId,
-  MutableObsArray, obsArray, Observable, styled, subscribeElem} from 'grainjs';
+import {getGristConfig} from 'app/common/urlUtils';
+import {Computed, Disposable, dom, DomElementArg, makeTestId, MutableObsArray,
+        obsArray, Observable, styled, subscribeElem} from 'grainjs';
 import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import {marked} from 'marked';
@@ -54,8 +55,8 @@ export class FormulaAssistant extends Disposable {
     `u:${this._options.gristDoc.appModel.currentUser?.id ?? 0};formulaAssistantExpanded`, true));
   /** Is the request pending */
   private _waiting = Observable.create(this, false);
-  /** Is this feature enabled at all */
-  private _assistantEnabled: Computed<boolean>;
+  /** Is assistant features are enabled */
+  private _assistantEnabled: boolean;
   /** Preview column ref */
   private _transformColRef: string;
   /** Preview column id */
@@ -101,9 +102,7 @@ export class FormulaAssistant extends Disposable {
   }) {
     super();
 
-    this._assistantEnabled = Computed.create(this, use => {
-      return use(GRIST_FORMULA_ASSISTANT());
-    });
+    this._assistantEnabled = HAS_FORMULA_ASSISTANT();
 
     if (!this._options.field) {
       // TODO: field is not passed only for rules (as there is no preview there available to the user yet)
@@ -192,16 +191,18 @@ export class FormulaAssistant extends Disposable {
       this._buildChatPanel(),
     );
 
-    if (!this._assistantExpanded.get()) {
-      this._chatPanelBody.style.setProperty('height', '0px');
-    } else {
-      // The actual height doesn't matter too much here, so we just pick
-      // a value that guarantees the assistant will fill as much of the
-      // available space as possible.
-      this._chatPanelBody.style.setProperty('height', '999px');
+    if (this._assistantEnabled) {
+      if (!this._assistantExpanded.get()) {
+        this._chatPanelBody.style.setProperty('height', '0px');
+      } else {
+        // The actual height doesn't matter too much here, so we just pick
+        // a value that guarantees the assistant will fill as much of the
+        // available space as possible.
+        this._chatPanelBody.style.setProperty('height', '999px');
+      }
     }
 
-    if (this._assistantEnabled.get() && this._assistantExpanded.get()) {
+    if (this._assistantEnabled && this._assistantExpanded.get()) {
       this._logTelemetryEvent('assistantOpen', true);
       this._hasExpanded = true;
     }
@@ -590,18 +591,8 @@ export class FormulaAssistant extends Disposable {
    * Builds the signup nudge shown to anonymous users at the bottom of the chat.
    */
   private _buildSignupNudge() {
-    return cssSignupNudgeWrapper(
-      cssSignupNudgeParagraph(
-        t('Sign up for a free Grist account to start using the Formula AI Assistant.'),
-      ),
-      cssSignupNudgeButtonsRow(
-        bigPrimaryButtonLink(
-          t('Sign Up for Free'),
-          {href: getLoginOrSignupUrl()},
-          testId('ai-assistant-sign-up'),
-        ),
-      ),
-    );
+    const {deploymentType} = getGristConfig();
+    return deploymentType === 'saas' ? buildSignupNudge() : buildAnonNudge();
   }
 
   private async _handleChatEnterKeyDown(ev: KeyboardEvent) {
@@ -979,6 +970,30 @@ function buildAvatar(grist: GristDoc) {
   }
 }
 
+function buildSignupNudge() {
+  return cssSignupNudgeWrapper(
+    cssSignupNudgeParagraph(
+      t('Sign up for a free Grist account to start using the Formula AI Assistant.'),
+    ),
+    cssSignupNudgeButtonsRow(
+      bigPrimaryButtonLink(
+        t('Sign Up for Free'),
+        {href: getLoginOrSignupUrl()},
+        testId('ai-assistant-sign-up'),
+      ),
+    ),
+  );
+}
+
+function buildAnonNudge() {
+  return cssSignupNudgeWrapper(
+    cssSignupNudgeWrapper.cls('-center'),
+    cssSignupNudgeParagraph(
+      t('Formula AI Assistant is only available for logged in users.'),
+    ),
+  );
+}
+
 const MIN_FORMULA_EDITOR_HEIGHT_PX = 100;
 
 const FORMULA_EDITOR_BUTTONS_HEIGHT_PX = 42;
@@ -1275,6 +1290,11 @@ const cssSignupNudgeWrapper = styled('div', `
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
+  &-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 `);
 
 const cssSignupNudgeParagraph = styled('div', `
