@@ -853,7 +853,8 @@
         "Mixed style": "Mixed style",
         "Open row styles": "Open row styles",
         "Default header style": "Default header style",
-        "Header Style": "Header Style"
+        "Header Style": "Header Style",
+        "HEADER STYLE": "HEADER STYLE"
     },
     "ChoiceTextBox": {
         "CHOICES": "CHOICES"
