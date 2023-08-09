@@ -483,7 +483,18 @@
         "{{count}} unmatched field_other": "{{count}} campos sem equivalente",
         "{{count}} unmatched field in import_other": "{{count}} campos sem equivalente na importação",
         "{{count}} unmatched field in import_one": "{{count}} campo sem equivalente na importação",
-        "{{count}} unmatched field_one": "{{count}} campo sem equivalente"
+        "{{count}} unmatched field_one": "{{count}} campo sem equivalente",
+        "Column Mapping": "Mapeamento de coluna",
+        "Column mapping": "Mapeamento de coluna",
+        "Destination table": "Tabela de destino",
+        "Grist column": "Coluna de Grist",
+        "New Table": "Nova tabela",
+        "Revert": "Reverter",
+        "Skip": "Pular",
+        "Skip Import": "Pular importação",
+        "Source column": "Coluna de origem",
+        "Import from file": "Importar de arquivo",
+        "Skip Table on Import": "Pular tabela na importação"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de Ajuda"
@@ -996,7 +1007,9 @@
         "Cell Style": "Estilo de célula",
         "Default cell style": "Estilo de célula padrão",
         "Mixed style": "Estilo misto",
-        "Open row styles": "Estilos de linha aberta"
+        "Open row styles": "Estilos de linha aberta",
+        "Default header style": "Estilo de cabeçalho padrão",
+        "Header Style": "Estilo de cabeçalho"
     },
     "ColumnEditor": {
         "COLUMN DESCRIPTION": "DESCRIÇÃO DA COLUNA",
