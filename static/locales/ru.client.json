@@ -95,7 +95,8 @@
         "Personal Site": "Личный сайт",
         "Home Page": "Домашняя страница",
         "Legacy": "Устаревший",
-        "Team Site": "Сайт группы"
+        "Team Site": "Сайт группы",
+        "Grist Templates": "Шаблоны Grist"
     },
     "ApiKey": {
         "Remove API Key": "Удалить ключ API",
@@ -180,7 +181,10 @@
         "Support Grist": "Поддержка Grist",
         "Upgrade Plan": "Обновить Подписку",
         "Activation": "Активация",
-        "Billing Account": "Расчетный счет"
+        "Billing Account": "Расчетный счет",
+        "Sign In": "Войти",
+        "Sign Up": "Подписаться",
+        "Use This Template": "Использовать этот шаблон"
     },
     "ActionLog": {
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблица {{tableId}} впоследствии была удалена в действии #{{actionNum}}",
@@ -535,12 +539,17 @@
     "GristDoc": {
         "Import from file": "Импорт из файла",
         "Added new linked section to view {{viewName}}": "Добавлен новый связанный раздел в представление {{viewName}}",
-        "Saved linked section {{title}} in view {{name}}": "Сохраненный связанный раздел {{title}} в представлении {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Сохраненный связанный раздел {{title}} в представлении {{name}}",
+        "go to webhook settings": "перейти к настройкам webhook"
     },
     "Importer": {
         "Merge rows that match these fields:": "Объедините строки, соответствующие этим полям:",
         "Select fields to match on": "Выберите поля для сопоставления",
-        "Update existing records": "Обновите существующие записи"
+        "Update existing records": "Обновите существующие записи",
+        "{{count}} unmatched field in import_other": "{{count}} несовпадающие поля при импорте",
+        "{{count}} unmatched field in import_one": "{{count}} несовпадающее поле при импорте",
+        "{{count}} unmatched field_one": "{{count}} несовпадающее поле",
+        "{{count}} unmatched field_other": "{{count}} несовпадающие поля"
     },
     "LeftPanelCommon": {
         "Help Center": "Справочный центр"

@@ -34,7 +34,9 @@
         "Lookup Column": "查找列",
         "Permissions": "权限",
         "Remove column {{- colId }} from {{- tableId }} rules": "从 {{- tableId }} 规则中删除列 {{- colId }}",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "添加表规则时，自动添加规则以授予 OWNER 完全访问权限。"
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "添加表规则时，自动添加规则以授予 OWNER 完全访问权限。",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "允许编辑者编辑结构（例如修改和删除表、列、布局）和编写公式，无论读取限制如何，都可以访问所有数据。",
+        "This default should be changed if editors' access is to be limited. ": "如果要限制编辑者的访问权限，则应更改此默认值。 "
     },
     "AccountPage": {
         "API": "API",
@@ -135,7 +137,11 @@
         "Clear values": "清除值",
         "Copy anchor link": "复制锚点链接",
         "Delete {{count}} columns_one": "删除列",
-        "Delete {{count}} rows_other": "删除 {{count}} 行"
+        "Delete {{count}} rows_other": "删除 {{count}} 行",
+        "Paste": "黏贴",
+        "Comment": "评论",
+        "Copy": "拷贝",
+        "Cut": "剪切"
     },
     "ACUserManager": {
         "Enter email address": "请输入电邮地址",
@@ -169,7 +175,14 @@
         "Sign Out": "登出",
         "Sign in": "登录",
         "Switch Accounts": "切换帐户",
-        "Toggle Mobile Mode": "切换移动模式"
+        "Toggle Mobile Mode": "切换移动模式",
+        "Activation": "激活",
+        "Billing Account": "计费账户",
+        "Support Grist": "支持 Grist",
+        "Upgrade Plan": "升级计划",
+        "Sign In": "登录",
+        "Sign Up": "注册",
+        "Use This Template": "使用这个模板"
     },
     "ViewAsDropdown": {
         "View As": "查看为",
@@ -189,7 +202,8 @@
         "Home Page": "主页",
         "Legacy": "遗产",
         "Personal Site": "个人网站",
-        "Team Site": "团队网站"
+        "Team Site": "团队网站",
+        "Grist Templates": "Grist 模板"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "此团队网站已挂起。可以读取文档，但不能修改文档。"
@@ -292,7 +306,7 @@
     "HomeIntro": {
         "Interested in using Grist outside of your team? Visit your free ": "有兴趣在您的团队之外使用 Grist 吗？ 访问您的免费 ",
         "Invite Team Members": "邀请团队成员",
-        "Sign up": "报名",
+        "Sign up": "注册",
         "personal site": "个人网站",
         "Any documents created in this site will appear here.": "在此站点中创建的任何文档都将显示在此处。",
         "Browse Templates": "浏览模板",
@@ -309,7 +323,9 @@
         "Welcome to Grist, {{name}}!": "欢迎来到 Grist，{{name}}！",
         "Welcome to {{orgName}}": "欢迎来到{{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "您对该站点具有只读访问权限。 目前没有文件。",
-        "{{signUp}} to save your work. ": "{{signUp}} 保存您的工作。 "
+        "{{signUp}} to save your work. ": "{{signUp}} 保存您的工作。 ",
+        "Welcome to {{- orgName}}": "欢迎来到 {{- orgName}}",
+        "Welcome to Grist, {{- name}}!": "欢迎来到 Grist，{{- name}}！"
     },
     "HomeLeftPane": {
         "Delete": "删除",
@@ -319,12 +335,13 @@
         "Create Empty Document": "创建空文档",
         "Create Workspace": "创建工作区",
         "Delete {{workspace}} and all included documents?": "删除 {{workspace}} 和所有包含的文档？",
-        "Examples & Templates": "示例和模板",
+        "Examples & Templates": "模板",
         "Import Document": "导入文档",
         "Manage Users": "管理用户",
         "Rename": "改名",
         "Workspace will be moved to Trash.": "工作区将移至回收站。",
-        "Workspaces": "工作区"
+        "Workspaces": "工作区",
+        "Tutorial": "教程"
     },
     "MakeCopyMenu": {
         "Cancel": "取消",
@@ -332,7 +349,7 @@
         "Name": "姓名",
         "No destination workspace": "没有目标工作区",
         "Organization": "组织",
-        "Sign up": "报名",
+        "Sign up": "注册",
         "Update": "更新",
         "As Template": "作为模板",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "请注意，原始文档中没有更改。 这些更改将被覆盖。",
@@ -360,7 +377,8 @@
         "Cannot find personal site, sorry!": "找不到个人网站，抱歉！",
         "Give feedback": "给予反馈",
         "Report a problem": "报告一个问题",
-        "Upgrade Plan": "升级计划"
+        "Upgrade Plan": "升级计划",
+        "Manage billing": "管理计费"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "格里斯特视频之旅",
@@ -399,7 +417,8 @@
         "Theme": "主题",
         "WIDGET TITLE": "小部件标题",
         "Widget": "小部件",
-        "You do not have edit access to this document": "您没有对此文档的编辑权限"
+        "You do not have edit access to this document": "您没有对此文档的编辑权限",
+        "Add referenced columns": "添加引用列"
     },
     "RowContextMenu": {
         "Insert row below": "在下方插入行",
@@ -449,7 +468,7 @@
         "Edit Card Layout": "编辑卡片布局",
         "Show raw data": "显示原始数据",
         "Widget options": "小部件选项",
-        "Add to page": "添加到页面",
+        "Add to page": "添加至页面",
         "Collapse widget": "折叠小部件"
     },
     "ViewSectionMenu": {
@@ -540,7 +559,11 @@
         "Error in the cell": "单元格错误",
         "Errors in all {{numErrors}} cells": "所有 {{numErrors}} 单元格中的错误",
         "Errors in {{numErrors}} of {{numCells}} cells": "{{numCells}} 个单元格中的 {{numErrors}} 个错误",
-        "editingFormula is required": "需要编辑公式"
+        "editingFormula is required": "需要编辑公式",
+        "Enter formula or {{button}}.": "输入公式或 {{button}} 。",
+        "Enter formula.": "输入公式。",
+        "Expand Editor": "展开编辑器",
+        "use AI Assistant": "使用AI助手"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "无法从该文档中的数据构建文档浏览。 确保有一个名为 GristDocTour 的表，其中包含 Title、Body、Placement 和 Location 列。",
@@ -558,7 +581,9 @@
         "Time Zone:": "时区：",
         "API": "应用程序接口",
         "Document ID copied to clipboard": "文档 ID 已复制到剪贴板",
-        "Ok": "好的"
+        "Ok": "好的",
+        "Manage Webhooks": "管理 Webhooks",
+        "Webhooks": "Webhooks"
     },
     "DocumentUsage": {
         "Attachments Size": "附件大小",
@@ -671,12 +696,17 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "添加了新的链接部分以查看 {{viewName}}",
         "Import from file": "从文件导入",
-        "Saved linked section {{title}} in view {{name}}": "已将链接部分 {{title}} 保存在视图 {{name}} 中"
+        "Saved linked section {{title}} in view {{name}}": "已将链接部分 {{title}} 保存在视图 {{name}} 中",
+        "go to webhook settings": "去设置 webhook"
     },
     "Importer": {
         "Merge rows that match these fields:": "合并与这些字段匹配的行：",
         "Select fields to match on": "选择要匹配的字段",
-        "Update existing records": "更新现有记录"
+        "Update existing records": "更新现有记录",
+        "{{count}} unmatched field_one": "{{count}} 个不匹配字段",
+        "{{count}} unmatched field in import_one": "导入中 {{count}} 个字段不匹配",
+        "{{count}} unmatched field_other": "{{count}} 个不匹配字段",
+        "{{count}} unmatched field in import_other": "导入中 {{count}} 个字段不匹配"
     },
     "LeftPanelCommon": {
         "Help Center": "帮助中心"
@@ -739,7 +769,8 @@
         "Send to Google Drive": "发送到谷歌云端硬盘",
         "Show in folder": "展现在文件夹中",
         "Unsaved": "未保存",
-        "Work on a Copy": "在副本上工作"
+        "Work on a Copy": "在副本上工作",
+        "Share": "分享"
     },
     "SiteSwitcher": {
         "Create new team site": "创建新的团队网站",
@@ -800,7 +831,8 @@
         "Override widget title": "覆盖小部件标题",
         "Provide a table name": "提供表名",
         "Save": "保存",
-        "WIDGET TITLE": "小部件标题"
+        "WIDGET TITLE": "小部件标题",
+        "WIDGET DESCRIPTION": "小部件描述"
     },
     "duplicatePage": {
         "Duplicate page {{pageName}}": "重复页面 {{pageName}}",
@@ -857,7 +889,8 @@
         "Find Next ": "找下一个 ",
         "Find Previous ": "查找上一个 ",
         "No results": "没有结果",
-        "Search in document": "在文档中搜索"
+        "Search in document": "在文档中搜索",
+        "Search": "搜索"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "发送文件到谷歌云端硬盘"
@@ -961,7 +994,11 @@
         "Reference columns are the key to {{relational}} data in Grist.": "引用列是 Grist 中 {{relational}} 数据的关键。",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "单击每个单元格中的 {{EyeHideIcon}} 可隐藏此视图中的字段而不将其删除。",
         "Editing Card Layout": "编辑卡片布局",
-        "Formulas that trigger in certain cases, and store the calculated value as data.": "在某些情况下触发的公式，并将计算值存储为数据。"
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "在某些情况下触发的公式，并将计算值存储为数据。",
+        "Anchor Links": "锚链接",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "要创建将用户带到特定单元格的锚点链接，请单击行并按 {{shortcut}} 。",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "您可以选择我们的一个预制小部件或通过提供其完整的URL嵌入您自己的。",
+        "Custom Widgets": "自定义小部件"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "描述"
@@ -969,5 +1006,165 @@
     "PagePanels": {
         "Close Creator Panel": "关闭创作者面板",
         "Open Creator Panel": "打开创作者面板"
+    },
+    "ColumnTitle": {
+        "Column label": "列标签",
+        "Provide a column label": "提供列标签",
+        "Close": "关闭",
+        "COLUMN ID: ": "列号： ",
+        "Column description": "列说明",
+        "Add description": "添加说明",
+        "Cancel": "取消",
+        "Column ID copied to clipboard": "列ID已复制到剪贴板",
+        "Save": "保存"
+    },
+    "FieldContextMenu": {
+        "Copy": "拷贝",
+        "Copy anchor link": "复制锚点链接",
+        "Cut": "剪切",
+        "Hide field": "隐藏字段",
+        "Paste": "粘贴",
+        "Clear field": "清除字段"
+    },
+    "FormulaAssistant": {
+        "Capabilities": "技术支持",
+        "Formula Cheat Sheet": "公式备忘单",
+        "Regenerate": "重新生成",
+        "Tips": "建 议",
+        "Apply": "应用",
+        "Clear Conversation": "清晰的对话",
+        "Hi, I'm the Grist Formula AI Assistant.": "你好，我是 Grist 公式的人工智能助手。",
+        "Learn more": "了解更多",
+        "Press Enter to apply suggested formula.": "按 Enter 键应用建议的公式。",
+        "Code View": "代码视图",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "我只能帮忙写公式。我无法构建表、列和视图，也无法编写访问规则。",
+        "Ask the bot.": "咨询机器人。",
+        "Grist's AI Formula Assistance. ": "Grist 的人工智能公式协助。 ",
+        "Preview": "预览",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "请参阅我们的 {{helpFunction}} 和 {{formulaCheat}}，或访问我们的 {{community}} 获取更多帮助。",
+        "AI Assistant": "AI助手",
+        "There are some things you should know when working with me:": "与我合作时，您应该了解一些事情：",
+        "What do you need help with?": "你有什么需要帮助的？",
+        "Cancel": "取消",
+        "Need help? Our AI assistant can help.": "需要帮忙？我们的人工智能助手可以提供帮助。",
+        "New Chat": "新聊天",
+        "Save": "保存",
+        "Community": "社区",
+        "Data": "数据",
+        "Formula Help. ": "公式帮助。 ",
+        "Function List": "函数列表",
+        "Grist's AI Assistance": "Grist 人工智能助手",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "注册一个免费的Grist帐户，开始使用Formula AI助手。",
+        "Sign Up for Free": "免费注册"
+    },
+    "WebhookPage": {
+        "Clear Queue": "清除队列",
+        "Webhook Settings": "Webhook设置"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "欢迎回来",
+        "You can always switch sites using the account menu.": "您始终可以使用帐户菜单切换站点。",
+        "You have access to the following Grist sites.": "您可以访问以下 Grist 网站。"
+    },
+    "UserManager": {
+        "Invite multiple": "邀请多人",
+        "Invite people to {{resourceType}}": "邀请人们加入 {{resourceType}}",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "公共访问权限继承自 {{parent}}。要删除，请将“继承访问权限”选项设置为“无”。",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "用户从 {{parent})} 继承权限。要删除，请将“继承访问权限”选项设置为“无”。",
+        "member": "成员",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "只允许对单个文档或工作区配置无默认访问权限，而不能对整个团队网站配置。",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "一旦您删除了自己的访问权限，如果没有对{{resourceType}}具有足够访问权限的其他人的帮助，您将无法将其恢复。",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "由于手动设置了对内部资源的访问权限，因此用户具有对{{resource}}的查看权限。如果在此处删除，此用户将无法访问内部资源。",
+        "Close": "关闭",
+        "Collaborator": "合作者",
+        "Create a team to share with more people": "创建团队与更多人分享",
+        "On": "打开",
+        "Off": "关闭",
+        "Open Access Rules": "开放访问规则",
+        "Outside collaborator": "外部合作者",
+        "Your role for this team site": "您在这个团队站点中的角色",
+        "Your role for this {{resourceType}}": "您在此{{resourceType}}中的角色",
+        "free collaborator": "自由合作者",
+        "guest": "游客",
+        "Allow anyone with the link to open.": "允许任何知道该链接的人打开。",
+        "Anyone with link ": "任何有链接的人 ",
+        "Cancel": "取消",
+        "Confirm": "确认",
+        "Copy Link": "复制链接",
+        "Link copied to clipboard": "链接已复制到剪贴板",
+        "Manage members of team site": "管理团队网站的成员",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "没有默认访问权限允许授予对单个文档或工作区的访问权限，而不是对整个团队网站的访问权限。",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "一旦您删除了自己的访问权限，如果没有对 {{name}} 有足够访问权限的其他人的帮助，您将无法取回该访问权限。",
+        "User may not modify their own access.": "用户不得修改自己的访问权限。",
+        "You are about to remove your own access to this {{resourceType}}": "您即将删除自己对此{{resourceType}}的访问权限",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "用户从 {{parent}} 继承权限。要删除，请将“继承访问权限”选项设置为“无”。",
+        "Add {{member}} to your team": "将 {{member}} 添加到您的团队",
+        "Grist support": "Grist 支持",
+        "Guest": "游客",
+        "Public Access": "公开访问",
+        "Public access": "公开访问",
+        "Public access: ": "公开访问： ",
+        "Remove my access": "删除我的访问权限",
+        "Save & ": "保存 ＆ ",
+        "Team member": "团队成员",
+        "team site": "团队网站",
+        "{{collaborator}} limit exceeded": "已超出{{collaborator}}限制",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} of {{limitTop}} {{collaborator}}s"
+    },
+    "SupportGristPage": {
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "该实例被选择退出遥测。只有网站管理员有权更改此设置。",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "该实例被选择用于遥测。只有网站管理员有权更改此设置。",
+        "GitHub": "GitHub",
+        "GitHub Sponsors page": "GitHub赞助商页面",
+        "Help Center": "帮助中心",
+        "Opt in to Telemetry": "选择遥测",
+        "Opt out of Telemetry": "选择退出遥测",
+        "Support Grist": "支持 Grist",
+        "Telemetry": "遥测",
+        "Sponsor Grist Labs on GitHub": "在 GitHub 上赞助 Grist Labs",
+        "Home": "主页",
+        "Manage Sponsorship": "管理赞助",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "我们只收集使用统计数据，如我们的{{link}}中所述，从不搜集文档内容。",
+        "You can opt out of telemetry at any time from this page.": "您可以随时从此页面选择退出遥测。",
+        "You have opted in to telemetry. Thank you!": "您已选择使用遥测。谢谢你，谢谢！",
+        "You have opted out of telemetry.": "您已选择退出遥测。"
+    },
+    "SupportGristNudge": {
+        "Help Center": "帮助中心",
+        "Support Grist page": "支持Grist页面",
+        "Close": "关闭",
+        "Contribute": "投稿",
+        "Support Grist": "支持 Grist",
+        "Opt in to Telemetry": "选择遥测",
+        "Opted In": "选择加入"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "描述"
+    },
+    "buildViewSectionDom": {
+        "No data": "没有数据",
+        "No row selected in {{title}}": "{{title}}中未选择行",
+        "Not all data is shown": "未显示所有数据"
+    },
+    "Clipboard": {
+        "Got it": "明白了",
+        "Unavailable Command": "命令不可用"
+    },
+    "GridView": {
+        "Click to insert": "点击插入"
+    },
+    "SearchModel": {
+        "Search all pages": "搜索所有页面",
+        "Search all tables": "搜索所有表"
+    },
+    "searchDropdown": {
+        "Search": "搜索"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "折叠编辑器"
+    },
+    "FloatingPopup": {
+        "Maximize": "最大化",
+        "Minimize": "最小化"
     }
 }
