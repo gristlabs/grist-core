@@ -229,7 +229,8 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
       body: JSON.stringify({
         domain,
         name,
-        planType: 'team'
+        planType: 'team',
+        next: window.location.href
       })
     });
     return data.checkoutUrl;

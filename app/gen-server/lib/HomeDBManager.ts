@@ -27,7 +27,7 @@ import {
 } from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
 import {Alias} from "app/gen-server/entity/Alias";
-import {BillingAccount, ExternalBillingOptions} from "app/gen-server/entity/BillingAccount";
+import {BillingAccount} from "app/gen-server/entity/BillingAccount";
 import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
@@ -259,6 +259,20 @@ interface CreateWorkspaceOptions {
   props: Partial<WorkspaceProperties>,
   ownerId?: number
 }
+
+/**
+ * Available options for creating a new org with a new billing account.
+ */
+export type BillingOptions = Partial<Pick<BillingAccount,
+  'product' |
+  'stripeCustomerId' |
+  'stripeSubscriptionId' |
+  'stripePlanId' |
+  'externalId' |
+  'externalOptions' |
+  'inGoodStanding' |
+  'status'
+>>;
 
 /**
  * HomeDBManager handles interaction between the ApiServer and the Home database,
@@ -1348,14 +1362,13 @@ export class HomeDBManager extends EventEmitter {
    *   NOTE: Currently it is always a true - billing account is one to one with org.
    * @param planType: if set, controls the type of plan used for the org. Only
    *   meaningful for team sites currently.
-   *
+   * @param billing: if set, controls the billing account settings for the org.
    */
   public async addOrg(user: User, props: Partial<OrganizationProperties>,
                       options: { setUserAsOwner: boolean,
                                  useNewPlan: boolean,
                                  planType?: string,
-                                 externalId?: string,
-                                 externalOptions?: ExternalBillingOptions },
+                                 billing?: BillingOptions},
                       transaction?: EntityManager): Promise<QueryResult<number>> {
     const notifications: Array<() => void> = [];
     const name = props.name;
@@ -1405,12 +1418,26 @@ export class HomeDBManager extends EventEmitter {
         billingAccountManager.user = user;
         billingAccountManager.billingAccount = billingAccount;
         billingAccountEntities.push(billingAccountManager);
-        if (options.externalId) {
-          // save will fail if externalId is a duplicate.
-          billingAccount.externalId = options.externalId;
-        }
-        if (options.externalOptions) {
-          billingAccount.externalOptions = options.externalOptions;
+        // Apply billing settings if requested, but not all of them.
+        if (options.billing) {
+          const billing = options.billing;
+          const allowedKeys: Array<keyof BillingOptions> = [
+            'product',
+            'stripeCustomerId',
+            'stripeSubscriptionId',
+            'stripePlanId',
+            // save will fail if externalId is a duplicate.
+            'externalId',
+            'externalOptions',
+            'inGoodStanding',
+            'status'
+          ];
+          Object.keys(billing).forEach(key => {
+            if (!allowedKeys.includes(key as any)) {
+              delete (billing as any)[key];
+            }
+          });
+          Object.assign(billingAccount, billing);
         }
       } else {
         log.warn("Creating org with shared billing account");
@@ -1421,7 +1448,7 @@ export class HomeDBManager extends EventEmitter {
           .leftJoinAndSelect('billing_accounts.orgs', 'orgs')
           .where('orgs.owner_id = :userId', {userId: user.id})
           .getOne();
-        if (options.externalId && billingAccount?.externalId !== options.externalId) {
+        if (options.billing?.externalId && billingAccount?.externalId !== options.billing?.externalId) {
           throw new ApiError('Conflicting external identifier', 400);
         }
         if (!billingAccount) {

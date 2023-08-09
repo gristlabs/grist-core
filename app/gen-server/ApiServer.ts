@@ -7,6 +7,8 @@ import {Request} from 'express';
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {OrganizationProperties} from 'app/common/UserAPI';
+import {User} from 'app/gen-server/entity/User';
+import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -16,9 +18,6 @@ import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {IWidgetRepository} from 'app/server/lib/WidgetRepository';
-
-import {User} from './entity/User';
-import {HomeDBManager, QueryResult, Scope} from './lib/HomeDBManager';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
 
 // exposed for testing purposes
@@ -64,7 +63,7 @@ export function getOrgKey(req: Request): string|number {
   return orgKey;
 }
 
-// Adds an non-personal org with a new billingAccout, with the given name and domain.
+// Adds an non-personal org with a new billingAccount, with the given name and domain.
 // Returns a QueryResult with the orgId on success.
 export function addOrg(
   dbManager: HomeDBManager,
@@ -72,6 +71,7 @@ export function addOrg(
   props: Partial<OrganizationProperties>,
   options?: {
     planType?: string,
+    billing?: BillingOptions,
   }
 ): Promise<number> {
   return dbManager.connection.transaction(async manager => {
