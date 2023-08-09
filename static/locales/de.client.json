@@ -483,7 +483,18 @@
         "{{count}} unmatched field in import_other": "{{count}} unangepasste Felder im Import",
         "{{count}} unmatched field_one": "{{count}} unangepasstes Feld",
         "{{count}} unmatched field_other": "{{count}} unangepasste Felder",
-        "{{count}} unmatched field in import_one": "{{count}} unangepasst Feld im Import"
+        "{{count}} unmatched field in import_one": "{{count}} unangepasst Feld im Import",
+        "Column mapping": "Spaltenzuordnung",
+        "Column Mapping": "Spaltenzuordnung",
+        "Destination table": "Zieltabelle",
+        "Grist column": "Grist Spalte",
+        "Import from file": "Aus Datei importieren",
+        "New Table": "Neue Tabelle",
+        "Revert": "Zurücksetzen",
+        "Skip": "überspringen",
+        "Skip Import": "Import überspringen",
+        "Skip Table on Import": "Tabelle beim Import überspringen",
+        "Source column": "Quellenspalte"
     },
     "LeftPanelCommon": {
         "Help Center": "Hilfe-Center"
@@ -904,7 +915,9 @@
         "Open row styles": "Zeilenstile öffnen",
         "Cell Style": "Zellenstil",
         "Default cell style": "Standard-Zellenstil",
-        "Mixed style": "Gemischter Stil"
+        "Mixed style": "Gemischter Stil",
+        "Default header style": "Standard Kopfzeilenstil",
+        "Header Style": "Kopfzeilenstil"
     },
     "DiscussionEditor": {
         "Resolve": "Beschließen",
