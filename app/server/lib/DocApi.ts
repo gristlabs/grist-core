@@ -716,7 +716,7 @@ export class DocWorkerApi {
 
         const getRemoveAction = async () => {
           const columns = await handleSandboxError('', [],
-            activeDoc.getTableCols(docSessionFromRequest(req), tableId, true));
+            activeDoc.getTableCols(docSessionFromRequest(req), tableId));
           const columnsToRemove = columns
             .map(col => col.fields.colRef as number)
             .filter(colRef => !updatedColumnsIds.has(colRef));

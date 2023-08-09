@@ -5,7 +5,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
-import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut} from 'app/plugin/DocApiTypes';
+import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {
   applyQueryParameters,
@@ -854,11 +854,34 @@ function testDocApi() {
     async function getColumnFieldsMapById(url: string) {
       const result = await axios.get(url, chimpy);
       assert.equal(result.status, 200);
-      return new Map(
+      return new Map<string, object>(
           result.data.columns.map(
             ({id, fields}: {id: string, fields: object}) => [id, fields]
           )
       );
+    }
+
+    async function checkPut(
+      columns: [RecordWithStringId, ...RecordWithStringId[]],
+      params: Record<string, any>,
+      expectedFieldsByColId: Record<string, object>,
+    ) {
+      const {url} = await generateDocAndUrl();
+      const body: ColumnsPut = { columns };
+      const resp = await axios.put(url, body, {...chimpy, params});
+      assert.equal(resp.status, 200);
+      console.log("resp.data = ", resp.data);
+      const fieldsByColId = await getColumnFieldsMapById(url);
+
+      assert.deepEqual(
+        [...fieldsByColId.keys()],
+        Object.keys(expectedFieldsByColId),
+        "The updated table should have the expected columns"
+      );
+
+      for (const [colId, expectedFields] of Object.entries(expectedFieldsByColId)) {
+        assert.deepInclude(fieldsByColId.get(colId), expectedFields);
+      }
     }
 
     const COLUMN_TO_ADD = {
@@ -869,7 +892,6 @@ function testDocApi() {
       }
     };
 
-    const EXISTING_COLUMN_LABEL = "A";
     const COLUMN_TO_UPDATE = {
       id: "A",
       fields: {
@@ -879,159 +901,42 @@ function testDocApi() {
     };
 
     it('should create new columns', async function () {
-
-      // given
-      const { url } = await generateDocAndUrl();
-      const body: ColumnsPut = {
-        columns: [COLUMN_TO_ADD]
-      };
-      // when
-      const resp = await axios.put(url, body, chimpy);
-      // then
-      const columnFieldsMap = await getColumnFieldsMapById(url);
-      assert.equal(resp.status, 200);
-
-      assert.isTrue(columnFieldsMap.has(COLUMN_TO_ADD.id), `Expecting to have a column with id "${COLUMN_TO_ADD.id}"`);
-      assert.deepInclude(columnFieldsMap.get(COLUMN_TO_ADD.id), COLUMN_TO_ADD.fields);
+      await checkPut([COLUMN_TO_ADD], {}, {
+        A: {}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      });
     });
 
     it('should update existing columns and create new ones', async function () {
-      // given
-      const { url } = await generateDocAndUrl();
-      const submittedColumns: ColumnsPut = {
-        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
-      };
-
-      // when
-      const resp = await axios.put(url, submittedColumns, chimpy);
-
-      // then
-      assert.equal(resp.status, 200);
-      const fieldsByColId = await getColumnFieldsMapById(url);
-
-      const updatedColFields = fieldsByColId.get(COLUMN_TO_UPDATE.fields.colId);
-      assert.exists(updatedColFields, `Expecting to have a column with id "${COLUMN_TO_UPDATE.fields.colId}"`);
-      assert.deepInclude(
-        updatedColFields,
-        { type: COLUMN_TO_UPDATE.fields.type, label: EXISTING_COLUMN_LABEL },
-        `Expecting to have type changed to ${COLUMN_TO_UPDATE.fields.type} and label unchanged`
-      );
-
-      assert.isFalse(
-        fieldsByColId.has(COLUMN_TO_UPDATE.id),
-        `Expecting to not have a column with id "${COLUMN_TO_UPDATE.id}" anymore as the ID has been renamed`
-      );
-
-      const newColFields = fieldsByColId.get(COLUMN_TO_ADD.id);
-      assert.exists(newColFields, `Column with id "${COLUMN_TO_ADD.id}" should have been added`);
-      assert.deepInclude(newColFields, COLUMN_TO_ADD.fields);
-
-      assert.equal(fieldsByColId.size, 4, "Should have kept the 3 existing columns + added the new one");
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {}, {
+        NewA: {type: "Numeric", label: "A"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      });
     });
 
     it('should only update existing columns when noadd is set', async function () {
-      // given
-      const { url } = await generateDocAndUrl();
-      const EXISTING_COLUMN_LABEL = "A";
-      const submittedColumns: ColumnsPut = {
-        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
-      };
-      const params = { noadd: "1" };
-
-      // when
-      const resp = await axios.put(url, submittedColumns, {...chimpy, params });
-
-      // then
-      assert.equal(resp.status, 200);
-      const fieldsByColId = await getColumnFieldsMapById(url);
-
-      const updatedColFields = fieldsByColId.get(COLUMN_TO_UPDATE.fields.colId);
-      assert.exists(updatedColFields, `Expecting to have a column with id "${COLUMN_TO_UPDATE.fields.colId}"`);
-      assert.deepInclude(
-        updatedColFields,
-        { type: COLUMN_TO_UPDATE.fields.type, label: EXISTING_COLUMN_LABEL },
-        `Expecting to have type changed to ${COLUMN_TO_UPDATE.fields.type} and label unchanged`
-      );
-
-      assert.isFalse(
-        fieldsByColId.has(COLUMN_TO_ADD.id),
-        `Expecting to not have added the column with id "${COLUMN_TO_ADD.id}" as noadd has been set`
-      );
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noadd: "1"}, {
+        NewA: {type: "Numeric"}, B: {}, C: {}
+      });
     });
 
     it('should only add columns when noupdate is set', async function () {
-      // given
-      const { url } = await generateDocAndUrl();
-      const submittedColumns: ColumnsPut = {
-        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
-      };
-      const params = { noupdate: "1" };
-
-      // when
-      const resp = await axios.put(url, submittedColumns, {...chimpy, params });
-
-      // then
-      assert.equal(resp.status, 200);
-      const fieldsByColId = await getColumnFieldsMapById(url);
-
-      const updatedColFields = fieldsByColId.get(COLUMN_TO_UPDATE.id);
-      assert.exists(
-        updatedColFields,
-        `Expecting to have the column with id "${COLUMN_TO_UPDATE.id}" unchanged as noupdate is set`
-      );
-      assert.deepInclude(
-        updatedColFields,
-        { type: "Any", label: EXISTING_COLUMN_LABEL },
-        `Expecting to have type and label unchanged as noupdate is set`
-      );
-
-      const addedColFields = fieldsByColId.get(COLUMN_TO_ADD.id);
-      assert.exists(
-        addedColFields,
-        `Expecting to have added the column with id "${COLUMN_TO_ADD.id}"`
-      );
-      assert.deepInclude(addedColFields, COLUMN_TO_ADD.fields, "Expecting to have the fields set for the added column");
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noupdate: "1"}, {
+        A: {type: "Any"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      });
     });
 
     it('should remove existing columns if replaceall is set', async function () {
-      // given
-      const { url } = await generateDocAndUrl();
-      const submittedColumns: ColumnsPut = {
-        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
-      };
-      const params = { replaceall: "1" };
-
-      // when
-      const resp = await axios.put(url, submittedColumns, {...chimpy, params });
-
-      // then
-      assert.equal(resp.status, 200);
-      const fieldsByColId = await getColumnFieldsMapById(url);
-
-      assert.isTrue(
-        fieldsByColId.has(COLUMN_TO_UPDATE.fields.colId),
-        `Expecting to have the column with id "${COLUMN_TO_UPDATE.id}" changed`
-      );
-
-      assert.isTrue(
-        fieldsByColId.has(COLUMN_TO_ADD.id),
-        `Expecting to have added the column with id "${COLUMN_TO_ADD.id}"`
-      );
-
-      assert.equal(fieldsByColId.size, 2, "Expecting to have removed the other columns");
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
+        NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+      });
     });
 
     it('should forbid update by viewers', async function () {
       // given
       const { url, docId } = await generateDocAndUrl();
       await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
-      const submittedColumns: ColumnsPut = {
-        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
-      };
-      const params = { noupdate: "1" };
 
       // when
-      const resp = await axios.put(url, submittedColumns, {...kiwi, params });
+      const resp = await axios.put(url, { columns: [ COLUMN_TO_ADD ] }, kiwi);
 
       // then
       assert.equal(resp.status, 403);
@@ -1041,12 +946,9 @@ function testDocApi() {
       // given
       const { url } = await generateDocAndUrl();
       const notFoundUrl = url.replace("Table1", "NonExistingTable");
-      const submittedColumns: ColumnsPut = {
-        columns: [COLUMN_TO_ADD, COLUMN_TO_UPDATE]
-      };
 
       // when
-      const resp = await axios.put(notFoundUrl, submittedColumns, chimpy);
+      const resp = await axios.put(notFoundUrl, { columns: [ COLUMN_TO_ADD ] }, chimpy);
 
       // then
       assert.equal(resp.status, 404);
