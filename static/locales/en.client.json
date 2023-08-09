@@ -1077,7 +1077,8 @@
         "Sign Up for Free": "Sign Up for Free",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Sign up for a free Grist account to start using the Formula AI Assistant.",
         "There are some things you should know when working with me:": "There are some things you should know when working with me:",
-        "What do you need help with?": "What do you need help with?"
+        "What do you need help with?": "What do you need help with?",
+        "Formula AI Assistant is only available for logged in users.": "Formula AI Assistant is only available for logged in users."
     },
     "GridView": {
         "Click to insert": "Click to insert"
