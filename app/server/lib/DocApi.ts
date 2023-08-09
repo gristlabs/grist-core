@@ -2,7 +2,14 @@ import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer
 import {createEmptyActionSummary} from "app/common/ActionSummary";
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
-import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
+import {
+  BulkColValues,
+  ColValues,
+  fromTableDataAction,
+  TableColValues,
+  TableRecordValue,
+  UserAction
+} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
@@ -693,32 +700,26 @@ export class DocWorkerApi {
         }
         const body = req.body as Types.ColumnsPut;
 
-        const addActions = new Array<[
-          'AddVisibleColumn', string,
-          Types.RecordWithStringId["id"], Types.RecordWithStringId["fields"]
-        ]>();
-        const updateActions = new Array<[
-          'UpdateRecord', '_grist_Tables_column',
-          Types.Record["id"], Types.Record["fields"]
-        ]>();
+        const addActions: UserAction[] = [];
+        const updateActions: UserAction[] = [];
+        const updatedColumnsIds = new Set();
 
         for (const col of body.columns) {
           const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
           if (id) {
-            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields || {}] );
+            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields] );
+            updatedColumnsIds.add( id );
           } else {
-            addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields || {}] );
+            addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields] );
           }
         }
 
         const getRemoveAction = async () => {
           const columns = await handleSandboxError('', [],
             activeDoc.getTableCols(docSessionFromRequest(req), tableId, true));
-          const ID_IN_UPDATE_ACTIONS_IDX = 2;
-          const updatedColumnsIds = new Set(updateActions.map(item => item[ID_IN_UPDATE_ACTIONS_IDX]));
           const columnsToRemove = columns
-            .filter(col => !updatedColumnsIds.has(col.fields.colRef as number))
-            .map(col => col.fields.colRef as number);
+            .map(col => col.fields.colRef as number)
+            .filter(colRef => !updatedColumnsIds.has(colRef));
 
           return [ 'BulkRemoveRecord', '_grist_Tables_column', columnsToRemove ];
         };
