@@ -364,8 +364,9 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
       withDoc(async (activeDoc, req, res) => {
         const tableId = req.params.tableId;
+        const includeHidden = isAffirmative(req.query.includeHidden);
         const columns = await handleSandboxError('', [],
-          activeDoc.getTableCols(docSessionFromRequest(req), tableId));
+          activeDoc.getTableCols(docSessionFromRequest(req), tableId, includeHidden));
         res.json({columns});
       })
     );

@@ -610,6 +610,21 @@ function testDocApi() {
     );
   });
 
+  it("GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when includeHidden is set", async function () {
+    const params = { includeHidden: true };
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`,
+      { ...chimpy, params }
+    );
+    assert.equal(resp.status, 200);
+    const columnsMap = new Map(resp.data.columns.map(({id, fields}: {id: string, fields: object}) => [id, fields]));
+    assert.include([...columnsMap.keys()], "manualSort");
+    assert.deepInclude(columnsMap.get("manualSort"), {
+      colRef: 1,
+      type: 'ManualSortPos',
+    });
+  });
+
   it("GET/POST/PATCH /docs/{did}/tables and /columns", async function () {
     // POST /tables: Create new tables
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables`, {
