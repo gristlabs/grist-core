@@ -10,46 +10,12 @@ import {FilterColValues, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isListType, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import {encodeObject} from 'app/plugin/objtypes';
-import {Disposable, toKo} from "grainjs";
+import {Disposable, Holder, MultiHolder, toKo} from "grainjs";
 import * as  ko from "knockout";
-import _ from "lodash";
+import merge = require('lodash/merge');
 import mapValues = require('lodash/mapValues');
+import pick = require('lodash/pick');
 import pickBy = require('lodash/pickBy');
-
-
-/**
- * Returns if the first table is a summary of the second. If both are summary tables, returns true
- * if the second table is a more detailed summary, i.e. has additional group-by columns.
- * @param summary: TableRec for the table to check for being the summary table.
- * @param detail: TableRec for the table to check for being the detailed version.
- * @returns {Boolean} Whether the first argument is a summarized version of the second.
- */
-function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
-  const summarySource = summary.summarySourceTable();
-  if (summarySource === detail.getRowId()) { return true; }
-  const detailSource = detail.summarySourceTable();
-  return (Boolean(summarySource) &&
-    detailSource === summarySource &&
-    summary.getRowId() !== detail.getRowId() &&
-    gutil.isSubset(summary.summarySourceColRefs(), detail.summarySourceColRefs()));
-}
-
-/**
- * Used to get corresponding columns of tables when one is a summary of the other
- * @param srcGBCol: ColumnRec, must be a groupByColumn
- * @param tgtTable: TableRec to get corresponding column from
- * @returns {ColumnRec} The corresponding column of tgtTable
- */
-function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): ColumnRec{
-    if(!isSummaryOf(srcGBCol.table(), tgtTable))
-      { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
-
-    if(tgtTable.summarySourceTable() == 0) { //if direct summary
-      return srcGBCol.summarySource();
-    } else { // else summary->summary, match by colId
-      return tgtTable.groupByColumns().filter((tgtCol) => tgtCol.colId() == srcGBCol.colId())[0];
-    }
-}
 
 
 //TODO: add a "no link" to this?
@@ -68,31 +34,10 @@ type FilterState = FilterColValues & {
   colTypes: {[colId: string]: string;}
 };
 
-function FilterStateToColValues(fs: FilterState) { return _.pick(fs, ['filters', 'operations']); }
+function FilterStateToColValues(fs: FilterState) { return pick(fs, ['filters', 'operations']); }
 export const EmptyFilterState: FilterState = {filters: {}, filterLabels: {}, operations: {}, colTypes: {}};
 export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(EmptyFilterState);
 
-/**
- * Maintains state useful for linking sections, i.e. auto-filtering and auto-scrolling.
- * Exposes .filterColValues, which is either null or a computed evaluating to a filtering object;
- * and .cursorPos, which is either null or a computed that evaluates to a cursor position.
- * LinkingState must be created with a valid srcSection and tgtSection.
- *
- * There are several modes of linking:
- * (1) If tgtColId is set, tgtSection will be filtered to show rows whose values of target column
- *     are equal to the value of source column in srcSection at the cursor.
- * (2) If srcSection is a summary of tgtSection, then tgtSection is filtered to show only those
- *     rows that match the row at the cursor of srcSection.
- * (3) If tgtColId is null, tgtSection is scrolled to the rowId determined by the value of the
- *     source column at the cursor in srcSection.
- *
- * @param gristDoc: GristDoc instance, for getting the relevant TableData objects.
- * @param srcSection: RowModel for the section that drives the target section.
- * @param srcColId: Name of the column that drives the target section, or null to use rowId.
- * @param tgtSection: RowModel for the section that's being driven.
- * @param tgtColId: Name of the reference column to auto-filter by, or null to auto-scroll.
-
- */
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
   public readonly cursorPos?: ko.Computed<UIRowId>;
@@ -127,8 +72,21 @@ export class LinkingState extends Disposable {
     this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
 
-    this.linkTypeDescription = ko.computed((): LinkType => {
-      if (srcSection.table().summarySourceTable() && srcColId == "group") {
+    // === IMPORTANT NOTE! (this applies throughout this file)
+    // srcCol and tgtCol can be the "empty column"
+    //  - emptyCol.getRowId() === 0
+    //  - emptyCol.colId() === undefined
+    // The typical pattern to deal with this is to use `srcColId = col?.colId()`, and test for `if (srcColId) {...}`
+
+    this.linkTypeDescription = this.autoDispose(ko.computed((): LinkType => {
+      if(srcSection.isDisposed()) {
+        //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
+        //nbrowser tests: LinkingErrors and RawData seem to hit this case
+        console.warn("srcSection disposed in linkingState: linkTypeDescription");
+        return "Error:Invalid";
+      }
+
+      if (srcSection.table().summarySourceTable() && srcColId === "group") {
         return "Filter:Summary-Group"; //implemented as col->col, but special-cased in select-by
       } else if (srcColId && tgtColId) {
         return "Filter:Col->Col";
@@ -147,76 +105,93 @@ export class LinkingState extends Disposable {
       } else {
         return "Error:Invalid";
       }
-    });
+    }));
 
-    if (tgtColId) { //normal filter link
-      if (srcSection.parentKey() === 'custom') {
-        this.filterState = this._srcCustomFilter(tgtCol, isRefListType(tgtCol.type()) ? 'intersects' : 'in');
-      } else if (srcColId) { //col->col filter
-        this.filterState = this._makeFilterObs(srcCol, tgtCol);
-      } else { //row->col filter
-        this.filterState = this._makeFilterObs(null, tgtCol);
-      }
-    //} else if (srcColId) {  // "Lookup link"
-    } else if (srcColId && isRefListType(srcCol.type())) {  // "Lookup link"
-      this.filterState = this._makeFilterObs(srcCol, null);
+    if (srcSection.parentKey() === 'custom') { //old, special-cased custom filter
+        const operation = (tgtColId && isRefListType(tgtCol.type())) ? 'intersects' : 'in';
+        this.filterState = this._srcCustomFilter(tgtCol, operation); // works whether tgtCol is the empty col or not
 
-    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) {
-      // !srcCol && !tgtCol && summary => typical summary filter-linking
+    } else if (tgtColId) { //Standard filter link
+      //If srcCol is the empty col, is a row->col filter (i.e. id -> tgtCol)
+      //else is a col->col filter (srcCol -> tgtCol)
+      //MakeFilterObs handles it either way
+      this.filterState = this._makeFilterObs(srcCol, tgtCol);
+
+    } else if (srcColId && isRefListType(srcCol.type())) {  // "Show Referenced Records" link
+      //tgtCol is the emptycol (i.e. the id col)
+      //srcCol must be a reference to the tgt table
+      //Link will filter tgt section to show exactly the set of rowIds referenced by the srcCol
+      //(NOTE: currently we only do this for reflists, single refs handled as cursor links for now)
+      this.filterState = this._makeFilterObs(srcCol, undefined);
+
+    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { //Summary linking
       // We do summary filtering if no cols specified and summary section is linked to a more detailed summary
       // (or to the summarySource table)
+      // Implemented as multiple column filters, one for each groupByCol of the src table
 
-      // source data table could still be loading (this could happen after changing the group by
-      // columns of a linked summary table for instance), hence the below listener.
+      // temp vars for _update to use (can't set filterState directly since it's gotta be a computed)
       const _filterState = ko.observable<FilterState>();
       this.filterState = this.autoDispose(ko.computed(() => _filterState()));
-      this.autoDispose(srcTableData.dataLoadedEmitter.addListener(_update));
 
-      const self = this;
-      _update();
-      function _update() {
-        if (srcSection.isDisposed() || srcSection.table().groupByColumns().length == 0) {
-          //srcSection disposed can happen transiently while loading? (unsure)
-          //groupByColumns == [] can happen if we make a summary tab [group by nothing]. (in which case: don't filter)
+      //update may be called multiple times, so need a holder to handle disposal
+      //Note: grainjs MultiHolder can't actually be cleared. To be able to dispose of multiple things, we need
+      //      to make a MultiHolder in a Holder, which feels ugly but works.
+      // TODO: Update this if we ever patch grainjs to allow multiHolder.clear()
+      const updateHolder = Holder.create(this);
+
+      // source data table could still be loading (this could happen after changing the group by
+      // columns of a linked summary table for instance). Define an _update function to be called when data loads
+      const _update = () => {
+        if (srcSection.isDisposed() || srcSection.table().groupByColumns().length === 0) {
+          //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
+          //Tests nbrowser/LinkingErrors and RawData might hit this case
+          //groupByColumns === [] can happen if we make a summary tab [group by nothing]. (in which case: don't filter)
           _filterState(EmptyFilterState);
           return;
         }
 
+        //Make a MultiHolder to own this invocation's objects (disposes of old one)
+        //TODO (MultiHolder in a Holder is a bit of a hack, but needed to hold multiple objects I think)
+        const updateMultiHolder = MultiHolder.create(updateHolder);
+
         //Make one filter for each groupBycolumn of srcSection
         const resultFilters: (ko.Computed<FilterState>|undefined)[] = srcSection.table().groupByColumns().map(srcGCol =>
-          self._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()))
+          this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder)
         );
 
-        //If any are null, error out
-        if(resultFilters.filter((f) => f == undefined).length > 0) {
-          console.warn("LINKINGSTATE: some of filters are null", resultFilters);
+        //If any are undef, error out
+        if(resultFilters.some((f) => f === undefined)) {
+          console.warn("LINKINGSTATE: some of filters are undefined", resultFilters);
           _filterState(EmptyFilterState);
           return;
         }
 
         //Merge them together in a computed
-        const resultComputed = self.autoDispose(ko.computed(() => {
-          return _.merge({}, ...resultFilters.map(filtObs => filtObs!())) as FilterState;
+        const resultComputed = updateMultiHolder.autoDispose(ko.computed(() => {
+          return merge({}, ...resultFilters.map(filtObs => filtObs!())) as FilterState;
         }));
         _filterState(resultComputed());
-      } // End of update function
+      }; // End of update function
 
-    } else if (srcSection.parentKey() === 'custom') {
-      this.filterState = this._srcCustomFilter(null, 'in');
+      //Call when data loads, also call now to be safe
+      this.autoDispose(srcTableData.dataLoadedEmitter.addListener(_update));
+      _update();
 
       // ================ CURSOR LINKS: =================
     } else { //!tgtCol && !summary-link && (!lookup-link || !reflist),
-      //        either same-table cursor-link or non-reflist cursor link
-      const srcValueFunc = this._makeValGetter(this._srcSection.table(), this._srcColId); //colVal, or rowId if undef
+      //        either same-table cursor-link (!srcCol && !tgtCol, so do activeRowId -> cursorPos)
+      //        or cursor-link by reference   ( srcCol && !tgtCol, so do srcCol -> cursorPos)
 
-      if (srcValueFunc) {
+      //colVal, or rowId if no srcCol
+      const srcValueFunc = this._makeValGetter(this._srcSection.table(), this._srcColId);
+
+      if (srcValueFunc) { // if makeValGetter succeeded, set up cursorPos
         this.cursorPos = this.autoDispose(ko.computed(() =>
           srcValueFunc(srcSection.activeRowId()) as UIRowId
         ));
       }
 
-      if (!srcColId) { // cursor-link: same-record
-        // copy getDefaultColValues from the source if possible
+      if (!srcColId) { // If same-table cursor-link, copy getDefaultColValues from the source if possible
         const getDefaultColValues = srcSection.linkingState()?.getDefaultColValues;
         if (getDefaultColValues) {
           this.getDefaultColValues = getDefaultColValues;
@@ -224,7 +199,8 @@ export class LinkingState extends Disposable {
       }
     }
 
-    // Extract just the filtering-relevant parts of filterState
+    // Make filterColValues, which is just the filtering-relevant parts of filterState
+    // (it's used in places that don't need the user-facing labels, e.g. CSV export)
     this.filterColValues = (this.filterState) ?
       ko.computed(() => FilterStateToColValues(this.filterState!()))
       : undefined;
@@ -253,9 +229,9 @@ export class LinkingState extends Disposable {
 
   /**
    * Makes a standard filter link (summary tables and cursor links handled separately)
-   * treats (srcCol == undefined) as srcColId == "id", same for tgt
+   * treats (srcCol === undefined) as srcColId === "id", same for tgt
    *
-   * if srcColId == "id", uses src activeRowId as the selector value (i.e. a ref to that row)
+   * if srcColId === "id", uses src activeRowId as the selector value (i.e. a ref to that row)
    * else, gets the current value in selectedRow's SrcCol
    *
    * Returns a FilterColValues with a single filter {[tgtColId|"id":string] : (selectorVals:val[])}
@@ -268,16 +244,20 @@ export class LinkingState extends Disposable {
    *
    * @param srcCol srcCol for the filter, or undefined/the empty column to mean the entire record
    * @param tgtCol tgtCol for the filter, or undefined/the empty column to mean the entire record
+   * @param [owner=this] Owner for all created disposables
    * @private
    */
   private _makeFilterObs(
-      srcCol: ColumnRec|null, tgtCol: ColumnRec|null): ko.Computed<FilterState> | undefined {
+      srcCol: ColumnRec|undefined,
+      tgtCol: ColumnRec|undefined,
+      owner: MultiHolder = this): ko.Computed<FilterState> | undefined
+  {
     const srcColId = srcCol?.colId();
     const tgtColId = tgtCol?.colId();
     console.log(`in makeFilterObs: srcColId=${srcColId || "id" }, tgtColId=${tgtColId || "id" }`);
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
-    if(srcColId == null && tgtColId == null) {
+    if(srcColId === undefined && tgtColId === undefined) {
       throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be null");
     }
 
@@ -287,11 +267,11 @@ export class LinkingState extends Disposable {
 
     // Figure out display val to show for the selector (if selector is a Ref)
     // - if srcCol is a ref, we display its displayColModel(), which is what is shown in the cell
-    // - However, if srcColId == 'id', there is no srcCol.displayColModel.
+    // - However, if srcColId === 'id', there is no srcCol.displayColModel.
     //   We also can't use tgtCol.displayColModel, since we're getting values from the source section.
     //   Therefore: The value we want to display is srcRow[tgtCol.visibleColModel.colId]
     //
-    // Note: if we've gotten here, tgtCol is guaranteed to be a ref/reflist if srcColId == undefined
+    // Note: if we've gotten here, tgtCol is guaranteed to be a ref/reflist if srcColId === undefined
     //       (because we ruled out the undef/undef case above)
     // Note: tgtCol.visibleCol.colId can be undefined, iff visibleCol is rowId. makeValGetter handles that implicitly
     const displayColId = srcColId ?
@@ -314,7 +294,8 @@ export class LinkingState extends Disposable {
     }
 
     //Now, create the actual observable that updates with activeRowId
-    return this.autoDispose(ko.computed(() => {
+    //(we autodispose/return it at the end of the function) is this right? TODO JV
+    return owner.autoDispose(ko.computed(() => {
 
       //Get selector-rowId
       const srcRowId = this._srcSection.activeRowId();
@@ -338,17 +319,17 @@ export class LinkingState extends Disposable {
         filterValues = selectorCellVal.slice(1);
 
         //selectorValue and displayValue might not match up? Shouldn't happen, but let's yell loudly if it does
-        if (isList(displayCellVal) && displayCellVal.length == selectorCellVal.length) {
+        if (isList(displayCellVal) && displayCellVal.length === selectorCellVal.length) {
           displayValues = displayCellVal.slice(1);
         } else {
           console.error("Error in LinkingState: displayVal list doesn't match selectorVal list ");
           displayValues = filterValues; //fallback to unformatted values
         }
 
-      } else { //isRefList && !isList(), probably null. Happens with blank reflists, or if cursor on the 'new' row
+      } else { //isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
         filterValues = [];
         displayValues = [];
-        if(selectorCellVal != null) { // should be null, but let's warn if it's not
+        if(selectorCellVal !== null) { // should be null, but let's warn if it's not
           console.warn("Error in LinkingState.makeFilterObs(), srcVal is reflist but has non-list non-null value");
         }
       }
@@ -358,17 +339,17 @@ export class LinkingState extends Disposable {
 
       // If selectorVal is a blank-cell value, need to change operation for correct behavior with lists
       // Blank selector shouldn't mean "show no records", it should mean "show records where tgt column is also blank"
-      if(srcRowId != 'new') { //(EXCEPTION: the add-row, which is when we ACTUALLY want to show no records)
+      if(srcRowId !== 'new') { //(EXCEPTION: the add-row, which is when we ACTUALLY want to show no records)
 
         // If tgtCol is a list (RefList or Choicelist) and selectorVal is null/blank, operation must be 'empty'
-        if (tgtCol?.type() == "ChoiceList" && !isSrcRefList && selectorCellVal == "")    { operation = 'empty'; }
-        else if (isTgtRefList              && !isSrcRefList && selectorCellVal == 0)     { operation = 'empty'; }
-        else if (isTgtRefList              &&  isSrcRefList && filterValues.length == 0) { operation = 'empty'; }
+        if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "")    { operation = 'empty'; }
+        else if (isTgtRefList               && !isSrcRefList && selectorCellVal === 0)     { operation = 'empty'; }
+        else if (isTgtRefList               &&  isSrcRefList && filterValues.length === 0) { operation = 'empty'; }
         // other types can have falsey values when non-blank (e.g. for numbers, 0 is a valid value; blank cell is null)
         // However, we don't need to check for those here, since we only care about lists (Reflist or Choicelist)
 
         // If tgtCol is a single ref, nullness is represented by [0], not by [], so need to create that null explicitly
-        else if (!isTgtRefList && isSrcRefList && filterValues.length == 0) {
+        else if (!isTgtRefList && isSrcRefList && filterValues.length === 0) {
           filterValues = [0];
           displayValues = [''];
         }
@@ -395,13 +376,13 @@ export class LinkingState extends Disposable {
   // Value for this.filterColValues based on the values in srcSection.selectedRows
   //"null" for column implies id column
   private _srcCustomFilter(
-      column: ColumnRec|null, operation: QueryOperation): ko.Computed<FilterState> | undefined {
-    const colId = (column == null || column.colId() == undefined) ? "id" : column.colId();
+      column: ColumnRec|undefined, operation: QueryOperation): ko.Computed<FilterState> {
+    const colId = (!column || column.colId() === undefined) ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
       const values = toKo(ko, this._srcSection.selectedRows)();
       return {
         filters: {[colId]: values},
-        filterLabels: {[colId]: values.map(v => v+"")},
+        filterLabels: {[colId]: values.map(v => String(v))},
         operations: {[colId]: operation},
         colTypes: {[colId]: column?.type() || `Ref:${column?.table().tableId}`}
       } as FilterState; //TODO: fix this once we have cases of customwidget linking to test with
@@ -414,14 +395,14 @@ export class LinkingState extends Disposable {
   // An undefined colId means to use the 'id' column, i.e. (rowId)=>rowId
   // returns 'valGetter | null', null meaning an error
   //    valGetter is ( (UIRowID | null) => cellValue | null ), null meaning the "new" row
-  private _makeValGetter(table: TableRec, colId: string | undefined) {
-    if(colId == undefined) { //passthrough for id cols
+  private _makeValGetter(table: TableRec, colId: string | undefined, owner: MultiHolder=this) {
+    if(colId === undefined) { //passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
     }
 
     const tableModel = this._docModel.dataTables[table.tableId()];
-    tableModel.tableData.getRowPropFunc(colId);
-    const rowModel = this.autoDispose(tableModel.createFloatingRowModel()) as DataRowModel;
+    const rowModel = (tableModel.createFloatingRowModel()) as DataRowModel;
+    owner.autoDispose(rowModel); //TODO JV, is there a way to oneline this like normal?
     const cellObs = rowModel.cells[colId];
     // If no cellObs, can't make a val getter. This shouldn't happen, but may happen
     // transiently while the separate linking-related observables get updated.
@@ -435,5 +416,50 @@ export class LinkingState extends Disposable {
       if (rowId === 'new') { return null; } // used to return "new", hopefully the change doesn't come back to haunt us
       return cellObs();
     };
+  }
+}
+
+// === Helpers:
+
+/**
+ * Returns whether the first table is a summary of the second. If both are summary tables, returns true
+ * if the second table is a more detailed summary, i.e. has additional group-by columns.
+ * @param summary: TableRec for the table to check for being the summary table.
+ * @param detail: TableRec for the table to check for being the detailed version.
+ * @returns {Boolean} Whether the first argument is a summarized version of the second.
+ */
+function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
+  const summarySource = summary.summarySourceTable();
+  if (summarySource === detail.getRowId()) { return true; }
+  const detailSource = detail.summarySourceTable();
+  return (Boolean(summarySource) &&
+    detailSource === summarySource &&
+    summary.getRowId() !== detail.getRowId() &&
+    gutil.isSubset(summary.summarySourceColRefs(), detail.summarySourceColRefs()));
+}
+
+/**
+ * When TableA is a summary of TableB, each of TableA.groupByCols corresponds to a specific col of TableB
+ * This function returns the column of B that corresponds to a particular groupByCol of A
+ * - If A is a direct summary of B, then the corresponding col for A.someCol is A.someCol.summarySource()
+ * - However if A and B are both summaries of C, then A.someCol.summarySource() would
+ *   give us C.someCol, but what we actually want is B.someCol.
+ * - Since we know A is a summary of B, then B's groupByCols must include all of A's groupbycols,
+ *   so we can get B.someCol by matching on colId.
+ * @param srcGBCol: ColumnRec, must be a groupByColumn, and srcGBCol.table() must be a summary of tgtTable
+ * @param tgtTable: TableRec to get corresponding column from
+ * @returns {ColumnRec} The corresponding column of tgtTable
+ */
+function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): ColumnRec {
+  if(!isSummaryOf(srcGBCol.table(), tgtTable))
+  { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
+
+  if(tgtTable.summarySourceTable() === 0) { //if direct summary
+    return srcGBCol.summarySource();
+  } else { // else summary->summary, match by colId
+    const srcColId = srcGBCol.colId();
+    const retVal = tgtTable.groupByColumns().find((tgtCol) => tgtCol.colId() === srcColId); //should always exist
+    if(!retVal) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: summary table lacks groupby col"); }
+    return retVal;
   }
 }

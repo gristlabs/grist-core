@@ -36,7 +36,7 @@ describe('Views.ntest', function() {
     // Check that viewsection titles are correct and editable
     var recordTitle = recordSection.find('.test-viewsection-title');
     assert.equal(await recordTitle.text(), 'TABLE1');
-    await recordSection.find('.test-viewsection-blank').click(); //switch to recordSection without opening title widget
+    await recordTitle.click();
     await gu.renameActiveSection('foo');
     assert.equal(await recordTitle.text(), 'foo');
 
