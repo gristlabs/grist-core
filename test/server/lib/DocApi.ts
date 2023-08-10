@@ -870,7 +870,6 @@ function testDocApi() {
       const body: ColumnsPut = { columns };
       const resp = await axios.put(url, body, {...chimpy, params});
       assert.equal(resp.status, 200);
-      console.log("resp.data = ", resp.data);
       const fieldsByColId = await getColumnFieldsMapById(url);
 
       assert.deepEqual(
