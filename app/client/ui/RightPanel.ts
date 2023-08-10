@@ -16,12 +16,13 @@
 
 import * as commands from 'app/client/components/commands';
 import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
+import {EmptyFilterState} from "app/client/components/LinkingState";
 import {RefSelect} from 'app/client/components/RefSelect';
 import ViewConfigTab from 'app/client/components/ViewConfigTab';
 import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
-import {createSessionObs} from 'app/client/lib/sessionObs';
+import {createSessionObs, isBoolean, SessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
@@ -41,6 +42,7 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {isFullReferencingType} from "app/common/gristTypes";
 import {StringUnion} from 'app/common/StringUnion';
 import {IWidgetType} from 'app/common/widgetTypes';
 import {
@@ -59,8 +61,7 @@ import {
   subscribe
 } from 'grainjs';
 import * as ko from 'knockout';
-import {EmptyFilterState} from "../components/LinkingState";
-import {isFullReferencingType} from "../../common/gristTypes";
+import { not } from 'app/common/gutil';
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
@@ -114,6 +115,10 @@ export class RightPanel extends Disposable {
     const sec = use(this._gristDoc.viewModel.activeSection);
     return sec.getRowId() ? sec : null;
   });
+
+  // Which subtab is open for configuring page widget.
+  private _advLinkInfoCollapsed = createSessionObs(this, "rightPageAdvancedLinkInfoCollapsed",
+                                                   true, isBoolean);
 
   constructor(private _gristDoc: GristDoc, private _isOpen: Observable<boolean>) {
     super();
@@ -490,130 +495,123 @@ export class RightPanel extends Disposable {
     return dom.maybe(viewConfigTab, (vct) => vct.buildSortFilterDom());
   }
 
-  private _buildLinkInfo(owner: MultiHolder, activeSection: ViewSectionRec, ...domArgs: DomElementArg[]) {
+  private _buildLinkInfo(activeSection: ViewSectionRec, ...domArgs: DomElementArg[]) {
+    //NOTE!: linkingState.filterState might transiently be EmptyFilterState while things load
+    //Each case (filters-table, id cols, etc) needs to be able to handle having lfilter.filterLabels = {}
     const tgtSec = activeSection;
     return dom.domComputed((use) => {
 
-        const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
-        const srcCol = use(tgtSec.linkSrcCol);
-        const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
-        //const tgtColId = use(use(tgtSec.linkTargetCol).colId);
-        const srcTable = use(srcSec.table);
-        const tgtTable = use(tgtSec.table);
+      const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
+      const srcCol = use(tgtSec.linkSrcCol);
+      const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
+      //const tgtColId = use(use(tgtSec.linkTargetCol).colId);
+      const srcTable = use(srcSec.table);
+      const tgtTable = use(tgtSec.table);
 
-        const lstate = use(tgtSec.linkingState);
-        if(lstate == null) { return null; }
+      const lstate = use(tgtSec.linkingState);
+      if(lstate == null) { return null; }
 
-        // if not filter-linking, this will be incorrect, but we don't use it then
-        const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;
+      // if not filter-linking, this will be incorrect, but we don't use it then
+      const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;
 
-        //If it's null then no cursor-link is set, but in that case we won't show the string anyway.
-        const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
-        const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : '';
+      //If it's null then no cursor-link is set, but in that case we won't show the string anyway.
+      const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
+      const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : '';
 
-        // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
-        const fromTableDom = [
-            dom.maybe((use2) => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
-            use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
-            dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
-          ];
+      // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
+      const fromTableDom = [
+          dom.maybe((use2) => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
+          use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
+          dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
+        ];
 
-        //Count filters for proper pluralization
-        const hasId = lfilter.filterLabels?.hasOwnProperty("id");
-        const numFilters = Object.keys(lfilter.filterLabels).length - (hasId ? 1 : 0);
+      //Count filters for proper pluralization
+      const hasId = lfilter.filterLabels?.hasOwnProperty("id");
+      const numFilters = Object.keys(lfilter.filterLabels).length - (hasId ? 1 : 0);
 
-        // ================== Link-info Helpers
+      // ================== Link-info Helpers
 
-        //For each col-filter in lfilters, makes a row showing "${icon} colName = [filterVals]"
-        // FilterVals is in a box to look like a grid cell
-        const makeFiltersTable = (): DomContents => {
-          return cssLinkInfoBody(
-            dom.style("width", "100%"), //width100 keeps table from growing outside bounds of flex parent if overfull
-            dom("table",
+      //For each col-filter in lfilters, makes a row showing "${icon} colName = [filterVals]"
+      //FilterVals is in a box to look like a grid cell
+      const makeFiltersTable = (): DomContents => {
+        return cssLinkInfoBody(
+          dom.style("width", "100%"), //width 100 keeps table from growing outside bounds of flex parent if overfull
+          dom("table",
             dom.style("margin-left", "8px"),
-            Object.keys(lfilter.filterLabels).map(
-                (colId) => {
-                    const vals = lfilter.filterLabels[colId];
-                    let operationSymbol = "=";
-                    //if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
-                    //if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
-                    //Sometimes operation will be 'empty', but in that case "=" still works fine, "list = []"
-                    if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
-                    else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
+            Object.keys(lfilter.filterLabels).map( (colId) => {
+              const vals = lfilter.filterLabels[colId];
+              let operationSymbol = "=";
+              //if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
+              //if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
+              //Sometimes operation will be 'empty', but in that case "=" still works fine, i.e. "list = []"
+              if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
+              else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
 
-                    if(colId == "id") {
-                        return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
-                    } else {
-                        return dom("tr",
-                            dom("td", cssLinkInfoIcon("Filter"),
-                                `${colId}`),
-                            dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')),
-                            dom("td", cssLinkInfoValuesBox(
-                              isFullReferencingType(lfilter.colTypes[colId]) ?
-                                  cssLinkInfoIcon("FieldReference"): null,
-                              `${vals.join(', ')}`)),
-                        );
-                    }
-            })
-          ));
-        };
+              if (colId == "id") {
+                return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
+              } else {
+                return dom("tr",
+                  dom("td", cssLinkInfoIcon("Filter"),
+                    `${colId}`),
+                  dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')),
+                  dom("td", cssLinkInfoValuesBox(
+                    isFullReferencingType(lfilter.colTypes[colId]) ?
+                      cssLinkInfoIcon("FieldReference"): null,
+                    `${vals.join(', ')}`)),
+                );
+            } }), //end of keys(filterLabels).map
+        ));
+      };
 
-        //Given a list of filterLabels, show them all in a box, as if a grid cell
-        //Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
-        const makeValuesBox = (valueLabels: string[]): DomContents => {
-          return cssLinkInfoBody((
-              cssLinkInfoValuesBox(
-              cssLinkInfoIcon("FieldReference"),
-              valueLabels.join(', '), ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
-          ));
-        };
+      //Given a list of filterLabels, show them all in a box, as if a grid cell
+      //Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
+      const makeValuesBox = (valueLabels: string[]): DomContents => {
+        return cssLinkInfoBody((
+            cssLinkInfoValuesBox(
+            cssLinkInfoIcon("FieldReference"),
+            valueLabels.join(', '), ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+        ));
+      };
 
-        const linkType = lstate.linkTypeDescription();
+      const linkType = lstate.linkTypeDescription();
 
-        return cssLinkInfoPanel(() => { switch (linkType) {
-            case "Filter:Summary-Group":
-            case "Filter:Col->Col":
-            case "Filter:Row->Col":
-            case "Summary":
-              return [
-                dom("div", `Link applies filter${numFilters > 1 ? "s" : ""}:`),
-                makeFiltersTable(),
-                dom("div", `Linked from `, fromTableDom),
-              ];
-            case "Show-Referenced-Records": {
-              const displayValues = lfilter.filterLabels["id"];
-              const numRecords = displayValues ? displayValues.length : 0;
-              return [
-                dom("div", `Link shows record${numRecords > 1 ? "s" : ""}:`),
-                makeValuesBox(lfilter.filterLabels["id"]),
-                dom("div", `from `, fromTableDom),
-              ];
-            }
-            case "Cursor:Same-Table":
-            case "Cursor:Reference":
-              return [
-                dom("div", `Link sets cursor to:`),
-                makeValuesBox([linkedCursorStr]),
-                dom("div", `from `, fromTableDom),
-              ];
-            case "Error:Invalid":
-            default:
-              return dom("div", `Error: Couldn't identify link state`);
-          } },
-          ...domArgs
-        ); // End of cssLinkInfoPanel
-
+      return cssLinkInfoPanel(() => { switch (linkType) {
+          case "Filter:Summary-Group":
+          case "Filter:Col->Col":
+          case "Filter:Row->Col":
+          case "Summary":
+            return [
+              dom("div", `Link applies filter${numFilters > 1 ? "s" : ""}:`),
+              makeFiltersTable(),
+              dom("div", `Linked from `, fromTableDom),
+            ];
+          case "Show-Referenced-Records": {
+            //filterLabels might be {} if EmptyFilterState, so filterLabels["id"] might be undefined
+            const displayValues = lfilter.filterLabels["id"] ?? [];
+            return [
+              dom("div", `Link shows record${displayValues.length > 1 ? "s" : ""}:`),
+              makeValuesBox(displayValues),
+              dom("div", `from `, fromTableDom),
+            ];
+          }
+          case "Cursor:Same-Table":
+          case "Cursor:Reference":
+            return [
+              dom("div", `Link sets cursor to:`),
+              makeValuesBox([linkedCursorStr]),
+              dom("div", `from `, fromTableDom),
+            ];
+          case "Error:Invalid":
+          default:
+            return dom("div", `Error: Couldn't identify link state`);
+        } },
+        ...domArgs
+      ); // End of cssLinkInfoPanel
     });
-
 }
 
-
-
-  private _buildLinkInfoAdvanced(owner: MultiHolder, activeSection: ViewSectionRec) {
-    return  dom.domComputed(Computed.create(owner, (use): DomContents => {
-
-      const isCollapsed = Observable.create(owner, true);
-
+  private _buildLinkInfoAdvanced(activeSection: ViewSectionRec) {
+    return  dom.domComputed((use): DomContents => {
       //TODO: if this just outputs a string, this could really be in LinkingState as a toDebugStr function
       //      but the fact that it's all observables makes that trickier to do correctly, so let's leave it here
       const srcSec = use(activeSection.linkSrcSection); //might be the empty section
@@ -630,8 +628,7 @@ export class RightPanel extends Disposable {
           'null' :
           `#${use(col.id)} "${use(col.colId)}", type "${use(col.type)}")`;
 
-
-      // linkingstate can be null if the constructor throws, so for debugging we want to show link info
+      // linkingState can be null if the constructor throws, so for debugging we want to show link info
       // if either the viewSection or the linkingState claim there's a link
       const hasLink = use(srcSec.id) != undefined || use(tgtSec.linkingState) != null;
       const lstate = use(tgtSec.linkingState);
@@ -639,50 +636,42 @@ export class RightPanel extends Disposable {
 
       const cursorPosStr = lstate?.cursorPos ? `${tgtSec.tableId()}[${use(lstate.cursorPos)}]` : "N/A";
 
+      //Main link info as a big string, will be in a <pre></pre> block
+      let preString = "No Incoming Link";
+      if (hasLink) {
+        preString = [
+          `From Sec: ${secToStr(srcSec)}`,
+          `To   Sec: ${secToStr(tgtSec)}`,
+          '',
+          `From Col: ${colToStr(srcCol)}`,
+          `To   Col: ${colToStr(tgtCol)}`,
+          '===========================',
+          // Show linkstate
+          lstate == null ? "LinkState: null" : [
+              `Link Type: ${use(lstate.linkTypeDescription)}`,
+              ``,
 
-      const preString = () => {
-        if (!hasLink) {
-                return "No Incoming Link";
-              } else {
-          return [
-            `From Sec: ${secToStr(srcSec)}`,
-            `To   Sec: ${secToStr(tgtSec)}`,
-            '',
-            `From Col: ${colToStr(srcCol)}`,
-            `To   Col: ${colToStr(tgtCol)}`,
-            '===========================',
+              "Cursor Pos: " + cursorPosStr,
+              !lfilter ? "Filter State: null" :
+                ["Filter State:", ...(Object.keys(lfilter).map(key =>
+                  `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
+            ].join('\n')
+        ].join('\n');
+      }
 
-
-            // Show linkstate
-            lstate == null ? "LinkState: null" :
-              [
-                `Link Type: ${use(lstate.linkTypeDescription)}`,
-                ``,
-
-                "Cursor Pos: " + cursorPosStr,
-                !lfilter ? "Filter State: null" :
-                  ["Filter State:", ...(Object.keys(lfilter).map(key =>
-                    `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
-              ].join('\n')
-          ].join('\n');
-        }
-      };
-
-
-     return dom.maybe(hasLink, () => {
-       return [
+      const collapsed: SessionObs<Boolean> = this._advLinkInfoCollapsed;
+      return hasLink ? [
           cssRow(
-            icon('Dropdown', dom.style('transform', (use2) => use2(isCollapsed) ? 'rotate(-90deg)' : '')),
+            icon('Dropdown', dom.style('transform', (use2) => use2(collapsed) ? 'rotate(-90deg)' : '')),
             "Advanced Link info",
             dom.style('font-size', `${vars.smallFontSize}`),
             dom.style('text-transform', 'uppercase'),
             dom.style('cursor', 'pointer'),
-            dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
+            dom.on('click', () => collapsed.set(!collapsed.get())),
           ),
-         dom.maybe((use2) => !use2(isCollapsed), () => cssRow(cssLinkInfoPre(preString)))
-       ];
-     });
-    }));
+          dom.maybe(not(collapsed), () => cssRow(cssLinkInfoPre(preString)))
+      ] : null;
+    });
   }
 
 
@@ -701,8 +690,6 @@ export class RightPanel extends Disposable {
         targetColRef: use(activeSection.linkTargetColRef)
       });
     });
-
-
 
     // This computed is not enough to make sure that the linkOptions are up to date. Indeed
     // the selectBy function depends on a much greater number of observables. Creating that many
@@ -777,7 +764,7 @@ export class RightPanel extends Disposable {
         ),
       ]),
 
-      dom.maybe((use) => use(activeSection.linkingState), () => cssRow(this._buildLinkInfo(owner, activeSection))),
+      dom.maybe(activeSection.linkingState, () => cssRow(this._buildLinkInfo(activeSection))),
 
       domComputed((use) => {
         const selectorFor = use(use(activeSection.linkedSections).getObservable());
@@ -786,13 +773,13 @@ export class RightPanel extends Disposable {
         return selectorFor.length ? [
           cssLabel(t("SELECTOR FOR"), testId('selector-for')),
           cssRow(cssList(selectorFor.map((sec) => [
-            this._buildSectionItem(owner, sec)
+            this._buildSectionItem(sec)
           ]))),
         ] : null;
       }),
 
       //Advanced link info is a little too JSON-ish for general use. But it's very useful for debugging
-      this._buildLinkInfoAdvanced(owner, activeSection),
+      this._buildLinkInfoAdvanced(activeSection),
     ];
   }
 
@@ -808,10 +795,10 @@ export class RightPanel extends Disposable {
   }
 
   // Returns dom for a section item.
-  private _buildSectionItem(owner: MultiHolder, sec: ViewSectionRec) {
+  private _buildSectionItem(sec: ViewSectionRec) {
     return cssListItem(
       dom.text(sec.titleDef),
-      this._buildLinkInfo(owner, sec, dom.style("border", "none")),
+      this._buildLinkInfo(sec, dom.style("border", "none")),
       testId('selector-for-entry')
     );
   }
@@ -1085,10 +1072,7 @@ const cssSection = styled('div', `
 //============ LinkInfo CSS ============
 
 //LinkInfoPanel is a flex-column
-//LinkInfoPanel > table shows linked filters
-
-//height on a td acts as min-height;  22px matches real field size, +2 for borders
-//font-size is set larger by tooltip CSS, reset it to root font size to match field css
+//`LinkInfoPanel > table` is the table where we show linked filters, if there are any
 const cssLinkInfoPanel = styled('div', `
   width: 100%;
 
@@ -1097,7 +1081,6 @@ const cssLinkInfoPanel = styled('div', `
   align-items: start;
   text-align: left;
 
-  font-size: 1rem;
   font-family: ${vars.fontFamily};
 
   border: 1px solid ${theme.pagePanelsBorder};
@@ -1115,14 +1098,14 @@ const cssLinkInfoPanel = styled('div', `
 `);
 
 // Center table / values box inside LinkInfoPanel
-// width 100% keeps it from escaping its container flexbox
 const cssLinkInfoBody= styled('div', `
-    margin: 2px 0 2px 0;
-    align-self: center;
+  margin: 2px 0 2px 0;
+  align-self: center;
 `);
 
 // Intended to imitate style of a grid cell
 // white-space: normal allows multiple values to wrap
+// min-height: 22px matches real field size, +2 for the borders
 const cssLinkInfoValuesBox = styled('div', `
   border: 1px solid ${'#CCC'};
   padding: 3px 3px 0px 3px;
@@ -1130,9 +1113,7 @@ const cssLinkInfoValuesBox = styled('div', `
   min-height: 24px;
 
   white-space: normal;
-
 `);
-
 
 //If inline with text, icons look better shifted up slightly
 //since icons are position:relative, bottom:1 should shift it without affecting layout
@@ -1142,7 +1123,7 @@ const cssLinkInfoIcon = styled(icon, `
   background-color: ${theme.controlSecondaryFg};
 `);
 
-// ============== Advanced LinkInfo styles
+// ============== styles for _buildLinkInfoAdvanced
 const cssLinkInfoPre = styled("pre", `
   padding: 6px;
   font-size: ${vars.smallFontSize};

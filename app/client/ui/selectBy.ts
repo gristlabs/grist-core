@@ -118,7 +118,7 @@ function isValidLink(source: LinkNode, target: LinkNode) {
   }
 
   //cannot select from attachments, even though they're implemented as reflists
-  if(source.isAttachments || target.isAttachments) {
+  if (source.isAttachments || target.isAttachments) {
     return false;
   }
 
@@ -239,7 +239,7 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
   const mainNode: LinkNode = {
     tableId: table.primaryTableId.peek(),
     isSummary,
-    isAttachments: isSummary && table.groupByColumns.peek().filter(col => col.type.peek() == "Attachments").length > 0,
+    isAttachments: isSummary && table.groupByColumns.peek().some(col => col.type.peek() == "Attachments"),
     groupbyColumns: isSummary ? table.summarySourceColRefs.peek() : undefined,
     widgetType: section.parentKey.peek(),
     ancestors,
