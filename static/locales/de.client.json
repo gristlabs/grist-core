@@ -917,7 +917,8 @@
         "Default cell style": "Standard-Zellenstil",
         "Mixed style": "Gemischter Stil",
         "Default header style": "Standard Kopfzeilenstil",
-        "Header Style": "Kopfzeilenstil"
+        "Header Style": "Kopfzeilenstil",
+        "HEADER STYLE": "KOPFSTIL"
     },
     "DiscussionEditor": {
         "Resolve": "Beschließen",
@@ -1140,7 +1141,8 @@
         "Sign Up for Free": "Melden Sie sich kostenlos an",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Melden Sie sich für ein kostenloses Grist-Konto an, um den KI Formel Assistenten zu verwenden.",
         "There are some things you should know when working with me:": "Es gibt einige Dinge, die Sie wissen sollten, wenn Sie mit mir arbeiten:",
-        "What do you need help with?": "Womit brauchen Sie Hilfe?"
+        "What do you need help with?": "Womit brauchen Sie Hilfe?",
+        "Formula AI Assistant is only available for logged in users.": "Der Formel-KI-Assistent ist nur für eingeloggte Benutzer verfügbar."
     },
     "GridView": {
         "Click to insert": "Zum Einfügen klicken"
