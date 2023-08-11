@@ -1009,7 +1009,8 @@
         "Mixed style": "Estilo misto",
         "Open row styles": "Estilos de linha aberta",
         "Default header style": "Estilo de cabeçalho padrão",
-        "Header Style": "Estilo de cabeçalho"
+        "Header Style": "Estilo de cabeçalho",
+        "HEADER STYLE": "ESTILO DE CABEÇALHO"
     },
     "ColumnEditor": {
         "COLUMN DESCRIPTION": "DESCRIÇÃO DA COLUNA",
@@ -1140,7 +1141,8 @@
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Cadastre-se para uma conta gratuita do Grist para começar a usar o Assistente de Fórmula AI.",
         "What do you need help with?": "Em que você precisa de ajuda?",
         "There are some things you should know when working with me:": "Há algumas coisas que você deve saber ao trabalhar comigo:",
-        "Learn more": "Saiba mais"
+        "Learn more": "Saiba mais",
+        "Formula AI Assistant is only available for logged in users.": "O Assistente de Fórmula de IA só está disponível para usuários registrados."
     },
     "GridView": {
         "Click to insert": "Clique para inserir"
