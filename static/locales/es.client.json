@@ -908,7 +908,7 @@
         "Mixed style": "Estilo mixto",
         "Header Style": "Estilo del encabezado",
         "Default header style": "Estilo del encabezado por defecto",
-        "HEADER STYLE": "ESTILO DEL ENCABEZAMIENTO"
+        "HEADER STYLE": "ESTILO DEL ENCABEZADO"
     },
     "ColumnInfo": {
         "Cancel": "Cancelar",
@@ -1205,7 +1205,7 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Una vez que haya eliminado su propio acceso, no podrá recuperarlo sin la ayuda de otra persona con suficiente acceso al {{resourceType}}.",
         "Add {{member}} to your team": "Añadir {{member}} a tu equipo",
         "Allow anyone with the link to open.": "Permita que cualquiera que tenga el enlace lo abra.",
-        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "El acceso no predeterminado permite conceder acceso a          documentos o espacios de trabajo individuales, en lugar de a toda la página del equipo.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Ningún acceso predeterminado permite el acceso a documentos individuales o espacios de trabajo, en lugar del sitio completo del equipo.",
         "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Una vez que haya eliminado su propio acceso, no podrá recuperarlo sin la ayuda de otra persona con suficiente acceso al {{name}}.",
         "Public access": "Acceso público",
         "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Acceso público heredado de {{parent}}. Para eliminar, establezca la opción 'Heredar acceso' en 'Ninguno'.",
