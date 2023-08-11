@@ -430,25 +430,28 @@ GridView.prototype._shiftSelectUntilContent = function(type, direction, selectOb
 }
 
 GridView.prototype._stepsToContent = function (type, direction, selection, maxVal) {
-  const {colStart, colEnd, rowStart, rowEnd} = selection;
+  const {colEnd: colEnd, rowEnd: rowEnd} = selection;
   let selectionData;
+
+  const cursorCol = this.cursor.fieldIndex();
+  const cursorRow = this.cursor.rowIndex();
 
   if (type === selector.ROW && direction > 0) {
     if (colEnd + 1 > maxVal) { return 0; }
 
-    selectionData = this._selectionData({colStart: colEnd, colEnd: maxVal, rowStart, rowEnd});
+    selectionData = this._selectionData({colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow});
   } else if (type === selector.ROW && direction < 0) {
     if (colEnd - 1 < 0) { return 0; }
 
-    selectionData = this._selectionData({colStart: 0, colEnd, rowStart, rowEnd});
+    selectionData = this._selectionData({colStart: 0, colEnd, rowStart: cursorRow, rowEnd: cursorRow});
   } else if (type === selector.COL && direction > 0) {
     if (rowEnd + 1 > maxVal) { return 0; }
 
-    selectionData = this._selectionData({colStart, colEnd, rowStart: rowEnd, rowEnd: maxVal});
+    selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal});
   } else if (type === selector.COL && direction < 0) {
     if (rowEnd - 1 > maxVal) { return 0; }
 
-    selectionData = this._selectionData({colStart, colEnd, rowStart: 0, rowEnd});
+    selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: 0, rowEnd});
   }
 
   const {fields, rowIndices} = selectionData;
@@ -470,11 +473,12 @@ GridView.prototype._stepsToContent = function (type, direction, selection, maxVa
   let steps = 0;
 
   if (type === selector.ROW) {
-    const isLastColEmpty = this._areValuesInColEmpty(colEnd, rowIndices, colValuesByIndex);
-    const isNextColEmpty = this._areValuesInColEmpty(colEnd + direction, rowIndices, colValuesByIndex);
+    const rowIndex = rowIndices[0];
+    const isLastColEmpty = this._isCellValueEmpty(colValuesByIndex[colEnd][rowIndex]);
+    const isNextColEmpty = this._isCellValueEmpty(colValuesByIndex[colEnd + direction][rowIndex]);
     const shouldStopOnEmptyValue = !isLastColEmpty && !isNextColEmpty;
     for (let i = 1; i < fields.length; i++) {
-      const hasEmptyValues = this._areValuesInColEmpty(fields[i]._index(), rowIndices, colValuesByIndex);
+      const hasEmptyValues = this._isCellValueEmpty(colValuesByIndex[fields[i]._index()][rowIndex]);
       if (hasEmptyValues && shouldStopOnEmptyValue) {
         return steps;
       } else if (!hasEmptyValues && !shouldStopOnEmptyValue) {
@@ -484,11 +488,12 @@ GridView.prototype._stepsToContent = function (type, direction, selection, maxVa
       steps += 1;
     }
   } else {
-    const isLastRowEmpty = this._areValuesInRowEmpty(rowIndices[0], colValuesByIndex);
-    const isNextRowEmpty = this._areValuesInRowEmpty(rowIndices[1], colValuesByIndex);
+    const colValues = colValuesByIndex[fields[0]._index()];
+    const isLastRowEmpty = this._isCellValueEmpty(colValues[rowIndices[0]]);
+    const isNextRowEmpty = this._isCellValueEmpty(colValues[rowIndices[1]]);
     const shouldStopOnEmptyValue = !isLastRowEmpty && !isNextRowEmpty;
     for (let i = 1; i < rowIndices.length; i++) {
-      const hasEmptyValues = this._areValuesInRowEmpty(rowIndices[i], colValuesByIndex);
+      const hasEmptyValues = this._isCellValueEmpty(colValues[rowIndices[i]]);
       if (hasEmptyValues && shouldStopOnEmptyValue) {
         return steps;
       } else if (!hasEmptyValues && !shouldStopOnEmptyValue) {
@@ -522,18 +527,8 @@ GridView.prototype._selectionData = function({colStart, colEnd, rowStart, rowEnd
   return {fields, rowIndices};
 }
 
-GridView.prototype._areValuesInColEmpty = function(colIndex, rowIndices, colValuesByIndex) {
-  return rowIndices.every(rowIndex => {
-    const value = colValuesByIndex[colIndex][rowIndex];
-    return value === null || value === undefined || value === '' || value === 'false';
-  });
-}
-
-GridView.prototype._areValuesInRowEmpty = function(rowIndex, colValuesByIndex) {
-  return Object.values(colValuesByIndex).every((colValues) => {
-    const value = colValues[rowIndex];
-    return value === null || value === undefined || value === '' || value === 'false';
-  });
+GridView.prototype._isCellValueEmpty = function(value) {
+  return value === null || value === undefined || value === '' || value === 'false';
 }
 
 /**
