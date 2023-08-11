@@ -907,7 +907,8 @@
         "Open row styles": "Abrir estilos de fila",
         "Mixed style": "Estilo mixto",
         "Header Style": "Estilo del encabezado",
-        "Default header style": "Estilo del encabezado por defecto"
+        "Default header style": "Estilo del encabezado por defecto",
+        "HEADER STYLE": "ESTILO DEL ENCABEZAMIENTO"
     },
     "ColumnInfo": {
         "Cancel": "Cancelar",
@@ -1130,7 +1131,8 @@
         "Hi, I'm the Grist Formula AI Assistant.": "Hola, soy el Asistente de IA de Fórmula Grist.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Sólo puedo ayudar con fórmulas. No puedo construir tablas, columnas y vistas, ni escribir reglas de acceso.",
         "Sign Up for Free": "Regístrate gratis",
-        "There are some things you should know when working with me:": "Hay algunas cosas que debes saber cuando trabajes conmigo:"
+        "There are some things you should know when working with me:": "Hay algunas cosas que debes saber cuando trabajes conmigo:",
+        "Formula AI Assistant is only available for logged in users.": "Formula AI Assistant sólo está disponible para usuarios registrados."
     },
     "GridView": {
         "Click to insert": "Haga clic para insertar"
@@ -1203,7 +1205,7 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Una vez que haya eliminado su propio acceso, no podrá recuperarlo sin la ayuda de otra persona con suficiente acceso al {{resourceType}}.",
         "Add {{member}} to your team": "Añadir {{member}} a tu equipo",
         "Allow anyone with the link to open.": "Permita que cualquiera que tenga el enlace lo abra.",
-        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Ningún acceso predeterminado permite el acceso a documentos individuales o espacios de trabajo, en lugar del sitio completo del equipo.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "El acceso no predeterminado permite conceder acceso a          documentos o espacios de trabajo individuales, en lugar de a toda la página del equipo.",
         "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Una vez que haya eliminado su propio acceso, no podrá recuperarlo sin la ayuda de otra persona con suficiente acceso al {{name}}.",
         "Public access": "Acceso público",
         "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Acceso público heredado de {{parent}}. Para eliminar, establezca la opción 'Heredar acceso' en 'Ninguno'.",
