@@ -549,7 +549,18 @@
         "{{count}} unmatched field in import_other": "{{count}} несовпадающие поля при импорте",
         "{{count}} unmatched field in import_one": "{{count}} несовпадающее поле при импорте",
         "{{count}} unmatched field_one": "{{count}} несовпадающее поле",
-        "{{count}} unmatched field_other": "{{count}} несовпадающие поля"
+        "{{count}} unmatched field_other": "{{count}} несовпадающие поля",
+        "Column Mapping": "Сопоставление столбцов",
+        "Column mapping": "Сопоставление столбцов",
+        "Destination table": "Таблица назначения",
+        "Grist column": "Grist столбец",
+        "Import from file": "Импорт из файла",
+        "New Table": "Новая таблица",
+        "Revert": "Восстановить",
+        "Skip": "Пропустить",
+        "Skip Table on Import": "Пропустить Таблицу при импорте",
+        "Source column": "Столбец Источника",
+        "Skip Import": "Пропустить импорт"
     },
     "LeftPanelCommon": {
         "Help Center": "Справочный центр"
@@ -757,7 +768,10 @@
         "Default cell style": "Стиль ячейки по умолчанию",
         "Open row styles": "Открыть форматы строк",
         "Cell Style": "Стиль ячейки",
-        "Mixed style": "Смешанный стиль"
+        "Mixed style": "Смешанный стиль",
+        "Default header style": "Стиль заголовка по умолчанию",
+        "HEADER STYLE": "СТИЛЬ ЗАГОЛОВКА",
+        "Header Style": "Стиль заголовка"
     },
     "TypeTransform": {
         "Cancel": "Отмена",
@@ -1063,7 +1077,8 @@
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Зарегистрируйте бесплатную учетную запись Grist, чтобы начать использовать AI Помощника по формулам.",
         "There are some things you should know when working with me:": "Есть некоторые вещи, которые вы должны знать, работая со мной:",
         "What do you need help with?": "Как я могу вам помочь?",
-        "Hi, I'm the Grist Formula AI Assistant.": "Привет, я AI Помощник по формулам Grist."
+        "Hi, I'm the Grist Formula AI Assistant.": "Привет, я AI Помощник по формулам Grist.",
+        "Formula AI Assistant is only available for logged in users.": "AI Ассистент для формул доступен только для зарегистрированных пользователей."
     },
     "GridView": {
         "Click to insert": "Нажмите для вставки"
