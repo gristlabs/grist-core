@@ -209,7 +209,7 @@ export class DocWorkerApi {
           return false;
         }
         if (
-          !isAffirmative(opts?.includeHidden) &&
+          !opts?.includeHidden &&
           (k === "manualSort" || k.startsWith("gristHelper_"))
         ) {
           return false;
