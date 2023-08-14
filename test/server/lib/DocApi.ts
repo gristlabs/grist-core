@@ -443,6 +443,26 @@ function testDocApi() {
       });
   });
 
+  it("GET /docs/{did}/tables/{tid}/records honors includeHidden", async function () {
+    const params = { includeHidden: true };
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`,
+      {...chimpy, params }
+    );
+    assert.equal(resp.status, 200);
+    assert.deepEqual(resp.data.records[0], {
+      id: 1,
+      fields: {
+        manualSort: 1,
+        A: 'hello',
+        B: '',
+        C: '',
+        D: null,
+        E: 'HELLO',
+      },
+    });
+  });
+
   it("GET /docs/{did}/tables/{tid}/records handles errors and hidden columns", async function () {
     let resp = await axios.get(`${serverUrl}/api/docs/${docIds.ApiDataRecordsTest}/tables/Table1/records`, chimpy);
     assert.equal(resp.status, 200);

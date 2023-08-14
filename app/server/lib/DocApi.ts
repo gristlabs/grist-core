@@ -201,16 +201,23 @@ export class DocWorkerApi {
     }
 
     async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string
+      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
     ): Promise<TableRecordValue[]> {
-      const columnData = await getTableData(activeDoc, req, optTableId);
-      const fieldNames = Object.keys(columnData)
-        .filter(k => !(
-          ["id", "manualSort"].includes(k)
-          || k.startsWith("gristHelper_")
-        ));
+      const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+      const fieldNames = Object.keys(columnData).filter((k) => {
+        if (k === "id") {
+          return false;
+        }
+        if (
+          !isAffirmative(opts?.includeHidden) &&
+          (k === "manualSort" || k.startsWith("gristHelper_"))
+        ) {
+          return false;
+        }
+        return true;
+      });
       return columnData.id.map((id, index) => {
-        const result: TableRecordValue = {id, fields: {}};
+        const result: TableRecordValue = { id, fields: {} };
         for (const key of fieldNames) {
           let value = columnData[key][index];
           if (isRaisedException(value)) {
@@ -233,7 +240,9 @@ export class DocWorkerApi {
     // Get the specified table in record-oriented format
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
-        const records = await getTableRecords(activeDoc, req);
+        const records = await getTableRecords(activeDoc, req,
+          { includeHidden: isAffirmative(req.query.includeHidden) }
+        );
         res.json({records});
       })
     );
@@ -374,7 +383,7 @@ export class DocWorkerApi {
     // Get the tables of the specified document in recordish format
     this._app.get('/api/docs/:docId/tables', canView,
       withDoc(async (activeDoc, req, res) => {
-        const records = await getTableRecords(activeDoc, req, "_grist_Tables");
+        const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
         const tables = records.map((record) => ({
           id: record.fields.tableId,
           fields: {
@@ -403,7 +412,7 @@ export class DocWorkerApi {
 
     // Returns cleaned metadata for all attachments in /records format.
     this._app.get('/api/docs/:docId/attachments', canView, withDoc(async (activeDoc, req, res) => {
-      const rawRecords = await getTableRecords(activeDoc, req, "_grist_Attachments");
+      const rawRecords = await getTableRecords(activeDoc, req, { optTableId: "_grist_Attachments" });
       const records = rawRecords.map(r => ({
         id: r.id,
         fields: cleanAttachmentRecord(r.fields as MetaRowRecord<"_grist_Attachments">),
