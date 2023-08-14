@@ -241,7 +241,7 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
         const records = await getTableRecords(activeDoc, req,
-          { includeHidden: isAffirmative(req.query.includeHidden) }
+          { includeHidden: isAffirmative(req.query.hidden) }
         );
         res.json({records});
       })
@@ -373,7 +373,7 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
       withDoc(async (activeDoc, req, res) => {
         const tableId = req.params.tableId;
-        const includeHidden = isAffirmative(req.query.includeHidden);
+        const includeHidden = isAffirmative(req.query.hidden);
         const columns = await handleSandboxError('', [],
           activeDoc.getTableCols(docSessionFromRequest(req), tableId, includeHidden));
         res.json({columns});

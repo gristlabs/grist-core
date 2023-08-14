@@ -443,8 +443,8 @@ function testDocApi() {
       });
   });
 
-  it("GET /docs/{did}/tables/{tid}/records honors includeHidden", async function () {
-    const params = { includeHidden: true };
+  it("GET /docs/{did}/tables/{tid}/records honors the \"hidden\" param", async function () {
+    const params = { hidden: true };
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`,
       {...chimpy, params }
@@ -630,8 +630,8 @@ function testDocApi() {
     );
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when includeHidden is set", async function () {
-    const params = { includeHidden: true };
+  it("GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when \"hidden\" is set", async function () {
+    const params = { hidden: true };
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`,
       { ...chimpy, params }
