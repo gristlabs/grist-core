@@ -183,14 +183,13 @@ export class FormulaEditor extends NewBaseEditor {
             // By not doing anything special here we assume that the input element will take the focus.
             return;
           }
-
-          // Allow clicking the error message.
-          if (ev.target instanceof HTMLElement && (
-              ev.target.classList.contains('error_msg') ||
+        }
+        // Allow clicking the error message.
+        if (ev.target instanceof HTMLElement && (
+          ev.target.classList.contains('error_msg') ||
               ev.target.classList.contains('error_details_inner')
-          )) {
-            return;
-          }
+        )) {
+          return;
         }
         ev.preventDefault();
         this.focus();
@@ -232,19 +231,12 @@ export class FormulaEditor extends NewBaseEditor {
       ),
       dom.maybe(options.formulaError, () => [
         dom('div.error_msg', testId('formula-error-msg'),
-          dom.on('click', () => {
-            if (this.isDetached.get()) { return; }
-            if (errorDetails.get()){
-              hideErrDetails.set(!hideErrDetails.get());
-              this._aceEditor.resize();
-            }
-          }),
+          dom.attr('tabindex', '-1'),
           dom.maybe(errorDetails, () =>
             dom.domComputed(hideErrDetails, (hide) => cssCollapseIcon(
               hide ? 'Expand' : 'Collapse',
               testId('formula-error-expand'),
               dom.on('click', () => {
-                if (!this.isDetached.get()) { return; }
                 if (errorDetails.get()){
                   hideErrDetails.set(!hideErrDetails.get());
                   this._aceEditor.resize();
@@ -256,6 +248,7 @@ export class FormulaEditor extends NewBaseEditor {
         ),
         dom.maybe(use => Boolean(use(errorDetails) && !use(hideErrDetails)), () =>
           dom('div.error_details',
+            dom.attr('tabindex', '-1'),
             dom('div.error_details_inner',
               dom.text(errorDetails),
             ),
@@ -748,10 +741,6 @@ const cssFormulaEditor = styled('div.default_editor.formula_editor_wrapper', `
   &-detached .error_msg, &-detached .error_details {
     max-height: 100px;
     flex-shrink: 0;
-  }
-
-  &-detached .error_msg {
-    cursor: default;
   }
 
   &-detached .code_editor_container {
