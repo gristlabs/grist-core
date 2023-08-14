@@ -443,6 +443,26 @@ function testDocApi() {
       });
   });
 
+  it('GET /docs/{did}/tables/{tid}/records honors the "hidden" param', async function () {
+    const params = { hidden: true };
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`,
+      {...chimpy, params }
+    );
+    assert.equal(resp.status, 200);
+    assert.deepEqual(resp.data.records[0], {
+      id: 1,
+      fields: {
+        manualSort: 1,
+        A: 'hello',
+        B: '',
+        C: '',
+        D: null,
+        E: 'HELLO',
+      },
+    });
+  });
+
   it("GET /docs/{did}/tables/{tid}/records handles errors and hidden columns", async function () {
     let resp = await axios.get(`${serverUrl}/api/docs/${docIds.ApiDataRecordsTest}/tables/Table1/records`, chimpy);
     assert.equal(resp.status, 200);
@@ -610,8 +630,8 @@ function testDocApi() {
     );
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when includeHidden is set", async function () {
-    const params = { includeHidden: true };
+  it('GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when "hidden" is set', async function () {
+    const params = { hidden: true };
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`,
       { ...chimpy, params }
@@ -866,8 +886,8 @@ function testDocApi() {
       return { url, docId };
     }
 
-    async function getColumnFieldsMapById(url: string) {
-      const result = await axios.get(url, chimpy);
+    async function getColumnFieldsMapById(url: string, params: any) {
+      const result = await axios.get(url, {...chimpy, params});
       assert.equal(result.status, 200);
       return new Map<string, object>(
           result.data.columns.map(
@@ -880,12 +900,13 @@ function testDocApi() {
       columns: [RecordWithStringId, ...RecordWithStringId[]],
       params: Record<string, any>,
       expectedFieldsByColId: Record<string, object>,
+      opts?: { getParams?: any }
     ) {
       const {url} = await generateDocAndUrl();
       const body: ColumnsPut = { columns };
       const resp = await axios.put(url, body, {...chimpy, params});
       assert.equal(resp.status, 200);
-      const fieldsByColId = await getColumnFieldsMapById(url);
+      const fieldsByColId = await getColumnFieldsMapById(url, opts?.getParams);
 
       assert.deepEqual(
         [...fieldsByColId.keys()],
@@ -942,6 +963,12 @@ function testDocApi() {
       await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
         NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
       });
+    });
+
+    it('should NOT remove hidden columns even when replaceall is set', async function () {
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
+        manualSort: {type: "ManualSortPos"}, NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+      }, { getParams: { hidden: true } });
     });
 
     it('should forbid update by viewers', async function () {
