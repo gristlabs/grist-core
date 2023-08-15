@@ -1,7 +1,51 @@
-import {parseFirstUrlPart} from 'app/common/gristUrls';
+import {decodeUrl, IGristUrlState, parseFirstUrlPart} from 'app/common/gristUrls';
 import {assert} from 'chai';
 
 describe('gristUrls', function() {
+
+  function assertUrlDecode(url: string, expected: Partial<IGristUrlState>) {
+    const actual = decodeUrl({}, new URL(url));
+
+    for (const property in expected) {
+      const expectedValue = expected[property as keyof IGristUrlState];
+      const actualValue = actual[property as keyof IGristUrlState];
+
+      assert.deepEqual(actualValue, expectedValue);
+    }
+  }
+
+  describe('encodeUrl', function() {
+    it('should detect theme appearance override', function() {
+      assertUrlDecode(
+        'http://localhost/?themeAppearance=light',
+        {params: {themeAppearance: 'light'}},
+      );
+
+      assertUrlDecode(
+        'http://localhost/?themeAppearance=dark',
+        {params: {themeAppearance: 'dark'}},
+      );
+    });
+
+    it('should detect theme sync with os override', function() {
+      assertUrlDecode(
+        'http://localhost/?themeSyncWithOs=true',
+        {params: {themeSyncWithOs: true}},
+      );
+    });
+
+    it('should detect theme name override', function() {
+      assertUrlDecode(
+        'http://localhost/?themeName=GristLight',
+        {params: {themeName: 'GristLight'}},
+      );
+
+      assertUrlDecode(
+        'http://localhost/?themeName=GristDark',
+        {params: {themeName: 'GristDark'}},
+      );
+    });
+  });
 
   describe('parseFirstUrlPart', function() {
     it('should strip out matching tag', function() {

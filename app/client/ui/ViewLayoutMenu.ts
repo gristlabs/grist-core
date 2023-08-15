@@ -36,7 +36,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   ];
 
   const viewRec = viewSection.view();
-  const isLight = urlState().state.get().params?.style === 'light';
+  const isSinglePage = urlState().state.get().params?.style === 'singlePage';
 
   const sectionId = viewSection.table.peek().rawViewSectionRef.peek();
   const anchorUrlState = viewInstance.getAnchorLinkForSection(sectionId);
@@ -57,7 +57,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
 
   const showRawData = (use: UseCB) => {
     return !use(viewSection.isRaw)// Don't show raw data if we're already in raw data.
-        && !isLight // Don't show raw data in light mode.
+        && !isSinglePage // Don't show raw data in single page mode.
            ;
   };
 
@@ -84,7 +84,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       menuItemCmd(allCommands.editLayout, t("Edit Card Layout"),
         dom.cls('disabled', isReadonly))),
 
-    dom.maybe(!isLight, () => [
+    dom.maybe(!isSinglePage, () => [
       menuDivider(),
       menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId('widget-options')),
       menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter")),
@@ -111,12 +111,12 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
  */
 export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: GristDoc) {
   const isReadonly = gristDoc.isReadonly.get();
-  const isLight = urlState().state.get().params?.style === 'light';
+  const isSinglePage = urlState().state.get().params?.style === 'singlePage';
   const sectionId = viewSection.table.peek().rawViewSectionRef.peek();
   const anchorUrlState = { hash: { sectionId, popup: true } };
   const rawUrl = urlState().makeUrl(anchorUrlState);
   return [
-    dom.maybe((use) => !use(viewSection.isRaw) && !isLight && !use(gristDoc.maximizedSectionId),
+    dom.maybe((use) => !use(viewSection.isRaw) && !isSinglePage && !use(gristDoc.maximizedSectionId),
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
         dom.on('click', (ev) => {

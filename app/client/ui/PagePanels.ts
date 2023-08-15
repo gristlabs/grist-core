@@ -392,7 +392,7 @@ const cssPageContainer = styled(cssVBox, `
       padding-bottom: ${bottomFooterHeightPx}px;
       min-width: 240px;
     }
-    .interface-light & {
+    .interface-singlePage & {
       padding-bottom: 0;
     }
   }
@@ -434,7 +434,7 @@ export const cssLeftPane = styled(cssVBox, `
       display: none;
     }
   }
-  .interface-light & {
+  .interface-singlePage & {
     display: none;
   }
   &-overlap {
@@ -501,7 +501,7 @@ const cssRightPane = styled(cssVBox, `
       display: none;
     }
   }
-  .interface-light & {
+  .interface-singlePage & {
     display: none;
   }
 `);
@@ -519,7 +519,7 @@ const cssHeader = styled('div', `
     }
   }
 
-  .interface-light & {
+  .interface-singlePage & {
     display: none;
   }
 `);
@@ -556,7 +556,7 @@ const cssBottomFooter = styled ('div', `
       display: none;
     }
   }
-  .interface-light & {
+  .interface-singlePage & {
     display: none;
   }
 `);

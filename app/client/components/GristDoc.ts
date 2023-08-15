@@ -355,7 +355,7 @@ export class GristDoc extends DisposableWithEvents {
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
       // Only start a tour or tutorial when the full interface is showing, i.e. not when in
       // embedded mode.
-      if (state.params?.style === 'light') {
+      if (state.params?.style === 'singlePage') {
         return;
       }
 

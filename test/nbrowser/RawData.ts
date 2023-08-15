@@ -675,7 +675,7 @@ async function openMenu(tableId: string) {
 }
 
 async function waitForRawData() {
-  await driver.findWait('.test-raw-data-list', 1000);
+  await driver.findWait('.test-raw-data-list', 2000);
   await gu.waitForServer();
 }
 

@@ -19,7 +19,7 @@ import {LocalPlugin} from 'app/common/plugin';
 import {DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
-import {getDefaultThemePrefs, Theme, ThemeAppearance, ThemeColors, ThemePrefs,
+import {getDefaultThemePrefs, Theme, ThemeColors, ThemePrefs,
         ThemePrefsChecker} from 'app/common/ThemePrefs';
 import {getThemeColors} from 'app/common/Themes';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -450,14 +450,26 @@ export class AppModelImpl extends Disposable implements AppModel {
   private _getCurrentThemeObs() {
     return Computed.create(this, this.themePrefs, prefersDarkModeObs(),
       (_use, themePrefs, prefersDarkMode) => {
-        let appearance: ThemeAppearance;
-        if (!themePrefs.syncWithOS) {
-          appearance = themePrefs.appearance;
-        } else {
+        let {appearance, syncWithOS} = themePrefs;
+
+        const urlParams = urlState().state.get().params;
+        if (urlParams?.themeAppearance) {
+          appearance = urlParams?.themeAppearance;
+        }
+
+        if (urlParams?.themeSyncWithOs !== undefined) {
+          syncWithOS = urlParams?.themeSyncWithOs;
+        }
+
+        if (syncWithOS) {
           appearance = prefersDarkMode ? 'dark' : 'light';
         }
 
-        const nameOrColors = themePrefs.colors[appearance];
+        let nameOrColors = themePrefs.colors[appearance];
+        if (urlParams?.themeName) {
+          nameOrColors = urlParams?.themeName;
+        }
+
         let colors: ThemeColors;
         if (typeof nameOrColors === 'string') {
           colors = getThemeColors(nameOrColors);

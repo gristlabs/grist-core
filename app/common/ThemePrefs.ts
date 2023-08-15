@@ -526,6 +526,8 @@ export interface ThemeColors {
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;
+export const ThemeAppearanceChecker = createCheckers(ThemePrefsTI).ThemeAppearance as CheckerT<ThemeAppearance>;
+export const ThemeNameChecker = createCheckers(ThemePrefsTI).ThemeName as CheckerT<ThemeName>;
 
 export function getDefaultThemePrefs(): ThemePrefs {
   return {
