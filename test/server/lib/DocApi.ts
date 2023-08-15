@@ -5,7 +5,7 @@ import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
 import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
-import {AddOrUpdateRecord, Record as ApiRecord} from 'app/plugin/DocApiTypes';
+import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {
   applyQueryParameters,
@@ -443,6 +443,26 @@ function testDocApi() {
       });
   });
 
+  it('GET /docs/{did}/tables/{tid}/records honors the "hidden" param', async function () {
+    const params = { hidden: true };
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`,
+      {...chimpy, params }
+    );
+    assert.equal(resp.status, 200);
+    assert.deepEqual(resp.data.records[0], {
+      id: 1,
+      fields: {
+        manualSort: 1,
+        A: 'hello',
+        B: '',
+        C: '',
+        D: null,
+        E: 'HELLO',
+      },
+    });
+  });
+
   it("GET /docs/{did}/tables/{tid}/records handles errors and hidden columns", async function () {
     let resp = await axios.get(`${serverUrl}/api/docs/${docIds.ApiDataRecordsTest}/tables/Table1/records`, chimpy);
     assert.equal(resp.status, 200);
@@ -608,6 +628,21 @@ function testDocApi() {
         ]
       }
     );
+  });
+
+  it('GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when "hidden" is set', async function () {
+    const params = { hidden: true };
+    const resp = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`,
+      { ...chimpy, params }
+    );
+    assert.equal(resp.status, 200);
+    const columnsMap = new Map(resp.data.columns.map(({id, fields}: {id: string, fields: object}) => [id, fields]));
+    assert.include([...columnsMap.keys()], "manualSort");
+    assert.deepInclude(columnsMap.get("manualSort"), {
+      colRef: 1,
+      type: 'ManualSortPos',
+    });
   });
 
   it("GET/POST/PATCH /docs/{did}/tables and /columns", async function () {
@@ -840,6 +875,126 @@ function testDocApi() {
     resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/_grist_Tables/data/delete`,
       [2, 3, 4, 5, 6], chimpy);
     assert.equal(resp.status, 200);
+  });
+
+  describe("PUT /docs/{did}/columns", function () {
+
+    async function generateDocAndUrl() {
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'ColumnsPut'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
+      return { url, docId };
+    }
+
+    async function getColumnFieldsMapById(url: string, params: any) {
+      const result = await axios.get(url, {...chimpy, params});
+      assert.equal(result.status, 200);
+      return new Map<string, object>(
+          result.data.columns.map(
+            ({id, fields}: {id: string, fields: object}) => [id, fields]
+          )
+      );
+    }
+
+    async function checkPut(
+      columns: [RecordWithStringId, ...RecordWithStringId[]],
+      params: Record<string, any>,
+      expectedFieldsByColId: Record<string, object>,
+      opts?: { getParams?: any }
+    ) {
+      const {url} = await generateDocAndUrl();
+      const body: ColumnsPut = { columns };
+      const resp = await axios.put(url, body, {...chimpy, params});
+      assert.equal(resp.status, 200);
+      const fieldsByColId = await getColumnFieldsMapById(url, opts?.getParams);
+
+      assert.deepEqual(
+        [...fieldsByColId.keys()],
+        Object.keys(expectedFieldsByColId),
+        "The updated table should have the expected columns"
+      );
+
+      for (const [colId, expectedFields] of Object.entries(expectedFieldsByColId)) {
+        assert.deepInclude(fieldsByColId.get(colId), expectedFields);
+      }
+    }
+
+    const COLUMN_TO_ADD = {
+      id: "Foo",
+      fields: {
+        type: "Text",
+        label: "FooLabel",
+      }
+    };
+
+    const COLUMN_TO_UPDATE = {
+      id: "A",
+      fields: {
+        type: "Numeric",
+        colId: "NewA"
+      }
+    };
+
+    it('should create new columns', async function () {
+      await checkPut([COLUMN_TO_ADD], {}, {
+        A: {}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      });
+    });
+
+    it('should update existing columns and create new ones', async function () {
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {}, {
+        NewA: {type: "Numeric", label: "A"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      });
+    });
+
+    it('should only update existing columns when noadd is set', async function () {
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noadd: "1"}, {
+        NewA: {type: "Numeric"}, B: {}, C: {}
+      });
+    });
+
+    it('should only add columns when noupdate is set', async function () {
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noupdate: "1"}, {
+        A: {type: "Any"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      });
+    });
+
+    it('should remove existing columns if replaceall is set', async function () {
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
+        NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+      });
+    });
+
+    it('should NOT remove hidden columns even when replaceall is set', async function () {
+      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
+        manualSort: {type: "ManualSortPos"}, NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+      }, { getParams: { hidden: true } });
+    });
+
+    it('should forbid update by viewers', async function () {
+      // given
+      const { url, docId } = await generateDocAndUrl();
+      await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
+
+      // when
+      const resp = await axios.put(url, { columns: [ COLUMN_TO_ADD ] }, kiwi);
+
+      // then
+      assert.equal(resp.status, 403);
+    });
+
+    it("should return 404 when table is not found", async function() {
+      // given
+      const { url } = await generateDocAndUrl();
+      const notFoundUrl = url.replace("Table1", "NonExistingTable");
+
+      // when
+      const resp = await axios.put(notFoundUrl, { columns: [ COLUMN_TO_ADD ] }, chimpy);
+
+      // then
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.error, 'Table not found "NonExistingTable"');
+    });
   });
 
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {

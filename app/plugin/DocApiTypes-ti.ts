@@ -68,6 +68,10 @@ export const ColumnsPatch = t.iface([], {
   "columns": t.tuple("RecordWithStringId", t.rest(t.array("RecordWithStringId"))),
 });
 
+export const ColumnsPut = t.iface([], {
+  "columns": t.tuple("RecordWithStringId", t.rest(t.array("RecordWithStringId"))),
+});
+
 export const TablePost = t.iface(["ColumnsPost"], {
   "id": t.opt("string"),
 });
@@ -93,6 +97,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   MinimalRecord,
   ColumnsPost,
   ColumnsPatch,
+  ColumnsPut,
   TablePost,
   TablesPost,
   TablesPatch,

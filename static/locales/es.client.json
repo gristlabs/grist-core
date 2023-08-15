@@ -776,7 +776,7 @@
         "Unmark On-Demand": "Desmarcar bajo demanda"
     },
     "FilterBar": {
-        "SearchColumns": "Buscar columnas",
+        "SearchColumns": "Buscar en columnas",
         "Search Columns": "Buscar columnas"
     },
     "Importer": {
@@ -786,7 +786,18 @@
         "{{count}} unmatched field in import_one": "{{count}} campo no coincide con la importación",
         "{{count}} unmatched field_one": "{{count}} campo sin equivalente",
         "{{count}} unmatched field_other": "{{count}} campos sin equivalentes",
-        "{{count}} unmatched field in import_other": "{{count}} campos sin equivalente en la importación"
+        "{{count}} unmatched field in import_other": "{{count}} campos sin equivalente en la importación",
+        "Column Mapping": "Asignación de columnas",
+        "Column mapping": "Asignación de las columnas",
+        "Import from file": "Importar desde un archivo",
+        "New Table": "Tabla nueva",
+        "Revert": "Revertir",
+        "Skip": "Omitir",
+        "Skip Import": "Omitir la importación",
+        "Source column": "Columna de origen",
+        "Destination table": "Tabla de destino",
+        "Grist column": "Columna Grist",
+        "Skip Table on Import": "Omitir la tabla en la importación"
     },
     "PermissionsWidget": {
         "Allow All": "Permitir todo",
@@ -894,7 +905,10 @@
         "Default cell style": "Estilo de celda predeterminado",
         "CELL STYLE": "ESTILO DE CELDA",
         "Open row styles": "Abrir estilos de fila",
-        "Mixed style": "Estilo mixto"
+        "Mixed style": "Estilo mixto",
+        "Header Style": "Estilo del encabezado",
+        "Default header style": "Estilo del encabezado por defecto",
+        "HEADER STYLE": "ESTILO DEL ENCABEZADO"
     },
     "ColumnInfo": {
         "Cancel": "Cancelar",
@@ -1117,7 +1131,8 @@
         "Hi, I'm the Grist Formula AI Assistant.": "Hola, soy el Asistente de IA de Fórmula Grist.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Sólo puedo ayudar con fórmulas. No puedo construir tablas, columnas y vistas, ni escribir reglas de acceso.",
         "Sign Up for Free": "Regístrate gratis",
-        "There are some things you should know when working with me:": "Hay algunas cosas que debes saber cuando trabajes conmigo:"
+        "There are some things you should know when working with me:": "Hay algunas cosas que debes saber cuando trabajes conmigo:",
+        "Formula AI Assistant is only available for logged in users.": "Formula AI Assistant sólo está disponible para usuarios registrados."
     },
     "GridView": {
         "Click to insert": "Haga clic para insertar"

@@ -50,6 +50,10 @@ export type CommandName =
   | 'shiftUp'
   | 'shiftRight'
   | 'shiftLeft'
+  | 'ctrlShiftDown'
+  | 'ctrlShiftUp'
+  | 'ctrlShiftRight'
+  | 'ctrlShiftLeft'
   | 'selectAll'
   | 'copyLink'
   | 'editField'
@@ -373,6 +377,22 @@ export const groups: CommendGroupDef[] = [{
      name: 'shiftLeft',
      keys: ['Shift+Left'],
      desc: 'Adds the element to the left of the cursor to the selected range'
+    }, {
+      name: 'ctrlShiftDown',
+      keys: ['Mod+Shift+Down'],
+      desc: 'Adds all elements below the cursor to the selected range'
+    }, {
+      name: 'ctrlShiftUp',
+      keys: ['Mod+Shift+Up'],
+      desc: 'Adds all elements above the cursor to the selected range'
+    }, {
+      name: 'ctrlShiftRight',
+      keys: ['Mod+Shift+Right'],
+      desc: 'Adds all elements to the right of the cursor to the selected range'
+    }, {
+      name: 'ctrlShiftLeft',
+      keys: ['Mod+Shift+Left'],
+      desc: 'Adds all elements to the left of the cursor to the selected range'
     }, {
       name: 'selectAll',
       keys: ['Mod+A'],

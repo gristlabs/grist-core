@@ -2,7 +2,14 @@ import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer
 import {createEmptyActionSummary} from "app/common/ActionSummary";
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
-import {BulkColValues, ColValues, fromTableDataAction, TableColValues, TableRecordValue} from 'app/common/DocActions';
+import {
+  BulkColValues,
+  ColValues,
+  fromTableDataAction,
+  TableColValues,
+  TableRecordValue,
+  UserAction
+} from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
 import {isAffirmative} from "app/common/gutil";
@@ -94,7 +101,7 @@ type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Respon
 // Schema validators for api endpoints that creates or updates records.
 const {
   RecordsPatch, RecordsPost, RecordsPut,
-  ColumnsPost, ColumnsPatch,
+  ColumnsPost, ColumnsPatch, ColumnsPut,
   TablesPost, TablesPatch,
 } = t.createCheckers(DocApiTypesTI, GristDataTI);
 
@@ -194,16 +201,23 @@ export class DocWorkerApi {
     }
 
     async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string
+      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
     ): Promise<TableRecordValue[]> {
-      const columnData = await getTableData(activeDoc, req, optTableId);
-      const fieldNames = Object.keys(columnData)
-        .filter(k => !(
-          ["id", "manualSort"].includes(k)
-          || k.startsWith("gristHelper_")
-        ));
+      const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+      const fieldNames = Object.keys(columnData).filter((k) => {
+        if (k === "id") {
+          return false;
+        }
+        if (
+          !opts?.includeHidden &&
+          (k === "manualSort" || k.startsWith("gristHelper_"))
+        ) {
+          return false;
+        }
+        return true;
+      });
       return columnData.id.map((id, index) => {
-        const result: TableRecordValue = {id, fields: {}};
+        const result: TableRecordValue = { id, fields: {} };
         for (const key of fieldNames) {
           let value = columnData[key][index];
           if (isRaisedException(value)) {
@@ -226,7 +240,9 @@ export class DocWorkerApi {
     // Get the specified table in record-oriented format
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
-        const records = await getTableRecords(activeDoc, req);
+        const records = await getTableRecords(activeDoc, req,
+          { includeHidden: isAffirmative(req.query.hidden) }
+        );
         res.json({records});
       })
     );
@@ -357,8 +373,9 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
       withDoc(async (activeDoc, req, res) => {
         const tableId = req.params.tableId;
+        const includeHidden = isAffirmative(req.query.hidden);
         const columns = await handleSandboxError('', [],
-          activeDoc.getTableCols(docSessionFromRequest(req), tableId));
+          activeDoc.getTableCols(docSessionFromRequest(req), tableId, includeHidden));
         res.json({columns});
       })
     );
@@ -366,7 +383,7 @@ export class DocWorkerApi {
     // Get the tables of the specified document in recordish format
     this._app.get('/api/docs/:docId/tables', canView,
       withDoc(async (activeDoc, req, res) => {
-        const records = await getTableRecords(activeDoc, req, "_grist_Tables");
+        const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
         const tables = records.map((record) => ({
           id: record.fields.tableId,
           fields: {
@@ -395,7 +412,7 @@ export class DocWorkerApi {
 
     // Returns cleaned metadata for all attachments in /records format.
     this._app.get('/api/docs/:docId/attachments', canView, withDoc(async (activeDoc, req, res) => {
-      const rawRecords = await getTableRecords(activeDoc, req, "_grist_Attachments");
+      const rawRecords = await getTableRecords(activeDoc, req, { optTableId: "_grist_Attachments" });
       const records = rawRecords.map(r => ({
         id: r.id,
         fields: cleanAttachmentRecord(r.fields as MetaRowRecord<"_grist_Attachments">),
@@ -677,6 +694,54 @@ export class DocWorkerApi {
           allowEmptyRequire: isAffirmative(req.query.allow_empty_require),
         };
         await ops.upsert(body.records, options);
+        res.json(null);
+      })
+    );
+
+    // Add or update records given in records format
+    this._app.put('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPut),
+      withDoc(async (activeDoc, req, res) => {
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
+        const {tableId} = req.params;
+        const tableRef = tablesTable.findMatchingRowId({tableId});
+        if (!tableRef) {
+          throw new ApiError(`Table not found "${tableId}"`, 404);
+        }
+        const body = req.body as Types.ColumnsPut;
+
+        const addActions: UserAction[] = [];
+        const updateActions: UserAction[] = [];
+        const updatedColumnsIds = new Set();
+
+        for (const col of body.columns) {
+          const id = columnsTable.findMatchingRowId({parentId: tableRef, colId: col.id});
+          if (id) {
+            updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields] );
+            updatedColumnsIds.add( id );
+          } else {
+            addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields] );
+          }
+        }
+
+        const getRemoveAction = async () => {
+          const columns = await handleSandboxError('', [],
+            activeDoc.getTableCols(docSessionFromRequest(req), tableId));
+          const columnsToRemove = columns
+            .map(col => col.fields.colRef as number)
+            .filter(colRef => !updatedColumnsIds.has(colRef));
+
+          return [ 'BulkRemoveRecord', '_grist_Tables_column', columnsToRemove ];
+        };
+
+        const actions = [
+          ...(!isAffirmative(req.query.noupdate) ? updateActions : []),
+          ...(!isAffirmative(req.query.noadd) ? addActions : []),
+          ...(isAffirmative(req.query.replaceall) ? [ await getRemoveAction() ] : [] )
+        ];
+        await handleSandboxError(tableId, [],
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+        );
         res.json(null);
       })
     );
