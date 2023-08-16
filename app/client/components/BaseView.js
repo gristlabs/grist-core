@@ -61,17 +61,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   // We use a DynamicQuerySet as the underlying RowSource, with ColumnFilters applies on top of
   // it. It filters based on section linking, re-querying as needed in case of onDemand tables.
   this._queryRowSource = DynamicQuerySet.create(this, gristDoc.querySetManager, this.tableModel);
-
-  // When we have a summary table, filter out rows corresponding to empty groups.
-  // (TODO this may be better implemented by deleting empty groups in the data engine.)
-  if (this.viewSection.table().summarySourceTable()) {
-    const groupGetter = this.tableModel.tableData.getRowPropFunc('group');
-    this._mainRowSource = rowset.BaseFilteredRowSource.create(this,
-      rowId => !groupGetter || !gristTypes.isEmptyList(groupGetter(rowId)));
-    this._mainRowSource.subscribeTo(this._queryRowSource);
-  } else {
-    this._mainRowSource = this._queryRowSource;
-  }
+  this._mainRowSource = this._queryRowSource;
 
   if (this.comparison) {
     // Assign extra row ids for any rows added in the remote (right) table or removed in the
