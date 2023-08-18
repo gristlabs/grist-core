@@ -14,7 +14,7 @@ from imports import import_utils
 
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.WARNING)
+log.setLevel(logging.INFO)
 
 SCHEMA = [
           {
@@ -77,7 +77,14 @@ SCHEMA = [
             'label': 'Number of rows',
             'type': 'number',
             'visible': False,
-          }]
+          },
+          {
+            'name': 'encoding',
+            'label': 'Character encoding. See https://tinyurl.com/py3codecs',
+            'type': 'string',
+            'visible': True,
+          }
+          ]
 
 def parse_file_source(file_source, options):
   parsing_options, export_list = parse_file(import_utils.get_path(file_source["path"]), options)
@@ -91,16 +98,32 @@ def parse_file(file_path, parse_options=None):
   """
   parse_options = parse_options or {}
 
-  with codecs.open(file_path, "rb") as f:
-    sample = f.read(100000)
-  encoding = chardet.detect(sample)['encoding'] or "utf8"
-  # In addition, always prefer UTF8 over ASCII.
-  if encoding == 'ascii':
-    encoding = 'utf8'
-  log.info("Using encoding %s", encoding)
+  given_encoding = parse_options.get('encoding')
+  encoding = given_encoding or detect_encoding(file_path)
+  log.info("Using encoding %s (%s)", encoding, "given" if given_encoding else "detected")
 
-  with codecs.open(file_path, mode="r", encoding=encoding) as f:
+  try:
+    return _parse_with_encoding(file_path, parse_options, encoding)
+  except Exception as e:
+    encoding = 'utf-8'
+    # For valid encodings, we can do our best and report count of errors. But an invalid encoding
+    # or one with a BOM will produce an exception. For those, fall back to utf-8.
+    parsing_options, export_list = _parse_with_encoding(file_path, parse_options, encoding)
+    parsing_options["WARNING"] = "{}: {}. Falling back to {}.\n{}".format(
+        type(e).__name__, e, encoding, parsing_options.get("WARNING", ""))
+    return parsing_options, export_list
+
+
+def _parse_with_encoding(file_path, parse_options, encoding):
+  codec_errors = CodecErrorsReplace()
+  codecs.register_error('custom', codec_errors)
+  with codecs.open(file_path, mode="r", encoding=encoding, errors="custom") as f:
     parsing_options, export_list = _parse_open_file(f, parse_options=parse_options)
+    parsing_options["encoding"] = encoding
+    if codec_errors.error_count:
+      parsing_options["WARNING"] = (
+          "Using encoding %s, encountered %s errors. Use Import Options to change" %
+          (encoding, codec_errors.error_count))
     return parsing_options, export_list
 
 
@@ -204,6 +227,32 @@ def _parse_open_file(file_obj, parse_options=None):
 
   return options, export_list
 
-def get_version():
-  """ Return name and version of plug-in"""
-  pass
+
+class CodecErrorsReplace(object):
+  def __init__(self):
+    self.error_count = 0
+    self.first_error = None
+
+  def __call__(self, error):
+    self.error_count += 1
+    if not self.first_error:
+      self.first_error = error
+    return codecs.replace_errors(error)
+
+
+def detect_encoding(file_path):
+  # Use line-by-line detection as suggested in
+  # https://chardet.readthedocs.io/en/latest/usage.html#advanced-usage.
+  # Using a fixed-sized sample is worse as the sample may end mid-character.
+  detector = chardet.UniversalDetector()
+  with codecs.open(file_path, "rb") as f:
+    for line in f.readlines():
+      detector.feed(line)
+      if detector.done:
+        break
+  detector.close()
+  encoding = detector.result["encoding"]
+  # Default to utf-8, and always prefer it over ASCII as the most common superset.
+  if not encoding or encoding == 'ascii':
+    encoding = 'utf-8'
+  return encoding

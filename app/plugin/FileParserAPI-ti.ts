@@ -15,6 +15,7 @@ export const ParseFileAPI = t.iface([], {
 export const ParseOptions = t.iface([], {
   "NUM_ROWS": t.opt("number"),
   "SCHEMA": t.opt(t.array("ParseOptionSchema")),
+  "WARNING": t.opt("string"),
 });
 
 export const ParseOptionSchema = t.iface([], {

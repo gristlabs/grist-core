@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as fse from 'fs-extra';
 import clone = require('lodash/clone');
 import * as tmp from 'tmp-promise';
+import {Options as TmpOptions} from 'tmp';
 import * as winston from 'winston';
 import { serialize } from 'winston/lib/winston/common';
 
@@ -27,15 +28,15 @@ import { getAppRoot } from 'app/server/lib/places';
 /**
  * Creates a temporary file with the given contents.
  * @param {String} content. Data to store in the file.
- * @param {[Boolean]} optKeep. Optionally pass in true to keep the file from being deleted, which
+ * @param {[Boolean]} options.keep. Optionally pass in true to keep the file from being deleted, which
  *    is useful to see the content while debugging a test.
  * @returns {Promise} A promise for the path of the new file.
  */
-export async function writeTmpFile(content: any, optKeep?: boolean) {
+export async function writeTmpFile(content: any, options: TmpOptions = {}) {
   // discardDescriptor ensures tmp module closes it. It can lead to horrible bugs to close this
   // descriptor yourself, since tmp also closes it on exit, and if it's a different descriptor by
   // that time, it can lead to a crash. See https://github.com/raszi/node-tmp/issues/168
-  const obj = await tmp.file({keep: optKeep, discardDescriptor: true});
+  const obj = await tmp.file({discardDescriptor: true, ...options});
   await fse.writeFile(obj.path, content);
   return obj.path;
 }
@@ -44,17 +45,17 @@ export async function writeTmpFile(content: any, optKeep?: boolean) {
  * Creates a temporary file with `numLines` of generated data, each line about 30 bytes long.
  * This is useful for testing operations with large files.
  * @param {Number} numLines. How many lines to store in the file.
- * @param {[Boolean]} optKeep. Optionally pass in true to keep the file from being deleted, which
+ * @param {[Boolean]} options.keep. Optionally pass in true to keep the file from being deleted, which
  *    is useful to see the content while debugging a test.
  * @returns {Promise} A promise for the path of the new file.
  */
-export async function generateTmpFile(numLines: number, optKeep?: boolean) {
+export async function generateTmpFile(numLines: number, options: TmpOptions = {}) {
   // Generate a bigger data file.
   const data = [];
   for (let i = 0; i < numLines; i++) {
     data.push(i + " abcdefghijklmnopqrstuvwxyz\n");
   }
-  return writeTmpFile(data.join(""), optKeep);
+  return writeTmpFile(data.join(""), options);
 }
 
 

@@ -20,6 +20,7 @@ export interface ParseFileAPI {
 export interface ParseOptions {
   NUM_ROWS?: number;
   SCHEMA?: ParseOptionSchema[];
+  WARNING?: string;     // Only on response, includes a warning from parsing, if any.
 }
 
 /**

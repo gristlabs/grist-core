@@ -1,6 +1,7 @@
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {testId, theme} from 'app/client/ui2018/cssVars';
+import {makeLinks} from 'app/client/ui2018/links';
 import {cssModalButtons} from 'app/client/ui2018/modals';
 import {ParseOptionSchema} from 'app/plugin/FileParserAPI';
 import {Computed, dom, DomContents, IDisposableOwner, input, Observable, styled} from 'grainjs';
@@ -60,7 +61,7 @@ export function buildParseOptionsForm(
   return [
     cssParseOptionForm(
       items.map((item) => cssParseOption(
-        cssParseOptionName(item.label),
+        cssParseOptionName(makeLinks(item.label)),
         optionToInput(owner, item.type, optionsMap.get(item.name)!),
         testId('parseopts-opt'),
       )),

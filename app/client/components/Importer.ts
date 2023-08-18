@@ -1082,6 +1082,7 @@ export class Importer extends DisposableWithEvents {
               options,
             )
           ]),
+          cssWarningText(dom.text(use => use(this._parseOptions)?.WARNING || ""), testId('warning')),
           dom.domComputed(use => {
             if (use(isSkipTable)) {
               return cssOverlay(t('Skip Table on Import'), testId('preview-overlay'));
@@ -1098,6 +1099,7 @@ export class Importer extends DisposableWithEvents {
         )
       );
     });
+
     const buttons = cssImportButtons(cssImportButtonsLine(
       bigPrimaryButton('Import',
         dom.on('click', () => this._maybeFinishImport(upload)),
@@ -1369,6 +1371,10 @@ export class Importer extends DisposableWithEvents {
         (p: ParseOptions) => {
           anotherScreen.dispose();
           this._parseOptions.set(p);
+          // Drop what we previously matched because we may have different columns.
+          // If user manually matched, then changed import options, they'll have to re-match; when
+          // columns change at all, the alternative has incorrect columns in UI and is more confusing.
+          this._sourceInfoArray.set([]);
           this._reImport(upload).catch((err) => reportError(err));
         },
         () => {
@@ -1515,6 +1521,12 @@ const cssTabsWrapper = styled('div', `
   border-bottom: 1px solid ${theme.importerTableInfoBorder};
   display: flex;
   flex-direction: column;
+`);
+
+const cssWarningText = styled('div', `
+  margin-bottom: 8px;
+  color: ${theme.errorText};
+  white-space: pre-line;
 `);
 
 const cssTableList = styled('div', `

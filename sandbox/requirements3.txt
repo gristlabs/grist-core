@@ -10,7 +10,7 @@ asttokens==2.2.1
     # via
     #   friendly-traceback
     #   stack-data
-chardet==4.0.0
+chardet==5.1.0
     # via -r core/sandbox/requirements3.in
 et-xmlfile==1.0.1
     # via openpyxl

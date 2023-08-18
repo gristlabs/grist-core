@@ -1,9 +1,11 @@
 # This Python file uses the following encoding: utf-8
+# pylint:disable=line-too-long
+import csv
 import os
 import textwrap
+import tempfile
 import unittest
 from six import StringIO, text_type
-import csv
 
 from imports import import_csv
 
@@ -11,6 +13,20 @@ from imports import import_csv
 def _get_fixture(filename):
   return os.path.join(os.path.dirname(__file__), "fixtures", filename)
 
+# For a non-utf8 fixture, there is a problem with 'arc diff' which can't handle files with
+# non-utf8 encodings. So create one on the fly.
+non_utf8_fixture = None
+non_utf8_file = None
+def setUpModule():
+  global non_utf8_file, non_utf8_fixture    # pylint:disable=global-statement
+  with open(_get_fixture('test_encoding_utf8.csv')) as f:
+    non_utf8_file = tempfile.NamedTemporaryFile(mode='wb')
+    non_utf8_file.write(f.read().encode('iso-8859-7'))
+    non_utf8_file.flush()
+  non_utf8_fixture = non_utf8_file.name
+
+def tearDownModule():
+  non_utf8_file.close()
 
 class TestImportCSV(unittest.TestCase):
 
@@ -53,7 +69,7 @@ class TestImportCSV(unittest.TestCase):
   def test_csv_types(self):
     options, parsed_file = import_csv.parse_file(_get_fixture('test_excel_types.csv'), parse_options='')
     sheet = parsed_file[0]
-    self._check_options(options)
+    self._check_options(options, encoding='utf-8')
 
     self._check_col(sheet, 0, "int1", "Int", [-1234123, '', ''])
     self._check_col(sheet, 1, "int2", "Int", [5, '', ''])
@@ -84,8 +100,9 @@ class TestImportCSV(unittest.TestCase):
     options["parse_options"].pop("limit_rows")
     options["parse_options"].pop("quoting")
     options["parse_options"].pop("escapechar")
+    options["parse_options"]["encoding"] = "utf-8"   # Expected encoding
     self.assertEqual(options["parse_options"], parsed_options)
-    self._check_options(parsed_options)
+    self._check_options(parsed_options, encoding='utf-8')
     parsed_file = parsed_file[0]
 
     self._check_num_cols(parsed_file, 5)
@@ -385,7 +402,7 @@ class TestImportCSV(unittest.TestCase):
 
   def test_csv_with_very_long_cell(self):
     options, parsed_file = import_csv.parse_file(_get_fixture('test_long_cell.csv'), parse_options='')
-    self._check_options(options)
+    self._check_options(options, encoding='utf-8')
     sheet = parsed_file[0]
     long_cell = sheet["table_data"][1][0]
     self.assertEqual(len(long_cell), 8058)
@@ -394,12 +411,60 @@ class TestImportCSV(unittest.TestCase):
 
   def test_csv_with_surprising_isdigit(self):
     options, parsed_file = import_csv.parse_file(_get_fixture('test_isdigit.csv'), parse_options='')
-    self._check_options(options)
+    self._check_options(options, encoding='utf-8')
     sheet = parsed_file[0]
     self._check_num_cols(sheet, 3)
     self._check_col(sheet, 0, "PHONE", "Text", [u'201-¾᠓𑄺꤈꤈꧐꤆'])
     self._check_col(sheet, 1, "VALUE", "Text", [u'¹5'])
     self._check_col(sheet, 2, "DATE", "Text", [u'2018-0²-27 16:08:39 +0000'])
+
+  def test_csv_encoding_detection_utf8(self):
+    options, parsed_file = import_csv.parse_file(_get_fixture('test_encoding_utf8.csv'), parse_options='')
+    self._check_options(options, encoding='utf-8')
+    sheet = parsed_file[0]
+    self._check_col(sheet, 0, "Name", "Text", [u'John Smith', u'Μαρία Παπαδοπούλου', u'Δημήτρης Johnson'])
+    self._check_col(sheet, 2, "Επάγγελμα", "Text", [u'Γιατρός', u'Engineer', u'Δικηγόρος'])
+
+  def test_csv_encoding_detection_greek(self):
+    # ISO-8859-7 is close to CP1253, and this fixure file would be identical in these two.
+    options, parsed_file = import_csv.parse_file(non_utf8_fixture, parse_options='')
+    self._check_options(options, encoding='ISO-8859-7')
+    sheet = parsed_file[0]
+    self._check_col(sheet, 0, "Name", "Text", [u'John Smith', u'Μαρία Παπαδοπούλου', u'Δημήτρης Johnson'])
+    self._check_col(sheet, 2, "Επάγγελμα", "Text", [u'Γιατρός', u'Engineer', u'Δικηγόρος'])
+
+    # Similar enough encoding that the result is correct.
+    options, parsed_file = import_csv.parse_file(non_utf8_fixture, parse_options={"encoding": "cp1253"})
+    self._check_options(options, encoding='cp1253')   # The encoding should be respected
+    sheet = parsed_file[0]
+    self._check_col(sheet, 0, "Name", "Text", [u'John Smith', u'Μαρία Παπαδοπούλου', u'Δημήτρης Johnson'])
+    self._check_col(sheet, 2, "Επάγγελμα", "Text", [u'Γιατρός', u'Engineer', u'Δικηγόρος'])
+
+  def test_csv_encoding_errors_are_handled(self):
+    # With ascii, we'll get many decoding errors, but parsing should still succeed.
+    parse_options = {
+      "encoding": "ascii",
+      "include_col_names_as_headers": True,
+    }
+    options, parsed_file = import_csv.parse_file(non_utf8_fixture, parse_options=parse_options)
+    self._check_options(options,
+        encoding='ascii',
+        WARNING='Using encoding ascii, encountered 108 errors. Use Import Options to change')
+    sheet = parsed_file[0]
+    self._check_col(sheet, 0, "Name", "Text", [u'John Smith', u'����� ������������', u'�������� Johnson'])
+    self._check_col(sheet, 2, "���������", "Text", [u'�������', u'Engineer', u'���������'])
+
+  def test_csv_encoding_mismatch(self):
+    # Here we use a wrong single-byte encoding, to check that it succeeds even if with nonsense.
+    parse_options = {
+      "encoding": "cp1254",
+      "include_col_names_as_headers": True,
+    }
+    options, parsed_file = import_csv.parse_file(non_utf8_fixture, parse_options=parse_options)
+    self._check_options(options, encoding='cp1254')
+    sheet = parsed_file[0]
+    self._check_col(sheet, 0, "Name", "Text", [u'John Smith', u'Ìáñßá Ğáğáäïğïıëïõ', u'ÄçìŞôñçò Johnson'])
+    self._check_col(sheet, 2, "ÅğÜããåëìá", "Text", [u'Ãéáôñüò', u'Engineer', u'Äéêçãüñïò'])
 
 
 if __name__ == '__main__':
