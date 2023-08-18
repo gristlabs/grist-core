@@ -303,13 +303,13 @@ REDIS_URL           | optional redis server for browser sessions and db query ca
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
 
-AI Assistant related variables:
+AI Formula Assistant related variables (all optional):
 
 Variable | Purpose
 -------- | -------
 ASSISTANT_API_KEY   | optional. An API key to pass when making requests to an external AI conversational endpoint.
 ASSISTANT_CHAT_COMPLETION_ENDPOINT  | optional. A chat-completion style endpoint to call. Not needed if OpenAI is being used.
-ASSISTANT_MODEL     | optional. If set, this string is passed along in calls the the AI conversational endpoint.
+ASSISTANT_MODEL     | optional. If set, this string is passed along in calls to the AI conversational endpoint.
 ASSISTANT_LONGER_CONTEXT_MODEL     | optional. If set, requests that fail because of a context length limitation will be retried with this model set.
 OPENAI_API_KEY      | optional. Synonym for ASSISTANT_API_KEY that assumes an OpenAI endpoint is being used. Sign up for an account on OpenAI and then generate a secret key [here](https://platform.openai.com/account/api-keys).
 
