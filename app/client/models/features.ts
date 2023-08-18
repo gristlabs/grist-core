@@ -20,3 +20,7 @@ export function COMMENTS(): Observable<boolean> {
 export function HAS_FORMULA_ASSISTANT() {
   return Boolean(getGristConfig().featureFormulaAssistant);
 }
+
+export function WHICH_FORMULA_ASSISTANT() {
+  return getGristConfig().assistantService;
+}
