@@ -22,11 +22,11 @@ def column_type(engine, table_id, col_id):
   if parts[0] == "Ref":
     return parts[1]
   elif parts[0] == "RefList":
-    return "List[{}]".format(parts[1])
+    return "list[{}]".format(parts[1])
   elif typ == "Choice":
     return choices(col_rec)
   elif typ == "ChoiceList":
-    return "Tuple[{}, ...]".format(choices(col_rec))
+    return "tuple[{}, ...]".format(choices(col_rec))
   elif typ == "Any":
     table = engine.tables[table_id]
     col = table.get_column(col_id)
@@ -69,15 +69,15 @@ def values_type(values):
   if isinstance(val, records.Record):
     type_name = val._table.table_id
   elif isinstance(val, records.RecordSet):
-    type_name = "List[{}]".format(val._table.table_id)
+    type_name = "list[{}]".format(val._table.table_id)
   elif isinstance(val, list):
-    type_name = "List[{}]".format(values_type(val))
+    type_name = "list[{}]".format(values_type(val))
   elif isinstance(val, set):
-    type_name = "Set[{}]".format(values_type(val))
+    type_name = "set[{}]".format(values_type(val))
   elif isinstance(val, tuple):
-    type_name = "Tuple[{}, ...]".format(values_type(val))
+    type_name = "tuple[{}, ...]".format(values_type(val))
   elif isinstance(val, dict):
-    type_name = "Dict[{}, {}]".format(values_type(val.keys()), values_type(val.values()))
+    type_name = "dict[{}, {}]".format(values_type(val.keys()), values_type(val.values()))
   else:
     type_name = typ.__name__
 
@@ -115,7 +115,7 @@ def visible_columns(engine, table_id):
 
 
 def class_schema(engine, table_id, exclude_col_id=None, lookups=False):
-  result = "@dataclass\nclass {}:\n".format(table_id)
+  result = "class {}:\n".format(table_id)
 
   if lookups:
 
@@ -132,11 +132,11 @@ def class_schema(engine, table_id, exclude_col_id=None, lookups=False):
     lookupOne_args_line = ', '.join(lookupOne_args)
     lookupRecords_args_line = ', '.join(lookupRecords_args)
 
-    result += "     def __len__(self):\n"
+    result += "    def __len__(self):\n"
     result += "        return len(%s.lookupRecords())\n" % table_id
     result += "    @staticmethod\n"
-    result += "    def lookupRecords(%s) -> List[%s]:\n" % (lookupOne_args_line, table_id)
-    result += "       # ...\n"
+    result += "    def lookupRecords(%s) -> list[%s]:\n" % (lookupOne_args_line, table_id)
+    result += "       ...\n"
     result += "    @staticmethod\n"
     result += "    def lookupOne(%s) -> %s:\n" % (lookupOne_args_line, table_id)
     result += "       '''\n"
@@ -165,10 +165,7 @@ def get_formula_prompt(engine, table_id, col_id, _description,
   result += class_schema(engine, table_id, col_id, lookups)
 
   return_type = column_type(engine, table_id, col_id)
-  result += "    @property\n"
-  result += "    # rec is alias for self\n"
-  result += "    def {}(rec) -> {}:\n".format(col_id, return_type)
-  result += "        # Please fill in code only after this line, not the `def`\n"
+  result += "def {}(rec: {}) -> {}:\n".format(col_id, table_id, return_type)
   return result
 
 def indent(text, prefix, predicate=None):
@@ -213,7 +210,10 @@ def convert_completion(completion):
   while stmts and isinstance(stmts[0], (ast.Import, ast.ImportFrom)):
     imports += atok.get_text(stmts.pop(0)) + "\n"
 
-  # If the non-import code consists only of a function definition, extract the body.
+  # Sometimes the model repeats the provided classes, remove them.
+  stmts = [stmt for stmt in stmts if not isinstance(stmt, ast.ClassDef)]
+
+  # If the remaining code consists only of a function definition, extract the body.
   if len(stmts) == 1 and isinstance(stmts[0], ast.FunctionDef):
     func_body_stmts = stmts[0].body
     if (

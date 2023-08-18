@@ -58,29 +58,29 @@ class TestFormulaPrompt(test_engine.EngineTestCase):
     self.assertEqual(values_type([
       fake_table.RecordSet(None),
       fake_table.RecordSet(None),
-    ]), "List[Table1]")
+    ]), "list[Table1]")
     self.assertEqual(values_type([
       fake_table.RecordSet(None),
       fake_table.RecordSet(None),
       None,
-    ]), "Optional[List[Table1]]")
+    ]), "Optional[list[Table1]]")
 
-    self.assertEqual(values_type([[1, 2, 3]]), "List[int]")
-    self.assertEqual(values_type([[1, 2, 3], None]), "Optional[List[int]]")
-    self.assertEqual(values_type([[1, 2, None]]), "List[Optional[int]]")
-    self.assertEqual(values_type([[1, 2, None], None]), "Optional[List[Optional[int]]]")
-    self.assertEqual(values_type([[1, 2, "3"]]), "List[Any]")
+    self.assertEqual(values_type([[1, 2, 3]]), "list[int]")
+    self.assertEqual(values_type([[1, 2, 3], None]), "Optional[list[int]]")
+    self.assertEqual(values_type([[1, 2, None]]), "list[Optional[int]]")
+    self.assertEqual(values_type([[1, 2, None], None]), "Optional[list[Optional[int]]]")
+    self.assertEqual(values_type([[1, 2, "3"]]), "list[Any]")
 
-    self.assertEqual(values_type([{1, 2, 3}]), "Set[int]")
-    self.assertEqual(values_type([(1, 2, 3)]), "Tuple[int, ...]")
-    self.assertEqual(values_type([{1: ["2"]}]), "Dict[int, List[str]]")
+    self.assertEqual(values_type([{1, 2, 3}]), "set[int]")
+    self.assertEqual(values_type([(1, 2, 3)]), "tuple[int, ...]")
+    self.assertEqual(values_type([{1: ["2"]}]), "dict[int, list[str]]")
 
   def assert_column_type(self, col_id, expected_type):
     self.assertEqual(column_type(self.engine, "Table2", col_id), expected_type)
 
-  def assert_prompt(self, table_name, col_id, expected_prompt):
+  def assert_prompt(self, table_name, col_id, expected_prompt, lookups=False):
     prompt = get_formula_prompt(self.engine, table_name, col_id, "description here",
-                                include_all_tables=False, lookups=False)
+                                include_all_tables=False, lookups=lookups)
     # print(prompt)
     self.assertEqual(prompt, expected_prompt)
 
@@ -122,9 +122,9 @@ class TestFormulaPrompt(test_engine.EngineTestCase):
     self.assert_column_type("datetime", "datetime.datetime")
     self.assert_column_type("attachments", "Any")
     self.assert_column_type("ref", "Table2")
-    self.assert_column_type("reflist", "List[Table2]")
+    self.assert_column_type("reflist", "list[Table2]")
     self.assert_column_type("choice", "Literal['a', 'b', 'c']")
-    self.assert_column_type("choicelist", "Tuple[Literal['x', 'y', 'z'], ...]")
+    self.assert_column_type("choicelist", "tuple[Literal['x', 'y', 'z'], ...]")
     self.assert_column_type("ref_formula", "Optional[Table2]")
     self.assert_column_type("numeric_formula", "float")
 
@@ -132,7 +132,6 @@ class TestFormulaPrompt(test_engine.EngineTestCase):
 
     self.assert_prompt("Table2", "new_formula",
       '''\
-@dataclass
 class Table2:
     text: str
     numeric: float
@@ -142,16 +141,13 @@ class Table2:
     datetime: datetime.datetime
     attachments: Any
     ref: Table2
-    reflist: List[Table2]
+    reflist: list[Table2]
     choice: Literal['a', 'b', 'c']
-    choicelist: Tuple[Literal['x', 'y', 'z'], ...]
+    choicelist: tuple[Literal['x', 'y', 'z'], ...]
     ref_formula: Optional[Table2]
     numeric_formula: float
 
-    @property
-    # rec is alias for self
-    def new_formula(rec) -> float:
-        # Please fill in code only after this line, not the `def`
+def new_formula(rec: Table2) -> float:
 ''')
 
   def test_get_formula_prompt(self):
@@ -175,45 +171,52 @@ class Table2:
     self.assertEqual(referenced_tables(self.engine, "Table1"), set())
 
     self.assert_prompt("Table1", "text", '''\
-@dataclass
 class Table1:
 
-    @property
-    # rec is alias for self
-    def text(rec) -> str:
-        # Please fill in code only after this line, not the `def`
+def text(rec: Table1) -> str:
 ''')
 
+    # Test the same thing but include the lookup methods as in a real case,
+    # just to show that the table class would never actually be empty
+    # (which would be invalid Python and might confuse the model).
+    self.assert_prompt("Table1", "text", """\
+class Table1:
+    def __len__(self):
+        return len(Table1.lookupRecords())
+    @staticmethod
+    def lookupRecords(sort_by=None) -> list[Table1]:
+       ...
+    @staticmethod
+    def lookupOne(sort_by=None) -> Table1:
+       '''
+       Filter for one result matching the keys provided.
+       To control order, use e.g. `sort_by='Key' or `sort_by='-Key'`.
+       '''
+       return Table1.lookupRecords(sort_by=sort_by)[0]
+
+
+def text(rec: Table1) -> str:
+""", lookups=True)
+
     self.assert_prompt("Table2", "ref", '''\
-@dataclass
 class Table1:
     text: str
 
-@dataclass
 class Table2:
 
-    @property
-    # rec is alias for self
-    def ref(rec) -> Table1:
-        # Please fill in code only after this line, not the `def`
+def ref(rec: Table2) -> Table1:
 ''')
 
     self.assert_prompt("Table3", "reflist", '''\
-@dataclass
 class Table1:
     text: str
 
-@dataclass
 class Table2:
     ref: Table1
 
-@dataclass
 class Table3:
 
-    @property
-    # rec is alias for self
-    def reflist(rec) -> List[Table2]:
-        # Please fill in code only after this line, not the `def`
+def reflist(rec: Table3) -> list[Table2]:
 ''')
 
   def test_convert_completion(self):
@@ -226,6 +229,9 @@ from x import (
   y,
   z,
 )
+
+class Foo:
+    bar: Bar
 
 @property
 def foo(rec):

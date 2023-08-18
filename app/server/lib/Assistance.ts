@@ -144,20 +144,18 @@ export class OpenAIAssistant implements Assistant {
       newMessages.push({
         role: 'system',
         content: 'You are a helpful assistant for a user of software called Grist. ' +
-          'Below are one or more Python classes. ' +
-          'The last method needs completing. ' +
-          "The user will probably give a description of what they want the method (a 'formula') to return. " +
-          'If so, your response should include the method body as Python code in a markdown block. ' +
-          'Do not include the class or method signature, just the method body. ' +
-          'If your code starts with `class`, `@dataclass`, or `def` it will fail. Only give the method body. ' +
-          'You can import modules inside the method body if needed. ' +
-          'You cannot define additional functions or methods. ' +
-          'The method should be a pure function that performs some computation and returns a result. ' +
+          "Below are one or more fake Python classes representing the structure of the user's data. " +
+          'The function at the end needs completing. ' +
+          "The user will probably give a description of what they want the function (a 'formula') to return. " +
+          'If so, your response should include the function BODY as Python code in a markdown block. ' +
+          "Your response will be automatically concatenated to the code below, so you mustn't repeat any of it. " +
+          'You cannot change the function signature or define additional functions or classes. ' +
+          'It should be a pure function that performs some computation and returns a result. ' +
           'It CANNOT perform any side effects such as adding/removing/modifying rows/columns/cells/tables/etc. ' +
           'It CANNOT interact with files/databases/networks/etc. ' +
           'It CANNOT display images/charts/graphs/maps/etc. ' +
           'If the user asks for these things, tell them that you cannot help. ' +
-          'The method uses `rec` instead of `self` as the first parameter.\n\n' +
+          "\n\n" +
           '```python\n' +
           await makeSchemaPromptV1(optSession, doc, request) +
           '\n```',
@@ -198,6 +196,10 @@ export class OpenAIAssistant implements Assistant {
 
     const userIdHash = getUserHash(optSession);
     const completion: string = await this._getCompletion(messages, userIdHash);
+
+    // It's nice to have this ready to uncomment for debugging.
+    // console.log(completion);
+
     const response = await completionToResponse(doc, request, completion);
     if (response.suggestedFormula) {
       // Show the tweaked version of the suggested formula to the user (i.e. the one that's

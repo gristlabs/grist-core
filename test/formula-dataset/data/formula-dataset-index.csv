@@ -1,4 +1,5 @@
 no_formula,table_id,col_id,doc_id,Description
+0,Encrypt,Encrypted,n2se5cBJty1GyWdougSD2T,"Encrypt with a simple Caeser cipher: Convert all letters to uppercase, then circular shift them forward by 6 positions. Leave all other characters unchanged. For example, 'abc xyz!' becomes 'GHI DEF!'. Use the `string` module."
 0,Contacts,Send_Email,hQHXqAQXceeQBPvRw5sSs1,"Link to compose an email, if there is one"
 0,Contacts,No_Notes,hQHXqAQXceeQBPvRw5sSs1,"Number of notes for this contact"
 0,Category,Contains_archived_project_,hQHXqAQXceeQBPvRw5sSs1,"Whether any projects in this category are archived"
