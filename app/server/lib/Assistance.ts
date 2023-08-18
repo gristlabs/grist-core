@@ -160,7 +160,7 @@ export class OpenAIAssistant implements Assistant {
     this._apiKey = apiKey;
     this._model = process.env.ASSISTANT_MODEL;
     this._longerContextModel = process.env.ASSISTANT_LONGER_CONTEXT_MODEL;
-    if (!this._endpoint) {
+    if (!endpoint) {
       this._model = this._model ?? OpenAIAssistant.DEFAULT_MODEL;
       this._longerContextModel = this._longerContextModel ?? OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL;
     }
