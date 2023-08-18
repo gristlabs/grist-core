@@ -5,15 +5,24 @@
 
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
+import {DocPageModel} from "app/client/models/DocPageModel";
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {select} from 'app/client/ui2018/menus';
-import {confirmModal, cssModalBody, cssModalButtons, cssModalWidth, modal, saveModal} from 'app/client/ui2018/modals';
+import {
+  confirmModal,
+  cssModalBody,
+  cssModalButtons,
+  cssModalTitle,
+  cssModalWidth,
+  modal,
+  saveModal
+} from 'app/client/ui2018/modals';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/UserAPI';
@@ -276,6 +285,43 @@ class SaveCopyModal extends Disposable {
       throw e;
     }
   }
+}
+
+type DownloadOption = 'full' | 'nohistory' | 'template';
+
+export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
+  return modal((ctl, owner) => {
+    const selected = Observable.create<DownloadOption>(owner, 'full');
+
+    return [
+      cssModalTitle(`Download document`),
+      cssRadioCheckboxOptions(
+          radioCheckboxOption(selected, 'full', t("Download full document and history")),
+          radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
+          radioCheckboxOption(selected, 'template', t("Remove all data but keep the structure to use as a template")),
+      ),
+      cssModalButtons(
+        dom.domComputed(use =>
+          bigPrimaryButtonLink(`Download`, {
+              href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
+                template: use(selected) === "template",
+                removeHistory: use(selected) === "nohistory" || use(selected) === "template",
+              }),
+              target: '_blank',
+              download: ''
+            },
+            dom.on('click', () => {
+              ctl.close();
+            }),
+            testId('download-button-link'),
+          ),
+        ),
+        bigBasicButton('Cancel', dom.on('click', () => {
+          ctl.close();
+        }))
+      )
+    ];
+  });
 }
 
 export const cssField = styled('div', `

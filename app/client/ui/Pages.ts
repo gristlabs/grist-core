@@ -8,13 +8,12 @@ import MetaTableModel from 'app/client/models/MetaTableModel';
 import {find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
         TreeTableData} from 'app/client/models/TreeModel';
 import {TreeViewComponent} from 'app/client/ui/TreeViewComponent';
-import {labeledCircleCheckbox} from 'app/client/ui2018/checkbox';
-import {theme} from 'app/client/ui2018/cssVars';
+import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {cssLink} from 'app/client/ui2018/links';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
 import {buildCensoredPage, buildPageDom, PageActions} from 'app/client/ui2018/pages';
 import {mod} from 'app/common/gutil';
-import {Computed, Disposable, dom, DomContents, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
 
 const t = makeT('Pages');
 
@@ -141,9 +140,9 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
       body: dom('div',
         testId('popup'),
         buildWarning(tableNames),
-        cssOptions(
-          buildOption(selected, 'data', t("Delete data and this page.")),
-          buildOption(selected, 'page',
+        cssRadioCheckboxOptions(
+          radioCheckboxOption(selected, 'data', t("Delete data and this page.")),
+          radioCheckboxOption(selected, 'page',
             [ // TODO i18n
               `Keep data and delete page. `,
               `Table will remain available in `,
@@ -161,53 +160,12 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
   });
 }
 
-function buildOption(value: Observable<RemoveOption>, id: RemoveOption, content: DomContents) {
-  const selected = Computed.create(null, use => use(value) === id)
-    .onWrite(val => val ? value.set(id) : void 0);
-  return dom.update(
-    labeledCircleCheckbox(selected, content, dom.autoDispose(selected)),
-    testId(`option-${id}`),
-    cssBlockCheckbox.cls(''),
-    cssBlockCheckbox.cls('-block', selected),
-  );
-}
 
 function buildWarning(tables: string[]) {
   return cssWarning(
     dom.forEach(tables, (tb) => cssTableName(tb, testId('table')))
   );
 }
-
-const cssOptions = styled('div', `
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`);
-
-// We need to reset top and left of ::before element, as it is wrongly set
-// on the inline checkbox.
-// To simulate radio button behavior, we will block user input after option is selected, because
-// checkbox doesn't support two-way binding.
-const cssBlockCheckbox = styled('div', `
-  display: flex;
-  padding: 10px 8px;
-  border: 1px solid ${theme.modalBorder};
-  border-radius: 3px;
-  cursor: pointer;
-  & input::before, & input::after  {
-    top: unset;
-    left: unset;
-  }
-  &:hover {
-    border-color: ${theme.accentBorder};
-  }
-  &-block {
-    pointer-events: none;
-  }
-  &-block a {
-    pointer-events: all;
-  }
-`);
 
 const cssWarning = styled('div', `
   display: flex;

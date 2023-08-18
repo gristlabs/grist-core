@@ -3,7 +3,7 @@ import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
-import {makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
+import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
@@ -252,11 +252,8 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
-        menuItemLink({
-          href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl(),
-          target: '_blank', download: ''
-        },
-        menuIcon('Download'), t("Download"), testId('tb-share-option'))
+        menuItem(() => downloadDocModal(doc, pageModel),
+        menuIcon('Download'), t("Download..."), testId('tb-share-option'))
     ),
     menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
       menuIcon('Download'), t("Export CSV"), testId('tb-share-option')),

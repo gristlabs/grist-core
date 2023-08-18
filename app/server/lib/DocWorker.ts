@@ -78,10 +78,13 @@ export class DocWorker {
 
     // Get a copy of document for downloading.
     const tmpPath = await storageManager.getCopy(docId);
-    if (req.query.template === '1') {
-      // If template flag is on, remove data and history from the download.
+    if (isAffirmative(req.query.template)) {
       await removeData(tmpPath);
+      await removeHistory(tmpPath);
+    } else if (isAffirmative(req.query.nohistory)) {
+      await removeHistory(tmpPath);
     }
+
     await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath);
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type('application/x-sqlite3')
@@ -197,7 +200,7 @@ async function activeDocMethod(role: 'viewers'|'editors'|null, methodName: strin
 }
 
 /**
- * Remove rows from all user tables, and wipe as much history as we can.
+ * Remove rows from all user tables.
  */
 async function removeData(filename: string) {
   const db = await SQLiteDB.openDBRaw(filename, OpenMode.OPEN_EXISTING);
@@ -207,8 +210,15 @@ async function removeData(filename: string) {
   for (const tableId of tableIds) {
     await db.run(`DELETE FROM ${quoteIdent(tableId)}`);
   }
+  await db.close();
+}
+
+/**
+ * Wipe as much history as we can.
+ */
+async function removeHistory(filename: string) {
+  const db = await SQLiteDB.openDBRaw(filename, OpenMode.OPEN_EXISTING);
   const history = new ActionHistoryImpl(db);
   await history.deleteActions(1);
-  await db.vacuum();
   await db.close();
 }

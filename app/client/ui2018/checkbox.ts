@@ -15,9 +15,8 @@
  *  labeledSquareCheckbox(observable(false), 'Include other values', dom.prop('disabled', true)),
  */
 
-import { theme } from 'app/client/ui2018/cssVars';
-import { Computed, dom, DomArg, styled } from 'grainjs';
-import { Observable } from 'grainjs';
+import {testId, theme} from 'app/client/ui2018/cssVars';
+import {Computed, dom, DomArg, DomContents, Observable, styled} from 'grainjs';
 
 export const cssLabel = styled('label', `
   position: relative;
@@ -175,6 +174,48 @@ export function triStateSquareCheckbox(obs: Observable<TriState>, ...domArgs: Ch
 export function labeledTriStateSquareCheckbox(obs: Observable<TriState>, label: string, ...domArgs: CheckboxArg[]) {
   return triStateCheckbox(obs, cssCheckboxSquare, label, ...domArgs);
 }
+
+export function radioCheckboxOption<T>(selectedObservable: Observable<T>, optionId: T, content: DomContents) {
+  const selected = Computed.create(null, use => use(selectedObservable) === optionId)
+    .onWrite(val => val ? selectedObservable.set(optionId) : void 0);
+  return dom.update(
+    labeledCircleCheckbox(selected, content, dom.autoDispose(selected)),
+    testId(`option-${optionId}`),
+    cssBlockCheckbox.cls(''),
+    cssBlockCheckbox.cls('-block', selected),
+  );
+}
+
+export const cssRadioCheckboxOptions = styled('div', `
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`);
+
+// We need to reset top and left of ::before element, as it is wrongly set
+// on the inline checkbox.
+// To simulate radio button behavior, we will block user input after option is selected, because
+// checkbox doesn't support two-way binding.
+const cssBlockCheckbox = styled('div', `
+  display: flex;
+  padding: 10px 8px;
+  border: 1px solid ${theme.modalBorder};
+  border-radius: 3px;
+  cursor: pointer;
+  & input::before, & input::after  {
+    top: unset;
+    left: unset;
+  }
+  &:hover {
+    border-color: ${theme.accentBorder};
+  }
+  &-block {
+    pointer-events: none;
+  }
+  &-block a {
+    pointer-events: all;
+  }
+`);
 
 const cssInlineRelative = styled('div', `
   display: inline-block;

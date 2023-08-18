@@ -447,7 +447,7 @@ export interface DocAPI {
   // Currently, leftHash is expected to be an ancestor of rightHash.  If rightHash
   // is HEAD, the result will contain a copy of any rows added or updated.
   compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison>;
-  getDownloadUrl(template?: boolean): string;
+  getDownloadUrl(options: {template: boolean, removeHistory: boolean}): string;
   getDownloadXlsxUrl(params?: DownloadDocParams): string;
   getDownloadCsvUrl(params: DownloadDocParams): string;
   getDownloadTableSchemaUrl(params: DownloadDocParams): string;
@@ -991,8 +991,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(url.href);
   }
 
-  public getDownloadUrl(template: boolean = false) {
-    return this._url + `/download?template=${Number(template)}`;
+  public getDownloadUrl({template, removeHistory}: {template: boolean, removeHistory: boolean}): string {
+    return this._url + `/download?template=${template}&nohistory=${removeHistory}`;
   }
 
   public getDownloadXlsxUrl(params: DownloadDocParams) {

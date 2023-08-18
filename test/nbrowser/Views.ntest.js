@@ -69,7 +69,7 @@ describe('Views.ntest', function() {
     assert.equal(await gu.actions.getActiveTab().text(), 'Table1');
     assert.deepEqual(await $(`.test-docpage-label`).array().text(), ['Table1', 'Table3']);
     await gu.actions.tableView('Table1').selectOption('Remove');
-    await $(".test-removepage-option-page").click();
+    await $(".test-option-page").click();
     await $(".test-modal-confirm").click();
     await gu.waitForServer();
     assert.equal(await gu.actions.getActiveTab().text(), 'Table3');

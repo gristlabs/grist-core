@@ -1144,7 +1144,7 @@ export async function removePage(name: string|RegExp, options: {
       const popupTables = await driver.findAll(".test-removepage-table", e => e.getText());
       assert.deepEqual(popupTables.sort(), options.tables.sort());
     }
-    await popup.find(`.test-removepage-option-${options.withData ? 'data': 'page'}`).click();
+    await popup.find(`.test-option-${options.withData ? 'data': 'page'}`).click();
     if (options.cancel) {
       await driver.find(".test-modal-cancel").click();
     } else {
