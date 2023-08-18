@@ -143,13 +143,13 @@ class RetryableError extends Error {
 export class OpenAIAssistant implements Assistant {
   public static DEFAULT_MODEL = "gpt-3.5-turbo-0613";
   public static DEFAULT_LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
-  public static MAX_TOKENS = process.env.ASSISTANT_MAX_TOKENS ?
-      parseInt(process.env.ASSISTANT_MAX_TOKENS, 10) : undefined;
 
   private _apiKey?: string;
   private _model?: string;
   private _longerContextModel?: string;
   private _endpoint: string;
+  private _maxTokens = process.env.ASSISTANT_MAX_TOKENS ?
+      parseInt(process.env.ASSISTANT_MAX_TOKENS, 10) : undefined;
 
   public constructor() {
     const apiKey = process.env.ASSISTANT_API_KEY || process.env.OPENAI_API_KEY;
@@ -269,8 +269,8 @@ export class OpenAIAssistant implements Assistant {
           temperature: 0,
           ...(model ? { model } : undefined),
           user: userIdHash,
-          ...(OpenAIAssistant.MAX_TOKENS ? {
-            max_tokens: OpenAIAssistant.MAX_TOKENS,
+          ...(this._maxTokens ? {
+            max_tokens: this._maxTokens,
           } : undefined),
         }),
       },
