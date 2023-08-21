@@ -303,7 +303,7 @@ REDIS_URL           | optional redis server for browser sessions and db query ca
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
 
-AI Formula Assistant related variables (all optional):
+#### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose
 -------- | -------
@@ -316,7 +316,7 @@ OPENAI_API_KEY      | optional. Synonym for ASSISTANT_API_KEY that assumes an Op
 At the time of writing, the AI Assistant is known to function against OpenAI chat completion endpoints for gpt-3.5-turbo and gpt-4.
 It can also function against the chat completion endpoint provided by <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>.
 
-Sandbox related variables:
+#### Sandbox related variables:
 
 Variable | Purpose
 -------- | -------
@@ -325,7 +325,7 @@ GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts f
 PYTHON_VERSION | can be 2 or 3. If set, documents without an engine setting are assumed to use the specified version of python. Not all sandboxes support all versions.
 PYTHON_VERSION_ON_CREATION | can be 2 or 3. If set, newly created documents have an engine setting set to python2 or python3. Not all sandboxes support all versions.
 
-Forward authentication variables:
+#### Forward authentication variables:
 
 Variable | Purpose
 -------- | -------
@@ -344,7 +344,7 @@ When using forward authentication, you may wish to also set the following variab
 GRIST_FORWARD_AUTH_HEADER is similar to GRIST_PROXY_AUTH_HEADER, but enables
 a login system (assuming you have some forward authentication set up).
 
-Google Drive integrations:
+#### Google Drive integrations:
 
 Variable | Purpose
 -------- | -------
@@ -353,7 +353,7 @@ GOOGLE_CLIENT_SECRET| set to the Google Client Secret to be used with Google API
 GOOGLE_API_KEY      | set to the Google API Key to be used with Google API client (accessing public files)
 GOOGLE_DRIVE_SCOPE  | set to the scope requested for Google Drive integration (defaults to drive.file)
 
-Database variables:
+#### Database variables:
 
 Variable | Purpose
 -------- | -------
@@ -365,7 +365,7 @@ TYPEORM_PORT     | port number for db if not the default for that db type
 TYPEORM_TYPE     | set to 'sqlite' or 'postgres'
 TYPEORM_USERNAME | username to connect as
 
-Testing:
+#### Testing:
 
 Variable | Purpose
 -------- | -------
