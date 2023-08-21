@@ -117,23 +117,54 @@ class RetryableError extends Error {
 }
 
 /**
- * A flavor of assistant for use with the OpenAI API.
+ * A flavor of assistant for use with the OpenAI chat completion endpoint
+ * and tools with a compatible endpoint (e.g. llama-cpp-python).
  * Tested primarily with gpt-3.5-turbo.
+ *
+ * Uses the ASSISTANT_CHAT_COMPLETION_ENDPOINT endpoint if set, else
+ * an OpenAI endpoint. Passes ASSISTANT_API_KEY or OPENAI_API_KEY in
+ * a header if set. An api key is required for the default OpenAI
+ * endpoint.
+ *
+ * If a model string is set in ASSISTANT_MODEL, this will be passed
+ * along. For the default OpenAI endpoint, a gpt-3.5-turbo variant
+ * will be set by default.
+ *
+ * If a request fails because of context length limitation, and the
+ * default OpenAI endpoint is in use, the request will be retried
+ * with ASSISTANT_LONGER_CONTEXT_MODEL (another gpt-3.5
+ * variant by default). Set this variable to "" if this behavior is
+ * not desired for the default OpenAI endpoint. If a custom endpoint was
+ * provided, this behavior will only happen if
+ * ASSISTANT_LONGER_CONTEXT_MODEL is explicitly set.
+ *
+ * An optional ASSISTANT_MAX_TOKENS can be specified.
  */
 export class OpenAIAssistant implements Assistant {
   public static DEFAULT_MODEL = "gpt-3.5-turbo-0613";
-  public static LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
+  public static DEFAULT_LONGER_CONTEXT_MODEL = "gpt-3.5-turbo-16k-0613";
 
-  private _apiKey: string;
+  private _apiKey?: string;
+  private _model?: string;
+  private _longerContextModel?: string;
   private _endpoint: string;
+  private _maxTokens = process.env.ASSISTANT_MAX_TOKENS ?
+      parseInt(process.env.ASSISTANT_MAX_TOKENS, 10) : undefined;
 
   public constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY not set');
+    const apiKey = process.env.ASSISTANT_API_KEY || process.env.OPENAI_API_KEY;
+    const endpoint = process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT;
+    if (!apiKey && !endpoint) {
+      throw new Error('Please set either OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
     }
     this._apiKey = apiKey;
-    this._endpoint = `https://api.openai.com/v1/chat/completions`;
+    this._model = process.env.ASSISTANT_MODEL;
+    this._longerContextModel = process.env.ASSISTANT_LONGER_CONTEXT_MODEL;
+    if (!endpoint) {
+      this._model = this._model ?? OpenAIAssistant.DEFAULT_MODEL;
+      this._longerContextModel = this._longerContextModel ?? OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL;
+    }
+    this._endpoint = endpoint || `https://api.openai.com/v1/chat/completions`;
   }
 
   public async apply(
@@ -224,19 +255,25 @@ export class OpenAIAssistant implements Assistant {
   }
 
   private async _fetchCompletion(messages: AssistanceMessage[], userIdHash: string, longerContext: boolean) {
+    const model = longerContext ? this._longerContextModel : this._model;
     const apiResponse = await DEPS.fetch(
       this._endpoint,
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${this._apiKey}`,
+          ...(this._apiKey ? {
+            "Authorization": `Bearer ${this._apiKey}`,
+          } : undefined),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           messages,
           temperature: 0,
-          model: longerContext ? OpenAIAssistant.LONGER_CONTEXT_MODEL : OpenAIAssistant.DEFAULT_MODEL,
+          ...(model ? { model } : undefined),
           user: userIdHash,
+          ...(this._maxTokens ? {
+            max_tokens: this._maxTokens,
+          } : undefined),
         }),
       },
     );
@@ -244,7 +281,7 @@ export class OpenAIAssistant implements Assistant {
     const result = JSON.parse(resultText);
     const errorCode = result.error?.code;
     if (errorCode === "context_length_exceeded" || result.choices?.[0].finish_reason === "length") {
-      if (!longerContext) {
+      if (!longerContext && this._longerContextModel) {
         log.info("Switching to longer context model...");
         throw new SwitchToLongerContext();
       } else if (messages.length <= 2) {
@@ -394,14 +431,10 @@ export function getAssistant() {
   if (process.env.OPENAI_API_KEY === 'test') {
     return new EchoAssistant();
   }
-  if (process.env.OPENAI_API_KEY) {
+  if (process.env.OPENAI_API_KEY || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT) {
     return new OpenAIAssistant();
   }
-  // Maintaining this is too much of a burden for now.
-  // if (process.env.HUGGINGFACE_API_KEY) {
-  //   return new HuggingFaceAssistant();
-  // }
-  throw new Error('Please set OPENAI_API_KEY');
+  throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
 }
 
 /**

@@ -287,8 +287,8 @@ describe('gristUrlState', function() {
   it('should support an update function to pushUrl and makeUrl', async function() {
     mockWindow.location = new URL('https://bar.example.com/doc/DOC/p/5') as unknown as Location;
     const state = UrlState.create(null, mockWindow, prod) as UrlState<IGristUrlState>;
-    await state.pushUrl({params: {style: 'light', linkParameters: {foo: 'A', bar: 'B'}}});
-    assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5?style=light&foo_=A&bar_=B');
+    await state.pushUrl({params: {style: 'singlePage', linkParameters: {foo: 'A', bar: 'B'}}});
+    assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5?style=singlePage&foo_=A&bar_=B');
     state.loadState();  // changing linkParameters requires a page reload
     assert.equal(state.makeUrl((prevState) => merge({}, prevState, {params: {style: 'full'}})),
       'https://bar.example.com/doc/DOC/p/5?style=full&foo_=A&bar_=B');

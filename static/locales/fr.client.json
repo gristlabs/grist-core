@@ -830,7 +830,9 @@
         "Cell Style": "Style de cellule",
         "CELL STYLE": "STYLE de CELLULE",
         "Default cell style": "Style par défaut",
-        "Mixed style": "Style composite"
+        "Mixed style": "Style composite",
+        "Header Style": "Style de l'entête",
+        "Default header style": "Style par défaut"
     },
     "DiscussionEditor": {
         "Comment": "Commentaire",

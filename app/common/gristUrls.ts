@@ -10,6 +10,7 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
+import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from './ThemePrefs';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -44,8 +45,8 @@ export type LoginPage = typeof LoginPage.type;
 export const SupportGristPage = StringUnion('support-grist');
 export type SupportGristPage = typeof SupportGristPage.type;
 
-// Overall UI style.  "full" is normal, "light" is a single page focused, panels hidden experience.
-export const InterfaceStyle = StringUnion('light', 'full');
+// Overall UI style.  "full" is normal, "singlePage" is a single page focused, panels hidden experience.
+export const InterfaceStyle = StringUnion('singlePage', 'full');
 export type InterfaceStyle = typeof InterfaceStyle.type;
 
 // Default subdomain for home api service if not otherwise specified.
@@ -126,6 +127,9 @@ export interface IGristUrlState {
     compare?: string;
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
                                               // Encoded in URL as query params with extra '_' suffix.
+    themeSyncWithOs?: boolean;
+    themeAppearance?: ThemeAppearance;
+    themeName?: ThemeName;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
 }
@@ -392,15 +396,40 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   }
 
   if (sp.has('style')) {
-    state.params!.style = InterfaceStyle.parse(sp.get('style'));
+    let style = sp.get('style');
+    if (style === 'light') {
+      style = 'singlePage';
+    }
+
+    state.params!.style = InterfaceStyle.parse(style);
   }
   if (sp.has('embed')) {
     const embed = state.params!.embed = isAffirmative(sp.get('embed'));
     // Turn view mode on if no mode has been specified, and not a fork.
     if (embed && !state.mode && !state.fork) { state.mode = 'view'; }
-    // Turn on light style if no style has been specified.
-    if (embed && !state.params!.style) { state.params!.style = 'light'; }
+    // Turn on single page style if no style has been specified.
+    if (embed && !state.params!.style) { state.params!.style = 'singlePage'; }
   }
+
+  // Theme overrides
+  if (sp.has('themeSyncWithOs')) {
+    state.params!.themeSyncWithOs = isAffirmative(sp.get('themeSyncWithOs'));
+  }
+
+  if (sp.has('themeAppearance')) {
+    const appearance = sp.get('themeAppearance');
+    if (ThemeAppearanceChecker.strictTest(appearance)) {
+      state.params!.themeAppearance = appearance;
+    }
+  }
+
+  if (sp.has('themeName')) {
+    const themeName = sp.get('themeName');
+    if (ThemeNameChecker.strictTest(themeName)) {
+      state.params!.themeName = themeName;
+    }
+  }
+
   if (sp.has('compare')) {
     state.params!.compare = sp.get('compare')!;
   }
@@ -636,6 +665,10 @@ export interface GristLoadConfig {
 
   // TODO: remove once released.
   featureFormulaAssistant?: boolean;
+
+  // Used to determine which disclosure links should be provided to user of
+  // formula assistance.
+  assistantService?: 'OpenAI' | undefined;
 
   // Email address of the support user.
   supportEmail?: string;

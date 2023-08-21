@@ -67,7 +67,22 @@
     "Importer": {
         "Update existing records": "Aggiorna i record esistenti",
         "Merge rows that match these fields:": "Unisci le righe che corrispondono a questi campi:",
-        "Select fields to match on": "Seleziona i campi da far corrispondere"
+        "Select fields to match on": "Seleziona i campi da far corrispondere",
+        "Column Mapping": "Corrispondenze nelle colonne",
+        "Column mapping": "Corrispondenze nelle colonne",
+        "Destination table": "Tabella di destinazione",
+        "Grist column": "Colonna di Grist",
+        "Import from file": "Importa da file",
+        "New Table": "Nuova tabella",
+        "Revert": "Ripristina",
+        "Skip": "Salta",
+        "{{count}} unmatched field in import_one": "{{count}} campi senza equivalente nell'importazione",
+        "{{count}} unmatched field in import_other": "{{count}} campi senza equivalente nell'importazione",
+        "{{count}} unmatched field_one": "{{count}} campi senza equivalente",
+        "{{count}} unmatched field_other": "{{count}} campi senza equivalente",
+        "Skip Import": "Salta l'importazione",
+        "Skip Table on Import": "Salta la tabella nell'importazione",
+        "Source column": "Colonna di origine"
     },
     "NotifyUI": {
         "Cannot find personal site, sorry!": "Spiacente, impossibile trovare il sito personale!",
@@ -236,7 +251,10 @@
         "CELL STYLE": "STILE CELLA",
         "Mixed style": "Stile misto",
         "Open row styles": "Apri stili riga",
-        "Default cell style": "Stile cella di default"
+        "Default cell style": "Stile cella di default",
+        "Default header style": "Stile di default per l'intestazione",
+        "Header Style": "Stile per l'intestazione",
+        "HEADER STYLE": "STILE INTESTAZIONE"
     },
     "ChoiceTextBox": {
         "CHOICES": "SCELTE"
@@ -1059,7 +1077,8 @@
         "Sign Up for Free": "Iscriviti gratis",
         "There are some things you should know when working with me:": "Ecco alcune cose da sapere quando lavori con me:",
         "What do you need help with?": "In che cosa posso aiutarti?",
-        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Iscriviti a un account gratuito di Grist per usare l'Assistente IA per le formule."
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Iscriviti a un account gratuito di Grist per usare l'Assistente IA per le formule.",
+        "Formula AI Assistant is only available for logged in users.": "L'assistente IA per le formule è disponibile solo dopo aver effettuato l'accesso."
     },
     "GridView": {
         "Click to insert": "Clicca per inserire"

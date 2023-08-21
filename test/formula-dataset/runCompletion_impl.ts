@@ -15,6 +15,9 @@
  *
  * USAGE:
  *  OPENAI_API_KEY=<my_openai_api_key> node core/test/formula-dataset/runCompletion.js
+ * or
+ *  ASSISTANT_CHAT_COMPLETION_ENDPOINT=http.... node core/test/formula-dataset/runCompletion.js
+ * (see Assistance.ts for more options).
  *
  *  # WITH VERBOSE:
  *  VERBOSE=1 OPENAI_API_KEY=<my_openai_api_key> node core/test/formula-dataset/runCompletion.js
@@ -68,7 +71,8 @@ const SIMULATE_CONVERSATION = true;
 const FOLLOWUP_EVALUATE = false;
 
 export async function runCompletion() {
-  ActiveDocDeps.ACTIVEDOC_TIMEOUT = 600;
+  // This could take a long time for LLMs running on underpowered hardware >:)
+  ActiveDocDeps.ACTIVEDOC_TIMEOUT = 500000;
 
   // if template directory not exists, make it
   if (!fs.existsSync(path.join(PATH_TO_DOC))) {
