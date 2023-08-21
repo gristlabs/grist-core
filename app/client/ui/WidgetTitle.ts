@@ -269,7 +269,7 @@ const updateOnKey = {onInput: true};
 
 // Leave class for tests.
 const cssTitleContainer = styled('div', `
-  flex: 1 1 0px;
+  flex: 0 1 auto;  /* won't grow, starts at size of content, will shrink if needed */
   min-width: 0px;
   display: flex;
   .info_toggle_icon {

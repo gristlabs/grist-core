@@ -1,4 +1,5 @@
 import BaseView from 'app/client/components/BaseView';
+import {allCommands} from "app/client/components/commands";
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
@@ -13,6 +14,7 @@ import {menu} from 'app/client/ui2018/menus';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
+import {EmptyFilterState} from "./LinkingState";
 
 const t = makeT('ViewSection');
 
@@ -54,6 +56,118 @@ export function buildCollapsedSectionDom(options: {
 }
 
 
+function buildLinkStateIndicatorDom(options: {
+  gristDoc: GristDoc,
+  sectionRowId: number,
+}, ...domArgs: DomElementArg[]) {
+  const {gristDoc, sectionRowId} = options;
+  const tgtSec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
+
+  return dom.domComputed((use) => {
+    //makes an observable for the passed-in section
+    const lstate = use(tgtSec.linkingState);
+    if(lstate == null) { return null; }
+
+    // Default to empty for ease of coding, will be set in cases where it's relevant
+    const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;
+
+    // crunch filterVals into compact string for display in bubble (not tooltip),
+    // eg "USA", "USA;2022", "(USA +3 others)"
+    // only for filter linking and summary-filter-linking
+
+    //filters is a map {column: [vals...]}
+    //  if multiple filters, join each with ";"
+    //   each filter can have multiple vals (if reflist), show as "(SomeValue +3 others)",
+
+    const filterValsShortLabel = Object.keys(lfilter.filterLabels).map(colId => {
+      const vals = lfilter.filterLabels[colId];
+      //selector can be an empty reflist (filterLabels[colId] = [])
+      if(vals.length == 0)
+      { return '- blank -'; }
+
+      // Even if vals != [], selector might be a null/empty cell value.
+      //  - if a null reference: filter[colId] = [0], but filterLabels would be ['']
+      //  - if an empty string/choice filter = [''], label = ['']
+      //  - if an empty number/date/etc: filter[colId] = [null], but filterLabel will be ['']
+      //Note: numeric 0 won't become blank, since filterLabel will be "0", which is truthy
+      const dispVal = vals[0] || '- blank -';
+
+      //If 2 or more vals, abbreviate it
+      return vals.length <= 1 ? dispVal: `(${dispVal} +${vals.length - 1} others)`;
+      //TODO: could show multiple vals if short, and/or let css overflow ellipsis handle it?
+    }).join("; ");
+
+    let bubbleContent: DomElementArg[];
+    switch (use(lstate.linkTypeDescription)) {
+      case "Filter:Summary-Group":
+      case "Filter:Col->Col":
+      case "Filter:Row->Col":
+      case "Summary":
+        bubbleContent = [
+          dom("div", dom.style('width', '2px'), dom.style('display', 'inline-block')), //spacer for text
+          filterValsShortLabel,
+        ];
+        break;
+      case "Show-Referenced-Records":
+        bubbleContent = [];
+        break;
+      case "Cursor:Same-Table":
+      case "Cursor:Reference":
+        bubbleContent = [];
+        break;
+      case "Error:Invalid":
+      default:
+        bubbleContent = ["Error"];
+        break;
+    }
+
+    return linkStateBubble(
+        customIcon(dom.style("background-color", theme.filterBarButtonSavedFg + "")),
+        bubbleContent,
+        dom.on("click", () => allCommands.dataSelectionTabOpen.run()),
+        ...domArgs,
+    );
+
+  });
+
+}
+
+// eslint-disable-next-line
+const tempIconSVGString= `url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"> <ellipse style="stroke: rgb(0, 0, 0);" cx="2.426" cy="13.913" rx="1.361" ry="1.361"/> <ellipse style="stroke: rgb(0, 0, 0);" cx="13.827" cy="3.039" rx="1.222" ry="1.222"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 2.396 12.802 C 2.363 7.985 6.014 2.893 11.895 3.027"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 8.49 1.047 L 12.265 2.871 L 8.986 5.874"/> </svg>')`;
+
+//TODO JV TEMP: Shamelessly copied from icon.ts
+const customIcon = styled('div', `
+  -webkit-mask-image: ${tempIconSVGString};
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  width: 16px;
+  height: 16px;
+  background-color: var(--icon-color, var(--grist-theme-text, black));
+
+`);
+
+const linkStateBubble = styled('div', `
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 3px;
+  padding: 3px;
+  text-overflow: ellipsis;
+  align-self: start;
+  height: 21px;
+  margin-top: -4px;
+  margin-left: 4px;
+  color: ${theme.filterBarButtonSavedFg};
+  background-color: ${theme.filterBarButtonSavedBg};
+  &:hover {
+    background-color: ${theme.filterBarButtonSavedHoverBg};
+  }
+`);
+
+
 export function buildViewSectionDom(options: {
   gristDoc: GristDoc,
   sectionRowId: number,
@@ -93,6 +207,9 @@ export function buildViewSectionDom(options: {
       dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
         cssSigmaIcon('Pivot', testId('sigma'))),
       buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
+      dom.maybe((use) => use(vs.linkSrcSectionRef) != 0, () =>
+          buildLinkStateIndicatorDom({gristDoc, sectionRowId}, testId("viewsection-linkstate"))),
+      dom("div", dom.style("flex", "1 0 0px")), //spacer, 0 size by default, grows to take up remaining space
       viewInstance.buildTitleControls(),
       dom('div.viewsection_buttons',
         dom.create(viewSectionMenu, gristDoc, vs)
