@@ -43,6 +43,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {isFullReferencingType} from "app/common/gristTypes";
+import {not} from 'app/common/gutil';
 import {StringUnion} from 'app/common/StringUnion';
 import {IWidgetType} from 'app/common/widgetTypes';
 import {
@@ -61,7 +62,6 @@ import {
   subscribe
 } from 'grainjs';
 import * as ko from 'knockout';
-import { not } from 'app/common/gutil';
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
