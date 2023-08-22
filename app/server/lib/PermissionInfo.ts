@@ -219,7 +219,7 @@ function evaluateRule(ruleSet: RuleSet, input: AclMatchInput): PartialPermission
         // Anything it would explicitly allow, no longer allow through this rule.
         // Anything it would explicitly deny, go ahead and deny.
         pset = mergePartialPermissions(pset, mapValues(rule.permissions, val => (val === 'allow' ? "" : val)));
-        log.warn("ACLRule for %s failed: %s", ruleSet.tableId, e.message);
+        log.warn("ACLRule for %s (`%s`) failed: %s", ruleSet.tableId, rule.aclFormula, e.stack);
       }
     }
   }
