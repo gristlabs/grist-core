@@ -268,8 +268,8 @@ export class LinkingState extends Disposable {
     console.log(`in makeFilterObs: srcColId=${srcColId || "id" }, tgtColId=${tgtColId || "id" }`);
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
-    if(srcColId === undefined && tgtColId === undefined) {
-      throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be null");
+    if(!srcColId && !tgtColId) {
+      throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be empty");
     }
 
     //if (srcCol), selectorVal is the value in activeRowId[srcCol].
