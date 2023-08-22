@@ -9,6 +9,7 @@ import {FilterColValues, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isListType, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import {UIRowId} from 'app/plugin/GristAPI';
+import {CellValue} from "app/plugin/GristData";
 import {encodeObject} from 'app/plugin/objtypes';
 import {Disposable, Holder, MultiHolder} from "grainjs";
 import * as  ko from "knockout";
@@ -18,7 +19,11 @@ import pick = require('lodash/pick');
 import pickBy = require('lodash/pickBy');
 
 
-//TODO: add a "no link" to this?
+// Descriptive string enum for each case of linking
+// Currently used for rendering user-facing link info
+// TODO JV: Eventually, switching the main block of linking logic in LinkingState constructor to be a big
+//          switch(linkType){} would make things cleaner.
+// TODO JV: also should add "Custom-widget-linked" to this, but holding off until Jarek's changes land
 type LinkType = "Filter:Summary-Group" |
                 "Filter:Col->Col"|
                 "Filter:Row->Col"|
@@ -28,24 +33,30 @@ type LinkType = "Filter:Summary-Group" |
                 "Cursor:Reference"|
                 "Error:Invalid";
 
-
+//If this LinkingState represents a filter link, it will set its filterState to this object
+//The filterColValues portion is just the data needed for filtering (same as manual filtering), and is passed
+//to the backend in some cases (CSV export)
+//The filterState includes extra info to display filter state to the user
 type FilterState = FilterColValues & {
-  filterLabels: {  [colId: string]: string[] };
+  filterLabels: {  [colId: string]: string[] }; //formatted and displayCol-ed values to show to user
   colTypes: {[colId: string]: string;}
 };
-
 function FilterStateToColValues(fs: FilterState) { return pick(fs, ['filters', 'operations']); }
+
+//Since we're not making full objects for these, need to define sensible "empty" values here
 export const EmptyFilterState: FilterState = {filters: {}, filterLabels: {}, operations: {}, colTypes: {}};
 export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(EmptyFilterState);
 
+
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
+  // Is undefined if not cursor-linked
   public readonly cursorPos?: ko.Computed<UIRowId>;
 
   // If linking affects filtering, this is a computed for the current filtering state, including user-facing
   // labels for filter values and types of the filtered columns
   // with a dependency on srcSection.activeRowId()
-  // Is null if no filtering
+  // Is undefined if not link-filtered
   public readonly filterState?: ko.Computed<FilterState>;
 
   // filterColValues is a subset of the current filterState needed for filtering (subset of ClientQuery)
@@ -55,7 +66,7 @@ export class LinkingState extends Disposable {
   // Get default values for a new record so that it continues to satisfy the current linking filters
   public readonly getDefaultColValues: () => any;
 
-  //Which case of linking we've got
+  //Which case of linking we've got, this is a descriptive string-enum.
   public readonly linkTypeDescription: ko.Computed<LinkType>;
 
   private _docModel: DocModel;
@@ -139,7 +150,7 @@ export class LinkingState extends Disposable {
       // TODO: Update this if we ever patch grainjs to allow multiHolder.clear()
       const updateHolder = Holder.create(this);
 
-      // source data table could still be loading (this could happen after changing the group by
+      // source data table could still be loading (this could happen after changing the group-by
       // columns of a linked summary table for instance). Define an _update function to be called when data loads
       const _update = () => {
         if (srcSection.isDisposed() || srcSection.table().groupByColumns().length === 0) {
@@ -377,6 +388,7 @@ export class LinkingState extends Disposable {
   //"null" for column implies id column
   private _srcCustomFilter(
       column: ColumnRec|undefined, operation: QueryOperation): ko.Computed<FilterState> {
+    //Note: column may be the empty column, i.e. column != undef, but column.colId() is undefined
     const colId = (!column || column.colId() === undefined) ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
       const values = this._srcSection.selectedRows();
@@ -389,13 +401,15 @@ export class LinkingState extends Disposable {
     }));
   }
 
-  // Returns a function (rowId) => cellValue, for the specified table and colId
-  // Uses a row model to create a dependency on the cell's value,
-  // so changes to the cell value will notify observers
-  // An undefined colId means to use the 'id' column, i.e. (rowId)=>rowId
-  // returns 'valGetter | null', null meaning an error
-  //    valGetter is ( (UIRowID | null) => cellValue | null ), null meaning the "new" row
-  private _makeValGetter(table: TableRec, colId: string | undefined, owner: MultiHolder=this) {
+  // Returns a ValGetter function, i.e. (rowId) => cellValue(rowId, colId), for the specified table and colId,
+  // Or null if there's an error in making the valgetter
+  // Note:
+  // - Uses a row model to create a dependency on the cell's value, so changes to the cell value will notify observers
+  // - ValGetter returns null for the 'new' row
+  // - An undefined colId means to use the 'id' column, i.e. Valgetter is (rowId)=>rowId
+  private _makeValGetter(table: TableRec, colId: string | undefined, owner: MultiHolder=this)
+    : ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
+  {
     if(colId === undefined) { //passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
     }

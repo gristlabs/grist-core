@@ -1091,10 +1091,10 @@ const cssLinkInfoPanel = styled('div', `
   white-space: nowrap;
   overflow-x: auto;
 
-& table {
-    border-spacing: 2px;
-    border-collapse: separate;
-}
+  & table {
+      border-spacing: 2px;
+      border-collapse: separate;
+  }
 `);
 
 // Center table / values box inside LinkInfoPanel
