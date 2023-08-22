@@ -746,6 +746,28 @@ export class DocWorkerApi {
       })
     );
 
+    this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const {tableId, colId} = req.params;
+        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
+        const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
+        const tableRef = tablesTable.findMatchingRowId({tableId});
+        if (!tableRef) {
+          throw new ApiError(`Table not found "${tableId}"`, 404);
+        }
+
+        const colRef = columnsTable.findMatchingRowId({parentId: tableRef, colId});
+        if (!colRef) {
+          throw new ApiError(`Column not found "${colId}"`, 404);
+        }
+        const actions = [ [ 'RemoveRecord', '_grist_Tables_column', colRef ] ];
+        await handleSandboxError(tableId, [],
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+        );
+        res.json(colRef);
+      })
+    );
+
     // Add a new webhook and trigger
     this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
       withDoc(async (activeDoc, req, res) => {

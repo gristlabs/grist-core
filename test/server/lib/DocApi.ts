@@ -997,6 +997,56 @@ function testDocApi() {
     });
   });
 
+  describe("DELETE /docs/{did}/columns/{colId}", function () {
+    async function generateDocAndUrl() {
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'ColumnsDelete'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
+      return { url, docId };
+    }
+
+    it('should delete some column', async function() {
+      const {url} = await generateDocAndUrl();
+      const deleteUrl = url + '/A';
+      const resp = await axios.delete(deleteUrl, chimpy);
+
+      assert.equal(resp.status, 200, "Should succeed in requesting column deletion");
+
+      const listColResp = await axios.get(url, { ...chimpy, params: { hidden: true } });
+      assert.equal(listColResp.status, 200, "Should succeed in listing columns");
+
+      const columnIds = listColResp.data.columns.map(({id}: {id: string}) => id).sort();
+      assert.deepEqual(columnIds, ["B", "C", "manualSort"]);
+    });
+
+    it('should return 404 if table not found', async function() {
+      const {url} = await generateDocAndUrl();
+      const deleteUrl = url.replace("Table1", "NonExistingTable") + '/A';
+      const resp = await axios.delete(deleteUrl, chimpy);
+
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.error, 'Table not found "NonExistingTable"');
+    });
+
+    it('should return 404 if column not found', async function() {
+      const {url} = await generateDocAndUrl();
+      const deleteUrl = url + '/NonExistingColId';
+      const resp = await axios.delete(deleteUrl, chimpy);
+
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.error, 'Column not found "NonExistingColId"');
+    });
+
+    it('should forbid column deletion by viewers', async function() {
+      const {url, docId} = await generateDocAndUrl();
+      await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
+      const deleteUrl = url + '/A';
+      const resp = await axios.delete(deleteUrl, kiwi);
+
+      assert.equal(resp.status, 403);
+    });
+  });
+
   it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/typotypotypo/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 404);
