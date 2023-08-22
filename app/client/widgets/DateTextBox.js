@@ -83,7 +83,7 @@ DateTextBox.prototype.buildDom = function(row) {
   let value = row[this.field.colId()];
   return dom('div.field_clip',
     kd.style('text-align', this.alignment),
-    kd.text(() => row._isAddRow() ? '' : this.valueFormatter().format(value()))
+    kd.text(() => row._isAddRow() || this.isDisposed() ? '' : this.valueFormatter().format(value()))
   );
 };
 

@@ -63,7 +63,9 @@ export class NTextBox extends NewAbstractWidget {
     return dom('div.field_clip',
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      dom.domComputed((use) => use(row._isAddRow) ? null : makeLinks(use(this.valueFormatter).formatAny(use(value), t)))
+      dom.domComputed((use) => use(row._isAddRow) || this.isDisposed() ?
+        null :
+        makeLinks(use(this.valueFormatter).formatAny(use(value), t)))
     );
   }
 }

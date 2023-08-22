@@ -490,7 +490,10 @@
         "Update Original": "Update Original",
         "Workspace": "Workspace",
         "You do not have write access to the selected workspace": "You do not have write access to the selected workspace",
-        "You do not have write access to this site": "You do not have write access to this site"
+        "You do not have write access to this site": "You do not have write access to this site",
+        "Download full document and history": "Download full document and history",
+        "Remove all data but keep the structure to use as a template": "Remove all data but keep the structure to use as a template",
+        "Remove document history (can significantly reduce file size)": "Remove document history (can significantly reduce file size)"
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -612,7 +615,8 @@
         "Show in folder": "Show in folder",
         "Unsaved": "Unsaved",
         "Work on a Copy": "Work on a Copy",
-        "Share": "Share"
+        "Share": "Share",
+        "Download...": "Download..."
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
