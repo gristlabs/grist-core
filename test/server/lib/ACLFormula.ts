@@ -73,6 +73,22 @@ describe('ACLFormula', function() {
     assert.equal(compiled({user: new User({})}), true);
   });
 
+  [{
+    op: 'in'
+  }, {
+    op: 'not in'
+  }].forEach(ctx => {
+    it(`should handle the "${ctx.op}" operator with a string RHS to check if substring exist`, async function() {
+      const compiled = await setAndCompile(`user.Name ${ctx.op} 'FooBar'`);
+      assert.equal(compiled({user: new User({Name: 'FooBar'})}), ctx.op === 'in');
+      assert.equal(compiled({user: new User({Name: 'Foo'})}), ctx.op === 'in');
+      assert.equal(compiled({user: new User({Name: 'Bar'})}), ctx.op === 'in');
+      assert.equal(compiled({user: new User({Name: 'bar'})}), ctx.op === 'not in');
+      assert.equal(compiled({user: new User({Name: 'qux'})}), ctx.op === 'not in');
+      assert.equal(compiled({user: new User({Name: null})}), ctx.op === 'not in');
+    });
+  });
+
   it('should handle the "and" operator', async function () {
     const compiled = await setAndCompile("rec.office == 'Seattle' and user.email in ['sally@', 'xie@']");
     assert.throws(() => compiled({user: new User({email: 'xie@'})}), /Missing row data 'rec'/);
