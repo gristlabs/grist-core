@@ -1,7 +1,7 @@
 ### python 2 requirements, see requirements3.txt for python 3
 
 astroid==1.6.6
-asttokens==2.0.5
+asttokens==2.2.1
 backports.functools-lru-cache==1.6.4
 chardet==4.0.0
 enum34==1.1.10

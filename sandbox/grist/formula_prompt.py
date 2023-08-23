@@ -190,14 +190,14 @@ def convert_completion(completion):
     completion = match.group(1)
 
   result = textwrap.dedent(completion)
+  atok = asttokens.ASTText(result)
 
   try:
-    atok = asttokens.ASTTokens(result, parse=True)
+    # Constructing ASTText doesn't parse the code, but the .tree property does.
+    stmts = atok.tree.body
   except SyntaxError:
     # If we don't have valid Python code, don't suggest a formula at all
     return ""
-
-  stmts = atok.tree.body
 
   # If the code starts with imports, save them for later.
   # In particular, the model may return something like:
@@ -233,21 +233,23 @@ def convert_completion(completion):
       result = imports + "\n" + result
 
   # Now convert `rec.` to `$` and remove redundant `return ` at the end.
+  atok = asttokens.ASTText(result)
   try:
-    atok = asttokens.ASTTokens(result, parse=True)
+    # Constructing ASTText doesn't parse the code, but the .tree property does.
+    tree = atok.tree
   except SyntaxError:
     # In case the above extraction somehow messed things up
     return ""
 
   replacements = []
-  for node in ast.walk(atok.tree):
+  for node in ast.walk(tree):
     if isinstance(node, ast.Attribute):
       start, end = atok.get_text_range(node.value)
       end += 1
       if result[start:end] == "rec.":
         replacements.append((start, end, "$"))
 
-  last_stmt = atok.tree.body[-1]
+  last_stmt = tree.body[-1]
   if isinstance(last_stmt, ast.Return):
     start, _ = atok.get_text_range(last_stmt)
     expected = "return "

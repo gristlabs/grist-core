@@ -60,18 +60,21 @@ def make_formula_body(formula, default_value, assoc_value=None):
   tmp_patches = textbuilder.make_regexp_patches(formula, DOLLAR_REGEX, 'DOLLAR')
   tmp_formula = textbuilder.Replacer(formula_builder_text, tmp_patches)
 
+  atok = asttokens.ASTText(tmp_formula.get_text(), filename=code_filename)
   # Parse the formula into an abstract syntax tree (AST), catching syntax errors.
+  # Constructing ASTText doesn't parse the code, but the .tree property does.
   try:
-    atok = asttokens.ASTTokens(tmp_formula.get_text(), parse=True, filename=code_filename)
+    tree = atok.tree
   except SyntaxError as e:
     return textbuilder.Text(_create_syntax_error_code(tmp_formula, formula, e))
 
   # Once we have a tree, go through it and create a subset of the dollar patches that are actually
   # relevant. E.g. this is where we'll skip the "$foo" patches that appear in strings or comments.
   patches = []
-  for node in ast.walk(atok.tree):
+  for node in ast.walk(tree):
     if isinstance(node, ast.Name) and node.id.startswith('DOLLAR'):
-      input_pos = tmp_formula.map_back_offset(node.first_token.startpos)
+      startpos = atok.get_text_range(node)[0]
+      input_pos = tmp_formula.map_back_offset(startpos)
       m = DOLLAR_REGEX.match(formula, input_pos)
       # If there is no match, then we must have had a "DOLLARblah" identifier that didn't come
       # from translating a "$" prefix.
@@ -90,9 +93,10 @@ def make_formula_body(formula, default_value, assoc_value=None):
 
   # If the last statement is an expression that has its result unused (an ast.Expr node),
   # then insert a "return" keyword.
-  last_statement = atok.tree.body[-1] if atok.tree.body else None
+  last_statement = tree.body[-1] if tree.body else None
   if isinstance(last_statement, ast.Expr):
-    input_pos = tmp_formula.map_back_offset(last_statement.first_token.startpos)
+    startpos = atok.get_text_range(last_statement)[0]
+    input_pos = tmp_formula.map_back_offset(startpos)
     patches.append(textbuilder.make_patch(formula, input_pos, input_pos, "return "))
   elif last_statement is None:
     # If we have an empty body (e.g. just a comment), add a 'pass' at the end.
@@ -102,7 +106,7 @@ def make_formula_body(formula, default_value, assoc_value=None):
       # - Use type() instead of isinstance()
       # - Check last_statement first to try avoiding walking the tree
       type(node) == ast.Return  # pylint: disable=unidiomatic-typecheck
-      for node in itertools.chain([last_statement], ast.walk(atok.tree))
+      for node in itertools.chain([last_statement], ast.walk(tree))
   ):
     message = "No `return` statement, and the last line isn't an expression."
     if isinstance(last_statement, ast.Assign):
@@ -136,11 +140,12 @@ def replace_dollar_attrs(formula):
   formula_builder_text = textbuilder.Text(formula)
   tmp_patches = textbuilder.make_regexp_patches(formula, DOLLAR_REGEX, 'DOLLAR')
   tmp_formula = textbuilder.Replacer(formula_builder_text, tmp_patches)
-  atok = asttokens.ASTTokens(tmp_formula.get_text(), parse=True)
+  atok = asttokens.ASTText(tmp_formula.get_text())
   patches = []
   for node in ast.walk(atok.tree):
     if isinstance(node, ast.Name) and node.id.startswith('DOLLAR'):
-      input_pos = tmp_formula.map_back_offset(node.first_token.startpos)
+      startpos = atok.get_text_range(node)[0]
+      input_pos = tmp_formula.map_back_offset(startpos)
       m = DOLLAR_REGEX.match(formula, input_pos)
       if m:
         patches.append(textbuilder.make_patch(formula, m.start(0), m.end(0), 'rec.'))

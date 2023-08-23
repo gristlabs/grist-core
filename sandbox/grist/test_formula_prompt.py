@@ -251,7 +251,7 @@ from x import (
   z,
 )
 
-x = f"hello {rec.name} " + $name + "!"
+x = f"hello {$name} " + $name + "!"
 if $bar.spam:
   return 0
 $a * $b""")

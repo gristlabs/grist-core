@@ -72,6 +72,12 @@ class TestCodeBuilder(test_engine.EngineTestCase):
     self.assertEqual(make_body("'''test1'''\n\"\"\"test2\"\"\""),
                      "'''test1'''\nreturn \"\"\"test2\"\"\"")
 
+    if six.PY3:
+      self.assertEqual(
+        make_body("f'{$foo + 1 + $bar} 2 {3 + $baz}' + $foo2 + f'{4 + $bar2}!'"),
+        "return f'{rec.foo + 1 + rec.bar} 2 {3 + rec.baz}' + rec.foo2 + f'{4 + rec.bar2}!'"
+      )
+
     # Test that we produce valid code when "$foo" occurs in invalid places.
     if six.PY2:
       raise_code = "raise SyntaxError('invalid syntax', ('usercode', 1, 5, u'foo($bar=1)'))"
