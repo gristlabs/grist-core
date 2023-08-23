@@ -342,6 +342,7 @@ export class GranularAccess implements GranularAccessForBundle {
   public async inputs(docSession: OptDocSession): Promise<AclMatchInput> {
     return {
       user: await this._getUser(docSession),
+      docId: this._docId
     };
   }
 

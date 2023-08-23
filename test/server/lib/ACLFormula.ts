@@ -184,8 +184,13 @@ describe('ACLFormula', function() {
     const user = new User({Email: 'X@'});
     assert.equal(compiled({user, rec: V({emails: null})}), false);
     assert.equal(compiled({user, rec: V({unrelated: 'X@'})}), false);
+    assert.equal(compiled({user, rec: V({emails: 'X@'})}), true);
     compiled = await setAndCompile('user.Email not in rec.emails');
     assert.equal(compiled({user, rec: V({emails: null})}), true);
     assert.equal(compiled({user, rec: V({unrelated: 'X@'})}), true);
+    assert.equal(compiled({user, rec: V({emails: 'X@'})}), false);
+    compiled = await setAndCompile('(user.Email in rec.emails) == (user.Name in rec.emails)');
+    assert.equal(compiled({user, rec: V({emails: null})}), true);
+    assert.equal(compiled({user, rec: V({emails: 'X@'})}), false);
   });
 });

@@ -6,7 +6,7 @@ root = true
 # Unix-style newlines with a newline ending every file
 [*.{ts,js}]
 end_of_line = lf
-insert_final_newline = false
+insert_final_newline = true
 charset = utf-8
 # indent with 2 spaces
 indent_style = space
