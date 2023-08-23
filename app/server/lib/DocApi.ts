@@ -749,22 +749,11 @@ export class DocWorkerApi {
     this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
       withDoc(async (activeDoc, req, res) => {
         const {tableId, colId} = req.params;
-        const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
-        const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
-        const tableRef = tablesTable.findMatchingRowId({tableId});
-        if (!tableRef) {
-          throw new ApiError(`Table not found "${tableId}"`, 404);
-        }
-
-        const colRef = columnsTable.findMatchingRowId({parentId: tableRef, colId});
-        if (!colRef) {
-          throw new ApiError(`Column not found "${colId}"`, 404);
-        }
-        const actions = [ [ 'RemoveRecord', '_grist_Tables_column', colRef ] ];
-        await handleSandboxError(tableId, [],
+        const actions = [ [ 'RemoveColumn', tableId, colId ] ];
+        await handleSandboxError(tableId, [colId],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
         );
-        res.json(colRef);
+        res.json(null);
       })
     );
 
