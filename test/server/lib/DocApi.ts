@@ -1411,475 +1411,342 @@ function testDocApi() {
     );
   });
 
-  describe("/docs/{did}/tables/{tid}/records", function () {
-    describe("PUT /docs/{did}/tables/{tid}/records", async function () {
-      it("should add or update records", async function () {
-        // create sample document for testing
-        const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-        const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
-        const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+  describe("PUT /docs/{did}/tables/{tid}/records", async function () {
+    it("should add or update records", async function () {
+      // create sample document for testing
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
 
-        async function check(records: AddOrUpdateRecord[], expectedTableData: BulkColValues, params: any = {}) {
-          const resp = await axios.put(url, {records}, {...chimpy, params});
-          assert.equal(resp.status, 200);
-          const table = await userApi.getTable(docId, "Table1");
-          delete table.manualSort;
-          delete table.C;
-          assert.deepStrictEqual(table, expectedTableData);
-        }
-
-        // Add 3 new records, since the table is empty so nothing matches `requires`
-        await check(
-          [
-            {
-              require: {A: 1},
-            },
-            {
-              // Since no record with A=2 is found, create a new record,
-              // but `fields` overrides `require` for the value when creating,
-              // so the new record has A=3
-              require: {A: 2},
-              fields: {A: 3},
-            },
-            {
-              require: {A: 4},
-              fields: {B: 5},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 3, 4], B: [0, 0, 5]}
-        );
-
-        // Update all three records since they all match the `require` values here
-        await check(
-          [
-            {
-              // Does nothing
-              require: {A: 1},
-            },
-            {
-              // Changes A from 3 to 33
-              require: {A: 3},
-              fields: {A: 33},
-            },
-            {
-              // Changes B from 5 to 6 in the third record where A=4
-              require: {A: 4},
-              fields: {B: 6},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]}
-        );
-
-        // This would normally add a record, but noadd suppresses that
-        await check([
-            {
-              require: {A: 100},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
-          {noadd: "1"},
-        );
-
-        // This would normally update A from 1 to 11, bot noupdate suppresses that
-        await check([
-            {
-              require: {A: 1},
-              fields: {A: 11},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
-          {noupdate: "1"},
-        );
-
-        // There are 2 records with B=0, update them both to B=1
-        // Use onmany=all to specify that they should both be updated
-        await check([
-            {
-              require: {B: 0},
-              fields: {B: 1},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, 4], B: [1, 1, 6]},
-          {onmany: "all"}
-        );
-
-        // In contrast to the above, the default behaviour for no value of onmany
-        // is to only update the first matching record,
-        // so only one of the records with B=1 is updated to B=2
-        await check([
-            {
-              require: {B: 1},
-              fields: {B: 2},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, 4], B: [2, 1, 6]},
-        );
-
-        // By default, strings in `require` and `fields` are parsed based on column type,
-        // so these dollar amounts are treated as currency
-        // and parsed as A=4 and A=44
-        await check([
-            {
-              require: {A: "$4"},
-              fields: {A: "$44"},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, 44], B: [2, 1, 6]},
-        );
-
-        // Turn off the default string parsing with noparse=1
-        // Now we need A=44 to actually be a number to match,
-        // A="$44" wouldn't match and would create a new record.
-        // Because A="$55" isn't parsed, the raw string is stored in the table.
-        await check([
-            {
-              require: {A: 44},
-              fields: {A: "$55"},
-            },
-          ],
-          {id: [1, 2, 3], A: [1, 33, "$55"], B: [2, 1, 6]},
-          {noparse: 1}
-        );
-
-        await check([
-            // First three records already exist and nothing happens
-            {require: {A: 1}},
-            {require: {A: 33}},
-            {require: {A: "$55"}},
-            // Without string parsing, A="$33" doesn't match A=33 and a new record is created
-            {require: {A: "$33"}},
-          ],
-          {id: [1, 2, 3, 4], A: [1, 33, "$55", "$33"], B: [2, 1, 6, 0]},
-          {noparse: 1}
-        );
-
-        // Checking that updating by `id` works.
-        await check([
-            {
-              require: {id: 3},
-              fields: {A: "66"},
-            },
-          ],
-          {id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0]},
-        );
-
-        // Test bulk case with a mixture of record shapes
-        await check([
-            {
-              require: {A: 1},
-              fields: {A: 111},
-            },
-            {
-              require: {A: 33},
-              fields: {A: 222, B: 444},
-            },
-            {
-              require: {id: 3},
-              fields: {A: 555, B: 666},
-            },
-          ],
-          {id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0]},
-        );
-
-        // allow_empty_require option with empty `require` updates all records
-        await check([
-            {
-              require: {},
-              fields: {A: 99, B: 99},
-            },
-          ],
-          {id: [1, 2, 3, 4], A: [99, 99, 99, 99], B: [99, 99, 99, 99]},
-          {allow_empty_require: "1", onmany: "all"},
-        );
-      });
-
-      it("should 404 for missing tables", async () => {
-        checkError(404, /Table not found "Bad_Foo_"/,
-          await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/records`,
-            {records: [{require: {id: 1}}]}, chimpy));
-      });
-
-      it("should 400 for missing columns", async () => {
-        checkError(400, /Invalid column "no_such_column"/,
-          await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
-            {records: [{require: {no_such_column: 1}}]}, chimpy));
-      });
-
-      it("should 400 for an incorrect onmany parameter", async function () {
-        checkError(400,
-          /onmany parameter foo should be one of first,none,all/,
-          await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
-            {records: [{require: {id: 1}}]}, {...chimpy, params: {onmany: "foo"}}));
-      });
-
-      it("should 400 for an empty require without allow_empty_require", async function () {
-        checkError(400,
-          /require is empty but allow_empty_require isn't set/,
-          await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
-            {records: [{require: {}}]}, chimpy));
-      });
-
-      it("should validate request schema", async function () {
-        const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-        const test = async (payload: any, error: { error: string, details: {userError: string} }) => {
-          const resp = await axios.put(url, payload, chimpy);
-          checkError(400, error, resp);
-        };
-        await test({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
-        await test({records: 1}, {
-          error: 'Invalid payload',
-          details: {userError: 'Error: body.records is not an array'}});
-        await test({records: [{fields: {}}]},
-          {
-            error: 'Invalid payload',
-            details: {userError: 'Error: ' +
-              'body.records[0] is not a AddOrUpdateRecord; ' +
-              'body.records[0].require is missing',
-           }});
-        await test({records: [{require: {id: "1"}}]},
-          {
-            error: 'Invalid payload',
-            details: {userError: 'Error: ' +
-              'body.records[0] is not a AddOrUpdateRecord; ' +
-              'body.records[0].require.id is not a number',
-          }});
-      });
-    });
-
-    describe("POST /docs/{did}/tables/{tid}/records", async function () {
-      it("POST should have good errors", async () => {
-        checkError(404, /not found/,
-          await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`,
-            {A: ['Alice', 'Felix'], B: [2, 22]}, chimpy));
-
-        checkError(400, /Invalid column "Bad"/,
-          await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
-            {A: ['Alice'], Bad: ['Monthy']}, chimpy));
-
-        // Other errors should also be maximally informative.
-        checkError(400, /Error manipulating data/,
-          await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
-            {A: ['Alice'], B: null}, chimpy));
-      });
-
-      it("validates request schema", async function () {
-        const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-        const test = async(payload: any, error: {error: string, details: {userError: string}}) => {
-          const resp = await axios.post(url, payload, chimpy);
-          checkError(400, error, resp);
-        };
-        await test({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
-        await test({records: 1}, {
-          error: 'Invalid payload',
-          details: {userError: 'Error: body.records is not an array'}});
-        // All column types are allowed, except Arrays (or objects) without correct code.
-        const testField = async (A: any) => {
-          await test({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details: {userError:
-                      'Error: body.records[0] is not a NewRecord; '+
-                      'body.records[0].fields.A is not a CellValue; '+
-                      'body.records[0].fields.A is none of number, '+
-                      'string, boolean, null, 1 more; body.records[0].'+
-                      'fields.A[0] is not a GristObjCode; body.records[0]'+
-                      '.fields.A[0] is not a valid enum value'}});
-        };
-        // test no code at all
-        await testField([]);
-        // test invalid code
-        await testField(['ZZ']);
-      });
-
-      it("allows to create a blank record", async function () {
-        // create sample document for testing
-        const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-        const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
-        // Create two blank records
-        const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
-        const resp = await axios.post(url, {records: [{}, {fields: {}}]}, chimpy);
-        assert.equal(resp.status, 200);
-        assert.deepEqual(resp.data, {records: [{id: 1}, {id: 2}]});
-      });
-
-      it("allows to create partial records", async function () {
-        // create sample document for testing
-        const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-        const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
-        const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
-        // create partial records
-        const resp = await axios.post(url, {records: [{fields: {A: 1}}, {fields: {B: 2}}, {}]}, chimpy);
+      async function check(records: AddOrUpdateRecord[], expectedTableData: BulkColValues, params: any = {}) {
+        const resp = await axios.put(url, {records}, {...chimpy, params});
         assert.equal(resp.status, 200);
         const table = await userApi.getTable(docId, "Table1");
         delete table.manualSort;
-        assert.deepStrictEqual(
-          table,
-          {id: [1, 2, 3], A: [1, null, null], B: [null, 2, null], C: [null, null, null]});
-      });
+        delete table.C;
+        assert.deepStrictEqual(table, expectedTableData);
+      }
 
-      it("allows CellValue as a field", async function () {
-        // create sample document
-        const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-        const docId = await userApi.newDoc({name: 'PostTest'}, wid);
-        const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
-        const testField = async (A?: CellValue, message?: string) => {
-          const resp = await axios.post(url, {records: [{fields: {A}}]}, chimpy);
-          assert.equal(resp.status, 200, message ?? `Error for code ${A}`);
-        };
-        // test allowed types for a field
-        await testField(1); // ints
-        await testField(1.2); // floats
-        await testField("string"); // strings
-        await testField(true); // true and false
-        await testField(false);
-        await testField(null); // null
-        // encoded values (though not all make sense)
-        for (const code of [
-          GristObjCode.List,
-          GristObjCode.Dict,
-          GristObjCode.DateTime,
-          GristObjCode.Date,
-          GristObjCode.Skip,
-          GristObjCode.Censored,
-          GristObjCode.Reference,
-          GristObjCode.ReferenceList,
-          GristObjCode.Exception,
-          GristObjCode.Pending,
-          GristObjCode.Unmarshallable,
-          GristObjCode.Versions,
-        ]) {
-          await testField([code]);
-        }
-      });
+      // Add 3 new records, since the table is empty so nothing matches `requires`
+      await check(
+        [
+          {
+            require: {A: 1},
+          },
+          {
+            // Since no record with A=2 is found, create a new record,
+            // but `fields` overrides `require` for the value when creating,
+            // so the new record has A=3
+            require: {A: 2},
+            fields: {A: 3},
+          },
+          {
+            require: {A: 4},
+            fields: {B: 5},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 3, 4], B: [0, 0, 5]}
+      );
+
+      // Update all three records since they all match the `require` values here
+      await check(
+        [
+          {
+            // Does nothing
+            require: {A: 1},
+          },
+          {
+            // Changes A from 3 to 33
+            require: {A: 3},
+            fields: {A: 33},
+          },
+          {
+            // Changes B from 5 to 6 in the third record where A=4
+            require: {A: 4},
+            fields: {B: 6},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]}
+      );
+
+      // This would normally add a record, but noadd suppresses that
+      await check([
+          {
+            require: {A: 100},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
+        {noadd: "1"},
+      );
+
+      // This would normally update A from 1 to 11, bot noupdate suppresses that
+      await check([
+          {
+            require: {A: 1},
+            fields: {A: 11},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
+        {noupdate: "1"},
+      );
+
+      // There are 2 records with B=0, update them both to B=1
+      // Use onmany=all to specify that they should both be updated
+      await check([
+          {
+            require: {B: 0},
+            fields: {B: 1},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, 4], B: [1, 1, 6]},
+        {onmany: "all"}
+      );
+
+      // In contrast to the above, the default behaviour for no value of onmany
+      // is to only update the first matching record,
+      // so only one of the records with B=1 is updated to B=2
+      await check([
+          {
+            require: {B: 1},
+            fields: {B: 2},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, 4], B: [2, 1, 6]},
+      );
+
+      // By default, strings in `require` and `fields` are parsed based on column type,
+      // so these dollar amounts are treated as currency
+      // and parsed as A=4 and A=44
+      await check([
+          {
+            require: {A: "$4"},
+            fields: {A: "$44"},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, 44], B: [2, 1, 6]},
+      );
+
+      // Turn off the default string parsing with noparse=1
+      // Now we need A=44 to actually be a number to match,
+      // A="$44" wouldn't match and would create a new record.
+      // Because A="$55" isn't parsed, the raw string is stored in the table.
+      await check([
+          {
+            require: {A: 44},
+            fields: {A: "$55"},
+          },
+        ],
+        {id: [1, 2, 3], A: [1, 33, "$55"], B: [2, 1, 6]},
+        {noparse: 1}
+      );
+
+      await check([
+          // First three records already exist and nothing happens
+          {require: {A: 1}},
+          {require: {A: 33}},
+          {require: {A: "$55"}},
+          // Without string parsing, A="$33" doesn't match A=33 and a new record is created
+          {require: {A: "$33"}},
+        ],
+        {id: [1, 2, 3, 4], A: [1, 33, "$55", "$33"], B: [2, 1, 6, 0]},
+        {noparse: 1}
+      );
+
+      // Checking that updating by `id` works.
+      await check([
+          {
+            require: {id: 3},
+            fields: {A: "66"},
+          },
+        ],
+        {id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0]},
+      );
+
+      // Test bulk case with a mixture of record shapes
+      await check([
+          {
+            require: {A: 1},
+            fields: {A: 111},
+          },
+          {
+            require: {A: 33},
+            fields: {A: 222, B: 444},
+          },
+          {
+            require: {id: 3},
+            fields: {A: 555, B: 666},
+          },
+        ],
+        {id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0]},
+      );
+
+      // allow_empty_require option with empty `require` updates all records
+      await check([
+          {
+            require: {},
+            fields: {A: 99, B: 99},
+          },
+        ],
+        {id: [1, 2, 3, 4], A: [99, 99, 99, 99], B: [99, 99, 99, 99]},
+        {allow_empty_require: "1", onmany: "all"},
+      );
     });
 
-    describe("PATCH /docs/{did}/tables/{tid}/records", function () {
-      it("updates records", async function () {
-        let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
-          records: [
-            {
-              id: 1,
-              fields: {
-                A: 'Father Christmas',
-              },
-            },
-          ],
-        }, chimpy);
-        assert.equal(resp.status, 200);
-        resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, chimpy);
-        // check that rest of the data is left unchanged
-        assert.deepEqual(resp.data, {
-          records:
-            [
-              {
-                id: 1,
-                fields: {
-                  A: 'Father Christmas',
-                  B: '1',
-                },
-              },
-              {
-                id: 2,
-                fields: {
-                  A: 'Bob',
-                  B: '11',
-                },
-              },
-              {
-                id: 3,
-                fields: {
-                  A: 'Alice',
-                  B: '2',
-                },
-              },
-              {
-                id: 4,
-                fields: {
-                  A: 'Felix',
-                  B: '22',
-                },
-              },
-            ]
-        });
-      });
+    it("should 404 for missing tables", async () => {
+      checkError(404, /Table not found "Bad_Foo_"/,
+        await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/records`,
+          {records: [{require: {id: 1}}]}, chimpy));
+    });
 
-      it("validates request schema", async function () {
-        const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-        async function failsWithError(payload: any, error: { error: string, details?: {userError: string} }){
-          const resp = await axios.patch(url, payload, chimpy);
-          checkError(400, error, resp);
-        }
+    it("should 400 for missing columns", async () => {
+      checkError(400, /Invalid column "no_such_column"/,
+        await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
+          {records: [{require: {no_such_column: 1}}]}, chimpy));
+    });
 
-        await failsWithError({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
+    it("should 400 for an incorrect onmany parameter", async function () {
+      checkError(400,
+        /onmany parameter foo should be one of first,none,all/,
+        await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
+          {records: [{require: {id: 1}}]}, {...chimpy, params: {onmany: "foo"}}));
+    });
 
-        await failsWithError({records: 1}, {
+    it("should 400 for an empty require without allow_empty_require", async function () {
+      checkError(400,
+        /require is empty but allow_empty_require isn't set/,
+        await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
+          {records: [{require: {}}]}, chimpy));
+    });
+
+    it("should validate request schema", async function () {
+      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
+      const test = async (payload: any, error: { error: string, details: {userError: string} }) => {
+        const resp = await axios.put(url, payload, chimpy);
+        checkError(400, error, resp);
+      };
+      await test({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
+      await test({records: 1}, {
+        error: 'Invalid payload',
+        details: {userError: 'Error: body.records is not an array'}});
+      await test({records: [{fields: {}}]},
+        {
           error: 'Invalid payload',
-          details: {userError: 'Error: body.records is not an array'}});
+          details: {userError: 'Error: ' +
+            'body.records[0] is not a AddOrUpdateRecord; ' +
+            'body.records[0].require is missing',
+         }});
+      await test({records: [{require: {id: "1"}}]},
+        {
+          error: 'Invalid payload',
+          details: {userError: 'Error: ' +
+            'body.records[0] is not a AddOrUpdateRecord; ' +
+            'body.records[0].require.id is not a number',
+        }});
+    });
+  });
 
-        await failsWithError({records: []}, {error: 'Invalid payload', details: {userError:
-                    'Error: body.records[0] is not a Record; body.records[0] is not an object'}});
+  describe("POST /docs/{did}/tables/{tid}/records", async function () {
+    it("POST should have good errors", async () => {
+      checkError(404, /not found/,
+        await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`,
+          {A: ['Alice', 'Felix'], B: [2, 22]}, chimpy));
 
-        await failsWithError({records: [{}]}, {error: 'Invalid payload', details: {userError:
-                    'Error: body.records[0] is not a Record\n    '+
-                    'body.records[0].id is missing\n    '+
-                    'body.records[0].fields is missing'}});
+      checkError(400, /Invalid column "Bad"/,
+        await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
+          {A: ['Alice'], Bad: ['Monthy']}, chimpy));
 
-        await failsWithError({records: [{id: "1"}]}, {error: 'Invalid payload', details: {userError:
-                    'Error: body.records[0] is not a Record\n' +
-                    '    body.records[0].id is not a number\n' +
-                    '    body.records[0].fields is missing'}});
-
-        await failsWithError(
-          {records: [{id: 1, fields: {A: 1}}, {id: 2, fields: {B: 3}}]},
-          {error: 'PATCH requires all records to have same fields'});
-
-        // Test invalid object codes
-        const fieldIsNotValid = async (A: any) => {
-          await failsWithError({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details: {userError:
-                      'Error: body.records[0] is not a Record; '+
-                      'body.records[0].fields.A is not a CellValue; '+
-                      'body.records[0].fields.A is none of number, '+
-                      'string, boolean, null, 1 more; body.records[0].'+
-                      'fields.A[0] is not a GristObjCode; body.records[0]'+
-                      '.fields.A[0] is not a valid enum value'}});
-        };
-        await fieldIsNotValid([]);
-        await fieldIsNotValid(['ZZ']);
-      });
-
-      it("allows CellValue as a field", async function () {
-        // create sample document for testing
-        const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-        const docId = await userApi.newDoc({name: 'PatchTest'}, wid);
-        const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
-        // create record for patching
-        const id = (await axios.post(url, {records: [{}]}, chimpy)).data.records[0].id;
-        const testField = async (A?: CellValue, message?: string) => {
-          const resp = await axios.patch(url, {records: [{id, fields: {A}}]}, chimpy);
-          assert.equal(resp.status, 200, message ?? `Error for code ${A}`);
-        };
-        await testField(1);
-        await testField(1.2);
-        await testField("string");
-        await testField(true);
-        await testField(false);
-        await testField(null);
-        for (const code of [
-          GristObjCode.List,
-          GristObjCode.Dict,
-          GristObjCode.DateTime,
-          GristObjCode.Date,
-          GristObjCode.Skip,
-          GristObjCode.Censored,
-          GristObjCode.Reference,
-          GristObjCode.ReferenceList,
-          GristObjCode.Exception,
-          GristObjCode.Pending,
-          GristObjCode.Unmarshallable,
-          GristObjCode.Versions,
-        ]) {
-          await testField([code]);
-        }
-      });
+      // Other errors should also be maximally informative.
+      checkError(400, /Error manipulating data/,
+        await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`,
+          {A: ['Alice'], B: null}, chimpy));
     });
 
+    it("validates request schema", async function () {
+      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
+      const test = async(payload: any, error: {error: string, details: {userError: string}}) => {
+        const resp = await axios.post(url, payload, chimpy);
+        checkError(400, error, resp);
+      };
+      await test({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
+      await test({records: 1}, {
+        error: 'Invalid payload',
+        details: {userError: 'Error: body.records is not an array'}});
+      // All column types are allowed, except Arrays (or objects) without correct code.
+      const testField = async (A: any) => {
+        await test({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details: {userError:
+                    'Error: body.records[0] is not a NewRecord; '+
+                    'body.records[0].fields.A is not a CellValue; '+
+                    'body.records[0].fields.A is none of number, '+
+                    'string, boolean, null, 1 more; body.records[0].'+
+                    'fields.A[0] is not a GristObjCode; body.records[0]'+
+                    '.fields.A[0] is not a valid enum value'}});
+      };
+      // test no code at all
+      await testField([]);
+      // test invalid code
+      await testField(['ZZ']);
+    });
+
+    it("allows to create a blank record", async function () {
+      // create sample document for testing
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
+      // Create two blank records
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+      const resp = await axios.post(url, {records: [{}, {fields: {}}]}, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, {records: [{id: 1}, {id: 2}]});
+    });
+
+    it("allows to create partial records", async function () {
+      // create sample document for testing
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+      // create partial records
+      const resp = await axios.post(url, {records: [{fields: {A: 1}}, {fields: {B: 2}}, {}]}, chimpy);
+      assert.equal(resp.status, 200);
+      const table = await userApi.getTable(docId, "Table1");
+      delete table.manualSort;
+      assert.deepStrictEqual(
+        table,
+        {id: [1, 2, 3], A: [1, null, null], B: [null, 2, null], C: [null, null, null]});
+    });
+
+    it("allows CellValue as a field", async function () {
+      // create sample document
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'PostTest'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+      const testField = async (A?: CellValue, message?: string) => {
+        const resp = await axios.post(url, {records: [{fields: {A}}]}, chimpy);
+        assert.equal(resp.status, 200, message ?? `Error for code ${A}`);
+      };
+      // test allowed types for a field
+      await testField(1); // ints
+      await testField(1.2); // floats
+      await testField("string"); // strings
+      await testField(true); // true and false
+      await testField(false);
+      await testField(null); // null
+      // encoded values (though not all make sense)
+      for (const code of [
+        GristObjCode.List,
+        GristObjCode.Dict,
+        GristObjCode.DateTime,
+        GristObjCode.Date,
+        GristObjCode.Skip,
+        GristObjCode.Censored,
+        GristObjCode.Reference,
+        GristObjCode.ReferenceList,
+        GristObjCode.Exception,
+        GristObjCode.Pending,
+        GristObjCode.Unmarshallable,
+        GristObjCode.Versions,
+      ]) {
+        await testField([code]);
+      }
+    });
   });
 
   it("POST /docs/{did}/tables/{tid}/data respects document permissions", async function () {
@@ -1906,6 +1773,136 @@ function testDocApi() {
       A: ['Santa', 'Bob', 'Alice', 'Felix'],
       B: ["1", "11", "2", "22"],
       manualSort: [1, 2, 3, 4]
+    });
+  });
+
+  describe("PATCH /docs/{did}/tables/{tid}/records", function () {
+    it("updates records", async function () {
+      let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
+        records: [
+          {
+            id: 1,
+            fields: {
+              A: 'Father Christmas',
+            },
+          },
+        ],
+      }, chimpy);
+      assert.equal(resp.status, 200);
+      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, chimpy);
+      // check that rest of the data is left unchanged
+      assert.deepEqual(resp.data, {
+        records:
+          [
+            {
+              id: 1,
+              fields: {
+                A: 'Father Christmas',
+                B: '1',
+              },
+            },
+            {
+              id: 2,
+              fields: {
+                A: 'Bob',
+                B: '11',
+              },
+            },
+            {
+              id: 3,
+              fields: {
+                A: 'Alice',
+                B: '2',
+              },
+            },
+            {
+              id: 4,
+              fields: {
+                A: 'Felix',
+                B: '22',
+              },
+            },
+          ]
+      });
+    });
+
+    it("validates request schema", async function () {
+      const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
+      async function failsWithError(payload: any, error: { error: string, details?: {userError: string} }){
+        const resp = await axios.patch(url, payload, chimpy);
+        checkError(400, error, resp);
+      }
+
+      await failsWithError({}, {error: 'Invalid payload', details: {userError: 'Error: body.records is missing'}});
+
+      await failsWithError({records: 1}, {
+        error: 'Invalid payload',
+        details: {userError: 'Error: body.records is not an array'}});
+
+      await failsWithError({records: []}, {error: 'Invalid payload', details: {userError:
+                  'Error: body.records[0] is not a Record; body.records[0] is not an object'}});
+
+      await failsWithError({records: [{}]}, {error: 'Invalid payload', details: {userError:
+                  'Error: body.records[0] is not a Record\n    '+
+                  'body.records[0].id is missing\n    '+
+                  'body.records[0].fields is missing'}});
+
+      await failsWithError({records: [{id: "1"}]}, {error: 'Invalid payload', details: {userError:
+                  'Error: body.records[0] is not a Record\n' +
+                  '    body.records[0].id is not a number\n' +
+                  '    body.records[0].fields is missing'}});
+
+      await failsWithError(
+        {records: [{id: 1, fields: {A: 1}}, {id: 2, fields: {B: 3}}]},
+        {error: 'PATCH requires all records to have same fields'});
+
+      // Test invalid object codes
+      const fieldIsNotValid = async (A: any) => {
+        await failsWithError({records: [{ id: 1, fields: { A } }]}, {error: 'Invalid payload', details: {userError:
+                    'Error: body.records[0] is not a Record; '+
+                    'body.records[0].fields.A is not a CellValue; '+
+                    'body.records[0].fields.A is none of number, '+
+                    'string, boolean, null, 1 more; body.records[0].'+
+                    'fields.A[0] is not a GristObjCode; body.records[0]'+
+                    '.fields.A[0] is not a valid enum value'}});
+      };
+      await fieldIsNotValid([]);
+      await fieldIsNotValid(['ZZ']);
+    });
+
+    it("allows CellValue as a field", async function () {
+      // create sample document for testing
+      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+      const docId = await userApi.newDoc({name: 'PatchTest'}, wid);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+      // create record for patching
+      const id = (await axios.post(url, {records: [{}]}, chimpy)).data.records[0].id;
+      const testField = async (A?: CellValue, message?: string) => {
+        const resp = await axios.patch(url, {records: [{id, fields: {A}}]}, chimpy);
+        assert.equal(resp.status, 200, message ?? `Error for code ${A}`);
+      };
+      await testField(1);
+      await testField(1.2);
+      await testField("string");
+      await testField(true);
+      await testField(false);
+      await testField(null);
+      for (const code of [
+        GristObjCode.List,
+        GristObjCode.Dict,
+        GristObjCode.DateTime,
+        GristObjCode.Date,
+        GristObjCode.Skip,
+        GristObjCode.Censored,
+        GristObjCode.Reference,
+        GristObjCode.ReferenceList,
+        GristObjCode.Exception,
+        GristObjCode.Pending,
+        GristObjCode.Unmarshallable,
+        GristObjCode.Versions,
+      ]) {
+        await testField([code]);
+      }
     });
   });
 
