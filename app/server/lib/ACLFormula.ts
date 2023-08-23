@@ -55,8 +55,8 @@ function _compileNode(parsedAclFormula: ParsedAclFormula): AclEvalFunc {
     case 'GtE':   return _compileAndCombine(args, ([a, b]) => a >= b);
     case 'Is':    return _compileAndCombine(args, ([a, b]) => a === b);
     case 'IsNot': return _compileAndCombine(args, ([a, b]) => a !== b);
-    case 'In':    return _compileAndCombine(args, ([a, b]) => b.includes(a));
-    case 'NotIn': return _compileAndCombine(args, ([a, b]) => !b.includes(a));
+    case 'In':    return _compileAndCombine(args, ([a, b]) => Boolean(b?.includes(a)));
+    case 'NotIn': return _compileAndCombine(args, ([a, b]) => !b?.includes(a));
     case 'List':  return _compileAndCombine(args, (values) => values);
     case 'Const': return constant(parsedAclFormula[1] as CellValue);
     case 'Name': {

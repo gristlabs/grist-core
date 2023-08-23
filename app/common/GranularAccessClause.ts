@@ -58,6 +58,7 @@ export interface AclMatchInput {
   user: UserInfo;
   rec?: InfoView;
   newRec?: InfoView;
+  docId?: string;
 }
 
 /**
