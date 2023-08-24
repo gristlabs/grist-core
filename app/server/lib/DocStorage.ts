@@ -1419,6 +1419,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     }
   }
 
+  public interrupt(): Promise<void> {
+    return this._getDB().interrupt();
+  }
+
   public all(sql: string, ...args: any[]): Promise<ResultRow[]> {
     return this._getDB().all(sql, ...args);
   }

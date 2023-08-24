@@ -107,3 +107,16 @@ export interface TablesPost {
 export interface TablesPatch {
   tables: [RecordWithStringId, ...RecordWithStringId[]]; // at least one table is required
 }
+
+/**
+ * JSON schema for the body of api /sql POST endpoint
+ */
+export interface SqlPost {
+  sql: string;
+  args?: any[];      // (It would be nice to support named parameters, but
+                     // that feels tricky currently with node-sqlite3)
+  timeout?: number;  // In msecs. Can only be reduced from server default,
+                     // not increased. Note timeout of a query can affect
+                     // other queries on same document, because of
+                     // limitations of API node-sqlite3 exposes.
+}

@@ -258,6 +258,10 @@ export class SQLiteDB implements ISQLiteDB {
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
 
+  public async interrupt(): Promise<void> {
+    return this._db.interrupt?.();
+  }
+
   public async all(sql: string, ...args: any[]): Promise<ResultRow[]> {
     const result = await this._db.all(sql, ...args);
     return result;
