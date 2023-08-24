@@ -746,6 +746,17 @@ export class DocWorkerApi {
       })
     );
 
+    this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const {tableId, colId} = req.params;
+        const actions = [ [ 'RemoveColumn', tableId, colId ] ];
+        await handleSandboxError(tableId, [colId],
+          activeDoc.applyUserActions(docSessionFromRequest(req), actions)
+        );
+        res.json(null);
+      })
+    );
+
     // Add a new webhook and trigger
     this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
       withDoc(async (activeDoc, req, res) => {

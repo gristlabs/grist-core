@@ -877,123 +877,167 @@ function testDocApi() {
     assert.equal(resp.status, 200);
   });
 
-  describe("PUT /docs/{did}/columns", function () {
-
-    async function generateDocAndUrl() {
+  describe("/docs/{did}/tables/{tid}/columns", function () {
+    async function generateDocAndUrl(docName: string = "Dummy") {
       const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-      const docId = await userApi.newDoc({name: 'ColumnsPut'}, wid);
+      const docId = await userApi.newDoc({name: docName}, wid);
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
       return { url, docId };
     }
 
-    async function getColumnFieldsMapById(url: string, params: any) {
-      const result = await axios.get(url, {...chimpy, params});
-      assert.equal(result.status, 200);
-      return new Map<string, object>(
-          result.data.columns.map(
-            ({id, fields}: {id: string, fields: object}) => [id, fields]
-          )
-      );
-    }
-
-    async function checkPut(
-      columns: [RecordWithStringId, ...RecordWithStringId[]],
-      params: Record<string, any>,
-      expectedFieldsByColId: Record<string, object>,
-      opts?: { getParams?: any }
-    ) {
-      const {url} = await generateDocAndUrl();
-      const body: ColumnsPut = { columns };
-      const resp = await axios.put(url, body, {...chimpy, params});
-      assert.equal(resp.status, 200);
-      const fieldsByColId = await getColumnFieldsMapById(url, opts?.getParams);
-
-      assert.deepEqual(
-        [...fieldsByColId.keys()],
-        Object.keys(expectedFieldsByColId),
-        "The updated table should have the expected columns"
-      );
-
-      for (const [colId, expectedFields] of Object.entries(expectedFieldsByColId)) {
-        assert.deepInclude(fieldsByColId.get(colId), expectedFields);
+    describe("PUT /docs/{did}/tables/{tid}/columns", function () {
+      async function getColumnFieldsMapById(url: string, params: any) {
+        const result = await axios.get(url, {...chimpy, params});
+        assert.equal(result.status, 200);
+        return new Map<string, object>(
+            result.data.columns.map(
+              ({id, fields}: {id: string, fields: object}) => [id, fields]
+            )
+        );
       }
-    }
 
-    const COLUMN_TO_ADD = {
-      id: "Foo",
-      fields: {
-        type: "Text",
-        label: "FooLabel",
+      async function checkPut(
+        columns: [RecordWithStringId, ...RecordWithStringId[]],
+        params: Record<string, any>,
+        expectedFieldsByColId: Record<string, object>,
+        opts?: { getParams?: any }
+      ) {
+        const {url} = await generateDocAndUrl('ColumnsPut');
+        const body: ColumnsPut = { columns };
+        const resp = await axios.put(url, body, {...chimpy, params});
+        assert.equal(resp.status, 200);
+        const fieldsByColId = await getColumnFieldsMapById(url, opts?.getParams);
+
+        assert.deepEqual(
+          [...fieldsByColId.keys()],
+          Object.keys(expectedFieldsByColId),
+          "The updated table should have the expected columns"
+        );
+
+        for (const [colId, expectedFields] of Object.entries(expectedFieldsByColId)) {
+          assert.deepInclude(fieldsByColId.get(colId), expectedFields);
+        }
       }
-    };
 
-    const COLUMN_TO_UPDATE = {
-      id: "A",
-      fields: {
-        type: "Numeric",
-        colId: "NewA"
-      }
-    };
+      const COLUMN_TO_ADD = {
+        id: "Foo",
+        fields: {
+          type: "Text",
+          label: "FooLabel",
+        }
+      };
 
-    it('should create new columns', async function () {
-      await checkPut([COLUMN_TO_ADD], {}, {
-        A: {}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      const COLUMN_TO_UPDATE = {
+        id: "A",
+        fields: {
+          type: "Numeric",
+          colId: "NewA"
+        }
+      };
+
+      it('should create new columns', async function () {
+        await checkPut([COLUMN_TO_ADD], {}, {
+          A: {}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+        });
+      });
+
+      it('should update existing columns and create new ones', async function () {
+        await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {}, {
+          NewA: {type: "Numeric", label: "A"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+        });
+      });
+
+      it('should only update existing columns when noadd is set', async function () {
+        await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noadd: "1"}, {
+          NewA: {type: "Numeric"}, B: {}, C: {}
+        });
+      });
+
+      it('should only add columns when noupdate is set', async function () {
+        await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noupdate: "1"}, {
+          A: {type: "Any"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+        });
+      });
+
+      it('should remove existing columns if replaceall is set', async function () {
+        await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
+          NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+        });
+      });
+
+      it('should NOT remove hidden columns even when replaceall is set', async function () {
+        await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
+          manualSort: {type: "ManualSortPos"}, NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+        }, { getParams: { hidden: true } });
+      });
+
+      it('should forbid update by viewers', async function () {
+        // given
+        const { url, docId } = await generateDocAndUrl('ColumnsPut');
+        await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
+
+        // when
+        const resp = await axios.put(url, { columns: [ COLUMN_TO_ADD ] }, kiwi);
+
+        // then
+        assert.equal(resp.status, 403);
+      });
+
+      it("should return 404 when table is not found", async function() {
+        // given
+        const { url } = await generateDocAndUrl('ColumnsPut');
+        const notFoundUrl = url.replace("Table1", "NonExistingTable");
+
+        // when
+        const resp = await axios.put(notFoundUrl, { columns: [ COLUMN_TO_ADD ] }, chimpy);
+
+        // then
+        assert.equal(resp.status, 404);
+        assert.equal(resp.data.error, 'Table not found "NonExistingTable"');
       });
     });
 
-    it('should update existing columns and create new ones', async function () {
-      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {}, {
-        NewA: {type: "Numeric", label: "A"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+    describe("DELETE /docs/{did}/tables/{tid}/columns/{colId}", function () {
+      it('should delete some column', async function() {
+        const {url} = await generateDocAndUrl('ColumnDelete');
+        const deleteUrl = url + '/A';
+        const resp = await axios.delete(deleteUrl, chimpy);
+
+        assert.equal(resp.status, 200, "Should succeed in requesting column deletion");
+
+        const listColResp = await axios.get(url, { ...chimpy, params: { hidden: true } });
+        assert.equal(listColResp.status, 200, "Should succeed in listing columns");
+
+        const columnIds = listColResp.data.columns.map(({id}: {id: string}) => id).sort();
+        assert.deepEqual(columnIds, ["B", "C", "manualSort"]);
       });
-    });
 
-    it('should only update existing columns when noadd is set', async function () {
-      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noadd: "1"}, {
-        NewA: {type: "Numeric"}, B: {}, C: {}
+      it('should return 404 if table not found', async function() {
+        const {url} = await generateDocAndUrl('ColumnDelete');
+        const deleteUrl = url.replace("Table1", "NonExistingTable") + '/A';
+        const resp = await axios.delete(deleteUrl, chimpy);
+
+        assert.equal(resp.status, 404);
+        assert.equal(resp.data.error, 'Table or column not found "NonExistingTable.A"');
       });
-    });
 
-    it('should only add columns when noupdate is set', async function () {
-      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {noupdate: "1"}, {
-        A: {type: "Any"}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields
+      it('should return 404 if column not found', async function() {
+        const {url} = await generateDocAndUrl('ColumnDelete');
+        const deleteUrl = url + '/NonExistingColId';
+        const resp = await axios.delete(deleteUrl, chimpy);
+
+        assert.equal(resp.status, 404);
+        assert.equal(resp.data.error, 'Table or column not found "Table1.NonExistingColId"');
       });
-    });
 
-    it('should remove existing columns if replaceall is set', async function () {
-      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
-        NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
+      it('should forbid column deletion by viewers', async function() {
+        const {url, docId} = await generateDocAndUrl('ColumnDelete');
+        await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
+        const deleteUrl = url + '/A';
+        const resp = await axios.delete(deleteUrl, kiwi);
+
+        assert.equal(resp.status, 403);
       });
-    });
-
-    it('should NOT remove hidden columns even when replaceall is set', async function () {
-      await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {replaceall: "1"}, {
-        manualSort: {type: "ManualSortPos"}, NewA: {type: "Numeric"}, Foo: COLUMN_TO_ADD.fields
-      }, { getParams: { hidden: true } });
-    });
-
-    it('should forbid update by viewers', async function () {
-      // given
-      const { url, docId } = await generateDocAndUrl();
-      await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
-
-      // when
-      const resp = await axios.put(url, { columns: [ COLUMN_TO_ADD ] }, kiwi);
-
-      // then
-      assert.equal(resp.status, 403);
-    });
-
-    it("should return 404 when table is not found", async function() {
-      // given
-      const { url } = await generateDocAndUrl();
-      const notFoundUrl = url.replace("Table1", "NonExistingTable");
-
-      // when
-      const resp = await axios.put(notFoundUrl, { columns: [ COLUMN_TO_ADD ] }, chimpy);
-
-      // then
-      assert.equal(resp.status, 404);
-      assert.equal(resp.data.error, 'Table not found "NonExistingTable"');
     });
   });
 
