@@ -14,7 +14,6 @@ import {
   getDocApiUsageKeysToIncr,
   WebhookSubscription
 } from 'app/server/lib/DocApi';
-import log from 'app/server/lib/log';
 import {delayAbort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
@@ -2441,7 +2440,6 @@ function testDocApi() {
       headers: {Authorization: 'Bearer api_key_for_kiwi'},
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
-      logger: log
     });
     // upload something for Chimpy and something else for Kiwi.
     const worker1 = await userApi.getWorkerAPI('import');
@@ -2549,7 +2547,6 @@ function testDocApi() {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
-      logger: log
     });
     const ws2 = (await nasaApi.getOrgWorkspaces('current'))[0].id;
     const doc2 = await nasaApi.newDoc({name: 'testdoc2', urlId: 'urlid'}, ws2);
@@ -2581,7 +2578,6 @@ function testDocApi() {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
-      logger: log
     });
     const ws2 = (await nasaApi.getOrgWorkspaces('current'))[0].id;
     const doc2 = await nasaApi.newDoc({name: 'testdoc2'}, ws2);

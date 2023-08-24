@@ -1,12 +1,13 @@
 import {parsePermissions, permissionSetToText, splitSchemaEditPermissionSet} from 'app/common/ACLPermissions';
 import {AclRuleProblem} from 'app/common/ActiveDocAPI';
-import {ILogger} from 'app/common/BaseAPI';
 import {DocData} from 'app/common/DocData';
 import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
 import {getSetMapValue, isNonNullish} from 'app/common/gutil';
 import {MetaRowRecord} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 import sortBy = require('lodash/sortBy');
+
+export type ILogger = Pick<Console, 'log'|'debug'|'info'|'warn'|'error'>;
 
 const defaultMatchFunc: AclMatchFunc = () => true;
 
