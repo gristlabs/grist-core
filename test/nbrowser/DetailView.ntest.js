@@ -1,4 +1,4 @@
-import { assert } from 'mocha-webdriver';
+import { By, assert, driver } from 'mocha-webdriver';
 import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
 
 describe("DetailView.ntest", function () {
@@ -21,6 +21,34 @@ describe("DetailView.ntest", function () {
 
   afterEach(function() {
     return gu.checkForErrors();
+  });
+
+  describe("DetailView.selection", function () {
+
+    before(async function() {
+      // Open the 'Performances' view
+      await gu.actions.viewSection('Performances detail').selectSection();
+      await $('.test-right-panel button:contains(Change Widget)').click();
+      await $('.test-wselect-type:contains(Card List)').click();
+      await $('.test-wselect-addBtn').click();
+      await gu.waitForServer();
+      await gu.openSelectByForSection('Performances detail');
+      await driver.findContent('.test-select-row', /Performances record$/).click();
+    });
+
+    it('should mark detail-view row as selected when its out of focus', async function() {
+      // Focus on Performances record, second row
+      await gu.actions.viewSection('Performances record').selectSection();
+      await gu.getCell({col: 'Film', rowNum: 2}).click();
+
+      //Check if only the second card in detail view is having selection class
+      const elements = await driver.findElements(By.css(".detailview_record_detail"));
+      const secondElement = await elements[1].getAttribute('class');
+      assert.isTrue(secondElement.includes('selected'));
+
+      const firstElement = await elements[0].getAttribute('class');
+      assert.isFalse(firstElement.includes('selected'));
+    });
   });
 
   it('should allow switching between card and detail view', async function() {

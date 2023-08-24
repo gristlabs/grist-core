@@ -430,6 +430,7 @@ DetailView.prototype.makeRecord = function(record) {
       return rowType && `diff-${rowType}` || '';
     }) : null,
     kd.toggleClass('active', () => (this.cursor.rowIndex() === record._index() && this.viewSection.hasFocus())),
+    kd.toggleClass('selected', () => (this.cursor.rowIndex() === record._index()  && !this.viewSection.hasFocus())),
     // 'detailview_record_single' or 'detailview_record_detail' doesn't need to be an observable,
     // since a change to parentKey would cause a separate call to makeRecord.
     kd.cssClass('detailview_record_' + this.viewSection.parentKey.peek())

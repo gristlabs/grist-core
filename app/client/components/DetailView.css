@@ -121,7 +121,13 @@
   .detailview_record_detail.active {
     /* highlight active record in Card List by overlaying the active-section highlight */
     margin-left: -3px;
-    border-left: 3px solid var(--grist-color-light-green);
+    border-left: 3px solid var(--grist-theme-cursor, var(--grist-color-light-green));
+  }
+
+  .detailview_record_detail.selected {
+    /* highlight selected record in Card List by overlaying the inactive-cursor highlight */
+    margin-left: -3px;
+    border-left: 3px solid var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
   }
 }
 
