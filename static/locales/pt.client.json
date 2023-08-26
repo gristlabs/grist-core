@@ -747,7 +747,9 @@
         "Support Grist": "Suporte Grist",
         "Activation": "Ativação",
         "Billing Account": "Conta de faturação",
-        "Upgrade Plan": "Atualizar o Plano"
+        "Upgrade Plan": "Atualizar o Plano",
+        "Sign In": "Entrar",
+        "Sign Up": "Inscrever-se"
     },
     "ViewAsDropdown": {
         "View As": "Ver como",
