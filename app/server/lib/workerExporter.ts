@@ -224,3 +224,14 @@ export function sanitizeWorksheetName(tableName: string): string {
     .replace(/^['\s]+/, '')
     .replace(/['\s]+$/, '');
 }
+
+// This method exists only to make Piscina happier. With it,
+// Piscina will load this file using a regular require(),
+// which under Electron will deal fine with Electron's ASAR
+// app bundle. Without it, Piscina will try fancier methods
+// that aren't at the time of writing correctly patched to
+// deal with an ASAR app bundle, and so report that this
+// file doesn't exist instead of exporting an XLSX file.
+//   https://github.com/gristlabs/grist-electron/issues/9
+export default function doNothing() {
+}
