@@ -7,7 +7,7 @@ import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {AccessTokenOptions, CustomSectionAPI, GristDocAPI, GristView,
+import {AccessTokenOptions, CursorPos, CustomSectionAPI, GristDocAPI, GristView,
         InteractionOptionsRequest, WidgetAPI, WidgetColumnMap} from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
@@ -380,12 +380,25 @@ export class GristViewImpl implements GristView {
     return data;
   }
 
+  /**
+   * This is deprecated method to turn on cursor linking. Previously it was used
+   * to create a custom row id filter. Now widgets can be treated as normal source of linking.
+   * Now allowSelectBy should be set using the ready event.
+   */
   public async allowSelectBy(): Promise<void> {
-    this._baseView.viewSection.allowSelectBy.set(true);
+    this._baseView.viewSection.allowSelectBy(true);
+    // This is to preserve a legacy behavior, where when allowSelectBy is called widget expected
+    // that the filter was already applied to clear all rows.
+    this._baseView.viewSection.selectedRows([]);
   }
 
-  public async setSelectedRows(rowIds: number[]): Promise<void> {
-    this._baseView.viewSection.selectedRows.set(rowIds);
+  public async setSelectedRows(rowIds: number[]|null): Promise<void> {
+    this._baseView.viewSection.selectedRows(rowIds);
+  }
+
+  public setCursorPos(cursorPos: CursorPos): Promise<void> {
+    this._baseView.setCursorPos(cursorPos);
+    return Promise.resolve();
   }
 
   private _visibleColumns() {
@@ -614,6 +627,9 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
       this._section.columnsToMap(settings.columns);
     } else {
       this._section.columnsToMap(null);
+    }
+    if (settings.allowSelectBy !== undefined) {
+      this._section.allowSelectBy(settings.allowSelectBy);
     }
   }
 }

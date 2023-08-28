@@ -50,6 +50,10 @@ export interface InteractionOptionsRequest {
    * and those requested by Custom Widget.
    */
   columns?: ColumnsToMap,
+  /**
+   * Show widget as linking source.
+   */
+  allowSelectBy?: boolean,
 }
 
 /**

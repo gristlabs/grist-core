@@ -1281,10 +1281,10 @@ export async function checkForErrors() {
 /**
  * Opens a Creator Panel on Widget/Table settings tab.
  */
-export async function openWidgetPanel() {
+export async function openWidgetPanel(tab: 'widget'|'sortAndFilter'|'data' = 'widget') {
   await toggleSidePanel('right', 'open');
   await driver.find('.test-right-tab-pagewidget').click();
-  await driver.find(".test-config-widget").click();
+  await driver.find(`.test-config-${tab}`).click();
 }
 
 /**

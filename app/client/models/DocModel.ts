@@ -29,7 +29,6 @@ import {isHiddenTable, isSummaryTable} from 'app/common/isHiddenTable';
 import {canEdit} from 'app/common/roles';
 import {RowFilterFunc} from 'app/common/RowFilterFunc';
 import {schema, SchemaTypes} from 'app/common/schema';
-import {UIRowId} from 'app/common/TableData';
 import {ACLRuleRec, createACLRuleRec} from 'app/client/models/entities/ACLRuleRec';
 import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
@@ -45,6 +44,7 @@ import {CellRec, createCellRec} from 'app/client/models/entities/CellRec';
 import {RefListValue} from 'app/common/gristTypes';
 import {decodeObject} from 'app/plugin/objtypes';
 import {toKo} from 'grainjs';
+import {UIRowId} from 'app/plugin/GristAPI';
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';

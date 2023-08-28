@@ -1,10 +1,10 @@
-import {CursorPos} from 'app/client/components/Cursor';
 import {makeT} from 'app/client/lib/localization';
-import { KoSaveableObservable } from 'app/client/models/modelUtil';
+import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {autoGrow} from 'app/client/ui/forms';
 import {textarea} from 'app/client/ui/inputs';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId, theme} from 'app/client/ui2018/cssVars';
+import {CursorPos} from 'app/plugin/GristAPI';
 import {dom, fromKo, MultiHolder, styled} from 'grainjs';
 
 const t = makeT('DescriptionConfig');

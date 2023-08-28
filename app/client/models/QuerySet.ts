@@ -26,6 +26,7 @@
  * TODO: client-side should show "..." or "50000 more rows not shown" in that case.
  * TODO: Reference columns don't work properly because always use a displayCol which relies on formulas
  */
+import {ClientColumnGettersByColId} from 'app/client/models/ClientColumnGetters';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DocModel} from 'app/client/models/DocModel';
 import {BaseFilteredRowSource, RowList, RowSource} from 'app/client/models/rowset';
@@ -36,11 +37,11 @@ import {DocData} from 'app/common/DocData';
 import {nativeCompare} from 'app/common/gutil';
 import {IRefCountSub, RefCountMap} from 'app/common/RefCountMap';
 import {getLinkingFilterFunc, RowFilterFunc} from 'app/common/RowFilterFunc';
-import {TableData as BaseTableData, UIRowId} from 'app/common/TableData';
+import {TableData as BaseTableData} from 'app/common/TableData';
 import {tbind} from 'app/common/tbind';
+import {UIRowId} from 'app/plugin/GristAPI';
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
 import * as ko from 'knockout';
-import {ClientColumnGettersByColId} from 'app/client/models/ClientColumnGetters';
 import debounce = require('lodash/debounce');
 
 // Limit on the how many rows to request for OnDemand tables.

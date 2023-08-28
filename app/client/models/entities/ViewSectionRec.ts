@@ -1,5 +1,4 @@
 import BaseView from 'app/client/components/BaseView';
-import {CursorPos} from 'app/client/components/Cursor';
 import {LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';
 import {
@@ -22,11 +21,11 @@ import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
-import {UIRowId} from 'app/common/TableData';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
+import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {Computed, Holder, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
@@ -192,10 +191,14 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   desiredAccessLevel: ko.Observable<AccessLevel|null>;
 
   // Show widget as linking source. Used by custom widget.
-  allowSelectBy: Observable<boolean>;
+  allowSelectBy: ko.Observable<boolean>;
 
-  // List of selected rows
-  selectedRows: Observable<number[]>;
+  // List of selected rows from a custom widget, or null if a filter shouldn't be applied.
+  selectedRows: ko.Observable<number[]|null>;
+
+  // If the row filter is active (i.e. if selectedRows is non-null). Separate computed to avoid
+  // re-computing the filter when selectedRows changes.
+  selectedRowsActive: ko.Computed<boolean>;
 
   editingFormula: ko.Computed<boolean>;
 
@@ -714,8 +717,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return result;
   });
 
-  this.allowSelectBy = Observable.create(this, false);
-  this.selectedRows = Observable.create(this, []);
+  this.allowSelectBy = ko.observable(false);
+  this.selectedRows = ko.observable(null as number[]|null);
+  this.selectedRowsActive = this.autoDispose(ko.pureComputed(() => this.selectedRows() !== null));
 
   this.tableId = this.autoDispose(ko.pureComputed(() => this.table().tableId()));
   const rawSection = this.autoDispose(ko.pureComputed(() => this.table().rawViewSection()));

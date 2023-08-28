@@ -75,6 +75,10 @@ export const allowSelectBy = viewApi.allowSelectBy;
 export const setSelectedRows = viewApi.setSelectedRows;
 
 
+export const setCursorPos = viewApi.setCursorPos;
+
+
+
 /**
  * Fetches data backing the widget as for [[GristView.fetchSelectedTable]],
  * but decoding data by default, replacing e.g. ['D', timestamp] with

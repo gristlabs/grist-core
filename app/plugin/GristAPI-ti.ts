@@ -4,6 +4,15 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const UIRowId = t.union("number", t.lit('new'));
+
+export const CursorPos = t.iface([], {
+  "rowId": t.opt("UIRowId"),
+  "rowIndex": t.opt("number"),
+  "fieldIndex": t.opt("number"),
+  "sectionId": t.opt("number"),
+});
+
 export const ComponentKind = t.union(t.lit("safeBrowser"), t.lit("safePython"), t.lit("unsafeNode"));
 
 export const GristAPI = t.iface([], {
@@ -25,7 +34,8 @@ export const GristView = t.iface([], {
   "fetchSelectedTable": t.func("any"),
   "fetchSelectedRecord": t.func("any", t.param("rowId", "number")),
   "allowSelectBy": t.func("void"),
-  "setSelectedRows": t.func("void", t.param("rowIds", t.array("number"))),
+  "setSelectedRows": t.func("void", t.param("rowIds", t.union(t.array("number"), "null"))),
+  "setCursorPos": t.func("void", t.param("pos", "CursorPos")),
 });
 
 export const AccessTokenOptions = t.iface([], {
@@ -39,6 +49,8 @@ export const AccessTokenResult = t.iface([], {
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
+  UIRowId,
+  CursorPos,
   ComponentKind,
   GristAPI,
   GristDocAPI,

@@ -4,13 +4,13 @@ import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {TableRec} from "app/client/models/entities/TableRec";
 import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {UIRowId} from "app/common/TableData";
 import {LinkConfig} from "app/client/ui/selectBy";
 import {FilterColValues, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isListType, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+import {UIRowId} from 'app/plugin/GristAPI';
 import {encodeObject} from 'app/plugin/objtypes';
-import {Disposable, toKo} from "grainjs";
+import {Disposable} from "grainjs";
 import * as  ko from "knockout";
 import identity = require('lodash/identity');
 import mapValues = require('lodash/mapValues');
@@ -85,7 +85,7 @@ export class LinkingState extends Disposable {
 
     if (tgtColId) {
       const operation = isRefListType(tgtCol.type()) ? 'intersects' : 'in';
-      if (srcSection.parentKey() === 'custom') {
+      if (srcSection.selectedRowsActive()) {
         this.filterColValues = this._srcCustomFilter(tgtColId, operation);
       } else if (srcColId) {
         this.filterColValues = this._srcCellFilter(tgtColId, operation);
@@ -128,7 +128,7 @@ export class LinkingState extends Disposable {
         }
         _filterColValues(result);
       }
-    } else if (srcSection.parentKey() === 'custom') {
+    } else if (srcSection.selectedRowsActive()) {
       this.filterColValues = this._srcCustomFilter('id', 'in');
     } else {
       const srcValueFunc = srcColId ? this._makeSrcCellGetter() : identity;
@@ -207,7 +207,7 @@ export class LinkingState extends Disposable {
   // Value for this.filterColValues based on the values in srcSection.selectedRows
   private _srcCustomFilter(colId: string, operation: QueryOperation): ko.Computed<FilterColValues> | undefined {
     return this.autoDispose(ko.computed(() => {
-      const values = toKo(ko, this._srcSection.selectedRows)();
+      const values = this._srcSection.selectedRows();
       return {filters: {[colId]: values}, operations: {[colId]: operation}} as FilterColValues;
     }));
   }
