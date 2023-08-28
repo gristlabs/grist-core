@@ -200,13 +200,16 @@ export async function handleSandboxErrorOnPlatform<T>(
         platform.throwError('', `Invalid row id ${match[1]}`, 400);
       }
       match = message.match(
-        /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: )(\w+)/
+        // eslint-disable-next-line max-len
+        /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: |ValueError No such column: )([\w.]+)/
       );
       if (match) {
         if (match[1] === tableId) {
           platform.throwError('', `Table not found "${tableId}"`, 404);
         } else if (colNames.includes(match[1])) {
           platform.throwError('', `Invalid column "${match[1]}"`, 400);
+        } else if (colNames.includes(match[1].replace(`${tableId}.`, ''))) {
+          platform.throwError('', `Table or column not found "${match[1]}"`, 404);
         }
       }
       platform.throwError('', `Error manipulating data: ${message}`, 400);
