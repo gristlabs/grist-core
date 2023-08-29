@@ -114,7 +114,8 @@ const {
   TablesPost, TablesPatch,
 } = t.createCheckers(DocApiTypesTI, GristDataTI);
 
-for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch, TablesPost, TablesPatch]) {
+for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch,
+                       SqlPost, TablesPost, TablesPatch]) {
   checker.setReportedPath("body");
 }
 
@@ -535,7 +536,7 @@ export class DocWorkerApi {
     this._app.get(
       '/api/docs/:docId/sql', canView,
       withDoc(async (activeDoc, req, res) => {
-        const sql = optStringParam(req.query.q) || '';
+        const sql = stringParam(req.query.q, 'q');
         await this._runSql(activeDoc, req, res, { sql });
       }));
 
@@ -1542,29 +1543,27 @@ export class DocWorkerApi {
       await activeDoc.docStorage.interrupt();
     }, timeout);
     try {
-      try {
-        const records = await activeDoc.docStorage.all(wrappedStatement,
-                                                       ...(options.args || []));
-        res.status(200).json({
-          statement,
-          records: records.map(
-            rec => ({
-              fields: rec,
-            })
-          ),
+      const records = await activeDoc.docStorage.all(wrappedStatement,
+                                                     ...(options.args || []));
+      res.status(200).json({
+        statement,
+        records: records.map(
+          rec => ({
+            fields: rec,
+          })
+        ),
+      });
+    } catch (e) {
+      if (e?.code === 'SQLITE_INTERRUPT') {
+        res.status(400).json({
+          error: "a slow statement resulted in a database interrupt",
         });
-      } catch (e) {
-        if (e?.code === 'SQLITE_INTERRUPT') {
-          res.status(400).json({
-            error: "a slow statement resulted in a database interrupt",
-          });
-        } else if (e?.code === 'SQLITE_ERROR') {
-          res.status(400).json({
-            error: e?.message,
-          });
-        } else {
-          throw e;
-        }
+      } else if (e?.code === 'SQLITE_ERROR') {
+        res.status(400).json({
+          error: e?.message,
+        });
+      } else {
+        throw e;
       }
     } finally {
       clearTimeout(interrupt);

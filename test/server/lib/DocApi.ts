@@ -4526,7 +4526,7 @@ function testDocApi() {
     assert.equal(resp.status, 400);
     assert.deepEqual(resp.data, {
       error: 'Invalid payload',
-      details: { userError: 'Error: value.sql is missing' }
+      details: { userError: 'Error: body.sql is missing' }
     });
   });
 
