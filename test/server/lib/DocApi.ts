@@ -4595,6 +4595,7 @@ function testDocApi() {
 
     // rejected quickly since no select
     await check(false, 'delete from Table1');
+    await check(false, '');
 
     // rejected because deletes/updates/... can't be nested within a select
     await check(false, 'delete from Table1 where id in (select id from Table1)');
