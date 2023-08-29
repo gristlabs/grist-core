@@ -1,12 +1,15 @@
 import BaseView from 'app/client/components/BaseView';
+import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 import {ChartView} from 'app/client/components/ChartView';
 import * as commands from 'app/client/components/commands';
+import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
 import * as DetailView from 'app/client/components/DetailView';
 import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BoxSpec, Layout} from 'app/client/components/Layout';
 import {LayoutEditor} from 'app/client/components/LayoutEditor';
+import {LayoutTray} from 'app/client/components/LayoutTray';
 import {printViewSection} from 'app/client/components/Printing';
 import {Delay} from 'app/client/lib/Delay';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
@@ -15,14 +18,23 @@ import {reportError} from 'app/client/models/errors';
 import {isNarrowScreen, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
-import {LayoutTray} from 'app/client/components/LayoutTray';
-import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 import {mod} from 'app/common/gutil';
+import {
+  Computed,
+  computedArray,
+  Disposable,
+  dom,
+  fromKo,
+  Holder,
+  IDomComponent,
+  MultiHolder,
+  Observable,
+  styled,
+  subscribe
+} from 'grainjs';
 import * as ko from 'knockout';
-import * as _ from 'underscore';
 import debounce from 'lodash/debounce';
-import {Computed, computedArray, Disposable, dom, fromKo, Holder,
-        IDomComponent, MultiHolder, Observable, styled, subscribe} from 'grainjs';
+import * as _ from 'underscore';
 
 // tslint:disable:no-console
 
@@ -32,6 +44,7 @@ const viewSectionTypes: {[key: string]: any} = {
   chart: ChartView,
   single: DetailView,
   custom: CustomView,
+  'custom.calendar': CustomCalendarView,
 };
 
 function getInstanceConstructor(parentKey: string) {

@@ -5,7 +5,7 @@ import { makeT } from 'app/client/lib/localization';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { getFieldType } from "app/client/ui/RightPanel";
-import { IWidgetType } from "app/client/ui/widgetTypes";
+import { IWidgetType } from "../../common/widgetTypes";
 import { basicButton, cssButton, primaryButton } from 'app/client/ui2018/buttons';
 import * as checkbox from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";

@@ -1,6 +1,6 @@
 import {getGristConfig} from 'app/common/urlUtils';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
+import {localStorageBoolObs, localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {Observable} from 'grainjs';
 
 /**
@@ -23,4 +23,13 @@ export function HAS_FORMULA_ASSISTANT() {
 
 export function WHICH_FORMULA_ASSISTANT() {
   return getGristConfig().assistantService;
+}
+
+export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
+  const G = getBrowserGlobals('document', 'window');
+  if (!G.window.PERMITTED_CUSTOM_WIDGETS) {
+    G.window.PERMITTED_CUSTOM_WIDGETS =
+      localStorageJsonObs('PERMITTED_CUSTOM_WIDGETS', getGristConfig().permittedCustomWidgets || []);
+  }
+  return G.window.PERMITTED_CUSTOM_WIDGETS;
 }

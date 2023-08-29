@@ -1,23 +1,37 @@
-import { BehavioralPromptsManager } from 'app/client/components/BehavioralPromptsManager';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { reportError } from 'app/client/models/AppModel';
-import { ColumnRec, TableRec, ViewSectionRec } from 'app/client/models/DocModel';
-import { GristTooltips } from 'app/client/ui/GristTooltips';
-import { linkId, NoLink } from 'app/client/ui/selectBy';
-import { withInfoTooltip } from 'app/client/ui/tooltips';
-import { getWidgetTypes, IWidgetType } from 'app/client/ui/widgetTypes';
-import { bigPrimaryButton } from "app/client/ui2018/buttons";
-import { overflowTooltip } from "app/client/ui/tooltips";
-import { theme, vars } from "app/client/ui2018/cssVars";
-import { icon } from "app/client/ui2018/icons";
-import { spinnerModal } from 'app/client/ui2018/modals';
-import { isLongerThan, nativeCompare } from "app/common/gutil";
-import { computed, Computed, Disposable, dom, domComputed, DomElementArg, fromKo, IOption, select} from "grainjs";
-import { makeTestId, Observable, onKeyDown, styled} from "grainjs";
-import without = require('lodash/without');
+import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {makeT} from 'app/client/lib/localization';
+import {reportError} from 'app/client/models/AppModel';
+import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
+import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
+import {GristTooltips} from 'app/client/ui/GristTooltips';
+import {linkId, NoLink} from 'app/client/ui/selectBy';
+import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
+import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
+import {bigPrimaryButton} from "app/client/ui2018/buttons";
+import {theme, vars} from "app/client/ui2018/cssVars";
+import {icon} from "app/client/ui2018/icons";
+import {spinnerModal} from 'app/client/ui2018/modals';
+import {isLongerThan, nativeCompare} from "app/common/gutil";
+import {IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
+import {
+  computed,
+  Computed,
+  Disposable,
+  dom,
+  domComputed,
+  DomElementArg,
+  fromKo,
+  IOption,
+  makeTestId,
+  Observable,
+  onKeyDown,
+  select,
+  styled
+} from "grainjs";
 import Popper from 'popper.js';
-import { IOpenController, popupOpen, setPopupToCreateDom } from 'popweasel';
+import {IOpenController, popupOpen, setPopupToCreateDom} from 'popweasel';
+import without = require('lodash/without');
 
 const t = makeT('PageWidgetPicker');
 
@@ -79,7 +93,7 @@ const testId = makeTestId('test-wselect-');
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableId, isNewPage: boolean|undefined): IWidgetType[] {
   if (tableId !== 'New Table') {
-    return ['record', 'single', 'detail', 'chart', 'custom'];
+    return ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar'];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     return ['record'];
@@ -240,9 +254,15 @@ export interface ISelectOptions {
   selectBy?: (val: IPageWidget) => Array<IOption<string>>;
 }
 
+const registeredCustomWidgets: IAttachedCustomWidget[] =  ['custom.calendar'];
+
+const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map((widget) =>
+  widget as IAttachedCustomWidget)??[];
 // the list of widget types in the order they should be listed by the widget.
+const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a=>
+  registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  'record', 'single', 'detail', 'chart', 'custom'
+  'record', 'single', 'detail', 'chart', ...finalListOfCustomWidgetToShow, 'custom'
 ];
 
 

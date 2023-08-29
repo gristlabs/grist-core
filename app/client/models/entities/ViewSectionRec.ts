@@ -1,6 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import {LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';
+import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {
   ColumnRec,
   DocModel,
@@ -13,18 +14,17 @@ import {
   ViewFieldRec,
   ViewRec
 } from 'app/client/models/DocModel';
+import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
+import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {LinkConfig} from 'app/client/ui/selectBy';
-import {getWidgetTypes} from 'app/client/ui/widgetTypes';
+import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
-import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
-import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
-import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {Computed, Holder, Observable} from 'grainjs';
 import * as ko from 'knockout';

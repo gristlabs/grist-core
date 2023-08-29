@@ -89,7 +89,6 @@ export class WidgetFrame extends DisposableWithEvents {
     // Call custom configuration handler.
     _options.configure?.(this);
   }
-
   /**
    * Attach an EventSource with desired access level.
    */

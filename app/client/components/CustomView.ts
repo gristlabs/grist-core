@@ -1,10 +1,18 @@
 import BaseView from 'app/client/components/BaseView';
-import {Cursor} from 'app/client/components/Cursor';
 import * as commands from 'app/client/components/commands';
+import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
-import {ConfigNotifier, CustomSectionAPIImpl, GristDocAPIImpl, GristViewImpl,
-        MinimumLevel, RecordNotifier, TableNotifier, WidgetAPIImpl,
-        WidgetFrame} from 'app/client/components/WidgetFrame';
+import {
+  ConfigNotifier,
+  CustomSectionAPIImpl,
+  GristDocAPIImpl,
+  GristViewImpl,
+  MinimumLevel,
+  RecordNotifier,
+  TableNotifier,
+  WidgetAPIImpl,
+  WidgetFrame
+} from 'app/client/components/WidgetFrame';
 import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
 import {Disposable} from 'app/client/lib/dispose';
 import dom from 'app/client/lib/dom';
@@ -14,14 +22,15 @@ import {ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
 import {UserError} from 'app/client/models/errors';
 import {SortedRowSet} from 'app/client/models/rowset';
-import {PluginInstance} from 'app/common/PluginInstance';
-import {AccessLevel} from 'app/common/CustomWidget';
 import {closeRegisteredMenu} from 'app/client/ui2018/menus';
+import {AccessLevel} from 'app/common/CustomWidget';
+import {PluginInstance} from 'app/common/PluginInstance';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
+
 
 /**
  * CustomView components displays arbitrary html. There are two modes available, in the "url" mode
@@ -60,7 +69,7 @@ export class CustomView extends Disposable {
   protected gristDoc: GristDoc;
   protected cursor: Cursor;
 
-  private _customDef: CustomViewSectionDef;
+  protected customDef: CustomViewSectionDef;
 
   // state of the component
   private _foundPlugin: ko.Observable<boolean>;
@@ -70,14 +79,12 @@ export class CustomView extends Disposable {
   private _pluginInstance: PluginInstance|undefined;
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
-  private _emptyWidgetPage: string;
+
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
 
-    this._customDef =  this.viewSection.customDef;
-
-    this._emptyWidgetPage = new URL("custom-widget.html", getGristConfig().homeUrl!).href;
+    this.customDef =  this.viewSection.customDef;
 
     this.autoDisposeCallback(() => {
       if (this._customSection) {
@@ -89,13 +96,14 @@ export class CustomView extends Disposable {
     // Ensure that selecting another section in same plugin update the view.
     this._foundSection.extend({notify: 'always'});
 
-    this.autoDispose(this._customDef.pluginId.subscribe(this._updatePluginInstance, this));
-    this.autoDispose(this._customDef.sectionId.subscribe(this._updateCustomSection, this));
+    this.autoDispose(this.customDef.pluginId.subscribe(this._updatePluginInstance, this));
+    this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
     this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
 
     this.viewPane = this.autoDispose(this._buildDom());
     this._updatePluginInstance();
   }
+
 
   public async triggerPrint() {
     if (!this.isDisposed() && this._frame) {
@@ -103,13 +111,16 @@ export class CustomView extends Disposable {
     }
   }
 
+  protected getEmptyWidgetPage(): string {
+    return new URL("custom-widget.html", getGristConfig().homeUrl!).href;
+  }
   /**
    * Find a plugin instance that matches the plugin id, update the `found` observables, then tries to
    * find a matching section.
    */
   private _updatePluginInstance() {
 
-    const pluginId = this._customDef.pluginId();
+    const pluginId = this.customDef.pluginId();
     this._pluginInstance = this.gristDoc.docPluginManager.pluginsList.find(p => p.definition.id === pluginId);
 
     if (this._pluginInstance) {
@@ -129,7 +140,7 @@ export class CustomView extends Disposable {
 
     if (!this._pluginInstance) { return; }
 
-    const sectionId = this._customDef.sectionId();
+    const sectionId = this.customDef.sectionId();
     this._customSection = CustomSectionElement.find(this._pluginInstance, sectionId);
 
     if (this._customSection) {
@@ -142,8 +153,8 @@ export class CustomView extends Disposable {
   }
 
   private _buildDom() {
-    const {mode, url, access} = this._customDef;
-    const showPlugin = ko.pureComputed(() => this._customDef.mode() === "plugin");
+    const {mode, url, access} = this.customDef;
+    const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
 
     // When both plugin and section are not found, let's show only plugin notification.
     const showPluginNotification = ko.pureComputed(() => showPlugin() && !this._foundPlugin());
@@ -161,12 +172,12 @@ export class CustomView extends Disposable {
       kd.scope(() => [mode(), url(), access()], ([_mode, _url, _access]: string[]) =>
         _mode === "url" ? this._buildIFrame(_url, (_access || AccessLevel.none) as AccessLevel) : null),
       kd.maybe(showPluginNotification, () => buildNotification('Plugin ',
-        dom('strong', kd.text(this._customDef.pluginId)), ' was not found',
+        dom('strong', kd.text(this.customDef.pluginId)), ' was not found',
         dom.testId('customView_notification_plugin')
       )),
       kd.maybe(showSectionNotification, () => buildNotification('Section ',
-        dom('strong', kd.text(this._customDef.sectionId)), ' was not found in plugin ',
-        dom('strong', kd.text(this._customDef.pluginId)),
+        dom('strong', kd.text(this.customDef.sectionId)), ' was not found in plugin ',
+        dom('strong', kd.text(this.customDef.pluginId)),
         dom.testId('customView_notification_section')
       )),
       // When showPluginContent() is true then _foundSection() is also and _customSection is not
@@ -184,7 +195,7 @@ export class CustomView extends Disposable {
 
   private _buildIFrame(baseUrl: string, access: AccessLevel) {
     return grains.create(WidgetFrame, {
-      url: baseUrl || this._emptyWidgetPage,
+      url: baseUrl || this.getEmptyWidgetPage(),
       access,
       readonly: this.gristDoc.isReadonly.get(),
       configure: (frame) => {

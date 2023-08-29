@@ -8,6 +8,8 @@ import {TelemetryLevel} from 'app/common/Telemetry';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
 import {UIRowId} from 'app/plugin/GristAPI';
+import {IAttachedCustomWidget} from "app/common/widgetTypes";
+import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from './ThemePrefs';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
 import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from './ThemePrefs';
@@ -665,6 +667,8 @@ export interface GristLoadConfig {
 
   // TODO: remove once released.
   featureFormulaAssistant?: boolean;
+
+  permittedCustomWidgets?: IAttachedCustomWidget[];
 
   // Used to determine which disclosure links should be provided to user of
   // formula assistance.

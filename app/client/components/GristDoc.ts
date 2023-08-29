@@ -47,7 +47,7 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
-import {IWidgetType} from 'app/client/ui/widgetTypes';
+import {IWidgetType} from 'app/common/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';

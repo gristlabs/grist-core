@@ -1,6 +1,7 @@
 import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as kf from 'app/client/lib/koForm';
+import {makeT} from 'app/client/lib/localization';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
@@ -16,10 +17,19 @@ import {cssLink} from 'app/client/ui2018/links';
 import {IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {AccessLevel, ICustomWidget, isSatisfied} from 'app/common/CustomWidget';
 import {GristLoadConfig} from 'app/common/gristUrls';
-import {nativeCompare, unwrap} from 'app/common/gutil';
-import {bundleChanges, Computed, Disposable, dom, fromKo, makeTestId,
-        MultiHolder, Observable, styled, UseCBOwner} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
+import {unwrap} from 'app/common/gutil';
+import {
+  bundleChanges,
+  Computed,
+  Disposable,
+  dom,
+  fromKo,
+  makeTestId,
+  MultiHolder,
+  Observable,
+  styled,
+  UseCBOwner
+} from 'grainjs';
 
 const t = makeT('CustomSectionConfig');
 
@@ -165,8 +175,7 @@ class ColumnListPicker extends Disposable {
     const columns = use(this._section.columns).filter(this._typeFilter(use));
     const columnMap = new Map(columns.map(c => [c.id.peek(), c]));
     // Remove any columns that are no longer there.
-    const selectedFields = selectedRefs.map(s => columnMap.get(s)!).filter(c => Boolean(c));
-    return selectedFields;
+    return selectedRefs.map(s => columnMap.get(s)!).filter(c => Boolean(c));
   }
   private _renderItem(use: UseCBOwner, field: ColumnRec): any {
     return cssFieldEntry(
@@ -221,27 +230,82 @@ class ColumnListPicker extends Disposable {
   }
 }
 
+class CustomSectionConfigurationConfig extends Disposable{
+  // Does widget has custom configuration.
+  private readonly _hasConfiguration: Computed<boolean>;
+  constructor(private _section: ViewSectionRec) {
+    super();
+    this._hasConfiguration = Computed.create(this, use => use(_section.hasCustomOptions));
+  }
+  public buildDom() {
+    // Show prompt, when desired access level is different from actual one.
+    return dom(
+      'div',
+      dom.maybe(this._hasConfiguration, () =>
+        cssSection(
+          textButton(
+            t("Open configuration"),
+            dom.on('click', () => this._openConfiguration()),
+            testId('open-configuration')
+          )
+        )
+      ),
+      dom.maybeOwned(use => use(this._section.columnsToMap), (owner, columns) => {
+        const createObs = (column: ColumnToMapImpl) => {
+          const obs = Computed.create(owner, use => {
+            const savedDefinition = use(this._section.customDef.columnsMapping) || {};
+            return savedDefinition[column.name];
+          });
+          obs.onWrite(async (value) => {
+            const savedDefinition = this._section.customDef.columnsMapping.peek() || {};
+            savedDefinition[column.name] = value;
+            await this._section.customDef.columnsMapping.setAndSave(savedDefinition);
+          });
+          return obs;
+        };
+        // Create observables for all columns to pick.
+        const mappings = columns.map(c => new ColumnToMapImpl(c)).map((column) => ({
+          value: createObs(column),
+          column
+        }));
+        return [
+          ...mappings.map(m => m.column.allowMultiple
+            ? dom.create(ColumnListPicker, m.value, m.column, this._section)
+            : dom.create(ColumnPicker, m.value, m.column, this._section))
+        ];
+      })
+    );
+  }
+  private _openConfiguration(): void {
+    allCommands.openWidgetConfiguration.run();
+  }
+
+
+}
+
 export class CustomSectionConfig extends Disposable {
+
+  protected _customSectionConfigurationConfig: CustomSectionConfigurationConfig;
   // Holds all available widget definitions.
   private _widgets: Observable<ICustomWidget[]>;
   // Holds selected option (either custom string or a widgetId).
-  private _selectedId: Computed<string | null>;
+  private readonly _selectedId: Computed<string | null>;
   // Holds custom widget URL.
-  private _url: Computed<string>;
+  private readonly _url: Computed<string>;
   // Enable or disable widget repository.
-  private _canSelect = true;
+  private readonly _canSelect: boolean = true;
   // When widget is changed, it sets its desired access level. We will prompt
   // user to approve or reject it.
-  private _desiredAccess: Observable<AccessLevel|null>;
+  private readonly _desiredAccess: Observable<AccessLevel|null>;
   // Current access level (stored inside a section).
-  private _currentAccess: Computed<AccessLevel>;
-  // Does widget has custom configuration.
-  private _hasConfiguration: Computed<boolean>;
+  private readonly _currentAccess: Computed<AccessLevel>;
 
-  constructor(private _section: ViewSectionRec, private _gristDoc: GristDoc) {
+
+
+
+  constructor(protected _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
-
-    const api = _gristDoc.app.topAppModel.api;
+    this._customSectionConfigurationConfig = new CustomSectionConfigurationConfig(_section);
 
     // Test if we can offer widget list.
     const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
@@ -249,29 +313,8 @@ export class CustomSectionConfig extends Disposable {
 
     // Array of available widgets - will be updated asynchronously.
     this._widgets = Observable.create(this, []);
-
-    if (this._canSelect) {
-      // From the start we will provide single widget definition
-      // that was chosen previously.
-      if (_section.customDef.widgetDef.peek()) {
-        this._widgets.set([_section.customDef.widgetDef.peek()!]);
-      }
-      // Request for rest of the widgets.
-      api
-        .getWidgets()
-        .then(widgets => {
-          if (this.isDisposed()) {
-            return;
-          }
-          const existing = _section.customDef.widgetDef.peek();
-          // Make sure we have current widget in place.
-          if (existing && !widgets.some(w => w.widgetId === existing.widgetId)) {
-            widgets.push(existing);
-          }
-          this._widgets.set(widgets.sort((a, b) => nativeCompare(a.name.toLowerCase(), b.name.toLowerCase())));
-        })
-        .catch(reportError);
-    }
+    this._getWidgets().catch(reportError);
+    // Request for rest of the widgets.
 
     // Selected value from the dropdown (contains widgetId or "custom" string for Custom URL)
     this._selectedId = Computed.create(this, use => {
@@ -350,8 +393,6 @@ export class CustomSectionConfig extends Disposable {
 
     // Clear intermediate state when section changes.
     this.autoDispose(_section.id.subscribe(() => this._reject()));
-
-    this._hasConfiguration = Computed.create(this, use => use(_section.hasCustomOptions));
   }
 
   public buildDom() {
@@ -395,16 +436,17 @@ export class CustomSectionConfig extends Disposable {
     return dom(
       'div',
       dom.autoDispose(holder),
+      this.shouldRenderWidgetSelector() &&
       this._canSelect
         ? cssRow(
-            select(this._selectedId, options, {
-              defaultLabel: t("Select Custom Widget"),
-              menuCssClass: cssMenu.className,
-            }),
-            testId('select')
-          )
+          select(this._selectedId, options, {
+            defaultLabel: t("Select Custom Widget"),
+            menuCssClass: cssMenu.className,
+          }),
+          testId('select')
+        )
         : null,
-      dom.maybe(isCustom, () => [
+      dom.maybe(isCustom && this.shouldRenderWidgetSelector(), () => [
         cssRow(
           cssTextInput(
             this._url,
@@ -452,15 +494,6 @@ export class CustomSectionConfig extends Disposable {
           cssRow(select(this._currentAccess, levels), testId('access')),
         ]
       ),
-      dom.maybe(this._hasConfiguration, () =>
-        cssSection(
-          textButton(
-            t("Open configuration"),
-            dom.on('click', () => this._openConfiguration()),
-            testId('open-configuration')
-          )
-        )
-      ),
       cssSection(
         cssLink(
           dom.attr('href', 'https://support.getgrist.com/widget-custom'),
@@ -468,37 +501,37 @@ export class CustomSectionConfig extends Disposable {
           t("Learn more about custom widgets")
         )
       ),
-      dom.maybeOwned(use => use(this._section.columnsToMap), (owner, columns) => {
-        const createObs = (column: ColumnToMapImpl) => {
-          const obs = Computed.create(owner, use => {
-            const savedDefinition = use(this._section.customDef.columnsMapping) || {};
-            return savedDefinition[column.name];
-          });
-          obs.onWrite(async (value) => {
-            const savedDefinition = this._section.customDef.columnsMapping.peek() || {};
-            savedDefinition[column.name] = value;
-            await this._section.customDef.columnsMapping.setAndSave(savedDefinition);
-          });
-          return obs;
-        };
-        // Create observables for all columns to pick.
-        const mappings = columns.map(c => new ColumnToMapImpl(c)).map((column) => ({
-          value: createObs(column),
-          column
-        }));
-        return [
-          cssSeparator(),
-          ...mappings.map(m => m.column.allowMultiple
-            ? dom.create(ColumnListPicker, m.value, m.column, this._section)
-            : dom.create(ColumnPicker, m.value, m.column, this._section))
-        ];
-      })
+      cssSeparator(),
+      this._customSectionConfigurationConfig.buildDom(),
+      cssSection(
+        cssLink(
+          dom.attr('href', 'https://support.getgrist.com/widget-custom'),
+          dom.attr('target', '_blank'),
+          t("Learn more about custom widgets")
+        )
+      ),
     );
   }
 
-  private _openConfiguration(): void {
-    allCommands.openWidgetConfiguration.run();
+  protected shouldRenderWidgetSelector(): boolean {
+    return true;
   }
+
+  protected async _getWidgets() {
+    const api = this._gristDoc.app.topAppModel.api;
+    const wigets = await api.getWidgets();
+    // Request for rest of the widgets.
+    if (this._canSelect) {
+      // From the start we will provide single widget definition
+      // that was chosen previously.
+      if (this._section.customDef.widgetDef.peek()) {
+        wigets.push(this._section.customDef.widgetDef.peek()!);
+      }
+    }
+    this._widgets.set(wigets);
+  }
+
+
 
   private _accept() {
     if (this._desiredAccess.get()) {
@@ -511,7 +544,6 @@ export class CustomSectionConfig extends Disposable {
     this._desiredAccess.set(null);
   }
 }
-
 
 const cssWarningWrapper = styled('div', `
   padding-left: 8px;
