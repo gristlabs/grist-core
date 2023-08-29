@@ -14,7 +14,6 @@ import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import * as docUtils from 'app/server/lib/docUtils';
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
-import log from 'app/server/lib/log';
 import {main as mergedServerMain, ServerType} from 'app/server/mergedServerMain';
 import axios from 'axios';
 import FormData from 'form-data';
@@ -287,7 +286,6 @@ export class TestSession {
       fetch: fetch as any,
       headers,
       newFormData: () => new FormData() as any,
-      logger: log,
     });
     // Make sure api is functioning, and create user if this is their first time to hit API.
     if (checkAccess) { await api.getOrg('current'); }

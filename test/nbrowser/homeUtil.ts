@@ -13,7 +13,6 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
 import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import log from 'app/server/lib/log';
 import {TestingHooksClient} from 'app/server/lib/TestingHooks';
 import EventEmitter = require('events');
 
@@ -445,7 +444,7 @@ export class HomeUtil {
       headers,
       fetch: fetch as any,
       newFormData: () => new FormData() as any,  // form-data isn't quite type compatible
-      logger: log});
+    });
   }
 
   private async _toggleTips(enabled: boolean, email: string) {
