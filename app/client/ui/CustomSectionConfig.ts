@@ -503,13 +503,6 @@ export class CustomSectionConfig extends Disposable {
       ),
       cssSeparator(),
       this._customSectionConfigurationConfig.buildDom(),
-      cssSection(
-        cssLink(
-          dom.attr('href', 'https://support.getgrist.com/widget-custom'),
-          dom.attr('target', '_blank'),
-          t("Learn more about custom widgets")
-        )
-      ),
     );
   }
 
