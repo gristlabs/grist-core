@@ -850,10 +850,17 @@ export class FlexServer implements GristServer {
       baseDomain: this._defaultBaseDomain,
     });
 
-    const isForced = appSettings.section('login').flag('forced').readBool({
+    const forceLogin = appSettings.section('login').flag('forced').readBool({
       envVar: 'GRIST_FORCE_LOGIN',
     });
-    const forcedLoginMiddleware = isForced ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
+    const isAnonPlayground = appSettings.section('login').flag('anonplayground').readBool({
+      envVar: 'GRIST_ANON_PLAYGROUND',
+      defaultValue: true
+    });
+
+    const forcedLoginMiddleware = (forceLogin || !isAnonPlayground) ?
+      this._redirectToLoginWithoutExceptionsMiddleware : noop;
+    const forcedLoginMiddlewareForDocs = forceLogin ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
 
     const welcomeNewUser: express.RequestHandler = isSingleUserMode() ?
       (req, res, next) => next() :
@@ -926,7 +933,7 @@ export class FlexServer implements GristServer {
         // Same as middleware, except without login redirect middleware.
         this._redirectToHostMiddleware,
         this._userIdMiddleware,
-        forcedLoginMiddleware,
+        forcedLoginMiddlewareForDocs,
         this._redirectToOrgMiddleware,
         welcomeNewUser
       ],
