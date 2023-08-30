@@ -5,14 +5,13 @@ import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
+import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
-import {UIRowId} from 'app/plugin/GristAPI';
 import {IAttachedCustomWidget} from "app/common/widgetTypes";
-import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from './ThemePrefs';
+import {UIRowId} from 'app/plugin/GristAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
-import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from './ThemePrefs';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook');
 type SpecialDocPage = typeof SpecialDocPage.type;
