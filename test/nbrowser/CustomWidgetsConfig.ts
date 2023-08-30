@@ -220,14 +220,10 @@ describe('CustomWidgetsConfig', function () {
 
   // Poor man widget rpc. Class that invokes various parts in the tester widget.
   class Widget {
-    constructor(public frameSelector = 'iframe') {}
+    constructor() {}
     // Wait for a frame.
     public async waitForFrame() {
-      await driver.wait(() => driver.find(this.frameSelector).isPresent(), 3000);
-      const iframe = driver.find(this.frameSelector);
-      await driver.switchTo().frame(iframe);
-      await driver.wait(async () => (await driver.find('#ready').getText()) === 'ready', 3000);
-      await driver.switchTo().defaultContent();
+      await driver.findWait(`iframe.test-custom-widget-ready`, 1000);
     }
     public async content() {
       return await this._read('body');
@@ -254,11 +250,11 @@ describe('CustomWidgetsConfig', function () {
     }
     // Wait for frame to close.
     public async waitForClose() {
-      await driver.wait(async () => !(await driver.find(this.frameSelector).isPresent()), 3000);
+      await driver.wait(async () => !(await driver.find('iframe').isPresent()), 3000);
     }
     // Wait for the onOptions event, and return its value.
     public async onOptions() {
-      const iframe = driver.find(this.frameSelector);
+      const iframe = driver.find('iframe');
       await driver.switchTo().frame(iframe);
       // Wait for options to get filled, initially this div is empty,
       // as first message it should get at least null as an options.
@@ -296,7 +292,7 @@ describe('CustomWidgetsConfig', function () {
     // serialized to the #output div.
     public async invokeOnWidget(name: string, input?: any[]) {
       // Switch to frame.
-      const iframe = driver.find(this.frameSelector);
+      const iframe = driver.find('iframe');
       await driver.switchTo().frame(iframe);
       // Clear input box that holds arguments.
       await driver.find('#input').click();
@@ -331,7 +327,7 @@ describe('CustomWidgetsConfig', function () {
     }
 
     private async _read(selector: string) {
-      const iframe = driver.find(this.frameSelector);
+      const iframe = driver.find('iframe');
       await driver.switchTo().frame(iframe);
       const text = await driver.find(selector).getText();
       await driver.switchTo().defaultContent();

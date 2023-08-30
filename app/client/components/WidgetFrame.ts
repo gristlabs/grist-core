@@ -2,6 +2,7 @@ import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {makeTestId} from 'app/client/lib/domUtils';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -15,6 +16,9 @@ import noop = require('lodash/noop');
 import debounce = require('lodash/debounce');
 import isEqual = require('lodash/isEqual');
 import flatMap = require('lodash/flatMap');
+
+const testId = makeTestId('test-custom-widget-');
+
 
 /**
  * This file contains a WidgetFrame and all its components.
@@ -62,6 +66,8 @@ export class WidgetFrame extends DisposableWithEvents {
   private _rpc: Rpc;
   // Created iframe element, used to receive and post messages via Rpc
   private _iframe: HTMLIFrameElement | null;
+  // If widget called ready() method, this will be set to true.
+  private _readyCalled = Observable.create(this, false);
 
   constructor(private _options: WidgetFrameOptions) {
     super();
@@ -155,10 +161,14 @@ export class WidgetFrame extends DisposableWithEvents {
     const fullUrl = urlWithAccess(this._options.url);
     const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
     return onElem(
-      (this._iframe = dom('iframe', dom.cls('clipboard_focus'), dom.cls('custom_view'), {
-        src: fullUrl,
-        ...hooks.iframeAttributes,
-      }))
+      (this._iframe = dom('iframe',
+        dom.cls('clipboard_focus'),
+        dom.cls('custom_view'), {
+          src: fullUrl,
+          ...hooks.iframeAttributes,
+        },
+        testId('ready', this._readyCalled),
+      ))
     );
   }
 
@@ -177,6 +187,7 @@ export class WidgetFrame extends DisposableWithEvents {
       }
       if (event.data.mtype === MsgType.Ready) {
         this.trigger('ready', this);
+        this._readyCalled.set(true);
       }
       this._rpc.receiveMessage(event.data);
     }
@@ -513,7 +524,7 @@ export class RecordNotifier extends BaseEventSource {
 }
 
 /**
- * Notifies about options position change. Exposed in the API as a onOptions handler.
+ * Notifies about options change. Exposed in the API as a onOptions handler.
  */
 export class ConfigNotifier extends BaseEventSource {
   private _currentConfig: Computed<any | null>;

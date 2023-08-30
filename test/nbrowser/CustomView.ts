@@ -39,6 +39,38 @@ describe('CustomView', function() {
     }
   });
 
+  // This tests if test id works. Feels counterintuitive to "test the test" but grist-widget repository test suite
+  // depends on this.
+  it('informs about ready called', async () => {
+    // Add a custom inline widget to a new doc.
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
+    await gu.addNewSection('Custom', 'Table1');
+
+    // Create an inline widget that will call ready message.
+    await inFrame(async () => {
+      const customWidget = `
+        <script src="/grist-plugin-api.js"></script>
+        <button onclick="grist.ready()">Ready</button>
+      `;
+      await driver.executeScript("document.write(`" + customWidget + "`);");
+    });
+
+    // We should have a single iframe.
+    assert.equal(await driver.findAll('iframe').then(f => f.length), 1);
+
+    // But without test ready class.
+    assert.isFalse(await driver.find("iframe.test-custom-widget-ready").isPresent());
+
+    // Now invoke ready.
+    await inFrame(async () => {
+      await driver.find('button').click();
+    });
+
+    // And we should have a test ready class.
+    assert.isTrue(await driver.findWait("iframe.test-custom-widget-ready", 100).isDisplayed());
+  });
+
   for (const access of ['none', 'read table', 'full'] as const) {
 
     function withAccess(obj: any, fallback: any) {
@@ -478,3 +510,9 @@ describe('CustomView', function() {
     assert.equal(opinions['A'][0], 'do not zap plz');
   });
 });
+
+async function inFrame(op: () => Promise<void>)  {
+  await driver.switchTo().frame(driver.find("iframe"));
+  await op();
+  await driver.switchTo().defaultContent();
+}
