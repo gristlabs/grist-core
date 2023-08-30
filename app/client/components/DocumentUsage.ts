@@ -1,3 +1,4 @@
+import {cssBannerLink} from 'app/client/components/Banner';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
@@ -253,11 +254,11 @@ export function buildUpgradeMessage(
 }
 
 function buildUpgradeLink(linkText: string, onClick: () => void) {
-  return cssUnderlinedLink(linkText, dom.on('click', () => onClick()));
+  return cssBannerLink(linkText, dom.on('click', () => onClick()));
 }
 
 function buildRawDataPageLink(linkText: string) {
-  return cssUnderlinedLink(linkText, urlState().setLinkUrl({docPage: 'data'}));
+  return cssBannerLink(linkText, urlState().setLinkUrl({docPage: 'data'}));
 }
 
 interface MetricOptions {
@@ -375,16 +376,6 @@ const cssOverflowableText = styled('span', `
 
 const cssHeader = styled(docListHeader, `
   margin-bottom: 0px;
-`);
-
-const cssUnderlinedLink = styled('span', `
-  cursor: pointer;
-  color: unset;
-  text-decoration: underline;
-
-  &:hover, &:focus {
-    color: unset;
-  }
 `);
 
 const cssUsageMetrics = styled('div', `

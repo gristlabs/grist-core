@@ -1173,8 +1173,14 @@ export class DocWorkerApi {
         const docSession = docSessionFromRequest(req);
         const request = req.body;
         const result = await sendForCompletion(docSession, activeDoc, request);
-        await this._increaseLimit('assistant', req);
-        res.json(result);
+        const limit = await this._increaseLimit('assistant', req);
+        res.json({
+          ...result,
+          limit: !limit ? undefined : {
+            usage: limit.usage,
+            limit: limit.limit,
+          },
+        });
       })
     );
 
@@ -1370,7 +1376,7 @@ export class DocWorkerApi {
    * Increases the current usage of a limit by 1.
    */
   private async _increaseLimit(limit: LimitType, req: Request) {
-    await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
+    return await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
   }
 
   private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,

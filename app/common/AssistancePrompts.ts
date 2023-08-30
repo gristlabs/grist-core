@@ -55,4 +55,10 @@ export interface AssistanceResponse {
   // If the model can be trusted to issue a self-contained
   // markdown-friendly string, it can be included here.
   reply?: string;
+  limit?: AssistanceLimit;
+}
+
+export interface AssistanceLimit {
+  usage: number;
+  limit: number;
 }

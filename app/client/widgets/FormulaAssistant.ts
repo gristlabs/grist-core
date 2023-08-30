@@ -1,7 +1,8 @@
+import {Banner, buildBannerMessage, cssBannerLink} from 'app/client/components/Banner';
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
-import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
+import {localStorageBoolObs, sessionStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {movable} from 'app/client/lib/popupUtils';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
@@ -19,7 +20,9 @@ import {cssLink} from 'app/client/ui2018/links';
 import {loadingDots} from 'app/client/ui2018/loaders';
 import {menu, menuCssClass, menuItem} from 'app/client/ui2018/menus';
 import {FormulaEditor} from 'app/client/widgets/FormulaEditor';
+import {ApiError} from 'app/common/ApiError';
 import {AssistanceResponse, AssistanceState, FormulaAssistanceContext} from 'app/common/AssistancePrompts';
+import {isFreePlan} from 'app/common/Features';
 import {commonUrls} from 'app/common/gristUrls';
 import {TelemetryEvent, TelemetryMetadata} from 'app/common/Telemetry';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -33,6 +36,8 @@ import {v4 as uuidv4} from 'uuid';
 const t = makeT('FormulaEditor');
 const testId = makeTestId('test-formula-editor-');
 
+const LOW_CREDITS_WARNING_BANNER_THRESHOLD = 10;
+
 /**
  * An extension or the FormulaEditor that provides assistance for writing formulas.
  * It renders itself in the detached FormulaEditor and adds some extra UI elements.
@@ -43,6 +48,7 @@ const testId = makeTestId('test-formula-editor-');
  */
 export class FormulaAssistant extends Disposable {
   private _gristDoc = this._options.gristDoc;
+  private _appModel = this._gristDoc.appModel;
   /** Chat component */
   private _chat: ChatHistory;
   /** State of the user input */
@@ -52,7 +58,7 @@ export class FormulaAssistant extends Disposable {
   private _input: HTMLTextAreaElement;
   /** Is the formula assistant expanded */
   private _assistantExpanded = this.autoDispose(localStorageBoolObs(
-    `u:${this._options.gristDoc.appModel.currentUser?.id ?? 0};formulaAssistantExpanded`, true));
+    `u:${this._appModel.currentUser?.id ?? 0};formulaAssistantExpanded`, true));
   /** Is the request pending */
   private _waiting = Observable.create(this, false);
   /** Is assistant features are enabled */
@@ -73,8 +79,8 @@ export class FormulaAssistant extends Disposable {
   private _chatPanelBody: HTMLElement;
   /** Client height of the chat panel body element. */
   private _chatPanelBodyClientHeight = Observable.create<number>(this, 0);
-  /** Set to true once the panel has been expanded (including by default). */
-  private _hasExpanded = false;
+  /** Set to true the first time the panel has been expanded (including by default). */
+  private _hasExpandedOnce = false;
   /**
    * Last known height of the chat panel.
    *
@@ -84,6 +90,15 @@ export class FormulaAssistant extends Disposable {
   private _lastChatPanelHeight: number|undefined;
   /** True if the chat panel is being resized via dragging. */
   private _isResizing = Observable.create(this, false);
+  /** Whether the low credit limit banner should be shown. */
+  private _showApproachingLimitBanner = this.autoDispose(
+    sessionStorageBoolObs(
+      `org:${this._appModel.currentOrg?.id ?? 0};formulaAssistantShowApproachingLimitBanner`,
+      true
+    ));
+  /** Number of remaining credits. If null, assistant usage is unlimited. */
+  private _numRemainingCredits = Observable.create<number|null>(this, null);
+
   /**
    * Debounced version of the method that will force parent editor to resize, we call it often
    * as we have an ability to resize the chat window.
@@ -156,7 +171,7 @@ export class FormulaAssistant extends Disposable {
 
     this._triggerFinalize = bundleInfo.triggerFinalize;
     this.onDispose(() => {
-      if (this._hasExpanded) {
+      if (this._hasExpandedOnce) {
         this._logTelemetryEvent('assistantClose', false, {
           suggestionApplied: this._chat.conversationSuggestedFormulas.get()
             .includes(this._options.column.formula.peek()),
@@ -204,7 +219,7 @@ export class FormulaAssistant extends Disposable {
 
     if (this._assistantEnabled && this._assistantExpanded.get()) {
       this._logTelemetryEvent('assistantOpen', true);
-      this._hasExpanded = true;
+      this._hasExpandedOnce = true;
     }
 
     return this._domElement;
@@ -294,8 +309,9 @@ export class FormulaAssistant extends Disposable {
     this._chatPanelBody = cssChatPanelBody(
       dom.onDispose(() => observer.disconnect()),
       testId('ai-assistant-chat-panel'),
+      this._buildChatPanelBanner(),
       this._chat.buildDom(),
-      this._gristDoc.appModel.currentValidUser ? this._buildChatInput() : this._buildSignupNudge(),
+      this._appModel.currentValidUser ? this._buildChatInput() : this._buildSignupNudge(),
       cssChatPanelBody.cls('-resizing', this._isResizing),
       // Stop propagation of mousedown events, as the formula editor will still focus.
       dom.on('mousedown', (ev) => ev.stopPropagation()),
@@ -306,11 +322,70 @@ export class FormulaAssistant extends Disposable {
     return this._chatPanelBody;
   }
 
+  private _buildChatPanelBanner() {
+    return dom.domComputed(use => {
+      const numCredits = use(this._numRemainingCredits);
+      if (
+        numCredits === null ||
+        numCredits > LOW_CREDITS_WARNING_BANNER_THRESHOLD
+      ) {
+        return null;
+      } else if (numCredits === 0) {
+        return dom.create(Banner, {
+          content: buildBannerMessage(
+            t('You have used all available credits.'),
+            ' ',
+            this._buildBannerUpgradeMessage(),
+            testId('ai-assistant-banner-message'),
+          ),
+          style: 'error',
+          bannerCssClass: cssBanner.className,
+        });
+      } else {
+        const showBanner = use(this._showApproachingLimitBanner);
+        if (!showBanner) { return null; }
+
+        return dom.create(Banner, {
+          content: buildBannerMessage(
+            t('You have {{numCredits}} remaining credits.', {numCredits}),
+            ' ',
+            this._buildBannerUpgradeMessage(),
+            testId('ai-assistant-banner-message'),
+          ),
+          style: 'warning',
+          showCloseButton: true,
+          onClose: () => { this._showApproachingLimitBanner.set(false); },
+          bannerCssClass: cssBanner.className,
+        });
+      }
+    });
+  }
+
+  private _buildBannerUpgradeMessage() {
+    const canUpgradeSite = this._appModel.isOwner()
+      && Boolean(this._appModel.planName && isFreePlan(this._appModel.planName));
+    const isBillingManager = this._appModel.isBillingManager() || this._appModel.isSupport();
+    if (!canUpgradeSite && !isBillingManager) {
+      return t('For higher limits, contact the site owner.');
+    }
+
+    return t('For higher limits, {{upgradeNudge}}.', {upgradeNudge: cssBannerLink(
+      canUpgradeSite ? t('upgrade to the Pro Team plan') : t('upgrade your plan'),
+      dom.on('click', async () => {
+        if (canUpgradeSite) {
+          this._gristDoc.appModel.showUpgradeModal();
+        } else {
+          await urlState().pushUrl({billing: 'billing'});
+        }
+      }))
+    });
+  }
+
   /**
    * Save button handler. We just store the action and wait for the bundler to finalize.
    */
   private _saveOrClose() {
-    if (this._hasExpanded) {
+    if (this._hasExpandedOnce) {
       this._logTelemetryEvent('assistantSave', true, {
         oldFormula: this._options.column.formula.peek(),
         newFormula: this._options.editor.getTextValue(),
@@ -324,7 +399,7 @@ export class FormulaAssistant extends Disposable {
    * Cancel button handler.
    */
   private _cancel() {
-    if (this._hasExpanded) {
+    if (this._hasExpandedOnce) {
       this._logTelemetryEvent('assistantCancel', true);
     }
     this._action = 'cancel';
@@ -424,6 +499,8 @@ export class FormulaAssistant extends Disposable {
   }
 
   private _collapseChatPanel() {
+    if (!this._assistantExpanded.get()) { return; }
+
     this._assistantExpanded.set(false);
     // The panel's height and client height may differ; to ensure the collapse transition
     // appears linear, temporarily disable the transition and sync the height and client
@@ -438,10 +515,11 @@ export class FormulaAssistant extends Disposable {
   }
 
   private _expandChatPanel() {
-    if (!this._hasExpanded) {
+    if (!this._hasExpandedOnce) {
       this._logTelemetryEvent('assistantOpen', true);
-      this._hasExpanded = true;
+      this._hasExpandedOnce = true;
     }
+    if (this._assistantExpanded.get()) { return; }
 
     this._assistantExpanded.set(true);
     const editor = this._options.editor.getDom();
@@ -492,13 +570,9 @@ export class FormulaAssistant extends Disposable {
 
     const collapseThreshold = 78;
     if (newChatPanelBodyHeight < collapseThreshold) {
-      if (this._assistantExpanded.get()) {
-        this._collapseChatPanel();
-      }
+      this._collapseChatPanel();
     } else {
-      if (!this._assistantExpanded.get()) {
-        this._expandChatPanel();
-      }
+      this._expandChatPanel();
       const calculatedHeight = Math.max(
         MIN_CHAT_PANEL_BODY_HEIGHT_PX,
         Math.min(total - MIN_FORMULA_EDITOR_HEIGHT_PX, newChatPanelBodyHeight)
@@ -626,12 +700,17 @@ export class FormulaAssistant extends Disposable {
     // Get the state of the chat from the column.
     const conversationId = this._chat.conversationId.get();
     const prevState = column.chatHistory.peek().get().state;
-    const {reply, suggestedActions, suggestedFormula, state} = await askAI(gristDoc, {
+    const {reply, suggestedActions, suggestedFormula, state, limit} = await askAI(gristDoc, {
       conversationId,
       column,
       description,
       state: prevState,
     });
+    if (limit && limit.limit >= 0) {
+      this._numRemainingCredits.set(Math.max(limit.limit - limit.usage, 0));
+    } else {
+      this._numRemainingCredits.set(null);
+    }
     console.debug('received formula assistant response: ', {suggestedActions, suggestedFormula, reply, state});
     // If back-end is capable of conversation, keep its state.
     const chatHistoryNew = column.chatHistory.peek();
@@ -682,10 +761,18 @@ export class FormulaAssistant extends Disposable {
     try {
       const response = await this._sendMessage(message);
       this._chat.addResponse(response);
-    } catch(err) {
-      this._chat.thinking(false);
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 429 && err.details?.limit) {
+        const {projectedValue, maximum} = err.details.limit;
+        if (projectedValue >= maximum) {
+          this._numRemainingCredits.set(0);
+          return;
+        }
+      }
+
       throw err;
     } finally {
+      this._chat.thinking(false);
       this._waiting.set(false);
     }
   }
@@ -998,9 +1085,9 @@ const MIN_FORMULA_EDITOR_HEIGHT_PX = 100;
 
 const FORMULA_EDITOR_BUTTONS_HEIGHT_PX = 42;
 
-const MIN_CHAT_HISTORY_HEIGHT_PX = 100;
+const MIN_CHAT_HISTORY_HEIGHT_PX = 160;
 
-const MIN_CHAT_PANEL_BODY_HEIGHT_PX = 120;
+const MIN_CHAT_PANEL_BODY_HEIGHT_PX = 180;
 
 const CHAT_PANEL_HEADER_HEIGHT_PX = 30;
 
@@ -1085,7 +1172,6 @@ const cssHContainer = styled('div', `
   margin-top: auto;
   padding-left: 18px;
   padding-right: 18px;
-  min-height: ${MIN_CHAT_PANEL_BODY_HEIGHT_PX}px;
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
@@ -1286,7 +1372,6 @@ const cssSignupNudgeWrapper = styled('div', `
   border-top: 1px solid ${theme.formulaAssistantBorder};
   padding: 16px;
   margin-top: auto;
-  min-height: ${MIN_CHAT_PANEL_BODY_HEIGHT_PX}px;
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
@@ -1307,4 +1392,8 @@ const cssSignupNudgeParagraph = styled('div', `
 const cssSignupNudgeButtonsRow = styled('div', `
   display: flex;
   justify-content: center;
+`);
+
+const cssBanner = styled('div', `
+  padding: 6px 8px 6px 8px;
 `);
