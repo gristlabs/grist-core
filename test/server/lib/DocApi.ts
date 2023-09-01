@@ -333,9 +333,9 @@ function testDocApi() {
     );
   });
 
-  for (const mode of ['logged in', 'anonymous']) {
-    for (const content of ['with content', 'without content']) {
-      it(`POST /api/docs ${content} creates an unsaved doc when ${mode}`, async function () {
+  for (const content of ['with content', 'without content']) {
+    for (const mode of ['logged in', 'anonymous']) {
+      it(`POST /api/docs ${content} can create unsaved docs when ${mode}`, async function () {
         const user = (mode === 'logged in') ? chimpy : nobody;
         const formData = new FormData();
         formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
@@ -375,6 +375,54 @@ function testDocApi() {
         }
       });
     }
+
+    it(`POST /api/docs ${content} can create saved docs in workspaces`, async function () {
+      // Make a workspace.
+      const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
+
+      // Create a document in the new workspace.
+      const user = chimpy;
+      const body = {
+        documentName: "Chimpy's Document",
+        workspaceId: chimpyWs,
+      };
+      const formData = new FormData();
+      formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+      formData.append('documentName', body.documentName);
+      formData.append('workspaceId', body.workspaceId);
+      const config = defaultsDeep({headers: formData.getHeaders()}, user);
+      let resp = await axios.post(`${serverUrl}/api/docs`,
+        ...(content === 'with content'
+          ? [formData, config]
+          : [body, user])
+        );
+      assert.equal(resp.status, 200);
+      const urlId = resp.data;
+      assert.notMatch(urlId, /^new~[^~]*~[0-9]+$/);
+      assert.match(urlId, /^[^~]+$/);
+
+      // Check document metadata.
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, user);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.name, "Chimpy's Document");
+      assert.equal(resp.data.workspace.name, "Chimpy's Workspace");
+      assert.equal(resp.data.access, 'owners');
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
+      assert.equal(resp.status, 200);
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
+      assert.equal(resp.status, 403);
+
+      // Check document contents.
+      resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
+      if (content === 'with content') {
+        assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
+      } else {
+        assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
+      }
+
+      // Delete the workspace.
+      await userApi.deleteWorkspace(chimpyWs);
+    });
   }
 
   it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {

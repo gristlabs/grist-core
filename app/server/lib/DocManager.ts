@@ -178,21 +178,36 @@ export class DocManager extends EventEmitter {
                              {naming: 'saved'});
   }
 
-  // Do an import targeted at a specific workspace. Cleans up uploadId.
-  // UserId should correspond to the user making the request.
-  // A workspaceId of null results in an import to an unsaved doc, not
-  // associated with a specific workspace.
-  public async importDocToWorkspace(
-    userId: number, uploadId: number, workspaceId: number|null, browserSettings?: BrowserSettings,
-  ): Promise<DocCreationInfo> {
+  /**
+   * Do an import targeted at a specific workspace.
+   *
+   * `userId` should correspond to the user making the request.
+   *
+   * If workspaceId is omitted, an unsaved doc unassociated with a specific workspace
+   * will be created.
+   *
+   * Cleans up `uploadId` and returns creation info about the imported doc.
+   */
+  public async importDocToWorkspace(options: {
+    userId: number,
+    uploadId: number,
+    documentName?: string,
+    workspaceId?: number,
+    browserSettings?: BrowserSettings,
+  }): Promise<DocCreationInfo> {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
 
+    const {userId, uploadId, documentName, workspaceId, browserSettings} = options;
     const accessId = this.makeAccessId(userId);
     const docSession = makeExceptionalDocSession('nascent', {browserSettings});
-    const register = async (docId: string, docTitle: string) => {
+    const register = async (docId: string, uploadBaseFilename: string) => {
       if (!workspaceId || !this._homeDbManager) { return; }
-      const queryResult = await this._homeDbManager.addDocument({userId}, workspaceId,
-                                                                {name: docTitle}, docId);
+      const queryResult = await this._homeDbManager.addDocument(
+        {userId},
+        workspaceId,
+        {name: documentName ?? uploadBaseFilename},
+        docId
+      );
       if (queryResult.status !== 200) {
         // TODO The ready-to-add document is not yet in storageManager, but is in the filesystem. It
         // should get cleaned up in case of error here.
@@ -555,7 +570,7 @@ export class DocManager extends EventEmitter {
   private async _doImportDoc(docSession: OptDocSession, uploadInfo: UploadInfo,
                              options: {
                                naming: 'classic'|'saved'|'unsaved',
-                               register?: (docId: string, docTitle: string) => Promise<void>,
+                               register?: (docId: string, uploadBaseFilename: string) => Promise<void>,
                                userId?: number,
                              }): Promise<DocCreationInfo> {
     try {

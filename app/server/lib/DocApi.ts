@@ -1148,7 +1148,12 @@ export class DocWorkerApi {
       const userId = getUserId(req);
       const wsId = integerParam(req.params.wid, 'wid');
       const uploadId = integerParam(req.body.uploadId, 'uploadId');
-      const result = await this._docManager.importDocToWorkspace(userId, uploadId, wsId, req.body.browserSettings);
+      const result = await this._docManager.importDocToWorkspace({
+        userId,
+        uploadId,
+        workspaceId: wsId,
+        browserSettings: req.body.browserSettings,
+      });
       res.json(result);
     }));
 
@@ -1215,16 +1220,22 @@ export class DocWorkerApi {
       })
     );
 
-    // Create a document.  When an upload is included, it is imported as the initial
-    // state of the document.  Otherwise a fresh empty document is created.
-    // A "timezone" option can be supplied.
-    // Documents are created "unsaved".
-    // TODO: support workspaceId option for creating regular documents, at which point
-    // existing import endpoint and doc creation endpoint can share implementation
-    // with this.
-    // Returns the id of the created document.
+    /**
+     * Create a document.
+     *
+     * When an upload is included, it is imported as the initial state of the document.
+     * Otherwise, the document is left empty.
+     *
+     * If a workspace id is included, the document will be saved there instead of
+     * being left "unsaved".
+     *
+     * Returns the id of the created document.
+     *
+     * TODO: unify this with the other document creation and import endpoints.
+     */
     this._app.post('/api/docs', expressWrap(async (req, res) => {
       const userId = getUserId(req);
+
       let uploadId: number|undefined;
       let parameters: {[key: string]: any};
       if (req.is('multipart/form-data')) {
@@ -1236,22 +1247,48 @@ export class DocWorkerApi {
       } else {
         parameters = req.body;
       }
-      if (parameters.workspaceId) { throw new Error('workspaceId not supported'); }
+
+      const documentName = optStringParam(parameters.documentName);
+      const workspaceId = optIntegerParam(parameters.workspaceId);
       const browserSettings: BrowserSettings = {};
       if (parameters.timezone) { browserSettings.timezone = parameters.timezone; }
       browserSettings.locale = localeFromRequest(req);
+
+      let docId: string;
       if (uploadId !== undefined) {
-        const result = await this._docManager.importDocToWorkspace(userId, uploadId, null,
-                                                                   browserSettings);
-        return res.json(result.id);
+        ({id: docId} = await this._docManager.importDocToWorkspace({
+          userId,
+          uploadId,
+          documentName,
+          workspaceId,
+          browserSettings,
+        }));
+      } else if (workspaceId !== undefined) {
+        const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
+          name: documentName ?? 'Untitled document',
+        });
+        if (status !== 200) {
+          throw new ApiError(errMessage || 'unable to create document', status);
+        }
+
+        docId = data!;
+      } else {
+        const isAnonymous = isAnonymousUser(req);
+        ({docId} = makeForkIds({
+          userId,
+          isAnonymous,
+          trunkDocId: NEW_DOCUMENT_CODE,
+          trunkUrlId: NEW_DOCUMENT_CODE,
+        }));
+        await this._docManager.createNamedDoc(
+          makeExceptionalDocSession('nascent', {
+            req: req as RequestWithLogin,
+            browserSettings,
+          }),
+          docId
+        );
       }
-      const isAnonymous = isAnonymousUser(req);
-      const {docId} = makeForkIds({userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
-                                   trunkUrlId: NEW_DOCUMENT_CODE});
-      await this._docManager.createNamedDoc(makeExceptionalDocSession('nascent', {
-        req: req as RequestWithLogin,
-        browserSettings
-      }), docId);
+
       return res.status(200).json(docId);
     }));
   }
