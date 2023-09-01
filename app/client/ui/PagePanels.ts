@@ -170,7 +170,7 @@ export function pagePanels(page: PageContents) {
           },
         }),
 
-        // opening left panel on over
+        // opening left panel on hover
         dom.on('mouseenter', (evt1, elem) => {
 
 
