@@ -4547,7 +4547,6 @@ function testDocApi() {
       };
       await axios.patch(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, {delta}, chimpy);
       await flushAuth();
-      resp = await axios.get(`${homeUrl}/api/docs/${docIds.Timesheets}/access`, chimpy);
       resp = await axios.post(url, query, kiwi);
       assert.equal(resp.status, 200);
 
@@ -4598,12 +4597,11 @@ function testDocApi() {
     await check(false, '');
 
     // rejected because deletes/updates/... can't be nested within a select
-    await check(false, 'delete from Table1 where id in (select id from Table1)');
-    await check(false, 'update Table1 set A = ?', 'test');
-    await check(false, 'pragma application_id');
-    await check(false, 'pragma application_id = 1');
-    await check(false, 'create table bar(x, y)');
-    await check(false, 'attach database \'test\' AS test');
+    await check(false, "delete from Table1 where id in (select id from Table1) and 'selecty' = 'selecty'");
+    await check(false, "update Table1 set A = ? where 'selecty' = 'selecty'", 'test');
+    await check(false, "pragma data_store_directory = 'selecty'");
+    await check(false, "create table selecty(x, y)");
+    await check(false, "attach database 'selecty' AS test");
 
     // rejected because ";" can't be nested
     await check(false, 'select * from Table1; delete from Table1');

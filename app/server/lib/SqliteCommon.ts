@@ -12,6 +12,16 @@ import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Statement {}
 
+// Some facts about the wrapper implementation.
+export interface MinDBOptions {
+  // is interruption implemented?
+  canInterrupt: boolean;
+
+  // Do all methods apart from exec() process at most one
+  // statement?
+  bindableMethodsProcessOneStatement: boolean;
+}
+
 export interface MinDB {
   // This method is expected to be able to handle multiple
   // semicolon-separated statements, as for sqlite3_exec:
@@ -41,6 +51,11 @@ export interface MinDB {
    * Stop all current queries.
    */
   interrupt?(): Promise<void>;
+
+  /**
+   * Get some facts about the wrapper.
+   */
+  getOptions?(): MinDBOptions;
 }
 
 export interface MinRunResult {

@@ -1525,7 +1525,7 @@ export class DocWorkerApi {
 
   private async _runSql(activeDoc: ActiveDoc, req: RequestWithLogin, res: Response,
       options: Types.SqlPost) {
-    if (!await activeDoc.canDownload(docSessionFromRequest(req))) {
+    if (!await activeDoc.canCopyEverything(docSessionFromRequest(req))) {
       throw new ApiError('insufficient document access', 403);
     }
     const statement = options.sql;
@@ -1533,11 +1533,31 @@ export class DocWorkerApi {
     if (!(statement.toLowerCase().includes('select'))) {
       throw new ApiError('only select statements are supported', 400);
     }
+    const sqlOptions = activeDoc.docStorage.getOptions();
+    if (!sqlOptions?.canInterrupt || !sqlOptions?.bindableMethodsProcessOneStatement) {
+      throw new ApiError('The available SQLite wrapper is not adequate', 500);
+    }
     const timeout =
         Math.max(0, Math.min(MAX_CUSTOM_SQL_MSEC,
                              optIntegerParam(options.timeout) || MAX_CUSTOM_SQL_MSEC));
     // Wrap in a select to commit to the SELECT branch of SQLite
     // grammar. Note ; isn't a problem.
+    //
+    // The underlying SQLite functions used will only process the
+    // first statement in the supplied text. For node-sqlite3, the
+    // remainder is placed in a "tail string" ignored by that library.
+    // So a Robert'); DROP TABLE Students;-- style attack isn't applicable.
+    //
+    // Since Grist is used with multiple SQLite wrappers, not just
+    // node-sqlite3, we have added a bindableMethodsProcessOneStatement
+    // flag that will need adding for each wrapper, and this endpoint
+    // will not operate unless that flag is set to true.
+    //
+    // The text is wrapped in select * from (USER SUPPLIED TEXT) which
+    // puts SQLite unconditionally onto the SELECT branch of its
+    // grammar. It is straightforward to break out of such a wrapper
+    // with multiple statements, but again, only the first statement
+    // is processed.
     const wrappedStatement = `select * from (${statement})`;
     const interrupt = setTimeout(async () => {
       await activeDoc.docStorage.interrupt();

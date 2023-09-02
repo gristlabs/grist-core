@@ -116,7 +116,7 @@ export interface SqlPost {
   args?: any[];      // (It would be nice to support named parameters, but
                      // that feels tricky currently with node-sqlite3)
   timeout?: number;  // In msecs. Can only be reduced from server default,
-                     // not increased. Note timeout of a query can affect
-                     // other queries on same document, because of
+                     // not increased. Note timeout of a query could affect
+                     // other queued queries on same document, because of
                      // limitations of API node-sqlite3 exposes.
 }
