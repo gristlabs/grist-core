@@ -983,7 +983,7 @@ export class DocWorkerApi {
     // (Requires a special permit.)
     this._app.post('/api/docs/:docId/assign', canEdit, throttled(async (req, res) => {
       const docId = getDocId(req);
-      const group = optStringParam(req.query.grou, 'group');
+      const group = optStringParam(req.query.group, 'group');
       if (group !== undefined && req.specialPermit?.action === 'assign-doc') {
         if (group.trim() === '') {
           await this._docWorkerMap.removeDocGroup(docId);
