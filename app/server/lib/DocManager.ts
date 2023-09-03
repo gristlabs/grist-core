@@ -201,7 +201,7 @@ export class DocManager extends EventEmitter {
     const accessId = this.makeAccessId(userId);
     const docSession = makeExceptionalDocSession('nascent', {browserSettings});
     const register = async (docId: string, uploadBaseFilename: string) => {
-      if (!workspaceId || !this._homeDbManager) { return; }
+      if (workspaceId === undefined || !this._homeDbManager) { return; }
       const queryResult = await this._homeDbManager.addDocument(
         {userId},
         workspaceId,

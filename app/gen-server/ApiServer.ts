@@ -492,7 +492,7 @@ export class ApiServer {
     // Sets active user for active org
     this._app.post('/api/session/access/active', expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
-      let domain = optStringParam(req.body.org);
+      let domain = optStringParam(req.body.org, 'org');
       if (!domain || domain === 'current') {
         domain = getOrgFromRequest(mreq) || '';
       }

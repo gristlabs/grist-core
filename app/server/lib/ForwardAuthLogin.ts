@@ -71,7 +71,7 @@ export async function getForwardAuthLoginSystem(): Promise<GristLoginSystem|unde
             }
             await setUserInSession(req, gristServer, profile);
             const target = new URL(gristServer.getHomeUrl(req));
-            const next = optStringParam(req.query.next);
+            const next = optStringParam(req.query.next, 'next');
             if (next) {
               target.pathname = next;
             }

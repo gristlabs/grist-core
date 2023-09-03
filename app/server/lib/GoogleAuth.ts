@@ -91,7 +91,7 @@ export async function googleAuthTokenMiddleware(
   res: express.Response,
   next: express.NextFunction) {
   // If access token is in place, proceed
-  if (!optStringParam(req.query.code)) {
+  if (!optStringParam(req.query.code, 'code')) {
     throw new ApiError("Google Auth endpoint requires a code parameter in the query string", 400);
   } else {
     try {
@@ -134,11 +134,11 @@ export function addGoogleAuthEndpoint(
     // our request. It is encrypted (with CLIENT_SECRET) and signed with redirect url.
     // In state query parameter we will receive an url that was send as part of the request to Google.
 
-    if (optStringParam(req.query.code)) {
+    if (optStringParam(req.query.code, 'code')) {
       log.debug("GoogleAuth - response from Google with valid code");
       messagePage(req, res, { code: stringParam(req.query.code, 'code'),
                               origin: stringParam(req.query.state, 'state') });
-    } else if (optStringParam(req.query.error)) {
+    } else if (optStringParam(req.query.error, 'error')) {
       log.debug("GoogleAuth - response from Google with error code", stringParam(req.query.error, 'error'));
       if (stringParam(req.query.error, 'error') === "access_denied") {
         messagePage(req, res, { error: stringParam(req.query.error, 'error'),

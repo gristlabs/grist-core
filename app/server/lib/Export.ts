@@ -113,7 +113,7 @@ export interface DownloadOptions extends ExportParameters {
  */
 export function parseExportParameters(req: express.Request): ExportParameters {
   const tableId = stringParam(req.query.tableId, 'tableId');
-  const viewSectionId = optIntegerParam(req.query.viewSection);
+  const viewSectionId = optIntegerParam(req.query.viewSection, 'viewSection');
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
   const linkingFilter: FilterColValues = optJsonParam(req.query.linkingFilter, null);

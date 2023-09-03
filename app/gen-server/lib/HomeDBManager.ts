@@ -1807,6 +1807,9 @@ export class HomeDBManager extends EventEmitter {
         return queryResult;
       }
       const workspace: Workspace = queryResult.data;
+      if (workspace.removedAt) {
+        throw new ApiError('Cannot add document to a deleted workspace', 400);
+      }
       await this._checkRoomForAnotherDoc(workspace, manager);
       // Create a new document.
       const doc = new Document();

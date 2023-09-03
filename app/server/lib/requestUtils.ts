@@ -256,14 +256,25 @@ export function getDocId(req: Request) {
   return mreq.docAuth.docId;
 }
 
-export function optStringParam(p: any): string|undefined {
-  if (typeof p === 'string') { return p; }
-  return undefined;
+export interface StringParamOptions {
+  allowed?: readonly string[];
+  /* Defaults to true. */
+  allowEmpty?: boolean;
 }
 
-export function stringParam(p: any, name: string, allowed?: readonly string[]): string {
+export function optStringParam(p: any, name: string, options: StringParamOptions = {}): string|undefined {
+  if (p === undefined) { return p; }
+
+  return stringParam(p, name, options);
+}
+
+export function stringParam(p: any, name: string, options: StringParamOptions = {}): string {
+  const {allowed, allowEmpty = true} = options;
   if (typeof p !== 'string') {
     throw new ApiError(`${name} parameter should be a string: ${p}`, 400);
+  }
+  if (!allowEmpty && p === '') {
+    throw new ApiError(`${name} parameter cannot be empty`, 400);
   }
   if (allowed && !allowed.includes(p)) {
     throw new ApiError(`${name} parameter ${p} should be one of ${allowed}`, 400);
@@ -271,8 +282,14 @@ export function stringParam(p: any, name: string, allowed?: readonly string[]): 
   return p;
 }
 
+export function optIntegerParam(p: any, name: string): number|undefined {
+  if (p === undefined) { return p; }
+
+  return integerParam(p, name);
+}
+
 export function integerParam(p: any, name: string): number {
-  if (typeof p === 'number') { return Math.floor(p); }
+  if (typeof p === 'number' && !Number.isNaN(p)) { return Math.floor(p); }
   if (typeof p === 'string') {
     const result = parseInt(p, 10);
     if (isNaN(result)) {
@@ -281,12 +298,6 @@ export function integerParam(p: any, name: string): number {
     return result;
   }
   throw new ApiError(`${name} parameter should be an integer: ${p}`, 400);
-}
-
-export function optIntegerParam(p: any): number|undefined {
-  if (typeof p === 'number') { return Math.floor(p); }
-  if (typeof p === 'string') { return parseInt(p, 10); }
-  return undefined;
 }
 
 export function optJsonParam(p: any, defaultValue: any): any {
