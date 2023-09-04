@@ -97,12 +97,34 @@ export class AppSettings {
   }
 
   /**
+   * As for readInt() but fail if nothing was found.
+   */
+  public requireInt(query: AppSettingQuery): number {
+    const result = this.readInt(query);
+    if (result === undefined) {
+      throw new Error(`missing environment variable: ${query.envVar}`);
+    }
+    return result;
+  }
+
+  /**
    * As for read() but type (and store, and report) the result as
    * a boolean.
    */
   public readBool(query: AppSettingQuery): boolean|undefined {
     this.readString(query);
     const result = this.getAsBool();
+    this._value = result;
+    return result;
+  }
+
+  /**
+   * As for read() but type (and store, and report) the result as
+   * an integer (well, a number).
+   */
+  public readInt(query: AppSettingQuery): number|undefined {
+    this.readString(query);
+    const result = this.getAsInt();
     this._value = result;
     return result;
   }

@@ -12,20 +12,50 @@ import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Statement {}
 
+// Some facts about the wrapper implementation.
+export interface MinDBOptions {
+  // is interruption implemented?
+  canInterrupt: boolean;
+
+  // Do all methods apart from exec() process at most one
+  // statement?
+  bindableMethodsProcessOneStatement: boolean;
+}
+
 export interface MinDB {
+  // This method is expected to be able to handle multiple
+  // semicolon-separated statements, as for sqlite3_exec:
+  //   https://www.sqlite.org/c3ref/exec.html
   exec(sql: string): Promise<void>;
+
+  // For all these methods, sql should ultimately be passed
+  // to sqlite3_prepare_v2 or later, and any tail text ignored after
+  // the first complete statement, so only the first statement is
+  // used if there are multiple.
+  //   https://www.sqlite.org/c3ref/prepare.html
   run(sql: string, ...params: any[]): Promise<MinRunResult>;
   get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
   prepare(sql: string, ...params: any[]): Promise<PreparedStatement>;
   runAndGetId(sql: string, ...params: any[]): Promise<number>;
-  close(): Promise<void>;
   allMarshal(sql: string, ...params: any[]): Promise<Buffer>;
+
+  close(): Promise<void>;
 
   /**
    * Limit the number of ATTACHed databases permitted.
    */
   limitAttach(maxAttach: number): Promise<void>;
+
+  /**
+   * Stop all current queries.
+   */
+  interrupt?(): Promise<void>;
+
+  /**
+   * Get some facts about the wrapper.
+   */
+  getOptions?(): MinDBOptions;
 }
 
 export interface MinRunResult {

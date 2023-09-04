@@ -31,6 +31,7 @@ import {ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
 import chunk = require('lodash/chunk');
 import cloneDeep = require('lodash/cloneDeep');
 import groupBy = require('lodash/groupBy');
+import { MinDBOptions } from './SqliteCommon';
 
 
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)
@@ -1417,6 +1418,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     if (result.changes > 0) {
       await this._markAsChanged(Promise.resolve());
     }
+  }
+
+  public interrupt(): Promise<void> {
+    return this._getDB().interrupt();
+  }
+
+  public getOptions(): MinDBOptions|undefined {
+    return this._getDB().getOptions();
   }
 
   public all(sql: string, ...args: any[]): Promise<ResultRow[]> {

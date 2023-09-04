@@ -32,6 +32,7 @@ import {
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
 import {ActiveDoc, colIdToRef as colIdToReference, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {
   assertAccess,
@@ -96,16 +97,25 @@ const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
 // then the _dailyUsage cache may become unreliable and users may be able to exceed their allocated requests.
 const MAX_ACTIVE_DOCS_USAGE_CACHE = 1000;
 
+// Maximum duration of a call to /sql. Does not apply to internal calls to SQLite.
+const MAX_CUSTOM_SQL_MSEC = appSettings.section('integrations')
+  .section('sql').flag('timeout').requireInt({
+    envVar: 'GRIST_SQL_TIMEOUT_MSEC',
+    defaultValue: 1000,
+  });
+
 type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) => Promise<void>;
 
 // Schema validators for api endpoints that creates or updates records.
 const {
   RecordsPatch, RecordsPost, RecordsPut,
   ColumnsPost, ColumnsPatch, ColumnsPut,
+  SqlPost,
   TablesPost, TablesPatch,
 } = t.createCheckers(DocApiTypesTI, GristDataTI);
 
-for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch, TablesPost, TablesPatch]) {
+for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch,
+                       SqlPost, TablesPost, TablesPatch]) {
   checker.setReportedPath("body");
 }
 
@@ -517,6 +527,27 @@ export class DocWorkerApi {
         res.json({records});
       })
     );
+
+    // A GET /sql endpoint that takes a query like ?q=select+*+from+Table1
+    // Not very useful, apart from testing - see the POST endpoint for
+    // serious use.
+    // If SQL statements that modify the DB are ever supported, they should
+    // not be permitted by this endpoint.
+    this._app.get(
+      '/api/docs/:docId/sql', canView,
+      withDoc(async (activeDoc, req, res) => {
+        const sql = stringParam(req.query.q, 'q');
+        await this._runSql(activeDoc, req, res, { sql });
+      }));
+
+    // A POST /sql endpoint, accepting a body like:
+    // { "sql": "select * from Table1 where name = ?", "args": ["Paul"] }
+    // Only SELECT statements are currently supported.
+    this._app.post(
+      '/api/docs/:docId/sql', canView, validate(SqlPost),
+      withDoc(async (activeDoc, req, res) => {
+        await this._runSql(activeDoc, req, res, req.body);
+      }));
 
     // Create columns in a table, given as records of the _grist_Tables_column metatable.
     this._app.post('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPost),
@@ -1501,6 +1532,73 @@ export class DocWorkerApi {
     }
     await this._dbManager.flushSingleDocAuthCache(scope, docId);
     await this._docManager.interruptDocClients(docId);
+  }
+
+  private async _runSql(activeDoc: ActiveDoc, req: RequestWithLogin, res: Response,
+      options: Types.SqlPost) {
+    if (!await activeDoc.canCopyEverything(docSessionFromRequest(req))) {
+      throw new ApiError('insufficient document access', 403);
+    }
+    const statement = options.sql;
+    // A very loose test, just for early error message
+    if (!(statement.toLowerCase().includes('select'))) {
+      throw new ApiError('only select statements are supported', 400);
+    }
+    const sqlOptions = activeDoc.docStorage.getOptions();
+    if (!sqlOptions?.canInterrupt || !sqlOptions?.bindableMethodsProcessOneStatement) {
+      throw new ApiError('The available SQLite wrapper is not adequate', 500);
+    }
+    const timeout =
+        Math.max(0, Math.min(MAX_CUSTOM_SQL_MSEC,
+                             optIntegerParam(options.timeout) || MAX_CUSTOM_SQL_MSEC));
+    // Wrap in a select to commit to the SELECT branch of SQLite
+    // grammar. Note ; isn't a problem.
+    //
+    // The underlying SQLite functions used will only process the
+    // first statement in the supplied text. For node-sqlite3, the
+    // remainder is placed in a "tail string" ignored by that library.
+    // So a Robert'); DROP TABLE Students;-- style attack isn't applicable.
+    //
+    // Since Grist is used with multiple SQLite wrappers, not just
+    // node-sqlite3, we have added a bindableMethodsProcessOneStatement
+    // flag that will need adding for each wrapper, and this endpoint
+    // will not operate unless that flag is set to true.
+    //
+    // The text is wrapped in select * from (USER SUPPLIED TEXT) which
+    // puts SQLite unconditionally onto the SELECT branch of its
+    // grammar. It is straightforward to break out of such a wrapper
+    // with multiple statements, but again, only the first statement
+    // is processed.
+    const wrappedStatement = `select * from (${statement})`;
+    const interrupt = setTimeout(async () => {
+      await activeDoc.docStorage.interrupt();
+    }, timeout);
+    try {
+      const records = await activeDoc.docStorage.all(wrappedStatement,
+                                                     ...(options.args || []));
+      res.status(200).json({
+        statement,
+        records: records.map(
+          rec => ({
+            fields: rec,
+          })
+        ),
+      });
+    } catch (e) {
+      if (e?.code === 'SQLITE_INTERRUPT') {
+        res.status(400).json({
+          error: "a slow statement resulted in a database interrupt",
+        });
+      } else if (e?.code === 'SQLITE_ERROR') {
+        res.status(400).json({
+          error: e?.message,
+        });
+      } else {
+        throw e;
+      }
+    } finally {
+      clearTimeout(interrupt);
+    }
   }
 }
 
