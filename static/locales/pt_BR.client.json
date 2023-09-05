@@ -522,7 +522,10 @@
         "Update Original": "Atualizar o Original",
         "Workspace": "Área de Trabalho",
         "You do not have write access to the selected workspace": "Você não tem acesso de gravação na área de trabalho selecionada",
-        "You do not have write access to this site": "Você não tem acesso de gravação a este site"
+        "You do not have write access to this site": "Você não tem acesso de gravação a este site",
+        "Download full document and history": "Baixe documento completo e histórico",
+        "Remove all data but keep the structure to use as a template": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
+        "Remove document history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do arquivo)"
     },
     "NTextBox": {
         "false": "falso",
@@ -659,7 +662,8 @@
         "Show in folder": "Mostrar na pasta",
         "Unsaved": "Não Salvo",
         "Work on a Copy": "Trabalho em uma cópia",
-        "Share": "Compartilhar"
+        "Share": "Compartilhar",
+        "Download...": "Baixar..."
     },
     "SiteSwitcher": {
         "Create new team site": "Criar novo site de equipe",

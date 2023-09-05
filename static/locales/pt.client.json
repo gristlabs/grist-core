@@ -785,7 +785,8 @@
         "Home Page": "Página inicial",
         "Legacy": "Legado",
         "Personal Site": "Site pessoal",
-        "Team Site": "Site da Equipa"
+        "Team Site": "Site da Equipa",
+        "Grist Templates": "Modelos Grist"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Este site da equipa está suspenso. Os documentos podem ser lidos, mas não modificados."

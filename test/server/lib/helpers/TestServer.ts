@@ -137,7 +137,6 @@ export class TestServer {
       headers: {Authorization: `Bearer api_key_for_${user}`},
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
-      logger: log
     });
   }
 

@@ -914,6 +914,11 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.canCopyEverything(docSession);
   }
 
+  // Check if user has rights to read everything in this doc.
+  public async canCopyEverything(docSession: OptDocSession) {
+    return this._granularAccess.canCopyEverything(docSession);
+  }
+
   // Check if it is appropriate for the user to be treated as an owner of
   // the document for granular access purposes when in "prefork" mode
   // (meaning a document has been opened with the intent to fork it, but

@@ -21,6 +21,7 @@ save_packages:
 
 clean_packages:
 	rm -rf _build/packages
+	rm -rf _build/pyodide/grist-packages
 
 setup:
 	./setup.sh

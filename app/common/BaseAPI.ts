@@ -2,13 +2,10 @@ import {ApiError, ApiErrorDetails} from 'app/common/ApiError';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {tbind} from './tbind';
 
-export type ILogger = Pick<Console, 'log'|'debug'|'info'|'warn'|'error'>;
-
 export interface IOptions {
   headers?: Record<string, string>;
   fetch?: typeof fetch;
   newFormData?: () => FormData;  // constructor for FormData depends on platform.
-  logger?: ILogger;
   extraParameters?: Map<string, string>;  // if set, add query parameters to requests.
 }
 
@@ -54,13 +51,11 @@ export class BaseAPI {
   protected fetch: typeof fetch;
   protected newFormData: () => FormData;
   private _headers: Record<string, string>;
-  private _logger: ILogger;
   private _extraParameters?: Map<string, string>;
 
   constructor(options: IOptions = {}) {
     this.fetch = options.fetch || tbind(window.fetch, window);
     this.newFormData = options.newFormData || (() => new FormData());
-    this._logger = options.logger || console;
     this._headers = {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
@@ -116,7 +111,6 @@ export class BaseAPI {
       }
     }
     const resp = await this.fetch(input, init);
-    this._logger.log("Fetched", input);
     if (resp.status !== 200) {
       const body = await resp.json().catch(() => ({}));
       throwApiError(input, resp, body);

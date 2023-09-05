@@ -260,7 +260,10 @@
         "Replacing the original requires editing rights on the original document.": "Для замены оригинала требуются права на редактирование исходного документа.",
         "To save your changes, please sign up, then reload this page.": "Чтобы сохранить изменения, пожалуйста зарегистрируйтесь, а затем перезагрузите эту страницу.",
         "You do not have write access to the selected workspace": "У вас нет прав на запись в выбранное рабочее пространство",
-        "You do not have write access to this site": "У вас нет права записи для этого сайта"
+        "You do not have write access to this site": "У вас нет права записи для этого сайта",
+        "Remove all data but keep the structure to use as a template": "Удалить все данные, но сохранить структуру для использования в качестве шаблона.",
+        "Download full document and history": "Скачать полный документ и историю",
+        "Remove document history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)"
     },
     "ShareMenu": {
         "Back to Current": "Вернуться к текущему",
@@ -282,7 +285,8 @@
         "Send to Google Drive": "Отправить в Google Диск",
         "Save Document": "Сохранить документ",
         "Work on a Copy": "Работа над копией",
-        "Share": "Поделиться"
+        "Share": "Поделиться",
+        "Download...": "Скачать..."
     },
     "SortConfig": {
         "Search Columns": "Поиск по столбцам",

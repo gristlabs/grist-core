@@ -72,7 +72,7 @@ import {timeFormat} from 'app/common/timeFormat';
 import {create} from 'app/server/lib/create';
 import * as docUtils from 'app/server/lib/docUtils';
 import log from 'app/server/lib/log';
-import {MinDB, MinRunResult, PreparedStatement, ResultRow,
+import {MinDB, MinDBOptions, MinRunResult, PreparedStatement, ResultRow,
         SqliteVariant, Statement} from 'app/server/lib/SqliteCommon';
 import {NodeSqliteVariant} from 'app/server/lib/SqliteNode';
 import assert from 'assert';
@@ -256,6 +256,14 @@ export class SQLiteDB implements ISQLiteDB {
   private _needVacuum: boolean = false;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
+  }
+
+  public async interrupt(): Promise<void> {
+    return this._db.interrupt?.();
+  }
+
+  public getOptions(): MinDBOptions|undefined {
+    return this._db.getOptions?.();
   }
 
   public async all(sql: string, ...args: any[]): Promise<ResultRow[]> {

@@ -84,6 +84,12 @@ export const TablesPatch = t.iface([], {
   "tables": t.tuple("RecordWithStringId", t.rest(t.array("RecordWithStringId"))),
 });
 
+export const SqlPost = t.iface([], {
+  "sql": "string",
+  "args": t.opt(t.array("any")),
+  "timeout": t.opt("number"),
+});
+
 const exportedTypeSuite: t.ITypeSuite = {
   NewRecord,
   NewRecordWithStringId,
@@ -101,5 +107,6 @@ const exportedTypeSuite: t.ITypeSuite = {
   TablePost,
   TablesPost,
   TablesPatch,
+  SqlPost,
 };
 export default exportedTypeSuite;

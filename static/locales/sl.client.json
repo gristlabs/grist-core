@@ -1,0 +1,259 @@
+{
+    "AccessRules": {
+        "Delete Table Rules": "Brisanje pravil tabele",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Urednikom omogočite urejanje strukture (npr. spreminjanje in brisanje tabel, stolpcev, postavitev) in pisanje formul, ki omogočajo dostop do vseh podatkov ne glede na omejitve branja.",
+        "Default Rules": "Privzeta pravila",
+        "Invalid": "Neveljavno",
+        "Lookup Column": "Stolpec za iskanje",
+        "Permission to access the document in full when needed": "Dovoljenje za dostop do celotnega dokumenta, kadar je to potrebno.",
+        "Permission to view Access Rules": "Dovoljenje za ogled pravil za dostop",
+        "Permissions": "Dovoljenja",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Odstranitev stolpca {{- colId }} iz pravil {{- tableId }}",
+        "Remove {{- tableId }} rules": "Odstranitev pravil {{- tableId }}",
+        "Remove {{- name }} user attribute": "Odstranitev uporabniškega atributa {{- name }}",
+        "Reset": "Ponastavitev",
+        "Rules for table ": "Pravila za mizo ",
+        "Save": "Shrani",
+        "Saved": "Shranjeno",
+        "Special Rules": "Posebna pravila",
+        "Type a message...": "Vnesite sporočilo…",
+        "User Attributes": "Atributi uporabnika",
+        "View As": "Poglej kot",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri dodajanju pravil za tabele samodejno dodajte pravilo, ki lastniku omogoča popoln dostop.",
+        "Permission to edit document structure": "Dovoljenje za urejanje strukture dokumenta",
+        "Everyone": "Vsi",
+        "Everyone Else": "Vsi ostali",
+        "Checking...": "Preverjanje…",
+        "Condition": "Stanje",
+        "Enter Condition": "Vnesite pogoj",
+        "Add Column Rule": "Dodajanje pravila za stolpce",
+        "Add Default Rule": "Dodaj privzeto pravilo",
+        "Add Table Rules": "Dodajanje pravil tabele",
+        "Add User Attributes": "Dodajanje atributov uporabnika",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Vsakomur omogočite kopiranje celotnega dokumenta ali pa si ga oglejte v celoti v načinu fiddle.\nUporabno za primere in predloge, ne pa za občutljive podatke.",
+        "Allow everyone to view Access Rules.": "Vsakomur omogočite ogled pravil za dostop.",
+        "Attribute name": "Ime atributa",
+        "Attribute to Look Up": "Atribut za iskanje"
+    },
+    "ACUserManager": {
+        "We'll email an invite to {{email}}": "Vabilo bomo poslali po e-pošti {{email}}",
+        "Enter email address": "Vnesite e-poštni naslov",
+        "Invite new member": "Povabite novega člana"
+    },
+    "AccountPage": {
+        "API": "API",
+        "Account settings": "Nastavitve računa",
+        "Allow signing in to this account with Google": "Omogočanje prijave v ta račun z Googlom",
+        "Change Password": "Sprememba gesla",
+        "Email": "E-naslov",
+        "Name": "Ime",
+        "Names only allow letters, numbers and certain special characters": "Imena dovoljujejo samo črke, številke in nekatere posebne znake.",
+        "Password & Security": "Geslo in varnost",
+        "Save": "Shrani",
+        "Theme": "Tema",
+        "Two-factor authentication": "Preverjanje pristnosti z dvema dejavnikoma",
+        "Language": "Jezik",
+        "Edit": "Uredi",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Dvostopenjsko preverjanje pristnosti je dodatna stopnja varnosti za vaš račun Grist, ki zagotavlja, da ste edina oseba, ki lahko dostopa do vašega računa, tudi če nekdo pozna vaše geslo.",
+        "Login Method": "Metoda prijave",
+        "API Key": "API ključ"
+    },
+    "AccountWidget": {
+        "Access Details": "Podrobnosti o dostopu",
+        "Accounts": "Računi",
+        "Add Account": "Dodajanje računa",
+        "Document Settings": "Nastavitve dokumentov",
+        "Manage Team": "Upravljanje ekipe",
+        "Pricing": "Oblikovanje cen",
+        "Profile Settings": "Nastavitve profila",
+        "Sign Out": "Odjavite se",
+        "Sign in": "Prijavite se",
+        "Switch Accounts": "Preklop računov",
+        "Toggle Mobile Mode": "Preklapljanje mobilnega načina",
+        "Activation": "Aktivacija",
+        "Billing Account": "Račun za zaračunavanje",
+        "Support Grist": "Podpora Grist",
+        "Upgrade Plan": "Načrt nadgradnje",
+        "Sign In": "Prijavite se",
+        "Use This Template": "Uporabite to predlogo",
+        "Sign Up": "Prijava"
+    },
+    "ViewAsDropdown": {
+        "View As": "Poglej kot",
+        "Users from table": "Uporabniki iz tabele"
+    },
+    "ActionLog": {
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Stolpec {{colId}} je bil pozneje odstranjen v akciji #{{action.actionNum}}",
+        "Action Log failed to load": "Dnevnik ukrepov se ni uspel naložiti",
+        "This row was subsequently removed in action {{action.actionNum}}": "Ta vrstica je bila pozneje odstranjena z akcijo {{action.actionNum}}"
+    },
+    "ApiKey": {
+        "Remove": "Odstrani",
+        "Create": "Ustvari",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Želite izbrisati ključ API. To bo povzročilo zavrnitev vseh prihodnjih zahtevkov, ki bodo uporabljali ta ključ API. Ali še vedno želite izbrisati?",
+        "Click to show": "Kliknite za prikaz",
+        "Remove API Key": "Odstranite API ključ",
+        "This API key can be used to access this account anonymously via the API.": "Ta API ključ  lahko uporabite za anonimen dostop do tega računa prek vmesnika API."
+    },
+    "App": {
+        "Description": "Opis",
+        "Key": "Ključ",
+        "Memory Error": "Napaka pomnilnika"
+    },
+    "CellContextMenu": {
+        "Delete {{count}} columns_one": "Brisanje stolpca",
+        "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
+        "Delete {{count}} rows_one": "Brisanje vrstice",
+        "Delete {{count}} rows_other": "Brisanje vrstic {{count}}",
+        "Filter by this value": "Filtriranje po tej vrednosti",
+        "Copy anchor link": "Kopiranje sidrne povezave",
+        "Duplicate rows_one": "Podvoji vrstico",
+        "Duplicate rows_other": "Podvoji vrstice",
+        "Insert column to the right": "Vstavljanje stolpca na desno",
+        "Insert column to the left": "Vstavljanje stolpca na levo",
+        "Insert row": "Vstavljanje vrstice",
+        "Insert row above": "Vstavite  vrstico zgoraj",
+        "Insert row below": "Vstavite  vrstico spodaj",
+        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Reset {{count}} columns_other": "Ponastavitev stolpcev {{count}}",
+        "Reset {{count}} entire columns_one": "Ponastavitev celotnega stolpca",
+        "Reset {{count}} entire columns_other": "Ponastavitev  {{count}} stolpcev",
+        "Comment": "Komentar:",
+        "Copy": "Kopiraj",
+        "Cut": "Izreži",
+        "Paste": "Prilepi"
+    },
+    "DocMenu": {
+        "Document will be moved to Trash.": "Dokument se bo premaknil v koš.",
+        "Trash": "Koš",
+        "Rename": "Preimenuj",
+        "Delete": "Izbriši",
+        "Delete Forever": "Izbriši za vedno",
+        "Trash is empty.": "Koš je prazen.",
+        "You may delete a workspace forever once it has no documents in it.": "Delovni prostor lahko izbrišete za vedno, ko v njem ni več dokumentov.",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Dokumenti ostanejo v košu 30 dni, nato pa se trajno izbrišejo.",
+        "Deleted {{at}}": "Izbrisano {{at}}",
+        "Delete {{name}}": "Izbriši {{name}}",
+        "Document will be permanently deleted.": "Dokument bo trajno izbrisan.",
+        "Permanently Delete \"{{name}}\"?": "Trajno izbrisati \"{{name}}\"?",
+        "(The organization needs a paid plan)": "(Organizacija potrebuje plačljiv načrt)",
+        "Access Details": "Podrobnosti o dostopu",
+        "All Documents": "Vsi dokumenti",
+        "By Date Modified": "Po datumu spremembe",
+        "By Name": "Po imenu",
+        "Current workspace": "Trenutni delovni prostor",
+        "Discover More Templates": "Odkrijte več predlog",
+        "Edited {{at}}": "Urejeno {{at}}",
+        "Examples and Templates": "Primeri in predloge",
+        "Featured": "Priporočeni",
+        "Manage Users": "Upravljanje uporabnikov",
+        "More Examples and Templates": "Več primerov in predlog"
+    },
+    "GridViewMenus": {
+        "Rename column": "Preimenovanje stolpca",
+        "Delete {{count}} columns_one": "Brisanje stolpca",
+        "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}"
+    },
+    "HomeLeftPane": {
+        "Trash": "Koš",
+        "Rename": "Preimenovanje",
+        "Delete": "Izbriši",
+        "Delete {{workspace}} and all included documents?": "Izbriši {{workspace}} in vse vključene dokumente?"
+    },
+    "OnBoardingPopups": {
+        "Finish": "Zaključek",
+        "Next": "Naslednji"
+    },
+    "Pages": {
+        "Delete": "Izbriši",
+        "Delete data and this page.": "Izbriši podatke in to stran."
+    },
+    "RowContextMenu": {
+        "Delete": "Izbriši"
+    },
+    "Tools": {
+        "Delete": "Izbriši",
+        "Delete document tour?": "Izbriši ogled dokumenta?"
+    },
+    "pages": {
+        "Rename": "Preimenovanje"
+    },
+    "search": {
+        "Find Next ": "Poišči naslednjega "
+    },
+    "AddNewButton": {
+        "Add New": "Dodaj novo"
+    },
+    "DataTables": {
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbrišite podatke {{formattedTableName}} in jih odstranite z vseh strani?",
+        "Click to copy": "Kliknite za kopiranje",
+        "Duplicate Table": "Podvojena tabela",
+        "Table ID copied to clipboard": "ID tabele kopiran v odložišče",
+        "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta"
+    },
+    "ViewLayoutMenu": {
+        "Delete record": "Brisanje zapisa",
+        "Delete widget": "Izbriši gradnik"
+    },
+    "FieldEditor": {
+        "Unable to finish saving edited cell": "Ni mogoče dokončati shranjevanja urejene celice"
+    },
+    "AppHeader": {
+        "Home Page": "Domača stran",
+        "Personal Site": "Osebna stran",
+        "Team Site": "Spletna stran ekipe",
+        "Grist Templates": "Grist predloge"
+    },
+    "ChartView": {
+        "Pick a column": "Izberite stolpec"
+    },
+    "ColumnFilterMenu": {
+        "All": "Vse",
+        "All Except": "Vse razen",
+        "All Shown": "Vse prikazano",
+        "Future Values": "Prihodnje vrednosti",
+        "No matching values": "Ni ustreznih vrednosti",
+        "None": "Ni",
+        "Min": "Min",
+        "Max": "Max",
+        "Start": "Začetek",
+        "End": "Konec",
+        "Other Matching": "Drugo ujemanje",
+        "Other Non-Matching": "Drugo neujemanje",
+        "Other Values": "Druge vrednosti",
+        "Others": "Drugo",
+        "Search": "Iskanje",
+        "Search values": "Iskanje vrednosti"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (neobvezno)",
+        "Add": "Dodaj",
+        "Enter Custom URL": "Vnesite URL po meri",
+        "Full document access": "Dostop do celotnega dokumenta",
+        "Open configuration": "Odprri konfiguracijo",
+        "Pick a column": "Izberite stolpec",
+        "Pick a {{columnType}} column": "Izberite stolpec {{columnType}}",
+        "Read selected table": "Preberite izbrano tabelo",
+        "Learn more about custom widgets": "Preberite več o gradnikih po meri"
+    },
+    "DocHistory": {
+        "Activity": "Dejavnost",
+        "Beta": "Beta",
+        "Compare to Current": "Primerjava s trenutnim",
+        "Compare to Previous": "Primerjava s prejšnjimi",
+        "Snapshots": "Posnetki",
+        "Snapshots are unavailable.": "Posnetki niso na voljo."
+    },
+    "ExampleInfo": {
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Oglejte si sorodno navodilo za povezovanje podatkov in ustvarjanje visokoproduktivnih postavitev."
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Dostop zavrnjen",
+        "Code View is available only when you have full document access.": "Pogled kode je na voljo le, če imate popoln dostop do dokumenta."
+    },
+    "ColorSelect": {
+        "Apply": "Uporabi",
+        "Cancel": "Prekliči",
+        "Default cell style": "Privzet slog celic"
+    }
+}
