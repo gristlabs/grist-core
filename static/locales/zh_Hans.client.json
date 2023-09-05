@@ -366,7 +366,10 @@
         "Update Original": "更新原件",
         "Workspace": "工作区",
         "You do not have write access to the selected workspace": "您没有对所选工作区的写入权限",
-        "You do not have write access to this site": "您没有对此网站的写入权限"
+        "You do not have write access to this site": "您没有对此网站的写入权限",
+        "Remove all data but keep the structure to use as a template": "删除所有数据，但保留结构以用作模板",
+        "Remove document history (can significantly reduce file size)": "删除文件历史记录（可大幅减少文件大小）",
+        "Download full document and history": "下载完整文档和历史记录"
     },
     "NotifyUI": {
         "Go to your free personal site": "转到您的免费个人网站",
@@ -583,7 +586,7 @@
         "Document ID copied to clipboard": "文档 ID 已复制到剪贴板",
         "Ok": "好的",
         "Manage Webhooks": "管理 Webhooks",
-        "Webhooks": "Webhooks"
+        "Webhooks": "网络钩子"
     },
     "DocumentUsage": {
         "Attachments Size": "附件大小",
@@ -706,7 +709,18 @@
         "{{count}} unmatched field_one": "{{count}} 个不匹配字段",
         "{{count}} unmatched field in import_one": "导入中 {{count}} 个字段不匹配",
         "{{count}} unmatched field_other": "{{count}} 个不匹配字段",
-        "{{count}} unmatched field in import_other": "导入中 {{count}} 个字段不匹配"
+        "{{count}} unmatched field in import_other": "导入中 {{count}} 个字段不匹配",
+        "Column mapping": "列映射",
+        "Grist column": "Grist 列",
+        "Revert": "恢复",
+        "Skip Import": "跳过导入",
+        "New Table": "新表",
+        "Skip": "跳过",
+        "Column Mapping": "列映射",
+        "Destination table": "目的表",
+        "Skip Table on Import": "导入时跳过表",
+        "Import from file": "从文件导入",
+        "Source column": "来源列"
     },
     "LeftPanelCommon": {
         "Help Center": "帮助中心"
@@ -770,7 +784,8 @@
         "Show in folder": "展现在文件夹中",
         "Unsaved": "未保存",
         "Work on a Copy": "在副本上工作",
-        "Share": "分享"
+        "Share": "分享",
+        "Download...": "下载..."
     },
     "SiteSwitcher": {
         "Create new team site": "创建新的团队网站",
@@ -923,7 +938,10 @@
         "Cell Style": "单元样式",
         "Default cell style": "默认单元格样式",
         "Mixed style": "混合风格",
-        "Open row styles": "打开行样式"
+        "Open row styles": "打开行样式",
+        "HEADER STYLE": "标题样式",
+        "Header Style": "标题样式",
+        "Default header style": "默认标题样式"
     },
     "ChoiceTextBox": {
         "CHOICES": "选择"
@@ -1055,7 +1073,8 @@
         "Function List": "函数列表",
         "Grist's AI Assistance": "Grist 人工智能助手",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "注册一个免费的Grist帐户，开始使用Formula AI助手。",
-        "Sign Up for Free": "免费注册"
+        "Sign Up for Free": "免费注册",
+        "Formula AI Assistant is only available for logged in users.": "公式 AI 助手仅适用于登录用户。"
     },
     "WebhookPage": {
         "Clear Queue": "清除队列",
