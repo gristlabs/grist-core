@@ -55,7 +55,8 @@
         "Language": "Jezik",
         "Edit": "Uredi",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Dvostopenjsko preverjanje pristnosti je dodatna stopnja varnosti za vaš račun Grist, ki zagotavlja, da ste edina oseba, ki lahko dostopa do vašega računa, tudi če nekdo pozna vaše geslo.",
-        "Login Method": "Metoda prijave"
+        "Login Method": "Metoda prijave",
+        "API Key": "API ključ"
     },
     "AccountWidget": {
         "Access Details": "Podrobnosti o dostopu",
@@ -74,29 +75,53 @@
         "Support Grist": "Podpora Grist",
         "Upgrade Plan": "Načrt nadgradnje",
         "Sign In": "Prijavite se",
-        "Use This Template": "Uporabite to predlogo"
+        "Use This Template": "Uporabite to predlogo",
+        "Sign Up": "Prijava"
     },
     "ViewAsDropdown": {
         "View As": "Poglej kot",
         "Users from table": "Uporabniki iz tabele"
     },
     "ActionLog": {
-        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Stolpec {{colId}} je bil pozneje odstranjen v akciji #{{action.actionNum}}"
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Stolpec {{colId}} je bil pozneje odstranjen v akciji #{{action.actionNum}}",
+        "Action Log failed to load": "Dnevnik ukrepov se ni uspel naložiti",
+        "This row was subsequently removed in action {{action.actionNum}}": "Ta vrstica je bila pozneje odstranjena z akcijo {{action.actionNum}}"
     },
     "ApiKey": {
         "Remove": "Odstrani",
         "Create": "Ustvari",
-        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Želite izbrisati ključ API. To bo povzročilo zavrnitev vseh prihodnjih zahtevkov, ki bodo uporabljali ta ključ API. Ali še vedno želite izbrisati?"
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Želite izbrisati ključ API. To bo povzročilo zavrnitev vseh prihodnjih zahtevkov, ki bodo uporabljali ta ključ API. Ali še vedno želite izbrisati?",
+        "Click to show": "Kliknite za prikaz",
+        "Remove API Key": "Odstranite API ključ",
+        "This API key can be used to access this account anonymously via the API.": "Ta API ključ  lahko uporabite za anonimen dostop do tega računa prek vmesnika API."
     },
     "App": {
         "Description": "Opis",
-        "Key": "Ključ"
+        "Key": "Ključ",
+        "Memory Error": "Napaka pomnilnika"
     },
     "CellContextMenu": {
         "Delete {{count}} columns_one": "Brisanje stolpca",
         "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
         "Delete {{count}} rows_one": "Brisanje vrstice",
-        "Delete {{count}} rows_other": "Brisanje vrstic {{count}}"
+        "Delete {{count}} rows_other": "Brisanje vrstic {{count}}",
+        "Filter by this value": "Filtriranje po tej vrednosti",
+        "Copy anchor link": "Kopiranje sidrne povezave",
+        "Duplicate rows_one": "Podvoji vrstico",
+        "Duplicate rows_other": "Podvoji vrstice",
+        "Insert column to the right": "Vstavljanje stolpca na desno",
+        "Insert column to the left": "Vstavljanje stolpca na levo",
+        "Insert row": "Vstavljanje vrstice",
+        "Insert row above": "Vstavite  vrstico zgoraj",
+        "Insert row below": "Vstavite  vrstico spodaj",
+        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Reset {{count}} columns_other": "Ponastavitev stolpcev {{count}}",
+        "Reset {{count}} entire columns_one": "Ponastavitev celotnega stolpca",
+        "Reset {{count}} entire columns_other": "Ponastavitev  {{count}} stolpcev",
+        "Comment": "Komentar:",
+        "Copy": "Kopiraj",
+        "Cut": "Izreži",
+        "Paste": "Prilepi"
     },
     "DocMenu": {
         "Document will be moved to Trash.": "Dokument se bo premaknil v koš.",
@@ -110,7 +135,19 @@
         "Deleted {{at}}": "Izbrisano {{at}}",
         "Delete {{name}}": "Izbriši {{name}}",
         "Document will be permanently deleted.": "Dokument bo trajno izbrisan.",
-        "Permanently Delete \"{{name}}\"?": "Trajno izbrisati \"{{name}}\"?"
+        "Permanently Delete \"{{name}}\"?": "Trajno izbrisati \"{{name}}\"?",
+        "(The organization needs a paid plan)": "(Organizacija potrebuje plačljiv načrt)",
+        "Access Details": "Podrobnosti o dostopu",
+        "All Documents": "Vsi dokumenti",
+        "By Date Modified": "Po datumu spremembe",
+        "By Name": "Po imenu",
+        "Current workspace": "Trenutni delovni prostor",
+        "Discover More Templates": "Odkrijte več predlog",
+        "Edited {{at}}": "Urejeno {{at}}",
+        "Examples and Templates": "Primeri in predloge",
+        "Featured": "Priporočeni",
+        "Manage Users": "Upravljanje uporabnikov",
+        "More Examples and Templates": "Več primerov in predlog"
     },
     "GridViewMenus": {
         "Rename column": "Preimenovanje stolpca",
@@ -148,7 +185,11 @@
         "Add New": "Dodaj novo"
     },
     "DataTables": {
-        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbrišite podatke {{formattedTableName}} in jih odstranite z vseh strani?"
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbrišite podatke {{formattedTableName}} in jih odstranite z vseh strani?",
+        "Click to copy": "Kliknite za kopiranje",
+        "Duplicate Table": "Podvojena tabela",
+        "Table ID copied to clipboard": "ID tabele kopiran v odložišče",
+        "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta"
     },
     "ViewLayoutMenu": {
         "Delete record": "Brisanje zapisa",
@@ -156,5 +197,63 @@
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Ni mogoče dokončati shranjevanja urejene celice"
+    },
+    "AppHeader": {
+        "Home Page": "Domača stran",
+        "Personal Site": "Osebna stran",
+        "Team Site": "Spletna stran ekipe",
+        "Grist Templates": "Grist predloge"
+    },
+    "ChartView": {
+        "Pick a column": "Izberite stolpec"
+    },
+    "ColumnFilterMenu": {
+        "All": "Vse",
+        "All Except": "Vse razen",
+        "All Shown": "Vse prikazano",
+        "Future Values": "Prihodnje vrednosti",
+        "No matching values": "Ni ustreznih vrednosti",
+        "None": "Ni",
+        "Min": "Min",
+        "Max": "Max",
+        "Start": "Začetek",
+        "End": "Konec",
+        "Other Matching": "Drugo ujemanje",
+        "Other Non-Matching": "Drugo neujemanje",
+        "Other Values": "Druge vrednosti",
+        "Others": "Drugo",
+        "Search": "Iskanje",
+        "Search values": "Iskanje vrednosti"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (neobvezno)",
+        "Add": "Dodaj",
+        "Enter Custom URL": "Vnesite URL po meri",
+        "Full document access": "Dostop do celotnega dokumenta",
+        "Open configuration": "Odprri konfiguracijo",
+        "Pick a column": "Izberite stolpec",
+        "Pick a {{columnType}} column": "Izberite stolpec {{columnType}}",
+        "Read selected table": "Preberite izbrano tabelo",
+        "Learn more about custom widgets": "Preberite več o gradnikih po meri"
+    },
+    "DocHistory": {
+        "Activity": "Dejavnost",
+        "Beta": "Beta",
+        "Compare to Current": "Primerjava s trenutnim",
+        "Compare to Previous": "Primerjava s prejšnjimi",
+        "Snapshots": "Posnetki",
+        "Snapshots are unavailable.": "Posnetki niso na voljo."
+    },
+    "ExampleInfo": {
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Oglejte si sorodno navodilo za povezovanje podatkov in ustvarjanje visokoproduktivnih postavitev."
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Dostop zavrnjen",
+        "Code View is available only when you have full document access.": "Pogled kode je na voljo le, če imate popoln dostop do dokumenta."
+    },
+    "ColorSelect": {
+        "Apply": "Uporabi",
+        "Cancel": "Prekliči",
+        "Default cell style": "Privzet slog celic"
     }
 }
