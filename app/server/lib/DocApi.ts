@@ -1598,7 +1598,7 @@ export class DocWorkerApi {
     }
     const timeout =
         Math.max(0, Math.min(MAX_CUSTOM_SQL_MSEC,
-                             optIntegerParam(options.timeout) || MAX_CUSTOM_SQL_MSEC));
+                             optIntegerParam(options.timeout, 'timeout') || MAX_CUSTOM_SQL_MSEC));
     // Wrap in a select to commit to the SELECT branch of SQLite
     // grammar. Note ; isn't a problem.
     //
