@@ -428,10 +428,30 @@ function testDocApi() {
       // Make a workspace.
       const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
 
-      // Try to create a document in the new workspace as Kiwi, who does not have access.
-      const user = kiwi;
+      // Try to create a document in the new workspace as Kiwi and Charon, who do not have write access.
+      for (const user of [kiwi, charon]) {
+        const body = {
+          documentName: "Untitled document",
+          workspaceId: chimpyWs,
+        };
+        const formData = new FormData();
+        formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+        formData.append('documentName', body.documentName);
+        formData.append('workspaceId', body.workspaceId);
+        const config = defaultsDeep({headers: formData.getHeaders()}, user);
+        const resp = await axios.post(`${serverUrl}/api/docs`,
+          ...(content === 'with content'
+            ? [formData, config]
+            : [body, user])
+          );
+        assert.equal(resp.status, 403);
+        assert.equal(resp.data.error, 'access denied');
+      }
+
+      // Try to create a document in the new workspace as Chimpy, who does have write access.
+      const user = chimpy;
       const body = {
-        documentName: "Kiwi's Document",
+        documentName: "Chimpy's Document",
         workspaceId: chimpyWs,
       };
       const formData = new FormData();
@@ -439,13 +459,20 @@ function testDocApi() {
       formData.append('documentName', body.documentName);
       formData.append('workspaceId', body.workspaceId);
       const config = defaultsDeep({headers: formData.getHeaders()}, user);
-      const resp = await axios.post(`${serverUrl}/api/docs`,
+      let resp = await axios.post(`${serverUrl}/api/docs`,
         ...(content === 'with content'
           ? [formData, config]
           : [body, user])
         );
-      assert.equal(resp.status, 403);
-      assert.equal(resp.data.error, 'access denied');
+      assert.equal(resp.status, 200);
+      const urlId = resp.data;
+      assert.notMatch(urlId, /^new~[^~]*~[0-9]+$/);
+      assert.match(urlId, /^[^~]+$/);
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, user);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.name, "Chimpy's Document");
+      assert.equal(resp.data.workspace.name, "Chimpy's Workspace");
+      assert.equal(resp.data.access, 'owners');
 
       // Delete the workspace.
       await userApi.deleteWorkspace(chimpyWs);
