@@ -17,6 +17,7 @@ import merge = require('lodash/merge');
 import mapValues = require('lodash/mapValues');
 import pick = require('lodash/pick');
 import pickBy = require('lodash/pickBy');
+import {SequenceNEVER, SequenceNum} from "./Cursor";
 
 
 // Descriptive string enum for each case of linking
@@ -51,7 +52,13 @@ export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(Empt
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
   // Is undefined if not cursor-linked
-  public readonly cursorPos?: ko.Computed<UIRowId>;
+  public readonly cursorPos?: ko.Computed<UIRowId|null>;
+
+  //TODO: JV bidirectional linking stuff
+  //It's a pair of [position, version]
+  //NOTE: observables don't do deep-equality check, so MUST NEVER change the value of the components individually,
+  //have to update the whole array so that `==` can catch the change
+  public readonly incomingCursorPos: ko.Computed<[UIRowId|null, SequenceNum]>;
 
   // If linking affects filtering, this is a computed for the current filtering state, including user-facing
   // labels for filter values and types of the filtered columns
@@ -71,6 +78,7 @@ export class LinkingState extends Disposable {
 
   private _docModel: DocModel;
   private _srcSection: ViewSectionRec;
+  private _tgtSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
   private _srcColId: string | undefined;
 
@@ -79,9 +87,13 @@ export class LinkingState extends Disposable {
     const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
     this._docModel = docModel;
     this._srcSection = srcSection;
+    this._tgtSection = tgtSection;
     this._srcColId = srcColId;
     this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
+
+    console.log(`============ LinkingState: Re-running constructor; tgtSec:${tgtSection.id()}: ${tgtSection.titleDef()}`); //TODO JV TEMP;
+
 
     // === IMPORTANT NOTE! (this applies throughout this file)
     // srcCol and tgtCol can be the "empty column"
@@ -194,13 +206,70 @@ export class LinkingState extends Disposable {
       //        either same-table cursor-link (!srcCol && !tgtCol, so do activeRowId -> cursorPos)
       //        or cursor-link by reference   ( srcCol && !tgtCol, so do srcCol -> cursorPos)
 
-      //colVal, or rowId if no srcCol
+      // gets the relevant col value for the passed-in rowId, or return rowId unchanged if same-table link
       const srcValueFunc = this._makeValGetter(this._srcSection.table(), this._srcColId);
 
-      if (srcValueFunc) { // if makeValGetter succeeded, set up cursorPos
-        this.cursorPos = this.autoDispose(ko.computed(() =>
-          srcValueFunc(srcSection.activeRowId()) as UIRowId
-        ));
+      if (srcValueFunc) {
+        //Incoming-cursor-pos determines what the linked cursor position should be only considering the previous
+        //linked section (srcSection) and all upstream sections (through srcSection.linkingState)
+        //does NOT take into account tgtSection, so will be out of date if tgtSection has been updated more recently
+        this.incomingCursorPos = this.autoDispose((ko.computed(() => {
+          // Note: prevLink is the link info for 2 hops behind the current (tgt) section. 1 hop back is this.srcSec;
+          // this.srcSec.linkingState is 2 hops back, (i.e. it  reads from from this.srcSec.linkSrcSec)
+          const prevLink = this._srcSection.linkingState?.();
+          const prevLinkHasCursor = prevLink &&
+            (prevLink.linkTypeDescription() == "Cursor:Same-Table" ||
+             prevLink.linkTypeDescription() == "Cursor:Reference");
+
+          const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos(): [null, SequenceNEVER];
+
+          const srcSecPos = this._srcSection.activeRowId.peek(); //we don't depend on this, only on its cursor version
+          const srcSecVersion = this._srcSection.lastCursorEdit();
+
+          // is NEVER if viewSection's cursor hasn't yet initialized (shouldn't happen?)?
+          //TODO JV when will this happen? do some checks. Should get set on page load / setCursorPos to saved pos
+          // maybe more correct to just interpret NEVER as "never updated", which is already handled correctly
+          if(srcSecVersion == SequenceNEVER) {
+            console.log("=== linkingState: cursor-linking, srcSecVersion = NEVER");
+            return [null, SequenceNEVER] as [UIRowId|null, SequenceNum];
+          }
+
+          // ==== Determine whose info to use:
+          // If prevLinkedVersion < srcSecVersion, then the prev linked data is stale, don't use it
+          // If prevLinkedVersion == srcSecVersion, then srcSec is the driver for this link cycle (i.e. we're its first
+          //                                        outgoing link), AND the link cycle has come all the way around
+          const useLinked = prevLinkHasCursor && prevLinkedVersion > srcSecVersion;
+
+          // srcSec/prevLinkedPos is rowId from srcSec. However if "Cursor:Reference", need to follow the ref in srcCol
+          // srcValueFunc will get the appropriate value based on this._srcColId
+          const tgtCursorPos = (srcValueFunc(useLinked ? prevLinkedPos : srcSecPos) || "new") as UIRowId;
+          // NOTE: srcValueFunc returns 'null' if rowId is the add-row, so we coerce that back into "new"
+          // NOTE: cursor linking is only ever done by the id column (for same-table) or by single Ref col (cursor:ref),
+          //     so we'll never have to worry about `null` showing up as an actual cell-value, since null refs are `0`
+
+          return [
+              tgtCursorPos,
+              useLinked ? prevLinkedVersion : srcSecVersion, //propagate which version our cursorPos is from
+          ] as [UIRowId|null, SequenceNum];
+        })));
+        //public readonly incomingCursorPos: ko.Computed<UIRowId>;
+
+
+        //This is the cursorPos that's directly applied to tgtSection, should be null if incoming link is outdated
+        //where null means "cursorPos does not apply to tgtSection and should be ignored"
+        this.cursorPos = this.autoDispose(ko.computed(() => {
+          const [incomingPos, incomingVersion]: [UIRowId|null, SequenceNum] = this.incomingCursorPos();
+          const tgtSecVersion = this._tgtSection.lastCursorEdit();
+
+          //if(!tgtSecVersion) { return null; }
+
+          if(incomingVersion > tgtSecVersion) { // if linked cursor newer that current sec, use it
+              return incomingPos;
+          } else { // else, there's no linked cursor, since current section is driving the linking
+            return null;
+          }
+
+        }));
       }
 
       if (!srcColId) { // If same-table cursor-link, copy getDefaultColValues from the source if possible

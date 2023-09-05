@@ -131,8 +131,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   // Update the cursor whenever linkedRowId() changes (but only if we have any linking).
   this.autoDispose(this.linkedRowId.subscribe(rowId => {
-    if (this.viewSection.linkingState.peek()) {
-      this.setCursorPos({rowId: rowId || 'new'});
+    if (this.viewSection.linkingState.peek() && rowId != null) { //TODO JV: used to be that null meant "new", now it means "no cursor linking"
+      this.setCursorPos({rowId: rowId || 'new'}, true); //true b/c not a user-edit (caused by linking)
     }
   }));
 
@@ -282,14 +282,14 @@ BaseView.prototype.deleteRecords = function(source) {
 
 /**
  * Sets the cursor to the given position, deferring if necessary until the current query finishes
- * loading.
+ * loading. silentUpdate will be set if updating as a result of cursor linking(see Cursor.setCursorPos for info)
  */
-BaseView.prototype.setCursorPos = function(cursorPos) {
+BaseView.prototype.setCursorPos = function(cursorPos, silentUpdate = false) {
   if (this.isDisposed()) {
     return;
   }
   if (!this._isLoading.peek()) {
-    this.cursor.setCursorPos(cursorPos);
+    this.cursor.setCursorPos(cursorPos, silentUpdate);
   } else {
     // This is the first step; the second happens in onTableLoaded.
     this._pendingCursorPos = cursorPos;

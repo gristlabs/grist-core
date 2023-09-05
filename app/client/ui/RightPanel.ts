@@ -644,7 +644,14 @@ export class RightPanel extends Disposable {
       const lstate = use(tgtSec.linkingState);
       const lfilter = lstate?.filterState ? use(lstate.filterState) : undefined;
 
-      const cursorPosStr = lstate?.cursorPos ? `${tgtSec.tableId()}[${use(lstate.cursorPos)}]` : "N/A";
+      //TODO JV TEMP DEBUG: srcLastUpdated is temporary
+      const cursorPosStr = (lstate?.cursorPos ? `${tgtSec.tableId()}[${use(lstate.cursorPos)}]` : "N/A") +
+        `\n srclastEdited: ${use(srcSec.lastCursorEdit)} \n tgtLastEdited: ${use(tgtSec.lastCursorEdit)}` +
+        `\n incomingCursorPos: ${lstate?.incomingCursorPos ? `${lstate.incomingCursorPos()}` : "N/A"}` +
+        (() => {
+          //const;
+          return '';
+        })();
 
       //Main link info as a big string, will be in a <pre></pre> block
       let preString = "No Incoming Link";

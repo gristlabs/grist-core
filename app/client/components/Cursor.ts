@@ -16,6 +16,21 @@ function nullAsUndefined<T>(value: T|null|undefined): T|undefined {
   return value == null ? undefined : value;
 }
 
+// ================ SequenceNum: used to keep track of cursor edits (lastEditedAt)
+// basically just a global auto-incrementing counter, with some types to make intent a bit more clear
+// Each cursor starts at SequenceNEVER (0), and after that all cursors using NextSequenceNum() will have
+// a unique, monotonically increasing number for their lastEditedAt()
+export type SequenceNum = number;
+export const SequenceNEVER: SequenceNum = 0;
+let latestGlobalSequenceNum = SequenceNEVER;
+const nextSequenceNum = () => { return latestGlobalSequenceNum++; };
+
+// Note: we don't make any provisions for handling overflow. It's fine because:
+//   - Number.MAX_SAFE_INTEGER is 9,007,199,254,740,991 (9 * 10^15)
+//   - even at 1000 cursor-edits per second, it would take ~300,000 yrs to overflow
+//   - Plus it's client-side, so that's a single continuous 300-millenia-long session, which would be impressive uptime
+
+
 /**
  * Cursor represents the location of the cursor in the viewsection. It is maintained by BaseView,
  * and implements the shared functionality related to the cursor cell.
@@ -62,6 +77,12 @@ export class Cursor extends Disposable {
   private _sectionId: ko.Computed<number>;
 
   private _properRowId: ko.Computed<UIRowId|null>;
+  private _lastEditedAt: ko.Observable<SequenceNum>;
+
+  private _silentUpdatesFlag: boolean = false;
+  // lastEditedAt is updated on rowIndex or fieldIndex update (including through setCursorPos)
+  // _silentUpdatesFlag disables this, set when setCursorPos called from cursor link to prevent infinite loops
+  // WARNING: the flag approach will only work if ko observables work synchronously, which they appear to do.
 
   constructor(baseView: BaseView, optCursorPos?: CursorPos) {
     super();
@@ -79,10 +100,13 @@ export class Cursor extends Disposable {
       write: (index) => {
         const rowIndex = index === null ? null : this.viewData.clampIndex(index);
         this._rowId(rowIndex == null ? null : this.viewData.getRowId(rowIndex));
+        this.cursorEdited();
       },
     }));
 
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
+    this.fieldIndex.subscribe(() => { this.cursorEdited(); });
+
     this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasFocus));
 
     // RowId might diverge from the one stored in _rowId when the data changes (it is filtered out). So here
@@ -93,8 +117,11 @@ export class Cursor extends Disposable {
       return rowId;
     }));
 
-    // Update the section's activeRowId when the cursor's rowIndex is changed.
+    this._lastEditedAt = ko.observable(SequenceNEVER);
+
+    // update the section's activeRowId and lastCursorEdit when needed
     this.autoDispose(this._properRowId.subscribe((rowId) => baseView.viewSection.activeRowId(rowId)));
+    this.autoDispose(this._lastEditedAt.subscribe((seqNum) => baseView.viewSection.lastCursorEdit(seqNum)));
 
     // On dispose, save the current cursor position to the section model.
     this.onDispose(() => { baseView.viewSection.lastCursorPos = this.getCursorPos(); });
@@ -116,9 +143,16 @@ export class Cursor extends Disposable {
   /**
    * Moves the cursor to the given position. Only moves the row if rowId or rowIndex is valid,
    * preferring rowId.
+   *
+   * silentUpdate prevents lastEditedAt from being updated, so linking doesn't cause an infinite loop of updates
    * @param cursorPos: Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
+   * @param silentUpdate: should only be set if this is a cascading update from cursor-linking
    */
-  public setCursorPos(cursorPos: CursorPos): void {
+  public setCursorPos(cursorPos: CursorPos, silentUpdate: boolean = false): void {
+    //If updating as a result of links, we want to NOT update lastEditedAt
+    if(silentUpdate) { this._silentUpdatesFlag = true; }
+    //console.log(`CURSOR: ${silentUpdate}, silentUpdate=${this._silentUpdatesFlag}, lastUpdated = ${this.lastUpdated.peek()}`) //TODO JV DEBUG TEMP
+
     if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
       this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId) );
     } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
@@ -130,9 +164,25 @@ export class Cursor extends Disposable {
     if (cursorPos.fieldIndex !== undefined) {
       this.fieldIndex(cursorPos.fieldIndex);
     }
+
+    //console.log(`CURSOR-END: silentUpdate=${this._silentUpdatesFlag}, lastEditedAt = ${this._lastEditedAt.peek()}  `); //TODO JV DEBUG TEMP
+    this._silentUpdatesFlag = false;
   }
+
+
+
 
   public setLive(isLive: boolean): void {
     this._isLive(isLive);
+  }
+
+  //Should be called whenever the cursor is updated
+  //EXCEPT FOR: when cursor is set by linking
+  //this is used to determine which widget/cursor has most recently been touched,
+  //and therefore which one should be used to drive linking if there's a conflict
+  public cursorEdited(): void {
+    //If updating as a result of links, we want to NOT update lastEdited
+    if(!this._silentUpdatesFlag)
+      { this._lastEditedAt(nextSequenceNum()); }
   }
 }
