@@ -182,6 +182,7 @@ export class LinkingState extends Disposable {
           return merge({}, ...resultFilters.map(filtObs => filtObs!())) as FilterState;
         }));
         _filterState(resultComputed());
+        resultComputed.subscribe((val) => _filterState(val));
       }; // End of update function
 
       //Call when data loads, also call now to be safe
