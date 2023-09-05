@@ -88,16 +88,20 @@ export class DocWorker {
     await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath);
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type('application/x-sqlite3')
-      .download(tmpPath, (optStringParam(req.query.title) || docTitle || 'document') + ".grist", async (err: any) => {
-        if (err) {
-          if (err.message && /Request aborted/.test(err.message)) {
-            log.warn(`Download request aborted for doc ${docId}`, err);
-          } else {
-            log.error(`Download failure for doc ${docId}`, err);
+      .download(
+        tmpPath,
+        (optStringParam(req.query.title, 'title') || docTitle || 'document') + ".grist",
+        async (err: any) => {
+          if (err) {
+            if (err.message && /Request aborted/.test(err.message)) {
+              log.warn(`Download request aborted for doc ${docId}`, err);
+            } else {
+              log.error(`Download failure for doc ${docId}`, err);
+            }
           }
+          await fse.unlink(tmpPath);
         }
-        await fse.unlink(tmpPath);
-      });
+      );
   }
 
   // Register main methods related to documents.
@@ -156,7 +160,7 @@ export class DocWorker {
     const mreq = req as RequestWithLogin;
     let urlId: string|undefined;
     try {
-      if (optStringParam(req.query.clientId)) {
+      if (optStringParam(req.query.clientId, 'clientId')) {
         const activeDoc = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
                                               integerParam(req.query.docFD, 'docFD')).activeDoc;
         // TODO: The docId should be stored in the ActiveDoc class. Currently docName is

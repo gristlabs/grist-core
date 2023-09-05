@@ -67,8 +67,8 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
 
   // Like upload, but copy data from a document already known to us.
   expressApp.post(`/copy`, ...handlers, expressWrap(async (req: Request, res: Response) => {
-    const docId = optStringParam(req.query.doc);
-    const name = optStringParam(req.query.name);
+    const docId = optStringParam(req.query.doc, 'doc');
+    const name = optStringParam(req.query.name, 'name');
     if (!docId) { throw new Error('doc must be specified'); }
     const accessId = makeAccessId(req, getAuthorizedUserId(req));
     try {

@@ -333,9 +333,9 @@ function testDocApi() {
     );
   });
 
-  for (const mode of ['logged in', 'anonymous']) {
-    for (const content of ['with content', 'without content']) {
-      it(`POST /api/docs ${content} creates an unsaved doc when ${mode}`, async function () {
+  for (const content of ['with content', 'without content']) {
+    for (const mode of ['logged in', 'anonymous']) {
+      it(`POST /api/docs ${content} can create unsaved docs when ${mode}`, async function () {
         const user = (mode === 'logged in') ? chimpy : nobody;
         const formData = new FormData();
         formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
@@ -375,6 +375,157 @@ function testDocApi() {
         }
       });
     }
+
+    it(`POST /api/docs ${content} can create saved docs in workspaces`, async function () {
+      // Make a workspace.
+      const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
+
+      // Create a document in the new workspace.
+      const user = chimpy;
+      const body = {
+        documentName: "Chimpy's Document",
+        workspaceId: chimpyWs,
+      };
+      const formData = new FormData();
+      formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+      formData.append('documentName', body.documentName);
+      formData.append('workspaceId', body.workspaceId);
+      const config = defaultsDeep({headers: formData.getHeaders()}, user);
+      let resp = await axios.post(`${serverUrl}/api/docs`,
+        ...(content === 'with content'
+          ? [formData, config]
+          : [body, user])
+        );
+      assert.equal(resp.status, 200);
+      const urlId = resp.data;
+      assert.notMatch(urlId, /^new~[^~]*~[0-9]+$/);
+      assert.match(urlId, /^[^~]+$/);
+
+      // Check document metadata.
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, user);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.name, "Chimpy's Document");
+      assert.equal(resp.data.workspace.name, "Chimpy's Workspace");
+      assert.equal(resp.data.access, 'owners');
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
+      assert.equal(resp.status, 200);
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
+      assert.equal(resp.status, 403);
+
+      // Check document contents.
+      resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
+      if (content === 'with content') {
+        assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
+      } else {
+        assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
+      }
+
+      // Delete the workspace.
+      await userApi.deleteWorkspace(chimpyWs);
+    });
+
+    it(`POST /api/docs ${content} fails if workspace access is denied`, async function () {
+      // Make a workspace.
+      const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
+
+      // Try to create a document in the new workspace as Kiwi and Charon, who do not have write access.
+      for (const user of [kiwi, charon]) {
+        const body = {
+          documentName: "Untitled document",
+          workspaceId: chimpyWs,
+        };
+        const formData = new FormData();
+        formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+        formData.append('documentName', body.documentName);
+        formData.append('workspaceId', body.workspaceId);
+        const config = defaultsDeep({headers: formData.getHeaders()}, user);
+        const resp = await axios.post(`${serverUrl}/api/docs`,
+          ...(content === 'with content'
+            ? [formData, config]
+            : [body, user])
+          );
+        assert.equal(resp.status, 403);
+        assert.equal(resp.data.error, 'access denied');
+      }
+
+      // Try to create a document in the new workspace as Chimpy, who does have write access.
+      const user = chimpy;
+      const body = {
+        documentName: "Chimpy's Document",
+        workspaceId: chimpyWs,
+      };
+      const formData = new FormData();
+      formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+      formData.append('documentName', body.documentName);
+      formData.append('workspaceId', body.workspaceId);
+      const config = defaultsDeep({headers: formData.getHeaders()}, user);
+      let resp = await axios.post(`${serverUrl}/api/docs`,
+        ...(content === 'with content'
+          ? [formData, config]
+          : [body, user])
+        );
+      assert.equal(resp.status, 200);
+      const urlId = resp.data;
+      assert.notMatch(urlId, /^new~[^~]*~[0-9]+$/);
+      assert.match(urlId, /^[^~]+$/);
+      resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, user);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.name, "Chimpy's Document");
+      assert.equal(resp.data.workspace.name, "Chimpy's Workspace");
+      assert.equal(resp.data.access, 'owners');
+
+      // Delete the workspace.
+      await userApi.deleteWorkspace(chimpyWs);
+    });
+
+    it(`POST /api/docs ${content} fails if workspace is soft-deleted`, async function () {
+      // Make a workspace and promptly remove it.
+      const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
+      await userApi.softDeleteWorkspace(chimpyWs);
+
+      // Try to create a document in the soft-deleted workspace.
+      const user = chimpy;
+      const body = {
+        documentName: "Chimpy's Document",
+        workspaceId: chimpyWs,
+      };
+      const formData = new FormData();
+      formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+      formData.append('documentName', body.documentName);
+      formData.append('workspaceId', body.workspaceId);
+      const config = defaultsDeep({headers: formData.getHeaders()}, user);
+      const resp = await axios.post(`${serverUrl}/api/docs`,
+        ...(content === 'with content'
+          ? [formData, config]
+          : [body, user])
+        );
+      assert.equal(resp.status, 400);
+      assert.equal(resp.data.error, 'Cannot add document to a deleted workspace');
+
+      // Delete the workspace.
+      await userApi.deleteWorkspace(chimpyWs);
+    });
+
+    it(`POST /api/docs ${content} fails if workspace does not exist`, async function () {
+      // Try to create a document in a non-existent workspace.
+      const user = chimpy;
+      const body = {
+        documentName: "Chimpy's Document",
+        workspaceId: 123456789,
+      };
+      const formData = new FormData();
+      formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
+      formData.append('documentName', body.documentName);
+      formData.append('workspaceId', body.workspaceId);
+      const config = defaultsDeep({headers: formData.getHeaders()}, user);
+      const resp = await axios.post(`${serverUrl}/api/docs`,
+        ...(content === 'with content'
+          ? [formData, config]
+          : [body, user])
+        );
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.error, 'workspace not found');
+    });
   }
 
   it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {
