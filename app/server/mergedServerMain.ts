@@ -15,7 +15,7 @@ export type ServerType = "home" | "docs" | "static" | "app";
 const allServerTypes: ServerType[] = ["home", "docs", "static", "app"];
 
 // Parse a comma-separate list of server types into an array, with validation.
-function parseServerTypes(serverTypes: string|undefined): ServerType[] {
+export function parseServerTypes(serverTypes: string|undefined): ServerType[] {
   // Split and filter out empty strings (including the one we get when splitting "").
   const types = (serverTypes || "").trim().split(',').filter(part => Boolean(part));
 
