@@ -853,7 +853,7 @@ export class FlexServer implements GristServer {
     const forceLogin = appSettings.section('login').flag('forced').readBool({
       envVar: 'GRIST_FORCE_LOGIN',
     });
-    const isAnonPlayground = appSettings.section('login').flag('anonplayground').readBool({
+    const isAnonPlayground = appSettings.section('login').flag('anonPlayground').readBool({
       envVar: 'GRIST_ANON_PLAYGROUND',
       defaultValue: true
     });
