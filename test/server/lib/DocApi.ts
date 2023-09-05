@@ -120,6 +120,24 @@ describe('DocApi', function () {
     testDocApi();
   });
 
+  describe('With GRIST_ANON_PLAYGROUND disabled', async () => {
+    setup('anon-playground', async () => {
+      const additionalEnvConfiguration = {
+        ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+        GRIST_DATA_DIR: dataDir,
+        GRIST_ANON_PLAYGROUND: 'false'
+      };
+      home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
+      homeUrl = serverUrl = home.serverUrl;
+      hasHomeApi = true;
+    });
+
+    it('should not allow anonymous users to create new docs', async () => {
+      const resp = await axios.post(`${serverUrl}/api/docs`, null, nobody);
+      assert.equal(resp.status, 403);
+    });
+  });
+
   // the way these tests are written, non-merged server requires redis.
   if (process.env.TEST_REDIS_URL) {
     describe("should work with a home server and a docworker", async () => {
