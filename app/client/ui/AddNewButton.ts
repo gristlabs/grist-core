@@ -30,21 +30,6 @@ export function addNewButton(
     ...args,
   );
 }
-const cssPlusButton = styled('div', `
-  flex: none;
-  height: 28px;
-  width: 28px;
-  border-radius: 14px;
-  background-color: var(--circle-color);
-  text-align: center;
-  &-disabled {
-    background-color: ${theme.controlDisabledBg};
-  }
-`);
-const cssPlusIcon = styled(icon, `
-  background-color: ${theme.addNewCircleFg};
-  margin-top: 6px;
-`);
 
 export const cssAddNewButton = styled('div', `
   display: flex;
@@ -97,4 +82,19 @@ const cssAddText = styled('div', `
   .${cssAddNewButton.className}-open & {
     display: block;
   }
+`);
+const cssPlusButton = styled('div', `
+  flex: none;
+  height: 28px;
+  width: 28px;
+  border-radius: 14px;
+  background-color: var(--circle-color);
+  text-align: center;
+  &-disabled {
+    background-color: ${theme.controlDisabledBg};
+  }
+`);
+const cssPlusIcon = styled(icon, `
+  background-color: ${theme.addNewCircleFg};
+  margin-top: 6px;
 `);
