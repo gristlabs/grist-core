@@ -190,7 +190,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public createLeftPane(leftPanelOpen: Observable<boolean>) {
     return cssLeftPanel(
       dom.maybe(this.gristDoc, (activeDoc) => [
-        addNewButton(leftPanelOpen,
+        addNewButton({ isOpen: leftPanelOpen },
           menu(() => addMenu(this.importSources, activeDoc, this.isReadonly.get()), {
             placement: 'bottom-start',
             // "Add New" menu should have the same width as the "Add New" button that opens it.

@@ -30,16 +30,17 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
   const creating = observable<boolean>(false);
   const renaming = observable<Workspace|null>(null);
   const isAnonymous = !home.app.currentValidUser;
+  const canCreate = !isAnonymous || getGristConfig().enableAnonPlayground;
 
   return cssContent(
     dom.autoDispose(creating),
     dom.autoDispose(renaming),
-    addNewButton(leftPanelOpen,
-      menu(() => addMenu(home, creating), {
+    addNewButton({ isOpen: leftPanelOpen, isDisabled: !canCreate },
+      canCreate ? menu(() => addMenu(home, creating), {
         placement: 'bottom-start',
         // "Add New" menu should have the same width as the "Add New" button that opens it.
         stretchToSelector: `.${cssAddNewButton.className}`
-      }),
+      }) : null,
       dom.cls('behavioral-prompt-add-new'),
       testId('dm-add-new'),
     ),
