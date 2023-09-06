@@ -323,6 +323,7 @@ async function checkDocAndRestore(
   await docChecker();
   for (let i = 0; i < stepsBackToDocMenu; i++) {
     await driver.navigate().back();
+    if (await gu.isAlertShown()) { await gu.acceptAlert(); }
   }
   await gu.waitForDocMenuToLoad();
   // If not logged in, we create docs "unsaved" and don't see them in doc-menu.

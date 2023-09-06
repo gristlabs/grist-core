@@ -36,6 +36,7 @@ import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {
   assertAccess,
+  getAuthorizedUserId,
   getOrSetDocAuth,
   getTransitiveHeaders,
   getUserId,
@@ -64,6 +65,7 @@ import {
   getScope,
   integerParam,
   isParameterOn,
+  optBooleanParam,
   optIntegerParam,
   optStringParam,
   sendOkReply,
@@ -73,7 +75,8 @@ import {
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import {localeFromRequest} from "app/server/lib/ServerLocale";
 import {isUrlAllowed, WebhookAction, WebHookSecret} from "app/server/lib/Triggers";
-import {handleOptionalUpload, handleUpload} from "app/server/lib/uploads";
+import {fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
+        makeAccessId} from "app/server/lib/uploads";
 import * as assert from 'assert';
 import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
@@ -1225,7 +1228,11 @@ export class DocWorkerApi {
      * Create a document.
      *
      * When an upload is included, it is imported as the initial state of the document.
-     * Otherwise, the document is left empty.
+     *
+     * When a source document id is included, its structure and (optionally) data is
+     * included in the new document.
+     *
+     * In all other cases, the document is left empty.
      *
      * If a workspace id is included, the document will be saved there instead of
      * being left "unsaved".
@@ -1249,54 +1256,117 @@ export class DocWorkerApi {
         parameters = req.body;
       }
 
-      const documentName = optStringParam(parameters.documentName, 'documentName', {
-        allowEmpty: false,
-      });
+      const sourceDocumentId = optStringParam(parameters.sourceDocumentId, 'sourceDocumentId');
       const workspaceId = optIntegerParam(parameters.workspaceId, 'workspaceId');
       const browserSettings: BrowserSettings = {};
       if (parameters.timezone) { browserSettings.timezone = parameters.timezone; }
       browserSettings.locale = localeFromRequest(req);
 
       let docId: string;
-      if (uploadId !== undefined) {
+      if (sourceDocumentId !== undefined) {
+        docId = await this._copyDocToWorkspace(req, {
+          userId,
+          sourceDocumentId,
+          workspaceId: integerParam(parameters.workspaceId, 'workspaceId'),
+          documentName: stringParam(parameters.documentName, 'documentName'),
+          asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
+        });
+      } else if (uploadId !== undefined) {
         const result = await this._docManager.importDocToWorkspace({
           userId,
           uploadId,
-          documentName,
+          documentName: optStringParam(parameters.documentName, 'documentName'),
           workspaceId,
           browserSettings,
         });
         docId = result.id;
       } else if (workspaceId !== undefined) {
-        const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
-          name: documentName ?? 'Untitled document',
+        docId = await this._createNewSavedDoc(req, {
+          workspaceId: workspaceId,
+          documentName: optStringParam(parameters.documentName, 'documentName'),
         });
-        if (status !== 200) {
-          throw new ApiError(errMessage || 'unable to create document', status);
-        }
-
-        docId = data!;
       } else {
-        const isAnonymous = isAnonymousUser(req);
-        const result = makeForkIds({
+        docId = await this._createNewUnsavedDoc(req, {
           userId,
-          isAnonymous,
-          trunkDocId: NEW_DOCUMENT_CODE,
-          trunkUrlId: NEW_DOCUMENT_CODE,
+          browserSettings,
         });
-        docId = result.docId;
-        await this._docManager.createNamedDoc(
-          makeExceptionalDocSession('nascent', {
-            req: req as RequestWithLogin,
-            browserSettings,
-          }),
-          docId
-        );
       }
 
       return res.status(200).json(docId);
     }));
   }
+
+  private async _copyDocToWorkspace(req: Request, options: {
+    userId: number,
+    sourceDocumentId: string,
+    workspaceId: number,
+    documentName: string,
+    asTemplate?: boolean,
+  }): Promise<string> {
+    const {userId, sourceDocumentId, workspaceId, documentName, asTemplate = false} = options;
+
+    // First, upload a copy of the document.
+    let uploadResult;
+    try {
+      const accessId = makeAccessId(req, getAuthorizedUserId(req));
+      uploadResult = await fetchDoc(this._grist, sourceDocumentId, req, accessId, asTemplate);
+      globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName}.grist`);
+    } catch (err) {
+      if ((err as ApiError).status === 403) {
+        throw new ApiError('Insufficient access to document to copy it entirely', 403);
+      }
+
+      throw err;
+    }
+
+    // Then, import the copy to the workspace.
+    const result = await this._docManager.importDocToWorkspace({
+      userId,
+      uploadId: uploadResult.uploadId,
+      documentName,
+      workspaceId,
+    });
+    return result.id;
+  }
+
+  private async _createNewSavedDoc(req: Request, options: {
+    workspaceId: number,
+    documentName?: string,
+  }): Promise<string> {
+    const {documentName, workspaceId} = options;
+    const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
+      name: documentName ?? 'Untitled document',
+    });
+    if (status !== 200) {
+      throw new ApiError(errMessage || 'unable to create document', status);
+    }
+
+    return data!;
+  }
+
+  private async _createNewUnsavedDoc(req: Request, options: {
+    userId: number,
+    browserSettings?: BrowserSettings,
+  }): Promise<string> {
+    const {userId, browserSettings} = options;
+    const isAnonymous = isAnonymousUser(req);
+    const result = makeForkIds({
+      userId,
+      isAnonymous,
+      trunkDocId: NEW_DOCUMENT_CODE,
+      trunkUrlId: NEW_DOCUMENT_CODE,
+    });
+    const docId = result.docId;
+    await this._docManager.createNamedDoc(
+      makeExceptionalDocSession('nascent', {
+        req: req as RequestWithLogin,
+        browserSettings,
+      }),
+      docId
+    );
+    return docId;
+  }
+
   /**
    * Check for read access to the given document, and return its
    * canonical docId.  Throws error if read access not available.

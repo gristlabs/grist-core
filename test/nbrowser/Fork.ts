@@ -8,7 +8,7 @@ import uuidv4 from "uuid/v4";
 describe("Fork", function() {
 
   // this is a relatively slow test in staging.
-  this.timeout(40000);
+  this.timeout(60000);
   const cleanup = setupTestSuite();
 
   let doc: DocCreationInfo;
@@ -45,6 +45,7 @@ describe("Fork", function() {
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
     const forkUrl = await driver.getCurrentUrl();
     assert.match(forkUrl, isLoggedIn ? /^[^~]*~[^~]+~\d+$/ : /^[^~]*~[^~]*$/);
+    await gu.refreshDismiss();
     await session.loadDoc((new URL(forkUrl)).pathname + '/m/fork');
     await gu.getCell({rowNum: 1, col: 0}).click();
     await gu.enterCell('2');
@@ -57,6 +58,7 @@ describe("Fork", function() {
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
     assert.equal(await driver.getCurrentUrl(), `${forkUrl}/m/fork`);
     await gu.wipeToasts();
+    await gu.refreshDismiss();
   }
 
   // Run tests with both regular docId and a custom urlId in URL, to make sure
@@ -120,6 +122,7 @@ describe("Fork", function() {
             await gu.enterCell('123');
             await gu.waitForServer();
             assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '123');
+            await gu.refreshDismiss();
             // edits should persist across reloads
             await personal.loadDoc(`/doc/${id}`);
             assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '123');
@@ -128,16 +131,17 @@ describe("Fork", function() {
             await gu.enterCell('234');
             await gu.waitForServer();
             assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '234');
+            await gu.refreshDismiss();
 
             if (mode !== 'anonymous') {
               // if we log out, access should now be denied
               const anonSession = await personal.anon.login();
-              await anonSession.loadDoc(`/doc/${id}`, false);
+              await anonSession.loadDoc(`/doc/${id}`, {wait: false});
               assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
 
               // if we log in as a different user, access should be denied
               const altSession = await personal.user('user2').login();
-              await altSession.loadDoc(`/doc/${id}`, false);
+              await altSession.loadDoc(`/doc/${id}`, {wait: false});
               assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
             }
           });
@@ -179,6 +183,7 @@ describe("Fork", function() {
         assert.match(forkUrl, /~/);
         // check that the tag is there
         assert.equal(await driver.find('.test-unsaved-tag').isPresent(), true);
+        await gu.refreshDismiss();
 
         // Open the original url and make sure the change we made is not there
         await anonSession.loadDoc(`/doc/${doc.id}`);
@@ -202,6 +207,7 @@ describe("Fork", function() {
         await gu.waitForServer();
         assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
         const fork1 = await driver.getCurrentUrl();
+        await gu.refreshDismiss();
 
         await anonSession.loadDoc(`/doc/${doc.id}/m/fork`);
         await gu.getCell({rowNum: 1, col: 0}).click();
@@ -209,6 +215,7 @@ describe("Fork", function() {
         await gu.waitForServer();
         assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '2');
         const fork2 = await driver.getCurrentUrl();
+        await gu.refreshDismiss();
 
         await anonSession.loadDoc((new URL(fork1)).pathname);
         assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
@@ -229,6 +236,7 @@ describe("Fork", function() {
         const urlId1 = await gu.getCurrentUrlId();
         assert.match(urlId1!, /~/);
         assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Table2/);
+        await gu.refreshDismiss();
       });
 
       for (const user of [{access: 'viewers', name: 'user3'},
@@ -258,6 +266,7 @@ describe("Fork", function() {
           const fork = forks.find(f => f.id === forkId);
           assert.isDefined(fork);
           assert.equal(fork!.trunkId, doc.id);
+          await gu.refreshDismiss();
 
           // Open the original url and make sure the change we made is not there
           await userSession.loadDoc(`/doc/${doc.id}`);
@@ -274,6 +283,7 @@ describe("Fork", function() {
           await gu.getCell({rowNum: 1, col: 0}).click();
           await gu.enterCell('1234');
           await gu.waitForServer();
+          await gu.refreshDismiss();
           await userSession.loadDoc((new URL(forkUrl)).pathname);
           assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1234');
 
@@ -286,6 +296,7 @@ describe("Fork", function() {
           await gu.getCell({rowNum: 1, col: 0}).click();
           await gu.enterCell('12345');
           await gu.waitForServer();
+          await gu.refreshDismiss();
           await team.loadDoc((new URL(forkUrl)).pathname);
           assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1234');
 
@@ -296,6 +307,7 @@ describe("Fork", function() {
           await gu.getCell({rowNum: 1, col: 0}).click();
           await gu.enterCell('12345');
           await gu.waitForServer();
+          await gu.refreshDismiss();
           await anonSession.loadDoc((new URL(forkUrl)).pathname);
           assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1234');
         });
@@ -314,6 +326,7 @@ describe("Fork", function() {
         // The url of the doc should now be that of a fork
         const forkUrl = await driver.getCurrentUrl();
         assert.match(forkUrl, /~/);
+        await gu.refreshDismiss();
 
         // Open the original url and make sure the change we made is not there
         await team.loadDoc(`/doc/${doc2.id}`);
@@ -327,6 +340,7 @@ describe("Fork", function() {
         await gu.getCell({rowNum: 1, col: 0}).click();
         await gu.enterCell('1234');
         await gu.waitForServer();
+        await gu.refreshDismiss();
         await team.loadDoc((new URL(forkUrl)).pathname);
         assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1234');
 
@@ -350,7 +364,7 @@ describe("Fork", function() {
         await team.login();
         const userId = await team.getUserId();
         const altSession = await team.user('user2').login();
-        await altSession.loadDoc(`/doc/${doc.id}~${forkId}~${userId}`, false);
+        await altSession.loadDoc(`/doc/${doc.id}~${forkId}~${userId}`, {wait: false});
 
         assert.equal(await driver.findWait('.test-modal-dialog', 2000).isDisplayed(), true);
         assert.match(await driver.find('.test-modal-dialog').getText(), /Document fork not found/);
@@ -365,30 +379,30 @@ describe("Fork", function() {
         // would have some access to fork via acls on trunk, but for a
         // new doc user2 has no access granted via the doc, or
         // workspace, or org).
-        await altSession.loadDoc(`/doc/new~${forkId}~${userId}`, false);
+        await altSession.loadDoc(`/doc/new~${forkId}~${userId}`, {wait: false});
         assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
         assert.equal(await driver.find('.test-dm-logo').isDisplayed(), true);
 
         // Same, but as an anonymous user.
         const anonSession = await altSession.anon.login();
-        await anonSession.loadDoc(`/doc/${doc.id}~${forkId}~${userId}`, false);
+        await anonSession.loadDoc(`/doc/${doc.id}~${forkId}~${userId}`, {wait: false});
         assert.equal(await driver.findWait('.test-modal-dialog', 2000).isDisplayed(), true);
         assert.match(await driver.find('.test-modal-dialog').getText(), /Document fork not found/);
 
         // A new doc cannot be created either (because of access mismatch).
-        await altSession.loadDoc(`/doc/new~${forkId}~${userId}`, false);
+        await altSession.loadDoc(`/doc/new~${forkId}~${userId}`, {wait: false});
         assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
         assert.equal(await driver.find('.test-dm-logo').isDisplayed(), true);
 
         // Now as a user who *is* allowed to create the fork.
         // But doc forks cannot be casually created this way anymore, so it still doesn't work.
         await team.login();
-        await team.loadDoc(`/doc/${doc.id}~${forkId}~${userId}`, false);
+        await team.loadDoc(`/doc/${doc.id}~${forkId}~${userId}`, {wait: false});
         assert.equal(await driver.findWait('.test-modal-dialog', 2000).isDisplayed(), true);
         assert.match(await driver.find('.test-modal-dialog').getText(), /Document fork not found/);
 
         // New document can no longer be casually created this way anymore either.
-        await team.loadDoc(`/doc/new~${forkId}~${userId}`, false);
+        await team.loadDoc(`/doc/new~${forkId}~${userId}`, {wait: false});
         assert.equal(await driver.findWait('.test-modal-dialog', 2000).isDisplayed(), true);
         assert.match(await driver.find('.test-modal-dialog').getText(), /Document fork not found/);
         await gu.wipeToasts();
@@ -406,6 +420,7 @@ describe("Fork", function() {
         await gu.waitForServer();
         const forkUrl = await driver.getCurrentUrl();
         assert.match(forkUrl, /~/);
+        await gu.refreshDismiss();
 
         // check that there is no tag on trunk
         await team.loadDoc(`/doc/${trunk.id}`);
@@ -444,6 +459,7 @@ describe("Fork", function() {
         await gu.waitForDocToLoad();
         assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '2');
         assert.equal(await driver.find('.test-unsaved-tag').isPresent(), true);
+        await gu.refreshDismiss();
       });
 
       it('disables document renaming for forks', async function() {
@@ -456,6 +472,7 @@ describe("Fork", function() {
         await gu.waitToPass(async () => {
           assert.equal(await driver.find('.test-bc-doc').getAttribute('disabled'), 'true');
         });
+        await gu.refreshDismiss();
       });
 
       it('navigating browser history play well with the add new menu', async function() {
@@ -506,6 +523,7 @@ describe("Fork", function() {
         // check we're on a fork
         await gu.waitForUrl(/~/);
         const urlId = await gu.getCurrentUrlId();
+        await gu.refreshDismiss();
 
         // open trunk again, to test that page is reloaded after replacement
         await team.loadDoc(`/doc/${doc.id}`);
@@ -606,6 +624,7 @@ describe("Fork", function() {
         assert.equal(await confirmButton.getText(), 'Update');
         assert.match(await driver.find('.test-modal-dialog').getText(),
                      /already identical/);
+        await gu.refreshDismiss();
       });
 
       it('gives an error when replacing without write access via UI', async function() {
@@ -638,6 +657,7 @@ describe("Fork", function() {
           await driver.find('.test-replace-original').click();
           assert.equal(await driver.find('.grist-floating-menu').isDisplayed(), true);
           await assert.isRejected(driver.findWait('.test-modal-dialog', 500), /Waiting for element/);
+          await gu.refreshDismiss();
         } finally {
           await api.updateDocPermissions(doc.id, {users: {[altSession.email]: null}});
         }

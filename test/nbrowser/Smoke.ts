@@ -36,8 +36,7 @@ describe("Smoke", function() {
     await gu.dismissWelcomeTourIfNeeded();
     await gu.getCell('A', 1).click();
     await gu.enterCell('123');
-    await driver.navigate().refresh();
-    await gu.waitForDocToLoad();
+    await gu.refreshDismiss();
     assert.equal(await gu.getCell('A', 1).getText(), '123');
   });
 });

@@ -81,10 +81,10 @@ export class AccountWidget extends Disposable {
   private _buildUseThisTemplateButton() {
     return cssUseThisTemplateButton(t('Use This Template'),
       dom.attr('href', use => {
-        // Keep the redirect param of the login/signup URL fresh.
-        use(urlState().state);
-        return getLoginOrSignupUrl();
+        const {doc: srcDocId} = use(urlState().state);
+        return getLoginOrSignupUrl({srcDocId});
       }),
+      dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
       testId('dm-account-use-this-template'),
     );
   }
@@ -109,7 +109,7 @@ export class AccountWidget extends Disposable {
       t("Toggle Mobile Mode"),
       cssCheckmark('Tick', dom.show(viewport.viewportEnabled)),
       testId('usermenu-toggle-mobile'),
-     );
+    );
 
     if (!user) {
       return [

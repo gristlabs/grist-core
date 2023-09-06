@@ -1,5 +1,6 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {IUndoState} from 'app/client/components/UndoStack';
+import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {loadGristDoc} from 'app/client/lib/imports';
 import {AppModel, getOrgNameOrGuest, reportError} from 'app/client/models/AppModel';
 import {getDoc} from 'app/client/models/gristConfigCache';
@@ -94,6 +95,7 @@ export interface DocPageModel {
   // the error that prompted the offer. If user is not owner, just flag that
   // document needs attention of an owner.
   offerRecovery(err: Error): void;
+  clearUnsavedChanges(): void;
 }
 
 export interface ImportSource {
@@ -154,6 +156,15 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   // (with the previous promise cancelled) when _openerDocKey changes.
   private _openerHolder = Holder.create<FlowRunner>(this);
 
+  private readonly _unsavedChangeHolder = Holder.create<UnsavedChange>(this);
+
+  private readonly _isUnsavedFork = Computed.create(this,
+    this.isFork,
+    this.isSnapshot,
+    this.isTutorialFork,
+    (use, isFork, isSnapshot, isTutorialFork) => isFork && !isSnapshot && !isTutorialFork
+  );
+
   constructor(private _appObj: App, public readonly appModel: AppModel, private _api: UserAPI = appModel.api) {
     super();
 
@@ -183,6 +194,14 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       // one referenced by the updated doc.
       if (org?.billingAccount?.product.name !== this.currentProduct.get()?.name) {
         this.currentProduct.set(org?.billingAccount?.product ?? null);
+      }
+    }));
+
+    this.autoDispose(this._isUnsavedFork.addListener((isUnsavedFork) => {
+      if (isUnsavedFork) {
+        UnsavedChange.create(this._unsavedChangeHolder);
+      } else {
+        this._unsavedChangeHolder.clear();
       }
     }));
   }
@@ -287,6 +306,10 @@ It also disables formulas. [{{error}}]", {error: err.message})
         )
       },
     );
+  }
+
+  public clearUnsavedChanges(): void {
+    this._unsavedChangeHolder.clear();
   }
 
   private _onOpenError(err: Error) {

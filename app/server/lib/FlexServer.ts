@@ -5,6 +5,7 @@ import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
+import {safeJsonParse} from 'app/common/gutil';
 import {InstallProperties} from 'app/common/InstallAPI';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
@@ -22,7 +23,7 @@ import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
-import {addRequestUser, getUser, getUserId, isAnonymousUser,
+import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
@@ -67,6 +68,7 @@ import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRep
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
+import * as cookie from 'cookie';
 import express from 'express';
 import * as fse from 'fs-extra';
 import * as http from 'http';
@@ -876,6 +878,13 @@ export class FlexServer implements GristServer {
 
           // Give a chance to the login system to react to the first visit after signup.
           this._loginMiddleware.onFirstVisit?.(req);
+
+          // If we need to copy an unsaved document or template as part of sign-up, do so now
+          // and redirect to it.
+          const docId = await this._maybeCopyDocToHomeWorkspace(mreq, res);
+          if (docId) {
+            return res.redirect(this.getMergedOrgUrl(mreq, `/doc/${docId}`));
+          }
 
           const domain = mreq.org ?? null;
           if (!process.env.GRIST_SINGLE_ORG && this._dbManager.isMergedOrg(domain)) {
@@ -1914,6 +1923,66 @@ export class FlexServer implements GristServer {
     } else {
       resp.redirect(redirectToMergedOrg ? this.getMergedOrgUrl(mreq) : getOrgUrl(mreq));
     }
+  }
+
+  /**
+   * If a valid cookie was set during sign-up to copy a document to the
+   * user's Home workspace, copy it and return the id of the new document.
+   *
+   * If a valid cookie wasn't set or copying failed, return `null`.
+   */
+  private async _maybeCopyDocToHomeWorkspace(
+    req: RequestWithLogin,
+    resp: express.Response
+  ): Promise<string|null> {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    if (!cookies) { return null; }
+
+    const stateCookie = cookies['gr_signup_state'];
+    if (!stateCookie) { return null; }
+
+    const state = safeJsonParse(stateCookie, {});
+    const {srcDocId} = state;
+    if (!srcDocId) { return null; }
+
+    let newDocId: string | null = null;
+    try {
+      newDocId = await this._copyDocToHomeWorkspace(req, srcDocId);
+    } catch (e) {
+      log.error(`FlexServer failed to copy doc ${srcDocId} to Home workspace`, e);
+    } finally {
+      resp.clearCookie('gr_signup_state');
+    }
+    return newDocId;
+  }
+
+  private async _copyDocToHomeWorkspace(
+    req: express.Request,
+    docId: string,
+  ): Promise<string> {
+    const userId = getUserId(req);
+    const doc = await this._dbManager.getDoc({userId, urlId: docId});
+    if (!doc) { throw new Error(`Doc ${docId} not found`); }
+
+    const workspacesQueryResult = await this._dbManager.getOrgWorkspaces(getScope(req), 0);
+    const workspaces = this._dbManager.unwrapQueryResult(workspacesQueryResult);
+    const workspace = workspaces.find(w => w.name === 'Home');
+    if (!workspace) { throw new Error('Home workspace not found'); }
+
+    const copyDocUrl = this.getHomeUrl(req, '/api/docs');
+    const response = await fetch(copyDocUrl, {
+      headers: {
+        ...getTransitiveHeaders(req),
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        sourceDocumentId: doc.id,
+        workspaceId: workspace.id,
+        documentName: doc.name,
+      }),
+    });
+    return await response.json();
   }
 }
 

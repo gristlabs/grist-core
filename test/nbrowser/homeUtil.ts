@@ -112,6 +112,7 @@ export class HomeUtil {
       }
       // Make sure we revisit page in case login is changing.
       await this.driver.get('about:blank');
+      await this._acceptAlertIfPresent();
       // When running against an external server, we log in through the Grist login page.
       await this.driver.get(this.server.getUrl(org, ""));
       if (!await this.isOnLoginPage()) {
@@ -157,6 +158,7 @@ export class HomeUtil {
       if (sid) { await testingHooks.setLoginSessionProfile(sid, null, org); }
     } else {
       await this.driver.get(`${this.server.getHost()}/logout`);
+      await this._acceptAlertIfPresent();
     }
   }
 
@@ -251,6 +253,7 @@ export class HomeUtil {
   public async getGristSid(): Promise<string|null> {
     // Load a cheap page on our server to get the session-id cookie from browser.
     await this.driver.get(`${this.server.getHost()}/test/session`);
+    await this._acceptAlertIfPresent();
     const cookie = await this.driver.manage().getCookie(process.env.GRIST_SESSION_COOKIE || 'grist_sid');
     if (!cookie) { return null; }
     return decodeURIComponent(cookie.value);
@@ -473,6 +476,14 @@ export class HomeUtil {
           ...${JSON.stringify(enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED)},
         }));
       `);
+    }
+  }
+
+  private async _acceptAlertIfPresent() {
+    try {
+      await (await this.driver.switchTo().alert()).accept();
+    } catch {
+      /* There was no alert to accept. */
     }
   }
 }

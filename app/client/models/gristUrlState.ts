@@ -66,24 +66,30 @@ export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 // When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
 export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
 
-// Get url for the login page, which will then redirect to `nextUrl` (current page by default).
-export function getLoginUrl(nextUrl: string | null = _getCurrentUrl()): string {
-  return _getLoginLogoutUrl('login', nextUrl);
+export interface GetLoginOrSignupUrlOptions {
+  srcDocId?: string | null;
+  /** Defaults to the current URL. */
+  nextUrl?: string | null;
 }
 
-// Get url for the signup page, which will then redirect to `nextUrl` (current page by default).
-export function getSignupUrl(nextUrl: string = _getCurrentUrl()): string {
-  return _getLoginLogoutUrl('signup', nextUrl);
+// Get URL for the login page.
+export function getLoginUrl(options: GetLoginOrSignupUrlOptions = {}): string {
+  return _getLoginLogoutUrl('login', options);
 }
 
-// Get url for the logout page.
+// Get URL for the signup page.
+export function getSignupUrl(options: GetLoginOrSignupUrlOptions = {}): string {
+  return _getLoginLogoutUrl('signup', options);
+}
+
+// Get URL for the logout page.
 export function getLogoutUrl(): string {
   return _getLoginLogoutUrl('logout');
 }
 
-// Get url for the signin page, which will then redirect to `nextUrl` (current page by default).
-export function getLoginOrSignupUrl(nextUrl: string = _getCurrentUrl()): string {
-  return _getLoginLogoutUrl('signin', nextUrl);
+// Get URL for the signin page.
+export function getLoginOrSignupUrl(options: GetLoginOrSignupUrlOptions = {}): string {
+  return _getLoginLogoutUrl('signin', options);
 }
 
 export function getWelcomeHomeUrl() {
@@ -100,9 +106,14 @@ function _getCurrentUrl(): string {
   return parseFirstUrlPart('o', pathname).path + search + hash;
 }
 
-// Returns the URL for the given login page, with 'next' param optionally set.
-function _getLoginLogoutUrl(page: 'login'|'logout'|'signin'|'signup', nextUrl?: string | null): string {
+// Returns the URL for the given login page.
+function _getLoginLogoutUrl(
+  page: 'login'|'logout'|'signin'|'signup',
+  options: GetLoginOrSignupUrlOptions = {}
+): string {
+  const {srcDocId, nextUrl = _getCurrentUrl()} = options;
   const startUrl = _buildUrl(page);
+  if (srcDocId) { startUrl.searchParams.set('srcDocId', srcDocId); }
   if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
   return startUrl.href;
 }

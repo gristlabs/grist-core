@@ -1959,8 +1959,16 @@ export class Session {
   }
 
   // Load a document on a site.
-  public async loadDoc(relPath: string, wait: boolean = true) {
+  public async loadDoc(
+    relPath: string,
+    options: {
+      wait?: boolean,
+      skipAlert?: boolean,
+    } = {}
+  ) {
+    const {wait = true, skipAlert = false} = options;
     await this.loadRelPath(relPath);
+    if (skipAlert && await isAlertShown()) { await acceptAlert(); }
     if (wait) { await waitForDocToLoad(); }
   }
 
@@ -2395,6 +2403,7 @@ async function addSamples() {
   await templatesApi.updateDoc(
     exampleDocId,
     {
+      type: 'template',
       isPinned: true,
       options: {
         description: 'CRM template and example for linking data, and creating productive layouts.',
@@ -2411,6 +2420,7 @@ async function addSamples() {
   await templatesApi.updateDoc(
     investmentDocId,
     {
+      type: 'template',
       isPinned: true,
       options: {
         description: 'Example for analyzing and visualizing with summary tables and linked charts.',
@@ -2425,6 +2435,7 @@ async function addSamples() {
   await templatesApi.updateDoc(
     afterschoolDocId,
     {
+      type: 'template',
       isPinned: true,
       options: {
         description: 'Example for how to model business data, use formulas, and manage complexity.',
@@ -2870,8 +2881,27 @@ export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
  */
 export async function refreshDismiss() {
   await driver.navigate().refresh();
-  await (await driver.switchTo().alert()).accept();
+  await acceptAlert();
   await waitForDocToLoad();
+}
+
+/**
+ * Accepts an alert.
+ */
+export async function acceptAlert() {
+  await (await driver.switchTo().alert()).accept();
+}
+
+/**
+ * Returns whether an alert is shown.
+ */
+export async function isAlertShown() {
+  try {
+    await driver.switchTo().alert();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

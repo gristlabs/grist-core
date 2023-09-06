@@ -340,6 +340,11 @@ export interface DocStateComparisonDetails {
   rightChanges: ActionSummary;
 }
 
+export interface CopyDocOptions {
+  documentName: string;
+  asTemplate?: boolean;
+}
+
 export interface UserAPI {
   getSessionActive(): Promise<ActiveSessionInfo>;
   setSessionActive(email: string, org?: string): Promise<void>;
@@ -355,6 +360,7 @@ export interface UserAPI {
   newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number>;
   newDoc(props: Partial<DocumentProperties>, workspaceId: number): Promise<string>;
   newUnsavedDoc(options?: {timezone?: string}): Promise<string>;
+  copyDoc(sourceDocumentId: string, workspaceId: number, options: CopyDocOptions): Promise<string>;
   renameOrg(orgId: number|string, name: string): Promise<void>;
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
   renameDoc(docId: string, name: string): Promise<void>;
@@ -566,6 +572,21 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/docs`, {
       method: 'POST',
       body: JSON.stringify(options),
+    });
+  }
+
+  public async copyDoc(
+    sourceDocumentId: string,
+    workspaceId: number,
+    options: CopyDocOptions
+  ): Promise<string> {
+    return this.requestJson(`${this._url}/api/docs`, {
+      method: 'POST',
+      body: JSON.stringify({
+        sourceDocumentId,
+        workspaceId,
+        ...options,
+      }),
     });
   }
 
@@ -982,6 +1003,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   } = {}): Promise<DocStateComparison> {
      const q = options.detail ? '?detail=true' : '';
      return this.requestJson(`${this._url}/compare/${remoteDocId}${q}`);
+  }
+
+  public async copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string> {
+    const {documentName, asTemplate} = options;
+    return this.requestJson(`${this._url}/copy`, {
+      body: JSON.stringify({workspaceId, documentName, asTemplate}),
+      method: 'POST'
+     });
   }
 
   public async compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison> {

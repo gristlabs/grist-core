@@ -404,7 +404,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
  * Fetches a Grist doc potentially managed by a different doc worker.  Passes on credentials
  * supplied in the current request.
  */
-async function fetchDoc(server: GristServer, docId: string, req: Request, accessId: string|null,
+export async function fetchDoc(server: GristServer, docId: string, req: Request, accessId: string|null,
                         template: boolean): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
   const headers = getTransitiveHeaders(req);

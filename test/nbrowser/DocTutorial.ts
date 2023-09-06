@@ -57,7 +57,7 @@ describe('DocTutorial', function () {
     });
 
     it('redirects user to log in', async function() {
-      await viewerSession.loadDoc(`/doc/${doc.id}`, false);
+      await viewerSession.loadDoc(`/doc/${doc.id}`, {wait: false});
       await gu.checkLoginPage();
     });
   });

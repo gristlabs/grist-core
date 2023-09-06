@@ -172,10 +172,9 @@ export class App extends DisposableWithEvents {
     G.window.addEventListener('beforeunload', (ev: BeforeUnloadEvent) => {
       if (unsavedChanges.haveUnsavedChanges()) {
         // Following https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
-        const msg = 'You have some unsaved changes';
-        ev.returnValue = msg;
+        ev.returnValue = true;
         ev.preventDefault();
-        return msg;
+        return true;
       }
       this.dispose();
     });

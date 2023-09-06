@@ -124,6 +124,7 @@ export interface IGristUrlState {
     billingTask?: BillingTask;
     embed?: boolean;
     state?: string;
+    srcDocId?: string;
     style?: InterfaceStyle;
     compare?: string;
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
@@ -395,7 +396,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (sp.has('state')) {
     state.params!.state = sp.get('state')!;
   }
-
+  if (sp.has('srcDocId')) {
+    state.params!.srcDocId = sp.get('srcDocId')!;
+  }
   if (sp.has('style')) {
     let style = sp.get('style');
     if (style === 'light') {

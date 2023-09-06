@@ -99,7 +99,7 @@ export class WelcomePage extends Disposable {
           `If you already have a Grist account as `,
           dom('b', email.get()),
           ` you can just `,
-          cssLink({href: getLoginUrl('')}, 'log in'),
+          cssLink({href: getLoginUrl({nextUrl: null})}, 'log in'),
           ` now. Otherwise, please pick a password.`
          ),
       cssSeparatedLabel('The email address you activated Grist with:'),
@@ -184,7 +184,7 @@ export class WelcomePage extends Disposable {
                            'Apply verification code' : 'Resend verification email')
         ),
         bigBasicButtonLink('More sign-up options',
-                           {href: getSignupUrl('')})
+                           {href: getSignupUrl({nextUrl: null})})
       )
     );
   }

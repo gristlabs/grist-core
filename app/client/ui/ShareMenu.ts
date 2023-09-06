@@ -1,7 +1,7 @@
 import {loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
@@ -34,20 +34,19 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // to render its contents, but we handle by merely skipping such content if gristDoc is not yet
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
-    const appModel = pageModel.appModel;
-    const saveCopy = () => makeCopy(doc, appModel, t("Save Document")).catch(reportError);
+    const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
     if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
       return shareButton(t("Back to Current"), () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy(t("Save Copy"), doc, appModel),
-        menuOriginal(doc, appModel, {isSnapshot: true}),
+        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+        menuOriginal(doc, pageModel, {isSnapshot: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: backToCurrent});
     } else if (doc.isTutorialFork) {
       return shareButton(t("Save Copy"), () => [
-        menuSaveCopy(t("Save Copy"), doc, appModel),
-        menuOriginal(doc, appModel, {isTutorialFork: true}),
+        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+        menuOriginal(doc, pageModel, {isTutorialFork: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     } else if (doc.isPreFork || doc.isBareFork) {
@@ -55,7 +54,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       const saveActionTitle = doc.isBareFork ? t("Save Document") : t("Save Copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy(saveActionTitle, doc, appModel),
+        menuSaveCopy({pageModel, doc, saveActionTitle}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
@@ -66,22 +65,22 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       if (!roles.canEdit(doc.trunkAccess || null)) {
         return shareButton(t("Save Copy"), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy(t("Save Copy"), doc, appModel),
-          menuOriginal(doc, appModel),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+          menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ], {buttonAction: saveCopy});
       } else {
         return shareButton(t("Unsaved"), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy(t("Save Copy"), doc, appModel),
-          menuOriginal(doc, appModel),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+          menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ]);
       }
     } else {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy(t("Duplicate Document"), doc, appModel),
+        menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate Document")}),
         menuWorkOnCopy(pageModel),
         menuExports(doc, pageModel),
       ]);
@@ -134,6 +133,22 @@ function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
   }
 }
 
+async function handleSaveCopy(options: {
+  pageModel: DocPageModel,
+  doc: Document,
+  modalTitle: string,
+}) {
+  const {pageModel} = options;
+  const {appModel} = pageModel;
+  if (!appModel.currentValidUser) {
+    pageModel.clearUnsavedChanges();
+    window.location.href = getLoginOrSignupUrl({srcDocId: urlState().state.get().doc});
+    return;
+  }
+
+  return makeCopy(options);
+}
+
 // Renders "Manage Users" menu item.
 function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
@@ -163,7 +178,7 @@ interface MenuOriginalOptions {
  * setting the open mode in the URL to "/m/default" - if the menu item were to ever be included
  * again, it should likely be a shortcut to setting the open mode back to default.
  */
-function menuOriginal(doc: Document, appModel: AppModel, options: MenuOriginalOptions = {}) {
+function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOriginalOptions = {}) {
   const {isSnapshot = false, isTutorialFork = false} = options;
   const termToUse = isSnapshot ? t("Current Version") : t("Original");
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
@@ -183,15 +198,17 @@ function menuOriginal(doc: Document, appModel: AppModel, options: MenuOriginalOp
   const comparingSnapshots: boolean = isSnapshot && Boolean(compareUrlId && parseUrlId(compareUrlId).snapshotId);
 
   function replaceOriginal() {
-    const user = appModel.currentValidUser;
-    replaceTrunkWithFork(user, doc, appModel, origUrlId).catch(reportError);
+    replaceTrunkWithFork(doc, pageModel, origUrlId).catch(reportError);
   }
   return [
     isTutorialFork ? null : cssMenuSplitLink({href: originalUrl},
-      cssMenuSplitLinkText(t("Return to {{termToUse}}", {termToUse})), testId('return-to-original'),
-      cssMenuIconLink({href: originalUrl, target: '_blank'}, testId('open-original'),
+      cssMenuSplitLinkText(t("Return to {{termToUse}}", {termToUse})),
+      cssMenuIconLink({href: originalUrl, target: '_blank'},
         cssMenuIcon('FieldLink'),
-      )
+        testId('open-original'),
+      ),
+      dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
+      testId('return-to-original'),
     ),
     menuItem(replaceOriginal, t("Replace {{termToUse}}...", {termToUse}),
       // Disable if original is not writable, and also when comparing snapshots (since it's
@@ -201,6 +218,7 @@ function menuOriginal(doc: Document, appModel: AppModel, options: MenuOriginalOp
     ),
     isTutorialFork ? null : menuItemLink(compareHref, {target: '_blank'}, t("Compare to {{termToUse}}", {termToUse}),
       menuAnnotate('Beta'),
+      dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
       testId('compare-original'),
     ),
   ];
@@ -208,8 +226,13 @@ function menuOriginal(doc: Document, appModel: AppModel, options: MenuOriginalOp
 
 // Renders "Save Copy..." and "Copy as Template..." menu items. The name of the first action is
 // specified in saveActionTitle.
-function menuSaveCopy(saveActionTitle: string, doc: Document, appModel: AppModel) {
-  const saveCopy = () => makeCopy(doc, appModel, saveActionTitle).catch(reportError);
+function menuSaveCopy(options: {
+  pageModel: DocPageModel,
+  doc: Document,
+  saveActionTitle: string,
+}) {
+  const {pageModel, doc, saveActionTitle} = options;
+  const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: saveActionTitle});
   return [
     // TODO Disable these when user has no accessible destinations.
     menuItem(saveCopy, `${saveActionTitle}...`, testId('save-copy')),

@@ -300,6 +300,17 @@ export function integerParam(p: any, name: string): number {
   throw new ApiError(`${name} parameter should be an integer: ${p}`, 400);
 }
 
+export function optBooleanParam(p: any, name: string): boolean|undefined {
+  if (p === undefined) { return p; }
+
+  return booleanParam(p, name);
+}
+
+export function booleanParam(p: any, name: string): boolean {
+  if (typeof p === 'boolean') { return p; }
+  throw new ApiError(`${name} parameter should be a boolean: ${p}`, 400);
+}
+
 export function optJsonParam(p: any, defaultValue: any): any {
   if (typeof p !== 'string') { return defaultValue; }
   return gutil.safeJsonParse(p, defaultValue);

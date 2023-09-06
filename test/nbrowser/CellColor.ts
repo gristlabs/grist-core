@@ -152,7 +152,7 @@ describe('CellColor', function() {
     const forkId = await gu.getCurrentUrlId();
 
     // Compare with the original
-    await mainSession.loadDoc(`/doc/${doc}?compare=${forkId}`);
+    await mainSession.loadDoc(`/doc/${doc}?compare=${forkId}`, {skipAlert: true});
 
     // check that colors for diffing cells are ok
     cell = gu.getCell('A', 1).find('.field_clip');

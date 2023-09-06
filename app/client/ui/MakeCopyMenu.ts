@@ -5,8 +5,8 @@
 
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
-import {DocPageModel} from "app/client/models/DocPageModel";
-import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {DocPageModel} from 'app/client/models/DocPageModel';
+import {urlState} from 'app/client/models/gristUrlState';
 import {getWorkspaceInfo, ownerName, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {cssInput} from 'app/client/ui/cssInput';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
@@ -14,16 +14,7 @@ import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} fro
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {select} from 'app/client/ui2018/menus';
-import {
-  confirmModal,
-  cssModalBody,
-  cssModalButtons,
-  cssModalTitle,
-  cssModalWidth,
-  modal,
-  saveModal
-} from 'app/client/ui2018/modals';
-import {FullUser} from 'app/common/LoginSessionAPI';
+import {confirmModal, cssModalBody, cssModalButtons, cssModalTitle, modal, saveModal} from 'app/client/ui2018/modals';
 import * as roles from 'app/common/roles';
 import {Document, isTemplatesOrg, Organization, Workspace} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, input, Observable, styled, subscribe} from 'grainjs';
@@ -31,8 +22,9 @@ import sortBy = require('lodash/sortBy');
 
 const t = makeT('MakeCopyMenu');
 
-export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, app: AppModel, origUrlId: string) {
-  const trunkAccess = (await app.api.getDoc(origUrlId)).access;
+export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageModel, origUrlId: string) {
+  const {appModel} = pageModel;
+  const trunkAccess = (await appModel.api.getDoc(origUrlId)).access;
   if (!roles.canEdit(trunkAccess)) {
     modal((ctl) => [
       cssModalBody(t("Replacing the original requires editing rights on the original document.")),
@@ -42,7 +34,7 @@ export async function replaceTrunkWithFork(user: FullUser|null, doc: Document, a
     ]);
     return;
   }
-  const docApi = app.api.getDocAPI(origUrlId);
+  const docApi = appModel.api.getDocAPI(origUrlId);
   const cmp = await docApi.compareDoc(doc.id);
   let titleText = t("Update Original");
   let buttonText = t("Update");
@@ -64,23 +56,12 @@ not in this document. Those changes will be overwritten.")}`;
     async () => {
       try {
         await docApi.replace({sourceDocId: doc.id});
+        pageModel.clearUnsavedChanges();
         await urlState().pushUrl({doc: origUrlId});
       } catch (e) {
         reportError(e);  // For example: no write access on trunk.
       }
     }, {explanation: warningText});
-}
-
-// Show message in a modal with a `Sign up` button that redirects to the login page.
-function signupModal(message: string) {
-  return modal((ctl) => [
-    cssModalBody(message),
-    cssModalButtons(
-      bigPrimaryButtonLink(t("Sign up"), {href: getLoginOrSignupUrl(), target: '_blank'}, testId('modal-signup')),
-      bigBasicButton(t("Cancel"), dom.on('click', () => ctl.close())),
-    ),
-    cssModalWidth('normal'),
-  ]);
 }
 
 /**
@@ -104,12 +85,14 @@ function allowOtherOrgs(doc: Document, app: AppModel): boolean {
 /**
  * Ask user for the destination and new name, and make a copy of the doc using those.
  */
-export async function makeCopy(doc: Document, app: AppModel, modalTitle: string): Promise<void> {
-  if (!app.currentValidUser) {
-    signupModal(t("To save your changes, please sign up, then reload this page."));
-    return;
-  }
-  let orgs = allowOtherOrgs(doc, app) ? await app.api.getOrgs(true) : null;
+export async function makeCopy(options: {
+  pageModel: DocPageModel,
+  doc: Document,
+  modalTitle: string,
+}): Promise<void> {
+  const {pageModel, doc, modalTitle} = options;
+  const {appModel} = pageModel;
+  let orgs = allowOtherOrgs(doc, appModel) ? await appModel.api.getOrgs(true) : null;
   if (orgs) {
     // Don't show the templates org since it's selected by default, and
     // is not writable to.
@@ -118,7 +101,7 @@ export async function makeCopy(doc: Document, app: AppModel, modalTitle: string)
 
   // Show a dialog with a form to select destination.
   saveModal((ctl, owner) => {
-    const saveCopyModal = SaveCopyModal.create(owner, doc, app, orgs);
+    const saveCopyModal = SaveCopyModal.create(owner, {pageModel, doc, orgs});
     return {
       title: modalTitle,
       body: saveCopyModal.buildDom(),
@@ -129,7 +112,17 @@ export async function makeCopy(doc: Document, app: AppModel, modalTitle: string)
   });
 }
 
+interface SaveCopyModalParams {
+  pageModel: DocPageModel;
+  doc: Document;
+  orgs: Organization[]|null;
+}
+
 class SaveCopyModal extends Disposable {
+  private _pageModel = this._params.pageModel;
+  private _app = this._pageModel.appModel;
+  private _doc = this._params.doc;
+  private _orgs = this._params.orgs;
   private _workspaces = Observable.create<Workspace[]|null>(this, null);
   private _destName = Observable.create<string>(this, '');
   private _destOrg = Observable.create<Organization|null>(this, this._app.currentOrg);
@@ -142,10 +135,10 @@ class SaveCopyModal extends Disposable {
   private _showWorkspaces = Computed.create(this, this._destOrg, (use, org) => Boolean(org && !org.owner));
 
   // If orgs is non-null, then we show a selector for orgs.
-  constructor(private _doc: Document, private _app: AppModel, private _orgs: Organization[]|null) {
+  constructor(private _params: SaveCopyModalParams) {
     super();
-    if (_doc.name !== 'Untitled') {
-      this._destName.set(_doc.name + ' (copy)');
+    if (this._doc.name !== 'Untitled') {
+      this._destName.set(this._doc.name + ' (copy)');
     }
     if (this._orgs && this._app.currentOrg) {
       // Set _destOrg to an Organization object from _orgs array; there should be one equivalent
@@ -163,12 +156,14 @@ class SaveCopyModal extends Disposable {
     if (!ws) { throw new Error(t("No destination workspace")); }
     const api = this._app.api;
     const org = this._destOrg.get();
-    const docWorker = await api.getWorkerAPI('import');
-    const destName = this._destName.get() + '.grist';
+    const destName = this._destName.get();
     try {
-      const uploadId = await docWorker.copyDoc(this._doc.id, this._asTemplate.get(), destName);
-      const {id} = await docWorker.importDocToWorkspace(uploadId, ws.id);
-      await urlState().pushUrl({org: org?.domain || undefined, doc: id, docPage: urlState().state.get().docPage});
+      const doc = await api.copyDoc(this._doc.id, ws.id, {
+        documentName: destName,
+        asTemplate: this._asTemplate.get(),
+      });
+      this._pageModel.clearUnsavedChanges();
+      await urlState().pushUrl({org: org?.domain || undefined, doc, docPage: urlState().state.get().docPage});
     } catch(err) {
       // Convert access denied errors to normal Error to make it consistent with other endpoints.
       // TODO: Should not allow to click this button when user doesn't have permissions.
