@@ -948,6 +948,9 @@ export async function waitForLabelInput(): Promise<void> {
  * Sends UserActions using client api from the browser.
  */
 export async function sendActions(actions: UserAction[]) {
+  await driver.manage().setTimeouts({
+    script: 1000 * 2, /* 2 seconds, default is 0.5s */
+  });
   const result = await driver.executeAsyncScript(`
     const done = arguments[arguments.length - 1];
     const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
