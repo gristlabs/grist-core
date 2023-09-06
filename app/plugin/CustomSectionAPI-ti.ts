@@ -19,6 +19,7 @@ export const InteractionOptionsRequest = t.iface([], {
   "requiredAccess": t.opt("string"),
   "hasCustomOptions": t.opt("boolean"),
   "columns": t.opt("ColumnsToMap"),
+  "allowSelectBy": t.opt("boolean"),
 });
 
 export const InteractionOptions = t.iface([], {

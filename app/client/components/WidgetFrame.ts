@@ -2,12 +2,13 @@ import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {makeTestId} from 'app/client/lib/domUtils';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {AccessTokenOptions, CustomSectionAPI, GristDocAPI, GristView,
+import {AccessTokenOptions, CursorPos, CustomSectionAPI, GristDocAPI, GristView,
         InteractionOptionsRequest, WidgetAPI, WidgetColumnMap} from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
@@ -15,6 +16,9 @@ import noop = require('lodash/noop');
 import debounce = require('lodash/debounce');
 import isEqual = require('lodash/isEqual');
 import flatMap = require('lodash/flatMap');
+
+const testId = makeTestId('test-custom-widget-');
+
 
 /**
  * This file contains a WidgetFrame and all its components.
@@ -62,6 +66,8 @@ export class WidgetFrame extends DisposableWithEvents {
   private _rpc: Rpc;
   // Created iframe element, used to receive and post messages via Rpc
   private _iframe: HTMLIFrameElement | null;
+  // If widget called ready() method, this will be set to true.
+  private _readyCalled = Observable.create(this, false);
 
   constructor(private _options: WidgetFrameOptions) {
     super();
@@ -89,7 +95,6 @@ export class WidgetFrame extends DisposableWithEvents {
     // Call custom configuration handler.
     _options.configure?.(this);
   }
-
   /**
    * Attach an EventSource with desired access level.
    */
@@ -156,10 +161,14 @@ export class WidgetFrame extends DisposableWithEvents {
     const fullUrl = urlWithAccess(this._options.url);
     const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
     return onElem(
-      (this._iframe = dom('iframe', dom.cls('clipboard_focus'), dom.cls('custom_view'), {
-        src: fullUrl,
-        ...hooks.iframeAttributes,
-      }))
+      (this._iframe = dom('iframe',
+        dom.cls('clipboard_focus'),
+        dom.cls('custom_view'), {
+          src: fullUrl,
+          ...hooks.iframeAttributes,
+        },
+        testId('ready', this._readyCalled),
+      ))
     );
   }
 
@@ -178,6 +187,7 @@ export class WidgetFrame extends DisposableWithEvents {
       }
       if (event.data.mtype === MsgType.Ready) {
         this.trigger('ready', this);
+        this._readyCalled.set(true);
       }
       this._rpc.receiveMessage(event.data);
     }
@@ -380,12 +390,25 @@ export class GristViewImpl implements GristView {
     return data;
   }
 
+  /**
+   * This is deprecated method to turn on cursor linking. Previously it was used
+   * to create a custom row id filter. Now widgets can be treated as normal source of linking.
+   * Now allowSelectBy should be set using the ready event.
+   */
   public async allowSelectBy(): Promise<void> {
-    this._baseView.viewSection.allowSelectBy.set(true);
+    this._baseView.viewSection.allowSelectBy(true);
+    // This is to preserve a legacy behavior, where when allowSelectBy is called widget expected
+    // that the filter was already applied to clear all rows.
+    this._baseView.viewSection.selectedRows([]);
   }
 
-  public async setSelectedRows(rowIds: number[]): Promise<void> {
-    this._baseView.viewSection.selectedRows.set(rowIds);
+  public async setSelectedRows(rowIds: number[]|null): Promise<void> {
+    this._baseView.viewSection.selectedRows(rowIds);
+  }
+
+  public setCursorPos(cursorPos: CursorPos): Promise<void> {
+    this._baseView.setCursorPos(cursorPos);
+    return Promise.resolve();
   }
 
   private _visibleColumns() {
@@ -501,7 +524,7 @@ export class RecordNotifier extends BaseEventSource {
 }
 
 /**
- * Notifies about options position change. Exposed in the API as a onOptions handler.
+ * Notifies about options change. Exposed in the API as a onOptions handler.
  */
 export class ConfigNotifier extends BaseEventSource {
   private _currentConfig: Computed<any | null>;
@@ -614,6 +637,9 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
       this._section.columnsToMap(settings.columns);
     } else {
       this._section.columnsToMap(null);
+    }
+    if (settings.allowSelectBy !== undefined) {
+      this._section.allowSelectBy(settings.allowSelectBy);
     }
   }
 }

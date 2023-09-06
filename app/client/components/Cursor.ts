@@ -8,16 +8,9 @@ import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import {LazyArrayModel} from 'app/client/models/DataTableModel';
-import type {UIRowId} from 'app/common/TableData';
+import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {Disposable} from 'grainjs';
 import * as ko from 'knockout';
-
-export interface CursorPos {
-  rowId?: UIRowId;
-  rowIndex?: number;
-  fieldIndex?: number;
-  sectionId?: number;
-}
 
 function nullAsUndefined<T>(value: T|null|undefined): T|undefined {
   return value == null ? undefined : value;

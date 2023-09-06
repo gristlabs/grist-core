@@ -2,21 +2,18 @@
  * TableData maintains a single table's data.
  */
 import {ActionDispatcher} from 'app/common/ActionDispatcher';
-import {
-  BulkAddRecord, BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
+import {BulkAddRecord, BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
         isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from 'app/common/DocActions';
 import {getDefaultForType} from 'app/common/gristTypes';
 import {arrayRemove, arraySplice, getDistinctValues} from 'app/common/gutil';
-import {SchemaTypes} from "app/common/schema";
+import {SchemaTypes} from 'app/common/schema';
+import {UIRowId} from 'app/plugin/GristAPI';
 import isEqual = require('lodash/isEqual');
 import fromPairs = require('lodash/fromPairs');
 
 export interface ColTypeMap { [colId: string]: string; }
 
-// This is the row ID used in the client, but it's helpful to have available in some common code
-// as well, which is why it's declared in app/common. Note that for data actions and stored data,
-// 'new' is not used.
-export type UIRowId = number | 'new';
+
 
 type UIRowFunc<T> = (rowId: UIRowId) => T;
 

@@ -1,5 +1,5 @@
 import * as commands from 'app/client/components/commands';
-import {Cursor, CursorPos} from 'app/client/components/Cursor';
+import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {UnsavedChange} from 'app/client/components/UnsavedChanges';
 import {makeT} from 'app/client/lib/localization';
@@ -14,6 +14,7 @@ import {CellValue} from "app/common/DocActions";
 import * as gutil from 'app/common/gutil';
 import {CellPosition} from "app/client/components/CellPosition";
 import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
+import {CursorPos} from 'app/plugin/GristAPI';
 import isEqual = require('lodash/isEqual');
 import {Disposable, dom, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
 

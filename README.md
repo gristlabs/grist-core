@@ -282,6 +282,7 @@ GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML
 GRIST_PROXY_AUTH_HEADER | header which will be set by a (reverse) proxy webserver with an authorized users' email. This can be used as an alternative to a SAML service. See also GRIST_FORWARD_AUTH_HEADER.
 GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer
 GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy)
+GRIST_SERVERS | the types of server to setup. Comma separated values which may contain "home", "docs", static" and/or "app". Defaults to "home,docs,static".
 GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
 GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN
 GRIST_SESSION_SECRET | a key used to encode sessions

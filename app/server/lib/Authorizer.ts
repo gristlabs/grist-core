@@ -165,7 +165,7 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   // Support providing an access token via an `auth` query parameter.
   // This is useful for letting the browser load assets like image
   // attachments.
-  const auth = optStringParam(mreq.query.auth);
+  const auth = optStringParam(mreq.query.auth, 'auth');
   if (auth) {
     const tokens = options.gristServer.getAccessTokens();
     const token = await tokens.verify(auth);
@@ -310,7 +310,8 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
 
       // See if we have a profile linked with the active organization already.
       // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
-      let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org, optStringParam(mreq.query.user) || '');
+      let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org,
+        optStringParam(mreq.query.user, 'user') || '');
 
       if (!sessionUser) {
         // No profile linked yet, so let's elect one.

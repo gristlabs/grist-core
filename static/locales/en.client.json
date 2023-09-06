@@ -1082,7 +1082,13 @@
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Sign up for a free Grist account to start using the Formula AI Assistant.",
         "There are some things you should know when working with me:": "There are some things you should know when working with me:",
         "What do you need help with?": "What do you need help with?",
-        "Formula AI Assistant is only available for logged in users.": "Formula AI Assistant is only available for logged in users."
+        "Formula AI Assistant is only available for logged in users.": "Formula AI Assistant is only available for logged in users.",
+        "For higher limits, contact the site owner.": "For higher limits, contact the site owner.",
+        "For higher limits, {{upgradeNudge}}.": "For higher limits, {{upgradeNudge}}.",
+        "You have used all available credits.": "You have used all available credits.",
+        "You have {{numCredits}} remaining credits.": "You have {{numCredits}} remaining credits.",
+        "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
+        "upgrade your plan": "upgrade your plan"
     },
     "GridView": {
         "Click to insert": "Click to insert"

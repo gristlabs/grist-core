@@ -5,7 +5,7 @@ import * as rowset from 'app/client/models/rowset';
 import { MANUALSORT } from 'app/common/gristTypes';
 import { SortFunc } from 'app/common/SortFunc';
 import { Sort } from 'app/common/SortSpec';
-import { UIRowId } from 'app/common/TableData';
+import { UIRowId } from 'app/plugin/GristAPI';
 import * as ko from 'knockout';
 import range = require('lodash/range');
 

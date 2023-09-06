@@ -1,11 +1,10 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
 import {FormulaProperties} from 'app/common/GranularAccessClause';
-import {UIRowId} from 'app/common/TableData';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
-import {AccessTokenOptions, AccessTokenResult} from 'app/plugin/GristAPI';
+import {AccessTokenOptions, AccessTokenResult, UIRowId} from 'app/plugin/GristAPI';
 import {IMessage} from 'grain-rpc';
 
 export interface ApplyUAOptions {

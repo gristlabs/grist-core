@@ -1,8 +1,8 @@
-import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import * as dispose from 'app/client/lib/dispose';
 import {MinimalActionGroup} from 'app/common/ActionGroup';
 import {PromiseChain, setDefault} from 'app/common/gutil';
+import {CursorPos} from 'app/plugin/GristAPI';
 import {fromKo, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import sortBy = require('lodash/sortBy');

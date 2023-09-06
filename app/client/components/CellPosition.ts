@@ -1,5 +1,5 @@
-import { CursorPos } from "app/client/components/Cursor";
 import { DocModel, ViewFieldRec } from "app/client/models/DocModel";
+import { CursorPos } from 'app/plugin/GristAPI';
 import BaseRowModel = require("app/client/models/BaseRowModel");
 
 /**

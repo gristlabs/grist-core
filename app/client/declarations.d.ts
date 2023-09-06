@@ -25,7 +25,7 @@ declare module "app/client/components/Base" {
 
 declare module "app/client/components/BaseView" {
 
-  import {Cursor, CursorPos} from 'app/client/components/Cursor';
+  import {Cursor} from 'app/client/components/Cursor';
   import {GristDoc} from 'app/client/components/GristDoc';
   import {IGristUrlState} from 'app/common/gristUrls';
   import {SelectionSummary} from 'app/client/components/SelectionSummary';
@@ -39,6 +39,7 @@ declare module "app/client/components/BaseView" {
   import {SortedRowSet} from 'app/client/models/rowset';
   import {IColumnFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
   import {FieldBuilder} from "app/client/widgets/FieldBuilder";
+  import {CursorPos} from 'app/plugin/GristAPI';
   import {DomArg} from 'grainjs';
   import {IOpenController} from 'popweasel';
 

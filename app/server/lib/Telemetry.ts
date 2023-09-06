@@ -150,7 +150,7 @@ export class Telemetry implements ITelemetry {
      */
     app.post('/api/telemetry', expressWrap(async (req, resp) => {
       const mreq = req as RequestWithLogin;
-      const event = stringParam(req.body.event, 'event', TelemetryEvents.values) as TelemetryEvent;
+      const event = stringParam(req.body.event, 'event', {allowed: TelemetryEvents.values}) as TelemetryEvent;
       if ('eventSource' in req.body.metadata) {
         this._telemetryLogger.rawLog('info', getEventType(event), event, {
           ...(removeNullishKeys(req.body.metadata)),

@@ -127,7 +127,7 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     }
 
     // custom widget must allow select by
-    if (!source.section.allowSelectBy.get()) {
+    if (!source.section.allowSelectBy()) {
       return false;
     }
   }

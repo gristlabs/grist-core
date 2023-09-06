@@ -55,12 +55,22 @@ export function viewSectionMenu(
   const save = () => { doSave(docModel, viewSection).catch(reportError); };
   const revert = () => doRevert(viewSection);
 
+  // If this section is the only one in the view (or view temporary has no sections at all).
+  const singleVisible = Computed.create(owner, (use) => {
+    const view = use(viewSection.view);
+    const sections = use(use(view.viewSections).getObservable());
+    const expanded = sections.filter(s => use(s.isCollapsed) === false).length;
+    return expanded === 1 || !expanded; // single, or no sections at all (temporary).
+  });
+
   // Should we show expand icon.
   const showExpandIcon = Computed.create(owner, (use) => {
     return !use(isNarrowScreenObs()) // not on narrow screens
          && use(gristDoc.maximizedSectionId) !== use(viewSection.id) // not in when we are maximized
          && use(gristDoc.externalSectionId) !== use(viewSection.id) // not in when we are external
-         && !use(viewSection.isRaw); // not in raw mode
+         && !use(viewSection.isRaw) // not in raw mode
+         && !use(singleVisible) // not in single section
+         ;
   });
 
   return [

@@ -7,6 +7,7 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
 import {PluginScreen} from 'app/client/components/PluginScreen';
+import {makeTestId} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
@@ -46,7 +47,6 @@ import {byteString, not} from 'app/common/gutil';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {ParseOptions, ParseOptionSchema} from 'app/plugin/FileParserAPI';
 import {
-  BindableValue,
   Computed,
   Disposable,
   dom,
@@ -65,7 +65,7 @@ import debounce = require('lodash/debounce');
 
 const t = makeT('Importer');
 // Custom testId that can be appended conditionally.
-const testId = (id: string, obs?: BindableValue<boolean>) => dom.cls('test-importer-' + id, obs ?? true);
+const testId = makeTestId('test-importer-');
 
 
 // We expect a function for creating the preview GridView, to avoid the need to require the

@@ -5,12 +5,13 @@ import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
-import {UIRowId} from 'app/common/TableData';
+import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document} from 'app/common/UserAPI';
+import {IAttachedCustomWidget} from "app/common/widgetTypes";
+import {UIRowId} from 'app/plugin/GristAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
-import {ThemeAppearance, ThemeAppearanceChecker, ThemeName, ThemeNameChecker} from './ThemePrefs';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -665,6 +666,8 @@ export interface GristLoadConfig {
 
   // TODO: remove once released.
   featureFormulaAssistant?: boolean;
+
+  permittedCustomWidgets?: IAttachedCustomWidget[];
 
   // Used to determine which disclosure links should be provided to user of
   // formula assistance.

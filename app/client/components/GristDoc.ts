@@ -9,7 +9,6 @@ import BaseView from 'app/client/components/BaseView';
 import {isNumericLike, isNumericOnly} from 'app/client/components/ChartView';
 import {CodeEditorPanel} from 'app/client/components/CodeEditorPanel';
 import * as commands from 'app/client/components/commands';
-import {CursorPos} from 'app/client/components/Cursor';
 import {CursorMonitor, ViewCursorPos} from "app/client/components/CursorMonitor";
 import {DocComm} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
@@ -48,7 +47,7 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
-import {IWidgetType} from 'app/client/ui/widgetTypes';
+import {IWidgetType} from 'app/common/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -70,6 +69,7 @@ import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
+import {CursorPos} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
   Computed,
@@ -1256,7 +1256,7 @@ export class GristDoc extends DisposableWithEvents {
         const fieldIndex = activeSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
         if (fieldIndex >= 0) {
           const view = await this._waitForView(activeSection);
-          view?.setCursorPos({sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex});
+          view?.setCursorPos({rowId: hash.rowId, fieldIndex});
         }
       }
       this.viewLayout?.maximized.set(hash.sectionId);
@@ -1306,7 +1306,7 @@ export class GristDoc extends DisposableWithEvents {
       const fieldIndex = popupSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
       if (fieldIndex >= 0) {
         const view = await this._waitForView(popupSection);
-        view?.setCursorPos({sectionId: hash.sectionId, rowId: hash.rowId, fieldIndex});
+        view?.setCursorPos({rowId: hash.rowId, fieldIndex});
       }
     }
   }

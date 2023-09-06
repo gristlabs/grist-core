@@ -1,6 +1,7 @@
 import type {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import type {CellValue} from 'app/common/DocActions';
-import type {TableData, UIRowId} from 'app/common/TableData';
+import type {TableData} from 'app/common/TableData';
+import type {UIRowId} from 'app/plugin/GristAPI';
 
 /**
  * The CopySelection class is an abstraction for a subset of currently selected cells.

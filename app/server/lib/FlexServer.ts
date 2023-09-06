@@ -436,7 +436,7 @@ export class FlexServer implements GristServer {
   public testAddRouter() {
     if (this._check('router')) { return; }
     this.app.get('/test/router', (req, res) => {
-      const act = optStringParam(req.query.act) || 'none';
+      const act = optStringParam(req.query.act, 'act') || 'none';
       const port = stringParam(req.query.port, 'port');  // port is trusted in mock; in prod it is not.
       if (act === 'add' || act === 'remove') {
         const host = `localhost:${port}`;
@@ -1043,12 +1043,12 @@ export class FlexServer implements GristServer {
         log.warn("Serving unauthenticated /test/login endpoint, made available because GRIST_TEST_LOGIN is set.");
 
         // Query parameter is called "username" for compatibility with Cognito.
-        const email = optStringParam(req.query.username);
+        const email = optStringParam(req.query.username, 'username');
         if (email) {
-          const redirect = optStringParam(req.query.next);
+          const redirect = optStringParam(req.query.next, 'next');
           const profile: UserProfile = {
             email,
-            name: optStringParam(req.query.name) || email,
+            name: optStringParam(req.query.name, 'name') || email,
           };
           const url = new URL(redirect || getOrgUrl(req));
           // Make sure we update session for org we'll be redirecting to.
@@ -1891,7 +1891,7 @@ export class FlexServer implements GristServer {
     forceSessionChange(mreq.session);
     // Redirect to the requested URL after successful login.
     if (!nextUrl) {
-      const nextPath = optStringParam(req.query.next);
+      const nextPath = optStringParam(req.query.next, 'next');
       nextUrl = new URL(getOrgUrl(req, nextPath));
     }
     if (signUp === undefined) {

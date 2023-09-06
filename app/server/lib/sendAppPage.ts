@@ -2,6 +2,7 @@ import {Features, getPageTitleSuffix, GristLoadConfig, IFeature} from 'app/commo
 import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
+import {AttachedCustomWidgets, IAttachedCustomWidget} from "app/common/widgetTypes";
 import {SUPPORT_EMAIL} from 'app/gen-server/lib/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -11,8 +12,8 @@ import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 import * as express from 'express';
 import * as fse from 'fs-extra';
-import jsesc from 'jsesc';
 import * as handlebars from 'handlebars';
+import jsesc from 'jsesc';
 import * as path from 'path';
 import difference = require('lodash/difference');
 
@@ -76,6 +77,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     featureComments: isAffirmative(process.env.COMMENTS),
     featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),
     assistantService: process.env.OPENAI_API_KEY ? 'OpenAI' : undefined,
+    permittedCustomWidgets: getPermittedCustomWidgets(),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(),
@@ -164,6 +166,11 @@ function getFeatures(): IFeature[] {
   const disabledFeatures = process.env.GRIST_HIDE_UI_ELEMENTS?.split(',') ?? [];
   const enabledFeatures = process.env.GRIST_UI_FEATURES?.split(',') ?? Features.values;
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
+}
+
+function getPermittedCustomWidgets(): IAttachedCustomWidget[] {
+  const widgetsList = process.env.PERMITTED_CUSTOM_WIDGETS?.split(',').map(widgetName=>`custom.${widgetName}`) ?? [];
+  return  AttachedCustomWidgets.checkAll(widgetsList);
 }
 
 function configuredPageTitleSuffix() {

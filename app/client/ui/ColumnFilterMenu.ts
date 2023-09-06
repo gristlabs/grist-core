@@ -5,6 +5,7 @@
  */
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnFilter, NEW_FILTER_JSON} from 'app/client/models/ColumnFilter';
 import {ColumnFilterMenuModel, IFilterCount} from 'app/client/models/ColumnFilterMenuModel';
@@ -13,21 +14,30 @@ import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
 import {RowSource} from 'app/client/models/rowset';
 import {ColumnFilterFunc, SectionFilter} from 'app/client/models/SectionFilter';
 import {TableData} from 'app/client/models/TableData';
+import {ColumnFilterCalendarView} from 'app/client/ui/ColumnFilterCalendarView';
+import {relativeDatesControl} from 'app/client/ui/ColumnFilterMenuUtils';
 import {cssInput} from 'app/client/ui/cssInput';
+import {DateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
 import {cssPinButton} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
-import {cssLabel as cssCheckboxLabel, cssCheckboxSquare, cssLabelText, Indeterminate, labeledTriStateSquareCheckbox
-       } from 'app/client/ui2018/checkbox';
+import {cssLabel as cssCheckboxLabel, cssCheckboxSquare,
+        cssLabelText, Indeterminate, labeledTriStateSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem} from 'app/client/ui2018/menus';
+import {cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase} from 'app/client/widgets/ChoiceListEditor';
+import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {CellValue} from 'app/common/DocActions';
-import {IRelativeDateSpec, isEquivalentFilter, isRelativeBound} from "app/common/FilterState";
-import {formatRelBounds} from "app/common/RelativeDates";
-import {
-  Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner, input, makeTestId,
-  Observable, styled
-} from 'grainjs';
+import {IRelativeDateSpec, isEquivalentFilter, isRelativeBound} from 'app/common/FilterState';
+import {extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
+import {formatRelBounds} from 'app/common/RelativeDates';
+import {createFormatter} from 'app/common/ValueFormatter';
+import {UIRowId} from 'app/plugin/GristAPI';
+import {decodeObject} from 'app/plugin/objtypes';
+import {Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
+        input, makeTestId, Observable, styled} from 'grainjs';
+import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import concat = require('lodash/concat');
 import identity = require('lodash/identity');
 import noop = require('lodash/noop');
@@ -35,18 +45,6 @@ import partition = require('lodash/partition');
 import some = require('lodash/some');
 import tail = require('lodash/tail');
 import debounce = require('lodash/debounce');
-import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import {decodeObject} from 'app/plugin/objtypes';
-import {extractTypeFromColType, isDateLikeType, isList, isNumberType, isRefListType} from 'app/common/gristTypes';
-import {choiceToken} from 'app/client/widgets/ChoiceToken';
-import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
-import {ColumnFilterCalendarView} from 'app/client/ui/ColumnFilterCalendarView';
-import {cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase} from 'app/client/widgets/ChoiceListEditor';
-import {relativeDatesControl} from 'app/client/ui/ColumnFilterMenuUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
-import {DateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
-import {createFormatter} from 'app/common/ValueFormatter';
-import {UIRowId} from 'app/common/TableData';
 
 const t = makeT('ColumnFilterMenu');
 

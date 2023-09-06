@@ -1,4 +1,5 @@
-import {TableData, UIRowId} from 'app/common/TableData';
+import {TableData} from 'app/common/TableData';
+import {UIRowId} from 'app/plugin/GristAPI';
 
 /**
  * Return whether a table (identified by the rowId of its metadata record) should

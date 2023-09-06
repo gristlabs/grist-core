@@ -1,4 +1,4 @@
-import {ApiError, ApiErrorDetails, LimitType} from 'app/common/ApiError';
+import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
@@ -1807,6 +1807,9 @@ export class HomeDBManager extends EventEmitter {
         return queryResult;
       }
       const workspace: Workspace = queryResult.data;
+      if (workspace.removedAt) {
+        throw new ApiError('Cannot add document to a deleted workspace', 400);
+      }
       await this._checkRoomForAnotherDoc(workspace, manager);
       // Create a new document.
       const doc = new Document();
@@ -2943,14 +2946,19 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
-   * Increases the usage of a limit for a given org. If the limit doesn't exist, it will be created.
-   * Pass `dryRun: true` to check if the limit can be increased without actually increasing it.
+   * Increases the usage of a limit for a given org, and returns it.
+   *
+   * If a limit doesn't exist, but the product associated with the org
+   * has limits for the given `limitType`, one will be created.
+   *
+   * Pass `dryRun: true` to check if a limit can be increased without
+   * actually increasing it.
    */
   public async increaseUsage(scope: Scope, limitType: LimitType, options: {
     delta: number,
     dryRun?: boolean,
-  }): Promise<void> {
-    const limitError = await this._connection.transaction(async manager => {
+  }): Promise<Limit|null> {
+    const limitOrError: Limit|ApiError|null = await this._connection.transaction(async manager => {
       const org = await this._org(scope, false, scope.org ?? null, {manager, needRealOrg: true})
         .innerJoinAndSelect('orgs.billingAccount', 'billing_account')
         .innerJoinAndSelect('billing_account.product', 'product')
@@ -2970,7 +2978,7 @@ export class HomeDBManager extends EventEmitter {
         if (product.features.baseMaxAssistantCalls === undefined) {
           // If the product has no assistantLimit, then it is not billable yet, and we don't need to
           // track usage as it is basically unlimited.
-          return;
+          return null;
         }
         existing = new Limit();
         existing.billingAccountId = org.billingAccountId;
@@ -2979,36 +2987,38 @@ export class HomeDBManager extends EventEmitter {
         existing.usage = 0;
       }
       const limitLess = existing.limit === -1; // -1 means no limit, it is not possible to do in stripe.
-      const usageAfter = existing.usage + options.delta;
-      if (!limitLess && usageAfter > existing.limit) {
-        const billable = Boolean(org?.billingAccount?.stripeCustomerId);
-        return {
-          limit: {
-            maximum: existing.limit,
-            projectedValue: existing.usage + options.delta,
-            quantity: limitType,
-            value: existing.usage,
-          },
-          tips: [{
-            // For non-billable accounts, suggest getting a plan, otherwise suggest visiting the billing page.
-            action: billable ? 'manage' : 'upgrade',
-            message: `Upgrade to a paid plan to increase your ${limitType} limit.`,
-          }]
-        } as ApiErrorDetails;
+      const projectedValue = existing.usage + options.delta;
+      if (!limitLess && projectedValue > existing.limit) {
+        return new ApiError(
+          `Your ${limitType} limit has been reached. Please upgrade your plan to increase your limit.`,
+          429,
+          {
+            limit: {
+              maximum: existing.limit,
+              projectedValue,
+              quantity: limitType,
+              value: existing.usage,
+            },
+            tips: [{
+              // For non-billable accounts, suggest getting a plan, otherwise suggest visiting the billing page.
+              action: org?.billingAccount?.stripeCustomerId ? 'manage' : 'upgrade',
+              message: `Upgrade to a paid plan to increase your ${limitType} limit.`,
+            }],
+          }
+        );
       }
       existing.usage += options.delta;
       existing.usedAt = new Date();
       if (!options.dryRun) {
         await manager.save(existing);
       }
+      return existing;
     });
-    if (limitError) {
-      let message = `Your ${limitType} limit has been reached. Please upgrade your plan to increase your limit.`;
-      if (limitType === 'assistant') {
-        message = 'You used all available credits. For a bigger limit upgrade you Assistant plan.';
-      }
-      throw new ApiError(message, 429, limitError);
+    if (limitOrError instanceof ApiError) {
+      throw limitOrError;
     }
+
+    return limitOrError;
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {

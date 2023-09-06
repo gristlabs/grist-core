@@ -441,9 +441,9 @@ export class DocWorkerApi {
     // Responds with attachment contents, with suitable Content-Type and Content-Disposition.
     this._app.get('/api/docs/:docId/attachments/:attId/download', canView, withDoc(async (activeDoc, req, res) => {
       const attId = integerParam(req.params.attId, 'attId');
-      const tableId = optStringParam(req.params.tableId);
-      const colId = optStringParam(req.params.colId);
-      const rowId = optIntegerParam(req.params.rowId);
+      const tableId = optStringParam(req.params.tableId, 'tableId');
+      const colId = optStringParam(req.params.colId, 'colId');
+      const rowId = optIntegerParam(req.params.rowId, 'rowId');
       if ((tableId || colId || rowId) && !(tableId && colId && rowId)) {
         throw new ApiError('define all of tableId, colId and rowId, or none.', 400);
       }
@@ -721,8 +721,9 @@ export class DocWorkerApi {
         const options = {
           add: !isAffirmative(req.query.noadd),
           update: !isAffirmative(req.query.noupdate),
-          onMany: stringParam(req.query.onmany || "first", "onmany",
-                              ["first", "none", "all"]) as 'first'|'none'|'all'|undefined,
+          onMany: stringParam(req.query.onmany || "first", "onmany", {
+            allowed: ["first", "none", "all"],
+          }) as 'first'|'none'|'all'|undefined,
           allowEmptyRequire: isAffirmative(req.query.allow_empty_require),
         };
         await ops.upsert(body.records, options);
@@ -983,7 +984,7 @@ export class DocWorkerApi {
     // (Requires a special permit.)
     this._app.post('/api/docs/:docId/assign', canEdit, throttled(async (req, res) => {
       const docId = getDocId(req);
-      const group = optStringParam(req.query.group);
+      const group = optStringParam(req.query.group, 'group');
       if (group !== undefined && req.specialPermit?.action === 'assign-doc') {
         if (group.trim() === '') {
           await this._docWorkerMap.removeDocGroup(docId);
@@ -1149,7 +1150,12 @@ export class DocWorkerApi {
       const userId = getUserId(req);
       const wsId = integerParam(req.params.wid, 'wid');
       const uploadId = integerParam(req.body.uploadId, 'uploadId');
-      const result = await this._docManager.importDocToWorkspace(userId, uploadId, wsId, req.body.browserSettings);
+      const result = await this._docManager.importDocToWorkspace({
+        userId,
+        uploadId,
+        workspaceId: wsId,
+        browserSettings: req.body.browserSettings,
+      });
       res.json(result);
     }));
 
@@ -1205,21 +1211,33 @@ export class DocWorkerApi {
         const docSession = docSessionFromRequest(req);
         const request = req.body;
         const result = await sendForCompletion(docSession, activeDoc, request);
-        await this._increaseLimit('assistant', req);
-        res.json(result);
+        const limit = await this._increaseLimit('assistant', req);
+        res.json({
+          ...result,
+          limit: !limit ? undefined : {
+            usage: limit.usage,
+            limit: limit.limit,
+          },
+        });
       })
     );
 
-    // Create a document.  When an upload is included, it is imported as the initial
-    // state of the document.  Otherwise a fresh empty document is created.
-    // A "timezone" option can be supplied.
-    // Documents are created "unsaved".
-    // TODO: support workspaceId option for creating regular documents, at which point
-    // existing import endpoint and doc creation endpoint can share implementation
-    // with this.
-    // Returns the id of the created document.
+    /**
+     * Create a document.
+     *
+     * When an upload is included, it is imported as the initial state of the document.
+     * Otherwise, the document is left empty.
+     *
+     * If a workspace id is included, the document will be saved there instead of
+     * being left "unsaved".
+     *
+     * Returns the id of the created document.
+     *
+     * TODO: unify this with the other document creation and import endpoints.
+     */
     this._app.post('/api/docs', canCreate, expressWrap(async (req, res) => {
       const userId = getUserId(req);
+
       let uploadId: number|undefined;
       let parameters: {[key: string]: any};
       if (req.is('multipart/form-data')) {
@@ -1231,22 +1249,52 @@ export class DocWorkerApi {
       } else {
         parameters = req.body;
       }
-      if (parameters.workspaceId) { throw new Error('workspaceId not supported'); }
+
+      const documentName = optStringParam(parameters.documentName, 'documentName', {
+        allowEmpty: false,
+      });
+      const workspaceId = optIntegerParam(parameters.workspaceId, 'workspaceId');
       const browserSettings: BrowserSettings = {};
       if (parameters.timezone) { browserSettings.timezone = parameters.timezone; }
       browserSettings.locale = localeFromRequest(req);
+
+      let docId: string;
       if (uploadId !== undefined) {
-        const result = await this._docManager.importDocToWorkspace(userId, uploadId, null,
-                                                                   browserSettings);
-        return res.json(result.id);
+        const result = await this._docManager.importDocToWorkspace({
+          userId,
+          uploadId,
+          documentName,
+          workspaceId,
+          browserSettings,
+        });
+        docId = result.id;
+      } else if (workspaceId !== undefined) {
+        const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
+          name: documentName ?? 'Untitled document',
+        });
+        if (status !== 200) {
+          throw new ApiError(errMessage || 'unable to create document', status);
+        }
+
+        docId = data!;
+      } else {
+        const isAnonymous = isAnonymousUser(req);
+        const result = makeForkIds({
+          userId,
+          isAnonymous,
+          trunkDocId: NEW_DOCUMENT_CODE,
+          trunkUrlId: NEW_DOCUMENT_CODE,
+        });
+        docId = result.docId;
+        await this._docManager.createNamedDoc(
+          makeExceptionalDocSession('nascent', {
+            req: req as RequestWithLogin,
+            browserSettings,
+          }),
+          docId
+        );
       }
-      const isAnonymous = isAnonymousUser(req);
-      const {docId} = makeForkIds({userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
-                                   trunkUrlId: NEW_DOCUMENT_CODE});
-      await this._docManager.createNamedDoc(makeExceptionalDocSession('nascent', {
-        req: req as RequestWithLogin,
-        browserSettings
-      }), docId);
+
       return res.status(200).json(docId);
     }));
   }
@@ -1402,7 +1450,7 @@ export class DocWorkerApi {
    * Increases the current usage of a limit by 1.
    */
   private async _increaseLimit(limit: LimitType, req: Request) {
-    await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
+    return await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
   }
 
   /**
@@ -1562,7 +1610,7 @@ export class DocWorkerApi {
     }
     const timeout =
         Math.max(0, Math.min(MAX_CUSTOM_SQL_MSEC,
-                             optIntegerParam(options.timeout) || MAX_CUSTOM_SQL_MSEC));
+                             optIntegerParam(options.timeout, 'timeout') || MAX_CUSTOM_SQL_MSEC));
     // Wrap in a select to commit to the SELECT branch of SQLite
     // grammar. Note ; isn't a problem.
     //
@@ -1645,7 +1693,7 @@ export interface QueryParameters {
  * as a header.
  */
 function getSortParameter(req: Request): string[]|undefined {
-  const sortString: string|undefined = optStringParam(req.query.sort) || req.get('X-Sort');
+  const sortString: string|undefined = optStringParam(req.query.sort, 'sort') || req.get('X-Sort');
   if (!sortString) { return undefined; }
   return sortString.split(',');
 }
@@ -1656,7 +1704,7 @@ function getSortParameter(req: Request): string[]|undefined {
  * parameter, or as a header.
  */
 function getLimitParameter(req: Request): number|undefined {
-  const limitString: string|undefined = optStringParam(req.query.limit) || req.get('X-Limit');
+  const limitString: string|undefined = optStringParam(req.query.limit, 'limit') || req.get('X-Limit');
   if (!limitString) { return undefined; }
   const limit = parseInt(limitString, 10);
   if (isNaN(limit)) { throw new Error('limit is not a number'); }

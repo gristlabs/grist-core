@@ -17,7 +17,7 @@ export async function exportToDrive(
   res: Response
 ) {
   // Token should come from auth middleware
-  const access_token = optStringParam(req.query.access_token);
+  const access_token = optStringParam(req.query.access_token, 'access_token');
   if (!access_token) {
     throw new Error("No access token - Can't send file to Google Drive");
   }
@@ -30,7 +30,7 @@ export async function exportToDrive(
   };
   // Prepare file for exporting.
   log.debug(`Export to drive - Preparing file for export`, meta);
-  const name = (optStringParam(req.query.title) || activeDoc.docName);
+  const name = (optStringParam(req.query.title, 'title') || activeDoc.docName);
   const stream = new PassThrough();
 
   try {

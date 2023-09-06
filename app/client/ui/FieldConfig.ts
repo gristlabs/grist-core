@@ -1,5 +1,4 @@
 import {makeT} from 'app/client/lib/localization';
-import {CursorPos} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
@@ -16,6 +15,7 @@ import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
 import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
 import {sanitizeIdent} from 'app/common/gutil';
 import {Theme} from 'app/common/ThemePrefs';
+import {CursorPos} from 'app/plugin/GristAPI';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';

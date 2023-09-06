@@ -34,7 +34,7 @@ if (!process.env.GRIST_SINGLE_ORG) {
 setDefaultEnv('GRIST_UI_FEATURES', 'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive');
 setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
-import {main as mergedServerMain} from 'app/server/mergedServerMain';
+import {main as mergedServerMain, parseServerTypes} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';
 
 const G = {
@@ -48,19 +48,7 @@ function setDefaultEnv(name: string, value: string) {
   }
 }
 
-// tslint:disable:no-console
-export async function main() {
-  console.log('Welcome to Grist.');
-  if (!debugging) {
-    console.log(`In quiet mode, see http://localhost:${G.port} to use.`);
-    console.log('For full logs, re-run with DEBUG=1');
-  }
-
-  // If SAML is not configured, there's no login system, so provide a default email address.
-  setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
-  // Set directory for uploaded documents.
-  setDefaultEnv('GRIST_DATA_DIR', 'docs');
-  await fse.mkdirp(process.env.GRIST_DATA_DIR!);
+async function setupDb() {
   // Make a blank db if needed.
   if (process.env.TEST_CLEAN_DATABASE) {
     const {createInitialDb} = require('test/gen-server/seed');
@@ -104,9 +92,33 @@ export async function main() {
       }));
     }
   }
+}
+
+// tslint:disable:no-console
+export async function main() {
+  console.log('Welcome to Grist.');
+  if (!debugging) {
+    console.log(`In quiet mode, see http://localhost:${G.port} to use.`);
+    console.log('For full logs, re-run with DEBUG=1');
+  }
+
+  // If SAML is not configured, there's no login system, so provide a default email address.
+  setDefaultEnv('GRIST_DEFAULT_EMAIL', 'you@example.com');
+  // Set directory for uploaded documents.
+  setDefaultEnv('GRIST_DATA_DIR', 'docs');
+  setDefaultEnv('GRIST_SERVERS', 'home,docs,static');
+  const serverTypes = parseServerTypes(process.env.GRIST_SERVERS);
+
+  await fse.mkdirp(process.env.GRIST_DATA_DIR!);
+
+  if (serverTypes.includes("home")) {
+    console.log('Setting up database...');
+    await setupDb();
+    console.log('Database setup complete.');
+  }
 
   // Launch single-port, self-contained version of Grist.
-  const server = await mergedServerMain(G.port, ["home", "docs", "static"]);
+  const server = await mergedServerMain(G.port, serverTypes);
   if (process.env.GRIST_TESTING_SOCKET) {
     await server.addTestingHooks();
   }

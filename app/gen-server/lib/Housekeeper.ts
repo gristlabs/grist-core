@@ -260,7 +260,7 @@ export class Housekeeper {
     // which worker group the document is assigned a worker from.
     app.post('/api/housekeeping/docs/:docId/assign', this._withSupport(async (req, docId, headers) => {
       const url = new URL(await this._server.getHomeUrlByDocId(docId, `/api/docs/${docId}/assign`));
-      const group = optStringParam(req.query.group);
+      const group = optStringParam(req.query.group, 'group');
       if (group !== undefined) { url.searchParams.set('group', group); }
       return fetch(url.toString(), {
         method: 'POST',

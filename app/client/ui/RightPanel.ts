@@ -24,15 +24,16 @@ import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {reportError} from 'app/client/models/AppModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
-import {GridOptions} from 'app/client/ui/GridOptions';
-import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {linkId, selectBy} from 'app/client/ui/selectBy';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
 import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
+import {GridOptions} from 'app/client/ui/GridOptions';
+import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
+import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
+import {linkId, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
-import {IWidgetType, widgetTypes} from 'app/client/ui/widgetTypes';
+import {widgetTypesMap} from "app/client/ui/widgetTypesMap";
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
@@ -41,9 +42,22 @@ import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {StringUnion} from 'app/common/StringUnion';
-import {bundleChanges, Computed, Disposable, dom, domComputed, DomContents,
-        DomElementArg, DomElementMethod, IDomComponent} from 'grainjs';
-import {MultiHolder, Observable, styled, subscribe} from 'grainjs';
+import {IWidgetType} from 'app/common/widgetTypes';
+import {
+  bundleChanges,
+  Computed,
+  Disposable,
+  dom,
+  domComputed,
+  DomContents,
+  DomElementArg,
+  DomElementMethod,
+  IDomComponent,
+  MultiHolder,
+  Observable,
+  styled,
+  subscribe
+} from 'grainjs';
 import * as ko from 'knockout';
 
 const t = makeT('RightPanel');
@@ -170,7 +184,7 @@ export class RightPanel extends Disposable {
 
   private _buildStandardHeader() {
     return dom.maybe(this._pageWidgetType, (type) => {
-      const widgetInfo = widgetTypes.get(type) || {label: 'Table', icon: 'TypeTable'};
+      const widgetInfo = widgetTypesMap.get(type) || {label: 'Table', icon: 'TypeTable'};
       const fieldInfo = getFieldType(type);
       return [
         cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetInfo.label,
@@ -359,7 +373,8 @@ export class RightPanel extends Disposable {
     // refactored, but if not, should be made public.
     const viewConfigTab = this._createViewConfigTab(owner);
     const hasCustomMapping = Computed.create(owner, use => {
-      const isCustom = use(this._pageWidgetType) === 'custom';
+      const widgetType = use(this._pageWidgetType);
+      const isCustom = widgetType === 'custom' || widgetType?.startsWith('custom.');
       const hasColumnMapping = use(activeSection.columnsToMap);
       return Boolean(isCustom && hasColumnMapping);
     });
@@ -441,8 +456,13 @@ export class RightPanel extends Disposable {
             () => dom('div', parts[2].buildDom())),
           // In the default url mode, allow picking a url and granting/forbidding
           // access to data.
-          dom.maybe(use => use(activeSection.customDef.mode) === 'url',
+          dom.maybe(use => use(activeSection.customDef.mode) === 'url' && use(this._pageWidgetType) === 'custom',
             () => dom.create(CustomSectionConfig, activeSection, this._gristDoc)),
+        ];
+      }),
+      dom.maybe((use) =>  use(this._pageWidgetType)?.startsWith('custom.'), () => {
+        return [
+          dom.create(PredefinedCustomSectionConfig, activeSection, this._gristDoc),
         ];
       }),
 

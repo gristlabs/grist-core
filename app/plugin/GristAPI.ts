@@ -37,6 +37,36 @@
 
 import {RenderOptions, RenderTarget} from './RenderOptions';
 
+// This is the row ID used in the client, but it's helpful to have available in some common code
+// as well, which is why it's declared here. Note that for data actions and stored data,
+// 'new' is not used.
+/**
+ * Represents the id of a row in a table. The value of the `id` column. Might be a number or 'new' value for a new row.
+ */
+export type UIRowId = number | 'new';
+
+/**
+ * Represents the position of an active cursor on a page.
+ */
+export interface CursorPos {
+  /**
+   * The rowId (value of the `id` column) of the current cursor position, or 'new' if the cursor is on a new row.
+   */
+  rowId?: UIRowId;
+  /**
+   * The index of the current row in the current view.
+   */
+  rowIndex?: number;
+  /**
+   * The index of the selected field in the current view.
+   */
+  fieldIndex?: number;
+  /**
+   * The id of a section that this cursor is in. Ignored when setting a cursor position for a particular view.
+   */
+  sectionId?: number;
+}
+
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
 export const RPC_GRISTAPI_INTERFACE = '_grist_api';
@@ -123,14 +153,20 @@ export interface GristView {
   // because ts-interface-builder does not properly support index-signature.
 
   /**
-   * Allow custom widget to be listed as a possible source for linking with SELECT BY.
+   * Deprecated now. It was used for filtering selected table by `setSelectedRows` method.
+   * Now the preferred way it to use ready message.
    */
   allowSelectBy(): Promise<void>;
 
   /**
-   * Set the list of selected rows to be used against any linked widget. Requires `allowSelectBy()`.
+   * Set the list of selected rows to be used against any linked widget.
    */
-  setSelectedRows(rowIds: number[]): Promise<void>;
+  setSelectedRows(rowIds: number[]|null): Promise<void>;
+
+  /**
+   * Sets the cursor position to a specific row and field. `sectionId` is ignored. Used for widget linking.
+   */
+  setCursorPos(pos: CursorPos): Promise<void>
 }
 
 /**
