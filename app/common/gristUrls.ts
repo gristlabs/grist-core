@@ -604,6 +604,9 @@ export interface GristLoadConfig {
   // If set, enable anonymous sharing UI elements.
   supportAnon?: boolean;
 
+  // If set, enable anonymous playground.
+  enableAnonPlayground?: boolean;
+
   // If set, allow selection of the specified engines.
   // TODO: move this list to a separate endpoint.
   supportEngines?: EngineCode[];

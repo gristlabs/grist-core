@@ -56,6 +56,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     helpCenterUrl: process.env.GRIST_HELP_CENTER || "https://support.getgrist.com",
     pathOnly,
     supportAnon: shouldSupportAnon(),
+    enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND),
     supportEngines: getSupportedEngineChoices(),
     features: getFeatures(),
     pageTitleSuffix: configuredPageTitleSuffix(),
