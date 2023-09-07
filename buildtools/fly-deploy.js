@@ -9,12 +9,12 @@ const org = "grist-labs";
 const expirationSec = 30 * 24 * 60 * 60;  // 30 days
 
 const getAppName = () => "grist-" + getBranchName().toLowerCase().replace(/[\W|_]+/g, '-');
-const getVolumeName = () => "grist_vol_" + getBranchName().toLowerCase().replace(/\W+/g, '_');
+const getVolumeName = () => ("gv_" + getBranchName().toLowerCase().replace(/\W+/g, '_')).substring(0, 30);
 
 const getBranchName = () => {
   if (!process.env.BRANCH_NAME) { console.log('Usage: Need BRANCH_NAME env var'); process.exit(1); }
   return process.env.BRANCH_NAME;
-}
+};
 
 async function main() {
   if (process.argv[2] === 'deploy') {
