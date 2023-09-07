@@ -170,7 +170,7 @@ export class DocWorkerApi {
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));
     // check document exists (not soft deleted) and user can edit it
     const canEdit = expressWrap(this._assertAccess.bind(this, 'editors', false));
-    const canCreate = expressWrap(this._checkAnonymousCreation.bind(this));
+    const checkAnonymourCreation = expressWrap(this._checkAnonymousCreation.bind(this));
     const isOwner = expressWrap(this._assertAccess.bind(this, 'owners', false));
     // check user can edit document, with soft-deleted documents being acceptable
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
@@ -1235,7 +1235,7 @@ export class DocWorkerApi {
      *
      * TODO: unify this with the other document creation and import endpoints.
      */
-    this._app.post('/api/docs', canCreate, expressWrap(async (req, res) => {
+    this._app.post('/api/docs', checkAnonymourCreation, expressWrap(async (req, res) => {
       const userId = getUserId(req);
 
       let uploadId: number|undefined;

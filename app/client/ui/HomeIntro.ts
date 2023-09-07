@@ -117,7 +117,7 @@ function makeAnonIntroWithoutPlayground(homeModel: HomeModel) {
     return [
       (!isFeatureEnabled('helpCenter') ? null : cssIntroLine(t("Visit our {{link}} to learn more about Grist.", {
         link: helpCenterLink()
-      }))),
+      }), testId('welcome-text-no-playground'))),
       cssIntroLine(t("To use Grist, please either sign up or sign in.")),
       cssBtnGroup(
         cssBtn(t("Sign up"), cssButton.cls('-primary'), testId('intro-sign-up'),
