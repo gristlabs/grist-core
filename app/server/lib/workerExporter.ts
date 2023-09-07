@@ -1,19 +1,19 @@
 import {PassThrough} from 'stream';
 import {FilterColValues} from "app/common/ActiveDocAPI";
-import {ActiveDocSource, doExportDoc, doExportSection, doExportTable, ExportData, Filter} from 'app/server/lib/Export';
+import {ActiveDocSource, doExportDoc, doExportSection, doExportTable,
+        ExportData, ExportParameters, Filter} from 'app/server/lib/Export';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
 import * as log from 'app/server/lib/log';
-import {Alignment, Border, stream as ExcelWriteStream, Fill} from 'exceljs';
+import {Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
+        Fill, Workbook} from 'exceljs';
 import {Rpc} from 'grain-rpc';
 import {Stream} from 'stream';
 import {MessagePort, threadId} from 'worker_threads';
 
-export const makeXLSX = handleExport(doMakeXLSX);
-export const makeXLSXFromTable = handleExport(doMakeXLSXFromTable);
-export const makeXLSXFromViewSection = handleExport(doMakeXLSXFromViewSection);
+export const makeXLSXFromOptions = handleExport(doMakeXLSXFromOptions);
 
 function handleExport<T extends any[]>(
-  make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void>
+  make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void|ExcelBuffer>
 ) {
   return async function({port, testDates, args}: {port: MessagePort, testDates: boolean, args: T}) {
     try {
@@ -73,6 +73,23 @@ function bufferedPipe(stream: Stream, callback: (chunk: Buffer) => void, thresho
   stream.on('end', flush);
 }
 
+export async function doMakeXLSXFromOptions(
+  activeDocSource: ActiveDocSource,
+  testDates: boolean,
+  stream: Stream,
+  options: ExportParameters
+) {
+  const {tableId, viewSectionId, filters, sortOrder, linkingFilter} = options;
+  if (viewSectionId) {
+    return doMakeXLSXFromViewSection(activeDocSource, testDates, stream, viewSectionId,
+      sortOrder || null, filters || null, linkingFilter || null);
+  } else if (tableId) {
+    return doMakeXLSXFromTable(activeDocSource, testDates, stream, tableId);
+  } else {
+    return doMakeXLSX(activeDocSource, testDates, stream);
+  }
+}
+
 /**
  * Returns a XLSX stream of a view section that can be transformed or parsed.
  *
@@ -86,14 +103,14 @@ async function doMakeXLSXFromViewSection(
   testDates: boolean,
   stream: Stream,
   viewSectionId: number,
-  sortOrder: number[],
-  filters: Filter[],
-  linkingFilter: FilterColValues,
+  sortOrder: number[] | null,
+  filters: Filter[] | null,
+  linkingFilter: FilterColValues | null,
 ) {
   const data = await doExportSection(activeDocSource, viewSectionId, sortOrder, filters, linkingFilter);
   const {exportTable, end} = convertToExcel(stream, testDates);
   exportTable(data);
-  await end();
+  return end();
 }
 
 /**
@@ -111,7 +128,7 @@ async function doMakeXLSXFromTable(
   const data = await doExportTable(activeDocSource, {tableId});
   const {exportTable, end} = convertToExcel(stream, testDates);
   exportTable(data);
-  await end();
+  return end();
 }
 
 /**
@@ -121,24 +138,37 @@ async function doMakeXLSX(
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
-): Promise<void> {
+): Promise<void|ExcelBuffer> {
   const {exportTable, end} = convertToExcel(stream, testDates);
   await doExportDoc(activeDocSource, async (table: ExportData) => exportTable(table));
-  await end();
+  return end();
 }
 
 /**
  * Converts export data to an excel file.
+ * If a stream is provided, use it via the more memory-efficient
+ * WorkbookWriter, otherwise fall back on using a Workbook directly,
+ * and return a buffer.
+ * (The second option is for grist-static; at the time of writing
+ * WorkbookWriter doesn't appear to be available in a browser context).
  */
-function convertToExcel(stream: Stream, testDates: boolean): {
+function convertToExcel(stream: Stream|undefined, testDates: boolean): {
   exportTable: (table: ExportData) => void,
-  end: () => Promise<void>,
+  end: () => Promise<void|ExcelBuffer>,
 } {
   // Create workbook and add single sheet to it. Using the WorkbookWriter interface avoids
   // creating the entire Excel file in memory, which can be very memory-heavy. See
   // https://github.com/exceljs/exceljs#streaming-xlsx-writercontents. (The options useStyles and
   // useSharedStrings replicate more closely what was used previously.)
-  const wb = new ExcelWriteStream.xlsx.WorkbookWriter({useStyles: true, useSharedStrings: true, stream});
+  // If there is no stream, write with a Workbook.
+  const wb: Workbook | ExcelWriteStream.xlsx.WorkbookWriter = stream ?
+      new ExcelWriteStream.xlsx.WorkbookWriter({ useStyles: true, useSharedStrings: true, stream }) :
+      new Workbook();
+  function maybeCommit(t: {commit(): void}|{}) {
+    if ('commit' in t) {
+      return t.commit();
+    }
+  }
   if (testDates) {
     // HACK: for testing, we will keep static dates
     const date = new Date(Date.UTC(2018, 11, 1, 0, 0, 0));
@@ -201,11 +231,16 @@ function convertToExcel(stream: Stream, testDates: boolean): {
     });
     // Populate excel file with data
     for (const row of rowIds) {
-      ws.addRow(access.map((getter, c) => formatters[c].formatAny(getter(row)))).commit();
+      maybeCommit(ws.addRow(access.map((getter, c) => formatters[c].formatAny(getter(row)))));
     }
-    ws.commit();
+    maybeCommit(ws);
   }
-  function end() { return wb.commit(); }
+  async function end(): Promise<void|ExcelBuffer> {
+    if (!stream) {
+      return wb.xlsx.writeBuffer();
+    }
+    return maybeCommit(wb);
+  }
   return {exportTable, end};
 }
 

@@ -1,3 +1,4 @@
+import {hooks} from 'app/client/Hooks';
 import {makeT} from 'app/client/lib/localization';
 import {allCommands} from 'app/client/components/commands';
 import {ViewSectionRec} from 'app/client/models/DocModel';
@@ -76,9 +77,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       )
     ),
     menuItemCmd(allCommands.printSection, t("Print widget"), testId('print-section')),
-    menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
+    menuItemLink(hooks.link({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
       t("Download as CSV"), testId('download-section')),
-    menuItemLink({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''},
+    menuItemLink(hooks.link({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''}),
       t("Download as XLSX"), testId('download-section')),
     dom.maybe((use) => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, t("Edit Card Layout"),

@@ -1,8 +1,7 @@
 /**
  * Overview of Excel exports, which now use worker-threads.
  *
- * 1. The flow starts with downloadXLSX() method called in the main thread (or streamXLSX() used for
- *    Google Drive export).
+ * 1. The flow starts with the streamXLSX() method called in the main thread.
  * 2. It uses the 'piscina' library to call a makeXLSX* method in a worker thread, registered in
  *    workerExporter.ts, to export full doc, a table, or a section.
  * 3. Each of those methods calls a doMakeXLSX* method defined in that file. I.e. downloadXLSX()
@@ -12,11 +11,10 @@
  * 5. The resulting stream of Excel data is streamed back to the main thread using Rpc too.
  */
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {ActiveDocSource, ActiveDocSourceDirect, DownloadOptions, ExportParameters} from 'app/server/lib/Export';
+import {ActiveDocSource, ActiveDocSourceDirect, ExportParameters} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
 import {addAbortHandler} from 'app/server/lib/requestUtils';
 import * as express from 'express';
-import contentDisposition from 'content-disposition';
 import {Rpc} from 'grain-rpc';
 import {AbortController} from 'node-abort-controller';
 import {Writable} from 'stream';
@@ -39,23 +37,11 @@ const exportPool = new Piscina({
 });
 
 /**
- * Converts `activeDoc` to XLSX and sends the converted data through `res`.
- */
-export async function downloadXLSX(activeDoc: ActiveDoc, req: express.Request,
-                                   res: express.Response, options: DownloadOptions) {
-  const {filename} = options;
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
-  return streamXLSX(activeDoc, req, res, options);
-}
-
-/**
  * Converts `activeDoc` to XLSX and sends to the given outputStream.
  */
 export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
                                  outputStream: Writable, options: ExportParameters) {
   log.debug(`Generating .xlsx file`);
-  const {tableId, viewSectionId, filters, sortOrder, linkingFilter} = options;
   const testDates = (req.hostname === 'localhost');
 
   const { port1, port2 } = new MessageChannel();
@@ -89,13 +75,7 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
 
     // hanlding 3 cases : full XLSX export (full file), view xlsx export, table xlsx export
     try {
-      if (viewSectionId) {
-        await run('makeXLSXFromViewSection', viewSectionId, sortOrder, filters, linkingFilter);
-      } else if (tableId) {
-        await run('makeXLSXFromTable', tableId);
-      } else {
-        await run('makeXLSX');
-      }
+      await run('makeXLSXFromOptions', options);
       log.debug('XLSX file generated');
     } catch (e) {
       // We fiddle with errors in workerExporter to preserve extra properties like 'status'. Make
