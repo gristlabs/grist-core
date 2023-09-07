@@ -131,8 +131,20 @@ class SaveCopyModal extends Disposable {
   private _saveDisabled = Computed.create(this, this._destWS, this._destName, (use, ws, name) =>
     (!name.trim() || !ws || !roles.canEdit(ws.access)));
 
-  // Only show workspaces for team sites, since they are not a feature of personal orgs.
-  private _showWorkspaces = Computed.create(this, this._destOrg, (use, org) => Boolean(org && !org.owner));
+  private _showWorkspaces = Computed.create(this, this._destOrg, (use, org) => {
+    // Workspace are available for personal and team sites now, but there are legacy sites without it.
+    // Make best effort to figure out if they are disabled, but if we don't have the info, show the selector.
+    if (!org) {
+      return false;
+    }
+    // We won't have info about any other org except the one we are at.
+    if (org.id === this._app.currentOrg?.id) {
+      const workspaces = this._app.currentOrg.billingAccount?.product.features.workspaces ?? true;
+      const numberAllowed = this._app.currentOrg.billingAccount?.product.features.maxWorkspacesPerOrg ?? 2;
+      return workspaces && numberAllowed > 1;
+    }
+    return true;
+  });
 
   // If orgs is non-null, then we show a selector for orgs.
   constructor(private _params: SaveCopyModalParams) {
@@ -144,7 +156,8 @@ class SaveCopyModal extends Disposable {
       // Set _destOrg to an Organization object from _orgs array; there should be one equivalent
       // to currentOrg, but we need the actual object for select() to recognize it as selected.
       const orgId = this._app.currentOrg.id;
-      this._destOrg.set(this._orgs.find((org) => org.id === orgId) || this._orgs[0]);
+      const newOrg = this._orgs.find((org) => org.id === orgId) || this._orgs[0];
+      this._destOrg.set(newOrg);
     }
     this.autoDispose(subscribe(this._destOrg, (use, org) => this._updateWorkspaces(org).catch(reportError)));
   }

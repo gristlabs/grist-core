@@ -87,6 +87,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
               testId('dm-workspace-options'),
             ),
             testId('dm-workspace'),
+            dom.cls('test-dm-workspace-selected', (use) => use(home.currentWSId) === ws.id),
           ),
           cssPageEntry.cls('-renaming', isRenaming),
           dom.maybe(isRenaming, () =>
@@ -218,7 +219,23 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
 function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Workspace|null>) {
   function deleteWorkspace() {
     confirmModal(t("Delete {{workspace}} and all included documents?", {workspace: ws.name}), t("Delete"),
-      () => home.deleteWorkspace(ws.id, false),
+      async () => {
+        let all = home.workspaces.get();
+        const index = all.findIndex((w) => w.id === ws.id);
+        const selected = home.currentWSId.get() === ws.id;
+        await home.deleteWorkspace(ws.id, false);
+        // If workspace was not selected, don't do navigation.
+        if (!selected) { return; }
+        all = home.workspaces.get();
+        if (!all.length) {
+          // There was only one workspace, navigate to all docs.
+          await urlState().pushUrl({homePage: 'all'});
+        } else {
+          // Maintain the index.
+          const newIndex = Math.max(0, Math.min(index, all.length - 1));
+          await urlState().pushUrl({ws: all[newIndex].id});
+        }
+      },
       {explanation: t("Workspace will be moved to Trash.")});
   }
 

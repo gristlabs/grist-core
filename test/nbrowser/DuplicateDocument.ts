@@ -202,7 +202,6 @@ describe("DuplicateDocument", function() {
     await driver.find('.test-copy-dest-org .test-select-open').click();
     await driver.findContent('.test-select-menu li', 'Personal').click();
     await gu.waitForServer();
-    assert.equal(await driver.find('.test-copy-dest-workspace').isPresent(), false);
     assert.equal(await driver.find('.test-copy-warning').isPresent(), false);
     assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), null);
 
