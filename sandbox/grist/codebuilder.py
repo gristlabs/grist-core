@@ -397,7 +397,7 @@ def parse_grist_names(builder):
 
   with use_inferences(InferReferenceColumn, InferReferenceFormula, InferLookupReference,
                       InferLookupComprehension, InferAllReference, InferAllComprehension):
-    atok = asttokens.ASTTokens(code_text, tree=astroid.builder.parse(code_text))
+    atok = asttokens.ASTText(code_text, tree=astroid.builder.parse(code_text))
 
   def make_tuple(start, end, table_id, col_id):
     name = col_id or table_id
@@ -413,7 +413,7 @@ def parse_grist_names(builder):
     return None
 
   parsed_names = []
-  for node in asttokens.util.walk(atok.tree):
+  for node in asttokens.util.walk(atok.tree, include_joined_str=True):
     if isinstance(node, astroid.nodes.Name):
       obj = infer(node)
       if _is_table(obj) and not _is_local(node):
@@ -425,17 +425,19 @@ def parse_grist_names(builder):
       if isinstance(obj, astroid.bases.Instance):
         cls = obj._proxied
         if _is_table(cls):
-          tok = node.last_token
-          start, end = tok.startpos, tok.endpos
-          parsed_names.append(make_tuple(start, end, cls.name, node.attrname))
+          end = atok.get_text_range(node)[1]
+          start = end - len(node.attrname)
+          if code_text[start:end] == node.attrname:
+            parsed_names.append(make_tuple(start, end, cls.name, node.attrname))
     elif isinstance(node, astroid.nodes.Keyword):
       func = node.parent.func
       if isinstance(func, astroid.nodes.Attribute) and func.attrname in _lookup_method_names:
         obj = infer(func.expr)
         if _is_table(obj):
-          tok = node.first_token
-          start, end = tok.startpos, tok.endpos
-          parsed_names.append(make_tuple(start, end, obj.name, node.arg))
+          start = atok.get_text_range(node)[0]
+          end = start + len(node.arg)
+          if code_text[start:end] == node.arg:
+            parsed_names.append(make_tuple(start, end, obj.name, node.arg))
 
   return [name for name in parsed_names if name]
 

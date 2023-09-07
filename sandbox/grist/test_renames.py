@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+import unittest
+
+import six
 
 import testutil
 import test_engine
@@ -75,6 +78,20 @@ class TestRenames(test_engine.EngineTestCase):
       ["BulkUpdateRecord", "_grist_Tables_column", [24, 25], {
         "colId": ["ciudad", "CityUpper"],
         "formula": ["$address.city", "$ciudad.upper()"]
+      }]
+    ]})
+
+  @unittest.skipUnless(six.PY3, "Python 3 only")
+  def test_rename_inside_fstring(self):
+    self.load_sample(self.sample)
+    self.add_column("People", "CityUpper", formula="f'{$city.upper()}'")
+    out_actions = self.apply_user_action(["RenameColumn", "People", "city", "ciudad"])
+    self.assertPartialOutActions(out_actions, { "stored": [
+      ["RenameColumn", "People", "city", "ciudad"],
+      ["ModifyColumn", "People", "CityUpper", {"formula": "f'{$ciudad.upper()}'"}],
+      ["BulkUpdateRecord", "_grist_Tables_column", [24, 25], {
+        "colId": ["ciudad", "CityUpper"],
+        "formula": ["$addr.city", "f'{$ciudad.upper()}'"]
       }]
     ]})
 
