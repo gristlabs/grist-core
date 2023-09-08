@@ -170,6 +170,7 @@ export class DocWorkerApi {
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));
     // check document exists (not soft deleted) and user can edit it
     const canEdit = expressWrap(this._assertAccess.bind(this, 'editors', false));
+    const checkAnonymousCreation = expressWrap(this._checkAnonymousCreation.bind(this));
     const isOwner = expressWrap(this._assertAccess.bind(this, 'owners', false));
     // check user can edit document, with soft-deleted documents being acceptable
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
@@ -1234,7 +1235,7 @@ export class DocWorkerApi {
      *
      * TODO: unify this with the other document creation and import endpoints.
      */
-    this._app.post('/api/docs', expressWrap(async (req, res) => {
+    this._app.post('/api/docs', checkAnonymousCreation, expressWrap(async (req, res) => {
       const userId = getUserId(req);
 
       let uploadId: number|undefined;
@@ -1450,6 +1451,17 @@ export class DocWorkerApi {
    */
   private async _increaseLimit(limit: LimitType, req: Request) {
     return await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
+  }
+
+  /**
+   * Disallow document creation for anonymous users if GRIST_ANONYMOUS_CREATION is set to false.
+   */
+  private async _checkAnonymousCreation(req: Request, res: Response, next: NextFunction) {
+    const isAnonPlayground = isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true);
+    if (isAnonymousUser(req) && !isAnonPlayground) {
+      throw new ApiError('Anonymous document creation is disabled', 403);
+    }
+    next();
   }
 
   private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
