@@ -245,7 +245,7 @@ describe('RightPanel', function() {
 
     // check that selector-of is present and that all selected section are listed
     assert.equal(await driver.find('.test-selector-for').isPresent(), true);
-    assert.deepEqual(await driver.findAll('.test-selector-for-entry', (e) => e.getText()), [
+    assert.deepEqual(await driver.findAll('.test-selector-for-entry', (e) => e.getText().then(s => s.split('\n')[0])), [
       "CITY",
       "COUNTRYLANGUAGE",
       "COUNTRY Card List",
