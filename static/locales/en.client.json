@@ -426,7 +426,10 @@
         "personal site": "personal site",
         "{{signUp}} to save your work. ": "{{signUp}} to save your work. ",
         "Welcome to Grist, {{- name}}!": "Welcome to Grist, {{- name}}!",
-        "Welcome to {{- orgName}}": "Welcome to {{- orgName}}"
+        "Welcome to {{- orgName}}": "Welcome to {{- orgName}}",
+        "Sign in": "Sign in",
+        "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
+        "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist."
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
