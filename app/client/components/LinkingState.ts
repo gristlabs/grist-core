@@ -33,10 +33,10 @@ type LinkType = "Filter:Summary-Group" |
                 "Cursor:Reference"|
                 "Error:Invalid";
 
-//If this LinkingState represents a filter link, it will set its filterState to this object
-//The filterColValues portion is just the data needed for filtering (same as manual filtering), and is passed
-//to the backend in some cases (CSV export)
-//The filterState includes extra info to display filter state to the user
+// If this LinkingState represents a filter link, it will set its filterState to this object
+// The filterColValues portion is just the data needed for filtering (same as manual filtering), and is passed
+// to the backend in some cases (CSV export)
+// The filterState includes extra info to display filter state to the user
 type FilterState = FilterColValues & {
   filterLabels: {  [colId: string]: string[] }; //formatted and displayCol-ed values to show to user
   colTypes: {[colId: string]: string;}
@@ -66,7 +66,7 @@ export class LinkingState extends Disposable {
   // Get default values for a new record so that it continues to satisfy the current linking filters
   public readonly getDefaultColValues: () => any;
 
-  //Which case of linking we've got, this is a descriptive string-enum.
+  // Which case of linking we've got, this is a descriptive string-enum.
   public readonly linkTypeDescription: ko.Computed<LinkType>;
 
   private _docModel: DocModel;
@@ -113,26 +113,26 @@ export class LinkingState extends Disposable {
           { return "Summary"; }
         else
           { return "Cursor:Same-Table"; }
-      } else {
+      } else { // This case shouldn't happen, but just check to be safe
         return "Error:Invalid";
       }
     }));
 
-    if (srcSection.selectedRowsActive()) { //old, special-cased custom filter
-        const operation = (tgtColId && isRefListType(tgtCol.type())) ? 'intersects' : 'in';
-        this.filterState = this._srcCustomFilter(tgtCol, operation); // works whether tgtCol is the empty col or not
+    if (srcSection.selectedRowsActive()) { // old, special-cased custom filter
+      const operation = (tgtColId && isRefListType(tgtCol.type())) ? 'intersects' : 'in';
+      this.filterState = this._srcCustomFilter(tgtCol, operation); // works whether tgtCol is the empty col or not
 
-    } else if (tgtColId) { //Standard filter link
-      //If srcCol is the empty col, is a row->col filter (i.e. id -> tgtCol)
-      //else is a col->col filter (srcCol -> tgtCol)
-      //MakeFilterObs handles it either way
+    } else if (tgtColId) { // Standard filter link
+      // If srcCol is the empty col, is a row->col filter (i.e. id -> tgtCol)
+      // else is a col->col filter (srcCol -> tgtCol)
+      // MakeFilterObs handles it either way
       this.filterState = this._makeFilterObs(srcCol, tgtCol);
 
     } else if (srcColId && isRefListType(srcCol.type())) {  // "Show Referenced Records" link
-      //tgtCol is the emptycol (i.e. the id col)
-      //srcCol must be a reference to the tgt table
-      //Link will filter tgt section to show exactly the set of rowIds referenced by the srcCol
-      //(NOTE: currently we only do this for reflists, single refs handled as cursor links for now)
+      // tgtCol is the emptycol (i.e. the id col)
+      // srcCol must be a reference to the tgt table
+      // Link will filter tgt section to show exactly the set of rowIds referenced by the srcCol
+      // (NOTE: currently we only do this for reflists, single refs handled as cursor links for now)
       this.filterState = this._makeFilterObs(srcCol, undefined);
 
     } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { //Summary linking
@@ -144,9 +144,9 @@ export class LinkingState extends Disposable {
       const _filterState = ko.observable<FilterState>();
       this.filterState = this.autoDispose(ko.computed(() => _filterState()));
 
-      //update may be called multiple times, so need a holder to handle disposal
-      //Note: grainjs MultiHolder can't actually be cleared. To be able to dispose of multiple things, we need
-      //      to make a MultiHolder in a Holder, which feels ugly but works.
+      // update may be called multiple times, so need a holder to handle disposal
+      // Note: grainjs MultiHolder can't actually be cleared. To be able to dispose of multiple things, we need
+      //       to make a MultiHolder in a Holder, which feels ugly but works.
       // TODO: Update this if we ever patch grainjs to allow multiHolder.clear()
       const updateHolder = Holder.create(this);
 
@@ -154,9 +154,9 @@ export class LinkingState extends Disposable {
       // columns of a linked summary table for instance). Define an _update function to be called when data loads
       const _update = () => {
         if (srcSection.isDisposed() || srcSection.table().groupByColumns().length === 0) {
-          //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
-          //Tests nbrowser/LinkingErrors and RawData might hit this case
-          //groupByColumns === [] can happen if we make a summary tab [group by nothing]. (in which case: don't filter)
+          // srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
+          // Tests nbrowser/LinkingErrors and RawData might hit this case
+          // groupByColumns === [] can happen if we make a summary tab [group by nothing]. (in which case: don't filter)
           _filterState(EmptyFilterState);
           return;
         }
@@ -170,7 +170,7 @@ export class LinkingState extends Disposable {
           this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder)
         );
 
-        //If any are undef, error out
+        //If any are undef (i.e. error in makeFilterObs), error out
         if(resultFilters.some((f) => f === undefined)) {
           console.warn("LINKINGSTATE: some of filters are undefined", resultFilters);
           _filterState(EmptyFilterState);
@@ -185,7 +185,7 @@ export class LinkingState extends Disposable {
         resultComputed.subscribe((val) => _filterState(val));
       }; // End of update function
 
-      //Call when data loads, also call now to be safe
+      // Call update when data loads, also call now to be safe
       this.autoDispose(srcTableData.dataLoadedEmitter.addListener(_update));
       _update();
 
@@ -266,7 +266,6 @@ export class LinkingState extends Disposable {
   {
     const srcColId = srcCol?.colId();
     const tgtColId = tgtCol?.colId();
-    console.log(`in makeFilterObs: srcColId=${srcColId || "id" }, tgtColId=${tgtColId || "id" }`);
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
     if(!srcColId && !tgtColId) {
@@ -334,7 +333,7 @@ export class LinkingState extends Disposable {
         if (isList(displayCellVal) && displayCellVal.length === selectorCellVal.length) {
           displayValues = displayCellVal.slice(1);
         } else {
-          console.error("Error in LinkingState: displayVal list doesn't match selectorVal list ");
+          console.warn("Error in LinkingState: displayVal list doesn't match selectorVal list ");
           displayValues = filterValues; //fallback to unformatted values
         }
 
@@ -417,7 +416,7 @@ export class LinkingState extends Disposable {
 
     const tableModel = this._docModel.dataTables[table.tableId()];
     const rowModel = (tableModel.createFloatingRowModel()) as DataRowModel;
-    owner.autoDispose(rowModel); //TODO JV, is there a way to oneline this like normal?
+    owner.autoDispose(rowModel);
     const cellObs = rowModel.cells[colId];
     // If no cellObs, can't make a val getter. This shouldn't happen, but may happen
     // transiently while the separate linking-related observables get updated.
