@@ -235,7 +235,7 @@ export class LinkingState extends Disposable {
    * Returns a boolean indicating whether editing should be disabled in the destination section.
    */
   public disableEditing(): boolean {
-    if (!Boolean(this.filterState)) { return false; }
+    if (!this.filterState) { return false; }
     const srcRowId = this._srcSection.activeRowId();
     return srcRowId === 'new' || srcRowId === null;
   }
