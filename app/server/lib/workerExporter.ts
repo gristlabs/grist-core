@@ -164,11 +164,7 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean): {
   const wb: Workbook | ExcelWriteStream.xlsx.WorkbookWriter = stream ?
       new ExcelWriteStream.xlsx.WorkbookWriter({ useStyles: true, useSharedStrings: true, stream }) :
       new Workbook();
-  function maybeCommit(t: {commit(): void}|{}) {
-    if ('commit' in t) {
-      return t.commit();
-    }
-  }
+  const maybeCommit = stream ? (t: any) => t.commit() : (t: any) => {};
   if (testDates) {
     // HACK: for testing, we will keep static dates
     const date = new Date(Date.UTC(2018, 11, 1, 0, 0, 0));

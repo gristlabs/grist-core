@@ -303,7 +303,7 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
       ),
       cssModalButtons(
         dom.domComputed(use =>
-          bigPrimaryButtonLink(`Download`, hooks.link({
+          bigPrimaryButtonLink(`Download`, hooks.maybeModifyLinkAttrs({
               href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
                 template: use(selected) === "template",
                 removeHistory: use(selected) === "nohistory" || use(selected) === "template",

@@ -77,9 +77,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       )
     ),
     menuItemCmd(allCommands.printSection, t("Print widget"), testId('print-section')),
-    menuItemLink(hooks.link({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
+    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
       t("Download as CSV"), testId('download-section')),
-    menuItemLink(hooks.link({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''}),
+    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''}),
       t("Download as XLSX"), testId('download-section')),
     dom.maybe((use) => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, t("Edit Card Layout"),

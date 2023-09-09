@@ -256,9 +256,9 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
         menuItem(() => downloadDocModal(doc, pageModel),
         menuIcon('Download'), t("Download..."), testId('tb-share-option'))
     ),
-    menuItemLink(hooks.link({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
+    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
       menuIcon('Download'), t("Export CSV"), testId('tb-share-option')),
-    menuItemLink(hooks.link({
+    menuItemLink(hooks.maybeModifyLinkAttrs({
       href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
       target: '_blank', download: ''
     }), menuIcon('Download'), t("Export XLSX"), testId('tb-share-option')),

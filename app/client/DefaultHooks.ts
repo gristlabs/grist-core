@@ -1,4 +1,5 @@
 import { UrlTweaks } from 'app/common/gristUrls';
+import { IAttrObj } from 'grainjs';
 
 export interface IHooks {
   iframeAttributes?: Record<string, any>,
@@ -7,15 +8,15 @@ export interface IHooks {
   urlTweaks?: UrlTweaks,
 
   /**
-   * Modify link options (href, download, etc). Convenient
-   * in grist-static to directly hook up a link with the
-   * source of data.
+   * Modify the attributes of an <a> dom element.
+   * Convenient in grist-static to directly hook up a
+   * download link with the function that provides the data.
    */
-  link(options: Record<string, any>): Record<string, any>;
+  maybeModifyLinkAttrs(attrs: IAttrObj): IAttrObj;
 }
 
 export const defaultHooks: IHooks = {
-  link(options: Record<string, any>) {
-    return options;
+  maybeModifyLinkAttrs(attrs: IAttrObj) {
+    return attrs;
   }
 };
