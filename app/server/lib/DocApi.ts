@@ -49,7 +49,7 @@ import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
 import {downloadCSV} from "app/server/lib/ExportCSV";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
-import {downloadXLSX} from "app/server/lib/ExportXLSX";
+import {streamXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
@@ -1910,4 +1910,15 @@ export function getDocApiUsageKeysToIncr(
 export interface WebhookSubscription {
   unsubscribeKey: string;
   webhookId: string;
+}
+
+/**
+ * Converts `activeDoc` to XLSX and sends the converted data through `res`.
+ */
+export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
+                                   res: Response, options: DownloadOptions) {
+  const {filename} = options;
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
+  return streamXLSX(activeDoc, req, res, options);
 }

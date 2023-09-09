@@ -3,6 +3,7 @@
  * the sample documents (those in the Support user's Examples & Templates workspace).
  */
 
+import {hooks} from 'app/client/Hooks';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from "app/client/models/DocPageModel";
@@ -302,14 +303,14 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
       ),
       cssModalButtons(
         dom.domComputed(use =>
-          bigPrimaryButtonLink(`Download`, {
+          bigPrimaryButtonLink(`Download`, hooks.maybeModifyLinkAttrs({
               href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
                 template: use(selected) === "template",
                 removeHistory: use(selected) === "nohistory" || use(selected) === "template",
               }),
               target: '_blank',
               download: ''
-            },
+            }),
             dom.on('click', () => {
               ctl.close();
             }),

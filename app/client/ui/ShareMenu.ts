@@ -1,3 +1,4 @@
+import {hooks} from 'app/client/Hooks';
 import {loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
@@ -255,12 +256,12 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
         menuItem(() => downloadDocModal(doc, pageModel),
         menuIcon('Download'), t("Download..."), testId('tb-share-option'))
     ),
-    menuItemLink({ href: gristDoc.getCsvLink(), target: '_blank', download: ''},
+    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
       menuIcon('Download'), t("Export CSV"), testId('tb-share-option')),
-    menuItemLink({
+    menuItemLink(hooks.maybeModifyLinkAttrs({
       href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
       target: '_blank', download: ''
-    }, menuIcon('Download'), t("Export XLSX"), testId('tb-share-option')),
+    }), menuIcon('Download'), t("Export XLSX"), testId('tb-share-option')),
     (!isFeatureEnabled("sendToDrive") ? null : menuItem(() => sendToDrive(doc, pageModel),
       menuIcon('Download'), t("Send to Google Drive"), testId('tb-share-option'))),
   ];

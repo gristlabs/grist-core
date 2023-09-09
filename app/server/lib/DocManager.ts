@@ -133,6 +133,14 @@ export class DocManager extends EventEmitter {
     return this.createNamedDoc(docSession, 'Untitled');
   }
 
+  /**
+   * Add an ActiveDoc created externally. This is a hook used by
+   * grist-static.
+   */
+  public addActiveDoc(docId: string, activeDoc: ActiveDoc) {
+    this._activeDocs.set(docId, Promise.resolve(activeDoc));
+  }
+
   public async createNamedDoc(docSession: OptDocSession, docId: string): Promise<string> {
     const activeDoc: ActiveDoc = await this.createNewEmptyDoc(docSession, docId);
     await activeDoc.addInitialTable(docSession);
