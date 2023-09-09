@@ -282,6 +282,17 @@ export function stringParam(p: any, name: string, options: StringParamOptions = 
   return p;
 }
 
+export function stringArrayParam(p: any, name: string): string[] {
+  if (!Array.isArray(p)) {
+    throw new ApiError(`${name} parameter should be an array: ${p}`, 400);
+  }
+  if (p.some(el => typeof el !== 'string')) {
+    throw new ApiError(`${name} parameter should be a string array: ${p}`, 400);
+  }
+
+  return p;
+}
+
 export function optIntegerParam(p: any, name: string): number|undefined {
   if (p === undefined) { return p; }
 

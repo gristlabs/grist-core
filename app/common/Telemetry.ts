@@ -862,6 +862,25 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  welcomeQuestionsSubmitted: {
+    description: 'Triggered when the welcome questionnaire is submitted.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      useCases: {
+        description: 'The selected use cases.',
+        dataType: 'string[]',
+      },
+      useOther: {
+        description: 'The value of the Other use case.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
 };
 
 type TelemetryContracts = Record<TelemetryEvent, TelemetryEventContract>;
@@ -891,6 +910,7 @@ export const TelemetryEvents = StringUnion(
   'tutorialProgressChanged',
   'tutorialRestarted',
   'watchedVideoTour',
+  'welcomeQuestionsSubmitted',
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
 

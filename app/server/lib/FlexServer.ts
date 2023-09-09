@@ -53,7 +53,7 @@ import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint'
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, isDefaultUser, optStringParam,
-        RequestWithGristInfo, sendOkReply, stringParam, TEST_HTTPS_OFFSET,
+        RequestWithGristInfo, sendOkReply, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
 import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
@@ -1304,12 +1304,28 @@ export class FlexServer implements GristServer {
     this.app.post('/welcome/info', ...middleware, expressWrap(async (req, resp, next) => {
       const userId = getUserId(req);
       const user = getUser(req);
-      const row = {...req.body, UserID: userId, Name: user.name, Email: user.loginEmail};
+      const useCases = stringArrayParam(req.body.use_cases, 'use_cases');
+      const useOther = stringParam(req.body.use_other, 'use_other');
+      const row = {
+        UserID: userId,
+        Name: user.name,
+        Email: user.loginEmail,
+        use_cases: ['L', ...useCases],
+        use_other: useOther,
+      };
       this._recordNewUserInfo(row)
       .catch(e => {
         // If we failed to record, at least log the data, so we could potentially recover it.
         log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
       });
+      this.getTelemetry().logEvent('welcomeQuestionsSubmitted', {
+        full: {
+          userId,
+          useCases,
+          useOther,
+        },
+      })
+      .catch(e => log.error('failed to log telemetry event welcomeQuestionsSubmitted', e));
 
       resp.status(200).send();
     }), jsonErrorHandler); // Add a final error handler that reports errors as JSON.
