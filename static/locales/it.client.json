@@ -62,7 +62,10 @@
         "Update Original": "Aggiorna l'originale",
         "Workspace": "Spazio di lavoro",
         "You do not have write access to the selected workspace": "Non hai accesso in scrittura allo spazio di lavoro selezionato",
-        "You do not have write access to this site": "Non hai accesso in scrittura a questo sito"
+        "You do not have write access to this site": "Non hai accesso in scrittura a questo sito",
+        "Remove all data but keep the structure to use as a template": "Rimuovi tutti i dati, mantieni la struttura per usarla come template",
+        "Remove document history (can significantly reduce file size)": "Rimuovi la storia del documento (può ridurre molto le dimensioni del file)",
+        "Download full document and history": "Scarica tutto il documento e la storia"
     },
     "Importer": {
         "Update existing records": "Aggiorna i record esistenti",
@@ -815,7 +818,8 @@
         "Show in folder": "Mostra nella cartella",
         "Unsaved": "Non salvato",
         "Work on a Copy": "Lavora su una copia",
-        "Share": "Condividi"
+        "Share": "Condividi",
+        "Download...": "Scarica..."
     },
     "SiteSwitcher": {
         "Create new team site": "Crea un nuovo sito per il team",
@@ -1078,7 +1082,13 @@
         "There are some things you should know when working with me:": "Ecco alcune cose da sapere quando lavori con me:",
         "What do you need help with?": "In che cosa posso aiutarti?",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Iscriviti a un account gratuito di Grist per usare l'Assistente IA per le formule.",
-        "Formula AI Assistant is only available for logged in users.": "L'assistente IA per le formule è disponibile solo dopo aver effettuato l'accesso."
+        "Formula AI Assistant is only available for logged in users.": "L'assistente IA per le formule è disponibile solo dopo aver effettuato l'accesso.",
+        "For higher limits, contact the site owner.": "Per limiti più alti, contatta il proprietario del sito.",
+        "upgrade to the Pro Team plan": "aggiorna al piano Pro Team",
+        "You have used all available credits.": "Hai usato tutti i crediti disponibili.",
+        "upgrade your plan": "aggiorna il tuo piano",
+        "You have {{numCredits}} remaining credits.": "Hai {{numCredits}} crediti rimanenti.",
+        "For higher limits, {{upgradeNudge}}.": "Per limiti più alti, {{upgradeNudge}}."
     },
     "GridView": {
         "Click to insert": "Clicca per inserire"
