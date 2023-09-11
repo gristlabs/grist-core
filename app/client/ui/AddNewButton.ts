@@ -5,14 +5,27 @@ import {dom, DomElementArg, Observable, styled} from "grainjs";
 
 const t = makeT(`AddNewButton`);
 
-export function addNewButton(isOpen: Observable<boolean> | boolean = true, ...args: DomElementArg[]) {
+export function addNewButton(
+  {
+    isOpen,
+    isDisabled = false,
+  }: {
+    isOpen: Observable<boolean> | boolean,
+    isDisabled?: boolean
+  },
+  ...args: DomElementArg[]
+) {
   return cssAddNewButton(
     cssAddNewButton.cls('-open', isOpen),
+    cssAddNewButton.cls('-disabled', isDisabled),
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
     cssLeftMargin(),
     cssAddText(t("Add New")),
     dom('div', {style: 'flex: 1 1 16px'}),
-    cssPlusButton(cssPlusIcon('Plus')),
+    cssPlusButton(
+      cssPlusButton.cls('-disabled', isDisabled),
+      cssPlusIcon('Plus')
+    ),
     dom('div', {style: 'flex: 0 1 16px'}),
     ...args,
   );
@@ -47,6 +60,11 @@ export const cssAddNewButton = styled('div', `
     background-color: ${theme.controlPrimaryHoverBg};
     --circle-color: ${theme.addNewCircleHoverBg};
   }
+
+  &-disabled, &-disabled:hover {
+    color: ${theme.controlDisabledFg};
+    background-color: ${theme.controlDisabledBg}
+  }
 `);
 const cssLeftMargin = styled('div', `
   flex: 0 1 24px;
@@ -72,6 +90,9 @@ const cssPlusButton = styled('div', `
   border-radius: 14px;
   background-color: var(--circle-color);
   text-align: center;
+  &-disabled {
+    background-color: ${theme.controlDisabledBg};
+  }
 `);
 const cssPlusIcon = styled(icon, `
   background-color: ${theme.addNewCircleFg};

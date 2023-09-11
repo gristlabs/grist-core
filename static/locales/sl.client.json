@@ -33,7 +33,9 @@
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Vsakomur omogočite kopiranje celotnega dokumenta ali pa si ga oglejte v celoti v načinu fiddle.\nUporabno za primere in predloge, ne pa za občutljive podatke.",
         "Allow everyone to view Access Rules.": "Vsakomur omogočite ogled pravil za dostop.",
         "Attribute name": "Ime atributa",
-        "Attribute to Look Up": "Atribut za iskanje"
+        "Attribute to Look Up": "Atribut za iskanje",
+        "Lookup Table": "Preglednica za iskanje",
+        "This default should be changed if editors' access is to be limited. ": "To privzeto nastavitev je treba spremeniti, če je treba omejiti dostop urednikov. "
     },
     "ACUserManager": {
         "We'll email an invite to {{email}}": "Vabilo bomo poslali po e-pošti {{email}}",
@@ -80,12 +82,14 @@
     },
     "ViewAsDropdown": {
         "View As": "Poglej kot",
-        "Users from table": "Uporabniki iz tabele"
+        "Users from table": "Uporabniki iz tabele",
+        "Example Users": "Primer Uporabniki"
     },
     "ActionLog": {
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Stolpec {{colId}} je bil pozneje odstranjen v akciji #{{action.actionNum}}",
         "Action Log failed to load": "Dnevnik ukrepov se ni uspel naložiti",
-        "This row was subsequently removed in action {{action.actionNum}}": "Ta vrstica je bila pozneje odstranjena z akcijo {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Ta vrstica je bila pozneje odstranjena z akcijo {{action.actionNum}}",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabela {{tableId}} je bila pozneje odstranjena v akciji #{{actionNum}}"
     },
     "ApiKey": {
         "Remove": "Odstrani",
@@ -93,12 +97,15 @@
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Želite izbrisati ključ API. To bo povzročilo zavrnitev vseh prihodnjih zahtevkov, ki bodo uporabljali ta ključ API. Ali še vedno želite izbrisati?",
         "Click to show": "Kliknite za prikaz",
         "Remove API Key": "Odstranite API ključ",
-        "This API key can be used to access this account anonymously via the API.": "Ta API ključ  lahko uporabite za anonimen dostop do tega računa prek vmesnika API."
+        "This API key can be used to access this account anonymously via the API.": "Ta API ključ  lahko uporabite za anonimen dostop do tega računa prek vmesnika API.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Ta ključ API lahko uporabite za dostop do svojega računa prek vmesnika API. Svojega ključa API ne delite z nikomer.",
+        "By generating an API key, you will be able to make API calls for your own account.": "Z ustvarjanjem API ključa  boste lahko  uporabljali klice API funkcij  za svoj račun."
     },
     "App": {
         "Description": "Opis",
         "Key": "Ključ",
-        "Memory Error": "Napaka pomnilnika"
+        "Memory Error": "Napaka pomnilnika",
+        "Translators: please translate this only when your language is ready to be offered to users": "Prevajalci: prosimo, prevedite to šele, ko bo vaš jezik pripravljen, da se ponudi uporabnikom"
     },
     "CellContextMenu": {
         "Delete {{count}} columns_one": "Brisanje stolpca",
@@ -121,7 +128,9 @@
         "Comment": "Komentar:",
         "Copy": "Kopiraj",
         "Cut": "Izreži",
-        "Paste": "Prilepi"
+        "Paste": "Prilepi",
+        "Clear values": "Izbriši vrednosti",
+        "Clear cell": "Čista celica"
     },
     "DocMenu": {
         "Document will be moved to Trash.": "Dokument se bo premaknil v koš.",
@@ -147,12 +156,46 @@
         "Examples and Templates": "Primeri in predloge",
         "Featured": "Priporočeni",
         "Manage Users": "Upravljanje uporabnikov",
-        "More Examples and Templates": "Več primerov in predlog"
+        "More Examples and Templates": "Več primerov in predlog",
+        "This service is not available right now": "Ta storitev trenutno ni na voljo",
+        "Workspace not found": "Ne najdem delovnega prostora",
+        "Pin Document": "Pripni dokument",
+        "Remove": "Odstrani",
+        "Move": "Premakni",
+        "Unpin Document": "Odpni dokument",
+        "Requires edit permissions": "Zahteva dovoljenja za urejanje",
+        "Other Sites": "Druga spletna mesta",
+        "Pinned Documents": "Pripeti dokumenti",
+        "To restore this document, restore the workspace first.": "Če želite obnoviti ta dokument, najprej obnovite delovni prostor.",
+        "You are on your personal site. You also have access to the following sites:": "Nahajate se na svojem osebnem spletnem mestu. Prav tako imate dostop do naslednjih spletnih mest:",
+        "Restore": "Obnovi",
+        "Move {{name}} to workspace": "Premakni {{name}} v delovni prostor"
     },
     "GridViewMenus": {
         "Rename column": "Preimenovanje stolpca",
         "Delete {{count}} columns_one": "Brisanje stolpca",
-        "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}"
+        "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
+        "Unfreeze {{count}} columns_one": "Odmrzni ta stolpec",
+        "Sorted (#{{count}})_one": "Razvrščeno (#{{count}})",
+        "Unfreeze all columns": "Odmrznitev vseh stolpcev",
+        "Freeze {{count}} columns_other": "Zamrznite {{count}}  stolpcev",
+        "Show column {{- label}}": "Prikaži stolpec {{- label}}",
+        "Sort": "Razvrsti",
+        "Column Options": "Možnosti stolpcev",
+        "Filter Data": "Filtriranje podatkov",
+        "Hide {{count}} columns_other": "Skrij {{count}}  stolpcev",
+        "Add Column": "Dodaj stolpec",
+        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Freeze {{count}} columns_one": "Zamrznite ta stolpec",
+        "More sort options ...": "Več možnosti razvrščanja…",
+        "Freeze {{count}} more columns_one": "Zamrznite še en stolpec",
+        "Reset {{count}} columns_other": "Ponastavitev  {{count}} stolpcev",
+        "Clear values": "Izbriši vrednosti",
+        "Add to sort": "Dodaj v razvrščanje",
+        "Convert formula to data": "Pretvarjanje formule v podatke",
+        "Freeze {{count}} more columns_other": "Zamrznite še {{count}}  stolpcev",
+        "Hide {{count}} columns_one": "Skrij stolpec",
+        "Sorted (#{{count}})_other": "Razvrščeno (#{{count}})"
     },
     "HomeLeftPane": {
         "Trash": "Koš",
@@ -189,7 +232,8 @@
         "Click to copy": "Kliknite za kopiranje",
         "Duplicate Table": "Podvojena tabela",
         "Table ID copied to clipboard": "ID tabele kopiran v odložišče",
-        "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta"
+        "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta",
+        "Raw Data Tables": "Neobdelana tabela"
     },
     "ViewLayoutMenu": {
         "Delete record": "Brisanje zapisa",
@@ -205,7 +249,10 @@
         "Grist Templates": "Grist predloge"
     },
     "ChartView": {
-        "Pick a column": "Izberite stolpec"
+        "Pick a column": "Izberite stolpec",
+        "Toggle chart aggregation": "Preklopite združevanje grafikonov",
+        "Create separate series for each value of the selected column.": "Ustvarite ločene serije za vsako vrednost izbranega stolpca.",
+        "selected new group data columns": "izbrani novi stolpci podatkovnih skupin"
     },
     "ColumnFilterMenu": {
         "All": "Vse",
@@ -223,7 +270,8 @@
         "Other Values": "Druge vrednosti",
         "Others": "Drugo",
         "Search": "Iskanje",
-        "Search values": "Iskanje vrednosti"
+        "Search values": "Iskanje vrednosti",
+        "Filter by Range": "Filtriranje po obsegu"
     },
     "CustomSectionConfig": {
         " (optional)": " (neobvezno)",
@@ -234,7 +282,10 @@
         "Pick a column": "Izberite stolpec",
         "Pick a {{columnType}} column": "Izberite stolpec {{columnType}}",
         "Read selected table": "Preberite izbrano tabelo",
-        "Learn more about custom widgets": "Preberite več o gradnikih po meri"
+        "Learn more about custom widgets": "Preberite več o gradnikih po meri",
+        "Widget needs {{fullAccess}} to this document.": "Widget  potrebuje {{fullAccess}} tega dokumenta.",
+        "No document access": "Brez dostopa do dokumentov",
+        "Widget does not require any permissions.": "Widget ne zahteva nobenih dovoljenj."
     },
     "DocHistory": {
         "Activity": "Dejavnost",
@@ -242,10 +293,19 @@
         "Compare to Current": "Primerjava s trenutnim",
         "Compare to Previous": "Primerjava s prejšnjimi",
         "Snapshots": "Posnetki",
-        "Snapshots are unavailable.": "Posnetki niso na voljo."
+        "Snapshots are unavailable.": "Posnetki niso na voljo.",
+        "Open Snapshot": "Odpri posnetek stanja"
     },
     "ExampleInfo": {
-        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Oglejte si sorodno navodilo za povezovanje podatkov in ustvarjanje visokoproduktivnih postavitev."
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Oglejte si sorodno navodilo za povezovanje podatkov in ustvarjanje visokoproduktivnih postavitev.",
+        "Afterschool Program": "Program za izvenšolsko vzgojo",
+        "Welcome to the Investment Research template": "Dobrodošli v predlogi za investicijske raziskave",
+        "Welcome to the Afterschool Program template": "Dobrodošli v predlogi programa za popoldansko izobraževanje",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Oglejte si sorodno navodilo, v katerem boste izvedeli, kako ustvariti zbirne tabele in grafe ter dinamično povezati grafe.",
+        "Investment Research": "Investicijske raziskave",
+        "Tutorial: Create a CRM": "Učni pripomoček: Ustvarite CRM",
+        "Tutorial: Manage Business Data": "Učni pripomoček: Upravljanje poslovnih podatkov",
+        "Tutorial: Analyze & Visualize": "Učni pripomoček: Analizirajte in vizualizirajte"
     },
     "CodeEditorPanel": {
         "Access denied": "Dostop zavrnjen",
@@ -255,5 +315,85 @@
         "Apply": "Uporabi",
         "Cancel": "Prekliči",
         "Default cell style": "Privzet slog celic"
+    },
+    "Drafts": {
+        "Undo discard": "Preklic zavrženja",
+        "Restore last edit": "Obnovitev zadnjega urejanja"
+    },
+    "FieldConfig": {
+        "Column options are limited in summary tables.": "Možnosti stolpcev so v zbirnih tabelah omejene.",
+        "Set formula": "Nastavite formulo",
+        "Data Columns_other": "Stolpci podatkov",
+        "DESCRIPTION": "OPIS",
+        "Clear and reset": "Briši in ponastavi",
+        "Convert column to data": "Pretvori stolpec v podatke",
+        "Empty Columns_other": "Prazni stolpci",
+        "COLUMN LABEL AND ID": "OZNAKA IN ID STOLPCA",
+        "Empty Columns_one": "Prazen stolpec",
+        "Formula Columns_other": "Stolpci formule",
+        "Formula Columns_one": "Stolpec formule",
+        "Enter formula": "Vnesite formulo",
+        "Clear and make into formula": "Brišite in pretvorite v formulo",
+        "Mixed Behavior": "Mešano vedenje",
+        "Convert to trigger formula": "Pretvori v sprožitveno formulo",
+        "Data Columns_one": "Stolpec podatkov",
+        "TRIGGER FORMULA": "SPROŽILNA FORMULA",
+        "Set trigger formula": "Nastavite sprožitveno formulo"
+    },
+    "DuplicateTable": {
+        "Only the document default access rules will apply to the copy.": "Za kopijo bodo veljala samo privzeta pravila dostopa do dokumenta.",
+        "Copy all data in addition to the table structure.": "Poleg strukture tabele kopirajte tudi vse podatke.",
+        "Name for new table": "Ime za novo tabelo"
+    },
+    "DocPageModel": {
+        "Sorry, access to this document has been denied. [{{error}}]": "Žal je bil dostop do tega dokumenta zavrnjen. [{{error}}]",
+        "Add Empty Table": "Dodajte prazno tabelo",
+        "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta",
+        "Add Widget to Page": "Dodaj widget na stran",
+        "Add Page": "Dodaj stran",
+        "Document owners can attempt to recover the document. [{{error}}]": "Lastniki dokumentov lahko poskušajo obnoviti dokument. [{{error}}]",
+        "Error accessing document": "Napaka pri dostopu do dokumenta",
+        "Enter recovery mode": "Vstopite v način obnovitve"
+    },
+    "DocumentSettings": {
+        "Ok": "V REDU",
+        "API": "API",
+        "Save": "Shrani",
+        "Document ID copied to clipboard": "ID dokumenta kopiran v odložišče",
+        "Local currency ({{currency}})": "Lokalna valuta ({{currency}})",
+        "Save and Reload": "Shranjevanje in ponovno nalaganje",
+        "Time Zone:": "Časovni pas:",
+        "Currency:": "Valuta:",
+        "Document Settings": "Nastavitve dokumentov",
+        "Locale:": "Lokalizacija:",
+        "This document's ID (for API use):": "ID tega dokumenta (za uporabo API):"
+    },
+    "GridOptions": {
+        "Horizontal Gridlines": "Vodoravne linije",
+        "Vertical Gridlines": "Navpične linije",
+        "Grid Options": "Možnosti mreže",
+        "Zebra Stripes": "Zebraste vrstice"
+    },
+    "DocumentUsage": {
+        "Data Size": "Velikost podatkov",
+        "Usage statistics are only available to users with full access to the document data.": "Statistični podatki o uporabi so na voljo le uporabnikom s polnim dostopom do podatkov o dokumentu.",
+        "Usage": "Uporaba",
+        "Attachments Size": "Velikost prilog",
+        "For higher limits, ": "Za višje omejitve, ",
+        "Contact the site owner to upgrade the plan to raise limits.": "Obrnite se na lastnika spletnega mesta in nadgradite načrt za povečanje omejitev.",
+        "start your 30-day free trial of the Pro plan.": "začnite 30-dnevni brezplačni preizkus Pro različice.",
+        "Rows": "Vrstice"
+    },
+    "FieldMenus": {
+        "Use separate settings": "Uporaba ločenih nastavitev",
+        "Revert to common settings": "Vrnitev na običajne nastavitve",
+        "Using common settings": "Uporaba skupnih nastavitev",
+        "Using separate settings": "Uporaba ločenih nastavitev"
+    },
+    "FilterConfig": {
+        "Add Column": "Dodaj stolpec"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "To spletno mesto ekipe je začasno zaprto. Dokumente lahko berete, vendar jih ne morete  spreminjati."
     }
 }

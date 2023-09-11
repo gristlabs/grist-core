@@ -1,5 +1,5 @@
 import {makeT} from 'app/client/lib/localization';
-import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {getLoginOrSignupUrl, getLoginUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {productPill} from 'app/client/ui/AppHeader';
 import * as css from 'app/client/ui/DocMenuCss';
@@ -12,6 +12,7 @@ import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, dom, DomContents, styled} from 'grainjs';
 
 const t = makeT('HomeIntro');
@@ -112,10 +113,36 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
   ];
 }
 
+function makeAnonIntroWithoutPlayground(homeModel: HomeModel) {
+    return [
+      (!isFeatureEnabled('helpCenter') ? null : cssIntroLine(t("Visit our {{link}} to learn more about Grist.", {
+        link: helpCenterLink()
+      }), testId('welcome-text-no-playground'))),
+      cssIntroLine(t("To use Grist, please either sign up or sign in.")),
+      cssBtnGroup(
+        cssBtn(t("Sign up"), cssButton.cls('-primary'), testId('intro-sign-up'),
+          dom.on('click', () => location.href = getSignupUrl())
+        ),
+        cssBtn(t("Sign in"), testId('intro-sign-in'),
+          dom.on('click', () => location.href = getLoginUrl())
+        )
+      )
+    ];
+}
+
 function makeAnonIntro(homeModel: HomeModel) {
+  const welcomeToGrist = css.docListHeader(t("Welcome to Grist!"), testId('welcome-title'));
+
+  if (!getGristConfig().enableAnonPlayground) {
+    return [
+      welcomeToGrist,
+      ...makeAnonIntroWithoutPlayground(homeModel)
+    ];
+  }
+
   const signUp = cssLink({href: getLoginOrSignupUrl()}, t("Sign up"));
   return [
-    css.docListHeader(t("Welcome to Grist!"), testId('welcome-title')),
+    welcomeToGrist,
     cssIntroLine(t("Get started by exploring templates, or creating your first Grist document.")),
     cssIntroLine(t("{{signUp}} to save your work. ", {signUp}),
       (!isFeatureEnabled('helpCenter') ? null : t("Visit our {{link}} to learn more.", { link: helpCenterLink() })),
