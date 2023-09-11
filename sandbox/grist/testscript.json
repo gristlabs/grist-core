@@ -2398,13 +2398,13 @@
       "USER_ACTION": ["RemoveTable", "Schools"],
       "ACTIONS": {
         "stored": [
-          // Assert that calc actions include a RemoveColumn for Students.school
-          ["RemoveRecord", "_grist_Tables_column", 5],
-          ["RemoveColumn", "Students", "school"],
+          // Students.school is converted from Ref:Schools to Int
+          ["ModifyColumn", "Students", "school", {"type": "Int"}],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Int"}],
+
           ["BulkRemoveRecord", "_grist_Tables_column", [10, 12]],
           ["RemoveRecord", "_grist_Tables", 2],
           ["RemoveTable", "Schools"],
-          // Assert that calc actions include a RemoveColumn for Students.school
           ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
             {"schoolRegion": [["E","AttributeError"], ["E","AttributeError"],
               ["E","AttributeError"], ["E","AttributeError"], ["E","AttributeError"],
@@ -2418,12 +2418,8 @@
         ],
         "direct": [true, true, true, true, true, false, false],
         "undo": [
-          ["AddRecord", "_grist_Tables_column", 5,
-            {"parentPos": 5.0, "parentId": 1,
-              "colId": "school", "type": "Ref:Schools", "label": "school"}],
-          ["BulkUpdateRecord", "Students", [1, 2, 3, 4, 5, 6, 8],
-            {"school": [2, 8, 6, 8, 1, 5, 7]}],
-          ["AddColumn", "Students", "school", {"isFormula": false, "formula": "", "type": "Ref:Schools"}],
+          ["ModifyColumn", "Students", "school", {"type": "Ref:Schools"}],
+          ["UpdateRecord", "_grist_Tables_column", 5, {"type": "Ref:Schools"}],
           ["BulkAddRecord", "_grist_Tables_column", [10, 12], {
             "colId": ["name", "address"],
             "label": ["Name", "Address"], "parentId": [2, 2], "parentPos": [1.0, 2.0],
@@ -2449,14 +2445,14 @@
     }],
     ["CHECK_OUTPUT", {
       "Students": [
-        ["id","firstName","lastName","@fullName","@fullNameLen","@schoolShort","@schoolRegion"],
-        [1,   "Barack",   "Obama",   "Barack Obama", 12, ["E","AttributeError"], ["E","AttributeError"]],
-        [2,   "George W", "Bush",    "George W Bush",13, ["E","AttributeError"], ["E","AttributeError"]],
-        [3,   "Bill",     "Clinton", "Bill Clinton", 12, ["E","AttributeError"], ["E","AttributeError"]],
-        [4,   "George H", "Bush",    "George H Bush",13, ["E","AttributeError"], ["E","AttributeError"]],
-        [5,   "Ronald",   "Reagan",  "Ronald Reagan",13, ["E","AttributeError"], ["E","AttributeError"]],
-        [6,   "Jimmy",    "Carter",  "Jimmy Carter", 12, ["E","AttributeError"], ["E","AttributeError"]],
-        [8,   "Gerald",   "Ford",    "Gerald Ford",  11, ["E","AttributeError"], ["E","AttributeError"]]],
+        ["id","firstName","lastName","@fullName","@fullNameLen","school","@schoolShort","@schoolRegion"],
+        [1,   "Barack",   "Obama",   "Barack Obama", 12, 2, ["E","AttributeError"], ["E","AttributeError"]],
+        [2,   "George W", "Bush",    "George W Bush",13, 8, ["E","AttributeError"], ["E","AttributeError"]],
+        [3,   "Bill",     "Clinton", "Bill Clinton", 12, 6, ["E","AttributeError"], ["E","AttributeError"]],
+        [4,   "George H", "Bush",    "George H Bush",13, 8, ["E","AttributeError"], ["E","AttributeError"]],
+        [5,   "Ronald",   "Reagan",  "Ronald Reagan",13, 1, ["E","AttributeError"], ["E","AttributeError"]],
+        [6,   "Jimmy",    "Carter",  "Jimmy Carter", 12, 5, ["E","AttributeError"], ["E","AttributeError"]],
+        [8,   "Gerald",   "Ford",    "Gerald Ford",  11, 7, ["E","AttributeError"], ["E","AttributeError"]]],
       "Address": [
         ["id",  "city",       "state",    "country", "@region"],
         [2,     "Eureka",     "IL",       "US",      "North America"],
@@ -2470,23 +2466,23 @@
       "USER_ACTION": ["RemoveTable", "Students"],
       "ACTIONS": {
         "stored": [
-          ["BulkRemoveRecord", "_grist_Tables_column", [1, 2, 3, 4, 6, 9]],
+          ["BulkRemoveRecord", "_grist_Tables_column", [1, 2, 3, 4, 5, 6, 9]],
           ["RemoveRecord", "_grist_Tables", 1],
           ["RemoveTable", "Students"]
         ],
         "direct": [true, true, true],
         "undo": [
-          ["BulkAddRecord", "_grist_Tables_column", [1, 2, 3, 4, 6, 9], {
-            "colId": ["firstName", "lastName", "fullName", "fullNameLen", "schoolShort",
+          ["BulkAddRecord", "_grist_Tables_column", [1, 2, 3, 4, 5, 6, 9], {
+            "colId": ["firstName", "lastName", "fullName", "fullNameLen", "school", "schoolShort",
               "schoolRegion"],
-            "formula": ["", "", "rec.firstName + ' ' + rec.lastName", "len(rec.fullName)",
+            "formula": ["", "", "rec.firstName + ' ' + rec.lastName", "len(rec.fullName)", "",
               "rec.school.name.split(' ')[0]",
                 "addr = $school.address\naddr.state if addr.country == 'US' else addr.region"],
-            "isFormula": [false, false, true, true, true, true],
-            "label": ["First Name", "Last Name", "Full Name", "Full Name Length", "School Short",
+            "isFormula": [false, false, true, true, false, true, true],
+            "label": ["First Name", "Last Name", "Full Name", "Full Name Length", "school","School Short",
               "School Region"],
-            "parentId": [1, 1, 1, 1, 1, 1], "parentPos": [1, 2, 3, 4, 6, 7],
-            "type": ["Text", "Text", "Any", "Any", "Any", "Any"]
+            "parentId": [1, 1, 1, 1, 1, 1, 1], "parentPos": [1, 2, 3, 4, 5, 6, 7],
+            "type": ["Text", "Text", "Any", "Any", "Int", "Any", "Any"]
           }],
           ["AddRecord", "_grist_Tables", 1, {"tableId": "Students"}],
           ["BulkAddRecord", "Students", [1, 2, 3, 4, 5, 6, 8], {
@@ -2494,6 +2490,7 @@
             "fullName": ["Barack Obama", "George W Bush", "Bill Clinton", "George H Bush", "Ronald Reagan", "Jimmy Carter", "Gerald Ford"],
             "fullNameLen": [12, 13, 12, 13, 13, 12, 11],
             "lastName": ["Obama", "Bush", "Clinton", "Bush", "Reagan", "Carter", "Ford"],
+            "school": [2, 8, 6, 8, 1, 5, 7],
             "schoolRegion": [["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"],
               ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"]],
             "schoolShort": [["E", "AttributeError"], ["E", "AttributeError"], ["E", "AttributeError"],
@@ -2510,7 +2507,8 @@
               "formula": "rec.school.name.split(' ')[0]", "type": "Any",
               "id": "schoolShort"},
             { "isFormula": true, "formula": "addr = $school.address\naddr.state if addr.country == 'US' else addr.region", "type": "Any" ,
-              "id": "schoolRegion"}
+              "id": "schoolRegion"},
+            {"formula": "", "id": "school", "isFormula": false, "type": "Int"}
           ]]
         ]
       }

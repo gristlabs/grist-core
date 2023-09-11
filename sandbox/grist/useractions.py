@@ -858,6 +858,11 @@ class UserActions(object):
       # If there are group-by columns based on this, change their properties to match (including
       # colId, for renaming), except formula/isFormula.
       changes = select_keys(col_values, _inherited_groupby_col_fields)
+      for field in ['displayCol', 'visibleCol']:
+        if field in col_values and not col_values[field]:
+          # If displayCol or visibleCol is being cleared in this col, it should be cleared
+          # in the groupby columns based on this.
+          changes[field] = col_values[field]
       if 'type' in col_values:
         changes['type'] = summary.summary_groupby_col_type(col_values['type'])
         if col_values['type'] != changes['type']:
@@ -1095,8 +1100,13 @@ class UserActions(object):
     # If there are summary tables based on this table, remove those too.
     remove_table_recs.extend(st for t in remove_table_recs for st in t.summaryTables)
 
-    # If other tables have columns referring to this table, remove them.
-    self.doRemoveColumns(self._collect_back_references(remove_table_recs))
+    # Handle columns in other tables referring to this table
+    for ref in self._collect_back_references(remove_table_recs):
+      if ref.summarySourceCol:
+        # Skip summary groupby columns, as updating their values is forbidden.
+        # They will be handled automatically when the source column is updated.
+        continue
+      self._convert_reference_col_for_deleted_table(ref)
 
     # Remove all view sections and fields for all tables being removed.
     # Bypass the check for raw data view sections.
@@ -1125,6 +1135,50 @@ class UserActions(object):
     for table_id in remove_table_ids:
       self._do_doc_action(actions.RemoveTable(table_id))
 
+  def _convert_reference_col_for_deleted_table(self, col):
+    # col is a column of type Ref:{table_id} or RefList:{table_id}
+    # where table_id is a table that is being deleted.
+    # That type will become invalid. We need to convert it to a type that is valid.
+    table_id = col.parentId.tableId
+    col_id = col.colId
+    visible_col = col.visibleCol
+    display_col = col.displayCol
+    if col.isFormula:
+      # Formula columns are easy, as they allow the Any type.
+      # The contents will probably become some errors which the user should handle.
+      self.ModifyColumn(table_id, col_id, dict(type="Any"))
+      return
+
+    # For data columns, we may also need to update the values.
+    if not (visible_col and display_col):
+      # If there's no visible/display column, we just keep row IDs.
+      if col.type.startswith("Ref:"):
+        self.ModifyColumn(table_id, col_id, dict(type="Int"))
+      else:
+        # Data columns can't be of type Any, and there's no type that can
+        # hold a list of numbers. So we convert the lists of row IDs
+        # to strings containing comma-separated row IDs.
+        # We need to get the values before changing the column type.
+        table = self._engine.tables[table_id]
+        new_values = [",".join(map(str, row)) for row in self._get_column_values(col)]
+        self.ModifyColumn(table_id, col_id, dict(type="Text"))
+        self.BulkUpdateRecord(table_id, list(table.row_ids), {col_id: new_values})
+      return
+
+    if col.type.startswith("Ref:") and visible_col.type != "Any":
+      # This case is easy: we copy the values from the display column directly into
+      # the converted ex-reference column. No need for any complicated conversion.
+      self.CopyFromColumn(table_id, display_col.colId, col_id, visible_col.widgetOptions)
+      self.ModifyColumn(table_id, col_id, dict(type=visible_col.type))
+    else:
+      # Otherwise, we need to do a 'full' type conversion.
+      # Note that this involves `call_external`, i.e. calling JS code.
+      # This is impossible in the Python tests, so this case is tested in DocApi.ts.
+      self.ConvertFromColumn(
+        # widgetOptions and visibleColRef are generally used for parsing values into the new type.
+        # They're not need here since we're just formatting as Text.
+        table_id, col_id, col_id, typ="Text", widgetOptions="", visibleColRef=0
+      )
 
   @override_action('BulkRemoveRecord', '_grist_Tables_column')
   def _removeColumnRecords(self, table_id, row_ids):
@@ -1602,7 +1656,7 @@ class UserActions(object):
     if src_column.is_formula():
       self._engine.bring_col_up_to_date(src_column)
 
-    # NOTE: This action is invoked only in a single place (during type/colum/data)
+    # NOTE: This action is invoked only in a single place in the client (during type/column/data
     # transformation - where user has a chance to adjust some widgetOptions (though
     # the UI is limited). Those widget options were already cleared (in js) and are either
     # nullish (default ones) or are truly adjusted. As Grist doesn't know if the widgetOptions

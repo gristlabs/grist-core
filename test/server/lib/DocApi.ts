@@ -1506,6 +1506,72 @@ function testDocApi() {
     }
   }
 
+  // This is mostly tested in Python, but this case requires the data engine to call
+  // 'external' (i.e. JS) code to do the type conversion.
+  it("converts reference columns when the target table is deleted", async () => {
+    // Create a test document.
+    const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+    const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
+    const docUrl = `${serverUrl}/api/docs/${docId}`;
+
+    // Make a new table with a reference column pointing at Table1, displaying column A.
+    let resp = await axios.post(`${docUrl}/apply`, [
+      ['AddTable', 'Table2', [{id: 'R', type: 'RefList:Table1'}]],
+      ['ModifyColumn', 'Table2', 'R', {visibleCol: 2}],
+      ['SetDisplayFormula', 'Table2', 0, 6, "$R.A"],
+      ['BulkAddRecord', 'Table1', [1, 2], {A: ["Alice", "Bob"]}],
+      ['BulkAddRecord', 'Table2', [1], {R: [["L", 1, 2]]}],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+
+    // Now delete the referenced table.
+    // This action has to be separate for the test to pass.
+    resp = await axios.post(`${docUrl}/apply`, [
+      ['RemoveTable', 'Table1'],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+
+    resp = await axios.get(`${docUrl}/tables/Table2/columns`, chimpy);
+    assert.deepEqual(resp.data, {
+        "columns": [
+          {
+            "id": "R",
+            "fields": {
+              "colRef": 6,
+              "parentId": 2,
+              "parentPos": 6,
+              // Type changed from RefList to Text
+              "type": "Text",
+              "widgetOptions": "",
+              "isFormula": false,
+              "formula": "",
+              "label": "R",
+              "description": "",
+              "untieColIdFromLabel": false,
+              "summarySourceCol": 0,
+              // Display and visible columns cleared
+              "displayCol": 0,
+              "visibleCol": 0,
+              "rules": null,
+              "recalcWhen": 0,
+              "recalcDeps": null
+            }
+          }
+        ]
+      }
+    );
+
+    resp = await axios.get(`${docUrl}/tables/Table2/records`, chimpy);
+    assert.deepEqual(resp.data, {
+        records:
+          [
+            // Reflist converted to comma separated display values.
+            {id: 1, fields: {R: "Alice, Bob"}},
+          ]
+      }
+    );
+  });
+
   it("parses strings in user actions", async () => {
     // Create a test document.
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;

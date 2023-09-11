@@ -283,11 +283,12 @@ class TestTableActions(test_engine.EngineTestCase):
       [3,     3],
     ])
 
-    # Check that reference columns to this table get removed, with associated fields.
+    # Check that reference columns to this table get converted
     self.assertTables([
       Table(2, "People", primaryViewId=2, summarySourceTable=0, columns=[
         Column(5, "manualSort", "ManualSortPos", False, "", 0),
         Column(6, "name",       "Text",         False, "", 0),
+        Column(7, "address",    "Int", False, "", 0),
         Column(8, "city",       "Any", True, "$address.city", 0),
       ]),
       # Note that the summary table is also gone.
@@ -296,13 +297,194 @@ class TestTableActions(test_engine.EngineTestCase):
       View(2, sections=[
         Section(3, parentKey="record", tableRef=2, fields=[
           Field(7, colRef=6),
+          Field(8, colRef=7),
           Field(9, colRef=8),
         ]),
       ]),
       View(3, sections=[
         Section(8, parentKey="record", tableRef=2, fields=[
           Field(22, colRef=6),
+          Field(23, colRef=7),
           Field(24, colRef=8),
         ]),
       ]),
+    ])
+
+  @test_engine.test_undo
+  def test_remove_table_referenced_by_formula(self):
+    self.init_sample_data()
+
+    # Add a simple formula column of reference type.
+    # Its type will be changed to Any.
+    self.add_column(
+      "People", "address2", type="Ref:Address", isFormula=True, formula="$address"
+    )
+    # Add a similar reflist column, but change it to a data column.
+    # The formula is just an easy way to populate values for the test.
+    # A data column of type reflist should be changed to text.
+    self.add_column(
+      "People", "addresses", type="RefList:Address", isFormula=True, formula="[$address, $address]"
+    )
+    self.modify_column("People", "addresses", isFormula=False)
+
+    # Now remove the referenced table and see what happens to the ref columns.
+    self.apply_user_action(["RemoveTable", "Address"])
+    self.assertTables([
+      Table(2, "People", primaryViewId=2, summarySourceTable=0, columns=[
+        Column(5, "manualSort", "ManualSortPos", False, "", 0),
+        Column(6, "name",       "Text",         False, "", 0),
+        # Original data column of type Ref:Address is changed to Int.
+        Column(7, "address",    "Int", False, "", 0),
+        Column(8, "city",       "Any", True, "$address.city", 0),
+        # Formula column of type Ref:Address is changed to Any.
+        Column(13, "address2",  "Any", True, "$address", 0),
+        # Data column of type RefList:Address is changed to Text.
+        Column(14, "addresses", "Text", False, "[$address, $address]", 0),
+      ]),
+    ])
+    self.assertTableData('People', cols="subset", data=[
+    ["id",  "name",   "address", "address2", "addresses"],
+    [ 1,    "Alice",  22,        22,         "22,22"],
+    [ 2,    "Bob",    25,        25,         "25,25"],
+    [ 3,    "Carol",  27,        27,         "27,27"],
+  ])
+
+  @test_engine.test_undo
+  def test_remove_table_referenced_by_summary_groupby_col_without_visible_col(self):
+    self.init_sample_data()
+    # Create a summary table of People grouped by address (a reference column).
+    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [7], None])
+
+    self.assertTables([
+      Table(1, "Address", primaryViewId=1, summarySourceTable=0, columns=[
+        Column(1, "manualSort", "ManualSortPos", False, "", 0),
+        Column(2, "city",       "Text", False, "", 0),
+        Column(3, "state",      "Text", False, "", 0),
+        Column(4, "amount",     "Numeric", False, "", 0),
+      ]),
+      Table(2, "People", primaryViewId=2, summarySourceTable=0, columns=[
+        Column(5, "manualSort", "ManualSortPos", False, "", 0),
+        Column(6, "name",       "Text",         False, "", 0),
+        Column(7, "address",    "Ref:Address",  False, "", 0),
+        Column(8, "city",       "Any", True, "$address.city", 0),
+      ]),
+      Table(3, "Address_summary_state", 0, 1, columns=[
+        Column(9, "state", "Text", False, "", summarySourceCol=3),
+        Column(10, "group", "RefList:Address", True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(11, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+        Column(12, "amount", "Numeric", True, summarySourceCol=0, formula="SUM($group.amount)"),
+      ]),
+      Table(4, "People_summary_address", 0, 2, columns=[
+        Column(13, "address", "Ref:Address", False, "", summarySourceCol=7),
+        Column(14, "group", "RefList:People", True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(15, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+      ]),
+    ])
+    self.assertTableData('People_summary_address', data=[
+      ["id", "address", "count", "group"],
+      [1, 22, 1, [1]],
+      [2, 25, 1, [2]],
+      [3, 27, 1, [3]],
+    ])
+
+    # Now remove the referenced table.
+    self.apply_user_action(["RemoveTable", "Address"])
+    # In both the People and summary tables, the 'address' reference column
+    # is converted to Int, because it didn't have a visible/display column.
+    self.assertTables([
+      Table(2, "People", primaryViewId=2, summarySourceTable=0, columns=[
+        Column(5, "manualSort", "ManualSortPos", False, "", 0),
+        Column(6, "name",       "Text",         False, "", 0),
+        Column(7, "address",    "Int",  False, "", 0),
+        Column(8, "city",       "Any", True, "$address.city", 0),
+      ]),
+      Table(4, "People_summary_address", 0, 2, columns=[
+        Column(13, "address", "Int", False, "", summarySourceCol=7),
+        Column(14, "group", "RefList:People", True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(15, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+      ]),
+    ])
+    self.assertTableData('People', cols="subset", data=self.people_table_data)
+    self.assertTableData('People_summary_address', data=[
+      ["id", "address", "count", "group"],
+      [1, 22, 1, [1]],
+      [2, 25, 1, [2]],
+      [3, 27, 1, [3]],
+    ])
+
+  @test_engine.test_undo
+  def test_remove_table_referenced_by_summary_groupby_col_with_visible_col(self):
+    # Similar to the test above, but now the reference column has a visible column.
+    self.init_sample_data()
+    self.modify_column("People", "address", visibleCol=2)
+    self.apply_user_action(["SetDisplayFormula", "People", 0, 7, "$address.city"])
+    self.apply_user_action(["CreateViewSection", 2, 0, 'record', [7], None])
+
+    self.assertTables([
+      Table(1, "Address", primaryViewId=1, summarySourceTable=0, columns=[
+        Column(1, "manualSort", "ManualSortPos", False, "", 0),
+        Column(2, "city",       "Text", False, "", 0),
+        Column(3, "state",      "Text", False, "", 0),
+        Column(4, "amount",     "Numeric", False, "", 0),
+      ]),
+      Table(2, "People", primaryViewId=2, summarySourceTable=0, columns=[
+        Column(5, "manualSort", "ManualSortPos", False, "", 0),
+        Column(6, "name",       "Text",         False, "", 0),
+        Column(7, "address",    "Ref:Address",  False, "", 0),
+        Column(8, "city",       "Any", True, "$address.city", 0),
+        Column(13, "gristHelper_Display", "Any", True, "$address.city", 0),
+      ]),
+      Table(3, "Address_summary_state", 0, 1, columns=[
+        Column(9, "state", "Text", False, "", summarySourceCol=3),
+        Column(10, "group", "RefList:Address", True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(11, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+        Column(12, "amount", "Numeric", True, summarySourceCol=0, formula="SUM($group.amount)"),
+      ]),
+      Table(4, "People_summary_address", 0, 2, columns=[
+        Column(14, "address", "Ref:Address", False, "", summarySourceCol=7),
+        Column(15, "group", "RefList:People", True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(16, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+        Column(17, "gristHelper_Display", "Any", True, "$address.city", 0),
+      ]),
+    ])
+    self.assertTableData('People_summary_address', data=[
+      ["id", "address", "count", "group", "gristHelper_Display"],
+      [1, 22, 1, [1], "Albany"],
+      [2, 25, 1, [2], "Bedford"],
+      [3, 27, 1, [3], "Buffalo"],
+    ])
+
+    self.apply_user_action(["RemoveTable", "Address"])
+    self.assertTables([
+      Table(2, "People", primaryViewId=2, summarySourceTable=0, columns=[
+        Column(5, "manualSort", "ManualSortPos", False, "", 0),
+        Column(6, "name",       "Text",         False, "", 0),
+        # Reference column is converted to the visible column type, i.e. Text.
+        Column(7, "address",    "Text",  False, "", 0),
+        Column(8, "city",       "Any", True, "$address.city", 0),
+      ]),
+      Table(4, "People_summary_address", 0, 2, columns=[
+        # Reference column is converted to the visible column type, i.e. Text.
+        Column(14, "address", "Text", False, "", summarySourceCol=7),
+        Column(15, "group", "RefList:People", True, summarySourceCol=0,
+               formula="table.getSummarySourceGroup(rec)"),
+        Column(16, "count", "Int", True, summarySourceCol=0, formula="len($group)"),
+      ]),
+    ])
+    self.assertTableData('People', cols="subset", data=[
+      ["id",  "name",   "address" ],
+      [ 1,    "Alice",  "Albany"],
+      [ 2,    "Bob",    "Bedford"],
+      [ 3,    "Carol",  "Buffalo"],
+    ])
+    self.assertTableData('People_summary_address', data=[
+      ["id", "address", "count", "group"],
+      [ 4,   "Albany",  1,       [1]],
+      [ 5,   "Bedford", 1,       [2]],
+      [ 6,   "Buffalo", 1,       [3]],
     ])
