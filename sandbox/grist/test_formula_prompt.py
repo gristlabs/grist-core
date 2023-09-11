@@ -1,5 +1,6 @@
 import unittest
 import six
+from asttokens.util import fstring_positions_work
 
 import test_engine
 import testutil
@@ -219,6 +220,7 @@ class Table3:
 def reflist(rec: Table3) -> list[Table2]:
 ''')
 
+  @unittest.skipUnless(fstring_positions_work(), "Needs Python 3.10+")
   def test_convert_completion(self):
     completion = """
 Here's some code:

@@ -2,7 +2,7 @@
 import logging
 import unittest
 
-import six
+from asttokens.util import fstring_positions_work
 
 import testutil
 import test_engine
@@ -81,7 +81,7 @@ class TestRenames(test_engine.EngineTestCase):
       }]
     ]})
 
-  @unittest.skipUnless(six.PY3, "Python 3 only")
+  @unittest.skipUnless(fstring_positions_work(), "Python 3.10+ only")
   def test_rename_inside_fstring(self):
     self.load_sample(self.sample)
     self.add_column("People", "CityUpper", formula="f'{$city.upper()}'")
