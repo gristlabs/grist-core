@@ -258,16 +258,25 @@ export class LinkingState extends Disposable {
         //This is the cursorPos that's directly applied to tgtSection, should be null if incoming link is outdated
         //where null means "cursorPos does not apply to tgtSection and should be ignored"
         this.cursorPos = this.autoDispose(ko.computed(() => {
-          const [incomingPos, incomingVersion]: [UIRowId|null, SequenceNum] = this.incomingCursorPos();
-          const tgtSecVersion = this._tgtSection.lastCursorEdit();
+          const [incomingPos, _]: [UIRowId|null, SequenceNum] = this.incomingCursorPos();
+          return incomingPos;
 
-          //if(!tgtSecVersion) { return null; }
+          // TODO JV: old code only accepted incomingPos if it was newer than tgtSec.
+          //          However I think we'll be ok with always taking incomingPos. I think the only weird case
+          //          is if we cycle back to ourselves, in which case we might end up setCursorPos()-ing ourselves
+          //          thru the link. However, that's not actually an issue? so it's probably fine
 
-          if(incomingVersion > tgtSecVersion) { // if linked cursor newer that current sec, use it
-              return incomingPos;
-          } else { // else, there's no linked cursor, since current section is driving the linking
-            return null;
-          }
+          //const [incomingPos, incomingVersion]: [UIRowId|null, SequenceNum] = this.incomingCursorPos();
+          //const tgtSecVersion = this._tgtSection.lastCursorEdit();
+
+          //if(!tgtSecVersion) { return null; } //TODO JV
+
+          // if(incomingVersion > tgtSecVersion) { // if linked cursor newer that current sec, use it
+          //     return incomingPos;
+          // } else { // else, there's no linked cursor, since current section is driving the linking
+          //   return incomingPos; //TODO JV TEMP: let's try just always taking the incomingpos
+          //   //return null;
+          // }
 
         }));
       }
