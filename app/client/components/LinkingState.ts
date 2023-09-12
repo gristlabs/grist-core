@@ -233,6 +233,11 @@ export class LinkingState extends Disposable {
 
   /**
    * Returns a boolean indicating whether editing should be disabled in the destination section.
+   * TODO: this might not sync correctly in some cases? If srcRowId is new/null, we also hide all rows in that section,
+   *       but that's handled by the filterState observable, which might get desynced from disableEditing (a function).
+   *       If disableEditing and filterState aren't in sync, you can have the grayed-out "No row selected" text from
+   *       disableEditing but still have rows showing up in the section. Haven't been able to reproduce, but this
+   *       might need to be changed to an observable if that crops up again
    */
   public disableEditing(): boolean {
     if (!this.filterState) { return false; }
@@ -369,7 +374,7 @@ export class LinkingState extends Disposable {
       // NOTES ON CHOICELISTS: they only show up in a few cases.
       // - ChoiceList can only ever appear in links as the tgtcol
       //   (ChoiceLists can only be linked from summ. tables, and summary flattens lists, so srcCol would be 'Choice')
-      // - empty choicelist is [""].
+      // - empty Choice is [""].
 
       // # Special case 2:
       //  If tgtCol is a single ref, blankness is represented by [0]
