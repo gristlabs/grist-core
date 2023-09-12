@@ -314,10 +314,17 @@ export class LinkingState extends Disposable {
         return EmptyFilterState;
       }
 
+      if (this._srcSection.isDisposed()) {
+        //happened transiently in test: "RawData should remove all tables except one (...)"
+        console.warn("LinkingState._makeFilterObs: srcSectionDisposed");
+        return EmptyFilterState;
+      }
+
       //Get selector-rowId
       const srcRowId = this._srcSection.activeRowId();
+
       if (srcRowId === null) {
-        console.warn("_makeFilterObs activeRowId is null");
+        console.warn("LinkingState._makeFilterObs activeRowId is null");
         return EmptyFilterState;
       }
 
