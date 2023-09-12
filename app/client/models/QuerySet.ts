@@ -163,9 +163,9 @@ export class DynamicQuerySet extends RowSource {
 
     // CB should be called asynchronously, since surprising hard-to-debug interactions can happen
     // if it's sometimes synchronous and sometimes not.
-    console.log(`======= called makeQuery: ${query.tableId}: ${JSON.stringify(query.filters)}`) //TODO JV TEMP DEBUG
+    console.log(`======= called makeQuery: ${query.tableId}: ${JSON.stringify(query.filters)}`); //TODO JV TEMP DEBUG
     newQuerySet.fetchPromise.then(() => {
-      console.log(`======= promise RESOLVED: ${query.tableId}: ${JSON.stringify(query.filters)}`) //TODO JV TEMP DEBUG
+      console.log(`======= promise RESOLVED: ${query.tableId}: ${JSON.stringify(query.filters)}`); //TODO JV TEMP DEBUG
       this._updateQuerySetDebounced(newQuerySet, cb);
 
     })
