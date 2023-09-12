@@ -77,12 +77,14 @@ export class Cursor extends Disposable {
   private _sectionId: ko.Computed<number>;
 
   private _properRowId: ko.Computed<UIRowId|null>;
-  private _lastEditedAt: ko.Observable<SequenceNum>;
 
+  // lastEditedAt is updated on _properRowId or fieldIndex update (including through setCursorPos)
+  // Used to determine which section takes priority for cursorLinking (specifically cycles/bidirectional linking)
+  private _lastEditedAt: ko.Observable<SequenceNum>;
+  // _silentUpdatesFlag prevents lastEditedAt from being updated, when a change in cursorPos isn't driven by the user.
+  // It's used when cursor linking calls setCursorPos, so that linked cursor moves don't trample lastEditedAt.
+  // WARNING: the flag approach relies on ko observables being resolved synchronously, may break if changed to grainjs?
   private _silentUpdatesFlag: boolean = false;
-  // lastEditedAt is updated on rowIndex or fieldIndex update (including through setCursorPos)
-  // _silentUpdatesFlag disables this, set when setCursorPos called from cursor link to prevent infinite loops
-  // WARNING: the flag approach will only work if ko observables work synchronously, which they appear to do.
 
   constructor(baseView: BaseView, optCursorPos?: CursorPos) {
     super();
@@ -149,13 +151,13 @@ export class Cursor extends Disposable {
    * Moves the cursor to the given position. Only moves the row if rowId or rowIndex is valid,
    * preferring rowId.
    *
-   * silentUpdate prevents lastEditedAt from being updated, so linking doesn't cause an infinite loop of updates
+   * isFromLink prevents lastEditedAt from being updated, so lastEdit reflects only user-driven edits
    * @param cursorPos: Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
-   * @param silentUpdate: should only be set if this is a cascading update from cursor-linking
+   * @param isFromLink: should be set if this is a cascading update from cursor-linking
    */
-  public setCursorPos(cursorPos: CursorPos, silentUpdate: boolean = false): void {
+  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): void {
     //If updating as a result of links, we want to NOT update lastEditedAt
-    if(silentUpdate) { this._silentUpdatesFlag = true; }
+    if(isFromLink) { this._silentUpdatesFlag = true; }
     //console.log(`CURSOR: ${silentUpdate}, silentUpdate=${this._silentUpdatesFlag},
     //            lastUpdated = ${this.lastUpdated.peek()}`) //TODO JV DEBUG TEMP
 
