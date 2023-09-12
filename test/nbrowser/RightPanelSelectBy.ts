@@ -63,9 +63,23 @@ describe('RightPanelSelectBy', function() {
   });
 
 
-  it('should disallow creating cycles', async function() {
+  it('should disallow creating cycles if not cursor-linked', async function() {
+
+    //Link "films record" by "performances record"
+    await gu.openSelectByForSection('FILMS RECORD');
+    await driver.findContent('.test-select-row', /Performances record.*Film/i).click();
+    await gu.waitForServer();
+
+    // this link should no longer be present, since it would create a cycle with a filter link in it
     await gu.openSelectByForSection('PERFORMANCES RECORD');
-    assert.equal(await driver.findContent('.test-select-row', /Performances detail/).isPresent(), false);
+    assert.equal(await driver.findContent('.test-select-row', /Performances record.*Film/i).isPresent(), false);
+  });
+
+  it('should allow creating cursor-linked-cycles', async function() {
+    assert.equal(await driver.findContent('.test-select-row', /Performances detail/).isPresent(), true);
+
+    // undo, link is expected to be unset for next test
+    await gu.undo();
   });
 
 
