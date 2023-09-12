@@ -49,12 +49,13 @@ interface LinkNode {
   groupbyColumns?: Set<number>;
 
   // list of ids of the sections that are ancestors to this section according to the linked section
-  // relationship. ancestors[0] is this.section, ancestors[last] is oldest ancestor
+  // relationship. ancestors[0] is this.section, ancestors[length-1] is oldest ancestor
   ancestors: number[];
 
-  //corresponds to ancestors array, but is 1 shorter.
+  // Records which links between ancestors are same-table cursor-links
   // if isAncCursLink[0] == true, that means the link from ancestors[0] to ancestors[1] is a same-table cursor-link
-  isAncestorCursorLink: boolean[];
+  // NOTE: (it is therefore 1 shorter than ancestors, unless the links form a cycle in which case it's the same len)
+  isAncestorSameTableCursorLink: boolean[];
 
   // the section record. Must be the empty record sections that are to be created.
   section: ViewSectionRec;
@@ -145,7 +146,7 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     }
   }
 
-  //The link must not create a cycle, unless it's only same-table cursor-links all the way to target
+  // The link must not create a cycle, unless it's only same-table cursor-links all the way to target
   if (source.ancestors.includes(target.section.getRowId())) {
 
     //cycles only allowed for cursor links
@@ -158,26 +159,22 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     // - when we hit target, we've verified that this is a legal cycle, so break
     //   (ancestors further up the hierarchy past target don't matter, since once we set target.linkSrcSec = src.sec,
     //    they would stop being ancestors of src)
-    // NOTE: we're guaranteed to hit target before the end of the array (because of the `if` above)
-    //     but I'm paranoid so let's check and throw if it happens
-    // ALSO NOTE: isAncestorCursorLink may be 1 shorter than ancestors, but it's accounted for by the above
+    // NOTE: we're guaranteed to hit target before the end of the array (because of the `if(...includes...)` above)
+    // ALSO NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, but it's accounted for by the above
 
     for(let i = 0; ; i++) {
-      //We made it! All is well
       if(source.ancestors[i] == target.section.getRowId()) {
+        // We made it! All is well
         break;
       }
-
-      //If we've hit the last ancestor and haven't found target, error out (shouldn't happen)
+      // If we've hit the last ancestor and haven't found target, error out (shouldn't happen, we checked for it)
       if(i == source.ancestors.length-1) { throw Error("Error: Array doesn't include targetSection"); }
 
-      //Need to keep following links back, make sure this one is cursorLink
-      if(!source.isAncestorCursorLink[i]) {
-        return false;
-      }
+      // Need to follow another link back, verify that it's a same-table cursor-link
+      if(!source.isAncestorSameTableCursorLink[i]) { return false; }
     }
     console.log("===== selectBy found valid cycle", JSON.stringify(source)); //TODO JV TEMP DEBUG
-    //Yay, this is a valid cycle of same-table cursor-links
+    // Yay, this is a valid cycle of same-table cursor-links
   }
 
   return true;
@@ -260,27 +257,27 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
   const table = section.table.peek();
   const ancestors: number[] = [];
 
-  const isAncestorCursorLink: boolean[] = [];
+  const isAncestorSameTableCursorLink: boolean[] = [];
 
   for (let sec = section; sec.getRowId(); sec = sec.linkSrcSection.peek()) {
     if (ancestors.includes(sec.getRowId())) {
-      // tslint:disable-next-line:no-console
-      console.warn(`Links should not create a cycle - section ids: ${ancestors}`);
-      //TODO JV: change this to only warn if cycles aren't all Cursor:Same-Table
+      // There's a cycle in the existing link graph
+      // TODO if we're feeling fancy, can test here whether it's an all-same-table cycle and warn if not
+      //      but there's other places we check for that
       break;
     }
     ancestors.push(sec.getRowId());
 
-    //isAncestorCursorLink may be 1 shorter than ancestors, since last ancestor has no incoming link
-    // however if we have a cycle (of cursor-links), then they'll be the same length
+    //Determine if this link is a same-table cursor link
     if(sec.linkSrcSection.peek().getRowId()) {
-      //TODO JV TEMP: Dear god determining if something is a cursor link or not is a nightmare
       const srcCol = sec.linkSrcCol.peek().getRowId();
       const tgtCol = sec.linkTargetCol.peek().getRowId();
       const srcTable = sec.linkSrcSection.peek().table.peek();
       const srcIsSummary = srcTable.primaryTableId.peek() !== srcTable.tableId.peek();
-      isAncestorCursorLink.push(srcCol == 0 && tgtCol == 0 && !srcIsSummary);
+      isAncestorSameTableCursorLink.push(srcCol == 0 && tgtCol == 0 && !srcIsSummary);
     }
+    // NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, since last ancestor has no incoming link
+    // however if we have a cycle (of cursor-links), then they'll be the same length
   }
 
   const isSummary = table.primaryTableId.peek() !== table.tableId.peek();
@@ -291,7 +288,7 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
     groupbyColumns: isSummary ? table.summarySourceColRefs.peek() : undefined,
     widgetType: section.parentKey.peek(),
     ancestors,
-    isAncestorCursorLink,
+    isAncestorSameTableCursorLink,
     section,
   };
 
@@ -330,7 +327,7 @@ function fromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[]
     groupbyColumns,
     widgetType: pageWidget.type,
     ancestors: [],
-    isAncestorCursorLink: [],
+    isAncestorSameTableCursorLink: [],
     section: docModel.viewSections.getRowModel(pageWidget.section),
   };
 

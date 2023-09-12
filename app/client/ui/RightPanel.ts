@@ -644,14 +644,13 @@ export class RightPanel extends Disposable {
       const lstate = use(tgtSec.linkingState);
       const lfilter = lstate?.filterState ? use(lstate.filterState) : undefined;
 
-      //TODO JV TEMP DEBUG: srcLastUpdated is temporary
+      // Debug info for cursor linking
+      const inPos = lstate?.incomingCursorPos?.();
       const cursorPosStr = (lstate?.cursorPos ? `${tgtSec.tableId()}[${use(lstate.cursorPos)}]` : "N/A") +
-        `\n srclastEdited: ${use(srcSec.lastCursorEdit)} \n tgtLastEdited: ${use(tgtSec.lastCursorEdit)}` +
-        `\n incomingCursorPos: ${lstate?.incomingCursorPos ? `${lstate.incomingCursorPos()}` : "N/A"}` +
-        (() => {
-          //const;
-          return '';
-        })();
+      // TODO: the lastEdited and incomingCursorPos is kinda technical, to do with how bidirectional linking determines
+      //       priority for cyclical cursor links. Might be too technical even for the "advanced info" box
+        `\n srclastEdited: T+${use(srcSec.lastCursorEdit)} \n tgtLastEdited: T+${use(tgtSec.lastCursorEdit)}` +
+        `\n incomingCursorPos: ${inPos ? `${inPos[0]}@T+${inPos[1]}` : "N/A"}`;
 
       //Main link info as a big string, will be in a <pre></pre> block
       let preString = "No Incoming Link";

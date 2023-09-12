@@ -78,7 +78,6 @@ export class LinkingState extends Disposable {
 
   private _docModel: DocModel;
   private _srcSection: ViewSectionRec;
-  //private _tgtSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
   private _srcColId: string | undefined;
 
@@ -87,7 +86,6 @@ export class LinkingState extends Disposable {
     const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
     this._docModel = docModel;
     this._srcSection = srcSection;
-    //this._tgtSection = tgtSection;
     this._srcColId = srcColId;
     this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
