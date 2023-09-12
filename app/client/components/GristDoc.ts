@@ -1185,12 +1185,10 @@ export class GristDoc extends DisposableWithEvents {
         if (!srcRowId || typeof srcRowId !== 'number') {
           throw new Error('cannot trace rowId');
         }
-
         await this.recursiveMoveToCursorPos({
           rowId: srcRowId,
           sectionId: srcSection.id.peek(),
         }, false, silent, visitedSections.concat([section.id.peek()]));
-
       }
       const view: ViewRec = section.view.peek();
       const docPage: ViewDocPage = section.isRaw.peek() ? "data" : view.getRowId();

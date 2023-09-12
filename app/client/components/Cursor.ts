@@ -125,8 +125,8 @@ export class Cursor extends Disposable {
 
     // Update the cursor edit time if either the row or column change
     // IMPORTANT: need to subscribe AFTER the properRowId->activeRowId subscription.
-    //  (Cursor-linking observables depend on edit-version, and only peek at activeRowId. Therefore, make sure
-    //   we set all values correctly, and only update version after that's been done)
+    //  (Cursor-linking observables depend on lastCursorEdit, but only peek at activeRowId. Therefore, updating the
+    //   edit time triggers a re-read of activeRowId, and swapping the order will read stale values for rowId)
     this.autoDispose(this._properRowId.subscribe(() => { this.cursorEdited(); }));
     this.autoDispose(this.fieldIndex.subscribe(() => { this.cursorEdited(); }));
 

@@ -54,10 +54,9 @@ export class LinkingState extends Disposable {
   // Is undefined if not cursor-linked
   public readonly cursorPos?: ko.Computed<UIRowId|null>;
 
-  //TODO: JV bidirectional linking stuff
-  //It's a pair of [position, version]
-  //NOTE: observables don't do deep-equality check, so MUST NEVER change the value of the components individually,
-  //have to update the whole array so that `==` can catch the change
+  // Cursor-links can be cyclic, need to keep track of both rowId and the lastCursorEdit that it came from to
+  // resolve it correctly, (use just one observable so they update at the same time)
+  //NOTE: observables don't do deep-equality check, so need to replace the whole array when updating
   public readonly incomingCursorPos: ko.Computed<[UIRowId|null, SequenceNum]>;
 
   // If linking affects filtering, this is a computed for the current filtering state, including user-facing
@@ -89,10 +88,6 @@ export class LinkingState extends Disposable {
     this._srcColId = srcColId;
     this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
-
-    //TODO JV TEMP;
-    console.log(`======= LinkingState: Re-running constructor; tgtSec:${tgtSection.id()}: ${tgtSection.titleDef()}`);
-
 
     // === IMPORTANT NOTE! (this applies throughout this file)
     // srcCol and tgtCol can be the "empty column"
@@ -205,32 +200,86 @@ export class LinkingState extends Disposable {
       //        either same-table cursor-link (!srcCol && !tgtCol, so do activeRowId -> cursorPos)
       //        or cursor-link by reference   ( srcCol && !tgtCol, so do srcCol -> cursorPos)
 
+      // Cursor linking notes:
+      //
+      // If multiple viewSections are cursor-linked together A->B->C, we need to propagate the linked cursorPos along.
+      // The old way was to have: A.activeRowId -> (sets by cursor-link) -> B.activeRowId, and so on
+      //                                                                                                               |
+      //                                   -->  [B.LS]                    --> [C.LS]                                   |
+      //                                  /        | B.LS.cursorPos      /       | C.LS.cursorPos                      |
+      //                                 /         v                    /        v                                     |
+      //                   [ A ]--------/        [ B ]   --------------/       [ C ]                                   |
+      //                        A.actRowId                B.actRowId                                                   |
+      //
+      // However, if e.g. viewSec B is filtered, the correct rowId might not exist in B, and so it's rowId would be
+      // on a different row, and therefore the cursor linking would set C to a different row from A, even if it existed
+      // in C
+      //
+      // Normally this wouldn't be too bad, but to implement bidirectional linking requires allowing cycles of
+      // cursor-links, in which case this behavior becomes extra-problematic, both in being more unexpected from a UX
+      // perspective and because a section will eventually be linked to itself, which is an unstable loop.
+      //
+      // A better solution is to propagate the linked rowId directly through the chain of linkingStates without passing
+      // through the activeRowIds of the sections, so whether a section is filtered or not doesn't affect propagation.
+      //
+      //                                                B.LS.incCursPos                                                |
+      //                                 -->  [B.LS]   -------------->   [C.LS]                                        |
+      //                                /        |                          |                                          |
+      //                               /         v B.LS.cursorPos           v C.LS.cursorPos                           |
+      //                 [ A ]--------/        [ B ]                      [ C ]                                        |
+      //                      A.actRowId                                                                               |
+      //
+      // If the previous section has a linkingState, we use the previous LS's incomingCursorPos
+      // (i.e. two sections back) instead of looking at our srcSection's activeRowId. This way it doesn't matter how
+      // section B is filtered, since we're getting our cursorPos straight from A (through a computed in B.LS)
+      //
+      // However, each linkingState needs to decide whether to use the cursorPos from the srcSec (i.e. its activeRowId),
+      // or to use the previous linkState's incomingCursorPos. We want to use whichever section the user most recently
+      // interacted with, i.e. whichever cursor update was most recent. For this we use, the cursor version (given in
+      // viewSection.lastCursorEdit). incomingCursorPos is a pair of [rowId, sequenceNum], so each linkingState sets its
+      // incomingCursorPos to whichever is most recent between its srcSection, and the previous LS's incCursPos.
+      //
+      // The end result is that there is that because the lastCursorEdits are guaranteed to be unique, there is always
+      // a stable configuration of links, where even in the case of a cycle the incomingCursorPos will all take their
+      // rowId and version from the most recently edited viewSection in the cycle, which is what the user expects
+      //
+      //               ...from C--> [A.LS] -------->  [B.LS]               --> [C.LS] ----->...to A                    |
+      //                               |                 |                /       |                                    |
+      //                               v                 v               /        v                                    |
+      //                             [ A ]             [ B ]   ---------/       [ C ]                                  |
+      //                                          (most recently edited)                                               |
+      //
+      // Once the incomingCursorPos-es are determined correctly, the cursorPos-es just need to pull out the rowId,
+      // and that will drive the cursors of the associated tgt section for each LS.
+      //
+      // NOTE: setting cursorPos will change the viewSections' cursor, but it's special-cased to
+      // not affect their lastCursorEdit times.
+      // =============================
+
       // gets the relevant col value for the passed-in rowId, or return rowId unchanged if same-table link
       const srcValueFunc = this._makeValGetter(this._srcSection.table(), this._srcColId);
 
+      // check for failure
       if (srcValueFunc) {
-        //Incoming-cursor-pos determines what the linked cursor position should be only considering the previous
+        //Incoming-cursor-pos determines what the linked cursor position should be, considering the previous
         //linked section (srcSection) and all upstream sections (through srcSection.linkingState)
-        //does NOT take into account tgtSection, so will be out of date if tgtSection has been updated more recently
         this.incomingCursorPos = this.autoDispose((ko.computed(() => {
-          // Note: prevLink is the link info for 2 hops behind the current (tgt) section. 1 hop back is this.srcSec;
-          // this.srcSec.linkingState is 2 hops back, (i.e. it  reads from from this.srcSec.linkSrcSec)
+          // Get previous linkingstate's info
+          // NOTE: prevlink = this.srcSec.linkingState is 2 hops back, (i.e. it reads from from this.srcSec.linkSrcSec)
+          //       The section 1 link back from the current (tgt) section is this.srcSec;
           const prevLink = this._srcSection.linkingState?.();
           const prevLinkHasCursor = prevLink &&
             (prevLink.linkTypeDescription() == "Cursor:Same-Table" ||
              prevLink.linkTypeDescription() == "Cursor:Reference");
-
           const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos() :
                                                                          [null, SequenceNEVER];
-
+          // Get srcSection's info
           const srcSecPos = this._srcSection.activeRowId.peek(); //we don't depend on this, only on its cursor version
           const srcSecVersion = this._srcSection.lastCursorEdit();
 
-          // is NEVER if viewSection's cursor hasn't yet initialized (shouldn't happen?)?
-          //TODO JV when will this happen? do some checks. Should get set on page load / setCursorPos to saved pos
-          // maybe more correct to just interpret NEVER as "never updated", which is already handled correctly
+          // Sanity check: version might be NEVER if viewSection's cursor hasn't initialized (shouldn't happen I think)
           if(srcSecVersion == SequenceNEVER) {
-            console.log("=== linkingState: cursor-linking, srcSecVersion = NEVER");
+            console.warn("=== linkingState: cursor-linking, srcSecVersion = NEVER");
             return [null, SequenceNEVER] as [UIRowId|null, SequenceNum];
           }
 
@@ -238,46 +287,24 @@ export class LinkingState extends Disposable {
           // If prevLinkedVersion < srcSecVersion, then the prev linked data is stale, don't use it
           // If prevLinkedVersion == srcSecVersion, then srcSec is the driver for this link cycle (i.e. we're its first
           //                                        outgoing link), AND the link cycle has come all the way around
-          const useLinked = prevLinkHasCursor && prevLinkedVersion > srcSecVersion;
+          const usePrev = prevLinkHasCursor && prevLinkedVersion > srcSecVersion;
 
-          // srcSec/prevLinkedPos is rowId from srcSec. However if "Cursor:Reference", need to follow the ref in srcCol
-          // srcValueFunc will get the appropriate value based on this._srcColId
-          const tgtCursorPos = (srcValueFunc(useLinked ? prevLinkedPos : srcSecPos) || "new") as UIRowId;
-          // NOTE: srcValueFunc returns 'null' if rowId is the add-row, so we coerce that back into "new"
+          // srcSec/prevLinkedPos is rowId from srcSec. However if "Cursor:Reference", we must follow the ref in srcCol
+          // srcValueFunc will get the appropriate value based on this._srcColId if that's the case
+          const tgtCursorPos = (srcValueFunc(usePrev ? prevLinkedPos : srcSecPos) || "new") as UIRowId;
+          // NOTE: srcValueFunc returns 'null' if rowId is the add-row, so we coerce that back into || "new"
           // NOTE: cursor linking is only ever done by the id column (for same-table) or by single Ref col (cursor:ref),
-          //     so we'll never have to worry about `null` showing up as an actual cell-value, since null refs are `0`
+          //     so we'll never have to worry about `null` showing up as an actual cell-value. (A blank Ref is just `0`)
 
           return [
               tgtCursorPos,
-              useLinked ? prevLinkedVersion : srcSecVersion, //propagate which version our cursorPos is from
+              usePrev ? prevLinkedVersion : srcSecVersion, //propagate which version our cursorPos is from
           ] as [UIRowId|null, SequenceNum];
         })));
-        //public readonly incomingCursorPos: ko.Computed<UIRowId>;
 
-
-        //This is the cursorPos that's directly applied to tgtSection, should be null if incoming link is outdated
-        //where null means "cursorPos does not apply to tgtSection and should be ignored"
-        this.cursorPos = this.autoDispose(ko.computed(() => {
-          return this.incomingCursorPos()[0]; //TODO JV: this is ugly and probably not needed
-
-          // TODO JV: old code only accepted incomingPos if it was newer than tgtSec.
-          //          However I think we'll be ok with always taking incomingPos. I think the only weird case
-          //          is if we cycle back to ourselves, in which case we might end up setCursorPos()-ing ourselves
-          //          thru the link. However, that's not actually an issue? so it's probably fine
-
-          //const [incomingPos, incomingVersion]: [UIRowId|null, SequenceNum] = this.incomingCursorPos();
-          //const tgtSecVersion = this._tgtSection.lastCursorEdit();
-
-          //if(!tgtSecVersion) { return null; } //TODO JV
-
-          // if(incomingVersion > tgtSecVersion) { // if linked cursor newer that current sec, use it
-          //     return incomingPos;
-          // } else { // else, there's no linked cursor, since current section is driving the linking
-          //   return incomingPos; //TODO JV TEMP: let's try just always taking the incomingpos
-          //   //return null;
-          // }
-
-        }));
+        // Pull out just the rowId from incomingCursor Pos
+        // (This get applied directly to tgtSection's cursor),
+        this.cursorPos = this.autoDispose(ko.computed(() => this.incomingCursorPos()[0]));
       }
 
       if (!srcColId) { // If same-table cursor-link, copy getDefaultColValues from the source if possible
@@ -287,6 +314,8 @@ export class LinkingState extends Disposable {
         }
       }
     }
+    // ======= End of cursor linking
+
 
     // Make filterColValues, which is just the filtering-relevant parts of filterState
     // (it's used in places that don't need the user-facing labels, e.g. CSV export)
