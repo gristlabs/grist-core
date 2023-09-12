@@ -100,12 +100,10 @@ export class Cursor extends Disposable {
       write: (index) => {
         const rowIndex = index === null ? null : this.viewData.clampIndex(index);
         this._rowId(rowIndex == null ? null : this.viewData.getRowId(rowIndex));
-        this.cursorEdited();
       },
     }));
 
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
-    this.fieldIndex.subscribe(() => { this.cursorEdited(); });
 
     this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasFocus));
 
@@ -122,6 +120,13 @@ export class Cursor extends Disposable {
     // update the section's activeRowId and lastCursorEdit when needed
     this.autoDispose(this._properRowId.subscribe((rowId) => baseView.viewSection.activeRowId(rowId)));
     this.autoDispose(this._lastEditedAt.subscribe((seqNum) => baseView.viewSection.lastCursorEdit(seqNum)));
+
+    // Update the cursor edit time if either the row or column change
+    // IMPORTANT: need to subscribe AFTER the properRowId->activeRowId subscription.
+    //  (Cursor-linking observables depend on edit-version, and only peek at activeRowId. Therefore, make sure
+    //   we set all values correctly, and only update version after that's been done)
+    this.autoDispose(this._properRowId.subscribe(() => { this.cursorEdited(); }));
+    this.autoDispose(this.fieldIndex.subscribe(() => { this.cursorEdited(); }));
 
     // On dispose, save the current cursor position to the section model.
     this.onDispose(() => { baseView.viewSection.lastCursorPos = this.getCursorPos(); });
