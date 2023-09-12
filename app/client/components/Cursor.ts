@@ -156,7 +156,8 @@ export class Cursor extends Disposable {
   public setCursorPos(cursorPos: CursorPos, silentUpdate: boolean = false): void {
     //If updating as a result of links, we want to NOT update lastEditedAt
     if(silentUpdate) { this._silentUpdatesFlag = true; }
-    //console.log(`CURSOR: ${silentUpdate}, silentUpdate=${this._silentUpdatesFlag}, lastUpdated = ${this.lastUpdated.peek()}`) //TODO JV DEBUG TEMP
+    //console.log(`CURSOR: ${silentUpdate}, silentUpdate=${this._silentUpdatesFlag},
+    //            lastUpdated = ${this.lastUpdated.peek()}`) //TODO JV DEBUG TEMP
 
     if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
       this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId) );
@@ -170,7 +171,8 @@ export class Cursor extends Disposable {
       this.fieldIndex(cursorPos.fieldIndex);
     }
 
-    //console.log(`CURSOR-END: silentUpdate=${this._silentUpdatesFlag}, lastEditedAt = ${this._lastEditedAt.peek()}  `); //TODO JV DEBUG TEMP
+    //console.log(`CURSOR-END: silentUpdate=${this._silentUpdatesFlag},
+    //            lastEditedAt = ${this._lastEditedAt.peek()}  `); //TODO JV DEBUG TEMP
     this._silentUpdatesFlag = false;
   }
 

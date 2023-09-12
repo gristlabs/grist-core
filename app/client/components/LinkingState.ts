@@ -78,7 +78,7 @@ export class LinkingState extends Disposable {
 
   private _docModel: DocModel;
   private _srcSection: ViewSectionRec;
-  private _tgtSection: ViewSectionRec;
+  //private _tgtSection: ViewSectionRec;
   private _srcTableModel: DataTableModel;
   private _srcColId: string | undefined;
 
@@ -87,12 +87,13 @@ export class LinkingState extends Disposable {
     const {srcSection, srcCol, srcColId, tgtSection, tgtCol, tgtColId} = linkConfig;
     this._docModel = docModel;
     this._srcSection = srcSection;
-    this._tgtSection = tgtSection;
+    //this._tgtSection = tgtSection;
     this._srcColId = srcColId;
     this._srcTableModel = docModel.dataTables[srcSection.table().tableId()];
     const srcTableData = this._srcTableModel.tableData;
 
-    console.log(`============ LinkingState: Re-running constructor; tgtSec:${tgtSection.id()}: ${tgtSection.titleDef()}`); //TODO JV TEMP;
+    //TODO JV TEMP;
+    console.log(`======= LinkingState: Re-running constructor; tgtSec:${tgtSection.id()}: ${tgtSection.titleDef()}`);
 
 
     // === IMPORTANT NOTE! (this applies throughout this file)
@@ -221,7 +222,8 @@ export class LinkingState extends Disposable {
             (prevLink.linkTypeDescription() == "Cursor:Same-Table" ||
              prevLink.linkTypeDescription() == "Cursor:Reference");
 
-          const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos(): [null, SequenceNEVER];
+          const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos() :
+                                                                         [null, SequenceNEVER];
 
           const srcSecPos = this._srcSection.activeRowId.peek(); //we don't depend on this, only on its cursor version
           const srcSecVersion = this._srcSection.lastCursorEdit();
@@ -258,8 +260,7 @@ export class LinkingState extends Disposable {
         //This is the cursorPos that's directly applied to tgtSection, should be null if incoming link is outdated
         //where null means "cursorPos does not apply to tgtSection and should be ignored"
         this.cursorPos = this.autoDispose(ko.computed(() => {
-          const [incomingPos, _]: [UIRowId|null, SequenceNum] = this.incomingCursorPos();
-          return incomingPos;
+          return this.incomingCursorPos()[0]; //TODO JV: this is ugly and probably not needed
 
           // TODO JV: old code only accepted incomingPos if it was newer than tgtSec.
           //          However I think we'll be ok with always taking incomingPos. I think the only weird case
