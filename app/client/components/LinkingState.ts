@@ -90,7 +90,7 @@ export class LinkingState extends Disposable {
     // The typical pattern to deal with this is to use `srcColId = col?.colId()`, and test for `if (srcColId) {...}`
 
     this.linkTypeDescription = this.autoDispose(ko.computed((): LinkType => {
-      if(srcSection.isDisposed()) {
+      if (srcSection.isDisposed()) {
         //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
         //nbrowser tests: LinkingErrors and RawData seem to hit this case
         console.warn("srcSection disposed in linkingState: linkTypeDescription");
@@ -307,6 +307,12 @@ export class LinkingState extends Disposable {
     //Now, create the actual observable that updates with activeRowId
     //(we autodispose/return it at the end of the function) is this right? TODO JV
     return owner.autoDispose(ko.computed(() => {
+      if (this._srcSection.isDisposed()) {
+        //srcSection disposed can happen transiently. Can happen when deleting tables and then undoing?
+        //nbrowser tests: LinkingErrors and RawData seem to hit this case
+        console.warn("srcSection disposed in LinkingState._makeFilterObs");
+        return EmptyFilterState;
+      }
 
       //Get selector-rowId
       const srcRowId = this._srcSection.activeRowId();

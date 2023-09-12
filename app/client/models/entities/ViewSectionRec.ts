@@ -631,7 +631,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     } catch (err) {
       console.warn(err);
       // Dispose old LinkingState in case creating the new one failed.
-      this._linkingState.dispose();
+      this._linkingState.clear();
       return null;
     }
   }));
