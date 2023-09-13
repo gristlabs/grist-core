@@ -986,6 +986,11 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
             `but received a value of type ${typeof value}`
           );
         }
+        if (typeof value === 'string' && !hasTimezone(value)) {
+          throw new Error(
+            `Telemetry metadata ${key} of event ${event} has an ambiguous date string`
+          );
+        }
       } else if (dataType !== typeof value) {
         throw new Error(
           `Telemetry metadata ${key} of event ${event} expected a value of type ${dataType} ` +
@@ -994,6 +999,13 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
       }
     }
   };
+}
+
+// Check that datetime looks like it has a timezone in it. If not,
+// that could be a problem for whatever ingests the data.
+function hasTimezone(isoDateString: string) {
+  // Use a regular expression to check for a timezone offset or 'Z'
+  return /([+-]\d{2}:\d{2}|Z)$/.test(isoDateString);
 }
 
 export type TelemetryEventChecker = (event: TelemetryEvent, metadata?: TelemetryMetadata) => void;
