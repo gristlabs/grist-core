@@ -670,7 +670,7 @@ export class FlexServer implements GristServer {
 
     // ApiServer's constructor adds endpoints to the app.
     // tslint:disable-next-line:no-unused-expression
-    new ApiServer(this.app, this._dbManager, this._widgetRepository = buildWidgetRepository());
+    new ApiServer(this, this.app, this._dbManager, this._widgetRepository = buildWidgetRepository());
   }
 
   public addBillingApi() {

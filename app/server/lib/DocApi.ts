@@ -17,6 +17,7 @@ import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import {MetaRowRecord} from 'app/common/TableData';
+import {TelemetryMetadataByLevel} from "app/common/Telemetry";
 import {WebhookFields} from "app/common/Triggers";
 import TriggersTI from 'app/common/Triggers-ti';
 import {DocReplacementOptions, DocState, DocStateComparison, DocStates, NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
@@ -1150,6 +1151,7 @@ export class DocWorkerApi {
     // endpoint is handled only by DocWorker, so is handled here. (Note: this does not handle
     // actual file uploads, so no worries here about large request bodies.)
     this._app.post('/api/workspaces/:wid/import', expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
       const userId = getUserId(req);
       const wsId = integerParam(req.params.wid, 'wid');
       const uploadId = integerParam(req.body.uploadId, 'uploadId');
@@ -1158,6 +1160,16 @@ export class DocWorkerApi {
         uploadId,
         workspaceId: wsId,
         browserSettings: req.body.browserSettings,
+        telemetryMetadata: {
+          limited: {
+            isImport: true,
+            sourceDocIdDigest: undefined,
+          },
+          full: {
+            userId: mreq.userId,
+            altSessionId: mreq.altSessionId,
+          },
+        },
       });
       res.json(result);
     }));
@@ -1243,6 +1255,7 @@ export class DocWorkerApi {
      * TODO: unify this with the other document creation and import endpoints.
      */
     this._app.post('/api/docs', checkAnonymousCreation, expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
       const userId = getUserId(req);
 
       let uploadId: number|undefined;
@@ -1279,6 +1292,16 @@ export class DocWorkerApi {
           documentName: optStringParam(parameters.documentName, 'documentName'),
           workspaceId,
           browserSettings,
+          telemetryMetadata: {
+            limited: {
+              isImport: true,
+              sourceDocIdDigest: undefined,
+            },
+            full: {
+              userId: mreq.userId,
+              altSessionId: mreq.altSessionId,
+            },
+          },
         });
         docId = result.id;
       } else if (workspaceId !== undefined) {
@@ -1304,6 +1327,7 @@ export class DocWorkerApi {
     documentName: string,
     asTemplate?: boolean,
   }): Promise<string> {
+    const mreq = req as RequestWithLogin;
     const {userId, sourceDocumentId, workspaceId, documentName, asTemplate = false} = options;
 
     // First, upload a copy of the document.
@@ -1326,6 +1350,16 @@ export class DocWorkerApi {
       uploadId: uploadResult.uploadId,
       documentName,
       workspaceId,
+      telemetryMetadata: {
+        limited: {
+          isImport: false,
+          sourceDocIdDigest: sourceDocumentId,
+        },
+        full: {
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      },
     });
     return result.id;
   }
@@ -1341,7 +1375,15 @@ export class DocWorkerApi {
     if (status !== 200) {
       throw new ApiError(errMessage || 'unable to create document', status);
     }
-
+    this._logDocumentCreatedTelemetryEvent(req, {
+      limited: {
+        docIdDigest: data!,
+        sourceDocIdDigest: undefined,
+        isImport: false,
+        fileType: undefined,
+        isSaved: true,
+      },
+    });
     return data!;
   }
 
@@ -1365,7 +1407,27 @@ export class DocWorkerApi {
       }),
       docId
     );
+    this._logDocumentCreatedTelemetryEvent(req, {
+      limited: {
+        docIdDigest: docId,
+        sourceDocIdDigest: undefined,
+        isImport: false,
+        fileType: undefined,
+        isSaved: false,
+      },
+    });
     return docId;
+  }
+
+  private _logDocumentCreatedTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
+    const mreq = req as RequestWithLogin;
+    this._grist.getTelemetry().logEvent('documentCreated', _.merge({
+      full: {
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+      },
+    }, metadata))
+    .catch(e => log.error('failed to log telemetry event documentCreated', e));
   }
 
   /**

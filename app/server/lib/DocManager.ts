@@ -12,6 +12,7 @@ import {DocCreationInfo, DocEntry, DocListAPI, OpenDocMode, OpenLocalDocResult} 
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Invite} from 'app/common/sharing';
 import {tbind} from 'app/common/tbind';
+import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode} from 'app/server/lib/Authorizer';
@@ -31,6 +32,7 @@ import log from 'app/server/lib/log';
 import {ActiveDoc} from './ActiveDoc';
 import {PluginManager} from './PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
+import merge = require('lodash/merge');
 import noop = require('lodash/noop');
 
 // A TTL in milliseconds to use for material that can easily be recomputed / refetched
@@ -202,10 +204,11 @@ export class DocManager extends EventEmitter {
     documentName?: string,
     workspaceId?: number,
     browserSettings?: BrowserSettings,
+    telemetryMetadata?: TelemetryMetadataByLevel,
   }): Promise<DocCreationInfo> {
     if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
 
-    const {userId, uploadId, documentName, workspaceId, browserSettings} = options;
+    const {userId, uploadId, documentName, workspaceId, browserSettings, telemetryMetadata} = options;
     const accessId = this.makeAccessId(userId);
     const docSession = makeExceptionalDocSession('nascent', {browserSettings});
     const register = async (docId: string, uploadBaseFilename: string) => {
@@ -222,13 +225,23 @@ export class DocManager extends EventEmitter {
         throw new ApiError(queryResult.errMessage || 'unable to add imported document', queryResult.status);
       }
     };
-    return this._doImportDoc(docSession,
-                             globalUploadSet.getUploadInfo(uploadId, accessId), {
-                               naming: workspaceId ? 'saved' : 'unsaved',
-                               register,
-                               userId,
-                             });
+    const uploadInfo = globalUploadSet.getUploadInfo(uploadId, accessId);
+    const docCreationInfo = await this._doImportDoc(docSession, uploadInfo, {
+      naming: workspaceId ? 'saved' : 'unsaved',
+      register,
+      userId,
+    });
 
+    this.gristServer.getTelemetry().logEvent('documentCreated', merge({
+      limited: {
+        docIdDigest: docCreationInfo.id,
+        fileType: uploadInfo.files[0].ext.trim().slice(1),
+        isSaved: workspaceId !== undefined,
+      },
+    }, telemetryMetadata))
+    .catch(e => log.error('failed to log telemetry event documentCreated', e));
+
+    return docCreationInfo;
     // The imported document is associated with the worker that did the import.
     // We could break that association (see /api/docs/:docId/assign for how) if
     // we start using dedicated import workers.

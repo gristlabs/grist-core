@@ -353,6 +353,45 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  documentCreated: {
+    description: 'Triggered when a document is created.',
+    minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the id of the created document.',
+        dataType: 'string',
+      },
+      sourceDocIdDigest: {
+        description: 'A hash of the id of the source document, if the document was '
+          + 'duplicated from an existing document.',
+        dataType: 'string',
+      },
+      isImport: {
+        description: 'Whether the document was created by import.',
+        dataType: 'boolean',
+      },
+      isSaved: {
+        description: 'Whether the document was saved to a workspace.',
+        dataType: 'boolean',
+      },
+      fileType: {
+        description: 'If the document was created by import, the file extension '
+          + 'of the file that was imported.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+        minimumTelemetryLevel: Level.full,
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+        minimumTelemetryLevel: Level.full,
+      },
+    },
+  },
   documentForked: {
     description: 'Triggered when a document is forked.',
     minimumTelemetryLevel: Level.limited,
@@ -898,6 +937,7 @@ export const TelemetryEvents = StringUnion(
   'beaconArticleViewed',
   'beaconEmailSent',
   'beaconSearch',
+  'documentCreated',
   'documentForked',
   'documentOpened',
   'documentUsage',

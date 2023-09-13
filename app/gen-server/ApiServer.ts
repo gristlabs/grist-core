@@ -13,6 +13,7 @@ import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
+import {GristServer} from 'app/server/lib/GristServer';
 import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import log from 'app/server/lib/log';
 import {addPermit, clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
@@ -100,6 +101,7 @@ export class ApiServer {
    * to apply to these routes, and trustOrigin too for cross-domain requests.
    */
   constructor(
+    private _gristServer: GristServer,
     private _app: express.Application,
     private _dbManager: HomeDBManager,
     private _widgetRepository: IWidgetRepository
@@ -235,8 +237,23 @@ export class ApiServer {
     // POST /api/workspaces/:wid/docs
     // Create a new doc owned by the specific workspace.
     this._app.post('/api/workspaces/:wid/docs', expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
       const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.addDocument(getScope(req), wsId, req.body);
+      this._gristServer.getTelemetry().logEvent('documentCreated', {
+        limited: {
+          docIdDigest: query.data!,
+          sourceDocIdDigest: undefined,
+          isImport: false,
+          fileType: undefined,
+          isSaved: true,
+        },
+        full: {
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      })
+      .catch(e => log.error('failed to log telemetry event documentCreated', e));
       return sendReply(req, res, query);
     }));
 
