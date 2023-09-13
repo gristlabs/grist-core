@@ -67,7 +67,7 @@ import {Product} from 'app/common/Features';
 import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
-import {byteString, countIf, retryOnce, safeJsonParse} from 'app/common/gutil';
+import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
 import * as roles from 'app/common/roles';
@@ -131,7 +131,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery} from './ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
 import {OnDemandActions} from './OnDemandActions';
-import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession, timeoutReached} from './serverUtils';
+import {getLogMetaFromDocSession, getPubSubPrefix, getTelemetryMetaFromDocSession} from './serverUtils';
 import {findOrAddAllEnvelope, Sharing} from './Sharing';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -166,10 +166,23 @@ const UPDATE_DATA_SIZE_DELAY = {delayMs: 5 * 60 * 1000, varianceMs: 30 * 1000};
 // Log document metrics every hour
 const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 1000};
 
+// For items of work that need to happen at shutdown, timeout before aborting the wait for them.
+const SHUTDOWN_ITEM_TIMEOUT_MS = 5000;
+
+// We keep a doc open while a user action is pending, but not longer than this. If it's pending
+// this long, the ACTIVEDOC_TIMEOUT will still kick in afterwards, and in the absence of other
+// activity, the doc would still get shut down, with the action's effect lost. This is to prevent
+// indefinitely running processes in case of an infinite loop in a formula.
+const KEEP_DOC_OPEN_TIMEOUT_MS = 5 * 60 * 1000;
+
 // A hook for dependency injection.
 export const Deps = {
   ACTIVEDOC_TIMEOUT,
   ACTIVEDOC_TIMEOUT_ACTION: 'shutdown' as 'shutdown'|'ignore',
+
+  UPDATE_CURRENT_TIME_DELAY,
+  SHUTDOWN_ITEM_TIMEOUT_MS,
+  KEEP_DOC_OPEN_TIMEOUT_MS,
 };
 
 interface UpdateUsageOptions {
@@ -187,12 +200,15 @@ interface UpdateUsageOptions {
 export class ActiveDoc extends EventEmitter {
   /**
    * Decorator for ActiveDoc methods that prevents shutdown while the method is running, i.e.
-   * until the returned promise is resolved.
+   * until the returned promise is resolved, or KEEP_DOC_OPEN_TIMEOUT_MS passes.
    */
   public static keepDocOpen(target: ActiveDoc, propertyKey: string, descriptor: PropertyDescriptor) {
     const origFunc = descriptor.value;
     descriptor.value = function(this: ActiveDoc) {
-      return this._inactivityTimer.disableUntilFinish(origFunc.apply(this, arguments));
+      const result = origFunc.apply(this, arguments);
+      this._inactivityTimer.disableUntilFinish(timeoutReached(Deps.KEEP_DOC_OPEN_TIMEOUT_MS, result))
+        .catch(() => {});
+      return result;
     };
   }
 
@@ -275,7 +291,7 @@ export class ActiveDoc extends EventEmitter {
         // Update the time in formulas every hour.
         new Interval(
           () => this._applyUserActions(makeExceptionalDocSession('system'), [['UpdateCurrentTime']]),
-          UPDATE_CURRENT_TIME_DELAY,
+          Deps.UPDATE_CURRENT_TIME_DELAY,
           {onError: (e) => this._log.error(null, 'failed to update current time', e)},
         ),
         // Measure and broadcast data size every 5 minutes.
@@ -364,10 +380,6 @@ export class ActiveDoc extends EventEmitter {
     // unscheduled. If not (e.g. abandoned import, network problems after creating a doc), then
     // the ActiveDoc will get cleaned up.
     this._inactivityTimer.enable();
-
-    for (const interval of this._intervals) {
-      interval.enable();
-    }
   }
 
   public get docName(): string { return this._docName; }
@@ -1940,6 +1952,17 @@ export class ActiveDoc extends EventEmitter {
   private async _doShutdownImpl(): Promise<void> {
     const docSession = makeExceptionalDocSession('system');
     this._log.debug(docSession, "shutdown starting");
+
+    const safeCallAndWait = async (funcDesc: string, func: () => Promise<unknown>) => {
+      try {
+        if (await timeoutReached(Deps.SHUTDOWN_ITEM_TIMEOUT_MS, func())) {
+          this._log.error(docSession, `${funcDesc} timed out`);
+        }
+      } catch (err) {
+        this._log.error(docSession, `${funcDesc} failed`, err);
+      }
+    };
+
     try {
       this.setMuted();
       this._inactivityTimer.disable();
@@ -1958,9 +1981,9 @@ export class ActiveDoc extends EventEmitter {
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
 
-      for (const interval of this._intervals) {
-        await interval.disableAndFinish();
-      }
+      await Promise.all(this._intervals.map(interval =>
+        safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));
+
       // We'll defer syncing usage until everything is calculated.
       const usageOptions = {syncUsageToDatabase: false, broadcastUsageToClients: false};
 
@@ -1970,32 +1993,17 @@ export class ActiveDoc extends EventEmitter {
         // Remove expired attachments, i.e. attachments that were soft deleted a while ago. This
         // needs to happen periodically, and doing it here means we can guarantee that it happens
         // even if the doc is only ever opened briefly, without having to slow down startup.
-        const removeAttachmentsPromise = this.removeUnusedAttachments(true, usageOptions);
+        await safeCallAndWait("removeUnusedAttachments", () => this.removeUnusedAttachments(true, usageOptions));
 
         // Update data size; we'll be syncing both it and attachments size to the database soon.
-        const updateDataSizePromise = this._updateDataSize(usageOptions);
-
-        try {
-          await removeAttachmentsPromise;
-        } catch (e) {
-          this._log.error(docSession, "Failed to remove expired attachments", e);
-        }
-
-        try {
-          await updateDataSizePromise;
-        } catch (e) {
-          this._log.error(docSession, "Failed to update data size", e);
-        }
+        await safeCallAndWait("_updateDataSize", () => this._updateDataSize(usageOptions));
       }
 
       this._syncDocUsageToDatabase(true);
       this._logDocMetrics(docSession, 'docClose');
 
-      try {
-        await this._docManager.storageManager.closeDocument(this.docName);
-      } catch (err) {
-        log.error('Problem shutting down document: %s %s', this.docName, err.message);
-      }
+      await safeCallAndWait("storageManager.closeDocument",
+        () => this._docManager.storageManager.closeDocument(this.docName));
 
       try {
         const dataEngine = this._dataEngine ? await this._getEngine() : null;
@@ -2014,24 +2022,16 @@ export class ActiveDoc extends EventEmitter {
         ]);
         // The this.waitForInitialization promise may not yet have resolved, but
         // should do so quickly now we've killed everything it depends on.
-        try {
-          await this.waitForInitialization();
-        } catch (err) {
-          // Initialization errors do not matter at this point.
-        }
+        await safeCallAndWait("waitForInitialization", () => this.waitForInitialization());
       } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
+      // No timeout on this callback: if it hangs, it will make the document unusable.
       await this._afterShutdownCallback?.();
     } finally {
       this._docManager.removeActiveDoc(this);
     }
-    try {
-      await this._granularAccess.close();
-    } catch (err) {
-      // This should not happen.
-      this._log.error(docSession, "failed to shutdown granular access", err);
-    }
+    await safeCallAndWait("_granularAccess.close", () => this._granularAccess.close());
     this._log.debug(docSession, "shutdown complete");
   }
 
@@ -2347,6 +2347,13 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
       void this._initializeDocUsage(docSession);
+
+      // Start the periodic work, unless this doc has already started shutting down.
+      if (!this.muted) {
+        for (const interval of this._intervals) {
+          interval.enable();
+        }
+      }
     } catch (err) {
       this._fullyLoaded = true;
       if (!this._shuttingDown) {

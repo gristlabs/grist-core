@@ -124,6 +124,23 @@ describe('gutil2', function() {
     });
   });
 
+  describe("timeoutReached", function() {
+    const DELAY_1 = 20;
+    const DELAY_2 = 2 * DELAY_1;
+    it("should return true for timed out promise", async function() {
+      assert.isTrue(await gutil.timeoutReached(DELAY_1, delay(DELAY_2)));
+      assert.isTrue(await gutil.timeoutReached(DELAY_1, delay(DELAY_2).then(() => { throw new Error("test error"); })));
+    });
+
+    it("should return false for promise that completes before timeout", async function() {
+      assert.isFalse(await gutil.timeoutReached(DELAY_2, delay(DELAY_1)));
+      assert.isFalse(await gutil.timeoutReached(DELAY_2, delay(DELAY_1)
+        .then(() => { throw new Error("test error"); })));
+      assert.isFalse(await gutil.timeoutReached(DELAY_2, Promise.resolve('foo')));
+      assert.isFalse(await gutil.timeoutReached(DELAY_2, Promise.reject('bar')));
+    });
+  });
+
   describe("isValidHex", function() {
     it('should work correctly', async function() {
       assert.equal(gutil.isValidHex('#FF00FF'), true);

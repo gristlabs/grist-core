@@ -12,6 +12,9 @@ import log from 'app/server/lib/log';
 import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import {getDocSessionAccessOrNull, getDocSessionUser, OptDocSession} from './DocSession';
 
+// This method previously lived in this file. Re-export to avoid changing imports all over.
+export {timeoutReached} from 'app/common/gutil';
+
 /**
  * Promisify a node-style callback function. E.g.
  *    fromCallback(cb => someAsyncFunc(someArgs, cb));
@@ -97,20 +100,6 @@ export function exitPromise(child: ChildProcess): Promise<number|string> {
     child.on('error', reject);
     child.on('exit', (code: number, signal: string) => resolve(signal || code));
   });
-}
-
-/**
- * Resolves to true if promise is still pending after msec milliseconds have passed. Otherwise
- * returns false, including when promise is rejected.
- */
-export function timeoutReached<T>(msec: number, promise: Promise<T>): Promise<boolean> {
-  const timedOut = {};
-  // Be careful to clean up the timer after ourselves, so it doesn't remain in the event loop.
-  let timer: NodeJS.Timer;
-  const delayPromise = new Promise<any>((resolve) => (timer = setTimeout(() => resolve(timedOut), msec)));
-  return Promise.race([promise, delayPromise])
-  .then((res) => { clearTimeout(timer); return res === timedOut; })
-  .catch(() => false);
 }
 
 /**

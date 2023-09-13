@@ -1,4 +1,3 @@
-import {delay} from 'app/common/delay';
 import {BindableValue, DomElementMethod, IKnockoutReadObservable, ISubscribable, Listener, Observable,
         subscribeElem, UseCB, UseCBOwner} from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
@@ -883,19 +882,31 @@ export function isValidHex(val: string): boolean {
   return /^#([0-9A-F]{6})$/i.test(val);
 }
 
+/**
+ * Resolves to true if promise is still pending after msec milliseconds have passed. Otherwise
+ * returns false, including when promise is rejected.
+ */
+export async function timeoutReached(msec: number, promise: Promise<unknown>): Promise<boolean> {
+  const timedOut = {};
+  // Be careful to clean up the timer after ourselves, so it doesn't remain in the event loop.
+  let timer: NodeJS.Timer;
+  const delayPromise = new Promise<any>((resolve) => { timer = setTimeout(() => resolve(timedOut), msec); });
+  try {
+    const res = await Promise.race([promise, delayPromise]);
+    return res == timedOut;
+  } catch (err) {
+    return false;
+  } finally {
+    clearTimeout(timer!);
+  }
+}
 
 /**
  * Returns a promise that resolves to true if promise takes longer than timeoutMsec to resolve. If not
- * or if promise throws returns false.
+ * or if promise throws returns false. Same as timeoutReached(), with reversed order of arguments.
  */
-export async function isLongerThan(promise: Promise<any>, timeoutMsec: number): Promise<boolean> {
-  let isPending = true;
-  const done = () => { isPending = false; };
-  await Promise.race([
-    promise.then(done, done),
-    delay(timeoutMsec)
-  ]);
-  return isPending;
+export async function isLongerThan(promise: Promise<unknown>, timeoutMsec: number): Promise<boolean> {
+  return timeoutReached(timeoutMsec, promise);
 }
 
 /**

@@ -124,7 +124,9 @@ export function setTmpLogLevel(level: string, optCaptureFunc?: (level: string, m
  * captures those at minLevel and higher. Returns a promise for the array of "level: message"
  * strings. These may be tested using testUtils.assertMatchArray(). Callback may return a promise.
  */
-export async function captureLog(minLevel: string, callback: () => void|Promise<void>): Promise<string[]> {
+export async function captureLog(
+  minLevel: string, callback: (messages: string[]) => void|Promise<void>
+): Promise<string[]> {
   const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;
   const name = _.uniqueId('CaptureLog');
@@ -140,7 +142,7 @@ export async function captureLog(minLevel: string, callback: () => void|Promise<
   }
   log.add(CaptureTransport as any, { captureFunc: capture, name });  // types are off.
   try {
-    await callback();
+    await callback(messages);
   } finally {
     log.remove(name);
     log.transports.file.level = prevLogLevel;
