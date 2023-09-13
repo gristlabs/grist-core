@@ -53,15 +53,15 @@
  */
 
 
-import dom, {detachNode, findAncestor} from '../lib/dom';
-import koArray, {isKoArray, KoArray} from '../lib/koArray';
-import {cssClass, domData, foreach, scope, style, toggleClass} from '../lib/koDom';
+import dom, {detachNode, findAncestor} from 'app/client/lib/dom';
+import koArray, {isKoArray, KoArray} from 'app/client/lib/koArray';
+import {cssClass, domData, foreach, scope, style, toggleClass} from 'app/client/lib/koDom';
 import {Disposable} from 'app/client/lib/dispose';
 import assert from 'assert';
 import {Events as BackboneEvents} from 'backbone';
 import * as ko from 'knockout';
 import {computed, isObservable, observable, utils} from 'knockout';
-import {identity, last, uniqueId} from 'underscore';
+import {identity, isEqual, last, uniqueId} from 'underscore';
 
 export interface ContentBox {
   leafId: ko.Observable<any>;
@@ -457,6 +457,12 @@ export class Layout extends Disposable {
     return box;
   }
   public buildLayout(boxSpec: BoxSpec, needDynamic = false) {
+    if (needDynamic === this.needDynamic &&
+      this.rootBox() &&
+      isEqual(boxSpec, this.getLayoutSpec())) {
+      // Nothing has changed, and we already have a layout. No need to rebuild.
+      return;
+    }
     this.needDynamic = needDynamic;
     const oldRootBox = this.rootBox();
     this.rootBox(this.buildLayoutBox(boxSpec));
@@ -481,7 +487,8 @@ export class Layout extends Disposable {
     return spec;
   }
   public getLayoutSpec() {
-    return this._getBoxSpec(this.rootBox()!);
+    const rootBox = this.rootBox();
+    return rootBox ? this._getBoxSpec(rootBox) : {};
   }
   /**
    * Returns a Map object mapping leafId to its LayoutBox. This gets invalidated on layoutAdjust
