@@ -13,7 +13,7 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
   public description: string;
   // If column is optional (used only on the UI).
   public optional: boolean;
-  // Type of the column that widget expects.
+  // Type of the column that widget expects. Might be a single or a comma separated list of types.
   public type: string;
   // Description of the type (used to show a placeholder).
   public typeDesc: string;
@@ -33,7 +33,7 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
    * Does the column type matches this definition.
    */
   public canByMapped(pureType: string) {
-    return pureType === this.type
+    return this.type.split(',').includes(pureType)
       || pureType === "Any"
       || this.type === "Any";
   }

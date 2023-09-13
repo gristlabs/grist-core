@@ -244,6 +244,10 @@ describe('CustomWidgetsConfig', function () {
       const text = await this._read('#onRecords');
       return JSON.parse(text || 'null');
     }
+    public async onRecord() {
+      const text = await this._read('#onRecord');
+      return JSON.parse(text || 'null');
+    }
     public async onRecordsMappings() {
       const text = await this._read('#onRecordsMappings');
       return JSON.parse(text || 'null');
@@ -569,6 +573,66 @@ describe('CustomWidgetsConfig', function () {
     await removeButton('M2', 'C').click();
     await gu.waitForServer();
     assert.deepEqual(await widget.onRecordsMappings(), {M1: ['A'], M2: ['A']});
+    await revert();
+  });
+
+  it('should support multiple types in mappings', async () => {
+    const revert = await gu.begin();
+    await toggleWidgetMenu();
+    await clickOption(CUSTOM_URL);
+    await gu.setWidgetUrl(
+      createConfigUrl({
+        columns: [
+          {name: 'M1', type: 'Date,DateTime'},
+          {name: 'M2', type: 'Date,DateTime', allowMultiple: true},
+        ],
+        requiredAccess: 'read table',
+      })
+    );
+    await accept();
+    await widget.waitForFrame();
+    // Add B=Date, C=DateTime, D=Numeric
+    await gu.sendActions([
+      ['AddVisibleColumn', 'Table1', 'B', {type: 'Any'}],
+      ['AddVisibleColumn', 'Table1', 'C', {type: 'Date'}],
+      ['AddVisibleColumn', 'Table1', 'D', {type: 'DateTime'}],
+      ['AddVisibleColumn', 'Table1', 'E', {type: 'Numeric'}],
+      // Add sample record.
+      ['UpdateRecord', 'Table1', 1, {C: '2019-01-01', D: '2019-01-01 12:00', E: 1}]
+    ]);
+
+    await gu.selectSectionByTitle('Widget');
+    // Make sure we have no mappings
+    assert.deepEqual(await widget.onRecordsMappings(), null);
+    // Now see what we are offered for M1.
+    await toggleDrop(pickerDrop('M1'));
+    assert.deepEqual(await getOptions(), ['B', 'C', 'D']);
+    // Make sure they work. First select C.
+    await clickOption('B');
+    // Make sure onRecord and onRecordMappings looks legit.
+    assert.deepEqual(await widget.onRecord(), {id:1, B: null});
+    assert.deepEqual(await widget.onRecordMappings(), {M1: 'B', M2: []});
+    // Now select C.
+    await toggleDrop(pickerDrop('M1'));
+    await clickOption('C');
+    assert.deepEqual(await widget.onRecord(), {id:1, C: '2019-01-01T00:00:00.000Z'});
+    assert.deepEqual(await widget.onRecordMappings(), {M1: 'C', M2: []});
+    // Now select D.
+    await toggleDrop(pickerDrop('M1'));
+    await clickOption('D');
+    assert.deepEqual(await widget.onRecord(), {id:1, D: '2019-01-01T17:00:00.000Z'});
+    assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: []});
+
+    // Make sure we can select multiple columns for M2 with Date and DateTime.
+    await click(pickerAdd('M2'));
+    assert.deepEqual(await getMenuOptions(), ['B', 'C', 'D']);
+    await clickMenuItem('B');
+
+    assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: ['B']});
+    await click(pickerAdd('M2'));
+    await clickMenuItem('C');
+    assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: ['B', 'C']});
+
     await revert();
   });
 
