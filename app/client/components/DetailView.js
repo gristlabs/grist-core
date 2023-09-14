@@ -102,7 +102,10 @@ function DetailView(gristDoc, viewSectionModel) {
 
   // We authorize single click only on the value to avoid conflict with tooltip
   this.onEvent(this.viewPane, 'click', '.g_record_detail_value', function(elem, event) {
-    var field = this.recordLayout.getContainingField(elem, this.viewPane);
+    // If the click was place in a link, we don't want to trigger the single click
+    if (event.target?.closest("a")) { return; }
+
+    const field = this.recordLayout.getContainingField(elem, this.viewPane);
     if (
       this._twoLastFieldIdsSelected[0] === this._twoLastFieldIdsSelected[1]
       && !isNarrowScreen()
