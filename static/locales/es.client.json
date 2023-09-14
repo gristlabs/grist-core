@@ -381,7 +381,10 @@
         "personal site": "sitio personal",
         "{{signUp}} to save your work. ": "{{signUp}} para guardar tu trabajo. ",
         "Welcome to Grist, {{- name}}!": "¡Bienvenido a Grist, {{- name}}!",
-        "Welcome to {{- orgName}}": "Bienvenido a {{- orgName}}"
+        "Welcome to {{- orgName}}": "Bienvenido a {{- orgName}}",
+        "Visit our {{link}} to learn more about Grist.": "Visita nuestra {{link}} para obtener más información sobre Grist.",
+        "Sign in": "Iniciar sesión",
+        "To use Grist, please either sign up or sign in.": "Para utilizar Grist, regístrate o inicia sesión."
     },
     "HomeLeftPane": {
         "Access Details": "Detalles de Acceso",
