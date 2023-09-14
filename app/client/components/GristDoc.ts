@@ -1135,7 +1135,7 @@ export class GristDoc extends DisposableWithEvents {
       }
 
       if (visitedSections.includes(section.id.peek())) {
-        //We've already been here (we hit a cycle), just return immediately
+        // We've already been here (we hit a cycle), just return immediately
         return true;
       }
 

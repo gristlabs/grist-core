@@ -645,8 +645,8 @@ export class RightPanel extends Disposable {
       const lfilter = lstate?.filterState ? use(lstate.filterState) : undefined;
 
       // Debug info for cursor linking
-      const inPos = lstate?.incomingCursorPos?.();
-      const cursorPosStr = (lstate?.cursorPos ? `${tgtSec.tableId()}[${use(lstate.cursorPos)}]` : "N/A") +
+      const inPos = lstate?.incomingCursorPos ? use(lstate.incomingCursorPos) : null;
+      const cursorPosStr = (lstate?.cursorPos ? `${use(tgtSec.tableId)}[${use(lstate.cursorPos)}]` : "N/A") +
       // TODO: the lastEdited and incomingCursorPos is kinda technical, to do with how bidirectional linking determines
       //       priority for cyclical cursor links. Might be too technical even for the "advanced info" box
         `\n srclastEdited: T+${use(srcSec.lastCursorEdit)} \n tgtLastEdited: T+${use(tgtSec.lastCursorEdit)}` +

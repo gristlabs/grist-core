@@ -17,15 +17,20 @@ function nullAsUndefined<T>(value: T|null|undefined): T|undefined {
 }
 
 // ================ SequenceNum: used to keep track of cursor edits (lastEditedAt)
-// basically just a global auto-incrementing counter, with some types to make intent a bit more clear
-// Each cursor starts at SequenceNEVER (0), and after that all cursors using NextSequenceNum() will have
-// a unique, monotonically increasing number for their lastEditedAt()
+// Basically just a global auto-incrementing counter, with some types to make intent more clear
+// Cursors are constructed at SequenceNEVER (0). After that, changes to their sequenceNum will go through
+// NextSequenceNum(), so they'll have unique, monotonically increasing numbers for their lastEditedAt()
+// NOTE: (by the time the page loads they'll already be at nonzero numbers, the never is intended to be transient)
 export type SequenceNum = number;
-export const SequenceNEVER: SequenceNum = 0;
+export const SequenceNEVER: SequenceNum = 0; // Cursors will start here
 let latestGlobalSequenceNum = SequenceNEVER;
-const nextSequenceNum = () => { return latestGlobalSequenceNum++; };
+function nextSequenceNum() { // First call to this func should return 1
+  latestGlobalSequenceNum++;
+  return latestGlobalSequenceNum;
+}
 
-// Note: we don't make any provisions for handling overflow. It's fine because:
+// NOTE: If latestGlobalSequenceNum overflows, I think it would stop incrementing because of floating point imprecision
+// However, we don't need to worry about overflow because:
 //   - Number.MAX_SAFE_INTEGER is 9,007,199,254,740,991 (9 * 10^15)
 //   - even at 1000 cursor-edits per second, it would take ~300,000 yrs to overflow
 //   - Plus it's client-side, so that's a single continuous 300-millenia-long session, which would be impressive uptime
@@ -127,6 +132,10 @@ export class Cursor extends Disposable {
     // IMPORTANT: need to subscribe AFTER the properRowId->activeRowId subscription.
     //  (Cursor-linking observables depend on lastCursorEdit, but only peek at activeRowId. Therefore, updating the
     //   edit time triggers a re-read of activeRowId, and swapping the order will read stale values for rowId)
+    // NOTE: this may update sequence number twice for a single edit, but this shouldn't cause any issues.
+    //       For determining priority, this cursor will become the latest edited whether we call it once or twice.
+    //       For updating observables, the double-update might cause cursor-linking observables in LinkingState to
+    //       double-update, but it should be transient and get resolved immediately.
     this.autoDispose(this._properRowId.subscribe(() => { this.cursorEdited(); }));
     this.autoDispose(this.fieldIndex.subscribe(() => { this.cursorEdited(); }));
 
@@ -156,26 +165,28 @@ export class Cursor extends Disposable {
    * @param isFromLink: should be set if this is a cascading update from cursor-linking
    */
   public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): void {
-    //If updating as a result of links, we want to NOT update lastEditedAt
-    if(isFromLink) { this._silentUpdatesFlag = true; }
-    //console.log(`CURSOR: ${silentUpdate}, silentUpdate=${this._silentUpdatesFlag},
-    //            lastUpdated = ${this.lastUpdated.peek()}`) //TODO JV DEBUG TEMP
 
-    if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
-      this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId) );
-    } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
-      this.rowIndex(cursorPos.rowIndex);
-    } else {
-      // Write rowIndex to itself to force an update of rowId if needed.
-      this.rowIndex(this.rowIndex.peek());
-    }
-    if (cursorPos.fieldIndex !== undefined) {
-      this.fieldIndex(cursorPos.fieldIndex);
+    try {
+      // If updating as a result of links, we want to NOT update lastEditedAt
+      if (isFromLink) { this._silentUpdatesFlag = true; }
+
+      if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
+        this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId));
+      } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
+        this.rowIndex(cursorPos.rowIndex);
+      } else {
+        // Write rowIndex to itself to force an update of rowId if needed.
+        this.rowIndex(this.rowIndex.peek());
+      }
+
+      if (cursorPos.fieldIndex !== undefined) {
+        this.fieldIndex(cursorPos.fieldIndex);
+      }
+
+    } finally { // Make sure we reset this even on error
+      this._silentUpdatesFlag = false;
     }
 
-    //console.log(`CURSOR-END: silentUpdate=${this._silentUpdatesFlag},
-    //            lastEditedAt = ${this._lastEditedAt.peek()}  `); //TODO JV DEBUG TEMP
-    this._silentUpdatesFlag = false;
   }
 
 
@@ -185,13 +196,13 @@ export class Cursor extends Disposable {
     this._isLive(isLive);
   }
 
-  //Should be called whenever the cursor is updated
-  //EXCEPT FOR: when cursor is set by linking
-  //this is used to determine which widget/cursor has most recently been touched,
-  //and therefore which one should be used to drive linking if there's a conflict
-  public cursorEdited(): void {
-    //If updating as a result of links, we want to NOT update lastEdited
-    if(!this._silentUpdatesFlag)
+  // Should be called whenever the cursor is updated
+  // _EXCEPT FOR: when cursor is set by linking
+  // this is used to determine which widget/cursor has most recently been touched,
+  // and therefore which one should be used to drive linking if there's a conflict
+  private cursorEdited(): void {
+    // If updating as a result of links, we want to NOT update lastEdited
+    if (!this._silentUpdatesFlag)
       { this._lastEditedAt(nextSequenceNum()); }
   }
 }

@@ -78,7 +78,7 @@ describe('RightPanelSelectBy', function() {
   it('should allow creating cursor-linked-cycles', async function() {
     assert.equal(await driver.findContent('.test-select-row', /Performances detail/).isPresent(), true);
 
-    // undo, link is expected to be unset for next test
+    // undo, the operation from the previous test; link is expected to be unset for next test
     await gu.undo();
   });
 

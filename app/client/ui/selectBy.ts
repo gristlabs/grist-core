@@ -52,9 +52,11 @@ interface LinkNode {
   // relationship. ancestors[0] is this.section, ancestors[length-1] is oldest ancestor
   ancestors: number[];
 
-  // Records which links between ancestors are same-table cursor-links
-  // if isAncCursLink[0] == true, that means the link from ancestors[0] to ancestors[1] is a same-table cursor-link
-  // NOTE: (it is therefore 1 shorter than ancestors, unless the links form a cycle in which case it's the same len)
+  // For bidirectional linking, cycles are only allowed if all links on that cycle are same-table cursor-link
+  // this.ancestors only records what the ancestors are, but we need to record info about the edges between them.
+  // isAncCursLink[i]==true  means the link from ancestors[i] to ancestors[i+1] is a same-table cursor-link
+  // NOTE: (Since ancestors is a list of nodes, and this is a list of the edges between those nodes, this list will
+  //        be 1 shorter than ancestors (if there's no cycle), or will be the same length (if there is a cycle))
   isAncestorSameTableCursorLink: boolean[];
 
   // the section record. Must be the empty record sections that are to be created.
@@ -149,8 +151,8 @@ function isValidLink(source: LinkNode, target: LinkNode) {
   // The link must not create a cycle, unless it's only same-table cursor-links all the way to target
   if (source.ancestors.includes(target.section.getRowId())) {
 
-    //cycles only allowed for cursor links
-    if(source.column || target.column || source.isSummary) {
+    // cycles only allowed for cursor links
+    if (source.column || target.column || source.isSummary) {
       return false;
     }
 
@@ -161,19 +163,20 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     //    they would stop being ancestors of src)
     // NOTE: we're guaranteed to hit target before the end of the array (because of the `if(...includes...)` above)
     // ALSO NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, but it's accounted for by the above
-
-    for(let i = 0; ; i++) {
-      if(source.ancestors[i] == target.section.getRowId()) {
+    let i = 0
+    while(true) {
+      if (source.ancestors[i] == target.section.getRowId()) {
         // We made it! All is well
         break;
       }
       // If we've hit the last ancestor and haven't found target, error out (shouldn't happen, we checked for it)
-      if(i == source.ancestors.length-1) { throw Error("Error: Array doesn't include targetSection"); }
+      if (i == source.ancestors.length-1) { throw Error("Array doesn't include targetSection"); }
 
-      // Need to follow another link back, verify that it's a same-table cursor-link
-      if(!source.isAncestorSameTableCursorLink[i]) { return false; }
+      // We're not done with the cycle. Check next link, if it's non-same-table-cursor-link, the cycle is invalid.
+      if (!source.isAncestorSameTableCursorLink[i]) { return false; }
+
+      i++; // Walk back
     }
-    console.log("===== selectBy found valid cycle", JSON.stringify(source)); //TODO JV TEMP DEBUG
     // Yay, this is a valid cycle of same-table cursor-links
   }
 
@@ -269,15 +272,16 @@ function fromViewSectionRec(section: ViewSectionRec): LinkNode[] {
     ancestors.push(sec.getRowId());
 
     //Determine if this link is a same-table cursor link
-    if(sec.linkSrcSection.peek().getRowId()) {
+    if (sec.linkSrcSection.peek().getRowId()) { // if sec has incoming link
       const srcCol = sec.linkSrcCol.peek().getRowId();
       const tgtCol = sec.linkTargetCol.peek().getRowId();
       const srcTable = sec.linkSrcSection.peek().table.peek();
       const srcIsSummary = srcTable.primaryTableId.peek() !== srcTable.tableId.peek();
-      isAncestorSameTableCursorLink.push(srcCol == 0 && tgtCol == 0 && !srcIsSummary);
+      isAncestorSameTableCursorLink.push(srcCol === 0 && tgtCol === 0 && !srcIsSummary);
     }
-    // NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, since last ancestor has no incoming link
-    // however if we have a cycle (of cursor-links), then they'll be the same length
+    // NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, since we might skip pushing
+    // when we hit the last ancestor (which has no incoming link)
+    // however if we have a cycle (of cursor-links), then they'll be the same length, because we won't skip last push
   }
 
   const isSummary = table.primaryTableId.peek() !== table.tableId.peek();

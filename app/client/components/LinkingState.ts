@@ -1,3 +1,4 @@
+import {SequenceNEVER, SequenceNum} from "app/client/components/Cursor";
 import {DataRowModel} from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
 import {DocModel} from 'app/client/models/DocModel';
@@ -17,7 +18,6 @@ import merge = require('lodash/merge');
 import mapValues = require('lodash/mapValues');
 import pick = require('lodash/pick');
 import pickBy = require('lodash/pickBy');
-import {SequenceNEVER, SequenceNum} from "./Cursor";
 
 
 // Descriptive string enum for each case of linking
@@ -211,7 +211,7 @@ export class LinkingState extends Disposable {
       //                   [ A ]--------/        [ B ]   --------------/       [ C ]                                   |
       //                        A.actRowId                B.actRowId                                                   |
       //
-      // However, if e.g. viewSec B is filtered, the correct rowId might not exist in B, and so it's rowId would be
+      // However, if e.g. viewSec B is filtered, the correct rowId might not exist in B, and so its activeRowId would be
       // on a different row, and therefore the cursor linking would set C to a different row from A, even if it existed
       // in C
       //
@@ -239,9 +239,10 @@ export class LinkingState extends Disposable {
       // viewSection.lastCursorEdit). incomingCursorPos is a pair of [rowId, sequenceNum], so each linkingState sets its
       // incomingCursorPos to whichever is most recent between its srcSection, and the previous LS's incCursPos.
       //
-      // The end result is that there is that because the lastCursorEdits are guaranteed to be unique, there is always
-      // a stable configuration of links, where even in the case of a cycle the incomingCursorPos will all take their
-      // rowId and version from the most recently edited viewSection in the cycle, which is what the user expects
+      // If we do this right, the end result is that because the lastCursorEdits are guaranteed to be unique,
+      // there is always a stable configuration of links, where even in the case of a cycle the incomingCursorPos-es
+      // will all take their rowId and version from the most recently edited viewSection in the cycle,
+      // which is what the user expects
       //
       //               ...from C--> [A.LS] -------->  [B.LS]               --> [C.LS] ----->...to A                    |
       //                               |                 |                /       |                                    |
@@ -252,8 +253,10 @@ export class LinkingState extends Disposable {
       // Once the incomingCursorPos-es are determined correctly, the cursorPos-es just need to pull out the rowId,
       // and that will drive the cursors of the associated tgt section for each LS.
       //
-      // NOTE: setting cursorPos will change the viewSections' cursor, but it's special-cased to
-      // not affect their lastCursorEdit times.
+      // NOTE: setting cursorPos *WILL* change the viewSections' cursor, but it's special-cased to
+      // so that cursor-driven linking doesn't modify their lastCursorEdit times, so that lastCursorEdit
+      // reflects only changes driven by external factors
+      // (e.g. page load, user moving cursor, user changing linking settings/filter settings)
       // =============================
 
       // gets the relevant col value for the passed-in rowId, or return rowId unchanged if same-table link
@@ -264,24 +267,30 @@ export class LinkingState extends Disposable {
         //Incoming-cursor-pos determines what the linked cursor position should be, considering the previous
         //linked section (srcSection) and all upstream sections (through srcSection.linkingState)
         this.incomingCursorPos = this.autoDispose((ko.computed(() => {
-          // Get previous linkingstate's info
-          // NOTE: prevlink = this.srcSec.linkingState is 2 hops back, (i.e. it reads from from this.srcSec.linkSrcSec)
-          //       The section 1 link back from the current (tgt) section is this.srcSec;
-          const prevLink = this._srcSection.linkingState?.();
-          const prevLinkHasCursor = prevLink &&
-            (prevLink.linkTypeDescription() == "Cursor:Same-Table" ||
-             prevLink.linkTypeDescription() == "Cursor:Reference");
-          const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos() :
-                                                                         [null, SequenceNEVER];
-          // Get srcSection's info
+          // NOTE: This computed primarily decides between srcSec and prevLink. Here's what those mean:
+          // e.g. consider sections A->B->C, (where this === C)
+          // We need to decide between taking cursor info from B, our srcSection (1 hop back)
+          //    vs taking cursor info from further back, e.g. A, or before (2+ hops back)
+          // To take cursor info from further back, we rely on B's linkingState, since B's linkingState will
+          //    be looking at the preceding sections, either A or whatever is behind A.
+          // Therefore: we either use srcSection (1 back), or prevLink = srcSection.linkingState (2+ back)
+
+          // Get srcSection's info (1 hop back)
           const srcSecPos = this._srcSection.activeRowId.peek(); //we don't depend on this, only on its cursor version
           const srcSecVersion = this._srcSection.lastCursorEdit();
 
-          // Sanity check: version might be NEVER if viewSection's cursor hasn't initialized (shouldn't happen I think)
-          if(srcSecVersion == SequenceNEVER) {
-            console.warn("=== linkingState: cursor-linking, srcSecVersion = NEVER");
+          // If cursors haven't been initialized, cursor-linking doesn't make sense, so don't do it
+          if(srcSecVersion === SequenceNEVER) {
             return [null, SequenceNEVER] as [UIRowId|null, SequenceNum];
           }
+
+          // Get previous linkingstate's info, if applicable (2 or more hops back)
+          const prevLink = this._srcSection.linkingState?.();
+          const prevLinkHasCursor = prevLink &&
+            (prevLink.linkTypeDescription() === "Cursor:Same-Table" ||
+              prevLink.linkTypeDescription() === "Cursor:Reference");
+          const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos() :
+            [null, SequenceNEVER];
 
           // ==== Determine whose info to use:
           // If prevLinkedVersion < srcSecVersion, then the prev linked data is stale, don't use it
