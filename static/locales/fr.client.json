@@ -75,7 +75,7 @@
         "Add Account": "Ajouter un compte",
         "Sign Out": "Se déconnecter",
         "Upgrade Plan": "Version Premium",
-        "Support Grist": "Centre d'aide",
+        "Support Grist": "Centre d'aide Grist",
         "Billing Account": "Facturation",
         "Activation": "Activer",
         "Sign In": "Se connecter",
@@ -423,7 +423,10 @@
         "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
         "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. ",
         "Welcome to Grist, {{- name}}!": "Bienvenue sur Grist, {{- name}} !",
-        "Welcome to {{- orgName}}": "Bienvenue sur {{- orgName}}"
+        "Welcome to {{- orgName}}": "Bienvenue sur {{- orgName}}",
+        "Visit our {{link}} to learn more about Grist.": "Visitez notre {{link}} pour en savoir plus sur Grist.",
+        "Sign in": "Connexion",
+        "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte."
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",
@@ -448,7 +451,18 @@
         "{{count}} unmatched field in import_one": "{{count}} champ non apparié dans l'importation",
         "{{count}} unmatched field in import_other": "{{count}} champs non appariés dans l'importation",
         "{{count}} unmatched field_one": "{{count}} champ non apparié",
-        "{{count}} unmatched field_other": "{{count}} champs non appariés"
+        "{{count}} unmatched field_other": "{{count}} champs non appariés",
+        "Column mapping": "Cartographie de colonne",
+        "Grist column": "Colonne Grist",
+        "Revert": "Annuler",
+        "Skip Import": "Ignorer l'import",
+        "New Table": "Nouvelle table",
+        "Skip": "Passer",
+        "Column Mapping": "Cartographie de Colonne",
+        "Destination table": "Table de destination",
+        "Skip Table on Import": "Ignorer la table à l'import",
+        "Import from file": "Importer depuis un fichier",
+        "Source column": "Colonne source"
     },
     "LeftPanelCommon": {
         "Help Center": "Centre d'aide"
@@ -476,7 +490,10 @@
         "Organization": "Organisation",
         "You do not have write access to this site": "Vous n’avez pas d'accès en écriture à cet espace",
         "Workspace": "Dossier",
-        "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier"
+        "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier",
+        "Remove all data but keep the structure to use as a template": "Supprimer toutes les données mais garder la structure comme modèle",
+        "Remove document history (can significantly reduce file size)": "Supprimer l'historique du document (peut réduire sensiblement la taille du fichier)",
+        "Download full document and history": "Télécharger le document complet et l'historique"
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -598,7 +615,8 @@
         "Export CSV": "Exporter en CSV",
         "Export XLSX": "Exporter en XLSX",
         "Send to Google Drive": "Envoyer vers Google Drive",
-        "Share": "Partager"
+        "Share": "Partager",
+        "Download...": "Télécharger..."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -832,7 +850,8 @@
         "Default cell style": "Style par défaut",
         "Mixed style": "Style composite",
         "Header Style": "Style de l'entête",
-        "Default header style": "Style par défaut"
+        "Default header style": "Style par défaut",
+        "HEADER STYLE": "STYLE DE l'EN-TÊTE"
     },
     "DiscussionEditor": {
         "Comment": "Commentaire",
@@ -1067,7 +1086,14 @@
         "Capabilities": "Capacités",
         "Community": "Communauté",
         "Formula Help. ": "Aide pour les formules. ",
-        "What do you need help with?": "Quel est votre besoin d'aide ?"
+        "What do you need help with?": "Quel est votre besoin d'aide ?",
+        "For higher limits, contact the site owner.": "Pour un plafond supérieur, contactez le propriétaire du site.",
+        "Formula AI Assistant is only available for logged in users.": "L'Assistant de Formule IA n'est disponible que pour les utilisateurs connectés.",
+        "upgrade to the Pro Team plan": "passer au plan Pro Team",
+        "You have used all available credits.": "Vous avez utiliser tout vos crédits disponibles.",
+        "upgrade your plan": "mettez à niveau",
+        "You have {{numCredits}} remaining credits.": "Vous avez {{numCredits}} crédits restants.",
+        "For higher limits, {{upgradeNudge}}.": "Pour augmenter le plafond, {{upgradeNudge}}."
     },
     "SupportGristNudge": {
         "Help Center": "Centre d'aide",
@@ -1140,7 +1166,8 @@
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "L'absence d'accès par défaut permet d'accorder l'accès à des documents ou à des espaces de travail spécifiques, plutôt qu'à l'ensemble de l'espace d'équipe.",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Une fois que vous avez supprimé votre propre accès, vous ne pourrez pas le récupérer sans l'aide d'une autre personne disposant d'un accès suffisant au {{resourceType}}.",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utilisateur a un accès visuel à {{resource}} résultant d'un accès manuel aux ressources internes. S'il est supprimé ici, cet utilisateur perdra l'accès aux ressources internes.",
-        "You are about to remove your own access to this {{resourceType}}": "Vous êtes sur le point de supprimer votre propre accès à {{resourceType}}"
+        "You are about to remove your own access to this {{resourceType}}": "Vous êtes sur le point de supprimer votre propre accès à {{resourceType}}",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utilisateur hérite ses permissions de {{parent})}. Pour supprimer cela,            paramétrez 'Héritage d'accès à 'Aucun'."
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
