@@ -203,6 +203,49 @@ export class GristWebDriverUtils {
       await check();
     }
   }
+
+  /**
+   * Refresh browser and dismiss alert that is shown (for refreshing during edits).
+   */
+  public async refreshDismiss() {
+    await this.driver.navigate().refresh();
+    await this.acceptAlert();
+    await this.waitForDocToLoad();
+  }
+
+  /**
+   * Accepts an alert.
+   */
+  public async acceptAlert() {
+    await (await this.driver.switchTo().alert()).accept();
+  }
+
+  /**
+   * Returns whether an alert is shown.
+   */
+  public async isAlertShown() {
+    try {
+      await this.driver.switchTo().alert();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Wait for the doc to be loaded, to the point of finishing fetch for the data on the current
+   * page. If you navigate from a doc page, use e.g. waitForUrl() before waitForDocToLoad() to
+   * ensure you are checking the new page and not the old.
+   */
+  public async waitForDocToLoad(timeoutMs: number = 10000): Promise<void> {
+    await this.driver.findWait('.viewsection_title', timeoutMs);
+    await this.waitForServer();
+  }
+
+  public async reloadDoc() {
+    await this.driver.navigate().refresh();
+    await this.waitForDocToLoad();
+  }
 }
 
 export interface WindowDimensions {

@@ -83,6 +83,11 @@ export const selectWidget = webdriverUtils.selectWidget.bind(webdriverUtils);
 export const dismissBehavioralPrompts = webdriverUtils.dismissBehavioralPrompts.bind(webdriverUtils);
 export const toggleSelectable = webdriverUtils.toggleSelectable.bind(webdriverUtils);
 export const waitToPass = webdriverUtils.waitToPass.bind(webdriverUtils);
+export const refreshDismiss = webdriverUtils.refreshDismiss.bind(webdriverUtils);
+export const acceptAlert = webdriverUtils.acceptAlert.bind(webdriverUtils);
+export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
+export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
+export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -774,21 +779,6 @@ export async function loadDoc(relPath: string, wait: boolean = true): Promise<vo
 export async function loadDocMenu(relPath: string, wait: boolean = true): Promise<void> {
   await driver.get(`${server.getHost()}${relPath}`);
   if (wait) { await waitForDocMenuToLoad(); }
-}
-
-/**
- * Wait for the doc to be loaded, to the point of finishing fetch for the data on the current
- * page. If you navigate from a doc page, use e.g. waitForUrl() before waitForDocToLoad() to
- * ensure you are checking the new page and not the old.
- */
-export async function waitForDocToLoad(timeoutMs: number = 10000): Promise<void> {
-  await driver.findWait('.viewsection_title', timeoutMs);
-  await waitForServer();
-}
-
-export async function reloadDoc() {
-  await driver.navigate().refresh();
-  await waitForDocToLoad();
 }
 
 /**
@@ -2877,34 +2867,6 @@ export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
     const count = parseInt(await item.find('label + div').getText(), 10);
     return {checked, value, count};
   }));
-}
-
-/**
- * Refresh browser and dismiss alert that is shown (for refreshing during edits).
- */
-export async function refreshDismiss() {
-  await driver.navigate().refresh();
-  await acceptAlert();
-  await waitForDocToLoad();
-}
-
-/**
- * Accepts an alert.
- */
-export async function acceptAlert() {
-  await (await driver.switchTo().alert()).accept();
-}
-
-/**
- * Returns whether an alert is shown.
- */
-export async function isAlertShown() {
-  try {
-    await driver.switchTo().alert();
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /**
