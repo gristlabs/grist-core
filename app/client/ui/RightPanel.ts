@@ -505,8 +505,7 @@ export class RightPanel extends Disposable {
       const srcCol = use(tgtSec.linkSrcCol);
       const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
 
-      if(srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
-        console.warn("srcSection disposed in buildLinkInfo");
+      if (srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
         return cssLinkInfoPanel("");
       }
 
@@ -623,8 +622,7 @@ export class RightPanel extends Disposable {
       const srcSec = use(activeSection.linkSrcSection); //might be the empty section
       const tgtSec = activeSection;
 
-      if(srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
-        console.warn("srcSection disposed in buildLinkInfoAdvanced");
+      if (srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
         return cssRow("");
       }
 
