@@ -21,7 +21,10 @@
         "You have read-only access to this site. Currently there are no documents.": "Hai accesso a questo sito in sola lettura. Attualmente non ci sono documenti.",
         "{{signUp}} to save your work. ": "{{signUp}} per salvare il tuo lavoro. ",
         "Welcome to Grist, {{- name}}!": "Benvenuto in Grist, {{- name}}!",
-        "Welcome to {{- orgName}}": "Benvenuto, {{- orgName}}"
+        "Welcome to {{- orgName}}": "Benvenuto, {{- orgName}}",
+        "Visit our {{link}} to learn more about Grist.": "Vai a {{link}} per saperne di più su Grist.",
+        "Sign in": "Accedi",
+        "To use Grist, please either sign up or sign in.": "Per usare Grist, iscriviti o accedi."
     },
     "HomeLeftPane": {
         "Manage Users": "Gestisci gli utenti",
