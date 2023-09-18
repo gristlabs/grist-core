@@ -201,6 +201,10 @@ export function showBehavioralPrompt(
           boundariesElement: 'window',
           padding: 32,
         },
+        computeStyle: {
+          // GPU acceleration makes text look blurry.
+          gpuAcceleration: false,
+        },
       }
     })
   );
