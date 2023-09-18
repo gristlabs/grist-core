@@ -1082,7 +1082,13 @@
         "There are some things you should know when working with me:": "Есть некоторые вещи, которые вы должны знать, работая со мной:",
         "What do you need help with?": "Как я могу вам помочь?",
         "Hi, I'm the Grist Formula AI Assistant.": "Привет, я AI Помощник по формулам Grist.",
-        "Formula AI Assistant is only available for logged in users.": "AI Ассистент для формул доступен только для зарегистрированных пользователей."
+        "Formula AI Assistant is only available for logged in users.": "AI Ассистент для формул доступен только для зарегистрированных пользователей.",
+        "For higher limits, contact the site owner.": "Для увеличения лимитов, обратитесь к владельцу сайта.",
+        "upgrade to the Pro Team plan": "перейти на план Pro Team",
+        "You have used all available credits.": "Вы использовали все доступные кредиты.",
+        "upgrade your plan": "обновите свой тавиф",
+        "You have {{numCredits}} remaining credits.": "У вас осталось {{numCredits}} кредитов.",
+        "For higher limits, {{upgradeNudge}}.": "Для увеличения лимитов, {{upgradeNudge}}."
     },
     "GridView": {
         "Click to insert": "Нажмите для вставки"

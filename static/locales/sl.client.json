@@ -116,11 +116,11 @@
         "Copy anchor link": "Kopiranje sidrne povezave",
         "Duplicate rows_one": "Podvoji vrstico",
         "Duplicate rows_other": "Podvoji vrstice",
-        "Insert column to the right": "Vstavljanje stolpca na desno",
-        "Insert column to the left": "Vstavljanje stolpca na levo",
+        "Insert column to the right": "Vstavi stolpec na desno",
+        "Insert column to the left": "Vstavi stolpec na levo",
         "Insert row": "Vstavljanje vrstice",
         "Insert row above": "Vstavite  vrstico zgoraj",
-        "Insert row below": "Vstavite  vrstico spodaj",
+        "Insert row below": "Vstavi  vrstico spodaj",
         "Reset {{count}} columns_one": "Ponastavitev stolpca",
         "Reset {{count}} columns_other": "Ponastavitev stolpcev {{count}}",
         "Reset {{count}} entire columns_one": "Ponastavitev celotnega stolpca",
@@ -169,7 +169,9 @@
         "To restore this document, restore the workspace first.": "Če želite obnoviti ta dokument, najprej obnovite delovni prostor.",
         "You are on your personal site. You also have access to the following sites:": "Nahajate se na svojem osebnem spletnem mestu. Prav tako imate dostop do naslednjih spletnih mest:",
         "Restore": "Obnovi",
-        "Move {{name}} to workspace": "Premakni {{name}} v delovni prostor"
+        "Move {{name}} to workspace": "Premakni {{name}} v delovni prostor",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Nahajate se na spletnem mestu {{siteName}}. Prav tako imate dostop do naslednjih spletnih mest:",
+        "Examples & Templates": "Primeri & predloge"
     },
     "GridViewMenus": {
         "Rename column": "Preimenovanje stolpca",
@@ -195,13 +197,29 @@
         "Convert formula to data": "Pretvarjanje formule v podatke",
         "Freeze {{count}} more columns_other": "Zamrznite še {{count}}  stolpcev",
         "Hide {{count}} columns_one": "Skrij stolpec",
-        "Sorted (#{{count}})_other": "Razvrščeno (#{{count}})"
+        "Sorted (#{{count}})_other": "Razvrščeno (#{{count}})",
+        "Insert column to the {{to}}": "Vstavi stolpec v {{to}}",
+        "Reset {{count}} entire columns_other": "Ponastavi  {{count}} stolpcev",
+        "Unfreeze {{count}} columns_other": "Odmrznite  {{count}} stolpcev",
+        "Insert column to the right": "Vstavi stolpec na desno",
+        "Reset {{count}} entire columns_one": "Ponastavi celoten stolpec",
+        "Insert column to the left": "Vstavi stolpec na levo"
     },
     "HomeLeftPane": {
         "Trash": "Koš",
         "Rename": "Preimenovanje",
         "Delete": "Izbriši",
-        "Delete {{workspace}} and all included documents?": "Izbriši {{workspace}} in vse vključene dokumente?"
+        "Delete {{workspace}} and all included documents?": "Izbriši {{workspace}} in vse vključene dokumente?",
+        "All Documents": "Vsi dokumenti",
+        "Manage Users": "Upravljanje uporabnikov",
+        "Tutorial": "Vadnica",
+        "Create Empty Document": "Ustvari prazen dokument",
+        "Create Workspace": "Ustvari delovni prostor",
+        "Import Document": "Uvozi dokument",
+        "Access Details": "Podrobnosti o dostopu",
+        "Workspaces": "Delovni prostori",
+        "Workspace will be moved to Trash.": "Delovni prostor se bo premaknil v koš.",
+        "Examples & Templates": "Predloge"
     },
     "OnBoardingPopups": {
         "Finish": "Zaključek",
@@ -209,14 +227,32 @@
     },
     "Pages": {
         "Delete": "Izbriši",
-        "Delete data and this page.": "Izbriši podatke in to stran."
+        "Delete data and this page.": "Izbriši podatke in to stran.",
+        "The following tables will no longer be visible_one": "Naslednja tabela ne bo več vidna",
+        "The following tables will no longer be visible_other": "Naslednje tabele ne bodo več vidne"
     },
     "RowContextMenu": {
-        "Delete": "Izbriši"
+        "Delete": "Izbriši",
+        "Insert row": "Vstavi vrstico",
+        "Insert row below": "Vstavi  vrstico spodaj",
+        "Copy anchor link": "Kopiraj sidrno povezavo",
+        "Duplicate rows_one": "Podvoji vrstico",
+        "Duplicate rows_other": "Podvoji vrstice",
+        "Insert row above": "Vstavi  vrstico zgoraj"
     },
     "Tools": {
         "Delete": "Izbriši",
-        "Delete document tour?": "Izbriši ogled dokumenta?"
+        "Delete document tour?": "Izbriši ogled dokumenta?",
+        "TOOLS": "ORODJA",
+        "Settings": "Nastavitve",
+        "Access Rules": "Pravila dostopa",
+        "Code View": "Pogled kode",
+        "Raw Data": "Neobdelani podatki",
+        "Document History": "Zgodovina dokumentov",
+        "Validate Data": "Potrdi podatke",
+        "How-to Tutorial": "Vadnica kako narediti",
+        "Tour of this Document": "Ogled tega dokumenta",
+        "Return to viewing as yourself": "Vrnite se k ogledu kot vi"
     },
     "pages": {
         "Rename": "Preimenovanje"
@@ -237,7 +273,18 @@
     },
     "ViewLayoutMenu": {
         "Delete record": "Brisanje zapisa",
-        "Delete widget": "Izbriši gradnik"
+        "Delete widget": "Izbriši gradnik",
+        "Advanced Sort & Filter": "Napredno razvrščanje in filtriranje",
+        "Data selection": "Izbira podatkov",
+        "Download as XLSX": "Prenesite kot XLSX",
+        "Download as CSV": "Prenesite kot CSV",
+        "Widget options": "Možnosti gradnika",
+        "Print widget": "Gradnik za tiskanje",
+        "Open configuration": "Odpri konfiguracijo",
+        "Edit Card Layout": "Urejanje postavitve kartice",
+        "Add to page": "Dodaj na stran",
+        "Show raw data": "Prikaži neobdelane podatke",
+        "Copy anchor link": "Kopiraj sidrno povezavo"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Ni mogoče dokončati shranjevanja urejene celice"
@@ -246,13 +293,16 @@
         "Home Page": "Domača stran",
         "Personal Site": "Osebna stran",
         "Team Site": "Spletna stran ekipe",
-        "Grist Templates": "Grist predloge"
+        "Grist Templates": "Grist predloge",
+        "Legacy": "Zapuščina"
     },
     "ChartView": {
         "Pick a column": "Izberite stolpec",
         "Toggle chart aggregation": "Preklopite združevanje grafikonov",
         "Create separate series for each value of the selected column.": "Ustvarite ločene serije za vsako vrednost izbranega stolpca.",
-        "selected new group data columns": "izbrani novi stolpci podatkovnih skupin"
+        "selected new group data columns": "izbrani novi stolpci podatkovnih skupin",
+        "Each Y series is followed by a series for the length of error bars.": "Vsaki seriji Y sledi serija za dolžino vrstic napak.",
+        "Each Y series is followed by two series, for top and bottom error bars.": "Vsaki seriji Y sledita dve seriji, za zgornjo in spodnjo vrstico napak."
     },
     "ColumnFilterMenu": {
         "All": "Vse",
@@ -278,14 +328,18 @@
         "Add": "Dodaj",
         "Enter Custom URL": "Vnesite URL po meri",
         "Full document access": "Dostop do celotnega dokumenta",
-        "Open configuration": "Odprri konfiguracijo",
+        "Open configuration": "Odpri konfiguracijo",
         "Pick a column": "Izberite stolpec",
         "Pick a {{columnType}} column": "Izberite stolpec {{columnType}}",
         "Read selected table": "Preberite izbrano tabelo",
         "Learn more about custom widgets": "Preberite več o gradnikih po meri",
         "Widget needs {{fullAccess}} to this document.": "Widget  potrebuje {{fullAccess}} tega dokumenta.",
         "No document access": "Brez dostopa do dokumentov",
-        "Widget does not require any permissions.": "Widget ne zahteva nobenih dovoljenj."
+        "Widget does not require any permissions.": "Widget ne zahteva nobenih dovoljenj.",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} stolpec, ki ni{{columnType}}, ni prikazan.",
+        "Select Custom Widget": "Izberite Prilagojeni pripomoček",
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} stolpci, ki niso{{columnType}}, niso prikazani.",
+        "Widget needs to {{read}} the current table.": "Widget mora {{read}} trenutno tabelo."
     },
     "DocHistory": {
         "Activity": "Dejavnost",
@@ -305,7 +359,10 @@
         "Investment Research": "Investicijske raziskave",
         "Tutorial: Create a CRM": "Učni pripomoček: Ustvarite CRM",
         "Tutorial: Manage Business Data": "Učni pripomoček: Upravljanje poslovnih podatkov",
-        "Tutorial: Analyze & Visualize": "Učni pripomoček: Analizirajte in vizualizirajte"
+        "Tutorial: Analyze & Visualize": "Učni pripomoček: Analizirajte in vizualizirajte",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Oglejte si sorodna navodila za modeliranje poslovnih podatkov, uporabo formul in obvladovanje kompleksnosti.",
+        "Welcome to the Lightweight CRM template": "Dobrodošli v predlogi enostavnega CRM",
+        "Lightweight CRM": "Enostavni CRM"
     },
     "CodeEditorPanel": {
         "Access denied": "Dostop zavrnjen",
@@ -338,12 +395,15 @@
         "Convert to trigger formula": "Pretvori v sprožitveno formulo",
         "Data Columns_one": "Stolpec podatkov",
         "TRIGGER FORMULA": "SPROŽILNA FORMULA",
-        "Set trigger formula": "Nastavite sprožitveno formulo"
+        "Set trigger formula": "Nastavite sprožitveno formulo",
+        "Make into data column": "Spremenite v podatkovni stolpec",
+        "COLUMN BEHAVIOR": "OBNAŠANJE STOLPCA"
     },
     "DuplicateTable": {
         "Only the document default access rules will apply to the copy.": "Za kopijo bodo veljala samo privzeta pravila dostopa do dokumenta.",
         "Copy all data in addition to the table structure.": "Poleg strukture tabele kopirajte tudi vse podatke.",
-        "Name for new table": "Ime za novo tabelo"
+        "Name for new table": "Ime za novo tabelo",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Namesto podvajanja tabel je običajno bolje podatke segmentirati s povezanimi pogledi. {{link}}"
     },
     "DocPageModel": {
         "Sorry, access to this document has been denied. [{{error}}]": "Žal je bil dostop do tega dokumenta zavrnjen. [{{error}}]",
@@ -353,7 +413,9 @@
         "Add Page": "Dodaj stran",
         "Document owners can attempt to recover the document. [{{error}}]": "Lastniki dokumentov lahko poskušajo obnoviti dokument. [{{error}}]",
         "Error accessing document": "Napaka pri dostopu do dokumenta",
-        "Enter recovery mode": "Vstopite v način obnovitve"
+        "Enter recovery mode": "Vstopite v način obnovitve",
+        "Reload": "Ponovno naloži",
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Poskusite ponovno naložiti dokument ali pa uporabite način obnovitve. Način obnovitve odpre dokument, ki je v celoti dostopen samo lastnikom, drugim pa ne. Prav tako pa ta način onemogoči formule. [{{error}}]"
     },
     "DocumentSettings": {
         "Ok": "V REDU",
@@ -361,12 +423,15 @@
         "Save": "Shrani",
         "Document ID copied to clipboard": "ID dokumenta kopiran v odložišče",
         "Local currency ({{currency}})": "Lokalna valuta ({{currency}})",
-        "Save and Reload": "Shranjevanje in ponovno nalaganje",
+        "Save and Reload": "Shrani in ponovno naloži",
         "Time Zone:": "Časovni pas:",
         "Currency:": "Valuta:",
         "Document Settings": "Nastavitve dokumentov",
         "Locale:": "Lokalizacija:",
-        "This document's ID (for API use):": "ID tega dokumenta (za uporabo API):"
+        "This document's ID (for API use):": "ID tega dokumenta (za uporabo API):",
+        "Manage Webhooks": "Upravljanje spletnih kljuk",
+        "Webhooks": "Spletne kljuke",
+        "Engine (experimental {{span}} change at own risk):": "Pogon (eksperimentalno {{span}} spreminjanje na lastno odgovornost):"
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",
@@ -388,12 +453,486 @@
         "Use separate settings": "Uporaba ločenih nastavitev",
         "Revert to common settings": "Vrnitev na običajne nastavitve",
         "Using common settings": "Uporaba skupnih nastavitev",
-        "Using separate settings": "Uporaba ločenih nastavitev"
+        "Using separate settings": "Uporaba ločenih nastavitev",
+        "Save as common settings": "Shrani kot skupne nastavitve"
     },
     "FilterConfig": {
         "Add Column": "Dodaj stolpec"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "To spletno mesto ekipe je začasno zaprto. Dokumente lahko berete, vendar jih ne morete  spreminjati."
+    },
+    "FormulaAssistant": {
+        "Data": "Podatki",
+        "Press Enter to apply suggested formula.": "Za uporabo predlagane formule pritisnite Enter.",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Prijavite se na brezplačen račun Grist in začnite uporabljati pomočnika Formula AI Assistant.",
+        "New Chat": "Nov klepet",
+        "Code View": "Kodni pogled",
+        "Apply": "Uporabi",
+        "Learn more": "Preberite več",
+        "Regenerate": "Regeneracija",
+        "Community": "Skupnost",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Pomagam lahko le s formulami. Ne morem sestavljati tabel, stolpcev in pogledov ter pisati pravil dostopa.",
+        "Hi, I'm the Grist Formula AI Assistant.": "Pozdravljeni, sem pomočnik umetne inteligence formule Grist.",
+        "Preview": "Predogled",
+        "Ask the bot.": "Vprašajte bota.",
+        "Function List": "Seznam funkcij",
+        "For higher limits, contact the site owner.": "Za višje omejitve se obrnite na lastnika spletnega mesta.",
+        "Tips": "Nasveti",
+        "Save": "Shrani",
+        "Sign Up for Free": "Prijavite se brezplačno",
+        "Formula AI Assistant is only available for logged in users.": "Pomočnik Formula AI je na voljo le prijavljenim uporabnikom.",
+        "upgrade to the Pro Team plan": "nadgradnja na načrt Pro Team",
+        "You have used all available credits.": "Izkoristili ste vse razpoložljive kredite.",
+        "upgrade your plan": "nadgradite svoj načrt",
+        "Formula Help. ": "Pomoč pri formuli. ",
+        "You have {{numCredits}} remaining credits.": "Na voljo imate {{numCredits}} preostalih kreditov.",
+        "Capabilities": "Zmožnosti",
+        "What do you need help with?": "Pri čem potrebujete pomoč?",
+        "Cancel": "Prekliči",
+        "Need help? Our AI assistant can help.": "Potrebujete pomoč? Naš pomočnik z umetno inteligenco vam lahko pomaga.",
+        "AI Assistant": "AI pomočnik",
+        "There are some things you should know when working with me:": "Pri sodelovanju z mano morate vedeti nekaj stvari:",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Oglejte si {{helpFunction}} in {{formulaCheat}}, za več pomoči pa obiščite {{community}}.",
+        "Grist's AI Assistance": "Pomoč umetne inteligence",
+        "Grist's AI Formula Assistance. ": "Pomoč umetne inteligence pri formuli . "
+    },
+    "RightPanel": {
+        "WIDGET TITLE": "NASLOV PRIPOMOČKA",
+        "COLUMN TYPE": "VRSTA STOLPCA",
+        "SELECT BY": "IZBOR PO",
+        "Edit Data Selection": "Uredi izbor podatkov",
+        "DATA TABLE NAME": "IME PODATKOVNE TABELE",
+        "Fields_one": "Polje",
+        "Save": "Shrani",
+        "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta",
+        "DATA TABLE": "PODATKOVNA TABELA",
+        "Theme": "Tema",
+        "Columns_other": "Stolpci",
+        "Data": "Podatki",
+        "Series_one": "Serija",
+        "ROW STYLE": "STIL VRSTICE",
+        "GROUPED BY": "RAZVRŠČENO PO",
+        "SOURCE DATA": "IZVORNI PODATKI",
+        "CHART TYPE": "VRSTA DIAGRAMA",
+        "Detach": "Odklopi",
+        "Change Widget": "Spremite widget",
+        "Columns_one": "Stolpec",
+        "Series_other": "Serija",
+        "Fields_other": "Polja",
+        "Row Style": "Stil vrstic",
+        "CUSTOM": "CUSTOM",
+        "Select Widget": "Izberite widget",
+        "Add referenced columns": "Dodajanje referenčnih stolpcev",
+        "TRANSFORM": "TRANSFORM",
+        "SELECTOR FOR": "SELEKTOR ZA",
+        "Sort & Filter": "Razvrščanje in filtriranje",
+        "Widget": "Pripomoček"
+    },
+    "FloatingPopup": {
+        "Maximize": "Povečajte",
+        "Minimize": "Zmanjšajte"
+    },
+    "MakeCopyMenu": {
+        "Include the structure without any of the data.": "Vključite strukturo brez podatkov.",
+        "Original Looks Unrelated": "Original izgleda  nepovezan",
+        "Overwrite": "Prepiši",
+        "It will be overwritten, losing any content not in this document.": "Dokument bo prepisan, pri čemer bo izgubljena vsa vsebina, ki ni v tem dokumentu.",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Bodite previdni, izvirnik ima spremembe, ki niso v tem dokumentu. Te spremembe bodo prepisane.",
+        "Workspace": "Delovni prostor",
+        "As Template": "Kot predloga",
+        "Cancel": "Prekliči",
+        "Sign up": "Prijava",
+        "Enter document name": "Vnesite ime dokumenta",
+        "Name": "Ime",
+        "Update": "Posodobitev",
+        "Original Has Modifications": "Izvirnik Ima spremembe",
+        "No destination workspace": "Ni ciljnega delovnega prostora",
+        "You do not have write access to the selected workspace": "Nimate dostopa za pisanje v izbrani delovni prostor",
+        "Remove all data but keep the structure to use as a template": "Odstranite vse podatke, vendar ohranite strukturo in jo uporabite kot predlogo.",
+        "Original Looks Identical": "Izvirnik je videti identičen",
+        "Organization": "Organizacija",
+        "Replacing the original requires editing rights on the original document.": "Za zamenjavo izvirnika so potrebne pravice za urejanje izvirnega dokumenta.",
+        "Remove document history (can significantly reduce file size)": "Odstranitev zgodovine dokumenta (lahko znatno zmanjša velikost datoteke)",
+        "To save your changes, please sign up, then reload this page.": "Če želite shraniti spremembe, se prijavite in nato ponovno naložite to stran.",
+        "The original version of this document will be updated.": "Prvotna različica tega dokumenta bo posodobljena.",
+        "However, it appears to be already identical.": "Vendar se zdi, da je že identična.",
+        "Update Original": "Posodobitev izvirnika",
+        "You do not have write access to this site": "Nimate dovoljenja za pisanje za to spletno mesto",
+        "Download full document and history": "Prenesite celoten dokument in zgodovino"
+    },
+    "SortConfig": {
+        "Add Column": "Dodaj stolpec",
+        "Natural sort": "Naravni vrstni red",
+        "Search Columns": "Stolpci za iskanje",
+        "Update Data": "Posodobitev podatkov",
+        "Empty values last": "Prazne vrednosti na koncu",
+        "Use choice position": "Uporaba položaja izbire"
+    },
+    "Clipboard": {
+        "Unavailable Command": "Ukaz ni na voljo",
+        "Got it": "Imam ga"
+    },
+    "SupportGristPage": {
+        "You have opted out of telemetry.": "Odpovedali ste se telemetriji.",
+        "Support Grist": "Podpri Grist",
+        "Opt out of Telemetry": "Odjava od telemetrije",
+        "GitHub Sponsors page": "GitHub sponzorska stran",
+        "Sponsor Grist Labs on GitHub": "Sponzoriraj Grist Labs na GitHubu",
+        "Manage Sponsorship": "Upravljanje sponzorstva",
+        "Help Center": "Center za pomoč",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Zbiramo samo statistične podatke o uporabi, kot je podrobno opisano v naši spletni strani {{link}}, nikoli pa ne zbiramo vsebine dokumentov.",
+        "You can opt out of telemetry at any time from this page.": "Telemetrijo lahko kadar koli odjavite na tej strani.",
+        "Home": "Domov",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Ta primerek je izključen iz telemetrije. To lahko spremeni samo skrbnik spletnega mesta.",
+        "Telemetry": "Telemetrija",
+        "Opt in to Telemetry": "Prijava na telemetrijo",
+        "You have opted in to telemetry. Thank you!": "Prijavili ste se za telemetrijo. Zahvaljujemo se vam!",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Ta primerek je prijavljen v telemetrijo. To lahko spremeni le skrbnik spletnega mesta.",
+        "GitHub": "GitHub"
+    },
+    "GristTooltips": {
+        "Updates every 5 minutes.": "Posodablja se vsakih 5 minut.",
+        "entire": "celoten",
+        "You can filter by more than one column.": "Filtrirate lahko po več kot enem stolpcu.",
+        "Anchor Links": "Sidrne povezave",
+        "relational": "relacijski",
+        "Add New": "Dodaj novo",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Z ikono 𝚺 ustvarite zbirne (ali vrtilne) tabele za seštevke ali vmesne seštevke.",
+        "Access Rules": "Pravila dostopa",
+        "Select the table to link to.": "Izberite tabelo, s katero želite vzpostaviti povezavo.",
+        "The total size of all data in this document, excluding attachments.": "Skupna velikost vseh podatkov v tem dokumentu, brez prilog.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Izberete lahko enega od naših vnaprej pripravljenih gradnikov ali pa vgradite svojega, tako da navedete njegov celoten naslov URL.",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Pravila dostopa vam omogočajo, da ustvarite podrobna pravila, s katerimi določite, kdo lahko vidi ali ureja posamezne dele dokumenta.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Z vlečenjem in spreminjanjem velikosti polj na kartici spremenite njihovo razporeditev.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Uporabno za shranjevanje časovnega žiga ali avtorja novega zapisa, čiščenje podatkov in drugo.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Če želite ustvariti nove dokumente ali delovne prostore ali uvoziti podatke, kliknite gumb Dodaj novo.",
+        "Nested Filtering": "Vgnezdeno filtriranje",
+        "Only those rows will appear which match all of the filters.": "Prikazane bodo samo tiste vrstice, ki ustrezajo vsem filtrom.",
+        "Editing Card Layout": "Urejanje postavitve kartice",
+        "Raw Data page": "Stran z neobdelanimi podatki",
+        "Selecting Data": "Izbira podatkov",
+        "Learn more.": "Preberite več.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "formule, ki se sprožijo v določenih primerih in shranijo izračunano vrednost kot podatke.",
+        "Select the table containing the data to show.": "Izberite tabelo s podatki, ki jih želite prikazati.",
+        "Pinning Filters": "Filtri za pripenjanje"
+    },
+    "UserManager": {
+        "Anyone with link ": "Vsakdo s povezavo ",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Ko odstranite svoj dostop, ga ne boste mogli vrniti brez pomoči druge osebe z zadostnim dostopom do spletnega mesta {{name}}.",
+        "Your role for this team site": "Vaša vloga v tej ekipi",
+        "Copy Link": "Kopiraj povezavo",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Uporabnik ima vpogled v {{resource}}, ki je posledica ročno nastavljenega dostopa do virov v njem. Če ga tukaj odstranite, bo ta uporabnik izgubil dostop do notranjih virov.",
+        "User may not modify their own access.": "Uporabnik ne  more spreminjati lastnega dostopa.",
+        "member": "član",
+        "Add {{member}} to your team": "Dodajte {{member}} v svojo ekipo",
+        "Collaborator": "Sodelavec",
+        "Link copied to clipboard": "Povezava kopirana v odložišče",
+        "team site": "spletno mesto ekipe",
+        "Create a team to share with more people": "Ustvarite ekipo in jo delite z več ljudmi",
+        "guest": "gost",
+        "Public access: ": "Javni dostop: ",
+        "Team member": "Član ekipe",
+        "Off": "Izklopljeno",
+        "free collaborator": "brezplačni sodelavec",
+        "Save & ": "Shrani & ",
+        "Outside collaborator": "Zunanji sodelavec",
+        "{{collaborator}} limit exceeded": "{{collaborator}} presežena meja",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Uporabnik podeduje dovoljenja od {{parent}}. Če jih želite odstraniti, nastavite možnost \"Podeduje dostop\" na \"Ni\".",
+        "Your role for this {{resourceType}}": "Vaša vloga pri tem {{resourceType}}",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Ko odstranite svoj dostop, ga ne boste mogli vrniti brez pomoči druge osebe z zadostnim dostopom do spletnega mesta {{resourceType}}.",
+        "Close": "Zapri",
+        "Allow anyone with the link to open.": "Omogočite odprtje vsakomur, ki ima povezavo.",
+        "Invite people to {{resourceType}}": "Povabite ljudi k {{resourceType}}",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Uporabnik podeduje dovoljenja od {{parent}}. Če jih želite odstraniti, nastavite možnost \"Podeduje dostop\" na \"Ni\".",
+        "Remove my access": "Odstranitev mojega dostopa",
+        "Public access": "Javni dostop:",
+        "Public Access": "Javni dostop:",
+        "Cancel": "Prekliči",
+        "Grist support": "Grist podpora",
+        "You are about to remove your own access to this {{resourceType}}": "Odstranili boste svoj dostop do tega {{resourceType}}",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Uporabnik podeduje dovoljenja od {{parent}}. Če jih želite odstraniti, nastavite možnost \"Podeduje dostop\" na \"Ni\".",
+        "Guest": "Gost",
+        "Invite multiple": "Povabite več",
+        "Confirm": "Potrdite",
+        "On": "Vklopljeno\n\nDa",
+        "Open Access Rules": "Pravila odprtega dostopa",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Brez privzetega dostopa omogoča dostop do posameznih dokumentov ali delovnih prostorov in ne do celotnega spletnega mesta ekipe.",
+        "Manage members of team site": "Upravljanje članov ekipe",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Brez privzetega dostopa omogoča dostop do posameznih dokumentov ali delovnih prostorov in ne do celotnega spletnega mesta ekipe."
+    },
+    "GristDoc": {
+        "go to webhook settings": "pojdite v nastavitve webhook",
+        "Saved linked section {{title}} in view {{name}}": "Shranjeno povezano poglavje {{title}} v pogledu {{name}}",
+        "Added new linked section to view {{viewName}}": "Dodan nov povezan razdelek za ogled {{viewName}}",
+        "Import from file": "Uvoz iz datoteke"
+    },
+    "Importer": {
+        "Merge rows that match these fields:": "Združite vrstice, ki ustrezajo tem poljem:",
+        "Column mapping": "Preslikava stolpcev",
+        "Grist column": "Grist stolpec",
+        "{{count}} unmatched field_one": "{{count}} neusklajeno polje",
+        "{{count}} unmatched field in import_one": "{{count}} neusklajenih polj v uvozu",
+        "Revert": "Povrni",
+        "Skip Import": "Preskoči uvoz",
+        "{{count}} unmatched field_other": "{{count}} neusklajena polja",
+        "Select fields to match on": "Izberite polja, ki se ujemajo z",
+        "New Table": "Nova tabela",
+        "Skip": "Preskoči",
+        "Column Mapping": "Preslikava stolpcev",
+        "Destination table": "Ciljna tabela",
+        "Skip Table on Import": "Preskoči tabelo pri uvozu",
+        "Import from file": "Uvoz iz datoteke",
+        "{{count}} unmatched field in import_other": "{{count}} neusklajenih polj v uvozu",
+        "Update existing records": "Posodobi obstoječe zapise",
+        "Source column": "Stolpec vira"
+    },
+    "buildViewSectionDom": {
+        "Not all data is shown": "Vsi podatki niso prikazani",
+        "No row selected in {{title}}": "Nobena vrstica ni izbrana v {{title}}",
+        "No data": "Ni podatkov"
+    },
+    "ColumnTitle": {
+        "Column ID copied to clipboard": "ID stolpca kopiran v odložišče",
+        "Add description": "Dodajte opis",
+        "Column description": "Opis stolpca",
+        "Provide a column label": "Navedite oznako stolpca",
+        "Close": "Zapri",
+        "Cancel": "Prekliči",
+        "Column label": "Oznaka stolpca",
+        "Save": "Shrani",
+        "COLUMN ID: ": "ID STOLPCA: "
+    },
+    "ViewConfigTab": {
+        "Section: ": "Oddelek: ",
+        "Form": "Obrazec",
+        "Blocks": "Bloki",
+        "Plugin: ": "Vtičnik: ",
+        "Unmark On-Demand": "Odznači na zahtevo",
+        "Compact": "Kompakten",
+        "Advanced settings": "Napredne nastavitve",
+        "Make On-Demand": "Naredite na zahtevo",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Velike tabele so lahko označene kot \"na zahtevo\", da se izognete njihovemu nalaganju v podatkovni pogon.",
+        "Edit Card Layout": "Urejanje postavitve kartice"
+    },
+    "SupportGristNudge": {
+        "Support Grist": "Podpri Grist",
+        "Close": "Zapri",
+        "Opt in to Telemetry": "Prijava na telemetrijo",
+        "Help Center": "Center za pomoč",
+        "Contribute": "Prispevajte"
+    },
+    "HomeIntro": {
+        "personal site": "osebna stran",
+        "Any documents created in this site will appear here.": "Vsi dokumenti, ustvarjeni na tem spletnem mestu, bodo prikazani tukaj.",
+        "Welcome to Grist, {{- name}}!": "Dobrodošli v Gristu, {{name}}!",
+        "Get started by inviting your team and creating your first Grist document.": "Začnite tako, da povabite svojo ekipo in ustvarite prvi Grist dokument .",
+        "You have read-only access to this site. Currently there are no documents.": "Do tega spletnega mesta imate dostop samo za branje. Trenutno ni dokumentov.",
+        "Help Center": "Center za pomoč",
+        "Interested in using Grist outside of your team? Visit your free ": "Želite uporabljati Grist tudi zunaj svoje ekipe? Obiščite svoj brezplačni ",
+        "Get started by creating your first Grist document.": "Začni z ustvarjanjem prvega Grist dokumenta .",
+        "This workspace is empty.": "Ta delovni prostor je prazen.",
+        "Visit our {{link}} to learn more.": "Za več informacij obiščite našo spletno stran {{link}}.",
+        "{{signUp}} to save your work. ": "{{signUp}} da shranite svoje delo. ",
+        "Welcome to {{- orgName}}": "Dobrodošli v {{orgName}}",
+        "Welcome to Grist, {{name}}!": "Dobrodošli v Gristu, {{name}}!",
+        "Browse Templates": "Brskanje po predlogah",
+        "Welcome to {{orgName}}": "Dobrodošli v {{orgName}}",
+        "Invite Team Members": "Povabite člane ekipe",
+        "Get started by exploring templates, or creating your first Grist document.": "Začnite z raziskovanjem predlog ali ustvarjanjem prvega  Grist dokumenta.",
+        "Import Document": "Uvozi dokument",
+        "Create Empty Document": "Ustvari prazen dokument",
+        "Sign up": "Prijavi se",
+        "Sprouts Program": "Program Sprouts",
+        "Welcome to Grist!": "Dobrodošli v Gristu!",
+        "Visit our {{link}} to learn more about Grist.": "Obiščite našo spletno stran {{link}} da izveste več o Grisstu.",
+        "Sign in": "Prijavite se",
+        "To use Grist, please either sign up or sign in.": "Če želite uporabljati Grist, se prijavite ali prvič prijavite."
+    },
+    "WelcomeSitePicker": {
+        "You have access to the following Grist sites.": "Imate dostop do naslednjih Grist spletnih mest .",
+        "Welcome back": "Dobrodošli nazaj",
+        "You can always switch sites using the account menu.": "Spletna mesta lahko vedno zamenjate v meniju računa."
+    },
+    "ShareMenu": {
+        "Current Version": "Trenutna različica",
+        "Download...": "Prenesi...",
+        "Show in folder": "Prikaži v mapi",
+        "Share": "Deli",
+        "Export CSV": "Izvozi CSV",
+        "Send to Google Drive": "Pošlji v Google Drive",
+        "Export XLSX": "Izvozi XLSX",
+        "Access Details": "Podrobnosti o dostopu",
+        "Compare to {{termToUse}}": "Primerjaj z {{termToUse}}",
+        "Download": "Prenesi",
+        "Replace {{termToUse}}...": "Zamenjajte {{termToUse}}…",
+        "Duplicate Document": "Podvoji dokument",
+        "Original": "Izvirnik",
+        "Back to Current": "Nazaj na Aktualno",
+        "Edit without affecting the original": "Uredi brez vpliva na izvirnik",
+        "Work on a Copy": "Delo na kopiji",
+        "Manage Users": "Upravljanje uporabnikov",
+        "Unsaved": "Neshranjeno",
+        "Save Document": "Shrani dokument",
+        "Save Copy": "Shrani kopijo",
+        "Return to {{termToUse}}": "Vrnitev na {{termToUse}}"
+    },
+    "NotifyUI": {
+        "Go to your free personal site": "Pojdite na brezplačno osebno spletno mesto",
+        "Upgrade Plan": "Načrt nadgradnje",
+        "Ask for help": "Zaprosi za pomoč",
+        "Renew": "Obnovite",
+        "Manage billing": "Upravljanje zaračunavanja",
+        "Give feedback": "Podajte povratne informacije",
+        "Cannot find personal site, sorry!": "Ne morem najti osebne strani, žal!",
+        "Notifications": "Obvestila",
+        "Report a problem": "Prijava težave",
+        "No notifications": "Brez obvestil"
+    },
+    "PermissionsWidget": {
+        "Deny All": "Zavrni vse",
+        "Read Only": "Samo za branje",
+        "Allow All": "Dovoli vse"
+    },
+    "FieldContextMenu": {
+        "Hide field": "Skrij polje",
+        "Copy": "Kopiraj",
+        "Paste": "Prilepi",
+        "Clear field": "Počisti polje",
+        "Cut": "Izreži",
+        "Copy anchor link": "Kopiraj sidrno povezavo"
+    },
+    "RecordLayoutEditor": {
+        "Show field {{- label}}": "Prikaži polje {{- label}}",
+        "Add Field": "Dodajte polje",
+        "Save Layout": "Shrani postavitev",
+        "Cancel": "Prekliči",
+        "Create New Field": "Ustvari novo polje"
+    },
+    "PageWidgetPicker": {
+        "Select Widget": "Izberite widget",
+        "Add to Page": "Dodaj na stran",
+        "Select Data": "Izberi podatke",
+        "Group by": "Grupiraj po",
+        "Building {{- label}} widget": "Gradnja gradnika {{- label}}"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "OPIS"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Uvoz ni uspel: "
+    },
+    "FilterBar": {
+        "Search Columns": "Stolpci za iskanje",
+        "SearchColumns": "Stolpci za iskanje"
+    },
+    "GridView": {
+        "Click to insert": "Kliknite za vstavitev"
+    },
+    "RefSelect": {
+        "No columns to add": "Ni stolpcev za dodajanje",
+        "Add Column": "Dodaj stolpec"
+    },
+    "SortFilterConfig": {
+        "Update Sort & Filter settings": "Posodobi nastavitve sortiranja in filtriranja",
+        "Save": "Shrani",
+        "Sort": "SORT",
+        "Filter": "FILTER",
+        "Revert": "Povrni"
+    },
+    "OpenVideoTour": {
+        "Video Tour": "Video ogled",
+        "YouTube video player": "Predvajalnik videoposnetkov YouTube",
+        "Grist Video Tour": "Grist video ogled"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Center za pomoč"
+    },
+    "searchDropdown": {
+        "Search": "Iskanje"
+    },
+    "SearchModel": {
+        "Search all tables": "Iskanje po vseh tabelah",
+        "Search all pages": "Iskanje po vseh straneh"
+    },
+    "ThemeConfig": {
+        "Appearance ": "Videz ",
+        "Switch appearance automatically to match system": "Samodejno preklopite videz, da se ujema s sistemom"
+    },
+    "SiteSwitcher": {
+        "Switch Sites": "Preklopite mesta",
+        "Create new team site": "Ustvarite novo spletno mesto ekipe"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Počisti čakalno vrsto"
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Posodobitev postavitve zapisa."
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Kopirano v odložišče"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "OPIS"
+    },
+    "TriggerFormulas": {
+        "Any field": "Katero koli polje",
+        "Close": "Zapri",
+        "Cancel": "Prekliči",
+        "Apply on changes to:": "Uporabi pri spremembah:",
+        "Apply to new records": "Uporabi za nove zapise",
+        "OK": "V REDU",
+        "Current field ": "Tekoče polje ",
+        "Apply on record changes": "Uporabi pri spremembah zapisa"
+    },
+    "DocTour": {
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Iz podatkov v tem dokumentu ni mogoče sestaviti ogleda dokumenta. Prepričajte se, da obstaja tabela z imenom GristDocTour s stolpci Naslov, Telo, Umestitev in Lokacija.",
+        "No valid document tour": "Ni veljavne turneje dokumenta"
+    },
+    "ViewSectionMenu": {
+        "FILTER": "FILTER",
+        "(customized)": "(po meri)",
+        "Revert": "Povrni",
+        "Save": "Shrani",
+        "Custom options": "Možnosti po meri",
+        "SORT": "SORT",
+        "Update Sort&Filter settings": "Posodobi nastavitve sortiranja in filtriranja",
+        "(empty)": "(prazno)",
+        "(modified)": "(spremenjeno)"
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "Posodobitev formule (Shift+Enter)",
+        "Rule {{length}}": "Pravilo {{length}}"
+    },
+    "TopBar": {
+        "Manage Team": "Upravljanje ekipe"
+    },
+    "UserManagerModel": {
+        "View & Edit": "Ogled in urejanje",
+        "Owner": "Lastnik",
+        "None": "Noben",
+        "View Only": "Samo pogled",
+        "No Default Access": "Brez privzetega dostopa",
+        "In Full": "V celoti",
+        "Viewer": "Pregledovalnik",
+        "Editor": "Editor"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Neznani uporabnik"
+    },
+    "VisibleFieldsConfig": {
+        "Cannot drop items into Hidden Fields": "Ne morete spustiti predmetov v skrita polja",
+        "Hidden Fields cannot be reordered": "Skritih polj ni mogoče preurediti",
+        "Visible {{label}}": "Vidno {{label}}",
+        "Select All": "Izberite vse",
+        "Hide {{label}}": "Skrij {{label}}",
+        "Clear": "Izbriši"
+    },
+    "TypeTransformation": {
+        "Revise": "Revizija",
+        "Update formula (Shift+Enter)": "Posodobitev formule (Shift+Enter)",
+        "Preview": "Predogled",
+        "Apply": "Uporabi",
+        "Cancel": "Prekliči"
     }
 }

@@ -381,7 +381,10 @@
         "personal site": "sitio personal",
         "{{signUp}} to save your work. ": "{{signUp}} para guardar tu trabajo. ",
         "Welcome to Grist, {{- name}}!": "¡Bienvenido a Grist, {{- name}}!",
-        "Welcome to {{- orgName}}": "Bienvenido a {{- orgName}}"
+        "Welcome to {{- orgName}}": "Bienvenido a {{- orgName}}",
+        "Visit our {{link}} to learn more about Grist.": "Visita nuestra {{link}} para obtener más información sobre Grist.",
+        "Sign in": "Iniciar sesión",
+        "To use Grist, please either sign up or sign in.": "Para utilizar Grist, regístrate o inicia sesión."
     },
     "HomeLeftPane": {
         "Access Details": "Detalles de Acceso",
@@ -1136,7 +1139,13 @@
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Sólo puedo ayudar con fórmulas. No puedo construir tablas, columnas y vistas, ni escribir reglas de acceso.",
         "Sign Up for Free": "Regístrate gratis",
         "There are some things you should know when working with me:": "Hay algunas cosas que debes saber cuando trabajes conmigo:",
-        "Formula AI Assistant is only available for logged in users.": "Asistente de Fórmula de IA sólo está disponible para usuarios registrados."
+        "Formula AI Assistant is only available for logged in users.": "Asistente de Fórmula de IA sólo está disponible para usuarios registrados.",
+        "For higher limits, contact the site owner.": "Para límites superiores, ponte en contacto con el propietario del sitio.",
+        "upgrade to the Pro Team plan": "actualiza al plan Pro de Team",
+        "You have used all available credits.": "Has utilizado todos los créditos disponibles.",
+        "upgrade your plan": "amplía tu plan",
+        "You have {{numCredits}} remaining credits.": "Te quedan {{numCredits}} créditos.",
+        "For higher limits, {{upgradeNudge}}.": "Para límites superiores, {{upgradeNudge}}."
     },
     "GridView": {
         "Click to insert": "Haga clic para insertar"

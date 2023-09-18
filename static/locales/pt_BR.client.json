@@ -458,7 +458,10 @@
         "personal site": "Site pessoal",
         "{{signUp}} to save your work. ": "{{signUp}} para salvar seu trabalho. ",
         "Welcome to Grist, {{- name}}!": "Bem-vindo ao Grist, {{-name}}!",
-        "Welcome to {{- orgName}}": "Bem-vindo a {{-orgName}}"
+        "Welcome to {{- orgName}}": "Bem-vindo a {{-orgName}}",
+        "Visit our {{link}} to learn more about Grist.": "Visite nosso site {{link}} para saber mais sobre o Grist.",
+        "Sign in": "Entrar",
+        "To use Grist, please either sign up or sign in.": "Para usar o Grist, inscreva-se ou faça login."
     },
     "HomeLeftPane": {
         "Access Details": "Detalhes de Acesso",
@@ -1146,7 +1149,13 @@
         "What do you need help with?": "Em que você precisa de ajuda?",
         "There are some things you should know when working with me:": "Há algumas coisas que você deve saber ao trabalhar comigo:",
         "Learn more": "Saiba mais",
-        "Formula AI Assistant is only available for logged in users.": "O Assistente de Fórmula de IA só está disponível para usuários registrados."
+        "Formula AI Assistant is only available for logged in users.": "O Assistente de Fórmula de IA só está disponível para usuários registrados.",
+        "For higher limits, contact the site owner.": "Para limites maiores, entre em contato com o proprietário do site.",
+        "upgrade to the Pro Team plan": "atualize para o plano Pro Team",
+        "You have used all available credits.": "Você utilizou todos os créditos disponíveis.",
+        "upgrade your plan": "Atualize seu plano",
+        "You have {{numCredits}} remaining credits.": "Você tem {{numCredits}} créditos restantes.",
+        "For higher limits, {{upgradeNudge}}.": "Para limites maiores, {{upgradeNudge}}."
     },
     "GridView": {
         "Click to insert": "Clique para inserir"

@@ -13,6 +13,7 @@ import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
+import moment from 'moment';
 import fetch from 'node-fetch';
 import * as Fetch from 'node-fetch';
 import { EntityManager } from 'typeorm';
@@ -185,8 +186,8 @@ export class Housekeeper {
             numDocs: Number(summary.num_docs),
             numWorkspaces: Number(summary.num_workspaces),
             numMembers: Number(summary.num_members),
-            lastActivity: summary.last_activity,
-            earliestDocCreatedAt: summary.earliest_doc_created_at,
+            lastActivity: normalizedDateTimeString(summary.last_activity),
+            earliestDocCreatedAt: normalizedDateTimeString(summary.earliest_doc_created_at),
           },
           full: {
             stripePlanId: summary.stripe_plan_id,
@@ -397,4 +398,30 @@ export class Housekeeper {
       }
     });
   }
+}
+
+/**
+ * Output an ISO8601 format datetime string, with timezone.
+ * Any string fed in without timezone is expected to be in UTC.
+ *
+ * When connected to postgres, dates will be extracted as Date objects,
+ * with timezone information. The normalization done here is not
+ * really needed in this case.
+ *
+ * Timestamps in SQLite are stored as UTC, and read as strings
+ * (without timezone information). The normalization here is
+ * pretty important in this case.
+ */
+function normalizedDateTimeString(dateTime: any): string {
+  if (!dateTime) { return dateTime; }
+  if (dateTime instanceof Date) {
+    return moment(dateTime).toISOString();
+  }
+  if (typeof dateTime === 'string') {
+    // When SQLite returns a string, it will be in UTC.
+    // Need to make sure it actually have timezone info in it
+    // (will not by default).
+    return moment.utc(dateTime).toISOString();
+  }
+  throw new Error(`normalizedDateTimeString cannot handle ${dateTime}`);
 }

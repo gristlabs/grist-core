@@ -504,6 +504,11 @@ export class RightPanel extends Disposable {
       const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
       const srcCol = use(tgtSec.linkSrcCol);
       const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
+
+      if (srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
+        return cssLinkInfoPanel("");
+      }
+
       //const tgtColId = use(use(tgtSec.linkTargetCol).colId);
       const srcTable = use(srcSec.table);
       const tgtTable = use(tgtSec.table);
@@ -616,6 +621,11 @@ export class RightPanel extends Disposable {
       //      but the fact that it's all observables makes that trickier to do correctly, so let's leave it here
       const srcSec = use(activeSection.linkSrcSection); //might be the empty section
       const tgtSec = activeSection;
+
+      if (srcSec.isDisposed()) { // can happen when deleting srcSection with rightpanel open
+        return cssRow("");
+      }
+
       const srcCol = use(activeSection.linkSrcCol); // might be the empty column
       const tgtCol = use(activeSection.linkTargetCol);
       // columns might be the empty column
