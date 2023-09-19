@@ -14,7 +14,7 @@ const t = makeT('OpenVideoTour');
 
 const testId = makeTestId('test-video-tour-');
 
-const VIDEO_TOUR_YOUTUBE_EMBED_ID = 'qnr2Pfnxdlc';
+const VIDEO_TOUR_YOUTUBE_EMBED_ID = '56AieR9rpww';
 
 /**
  * Opens a modal containing a video tour of Grist.
