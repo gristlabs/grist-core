@@ -136,8 +136,8 @@ export class Cursor extends Disposable {
     //       For determining priority, this cursor will become the latest edited whether we call it once or twice.
     //       For updating observables, the double-update might cause cursor-linking observables in LinkingState to
     //       double-update, but it should be transient and get resolved immediately.
-    this.autoDispose(this._properRowId.subscribe(() => { this.cursorEdited(); }));
-    this.autoDispose(this.fieldIndex.subscribe(() => { this.cursorEdited(); }));
+    this.autoDispose(this._properRowId.subscribe(() => { this._cursorEdited(); }));
+    this.autoDispose(this.fieldIndex.subscribe(() => { this._cursorEdited(); }));
 
     // On dispose, save the current cursor position to the section model.
     this.onDispose(() => { baseView.viewSection.lastCursorPos = this.getCursorPos(); });
@@ -183,7 +183,7 @@ export class Cursor extends Disposable {
         this.fieldIndex(cursorPos.fieldIndex);
       }
 
-      // NOTE: cursorEdited
+      // NOTE: _cursorEdited
       // We primarily update cursorEdited counter from a this._properRowId.subscribe(), since that catches updates
       //   from many sources (setCursorPos, arrowKeys, save/load, filter/sort-changes, etc)
       // However, when deleting a row with several sections linked together, there can be a case where this fails:
@@ -192,7 +192,7 @@ export class Cursor extends Disposable {
       //   This caused a bug when several viewSections were cursor-linked to each other and a row was deleted.
       // We can explicitly call cursorEdited again here. It'll cause cursorEdited to be called twice sometimes,
       //   but that shouldn't cause any problems, since we don't care about edit counts, just who was edited latest.
-      this.cursorEdited()
+      this._cursorEdited();
 
     } finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
@@ -211,7 +211,7 @@ export class Cursor extends Disposable {
   // _EXCEPT FOR: when cursor is set by linking
   // this is used to determine which widget/cursor has most recently been touched,
   // and therefore which one should be used to drive linking if there's a conflict
-  private cursorEdited(): void {
+  private _cursorEdited(): void {
     // If updating as a result of links, we want to NOT update lastEdited
     if (!this._silentUpdatesFlag)
       { this._lastEditedAt(nextSequenceNum()); }

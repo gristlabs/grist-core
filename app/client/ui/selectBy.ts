@@ -163,8 +163,8 @@ function isValidLink(source: LinkNode, target: LinkNode) {
     //    they would stop being ancestors of src)
     // NOTE: we're guaranteed to hit target before the end of the array (because of the `if(...includes...)` above)
     // ALSO NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, but it's accounted for by the above
-    let i = 0
-    while(true) {
+    let i = 0;
+    for (;;) {
       if (source.ancestors[i] == target.section.getRowId()) {
         // We made it! All is well
         break;
