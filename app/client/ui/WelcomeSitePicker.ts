@@ -63,7 +63,7 @@ async function switchToPersonalUrl(ev: MouseEvent, appModel: AppModel, org: stri
   if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
   ev.preventDefault();
   // Set the active session for the given org, then load its home page.
-  await appModel.api.setSessionActive(user.email, org);
+  await appModel.switchUser(user, org);
   window.location.assign(urlState().makeUrl({org}));
 }
 

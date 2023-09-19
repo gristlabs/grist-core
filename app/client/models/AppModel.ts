@@ -128,6 +128,7 @@ export interface AppModel {
   isOwnerOrEditor(): boolean;           // If user is an owner or editor of this org
   /** Creates an computed observable to dismiss a popup or check if it was dismissed */
   dismissedPopup(name: DismissedPopup): Observable<boolean>;
+  switchUser(user: FullUser, org?: string): Promise<void>;
 }
 
 export class TopAppModelImpl extends Disposable implements TopAppModel {
@@ -400,6 +401,11 @@ export class AppModelImpl extends Disposable implements AppModel {
       }
     });
     return computed;
+  }
+
+  public async switchUser(user: FullUser, org?: string) {
+    await this.api.setSessionActive(user.email, org);
+    this.lastVisitedOrgDomain.set(null);
   }
 
   private _updateLastVisitedOrgDomain({doc, org}: IGristUrlState, availableOrgs: Organization[]) {

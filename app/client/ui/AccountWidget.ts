@@ -174,7 +174,7 @@ export class AccountWidget extends Disposable {
 
   // Switch BrowserSession to use the given user for the currently loaded org.
   private async _switchAccount(user: FullUser) {
-    await this._appModel.api.setSessionActive(user.email);
+    await this._appModel.switchUser(user);
     if (urlState().state.get().doc) {
       // Document access level may have changed.
       // If it was not accessible but now is, we currently need to reload the page to get

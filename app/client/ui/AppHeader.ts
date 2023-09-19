@@ -92,8 +92,10 @@ export class AppHeader extends Disposable {
   }
 
   private _buildOrgLinkOrMenu() {
-    const {currentValidUser, isPersonal, isTemplatesSite} = this._appModel;
-    if (!currentValidUser && (isPersonal || isTemplatesSite)) {
+    const {currentValidUser, isTemplatesSite} = this._appModel;
+    const {deploymentType} = getGristConfig();
+    if (deploymentType === 'saas' && !currentValidUser && isTemplatesSite) {
+      // When signed out and on the templates site (in SaaS Grist), link to the templates page.
       return cssOrgLink(
         cssOrgName(dom.text(this._appLogoOrgName), testId('dm-orgname')),
         {href: commonUrls.templates},
@@ -180,11 +182,11 @@ export class AppHeader extends Disposable {
   }): AppLogoOrgNameAndLink {
     const {
       currentValidUser,
-      isPersonal,
       isTemplatesSite,
     } = this._appModel;
-    if (!currentValidUser && (isPersonal || isTemplatesSite)) {
-      // When signed out and not on a team site, link to the templates site.
+    const {deploymentType} = getGristConfig();
+    if (deploymentType === 'saas' && !currentValidUser && isTemplatesSite) {
+      // When signed out and on the templates site (in SaaS Grist), link to the templates page.
       return {
         name: t('Grist Templates'),
         link: {

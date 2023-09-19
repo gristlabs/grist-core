@@ -93,7 +93,7 @@ describe("Fork", function() {
           it(`can create an ${content} unsaved document when ${mode}`, async function() {
             let visitedSites: string[];
             if (mode === 'anonymous') {
-              visitedSites = ['Grist Templates'];
+              visitedSites = ['@Guest'];
               await personal.anon.login();
             } else {
               visitedSites = ['Test Grist', `@${personal.name}`];
