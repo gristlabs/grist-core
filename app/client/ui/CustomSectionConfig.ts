@@ -233,7 +233,7 @@ class ColumnListPicker extends Disposable {
 class CustomSectionConfigurationConfig extends Disposable{
   // Does widget has custom configuration.
   private readonly _hasConfiguration: Computed<boolean>;
-  constructor(private _section: ViewSectionRec) {
+  constructor(private _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
     this._hasConfiguration = Computed.create(this, use => use(_section.hasCustomOptions));
   }
@@ -268,11 +268,12 @@ class CustomSectionConfigurationConfig extends Disposable{
           value: createObs(column),
           column
         }));
-        return [
+        return dom('div',
+          this._attachColumnMappingTip(this._section.customDef.url()),
           ...mappings.map(m => m.column.allowMultiple
             ? dom.create(ColumnListPicker, m.value, m.column, this._section)
-            : dom.create(ColumnPicker, m.value, m.column, this._section))
-        ];
+            : dom.create(ColumnPicker, m.value, m.column, this._section)),
+        );
       })
     );
   }
@@ -280,7 +281,19 @@ class CustomSectionConfigurationConfig extends Disposable{
     allCommands.openWidgetConfiguration.run();
   }
 
-
+  private _attachColumnMappingTip(widgetUrl: string | null) {
+    switch (widgetUrl) {
+      // TODO: come up with a way to attach tips without hardcoding widget URLs.
+      case 'https://gristlabs.github.io/grist-widget/calendar/index.html': {
+        return this._gristDoc.behavioralPromptsManager.attachTip('calendarConfig', {
+          popupOptions: {placement: 'left-start'},
+        });
+      }
+      default: {
+        return null;
+      }
+    }
+  }
 }
 
 export class CustomSectionConfig extends Disposable {
@@ -305,7 +318,7 @@ export class CustomSectionConfig extends Disposable {
 
   constructor(protected _section: ViewSectionRec, private _gristDoc: GristDoc) {
     super();
-    this._customSectionConfigurationConfig = new CustomSectionConfigurationConfig(_section);
+    this._customSectionConfigurationConfig = new CustomSectionConfigurationConfig(_section, _gristDoc);
 
     // Test if we can offer widget list.
     const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
@@ -467,7 +480,11 @@ export class CustomSectionConfig extends Disposable {
           this._gristDoc.behavioralPromptsManager.attachTip('customURL', {
             popupOptions: {
               placement: 'left-start',
-            }
+            },
+            shouldShow: () => {
+              // Only show tip if a custom widget isn't already selected.
+              return !this._selectedId.get() || (isCustom.get() && this._url.get().trim() === '');
+            },
           })
         ),
       ]),

@@ -79,6 +79,7 @@ export const commonUrls = {
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
+  helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",

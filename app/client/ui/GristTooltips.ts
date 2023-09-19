@@ -240,4 +240,16 @@ to determine who can see or edit which parts of your document.')),
     ),
     deploymentTypes: ['saas'],
   },
+  calendarConfig: {
+    title: () => t('Calendar'),
+    content: (...args: DomElementArg[]) => cssTooltipContent(
+      dom('div', t("To configure your calendar, select columns for start/end dates and event titles. \
+Note each column's type.")),
+      dom('div', t("Can't find the right columns? Click 'Change Widget' to select the table with events \
+data.")),
+      dom('div', cssLink({href: commonUrls.helpCalendarWidget, target: '_blank'}, t('Learn more.'))),
+      ...args,
+    ),
+    deploymentTypes: ['saas'],
+  },
 };

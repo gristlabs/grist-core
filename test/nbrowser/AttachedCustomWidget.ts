@@ -7,7 +7,7 @@ import {server, setupTestSuite} from "test/nbrowser/testUtils";
 import {serveSomething} from "test/server/customUtil";
 import {EnvironmentSnapshot} from "test/server/testUtils";
 
-describe('attachedCustomWidget NotepadWidget', function () {
+describe('AttachedCustomWidget', function () {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   let oldEnv: EnvironmentSnapshot;
@@ -84,7 +84,7 @@ describe('attachedCustomWidget NotepadWidget', function () {
   it('should not ask for permission', async () => {
     await gu.addNewSection(/Calendar/, /Table1/, {selectBy: /TABLE1/});
     await gu.getSection('TABLE1 Calendar').click();
-    await gu.toggleSidePanel('right', 'open');
+    await gu.waitForSidePanel();
     await driver.find('.test-right-tab-pagewidget').click();
 
     await gu.waitForServer();

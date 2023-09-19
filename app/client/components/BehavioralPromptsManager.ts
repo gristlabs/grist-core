@@ -21,6 +21,7 @@ export interface AttachOptions {
   showOnMobile?: boolean;
   popupOptions?: IPopupOptions;
   onDispose?(): void;
+  shouldShow?(): boolean;
 }
 
 interface QueuedTip {
@@ -146,6 +147,7 @@ export class BehavioralPromptsManager extends Disposable {
   private _shouldQueueTip(prompt: BehavioralPrompt, options: AttachOptions) {
     if (
       this._isDisabled ||
+      options.shouldShow?.() === false ||
       (isNarrowScreen() && !options.showOnMobile) ||
       (this._prefs.get().dontShowTips && !options.forceShow) ||
       this.hasSeenTip(prompt)

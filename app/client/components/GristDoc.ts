@@ -47,7 +47,7 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
-import {IWidgetType} from 'app/common/widgetTypes';
+import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -837,6 +837,10 @@ export class GristDoc extends DisposableWithEvents {
     this.viewModel.activeSectionId(res.sectionRef);
 
     this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
+
+    if (AttachedCustomWidgets.guard(val.type)) {
+      this._handleNewAttachedCustomWidget(val.type).catch(reportError);
+    }
   }
 
   /**
@@ -881,6 +885,10 @@ export class GristDoc extends DisposableWithEvents {
       this.viewModel.activeSectionId(result.sectionRef);
 
       this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
+
+      if (AttachedCustomWidgets.guard(val.type)) {
+        this._handleNewAttachedCustomWidget(val.type).catch(reportError);
+      }
     }
   }
 
@@ -1436,6 +1444,19 @@ export class GristDoc extends DisposableWithEvents {
         placement: 'left-start',
       }
     });
+  }
+
+  private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
+    switch (widget) {
+      case 'custom.calendar': {
+        // Open the right panel to the calendar subtab.
+        commands.allCommands.viewTabOpen.run();
+
+        // Wait for the right panel to finish animation if it was collapsed before.
+        await commands.allCommands.rightPanelOpen.run();
+        break;
+      }
+    }
   }
 
   private async _promptForName() {
