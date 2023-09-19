@@ -24,6 +24,7 @@ export const InteractionOptionsRequest = t.iface([], {
 
 export const InteractionOptions = t.iface([], {
   "accessLevel": "string",
+  "theme": "any",
 });
 
 export const WidgetColumnMap = t.iface([], {

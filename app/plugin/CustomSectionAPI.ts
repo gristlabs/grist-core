@@ -63,7 +63,17 @@ export interface InteractionOptions{
   /**
    * Granted access level.
    */
-   accessLevel: string,
+  accessLevel: string,
+  /**
+   * Information about the current Grist theme.
+   *
+   * Includes the theme appearance ("light" or "dark"), and a mapping of UI elements to
+   * CSS color values. The CSS values are also accessible within a widget via CSS variables
+   * prefixed with "--grist-theme-" (e.g. `var(--grist-theme-text)`).
+   *
+   * NOTE: the variables aren't yet finalized and may change in the future.
+   */
+  theme: any;
 }
 
 /**

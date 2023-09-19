@@ -42,19 +42,15 @@ describe('CustomView', function() {
   // This tests if test id works. Feels counterintuitive to "test the test" but grist-widget repository test suite
   // depends on this.
   it('informs about ready called', async () => {
-    // Add a custom inline widget to a new doc.
+    // Add a custom widget to a new doc.
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
     await gu.addNewSection('Custom', 'Table1');
 
-    // Create an inline widget that will call ready message.
-    await inFrame(async () => {
-      const customWidget = `
-        <script src="/grist-plugin-api.js"></script>
-        <button onclick="grist.ready()">Ready</button>
-      `;
-      await driver.executeScript("document.write(`" + customWidget + "`);");
-    });
+    // Point to a widget that doesn't immediately call ready.
+    await gu.toggleSidePanel('right', 'open');
+    await driver.find('.test-config-widget-url').click();
+    await gu.sendKeys(`${serving.url}/deferred-ready`, Key.ENTER);
 
     // We should have a single iframe.
     assert.equal(await driver.findAll('iframe').then(f => f.length), 1);

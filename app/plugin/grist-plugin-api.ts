@@ -43,6 +43,7 @@ export * from './WidgetAPI';
 export * from './CustomSectionAPI';
 
 import {IRpcLogger, Rpc} from 'grain-rpc';
+import isEqual from 'lodash/isEqual';
 
 export const rpc: Rpc = new Rpc({logger: createRpcLogger()});
 
@@ -376,6 +377,13 @@ export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMa
   });
 }
 
+/* Keep track of the completion status of all initial onOptions calls made prior to sending
+ * the ready message. The `ready` function will wait for this list of calls to settle after
+ * it receives the initial options message from Grist.
+ *
+ * Note that this includes all internal calls to `onOptions`, such as the one made by
+ * `syncThemeWithGrist`. */
+const _pendingInitializeOptionsCalls: Promise<unknown>[] = [];
 
 /**
  * For custom widgets, add a handler that will be called whenever the
@@ -385,9 +393,16 @@ export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMa
  * the document that contains it.
  */
 export function onOptions(callback: (options: any, settings: InteractionOptions) => unknown) {
+  let finishInitialization: () => void;
+  if (!_readyCalled) {
+    const promise = new Promise<void>(resolve => { finishInitialization = resolve; });
+    _pendingInitializeOptionsCalls.push(promise);
+  }
+
   on('message', async function(msg) {
     if (msg.settings) {
-      callback(msg.options || null, msg.settings);
+      await callback(msg.options || null, msg.settings);
+      finishInitialization?.();
     }
   });
 }
@@ -444,6 +459,24 @@ export function ready(settings?: ReadyPayload): void {
     rpc.registerFunc('editOptions', settings.onEditOptions);
   }
   on('message', async function(msg) {
+    if (msg.settings && msg.fromReady) {
+      /* Grist sends an options message immediately after receiving a ready message, containing
+       * some initial settings (such as the Grist theme). Grist may decide to wait until all
+       * initial onOptions calls have completed before making the custom widget's iframe visible
+       * to the client. This is the case when a widget's manifest explicitly declares a widget
+       * must be rendered after the ready, or in subsequent renders of a custom widget that
+       * previously sent Grist a ready message. The reason for this behavior is to make the
+       * experience of embedding iframes within a Grist document feel more seamless and polished.
+       *
+       * Here, we check for that initial options message, waiting for all onOptions calls to
+       * settle before notifying Grist that all settings have been initialized. */
+      await Promise.all(_pendingInitializeOptionsCalls);
+
+      void (async function() {
+        await rpc.postMessage({settings: {status: 'initialized'}});
+      })();
+    }
+
     if (msg.tableId && msg.tableId !== _tableId) {
       if (!_tableId) { _setInitialized(); }
       _tableId = msg.tableId;
@@ -521,3 +554,55 @@ function createRpcLogger(): IRpcLogger {
     warn(msg: string) { console.warn("%s %s", prefix, msg); },
   };
 }
+
+let _theme: any;
+
+function syncThemeWithGrist() {
+  onOptions((_options, settings) => {
+    if (settings.theme && !isEqual(settings.theme, _theme)) {
+      _theme = settings.theme;
+      attachCssThemeVars(_theme);
+    }
+  });
+}
+
+function attachCssThemeVars({appearance, colors}: any) {
+  // Prepare the custom properties needed for applying the theme.
+  const properties = Object.entries(colors)
+    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
+
+  // Include properties for styling the scrollbar.
+  properties.push(...getCssScrollbarProperties(appearance));
+
+  // Apply the properties to the theme style element.
+  getOrCreateStyleElement('grist-theme').textContent = `:root {
+${properties.join('\n')}
+  }`;
+
+  // Make the browser aware of the color scheme.
+  document.documentElement.style.setProperty(`color-scheme`, appearance);
+}
+
+function getCssScrollbarProperties(appearance: 'light' | 'dark') {
+  return [
+    '--scroll-bar-fg: ' +
+      (appearance === 'dark' ? '#6B6B6B;' : '#A8A8A8;'),
+    '--scroll-bar-hover-fg: ' +
+      (appearance === 'dark' ? '#7B7B7B;' : '#8F8F8F;'),
+    '--scroll-bar-active-fg: ' +
+      (appearance === 'dark' ? '#8B8B8B;' : '#7C7C7C;'),
+    '--scroll-bar-bg: ' +
+      (appearance === 'dark' ? '#2B2B2B;' : '#F0F0F0;'),
+  ];
+}
+
+function getOrCreateStyleElement(id: string) {
+  let style = document.head.querySelector(`#${id}`);
+  if (style) { return style; }
+  style = document.createElement('style');
+  style.setAttribute('id', id);
+  document.head.append(style);
+  return style;
+}
+
+syncThemeWithGrist();

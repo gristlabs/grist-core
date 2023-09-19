@@ -19,6 +19,16 @@ const CUSTOM_URL = 'Custom URL';
 // Create some widgets:
 const widget1: ICustomWidget = {widgetId: '1', name: 'W1', url: widgetEndpoint + '?name=W1'};
 const widget2: ICustomWidget = {widgetId: '2', name: 'W2', url: widgetEndpoint + '?name=W2'};
+const widgetWithTheme: ICustomWidget = {
+  widgetId: '3',
+  name: 'WithTheme',
+  url: widgetEndpoint + '?name=WithTheme',
+};
+const widgetNoPluginApi: ICustomWidget = {
+  widgetId: '4',
+  name: 'NoPluginApi',
+  url: widgetEndpoint + '?name=NoPluginApi',
+};
 const fromAccess = (level: AccessLevel) =>
   ({widgetId: level, name: level, url: widgetEndpoint, accessLevel: level}) as ICustomWidget;
 const widgetNone = fromAccess(AccessLevel.none);
@@ -54,8 +64,13 @@ describe('CustomWidgets', function () {
       app.get(widgetEndpoint, (req, res) =>
         res
           .header('Content-Type', 'text/html')
-          .send('<html><head><script src="/grist-plugin-api.js"></script></head><body>\n' +
+          .send('<html><head>' +
+            (req.query.name === 'NoPluginApi' ? '' : '<script src="/grist-plugin-api.js"></script>') +
+            (req.query.name === 'WithTheme' ? '<script>grist.ready();</script>' : '') +
+            '</head><body>\n' +
+            (req.query.name === 'WithTheme' ? '<span style="color: var(--grist-theme-text);">' : '') +
             (req.query.name || req.query.access) + // send back widget name from query string or access level
+            (req.query.name === 'WithTheme' ? '</span>' : '') +
             '</body></html>\n')
           .end()
       );
@@ -146,7 +161,7 @@ describe('CustomWidgets', function () {
   const setUrl = async (url: string) => {
     await driver.find('.test-config-widget-url').click();
     // First clear textbox.
-    await gu.clearInput();
+    await gu.sendKeys(await gu.selectAllKey(), Key.DELETE);
     if (url) {
       await gu.sendKeys(`${widgetServerUrl}${url}`, Key.ENTER);
     } else {
@@ -242,6 +257,64 @@ describe('CustomWidgets', function () {
     await gu.undo(7);
   });
 
+  it('should support theme variables', async () => {
+    widgets = [widgetWithTheme];
+    await useManifest(manifestEndpoint);
+    await recreatePanel();
+    await toggle();
+    await select(widgetWithTheme.name);
+    assert.equal(await current(), widgetWithTheme.name);
+    assert.equal(await content(), widgetWithTheme.name);
+
+    const getWidgetColor = async () => {
+      const iframe = driver.find('iframe');
+      await driver.switchTo().frame(iframe);
+      const color = await driver.find('span').getCssValue('color');
+      await driver.switchTo().defaultContent();
+      return color;
+    };
+
+    // Check that the widget is using the text color from the GristLight theme.
+    assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
+
+    // Switch the theme to GristDark.
+    await gu.setGristTheme({appearance: 'dark'});
+    await driver.navigate().back();
+    await gu.waitForDocToLoad();
+
+    // Check that the span is using the text color from the GristDark theme.
+    assert.equal(await getWidgetColor(), 'rgba(239, 239, 239, 1)');
+
+    // Switch back to GristLight.
+    await gu.setGristTheme({appearance: 'light'});
+    await driver.navigate().back();
+    await gu.waitForDocToLoad();
+
+    // Check that the widget is back to using the GristLight text color.
+    assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
+
+    // Re-enable widget repository.
+    await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+  });
+
+  it("should support widgets that don't use the plugin api", async () => {
+    widgets = [widgetNoPluginApi];
+    await useManifest(manifestEndpoint);
+    await recreatePanel();
+    await toggle();
+    await select(widgetNoPluginApi.name);
+    assert.equal(await current(), widgetNoPluginApi.name);
+
+    // Check that the widget loaded and its iframe is visible.
+    assert.equal(await content(), widgetNoPluginApi.name);
+    assert.isTrue(await driver.find('iframe').isDisplayed());
+
+    // Revert to original configuration.
+    widgets = [widget1, widget2];
+    await useManifest(manifestEndpoint);
+    await recreatePanel();
+  });
+
   it('should show error message for invalid widget url list', async () => {
     const testError = async (url: string, error: string) => {
       // Switch section to rebuild the creator panel.
@@ -283,10 +356,6 @@ describe('CustomWidgets', function () {
   });
 
   it('should switch access level to none on new widget', async () => {
-    widgets = [widget1, widget2];
-    await useManifest(manifestEndpoint);
-    await recreatePanel();
-
     await toggle();
     await select(widget1.name);
     assert.equal(await access(), AccessLevel.none);

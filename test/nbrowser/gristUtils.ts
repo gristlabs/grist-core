@@ -3131,6 +3131,20 @@ export async function downloadSectionCsvGridCells(
   return ([] as string[]).concat(...csvRows);
 }
 
+export async function setGristTheme(options: {
+  appearance: 'light' | 'dark',
+  skipOpenSettingsPage?: boolean,
+}) {
+  const {appearance, skipOpenSettingsPage} = options;
+  if (!skipOpenSettingsPage) {
+    await openProfileSettingsPage();
+  }
+  await driver.find('.test-theme-config-appearance .test-select-open').click();
+  await driver.findContent('.test-select-menu li', appearance === 'light' ? 'Light' : 'Dark')
+    .click();
+  await waitForServer();
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);

@@ -36,12 +36,15 @@ import * as Mousetrap from 'app/client/lib/Mousetrap';
 import { ActionRouter } from 'app/common/ActionRouter';
 import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from 'app/common/PluginInstance';
 import { tbind } from 'app/common/tbind';
+import { Theme } from 'app/common/ThemePrefs';
 import { getOriginUrl } from 'app/common/urlUtils';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
 import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
 import { checkers } from 'app/plugin/TypeCheckers';
-import { IMsgCustom, IMsgRpcCall, Rpc } from 'grain-rpc';
+import { Computed, dom as grainjsDom, Observable } from 'grainjs';
+import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from 'grain-rpc';
 import { Disposable } from './dispose';
+import isEqual from 'lodash/isEqual';
 const G = getBrowserGlobals('document', 'window');
 
 /**
@@ -54,7 +57,6 @@ const G = getBrowserGlobals('document', 'window');
  // client processes and among other thing will expose both renderImpl and
  // disposeImpl. ClientProcess will hold a reference to ProcessManager instead of SafeBrowser.
 export class SafeBrowser extends BaseComponent {
-
   /**
    * Create a webview ClientProcess to render safe browser process in electron.
    */
@@ -71,6 +73,8 @@ export class SafeBrowser extends BaseComponent {
       new IframeProcess(safeBrowser, rpc, src);
   }
 
+  public theme? = this._options.theme;
+
   // All view processes. This is not used anymore to dispose all processes on deactivation (this is
   // now achieved using `this._mainProcess.autoDispose(...)`) but rather to be able to dispatch
   // events to all processes (such as doc actions which will need soon).
@@ -80,17 +84,30 @@ export class SafeBrowser extends BaseComponent {
   private _mainProcess: WorkerProcess|undefined;
   private _viewCount: number = 0;
 
-  constructor(
-    private _plugin: PluginInstance,
-    private _clientScope: ClientScope,
-    private _untrustedContentOrigin: string,
-    private _mainPath: string = "",
-    private _baseLogger: BaseLogger = console,
-    rpcLogger = createRpcLogger(_baseLogger, `PLUGIN ${_plugin.definition.id} SafeBrowser:`),
-  ) {
-    super(_plugin.definition.manifest, rpcLogger);
-    this._pluginId = _plugin.definition.id;
-    this._pluginRpc = _plugin.rpc;
+  private _plugin = this._options.pluginInstance;
+  private _clientScope = this._options.clientScope;
+  private _untrustedContentOrigin = this._options.untrustedContentOrigin;
+  private _mainPath = this._options.mainPath ?? '';
+  private _baseLogger = this._options.baseLogger ?? console;
+
+  constructor(private _options: {
+    pluginInstance: PluginInstance,
+    clientScope: ClientScope,
+    untrustedContentOrigin: string,
+    mainPath?: string,
+    baseLogger?: BaseLogger,
+    rpcLogger?: IRpcLogger,
+    theme?: Computed<Theme>,
+  }) {
+    super(
+      _options.pluginInstance.definition.manifest,
+      _options.rpcLogger ?? createRpcLogger(
+        _options.baseLogger ?? console,
+        `PLUGIN ${_options.pluginInstance.definition.id} SafeBrowser:`
+      )
+    );
+    this._pluginId = this._plugin.definition.id;
+    this._pluginRpc = this._plugin.rpc;
   }
 
   /**
@@ -274,6 +291,9 @@ class WorkerProcess extends ClientProcess  {
 
 export class ViewProcess extends ClientProcess {
   public element: HTMLElement;
+
+  // Set once all of the plugin's onOptions handlers have been called.
+  protected _optionsInitialized: Observable<boolean>;
 }
 
 /**
@@ -282,10 +302,23 @@ export class ViewProcess extends ClientProcess {
 class IframeProcess extends ViewProcess {
   public create(safeBrowser: SafeBrowser, rpc: Rpc, src: string) {
     super.create(safeBrowser, rpc, src);
-    const iframe = this.element = this.autoDispose(dom(`iframe.safe_browser_process.clipboard_focus`,
-      { src }));
-    const listener = (event: MessageEvent) => {
+    this._optionsInitialized = Observable.create(this, false);
+    const iframe = this.element = this.autoDispose(
+      grainjsDom(`iframe.safe_browser_process.clipboard_focus`,
+        {src},
+        grainjsDom.style('visibility', use => use(this._optionsInitialized) ? 'visible' : 'hidden'),
+      ) as HTMLIFrameElement
+    );
+    const listener = async (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {
+        if (event.data.mtype === MsgType.Ready) {
+          await this._sendSettings({theme: safeBrowser.theme?.get()}, true);
+        }
+
+        if (event.data.data?.settings?.status === 'initialized') {
+          this._optionsInitialized.set(true);
+        }
+
         this.rpc.receiveMessage(event.data);
       }
     };
@@ -294,8 +327,21 @@ class IframeProcess extends ViewProcess {
       G.window.removeEventListener('message', listener);
     });
     this.rpc.setSendMessage(msg => iframe.contentWindow!.postMessage(msg, '*'));
+
+    if (safeBrowser.theme) {
+      this.autoDispose(
+        safeBrowser.theme.addListener(async (newTheme, oldTheme) => {
+          if (isEqual(newTheme, oldTheme)) { return; }
+
+          await this._sendSettings({theme: safeBrowser.theme?.get()});
+        })
+      );
+    }
   }
 
+  private async _sendSettings(settings: {theme?: Theme}, fromReady = false) {
+    await this.rpc.postMessage({settings, fromReady});
+  }
 }
 
 /**

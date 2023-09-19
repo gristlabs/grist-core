@@ -327,6 +327,8 @@ export class CustomSectionConfig extends Disposable {
       if (value === CUSTOM_ID) {
         // Select Custom URL
         bundleChanges(() => {
+          // Reset whether widget should render after `grist.ready()`.
+          _section.customDef.renderAfterReady(false);
           // Clear url.
           _section.customDef.url(null);
           // Clear widget definition.
@@ -355,6 +357,8 @@ export class CustomSectionConfig extends Disposable {
           return;
         }
         bundleChanges(() => {
+          // Reset whether widget should render after `grist.ready()`.
+          _section.customDef.renderAfterReady(false);
           // Clear access level
           _section.customDef.access(AccessLevel.none);
           // When widget wants some access, set desired access level.
@@ -378,7 +382,13 @@ export class CustomSectionConfig extends Disposable {
     // Url for the widget, taken either from widget definition, or provided by hand for Custom URL.
     // For custom widget, we will store url also in section definition.
     this._url = Computed.create(this, use => use(_section.customDef.url) || '');
-    this._url.onWrite(newUrl => _section.customDef.url.setAndSave(newUrl));
+    this._url.onWrite(async newUrl => {
+      bundleChanges(() => {
+        _section.customDef.renderAfterReady(false);
+        _section.customDef.url(newUrl);
+      });
+      await _section.saveCustomDef();
+    });
 
     // Compute current access level.
     this._currentAccess = Computed.create(

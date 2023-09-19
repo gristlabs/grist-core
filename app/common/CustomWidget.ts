@@ -18,6 +18,13 @@ export interface ICustomWidget {
    * Optional desired access level.
    */
   accessLevel?: AccessLevel;
+  /**
+   * If set, Grist will render the widget after `grist.ready()`.
+   *
+   * Currently, this is only used to defer rendering a widget until it has had
+   * a chance to apply the Grist theme.
+   */
+  renderAfterReady?: boolean;
 }
 
 /**

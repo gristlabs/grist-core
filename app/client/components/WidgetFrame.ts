@@ -8,6 +8,7 @@ import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
+import {Theme} from 'app/common/ThemePrefs';
 import {AccessTokenOptions, CursorPos, CustomSectionAPI, GristDocAPI, GristView,
         InteractionOptionsRequest, WidgetAPI, WidgetColumnMap} from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
@@ -49,6 +50,20 @@ export interface WidgetFrameOptions {
    */
   readonly: boolean;
   /**
+   * If set, show the iframe after `grist.ready()`.
+   *
+   * Currently, this is only used to defer showing a widget until it has had
+   * a chance to apply the Grist theme.
+   */
+  showAfterReady?: boolean;
+  /**
+   * Handler for the settings initialized message.
+   *
+   * Currently, this is only used to defer showing a widget until it has had
+   * a chance to apply the Grist theme.
+   */
+  onSettingsInitialized: () => void;
+  /**
    * Optional callback to configure exposed API.
    */
   configure?: (frame: WidgetFrame) => void;
@@ -68,6 +83,8 @@ export class WidgetFrame extends DisposableWithEvents {
   private _iframe: HTMLIFrameElement | null;
   // If widget called ready() method, this will be set to true.
   private _readyCalled = Observable.create(this, false);
+  // Whether the iframe is visible.
+  private _visible = Observable.create(this, !this._options.showAfterReady);
 
   constructor(private _options: WidgetFrameOptions) {
     super();
@@ -162,6 +179,7 @@ export class WidgetFrame extends DisposableWithEvents {
     const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
     return onElem(
       (this._iframe = dom('iframe',
+        dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
         dom.cls('clipboard_focus'),
         dom.cls('custom_view'), {
           src: fullUrl,
@@ -188,6 +206,10 @@ export class WidgetFrame extends DisposableWithEvents {
       if (event.data.mtype === MsgType.Ready) {
         this.trigger('ready', this);
         this._readyCalled.set(true);
+      }
+      if (event.data.data?.settings?.status === 'initialized') {
+        this._visible.set(true);
+        this._options.onSettingsInitialized();
       }
       this._rpc.receiveMessage(event.data);
     }
@@ -523,38 +545,48 @@ export class RecordNotifier extends BaseEventSource {
   }
 }
 
+export interface ConfigNotifierOptions {
+  access: AccessLevel;
+  theme: Computed<Theme>;
+}
+
 /**
  * Notifies about options change. Exposed in the API as a onOptions handler.
  */
 export class ConfigNotifier extends BaseEventSource {
+  private _accessLevel = this._options.access;
+  private _theme = this._options.theme;
   private _currentConfig: Computed<any | null>;
-  private _debounced: () => void; // debounced call to let the view know linked cursor changed.
-  constructor(private _section: ViewSectionRec, private _accessLevel: AccessLevel) {
+  // Debounced call to let the view know linked cursor changed.
+  private _debounced: (fromReady?: boolean) => void;
+  constructor(private _section: ViewSectionRec, private _options: ConfigNotifierOptions) {
     super();
     this._currentConfig = Computed.create(this, use => {
       const options = use(this._section.activeCustomOptions);
       return options;
     });
-    this._debounced = debounce(() => this._update(), 0);
-    const subscribe = (obs: Observable<any>) => {
-      this.autoDispose(
-        obs.addListener((cur, prev) => {
-          if (isEqual(prev, cur)) {
-            return;
-          }
-          this._debounced();
-        })
-      );
+    this._debounced = debounce((fromReady?: boolean) => this._update(fromReady), 0);
+    const subscribe = (...observables: Observable<any>[]) => {
+      for (const obs of observables) {
+        this.autoDispose(
+          obs.addListener((cur, prev) => {
+            if (isEqual(prev, cur)) {
+              return;
+            }
+            this._debounced();
+          })
+        );
+      }
     };
-    subscribe(this._currentConfig);
+    subscribe(this._currentConfig, this._theme);
   }
 
   protected _ready() {
     // On ready, send initial configuration.
-    this._debounced();
+    this._debounced(true);
   }
 
-  private _update() {
+  private _update(fromReady = false) {
     if (this.isDisposed()) {
       return;
     }
@@ -562,7 +594,9 @@ export class ConfigNotifier extends BaseEventSource {
       options: this._currentConfig.get(),
       settings: {
         accessLevel: this._accessLevel,
+        theme: this._theme.get(),
       },
+      fromReady,
     });
   }
 }

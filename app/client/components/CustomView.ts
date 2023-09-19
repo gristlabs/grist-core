@@ -153,8 +153,14 @@ export class CustomView extends Disposable {
   }
 
   private _buildDom() {
-    const {mode, url, access} = this.customDef;
+    const {mode, url, access, renderAfterReady} = this.customDef;
     const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
+    const showAfterReady = () => {
+      // The empty widget page calls `grist.ready()`.
+      if (!url()) { return true; }
+
+      return this.customDef.widgetDef()?.renderAfterReady ?? renderAfterReady();
+    };
 
     // When both plugin and section are not found, let's show only plugin notification.
     const showPluginNotification = ko.pureComputed(() => showPlugin() && !this._foundPlugin());
@@ -170,7 +176,14 @@ export class CustomView extends Disposable {
       dom.autoDispose(showPluginContent),
       // todo: should display content in webview when running electron
       kd.scope(() => [mode(), url(), access()], ([_mode, _url, _access]: string[]) =>
-        _mode === "url" ? this._buildIFrame(_url, (_access || AccessLevel.none) as AccessLevel) : null),
+        _mode === "url" ?
+          this._buildIFrame({
+            baseUrl: _url,
+            access: (_access as AccessLevel || AccessLevel.none),
+            showAfterReady: showAfterReady(),
+          })
+          : null
+      ),
       kd.maybe(showPluginNotification, () => buildNotification('Plugin ',
         dom('strong', kd.text(this.customDef.pluginId)), ' was not found',
         dom.testId('customView_notification_plugin')
@@ -193,11 +206,22 @@ export class CustomView extends Disposable {
     this.viewSection.desiredAccessLevel(access);
   }
 
-  private _buildIFrame(baseUrl: string, access: AccessLevel) {
+  private _buildIFrame(options: {
+    baseUrl: string|null,
+    access: AccessLevel,
+    showAfterReady?: boolean,
+  }) {
+    const {baseUrl, access, showAfterReady} = options;
     return grains.create(WidgetFrame, {
       url: baseUrl || this.getEmptyWidgetPage(),
       access,
       readonly: this.gristDoc.isReadonly.get(),
+      showAfterReady,
+      onSettingsInitialized: async () => {
+        if (!this.customDef.renderAfterReady.peek()) {
+          await this.customDef.renderAfterReady.setAndSave(true);
+        }
+      },
       configure: (frame) => {
         this._frame = frame;
         // Need to cast myself to a BaseView
@@ -223,7 +247,10 @@ export class CustomView extends Disposable {
           new WidgetAPIImpl(this.viewSection),
           new MinimumLevel(AccessLevel.none)); // none access is enough
         frame.useEvents(
-          ConfigNotifier.create(frame, this.viewSection, access),
+          ConfigNotifier.create(frame, this.viewSection, {
+            access,
+            theme: this.gristDoc.currentTheme,
+          }),
           new MinimumLevel(AccessLevel.none)); // none access is enough
       },
       onElem: (iframe) => onFrameFocus(iframe, () => {

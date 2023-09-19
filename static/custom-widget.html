@@ -4,22 +4,46 @@
 <head>
   <meta charset="utf8">
   <title>Custom widget</title>
+  <script src="/grist-plugin-api.js"></script>
+  <script>
+    grist.ready();
+  </script>
   <style>
     body {
       margin: 0;
       font-size: 13px;
-      color: #262633;
+      color: var(--grist-theme-text, #262633);
       font-family: -apple-system, BlinkMacSystemFont, Segoe UI,
         Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .title-light {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--grist-theme-text-light, #929299);
+    }
+
+    a {
+      color: var(--grist-theme-link, #16B378);
+      text-decoration: none;
+    }
+
+    a:hover, a:focus {
+      text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
   <div style="padding: 20px">
-    <div style="font-size: 20px; font-weight: 600;">
-      <span style="font-size: 20px; font-weight: 600;">Custom widget</span>
-      <span style="font-size: 16px; font-weight: 400; color:#a7a7a7">(not configured)</span>
+    <div>
+      <span class="title">Custom widget</span>
+      <span class="title-light">(not configured)</span>
     </div>
     <p>
       The Custom widget allows a user to insert almost anything in their document.

@@ -224,8 +224,13 @@ export class GristDoc extends DisposableWithEvents {
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = new DocModel(this.docData, this.docPageModel);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
-    this.docPluginManager = new DocPluginManager(plugins,
-      app.topAppModel.getUntrustedContentOrigin(), this.docComm, app.clientScope);
+    this.docPluginManager = new DocPluginManager({
+      plugins,
+      untrustedContentOrigin: app.topAppModel.getUntrustedContentOrigin(),
+      docComm: this.docComm,
+      clientScope: app.clientScope,
+      theme: this.currentTheme,
+    });
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.
     this.docInfo = this.docModel.docInfoRow;

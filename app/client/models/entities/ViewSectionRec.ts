@@ -266,6 +266,13 @@ export interface CustomViewSectionDef {
    * The section id.
    */
   sectionId: modelUtil.KoSaveableObservable<string>;
+  /**
+   * If set, render the widget after `grist.ready()`.
+   *
+   * Currently, this is only used to defer rendering a widget until it has had
+   * a chance to apply the Grist theme.
+   */
+  renderAfterReady: modelUtil.KoSaveableObservable<boolean>;
 }
 
 /** Information about filters for a field or hidden column. */
@@ -317,7 +324,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     widgetDef: null,
     access: '',
     pluginId: '',
-    sectionId: ''
+    sectionId: '',
+    renderAfterReady: false,
   };
   const customDefObj = modelUtil.jsonObservable(this.optionsObj.prop('customView'),
     (obj: any) => defaults(obj || {}, customViewDefaults));
@@ -330,7 +338,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     columnsMapping: customDefObj.prop('columnsMapping'),
     access: customDefObj.prop('access'),
     pluginId: customDefObj.prop('pluginId'),
-    sectionId: customDefObj.prop('sectionId')
+    sectionId: customDefObj.prop('sectionId'),
+    renderAfterReady: customDefObj.prop('renderAfterReady'),
   };
 
   this.selectedFields = ko.observable<any>([]);
