@@ -183,6 +183,17 @@ export class Cursor extends Disposable {
         this.fieldIndex(cursorPos.fieldIndex);
       }
 
+      // NOTE: cursorEdited
+      // We primarily update cursorEdited counter from a this._properRowId.subscribe(), since that catches updates
+      //   from many sources (setCursorPos, arrowKeys, save/load, filter/sort-changes, etc)
+      // However, when deleting a row with several sections linked together, there can be a case where this fails:
+      //   When GridView.deleteRows calls setCursorPos to keep cursor from jumping after delete, the observable
+      //   doesn't trigger cursorEdited(), because (I think) _properRowId has already been updated that cycle.
+      //   This caused a bug when several viewSections were cursor-linked to each other and a row was deleted.
+      // We can explicitly call cursorEdited again here. It'll cause cursorEdited to be called twice sometimes,
+      //   but that shouldn't cause any problems, since we don't care about edit counts, just who was edited latest.
+      this.cursorEdited()
+
     } finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
     }
