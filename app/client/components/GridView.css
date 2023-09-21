@@ -71,7 +71,7 @@
   width: 4rem; /* Also should match width for .gridview_header_corner, and the overlay elements */
   flex: none;
 
-  border-bottom: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
+  border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   color: var(--grist-theme-table-header-fg, unset);
   background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey));
   z-index: 20; /* goes over data cells */
@@ -102,7 +102,7 @@
    * do not want !important, as it interferes with row selection.
    */
   .gridview_data_row_num {
-    background-color: var(--grist-theme-table-header-bg , var(--grist-color-light-grey)) !important;
+    background-color: var(--grist-color-light-grey) !important;
   }
   .gridview_header_backdrop_top {
     display: none;
@@ -111,7 +111,7 @@
     display: none;
   }
   .gridview_data_header {
-    background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
+    background-color: var(--grist-color-light-grey) !important;
   }
   .print-widget .gridview_header_backdrop_left, .print-widget .gridview_data_corner_overlay {
     display: none;
@@ -127,15 +127,15 @@
     display: table-header-group;
     break-inside: avoid;
     position: static;
-    border-top: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
-    border-left: 1px solid var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
+    border-top: 1px solid var(--grist-color-dark-grey);
+    border-left: 1px solid var(--grist-color-dark-grey);
   }
   .print-widget .gridview_data_header {
     padding-left: 4rem !important;
   }
   .print-widget .gridview_data_pane .print-all-rows {
     display: table-row-group;
-    border-left: 1px solid var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
+    border-left: 1px solid var(--grist-color-dark-grey);
   }
   .print-widget .gridview_data_pane .print-row {
     display: table-row;

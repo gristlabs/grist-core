@@ -18,7 +18,8 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/UserAPI';
 import {detectCurrentLang, makeT} from 'app/client/lib/localization';
 import {translateLocale} from 'app/client/ui/LanguageMenu';
-import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled} from 'grainjs';
+import {getPageTitleSuffix} from 'app/common/gristUrls';
+import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe} from 'grainjs';
 
 const testId = makeTestId('test-account-page-');
 const t = makeT('AccountPage');
@@ -27,6 +28,7 @@ const t = makeT('AccountPage');
  * Creates the account page where a user can manage their profile settings.
  */
 export class AccountPage extends Disposable {
+  private readonly _currentPage = Computed.create(this, urlState().state, (_use, s) => s.account);
   private _apiKey = Observable.create<string>(this, '');
   private _userObs = Observable.create<FullUser|null>(this, null);
   private _isEditingName = Observable.create(this, false);
@@ -37,6 +39,7 @@ export class AccountPage extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
+    this._setPageTitle();
     this._fetchAll().catch(reportError);
   }
 
@@ -227,6 +230,18 @@ designed to ensure that you're the only person who can access your account, even
       t("Names only allow letters, numbers and certain special characters"),
       testId('username-warning'),
     );
+  }
+
+  private _setPageTitle() {
+    this.autoDispose(subscribe(this._currentPage, (_use, page): string => {
+      const suffix = getPageTitleSuffix(getGristConfig());
+      switch (page) {
+        case undefined:
+        case 'account': {
+          return document.title = `Account${suffix}`;
+        }
+      }
+    }));
   }
 }
 

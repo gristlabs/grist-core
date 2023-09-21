@@ -2,7 +2,7 @@ import {IToken, TokenField} from 'app/client/lib/TokenField';
 import {cssBlockedCursor} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {colorButton, ColorOption} from 'app/client/ui2018/ColorSelect';
-import {colors, testId, theme} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
@@ -492,7 +492,7 @@ const cssListBoxInactive = styled(cssListBox, `
     border: 1px solid ${theme.choiceEntryBorderHover};
   }
   &-disabled {
-    opacity: 0.6;
+    opacity: 0.4;
   }
 `);
 
@@ -501,8 +501,8 @@ const cssListRow = styled('div', `
   margin-top: 4px;
   margin-bottom: 4px;
   padding: 4px 8px;
-  color: ${colors.dark};
-  background-color: ${colors.mediumGreyOpaque};
+  color: ${theme.choiceTokenFg};
+  background-color: ${theme.choiceTokenBg};
   border-radius: 3px;
   text-overflow: ellipsis;
 `);
@@ -521,7 +521,7 @@ const cssToken = styled(cssListRow, `
   cursor: grab;
 
   &.selected {
-    background-color: ${colors.darkGrey};
+    background-color: ${theme.choiceTokenSelectedBg};
   }
   &.token-dragging {
     pointer-events: none;
@@ -619,8 +619,9 @@ const cssDeleteButton = styled('div', `
 `);
 
  const cssDeleteIcon = styled(icon, `
-   --icon-color: ${colors.slate};
+   --icon-color: ${theme.text};
+   opacity: 0.6;
    &:hover {
-     --icon-color: ${colors.dark};
+     opacity: 1.0;
    }
  `);

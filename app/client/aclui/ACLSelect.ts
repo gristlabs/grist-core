@@ -1,4 +1,4 @@
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOption, select} from 'app/client/ui2018/menus';
 import {MaybeObsArray, Observable, styled} from 'grainjs';
@@ -19,7 +19,7 @@ export const cssSelect = styled(select, `
   cursor: pointer;
 
   &:hover, &:focus, &.weasel-popup-open, &-active {
-    border: 1px solid ${colors.darkGrey};
+    border: 1px solid ${theme.selectButtonBorder};
     box-shadow: none;
   }
 `);

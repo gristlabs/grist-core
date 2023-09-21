@@ -6,6 +6,7 @@ const kd            = require('app/client/lib/koDom');
 const koDomScrolly  = require('app/client/lib/koDomScrolly');
 const {renderAllRows} = require('app/client/components/Printing');
 const {isNarrowScreen} = require('app/client/ui2018/cssVars');
+const {icon} = require('app/client/ui2018/icons');
 
 require('app/client/lib/koUtil'); // Needed for subscribeInit.
 
@@ -381,28 +382,29 @@ DetailView.prototype.buildTitleControls = function() {
         kd.text(() => this._isAddRow() ? 'Add record' :
           `${this.cursor.rowIndex() + 1} of ${this.getLastDataRowIndex() + 1}`)
       ),
-      dom('div.btn-group.btn-group-xs',
-        dom('div.btn.btn-default.detail-left',
-          dom('span.glyphicon.glyphicon-chevron-left'),
+      dom('div.detail-buttons',
+        dom('div.detail-button.detail-left',
+          icon('ArrowLeft'),
           dom.on('click', () => { this.cursor.rowIndex(this.cursor.rowIndex() - 1); }),
-          kd.toggleClass('disabled', () => this.cursor.rowIndex() === 0)
+          kd.toggleClass('disabled', () => this.cursor.rowIndex() === 0),
+          dom.testId('detailView_detail_left'),
         ),
-        dom('div.btn.btn-default.detail-right',
-          dom('span.glyphicon.glyphicon-chevron-right'),
+        dom('div.detail-button.detail-right',
+          icon('ArrowRight'),
           dom.on('click', () => { this.cursor.rowIndex(this.cursor.rowIndex() + 1); }),
-          kd.toggleClass('disabled', () => this.cursor.rowIndex() >= this.viewData.all().length - 1)
-        )
-      ),
-      dom('div.btn-group.btn-group-xs.detail-add-grp',
-        dom('div.btn.btn-default.detail-add-btn',
-          dom('span.glyphicon.glyphicon-plus'),
+          kd.toggleClass('disabled', () => this.cursor.rowIndex() >= this.viewData.all().length - 1),
+          dom.testId('detailView_detail_right'),
+        ),
+        dom('div.detail-button.detail-add-btn',
+          icon('Plus'),
           dom.on('click', () => {
             let addRowIndex = this.viewData.getRowIndex('new');
             this.cursor.rowIndex(addRowIndex);
           }),
-          kd.toggleClass('disabled', () => this.viewData.getRowId(this.cursor.rowIndex()) === 'new')
-        )
-      )
+          kd.toggleClass('disabled', () => this.viewData.getRowId(this.cursor.rowIndex()) === 'new'),
+          dom.testId('detailView_detail_add'),
+        ),
+      ),
     ))
   );
 };

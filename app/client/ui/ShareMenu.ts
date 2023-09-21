@@ -376,12 +376,11 @@ const cssMenuIconLink = styled('a', `
   display: block;
   flex: none;
   padding: 8px 24px;
+  --icon-color: ${theme.controlFg};
 
-  background-color: ${theme.menuBg};
-  --icon-color: ${theme.menuItemLinkFg};
   &:hover {
-    background-color: ${theme.menuItemLinkselectedBg};
-    --icon-color: ${theme.menuItemLinkSelectedFg};
+    background-color: ${theme.hover};
+    --icon-color: ${theme.controlHoverFg};
   }
 `);
 

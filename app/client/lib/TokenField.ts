@@ -652,14 +652,14 @@ const cssToken = styled('div', `
   position: relative;
   flex: none;
   border-radius: 3px;
-  background-color: ${colors.mediumGreyOpaque};
+  background-color: ${theme.choiceTokenBg};
   padding: 4px;
   margin: 3px 2px;
   user-select: none;
   cursor: grab;
 
   &.selected {
-    background-color: ${colors.darkGrey};
+    background-color: ${theme.choiceTokenSelectedBg};
   }
   &.token-dragging {
     pointer-events: none;
@@ -710,7 +710,7 @@ const cssDragTarget = styled('div', `
   &:hover::after {
     content: "";
     position: absolute;
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.controlFg};
     width: 2px;
     top: 0px;
     bottom: 0px;
@@ -740,7 +740,7 @@ const cssVerticalDragTarget = styled('div', `
   &:hover::after {
     content: "";
     position: absolute;
-    background-color: ${colors.lightGreen};
+    background-color: ${theme.controlFg};
     height: 2px;
     top: -5px;
     bottom: 0px;

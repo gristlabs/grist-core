@@ -26,6 +26,7 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {getUserPrefObs, getUserPrefsObs, markAsSeen, markAsUnSeen} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
+import isEqual from 'lodash/isEqual';
 
 const t = makeT('AppModel');
 
@@ -311,9 +312,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   ) {
     super();
 
-    this._applyTheme();
-    this.autoDispose(this.currentTheme.addListener(() => this._applyTheme()));
-
+    this._setTheme();
     this._recordSignUpIfIsNewUser();
 
     const state = urlState().state.get();
@@ -488,14 +487,16 @@ export class AppModelImpl extends Disposable implements AppModel {
     );
   }
 
-  /**
-   * Applies a theme based on the user's current theme preferences.
-   */
-  private _applyTheme() {
+  private _setTheme() {
     // Custom CSS is incompatible with custom themes.
     if (getGristConfig().enableCustomCss) { return; }
 
     attachCssThemeVars(this.currentTheme.get());
+    this.autoDispose(this.currentTheme.addListener((newTheme, oldTheme) => {
+      if (isEqual(newTheme, oldTheme)) { return; }
+
+      attachCssThemeVars(newTheme);
+    }));
   }
 }
 

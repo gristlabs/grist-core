@@ -15,7 +15,7 @@ export class CellStyle extends Disposable {
   constructor(
     private _field: ViewFieldRec,
     private _gristDoc: GristDoc,
-    private _defaultTextColor: string
+    private _defaultTextColor: string|undefined
   ) {
     super();
   }
@@ -51,21 +51,26 @@ export class CellStyle extends Disposable {
               });
               return colorSelect(
                 {
-                  textColor: new ColorOption(
-                    { color: headerTextColor, defaultColor: this._defaultTextColor, noneText: 'default' }
-                  ),
-                  fillColor: new ColorOption(
-                    { color: headerFillColor, allowsNone: true, noneText: 'none' }
-                  ),
+                  textColor: new ColorOption({
+                    color: headerTextColor,
+                    defaultColor: theme.tableHeaderFg.toString(),
+                    noneText: 'default',
+                  }),
+                  fillColor: new ColorOption({
+                    color: headerFillColor,
+                    allowsNone: true,
+                    noneText: 'none',
+                  }),
                   fontBold: headerFontBold,
                   fontItalic: headerFontItalic,
                   fontUnderline: headerFontUnderline,
                   fontStrikethrough: headerFontStrikethrough
-                }, {
-                onSave: () => options.save(),
-                onRevert: () => options.revert(),
-                placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default header style')
-              }
+                },
+                {
+                  onSave: () => options.save(),
+                  onRevert: () => options.revert(),
+                  placeholder: use => use(hasMixedStyle) ? t('Mixed style') : t('Default header style')
+                }
               );
             }),
           )];
@@ -97,12 +102,16 @@ export class CellStyle extends Disposable {
           });
           return colorSelect(
             {
-              textColor: new ColorOption(
-                { color: textColor, defaultColor: this._defaultTextColor, noneText: 'default'}
-              ),
-              fillColor: new ColorOption(
-                { color: fillColor, allowsNone: true, noneText: 'none'}
-              ),
+              textColor: new ColorOption({
+                color: textColor,
+                defaultColor: this._defaultTextColor,
+                noneText: 'default',
+              }),
+              fillColor: new ColorOption({
+                color: fillColor,
+                allowsNone: true,
+                noneText: 'none',
+              }),
               fontBold: fontBold,
               fontItalic: fontItalic,
               fontUnderline: fontUnderline,

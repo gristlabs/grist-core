@@ -172,7 +172,7 @@ const cssDecimalsBox = styled('div', `
     margin-right: 16px;
   }
   &-disabled {
-    background-color: ${theme.rightPanelToggleButtonDisabledBg};
+    opacity: 0.4;
     pointer-events: none;
   }
 `);

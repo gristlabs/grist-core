@@ -16,7 +16,7 @@ const cssMemoInput = styled('input', `
   border-radius: 3px;
   border: 1px solid transparent;
   cursor: pointer;
-  color: ${theme.accentText};
+  color: ${theme.controlFg};
   background-color: ${theme.inputBg};
   caret-color : ${theme.inputFg};
   font: 12px 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
@@ -29,7 +29,7 @@ const cssMemoInput = styled('input', `
   &:not(&-disabled):focus-within {
     outline: none !important;
     cursor: text;
-    box-shadow: inset 0 0 0 1px ${theme.accentBorder};
-    border-color: ${theme.accentBorder};
+    box-shadow: inset 0 0 0 1px ${theme.controlFg};
+    border-color: ${theme.controlFg};
   }
 `);

@@ -263,7 +263,8 @@ const cssContributeButtonCloseButton = styled(tokenFieldStyles.cssDeleteButton, 
 const cssCard = styled('div', `
   width: 297px;
   padding: 24px;
-  background: #DCF4EB;
+  color: ${theme.announcementPopupFg};
+  background: ${theme.announcementPopupBg};
   border-radius: 4px;
   align-self: flex-start;
   position: sticky;
@@ -310,10 +311,10 @@ const cssCloseButton = styled('div', `
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.popupCloseButtonFg};
 
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
+    background-color: ${theme.hover};
   }
 `);
 

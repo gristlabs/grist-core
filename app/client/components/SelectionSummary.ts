@@ -6,7 +6,7 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {UserError} from 'app/client/models/errors';
 import {ALL, RowsChanged, SortedRowSet} from "app/client/models/rowset";
 import {showTransientTooltip} from 'app/client/ui/tooltips';
-import {colors, isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
+import {isNarrowScreen, isNarrowScreenObs, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {CellValue} from 'app/common/DocActions';
 import {isEmptyList, isListType, isRefListType} from "app/common/gristTypes";
@@ -314,7 +314,7 @@ const cssSummaryPart = styled('div', `
     left: 0;
     bottom: 0;
     right: 0;
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.tableCellSummaryBg};
     opacity: 0.8;
     z-index: -1;
   }

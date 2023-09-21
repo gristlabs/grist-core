@@ -3133,16 +3133,27 @@ export async function downloadSectionCsvGridCells(
 
 export async function setGristTheme(options: {
   appearance: 'light' | 'dark',
+  syncWithOS: boolean,
   skipOpenSettingsPage?: boolean,
 }) {
-  const {appearance, skipOpenSettingsPage} = options;
+  const {appearance, syncWithOS, skipOpenSettingsPage} = options;
   if (!skipOpenSettingsPage) {
     await openProfileSettingsPage();
   }
-  await driver.find('.test-theme-config-appearance .test-select-open').click();
-  await driver.findContent('.test-select-menu li', appearance === 'light' ? 'Light' : 'Dark')
-    .click();
-  await waitForServer();
+
+  const syncWithOSCheckbox = await driver.find('.test-theme-config-sync-with-os');
+  const isSyncWithOSChecked = await syncWithOSCheckbox.getAttribute('checked') === 'true';
+  if (syncWithOS !== isSyncWithOSChecked) {
+    await syncWithOSCheckbox.click();
+    await waitForServer();
+  }
+
+  if (!syncWithOS) {
+    await driver.find('.test-theme-config-appearance .test-select-open').click();
+    await driver.findContent('.test-select-menu li', appearance === 'light' ? 'Light' : 'Dark')
+      .click();
+    await waitForServer();
+  }
 }
 
 } // end of namespace gristUtils

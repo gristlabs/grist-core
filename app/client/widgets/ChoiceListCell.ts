@@ -33,17 +33,19 @@ export class ChoiceListCell extends ChoiceTextBox {
         if (!val) { return null; }
         // Handle any unexpected values we might get (non-array, or array with non-strings).
         const tokens: unknown[] = Array.isArray(val) ? val : [val];
-        return tokens.map(token =>
-          choiceToken(
-            String(token),
+        return tokens.map(token => {
+          const isBlank = String(token).trim() === '';
+          return choiceToken(
+            isBlank ? '[Blank]' : String(token),
             {
               ...(choiceOptionsByName.get(String(token)) || {}),
               invalid: !choiceSet.has(String(token)),
+              blank: String(token).trim() === '',
             },
             dom.cls(cssToken.className),
             testId('choice-list-cell-token')
-          )
-        );
+          );
+        });
       }),
     );
   }

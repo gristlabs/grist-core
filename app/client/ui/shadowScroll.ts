@@ -1,8 +1,8 @@
 import {dom, IDomArgs, Observable, styled} from 'grainjs';
 
 // Shadow css settings for member scroll top and bottom.
-const SHADOW_TOP = 'inset 0 4px 6px 0 rgba(217,217,217,0.4)';
-const SHADOW_BTM = 'inset 0 -4px 6px 0 rgba(217,217,217,0.4)';
+const SHADOW_TOP = 'inset 0 4px 6px 0 var(--grist-theme-scroll-shadow, rgba(217,217,217,0.4))';
+const SHADOW_BTM = 'inset 0 -4px 6px 0 var(--grist-theme-scroll-shadow, rgba(217,217,217,0.4))';
 
 /**
  * Creates a scroll div used in the UserManager and moveDoc menus to display

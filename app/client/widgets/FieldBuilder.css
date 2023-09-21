@@ -1,14 +1,14 @@
 .transform_editor {
-  width: 90%;
-  margin: 5px auto;
-  border: 1px solid #DDDDDD;
+  min-height: 28px;
+  margin: 8px 16px;
+  padding: 5px 6px;
+  background-color: var(--grist-theme-ace-editor-bg, white);
+  border: 1px solid var(--grist-theme-input-border, #D9D9D9);
+  border-radius: 3px;
 }
 
 .transform_menu {
-  padding: 5px 0;
-  margin: 5px;
-  border-top: 1px solid rgba(200, 200, 200, .3);
-  border-bottom: 1px solid rgba(200, 200, 200, .3);
+  padding-bottom: 8px;
 }
 
 .fieldbuilder_settings {

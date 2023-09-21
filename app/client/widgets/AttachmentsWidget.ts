@@ -3,7 +3,7 @@ import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {cssRow} from 'app/client/ui/RightPanelStyles';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {encodeQueryParams} from 'app/common/gutil';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -191,16 +191,16 @@ const cssAttachmentIcon = styled('div.glyphicon.glyphicon-paperclip', `
   top: 2px;
   left: 2px;
   padding: 2px;
-  background-color: #D0D0D0;
-  color: white;
+  background-color: ${theme.attachmentsCellIconBg};
+  color: ${theme.attachmentsCellIconFg};
   border-radius: 2px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 0 1px white;
+  box-shadow: 0 0 0 1px ${theme.cellEditorBg};
   z-index: 1;
 
   &:hover {
-    background-color: #3290BF;
+    background-color: ${theme.attachmentsCellIconHoverBg};
   }
 
   &-hover {
@@ -222,12 +222,12 @@ const cssAttachmentPreview = styled('div', `
   justify-content: center;
   z-index: 0;
   &:hover {
-    border-color: ${colors.lightGreen};
+    border-color: ${theme.cursor};
   }
 `);
 
 const cssSizeLabel = styled('div', `
-  color: ${colors.slate};
+  color: ${theme.lightText};
   margin-right: 9px;
 `);
 

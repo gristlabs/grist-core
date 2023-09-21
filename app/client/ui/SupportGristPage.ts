@@ -13,16 +13,17 @@ import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, Disposable, dom, makeTestId, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
 
 const testId = makeTestId('test-support-grist-page-');
 
 const t = makeT('SupportGristPage');
 
 export class SupportGristPage extends Disposable {
+  private readonly _currentPage = Computed.create(this, urlState().state, (_use, s) => s.supportGrist);
   private readonly _model: TelemetryModel = new TelemetryModelImpl(this._appModel);
   private readonly _optInToTelemetry = Computed.create(this, this._model.prefs,
     (_use, prefs) => {
@@ -37,6 +38,7 @@ export class SupportGristPage extends Disposable {
 
   constructor(private _appModel: AppModel) {
     super();
+    this._setPageTitle();
     this._model.fetchTelemetryPrefs().catch(reportError);
   }
 
@@ -185,6 +187,18 @@ export class SupportGristPage extends Disposable {
       ),
       testId('sponsorship-section'),
     );
+  }
+
+  private _setPageTitle() {
+    this.autoDispose(subscribe(this._currentPage, (_use, page): string => {
+      const suffix = getPageTitleSuffix(getGristConfig());
+      switch (page) {
+        case undefined:
+        case 'support-grist': {
+          return document.title = `Support Grist${suffix}`;
+        }
+      }
+    }));
   }
 }
 

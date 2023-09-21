@@ -1,5 +1,5 @@
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {colors} from 'app/client/ui2018/cssVars';
+import {theme} from 'app/client/ui2018/cssVars';
 import {Document, Workspace} from 'app/common/UserAPI';
 import {dom, makeTestId, styled} from 'grainjs';
 import {HomeModel, ViewSettings} from 'app/client/models/HomeModel';
@@ -63,7 +63,7 @@ const cssDocName = styled(css.docName, `
 const cssDocRowDetails = styled('div', `
   margin: 0 16px;
   line-height: 1.6;
-  color: ${colors.slate};
+  color: ${theme.lightText};
 `);
 
 const cssTemplateDocs = styled('div', `

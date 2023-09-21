@@ -100,10 +100,3 @@ export const dataRow = styled('div', `
   align-items: baseline;
   gap: 2px;
 `);
-
-export const betaTag = styled('span', `
-  text-transform: uppercase;
-  vertical-align: super;
-  font-size: ${vars.xsmallFontSize};
-  color: ${theme.accentText};
-`);

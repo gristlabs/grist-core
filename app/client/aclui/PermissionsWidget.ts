@@ -2,7 +2,7 @@
  * Implements a widget showing 3-state boxes for permissions
  * (for Allow / Deny / Pass-Through).
  */
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {menu, menuIcon, menuItem} from 'app/client/ui2018/menus';
 import {PartialPermissionSet, PartialPermissionValue} from 'app/common/ACLPermissions';
@@ -155,8 +155,8 @@ const cssBit = styled('div', `
   border-radius: 2px;
   font-size: 13px;
   font-weight: 500;
-  border: 1px dashed ${colors.darkGrey};
-  color: ${colors.darkGrey};
+  border: 1px dashed ${theme.accessRulesTableBodyLightFg};
+  color: ${theme.accessRulesTableBodyLightFg};
   cursor: pointer;
 
   display: flex;

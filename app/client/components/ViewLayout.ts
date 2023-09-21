@@ -456,7 +456,7 @@ const cssLayoutWrapper = styled('div', `
     }
     &-active .viewsection_content {
       margin: 0px;
-      margin-top: 12px;
+      margin-top: 8px;
     }
     &-active .viewsection_title {
       padding: 0px 12px;

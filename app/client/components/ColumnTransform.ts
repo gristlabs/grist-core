@@ -97,6 +97,8 @@ export class ColumnTransform extends Disposable {
       }));
     }
     return this.editor.buildDom((aceObj: any) => {
+      aceObj.setOptions({placeholder: 'Enter formula.'});
+      aceObj.setHighlightActiveLine(false);
       this.editor.adjustContentToWidth();
       this.editor.attachSaveCommand();
       aceObj.on('change', () => {

@@ -260,13 +260,14 @@ describe('MultiColumn', function() {
       assert.isFalse(await deriveDisabled());
       assert.isFalse(await labelDisabled());
       assert.isFalse(await setTriggerDisabled());
-      assert.isFalse(await transformSectionDisabled());
+      assert.isTrue(await transformSectionDisabled());
       assert.isFalse(await addConditionDisabled());
       assert.isFalse(await columnTypeDisabled());
 
       // Make one column a data column, to disable type selector.
       await selectColumns('Test1');
       await gu.changeBehavior('Convert column to data');
+      assert.isFalse(await transformSectionDisabled());
       await selectColumns('Test1', 'Test3');
       assert.isTrue(await columnTypeDisabled());
 
@@ -1287,8 +1288,7 @@ async function setDataDisabled() {
 }
 
 async function transformSectionDisabled() {
-  const elements = await driver.findAll(".test-panel-transform .test-panel-disabled-section");
-  return elements.length === 1;
+  return (await driver.find(".test-fbuilder-edit-transform").getAttribute('disabled')) === 'true';
 }
 
 async function addConditionDisabled() {

@@ -109,7 +109,8 @@ export const textButton = styled(cssButton, `
   text-align: left;
   background-color: inherit !important;
   &:disabled {
-    color: ${theme.controlPrimaryDisabled};
+    color: ${theme.controlPrimaryBg};
+    opacity: 0.4;
   }
 `);
 

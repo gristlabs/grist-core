@@ -274,9 +274,11 @@ interface PickerComponentOptions {
 }
 class PickerComponent extends Disposable {
 
-  private _color = Computed.create(this,
-    this._model.obs,
-    (use, val) => (val || this._options.defaultColor).toUpperCase().slice(0, 7));
+  private _colorHex = Computed.create(this, this._model.obs, (_use, val) =>
+    val?.toUpperCase().slice(0, 7));
+
+  private _colorCss = Computed.create(this, this._colorHex, (_use, color) =>
+    color || this._options.defaultColor);
 
   constructor(
     private _model: PickerModel<string|undefined>,
@@ -286,7 +288,7 @@ class PickerComponent extends Disposable {
 
   public buildDom() {
     const title = this._options.title;
-    const colorText = Computed.create(null, use => use(this._color) || this._options.noneText);
+    const colorText = Computed.create(null, use => use(this._colorHex) || this._options.noneText);
     return [
       cssHeaderRow(title),
       cssControlRow(
@@ -294,14 +296,15 @@ class PickerComponent extends Disposable {
           dom.update(
             cssColorSquare(
               cssLightBorder.cls(''),
-              dom.style('background-color', this._color),
+              dom.style('background-color', this._colorCss),
               cssNoneIcon('Empty',
-                dom.hide(use => Boolean(use(this._color)) === true)
+                dom.hide(use => Boolean(use(this._colorCss)))
               ),
+              testId(`${title}-color-square`),
             ),
             cssColorInput(
               {type: 'color'},
-              dom.attr('value', this._color),
+              dom.attr('value', use => use(this._model.obs) ?? ''),
               dom.on('input', (ev, elem) => this._setValue(elem.value || undefined)),
               testId(`${title}-input`),
             ),
@@ -321,7 +324,7 @@ class PickerComponent extends Disposable {
           )
         ),
         cssEmptyBox(
-          cssEmptyBox.cls('-selected', (use) => !use(this._color)),
+          cssEmptyBox.cls('-selected', (use) => !use(this._colorCss)),
           dom.on('click', () => this._setValue(undefined)),
           dom.hide(!this._options.allowsNone),
           cssNoneIcon('Empty'),
@@ -333,7 +336,7 @@ class PickerComponent extends Disposable {
           cssColorSquare(
             dom.style('background-color', color),
             cssLightBorder.cls('', isLight(index)),
-            cssColorSquare.cls('-selected', (use) => use(this._color) === color),
+            cssColorSquare.cls('-selected', (use) => use(this._colorHex) === color),
             dom.style('outline-color', isLight(index) ? '' : color),
             dom.on('click', () => this._setValue(color)),
             testId(`color-${color}`),
@@ -381,8 +384,6 @@ class FontComponent extends Disposable {
 
 const cssFontOptions = styled('div', `
   display: flex;
-  gap: 1px;
-  background: ${theme.colorSelectFontOptionsBorder};
   border: 1px solid ${theme.colorSelectFontOptionsBorder};
 `);
 
@@ -390,10 +391,13 @@ const cssFontOption = styled('div', `
   display: grid;
   place-items: center;
   flex-grow: 1;
-  background: ${theme.colorSelectFontOptionBg};
   --icon-color: ${theme.colorSelectFontOptionFg};
   height: 24px;
   cursor: pointer;
+
+  &:not(:last-child) {
+    border-right: 1px solid ${theme.colorSelectFontOptionsBorder};
+  }
   &:hover:not(&-selected) {
     background: ${theme.colorSelectFontOptionBgHover};
   }

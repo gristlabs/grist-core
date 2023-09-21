@@ -298,7 +298,6 @@ const cssTokenField = styled(tokenFieldStyles.cssTokenField, `
   padding: 0 3px;
   height: min-content;
   min-height: 22px;
-  color: black;
   flex-wrap: wrap;
 `);
 
@@ -307,13 +306,14 @@ const cssToken = styled(tokenFieldStyles.cssToken, `
   margin: 2px;
   line-height: 16px;
   white-space: pre;
+  color: ${theme.choiceTokenFg};
 
   &.selected {
-    box-shadow: inset 0 0 0 1px ${colors.lightGreen};
+    box-shadow: inset 0 0 0 1px ${theme.choiceTokenSelectedBorder};
   }
 
   &-blank {
-    color: ${colors.slate};
+    color: ${theme.lightText};
   }
 `);
 

@@ -2,7 +2,7 @@ import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {colors, hideInPrintView, testId} from 'app/client/ui2018/cssVars';
+import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
@@ -119,12 +119,12 @@ export class Reference extends NTextBox {
 
 const cssRefIcon = styled(icon, `
   float: left;
-  background-color: ${colors.slate};
+  --icon-color: ${theme.lightText};
   margin: -1px 2px 2px 0;
 `);
 
 const cssRef = styled('div.field_clip', `
   &-blank {
-    color: ${colors.slate}
+    color: ${theme.lightText}
   }
 `);

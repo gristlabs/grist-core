@@ -1,7 +1,7 @@
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { constructUrl } from 'app/client/models/gristUrlState';
-import { colors, testId } from 'app/client/ui2018/cssVars';
+import { testId, theme } from 'app/client/ui2018/cssVars';
 import { cssIconBackground, icon } from 'app/client/ui2018/icons';
 import { cssHoverIn, gristLink } from 'app/client/ui2018/links';
 import { NTextBox } from 'app/client/widgets/NTextBox';
@@ -15,7 +15,7 @@ import { Computed, dom, styled } from 'grainjs';
  */
 export class HyperLinkTextBox extends NTextBox {
   constructor(field: ViewFieldRec) {
-    super(field, {defaultTextColor: colors.lightGreen.value});
+    super(field, {defaultTextColor: theme.link.toString()});
   }
 
   public buildDom(row: DataRowModel) {
@@ -49,7 +49,7 @@ function _formatValue(value: CellValue): string {
 }
 
 const cssFieldClip = styled('div.field_clip', `
-  color: var(--grist-actual-cell-color, ${colors.lightGreen});
+  color: var(--grist-actual-cell-color, ${theme.link});
 `);
 
 const cssHoverOnField = cssHoverIn(cssFieldClip.className);

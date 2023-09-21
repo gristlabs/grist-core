@@ -178,7 +178,7 @@ const cssPageInitial = styled('div', `
 
   &-emoji {
     background-color: ${theme.pageInitialsEmojiBg};
-    box-shadow: 0 0 0 1px var(--grist-theme-left-panel-page-emoji-outline, var(--grist-color-dark-grey));
+    box-shadow: 0 0 0 1px ${theme.pageInitialsEmojiOutline};
     font-size: 15px;
     overflow: hidden;
     color: ${theme.text};

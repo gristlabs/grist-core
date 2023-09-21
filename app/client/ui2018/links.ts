@@ -1,6 +1,6 @@
 import {findLinks} from 'app/client/lib/textUtils';
 import { sameDocumentUrlState, urlState } from 'app/client/models/gristUrlState';
-import { colors, hideInPrintView, testId, theme } from 'app/client/ui2018/cssVars';
+import { hideInPrintView, testId, theme } from 'app/client/ui2018/cssVars';
 import {cssIconBackground, icon} from 'app/client/ui2018/icons';
 import { CellValue } from 'app/plugin/GristData';
 import { dom, DomArg, IDomArgs, Observable, styled } from 'grainjs';
@@ -95,7 +95,7 @@ const cssMaybeWrap = styled('span', `
 
 // A gentle transition effect on hover in, and the same effect on hover out with a little delay.
 export const cssHoverIn = (parentClass: string) => styled('span', `
-  --icon-color: var(--grist-actual-cell-color, ${colors.lightGreen});
+  --icon-color: var(--grist-actual-cell-color, ${theme.link});
   margin: -1px 2px 2px 0;
   border-radius: 3px;
   transition-property: background-color;
@@ -103,7 +103,7 @@ export const cssHoverIn = (parentClass: string) => styled('span', `
   transition-duration: 150ms;
   transition-delay: 90ms;
   .${parentClass}:hover & {
-    --icon-background: ${colors.lightGreen};
+    --icon-background: ${theme.link};
     --icon-color: white;
     transition-duration: 80ms;
     transition-delay: 0ms;
@@ -113,5 +113,5 @@ export const cssHoverIn = (parentClass: string) => styled('span', `
 const cssHoverInText = cssHoverIn(cssMaybeWrap.className);
 
 const linkColor = styled('span', `
-  color: var(--grist-actual-cell-color, ${colors.lightGreen});;
+  color: var(--grist-actual-cell-color, ${theme.link});
 `);

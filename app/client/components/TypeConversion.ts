@@ -160,9 +160,10 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
         const columnData = tableData.getDistinctValues(sourceCol.colId(), 100);
         if (columnData) {
-          columnData.delete("");
-          columnData.delete(null);
-          widgetOptions = {...widgetOptions, choices: Array.from(columnData, String)};
+          const choices = Array.from(columnData, String).filter((choice) => {
+            return choice !== null && choice.trim() !== '';
+          });
+          widgetOptions = {...widgetOptions, choices};
         }
       }
       break;
@@ -178,11 +179,12 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
           value = String(decodeObject(value)).trim();
           const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || csvDecodeRow(value);
           for (const tag of tags) {
-            choices.add(String(tag).trim());
+            const choice = String(tag).trim();
+            if (choice === '') { continue; }
+            choices.add(choice);
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
           }
         }
-        choices.delete("");
         widgetOptions = {...widgetOptions, choices: Array.from(choices)};
       }
       break;

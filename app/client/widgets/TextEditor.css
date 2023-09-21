@@ -91,6 +91,10 @@
   line-height: inherit;
 }
 
+.celleditor_text_editor::placeholder {
+  color: var(--grist-theme-cell-editor-placeholder-fg, unset);
+}
+
 .celleditor_content_measure {
   position: absolute;
   left: 0;

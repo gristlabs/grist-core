@@ -263,7 +263,7 @@ const cssFilterMenuWrapper = styled('div', `
   border-radius: 3px;
   align-items: center;
   &-unsaved {
-    border: 1px solid ${theme.accentBorder};
+    border: ${theme.controlBorder};
   }
   & .${cssMenu.className} {
     border: none;
@@ -364,11 +364,8 @@ const cssSaveTextButton = styled('div', `
   cursor: pointer;
   font-size: ${vars.mediumFontSize};
   padding: 0px 5px;
-  border-right: 1px solid ${theme.accentBorder};
-
-  &-accent {
-    color: ${theme.accentText};
-  }
+  color: ${theme.controlFg};
+  border-right: ${theme.controlBorder};
 `);
 
 const cssRevertIconButton = styled('div', `

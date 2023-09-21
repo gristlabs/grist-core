@@ -2,7 +2,7 @@ import { ACResults, buildHighlightedDom, HighlightFunc, normalizeText } from 'ap
 import { Autocomplete } from 'app/client/lib/autocomplete';
 import { ICellItem } from 'app/client/models/ColumnACIndexes';
 import { reportError } from 'app/client/models/errors';
-import { colors, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { testId, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { menuCssClass } from 'app/client/ui2018/menus';
 import { FieldOptions } from 'app/client/widgets/NewBaseEditor';
@@ -181,6 +181,8 @@ const cssRefItem = styled('li', `
     scroll-margin-bottom: ${addNewHeight};
   }
   &-new {
+    display: flex;
+    align-items: center;
     color: ${theme.lightText};
     position: sticky;
     bottom: 0px;
@@ -195,26 +197,27 @@ const cssRefItem = styled('li', `
 `);
 
 export const cssPlusButton = styled('div', `
-  display: inline-block;
+  display: flex;
   width: 20px;
   height: 20px;
   border-radius: 20px;
   margin-right: 8px;
-  text-align: center;
-  background-color: ${colors.lightGreen};
-  color: ${colors.light};
+  align-items: center;
+  justify-content: center;
+  background-color: ${theme.autocompleteAddNewCircleBg};
+  color: ${theme.autocompleteAddNewCircleFg};
 
   .selected > & {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.autocompleteAddNewCircleSelectedBg};
   }
 `);
 
 export const cssPlusIcon = styled(icon, `
-  background-color: ${colors.light};
+  background-color: ${theme.autocompleteAddNewCircleFg};
 `);
 
 const cssRefEditIcon = styled(icon, `
-  background-color: ${colors.slate};
+  background-color: ${theme.lightText};
   position: absolute;
   top: 0;
   left: 0;

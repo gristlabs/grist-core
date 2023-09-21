@@ -42,8 +42,8 @@ export const cssSelectBtn = styled('div', `
   }
 
   &.disabled, &-disabled {
-    --icon-color: ${theme.selectButtonDisabledFg};
-    color: ${theme.selectButtonDisabledFg};
-    cursor: pointer;
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: default;
   }
 `);

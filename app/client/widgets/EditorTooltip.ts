@@ -1,6 +1,6 @@
 import {makeT} from 'app/client/lib/localization';
 import {ITooltipControl, showTooltip, tooltipCloseButton} from 'app/client/ui/tooltips';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {dom, styled} from 'grainjs';
@@ -29,7 +29,7 @@ export function showTooltipToCreateFormula(editorDom: HTMLElement, convert: () =
 const cssConvertTooltip = styled('div', `
   display: flex;
   align-items: center;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.controlFg};
 
   & > .${cssLink.className} {
     margin-left: 8px;

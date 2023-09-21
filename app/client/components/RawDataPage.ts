@@ -152,7 +152,7 @@ const cssSectionWrapper = styled('div', `
   border-bottom-right-radius: 0px;
   & .viewsection_content {
     margin: 0px;
-    margin-top: 12px;
+    margin-top: 8px;
   }
   & .viewsection_title {
     padding: 0px 12px;

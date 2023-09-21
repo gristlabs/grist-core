@@ -354,11 +354,6 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               gristDoc.behavioralPromptsManager.attachTip('filterButtons', {
                 popupOptions: {
                   attach: null,
-                  modifiers: {
-                    flip: {
-                      behavior: ['right', 'top'],
-                    },
-                  },
                   placement: 'right',
                 },
               }),

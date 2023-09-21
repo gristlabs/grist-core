@@ -278,7 +278,7 @@ describe('CustomWidgets', function () {
     assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
 
     // Switch the theme to GristDark.
-    await gu.setGristTheme({appearance: 'dark'});
+    await gu.setGristTheme({appearance: 'dark', syncWithOS: false});
     await driver.navigate().back();
     await gu.waitForDocToLoad();
 
@@ -286,7 +286,7 @@ describe('CustomWidgets', function () {
     assert.equal(await getWidgetColor(), 'rgba(239, 239, 239, 1)');
 
     // Switch back to GristLight.
-    await gu.setGristTheme({appearance: 'light'});
+    await gu.setGristTheme({appearance: 'light', syncWithOS: true});
     await driver.navigate().back();
     await gu.waitForDocToLoad();
 

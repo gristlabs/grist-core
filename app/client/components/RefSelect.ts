@@ -4,14 +4,13 @@ import * as tableUtil from 'app/client/lib/tableUtil';
 import {ColumnRec, DocModel, ViewFieldRec} from 'app/client/models/DocModel';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menuText} from 'app/client/ui2018/menus';
+import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import * as gutil from 'app/common/gutil';
 import {Disposable, dom, fromKo, styled} from 'grainjs';
 import ko from 'knockout';
-import {menu, menuItem} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('RefSelect');
@@ -89,7 +88,7 @@ export class RefSelect extends Disposable {
       testId('ref-select'),
       dom.forEach(fromKo(this._added.getObservable()), (col) =>
         cssFieldEntry(
-          cssFieldLabel(dom.text(col.label)),
+          cssColumnLabel(dom.text(col.label)),
           cssRemoveIcon('Remove',
             dom.on('click', () => this._removeFormulaField(col)),
             testId('ref-select-remove'),
@@ -233,15 +232,15 @@ const cssEmptyMenuText = styled(menuText, `
 const cssAddLink = styled('div', `
   display: flex;
   cursor: pointer;
-  color: ${colors.lightGreen};
-  --icon-color: ${colors.lightGreen};
+  color: ${theme.controlFg};
+  --icon-color: ${theme.controlFg};
 
   &:not(:first-child) {
     margin-top: 8px;
   }
   &:hover, &:focus, &:active {
-    color: ${colors.darkGreen};
-    --icon-color: ${colors.darkGreen};
+    color: ${theme.controlHoverFg};
+    --icon-color: ${theme.controlHoverFg};
   }
 `);
 
@@ -257,4 +256,8 @@ const cssRemoveIcon = styled(icon, `
   .${cssFieldEntry.className}:hover & {
     display: block;
   }
+`);
+
+const cssColumnLabel = styled(cssFieldLabel, `
+  line-height: 16px;
 `);

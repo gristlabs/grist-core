@@ -335,6 +335,7 @@ div:hover > .kf_tooltip {
 
   color: #606060;
   overflow: hidden;
+  margin-top: 3px;
   padding: 1px;
 }
 
@@ -362,11 +363,11 @@ div:hover > .kf_tooltip {
 }
 .kf_spinner_arrow.up {
   border-top: none;
-  border-bottom: 5px solid #606060;
+  border-bottom: 5px solid var(--grist-theme-numeric-spinner-fg, #606060);
   margin: 2px auto;
 }
 .kf_spinner_arrow.down {
-  border-top: 5px solid #606060;
+  border-top: 5px solid var(--grist-theme-numeric-spinner-fg, #606060);
   border-bottom: none;
   margin: 1px auto 2px auto;
 }

@@ -7,6 +7,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {DocData} from 'app/client/models/DocData';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {SaveableObjObservable} from 'app/client/models/modelUtil';
+import {theme} from 'app/client/ui2018/cssVars';
 import {CellStyle} from 'app/client/widgets/CellStyle';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {
@@ -19,7 +20,10 @@ import {
 } from 'grainjs';
 
 export interface Options {
-  // A hex value to set the default widget text color. Default to '#000000' if omitted.
+  /**
+   * CSS value of the default widget text color. Defaults to the current theme's
+   * cell fg color.
+   */
   defaultTextColor?: string;
 }
 
@@ -44,13 +48,13 @@ export abstract class NewAbstractWidget extends Disposable {
   protected valueFormatter: Observable<BaseFormatter>;
   protected textColor: Observable<string>;
   protected fillColor: Observable<string>;
-  protected readonly defaultTextColor: string;
+  protected readonly defaultTextColor: string|undefined = this._opts.defaultTextColor
+    ?? theme.cellFg.toString();
 
-  constructor(protected field: ViewFieldRec, opts: Options = {}) {
+  constructor(protected field: ViewFieldRec, private _opts: Options = {}) {
     super();
     this.options = field.widgetOptionsJson;
     this.valueFormatter = fromKo(field.formatter);
-    this.defaultTextColor = opts?.defaultTextColor || '#000000';
   }
 
   /**

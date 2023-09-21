@@ -7,7 +7,7 @@ import {cssIcon} from 'app/client/ui/RightPanelStyles';
 import {makeCollapsedLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {cssDotsIconWrapper, cssMenu, viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {colors, isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
@@ -128,7 +128,6 @@ const cssTestClick = styled(`div`, `
 `);
 
 const cssSigmaIcon = styled(icon, `
-  bottom: 1px;
   margin-right: 5px;
   background-color: ${theme.lightText}
 `);
@@ -186,8 +185,7 @@ const cssViewLeafInactive = styled('div', `
 // z-index ensure it's above the resizer line, since it's hard to grab otherwise
 const cssDragIcon = styled(icon, `
   visibility: hidden;
-  --icon-color: ${colors.slate};
-  top: -1px;
+  --icon-color: ${theme.lightText};
   z-index: 100;
 
   .viewsection_title:hover &.layout_grabbable {
@@ -204,7 +202,7 @@ const cssResizing = styled('div', `
 `);
 
 const cssMiniSection = styled('div.mini_section_container', `
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.accentIcon};
   display: flex;
   align-items: center;
   padding-right: 8px;

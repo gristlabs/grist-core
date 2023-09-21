@@ -1,20 +1,20 @@
 var dispose = require('../lib/dispose');
+const {theme} = require('app/client/ui2018/cssVars');
 const {CellStyle} = require('app/client/widgets/CellStyle');
 const {dom} = require('grainjs');
 
 /**
  * AbstractWidget - The base of the inheritance tree for widgets.
  * @param {Function} field - The RowModel for this view field.
- * @param {string|undefined} options.defaultTextColor - A hex value to set the default text color
- * for the widget. Omit defaults to '#000000'.
+ * @param {string|undefined} options.defaultTextColor - CSS value of the default
+ * text color for the widget. Defaults to the current theme's cell fg color.
+ *
  */
 function AbstractWidget(field, opts = {}) {
   this.field = field;
   this.options = field.widgetOptionsJson;
-  const {defaultTextColor = '#000000'} = opts;
-  this.defaultTextColor = defaultTextColor;
   this.valueFormatter = this.field.visibleColFormatter;
-  this.defaultTextColor = opts.defaultTextColor || '#000000';
+  this.defaultTextColor = opts.defaultTextColor ?? theme.cellFg.toString();
 }
 dispose.makeDisposable(AbstractWidget);
 

@@ -1,12 +1,13 @@
 import {Style} from 'app/client/models/Styles';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
+import {theme, vars} from 'app/client/ui2018/cssVars';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
 
-export const DEFAULT_FILL_COLOR = colors.mediumGreyOpaque.value!;
-export const DEFAULT_TEXT_COLOR = '#000000';
+export const DEFAULT_BACKGROUND_COLOR = theme.choiceTokenBg.toString();
+export const DEFAULT_COLOR = theme.choiceTokenFg.toString();
 
 export interface IChoiceTokenOptions extends Style {
   invalid?: boolean;
+  blank?: boolean;
 }
 
 /**
@@ -29,16 +30,17 @@ export function choiceToken(
   ...args: DomElementArg[]
 ): DomContents {
   const {fillColor, textColor, fontBold, fontItalic, fontUnderline,
-         fontStrikethrough, invalid} = options;
+         fontStrikethrough, invalid, blank} = options;
   return cssChoiceToken(
     label,
-    dom.style('background-color', fillColor ?? DEFAULT_FILL_COLOR),
-    dom.style('color', textColor ?? DEFAULT_TEXT_COLOR),
+    dom.style('background-color', fillColor ?? DEFAULT_BACKGROUND_COLOR),
+    dom.style('color', textColor ?? DEFAULT_COLOR),
     dom.cls('font-bold', fontBold ?? false),
     dom.cls('font-underline', fontUnderline ?? false),
     dom.cls('font-italic', fontItalic ?? false),
     dom.cls('font-strikethrough', fontStrikethrough ?? false),
     invalid ? cssChoiceToken.cls('-invalid') : null,
+    blank ? cssChoiceToken.cls('-blank') : null,
     ...args
   );
 }
@@ -52,8 +54,12 @@ export const cssChoiceToken = styled('div', `
   white-space: pre;
 
   &-invalid {
-    background-color: white !important;
-    box-shadow: inset 0 0 0 1px ${colors.error};
+    color: ${theme.choiceTokenInvalidFg} !important;
+    background-color: ${theme.choiceTokenInvalidBg} !important;
+    box-shadow: inset 0 0 0 1px ${theme.choiceTokenInvalidBorder};
+  }
+  &-blank {
+    color: ${theme.lightText} !important;
   }
 `);
 
@@ -70,7 +76,7 @@ export const cssChoiceACItem = styled('li', `
   cursor: pointer;
 
   &.selected {
-    background-color: ${theme.autocompleteChoiceSelectedBg};
+    background-color: ${theme.autocompleteItemSelectedBg};
   }
   &-with-new {
     scroll-margin-bottom: ${ADD_NEW_HEIGHT};

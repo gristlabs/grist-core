@@ -4,10 +4,10 @@ import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {Style} from 'app/client/models/Styles';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
-import {choiceToken, DEFAULT_FILL_COLOR, DEFAULT_TEXT_COLOR} from 'app/client/widgets/ChoiceToken';
+import {choiceToken, DEFAULT_BACKGROUND_COLOR, DEFAULT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {Computed, dom, styled} from 'grainjs';
 
@@ -18,11 +18,11 @@ export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
 const t = makeT('ChoiceTextBox');
 
 export function getRenderFillColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.fillColor ?? DEFAULT_FILL_COLOR;
+  return choiceOptions?.fillColor ?? DEFAULT_BACKGROUND_COLOR;
 }
 
 export function getRenderTextColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.textColor ?? DEFAULT_TEXT_COLOR;
+  return choiceOptions?.textColor ?? DEFAULT_COLOR;
 }
 
 /**
@@ -157,7 +157,7 @@ const cssChoiceText = styled('div', `
 `);
 
 const cssChoiceEditIcon = styled(icon, `
-  background-color: ${colors.slate};
+  background-color: ${theme.lightText};
   display: block;
   height: inherit;
 `);

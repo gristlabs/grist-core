@@ -1,5 +1,5 @@
 import {isDesktop} from 'app/client/lib/browserInfo';
-import {colors} from 'app/client/ui2018/cssVars';
+import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IEditorCommandGroup} from 'app/client/widgets/NewBaseEditor';
 import {dom, styled} from 'grainjs';
@@ -25,7 +25,7 @@ const cssFinishBtn = styled('div', `
   padding: 8px;
   position: absolute;
   top: -8px;
-  --icon-color: white;
+  --icon-color: ${theme.controlPrimaryFg};
 `);
 
 const cssCancelBtn = styled(cssFinishBtn, `
@@ -34,7 +34,7 @@ const cssCancelBtn = styled(cssFinishBtn, `
 `);
 
 const cssSaveBtn = styled(cssFinishBtn, `
-  --icon-background-color: ${colors.lightGreen};
+  --icon-background-color: ${theme.controlPrimaryBg};
   right: -40px;
 `);
 

@@ -131,13 +131,12 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
         kd.style('margin-top', '1.5rem')
       ),
       kf.row(kd.hide(isCollapsed),
-        kf.label('Table ', dom('b', kd.text(table.tableId)), ':')
-      ),
-      kf.row(kd.hide(isCollapsed),
-        kf.buttonGroup(kf.button(() => this._makeOnDemand(table),
+        dom('div', primaryButton(
           kd.text(() => table.onDemand() ? t("Unmark On-Demand") : t("Make On-Demand")),
-          dom.testId('ViewConfig_onDemandBtn')
-        ))
+          kd.style('margin-top', '1rem'),
+          dom.on('click', () => this._makeOnDemand(table)),
+          dom.testId('ViewConfig_onDemandBtn'),
+        )),
       ),
     ];
   });

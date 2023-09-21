@@ -1,7 +1,7 @@
 import {bigPrimaryButton as gristBigPrimaryButton,
         bigPrimaryButtonLink as gristBigPrimaryButtonLink,
         textButton as gristTextButton} from 'app/client/ui2018/buttons';
-import {colors, mediaXSmall, theme} from 'app/client/ui2018/cssVars';
+import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui/inputs';
 import {styled} from 'grainjs';
 
@@ -61,15 +61,15 @@ export const googleButton = styled('button', `
   font-weight: 500;
   line-height: 16px;
   padding: 16px;
-  color: ${colors.dark};
-  background-color: ${colors.lightGrey};
-  border: 1px solid ${colors.darkGrey};
+  color: ${theme.loginPageGoogleButtonFg};
+  background-color: ${theme.loginPageGoogleButtonBg};
+  border: 1px solid ${theme.loginPageGoogleButtonBorder};
   border-radius: 4px;
   cursor: pointer;
   width: 100%;
 
   &:hover {
-    background-color: ${colors.mediumGrey};
+    background-color: ${theme.loginPageGoogleButtonBgHover};
   }
 `);
 

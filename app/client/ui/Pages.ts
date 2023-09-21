@@ -9,6 +9,7 @@ import {find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
         TreeTableData} from 'app/client/models/TreeModel';
 import {TreeViewComponent} from 'app/client/ui/TreeViewComponent';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
+import {theme} from 'app/client/ui2018/cssVars';
 import {cssLink} from 'app/client/ui2018/links';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
 import {buildCensoredPage, buildPageDom, PageActions} from 'app/client/ui2018/pages';
@@ -175,8 +176,8 @@ const cssWarning = styled('div', `
 `);
 
 const cssTableName = styled('div', `
-  color: black;
-  background-color: #eee;
+  color: ${theme.choiceTokenFg};
+  background-color: ${theme.choiceTokenBg};
   padding: 3px 6px;
   border-radius: 4px;
 `);

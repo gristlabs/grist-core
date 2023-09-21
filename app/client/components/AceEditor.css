@@ -2,6 +2,16 @@
   background-color: var(--grist-theme-ace-editor-bg, white);
 }
 
+.ace_editor .ace_placeholder {
+  font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, "Source Code Pro", source-code-pro, monospace;
+  font-size: 11px;
+  color: var(--grist-theme-text-light, #929299);
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 1.0;
+  transform: none;
+}
+
 .ace_grist_link_hidden {
   display: none;
 }

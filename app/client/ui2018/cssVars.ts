@@ -245,8 +245,6 @@ export const theme = {
     'black'),
   tooltipCloseButtonHoverBg: new CustomProp('theme-tooltip-close-button-hover-bg', undefined,
     'white'),
-  tooltipPopupHeaderFg: new CustomProp('theme-tooltip-popup-header-fg', undefined, colors.light),
-  tooltipPopupHeaderBg: new CustomProp('theme-tooltip-popup-header-bg', undefined, colors.lightGreen),
 
   /* Modals */
   modalBg: new CustomProp('theme-modal-bg', undefined, 'white'),
@@ -290,6 +288,7 @@ export const theme = {
 
   /* Cell Editor */
   cellEditorFg: new CustomProp('theme-cell-editor-fg', undefined, colors.dark),
+  cellEditorPlaceholderFg: new CustomProp('theme-cell-editor-placeholder-fg', undefined, colors.slate),
   cellEditorBg: new CustomProp('theme-cell-editor-bg', undefined, colors.light),
 
   /* Cursor */
@@ -298,14 +297,12 @@ export const theme = {
   cursorReadonly: new CustomProp('theme-cursor-readonly', undefined, colors.slate),
 
   /* Tables */
-  tableHeaderFg: new CustomProp('theme-table-header-fg', undefined, 'unset'),
-  tableHeaderSelectedFg: new CustomProp('theme-table-header-selected-fg', undefined, 'unset'),
+  tableHeaderFg: new CustomProp('theme-table-header-fg', undefined, '#000'),
+  tableHeaderSelectedFg: new CustomProp('theme-table-header-selected-fg', undefined, '#000'),
   tableHeaderBg: new CustomProp('theme-table-header-bg', undefined, colors.lightGrey),
   tableHeaderSelectedBg: new CustomProp('theme-table-header-selected-bg', undefined,
     colors.mediumGreyOpaque),
   tableHeaderBorder: new CustomProp('theme-table-header-border', undefined, 'lightgray'),
-  tableHeaderBorderDark: new CustomProp('theme-table-header-border-dark', undefined,
-    colors.darkGrey),
   tableBodyBg: new CustomProp('theme-table-body-bg', undefined, 'white'),
   tableBodyBorder: new CustomProp('theme-table-body-border', undefined, colors.darkGrey),
   tableAddNewBg: new CustomProp('theme-table-add-new-bg', undefined, 'inherit'),
@@ -314,6 +311,7 @@ export const theme = {
     '#999999'),
   tableDragDropIndicator: new CustomProp('theme-table-drag-drop-indicator', undefined, 'gray'),
   tableDragDropShadow: new CustomProp('theme-table-drag-drop-shadow', undefined, '#F0F0F0'),
+  tableCellSummaryBg: new CustomProp('theme-table-cell-summary-bg', undefined, colors.mediumGrey),
 
   /* Cards */
   cardCompactWidgetBg: new CustomProp('theme-card-compact-widget-bg', undefined,
@@ -339,7 +337,7 @@ export const theme = {
   selection: new CustomProp('theme-selection', undefined, colors.selection),
   selectionDarker: new CustomProp('theme-selection-darker', undefined, 'rgba(22,179,120,0.25)'),
   selectionDarkest: new CustomProp('theme-selection-darkest', undefined, 'rgba(22,179,120,0.35)'),
-  selectionOpaqueFg: new CustomProp('theme-selection-opaque-fg', undefined, 'unset'),
+  selectionOpaqueFg: new CustomProp('theme-selection-opaque-fg', undefined, 'black'),
   selectionOpaqueBg: new CustomProp('theme-selection-opaque-bg', undefined,
     colors.selectionOpaque),
   selectionOpaqueDarkBg: new CustomProp('theme-selection-opaque-dark-bg', undefined,
@@ -371,6 +369,8 @@ export const theme = {
   controlPrimaryFg: new CustomProp('theme-control-primary-fg', undefined, vars.primaryFg),
   controlPrimaryBg: new CustomProp('theme-control-primary-bg', undefined, vars.primaryBg),
   controlSecondaryFg: new CustomProp('theme-control-secondary-fg', undefined, colors.slate),
+  controlSecondaryDisabledFg: new CustomProp('theme-control-secondary-disabled-fg',
+    undefined, colors.darkGrey),
   controlHoverFg: new CustomProp('theme-control-hover-fg', undefined, vars.controlFgHover),
   controlPrimaryHoverBg: new CustomProp('theme-control-primary-hover-bg', undefined,
     vars.primaryBgHover),
@@ -380,8 +380,6 @@ export const theme = {
     colors.darkGrey),
   controlDisabledFg: new CustomProp('theme-control-disabled-fg', undefined, colors.light),
   controlDisabledBg: new CustomProp('theme-control-disabled-bg', undefined, colors.slate),
-  controlPrimaryDisabled: new CustomProp('theme-control-primary-disabled', undefined,
-    colors.inactiveCursor),
   controlBorder: new CustomProp('theme-control-border', undefined, vars.controlBorder),
 
   /* Checkboxes */
@@ -464,8 +462,6 @@ export const theme = {
     undefined, colors.light),
   rightPanelToggleButtonEnabledBg: new CustomProp('theme-right-panel-toggle-button-enabled-bg',
     undefined, colors.dark),
-  rightPanelToggleButtonEnabledHoverFg: new CustomProp(
-    'theme-right-panel-toggle-button-enabled-hover-fg', undefined, colors.darkGrey),
   rightPanelToggleButtonDisabledFg: new CustomProp('theme-right-panel-toggle-button-disabled-fg',
     undefined, colors.light),
   rightPanelToggleButtonDisabledBg: new CustomProp('theme-right-panel-toggle-button-disabled-bg',
@@ -487,9 +483,15 @@ export const theme = {
   documentHistorySnapshotBorder: new CustomProp('theme-document-history-snapshot-border',
     undefined, colors.mediumGrey),
   documentHistoryActivityText: new CustomProp('theme-document-history-activity-text', undefined,
-    'unset'),
+    colors.dark),
   documentHistoryActivityLightText: new CustomProp('theme-document-history-activity-text-light',
     undefined, '#333333'),
+  documentHistoryTableHeaderFg: new CustomProp('theme-document-history-table-header-fg',
+    undefined, '#000'),
+  documentHistoryTableBorder: new CustomProp('theme-document-history-table-border',
+    undefined, 'lightgray'),
+  documentHistoryTableBorderLight: new CustomProp('theme-document-history-table-border-light',
+    undefined, '#D9D9D9'),
 
   /* Accents */
   accentIcon: new CustomProp('theme-accent-icon', undefined, colors.lightGreen),
@@ -509,6 +511,16 @@ export const theme = {
   inputReadonlyBg: new CustomProp('theme-input-readonly-bg', undefined, colors.lightGrey),
   inputReadonlyBorder: new CustomProp('theme-input-readonly-border', undefined, colors.mediumGreyOpaque),
 
+  /* Choice Tokens */
+  choiceTokenFg: new CustomProp('theme-choice-token-fg', undefined, '#000000'),
+  choiceTokenBlankFg: new CustomProp('theme-choice-token-blank-fg', undefined, colors.slate),
+  choiceTokenBg: new CustomProp('theme-choice-token-bg', undefined, colors.mediumGreyOpaque),
+  choiceTokenSelectedBg: new CustomProp('theme-choice-token-selected-bg', undefined, colors.darkGrey),
+  choiceTokenSelectedBorder: new CustomProp('theme-choice-token-selected-border', undefined, colors.lightGreen),
+  choiceTokenInvalidFg: new CustomProp('theme-choice-token-invalid-fg', undefined, '#000000'),
+  choiceTokenInvalidBg: new CustomProp('theme-choice-token-invalid-bg', undefined, 'white'),
+  choiceTokenInvalidBorder: new CustomProp('theme-choice-token-invalid-border', undefined, colors.error),
+
   /* Choice Entry */
   choiceEntryBg: new CustomProp('theme-choice-entry-bg', undefined, 'white'),
   choiceEntryBorder: new CustomProp('theme-choice-entry-border', undefined, colors.darkGrey),
@@ -519,7 +531,6 @@ export const theme = {
   selectButtonFg: new CustomProp('theme-select-button-fg', undefined, colors.dark),
   selectButtonPlaceholderFg: new CustomProp('theme-select-button-placeholder-fg', undefined,
     colors.slate),
-  selectButtonDisabledFg: new CustomProp('theme-select-button-disabled-fg', undefined, 'grey'),
   selectButtonBg: new CustomProp('theme-select-button-bg', undefined, 'white'),
   selectButtonBorder: new CustomProp('theme-select-button-border', undefined, colors.darkGrey),
   selectButtonBorderInvalid: new CustomProp('theme-select-button-border-invalid', undefined,
@@ -529,7 +540,7 @@ export const theme = {
   menuText: new CustomProp('theme-menu-text', undefined, colors.slate),
   menuLightText: new CustomProp('theme-menu-light-text', undefined, colors.slate),
   menuBg: new CustomProp('theme-menu-bg', undefined, 'white'),
-  menuSubheaderFg: new CustomProp('theme-menu-subheader-fg', undefined, 'unset'),
+  menuSubheaderFg: new CustomProp('theme-menu-subheader-fg', undefined, colors.dark),
   menuBorder: new CustomProp('theme-menu-border', undefined, colors.mediumGreyOpaque),
   menuShadow: new CustomProp('theme-menu-shadow', undefined, 'rgba(38, 38, 51, 0.6)'),
 
@@ -540,19 +551,20 @@ export const theme = {
   menuItemDisabledFg: new CustomProp('theme-menu-item-disabled-fg', undefined, '#D9D9D9'),
   menuItemIconFg: new CustomProp('theme-menu-item-icon-fg', undefined, colors.slate),
   menuItemIconSelectedFg: new CustomProp('theme-menu-item-icon-selected-fg', undefined, 'white'),
-  menuItemLinkFg: new CustomProp('theme-menu-item-link-fg', undefined, colors.lightGreen),
-  menuItemLinkSelectedFg: new CustomProp('theme-menu-item-link-selected-fg', undefined,
-    colors.darkGreen),
-  menuItemLinkselectedBg: new CustomProp('theme-menu-item-link-selected-bg', undefined,
-    colors.mediumGreyOpaque),
 
   /* Autocomplete */
   autocompleteMatchText: new CustomProp('theme-autocomplete-match-text', undefined,
     colors.lightGreen),
   autocompleteSelectedMatchText: new CustomProp('theme-autocomplete-selected-match-text',
     undefined, colors.lighterGreen),
-  autocompleteChoiceSelectedBg: new CustomProp('theme-autocomplete-item-selected-bg', undefined,
+  autocompleteItemSelectedBg: new CustomProp('theme-autocomplete-item-selected-bg', undefined,
     colors.mediumGreyOpaque),
+  autocompleteAddNewCircleFg: new CustomProp('theme-autocomplete-add-new-circle-fg', undefined,
+    colors.light),
+  autocompleteAddNewCircleBg: new CustomProp('theme-autocomplete-add-new-circle-bg', undefined,
+    colors.lightGreen),
+  autocompleteAddNewCircleSelectedBg: new CustomProp(
+    'theme-autocomplete-add-new-circle-selected-bg', undefined, colors.darkGreen),
 
   /* Search */
   searchBorder: new CustomProp('theme-search-border', undefined, 'grey'),
@@ -594,7 +606,7 @@ export const theme = {
   widgetPickerPrimaryBg: new CustomProp('theme-widget-picker-primary-bg', undefined, 'white'),
   widgetPickerSecondaryBg: new CustomProp('theme-widget-picker-secondary-bg', undefined,
     colors.lightGrey),
-  widgetPickerItemFg: new CustomProp('theme-widget-picker-item-fg', undefined, 'unset'),
+  widgetPickerItemFg: new CustomProp('theme-widget-picker-item-fg', undefined, colors.dark),
   widgetPickerItemSelectedBg: new CustomProp('theme-widget-picker-item-selected-bg', undefined,
     colors.mediumGrey),
   widgetPickerItemDisabledBg: new CustomProp('theme-widget-picker-item-disabled-bg', undefined,
@@ -651,7 +663,9 @@ export const theme = {
   /* Button Groups */
   buttonGroupFg: new CustomProp('theme-button-group-fg', undefined, colors.dark),
   buttonGroupLightFg: new CustomProp('theme-button-group-light-fg', undefined, colors.slate),
-  buttonGroupBg: new CustomProp('theme-button-group-bg', undefined, 'unset'),
+  buttonGroupBg: new CustomProp('theme-button-group-bg', undefined, 'transparent'),
+  buttonGroupBgHover: new CustomProp('theme-button-group-bg-hover', undefined,
+  colors.hover),
   buttonGroupIcon: new CustomProp('theme-button-group-icon', undefined, colors.slate),
   buttonGroupBorder: new CustomProp('theme-button-group-border', undefined, colors.darkGrey),
   buttonGroupBorderHover: new CustomProp('theme-button-group-border-hover', undefined,
@@ -670,6 +684,8 @@ export const theme = {
     colors.mediumGrey),
   accessRulesTableBodyFg: new CustomProp('theme-access-rules-table-body-fg', undefined,
     colors.dark),
+  accessRulesTableBodyLightFg: new CustomProp('theme-access-rules-table-body-light-fg', undefined,
+    colors.darkGrey),
   accessRulesTableBorder: new CustomProp('theme-access-rules-table-border', undefined,
     colors.slate),
   accessRulesColumnListBorder: new CustomProp('theme-access-rules-column-list-border', undefined,
@@ -694,7 +710,7 @@ export const theme = {
     undefined, colors.cursor),
 
   /* Cells */
-  cellFg: new CustomProp('theme-cell-fg', undefined, 'unset'),
+  cellFg: new CustomProp('theme-cell-fg', undefined, 'black'),
   cellBg: new CustomProp('theme-cell-bg', undefined, '#FFFFFF00'),
   cellZebraBg: new CustomProp('theme-cell-zebra-bg', undefined, '#F8F8F8'),
 
@@ -772,13 +788,11 @@ export const theme = {
     undefined, colors.darkGrey),
   colorSelectFontOptionFg: new CustomProp('theme-color-select-font-option-fg',
     undefined, colors.dark),
-  colorSelectFontOptionBg: new CustomProp('theme-color-select-font-option-bg',
-    undefined, colors.light),
   colorSelectFontOptionBgHover: new CustomProp('theme-color-select-font-option-bg-hover',
     undefined, colors.lightGrey),
-  colorSelectFontOptionFgSelected: new CustomProp('theme-color-select-font-option-selected-fg',
+  colorSelectFontOptionFgSelected: new CustomProp('theme-color-select-font-option-fg-selected',
     undefined, colors.light),
-  colorSelectFontOptionBgSelected: new CustomProp('theme-color-select-font-option-selected-bg',
+  colorSelectFontOptionBgSelected: new CustomProp('theme-color-select-font-option-bg-selected',
     undefined, colors.dark),
   colorSelectColorSquareBorder: new CustomProp('theme-color-select-color-square-border',
     undefined, '#D9D9D9'),
@@ -807,6 +821,14 @@ export const theme = {
   loginPageBg: new CustomProp('theme-login-page-bg', undefined, 'white'),
   loginPageBackdrop: new CustomProp('theme-login-page-backdrop', undefined, '#F5F8FA'),
   loginPageLine: new CustomProp('theme-login-page-line', undefined, colors.lightGrey),
+  loginPageGoogleButtonFg: new CustomProp('theme-login-page-google-button-fg', undefined,
+    colors.dark),
+  loginPageGoogleButtonBg: new CustomProp('theme-login-page-google-button-bg', undefined,
+    colors.lightGrey),
+  loginPageGoogleButtonBgHover: new CustomProp('theme-login-page-google-button-bg-hover',
+    undefined, colors.mediumGrey),
+  loginPageGoogleButtonBorder: new CustomProp('theme-login-page-google-button-border', undefined,
+    colors.darkGrey),
 
   /* Formula Assistant */
   formulaAssistantHeaderBg: new CustomProp(
@@ -815,6 +837,42 @@ export const theme = {
     'theme-formula-assistant-border', undefined, colors.darkGrey),
   formulaAssistantPreformattedTextBg: new CustomProp(
     'theme-formula-assistant-preformatted-text-bg', undefined, colors.lightGrey),
+
+  /* Attachments */
+  attachmentsEditorButtonFg: new CustomProp(
+    'theme-attachments-editor-button-fg', undefined, colors.darkGreen),
+  attachmentsEditorButtonHoverFg: new CustomProp(
+    'theme-attachments-editor-button-hover-fg', undefined, colors.lightGreen),
+  attachmentsEditorButtonBg: new CustomProp(
+    'theme-attachments-editor-button-bg', undefined, colors.light),
+  attachmentsEditorButtonHoverBg: new CustomProp(
+    'theme-attachments-editor-button-hover-bg', undefined, colors.mediumGreyOpaque),
+  attachmentsEditorButtonBorder: new CustomProp(
+    'theme-attachments-editor-button-border', undefined, colors.darkGrey),
+  attachmentsEditorButtonIcon: new CustomProp(
+    'theme-attachments-editor-button-icon', undefined, colors.slate),
+  attachmentsEditorBorder: new CustomProp(
+    'theme-attachments-editor-border', undefined, colors.mediumGreyOpaque),
+  attachmentsCellIconFg: new CustomProp(
+    'theme-attachments-cell-icon-fg', undefined, 'white'),
+  attachmentsCellIconBg: new CustomProp(
+    'theme-attachments-cell-icon-bg', undefined, '#D9D9D9'),
+  attachmentsCellIconHoverBg: new CustomProp(
+    'theme-attachments-cell-icon-hover-bg', undefined, '#929299'),
+
+  /* Announcement Popups */
+  announcementPopupFg: new CustomProp('theme-announcement-popup-fg', undefined, '#000000'),
+  announcementPopupBg: new CustomProp('theme-announcement-popup-bg', undefined, '#DCF4EB'),
+
+  /* Switches */
+  switchSliderFg: new CustomProp('theme-switch-slider-fg', undefined, '#ccc'),
+  switchCircleFg: new CustomProp('theme-switch-circle-fg', undefined, 'white'),
+
+  /* Toggle Checkboxes */
+  toggleCheckboxFg: new CustomProp('theme-toggle-checkbox-fg', undefined, '#606060'),
+
+  /* Numeric Spinners */
+  numericSpinnerFg: new CustomProp('theme-numeric-spinner-fg', undefined, '#606060'),
 };
 
 const cssColors = values(colors).map(v => v.decl()).join('\n');
@@ -1038,7 +1096,7 @@ function getCssThemeBackgroundProperties(appearance: ThemeAppearance) {
  * pollute the document with in-line styles.
  */
 function getOrCreateStyleElement(id: string) {
-  let style = document.head.querySelector(id);
+  let style = document.head.querySelector(`#${id}`);
   if (style) { return style; }
   style = document.createElement('style');
   style.setAttribute('id', id);

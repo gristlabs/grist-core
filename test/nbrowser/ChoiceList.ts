@@ -441,7 +441,7 @@ describe('ChoiceList', function() {
   const convertColumn = stackWrapFunc(async function(typeRe: RegExp) {
     await gu.setType(typeRe);
     await gu.waitForServer();
-    await driver.findContent('.type_transform_prompt button', /Apply/).click();
+    await driver.findContent('.test-type-transform-apply', /Apply/).click();
     await gu.waitForServer();
   });
 

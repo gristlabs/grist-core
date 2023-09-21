@@ -468,7 +468,9 @@ describe('CellColor', function() {
     await gu.openCellColorPicker();
 
     // check color preview is correct
-    assert.equal(await driver.find('.test-text-hex').value(), '#606060');
+    assert.equal(await driver.find('.test-text-hex').value(), 'default');
+    assert.equal(await driver.find('.test-text-color-square').getCssValue('background-color'),
+      'rgba(96, 96, 96, 1)');
 
     // close color picker
     await driver.sendKeys(Key.ENTER);
@@ -482,7 +484,9 @@ describe('CellColor', function() {
     await gu.openCellColorPicker();
 
     // check color preview is correct
-    assert.equal(await driver.find('.test-text-hex').value(), '#2CB0AF');
+    assert.equal(await driver.find('.test-text-hex').value(), 'default');
+    assert.equal(await driver.find('.test-text-color-square').getCssValue('background-color'),
+      'rgba(44, 176, 175, 1)');
 
     // close picker
     await driver.sendKeys(Key.ESCAPE);

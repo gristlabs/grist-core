@@ -470,18 +470,17 @@ const cssToggleButton = styled(cssIconButton, `
   margin-left: 8px;
   background-color: ${theme.rightPanelToggleButtonDisabledBg};
   box-shadow: inset 0 0 0 1px ${theme.inputBorder};
+  cursor: pointer;
 
   &-selected, &-selected:hover {
     box-shadow: none;
     background-color: ${theme.rightPanelToggleButtonEnabledBg};
     --icon-color: ${theme.rightPanelToggleButtonEnabledFg};
   }
-  &-selected:hover {
-    --icon-color: ${theme.rightPanelToggleButtonEnabledHoverFg};
-  }
   &-disabled, &-disabled:hover {
-    --icon-color: ${theme.rightPanelToggleButtonDisabledFg};
+    cursor: not-allowed;
     background-color: ${theme.rightPanelToggleButtonDisabledBg};
+    --icon-color: ${theme.iconDisabled};
   }
 `);
 

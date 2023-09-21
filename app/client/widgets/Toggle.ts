@@ -3,6 +3,7 @@ import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { KoSaveableObservable } from 'app/client/models/modelUtil';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
+import { theme } from 'app/client/ui2018/cssVars';
 import { dom } from 'grainjs';
 
 /**
@@ -28,7 +29,7 @@ abstract class ToggleBase extends NewAbstractWidget {
 
 export class ToggleCheckBox extends ToggleBase {
   constructor(field: ViewFieldRec, _options: Options = {}) {
-    super(field, {defaultTextColor: '#606060'});
+    super(field, {defaultTextColor: theme.toggleCheckboxFg.toString()});
   }
 
   public buildDom(row: DataRowModel) {

@@ -15,6 +15,7 @@ export const cssLabel = styled('div', `
 `);
 
 export const cssHelp = styled('div', `
+  color: ${theme.lightText};
   margin: -8px 16px 12px 16px;
   font-style: italic;
   font-size: ${vars.xsmallFontSize};

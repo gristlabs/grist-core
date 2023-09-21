@@ -263,7 +263,7 @@ const cssPinnedDocDesc = styled(cssPinnedDocTimestamp, `
 
 const cssImage = styled('img', `
   position: relative;
-  background-color: ${colors.light};
+  background-color: ${colors.dark};
   height: 100%;
   width: 100%;
   object-fit: scale-down;

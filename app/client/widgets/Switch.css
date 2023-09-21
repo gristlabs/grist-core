@@ -12,7 +12,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: var(--grist-theme-switch-slider-fg, #ccc);
   border-radius: 17px;
 }
 
@@ -28,7 +28,7 @@
   width: 13px;
   left: 2px;
   bottom: 2px;
-  background-color: white;
+  background-color: var(--grist-theme-switch-circle-fg, white);
   border-radius: 17px;
 }
 

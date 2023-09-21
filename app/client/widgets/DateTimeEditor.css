@@ -33,6 +33,14 @@
   box-shadow: 0 2px 20px 0 var(--grist-theme-menu-shadow, rgba(38, 38, 51, 0.6));
 }
 
+.datepicker-dropdown.datepicker-orient-top:after {
+  border-top: 6px solid var(--grist-theme-menu-bg, #fff);
+}
+
+.datepicker-dropdown.datepicker-orient-bottom:after {
+  border-bottom: 6px solid var(--grist-theme-menu-bg, #fff);
+}
+
 .datepicker .prev:hover,
 .datepicker .next:hover,
 .datepicker .datepicker-switch:hover,

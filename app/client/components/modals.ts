@@ -350,7 +350,8 @@ const cssBehavioralPromptModal = styled('div', `
 
   @media ${mediaXSmall} {
     & {
-      width: 320px;
+      /* Allocate 32px of space for the left and right margins. */
+      width: calc(100% - 64px);
     }
   }
 `);

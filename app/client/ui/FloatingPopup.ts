@@ -293,7 +293,7 @@ export class FloatingPopup extends Disposable {
     const body = cssPopup(
       {tabIndex: '-1'},
       cssPopup.cls('-auto', this._options.autoHeight ?? false),
-      dom.style('min-height', `${this._minHeight}px`),
+      dom.style('min-height', use => use(this._isMinimized) ? 'unset' : `${this._minHeight}px`),
       cssPopupHeader(
         cssBottomHandle(testId('move-handle')),
         dom.maybe(use => !use(this._isMinimized), () => {

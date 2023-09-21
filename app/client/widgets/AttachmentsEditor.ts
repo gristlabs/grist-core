@@ -9,7 +9,7 @@ import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {DocData} from 'app/client/models/DocData';
 import {MetaTableData} from 'app/client/models/TableData';
 import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
-import {colors, testId, vars} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
@@ -315,12 +315,12 @@ const cssCloseButton = styled('div', `
   padding: 6px;
   border-radius: 32px;
   cursor: pointer;
-  background-color: ${colors.light};
-  --icon-color: ${colors.lightGreen};
+  background-color: ${theme.attachmentsEditorButtonBg};
+  --icon-color: ${theme.attachmentsEditorButtonFg};
 
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
-    --icon-color: ${colors.darkGreen};
+    background-color: ${theme.attachmentsEditorButtonHoverBg};
+    --icon-color: ${theme.attachmentsEditorButtonHoverFg};
   }
 `);
 
@@ -336,10 +336,10 @@ const cssTitle = styled('div', `
   overflow: hidden;
 
   &:hover {
-    outline: 1px solid ${colors.slate};
+    outline: 1px solid ${theme.lightText};
   }
   &:focus-within {
-    outline: 1px solid ${colors.darkGreen};
+    outline: 1px solid ${theme.controlFg};
   }
 `);
 
@@ -362,13 +362,14 @@ const cssFileButtons = styled(cssButtonGroup, `
 `);
 
 const cssButton = styled(basicButton, `
-  background-color: ${colors.light};
+  color: ${theme.attachmentsEditorButtonFg};
+  background-color: ${theme.attachmentsEditorButtonBg};
   font-weight: normal;
   padding: 0 16px;
   border-top: none;
   border-right: none;
   border-bottom: none;
-  border-left: 1px solid ${colors.darkGrey};
+  border-left: 1px solid ${theme.attachmentsEditorButtonBorder};
   display: flex;
   align-items: center;
 
@@ -376,13 +377,14 @@ const cssButton = styled(basicButton, `
     border: none;
   }
   &:hover {
-    background-color: ${colors.mediumGreyOpaque};
-    border-color: ${colors.darkGrey};
+    color: ${theme.attachmentsEditorButtonHoverFg};
+    background-color: ${theme.attachmentsEditorButtonHoverBg};
+    border-color: ${theme.attachmentsEditorButtonBorder};
   }
 `);
 
 const cssButtonIcon = styled(icon, `
-  --icon-color: ${colors.slate};
+  --icon-color: ${theme.attachmentsEditorButtonIcon};
   margin-right: 4px;
 `);
 
@@ -397,11 +399,11 @@ const cssNextArrow = styled('div', `
   padding: 6px;
   border-radius: 32px;
   cursor: pointer;
-  background-color: ${colors.lightGreen};
-  --icon-color: ${colors.light};
+  background-color: ${theme.controlPrimaryBg};
+  --icon-color: ${theme.controlPrimaryFg};
 
   &:hover {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.controlPrimaryHoverBg};
   }
   &-left {
     transform: rotateY(180deg);
@@ -453,7 +455,7 @@ const cssDetails = styled('div', `
 `);
 
 const cssDragArea = styled(cssContent, `
-  border: 2px dashed ${colors.mediumGreyOpaque};
+  border: 2px dashed ${theme.attachmentsEditorBorder};
   height: calc(100% - 96px);
   margin-top: 64px;
   padding: 0px;

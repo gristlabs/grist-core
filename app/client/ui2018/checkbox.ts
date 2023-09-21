@@ -199,7 +199,7 @@ export const cssRadioCheckboxOptions = styled('div', `
 const cssBlockCheckbox = styled('div', `
   display: flex;
   padding: 10px 8px;
-  border: 1px solid ${theme.modalBorder};
+  border: 1px solid ${theme.controlSecondaryDisabledFg};
   border-radius: 3px;
   cursor: pointer;
   & input::before, & input::after  {
@@ -207,7 +207,7 @@ const cssBlockCheckbox = styled('div', `
     left: unset;
   }
   &:hover {
-    border-color: ${theme.accentBorder};
+    border-color: ${theme.controlFg};
   }
   &-block {
     pointer-events: none;

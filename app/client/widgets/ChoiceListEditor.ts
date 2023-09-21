@@ -21,6 +21,7 @@ export class ChoiceItem implements ACItem, IToken {
   constructor(
     public label: string,
     public isInvalid: boolean,  // If set, this token is not one of the valid choices.
+    public isBlank: boolean,    // If set, this token is blank.
     public isNew?: boolean,     // If set, this is a choice to be added to the config.
   ) {}
 }
@@ -50,7 +51,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     const choices: string[] = options.field.widgetOptionsJson.peek().choices || [];
     this._choiceOptionsByName = options.field.widgetOptionsJson
       .peek().choiceOptions || {};
-    const acItems = choices.map(c => new ChoiceItem(c, false));
+    const acItems = choices.map(c => new ChoiceItem(c, false, false));
     const choiceSet = new Set(choices);
 
     const acIndex = new ACIndexImpl<ChoiceItem>(acItems);
@@ -67,21 +68,26 @@ export class ChoiceListEditor extends NewBaseEditor {
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
     const startLabels: unknown[] = options.editValue !== undefined || !Array.isArray(cellValue) ? [] : cellValue;
-    const startTokens = startLabels.map(label => new ChoiceItem(String(label), !choiceSet.has(String(label))));
+    const startTokens = startLabels.map(label => new ChoiceItem(
+      String(label),
+      !choiceSet.has(String(label)),
+      String(label).trim() === ''
+    ));
 
     this._tokenField = TokenField.ctor<ChoiceItem>().create(this, {
       initialValue: startTokens,
       renderToken: item => [
-        item.label,
+        item.isBlank ? '[Blank]' : item.label,
         dom.style('background-color', getRenderFillColor(this._choiceOptionsByName[item.label])),
         dom.style('color', getRenderTextColor(this._choiceOptionsByName[item.label])),
         dom.cls('font-bold', this._choiceOptionsByName[item.label]?.fontBold ?? false),
         dom.cls('font-underline', this._choiceOptionsByName[item.label]?.fontUnderline ?? false),
         dom.cls('font-italic', this._choiceOptionsByName[item.label]?.fontItalic ?? false),
         dom.cls('font-strikethrough', this._choiceOptionsByName[item.label]?.fontStrikethrough ?? false),
-        cssChoiceToken.cls('-invalid', item.isInvalid)
+        cssChoiceToken.cls('-invalid', item.isInvalid),
+        cssChoiceToken.cls('-blank', item.isBlank),
       ],
-      createToken: label => new ChoiceItem(label, !choiceSet.has(label)),
+      createToken: label => new ChoiceItem(label, !choiceSet.has(label), label.trim() === ''),
       acOptions,
       openAutocompleteOnFocus: true,
       readonly : options.readonly,
@@ -222,7 +228,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     const trimmedText = text.trim();
     if (!this._enableAddNew || !trimmedText) { return result; }
 
-    const addNewItem = new ChoiceItem(trimmedText, false, true);
+    const addNewItem = new ChoiceItem(trimmedText, false, false, true);
     if (result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
       return result;
     }
@@ -277,7 +283,7 @@ export const cssToken = styled(tokenFieldStyles.cssToken, `
   white-space: pre;
 
   &.selected {
-    box-shadow: inset 0 0 0 1px ${colors.lightGreen};
+    box-shadow: inset 0 0 0 1px ${theme.choiceTokenSelectedBorder};
   }
 `);
 
@@ -341,7 +347,7 @@ export const cssChoiceList = styled('div', `
 
 const cssReadonlyStyle = styled('div', `
   padding-left: 16px;
-  background: white;
+  background: ${theme.cellEditorBg};
 `);
 
 export const cssMatchText = styled('span', `
@@ -349,20 +355,21 @@ export const cssMatchText = styled('span', `
 `);
 
 export const cssPlusButton = styled('div', `
-  display: inline-block;
+  display: flex;
   width: 20px;
   height: 20px;
   border-radius: 20px;
   margin-right: 8px;
-  text-align: center;
-  background-color: ${colors.lightGreen};
-  color: ${colors.light};
+  align-items: center;
+  justify-content: center;
+  background-color: ${theme.autocompleteAddNewCircleBg};
+  color: ${theme.autocompleteAddNewCircleFg};
 
   .selected > & {
-    background-color: ${colors.darkGreen};
+    background-color: ${theme.autocompleteAddNewCircleSelectedBg};
   }
 `);
 
 export const cssPlusIcon = styled(icon, `
-  background-color: ${colors.light};
+  background-color: ${theme.autocompleteAddNewCircleFg};
 `);

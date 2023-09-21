@@ -31,7 +31,7 @@
 }
 
 .action_desc {
-  color: var(--grist-theme-document-history-activity-text-light, unset);
+  color: var(--grist-theme-document-history-activity-text, unset);
 }
 
 .action_log_item.undone > .action_info,
@@ -68,35 +68,36 @@
   text-align: center;
   margin-top: 0;
   padding-top: 0;
-  color: var(--grist-theme-document-history-activity-text, #000);
+  color: var(--grist-theme-document-history-activity-text-light, #333);
 }
 
 .action_log_table td {
-  border-left: 1px solid #888;
-  border-right: 1px solid #888;
-  border-bottom: 1px solid #888;
-  border-top: 1px solid #888;
+  border: 1px solid var(--grist-theme-document-history-table-border, lightgray);
   cursor: pointer;
 }
 
 .action_log_table th {
-  border-top: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  color: #888;
+  border-top: 1px solid var(--grist-theme-document-history-table-border-light, #D9D9D9);
+  border-left: 1px solid var(--grist-theme-document-history-table-border-light, #D9D9D9);
+  border-right: 1px solid var(--grist-theme-document-history-table-border-light, #D9D9D9);
+  color: var(--grist-theme-document-history-table-header-fg, #000);
 }
 
 .action_log_table th:first-child {
   border: none;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--grist-theme-document-history-table-border-light, #D9D9D9);
 }
 
 .action_log_table td:first-child {
   border: none;
-  border-left: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  color: #888;
+  border-left: 1px solid var(--grist-theme-document-history-table-border-light, #D9D9D9);
+  border-bottom: 1px solid var(--grist-theme-document-history-table-border-light, #D9D9D9);
+  color: var(--grist-theme-document-history-table-header-fg, #000);
   cursor: inherit;
+}
+
+.action_log_table td:not(:first-child) {
+  background-color: var(--grist-theme-table-body-bg);
 }
 
 .action_log_table td, .action_log_table th {
@@ -126,4 +127,8 @@
 
 .action_comment {
   display: none;
+}
+
+.action_info {
+  color: var(--grist-theme-document-history-activity-text-light, #929299);
 }

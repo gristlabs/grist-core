@@ -7,7 +7,7 @@ const {ACIndexImpl, buildHighlightedDom} = require('app/client/lib/ACIndex');
 const {ChoiceItem, cssChoiceList, cssMatchText, cssPlusButton,
        cssPlusIcon} = require('app/client/widgets/ChoiceListEditor');
 const {menuCssClass} = require('app/client/ui2018/menus');
-const {testId, colors} = require('app/client/ui2018/cssVars');
+const {testId, theme} = require('app/client/ui2018/cssVars');
 const {choiceToken, cssChoiceACItem} = require('app/client/widgets/ChoiceToken');
 const {dom, styled} = require('grainjs');
 const {icon} = require('../ui2018/icons');
@@ -34,7 +34,13 @@ _.extend(ChoiceEditor.prototype, TextEditor.prototype);
 
 ChoiceEditor.prototype.getCellValue = function() {
   const selectedItem = this.autocomplete && this.autocomplete.getSelectedItem();
-  return selectedItem ? selectedItem.label : TextEditor.prototype.getCellValue.call(this);
+  if (selectedItem) {
+    return selectedItem.label;
+  } else if (this.textInput.value.trim() === '') {
+    return null;
+  } else {
+    return TextEditor.prototype.getCellValue.call(this);
+  }
 }
 
 ChoiceEditor.prototype.renderACItem = function(item, highlightFunc) {
@@ -60,7 +66,7 @@ ChoiceEditor.prototype.attach = function(cellElem) {
   // Don't create autocomplete if readonly.
   if (this.options.readonly) { return; }
 
-  const acItems = this.choices.map(c => new ChoiceItem(c, false));
+  const acItems = this.choices.map(c => new ChoiceItem(c, false, false));
   const acIndex = new ACIndexImpl(acItems);
   const acOptions = {
     popperOptions: {
@@ -100,7 +106,7 @@ ChoiceEditor.prototype.maybeShowAddNew = function(result, text) {
   const trimmedText = text.trim();
   if (!this.enableAddNew || !trimmedText) { return result; }
 
-  const addNewItem = new ChoiceItem(trimmedText, false, true);
+  const addNewItem = new ChoiceItem(trimmedText, false, false, true);
   if (result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
     return result;
   }
@@ -112,7 +118,7 @@ ChoiceEditor.prototype.maybeShowAddNew = function(result, text) {
 }
 
 const cssChoiceEditIcon = styled(icon, `
-  background-color: ${colors.slate};
+  background-color: ${theme.lightText};
   position: absolute;
   top: 0;
   left: 0;

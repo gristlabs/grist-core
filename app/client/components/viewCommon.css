@@ -12,6 +12,7 @@
   border-style: none;
   border-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
   border-left-style: solid;  /* left border, against rownumbers div, always on */
+  border-left-color: var(--grist-theme-table-header-border, lightgray);
   border-bottom-width: 1px; /* style: none, set by record-hlines*/
   /* Record background is white (or theme default) by default.
      It gets overridden by the add row, zebra stripes.
@@ -203,11 +204,11 @@
   text-align: center;
   cursor: pointer;
   /* Column headers always show vertical gridlines, to make it clear how to resize them */
-  border-right-color: var(--grist-theme-table-header-border-dark, var(--grist-color-dark-grey));
+  border-right-color: var(--grist-theme-table-header-border, lightgray);
 }
 
 .column_names.record {
-  border-left-color: var(--grist-theme-table-header-border, var(--grist-color-dark-grey));
+  border-left-color: var(--grist-theme-table-header-border, lightgray);
 }
 
 .column_name.selected > .selection {

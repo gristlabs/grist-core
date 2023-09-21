@@ -311,7 +311,6 @@ export class RightPanel extends Disposable {
             ]),
             cssLabel(t("TRANSFORM")),
             dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
-            dom.maybe(isMultiSelect, () => disabledSection()),
             testId('panel-transform'),
           ),
           this._disableIfReadonly(),

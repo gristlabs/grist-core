@@ -55,6 +55,7 @@ const cssTextArea = styled(textarea, `
   border-radius: 3px;
   padding: 3px 7px;
   min-height: calc(3em * 1.5);
+  resize: none;
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};

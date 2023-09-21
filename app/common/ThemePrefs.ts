@@ -89,8 +89,6 @@ export interface ThemeColors {
   'tooltip-close-button-fg': string;
   'tooltip-close-button-hover-fg': string;
   'tooltip-close-button-hover-bg': string;
-  'tooltip-popup-header-fg': string;
-  'tooltip-popup-header-bg': string;
 
   /* Modals */
   'modal-bg': string;
@@ -128,6 +126,7 @@ export interface ThemeColors {
 
   /* Cell Editor */
   'cell-editor-fg': string;
+  'cell-editor-placeholder-fg': string;
   'cell-editor-bg': string;
 
   /* Cursor */
@@ -141,7 +140,6 @@ export interface ThemeColors {
   'table-header-bg': string;
   'table-header-selected-bg': string;
   'table-header-border': string;
-  'table-header-border-dark': string;
   'table-body-bg': string;
   'table-body-border': string;
   'table-add-new-bg': string;
@@ -149,6 +147,7 @@ export interface ThemeColors {
   'table-frozen-columns-border': string;
   'table-drag-drop-indicator': string;
   'table-drag-drop-shadow': string;
+  'table-cell-summary-bg': string;
 
   /* Cards */
   'card-compact-widget-bg': string;
@@ -197,13 +196,13 @@ export interface ThemeColors {
   'control-primary-fg': string;
   'control-primary-bg': string;
   'control-secondary-fg': string;
+  'control-secondary-disabled-fg': string;
   'control-hover-fg': string;
   'control-primary-hover-bg': string;
   'control-secondary-hover-fg': string;
   'control-secondary-hover-bg': string;
   'control-disabled-fg': string;
   'control-disabled-bg': string;
-  'control-primary-disabled': string;
   'control-border': string;
 
   /* Checkboxes */
@@ -264,7 +263,6 @@ export interface ThemeColors {
   'right-panel-disabled-overlay': string;
   'right-panel-toggle-button-enabled-fg': string;
   'right-panel-toggle-button-enabled-bg': string;
-  'right-panel-toggle-button-enabled-hover-fg': string;
   'right-panel-toggle-button-disabled-fg': string;
   'right-panel-toggle-button-disabled-bg': string;
   'right-panel-field-settings-bg': string;
@@ -278,6 +276,9 @@ export interface ThemeColors {
   'document-history-snapshot-border': string;
   'document-history-activity-text': string;
   'document-history-activity-text-light': string;
+  'document-history-table-header-fg': string;
+  'document-history-table-border': string;
+  'document-history-table-border-light': string;
 
   /* Accents */
   'accent-icon': string;
@@ -297,6 +298,16 @@ export interface ThemeColors {
   'input-readonly-bg': string;
   'input-readonly-border': string;
 
+  /* Choice Tokens */
+  'choice-token-fg': string;
+  'choice-token-blank-fg': string;
+  'choice-token-bg': string;
+  'choice-token-selected-bg': string;
+  'choice-token-selected-border': string;
+  'choice-token-invalid-fg': string;
+  'choice-token-invalid-bg': string;
+  'choice-token-invalid-border': string;
+
   /* Choice Entry */
   'choice-entry-bg': string;
   'choice-entry-border': string;
@@ -305,7 +316,6 @@ export interface ThemeColors {
   /* Select Buttons */
   'select-button-fg': string;
   'select-button-placeholder-fg': string;
-  'select-button-disabled-fg': string;
   'select-button-bg': string;
   'select-button-border': string;
   'select-button-border-invalid': string;
@@ -325,14 +335,14 @@ export interface ThemeColors {
   'menu-item-disabled-fg': string;
   'menu-item-icon-fg': string;
   'menu-item-icon-selected-fg': string;
-  'menu-item-link-fg': string;
-  'menu-item-link-selected-fg': string;
-  'menu-item-link-selected-bg': string;
 
   /* Autocomplete */
   'autocomplete-match-text': string;
   'autocomplete-selected-match-text': string;
   'autocomplete-item-selected-bg': string;
+  'autocomplete-add-new-circle-fg': string;
+  'autocomplete-add-new-circle-bg': string;
+  'autocomplete-add-new-circle-selected-bg': string;
 
   /* Search */
   'search-border': string;
@@ -416,6 +426,7 @@ export interface ThemeColors {
   'button-group-fg': string;
   'button-group-light-fg': string;
   'button-group-bg': string;
+  'button-group-bg-hover': string;
   'button-group-icon': string;
   'button-group-border': string;
   'button-group-border-hover': string;
@@ -428,6 +439,7 @@ export interface ThemeColors {
   'access-rules-table-header-fg': string;
   'access-rules-table-header-bg': string;
   'access-rules-table-body-fg': string;
+  'access-rules-table-body-light-fg': string;
   'access-rules-table-border': string;
   'access-rules-column-list-border': string;
   'access-rules-column-item-fg': string;
@@ -497,7 +509,6 @@ export interface ThemeColors {
   'color-select-shadow': string;
   'color-select-font-options-border': string;
   'color-select-font-option-fg': string;
-  'color-select-font-option-bg': string;
   'color-select-font-option-bg-hover': string;
   'color-select-font-option-fg-selected': string;
   'color-select-font-option-bg-selected': string;
@@ -518,11 +529,44 @@ export interface ThemeColors {
   'login-page-bg': string;
   'login-page-backdrop': string;
   'login-page-line': string;
+  'login-page-google-button-fg': string;
+  'login-page-google-button-bg': string;
+  'login-page-google-button-bg-hover': string;
+  'login-page-google-button-border': string;
 
   /* Formula Assistant */
   'formula-assistant-header-bg': string;
   'formula-assistant-border': string;
   'formula-assistant-preformatted-text-bg': string;
+
+  /* Attachments */
+  'attachments-editor-button-fg': string;
+  'attachments-editor-button-hover-fg': string;
+  'attachments-editor-button-bg': string;
+  'attachments-editor-button-hover-bg': string;
+  'attachments-editor-button-border': string;
+  'attachments-editor-button-icon': string;
+  'attachments-editor-border': string;
+  'attachments-cell-icon-fg': string;
+  'attachments-cell-icon-bg': string;
+  'attachments-cell-icon-hover-bg': string;
+
+  /* Switches */
+  'switch-slider-fg': string;
+  'switch-circle-fg': string;
+
+  /* Announcement Popups */
+  'announcement-popup-fg': string;
+  'announcement-popup-bg': string;
+
+  /* Scroll Shadow */
+  'scroll-shadow': string;
+
+  /* Toggle Checkboxes */
+  'toggle-checkbox-fg': string;
+
+  /* Numeric Spinners */
+  'numeric-spinner-fg': string;
 }
 
 export const ThemePrefsChecker = createCheckers(ThemePrefsTI).ThemePrefs as CheckerT<ThemePrefs>;
@@ -532,7 +576,7 @@ export const ThemeNameChecker = createCheckers(ThemePrefsTI).ThemeName as Checke
 export function getDefaultThemePrefs(): ThemePrefs {
   return {
     appearance: 'light',
-    syncWithOS: false,
+    syncWithOS: true,
     colors: {
       light: 'GristLight',
       dark: 'GristDark',

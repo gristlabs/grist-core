@@ -146,6 +146,11 @@ export const cssButtonSelect = styled('div', `
   /* Vars */
   color: ${theme.text};
   flex: 1 1 0;
+
+  &-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 `);
 
 const cssSelectorBtn = styled('div', `
@@ -187,6 +192,7 @@ const cssSelectorBtn = styled('div', `
   }
 
   &:hover:not(&-selected) {
+    background-color: ${theme.buttonGroupBgHover};
     border: 1px solid ${theme.buttonGroupBorderHover};
     z-index: 5;  /* Update z-index so selected borders take precedent */
   }
@@ -217,14 +223,6 @@ const cssSelectorBtn = styled('div', `
   .${cssButtonSelect.className}-light > &:hover {
     border: none;
     background-color: ${theme.hover};
-  }
-  .${cssButtonSelect.className}-disabled > &,
-  .${cssButtonSelect.className}-disabled > &:hover {
-    --icon-color: ${theme.rightPanelToggleButtonDisabledFg};
-    color: ${theme.rightPanelToggleButtonDisabledFg};
-    background-color: ${theme.rightPanelToggleButtonDisabledBg};
-    border-color: ${theme.buttonGroupBorder};
-    pointer-events: none;
   }
 `);
 

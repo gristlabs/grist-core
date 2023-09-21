@@ -9,14 +9,15 @@
   align-items: center;
   gap: 8px;
   align-self: flex-start;
-  margin-top: -1px;
 }
 
 .viewsection_title {
+  align-items: center;
   flex-shrink: 0;
   cursor: default;
-  height: 24px;
+  min-height: 24px;
   margin-left: -16px;   /* to include drag handle that shows up on hover */
+  margin-bottom: 4px;
   white-space: nowrap;
 }
 

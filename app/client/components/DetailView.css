@@ -97,8 +97,25 @@
   margin-right: 2px;
 }
 
+.detail-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-left, .detail-right, .detail-add-btn {
+  --icon-color: var(--grist-theme-control-secondary-fg, #929299);
+  padding: 3px;
+  border-radius: 4px;
+}
+
 .detail-left.disabled, .detail-right.disabled, .detail-add-btn.disabled {
-  cursor: default !important;
+  --icon-color: var(--grist-theme-control-secondary-disabled-fg, #D9D9D9);
+}
+
+.detail-button:not(.disabled):hover {
+  cursor: pointer;
+  background-color: var(--grist-theme-hover, rgba(217,217,217,0.6));
 }
 
 .detail-add-grp {

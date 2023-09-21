@@ -20,6 +20,7 @@ import { CombinedStyle, Style } from 'app/client/models/Styles';
 import { COMMENTS } from 'app/client/models/features';
 import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
 import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { textButton } from 'app/client/ui2018/buttons';
 import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
 import { theme } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
@@ -308,6 +309,7 @@ export class FieldBuilder extends Disposable {
         grainjsDom.cls('tour-type-selector'),
         grainjsDom.cls(cssBlockedCursor.className, use =>
           use(this.origColumn.disableModifyBase) ||
+          use(this._isTransformingFormula) ||
           (use(this.field.config.multiselect) && !use(allFormulas))
         ),
       ),
@@ -415,18 +417,18 @@ export class FieldBuilder extends Disposable {
                    this.columnTransform.finalize().catch(reportError);
                  }
                }),
-               kf.row(
-                 15, kf.label(t('Apply Formula to Data')),
-                 3, kf.buttonGroup(
-                   kf.checkButton(transformButton,
-                     dom('span.glyphicon.glyphicon-flash'),
-                     dom.testId("FieldBuilder_editTransform"),
-                     testId('edit-transform'),
-                     kd.toggleClass('disabled', () => this._isTransformingType() || this.origColumn.isFormula() ||
-                       this.origColumn.disableModifyBase())
-                   )
-                 )
-               ),
+               cssRow(
+                 textButton(t('Apply Formula to Data'),
+                 dom.on('click', () => transformButton(true)),
+                 kd.hide(this._isTransformingFormula),
+                 kd.boolAttr('disabled', () =>
+                   this._isTransformingType() ||
+                   this.origColumn.isFormula() ||
+                   this.origColumn.disableModifyBase() ||
+                   this.field.config.multiselect()),
+                 dom.testId("FieldBuilder_editTransform"),
+                 testId('edit-transform'),
+               )),
                kd.maybe(this._isTransformingFormula, () => {
                  return this.columnTransform!.buildDom();
                })

@@ -1,5 +1,5 @@
 import {DataRowModel} from 'app/client/models/DataRowModel';
-import {colors, testId} from 'app/client/ui2018/cssVars';
+import {testId} from 'app/client/ui2018/cssVars';
 import {isList} from 'app/common/gristTypes';
 import {dom} from 'grainjs';
 import {cssChoiceList, cssToken} from "app/client/widgets/ChoiceListCell";
@@ -51,7 +51,7 @@ export class ReferenceList extends Reference {
           return choiceToken(
             isBlankReference ? '[Blank]' : token,
             {
-              textColor: isBlankReference ? colors.slate.value : undefined
+              blank: isBlankReference,
             },
             dom.cls(cssToken.className),
             testId('ref-list-cell-token')

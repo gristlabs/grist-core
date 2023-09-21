@@ -10,15 +10,15 @@ import * as ko from 'knockout';
 import koArray from 'app/client/lib/koArray';
 import {KoArray} from 'app/client/lib/koArray';
 import * as koDom from 'app/client/lib/koDom';
-import * as koForm from 'app/client/lib/koForm';
 
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
         LabelDelta} from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
-import {DomContents, IDomComponent} from 'grainjs';
+import {DomContents, fromKo, IDomComponent} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 
 /**
  *
@@ -230,10 +230,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
         {tabIndex: '-1'},
-        dom('div.preference_item',
-            koForm.checkbox(this._showAllTables,
-                            dom.testId('ActionLog_allTables'),
-                            dom('span.preference_desc', 'All tables'))),
+        dom('div',
+          labeledSquareCheckbox(fromKo(this._showAllTables),
+            t('All tables'),
+            dom.testId('ActionLog_allTables'),
+          ),
+        ),
         dom('div.action_log_load',
           koDom.show(() => this._loading()),
           'Loading...'),

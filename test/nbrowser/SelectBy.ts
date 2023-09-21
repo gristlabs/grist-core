@@ -154,12 +154,12 @@ describe("SelectBy", function() {
     assert.equal(await gu.getDetailCell({section, rowNum: 1, col: 'A'}).getText(), '1');
 
     // Check there are nav buttons in the card view.
-    assert.equal(await section.find('.btn.detail-left').isPresent(), true);
-    assert.equal(await section.find('.btn.detail-right').isPresent(), true);
+    assert.equal(await section.find('.detail-button.detail-left').isPresent(), true);
+    assert.equal(await section.find('.detail-button.detail-right').isPresent(), true);
     assert.equal(await section.find('.grist-single-record__menu__count').getText(), '1 OF 1');
 
     // Now add a record to the source table using the card view.
-    await section.find('.btn.detail-add-btn').click();
+    await section.find('.detail-button.detail-add-btn').click();
     assert.equal(await gu.getDetailCell({section, rowNum: 1, col: 'A'}).getText(), '');
     await gu.getDetailCell({section, rowNum: 1, col: 'A'}).click();
     await gu.sendKeys('1', Key.ENTER);
