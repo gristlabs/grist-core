@@ -3141,14 +3141,15 @@ export async function setGristTheme(options: {
     await openProfileSettingsPage();
   }
 
-  const syncWithOSCheckbox = await driver.find('.test-theme-config-sync-with-os');
-  const isSyncWithOSChecked = await syncWithOSCheckbox.getAttribute('checked') === 'true';
+  await scrollIntoView(driver.find('.test-theme-config-sync-with-os'));
+  const isSyncWithOSChecked = await driver.find('.test-theme-config-sync-with-os').getAttribute('checked') === 'true';
   if (syncWithOS !== isSyncWithOSChecked) {
-    await syncWithOSCheckbox.click();
+    await driver.find('.test-theme-config-sync-with-os').click();
     await waitForServer();
   }
 
   if (!syncWithOS) {
+    await scrollIntoView(driver.find('.test-theme-config-appearance .test-select-open'));
     await driver.find('.test-theme-config-appearance .test-select-open').click();
     await driver.findContent('.test-select-menu li', appearance === 'light' ? 'Light' : 'Dark')
       .click();
