@@ -186,11 +186,15 @@ export class Cursor extends Disposable {
       // NOTE: _cursorEdited
       // We primarily update cursorEdited counter from a this._properRowId.subscribe(), since that catches updates
       //   from many sources (setCursorPos, arrowKeys, save/load, filter/sort-changes, etc)
-      // However, when deleting a row with several sections linked together, there can be a case where this fails:
-      //   When GridView.deleteRows calls setCursorPos to keep cursor from jumping after delete, the observable
+      // However, there's some cases where we user touches a section and properRowId doesn't change. Obvious one is
+      //   clicking in a section on the cell the cursor is already on. This doesn't change the cursor position, but it
+      //   SHOULD still update cursors to use that section as most up-to-date (user just clicked on a cell!), so we do
+      //   it here. (normally is minor issue, but can matter when a section has rows filtered out so cursors desync)
+      // Also a more subtle case: when deleting a row with several sections linked together, properRowId can fail to
+      //   update. When GridView.deleteRows calls setCursorPos to keep cursor from jumping after delete, the observable
       //   doesn't trigger cursorEdited(), because (I think) _properRowId has already been updated that cycle.
-      //   This caused a bug when several viewSections were cursor-linked to each other and a row was deleted.
-      // We can explicitly call cursorEdited again here. It'll cause cursorEdited to be called twice sometimes,
+      //   This caused a bug when several viewSections were cursor-linked to each other and a row was deleted
+      // NOTE: Calling it explicitly here will cause cursorEdited to be called twice sometimes,
       //   but that shouldn't cause any problems, since we don't care about edit counts, just who was edited latest.
       this._cursorEdited();
 
@@ -208,7 +212,7 @@ export class Cursor extends Disposable {
   }
 
   // Should be called whenever the cursor is updated
-  // _EXCEPT FOR: when cursor is set by linking
+  // EXCEPT FOR: when cursor is set by linking
   // this is used to determine which widget/cursor has most recently been touched,
   // and therefore which one should be used to drive linking if there's a conflict
   private _cursorEdited(): void {

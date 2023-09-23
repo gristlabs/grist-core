@@ -156,27 +156,42 @@ function isValidLink(source: LinkNode, target: LinkNode) {
       return false;
     }
 
-    // Walk backwards along the chain of ancestors
-    // - if we hit a non-cursor link before reaching target, then that would be an illegal cycle
-    // - when we hit target, we've verified that this is a legal cycle, so break
-    //   (ancestors further up the hierarchy past target don't matter, since once we set target.linkSrcSec = src.sec,
-    //    they would stop being ancestors of src)
-    // NOTE: we're guaranteed to hit target before the end of the array (because of the `if(...includes...)` above)
-    // ALSO NOTE: isAncestorSameTableCursorLink may be 1 shorter than ancestors, but it's accounted for by the above
-    let i = 0;
-    for (;;) {
+    // We know our ancestors cycle back around to ourselves
+    // - lets walk back along the cyclic portion of the ancestor chain and verify that each link in that chain is
+    //   a cursor-link
+
+    // e.g. if the current link graph is:
+    //                     A->B->TGT->C->D->SRC
+    //    (SRC.ancestors):[5][4] [3] [2][1] [0]
+    // We're verifying the new potential link SRC->TGT, which would turn the graph into:
+    //             [from SRC] -> TGT -> C -> D -> SRC -> [to TGT]
+    // (Note that A and B will be cut away, since we change TGT's link source)
+    //
+    // We need to make sure that each link going backwards from `TGT -> C -> D -> SRC` is a same-table-cursor-link,
+    // since we disallow cycles with other kinds of links.
+    // isAncestorCursorLink[i] will tell us if the link going into ancestors[i] is a same-table-cursor-link
+    // So before we step from i=0 (SRC) to i=1 (D), we check isAncestorCursorLink[0], which tells us about D->SRC
+    let i;
+    for (i = 0; i < source.ancestors.length; i++) { // Walk backwards through the ancestors
+
+      // Once we hit the target section, we've seen all links that will be part of the cycle, and they've all been valid
       if (source.ancestors[i] == target.section.getRowId()) {
-        // We made it! All is well
-        break;
+        break; // Success!
       }
-      // If we've hit the last ancestor and haven't found target, error out (shouldn't happen, we checked for it)
-      if (i == source.ancestors.length-1) { throw Error("Array doesn't include targetSection"); }
 
-      // We're not done with the cycle. Check next link, if it's non-same-table-cursor-link, the cycle is invalid.
-      if (!source.isAncestorSameTableCursorLink[i]) { return false; }
-
-      i++; // Walk back
+      // Check that the link to the preceding section is valid
+      // NOTE! isAncestorSameTableCursorLink could be 1 shorter than ancestors!
+      // (e.g. if the graph looks like A->B->C, there's 3 ancestors but only two links)
+      // (however, if there's already a cycle, they'll be the same length ( [from C]->A->B->C, 3 ancestors & 3 links)
+      // If the link doesn't exist (shouldn't happen?) OR the link is not same-table-cursor, the cycle is invalid
+      if (i >= source.isAncestorSameTableCursorLink.length ||
+          !source.isAncestorSameTableCursorLink[i]) { return false; }
     }
+
+    // If we've hit the last ancestor and haven't found target, error out (shouldn't happen!, we checked for it)
+    if (i == source.ancestors.length) { throw Error("Array doesn't include targetSection"); }
+
+
     // Yay, this is a valid cycle of same-table cursor-links
   }
 
