@@ -260,7 +260,11 @@ class DocModel(object):
     Remove the records marked for removal.
     """
     # Sort to make sure removals are done in deterministic order.
-    gone_records = sorted(self._auto_remove_set)
+    gone_records = sorted(
+      self._auto_remove_set,
+      # Remove tables last to prevent errors trying to remove rows or columns from deleted tables.
+      key=lambda r: (r._table.table_id == "_grist_Tables", r)
+    )
     self._auto_remove_set.clear()
     # setAutoRemove is called by formulas, notably summary tables, and shouldn't be blocked by ACL.
     with self._engine.user_actions.indirect_actions():

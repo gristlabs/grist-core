@@ -4,10 +4,12 @@ files: test_summary.py and test_summary2.py.
 """
 
 import logging
+
 import actions
 import summary
-import testutil
 import test_engine
+import testutil
+import useractions
 from test_engine import Table, Column, View, Section, Field
 from useractions import allowed_summary_change
 
@@ -868,6 +870,57 @@ class Address:
       [ "id", "B",  "group",  "count",  "C" ],
       [ 1,    1.0,  [1,2],    2,        9   ],
       [ 2,    2.0,  [3],      1,        6   ],
+    ])
+
+  def test_remove_source_columns_with_display_column(self):
+    # Verify a fix for a specific bug: removing multiple groupby source columns
+    # when the summary table contains a display column.
+
+    self.apply_user_action(["AddEmptyTable", None])
+    # Group by A and B
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [2,3], None])
+    # Add a display column for the group column
+    self.apply_user_action(['SetDisplayFormula', 'Table1_summary_A_B', None, 7, '$group.C'])
+
+    # Verify metadata and initially.
+    self.assertTables([
+      Table(1, "Table1", summarySourceTable=0, primaryViewId=1, columns=[
+        Column(1, "manualSort", "ManualSortPos",  False,  "", 0),
+        Column(2, "A",          "Any",        True,  "", 0),
+        Column(3, "B",          "Any",        True,  "", 0),
+        Column(4, "C",          "Any",        True,  "", 0),
+      ]),
+      Table(2, "Table1_summary_A_B", summarySourceTable=1, primaryViewId=0, columns=[
+        Column(5, "A",          "Any",            False, "", 2),
+        Column(6, "B",          "Any",            False, "", 3),
+        Column(7, "group",      "RefList:Table1", True,  "table.getSummarySourceGroup(rec)", 0),
+        Column(8, "count",      "Int",            True,  "len($group)", 0),
+        Column(9, "gristHelper_Display", "Any",   True,  "$group.C", 0),
+      ])
+    ])
+
+    user_actions = [
+      useractions.from_repr(ua) for ua in
+      [
+        ['RemoveColumn', 'Table1', 'A'],
+        ['RemoveColumn', 'Table1', 'B'],
+      ]
+    ]
+    self.engine.apply_user_actions(user_actions)
+
+    # Verify that the final structure is as expected.
+    self.assertTables([
+      Table(1, "Table1", summarySourceTable=0, primaryViewId=1, columns=[
+        Column(1, "manualSort", "ManualSortPos",  False,  "", 0),
+        Column(4, "C",          "Any",        True,  "", 0),
+      ]),
+      # Table1_summary_A_B was removed and recreated as Table1_summary.
+      # This removed Table1_summary_A_B.group which automatically removed gristHelper_Display
+      # which led to an error in the past.
+      Table(4, "Table1_summary", summarySourceTable=1, primaryViewId=0, columns=[
+        Column(14, "group",      "RefList:Table1", True,  "table.getSummarySourceGroup(rec)", 0),
+        Column(15, "count",      "Int",            True,  "len($group)", 0),
+      ])
     ])
 
   #----------------------------------------------------------------------

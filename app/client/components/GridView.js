@@ -890,10 +890,14 @@ GridView.prototype.deleteColumns = function(selection) {
     });
     return Promise.resolve(false);
   }
-  let actions = fields.filter(col => !col.disableModify()).map(col => ['RemoveColumn', col.colId()]);
-  if (actions.length > 0) {
-    return this.tableModel.sendTableActions(actions, `Removed columns ${actions.map(a => a[1]).join(', ')} ` +
-      `from ${this.tableModel.tableData.tableId}.`).then(() => this.clearSelection());
+  const columns = fields.filter(col => !col.disableModify());
+  const colRefs = columns.map(col => col.colRef.peek());
+  if (colRefs.length > 0) {
+    return this.gristDoc.docData.sendAction(
+        ['BulkRemoveRecord', '_grist_Tables_column', colRefs],
+        `Removed columns ${columns.map(col => col.colId.peek()).join(', ')} ` +
+        `from ${this.tableModel.tableData.tableId}.`
+    ).then(() => this.clearSelection());
   }
   return Promise.resolve(false);
 };
