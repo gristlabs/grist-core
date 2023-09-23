@@ -5,18 +5,24 @@ import {makeT} from 'app/client/lib/localization';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {filterBar} from 'app/client/ui/FilterBar';
 import {cssIcon} from 'app/client/ui/RightPanelStyles';
+import {IHoverTipOptions, setHoverTooltip} from "app/client/ui/tooltips";
 import {makeCollapsedLayoutMenu} from 'app/client/ui/ViewLayoutMenu';
 import {cssDotsIconWrapper, cssMenu, viewSectionMenu} from 'app/client/ui/ViewSectionMenu';
 import {buildWidgetTitle} from 'app/client/ui/WidgetTitle';
-import {isNarrowScreenObs, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {isNarrowScreenObs, mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
-import {Computed, dom, DomElementArg, Observable, styled} from 'grainjs';
+import {isFullReferencingType} from "app/common/gristTypes";
+import {Computed, dom, DomContents, DomElementArg, Observable, styled} from 'grainjs';
 import {defaultMenuOptions} from 'popweasel';
 import {EmptyFilterState} from "./LinkingState";
 
 const t = makeT('ViewSection');
+
+// TODO JV: Duplicated from RightPanel
+const BLACK_CIRCLE = '\u2022';
+const ELEMENTOF = '\u2208'; //220A for small elementof
 
 export function buildCollapsedSectionDom(options: {
   gristDoc: GristDoc,
@@ -97,7 +103,86 @@ function buildLinkStateIndicatorDom(options: {
       //TODO: could show multiple vals if short, and/or let css overflow ellipsis handle it?
     }).join("; ");
 
+
+    // ====== TODO TEMP: these are copied wholesale from RightPanel.ts =================
+    //        This info also appears verbatim in rightpanel
+    //        Could just not show it? And/or open rightpanel to linkinfo when clicked?
+    //        Tooltip could just be for extra info
+    // =================================================================================
+
+    // TODO JV: Duplicated from RightPanel
+    const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
+    const srcCol = use(tgtSec.linkSrcCol);
+    const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined
+
+    const srcTable = use(srcSec.table);
+    const tgtTable = use(tgtSec.table);
+
+    //Count filters for proper pluralization
+    const hasId = lfilter.filterLabels?.hasOwnProperty("id");
+    const numFilters = Object.keys(lfilter.filterLabels).length - (hasId ? 1 : 0);
+
+    // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
+    const fromTableDom = [
+      dom.maybe((use2) => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
+      use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
+      dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
+    ];
+
+    //If it's null then no cursor-link is set, but in that case we won't show the string anyway.
+    const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
+    const linkedCursorStr =  cursorPos ? `${use(tgtTable.tableId)}[${cursorPos}]` : '';
+
+    //For each col-filter in lfilters, makes a row showing "${icon} colName = [filterVals]"
+    //FilterVals is in a box to look like a grid cell
+    const makeFiltersTable = (): DomContents => {
+      return cssLinkInfoBody(
+          dom.style("width", "100%"), //width 100 keeps table from growing outside bounds of flex parent if overfull
+          dom("table",
+              dom.style("margin-left", "8px"),
+              Object.keys(lfilter.filterLabels).map( (colId) => {
+                const vals = lfilter.filterLabels[colId];
+                let operationSymbol = "=";
+                //if [filter (reflist) <- ref], op="intersects", need to convey "list has value". symbol =":"
+                //if [filter (ref) <- reflist], op="in", vals.length>1, need to convey "ref in list"
+                //Sometimes operation will be 'empty', but in that case "=" still works fine, i.e. "list = []"
+                if (lfilter.operations[colId] == "intersects") { operationSymbol = ":"; }
+                else if (vals.length > 1) { operationSymbol = ELEMENTOF; }
+
+                if (colId == "id") {
+                  return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
+                } else {
+                  return dom("tr",
+                      dom("td", cssLinkInfoIcon("Filter"),
+                          `${colId}`),
+                      dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')),
+                      dom("td", cssLinkInfoValuesBox(
+                          isFullReferencingType(lfilter.colTypes[colId]) ?
+                              cssLinkInfoIcon("FieldReference"): null,
+                          `${vals.join(', ')}`)),
+                  );
+                } }), //end of keys(filterLabels).map
+          ));
+    };
+
+    //Given a list of filterLabels, show them all in a box, as if a grid cell
+    //Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
+    const makeValuesBox = (valueLabels: string[]): DomContents => {
+      return cssLinkInfoBody((
+          cssLinkInfoValuesBox(
+              cssLinkInfoIcon("FieldReference"),
+              valueLabels.join(', '), ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
+      ));
+    };
+
+    // ============ TODO TEMP: END OF THINGS COPIED FROM RightPanel.ts =================
+    // =================================================================================
+
     let bubbleContent: DomElementArg[];
+    let toolTipContent: DomElementArg[] = ["Link State Tooltip (ERROR: UNSET)"];
+    const toolTipOptions: IHoverTipOptions = { key: "linkstate-bubble", openOnClick: true, placement:"bottom", };
+
+
     switch (use(lstate.linkTypeDescription)) {
       case "Filter:Summary-Group":
       case "Filter:Col->Col":
@@ -107,30 +192,118 @@ function buildLinkStateIndicatorDom(options: {
           dom("div", dom.style('width', '2px'), dom.style('display', 'inline-block')), //spacer for text
           filterValsShortLabel,
         ];
+        toolTipContent = [
+          dom("div", `Link applies filter${numFilters > 1 ? "s" : ""}:`),
+          makeFiltersTable(),
+          dom("div", `Linked from `, fromTableDom),
+        ]
+
         break;
       case "Show-Referenced-Records":
         bubbleContent = [];
+
+        //filterLabels might be {} if EmptyFilterState, so filterLabels["id"] might be undefined
+        const displayValues = lfilter.filterLabels["id"] ?? [];
+        toolTipContent = [
+          dom("div", `Link shows record${displayValues.length > 1 ? "s" : ""}:`),
+          makeValuesBox(displayValues),
+          dom("div", `from `, fromTableDom),
+        ];
         break;
       case "Cursor:Same-Table":
       case "Cursor:Reference":
         bubbleContent = [];
+        toolTipContent = [
+        dom("div", `Link sets cursor to:`),
+            makeValuesBox([linkedCursorStr]),
+            dom("div", `from `, fromTableDom),
+        ];
         break;
       case "Error:Invalid":
       default:
         bubbleContent = ["Error"];
+        toolTipContent = [`Can't show info for this link`]
         break;
     }
+
+    //Div wrapping dom?
+    const toolTipDom = cssLinkTooltip(...toolTipContent);
 
     return linkStateBubble(
         customIcon(dom.style("background-color", theme.filterBarButtonSavedFg + "")),
         bubbleContent,
         dom.on("click", () => allCommands.dataSelectionTabOpen.run()),
+        (elem) => setHoverTooltip(elem, toolTipDom, toolTipOptions),
+        dom.onDispose(() => dom.domDispose(toolTipDom)),
         ...domArgs,
     );
 
   });
 
 }
+
+
+// =====================================================
+//                 CSS FOR LINKSTATE TOOLTIPS
+
+//Tooltip is a column
+//Tooltip > table shows linked filters
+//Tooltip > table > td:nth-child(3) is RHS of filters, show val, should look like a cell containing a value
+
+//height on a td acts as min-height;  22px matches real field size, +2 for borders
+//font-size is set larger by tooltip CSS, reset it to root font size to match field css
+const cssLinkTooltip = styled('div', `
+  display: flex;
+  flex-flow: column;
+  align-items: start;
+  text-align: left;
+
+  font-size: 1rem;
+  font-family: ${vars.fontFamily};
+
+& table {
+    margin: 2px 0 2px 0;
+    border-spacing: 2px;
+    border-collapse: separate;
+    align-self: center;
+}
+
+`);
+
+// ==== CSS COPIED FROM RIGHTPANEL.ts
+// TODO: FIND SOME WAY TO NOT DUPLICATE IT?
+// OR MAYBE IT'S NOT NEEDED
+
+// Center table / values box inside LinkInfoPanel
+const cssLinkInfoBody= styled('div', `
+  margin: 2px 0 2px 0;
+  align-self: center;
+`);
+
+// Intended to imitate style of a grid cell
+// white-space: normal allows multiple values to wrap
+// min-height: 22px matches real field size, +2 for the borders
+const cssLinkInfoValuesBox = styled('div', `
+  border: 1px solid ${'#CCC'};
+  padding: 3px 3px 0px 3px;
+  min-width: 60px;
+  min-height: 24px;
+
+  white-space: normal;
+`);
+
+//If inline with text, icons look better shifted up slightly
+//since icons are position:relative, bottom:1 should shift it without affecting layout
+const cssLinkInfoIcon = styled(icon, `
+  bottom: 1px;
+  margin-right: 3px;
+  background-color: ${theme.controlSecondaryFg};
+`);
+
+//                END LINKSTATE TOOLTIP CSS
+// =====================================================
+
+
 
 // eslint-disable-next-line
 const tempIconSVGString= `url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"> <ellipse style="stroke: rgb(0, 0, 0);" cx="2.426" cy="13.913" rx="1.361" ry="1.361"/> <ellipse style="stroke: rgb(0, 0, 0);" cx="13.827" cy="3.039" rx="1.222" ry="1.222"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 2.396 12.802 C 2.363 7.985 6.014 2.893 11.895 3.027"/> <path style="stroke: rgb(0, 0, 0); fill: none;" d="M 8.49 1.047 L 12.265 2.871 L 8.986 5.874"/> </svg>')`;
