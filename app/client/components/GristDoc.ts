@@ -1133,7 +1133,8 @@ export class GristDoc extends DisposableWithEvents {
   public async recursiveMoveToCursorPos(
     cursorPos: CursorPos,
     setAsActiveSection: boolean,
-    silent: boolean = false): Promise<boolean> {
+    silent: boolean = false,
+    visitedSections: number[] = []): Promise<boolean> {
     try {
       if (!cursorPos.sectionId) {
         throw new Error('sectionId required');
@@ -1145,6 +1146,12 @@ export class GristDoc extends DisposableWithEvents {
       if (!section.id.peek()) {
         throw new Error(`Section ${cursorPos.sectionId} does not exist`);
       }
+
+      if (visitedSections.includes(section.id.peek())) {
+        // We've already been here (we hit a cycle), just return immediately
+        return true;
+      }
+
       const srcSection = section.linkSrcSection.peek();
       if (srcSection.id.peek()) {
         // We're in a linked section, so we need to recurse to make sure the row we want
@@ -1194,7 +1201,7 @@ export class GristDoc extends DisposableWithEvents {
         await this.recursiveMoveToCursorPos({
           rowId: srcRowId,
           sectionId: srcSection.id.peek(),
-        }, false, silent);
+        }, false, silent, visitedSections.concat([section.id.peek()]));
       }
       const view: ViewRec = section.view.peek();
       const docPage: ViewDocPage = section.isRaw.peek() ? "data" : view.getRowId();
