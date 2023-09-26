@@ -52,6 +52,7 @@ export interface GristServer {
   getTag(): string;
   sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void>;
   getAccessTokens(): IAccessTokens;
+  resolveLoginSystem(): Promise<GristLoginSystem>;
 }
 
 export interface GristLoginSystem {
@@ -133,6 +134,7 @@ export function createDummyGristServer(): GristServer {
     getTag() { return 'tag'; },
     sendAppPage() { return Promise.resolve(); },
     getAccessTokens() { throw new Error('no access tokens'); },
+    resolveLoginSystem() { throw new Error('no login system'); },
   };
 }
 

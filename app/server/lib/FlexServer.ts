@@ -5,7 +5,7 @@ import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
-import {safeJsonParse} from 'app/common/gutil';
+import {isAffirmative, safeJsonParse} from 'app/common/gutil';
 import {InstallProperties} from 'app/common/InstallAPI';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {tbind} from 'app/common/tbind';
@@ -17,6 +17,7 @@ import {Workspace} from 'app/gen-server/entity/Workspace';
 import {Activations} from 'app/gen-server/lib/Activations';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
+import {Doom} from 'app/gen-server/lib/Doom';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
@@ -52,7 +53,7 @@ import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/place
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
-import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, isDefaultUser, optStringParam,
+import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isDefaultUser, optStringParam,
         RequestWithGristInfo, sendOkReply, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
@@ -971,8 +972,7 @@ export class FlexServer implements GristServer {
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
-    const loginSystem = await (process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() :
-      (this._getLoginSystem?.() || getLoginSystem()));
+    const loginSystem = await this.resolveLoginSystem();
     this._loginMiddleware = await loginSystem.getMiddleware(this);
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
@@ -1082,22 +1082,9 @@ export class FlexServer implements GristServer {
       }));
     }
 
-    const logoutMiddleware = this._loginMiddleware.getLogoutMiddleware ?
-      this._loginMiddleware.getLogoutMiddleware() :
-      [];
-    this.app.get('/logout', ...logoutMiddleware, expressWrap(async (req, resp) => {
-      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
+    this.app.get('/logout', ...this._logoutMiddleware(), expressWrap(async (req, resp) => {
       const signedOutUrl = new URL(getOrgUrl(req) + 'signed-out');
       const redirectUrl = await this._getLogoutRedirectUrl(req, signedOutUrl);
-
-      // Clear session so that user needs to log in again at the next request.
-      // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
-      // Express-session will save these changes.
-      const expressSession = (req as RequestWithLogin).session;
-      if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
-      await scopedSession.clearScopedSession(req);
-      // TODO: limit cache clearing to specific user.
-      this._sessions.clearCacheIfNeeded();
       resp.redirect(redirectUrl);
     }));
 
@@ -1220,6 +1207,81 @@ export class FlexServer implements GristServer {
     this.app.get('/account', ...middleware, expressWrap(async (req, resp) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
+
+    const createDoom = async (req: express.Request) => {
+      const dbManager = this.getHomeDBManager();
+      const permitStore = this.getPermitStore();
+      const notifier = this.getNotifier();
+      const loginSystem = await this.resolveLoginSystem();
+      const homeUrl = this.getHomeUrl(req).replace(/\/$/, '');
+      return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
+    };
+
+    if (isAffirmative(process.env.GRIST_ACCOUNT_CLOSE)) {
+      this.app.delete('/api/doom/account', expressWrap(async (req, resp) => {
+        // Make sure we have a valid user authenticated user here.
+        const userId = getUserId(req);
+
+        // Make sure we are deleting the correct user account (and not the anonymous user)
+        const requestedUser = integerParam(req.query.userid, 'userid');
+        if (requestedUser !== userId || isAnonymousUser(req))  {
+          // This probably shouldn't happen, but if user has already deleted the account and tries to do it
+          // once again in a second tab, we might end up here. In that case we are returning false to indicate
+          // that account wasn't deleted.
+          return resp.status(200).json(false);
+        }
+
+        // We are a valid user, we can proceed with the deletion. Note that we will
+        // delete user as an admin, as we need to remove other resources that user
+        // might not have access to.
+
+        // First make sure user is not a member of any team site. We don't know yet
+        // what to do with orphaned documents.
+        const result = await this._dbManager.getOrgs(userId, null);
+        this._dbManager.checkQueryResult(result);
+        const orgs = this._dbManager.unwrapQueryResult(result);
+        if (orgs.some(org => !org.ownerId)) {
+          throw new ApiError("Cannot delete account with team sites", 400);
+        }
+
+        // Reuse Doom cli tool for account deletion.
+        const doom = await createDoom(req);
+        await doom.deleteUser(userId);
+        return resp.status(200).json(true);
+      }));
+
+      this.app.get('/account-deleted', ...this._logoutMiddleware(), expressWrap((req, resp) => {
+        return this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'account-deleted'}});
+      }));
+
+      this.app.delete('/api/doom/org', expressWrap(async (req, resp) => {
+        const mreq = req as RequestWithLogin;
+        const orgDomain = getOrgFromRequest(req);
+        if (!orgDomain) { throw new ApiError("Cannot determine organization", 400); }
+
+        if (this._dbManager.isMergedOrg(orgDomain)) {
+          throw new ApiError("Cannot delete a personal site", 400);
+        }
+
+        // Get org from the server.
+        const query = await this._dbManager.getOrg(getScope(mreq), orgDomain);
+        const org = this._dbManager.unwrapQueryResult(query);
+
+        if (!org || org.ownerId) {
+          // This shouldn't happen, but just in case test it.
+          throw new ApiError("Cannot delete an org with an owner", 400);
+        }
+
+        if (!org.billingAccount.isManager) {
+          throw new ApiError("Only billing manager can delete a team site", 403);
+        }
+
+        // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
+        const doom = await createDoom(req);
+        await doom.deleteOrg(org.id);
+        return resp.status(200).send();
+      }));
+    }
   }
 
   public addBillingPages() {
@@ -1555,6 +1617,10 @@ export class FlexServer implements GristServer {
     for (const assignment of assignments) {
       await this._storageManager.flushDoc(assignment);
     }
+  }
+
+  public resolveLoginSystem() {
+    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
   }
 
   // Adds endpoints that support imports and exports.
@@ -2000,6 +2066,29 @@ export class FlexServer implements GristServer {
       }),
     });
     return await response.json();
+  }
+
+  /**
+   * Creates set of middleware for handling logout requests and clears session. Used in any endpoint
+   * or a page that needs to log out the user and clear the session.
+   */
+  private _logoutMiddleware() {
+    const sessionClearMiddleware = expressWrap(async (req, resp, next) => {
+      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
+      // Clear session so that user needs to log in again at the next request.
+      // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
+      // Express-session will save these changes.
+      const expressSession = (req as RequestWithLogin).session;
+      if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
+      await scopedSession.clearScopedSession(req);
+      // TODO: limit cache clearing to specific user.
+      this._sessions.clearCacheIfNeeded();
+      next();
+    });
+    const pluggedMiddleware = this._loginMiddleware.getLogoutMiddleware ?
+      this._loginMiddleware.getLogoutMiddleware() :
+      [];
+    return [...pluggedMiddleware, sessionClearMiddleware];
   }
 }
 

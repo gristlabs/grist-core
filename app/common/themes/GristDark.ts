@@ -5,7 +5,8 @@ export const GristDark: ThemeColors = {
   'text': '#EFEFEF',
   'text-light': '#A4A4B1',
   'text-dark': '#FFFFFF',
-  'text-error': '#FF6666',
+  'text-error': '#E63946',
+  'text-error-hover': '#FF5C5C',
   'text-danger': '#FFA500',
   'text-disabled': '#A4A4B1',
 

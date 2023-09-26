@@ -953,6 +953,14 @@ export async function sendActions(actions: UserAction[]) {
   await waitForServer();
 }
 
+export async function getDocId() {
+  const docId = await driver.wait(() => driver.executeScript(`
+    return window.gristDocPageModel.currentDocId.get()
+  `)) as string;
+  if (!docId) { throw new Error('could not find doc'); }
+  return docId;
+}
+
 /**
  * Confirms dialog for removing rows. In the future, can be used for other dialogs.
  */

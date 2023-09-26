@@ -96,7 +96,7 @@ export function makeSimpleCreator(opts: {
     Notifier(dbManager, gristConfig) {
       return notifier?.create(dbManager, gristConfig) ?? {
         get testPending() { return false; },
-        deleteUser()      { throw new Error('deleteUser unavailable'); },
+        async deleteUser()      { /* do nothing */ },
       };
     },
     ExternalStorage(purpose, extraPrefix) {

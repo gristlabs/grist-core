@@ -27,6 +27,7 @@ export interface ThemeColors {
   'text-light': string;
   'text-dark': string;
   'text-error': string;
+  'text-error-hover': string;
   'text-danger': string;
   'text-disabled': string;
 

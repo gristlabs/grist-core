@@ -837,7 +837,7 @@ export class HomeDBManager extends EventEmitter {
     }
     await this._connection.transaction(async manager => {
       const user = await manager.findOne(User, {where: {id: userIdToDelete},
-                                                relations: ["logins", "personalOrg"]});
+                                                relations: ["logins", "personalOrg", "prefs"]});
       if (!user) { throw new ApiError('user not found', 404); }
       if (name) {
         if (user.name !== name) {
@@ -853,6 +853,7 @@ export class HomeDBManager extends EventEmitter {
         .from('group_users')
         .where('user_id = :userId', {userId: userIdToDelete})
         .execute();
+
       await manager.delete(User, userIdToDelete);
     });
     return {

@@ -168,6 +168,7 @@ export const theme = {
   lightText: new CustomProp('theme-text-light', undefined, colors.slate),
   darkText: new CustomProp('theme-text-dark', undefined, 'black'),
   errorText: new CustomProp('theme-text-error', undefined, colors.error),
+  errorTextHover: new CustomProp('theme-text-error-hover', undefined, '#BF0A31'),
   dangerText: new CustomProp('theme-text-danger', undefined, '#FFA500'),
   disabledText: new CustomProp('theme-text-disabled', undefined, colors.slate),
 

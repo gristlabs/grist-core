@@ -1,6 +1,6 @@
 import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
-import {getLoginUrl, getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
+import {getLoginUrl, getMainOrgUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
@@ -21,7 +21,8 @@ export function createErrPage(appModel: AppModel) {
   return gristConfig.errPage === 'signed-out' ? createSignedOutPage(appModel) :
     gristConfig.errPage === 'not-found' ? createNotFoundPage(appModel, message) :
     gristConfig.errPage === 'access-denied' ? createForbiddenPage(appModel, message) :
-    createOtherErrorPage(appModel, message);
+    gristConfig.errPage === 'account-deleted' ? createAccountDeletedPage(appModel) :
+        createOtherErrorPage(appModel, message);
 }
 
 /**
@@ -63,6 +64,20 @@ export function createSignedOutPage(appModel: AppModel) {
     cssErrorText(t("You are now signed out.")),
     cssButtonWrap(bigPrimaryButtonLink(
       t("Sign in again"), {href: getLoginUrl()}, testId('error-signin')
+    ))
+  ]);
+}
+
+/**
+ * Creates a page that shows the user is logged out.
+ */
+export function createAccountDeletedPage(appModel: AppModel) {
+  document.title = t("Account deleted{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+
+  return pagePanelsError(appModel, t("Account deleted{{suffix}}", {suffix: ''}), [
+    cssErrorText(t("Your account has been deleted.")),
+    cssButtonWrap(bigPrimaryButtonLink(
+      t("Sign up"), {href: getSignupUrl()}, testId('error-signin')
     ))
   ]);
 }

@@ -694,6 +694,9 @@ export interface GristLoadConfig {
 
   // The org containing public templates and tutorials.
   templateOrg?: string|null;
+
+  // Whether to show the "Delete Account" button in the account page.
+  canCloseAccount?: boolean;
 }
 
 export const Features = StringUnion(

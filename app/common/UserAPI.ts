@@ -405,6 +405,20 @@ export interface UserAPI {
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
   getWidgets(): Promise<ICustomWidget[]>;
+  /**
+   * Deletes account and personal org with all documents. Note: deleteUser doesn't clear documents, and this method
+   * is specific to Grist installation, and might not be supported. Pass current user's id so that we can verify
+   * that the user is deleting their own account. This is just to prevent accidental deletion from multiple tabs.
+   *
+   * @returns true if the account was deleted, false if there was a mismatch with the current user's id, and the
+   * account was probably already deleted.
+   */
+  closeAccount(userId: number): Promise<boolean>;
+  /**
+   * Deletes current non personal org with all documents. Note: deleteOrg doesn't clear documents, and this method
+   * is specific to Grist installation, and might not be supported.
+   */
+  closeOrg(): Promise<void>;
 }
 
 /**
@@ -813,6 +827,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
                         body: JSON.stringify({name})});
   }
 
+  public async closeAccount(userId: number): Promise<boolean> {
+    return await this.requestJson(`${this._url}/api/doom/account?userid=` + userId, {method: 'DELETE'});
+  }
+
+  public async closeOrg() {
+    await this.request(`${this._url}/api/doom/org`, {method: 'DELETE'});
+  }
+
   public getBaseUrl(): string { return this._url; }
 
   // Recomputes the URL on every call to pick up changes in the URL when switching orgs.
@@ -1047,7 +1069,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async uploadAttachment(value: string | Blob, filename?: string): Promise<number> {
     const formData = this.newFormData();
-    formData.append('upload', value, filename);
+    formData.append('upload', value as Blob, filename);
     const response = await this.requestAxios(`${this._url}/attachments`, {
       method: 'POST',
       data: formData,

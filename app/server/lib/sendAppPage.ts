@@ -84,6 +84,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     telemetry: server?.getTelemetry().getTelemetryConfig(),
     deploymentType: server?.getDeploymentType(),
     templateOrg: getTemplateOrg(),
+    canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     ...extra,
   };
 }

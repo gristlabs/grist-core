@@ -6,6 +6,7 @@ export const GristLight: ThemeColors = {
   'text-light': '#929299',
   'text-dark': 'black',
   'text-error': '#D0021B',
+  'text-error-hover': '#A10000',
   'text-danger': '#FFA500',
   'text-disabled': '#929299',
 

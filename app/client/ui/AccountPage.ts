@@ -1,9 +1,12 @@
+import {detectCurrentLang, makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import * as css from 'app/client/ui/AccountPageCss';
 import {ApiKey} from 'app/client/ui/ApiKey';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {buildChangePasswordDialog} from 'app/client/ui/ChangePasswordDialog';
+import {DeleteAccountDialog} from 'app/client/ui/DeleteAccountDialog';
+import {translateLocale} from 'app/client/ui/LanguageMenu';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {MFAConfig} from 'app/client/ui/MFAConfig';
 import {pagePanels} from 'app/client/ui/PagePanels';
@@ -14,11 +17,9 @@ import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {cssLink} from 'app/client/ui2018/links';
 import {select} from 'app/client/ui2018/menus';
+import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/UserAPI';
-import {detectCurrentLang, makeT} from 'app/client/lib/localization';
-import {translateLocale} from 'app/client/ui/LanguageMenu';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe} from 'grainjs';
 
 const testId = makeTestId('test-account-page-');
@@ -161,7 +162,10 @@ designed to ensure that you're the only person who can access your account, even
             inputArgs: [{size: '5'}], // Lower size so that input can shrink below ~152px.
           })
         )),
-      ),
+        !getGristConfig().canCloseAccount ? null : [
+            dom.create(DeleteAccountDialog, user),
+        ],
+),
       testId('body'),
     )));
   }

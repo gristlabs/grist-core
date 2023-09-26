@@ -29,6 +29,7 @@ export const ThemeColors = t.iface([], {
   "text-light": "string",
   "text-dark": "string",
   "text-error": "string",
+  "text-error-hover": "string",
   "text-danger": "string",
   "text-disabled": "string",
   "page-bg": "string",

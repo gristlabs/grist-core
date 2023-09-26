@@ -177,7 +177,7 @@ export class ApiServer {
       return sendReply(req, res, query);
     }));
 
-    // // DELETE /api/orgs/:oid
+    // DELETE /api/orgs/:oid
     // Delete the specified org and all included workspaces and docs.
     this._app.delete('/api/orgs/:oid', expressWrap(async (req, res) => {
       const org = getOrgKey(req);

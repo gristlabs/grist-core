@@ -341,6 +341,8 @@ export interface ConfirmModalOptions {
   hideCancel?: boolean;
   extraButtons?: DomContents;
   modalOptions?: IModalOptions;
+  saveDisabled?: Observable<boolean>;
+  width?: ModalWidth;
 }
 
 /**
@@ -352,7 +354,7 @@ export function confirmModal(
   title: DomElementArg,
   btnText: DomElementArg,
   onConfirm: () => Promise<void>,
-  {explanation, hideCancel, extraButtons, modalOptions}: ConfirmModalOptions = {},
+  {explanation, hideCancel, extraButtons, modalOptions, saveDisabled, width}: ConfirmModalOptions = {},
 ): void {
   return saveModal((ctl, owner): ISaveModalOptions => ({
     title,
@@ -360,8 +362,9 @@ export function confirmModal(
     saveLabel: btnText,
     saveFunc: onConfirm,
     hideCancel,
-    width: 'normal',
+    width: width ?? 'normal',
     extraButtons,
+    saveDisabled,
   }), modalOptions);
 }
 
