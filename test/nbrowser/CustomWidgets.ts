@@ -104,6 +104,10 @@ describe('CustomWidgets', function () {
     await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
   });
 
+  after(async function() {
+    await server.testingHooks.setWidgetRepositoryUrl('');
+  });
+
   // Open or close widget menu.
   const toggle = () => driver.find('.test-config-widget-select .test-select-open').click();
   // Get current value from widget menu.

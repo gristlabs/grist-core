@@ -218,6 +218,10 @@ describe('CustomWidgetsConfig', function () {
     await gu.selectSectionByTitle('Widget');
   });
 
+  after(async function() {
+    await server.testingHooks.setWidgetRepositoryUrl('');
+  });
+
   // Poor man widget rpc. Class that invokes various parts in the tester widget.
   class Widget {
     constructor() {}
