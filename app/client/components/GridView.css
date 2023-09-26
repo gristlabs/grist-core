@@ -282,6 +282,7 @@
   top: 0px;
   background-color: var(--grist-theme-table-drag-drop-shadow, #F0F0F0);
   opacity: 0.5;
+  pointer-events: none;   /* allow scrolling the grid while column_shadow is under the cursor */
 }
 
 .row_indicator_line{
