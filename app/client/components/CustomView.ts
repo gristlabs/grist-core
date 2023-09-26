@@ -3,6 +3,7 @@ import * as commands from 'app/client/components/commands';
 import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {
+  CommandAPI,
   ConfigNotifier,
   CustomSectionAPIImpl,
   GristDocAPIImpl,
@@ -239,6 +240,10 @@ export class CustomView extends Disposable {
             this.viewSection,
             access,
             this._promptAccess.bind(this)),
+          new MinimumLevel(AccessLevel.none));
+        frame.exposeAPI(
+          "CommandAPI",
+          new CommandAPI(access),
           new MinimumLevel(AccessLevel.none));
         frame.useEvents(RecordNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
         frame.useEvents(TableNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));

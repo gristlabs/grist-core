@@ -65,6 +65,8 @@ export const widgetApi = rpc.getStub<WidgetAPI>('WidgetAPI', checkers.WidgetAPI)
  */
 export const sectionApi = rpc.getStub<CustomSectionAPI>('CustomSectionAPI', checkers.CustomSectionAPI);
 
+export const commandApi = rpc.getStub<any>('CommandAPI');
+
 /**
  * Shortcut for [[GristView.allowSelectBy]].
  */
@@ -435,6 +437,12 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
       }
     }
   });
+}
+
+export function enableKeyboardShortcuts() {
+  const Mousetrap = require('mousetrap');
+  Mousetrap.bind('mod+z', () => commandApi.run('undo'));
+  Mousetrap.bind(['mod+shift+z', 'ctrl+y'], () => commandApi.run('redo'));
 }
 
 /**

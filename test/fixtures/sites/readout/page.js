@@ -32,6 +32,7 @@ function setup() {
   grist.onNewRecord(function(rec) {
     document.getElementById('record').innerHTML = 'new';
   });
+  grist.enableKeyboardShortcuts();
 }
 
 window.onload = setup;

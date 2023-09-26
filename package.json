@@ -66,6 +66,7 @@
     "@types/minio": "7.0.15",
     "@types/mocha": "5.2.5",
     "@types/moment-timezone": "0.5.9",
+    "@types/mousetrap": "1.6.2",
     "@types/node": "^14",
     "@types/node-fetch": "2.6.2",
     "@types/pidusage": "2.0.1",

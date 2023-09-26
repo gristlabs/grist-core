@@ -1,4 +1,6 @@
 import BaseView from 'app/client/components/BaseView';
+import {CommandName} from 'app/client/components/commandList';
+import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -481,6 +483,26 @@ export class WidgetAPIImpl implements WidgetAPI {
   public getOption(key: string): Promise<unknown> {
     const options = this._section.activeCustomOptions.peek();
     return options?.[key];
+  }
+}
+
+const COMMAND_MINIMUM_ACCESS_LEVELS: Map<CommandName, AccessLevel> = new Map([
+  ['undo', AccessLevel.full],
+  ['redo', AccessLevel.full],
+]);
+
+export class CommandAPI {
+  constructor(private _currentAccess: AccessLevel) {}
+
+  public async run(commandName: CommandName): Promise<unknown> {
+    const minimumAccess = COMMAND_MINIMUM_ACCESS_LEVELS.get(commandName);
+    if (minimumAccess === undefined || !isSatisfied(this._currentAccess, minimumAccess)) {
+      // If the command name is unrecognized, or the current access level doesn't meet the
+      // command's minimum access level, do nothing.
+      return;
+    }
+
+    return await commands.allCommands[commandName].run();
   }
 }
 

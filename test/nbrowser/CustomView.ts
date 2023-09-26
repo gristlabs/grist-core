@@ -236,6 +236,31 @@ describe('CustomView', function() {
         await gu.undo();
       });
 
+      const undoTestTitle = access === 'full'
+        ? 'allows undo/redo via keyboard'
+        : 'does not allow undo/redo via keyboard';
+      it (undoTestTitle, async function() {
+        const iframe = gu.getSection('Friends custom').find('iframe');
+        await driver.switchTo().frame(iframe);
+        await driver.find('body').click();
+
+        await gu.sendKeys(Key.chord(Key.CONTROL, 'y'));
+        const expected = access === 'full'
+          ? withAccess(['Rabbit', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined)
+          : withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined);
+        await gu.waitToPass(async () => {
+          assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name, expected);
+        }, 1000);
+
+        await gu.sendKeys(Key.chord(await gu.modKey(), 'z'));
+        await gu.waitToPass(async () => {
+          assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name,
+          withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
+        }, 1000);
+
+        await driver.switchTo().defaultContent();
+      });
+
       it('allows switching to custom section by clicking inside it', async function() {
         await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS');
@@ -245,7 +270,7 @@ describe('CustomView', function() {
         await driver.switchTo().frame(iframe);
         await driver.find('body').click();
 
-        // Check that the right secton is active, and its settings visible in the side panel.
+        // Check that the right section is active, and its settings visible in the side panel.
         await driver.switchTo().defaultContent();
         assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS Custom');
         assert.equal(await driver.find('.test-config-widget-url').isPresent(), true);
