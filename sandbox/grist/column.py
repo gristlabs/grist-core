@@ -495,6 +495,14 @@ class ReferenceColumn(BaseReferenceColumn):
     if new_value:
       self._relation.add_reference(row_id, new_value)
 
+  def set(self, row_id, value):
+    # Allow float values that are small integers. In practice, this only turns out to be relevant
+    # in rare cases (such as undo of Ref->Numeric conversion).
+    if type(value) == float and value.is_integer():   # pylint:disable=unidiomatic-typecheck
+      if value > 0 and objtypes.is_int_short(int(value)):
+        value = int(value)
+    super(ReferenceColumn, self).set(row_id, value)
+
   def prepare_new_values(self, values, ignore_data=False, action_summary=None):
     if action_summary and values:
       values = action_summary.translate_new_row_ids(self._target_table.table_id, values)
