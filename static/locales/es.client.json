@@ -556,14 +556,14 @@
         "Natural sort": "Clasificación natural",
         "Update Data": "Actualizar datos",
         "Use choice position": "Usar posición de elección",
-        "Search Columns": "Buscar columnas"
+        "Search Columns": "Buscar en las columnas"
     },
     "SortFilterConfig": {
         "FILTER": "FILTRAR",
         "Revert": "Revertir",
         "SORT": "ORDENAR",
         "Save": "Guardar",
-        "Update Sort & Filter settings": "Actualizar los ajustes de clasificación y filtrado",
+        "Update Sort & Filter settings": "Actualizar los ajustes para la clasificación y el filtrado",
         "Filter": "FILTRAR",
         "Sort": "ORDENAR"
     },
@@ -629,7 +629,7 @@
         "Save": "Guardar",
         "Sorted by": "Ordenado por",
         "Toggle Filter Bar": "Alternar barra de filtro",
-        "Update Sort&Filter settings": "Actualizar los ajustes de clasificación y filtrado"
+        "Update Sort&Filter settings": "Actualizar los ajustes para la clasificación y el filtrado"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "No se pueden colocar elementos en campos ocultos",
@@ -727,7 +727,8 @@
         "Action Log failed to load": "No se pudo cargar el registro de acciones",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Columna {{colId}} fue posteriormente removida en acción #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "La tabla {{tableId}} fue posteriormente removida en acción #{{actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "Esta fila fue removida posteriormente en acción {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Esta fila fue removida posteriormente en acción {{action.actionNum}}",
+        "All tables": "Todas las tablas"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Este sitio de equipo está suspendido. Los documentos pueden ser leídos, pero no modificados."
@@ -784,7 +785,7 @@
     },
     "FilterBar": {
         "SearchColumns": "Buscar en columnas",
-        "Search Columns": "Buscar columnas"
+        "Search Columns": "Buscar en las columnas"
     },
     "Importer": {
         "Merge rows that match these fields:": "Combinar filas que coincidan con estos campos:",
@@ -1073,7 +1074,12 @@
         "Anchor Links": "Enlaces fijados",
         "Custom Widgets": "Widgets personalizados",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para crear un enlace de anclaje que lleve al usuario a una celda específica, haga clic en una fila y pulse {{shortcut}}.",
-        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puede elegir uno de nuestros widgets prediseñados o incrustar el suyo proporcionando su URL completa."
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puede elegir uno de nuestros widgets prediseñados o incrustar el suyo proporcionando su URL completa.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Para configurar tu calendario, selecciona las columnas para las fechas de inicio y fin y los títulos de los eventos. Ten en cuenta el tipo de cada columna."
+        },
+        "Calendar": "Calendario",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "¿No encuentras las columnas adecuadas? Haz clic en \"Cambiar widget\" para seleccionar la tabla con los datos de los eventos."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1229,7 +1235,7 @@
         "guest": "invitado",
         "{{collaborator}} limit exceeded": "límite de {{collaborator}} excedido",
         "You are about to remove your own access to this {{resourceType}}": "Usted está a punto de quitar su propio acceso a este {{resourceType}}",
-        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent})}. Para eliminarlo, establezca la opción \"Heredar acceso\" a \"Ninguno\".",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "El usuario hereda los permisos de {{parent}}. Para eliminarlo, establece la opción \"Heredar el acceso\" en \"Ninguno\".",
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "El usuario tiene acceso de visualización a {{resource}} como resultado del acceso configurado manualmente a los recursos que contiene. Si se elimina aquí, este usuario perderá el acceso a los recursos que contiene."
     },
     "DescriptionTextArea": {
