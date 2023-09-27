@@ -481,9 +481,9 @@ export class CustomSectionConfig extends Disposable {
             popupOptions: {
               placement: 'left-start',
             },
-            shouldShow: () => {
-              // Only show tip if a custom widget isn't already selected.
-              return !this._selectedId.get() || (isCustom.get() && this._url.get().trim() === '');
+            isDisabled: () => {
+              // Disable tip if a custom widget is already selected.
+              return Boolean(this._selectedId.get() && !(isCustom.get() && this._url.get().trim() === ''));
             },
           })
         ),

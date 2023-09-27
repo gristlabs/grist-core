@@ -8,26 +8,32 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
 import {IPopupOptions} from 'popweasel';
 
-export interface AttachOptions {
-  /** Defaults to false. */
-  forceShow?: boolean;
-  /** Defaults to false. */
+/**
+ * Options for showing a tip.
+ */
+export interface ShowTipOptions {
+  /** Defaults to `false`. */
   hideArrow?: boolean;
-  /** Defaults to false. */
-  hideDontShowTips?: boolean;
-  /** Defaults to true. */
-  markAsSeen?: boolean;
-  /** Defaults to false. */
-  showOnMobile?: boolean;
   popupOptions?: IPopupOptions;
   onDispose?(): void;
-  shouldShow?(): boolean;
+}
+
+/**
+ * Options for attaching a tip to a DOM element.
+ */
+export interface AttachTipOptions extends ShowTipOptions {
+  /**
+   * Optional callback that should return true if the tip should be disabled.
+   *
+   * If omitted, the tip is enabled.
+   */
+  isDisabled?(): boolean;
 }
 
 interface QueuedTip {
   prompt: BehavioralPrompt;
   refElement: Element;
-  options: AttachOptions;
+  options: ShowTipOptions;
 }
 
 /**
@@ -52,12 +58,14 @@ export class BehavioralPromptsManager extends Disposable {
     super();
   }
 
-  public showTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions = {}) {
+  public showTip(refElement: Element, prompt: BehavioralPrompt, options: ShowTipOptions = {}) {
     this._queueTip(refElement, prompt, options);
   }
 
-  public attachTip(prompt: BehavioralPrompt, options: AttachOptions = {}) {
+  public attachTip(prompt: BehavioralPrompt, options: AttachTipOptions = {}) {
     return (element: Element) => {
+      if (options.isDisabled?.()) { return; }
+
       this._queueTip(element, prompt, options);
     };
   }
@@ -68,6 +76,29 @@ export class BehavioralPromptsManager extends Disposable {
 
   public shouldShowTips() {
     return !this._prefs.get().dontShowTips;
+  }
+
+  public shouldShowTip(prompt: BehavioralPrompt): boolean {
+    if (this._isDisabled) { return false; }
+
+    const {
+      showContext = 'desktop',
+      showDeploymentTypes,
+      forceShow = false,
+    } = GristBehavioralPrompts[prompt];
+
+    const {deploymentType} = getGristConfig();
+    if (
+      showDeploymentTypes !== '*' &&
+      (!deploymentType || !showDeploymentTypes.includes(deploymentType))
+    ) {
+      return false;
+    }
+
+    const context = isNarrowScreen() ? 'mobile' : 'desktop';
+    if (showContext !== '*' && showContext !== context) { return false; }
+
+    return forceShow || (!this._prefs.get().dontShowTips && !this.hasSeenTip(prompt));
   }
 
   public enable() {
@@ -83,8 +114,8 @@ export class BehavioralPromptsManager extends Disposable {
     this.enable();
   }
 
-  private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
-    if (!this._shouldQueueTip(prompt, options)) { return; }
+  private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: ShowTipOptions) {
+    if (!this.shouldShowTip(prompt)) { return; }
 
     this._queuedTips.push({prompt, refElement, options});
     if (this._queuedTips.length > 1) {
@@ -96,15 +127,15 @@ export class BehavioralPromptsManager extends Disposable {
     this._showTip(refElement, prompt, options);
   }
 
-  private _showTip(refElement: Element, prompt: BehavioralPrompt, options: AttachOptions) {
+  private _showTip(refElement: Element, prompt: BehavioralPrompt, options: ShowTipOptions) {
     const close = () => {
       if (!ctl.isDisposed()) {
         ctl.close();
       }
     };
 
-    const {hideArrow, hideDontShowTips, markAsSeen = true, onDispose, popupOptions} = options;
-    const {title, content} = GristBehavioralPrompts[prompt];
+    const {hideArrow, onDispose, popupOptions} = options;
+    const {title, content, hideDontShowTips = false, markAsSeen = true} = GristBehavioralPrompts[prompt];
     const ctl = showBehavioralPrompt(refElement, title(), content(), {
       onClose: (dontShowTips) => {
         if (dontShowTips) { this._dontShowTips(); }
@@ -142,28 +173,5 @@ export class BehavioralPromptsManager extends Disposable {
   private _dontShowTips() {
     this._prefs.set({...this._prefs.get(), dontShowTips: true});
     this._queuedTips = [];
-  }
-
-  private _shouldQueueTip(prompt: BehavioralPrompt, options: AttachOptions) {
-    if (
-      this._isDisabled ||
-      options.shouldShow?.() === false ||
-      (isNarrowScreen() && !options.showOnMobile) ||
-      (this._prefs.get().dontShowTips && !options.forceShow) ||
-      this.hasSeenTip(prompt)
-    ) {
-      return false;
-    }
-
-    const {deploymentType} = getGristConfig();
-    const {deploymentTypes} = GristBehavioralPrompts[prompt];
-    if (
-      deploymentTypes !== '*' &&
-      (!deploymentType || !deploymentTypes.includes(deploymentType))
-    ) {
-      return false;
-    }
-
-    return true;
   }
 }

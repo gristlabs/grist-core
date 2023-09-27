@@ -336,10 +336,6 @@ export class GristDoc extends DisposableWithEvents {
               }
 
               this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
-                forceShow: true,
-                hideDontShowTips: true,
-                markAsSeen: false,
-                showOnMobile: true,
                 onDispose: () => this.playRickRollVideo(),
               });
             })
@@ -1422,8 +1418,8 @@ export class GristDoc extends DisposableWithEvents {
     if (
       // Don't show the tip if a non-card widget was selected.
       !['single', 'detail'].includes(selectedWidgetType) ||
-      // Or if we've already seen it.
-      this.behavioralPromptsManager.hasSeenTip('editCardLayout')
+      // Or if we shouldn't see the tip.
+      !this.behavioralPromptsManager.shouldShowTip('editCardLayout')
     ) {
       return;
     }
@@ -1449,11 +1445,13 @@ export class GristDoc extends DisposableWithEvents {
   private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
     switch (widget) {
       case 'custom.calendar': {
-        // Open the right panel to the calendar subtab.
-        commands.allCommands.viewTabOpen.run();
+        if (this.behavioralPromptsManager.shouldShowTip('calendarConfig')) {
+          // Open the right panel to the calendar subtab.
+          commands.allCommands.viewTabOpen.run();
 
-        // Wait for the right panel to finish animation if it was collapsed before.
-        await commands.allCommands.rightPanelOpen.run();
+          // Wait for the right panel to finish animation if it was collapsed before.
+          await commands.allCommands.rightPanelOpen.run();
+        }
         break;
       }
     }

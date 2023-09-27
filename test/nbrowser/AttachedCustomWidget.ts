@@ -84,7 +84,7 @@ describe('AttachedCustomWidget', function () {
   it('should not ask for permission', async () => {
     await gu.addNewSection(/Calendar/, /Table1/, {selectBy: /TABLE1/});
     await gu.getSection('TABLE1 Calendar').click();
-    await gu.waitForSidePanel();
+    await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-pagewidget').click();
 
     await gu.waitForServer();
