@@ -90,7 +90,8 @@
         "Action Log failed to load": "Action Log failed to load",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Column {{colId}} was subsequently removed in action #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "This row was subsequently removed in action {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "This row was subsequently removed in action {{action.actionNum}}",
+        "All tables": "All tables"
     },
     "AddNewButton": {
         "Add New": "Add New"
@@ -1019,7 +1020,12 @@
         "Anchor Links": "Anchor Links",
         "Custom Widgets": "Custom Widgets",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.",
-        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "You can choose one of our pre-made widgets or embed your own by providing its full URL."
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "You can choose one of our pre-made widgets or embed your own by providing its full URL.",
+        "Calendar": "Calendar",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Can't find the right columns? Click 'Change Widget' to select the table with events data.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "To configure your calendar, select columns for start/end dates and event titles. Note each column's type."
+        }
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"

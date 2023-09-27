@@ -1,4 +1,5 @@
 import BaseView from 'app/client/components/BaseView';
+import {SequenceNEVER, SequenceNum} from 'app/client/components/Cursor';
 import {EmptyFilterColValues, LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
@@ -154,6 +155,8 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   linkingFilter: ko.Computed<FilterColValues>;
 
   activeRowId: ko.Observable<UIRowId | null>;     // May be null when there are no rows.
+
+  lastCursorEdit: ko.Observable<SequenceNum>;
 
   // If the view instance for section is instantiated, it will be accessible here.
   viewInstance: ko.Observable<BaseView | null>;
@@ -627,6 +630,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkTargetCol = refRecord(docModel.columns, this.linkTargetColRef);
 
   this.activeRowId = ko.observable<UIRowId|null>(null);
+  this.lastCursorEdit = ko.observable<SequenceNum>(SequenceNEVER);
 
   this._linkingState = Holder.create(this);
   this.linkingState = this.autoDispose(ko.pureComputed(() => {

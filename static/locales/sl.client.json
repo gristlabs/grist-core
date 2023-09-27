@@ -495,7 +495,8 @@
         "There are some things you should know when working with me:": "Pri sodelovanju z mano morate vedeti nekaj stvari:",
         "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Oglejte si {{helpFunction}} in {{formulaCheat}}, za več pomoči pa obiščite {{community}}.",
         "Grist's AI Assistance": "Pomoč umetne inteligence",
-        "Grist's AI Formula Assistance. ": "Pomoč umetne inteligence pri formuli . "
+        "Grist's AI Formula Assistance. ": "Pomoč umetne inteligence pri formuli . ",
+        "Clear Conversation": "Briši pogovor"
     },
     "RightPanel": {
         "WIDGET TITLE": "NASLOV PRIPOMOČKA",
@@ -720,7 +721,8 @@
         "Close": "Zapri",
         "Opt in to Telemetry": "Prijava na telemetrijo",
         "Help Center": "Center za pomoč",
-        "Contribute": "Prispevajte"
+        "Contribute": "Prispevajte",
+        "Support Grist page": "Grist podpora"
     },
     "HomeIntro": {
         "personal site": "osebna stran",
@@ -934,5 +936,29 @@
         "Preview": "Predogled",
         "Apply": "Uporabi",
         "Cancel": "Prekliči"
+    },
+    "menus": {
+        "Integer": "Celo število",
+        "Text": "Tekst",
+        "Attachment": "Priponka",
+        "Choice": "Izbira",
+        "Select fields": "Izberi polja",
+        "Reference": "Referenca",
+        "Numeric": "Numeričen",
+        "Date": "Datum"
+    },
+    "errorPages": {
+        "Something went wrong": "Nekaj je šlo narobe",
+        "Sign in": "Vpiši se",
+        "Add account": "Dodaj račun",
+        "Signed out{{suffix}}": "Ponovno se vpiši",
+        "Sign in again": "Ponovno se vpiši"
+    },
+    "WidgetTitle": {
+        "DATA TABLE NAME": "IME PODATKOVNE TABELE",
+        "Save": "Shrani"
+    },
+    "breadcrumbs": {
+        "snapshot": "posnetek"
     }
 }
