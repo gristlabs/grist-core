@@ -798,7 +798,10 @@
         "There was an unknown error.": "There was an unknown error.",
         "You are now signed out.": "You are now signed out.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.",
-        "You do not have access to this organization's documents.": "You do not have access to this organization's documents."
+        "You do not have access to this organization's documents.": "You do not have access to this organization's documents.",
+        "Account deleted{{suffix}}": "Account deleted{{suffix}}",
+        "Sign up": "Sign up",
+        "Your account has been deleted.": "Your account has been deleted."
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",

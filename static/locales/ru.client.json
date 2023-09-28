@@ -190,7 +190,8 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблица {{tableId}} впоследствии была удалена в действии #{{actionNum}}",
         "Action Log failed to load": "Не удалось загрузить журнал действий",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Столбец {{colId}} впоследствии был удален в действии #{{action.actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "Эта строка впоследствии была удалена в действии {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Эта строка впоследствии была удалена в действии {{action.actionNum}}",
+        "All tables": "Все таблицы"
     },
     "ViewAsDropdown": {
         "Example Users": "Пользователи для примеров",
@@ -1019,7 +1020,12 @@
         "Anchor Links": "Якорные ссылки",
         "Custom Widgets": "Пользовательские виджеты",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Чтобы создать якорную ссылку, которая приведет пользователя к определенной ячейке, щелкните по строке и нажмите {{shortcut}}.",
-        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Вы можете выбрать один из наших готовых виджетов или встроить свой собственный, указав его полный URL-адрес."
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Вы можете выбрать один из наших готовых виджетов или встроить свой собственный, указав его полный URL-адрес.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Чтобы настроить календарь, выберите столбцы для дат начала/окончания и названий событий. Обратите внимание на тип каждого столбца."
+        },
+        "Calendar": "Календарь",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете найти нужные столбцы? Нажмите «Изменить виджет», чтобы выбрать таблицу с данными о событиях."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
