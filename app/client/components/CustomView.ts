@@ -25,6 +25,7 @@ import {UserError} from 'app/client/models/errors';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 import {AccessLevel} from 'app/common/CustomWidget';
+import {defaultLocale} from 'app/common/gutil';
 import {PluginInstance} from 'app/common/PluginInstance';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
@@ -213,9 +214,17 @@ export class CustomView extends Disposable {
     showAfterReady?: boolean,
   }) {
     const {baseUrl, access, showAfterReady} = options;
+    const documentSettings = this.gristDoc.docData.docSettings();
     return grains.create(WidgetFrame, {
       url: baseUrl || this.getEmptyWidgetPage(),
       access,
+      preferences:
+      {
+        culture: documentSettings.locale?? defaultLocale,
+        language:  this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
+        timeZone: this.gristDoc.docInfo.timezone() ?? "UTC",
+        currency: documentSettings.currency?? "USD",
+      },
       readonly: this.gristDoc.isReadonly.get(),
       showAfterReady,
       onSettingsInitialized: async () => {

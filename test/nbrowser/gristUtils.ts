@@ -859,6 +859,19 @@ export async function importUrlDialog(url: string): Promise<void> {
   await driver.switchTo().defaultContent();
 }
 
+  /**
+   * Executed passed function in the context of given iframe, and then switching back to original context
+   *
+   */
+  export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>) {
+    try {
+      await driver.switchTo().frame(iframe);
+      return await func();
+    } finally {
+      await driver.switchTo().defaultContent();
+    }
+  }
+
 /**
  * Starts or resets the collections of UserActions. This should be followed some time later by
  * a call to userActionsVerify() to check which UserActions were sent to the server. If the
