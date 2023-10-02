@@ -2,7 +2,7 @@ import {Events as BackboneEvents} from 'backbone';
 import {promisifyAll} from 'bluebird';
 import {assert} from 'chai';
 import * as http from 'http';
-import {AddressInfo, Server, Socket} from 'net';
+import {AddressInfo} from 'net';
 import * as sinon from 'sinon';
 import WebSocket from 'ws';
 import * as path from 'path';
@@ -16,8 +16,9 @@ import {Client, ClientMethod} from 'app/server/lib/Client';
 import {CommClientConnect} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {isLongerThan} from 'app/common/gutil';
-import {connect as connectSock, fromCallback, getAvailablePort, listenPromise} from 'app/server/lib/serverUtils';
+import {fromCallback, listenPromise} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
+import {TcpForwarder} from 'test/server/tcpForwarder';
 import * as testUtils from 'test/server/testUtils';
 import * as session from '@gristlabs/express-session';
 
@@ -493,63 +494,4 @@ function getWSSettings(docWorkerUrl: string): GristWSSettings {
     log()                       { (log as any).debug(...arguments); },
     warn()                      { (log as any).warn(...arguments); },
   };
-}
-
-// We'll test reconnects by making a connection through this TcpForwarder, which we'll use to
-// simulate disconnects.
-export class TcpForwarder {
-  public port: number|null = null;
-  private _connections = new Map<Socket, Socket>();
-  private _server: Server|null = null;
-
-  constructor(private _serverPort: number) {}
-
-  public async pickForwarderPort(): Promise<number> {
-    this.port = await getAvailablePort(5834);
-    return this.port;
-  }
-  public async connect() {
-    await this.disconnect();
-    this._server = new Server((sock) => this._onConnect(sock));
-    await listenPromise(this._server.listen(this.port));
-  }
-  public async disconnectClientSide() {
-    await Promise.all(Array.from(this._connections.keys(), destroySock));
-    if (this._server) {
-      await new Promise((resolve) => this._server!.close(resolve));
-      this._server = null;
-    }
-    this.cleanup();
-  }
-  public async disconnectServerSide() {
-    await Promise.all(Array.from(this._connections.values(), destroySock));
-    this.cleanup();
-  }
-  public async disconnect() {
-    await this.disconnectClientSide();
-    await this.disconnectServerSide();
-  }
-  public cleanup() {
-    const pairs = Array.from(this._connections.entries());
-    for (const [clientSock, serverSock] of pairs) {
-      if (clientSock.destroyed && serverSock.destroyed) {
-        this._connections.delete(clientSock);
-      }
-    }
-  }
-  private async _onConnect(clientSock: Socket) {
-    const serverSock = await connectSock(this._serverPort);
-    clientSock.pipe(serverSock);
-    serverSock.pipe(clientSock);
-    clientSock.on('error', (err) => serverSock.destroy(err));
-    serverSock.on('error', (err) => clientSock.destroy(err));
-    this._connections.set(clientSock, serverSock);
-  }
-}
-
-async function destroySock(sock: Socket): Promise<void> {
-  if (!sock.destroyed) {
-    await new Promise((resolve, reject) =>
-      sock.on('close', resolve).destroy());
-  }
 }

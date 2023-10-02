@@ -190,6 +190,9 @@ export class DocWorkerMap implements IDocWorkerMap {
     this._clients = _clients || [createClient(process.env.REDIS_URL)];
     this._redlock = new Redlock(this._clients);
     this._client = this._clients[0]!;
+    this._client.on('error', (err) => log.warn(`DocWorkerMap: redisClient error`, String(err)));
+    this._client.on('end', () => log.warn(`DocWorkerMap: redisClient connection closed`));
+    this._client.on('reconnecting', () => log.warn(`DocWorkerMap: redisClient reconnecting`));
   }
 
   public async addWorker(info: DocWorkerInfo): Promise<void> {

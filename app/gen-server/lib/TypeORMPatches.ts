@@ -25,6 +25,8 @@ import {
 } from 'typeorm/error/QueryRunnerProviderAlreadyReleasedError';
 import {QueryBuilder} from 'typeorm/query-builder/QueryBuilder';
 
+// Print a warning for transactions that take longer than this.
+const SLOW_TRANSACTION_MS = 5000;
 
 /**********************
  * Patch 1
@@ -103,9 +105,21 @@ export function applyPatch() {
       async function runOrRollback() {
         try {
           await queryRunner.startTransaction();
-          const result = await runInTransaction(queryRunner.manager);
-          await queryRunner.commitTransaction();
-          return result;
+
+          const start = Date.now();
+
+          const timer = setInterval(() => {
+            const timeMs = Date.now() - start;
+            log.warn(`TypeORM transaction slow: [${arg1} ${arg2}]`, {timeMs});
+          }, SLOW_TRANSACTION_MS);
+
+          try {
+            const result = await runInTransaction(queryRunner.manager);
+            await queryRunner.commitTransaction();
+            return result;
+          } finally {
+            clearInterval(timer);
+          }
         } catch (err) {
           log.debug(`TypeORM transaction error [${arg1} ${arg2}] - ${err}`);
           try {
