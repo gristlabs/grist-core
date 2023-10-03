@@ -6,7 +6,7 @@ import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeTestId} from 'app/client/lib/domUtils';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
+import {AccessLevel, ICustomWidget, isSatisfied, matchWidget } from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
@@ -19,6 +19,7 @@ import noop = require('lodash/noop');
 import debounce = require('lodash/debounce');
 import isEqual = require('lodash/isEqual');
 import flatMap = require('lodash/flatMap');
+import { reportError } from '../models/errors';
 
 const testId = makeTestId('test-custom-widget-');
 
@@ -43,6 +44,9 @@ export interface WidgetFrameOptions {
    * Url of external page. Iframe is rebuild each time the URL changes.
    */
   url: string;
+  widgetId?: string|null;
+  pluginId?: string;
+  emptyUrl: string;
   /**
    * Assigned access level. Iframe is rebuild each time access level is changed.
    */
@@ -73,6 +77,8 @@ export interface WidgetFrameOptions {
    * Optional handler to modify the iframe.
    */
   onElem?: (iframe: HTMLIFrameElement) => void;
+
+  gristDoc: GristDoc;
 }
 
 /**
@@ -87,6 +93,7 @@ export class WidgetFrame extends DisposableWithEvents {
   private _readyCalled = Observable.create(this, false);
   // Whether the iframe is visible.
   private _visible = Observable.create(this, !this._options.showAfterReady);
+  public readonly _widgets = Observable.create<ICustomWidget[]>(this, []);
 
   constructor(private _options: WidgetFrameOptions) {
     super();
@@ -113,7 +120,10 @@ export class WidgetFrame extends DisposableWithEvents {
 
     // Call custom configuration handler.
     _options.configure?.(this);
+
+    this._fetchWidgets().catch(reportError);
   }
+
   /**
    * Attach an EventSource with desired access level.
    */
@@ -167,6 +177,23 @@ export class WidgetFrame extends DisposableWithEvents {
   }
 
   public buildDom() {
+    const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
+    return onElem(
+      (this._iframe = dom(
+        'iframe',
+        dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
+        dom.cls('clipboard_focus'),
+        dom.cls('custom_view'),
+        dom.attr('src', use => this._getUrl(use(this._widgets))),
+        {
+          ...hooks.iframeAttributes,
+        },
+        testId('ready', this._readyCalled),
+      ))
+    );
+  }
+
+  private _getUrl(widgets: ICustomWidget[]): string {
     // Append access level to query string.
     const urlWithAccess = (url: string) => {
       if (!url) {
@@ -177,19 +204,20 @@ export class WidgetFrame extends DisposableWithEvents {
       urlObj.searchParams.append('readonly', String(this._options.readonly));
       return urlObj.href;
     };
-    const fullUrl = urlWithAccess(this._options.url);
-    const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
-    return onElem(
-      (this._iframe = dom('iframe',
-        dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
-        dom.cls('clipboard_focus'),
-        dom.cls('custom_view'), {
-          src: fullUrl,
-          ...hooks.iframeAttributes,
-        },
-        testId('ready', this._readyCalled),
-      ))
-    );
+    const {widgetId, pluginId} = this._options;
+    let url = this._options.url;
+    if (widgetId) {
+      console.log("Iframe match starting");
+      const widget = matchWidget(widgets, {widgetId, pluginId});
+      console.log("Iframe match done");
+      if (widget) {
+        url = widget.url;
+      } else {
+        return 'about:blank';
+      }
+    }
+    const fullUrl = urlWithAccess(url);
+    return fullUrl;
   }
 
   private _onMessage(event: MessageEvent) {
@@ -215,6 +243,14 @@ export class WidgetFrame extends DisposableWithEvents {
       }
       this._rpc.receiveMessage(event.data);
     }
+  }
+
+  private async _fetchWidgets() {
+    if (this.isDisposed()) { return; }
+    const widgets = await this._options.gristDoc.app.topAppModel.getWidgets();
+    if (this.isDisposed()) { return; }
+    this._widgets.set(widgets);
+    console.log("SAVED", {widgets});
   }
 }
 

@@ -1,11 +1,13 @@
-import {AccessLevel} from "app/common/CustomWidget";
-import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {CustomView} from "app/client/components/CustomView";
-import {GristDoc} from "app/client/components/GristDoc";
-import {reportError} from 'app/client/models/errors';
+// import {AccessLevel} from "app/common/CustomWidget";
+// import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
+import { CustomView, CustomViewSettings } from "app/client/components/CustomView";
+import { AccessLevel } from "app/common/CustomWidget";
+// import {GristDoc} from "app/client/components/GristDoc";
+// import {reportError} from 'app/client/models/errors';
 
 //Abstract class for more future inheritances
-abstract class CustomAttachedView extends CustomView {
+// abstract class CustomAttachedView extends CustomView {
+  /*
   public override create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super.create(gristDoc, viewSectionModel);
     if (viewSectionModel.customDef.access.peek() !== AccessLevel.full) {
@@ -18,7 +20,7 @@ abstract class CustomAttachedView extends CustomView {
       });
     }
 
-    const widgetsApi = this.gristDoc.app.topAppModel.api;
+    const widgetsApi = this.gristDoc.app.topAppModel;
     widgetsApi.getWidgets().then(async result=>{
       const widget = result.find(w=>w.name == this.getWidgetName());
       if (widget && this.customDef.url.peek() !== widget.url) {
@@ -34,13 +36,17 @@ abstract class CustomAttachedView extends CustomView {
       }
     });
   }
+  */
 
-  protected abstract getWidgetName(): string;
+//  protected abstract getWidgetName(): string;
 
-}
+// }
 
-export class CustomCalendarView extends CustomAttachedView {
-  protected getWidgetName(): string {
-    return "Calendar";
+export class CustomCalendarView extends CustomView {
+  protected getInitialSettings(): CustomViewSettings {
+    return {
+      widgetId: '@gristlabs/widget-calendar',
+      accessLevel: AccessLevel.full,
+    };
   }
 }

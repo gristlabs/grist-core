@@ -33,7 +33,7 @@ export interface ISendAppPageOptions {
   googleTagManager?: true | false | 'anon';
 }
 
-export interface MakeGristConfigOptons {
+export interface MakeGristConfigOptions {
   homeUrl: string|null;
   extra: Partial<GristLoadConfig>;
   baseDomain?: string;
@@ -41,7 +41,7 @@ export interface MakeGristConfigOptons {
   server?: GristServer|null;
 }
 
-export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig {
+export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfig {
   const {homeUrl, extra, baseDomain, req, server} = options;
   // .invalid is a TLD the IETF promises will never exist.
   const pluginUrl = process.env.APP_UNTRUSTED_URL || 'http://plugins.invalid';
@@ -78,7 +78,7 @@ export function makeGristConfig(options: MakeGristConfigOptons): GristLoadConfig
     featureComments: isAffirmative(process.env.COMMENTS),
     featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),
     assistantService: process.env.OPENAI_API_KEY ? 'OpenAI' : undefined,
-    permittedCustomWidgets: getPermittedCustomWidgets(),
+    permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(),
@@ -115,6 +115,7 @@ export function makeSendAppPage(opts: {
 }) {
   const {server, staticDir, tag, testLogin} = opts;
   return async (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => {
+      console.log("HERE WE GO");
       const config = makeGristConfig({
         homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
         extra: options.config,
@@ -170,9 +171,30 @@ function getFeatures(): IFeature[] {
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
 }
 
-function getPermittedCustomWidgets(): IAttachedCustomWidget[] {
+function getPermittedCustomWidgets(gristServer?: GristServer|null): IAttachedCustomWidget[] {
+  if (!process.env.PERMITTED_CUSTOM_WIDGETS && gristServer) {
+    console.log("*****");
+    console.log("*****");
+    console.log("*****");
+    const widgets = gristServer.getBundledWidgets();
+    const names = new Set(AttachedCustomWidgets.values as string[]);
+    console.log({widgets, names});
+    const namesFound: IAttachedCustomWidget[] = [];
+    for (const widget of widgets) {
+      // For some reason in different parts of the code attached custom
+      // widgets are identified by a lot of variants of their name or id
+      // e.g. "Calendar", "calendar", "custom.calendar", "@gristlabs/grist-calendar'...
+      const name = widget.widgetId.replace('@gristlabs/widget-', 'custom.');
+      console.log("CHECK", {name});
+      if (names.has(name)) {
+        console.log("CHECK FOUND", {name});
+        namesFound.push(name as IAttachedCustomWidget);
+      }
+    }
+    return AttachedCustomWidgets.checkAll(namesFound);
+  }
   const widgetsList = process.env.PERMITTED_CUSTOM_WIDGETS?.split(',').map(widgetName=>`custom.${widgetName}`) ?? [];
-  return  AttachedCustomWidgets.checkAll(widgetsList);
+  return AttachedCustomWidgets.checkAll(widgetsList);
 }
 
 function configuredPageTitleSuffix() {

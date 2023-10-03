@@ -21,7 +21,7 @@ import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {LinkConfig} from 'app/client/ui/selectBy';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
-import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
+import {AccessLevel} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
@@ -245,10 +245,19 @@ export interface CustomViewSectionDef {
    * The url.
    */
   url: modelUtil.KoSaveableObservable<string|null>;
+  /**
+   * A widgetId, if available. Preferred to url.
+   * For bundled custom widgets, it is important to refer
+   * to them by something other than url, since url will
+   * vary with deployment, and it should be possible to move
+   * documents between deployments if they have compatible
+   * widgets available.
+   */
+  widgetId: modelUtil.KoSaveableObservable<string|null>;
    /**
    * Custom widget information.
    */
-  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
+  // widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
    /**
    * Custom widget options.
    */
@@ -324,7 +333,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   const customViewDefaults = {
     mode: 'url',
     url: null,
-    widgetDef: null,
+    // widgetDef: null,
     access: '',
     pluginId: '',
     sectionId: '',
@@ -336,7 +345,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.customDef = {
     mode: customDefObj.prop('mode'),
     url: customDefObj.prop('url'),
-    widgetDef: customDefObj.prop('widgetDef'),
+    widgetId: customDefObj.prop('widgetId'),
+    // widgetDef: customDefObj.prop('widgetDef'),
     widgetOptions: customDefObj.prop('widgetOptions'),
     columnsMapping: customDefObj.prop('columnsMapping'),
     access: customDefObj.prop('access'),

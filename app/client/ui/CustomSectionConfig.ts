@@ -15,7 +15,7 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
-import {AccessLevel, ICustomWidget, isSatisfied} from 'app/common/CustomWidget';
+import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from 'app/common/CustomWidget';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {unwrap} from 'app/common/gutil';
 import {
@@ -322,7 +322,8 @@ export class CustomSectionConfig extends Disposable {
 
     // Test if we can offer widget list.
     const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
-    this._canSelect = gristConfig.enableWidgetRepository ?? true;
+    console.log("Ignoring gristConfig now", {gristConfig});
+    this._canSelect = true; // gristConfig.enableWidgetRepository ?? true;
 
     // Array of available widgets - will be updated asynchronously.
     this._widgets = Observable.create(this, []);
@@ -331,12 +332,16 @@ export class CustomSectionConfig extends Disposable {
 
     // Selected value from the dropdown (contains widgetId or "custom" string for Custom URL)
     this._selectedId = Computed.create(this, use => {
-      if (use(_section.customDef.widgetDef)) {
-        return _section.customDef.widgetDef.peek()!.widgetId;
+      const widgetId = use(_section.customDef.widgetId);
+      const pluginId = use(_section.customDef.pluginId);
+      if (widgetId) {
+        console.log("_selectedId", {widgetId, pluginId});
+        return (pluginId||'') + ':' + widgetId;
       }
       return CUSTOM_ID;
     });
     this._selectedId.onWrite(async value => {
+      console.log("_selectedId onWrite", {value});
       if (value === CUSTOM_ID) {
         // Select Custom URL
         bundleChanges(() => {
@@ -344,8 +349,11 @@ export class CustomSectionConfig extends Disposable {
           _section.customDef.renderAfterReady(false);
           // Clear url.
           _section.customDef.url(null);
+          // Clear widgetId
+          _section.customDef.widgetId(null);
+          _section.customDef.pluginId('');
           // Clear widget definition.
-          _section.customDef.widgetDef(null);
+          // _section.customDef.widgetDef(null);
           // Reset access level to none.
           _section.customDef.access(AccessLevel.none);
           // Clear all saved options.
@@ -359,27 +367,50 @@ export class CustomSectionConfig extends Disposable {
         });
         await _section.saveCustomDef();
       } else {
+        const [pluginId, widgetId] = value?.split(':') || [];
         // Select Widget
-        const selectedWidget = this._widgets.get().find(w => w.widgetId === value);
+        console.log("Start match");
+        const selectedWidget = matchWidget(this._widgets.get(), {
+          widgetId,
+          pluginId,
+        });
+        console.log("Started match");
+        console.log("SETTING", {pluginId, widgetId, selectedWidget});
         if (!selectedWidget) {
           // should not happen
           throw new Error('Error accessing widget from the list');
         }
         // If user selected the same one, do nothing.
-        if (_section.customDef.widgetDef.peek()?.widgetId === value) {
+        if (_section.customDef.widgetId.peek() === widgetId &&
+            _section.customDef.pluginId.peek() === pluginId) {
+          console.log("DO NOTHING", {
+            widgetId,
+            pluginId,
+            owidgetId: _section.customDef.widgetId.peek(),
+            opluginId: _section.customDef.pluginId.peek(),
+          });
           return;
         }
         bundleChanges(() => {
           // Reset whether widget should render after `grist.ready()`.
-          _section.customDef.renderAfterReady(false);
+          _section.customDef.renderAfterReady(selectedWidget.renderAfterReady ?? false);
           // Clear access level
           _section.customDef.access(AccessLevel.none);
           // When widget wants some access, set desired access level.
           this._desiredAccess.set(selectedWidget.accessLevel || AccessLevel.none);
           // Update widget definition.
-          _section.customDef.widgetDef(selectedWidget);
+          // _section.customDef.widgetDef(selectedWidget);
+          // Update widgetId.
+          _section.customDef.widgetId(selectedWidget.widgetId);
+          _section.customDef.pluginId(selectedWidget.fromPlugin || '');
+          console.log({
+            setty: 1,
+            widgetId: selectedWidget.widgetId,
+            pluginId: selectedWidget.fromPlugin || '',
+            selectedWidget
+          });
           // Update widget URL.
-          _section.customDef.url(selectedWidget.url);
+          _section.customDef.url(null);
           // Clear options.
           _section.customDef.widgetOptions(null);
           // Clear has custom configuration.
@@ -389,6 +420,7 @@ export class CustomSectionConfig extends Disposable {
           _section.columnsToMap(null);
         });
         await _section.saveCustomDef();
+        console.log("CustomSectionConfig saved");
       }
     });
 
@@ -398,7 +430,12 @@ export class CustomSectionConfig extends Disposable {
     this._url.onWrite(async newUrl => {
       bundleChanges(() => {
         _section.customDef.renderAfterReady(false);
-        _section.customDef.url(newUrl);
+        if (newUrl) {
+          console.log("ZAP widgetId and pluginId");
+          _section.customDef.widgetId(null);
+          _section.customDef.pluginId('');
+        }
+        //_section.customDef.url(newUrl);
       });
       await _section.saveCustomDef();
     });
@@ -423,6 +460,11 @@ export class CustomSectionConfig extends Disposable {
     const holder = new MultiHolder();
 
     // Show prompt, when desired access level is different from actual one.
+    function makeLabel(widget: ICustomWidget) {
+      if (!widget.fromPlugin) { return widget.name; }
+      const group = widget.fromPlugin.replace('builtIn/', '');
+      return `${widget.name} (${group})`;
+    }
     const prompt = Computed.create(holder, use =>
       use(this._desiredAccess)
       && !isSatisfied(use(this._currentAccess), use(this._desiredAccess)!));
@@ -433,7 +475,9 @@ export class CustomSectionConfig extends Disposable {
     // Options for the select-box (all widgets definitions and Custom URL)
     const options = Computed.create(holder, use => [
       {label: 'Custom URL', value: 'custom'},
-      ...use(this._widgets).map(w => ({label: w.name, value: w.widgetId})),
+      ...use(this._widgets).map(w => ({
+        label: makeLabel(w), value: ((w.fromPlugin||'') + ':' + w.widgetId)
+      })),
     ]);
     function buildPrompt(level: AccessLevel|null) {
       if (!level) {
@@ -469,7 +513,7 @@ export class CustomSectionConfig extends Disposable {
           testId('select')
         )
         : null,
-      dom.maybe(isCustom && this.shouldRenderWidgetSelector(), () => [
+      dom.maybe((use) => use(isCustom) && this.shouldRenderWidgetSelector(), () => [
         cssRow(
           cssTextInput(
             this._url,
@@ -538,17 +582,23 @@ export class CustomSectionConfig extends Disposable {
   }
 
   protected async _getWidgets() {
-    const api = this._gristDoc.app.topAppModel.api;
-    const wigets = await api.getWidgets();
+    const widgets = await this._gristDoc.app.topAppModel.getWidgets();
+    /*
+    const widgets = filterWidgets(widgets1, {
+      keepWidgetIdUnique: true,
+      preferPlugin: false,
+    });
+    */
+    // const wigets = await api.getWidgets();
     // Request for rest of the widgets.
     if (this._canSelect) {
       // From the start we will provide single widget definition
       // that was chosen previously.
-      if (this._section.customDef.widgetDef.peek()) {
-        wigets.push(this._section.customDef.widgetDef.peek()!);
-      }
+      // if (this._section.customDef.widgetDef.peek()) {
+      // wigets.push(this._section.customDef.widgetDef.peek()!);
+      // }
     }
-    this._widgets.set(wigets);
+    this._widgets.set(widgets);
   }
 
 

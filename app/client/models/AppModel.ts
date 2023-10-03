@@ -27,6 +27,8 @@ import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl
 import {getUserPrefObs, getUserPrefsObs, markAsSeen, markAsUnSeen} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 import isEqual from 'lodash/isEqual';
+import { ICustomWidget } from 'app/common/CustomWidget';
+import { AsyncCreate } from 'app/common/AsyncCreate';
 
 const t = makeT('AppModel');
 
@@ -75,6 +77,8 @@ export interface TopAppModel {
    * Reloads orgs and accounts for current user.
    */
   fetchUsersAndOrgs(): Promise<void>;
+
+  getWidgets(): Promise<ICustomWidget[]>;
 }
 
 /**
@@ -143,6 +147,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly users = Observable.create<FullUser[]>(this, []);
   public readonly plugins: LocalPlugin[] = [];
   private readonly _gristConfig?: GristLoadConfig;
+  private readonly _widgets: AsyncCreate<ICustomWidget[]>;
 
   constructor(
     window: {gristConfig?: GristLoadConfig},
@@ -153,6 +158,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     this.isSingleOrg = Boolean(window.gristConfig && window.gristConfig.singleOrg);
     this.productFlavor = getFlavor(window.gristConfig && window.gristConfig.org);
     this._gristConfig = window.gristConfig;
+    this._widgets = new AsyncCreate<ICustomWidget[]>(() => this.api.getWidgets());
 
     // Initially, and on any change to subdomain, call initialize() to get the full Organization
     // and the FullUser to use for it (the user may change when switching orgs).
@@ -173,6 +179,10 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       const {currentUser, currentOrg, orgError} = app;
       AppModelImpl.create(this.appObs, this, currentUser, currentOrg, orgError);
     }
+  }
+
+  public async getWidgets(): Promise<ICustomWidget[]> {
+    return this._widgets.get();
   }
 
   public getUntrustedContentOrigin() {

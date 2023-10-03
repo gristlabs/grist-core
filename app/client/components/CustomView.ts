@@ -32,6 +32,10 @@ import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 
+export interface CustomViewSettings {
+  widgetId?: string;
+  accessLevel?: AccessLevel;
+}
 
 /**
  * CustomView components displays arbitrary html. There are two modes available, in the "url" mode
@@ -81,11 +85,10 @@ export class CustomView extends Disposable {
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
 
-
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
 
-    this.customDef =  this.viewSection.customDef;
+    this.customDef = this.viewSection.customDef;
 
     this.autoDisposeCallback(() => {
       if (this._customSection) {
@@ -103,8 +106,43 @@ export class CustomView extends Disposable {
 
     this.viewPane = this.autoDispose(this._buildDom());
     this._updatePluginInstance();
+
+    this.dealWithBundledWidgets(gristDoc, viewSectionModel);
   }
 
+  public dealWithBundledWidgets(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
+    const settings = this.getInitialSettings();
+    console.log("dealWith!", {settings});
+    if (!settings.widgetId) { return; }
+    if (viewSectionModel.customDef.access.peek() !== AccessLevel.full) {
+      void viewSectionModel.customDef.access.setAndSave(AccessLevel.full).catch((err)=>{
+        if (err?.code === "ACL_DENY") {
+          // do nothing, we might be in a readonly mode.
+          return;
+        }
+        reportError(err);
+      });
+    }
+    
+    const widgetsApi = this.gristDoc.app.topAppModel;
+    widgetsApi.getWidgets().then(async result=>{
+      const widget = result.find(w => w.widgetId === settings.widgetId);
+      console.log("FOUND", {widget});
+      if (widget && this.customDef.widgetId.peek() !== widget.widgetId) {
+        console.log("SET!!");
+        await this.customDef.widgetId.setAndSave(widget.widgetId);
+        await this.customDef.pluginId.setAndSave(widget.fromPlugin||'');
+      }
+    }).catch((err)=>{
+      if (err?.code !== "ACL_DENY") {
+        // TODO: revisit it later. getWidgets() is async call, and non of the code
+        // above is checking if we are still alive.
+        console.error(err);
+      } else {
+        // do nothing, we might be in a readonly mode.
+      }
+    });
+  }
 
   public async triggerPrint() {
     if (!this.isDisposed() && this._frame) {
@@ -112,9 +150,14 @@ export class CustomView extends Disposable {
     }
   }
 
+  protected getInitialSettings(): CustomViewSettings {
+    return {};
+  }
+  
   protected getEmptyWidgetPage(): string {
     return new URL("custom-widget.html", getGristConfig().homeUrl!).href;
   }
+
   /**
    * Find a plugin instance that matches the plugin id, update the `found` observables, then tries to
    * find a matching section.
@@ -154,13 +197,16 @@ export class CustomView extends Disposable {
   }
 
   private _buildDom() {
-    const {mode, url, access, renderAfterReady} = this.customDef;
+    const {mode, url, access, renderAfterReady, widgetId, pluginId} = this.customDef;
     const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
     const showAfterReady = () => {
       // The empty widget page calls `grist.ready()`.
+      // Pending: URLs set now only when user actually enters a URL,
+      // so this could be breaking pages without grist.ready() call
+      // added to manifests.
       if (!url()) { return true; }
 
-      return this.customDef.widgetDef()?.renderAfterReady ?? renderAfterReady();
+      return renderAfterReady();
     };
 
     // When both plugin and section are not found, let's show only plugin notification.
@@ -176,12 +222,14 @@ export class CustomView extends Disposable {
       dom.autoDispose(showSectionNotification),
       dom.autoDispose(showPluginContent),
       // todo: should display content in webview when running electron
-      kd.scope(() => [mode(), url(), access()], ([_mode, _url, _access]: string[]) =>
+      kd.scope(() => [mode(), url(), access(), widgetId(), pluginId()], ([_mode, _url, _access, _widgetId, _pluginId]: string[]) =>
         _mode === "url" ?
           this._buildIFrame({
             baseUrl: _url,
             access: (_access as AccessLevel || AccessLevel.none),
             showAfterReady: showAfterReady(),
+            widgetId: _widgetId,
+            pluginId: _pluginId,
           })
           : null
       ),
@@ -211,10 +259,15 @@ export class CustomView extends Disposable {
     baseUrl: string|null,
     access: AccessLevel,
     showAfterReady?: boolean,
+    widgetId?: string|null,
+    pluginId?: string,
   }) {
-    const {baseUrl, access, showAfterReady} = options;
+    const {baseUrl, access, showAfterReady, widgetId, pluginId} = options;
     return grains.create(WidgetFrame, {
       url: baseUrl || this.getEmptyWidgetPage(),
+      widgetId,
+      pluginId,
+      emptyUrl: this.getEmptyWidgetPage(),
       access,
       readonly: this.gristDoc.isReadonly.get(),
       showAfterReady,
@@ -265,7 +318,8 @@ export class CustomView extends Disposable {
         }
         // allow menus to close if any
         closeRegisteredMenu();
-      })
+      }),
+      gristDoc: this.gristDoc,
     });
 
   }

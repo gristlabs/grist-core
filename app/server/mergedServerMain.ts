@@ -31,6 +31,26 @@ export function parseServerTypes(serverTypes: string|undefined): ServerType[] {
   return types as ServerType[];
 }
 
+function checkUserContentPort(): number | null {
+  // Check whether a port is explicitly set for user content.
+  if (process.env.GRIST_UNTRUSTED_PORT) {
+    return parseInt(process.env.GRIST_UNTRUSTED_PORT, 10);
+  }
+  // Checks whether to serve user content on same domain but on different port
+  if (process.env.APP_UNTRUSTED_URL && process.env.APP_HOME_URL) {
+    const homeUrl = new URL(process.env.APP_HOME_URL);
+    const pluginUrl = new URL(process.env.APP_UNTRUSTED_URL);
+    // If the hostname of both home and plugin url are the same,
+    // but the ports are different
+    if (homeUrl.hostname === pluginUrl.hostname &&
+        homeUrl.port !== pluginUrl.port) {
+      const port = parseInt(pluginUrl.port || '80', 10);
+      return port;
+    }
+  }
+  return null;
+}
+
 interface ServerOptions extends FlexServerOptions {
   logToConsole?: boolean;  // If set, messages logged to console (default: false)
                            //   (but if options are not given at all in call to main,
@@ -51,6 +71,13 @@ export async function main(port: number, serverTypes: ServerType[],
   const includeApp = serverTypes.includes("app");
 
   const server = new FlexServer(port, `server(${serverTypes.join(",")})`, options);
+
+  if (includeHome) {
+    const userPort = checkUserContentPort();
+    server.setWillServePlugins(userPort !== undefined);
+  } else {
+    server.setWillServePlugins(false);
+  }
 
   if (options.loginSystem) {
     server.setLoginSystem(options.loginSystem);
@@ -143,7 +170,26 @@ export async function main(port: number, serverTypes: ServerType[],
 
     server.finalize();
 
+    if (includeHome) {
+      // If plugin content is served from same host but on different port,
+      // run webserver on that port
+      const userPort = checkUserContentPort();
+      if (userPort !== null) {
+        const ports = await server.startCopy('pluginServer', userPort);
+        // If Grist is running on a desktop, directly on the host, it
+        // can be convenient to leave the user port free for the OS to
+        // allocate by using GRIST_UNTRUSTED_PORT=0. But we do need to
+        // remember how to contact it.
+        if (userPort === 0) {
+          server.setPluginPort(ports.serverPort);
+        } else if (process.env.APP_UNTRUSTED_URL === undefined) {
+          server.setPluginPort(userPort);
+        }
+      }
+    }
+
     server.checkOptionCombinations();
+    await server.prepareSummary();
     server.summary();
     return server;
   } catch(e) {

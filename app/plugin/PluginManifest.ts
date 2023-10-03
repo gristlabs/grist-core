@@ -82,6 +82,8 @@ export interface BarePlugin {
      */
     unsafeNode?: string;
 
+    widgets?: string;
+
     /**
      * Options for when to deactivate the plugin, i.e. when to stop any plugin processes. (Note
      * that we may in the future also add options for when to activate the plugin, which is for

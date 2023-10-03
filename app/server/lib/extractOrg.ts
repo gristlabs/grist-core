@@ -6,6 +6,7 @@ import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { getOriginUrl } from 'app/server/lib/requestUtils';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { IncomingMessage } from 'http';
+import { GristServer } from './GristServer';
 
 // How long we cache information about the relationship between
 // orgs and custom hosts.  The higher this is, the fewer requests
@@ -41,7 +42,7 @@ export class Hosts {
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
   constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager,
-              private _pluginUrl: string|undefined) {
+              private _gristServer: GristServer|undefined) {
   }
 
   /**
@@ -165,6 +166,6 @@ export class Hosts {
   }
 
   private _getHostType(host: string) {
-    return getHostType(host, {baseDomain: this._baseDomain, pluginUrl: this._pluginUrl});
+    return getHostType(host, {baseDomain: this._baseDomain, pluginUrl: this._gristServer?.getPluginUrl()});
   }
 }

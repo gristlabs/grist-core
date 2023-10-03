@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import { ICustomWidget } from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
@@ -65,7 +66,7 @@ import {getTelemetryPrefs, ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
-import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRepository';
+import { buildWidgetRepository, getWidgetPlaces, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
@@ -128,6 +129,9 @@ export class FlexServer implements GristServer {
   private _dbManager: HomeDBManager;
   private _defaultBaseDomain: string|undefined;
   private _pluginUrl: string|undefined;
+  private _pluginUrlSet: boolean = false;
+  private _willServePlugins?: boolean;
+  private _bundledWidgets?: ICustomWidget[];
   private _billing: IBilling;
   private _instanceRoot: string;
   private _docManager: DocManager;
@@ -220,7 +224,6 @@ export class FlexServer implements GristServer {
     }
     this.info.push(['defaultBaseDomain', this._defaultBaseDomain]);
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
-    this.info.push(['pluginUrl', this._pluginUrl]);
 
     // The electron build is not supported at this time, but this stub
     // implementation of electronServerMethods is present to allow kicking
@@ -551,19 +554,36 @@ export class FlexServer implements GristServer {
     this.app.use(/^\/(grist-plugin-api.js)$/, expressWrap(async (req, res) =>
       res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
     // Plugins get access to static resources without a tag
-    this.app.use(limitToPlugins(express.static(getAppPathTo(this.appRoot, 'static'))));
-    this.app.use(limitToPlugins(express.static(getAppPathTo(this.appRoot, 'bower_components'))));
+    this.app.use(limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'static'))));
+    this.app.use(limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'bower_components'))));
     // Serve custom-widget.html message for anyone.
     this.app.use(/^\/(custom-widget.html)$/, expressWrap(async (req, res) =>
       res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
     this.addOrg();
     addPluginEndpoints(this, await this._addPluginManager());
+    const places = getWidgetPlaces(this, 'wotnot');
+    // Allow static files to be requested from any origin.
+    const options: serveStatic.ServeStaticOptions = {
+      setHeaders: (res, filepath, stat) => {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+      }
+    };
+     for (const place of places) {
+       this.app.use(
+         '/widgets/' + place.name,
+         this.tagChecker.withTag(
+           limitToPlugins(this,
+             express.static(place.fileDir, options)
+           )
+         )
+       );
+    }
   }
 
   // Prepare cache for managing org-to-host relationship.
   public addHosts() {
     if (this._check('hosts', 'homedb')) { return; }
-    this._hosts = new Hosts(this._defaultBaseDomain, this._dbManager, this._pluginUrl);
+    this._hosts = new Hosts(this._defaultBaseDomain, this._dbManager, this);
   }
 
   public async initHomeDBManager() {
@@ -671,7 +691,7 @@ export class FlexServer implements GristServer {
 
     // ApiServer's constructor adds endpoints to the app.
     // tslint:disable-next-line:no-unused-expression
-    new ApiServer(this, this.app, this._dbManager, this._widgetRepository = buildWidgetRepository());
+    new ApiServer(this, this.app, this._dbManager, this._widgetRepository = buildWidgetRepository(this));
   }
 
   public addBillingApi() {
@@ -1425,6 +1445,56 @@ export class FlexServer implements GristServer {
     });
   }
 
+  public setPluginPort(port: number) {
+    const url = new URL(this.getOwnUrl());
+    url.port = String(port);
+    this._pluginUrl = url.href;
+  }
+
+  public willServePlugins() {
+    if (this._willServePlugins === undefined) {
+      throw new Error('do not know if will serve plugins');
+    }
+    return this._willServePlugins;
+  }
+  
+  public setWillServePlugins(flag: boolean) {
+    this._willServePlugins = flag;
+  }
+
+  public getPluginUrl() {
+    if (!this._pluginUrlSet) {
+      throw new Error('looked at plugin url too early');
+    }
+    return this._pluginUrl;
+  }
+
+  public getPlugins() {
+    if (!this._pluginManager) {
+      throw new Error('plugin manager not available');
+    }
+    return this._pluginManager.getPlugins();
+  }
+
+  public async prepareSummary() {
+    // Add some information that isn't guaranteed set until the end.
+
+    this.info.push(['pluginUrl', this._pluginUrl]);
+    // plugin url should be finalized by now.
+    this._pluginUrlSet = true;
+    this.info.push(['willServePlugins', this._willServePlugins]);
+
+    const repo = buildWidgetRepository(this, { localOnly: true });
+    this._bundledWidgets = await repo.getWidgets();
+  }
+
+  public getBundledWidgets(): ICustomWidget[] {
+    if (!this._bundledWidgets) {
+      throw new Error('bundled widgets accessed too early');
+    }
+    return this._bundledWidgets;
+  }
+
   public summary() {
     for (const [label, value] of this.info) {
       log.info("== %s: %s", label, value);
@@ -1538,9 +1608,12 @@ export class FlexServer implements GristServer {
     await this.housekeeper.start();
   }
 
-  public async startCopy(name2: string, port2: number) {
+  public async startCopy(name2: string, port2: number): Promise<{
+    serverPort: number,
+    httpsServerPort?: number,
+  }>{
     const servers = this._createServers();
-    await this._startServers(servers.server, servers.httpsServer, name2, port2, true);
+    return this._startServers(servers.server, servers.httpsServer, name2, port2, true);
   }
 
   /**
@@ -1606,6 +1679,9 @@ export class FlexServer implements GristServer {
   }
 
   public getTag(): string {
+    if (!this.tag) {
+      throw new Error('getTag called too early');
+    }
     return this.tag;
   }
 
@@ -1913,6 +1989,10 @@ export class FlexServer implements GristServer {
       await listenPromise(httpsServer.listen(httpsPort, this.host));
       if (verbose) { log.info(`${name} available at https://${this.host}:${httpsPort}`); }
     }
+    return {
+      serverPort: (server.address() as AddressInfo).port,
+      httpsServerPort: (server.address() as AddressInfo)?.port,
+    };
   }
 
   private async _recordNewUserInfo(row: object) {
