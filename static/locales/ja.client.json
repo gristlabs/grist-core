@@ -1,1 +1,1074 @@
-{}
+{
+    "ApiKey": {
+        "Remove API Key": "APIキーの削除",
+        "Click to show": "クリックして表示",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "APIキーを削除しようとしています。これにより、今後このAPIキーを使用したリクエストはすべて拒否されます。それでも削除しますか？",
+        "Create": "生成",
+        "Remove": "削除",
+        "By generating an API key, you will be able to make API calls for your own account.": "APIキーを生成することで、自分のアカウントでAPIコールを行うことができるようになります。"
+    },
+    "breadcrumbs": {
+        "override": "上書き",
+        "unsaved": "未保存",
+        "fiddle": "フィドル",
+        "recovery mode": "リカバリーモード",
+        "snapshot": "スナップショット",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "編集を行うことはできますが、新しいコピーが作成され、\n元の文書には影響しません。"
+    },
+    "HomeLeftPane": {
+        "All Documents": "すべてのドキュメント",
+        "Manage Users": "ユーザー管理",
+        "Tutorial": "チュートリアル",
+        "Delete {{workspace}} and all included documents?": "{{workspace}} と、含まれるすべてのドキュメントを削除しますか？",
+        "Create Empty Document": "空のドキュメントを作成",
+        "Create Workspace": "ワークスペースの作成",
+        "Import Document": "ドキュメントをインポート",
+        "Access Details": "アクセス詳細",
+        "Rename": "名前の変更",
+        "Trash": "ゴミ箱",
+        "Workspaces": "ワークスペース",
+        "Workspace will be moved to Trash.": "ワークスペースはゴミ箱に移動されます。",
+        "Examples & Templates": "テンプレート",
+        "Delete": "削除"
+    },
+    "RowContextMenu": {
+        "Insert row": "行を挿入",
+        "Insert row below": "下に行を挿入",
+        "Delete": "削除",
+        "Copy anchor link": "リンクをコピー",
+        "Duplicate rows_one": "重複行",
+        "Duplicate rows_other": "重複行",
+        "Insert row above": "上に行を挿入"
+    },
+    "Drafts": {
+        "Undo discard": "破棄を元に戻す",
+        "Restore last edit": "最後の編集に戻す"
+    },
+    "FormulaAssistant": {
+        "Data": "データ",
+        "Press Enter to apply suggested formula.": "Enterキーを押して、提案された数式を適用する。",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "詳しくは、{{helpFunction}} および{{formulaCheat}} 、または{{community}} をご覧ください。",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "フォーミュラAIアシスタントのご利用を開始するには、無料のGristアカウントにご登録ください。",
+        "Clear Conversation": "会話を消す",
+        "New Chat": "新しいチャット",
+        "Code View": "コードビュー",
+        "Apply": "適用",
+        "Learn more": "さらに詳しく",
+        "Regenerate": "再生成",
+        "Community": "コミュニティ",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "私がお手伝いできるのは数式だけです。テーブル、列、ビューの構築やアクセスルールの作成はできません。",
+        "Hi, I'm the Grist Formula AI Assistant.": "こんにちは、Grist関数AIアシスタントです。",
+        "Preview": "プレビュー",
+        "Ask the bot.": "ボットに聞いてみよう。",
+        "Function List": "関数リスト",
+        "Tips": "ヒント",
+        "Save": "保存",
+        "Sign Up for Free": "無料でサインアップ",
+        "Formula Cheat Sheet": "数式のチートシート",
+        "Grist's AI Assistance": "GristのAI支援",
+        "Grist's AI Formula Assistance. ": "GristのAI数式支援 ",
+        "Formula Help. ": "数式のヘルプ ",
+        "Capabilities": "能力",
+        "Cancel": "キャンセル",
+        "Need help? Our AI assistant can help.": "お困りですか？AIアシスタントがお手伝いします。",
+        "AI Assistant": "AIアシスタント"
+    },
+    "GridViewMenus": {
+        "Unfreeze {{count}} columns_one": "固定を解除",
+        "Sorted (#{{count}})_one": "ソート (#{{count}})",
+        "Unfreeze all columns": "全列の固定を解除",
+        "Freeze {{count}} columns_other": "{{count}} 列固定する",
+        "Show column {{- label}}": "{{- label}} 列を表示",
+        "Sort": "ソート",
+        "Column Options": "列オプション",
+        "Rename column": "列名の変更",
+        "Filter Data": "フィルターデータ",
+        "Delete {{count}} columns_one": "列の削除",
+        "Insert column to the {{to}}": "{{to}} に列を挿入",
+        "Hide {{count}} columns_other": "{{count}} 列非表示",
+        "Add Column": "列を追加",
+        "Reset {{count}} columns_one": "列をリセット",
+        "Freeze {{count}} columns_one": "この列を固定する",
+        "More sort options ...": "その他のソートオプション…",
+        "Freeze {{count}} more columns_one": "もう1列固定する",
+        "Reset {{count}} entire columns_other": "{{count}} 列全体をリセット",
+        "Reset {{count}} columns_other": "{{count}}列リセット",
+        "Clear values": "値をクリア",
+        "Delete {{count}} columns_other": "{{count}}列削除",
+        "Unfreeze {{count}} columns_other": "{{count}} 列固定を解除",
+        "Add to sort": "ソートに追加",
+        "Insert column to the right": "右側に列を挿入",
+        "Reset {{count}} entire columns_one": "列全体をリセット",
+        "Convert formula to data": "数式をデータに変換する",
+        "Freeze {{count}} more columns_other": "さらに {{count}} 列固定する",
+        "Hide {{count}} columns_one": "列非表示",
+        "Insert column to the left": "左側に列を挿入",
+        "Sorted (#{{count}})_other": "ソート (#{{count}})"
+    },
+    "DocMenu": {
+        "This service is not available right now": "このサービスは現在ご利用いただけません",
+        "Workspace not found": "ワークスペースが見つかりません",
+        "Discover More Templates": "その他のテンプレート",
+        "Current workspace": "現在のワークスペース",
+        "Edited {{at}}": "{{at}}による編集",
+        "Pin Document": "ドキュメントをピン留めする",
+        "Remove": "削除",
+        "By Date Modified": "変更日",
+        "Rename": "名前の変更",
+        "Move": "移動",
+        "Delete Forever": "完全に削除",
+        "Trash is empty.": "ゴミ箱は空です。",
+        "Unpin Document": "ドキュメントのピン留めを解除",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "ドキュメントは30日間ゴミ箱に残り、その後永久に削除されます。",
+        "Requires edit permissions": "編集権限が必要",
+        "More Examples and Templates": "その他の事例とテンプレート",
+        "Access Details": "アクセス詳細",
+        "Deleted {{at}}": "{{at}}に削除",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "あなたは {{siteName}} サイトにいます。 次のサイトにもアクセスできます。",
+        "Other Sites": "他のサイト",
+        "All Documents": "すべてのドキュメント",
+        "Pinned Documents": "ピン留めされたドキュメント",
+        "Delete {{name}}": "{{name}}を削除",
+        "Manage Users": "ユーザー管理",
+        "Examples and Templates": "事例とテンプレート",
+        "Delete": "削除",
+        "Document will be permanently deleted.": "文書は永久に削除されます。",
+        "(The organization needs a paid plan)": "（組織には有料プランが必要です）",
+        "To restore this document, restore the workspace first.": "このドキュメントを復元するには、まずワークスペースを復元してください。",
+        "You may delete a workspace forever once it has no documents in it.": "ワークスペースにドキュメントがなくなれば、ワークスペースを永久に削除できます。",
+        "By Name": "名前",
+        "Examples & Templates": "事例・テンプレート",
+        "Trash": "ゴミ箱",
+        "You are on your personal site. You also have access to the following sites:": "あなたは個人サイトにいます。以下のサイトにもアクセスできます：",
+        "Restore": "リストア",
+        "Move {{name}} to workspace": "{{name}} をワークスペースに移動",
+        "Document will be moved to Trash.": "ドキュメントはゴミ箱に移動されます。",
+        "Permanently Delete \"{{name}}\"?": "”{{name}}” を永久に削除しますか？"
+    },
+    "RightPanel": {
+        "WIDGET TITLE": "ウィジェットのタイトル",
+        "COLUMN TYPE": "列の型",
+        "Edit Data Selection": "データ選択の編集",
+        "DATA TABLE NAME": "データテーブル名",
+        "Fields_one": "フィールド",
+        "Save": "保存",
+        "You do not have edit access to this document": "このドキュメントの編集権限がありません",
+        "DATA TABLE": "データテーブル",
+        "Theme": "テーマ",
+        "Columns_other": "列",
+        "Data": "データ",
+        "Series_one": "系列",
+        "ROW STYLE": "行書式",
+        "GROUPED BY": "GROUPED BY",
+        "SOURCE DATA": "元データ",
+        "CHART TYPE": "グラフの種類",
+        "Detach": "切り離す",
+        "Change Widget": "ウィジェットの変更",
+        "Columns_one": "列",
+        "Series_other": "系列",
+        "Fields_other": "フィールド",
+        "Row Style": "行書式",
+        "CUSTOM": "カスタム",
+        "Select Widget": "ウィジェットを選択",
+        "Add referenced columns": "参照列の追加",
+        "TRANSFORM": "変換",
+        "Sort & Filter": "ソート＆フィルター",
+        "Widget": "ウィジェット"
+    },
+    "FloatingPopup": {
+        "Maximize": "最大化",
+        "Minimize": "最小化"
+    },
+    "MakeCopyMenu": {
+        "Include the structure without any of the data.": "データのない構造体を含めます。",
+        "Original Looks Unrelated": "オリジナルは無関係に見えます",
+        "Overwrite": "上書き",
+        "It will be overwritten, losing any content not in this document.": "上書きされ、このドキュメントにない内容は失われます。",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "オリジナルにはこの文書にはない変更が加えられているので注意してください。それらの変更は上書きされます。",
+        "Workspace": "ワークスペース",
+        "As Template": "テンプレートとして",
+        "Cancel": "キャンセル",
+        "Sign up": "サインアップ",
+        "Enter document name": "ドキュメント名を入力",
+        "Name": "名称",
+        "Update": "更新",
+        "Original Has Modifications": "オリジナルには変更が加えられています",
+        "No destination workspace": "宛先ワークスペースがありません",
+        "You do not have write access to the selected workspace": "選択したワークスペースの書き込み権限がありません",
+        "Remove all data but keep the structure to use as a template": "全てのデータを削除し、構造をテンプレートとして使う",
+        "Original Looks Identical": "オリジナルは同一のようです",
+        "Organization": "組織",
+        "Replacing the original requires editing rights on the original document.": "オリジナルを置き換えるには、元のドキュメントに対する編集権限が必要です。",
+        "Remove document history (can significantly reduce file size)": "ドキュメントの履歴を削除（ファイルサイズを大幅に削減できます）",
+        "To save your changes, please sign up, then reload this page.": "変更を保存するには、サインアップしてからこのページをリロードしてください。",
+        "The original version of this document will be updated.": "このドキュメントの元のバージョンは更新されています。",
+        "However, it appears to be already identical.": "しかし、すでに同一であるようです。",
+        "Update Original": "オリジナルを更新",
+        "You do not have write access to this site": "このサイトへのアクセス権限がありません",
+        "Download full document and history": "全てのドキュメントと履歴をダウンロード"
+    },
+    "SortConfig": {
+        "Add Column": "列を追加",
+        "Natural sort": "自然順",
+        "Search Columns": "列を検索",
+        "Update Data": "データを更新",
+        "Use choice position": "選択位置を使用"
+    },
+    "Clipboard": {
+        "Unavailable Command": "利用できないコマンド",
+        "Got it": "了解"
+    },
+    "VisibleFieldsConfig": {
+        "Show {{label}}": "{{label}} を表示",
+        "Cannot drop items into Hidden Fields": "隠しフィールドにアイテムをドロップできません",
+        "Hidden {{label}}": "隠し {{label}}",
+        "Hidden Fields cannot be reordered": "非表示フィールドの並び替えはできません",
+        "Visible {{label}}": "{{label}} を表示",
+        "Select All": "すべて選択",
+        "Hide {{label}}": "{{label}} を非表示",
+        "Clear": "クリア"
+    },
+    "ColumnFilterMenu": {
+        "Search values": "検索値",
+        "All Shown": "すべて表示",
+        "All Except": "以外",
+        "Start": "始まり",
+        "No matching values": "一致する値なし",
+        "End": "終わり",
+        "Search": "検索",
+        "Max": "最大",
+        "Others": "その他",
+        "Other Values": "その他の値",
+        "Min": "最小",
+        "All": "全て",
+        "Filter by Range": "範囲によるフィルタ",
+        "None": "なし"
+    },
+    "FieldConfig": {
+        "Column options are limited in summary tables.": "集計表では列のオプションが制限されています。",
+        "Set formula": "数式を設定",
+        "Data Columns_other": "データ列",
+        "DESCRIPTION": "説明",
+        "Clear and reset": "クリア＆リセット",
+        "Empty Columns_other": "空列",
+        "COLUMN LABEL AND ID": "列ラベルとID",
+        "Empty Columns_one": "空列",
+        "Make into data column": "データ列の作成",
+        "Enter formula": "数式を入力",
+        "Clear and make into formula": "クリアして式にする",
+        "Convert to trigger formula": "トリガー式に変換する",
+        "COLUMN BEHAVIOR": "列の動作",
+        "Data Columns_one": "データ列",
+        "TRIGGER FORMULA": "トリガー式",
+        "Set trigger formula": "トリガー式の設定"
+    },
+    "DocHistory": {
+        "Compare to Current": "現在と比較",
+        "Open Snapshot": "スナップショットを開く",
+        "Snapshots are unavailable.": "スナップショットは利用できません。",
+        "Snapshots": "スナップショット",
+        "Activity": "アクティビティ",
+        "Compare to Previous": "前回と比較",
+        "Beta": "ベータ"
+    },
+    "UserManager": {
+        "Anyone with link ": "リンクのある方 ",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "一旦自分のアクセス権を削除してしまうと、{{name}} に十分なアクセス権を持つ他の誰かの援助がない限り、元に戻すことはできません。",
+        "Your role for this team site": "このチームサイトでのあなたの役割",
+        "Copy Link": "リンクをコピー",
+        "User may not modify their own access.": "ユーザーは、自身のアクセスを変更することはできません。",
+        "member": "メンバー",
+        "Add {{member}} to your team": "{{member}} をチームに追加",
+        "Collaborator": "コラボレーター",
+        "Link copied to clipboard": "クリップボードにコピー",
+        "team site": "チームサイト",
+        "Create a team to share with more people": "より多くの人と共有するためにチームを作る",
+        "guest": "ゲスト",
+        "Public access: ": "パブリックアクセス： ",
+        "Team member": "チームメンバー",
+        "Manage members of team site": "チームサイトのメンバーの管理",
+        "Off": "Off",
+        "Save & ": "保存 ",
+        "Outside collaborator": "外部コラボレーター",
+        "{{collaborator}} limit exceeded": "{{collaborator}} 制限超過",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "ユーザは{{parent})}からパーミッションを継承します。削除するには、'Inherit access' オプションを 'None' に設定します。",
+        "Your role for this {{resourceType}}": "この{{resourceType}}のあなたの役割",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "一旦自分のアクセス権を削除してしまうと、{{resourceType}} に十分なアクセス権を持つ他の誰かの援助がない限り、元に戻すことはできません。",
+        "Close": "閉じる",
+        "Allow anyone with the link to open.": "誰でもリンクを開くことができるようにする。",
+        "Invite people to {{resourceType}}": "{{resourceType}} に招待する",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "パブリックアクセスは{{parent}} から継承されます。 削除するには、'Inherit access' オプションを 'None' に設定します。",
+        "Remove my access": "アクセスを削除",
+        "Public access": "パブリック・アクセス",
+        "Public Access": "パブリック・アクセス",
+        "Cancel": "キャンセル",
+        "Grist support": "Gristサポート",
+        "You are about to remove your own access to this {{resourceType}}": "この {{resourceType}} への自分のアクセス権を削除しようとしています",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "ユーザは{{parent}} からパーミッションを継承します。 削除するには、'Inherit access' オプションを 'None' に設定します。",
+        "Guest": "ゲスト",
+        "Invite multiple": "複数招待",
+        "Confirm": "確認",
+        "On": "On",
+        "Open Access Rules": "アクセスルールを開く",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "デフォルトのアクセスでは、チーム サイト全体ではなく、個々のドキュメントまたはワークスペースにアクセスを許可することはできません。"
+    },
+    "WelcomeQuestions": {
+        "Welcome to Grist!": "Gristへようこそ！",
+        "HR & Management": "人事労務管理",
+        "Sales": "営業",
+        "Marketing": "マーケティング",
+        "Type here": "ここに入力",
+        "Other": "その他",
+        "Product Development": "製品開発",
+        "Media Production": "メディア制作",
+        "What brings you to Grist? Please help us serve you better.": "グリストをご利用になる理由は何ですか？より良いサービスを提供するためにご協力ください。",
+        "Education": "教育",
+        "IT & Technology": "ITとテクノロジー",
+        "Finance & Accounting": "財務・会計",
+        "Research": "研究"
+    },
+    "PagePanels": {
+        "Open Creator Panel": "クリエイターパネルを開く",
+        "Close Creator Panel": "クリエイターパネルを閉じる"
+    },
+    "GristDoc": {
+        "go to webhook settings": "webhook設定に移動",
+        "Saved linked section {{title}} in view {{name}}": "ビュー「{{name}}」のリンクセクション「{{title}}」を保存しました",
+        "Added new linked section to view {{viewName}}": "ビュー[{{viewName}}]にリンクセクションを追加",
+        "Import from file": "ファイルからインポート"
+    },
+    "AccessRules": {
+        "Permission to access the document in full when needed": "必要な場合にドキュメントにアクセスする許可",
+        "Add Column Rule": "列ルールを追加",
+        "Reset": "リセット",
+        "Lookup Column": "参照列",
+        "Remove {{- tableId }} rules": "{{- tableId }} ルールを削除",
+        "Remove {{- name }} user attribute": "{{- name }} のユーザー属性を削除",
+        "Permissions": "権限",
+        "Enter Condition": "条件を入力",
+        "Everyone Else": "ほかのユーザー",
+        "Saved": "保存済み",
+        "Remove column {{- colId }} from {{- tableId }} rules": "{{- tableId }} ルールから列{{- colId }} を削除",
+        "Allow everyone to view Access Rules.": "誰でもアクセスルールを閲覧できるようにする。",
+        "Type a message...": "メッセージを入力してください。",
+        "Lookup Table": "参照テーブル",
+        "Add Table Rules": "テーブルのルールを追加",
+        "Invalid": "無効",
+        "Condition": "条件",
+        "Delete Table Rules": "テーブルルールの削除",
+        "Permission to view Access Rules": "アクセスルールの閲覧権限",
+        "User Attributes": "ユーザー属性",
+        "Default Rules": "既定のルール",
+        "Attribute name": "属性名",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "テーブル・ルールを追加する際、OWNERにフル・アクセス権を与えるルールを自動的に追加する。",
+        "Add User Attributes": "ユーザー属性を追加",
+        "Permission to edit document structure": "ドキュメント構造の編集権限",
+        "Attribute to Look Up": "参照する属性",
+        "Everyone": "全ユーザー",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "全員がドキュメント全体をコピーしたり、フィドル モードで完全に表示したりできるようにします。\n例やテンプレートには役立ちますが、機密情報には役立ちません。",
+        "Add Default Rule": "既定のルールを追加",
+        "This default should be changed if editors' access is to be limited. ": "このデフォルトは、編集者のアクセスが制限される場合に変更する必要があります。 ",
+        "Save": "保存する",
+        "Rules for table ": "テーブルのルール ",
+        "Checking...": "チェック中…",
+        "Special Rules": "特別ルール"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "単純なデータ値を数式列に保存することは不可能なはずです",
+        "Unable to finish saving edited cell": "編集したセルの保存ができませんでした"
+    },
+    "ColumnInfo": {
+        "Cancel": "キャンセル",
+        "COLUMN ID: ": "列ID： ",
+        "Save": "保存",
+        "COLUMN DESCRIPTION": "列の説明",
+        "COLUMN LABEL": "列ラベル"
+    },
+    "AccountPage": {
+        "Theme": "テーマ",
+        "API": "API",
+        "Change Password": "パスワードを変更",
+        "Email": "メールアドレス",
+        "Password & Security": "パスワードとセキュリティ",
+        "Account settings": "アカウント設定",
+        "Two-factor authentication": "二要素認証",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "二要素認証は、Gristアカウントのセキュリティを強化するもので、パスワードを知られた場合でも、あなただけがアカウントにアクセスできるように設計されています。",
+        "Language": "言語",
+        "Edit": "編集",
+        "Names only allow letters, numbers and certain special characters": "名前に使用できるのは、文字、数字、および一部の特殊文字のみです",
+        "Login Method": "ログイン方法",
+        "API Key": "APIキー",
+        "Name": "名前",
+        "Allow signing in to this account with Google": "このアカウントへの Google でのサインインを許可する",
+        "Save": "保存"
+    },
+    "DiscussionEditor": {
+        "Show resolved comments": "解決済みコメントを表示",
+        "Save": "保存",
+        "Reply to a comment": "コメントに返信",
+        "Comment": "コメント",
+        "Started discussion": "ディスカッションを開始しました",
+        "Write a comment": "コメントを書く",
+        "Cancel": "キャンセル",
+        "Only current page": "現在のページのみ",
+        "Reply": "返信",
+        "Marked as resolved": "解決済みとしてマーク",
+        "Remove": "削除",
+        "Open": "開く",
+        "Only my threads": "自分のスレッドのみ",
+        "Edit": "編集",
+        "Resolve": "解決する",
+        "Showing last {{nb}} comments": "最後の{{nb}} コメントを表示"
+    },
+    "CellContextMenu": {
+        "Copy anchor link": "リンクをコピー",
+        "Delete {{count}} rows_one": "行の削除",
+        "Insert row below": "下に行を挿入",
+        "Reset {{count}} entire columns_other": "{{count}} 列全体をリセット",
+        "Insert row": "行を挿入",
+        "Copy": "コピー",
+        "Delete {{count}} columns_one": "列の削除",
+        "Delete {{count}} columns_other": "{{count}}列削除",
+        "Duplicate rows_one": "重複行",
+        "Insert row above": "上に行を挿入",
+        "Delete {{count}} rows_other": "{{count}}行削除",
+        "Clear values": "値をクリア",
+        "Clear cell": "セルをクリア",
+        "Comment": "コメント",
+        "Duplicate rows_other": "重複行",
+        "Reset {{count}} columns_one": "列をリセット",
+        "Insert column to the right": "右側に列を挿入",
+        "Filter by this value": "この値でフィルタ",
+        "Cut": "切り取り",
+        "Reset {{count}} columns_other": "{{count}}列リセット",
+        "Reset {{count}} entire columns_one": "列全体をリセット",
+        "Insert column to the left": "左側に列を挿入",
+        "Paste": "貼り付け"
+    },
+    "Importer": {
+        "Merge rows that match these fields:": "次のフィールドに一致する行をマージする：",
+        "Column mapping": "列のマッピング",
+        "Grist column": "Grist列",
+        "{{count}} unmatched field_one": "{{count}} 個の不一致フィールド",
+        "{{count}} unmatched field in import_one": "インポート中に {{count}} 個の不一致フィールドがありました",
+        "Revert": "元に戻す",
+        "Skip Import": "インポートをスキップ",
+        "{{count}} unmatched field_other": "{{count}} 個の不一致フィールド",
+        "Select fields to match on": "フィールドを選択",
+        "New Table": "新しいテーブル",
+        "Skip": "スキップ",
+        "Column Mapping": "列のマッピング",
+        "Destination table": "宛先テーブル",
+        "Skip Table on Import": "インポート時にテーブルをスキップ",
+        "Import from file": "ファイルからインポート",
+        "{{count}} unmatched field in import_other": "インポート中に {{count}} 個の不一致フィールドがありました",
+        "Update existing records": "既存のレコードの更新",
+        "Source column": "元の列"
+    },
+    "WelcomeTour": {
+        "Make it relational! Use the {{ref}} type to link tables. ": "関係性を持たせてください！ テーブルをリンクするには、{{ref}} タイプを使用します。 ",
+        "Enter": "入る",
+        "Use {{helpCenter}} for documentation or questions.": "資料や質問については、{{helpCenter}} を使用してください。",
+        "Sharing": "共有",
+        "Configuring your document": "ドキュメントの設定",
+        "Reference": "参照",
+        "Editing Data": "データの編集",
+        "template library": "テンプレートライブラリ",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "{{addNew}} を使用してウィジェットやページを追加したり、さらにデータをインポートしたりできます。 ",
+        "Use the Share button ({{share}}) to share the document or export data.": "ドキュメントを共有するか、データをエクスポートするには、共有ボタン ({{share}}) を使用します。",
+        "Help Center": "ヘルプセンター",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "{{templateLibrary}} を参照して、何が可能かを発見し、インスピレーションを得てください。",
+        "Share": "共有",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "日付、選択肢、添付ファイルなどの書式設定オプション、数式、または列の種類を設定します。 ",
+        "Flying higher": "より高く飛ぶ",
+        "Customizing columns": "列のカスタマイズ",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "セルをダブルクリックするか、{{enter}} を押して編集します。 ",
+        "Welcome to Grist!": "Gristへようこそ！",
+        "Add New": "新規追加",
+        "Toggle the {{creatorPanel}} to format columns, ": "{{creatorPanel}} を切り替えて列をフォーマットします。 ",
+        "convert to card view, select data, and more.": "カード ビューへの変換、データの選択など。",
+        "Building up": "構築する",
+        "Start with {{equal}} to enter a formula.": "{{equal}} で始めて数式を入力します。"
+    },
+    "buildViewSectionDom": {
+        "Not all data is shown": "すべてのデータが表示されるわけではありません",
+        "No row selected in {{title}}": "{{title}} で選択した行なし",
+        "No data": "データなし"
+    },
+    "ViewSectionMenu": {
+        "FILTER": "フィルター",
+        "(customized)": "(カスタマイズ)",
+        "Revert": "元に戻す",
+        "Save": "保存",
+        "Custom options": "カスタムオプション",
+        "SORT": "ソート",
+        "Update Sort&Filter settings": "ソートとフィルター設定の更新",
+        "(empty)": "(空)",
+        "(modified)": "(修正)"
+    },
+    "Tools": {
+        "Delete document tour?": "ドキュメントツアーを削除しますか？",
+        "TOOLS": "ツール",
+        "Delete": "削除",
+        "Settings": "設定",
+        "Access Rules": "アクセスルール",
+        "Validate Data": "データ検証",
+        "How-to Tutorial": "チュートリアルへ",
+        "Tour of this Document": "このドキュメントのツアー",
+        "Code View": "コードビュー",
+        "Return to viewing as yourself": "自分自身のビューに戻る",
+        "Raw Data": "生データ",
+        "Document History": "ドキュメント履歴"
+    },
+    "menus": {
+        "Reference List": "参照リスト",
+        "Integer": "整数",
+        "* Workspaces are available on team plans. ": "* ワークスペースはチームプランでご利用いただけます。 ",
+        "Text": "テキスト",
+        "Attachment": "添付",
+        "Upgrade now": "今すぐアップグレード",
+        "Toggle": "トグル",
+        "Choice": "選択",
+        "Select fields": "フィールドを選択",
+        "Choice List": "リスト選択",
+        "Reference": "参照",
+        "Any": "その他",
+        "Numeric": "数値",
+        "DateTime": "日時",
+        "Date": "日付"
+    },
+    "DocPageModel": {
+        "Sorry, access to this document has been denied. [{{error}}]": "申し訳ありません、このドキュメントへのアクセスは拒否されました。[{{error}}]",
+        "Add Empty Table": "空のテーブルを追加",
+        "You do not have edit access to this document": "このドキュメントの編集権限がありません",
+        "Add Widget to Page": "ページにウィジェットを追加する",
+        "Add Page": "ページを追加",
+        "Document owners can attempt to recover the document. [{{error}}]": "ドキュメントの所有者は、ドキュメントの回復を試みることができます。[{{error}}]",
+        "Reload": "再読み込み",
+        "Error accessing document": "ドキュメントへのアクセスエラー",
+        "Enter recovery mode": "回復モードに入る"
+    },
+    "DocumentSettings": {
+        "Ok": "OK",
+        "Manage Webhooks": "Webhookを管理",
+        "API": "API",
+        "Save": "保存",
+        "Document ID copied to clipboard": "ドキュメントIDをコピーしました",
+        "Local currency ({{currency}})": "ローカル通貨({{currency}})",
+        "Save and Reload": "保存と再読み込み",
+        "Time Zone:": "タイムゾーン：",
+        "Webhooks": "Webhook",
+        "Currency:": "通貨：",
+        "Document Settings": "ドキュメント設定",
+        "Locale:": "ロケール：",
+        "This document's ID (for API use):": "このドキュメントのID(API使用の場合)："
+    },
+    "ColumnTitle": {
+        "Column ID copied to clipboard": "クリップボードに列IDをコピーしました",
+        "Add description": "説明を追加",
+        "Column description": "列の説明",
+        "COLUMN ID: ": "列ID： ",
+        "Provide a column label": "列のラベルを提供",
+        "Close": "閉じる",
+        "Cancel": "キャンセル",
+        "Column label": "列ラベル",
+        "Save": "保存"
+    },
+    "ViewConfigTab": {
+        "Section: ": "セクション： ",
+        "Form": "フォーム",
+        "Compact": "コンパクト",
+        "Blocks": "ブロック",
+        "Advanced settings": "詳細設定",
+        "Make On-Demand": "オンデマンドを作る",
+        "Plugin: ": "プラグイン： ",
+        "Edit Card Layout": "カードレイアウトの編集"
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "数式を更新 (Shift+Enter)",
+        "Rule {{length}}": "ルール{{length}}"
+    },
+    "AccountWidget": {
+        "Add Account": "アカウントの追加",
+        "Switch Accounts": "アカウント切り替え",
+        "Activation": "アクティベーション",
+        "Toggle Mobile Mode": "モバイルモードを切り替え",
+        "Support Grist": "サポート リスト",
+        "Access Details": "アクセス詳細",
+        "Upgrade Plan": "アップグレードプラン",
+        "Sign Out": "サインアウト",
+        "Profile Settings": "プロフィール設定",
+        "Sign in": "サインイン",
+        "Pricing": "課金",
+        "Document Settings": "ドキュメント設定",
+        "Use This Template": "このテンプレートを使用する",
+        "Manage Team": "チーム管理",
+        "Billing Account": "請求アカウント",
+        "Sign In": "サインイン",
+        "Accounts": "アカウント",
+        "Sign Up": "サインアップ"
+    },
+    "ViewLayoutMenu": {
+        "Widget options": "ウィジェットオプション",
+        "Advanced Sort & Filter": "高度なソートとフィルタ",
+        "Print widget": "ウィジェットを印刷する",
+        "Data selection": "データ選択",
+        "Download as XLSX": "XLSXとしてダウンロード",
+        "Open configuration": "設定を開く",
+        "Edit Card Layout": "カードレイアウトの編集",
+        "Add to page": "ページに追加",
+        "Delete record": "レコードの削除",
+        "Collapse widget": "折りたたみウィジェット",
+        "Show raw data": "生データを表示する",
+        "Delete widget": "ウィジェットの削除",
+        "Copy anchor link": "リンクをコピー",
+        "Download as CSV": "CSVとしてダウンロード"
+    },
+    "ACUserManager": {
+        "Invite new member": "メンバーを招待",
+        "We'll email an invite to {{email}}": "{{email}} に招待メールを送信します",
+        "Enter email address": "メールアドレスを入力"
+    },
+    "HomeIntro": {
+        "personal site": "個人サイト",
+        "Any documents created in this site will appear here.": "このサイトで作成されたドキュメントはすべてここに表示されます。",
+        "Welcome to Grist, {{- name}}!": "{{- name}} さん、Gristへようこそ！",
+        "Get started by inviting your team and creating your first Grist document.": "チームを招待し、最初のGristドキュメントを作成しましょう。",
+        "You have read-only access to this site. Currently there are no documents.": "このサイトには読み取り専用アクセス権があります。 現在、ドキュメントはありません。",
+        "Help Center": "ヘルプセンター",
+        "Get started by creating your first Grist document.": "まずはドキュメントを作成してみましょう。",
+        "This workspace is empty.": "このワークスペースは空です。",
+        "Visit our {{link}} to learn more.": "詳しくは {{link}} をご覧ください。",
+        "Visit our {{link}} to learn more about Grist.": "Gristの詳細については、{{link}} をご覧ください。",
+        "{{signUp}} to save your work. ": "{{signUp}} をクリックして作業を保存します。 ",
+        "Welcome to {{- orgName}}": "{{- orgName}} へようこそ",
+        "Welcome to Grist, {{name}}!": "{{name}} さん、Gristへようこそ！",
+        "Browse Templates": "テンプレートを見る",
+        "Sign in": "サインイン",
+        "Welcome to {{orgName}}": "{{orgName}} へようこそ",
+        "Invite Team Members": "チームメンバーを招待",
+        "Get started by exploring templates, or creating your first Grist document.": "テンプレートを探したり、最初のGristドキュメントを作成することから始めましょう。",
+        "Import Document": "ドキュメントをインポート",
+        "Create Empty Document": "空のドキュメントを作成",
+        "Sign up": "サインアップ",
+        "To use Grist, please either sign up or sign in.": "Gristを利用するには、サインアップするか、サインインしてください。",
+        "Welcome to Grist!": "Gristへようこそ！"
+    },
+    "CustomSectionConfig": {
+        "Open configuration": "設定を開く",
+        "Pick a {{columnType}} column": "{{columnType}} 列を選ぶ",
+        "Widget needs {{fullAccess}} to this document.": "ウィジェットにはこのドキュメントへの {{fullAccess}} が必要です。",
+        "Enter Custom URL": "カスタムURLを入力",
+        "Select Custom Widget": "カスタムウィジェットを選択",
+        "Learn more about custom widgets": "カスタムウィジェットの詳細",
+        "Add": "追加",
+        " (optional)": " (オプション)",
+        "Read selected table": "選択されたテーブルを読む",
+        "Full document access": "完全なドキュメントアクセス",
+        "Pick a column": "列を選択",
+        "No document access": "ドキュメントアクセスなし",
+        "Widget does not require any permissions.": "ウィジェットは許可を必要としません。"
+    },
+    "WelcomeSitePicker": {
+        "You have access to the following Grist sites.": "以下のサイトにアクセスすることができます。",
+        "Welcome back": "おかえりなさい",
+        "You can always switch sites using the account menu.": "アカウントメニューからいつでもサイトを切り替えることができます。"
+    },
+    "TopBar": {
+        "Manage Team": "チーム管理"
+    },
+    "GridOptions": {
+        "Horizontal Gridlines": "水平線",
+        "Vertical Gridlines": "垂直線",
+        "Grid Options": "表オプション",
+        "Zebra Stripes": "ストライプ"
+    },
+    "FormulaEditor": {
+        "Enter formula or {{button}}.": "数式または{{button}}を入力。",
+        "Error in the cell": "セル内のエラー",
+        "Errors in {{numErrors}} of {{numCells}} cells": "{{numCells}}セル中{{numErrors}}セルのエラー",
+        "Enter formula.": "数式を入力。",
+        "Column or field is required": "列またはフィールドは必須です",
+        "Expand Editor": "エディターを展開",
+        "use AI Assistant": "AIアシスタントを使う",
+        "Errors in all {{numErrors}} cells": "全{{numErrors}}セルのエラー"
+    },
+    "ShareMenu": {
+        "Current Version": "現在のバージョン",
+        "Return to {{termToUse}}": "{{termToUse}} に戻る",
+        "Download...": "ダウンロード...",
+        "Show in folder": "フォルダに表示",
+        "Share": "共有",
+        "Export CSV": "CSVエクスポート",
+        "Send to Google Drive": "Gooogle Driveに送信",
+        "Export XLSX": "XLSXエクスポート",
+        "Access Details": "アクセス詳細",
+        "Compare to {{termToUse}}": "{{termToUse}} と比較",
+        "Download": "ダウンロード",
+        "Replace {{termToUse}}...": "{{termToUse}} を置換…",
+        "Duplicate Document": "ドキュメントを複製",
+        "Original": "オリジナル",
+        "Back to Current": "現在に戻る",
+        "Edit without affecting the original": "オリジナルに影響を与えずに編集する",
+        "Work on a Copy": "コピーで作業する",
+        "Manage Users": "ユーザー管理",
+        "Unsaved": "未保存",
+        "Save Document": "ドキュメントを保存",
+        "Save Copy": "コピーを保存"
+    },
+    "UserManagerModel": {
+        "View & Edit": "表示と編集",
+        "Owner": "オーナー",
+        "None": "なし",
+        "View Only": "閲覧のみ",
+        "No Default Access": "デフォルトアクセスなし",
+        "Viewer": "ビューア",
+        "Editor": "エディター"
+    },
+    "DocumentUsage": {
+        "Data Size": "データサイズ",
+        "Usage statistics are only available to users with full access to the document data.": "使用状況統計は、ドキュメント データへの完全なアクセス権を持つユーザーのみが利用できます。",
+        "Usage": "使用方法",
+        "Attachments Size": "添付ファイルのサイズ",
+        "For higher limits, ": "より高い上限のために、 ",
+        "start your 30-day free trial of the Pro plan.": "プロプランの30日間無料トライアルを開始します。",
+        "Rows": "行"
+    },
+    "NotifyUI": {
+        "Go to your free personal site": "無料の個人サイトへ",
+        "Upgrade Plan": "アップグレードプラン",
+        "Ask for help": "助けを求める",
+        "Renew": "新着情報",
+        "Manage billing": "請求管理",
+        "Give feedback": "フィードバックを送る",
+        "Cannot find personal site, sorry!": "個人サイトが見つかりません",
+        "Notifications": "通知",
+        "Report a problem": "問題を報告する",
+        "No notifications": "通知なし"
+    },
+    "FieldContextMenu": {
+        "Copy anchor link": "リンクをコピー",
+        "Hide field": "フィールドを隠す",
+        "Copy": "コピー",
+        "Paste": "貼り付け",
+        "Clear field": "フィールドをクリア",
+        "Cut": "切り取り"
+    },
+    "WidgetTitle": {
+        "Override widget title": "ウィジェットのタイトルを上書きする",
+        "WIDGET TITLE": "ウィジェットタイトル",
+        "DATA TABLE NAME": "データテーブル名",
+        "Cancel": "キャンセル",
+        "WIDGET DESCRIPTION": "ウィジェットの説明",
+        "Save": "保存",
+        "Provide a table name": "テーブル名を指定する"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "選択肢"
+    },
+    "ChartView": {
+        "Pick a column": "列を選択",
+        "Toggle chart aggregation": "チャート集計の切り替え",
+        "selected new group data columns": "選択した新しいグループデータ列"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "不明なユーザー"
+    },
+    "SupportGristNudge": {
+        "Close": "閉じる",
+        "Help Center": "ヘルプセンター",
+        "Contribute": "貢献する"
+    },
+    "PermissionsWidget": {
+        "Deny All": "すべて拒否",
+        "Read Only": "読み取り専用",
+        "Allow All": "すべてを許可"
+    },
+    "ActionLog": {
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "列 {{colId}} がアクション #{{action.actionNum}} で削除されました",
+        "This row was subsequently removed in action {{action.actionNum}}": "この行はアクション #{{action.actionNum}} で削除されました",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "テーブル {{tableId}}がアクション #{{actionNum}}で削除されました",
+        "All tables": "すべてのテーブル"
+    },
+    "errorPages": {
+        "Account deleted{{suffix}}": "削除されたアカウント{{suffix}}",
+        "Something went wrong": "何か問題が発生しました",
+        "There was an error: {{message}}": "エラーが発生しました：{{message}}",
+        "Go to main page": "メインページへ",
+        "Sign in": "サインイン",
+        "Access denied{{suffix}}": "アクセス拒否{{suffix}}",
+        "There was an unknown error.": "未知のエラーが発生しました。",
+        "Add account": "アカウントの追加",
+        "You do not have access to this organization's documents.": "あなたはこの組織のドキュメントにアクセスすることはできません。",
+        "You are now signed out.": "サインアウトしました。",
+        "Signed out{{suffix}}": "サインアウト{{suffix}}",
+        "Your account has been deleted.": "あなたのアカウントは削除されました。",
+        "Page not found{{suffix}}": "ページが見つかりません{{suffix}}",
+        "Error{{suffix}}": "エラー{{suffix}}",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "{{email}} としてサインインしています。別のアカウントでサインインするか、管理者にアクセスを依頼することができます。",
+        "Sign up": "サインアップ",
+        "Sign in again": "再度サインインする",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "リクエストされたページが見つかりません。{{separator}}URLを確認して、もう一度やり直してください。",
+        "Sign in to access this organization's documents.": "この組織のドキュメントにアクセスするには、サインインしてください。",
+        "Contact support": "サポートへのお問い合わせ"
+    },
+    "RecordLayoutEditor": {
+        "Show field {{- label}}": "フィールド {{- label}} を表示",
+        "Add Field": "フィールドを追加",
+        "Save Layout": "レイアウトを保存",
+        "Cancel": "キャンセル",
+        "Create New Field": "新規フィールドの作成"
+    },
+    "CellStyle": {
+        "HEADER STYLE": "ヘッダー書式",
+        "Header Style": "ヘッダー書式",
+        "Default header style": "デフォルトのヘッダー書式",
+        "Default cell style": "既定のセル書式",
+        "CELL STYLE": "セル書式",
+        "Cell Style": "セル書式",
+        "Open row styles": "行書式を開く"
+    },
+    "ConditionalStyle": {
+        "Rule must return True or False": "ルールはTrueまたはFalseを返す必要があります",
+        "Row Style": "行書式",
+        "Add another rule": "別のルールを追加する",
+        "Add conditional style": "条件付き書式を追加",
+        "Error in style rule": "書式ルールのエラー"
+    },
+    "ColorSelect": {
+        "Apply": "適用",
+        "Cancel": "キャンセル",
+        "Default cell style": "既定のセル書式"
+    },
+    "FieldBuilder": {
+        "CELL FORMAT": "セル形式",
+        "DATA FROM TABLE": "テーブルからのデータ",
+        "Revert field settings for {{colId}} to common": "{{colId}} のフィールド設定を共通に戻します",
+        "Save field settings for {{colId}} as common": "{{colId}} のフィールド設定を共通として保存",
+        "Changing multiple column types": "複数の列タイプを変更する",
+        "Use separate field settings for {{colId}}": "{{colId}} には別のフィールド設定を使用します",
+        "Apply Formula to Data": "数式をデータに適用する"
+    },
+    "search": {
+        "Search in document": "ドキュメントを検索",
+        "Find Next ": "次を探す ",
+        "No results": "結果なし",
+        "Find Previous ": "前を探す ",
+        "Search": "検索"
+    },
+    "FieldMenus": {
+        "Use separate settings": "別々の設定を使用する",
+        "Revert to common settings": "共通設定に戻す",
+        "Using common settings": "共通設定の使用",
+        "Using separate settings": "別々の設定を使用する",
+        "Save as common settings": "共通設定として保存"
+    },
+    "FilterConfig": {
+        "Add Column": "列を追加"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "列を数式に変換"
+    },
+    "PageWidgetPicker": {
+        "Select Widget": "ウィジェットを選択",
+        "Add to Page": "ページに追加",
+        "Select Data": "データを選択",
+        "Group by": "Group by",
+        "Building {{- label}} widget": "{{- label}} ウィジェットを構築"
+    },
+    "Pages": {
+        "The following tables will no longer be visible_one": "以下のテーブルは表示されなくなります",
+        "Delete": "削除",
+        "The following tables will no longer be visible_other": "以下のテーブルは表示されなくなります",
+        "Delete data and this page.": "データとこのページを削除する。"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "説明"
+    },
+    "WebhookPage": {
+        "Webhook Settings": "Webhook設定",
+        "Clear Queue": "キューをクリア"
+    },
+    "TriggerFormulas": {
+        "Close": "閉じる",
+        "Cancel": "キャンセル",
+        "Apply on changes to:": "変更を適用する：",
+        "Apply to new records": "新しいレコードに適用する",
+        "OK": "OK",
+        "Current field ": "現在のフィールド ",
+        "Any field": "任意のフィールド",
+        "Apply on record changes": "レコードの変更に適用"
+    },
+    "PluginScreen": {
+        "Import failed: ": "インポート失敗： "
+    },
+    "GristTooltips": {
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "数式の条件が満たされた場合、この列のセルに条件付き書式を適用します。",
+        "Click the Add New button to create new documents or workspaces, or import data.": "「新規追加」ボタンをクリックして、新しいドキュメントまたはワークスペースを作成するか、データをインポートします。",
+        "Apply conditional formatting to rows based on formulas.": "数式に基づいて条件付き書式を行に適用します。",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "行に条件付き書式を適用するには、「行書式を開く」をクリックする。",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "参照列のセルは常にそのテーブル内の {{entire}} レコードを識別しますが、そのレコードからどの列を表示するかを選択することもできます。"
+    },
+    "AppHeader": {
+        "Personal Site": "個人サイト",
+        "Home Page": "ホームページ",
+        "Team Site": "チームサイト",
+        "Legacy": "レガシー",
+        "Grist Templates": "Gristテンプレート"
+    },
+    "DataTables": {
+        "Raw Data Tables": "生データテーブル",
+        "Duplicate Table": "テーブルの複製",
+        "You do not have edit access to this document": "このドキュメントへのアクセス権がありません",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "{{formattedTableName}} データを削除し、すべてのページから削除しますか?",
+        "Click to copy": "クリックしてコピー",
+        "Table ID copied to clipboard": "クリップボードにテーブルIDをコピーしました"
+    },
+    "NTextBox": {
+        "false": "false",
+        "true": "true"
+    },
+    "FilterBar": {
+        "Search Columns": "列を検索",
+        "SearchColumns": "列を検索"
+    },
+    "TypeTransformation": {
+        "Revise": "改訂",
+        "Update formula (Shift+Enter)": "数式を更新 (Shift+Enter)",
+        "Preview": "プレビュー",
+        "Apply": "適用",
+        "Cancel": "キャンセル"
+    },
+    "NumericTextBox": {
+        "Decimals": "小数",
+        "Currency": "通貨",
+        "Default currency ({{defaultCurrency}})": "デフォルト通貨 ({{defaultCurrency}})",
+        "Number Format": "数値書式"
+    },
+    "App": {
+        "Description": "説明",
+        "Memory Error": "メモリーエラー",
+        "Key": "キー"
+    },
+    "OnBoardingPopups": {
+        "Finish": "終了",
+        "Next": "次へ"
+    },
+    "Reference": {
+        "CELL FORMAT": "セル書式",
+        "Row ID": "行ID",
+        "SHOW COLUMN": "列表示"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[リンクラベル] URL"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "折りたたみエディタ"
+    },
+    "ThemeConfig": {
+        "Switch appearance automatically to match system": "システムに合わせて自動的に外観を切り替える",
+        "Appearance ": "外観 "
+    },
+    "GridView": {
+        "Click to insert": "クリックして挿入"
+    },
+    "pages": {
+        "Duplicate Page": "ページを複製",
+        "You do not have edit access to this document": "このドキュメントの編集権限がありません",
+        "Remove": "削除",
+        "Rename": "名前の変更"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "列の説明",
+        "COLUMN LABEL": "列ラベル"
+    },
+    "RefSelect": {
+        "No columns to add": "追加する列はありません",
+        "Add Column": "列を追加"
+    },
+    "SortFilterConfig": {
+        "Update Sort & Filter settings": "ソートとフィルター設定の更新",
+        "Save": "保存",
+        "Sort": "ソート",
+        "Filter": "フィルター",
+        "Revert": "元に戻す"
+    },
+    "CodeEditorPanel": {
+        "Code View is available only when you have full document access.": "コードビューは、ドキュメントへのフルアクセス権を持っている場合にのみ利用できます。",
+        "Access denied": "アクセス拒否"
+    },
+    "ViewAsDropdown": {
+        "Example Users": "ユーザー例",
+        "Users from table": "テーブルからユーザー"
+    },
+    "DuplicateTable": {
+        "Copy all data in addition to the table structure.": "テーブル構造に加えてすべてのデータをコピーします。",
+        "Name for new table": "新しいテーブルの名前",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "通常、テーブルを複製する代わりに、リンクされたビューを使用してデータをセグメント化する方が適切です。{{link}}"
+    },
+    "TypeTransform": {
+        "Cancel": "キャンセル",
+        "Revise": "改訂",
+        "Apply": "適用",
+        "Update formula (Shift+Enter)": "数式を更新 (Shift+Enter)",
+        "Preview": "プレビュー"
+    },
+    "LanguageMenu": {
+        "Language": "言語"
+    },
+    "OpenVideoTour": {
+        "Video Tour": "ビデオツアー",
+        "Grist Video Tour": "Gristのビデオツアー"
+    },
+    "duplicatePage": {
+        "Note that this does not copy data, but creates another view of the same data.": "これはデータをコピーするのではなく、同じデータの別のビューを作成することに注意してください。",
+        "Duplicate page {{pageName}}": "重複ページ{{pageName}}"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "無効な通貨"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "ヘルプセンター"
+    },
+    "searchDropdown": {
+        "Search": "検索"
+    },
+    "SearchModel": {
+        "Search all tables": "すべてのテーブルを検索",
+        "Search all pages": "すべてのページを検索"
+    },
+    "modals": {
+        "Save": "保存",
+        "Cancel": "キャンセル",
+        "Ok": "OK"
+    },
+    "SiteSwitcher": {
+        "Switch Sites": "サイトを切り替え",
+        "Create new team site": "新しいチームサイトを作成する"
+    },
+    "AddNewButton": {
+        "Add New": "新規追加"
+    },
+    "RecordLayout": {
+        "Updating record layout.": "レコードレイアウトの更新。"
+    },
+    "DocTour": {
+        "No valid document tour": "有効なドキュメントのツアー無し"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "このチームサイトは停止中です。ドキュメントの閲覧は可能ですが、編集はできません。"
+    },
+    "ACLUsers": {
+        "Example Users": "ユーザー例",
+        "Users from table": "テーブルからユーザー"
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "クリップボードにコピー"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "説明"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Googleドライブにファイルを送信する"
+    }
+}
