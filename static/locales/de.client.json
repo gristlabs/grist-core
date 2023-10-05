@@ -854,7 +854,10 @@
         "There was an unknown error.": "Es ist ein unbekannter Fehler aufgetreten.",
         "You are now signed out.": "Sie sind jetzt abgemeldet.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Sie sind als {{email}} angemeldet. Sie können sich mit einem anderen Konto anmelden oder einen Administrator um Zugriff bitten.",
-        "You do not have access to this organization's documents.": "Sie haben keinen Zugriff auf die Dokumente dieser Organisation."
+        "You do not have access to this organization's documents.": "Sie haben keinen Zugriff auf die Dokumente dieser Organisation.",
+        "Account deleted{{suffix}}": "Konto gelöscht{{suffix}}",
+        "Your account has been deleted.": "Ihr Konto wurde gelöscht.",
+        "Sign up": "Anmelden"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
