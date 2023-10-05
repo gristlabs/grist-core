@@ -1271,16 +1271,8 @@ export class FlexServer implements GristServer {
         // delete user as an admin, as we need to remove other resources that user
         // might not have access to.
 
-        // First make sure user is not a member of any team site. We don't know yet
-        // what to do with orphaned documents.
-        const result = await this._dbManager.getOrgs(userId, null);
-        this._dbManager.checkQueryResult(result);
-        const orgs = this._dbManager.unwrapQueryResult(result);
-        if (orgs.some(org => !org.ownerId)) {
-          throw new ApiError("Cannot delete account with team sites", 400);
-        }
-
-        // Reuse Doom cli tool for account deletion.
+        // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
+        // to other (not public) team sites.
         const doom = await createDoom(req);
         await doom.deleteUser(userId);
         return resp.status(200).json(true);
