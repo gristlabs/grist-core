@@ -124,9 +124,9 @@
         "Insert row above": "Vstavite vrstico zgoraj",
         "Insert row below": "Vstavi vrstico spodaj",
         "Reset {{count}} columns_one": "Ponastavitev stolpca",
-        "Reset {{count}} columns_other": "Ponastavitev stolpcev {{count}}",
-        "Reset {{count}} entire columns_one": "Ponastavitev celotnega stolpca",
-        "Reset {{count}} entire columns_other": "Ponastavitev {{count}} stolpcev",
+        "Reset {{count}} columns_other": "Ponastavit {{count}} stolpcev",
+        "Reset {{count}} entire columns_one": "Ponastavi celote stolpec",
+        "Reset {{count}} entire columns_other": "Ponastavi {{count}} celotnih stolpcev",
         "Comment": "Komentar",
         "Copy": "Kopiraj",
         "Cut": "Izreži",
@@ -675,7 +675,7 @@
         "Save & ": "Shrani & ",
         "Outside collaborator": "Zunanji sodelavec",
         "{{collaborator}} limit exceeded": "{{collaborator}} presežena meja",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Uporabnik podeduje dovoljenja od {{parent}}. Če jih želite odstraniti, nastavite možnost \"Podeduje dostop\" na \"Ni\".",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Uporabnik podeduje dovoljenja od {{parent}}}. Če jih želite odstraniti, nastavite možnost \"Podeduje dostop\" na \"Ne\".",
         "Your role for this {{resourceType}}": "Vaša vloga pri tem {{resourceType}}",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Ko odstranite svoj dostop, ga ne boste mogli vrniti brez pomoči druge osebe z zadostnim dostopom do spletnega mesta {{resourceType}}.",
         "Close": "Zapri",
@@ -997,10 +997,10 @@
     },
     "errorPages": {
         "Something went wrong": "Nekaj je šlo narobe",
-        "Sign in": "Vpiši se",
+        "Sign in": "Prijavi se",
         "Add account": "Dodaj račun",
         "Signed out{{suffix}}": "Odjavljen{{suffix}}",
-        "Sign in again": "Ponovno se vpiši",
+        "Sign in again": "Ponovno se prijavi",
         "There was an error: {{message}}": "Prišlo je do napake: {{message}}",
         "Go to main page": "Pojdite na glavno stran",
         "Access denied{{suffix}}": "Dostop zavrnjen{{suffix}}",
@@ -1012,7 +1012,10 @@
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Prijavljeni ste kot {{email}}. Lahko se prijavite z drugim računom ali prosite skrbnika za dostop.",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "Ni bilo mogoče najti zahtevane strani.{{separator}}Preverite URL in poskusite znova.",
         "Sign in to access this organization's documents.": "Prijavite se za dostop do dokumentov te organizacije.",
-        "Contact support": "Obrnite se na podporo"
+        "Contact support": "Obrnite se na podporo",
+        "Account deleted{{suffix}}": "Račun je izbrisan{{suffix}}",
+        "Your account has been deleted.": "Vaš račun je bil izbrisan.",
+        "Sign up": "Prijava"
     },
     "WidgetTitle": {
         "DATA TABLE NAME": "IME PODATKOVNE TABELE",
@@ -1028,7 +1031,8 @@
         "override": "preglasiti",
         "unsaved": "neshranjeno",
         "recovery mode": "obnovitveni način",
-        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Lahko jih uredite, vendar bodo ustvarili novo kopijo in ne bodo\nvplivali na izvirni dokument."
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Lahko jih uredite, vendar bodo ustvarili novo kopijo in ne bodo\nvplivali na izvirni dokument.",
+        "fiddle": "poskus"
     },
     "WelcomeQuestions": {
         "Welcome to Grist!": "Dobrodošli v Gristu!",
@@ -1090,7 +1094,7 @@
         "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Prebrskajte našo {{templateLibrary}}, da odkrijete, kaj je mogoče, in poiščite navdih.",
         "Share": "Daj v skupno rabo",
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Nastavite možnosti oblikovanja, formule ali vrste stolpcev, kot so datumi, možnosti ali priloge. ",
-        "Flying higher": "Flying higher",
+        "Flying higher": "Leti višje",
         "Customizing columns": "Prilagajanje stolpcev",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Dvokliknite ali pritisnite {{enter}} na celico, da jo uredite. ",
         "Welcome to Grist!": "Dobrodošli v Gristu!",
