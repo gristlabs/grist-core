@@ -108,6 +108,13 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
   if (!date) {
     return null;
   }
+
+  // If this looks like a timestamp (string with 9 or more digits), just return it.
+  const timestamp = parseTimeStamp(date);
+  if (timestamp !== null) {
+    return timestamp;
+  }
+
   const dateFormat = options.dateFormat || "YYYY-MM-DD";
   const dateFormats = [..._buildVariations(dateFormat, date), ...PARSER_FORMATS];
   const cleanDate = date.replace(SEPARATORS, ' ');
@@ -125,11 +132,11 @@ export function parseDate(date: string, options: ParseOptions = {}): number | nu
     datetime += ' ' + time + tzOffset;
     timeformat = ' HH:mm:ss' + (tzOffset ? 'Z' : '');
   }
-  for (const f of dateFormats) {
-    const fullFormat = f + timeformat;
+  for (const format of dateFormats) {
+    const fullFormat = format + timeformat;
     const m = moment.tz(datetime, fullFormat, true, options.timezone || 'UTC');
     if (m.isValid()) {
-      return m.valueOf() / 1000;
+      return m.unix();
     }
   }
   return null;
@@ -148,6 +155,11 @@ export function parseDateStrict(
 ): number | undefined {
   if (!date) {
     return;
+  }
+  // If this looks like a timestamp (string with 9 or more digits), just return it.
+  const timestamp = parseTimeStamp(date);
+  if (timestamp !== null) {
+    return timestamp;
   }
   dateFormat = dateFormat || "YYYY-MM-DD";
   const dateFormats = [..._buildVariations(dateFormat, date), ...UNAMBIGUOUS_FORMATS];
@@ -418,4 +430,23 @@ export function dateTimeWidgetOptions(fullFormat: string, defaultTimeFormat: boo
     isCustomDateFormat: !dateFormatOptions.includes(dateFormat),
     isCustomTimeFormat: !timeFormatOptions.includes(timeFormat),
   };
+}
+
+/**
+ * Attempts to parse a timestamp string. Returns the timestamp in seconds
+ * since epoch, or returns null on failure. Accepts only strings with 9 to 11 digits.
+ * Lowest 11 digit timestamp is 2286-11-20, so we don't consider them valid.
+ */
+export function parseTimeStamp(date: string): number | null {
+  // If this looks like a timestamp (number with 9 or more digits), just return it.
+  // This covers most of the cases leaving some time around the unix epoch not covered.
+  // So time before 100 000 000 (1974-04-26) is not covered. Also negative values
+  // are also not supported, as they overlap with the YYYYYY date format.
+  if (date && /^[1-9]\d{8,9}$/.test(date)) {
+    const parsedDate = moment(date, 'X');
+    if (parsedDate.isValid()) {
+      return parsedDate.unix();
+    }
+  }
+  return null;
 }

@@ -929,6 +929,13 @@ export function isNonNullish<T>(value: T | null | undefined): value is T {
 }
 
 /**
+ * Ensures that a value is truthy, with a type guard for the return type.
+ */
+export function truthy<T>(value: T | null | undefined): value is Exclude<T, false | "" | 0> {
+  return Boolean(value);
+}
+
+/**
  * Returns the value of both grainjs and knockout observable without creating a dependency.
  */
 export const unwrap: UseCB = (obs: ISubscribable) => {

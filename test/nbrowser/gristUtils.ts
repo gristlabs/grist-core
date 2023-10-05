@@ -1191,7 +1191,7 @@ export async function renameTable(tableId: string, newName: string) {
 /**
  * Rename the given column.
  */
-export async function renameColumn(col: IColHeader, newName: string) {
+export async function renameColumn(col: IColHeader|string, newName: string) {
   const header = await getColumnHeader(col);
   await header.click();
   await header.click();   // Second click opens the label for editing.

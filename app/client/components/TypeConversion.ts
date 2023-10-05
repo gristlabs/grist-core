@@ -11,6 +11,7 @@ import {csvDecodeRow} from 'app/common/csvFormat';
 import * as gristTypes from 'app/common/gristTypes';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
+import {isNonNullish} from 'app/common/gutil';
 import NumberParse from 'app/common/NumberParse';
 import {dateTimeWidgetOptions, guessDateFormat, timeFormatOptions} from 'app/common/parseDate';
 import {TableData} from 'app/common/TableData';
@@ -134,7 +135,8 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       if (!dateFormat) {
         // Guess date and time format if there aren't any already
         const colValues = tableData.getColValues(sourceCol.colId()) || [];
-        dateFormat = guessDateFormat(colValues.map(String));
+        const strValues = colValues.map(v => isNonNullish(v) ? String(v) : null);
+        dateFormat = guessDateFormat(strValues);
         widgetOptions = {...widgetOptions, ...(dateTimeWidgetOptions(dateFormat, true))};
       }
       if (toType === 'DateTime' && !widgetOptions.timeFormat) {

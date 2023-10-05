@@ -19,7 +19,7 @@ const month = String(today.getUTCMonth() + 1).padStart(2, '0');
  * Otherwise, parseDateStrict should return a result
  * unless no dateFormat is given in which case it may or may not.
  */
-function testParse(dateFormat: string|null, input: string, expectedDateStr: string, fallback: boolean = false) {
+function testParse(dateFormat: string|null, input: string, expectedDateStr: string|null, fallback: boolean = false) {
   assertDateEqual(parseDate(input, dateFormat ? {dateFormat} : {}), expectedDateStr);
 
   const strict = new Set<number>();
@@ -41,7 +41,7 @@ function testParse(dateFormat: string|null, input: string, expectedDateStr: stri
   }
 }
 
-function assertDateEqual(parsed: number|null, expectedDateStr: string) {
+function assertDateEqual(parsed: number|null, expectedDateStr: string|null) {
   const formatted = parsed === null ? null : new Date(parsed * 1000).toISOString().slice(0, 10);
   assert.equal(formatted, expectedDateStr);
 }
@@ -94,6 +94,7 @@ function testDateTimeStringParse(
 
 describe('parseDate', function() {
   this.timeout(5000);
+  this.slow(50);
 
   it('should allow parsing common date formats', function() {
     testParse(null, 'November 18th, 1994',  '1994-11-18');
@@ -409,6 +410,35 @@ describe('parseDate', function() {
     testParse('MM-DD-YY', `1/2/55`, `1955-01-02`);
     testParse('MM-DD-YY', `1/2/79`, `1979-01-02`);
     testParse('MM-DD-YY', `1/2/98`, `1998-01-02`);
+  });
+
+  it('should parse timestamps as dates', function() {
+    testParse(null,   '123456789', '1973-11-29');
+    testParse(null,   '100000000', '1973-03-03');
+    testParse(null,  '1000000000', '2001-09-09');
+    testParse(null, '10000000000', null);
+
+    testParse(null,   '20230926', null);
+    testParse(null, '12345678', null);
+    testParse(null, '-1000000', null);
+    testParse(null, '-9999999', null);
+    testParse(null, '123456789.0', null);
+    testParse(null,  '-100000000', null);
+
+    testParse(null, '100000000000', null);
+    testParse(null, '1000000000000', null);
+
+    // Test exact times.
+    assert.equal(parseDate( '123456789'), 123456789);
+    assert.equal(parseDate( '100000000'), 100000000);
+
+    // Now those that don't fit into our format.
+    assert.isNull(parseDate('1234567'));
+    assert.isNull(parseDate('-999999'));
+    assert.isNull(parseDate('12345678.0'));
+    assert.isNull(parseDate('-100000000'));
+    assert.isNull(parseDate('100000000000'));
+    assert.isNull(parseDate('1000000000000'));
   });
 
   describe('guessDateFormat', function() {
