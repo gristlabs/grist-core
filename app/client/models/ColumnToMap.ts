@@ -25,7 +25,9 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
     this.description = typeof def === 'string' ? '' : (def.description ?? '');
     this.optional = typeof def === 'string' ? false : (def.optional ?? false);
     this.type = typeof def === 'string' ? 'Any' : (def.type ?? 'Any');
-    this.typeDesc = String(UserType.typeDefs[this.type]?.label ?? "any").toLowerCase();
+    this.type = this.type.split(',').map(t => t.trim()).filter(Boolean).join(',');
+    this.typeDesc = this.type.split(',')
+      .map(t => String(UserType.typeDefs[t]?.label ?? "any").toLowerCase()).join(', ');
     this.allowMultiple = typeof def === 'string' ? false : (def.allowMultiple ?? false);
   }
 

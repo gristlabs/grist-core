@@ -4,6 +4,7 @@ export type IconName = "ChartArea" |
   "ChartKaplan" |
   "ChartLine" |
   "ChartPie" |
+  "TypeCalendar" |
   "TypeCard" |
   "TypeCardList" |
   "TypeCell" |
@@ -152,6 +153,7 @@ export const IconList: IconName[] = ["ChartArea",
   "ChartKaplan",
   "ChartLine",
   "ChartPie",
+  "TypeCalendar",
   "TypeCard",
   "TypeCardList",
   "TypeCell",

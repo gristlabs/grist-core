@@ -534,22 +534,25 @@ export const cssOptionRowIcon = styled(icon, `
   }
 `);
 
-const cssOptionLabel = styled('div', `
+export const cssOptionLabel = styled('div', `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  --grist-option-label-color: ${theme.menuItemFg};
+  --grist-option-label-color-sel: ${theme.menuItemSelectedFg};
+  --grist-option-label-color-disabled: ${theme.menuItemDisabledFg};
 
   .${weasel.cssMenuItem.className} & {
-    color: ${theme.menuItemFg};
+    color: var(--grist-option-label-color);
   }
 
   .${weasel.cssMenuItem.className}-sel & {
-    color: ${theme.menuItemSelectedFg};
+    color: var(--grist-option-label-color-sel);
     background-color: ${theme.menuItemSelectedBg};
   }
 
   .${weasel.cssMenuItem.className}.disabled & {
-    color: ${theme.menuItemDisabledFg};
+    color: var(--grist-option-label-color-disabled);
   }
 `);
 

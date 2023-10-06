@@ -356,6 +356,97 @@ describe('CustomWidgetsConfig', function () {
     await clickOption(TESTER_WIDGET);
   });
 
+  it('should hide mappings when there is no good column', async () => {
+    await gu.setWidgetUrl(
+      createConfigUrl({
+        columns: [{name: 'M2', type: 'Date'}],
+        requiredAccess: 'read table',
+      })
+    );
+
+    await accept();
+
+    // Get the drop for M2 mappings.
+    const mappingsForM2 = () => driver.find(pickerDrop('M2'));
+
+    // Make sure it is disabled.
+    assert.isTrue(await mappingsForM2().matches('.test-config-widget-disabled'));
+    // And the text is:
+    assert.equal(await mappingsForM2().getText(), 'No date columns in table.');
+
+    // Now add Date column.
+    await gu.sendActions([['AddVisibleColumn', 'Table1', 'NewCol', {type: 'Date'}]]);
+
+    // Now drop should be enabled.
+    assert.isFalse(await mappingsForM2().matches('.test-config-widget-disabled'));
+    assert.isTrue(await mappingsForM2().matches('.test-config-widget-enabled'));
+
+    // And the text is:
+    assert.equal(await mappingsForM2().getText(), 'Pick a date column');
+
+    // Expand it and make sure we have NewCol there.
+    await toggleDrop(pickerDrop('M2'));
+    assert.deepEqual(await getOptions(), ['NewCol']);
+
+    // Select that column.
+    await clickOption('NewCol');
+
+    // Now expand the drop again and make sure we can't clear it.
+    await toggleDrop(pickerDrop('M2'));
+    assert.deepEqual(await getOptions(), ['NewCol']);
+
+    // Now remove the column, and make sure that the drop is disabled again.
+    await driver.sendKeys(Key.ESCAPE);
+    await gu.sendActions([['RemoveColumn', 'Table1', 'NewCol']]);
+
+    // Make sure it is disabled.
+    assert.isTrue(await mappingsForM2().matches('.test-config-widget-disabled'));
+    assert.isFalse(await mappingsForM2().matches('.test-config-widget-enabled'));
+    assert.equal(await mappingsForM2().getText(), 'No date columns in table.');
+  });
+
+  it('should clear optional mapping', async () => {
+    const revert = await gu.begin();
+    await gu.setWidgetUrl(
+      createConfigUrl({
+        columns: [{name: 'M2', type: 'Date', optional: true}],
+        requiredAccess: 'read table',
+      })
+    );
+
+    await accept();
+
+    // Get the drop for M2 mappings.
+    const mappingsForM2 = () => driver.find(pickerDrop('M2'));
+
+    // Make sure it is disabled.
+    assert.isTrue(await mappingsForM2().matches('.test-config-widget-disabled'));
+    // Now add Date column.
+    await gu.sendActions([['AddVisibleColumn', 'Table1', 'NewCol', {type: 'Date'}]]);
+
+    // Expand it and make sure we have NewCol there.
+    await toggleDrop(pickerDrop('M2'));
+    assert.deepEqual(await getOptions(), ['NewCol']);
+
+    // Select that column.
+    await clickOption('NewCol');
+
+    // Make sure widget sees the mapping.
+    assert.deepEqual(await widget.onRecordsMappings(), {M2: 'NewCol'});
+
+    // Now expand the drop again and make sure we can clear it.
+    await toggleDrop(pickerDrop('M2'));
+    assert.deepEqual(await getOptions(), ['NewCol', 'Clear selection']);
+
+    // Now clear the mapping.
+    await clickOption('Clear selection');
+    assert.equal(await mappingsForM2().getText(), 'Pick a date column');
+
+    // Make sure widget sees the mapping.
+    assert.deepEqual(await widget.onRecordsMappings(), {M2: null});
+    await revert();
+  });
+
   it('should render columns mapping', async () => {
     const revert = await gu.begin();
     assert.isTrue(await driver.find('.test-vfc-visible-fields-select-all').isPresent());
@@ -759,14 +850,12 @@ describe('CustomWidgetsConfig', function () {
     await gu.selectSectionByTitle('Widget');
     await driver.find(".test-right-tab-pagewidget").click();
     // Drop should be empty,
-    assert.equal(await driver.find(pickerDrop("M1")).getText(), "Pick a text column");
+    assert.equal(await driver.find(pickerDrop("M1")).getText(), "No text columns in table.");
     assert.isEmpty(await getListItems("M2"));
-    // with no options
-    await toggleDrop(pickerDrop("M1"));
-    assert.isEmpty(await getOptions());
-    await gu.sendKeys(Key.ESCAPE);
+    // And drop is disabled.
+    assert.isTrue(await driver.find(pickerDrop("M1")).matches(".test-config-widget-disabled"));
     // The same for M2
-    await click(pickerAdd("M2"));
+    assert.isTrue(await driver.find(pickerAdd("M2")).matches(".test-config-widget-disabled"));
     assert.isEmpty(await getMenuOptions());
     assert.deepEqual(await widget.onRecordsMappings(), {M1: null, M2: []});
     assert.deepEqual(await widget.onRecords(), [

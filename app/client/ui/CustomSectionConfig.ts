@@ -1,30 +1,30 @@
 import {allCommands} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {makeTestId} from 'app/client/lib/domUtils';
 import * as kf from 'app/client/lib/koForm';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {textInput} from 'app/client/ui2018/editableLabel';
-import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
+import {cssOptionLabel, IOption, IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
 import {AccessLevel, ICustomWidget, isSatisfied} from 'app/common/CustomWidget';
 import {GristLoadConfig} from 'app/common/gristUrls';
-import {unwrap} from 'app/common/gutil';
+import {not, unwrap} from 'app/common/gutil';
 import {
   bundleChanges,
   Computed,
   Disposable,
   dom,
   fromKo,
-  makeTestId,
   MultiHolder,
   Observable,
   styled,
@@ -62,12 +62,50 @@ class ColumnPicker extends Disposable {
       const value = use(this._value);
       return Array.isArray(value) ? null : value;
     });
-    properValue.onWrite(value => this._value.set(value));
-    const options = Computed.create(this, use => {
+    properValue.onWrite(value => this._value.set(value || null));
+
+    const canBeMapped = Computed.create(this, use => {
       return use(this._section.columns)
-        .filter(col => this._column.canByMapped(use(col.pureType)))
-        .map((col) => ({value: col.getRowId(), label: use(col.label), icon: 'FieldColumn' as IconName}));
+        .filter(col => this._column.canByMapped(use(col.pureType)));
     });
+
+    // This is a HACK, to refresh options only when the menu is opened (or closed)
+    // and not to track down all the dependencies. Otherwise the select menu won't
+    // be hidden when option is selected - there is a bug that prevents it from closing
+    // when list of options is changed.
+    const refreshTrigger = Observable.create(this, false);
+
+    const options = Computed.create(this, use => {
+      void use(refreshTrigger);
+
+      const columnsAsOptions: IOption<number|null>[] = use(canBeMapped)
+                                              .map((col) => ({
+                                                value: col.getRowId(),
+                                                label: col.label.peek(),
+                                                icon: 'FieldColumn',
+                                              }));
+
+      // For optional mappings, add 'Blank' option but only if the value is set.
+      // This option will allow to clear the selection.
+      if (this._column.optional && properValue.get()) {
+        columnsAsOptions.push({
+          value: 0,
+          // Another hack. Select doesn't allow to have different label for blank option and the default text.
+          // So we will render this label ourselves later using `renderOptionArgs`.
+          label: '',
+        });
+      }
+      return columnsAsOptions;
+    });
+
+    const isDisabled = Computed.create(this, use => {
+      return use(canBeMapped).length === 0;
+    });
+
+    const defaultLabel = this._column.typeDesc != "any"
+        ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc})
+        : t("Pick a column");
+
     return [
       cssLabel(
         this._column.title,
@@ -78,18 +116,49 @@ class ColumnPicker extends Disposable {
         this._column.description,
         testId('help-for-' + this._column.name),
       ) : null,
-      cssRow(
-        select(
-          properValue,
-          options,
-          {
-            defaultLabel: this._column.typeDesc != "any"
-              ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc})
-              : t("Pick a column")
-          }
-        ),
-        testId('mapping-for-' + this._column.name),
-      ),
+        dom.maybe(not(isDisabled), () => [
+          cssRow(
+            dom.update(
+              select(
+                properValue,
+                options,
+                {
+                  defaultLabel,
+                  renderOptionArgs : (opt) => {
+                    // If there is a label, render it.
+                    // Otherwise show the 'Clear selection' label as a greyed out text.
+                    // This is the continuation of the hack from above - were we added an option
+                    // without a label.
+                    return (opt.label) ? null : [
+                      cssBlank(t("Clear selection")),
+                      testId('clear-selection'),
+                    ];
+                  }
+                }
+              ),
+              dom.on('click', () => {
+                // When the menu is opened or closed, refresh the options.
+                refreshTrigger.set(!refreshTrigger.get());
+              })
+            ),
+            testId('mapping-for-' + this._column.name),
+            testId('enabled'),
+          ),
+        ]),
+        dom.maybe(isDisabled, () => [
+          cssRow(
+            cssDisabledSelect(
+              Observable.create(this, null),
+              [], {
+                disabled: true,
+                defaultLabel: t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})
+              }
+            ),
+            hoverTooltip(t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})),
+            testId('mapping-for-' + this._column.name),
+            testId('disabled'),
+          ),
+        ]),
     ];
   }
 }
@@ -114,16 +183,30 @@ class ColumnListPicker extends Disposable {
     });
   }
   private _buildAddColumn() {
+
+    const owner = MultiHolder.create(null);
+
+    const notMapped = Computed.create(owner, use => {
+      const value = use(this._value) || [];
+      const mapped = !Array.isArray(value) ? [] : value;
+      return this._section.columns().filter(col => !mapped.includes(use(col.id)));
+    });
+
+    const typedColumns = Computed.create(owner, use => {
+      return use(notMapped).filter(this._typeFilter(use));
+    });
+
     return [
       cssRow(
+        dom.autoDispose(owner),
         cssAddMapping(
           cssAddIcon('Plus'), t("Add") + ' ' + this._column.title,
+          dom.cls('disabled', use => use(notMapped).length === 0),
+          testId('disabled', use => use(notMapped).length === 0),
           menu(() => {
-            const otherColumns = this._getNotMappedColumns();
-            const typedColumns = otherColumns.filter(this._typeFilter());
-            const wrongTypeCount = otherColumns.length - typedColumns.length;
+            const wrongTypeCount = notMapped.get().length - typedColumns.get().length;
             return [
-              ...typedColumns
+              ...typedColumns.get()
               .map((col) => menuItem(
                 () => this._addColumn(col),
                 col.label.peek(),
@@ -145,7 +228,8 @@ class ColumnListPicker extends Disposable {
   }
 
   // Helper method for filtering columns that can be picked by the widget.
-  private _typeFilter = (use = unwrap) => (col: ColumnRec) => this._column.canByMapped(use(col.pureType));
+  private _typeFilter = (use = unwrap) => (col: ColumnRec|null) =>
+    !col ? false : this._column.canByMapped(use(col.pureType));
 
   private _buildDraggableList(use: UseCBOwner) {
     return dom.update(kf.draggableList(
@@ -159,12 +243,7 @@ class ColumnListPicker extends Disposable {
       }
     ), testId('map-list-for-' + this._column.name));
   }
-  private _getNotMappedColumns(): ColumnRec[] {
-    // Get all columns.
-    const all = this._section.columns.peek();
-    const mapped = this._list();
-    return all.filter(col => !mapped.includes(col.id.peek()));
-  }
+
   private _readItems(use: UseCBOwner): ColumnRec[] {
     let selectedRefs = (use(this._value) || []) as number[];
     // Ignore if configuration was changed from what it was saved.
@@ -177,6 +256,7 @@ class ColumnListPicker extends Disposable {
     // Remove any columns that are no longer there.
     return selectedRefs.map(s => columnMap.get(s)!).filter(c => Boolean(c));
   }
+
   private _renderItem(use: UseCBOwner, field: ColumnRec): any {
     return cssFieldEntry(
       cssFieldLabel(
@@ -199,7 +279,7 @@ class ColumnListPicker extends Disposable {
       this._value.set(value);
     } else {
       let current = (this._value.get() || []) as number[];
-      // Ignore if the saved value is not a number.
+      // Ignore if the saved value is not a number list.
       if (!Array.isArray(current)) {
         current = [];
       }
@@ -224,8 +304,16 @@ class ColumnListPicker extends Disposable {
     this._value.set(current.filter(c => c != column.id.peek()));
   }
   private _addColumn(col: ColumnRec): any {
-    const current = this._list();
+    // Helper to find column model.
+    const model = (id: number) => this._section.columns().find(c => c.id.peek() === id) || null;
+    // Get the list of currently mapped columns.
+    let current = this._list();
+    // Add new column.
     current.push(col.id.peek());
+    // Remove those that don't exists anymore.
+    current = current.filter(c => model(c));
+    // And those with wrong type.
+    current = current.filter(c => this._typeFilter()(model(c)));
     this._value.set(current);
   }
 }
@@ -551,8 +639,6 @@ export class CustomSectionConfig extends Disposable {
     this._widgets.set(wigets);
   }
 
-
-
   private _accept() {
     if (this._desiredAccess.get()) {
       this._currentAccess.set(this._desiredAccess.get()!);
@@ -629,6 +715,11 @@ const cssAddMapping = styled('div', `
     color: ${theme.controlHoverFg};
     --icon-color: ${theme.controlHoverFg};
   }
+  &.disabled {
+    color: ${theme.lightText};
+    --icon-color: ${theme.lightText};
+    pointer-events: none;
+  }
 `);
 
 const cssTextInput = styled(textInput, `
@@ -646,4 +737,12 @@ const cssTextInput = styled(textInput, `
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
   }
+`);
+
+const cssDisabledSelect = styled(select, `
+  opacity: unset !important;
+`);
+
+const cssBlank = styled(cssOptionLabel, `
+  --grist-option-label-color: ${theme.lightText};
 `);
