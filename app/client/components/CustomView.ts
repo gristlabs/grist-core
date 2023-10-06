@@ -11,6 +11,7 @@ import {
   MinimumLevel,
   RecordNotifier,
   TableNotifier,
+  ThemeNotifier,
   WidgetAPIImpl,
   WidgetFrame
 } from 'app/client/components/WidgetFrame';
@@ -215,6 +216,7 @@ export class CustomView extends Disposable {
   }) {
     const {baseUrl, access, showAfterReady} = options;
     const documentSettings = this.gristDoc.docData.docSettings();
+    const readonly = this.gristDoc.isReadonly.get();
     return grains.create(WidgetFrame, {
       url: baseUrl || this.getEmptyWidgetPage(),
       access,
@@ -225,13 +227,8 @@ export class CustomView extends Disposable {
         timeZone: this.gristDoc.docInfo.timezone() ?? "UTC",
         currency: documentSettings.currency?? "USD",
       },
-      readonly: this.gristDoc.isReadonly.get(),
+      readonly,
       showAfterReady,
-      onSettingsInitialized: async () => {
-        if (!this.customDef.renderAfterReady.peek()) {
-          await this.customDef.renderAfterReady.setAndSave(true);
-        }
-      },
       configure: (frame) => {
         this._frame = frame;
         // Need to cast myself to a BaseView
@@ -266,6 +263,9 @@ export class CustomView extends Disposable {
             theme: this.gristDoc.currentTheme,
           }),
           new MinimumLevel(AccessLevel.none)); // none access is enough
+        frame.useEvents(
+          ThemeNotifier.create(frame, this.gristDoc.currentTheme),
+          new MinimumLevel(AccessLevel.none));
       },
       onElem: (iframe) => onFrameFocus(iframe, () => {
         if (this.isDisposed()) { return; }

@@ -73,7 +73,7 @@ export class SafeBrowser extends BaseComponent {
       new IframeProcess(safeBrowser, rpc, src);
   }
 
-  public theme? = this._options.theme;
+  public theme = this._options.theme;
 
   // All view processes. This is not used anymore to dispose all processes on deactivation (this is
   // now achieved using `this._mainProcess.autoDispose(...)`) but rather to be able to dispatch
@@ -94,10 +94,10 @@ export class SafeBrowser extends BaseComponent {
     pluginInstance: PluginInstance,
     clientScope: ClientScope,
     untrustedContentOrigin: string,
+    theme: Computed<Theme>,
     mainPath?: string,
     baseLogger?: BaseLogger,
     rpcLogger?: IRpcLogger,
-    theme?: Computed<Theme>,
   }) {
     super(
       _options.pluginInstance.definition.manifest,
@@ -292,8 +292,8 @@ class WorkerProcess extends ClientProcess  {
 export class ViewProcess extends ClientProcess {
   public element: HTMLElement;
 
-  // Set once all of the plugin's onOptions handlers have been called.
-  protected _optionsInitialized: Observable<boolean>;
+  // Set once all of the plugin's onThemeChange handlers have been called.
+  protected _themeInitialized: Observable<boolean>;
 }
 
 /**
@@ -302,21 +302,21 @@ export class ViewProcess extends ClientProcess {
 class IframeProcess extends ViewProcess {
   public create(safeBrowser: SafeBrowser, rpc: Rpc, src: string) {
     super.create(safeBrowser, rpc, src);
-    this._optionsInitialized = Observable.create(this, false);
+    this._themeInitialized = Observable.create(this, false);
     const iframe = this.element = this.autoDispose(
       grainjsDom(`iframe.safe_browser_process.clipboard_focus`,
         {src},
-        grainjsDom.style('visibility', use => use(this._optionsInitialized) ? 'visible' : 'hidden'),
+        grainjsDom.style('visibility', use => use(this._themeInitialized) ? 'visible' : 'hidden'),
       ) as HTMLIFrameElement
     );
     const listener = async (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {
         if (event.data.mtype === MsgType.Ready) {
-          await this._sendSettings({theme: safeBrowser.theme?.get()}, true);
+          await this._sendTheme({theme: safeBrowser.theme.get(), fromReady: true});
         }
 
-        if (event.data.data?.settings?.status === 'initialized') {
-          this._optionsInitialized.set(true);
+        if (event.data.data?.message === 'themeInitialized') {
+          this._themeInitialized.set(true);
         }
 
         this.rpc.receiveMessage(event.data);
@@ -333,14 +333,14 @@ class IframeProcess extends ViewProcess {
         safeBrowser.theme.addListener(async (newTheme, oldTheme) => {
           if (isEqual(newTheme, oldTheme)) { return; }
 
-          await this._sendSettings({theme: safeBrowser.theme?.get()});
+          await this._sendTheme({theme: newTheme});
         })
       );
     }
   }
 
-  private async _sendSettings(settings: {theme?: Theme}, fromReady = false) {
-    await this.rpc.postMessage({settings, fromReady});
+  private async _sendTheme({theme, fromReady = false}: {theme: Theme, fromReady?: boolean}) {
+    await this.rpc.postMessage({theme, fromReady});
   }
 }
 

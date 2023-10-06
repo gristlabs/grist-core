@@ -272,8 +272,8 @@ export interface CustomViewSectionDef {
   /**
    * If set, render the widget after `grist.ready()`.
    *
-   * Currently, this is only used to defer rendering a widget until it has had
-   * a chance to apply the Grist theme.
+   * This is used to defer showing a widget on initial load until it has finished
+   * applying the Grist theme.
    */
   renderAfterReady: modelUtil.KoSaveableObservable<boolean>;
 }

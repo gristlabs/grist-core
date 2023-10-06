@@ -2,6 +2,8 @@ import {ClientScope} from 'app/client/components/ClientScope';
 import {SafeBrowser} from 'app/client/lib/SafeBrowser';
 import {LocalPlugin} from 'app/common/plugin';
 import {createRpcLogger, PluginInstance} from 'app/common/PluginInstance';
+import {Theme} from 'app/common/ThemePrefs';
+import {Computed} from 'grainjs';
 
 /**
  * Home plugins are all plugins that contributes to a general Grist management tasks.
@@ -13,9 +15,13 @@ export class HomePluginManager {
 
   public pluginsList: PluginInstance[];
 
-  constructor(localPlugins: LocalPlugin[],
-              untrustedContentOrigin: string,
-              clientScope: ClientScope) {
+  constructor(options: {
+    localPlugins: LocalPlugin[],
+    untrustedContentOrigin: string,
+    clientScope: ClientScope,
+    theme: Computed<Theme>,
+  }) {
+    const {localPlugins, untrustedContentOrigin, clientScope, theme} = options;
     this.pluginsList = [];
     for (const plugin of localPlugins) {
       try {
@@ -35,6 +41,7 @@ export class HomePluginManager {
           clientScope,
           untrustedContentOrigin,
           mainPath: components.safeBrowser,
+          theme,
         });
         if (components.safeBrowser) {
           pluginInstance.rpc.registerForwarder(components.safeBrowser, safeBrowser);

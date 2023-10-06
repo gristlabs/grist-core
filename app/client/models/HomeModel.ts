@@ -186,10 +186,12 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       this._updateWorkspaces().catch(reportError)));
 
     // Defer home plugin initialization
-    const pluginManager = new HomePluginManager(
-      _app.topAppModel.plugins,
-      _app.topAppModel.getUntrustedContentOrigin()!,
-      clientScope);
+    const pluginManager = new HomePluginManager({
+      localPlugins: _app.topAppModel.plugins,
+      untrustedContentOrigin: _app.topAppModel.getUntrustedContentOrigin()!,
+      clientScope,
+      theme: _app.currentTheme,
+    });
     const importSources = ImportSourceElement.fromArray(pluginManager.pluginsList);
     this.importSources.set(importSources);
 

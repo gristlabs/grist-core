@@ -459,7 +459,7 @@ export class CustomSectionConfig extends Disposable {
         }
         bundleChanges(() => {
           // Reset whether widget should render after `grist.ready()`.
-          _section.customDef.renderAfterReady(false);
+          _section.customDef.renderAfterReady(selectedWidget.renderAfterReady ?? false);
           // Clear access level
           _section.customDef.access(AccessLevel.none);
           // When widget wants some access, set desired access level.
@@ -627,16 +627,16 @@ export class CustomSectionConfig extends Disposable {
 
   protected async _getWidgets() {
     const api = this._gristDoc.app.topAppModel.api;
-    const wigets = await api.getWidgets();
+    const widgets = await api.getWidgets();
     // Request for rest of the widgets.
     if (this._canSelect) {
       // From the start we will provide single widget definition
       // that was chosen previously.
       if (this._section.customDef.widgetDef.peek()) {
-        wigets.push(this._section.customDef.widgetDef.peek()!);
+        widgets.push(this._section.customDef.widgetDef.peek()!);
       }
     }
-    this._widgets.set(wigets);
+    this._widgets.set(widgets);
   }
 
   private _accept() {

@@ -54,17 +54,10 @@ export interface WidgetFrameOptions {
   /**
    * If set, show the iframe after `grist.ready()`.
    *
-   * Currently, this is only used to defer showing a widget until it has had
-   * a chance to apply the Grist theme.
+   * This is used to defer showing a widget on initial load until it has finished
+   * applying the Grist theme.
    */
   showAfterReady?: boolean;
-  /**
-   * Handler for the settings initialized message.
-   *
-   * Currently, this is only used to defer showing a widget until it has had
-   * a chance to apply the Grist theme.
-   */
-  onSettingsInitialized: () => void;
   /**
    * Optional callback to configure exposed API.
    */
@@ -216,9 +209,12 @@ export class WidgetFrame extends DisposableWithEvents {
         this.trigger('ready', this);
         this._readyCalled.set(true);
       }
-      if (event.data.data?.settings?.status === 'initialized') {
+      if (
+        event.data.data?.message === 'themeInitialized' ||
+        // DEPRECATED: remove once the plugin API starts sending the message above.
+        event.data.data?.settings?.status === 'initialized'
+      ) {
         this._visible.set(true);
-        this._options.onSettingsInitialized();
       }
       this._rpc.receiveMessage(event.data);
     }
@@ -580,51 +576,74 @@ export interface ConfigNotifierOptions {
 }
 
 /**
- * Notifies about options change. Exposed in the API as a onOptions handler.
+ * Notifies about options changes. Exposed in the API as `onOptions`.
  */
 export class ConfigNotifier extends BaseEventSource {
   private _accessLevel = this._options.access;
   private _theme = this._options.theme;
-  private _currentConfig: Computed<any | null>;
+  private _currentConfig = Computed.create(this, use => {
+    const options = use(this._section.activeCustomOptions);
+    return options;
+  });
+
   // Debounced call to let the view know linked cursor changed.
-  private _debounced: (fromReady?: boolean) => void;
+  private _debounced = debounce((options?: {fromReady?: boolean}) => this._update(options), 0);
+
   constructor(private _section: ViewSectionRec, private _options: ConfigNotifierOptions) {
     super();
-    this._currentConfig = Computed.create(this, use => {
-      const options = use(this._section.activeCustomOptions);
-      return options;
-    });
-    this._debounced = debounce((fromReady?: boolean) => this._update(fromReady), 0);
-    const subscribe = (...observables: Observable<any>[]) => {
-      for (const obs of observables) {
-        this.autoDispose(
-          obs.addListener((cur, prev) => {
-            if (isEqual(prev, cur)) {
-              return;
-            }
-            this._debounced();
-          })
-        );
-      }
-    };
-    subscribe(this._currentConfig, this._theme);
+    this.autoDispose(
+      this._currentConfig.addListener((newConfig, oldConfig) => {
+        if (isEqual(newConfig, oldConfig)) { return; }
+
+        this._debounced();
+      })
+    );
   }
 
   protected _ready() {
     // On ready, send initial configuration.
-    this._debounced(true);
+    this._debounced({fromReady: true});
   }
 
-  private _update(fromReady = false) {
-    if (this.isDisposed()) {
-      return;
-    }
+  private _update({fromReady}: {fromReady?: boolean} = {}) {
+    if (this.isDisposed()) { return; }
+
     this._notify({
       options: this._currentConfig.get(),
       settings: {
         accessLevel: this._accessLevel,
-        theme: this._theme.get(),
+        // DEPRECATED: remove once the plugin API includes the `onThemeChange` handler.
+        ...(fromReady ? {theme: this._theme.get()} : undefined),
       },
+      fromReady,
+    });
+  }
+}
+
+/**
+ * Notifies about theme changes. Exposed in the API as `onThemeChange`.
+ */
+export class ThemeNotifier extends BaseEventSource {
+  constructor(private _theme: Computed<Theme>) {
+    super();
+    this.autoDispose(
+      this._theme.addListener((newTheme, oldTheme) => {
+        if (isEqual(newTheme, oldTheme)) { return; }
+
+        this._update();
+      })
+    );
+  }
+
+  protected _ready() {
+    this._update({fromReady: true});
+  }
+
+  private _update({fromReady}: {fromReady?: boolean} = {}) {
+    if (this.isDisposed()) { return; }
+
+    this._notify({
+      theme: this._theme.get(),
       fromReady,
     });
   }

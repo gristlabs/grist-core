@@ -3,11 +3,13 @@ import { Disposable } from 'app/client/lib/dispose';
 import { ClientProcess, SafeBrowser } from 'app/client/lib/SafeBrowser';
 import { LocalPlugin } from 'app/common/plugin';
 import { PluginInstance } from 'app/common/PluginInstance';
+import { GristLight } from 'app/common/themes/GristLight';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
 import { Storage } from 'app/plugin/StorageAPI';
 import { checkers } from 'app/plugin/TypeCheckers';
 import { assert } from 'chai';
 import { Rpc } from 'grain-rpc';
+import { Computed } from 'grainjs';
 import { noop } from 'lodash';
 import { basename } from 'path';
 import * as sinon from 'sinon';
@@ -186,6 +188,7 @@ describe('SafeBrowser', function() {
       untrustedContentOrigin: '',
       mainPath,
       baseLogger: {},
+      theme: Computed.create(null, () => ({appearance: 'light', colors: GristLight})),
     });
     cleanup.push(() => safeBrowser.deactivate());
     pluginInstance.rpc.registerForwarder(mainPath, safeBrowser);

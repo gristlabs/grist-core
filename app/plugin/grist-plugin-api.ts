@@ -380,14 +380,6 @@ export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMa
   });
 }
 
-/* Keep track of the completion status of all initial onOptions calls made prior to sending
- * the ready message. The `ready` function will wait for this list of calls to settle after
- * it receives the initial options message from Grist.
- *
- * Note that this includes all internal calls to `onOptions`, such as the one made by
- * `syncThemeWithGrist`. */
-const _pendingInitializeOptionsCalls: Promise<unknown>[] = [];
-
 /**
  * For custom widgets, add a handler that will be called whenever the
  * widget options change (and on initial ready message). Handler will be
@@ -396,16 +388,26 @@ const _pendingInitializeOptionsCalls: Promise<unknown>[] = [];
  * the document that contains it.
  */
 export function onOptions(callback: (options: any, settings: InteractionOptions) => unknown) {
-  let finishInitialization: () => void;
-  if (!_readyCalled) {
-    const promise = new Promise<void>(resolve => { finishInitialization = resolve; });
-    _pendingInitializeOptionsCalls.push(promise);
-  }
-
-  on('message', async function(msg) {
+  on('message', function(msg) {
     if (msg.settings) {
-      await callback(msg.options || null, msg.settings);
-      finishInitialization?.();
+      callback(msg.options || null, msg.settings);
+    }
+  });
+}
+
+/**
+ * Called whenever the Grist theme changes (and on initial ready message).
+ */
+function onThemeChange(callback: (theme: any) => unknown) {
+  on('message', function(msg) {
+    if (msg.theme) {
+      callback(msg.theme);
+
+      if (msg.fromReady) {
+        void (async function() {
+          await rpc.postMessage({message: 'themeInitialized'});
+        })();
+      }
     }
   });
 }
@@ -468,24 +470,6 @@ export function ready(settings?: ReadyPayload): void {
     rpc.registerFunc('editOptions', settings.onEditOptions);
   }
   on('message', async function(msg) {
-    if (msg.settings && msg.fromReady) {
-      /* Grist sends an options message immediately after receiving a ready message, containing
-       * some initial settings (such as the Grist theme). Grist may decide to wait until all
-       * initial onOptions calls have completed before making the custom widget's iframe visible
-       * to the client. This is the case when a widget's manifest explicitly declares a widget
-       * must be rendered after the ready, or in subsequent renders of a custom widget that
-       * previously sent Grist a ready message. The reason for this behavior is to make the
-       * experience of embedding iframes within a Grist document feel more seamless and polished.
-       *
-       * Here, we check for that initial options message, waiting for all onOptions calls to
-       * settle before notifying Grist that all settings have been initialized. */
-      await Promise.all(_pendingInitializeOptionsCalls);
-
-      void (async function() {
-        await rpc.postMessage({settings: {status: 'initialized'}});
-      })();
-    }
-
     if (msg.tableId && msg.tableId !== _tableId) {
       if (!_tableId) { _setInitialized(); }
       _tableId = msg.tableId;
@@ -566,14 +550,12 @@ function createRpcLogger(): IRpcLogger {
 
 let _theme: any;
 
-function syncThemeWithGrist() {
-  onOptions((_options, settings) => {
-    if (settings.theme && !isEqual(settings.theme, _theme)) {
-      _theme = settings.theme;
-      attachCssThemeVars(_theme);
-    }
-  });
-}
+onThemeChange((newTheme) => {
+  if (isEqual(newTheme, _theme)) { return; }
+
+  _theme = newTheme;
+  attachCssThemeVars(_theme);
+});
 
 function attachCssThemeVars({appearance, colors}: any) {
   // Prepare the custom properties needed for applying the theme.
@@ -613,5 +595,3 @@ function getOrCreateStyleElement(id: string) {
   document.head.append(style);
   return style;
 }
-
-syncThemeWithGrist();
