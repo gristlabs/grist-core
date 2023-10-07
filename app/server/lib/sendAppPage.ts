@@ -68,7 +68,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     maxUploadSizeImport: (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || undefined,
     maxUploadSizeAttachment: (Number(process.env.GRIST_MAX_UPLOAD_ATTACHMENT_MB) * 1024 * 1024) || undefined,
     timestampMs: Date.now(),
-    enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL),
+    enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL) || ((server?.getBundledWidgets().length || 0) > 0),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: getActivation(req as RequestWithLogin | undefined),

@@ -78,6 +78,10 @@ export interface TopAppModel {
    */
   fetchUsersAndOrgs(): Promise<void>;
 
+  /**
+   * Enumerate the widgets in the WidgetRepository for this installation
+   * of Grist.
+   */
   getWidgets(): Promise<ICustomWidget[]>;
 }
 
@@ -147,6 +151,9 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly users = Observable.create<FullUser[]>(this, []);
   public readonly plugins: LocalPlugin[] = [];
   private readonly _gristConfig?: GristLoadConfig;
+  // Keep a list of available widgets, once requested, so we don't have to
+  // keep reloading it. Downside: browser page will need reloading to pick
+  // up new widgets - that seems ok.
   private readonly _widgets: AsyncCreate<ICustomWidget[]>;
 
   constructor(

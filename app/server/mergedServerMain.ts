@@ -72,11 +72,12 @@ export async function main(port: number, serverTypes: ServerType[],
 
   const server = new FlexServer(port, `server(${serverTypes.join(",")})`, options);
 
+  // We need to know early on whether we will be serving plugins or not.
   if (includeHome) {
     const userPort = checkUserContentPort();
-    server.setWillServePlugins(userPort !== undefined);
+    server.setServesPlugins(userPort !== undefined);
   } else {
-    server.setWillServePlugins(false);
+    server.setServesPlugins(false);
   }
 
   if (options.loginSystem) {
@@ -171,26 +172,14 @@ export async function main(port: number, serverTypes: ServerType[],
     server.finalize();
 
     if (includeHome) {
-      // If plugin content is served from same host but on different port,
-      // run webserver on that port
-      const userPort = checkUserContentPort();
-      if (userPort !== null) {
-        const ports = await server.startCopy('pluginServer', userPort);
-        // If Grist is running on a desktop, directly on the host, it
-        // can be convenient to leave the user port free for the OS to
-        // allocate by using GRIST_UNTRUSTED_PORT=0. But we do need to
-        // remember how to contact it.
-        if (userPort === 0) {
-          server.setPluginPort(ports.serverPort);
-        } else if (process.env.APP_UNTRUSTED_URL === undefined) {
-          server.setPluginPort(userPort);
-        }
-      }
+      await server.finishPluginSetup(checkUserContentPort());
+    } else {
+      await server.finishPluginSetup(null);
     }
 
     server.checkOptionCombinations();
-    await server.prepareSummary();
     server.summary();
+    server.ready();
     return server;
   } catch(e) {
     await server.close();

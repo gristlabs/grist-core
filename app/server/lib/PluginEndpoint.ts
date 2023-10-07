@@ -14,7 +14,7 @@ export function getUntrustedContentHost(origin: string|undefined): string|undefi
 
 // Add plugin endpoints to be served on untrusted host
 export function addPluginEndpoints(server: FlexServer, pluginManager: PluginManager) {
-  if (server.willServePlugins()) {
+  if (server.servesPlugins()) {
     server.app.get(/^\/plugins\/(installed|builtIn)\/([^/]+)\/(.+)/, (req, res) =>
                    servePluginContent(req, res, pluginManager, server));
   }

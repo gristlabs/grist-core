@@ -131,7 +131,6 @@ export class PluginManager {
 
 
 async function scanDirectory(dir: string, kind: "installed"|"builtIn"): Promise<DirectoryScanEntry[]> {
-  console.log("SCAN", {dir, kind});
   const plugins: DirectoryScanEntry[] = [];
   let listDir;
 

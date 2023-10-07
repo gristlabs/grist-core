@@ -57,7 +57,7 @@ export interface GristServer {
   resolveLoginSystem(): Promise<GristLoginSystem>;
   getPluginUrl(): string|undefined;
   getPlugins(): LocalPlugin[];
-  willServePlugins(): boolean;
+  servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
 }
 
@@ -142,7 +142,7 @@ export function createDummyGristServer(): GristServer {
     getAccessTokens() { throw new Error('no access tokens'); },
     resolveLoginSystem() { throw new Error('no login system'); },
     getPluginUrl() { return undefined; },
-    willServePlugins() { return false; },
+    servesPlugins() { return false; },
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
   };

@@ -254,11 +254,7 @@ export interface CustomViewSectionDef {
    * widgets available.
    */
   widgetId: modelUtil.KoSaveableObservable<string|null>;
-   /**
-   * Custom widget information.
-   */
-  // widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
-   /**
+  /**
    * Custom widget options.
    */
   widgetOptions: modelUtil.KoSaveableObservable<Record<string, any>|null>;
@@ -333,7 +329,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   const customViewDefaults = {
     mode: 'url',
     url: null,
-    // widgetDef: null,
     access: '',
     pluginId: '',
     sectionId: '',
@@ -346,7 +341,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     mode: customDefObj.prop('mode'),
     url: customDefObj.prop('url'),
     widgetId: customDefObj.prop('widgetId'),
-    // widgetDef: customDefObj.prop('widgetDef'),
     widgetOptions: customDefObj.prop('widgetOptions'),
     columnsMapping: customDefObj.prop('columnsMapping'),
     access: customDefObj.prop('access'),

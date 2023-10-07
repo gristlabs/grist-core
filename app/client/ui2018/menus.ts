@@ -220,7 +220,6 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
       },
       dom.domComputed(selectedOptionsSet, selectedOpts => {
         return dom.forEach(availableOptions, option => {
-          console.log(">>> option", {availableOptions});
           const fullOption = weasel.getOptionFull(option);
           return cssCheckboxLabel(
             cssCheckboxSquare(

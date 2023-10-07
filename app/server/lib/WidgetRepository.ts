@@ -4,11 +4,14 @@ import * as fse from 'fs-extra';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import {ApiError} from 'app/common/ApiError';
+import {removeTrailingSlash} from 'app/common/gutil';
+import {GristServer} from 'app/server/lib/GristServer';
 import LRUCache from 'lru-cache';
 import * as url from 'url';
-import { removeTrailingSlash } from 'app/common/gutil';
-import { GristServer } from './GristServer';
-// import { LocalPlugin } from 'app/common/plugin';
+import { AsyncCreate } from 'app/common/AsyncCreate';
+
+// Static url for UrlWidgetRepository
+const STATIC_URL = process.env.GRIST_WIDGET_LIST_URL;
 
 /**
  * Widget Repository returns list of available Custom Widgets.
@@ -17,67 +20,66 @@ export interface IWidgetRepository {
   getWidgets(): Promise<ICustomWidget[]>;
 }
 
-// Static url for StaticWidgetRepository
-const STATIC_URL = process.env.GRIST_WIDGET_LIST_URL;
-
-export class FileWidgetRepository implements IWidgetRepository {
-  constructor(private _widgetFileName: string,
+/**
+ *
+ * A widget repository that lives on disk.
+ *
+ * The _widgetFile should point to a json file containing a
+ * list of custom widgets, in the format used by the grist-widget
+ * repo:
+ *   https://github.com/gristlabs/grist-widget
+ *
+ * The file can use relative URLs. The URLs will be interpreted
+ * as relative to the _widgetBaseUrl.
+ *
+ * If a _source is provided, it will be passed along in the
+ * widget listings.
+ *
+ */
+export class DiskWidgetRepository implements IWidgetRepository {
+  constructor(private _widgetFile: string,
               private _widgetBaseUrl: string,
-              private _pluginId?: string) {}
+              private _source?: any) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
-    const txt = await fse.readFile(this._widgetFileName, {
-      encoding: 'utf8',
-    });
+    const txt = await fse.readFile(this._widgetFile, { encoding: 'utf8' });
     const widgets: ICustomWidget[] = JSON.parse(txt);
     fixUrls(widgets, this._widgetBaseUrl);
-    if (this._pluginId) {
+    if (this._source) {
       for (const widget of widgets) {
-        widget.fromPlugin = this._pluginId;
+        widget.source = this._source;
       }
     }
-    console.log("FileWidget", {widgets});
     return widgets;
   }
 }
 
-/*
-export class NestedWidgetRepository implements IWidgetRepository {
-  constructor(private _widgetDir: string,
-              private _widgetBaseUrl: string) {}
-
-  public async getWidgets(): Promise<ICustomWidget[]> {
-    const listDir = await fse.readdir(this._widgetDir,
-                                      { withFileTypes: true });
-    const fileName = 'manifest.json';
-    const allWidgets: ICustomWidget[] = [];
-    for (const dir of listDir) {
-      if (!dir.isDirectory()) { continue; }
-      const fullPath = path.join(this._widgetDir, dir.name, fileName);
-      if (!await fse.pathExists(fullPath)) { continue; }
-      const txt = await fse.readFile(fullPath, 'utf8');
-      const widgets = JSON.parse(txt);
-      fixUrls(
-        widgets,
-        removeTrailingSlash(this._widgetBaseUrl) + '/' + dir.name + '/'
-      );
-      allWidgets.push(...widgets);
-    }
-    return allWidgets;
-  }
-}
-*/
-
+/**
+ *
+ * A wrapper around a widget repository that delays creating it
+ * until the first call to getWidgets().
+ *
+ */
 export class DelayedWidgetRepository implements IWidgetRepository {
-  constructor(private _makeRepo: () => Promise<IWidgetRepository|undefined>) {}
+  private _repo: AsyncCreate<IWidgetRepository|undefined>;
+
+  constructor(_makeRepo: () => Promise<IWidgetRepository|undefined>) {
+    this._repo = new AsyncCreate(_makeRepo);
+  }
 
   public async getWidgets(): Promise<ICustomWidget[]> {
-    const repo = await this._makeRepo();
+    const repo = await this._repo.get();
     if (!repo) { return []; }
     return repo.getWidgets();
   }
 }
 
+/**
+ *
+ * A wrapper around a list of widget repositories that concatenates
+ * their results.
+ *
+ */
 export class CombinedWidgetRepository implements IWidgetRepository {
   constructor(private _repos: IWidgetRepository[]) {}
 
@@ -86,13 +88,12 @@ export class CombinedWidgetRepository implements IWidgetRepository {
     for (const repo of this._repos) {
       allWidgets.push(...await repo.getWidgets());
     }
-    console.log("COMBINED", {allWidgets});
     return allWidgets;
   }
 }
 
 /**
- * Repository that gets list of available widgets from a static URL.
+ * Repository that gets a list of widgets from a URL.
  */
 export class UrlWidgetRepository implements IWidgetRepository {
   constructor(private _staticUrl = STATIC_URL) {}
@@ -134,13 +135,14 @@ export class UrlWidgetRepository implements IWidgetRepository {
 }
 
 /**
- * Default repository that gets list of available widgets from a static URL.
+ * Default repository that gets list of available widgets from multiple
+ * sources.
  */
 export class WidgetRepositoryImpl implements IWidgetRepository {
   protected _staticUrl: string|undefined;
+  private _diskWidgets?: IWidgetRepository;
   private _urlWidgets: UrlWidgetRepository;
   private _combinedWidgets: CombinedWidgetRepository;
-  private _dirWidgets?: IWidgetRepository;
 
   constructor(_options: {
     staticUrl?: string,
@@ -148,12 +150,16 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
   }) {
     const {staticUrl, gristServer} = _options;
     if (gristServer) {
-      this._dirWidgets = new DelayedWidgetRepository(async () => {
-        const places = getWidgetPlaces(gristServer);
-        console.log("PLACES!", places);
-        const files = places.map(place => new FileWidgetRepository(place.fileBase,
-                                                                   place.urlBase,
-                                                                   place.pluginId));
+      this._diskWidgets = new DelayedWidgetRepository(async () => {
+        const places = getWidgetsInPlugins(gristServer);
+        const files = places.map(
+          place => new DiskWidgetRepository(
+            place.file,
+            place.urlBase,
+            {
+              pluginId: place.pluginId,
+              name: place.name
+            }));
         return new CombinedWidgetRepository(files);
       });
     }
@@ -174,7 +180,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
       this._urlWidgets = new UrlWidgetRepository(this._staticUrl);
       repos.push(this._urlWidgets);
     }
-    if (this._dirWidgets) { repos.push(this._dirWidgets); }
+    if (this._diskWidgets) { repos.push(this._diskWidgets); }
     this._combinedWidgets = new CombinedWidgetRepository(repos);
   }
 
@@ -200,7 +206,6 @@ class CachedWidgetRepository extends WidgetRepositoryImpl {
     const list = await super.getWidgets();
     // Cache only if there are some widgets.
     if (list.length) { this._cache.set(1, list); }
-    console.log("CACHABLE RESULT", {list});
     return list;
   }
 
@@ -217,20 +222,15 @@ export function buildWidgetRepository(gristServer: GristServer,
                                       options?: {
                                         localOnly: boolean
                                       }) {
-  if (options?.localOnly) {
-    return new WidgetRepositoryImpl({
-      gristServer,
-      staticUrl: ''
-    });
-  }
   return new CachedWidgetRepository({
     gristServer,
+    ...(options?.localOnly ? { staticUrl: '' } : undefined)
   });
 }
 
 function fixUrls(widgets: ICustomWidget[], baseUrl: string) {
   // If URLs are relative, make them absolute, interpreting them
-  // relative to the manifest file.
+  // relative to the supplied base.
   for (const widget of widgets) {
     if (!(url.parse(widget.url).protocol)) {
       widget.url = new URL(widget.url, baseUrl).href;
@@ -238,41 +238,40 @@ function fixUrls(widgets: ICustomWidget[], baseUrl: string) {
   }
 }
 
-export interface CustomWidgetPlace {
-  urlBase: string,
-  fileBase: string,
-  fileDir: string,
-  name: string,
+/**
+ * Information about widgets in a plugin. We need to coordinate
+ * URLs with location on disk.
+ */
+export interface CustomWidgetsInPlugin {
   pluginId: string,
+  urlBase: string,
+  dir: string,
+  file: string,
+  name: string,
 }
 
-export function getWidgetPlaces(gristServer: GristServer,
-                                pluginUrl?: string) {
-  const places: CustomWidgetPlace[] = [];
+/**
+ * Get a list of widgets available locally via plugins.
+ */
+export function getWidgetsInPlugins(gristServer: GristServer,
+                                    pluginUrl?: string) {
+  const places: CustomWidgetsInPlugin[] = [];
   const plugins = gristServer.getPlugins();
-  console.log("PLUGINS", plugins);
-  pluginUrl = pluginUrl || gristServer.getPluginUrl();
-  if (!pluginUrl) { return []; }
+  pluginUrl = pluginUrl ?? gristServer.getPluginUrl();
+  if (pluginUrl === undefined) { return []; }
   for (const plugin of plugins) {
-    console.log("PLUGIN", plugin);
     const components = plugin.manifest.components;
     if (!components.widgets) { continue; }
-    console.log("GOT SOMETHING", {
-      name: plugin.id,
-      path: plugin.path,
-      widgets: components.widgets
-    });
     const urlBase =
         removeTrailingSlash(pluginUrl) + '/v/' +
         gristServer.getTag() + '/widgets/' + plugin.id + '/';
     places.push({
       urlBase,
-      fileBase: path.join(plugin.path, components.widgets),
-      fileDir: plugin.path,
-      name: plugin.id,
+      dir: plugin.path,
+      file: path.join(plugin.path, components.widgets),
+      name: plugin.manifest.name || plugin.id,
       pluginId: plugin.id,
     });
   }
-  console.log("PLACES", places);
   return places;
 }

@@ -1,5 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
-import { ICustomWidget } from 'app/common/CustomWidget';
+import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
 import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
@@ -66,7 +66,7 @@ import {getTelemetryPrefs, ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {addUploadRoute} from 'app/server/lib/uploads';
-import { buildWidgetRepository, getWidgetPlaces, IWidgetRepository} from 'app/server/lib/WidgetRepository';
+import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
 import * as bodyParser from 'body-parser';
@@ -129,8 +129,8 @@ export class FlexServer implements GristServer {
   private _dbManager: HomeDBManager;
   private _defaultBaseDomain: string|undefined;
   private _pluginUrl: string|undefined;
-  private _pluginUrlSet: boolean = false;
-  private _willServePlugins?: boolean;
+  private _pluginUrlReady: boolean = false;
+  private _servesPlugins?: boolean;
   private _bundledWidgets?: ICustomWidget[];
   private _billing: IBilling;
   private _instanceRoot: string;
@@ -174,11 +174,30 @@ export class FlexServer implements GristServer {
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   private _getLoginSystem?: () => Promise<GristLoginSystem>;
+  // Called by ready() to allow requests to be served.
+  private _ready: () => void;
+  // Set once ready() is called
+  private _isReady: boolean = false;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
     this.app = express();
     this.app.set('port', port);
+
+    // Before doing anything, we pause any request handling to wait
+    // for the server being entirely ready. The specific reason to do
+    // so is because, if we are serving plugins, and using an
+    // OS-assigned port to do so, we won't know the URL to use for
+    // plugins until quite late. But it seems a nice thing to
+    // guarantee in general.
+    const readyPromise = new Promise(resolve => {
+      this._ready = () => resolve(undefined);
+    });
+    this.app.use(async (_req, _res, next) => {
+      await readyPromise;
+      next();
+    });
+
     this.appRoot = getAppRoot();
     this.host = process.env.GRIST_HOST || "localhost";
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
@@ -508,12 +527,6 @@ export class FlexServer implements GristServer {
   public addStaticAndBowerDirectories() {
     if (this._check('static_and_bower', 'dir')) { return; }
     this.addTagChecker();
-    // Allow static files to be requested from any origin.
-    const options: serveStatic.ServeStaticOptions = {
-      setHeaders: (res, filepath, stat) => {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-      }
-    };
     // Grist has static help files, which may be useful for standalone app,
     // but for hosted grist the latest help is at support.getgrist.com.  Redirect
     // to this page for the benefit of crawlers which currently rank the static help
@@ -526,11 +539,11 @@ export class FlexServer implements GristServer {
     // as an Electron app.
     const staticExtDir = getAppPathTo(this.appRoot, 'static') + '_ext';
     const staticExtApp = fse.existsSync(staticExtDir) ?
-      express.static(staticExtDir, options) : null;
-    const staticApp = express.static(getAppPathTo(this.appRoot, 'static'), options);
-    const bowerApp = express.static(getAppPathTo(this.appRoot, 'bower_components'), options);
+      express.static(staticExtDir, serveAnyOrigin) : null;
+    const staticApp = express.static(getAppPathTo(this.appRoot, 'static'), serveAnyOrigin);
+    const bowerApp = express.static(getAppPathTo(this.appRoot, 'bower_components'), serveAnyOrigin);
     if (process.env.GRIST_LOCALES_DIR) {
-      const locales = express.static(process.env.GRIST_LOCALES_DIR, options);
+      const locales = express.static(process.env.GRIST_LOCALES_DIR, serveAnyOrigin);
       this.app.use("/locales", this.tagChecker.withTag(locales));
     }
     if (staticExtApp) { this.app.use(this.tagChecker.withTag(staticExtApp)); }
@@ -561,20 +574,13 @@ export class FlexServer implements GristServer {
       res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
     this.addOrg();
     addPluginEndpoints(this, await this._addPluginManager());
-    const places = getWidgetPlaces(this, 'wotnot');
-    // Allow static files to be requested from any origin.
-    const options: serveStatic.ServeStaticOptions = {
-      setHeaders: (res, filepath, stat) => {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-      }
-    };
-     for (const place of places) {
-       this.app.use(
-         '/widgets/' + place.name,
-         this.tagChecker.withTag(
-           limitToPlugins(this,
-             express.static(place.fileDir, options)
-           )
+
+    // Serve bundled custom widgets on the plugin endpoint.
+    const places = getWidgetsInPlugins(this, '');
+    for (const place of places) {
+      this.app.use(
+        '/widgets/' + place.pluginId, this.tagChecker.withTag(
+          limitToPlugins(this, express.static(place.dir, serveAnyOrigin))
          )
        );
     }
@@ -1445,25 +1451,29 @@ export class FlexServer implements GristServer {
     });
   }
 
-  public setPluginPort(port: number) {
-    const url = new URL(this.getOwnUrl());
-    url.port = String(port);
-    this._pluginUrl = url.href;
-  }
-
-  public willServePlugins() {
-    if (this._willServePlugins === undefined) {
-      throw new Error('do not know if will serve plugins');
+  /**
+   * Check whether there's a local plugin port.
+   */
+  public servesPlugins() {
+    if (this._servesPlugins === undefined) {
+      throw new Error('do not know if server will serve plugins');
     }
-    return this._willServePlugins;
-  }
-  
-  public setWillServePlugins(flag: boolean) {
-    this._willServePlugins = flag;
+    return this._servesPlugins;
   }
 
+  /**
+   * Declare that there will be a local plugin port.
+   */
+  public setServesPlugins(flag: boolean) {
+    this._servesPlugins = flag;
+  }
+
+  /**
+   * Get the base URL for plugins. Throws an error if the URL is not
+   * yet available.
+   */
   public getPluginUrl() {
-    if (!this._pluginUrlSet) {
+    if (!this._pluginUrlReady) {
       throw new Error('looked at plugin url too early');
     }
     return this._pluginUrl;
@@ -1476,14 +1486,24 @@ export class FlexServer implements GristServer {
     return this._pluginManager.getPlugins();
   }
 
-  public async prepareSummary() {
-    // Add some information that isn't guaranteed set until the end.
-
+  public async finishPluginSetup(userPort: number|null) {
+    // If plugin content is served from same host but on different port,
+    // run webserver on that port
+    if (userPort !== null) {
+      const ports = await this.startCopy('pluginServer', userPort);
+      // If Grist is running on a desktop, directly on the host, it
+      // can be convenient to leave the user port free for the OS to
+      // allocate by using GRIST_UNTRUSTED_PORT=0. But we do need to
+      // remember how to contact it.
+      if (process.env.APP_UNTRUSTED_URL === undefined) {
+        const url = new URL(this.getOwnUrl());
+        url.port = String(userPort || ports.serverPort);
+        this._pluginUrl = url.href;
+      }
+    }
     this.info.push(['pluginUrl', this._pluginUrl]);
-    // plugin url should be finalized by now.
-    this._pluginUrlSet = true;
-    this.info.push(['willServePlugins', this._willServePlugins]);
-
+    this._pluginUrlReady = true;
+    this.info.push(['willServePlugins', this._servesPlugins]);
     const repo = buildWidgetRepository(this, { localOnly: true });
     this._bundledWidgets = await repo.getWidgets();
   }
@@ -1507,6 +1527,12 @@ export class FlexServer implements GristServer {
         ((item.wouldFindInEnvVar && !item.foundInEnvVar) ? ` [${item.wouldFindInEnvVar}]` : '');
       log.info("== %s: %s", item.name, txt);
     }
+  }
+
+  public ready() {
+    if (this._isReady) { return; }
+    this._isReady = true;
+    this._ready();
   }
 
   public checkOptionCombinations() {
@@ -1983,15 +2009,18 @@ export class FlexServer implements GristServer {
   private async _startServers(server: http.Server, httpsServer: https.Server|undefined,
                               name: string, port: number, verbose: boolean) {
     await listenPromise(server.listen(port, this.host));
-    if (verbose) { log.info(`${name} available at ${this.host}:${port}`); }
+    const serverPort = (server.address() as AddressInfo).port;
+    if (verbose) { log.info(`${name} available at ${this.host}:${serverPort}`); }
+    let httpsServerPort: number|undefined;
     if (TEST_HTTPS_OFFSET && httpsServer) {
-      const httpsPort = port + TEST_HTTPS_OFFSET;
-      await listenPromise(httpsServer.listen(httpsPort, this.host));
-      if (verbose) { log.info(`${name} available at https://${this.host}:${httpsPort}`); }
+      if (port === 0) { throw new Error('cannot use https with OS-assigned port'); }
+      httpsServerPort = port + TEST_HTTPS_OFFSET;
+      await listenPromise(httpsServer.listen(httpsServerPort, this.host));
+      if (verbose) { log.info(`${name} available at https://${this.host}:${httpsServerPort}`); }
     }
     return {
-      serverPort: (server.address() as AddressInfo).port,
-      httpsServerPort: (server.address() as AddressInfo)?.port,
+      serverPort,
+      httpsServerPort,
     };
   }
 
@@ -2247,3 +2276,10 @@ export interface ElectronServerMethods {
   updateUserConfig(obj: any): Promise<void>;
   onBackupMade(cb: () => void): void;
 }
+
+// Allow static files to be requested from any origin.
+const serveAnyOrigin: serveStatic.ServeStaticOptions = {
+  setHeaders: (res, filepath, stat) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+};
