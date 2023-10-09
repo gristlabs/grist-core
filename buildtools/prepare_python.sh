@@ -28,4 +28,3 @@ else
   # Make sure python3 isn't around.
   rm -rf sandbox_venv3
 fi
-echo "toto"
