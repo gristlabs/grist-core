@@ -16,7 +16,8 @@ export interface ColumnToMap {
    */
   description?: string|null,
   /**
-   * Column type, by default ANY.
+   * Column types (as comma separated list), by default "Any", what means that any type is
+   * allowed (unless strictType is true).
    */
   type?: string, // GristType, TODO: ts-interface-checker doesn't know how to parse this
   /**
@@ -27,6 +28,10 @@ export interface ColumnToMap {
    * Allow multiple column assignment, the result will be list of mapped table column names.
    */
   allowMultiple?: boolean,
+  /**
+   * Match column type strictly, so "Any" will require "Any" and not any other type.
+   */
+  strictType?: boolean,
 }
 
 export type ColumnsToMap = (string|ColumnToMap)[];

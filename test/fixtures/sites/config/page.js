@@ -26,6 +26,12 @@ function setup() {
     document.getElementById('onRecords').innerHTML = JSON.stringify(data);
     document.getElementById('onRecordsMappings').innerHTML = JSON.stringify(mappings);
   });
+
+  grist.on('message', event => {
+    const existing = document.getElementById('log').textContent || '';
+    const newContent = `${existing}\n${JSON.stringify(event)}`.trim();
+    document.getElementById('log').innerHTML = newContent;
+  });
 }
 
 async function run(handler) {
@@ -65,6 +71,11 @@ async function mappings() {
 // eslint-disable-next-line no-unused-vars
 async function configure() {
   return run((options) => grist.sectionApi.configure(...options));
+}
+
+// eslint-disable-next-line no-unused-vars
+async function clearLog() {
+  return run(() => document.getElementById('log').textContent = '');
 }
 
 window.onload = () => {

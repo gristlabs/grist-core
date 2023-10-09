@@ -256,6 +256,10 @@ describe('CustomWidgetsConfig', function () {
       const text = await this._read('#onRecordsMappings');
       return JSON.parse(text || 'null');
     }
+    public async log() {
+      const text = await this._read('#log');
+      return text || '';
+    }
     // Wait for frame to close.
     public async waitForClose() {
       await driver.wait(async () => !(await driver.find('iframe').isPresent()), 3000);
@@ -292,6 +296,9 @@ describe('CustomWidgetsConfig', function () {
     }
     public async mappings() {
       return await this.invokeOnWidget('mappings');
+    }
+    public async clearLog() {
+      return await this.invokeOnWidget('clearLog');
     }
     // Invoke method on a Custom Widget.
     // Each method is available as a button with content that is equal to the method name.
@@ -679,7 +686,7 @@ describe('CustomWidgetsConfig', function () {
       createConfigUrl({
         columns: [
           {name: 'M1', type: 'Date,DateTime'},
-          {name: 'M2', type: 'Date,DateTime', allowMultiple: true},
+          {name: 'M2', type: 'Date, DateTime ', allowMultiple: true},
         ],
         requiredAccess: 'read table',
       })
@@ -727,6 +734,94 @@ describe('CustomWidgetsConfig', function () {
     await click(pickerAdd('M2'));
     await clickMenuItem('C');
     assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: ['B', 'C']});
+
+    await revert();
+  });
+
+  it('should support strictType setting', async () => {
+    const revert = await gu.begin();
+    await toggleWidgetMenu();
+    await clickOption(CUSTOM_URL);
+    await gu.setWidgetUrl(
+      createConfigUrl({
+        columns: [
+          {name: 'Any', type: 'Any', strictType: true},
+          {name: 'Date_Numeric', type: 'Date, Numeric', strictType: true},
+          {name: 'Date_Any', type: 'Date, Any', strictType: true},
+          {name: 'Date', type: 'Date', strictType: true},
+        ],
+        requiredAccess: 'read table',
+      })
+    );
+    await accept();
+    await widget.waitForFrame();
+    await gu.sendActions([
+      ['AddVisibleColumn', 'Table1', 'Any', {type: 'Any'}],
+      ['AddVisibleColumn', 'Table1', 'Date', {type: 'Date'}],
+      ['AddVisibleColumn', 'Table1', 'Numeric', {type: 'Numeric'}],
+    ]);
+
+    await gu.selectSectionByTitle('Widget');
+    // Make sure we have no mappings
+    assert.deepEqual(await widget.onRecordsMappings(), null);
+
+    await toggleDrop(pickerDrop('Date'));
+    assert.deepEqual(await getOptions(), ['Date']);
+
+    await toggleDrop(pickerDrop('Date_Any'));
+    assert.deepEqual(await getOptions(), ['Any', 'Date']);
+
+    await toggleDrop(pickerDrop('Date_Numeric'));
+    assert.deepEqual(await getOptions(), ['Date', 'Numeric']);
+
+    await toggleDrop(pickerDrop('Any'));
+    assert.deepEqual(await getOptions(), ['Any']);
+
+    await revert();
+  });
+
+  it('should react to widget options change', async () => {
+    const revert = await gu.begin();
+    await toggleWidgetMenu();
+    await clickOption(CUSTOM_URL);
+    await gu.setWidgetUrl(
+      createConfigUrl({
+        columns: [
+          {name: 'Choice', type: 'Choice', strictType: true},
+        ],
+        requiredAccess: 'read table',
+      })
+    );
+
+    const widgetOptions = {
+      choices: ['A'],
+      choiceOptions: {A: {textColor: 'red'}}
+    };
+
+    await gu.sendActions([
+      ['AddVisibleColumn', 'Table1', 'Choice', {type: 'Choice', widgetOptions: JSON.stringify(widgetOptions)}]
+    ]);
+    await accept();
+    await widget.waitForFrame();
+
+    await gu.selectSectionByTitle('Widget');
+    await toggleDrop(pickerDrop('Choice'));
+    await clickOption('Choice');
+
+    // Clear logs
+    await widget.clearLog();
+    assert.isEmpty(await widget.log());
+
+    // Now update options in that one column;
+    widgetOptions.choiceOptions.A.textColor = 'blue';
+    await gu.sendActions([
+      ['ModifyColumn', 'Table1', 'Choice', {widgetOptions: JSON.stringify(widgetOptions)}]
+    ]);
+
+    await gu.waitToPass(async () => {
+      // Make sure widget sees that mapping are changed.
+      assert.equal(await widget.log(), '{"tableId":"Table1","rowId":1,"dataChange":true,"mappingsChange":true}');
+    });
 
     await revert();
   });

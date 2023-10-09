@@ -11,6 +11,7 @@ export const ColumnToMap = t.iface([], {
   "type": t.opt("string"),
   "optional": t.opt("boolean"),
   "allowMultiple": t.opt("boolean"),
+  "strictType": t.opt("boolean"),
 });
 
 export const ColumnsToMap = t.array(t.union("string", "ColumnToMap"));
