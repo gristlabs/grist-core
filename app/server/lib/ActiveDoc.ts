@@ -2784,10 +2784,6 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
   const [, , tableRefs, tableData] = metaTables._grist_Tables;
   const tableRowIndex = tableData.tableId.indexOf(tableId);
   if (tableRowIndex === -1) {
-    // Test if the tableId argument is directly the ref
-    if(parseInt(tableId) && tableRefs.indexOf(parseInt(tableId)) >= 0){
-      return parseInt(tableId);
-    }
     throw new ApiError(`Table not found "${tableId}"`, 404);
   }
   return tableRefs[tableRowIndex];

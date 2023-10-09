@@ -338,7 +338,8 @@ export class DocWorkerApi {
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
       let currentTableId = trigger ? tablesTable.getValue(trigger.tableRef, 'tableId')! : undefined;
       const {url, eventTypes, isReadyColumn, name} = webhook;
-      const tableId = req.params.tableId || webhook.tableId;
+      const tableId = getRealTableId(metaTables, req.params.tableId || webhook.tableId);
+
       const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
 
       if (url && !isUrlAllowed(url)) {
@@ -388,7 +389,8 @@ export class DocWorkerApi {
     // Get the columns of the specified table in recordish format
     this._app.get('/api/docs/:docId/tables/:tableId/columns', canView,
       withDoc(async (activeDoc, req, res) => {
-        const tableId = req.params.tableId;
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
         const includeHidden = isAffirmative(req.query.hidden);
         const columns = await handleSandboxError('', [],
           activeDoc.getTableCols(docSessionFromRequest(req), tableId, includeHidden));
@@ -499,7 +501,9 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const colValues = req.body as BulkColValues;
         const count = colValues[Object.keys(colValues)[0]].length;
-        const op = getTableOperations(req, activeDoc);
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
+        const op = getTableOperations(req, activeDoc, tableId);
         const ids = await op.addRecords(count, colValues);
         res.json(ids);
       })
@@ -528,7 +532,9 @@ export class DocWorkerApi {
           }
         }
         validateCore(RecordsPost, req, body);
-        const ops = getTableOperations(req, activeDoc);
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
+        const ops = getTableOperations(req, activeDoc, tableId);
         const records = await ops.create(body.records);
         res.json({records});
       })
@@ -559,7 +565,8 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPost),
       withDoc(async (activeDoc, req, res) => {
         const body = req.body as Types.ColumnsPost;
-        const {tableId} = req.params;
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
         const actions = body.columns.map(({fields, id: colId}) =>
           // AddVisibleColumn adds the column to all widgets of the table.
           // This isn't necessarily what the user wants, but it seems like a good default.
@@ -591,7 +598,9 @@ export class DocWorkerApi {
 
     this._app.post('/api/docs/:docId/tables/:tableId/data/delete', canEdit, withDoc(async (activeDoc, req, res) => {
       const rowIds = req.body;
-      const op = getTableOperations(req, activeDoc);
+      const metaTables = await getMetaTables(activeDoc, req);
+      const tableId = getRealTableId(metaTables, req.params.tableId);
+      const op = getTableOperations(req, activeDoc, tableId);
       await op.destroy(rowIds);
       res.json(null);
     }));
@@ -660,7 +669,9 @@ export class DocWorkerApi {
         const rowIds = columnValues.id;
         // sandbox expects no id column
         delete columnValues.id;
-        const ops = getTableOperations(req, activeDoc);
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
+        const ops = getTableOperations(req, activeDoc, tableId);
         await ops.updateRecords(columnValues, rowIds);
         res.json(null);
       })
@@ -670,7 +681,9 @@ export class DocWorkerApi {
     this._app.patch('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPatch),
       withDoc(async (activeDoc, req, res) => {
         const body = req.body as Types.RecordsPatch;
-        const ops = getTableOperations(req, activeDoc);
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
+        const ops = getTableOperations(req, activeDoc, tableId);
         await ops.update(body.records);
         res.json(null);
       })
@@ -681,7 +694,8 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
         const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
-        const {tableId} = req.params;
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
         const tableRef = tablesTable.findMatchingRowId({tableId});
         if (!tableRef) {
           throw new ApiError(`Table not found "${tableId}"`, 404);
@@ -721,7 +735,9 @@ export class DocWorkerApi {
     // Add or update records given in records format
     this._app.put('/api/docs/:docId/tables/:tableId/records', canEdit, validate(RecordsPut),
       withDoc(async (activeDoc, req, res) => {
-        const ops = getTableOperations(req, activeDoc);
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
+        const ops = getTableOperations(req, activeDoc, tableId);
         const body = req.body as Types.RecordsPut;
         const options = {
           add: !isAffirmative(req.query.noadd),
@@ -741,7 +757,8 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
         const columnsTable = activeDoc.docData!.getMetaTable("_grist_Tables_column");
-        const {tableId} = req.params;
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
         const tableRef = tablesTable.findMatchingRowId({tableId});
         if (!tableRef) {
           throw new ApiError(`Table not found "${tableId}"`, 404);
@@ -786,7 +803,9 @@ export class DocWorkerApi {
 
     this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
       withDoc(async (activeDoc, req, res) => {
-        const {tableId, colId} = req.params;
+        const {colId} = req.params;
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = getRealTableId(metaTables, req.params.tableId);
         const actions = [ [ 'RemoveColumn', tableId, colId ] ];
         await handleSandboxError(tableId, [colId],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
