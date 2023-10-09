@@ -2799,10 +2799,6 @@ export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: 
     columnData.colId[i] === colId && columnData.parentId[i] === tableRef
   ));
   if (colRowIndex === -1) {
-    // Test if the colId argument is directly the ref
-    if(parseInt(colId) && colRefs.indexOf(parseInt(colId)) >= 0){
-      return parseInt(colId);
-    }
     throw new ApiError(`Column not found "${colId}"`, 404);
   }
   return colRefs[colRowIndex];
