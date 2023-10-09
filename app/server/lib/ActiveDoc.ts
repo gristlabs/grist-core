@@ -2784,6 +2784,10 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
   const [, , tableRefs, tableData] = metaTables._grist_Tables;
   const tableRowIndex = tableData.tableId.indexOf(tableId);
   if (tableRowIndex === -1) {
+    // Test if the tableId argument is directly the ref
+    if(parseInt(tableId) && tableRefs.indexOf(parseInt(tableId)) >= 0){
+      return parseInt(tableId);
+    }
     throw new ApiError(`Table not found "${tableId}"`, 404);
   }
   return tableRefs[tableRowIndex];
@@ -2799,9 +2803,23 @@ export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: 
     columnData.colId[i] === colId && columnData.parentId[i] === tableRef
   ));
   if (colRowIndex === -1) {
+    // Test if the colId argument is directly the ref
+    if(parseInt(colId) && colRefs.indexOf(parseInt(colId)) >= 0){
+      return parseInt(colId);
+    }
     throw new ApiError(`Column not found "${colId}"`, 404);
   }
   return colRefs[colRowIndex];
+}
+
+// Helper that check if tableRef is used instead of tableId and return real tableId
+export function getRealTableId(metaTables: { [p: string]: TableDataAction }, tableId: string): string {
+  const [, , tableRefs, tableData] = metaTables._grist_Tables;
+  if(parseInt(tableId) && tableRefs.indexOf(parseInt(tableId)) >= 0){
+    const tableRowIndex = tableRefs.indexOf(parseInt(tableId));
+    return tableData.tableId[tableRowIndex]!.toString();
+  }
+  return tableId;
 }
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {

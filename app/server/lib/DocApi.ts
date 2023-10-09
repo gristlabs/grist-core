@@ -32,7 +32,7 @@ import {
   TableOperationsImpl,
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
-import {ActiveDoc, colIdToRef as colIdToReference, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {
@@ -201,7 +201,8 @@ export class DocWorkerApi {
       if (!Object.keys(filters).every(col => Array.isArray(filters[col]))) {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
       }
-      const tableId = optTableId || req.params.tableId;
+      const metaTables = await getMetaTables(activeDoc, req);
+      const tableId = getRealTableId(metaTables, optTableId || req.params.tableId);
       const session = docSessionFromRequest(req);
       const {tableData} = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
         session, {tableId, filters}, !immediate));
