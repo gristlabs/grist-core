@@ -769,7 +769,10 @@
         "Contact support": "Обратитесь в службу поддержки",
         "Sign in to access this organization's documents.": "Войдите, чтобы получить доступ к документам этой организации.",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "Запрашиваемая страница не может быть найдена.{{separator}}Пожалуйста, проверьте URL-адрес и повторите попытку.",
-        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Вы вошли как {{email}}. Вы можете войти с другой учетной записью или запросить доступ у администратора."
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Вы вошли как {{email}}. Вы можете войти с другой учетной записью или запросить доступ у администратора.",
+        "Account deleted{{suffix}}": "Аккаунт удален{{suffix}}",
+        "Your account has been deleted.": "Ваш аккаунт был удален.",
+        "Sign up": "Регистрация"
     },
     "CellStyle": {
         "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
