@@ -32,7 +32,7 @@ import {
   TableOperationsImpl,
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
-import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {ActiveDoc, colIdToRef as colIdToReference, getRealColId, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {
@@ -803,9 +803,9 @@ export class DocWorkerApi {
 
     this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
       withDoc(async (activeDoc, req, res) => {
-        const {colId} = req.params;
         const metaTables = await getMetaTables(activeDoc, req);
         const tableId = getRealTableId(metaTables, req.params.tableId);
+        const colId = getRealColId(metaTables, tableId, req.params.colId);
         const actions = [ [ 'RemoveColumn', tableId, colId ] ];
         await handleSandboxError(tableId, [colId],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)

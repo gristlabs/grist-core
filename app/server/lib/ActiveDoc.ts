@@ -2791,7 +2791,6 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
 
 // Helper that converts a Grist column colId to a ref given the corresponding table.
 export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: string, colId: string) {
-
   const tableRef = tableIdToRef(metaTables, tableId);
 
   const [, , colRefs, columnData] = metaTables._grist_Tables_column;
@@ -2799,10 +2798,6 @@ export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: 
     columnData.colId[i] === colId && columnData.parentId[i] === tableRef
   ));
   if (colRowIndex === -1) {
-    // Test if the colId argument is directly the ref
-    if(parseInt(colId) && colRefs.indexOf(parseInt(colId)) >= 0){
-      return parseInt(colId);
-    }
     throw new ApiError(`Column not found "${colId}"`, 404);
   }
   return colRefs[colRowIndex];
@@ -2816,6 +2811,21 @@ export function getRealTableId(metaTables: { [p: string]: TableDataAction }, tab
     return tableData.tableId[tableRowIndex]!.toString();
   }
   return tableId;
+}
+
+// Helper that check if colRef is used instead of colId and return real colId
+export function getRealColId(metaTables: { [p: string]: TableDataAction }, tableId: string, colId: string): string {
+  const tableRef = tableIdToRef(metaTables, tableId);
+  const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+  if(parseInt(colId)){
+    const colRowIndex = colRefs.findIndex((_, i) => (
+      colRefs[i] === parseInt(colId) && columnData.parentId[i] === tableRef
+    ));
+    if(colRowIndex >= 0) {
+      return columnData.colId[colRowIndex]!.toString();
+    }
+  }
+  return colId;
 }
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {
