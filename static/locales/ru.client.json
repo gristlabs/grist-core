@@ -164,7 +164,9 @@
         "Select Custom Widget": "Выбор пользовательского виджета",
         "Pick a column": "Выберать столбец",
         "Read selected table": "Просмотр выбранной таблицы",
-        "Widget does not require any permissions.": "Виджет не требует никаких разрешений."
+        "Widget does not require any permissions.": "Виджет не требует никаких разрешений.",
+        "No {{columnType}} columns in table.": "Нет {{columnType}} столбцов в таблице.",
+        "Clear selection": "Очистить выбор"
     },
     "AccountWidget": {
         "Access Details": "Сведения о доступе",
