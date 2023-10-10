@@ -2791,7 +2791,6 @@ export function tableIdToRef(metaTables: { [p: string]: TableDataAction }, table
 
 // Helper that converts a Grist column colId to a ref given the corresponding table.
 export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: string, colId: string) {
-
   const tableRef = tableIdToRef(metaTables, tableId);
 
   const [, , colRefs, columnData] = metaTables._grist_Tables_column;
