@@ -207,9 +207,8 @@ interface CursorSelectorInfo {
 
 async function getCursorSelectorInfo(section: WebElement): Promise<CursorSelectorInfo> {
   const hasCursor = await section.find('.active_cursor').isPresent();
-  const hasSelector = await section.find('.link_selector_row').isPresent();
   return {
-    linkSelector: hasSelector && Number(await section.find('.link_selector_row .gridview_data_row_num').getText()),
+    linkSelector: await gu.getSelectorPosition(section).then(r => r ?? false),
     cursor: hasCursor && await gu.getCursorPosition(section),
   };
 }

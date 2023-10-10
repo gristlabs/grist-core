@@ -57,27 +57,6 @@ async function getListItems(col: string) {
     .findAll(`.test-config-widget-map-list-for-${col} .test-config-widget-ref-select-label`, el => el.getText());
 }
 
-// Gets or sets access level
-async function givenAccess(level?: AccessLevel) {
-  const text = {
-    [AccessLevel.none]: 'No document access',
-    [AccessLevel.read_table]: 'Read selected table',
-    [AccessLevel.full]: 'Full document access',
-  };
-  if (!level) {
-    const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
-    return Object.entries(text).find(e => e[1] === currentAccess)![0];
-  } else {
-    await driver.find('.test-config-widget-access .test-select-open').click();
-    await driver.findContent('.test-select-menu li', text[level]).click();
-    await gu.waitForServer();
-  }
-}
-
-// Checks if access prompt is visible.
-const hasPrompt = () => driver.find('.test-config-widget-access-accept').isPresent();
-// Accepts new access level.
-const accept = () => driver.find('.test-config-widget-access-accept').click();
 // When refreshing, we need to make sure widget repository is enabled once again.
 async function refresh() {
   await driver.navigate().refresh();
@@ -86,19 +65,6 @@ async function refresh() {
   await gu.selectSectionByTitle('Table');
   await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
   await gu.selectSectionByTitle('Widget');
-}
-
-async function selectAccess(access: string) {
-  // if the current access is ok do nothing
-  if ((await givenAccess()) === access) {
-    // unless we need to confirm it
-    if (await hasPrompt()) {
-      await accept();
-    }
-  } else {
-    // else switch access level
-    await givenAccess(access as AccessLevel);
-  }
 }
 
 // Checks if active section has option in the menu to open configuration
@@ -158,7 +124,7 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
 }
 
 describe('CustomWidgetsConfig', function () {
-  this.timeout(60000);
+  this.timeout('60s');
   const cleanup = setupTestSuite();
   let mainSession: gu.Session;
   gu.bigScreen();
@@ -371,7 +337,7 @@ describe('CustomWidgetsConfig', function () {
       })
     );
 
-    await accept();
+    await gu.acceptAccessRequest();
 
     // Get the drop for M2 mappings.
     const mappingsForM2 = () => driver.find(pickerDrop('M2'));
@@ -421,7 +387,7 @@ describe('CustomWidgetsConfig', function () {
       })
     );
 
-    await accept();
+    await gu.acceptAccessRequest();
 
     // Get the drop for M2 mappings.
     const mappingsForM2 = () => driver.find(pickerDrop('M2'));
@@ -461,7 +427,7 @@ describe('CustomWidgetsConfig', function () {
     // Select widget that has single column configuration.
     await clickOption(COLUMN_WIDGET);
     await widget.waitForFrame();
-    await accept();
+    await gu.acceptAccessRequest();
     // Visible columns section should be hidden.
     assert.isFalse(await driver.find('.test-vfc-visible-fields-select-all').isPresent());
     // Record event should be fired.
@@ -496,7 +462,7 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await accept();
+    await gu.acceptAccessRequest();
     const empty = {M1: null, M2: null, M3: null, M4: null};
     await widget.waitForFrame();
     assert.isNull(await widget.onRecordsMappings());
@@ -562,7 +528,7 @@ describe('CustomWidgetsConfig', function () {
 
     await toggleWidgetMenu();
     await clickOption(COLUMN_WIDGET);
-    await accept();
+    await gu.acceptAccessRequest();
 
     // Make sure columns are there to pick.
 
@@ -584,7 +550,7 @@ describe('CustomWidgetsConfig', function () {
     assert.isTrue(await driver.find('.test-vfc-visible-fields-select-all').isPresent());
     assert.isFalse(await driver.find('.test-config-widget-label-for-Column').isPresent());
 
-    await selectAccess(AccessLevel.read_table);
+    await gu.changeWidgetAccess(AccessLevel.read_table);
     // Widget should receive full records.
     assert.deepEqual(await widget.onRecords(), [
       {id: 1, A: 'A'},
@@ -594,7 +560,7 @@ describe('CustomWidgetsConfig', function () {
     // Now go back to the widget with mappings.
     await toggleWidgetMenu();
     await clickOption(COLUMN_WIDGET);
-    await accept();
+    await gu.acceptAccessRequest();
     assert.equal(await driver.find(pickerDrop('Column')).getText(), 'Pick a column');
     assert.isFalse(await driver.find('.test-vfc-visible-fields-select-all').isPresent());
     assert.isTrue(await driver.find('.test-config-widget-label-for-Column').isPresent());
@@ -614,7 +580,7 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await accept();
+    await gu.acceptAccessRequest();
     const empty = {M1: [], M2: []};
     await widget.waitForFrame();
     // Add some columns, numeric B and any C.
@@ -691,7 +657,7 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await accept();
+    await gu.acceptAccessRequest();
     await widget.waitForFrame();
     // Add B=Date, C=DateTime, D=Numeric
     await gu.sendActions([
@@ -753,7 +719,7 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await accept();
+    await gu.acceptAccessRequest();
     await widget.waitForFrame();
     await gu.sendActions([
       ['AddVisibleColumn', 'Table1', 'Any', {type: 'Any'}],
@@ -801,7 +767,7 @@ describe('CustomWidgetsConfig', function () {
     await gu.sendActions([
       ['AddVisibleColumn', 'Table1', 'Choice', {type: 'Choice', widgetOptions: JSON.stringify(widgetOptions)}]
     ]);
-    await accept();
+    await gu.acceptAccessRequest();
     await widget.waitForFrame();
 
     await gu.selectSectionByTitle('Widget');
@@ -837,7 +803,7 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await accept();
+    await gu.acceptAccessRequest();
     await widget.waitForFrame();
     // Add some columns, to remove later
     await gu.selectSectionByTitle('Table');
@@ -918,7 +884,7 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await accept();
+    await gu.acceptAccessRequest();
     await widget.waitForFrame();
     assert.deepEqual(await widget.onRecordsMappings(), null);
     assert.deepEqual(await widget.onRecords(), [
@@ -1059,7 +1025,7 @@ describe('CustomWidgetsConfig', function () {
         }
       });
       it(`should get null options`, async () => {
-        await selectAccess(access);
+        await gu.changeWidgetAccess(access);
         await widget.waitForFrame();
         assert.equal(await widget.onOptions(), null);
         assert.equal(await widget.access(), access);
@@ -1067,7 +1033,7 @@ describe('CustomWidgetsConfig', function () {
       });
 
       it(`should save config options and inform about it the main widget`, async () => {
-        await selectAccess(access);
+        await gu.changeWidgetAccess(access);
         await widget.waitForFrame();
         // Save config and check if normal widget received new configuration
         const config = {key: 1} as const;
@@ -1084,7 +1050,7 @@ describe('CustomWidgetsConfig', function () {
       });
 
       it(`should save and read options`, async () => {
-        await selectAccess(access);
+        await gu.changeWidgetAccess(access);
         await widget.waitForFrame();
         // Make sure get options returns null.
         assert.equal(await widget.getOptions(), null);
@@ -1096,7 +1062,7 @@ describe('CustomWidgetsConfig', function () {
       });
 
       it(`should save and read options by keys`, async () => {
-        await selectAccess(access);
+        await gu.changeWidgetAccess(access);
         await widget.waitForFrame();
         // Should support key operations
         const set = async (key: string, value: any) => {
@@ -1117,7 +1083,7 @@ describe('CustomWidgetsConfig', function () {
       });
 
       it(`should call configure method`, async () => {
-        await selectAccess(access);
+        await gu.changeWidgetAccess(access);
         await widget.waitForFrame();
         // Make sure configure wasn't called yet.
         assert.isFalse(await widget.wasConfigureCalled());
@@ -1158,26 +1124,26 @@ describe('CustomWidgetsConfig', function () {
     // Select widget without request
     await toggleWidgetMenu();
     await clickOption(NORMAL_WIDGET);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await givenAccess(), AccessLevel.none);
+    assert.isFalse(await gu.hasAccessPrompt());
+    assert.equal(await gu.widgetAccess(), AccessLevel.none);
     assert.equal(await widget.access(), AccessLevel.none);
     // Select widget that requests read access.
     await toggleWidgetMenu();
     await clickOption(READ_WIDGET);
-    assert.isTrue(await hasPrompt());
-    assert.equal(await givenAccess(), AccessLevel.none);
+    assert.isTrue(await gu.hasAccessPrompt());
+    assert.equal(await gu.widgetAccess(), AccessLevel.none);
     assert.equal(await widget.access(), AccessLevel.none);
-    await accept();
-    assert.equal(await givenAccess(), AccessLevel.read_table);
+    await gu.acceptAccessRequest();
+    assert.equal(await gu.widgetAccess(), AccessLevel.read_table);
     assert.equal(await widget.access(), AccessLevel.read_table);
     // Select widget that requests full access.
     await toggleWidgetMenu();
     await clickOption(FULL_WIDGET);
-    assert.isTrue(await hasPrompt());
-    assert.equal(await givenAccess(), AccessLevel.none);
+    assert.isTrue(await gu.hasAccessPrompt());
+    assert.equal(await gu.widgetAccess(), AccessLevel.none);
     assert.equal(await widget.access(), AccessLevel.none);
-    await accept();
-    assert.equal(await givenAccess(), AccessLevel.full);
+    await gu.acceptAccessRequest();
+    assert.equal(await gu.widgetAccess(), AccessLevel.full);
     assert.equal(await widget.access(), AccessLevel.full);
     await gu.undo(5);
   });
