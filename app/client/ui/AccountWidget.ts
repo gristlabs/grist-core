@@ -60,6 +60,7 @@ export class AccountWidget extends Disposable {
     return [
       cssSigninButton(t('Sign In'),
         cssSigninButton.cls('-secondary'),
+        dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
         dom.attr('href', use => {
           // Keep the redirect param of the login URL fresh.
           use(urlState().state);
@@ -68,6 +69,7 @@ export class AccountWidget extends Disposable {
         testId('user-sign-in'),
       ),
       cssSigninButton(t('Sign Up'),
+        dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
         dom.attr('href', use => {
           // Keep the redirect param of the signup URL fresh.
           use(urlState().state);
