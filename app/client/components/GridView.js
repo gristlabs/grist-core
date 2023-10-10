@@ -134,23 +134,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   }));
 
   this.autoDispose(this.cursor.fieldIndex.subscribe(idx => {
-    // If there are some frozen columns.
-    if (this.numFrozen.peek() && idx < this.numFrozen.peek()) { return; }
-
-    const offset = this.colRightOffsets.peek().getSumTo(idx);
-
-    const rowNumsWidth = this._cornerDom.clientWidth;
-    const viewWidth = this.scrollPane.clientWidth - rowNumsWidth;
-    const fieldWidth = this.colRightOffsets.peek().getValue(idx) + 1; // +1px border
-
-    // Left and right pixel edge of 'viewport', starting from edge of row nums.
-    const frozenWidth = this.frozenWidth.peek();
-    const leftEdge = this.scrollPane.scrollLeft + frozenWidth;
-    const rightEdge = leftEdge + (viewWidth - frozenWidth);
-
-    //If cell doesn't fit onscreen, scroll to fit
-    const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
-    this.scrollPane.scrollLeft = this.scrollPane.scrollLeft + scrollShift;
+    this._scrollColumnIntoView(idx);
   }));
 
   this.isPreview = isPreview;
@@ -302,34 +286,14 @@ GridView.gridCommands = {
     }
     this.cursor.rowIndex(this.cursor.rowIndex() - 1);
   },
-  shiftDown: function() {
-    this._shiftSelect(1, this.cellSelector.row.end, selector.COL, this.getLastDataRowIndex());
-  },
-  shiftUp: function() {
-    this._shiftSelect(-1, this.cellSelector.row.end, selector.COL, this.getLastDataRowIndex());
-  },
-  shiftRight: function() {
-    this._shiftSelect(1, this.cellSelector.col.end, selector.ROW,
-                      this.viewSection.viewFields().peekLength - 1);
-  },
-  shiftLeft: function() {
-    this._shiftSelect(-1, this.cellSelector.col.end, selector.ROW,
-                      this.viewSection.viewFields().peekLength - 1);
-  },
-  ctrlShiftDown: function () {
-    this._shiftSelectUntilContent(selector.COL, 1, this.cellSelector.row.end, this.getLastDataRowIndex());
-  },
-  ctrlShiftUp: function () {
-    this._shiftSelectUntilContent(selector.COL, -1, this.cellSelector.row.end, this.getLastDataRowIndex());
-  },
-  ctrlShiftRight: function () {
-    this._shiftSelectUntilContent(selector.ROW, 1, this.cellSelector.col.end,
-      this.viewSection.viewFields().peekLength - 1);
-  },
-  ctrlShiftLeft: function () {
-    this._shiftSelectUntilContent(selector.ROW, -1, this.cellSelector.col.end,
-      this.viewSection.viewFields().peekLength - 1);
-  },
+  shiftDown: function() { this._shiftSelect({step: 1, direction: 'down'}); },
+  shiftUp: function() { this._shiftSelect({step: 1, direction: 'up'}); },
+  shiftRight: function() { this._shiftSelect({step: 1, direction: 'right'}); },
+  shiftLeft: function() { this._shiftSelect({step: 1, direction: 'left'}); },
+  ctrlShiftDown: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'down'}); },
+  ctrlShiftUp: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'up'}); },
+  ctrlShiftRight: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'right'}); },
+  ctrlShiftLeft: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({direction: 'left'}); },
   fillSelectionDown: function() { this.fillSelectionDown(); },
   selectAll: function() { this.selectAll(); },
 
@@ -401,81 +365,117 @@ GridView.prototype.onTableLoaded = function() {
 
 /**
  * Update the bounds of the cell selector's selected range for Shift+Direction keyboard shortcuts.
- * @param {integer} step - amount to increase/decrease the select bound
- * @param {Observable} selectObs - observable to change
- * @exemptType {Selector type string} - selector type to noop on
-     IE: Shift + Up/Down should noop if columns are selected. And vice versa for rows.
- * @param {integer} maxVal - maximum value allowed for the selectObs
- **/
-GridView.prototype._shiftSelect = function(step, selectObs, exemptType, maxVal) {
-  console.assert(exemptType === selector.ROW || exemptType === selector.COL);
-  if (this.cellSelector.isCurrentSelectType(exemptType)) return;
+ */
+GridView.prototype._shiftSelect = function({step, direction}) {
+  const type = ['up', 'down'].includes(direction) ? selector.ROW : selector.COL;
+  const exemptType = type === selector.ROW ? selector.COL : selector.ROW;
+  if (this.cellSelector.isCurrentSelectType(exemptType)) { return; }
+
   if (this.cellSelector.isCurrentSelectType(selector.NONE)) {
     this.cellSelector.currentSelectType(selector.CELL);
   }
-  var newVal = gutil.clamp(selectObs() + step, 0, maxVal);
+  let selectObs;
+  let maxVal;
+  if (type === 'row') {
+    selectObs = this.cellSelector.row.end;
+    maxVal = this.getLastDataRowIndex();
+  } else {
+    selectObs = this.cellSelector.col.end;
+    maxVal = this.viewSection.viewFields().peekLength - 1;
+  }
+  step = ['up', 'left'].includes(direction) ? -step : step;
+  const newVal = gutil.clamp(selectObs() + step, 0, maxVal);
   selectObs(newVal);
+  if (type === 'row') {
+    this.scrolly.scrollRowIntoView(newVal);
+  } else {
+    this._scrollColumnIntoView(newVal);
+  }
 };
 
-GridView.prototype._shiftSelectUntilContent = function(type, direction, selectObs, maxVal) {
-  const selection = {
-    colStart: this.cellSelector.col.start(),
-    colEnd: this.cellSelector.col.end(),
-    rowStart: this.cellSelector.row.start(),
-    rowEnd: this.cellSelector.row.end(),
-  };
-
-  const steps = this._stepsToContent(type, direction, selection, maxVal);
-  if (steps > 0) { this._shiftSelect(direction * steps, selectObs, type, maxVal); }
+/**
+ * Shifts the current selection in the specified `direction` until the first or last
+ * non-empty cell.
+ *
+ * If the current selection ends on an empty cell, the selection will be shifted to
+ * the first non-empty cell in the specified direction. Otherwise, the selection
+ * will be shifted to the last non-empty cell.
+ */
+GridView.prototype._shiftSelectUntilFirstOrLastNonEmptyCell = function({direction}) {
+  const steps = this._stepsToContent({direction});
+  if (steps > 0) { this._shiftSelect({step: steps, direction}); }
 }
 
-GridView.prototype._stepsToContent = function (type, direction, selection, maxVal) {
-  const {colEnd: colEnd, rowEnd: rowEnd} = selection;
-  let selectionData;
-
+/**
+ * Gets the number of rows/columns until the first or last non-empty cell in the specified
+ * `direction`.
+ */
+GridView.prototype._stepsToContent = function ({direction}) {
+  const colEnd = this.cellSelector.col.end();
+  const rowEnd = this.cellSelector.row.end();
   const cursorCol = this.cursor.fieldIndex();
   const cursorRow = this.cursor.rowIndex();
+  const type = ['up', 'down'].includes(direction) ? selector.ROW : selector.COL;
+  const maxVal = type === selector.ROW
+    ? this.getLastDataRowIndex()
+    : this.viewSection.viewFields().peekLength - 1;
 
-  if (type === selector.ROW && direction > 0) {
-    if (colEnd + 1 > maxVal) { return 0; }
+  // Get table data for the current selection plus additional data in the specified `direction`.
+  let selectionData;
+  switch (direction) {
+    case 'right': {
+      if (colEnd + 1 > maxVal) { return 0; }
 
-    selectionData = this._selectionData({colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow});
-  } else if (type === selector.ROW && direction < 0) {
-    if (colEnd - 1 < 0) { return 0; }
+      selectionData = this._selectionData({colStart: colEnd, colEnd: maxVal, rowStart: cursorRow, rowEnd: cursorRow});
+      break;
+    }
+    case 'left': {
+      if (colEnd - 1 < 0) { return 0; }
 
-    selectionData = this._selectionData({colStart: 0, colEnd, rowStart: cursorRow, rowEnd: cursorRow});
-  } else if (type === selector.COL && direction > 0) {
-    if (rowEnd + 1 > maxVal) { return 0; }
+      selectionData = this._selectionData({colStart: 0, colEnd, rowStart: cursorRow, rowEnd: cursorRow});
+      break;
+    }
+    case 'up': {
+      if (rowEnd - 1 > maxVal) { return 0; }
 
-    selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal});
-  } else if (type === selector.COL && direction < 0) {
-    if (rowEnd - 1 > maxVal) { return 0; }
+      selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: 0, rowEnd});
+      break;
+    }
+    case 'down': {
+      if (rowEnd + 1 > maxVal) { return 0; }
 
-    selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: 0, rowEnd});
+      selectionData = this._selectionData({colStart: cursorCol, colEnd: cursorCol, rowStart: rowEnd, rowEnd: maxVal});
+      break;
+    }
   }
 
   const {fields, rowIndices} = selectionData;
-  if (type === selector.ROW && direction < 0) {
+  if (direction === 'left') {
     // When moving selection left, we step through fields in reverse order.
     fields.reverse();
   }
-  if (type === selector.COL && direction < 0) {
+  if (direction === 'up') {
     // When moving selection up, we step through rows in reverse order.
     rowIndices.reverse();
   }
 
+  // Prepare a map of field indexes to their respective column values. We'll consult these
+  // values below when looking for the first (or last) non-empty cell value in the direction
+  // of the new selection.
   const colValuesByIndex = {};
   for (const field of fields) {
     const displayColId = field.displayColModel.peek().colId.peek();
     colValuesByIndex[field._index()] = this.tableModel.tableData.getColValues(displayColId);
   }
 
+  // Count the number of steps until the first or last non-empty cell.
   let steps = 0;
-
-  if (type === selector.ROW) {
+  if (type === selector.COL) {
+    // The selection is changing on the x-axis (i.e. the selected columns changed).
     const rowIndex = rowIndices[0];
     const isLastColEmpty = this._isCellValueEmpty(colValuesByIndex[colEnd][rowIndex]);
-    const isNextColEmpty = this._isCellValueEmpty(colValuesByIndex[colEnd + direction][rowIndex]);
+    const isNextColEmpty = this._isCellValueEmpty(
+      colValuesByIndex[colEnd + (direction === 'right' ? 1 : -1)][rowIndex]);
     const shouldStopOnEmptyValue = !isLastColEmpty && !isNextColEmpty;
     for (let i = 1; i < fields.length; i++) {
       const hasEmptyValues = this._isCellValueEmpty(colValuesByIndex[fields[i]._index()][rowIndex]);
@@ -488,6 +488,7 @@ GridView.prototype._stepsToContent = function (type, direction, selection, maxVa
       steps += 1;
     }
   } else {
+    // The selection is changing on the y-axis (i.e. the selected rows changed).
     const colValues = colValuesByIndex[fields[0]._index()];
     const isLastRowEmpty = this._isCellValueEmpty(colValues[rowIndices[0]]);
     const isNextRowEmpty = this._isCellValueEmpty(colValues[rowIndices[1]]);
@@ -1951,6 +1952,26 @@ GridView.prototype._showTooltipOnHover = function(field, isShowingTooltip) {
     }),
   ];
 };
+
+GridView.prototype._scrollColumnIntoView = function(colIndex) {
+  // If there are some frozen columns.
+  if (this.numFrozen.peek() && colIndex < this.numFrozen.peek()) { return; }
+
+  const offset = this.colRightOffsets.peek().getSumTo(colIndex);
+
+  const rowNumsWidth = this._cornerDom.clientWidth;
+  const viewWidth = this.scrollPane.clientWidth - rowNumsWidth;
+  const fieldWidth = this.colRightOffsets.peek().getValue(colIndex) + 1; // +1px border
+
+  // Left and right pixel edge of 'viewport', starting from edge of row nums.
+  const frozenWidth = this.frozenWidth.peek();
+  const leftEdge = this.scrollPane.scrollLeft + frozenWidth;
+  const rightEdge = leftEdge + (viewWidth - frozenWidth);
+
+  // If cell doesn't fit onscreen, scroll to fit.
+  const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
+  this.scrollPane.scrollLeft = this.scrollPane.scrollLeft + scrollShift;
+}
 
 function buildStyleOption(owner, computedRule, optionName) {
   return ko.computed(() => {
