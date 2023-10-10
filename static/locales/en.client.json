@@ -199,7 +199,9 @@
         "Widget needs to {{read}} the current table.": "Widget needs to {{read}} the current table.",
         "Widget needs {{fullAccess}} to this document.": "Widget needs {{fullAccess}} to this document.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} non-{{columnType}} column is not shown",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} non-{{columnType}} columns are not shown"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} non-{{columnType}} columns are not shown",
+        "Clear selection": "Clear selection",
+        "No {{columnType}} columns in table.": "No {{columnType}} columns in table."
     },
     "DataTables": {
         "Click to copy": "Click to copy",
