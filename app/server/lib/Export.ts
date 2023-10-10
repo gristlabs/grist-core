@@ -99,6 +99,7 @@ export interface ExportParameters {
   sortOrder?: number[];
   filters?: Filter[];
   linkingFilter?: FilterColValues;
+  colIdAsHeader?: boolean;
 }
 
 /**
@@ -117,6 +118,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
   const linkingFilter: FilterColValues = optJsonParam(req.query.linkingFilter, null);
+  const colIdAsHeader = gutil.isAffirmative(req.query.colIdAsHeader);
 
   return {
     tableId,
@@ -124,6 +126,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
     sortOrder,
     filters,
     linkingFilter,
+    colIdAsHeader,
   };
 }
 

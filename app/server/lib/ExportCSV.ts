@@ -17,11 +17,12 @@ bluebird.promisifyAll(csv);
 export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
                                   res: express.Response, options: DownloadOptions) {
   log.info('Generating .csv file...');
-  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter} = options;
+  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, colIdAsHeader} = options;
+  const colPropertyAsHeader = colIdAsHeader ? 'colId' : 'label';
   const data = viewSectionId ?
     await makeCSVFromViewSection(
-      activeDoc, viewSectionId, sortOrder || null, filters || null, linkingFilter || null, req) :
-    await makeCSVFromTable(activeDoc, tableId, req);
+      activeDoc, viewSectionId, sortOrder || null, filters || null, linkingFilter || null, colPropertyAsHeader, req) :
+    await makeCSVFromTable(activeDoc, tableId, colPropertyAsHeader, req);
   res.set('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
   res.send(data);
@@ -44,10 +45,11 @@ export async function makeCSVFromViewSection(
   sortOrder: number[] | null,
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null,
+  colPropertyAsHeader: 'label' | 'colId',
   req: express.Request) {
 
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, linkingFilter, req);
-  const file = convertToCsv(data);
+  const file = convertToCsv(data, colPropertyAsHeader);
   return file;
 }
 
@@ -61,6 +63,7 @@ export async function makeCSVFromViewSection(
 export async function makeCSVFromTable(
   activeDoc: ActiveDoc,
   tableId: string,
+  colPropertyAsHeader: 'label' | 'colId',
   req: express.Request) {
 
   if (!activeDoc.docData) {
@@ -76,7 +79,7 @@ export async function makeCSVFromTable(
   }
 
   const data = await exportTable(activeDoc, tableRef, req);
-  const file = convertToCsv(data);
+  const file = convertToCsv(data, colPropertyAsHeader);
   return file;
 }
 
@@ -84,13 +87,13 @@ function convertToCsv({
   rowIds,
   access,
   columns: viewColumns,
-  docSettings
-}: ExportData) {
+  docSettings,
+}: ExportData, colPropertyAsHeader: 'label' | 'colId') {
 
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
-  const csvMatrix = [viewColumns.map(col => col.label)];
+  const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
   rowIds.forEach(row => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
