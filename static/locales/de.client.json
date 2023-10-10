@@ -86,7 +86,8 @@
         "Action Log failed to load": "Aktionsprotokoll konnte nicht geladen werden",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Spalte {{colId}} wurde anschließend in Aktion #{{action.actionNum}} entfernt",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabelle {{tableId}} wurde anschließend in Aktion #{{actionNum}} entfernt",
-        "This row was subsequently removed in action {{action.actionNum}}": "Diese Zeile wurde anschließend in Aktion entfernt {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Diese Zeile wurde anschließend in Aktion entfernt {{action.actionNum}}",
+        "All tables": "Alle Tabellen"
     },
     "AddNewButton": {
         "Add New": "Neu hinzufügen"
@@ -853,7 +854,10 @@
         "There was an unknown error.": "Es ist ein unbekannter Fehler aufgetreten.",
         "You are now signed out.": "Sie sind jetzt abgemeldet.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Sie sind als {{email}} angemeldet. Sie können sich mit einem anderen Konto anmelden oder einen Administrator um Zugriff bitten.",
-        "You do not have access to this organization's documents.": "Sie haben keinen Zugriff auf die Dokumente dieser Organisation."
+        "You do not have access to this organization's documents.": "Sie haben keinen Zugriff auf die Dokumente dieser Organisation.",
+        "Account deleted{{suffix}}": "Konto gelöscht{{suffix}}",
+        "Your account has been deleted.": "Ihr Konto wurde gelöscht.",
+        "Sign up": "Anmelden"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
@@ -1083,7 +1087,12 @@
         "Anchor Links": "Anker-Links",
         "Custom Widgets": "Benutzerdefinierte Widgets",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Sie können eines unserer vorgefertigten Widgets auswählen oder Ihr eigenes einbetten, indem Sie dessen vollständige URL angeben.",
-        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Um einen Ankerlink zu erstellen, der den Benutzer zu einer bestimmten Zelle führt, klicken Sie auf eine Zeile und drücken Sie {{shortcut}}."
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Um einen Ankerlink zu erstellen, der den Benutzer zu einer bestimmten Zelle führt, klicken Sie auf eine Zeile und drücken Sie {{shortcut}}.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Um Ihren Kalender zu konfigurieren, wählen Sie Spalten für das Start-/Enddatum und den Titel des Ereignisses. Beachten Sie den Typ jeder Spalte."
+        },
+        "Calendar": "Kalender",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Sie können die richtigen Spalten nicht finden? Klicken Sie auf \"Widget ändern\", um die Tabelle mit den Ereignisdaten auszuwählen."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"

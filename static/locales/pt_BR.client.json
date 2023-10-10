@@ -86,7 +86,8 @@
         "Action Log failed to load": "Falha ao carregar o Log de Ações",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "A Coluna {{colId}} foi posteriormente removida em ação #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "A Tabela {{tableId}} foi posteriormente removida em ação #{{actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "Essa linha foi posteriormente removida em ação {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Essa linha foi posteriormente removida em ação {{action.actionNum}}",
+        "All tables": "Todas as tabelas"
     },
     "AddNewButton": {
         "Add New": "Adicionar Novo"
@@ -853,7 +854,10 @@
         "There was an unknown error.": "Houve um erro desconhecido.",
         "You are now signed out.": "Agora você está fora da sessão.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Você está inscrito como {{email}}. Você pode entrar com uma conta diferente, ou pedir acesso a um administrador.",
-        "You do not have access to this organization's documents.": "Você não tem acesso aos documentos desta organização."
+        "You do not have access to this organization's documents.": "Você não tem acesso aos documentos desta organização.",
+        "Account deleted{{suffix}}": "Conta excluída{{suffix}}",
+        "Your account has been deleted.": "Sua conta foi excluída.",
+        "Sign up": "Cadastre-se"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* As áreas de trabalho estão disponíveis nos planos de equipe. ",
@@ -1083,7 +1087,12 @@
         "Anchor Links": "Links de âncora",
         "Custom Widgets": "Widgets personalizados",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para criar um link âncora que leve o usuário a uma célula específica, clique em uma linha e pressione {{shortcut}}.",
-        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Você pode escolher um dos nossos widgets pré-feitos ou incorporar seu próprio, fornecendo sua URL completa."
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Você pode escolher um dos nossos widgets pré-feitos ou incorporar seu próprio, fornecendo sua URL completa.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Para configurar seu calendário, selecione colunas para datas de início/fim e títulos de eventos. Observe o tipo de cada coluna."
+        },
+        "Calendar": "Calendário",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Não consegue encontrar as colunas certas? Clique em \"Change Widget\" (Alterar widget) para selecionar a tabela com os dados dos eventos."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
