@@ -75,7 +75,7 @@
         "Add Account": "Ajouter un compte",
         "Sign Out": "Se déconnecter",
         "Upgrade Plan": "Changer d'offre",
-        "Support Grist": "Support utilisateur Grist",
+        "Support Grist": "Soutenir Grist",
         "Billing Account": "Facturation",
         "Activation": "Activer",
         "Sign In": "Se connecter",
@@ -419,7 +419,7 @@
         "Get started by exploring templates, or creating your first Grist document.": "Commencez par explorer des modèles ou créez votre premier document Grist.",
         "Welcome to Grist!": "Bienvenue sur Grist !",
         "Help Center": "Centre d'aide",
-        "Invite Team Members": "Inviter un nouveau membre",
+        "Invite Team Members": "Inviter un nouveau membre à l'espace d'équipe",
         "Browse Templates": "Parcourir les modèles",
         "Create Empty Document": "Créer un document vide",
         "Import Document": "Importer un Fichier",
@@ -524,7 +524,7 @@
         "Select Widget": "Choisir la vue",
         "Select Data": "Choisir les données source",
         "Group by": "Grouper par",
-        "Add to Page": "Ajouter à la page"
+        "Add to Page": "Ajouter à la Page"
     },
     "Pages": {
         "The following tables will no longer be visible_one": "La donnée source ne sera plus visible",
@@ -631,11 +631,11 @@
         "Use choice position": "Utiliser l'ordre des choix",
         "Natural sort": "Trier",
         "Empty values last": "Valeurs vides en dernier",
-        "Search Columns": "Rechercher"
+        "Search Columns": "Rechercher dans les colonnes"
     },
     "SortFilterConfig": {
         "Save": "Enregistrer",
-        "Revert": "Restaurer",
+        "Revert": "Retour",
         "Sort": "TRI",
         "Filter": "FILTRE",
         "Update Sort & Filter settings": "Mettre à jour le tri et le filtre"
@@ -652,7 +652,7 @@
         "Code View": "Vue du code",
         "How-to Tutorial": "Tutoriel pratique",
         "Tour of this Document": "Découvrir le document",
-        "Delete document tour?": "Delete document tour?",
+        "Delete document tour?": "Supprimer la visite guidée du document ?",
         "Delete": "Supprimer",
         "Return to viewing as yourself": "Revenir à une vue en propre",
         "Raw Data": "Données source",
@@ -693,10 +693,10 @@
         "Update formula (Shift+Enter)": "Mettre à jour la formule (Maj+Entrée)"
     },
     "ViewConfigTab": {
-        "Unmark On-Demand": "Unmark On-Demand",
+        "Unmark On-Demand": "Ne plus marquer comme \"à la demande\"",
         "Make On-Demand": "Rendre dynamique",
         "Advanced settings": "Paramètres avancés",
-        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Les grosses tables peuvent être marquées comme \"à la demande\" pour éviter de les charger dans le moteur de calcul.",
         "Form": "Formulaire",
         "Compact": "Compact",
         "Blocks": "Blocs",
@@ -723,7 +723,7 @@
     "ViewSectionMenu": {
         "Update Sort&Filter settings": "Mettre à jour le tri et le filtre",
         "Save": "Enregistrer",
-        "Revert": "Restaurer",
+        "Revert": "Retour",
         "(customized)": "(personnalisé)",
         "(modified)": "(modifié)",
         "(empty)": "(vide)",
@@ -853,7 +853,7 @@
         "Open row styles": "Ouvrir les styles de ligne",
         "Cell Style": "Style de cellule",
         "CELL STYLE": "STYLE de CELLULE",
-        "Default cell style": "Style par défaut",
+        "Default cell style": "Style par défaut de la cellule",
         "Mixed style": "Style composite",
         "Header Style": "Style de l'entête",
         "Default header style": "Style par défaut",
@@ -922,7 +922,7 @@
         "Update formula (Shift+Enter)": "Modifier la formule (MAJ+Entrée)"
     },
     "ColumnEditor": {
-        "COLUMN DESCRIPTION": "DESCRIPTION",
+        "COLUMN DESCRIPTION": "DESCRIPTION DE LA COLONNE",
         "COLUMN LABEL": "LIBELLÉ"
     },
     "ACLUsers": {
@@ -944,7 +944,7 @@
         "CHOICES": "CHOIX"
     },
     "ColumnInfo": {
-        "COLUMN DESCRIPTION": "DESCRIPTION",
+        "COLUMN DESCRIPTION": "DESCRIPTION DE LA COLONNE",
         "COLUMN ID: ": "Identifiant de la colonne : ",
         "COLUMN LABEL": "LIBELLÉ",
         "Cancel": "Annuler",
@@ -1032,7 +1032,7 @@
             "end dates and event titles. Note each column's type.": "Pour configurer votre calendrier, sélectionnez les colonnes pour les dates de début/fin et le nom de l'évènement. Notez le type de chaque colonne."
         },
         "Calendar": "Calendrier",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Impossible de trouver les bonnes colonnes ? Cliquez sur \"Changer de vue\" pour sélectionner la table contenant les évênements."
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Impossible de trouver les bonnes colonnes ? Cliquez sur \"Changer de vue\" pour sélectionner la table contenant les évènements."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1041,7 +1041,7 @@
         "COLUMN ID: ": "Identifiant de la column : ",
         "Column description": "Description de la colonne",
         "Column label": "Libellé de la colonne",
-        "Provide a column label": "Renommer la colonne",
+        "Provide a column label": "Donner un nom à la colonne",
         "Save": "Sauvegarder",
         "Close": "Fermer"
     },
@@ -1111,7 +1111,7 @@
         "Close": "Fermer",
         "Contribute": "Contribuer",
         "Support Grist": "Support Grist",
-        "Opt in to Telemetry": "S'inscrire à Telemetry",
+        "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opted In": "Accepté",
         "Support Grist page": "Soutenir Grist"
     },
@@ -1125,10 +1125,10 @@
         "Sponsor Grist Labs on GitHub": "Sponsoriser Grist Labs sur GitHub",
         "GitHub Sponsors page": "Page de sponsors GitHub",
         "Manage Sponsorship": "Gérer le parrainage",
-        "Opt in to Telemetry": "S'inscrire à Telemetry",
-        "Opt out of Telemetry": "S'inscrire à Telemetry",
+        "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
+        "Opt out of Telemetry": "Se désinscrire de l'envoi de données de télémétrie",
         "Support Grist": "Support Grist",
-        "Telemetry": "Telemetry",
+        "Telemetry": "Télémétrie",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Cette instance accepte l'envoi de données de télémétrie. Seul l'administrateur de l'espace est autorisé à modifier ce paramètre.",
         "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Cette instance est autorisée à utiliser la télémétrie. Seul l'administrateur de l'espace est autorisé à modifier ce paramètre.",
         "You have opted out of telemetry.": "Vous avez choisi de ne pas envoyer de données de télémétrie.",
@@ -1170,7 +1170,7 @@
         "Outside collaborator": "Collaborateur externe",
         "Public Access": "Accès public",
         "Public access": "Accès public",
-        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'accès public est hérité de {{parent}}. Pour le supprimer, changer l'option 'Accès hérité' à 'Aucun'",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'accès public est hérité de {{parent}}. Pour le supprimer, changer l'option 'Accès hérité' à 'Aucun'.",
         "Public access: ": "Accès public : ",
         "Remove my access": "Supprimer mon accès",
         "Save & ": "Sauvegarder & ",
