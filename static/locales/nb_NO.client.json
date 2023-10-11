@@ -28,7 +28,14 @@
         "Sign Out": "Logg ut",
         "Sign in": "Logg inn",
         "Switch Accounts": "Bytt konto",
-        "Toggle Mobile Mode": "Slå av/på mobilmodus"
+        "Toggle Mobile Mode": "Slå av/på mobilmodus",
+        "Activation": "Aktivering",
+        "Support Grist": "Støtt Grist",
+        "Upgrade Plan": "Oppgrader plan",
+        "Use This Template": "Bruk denne malen",
+        "Billing Account": "Faktureringskonto",
+        "Sign In": "Logg inn",
+        "Sign Up": "Registrering"
     },
     "AddNewButton": {
         "Add New": "Legg til ny"
@@ -53,7 +60,8 @@
         "Home Page": "Hjemmeside",
         "Personal Site": "Personlig side",
         "Team Site": "Lagside",
-        "Legacy": "Foreldet"
+        "Legacy": "Foreldet",
+        "Grist Templates": "Grist-maler"
     },
     "CellContextMenu": {
         "Clear cell": "Tøm celle",
@@ -84,7 +92,11 @@
         "Duplicate rows_one": "Dupliser rad",
         "Reset {{count}} columns_one": "Tilbakestill kolonne",
         "Reset {{count}} entire columns_other": "Tilbakestill {{count}} hele kolonner",
-        "Reset {{count}} columns_other": "Tilbakestill {{count}} kolonner"
+        "Reset {{count}} columns_other": "Tilbakestill {{count}} kolonner",
+        "Copy": "Kopier",
+        "Comment": "Kommentar",
+        "Cut": "Klipp ut",
+        "Paste": "Lim inn"
     },
     "ColumnFilterMenu": {
         "All": "Alle",
@@ -121,7 +133,9 @@
         "Widget needs to {{read}} the current table.": "Miniprogrammet må {{read}} nåværende tabell.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} ikke-{{columnType}}-kolonner er ikke vist.",
         "Widget needs {{fullAccess}} to this document.": "Miniprogrammet trenger {{fullAccess}} til dette dokumentet.",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} ikke-{{columnType}}-kolonne er ikke vist."
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} ikke-{{columnType}}-kolonne er ikke vist.",
+        "No {{columnType}} columns in table.": "Ingen {{columnType}}-kolonner i tabell.",
+        "Clear selection": "Tøm utvalg"
     },
     "DocHistory": {
         "Activity": "Aktivitet",
@@ -186,7 +200,8 @@
         "Trash": "Papirkurv",
         "Workspace will be moved to Trash.": "Arbeidsområdet vil bli flyttet til papirkurven.",
         "Workspaces": "Arbeidsområder",
-        "Rename": "Gi nytt navn"
+        "Rename": "Gi nytt navn",
+        "Tutorial": "Veiledning"
     },
     "MakeCopyMenu": {
         "It will be overwritten, losing any content not in this document.": "Den vil bli overskrevet, noe som forkaster alt innholdet som ikke er i dokumentet.",
@@ -211,7 +226,10 @@
         "Overwrite": "Overskriv",
         "Replacing the original requires editing rights on the original document.": "Erstatting av originalen krever redigeringsrettigheter til originaldokumentet.",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Vær forsiktig, originalen har endringer som ikke finnes i dette dokumentet. De endringene vil bli overskrevet.",
-        "However, it appears to be already identical.": "Dog later det til at det allerede er identisk."
+        "However, it appears to be already identical.": "Dog later det til at det allerede er identisk.",
+        "Remove all data but keep the structure to use as a template": "Fjern all data, men behold strukturen til bruk som mal",
+        "Remove document history (can significantly reduce file size)": "Fjern dokumenthistorikk (kan redusere filstørrelse drastisk)",
+        "Download full document and history": "Last ned hele dokumentet og historikken"
     },
     "NotifyUI": {
         "Cannot find personal site, sorry!": "Finner ikke personlig side. Beklager.",
@@ -222,7 +240,8 @@
         "Report a problem": "Innrapporter et problem",
         "Go to your free personal site": "Gå til din kostnadsløse personlige side",
         "No notifications": "Ingen merknader",
-        "Notifications": "Merknader"
+        "Notifications": "Merknader",
+        "Manage billing": "Håndter fakturering"
     },
     "RightPanel": {
         "COLUMN TYPE": "Kolonnetype",
@@ -253,7 +272,8 @@
         "Series_other": "Serier",
         "Sort & Filter": "Sorter og filtrer",
         "You do not have edit access to this document": "Du har ikke redigeringstilgang til dette dokumentet",
-        "Widget": "Miniprogram"
+        "Widget": "Miniprogram",
+        "Add referenced columns": "Legg til kolonner å vise til"
     },
     "RowContextMenu": {
         "Delete": "Slett",
@@ -283,7 +303,9 @@
         "Current Version": "Nåværende versjon",
         "Download": "Last ned",
         "Duplicate Document": "Dupliser dokument",
-        "Send to Google Drive": "Send til Google Drive"
+        "Send to Google Drive": "Send til Google Drive",
+        "Download...": "Last ned …",
+        "Share": "Del"
     },
     "ThemeConfig": {
         "Switch appearance automatically to match system": "Bytt utseende automatisk for å samsvare med systemet",
@@ -356,13 +378,17 @@
         "You do not have access to this organization's documents.": "Du har ikke tilgang til denne organisasjonens dokumenter.",
         "Error{{suffix}}": "Feil-{{suffix}}",
         "Page not found{{suffix}}": "Fant ikke siden-{{suffix}}",
-        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Du er innlogget som {{email}}. Du kan logge inn med en annen konto, eller spørre en administrator om tilgang."
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Du er innlogget som {{email}}. Du kan logge inn med en annen konto, eller spørre en administrator om tilgang.",
+        "Account deleted{{suffix}}": "Konto slettet{{suffix}}",
+        "Your account has been deleted.": "Kontoen din har blitt slettet.",
+        "Sign up": "Logg inn"
     },
     "search": {
         "Search in document": "Søk i dokumentet",
         "Find Next ": "Finn neste ",
         "Find Previous ": "Finn forrige ",
-        "No results": "Resultatløst"
+        "No results": "Resultatløst",
+        "Search": "Søk"
     },
     "DiscussionEditor": {
         "Cancel": "Avbryt",
@@ -428,7 +454,9 @@
         "Lookup Table": "Oppslagstabell",
         "Lookup Column": "Oppslagskolonne",
         "Permission to access the document in full when needed": "Tilgang til hele dokumentet når det trengs",
-        "Save": "Lagre"
+        "Save": "Lagre",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Tillat de som redigerer å endre struktur (f.eks. endre og slette tabeller, kolonner, oppsett), og å skrive formler, som gir tilgang til all data uavhengig av begrensninger.",
+        "This default should be changed if editors' access is to be limited. ": "Dette forvalget må endres hvis de som redigerer ikke skal ha tilgang, "
     },
     "ChartView": {
         "Toggle chart aggregation": "Veksle diagramsvisning",
@@ -474,7 +502,9 @@
         "Locale:": "Lokalitet:",
         "Document ID copied to clipboard": "Dokument-ID kopiert til utklippstavlen",
         "Currency:": "Valuta:",
-        "Document Settings": "Dokumentinnstillinger"
+        "Document Settings": "Dokumentinnstillinger",
+        "Manage Webhooks": "Håndter vevkroker",
+        "Webhooks": "Vevkroker"
     },
     "DocumentUsage": {
         "Usage": "Bruk",
@@ -553,7 +583,16 @@
         "Try out changes in a copy, then decide whether to replace the original with your edits.": "Prøv ut endringer i en kopi, og avgjør så hvorvidt du vil erstatte originalen med endringene dine.",
         "Unpin to hide the the button while keeping the filter.": "Løsne for å skjule knappen og beholde filteret.",
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Nyttig for lagring av tidsstempel eller forfatter av en ny oppføring, datarensing, med mer.",
-        "The total size of all data in this document, excluding attachments.": "Samlet størrelse av all data i dette dokumentet, fraregnet vedlegg."
+        "The total size of all data in this document, excluding attachments.": "Samlet størrelse av all data i dette dokumentet, fraregnet vedlegg.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Du kan velge en av miniprogrammene som finnes, eller bygge inn ditt eget ved å angi dets fulle nettadresse.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Velg kolonner for start-/slutt-dato og begivenhetsnavn. Merk deg hvilken type hver kolonne er."
+        },
+        "Calendar": "Kalender",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Klikk på en rad og trykk {{shortcut}} for å lage en ankerlenke som tar brukeren til en gitt celle.",
+        "Anchor Links": "Ankerlenker",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Finner du ikke riktig kolonner? Klikk «Endre miniprogram» for å velge tabellen med begivenhetsdata.",
+        "Custom Widgets": "Egendefinerte miniprogrammer"
     },
     "ViewAsDropdown": {
         "Example Users": "Eksempelbrukere",
@@ -564,7 +603,8 @@
         "Action Log failed to load": "Kunne ikke laste inn handlingslogg",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Kolonnen {{colId}} ble påfølgende fjernet i handling #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabellen {{tableId}} ble påfølgende fjernet i handling #{{actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "Denne raden ble påfølgende fjernet i handling {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Denne raden ble påfølgende fjernet i handling {{action.actionNum}}",
+        "All tables": "Alle tabeller"
     },
     "ColorSelect": {
         "Apply": "Bruk",
@@ -630,12 +670,15 @@
         "Unfreeze {{count}} columns_other": "Tin {{count}} kolonner",
         "Reset {{count}} entire columns_other": "Tilbakestill {{count}} hele kolonner",
         "Unfreeze all columns": "Tin alle kolonner",
-        "Add Column": "Legg til kolonne"
+        "Add Column": "Legg til kolonne",
+        "Insert column to the right": "Sett inn kolonne til høyre",
+        "Insert column to the left": "Sett inn kolonne til venstre"
     },
     "GristDoc": {
         "Import from file": "Importer fra fil",
         "Added new linked section to view {{viewName}}": "Ny lenket avsnitt lagt til i visning {{viewName}}",
-        "Saved linked section {{title}} in view {{name}}": "Lagret lenket {{title}}-avsnitt i {{name}}-visningen"
+        "Saved linked section {{title}} in view {{name}}": "Lagret lenket {{title}}-avsnitt i {{name}}-visningen",
+        "go to webhook settings": "gå til vevkroksinnstillinger"
     },
     "HomeIntro": {
         "Browse Templates": "Utforsk maler",
@@ -657,7 +700,12 @@
         "Get started by inviting your team and creating your first Grist document.": "Begynn ved å invitere laget ditt og ved å opprette ditt første Grist-dokument.",
         "Interested in using Grist outside of your team? Visit your free ": "Interessert i bruk av Grist utenfor laget ditt? Besøk ditt kostnadsløse ",
         "This workspace is empty.": "Arbeidsområdet er tomt.",
-        "Any documents created in this site will appear here.": "Alle dokumenter opprettet i denne siden vil vises her."
+        "Any documents created in this site will appear here.": "Alle dokumenter opprettet i denne siden vil vises her.",
+        "Welcome to Grist, {{- name}}!": "Velkommen til Grist {{- name}}",
+        "Visit our {{link}} to learn more about Grist.": "Besøk {{link}} for å lære mer om Grist.",
+        "Welcome to {{- orgName}}": "Velkommen til {{- orgName}}",
+        "Sign in": "Logg inn",
+        "To use Grist, please either sign up or sign in.": "Logg inn eller registrer deg for å bruke Grist."
     },
     "PageWidgetPicker": {
         "Building {{- label}} widget": "Bygger {{- label}}-miniprogram",
@@ -687,14 +735,21 @@
         "CELL STYLE": "Cellestil",
         "Cell Style": "Cellestil",
         "Default cell style": "Forvalgt cellestil",
-        "Open row styles": "Åpne radstiler"
+        "Open row styles": "Åpne radstiler",
+        "HEADER STYLE": "Topptekststil",
+        "Header Style": "Topptekststil",
+        "Default header style": "Forvalgt topptekststil"
     },
     "FormulaEditor": {
         "Errors in all {{numErrors}} cells": "Feil i alle {{numErrors}} celler",
         "Column or field is required": "Kolonne eller felt kreves angitt",
         "editingFormula is required": "«editingFormula» kreves",
         "Errors in {{numErrors}} of {{numCells}} cells": "Feil i {{numErrors}} av {{numCells}} celler",
-        "Error in the cell": "Feil i cellen"
+        "Error in the cell": "Feil i cellen",
+        "Enter formula or {{button}}.": "Skriv inn formel eller {{button}}.",
+        "Enter formula.": "Skriv inn formel.",
+        "Expand Editor": "Utvid tekstbehandler",
+        "use AI Assistant": "bruk AI-assistent"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "Kan ikke plassere elementer i skjulte felter",
@@ -808,7 +863,8 @@
         "Save": "Lagre",
         "Provide a table name": "Angi et tabellnavn",
         "Override widget title": "Overstyr miniprogramsnavn",
-        "WIDGET TITLE": "Miniprogramsnavn"
+        "WIDGET TITLE": "Miniprogramsnavn",
+        "WIDGET DESCRIPTION": "Miniprogramsbeskrivelse"
     },
     "menus": {
         "Select fields": "Velg felter",
@@ -904,7 +960,22 @@
     "Importer": {
         "Merge rows that match these fields:": "Flett rader som samsvarer med disse feltene:",
         "Select fields to match on": "Velg felter å jamføre",
-        "Update existing records": "Oppdater eksisterende oppføringer"
+        "Update existing records": "Oppdater eksisterende oppføringer",
+        "Column mapping": "Kolonnetilknytning",
+        "Grist column": "Grist-kolonne",
+        "{{count}} unmatched field_one": "{{count}} usamsvarende felt",
+        "{{count}} unmatched field in import_one": "{{count}} usamsvarende felt i import",
+        "Revert": "Angre",
+        "Skip Import": "Hopp over import",
+        "{{count}} unmatched field_other": "{{count}} usamsvarende felter",
+        "New Table": "Ny tabell",
+        "Skip": "Hopp over",
+        "Column Mapping": "Kolonnetilknytning",
+        "Destination table": "Måltabell",
+        "Skip Table on Import": "Hopp over tabell ved import",
+        "Import from file": "Importer fra fil",
+        "{{count}} unmatched field in import_other": "{{count}} usamsvarende felt i import",
+        "Source column": "Kildekolonne"
     },
     "LeftPanelCommon": {
         "Help Center": "Hjelpesenter"
@@ -973,5 +1044,176 @@
     },
     "EditorTooltip": {
         "Convert column to formula": "Konverter kolonne til formel"
+    },
+    "FormulaAssistant": {
+        "Data": "Data",
+        "Press Enter to apply suggested formula.": "Trykk Enter for å bruke foreslått formel.",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Sjekk {{helpFunction}} og {{formulaCheat}}, eller besøk {{community}} for mer hjelp.",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Registrer deg for en gratis Grist-konto for å bruke AI-formelassistenten.",
+        "Clear Conversation": "Tøm samtale",
+        "New Chat": "Ny sludring",
+        "Code View": "Kodevisning",
+        "Apply": "Bruk",
+        "Learn more": "Lær mer",
+        "Regenerate": "Regenerer",
+        "Community": "Gemenskap",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Jeg kan kun hjelpe deg med formler. Jeg kan ikke bygge tabeller, kolonner, visninger, eller skrive tilgangsregler.",
+        "Hi, I'm the Grist Formula AI Assistant.": "Hei. Jeg er Grists AI-formelassistent.",
+        "Preview": "Forhåndsvis",
+        "Ask the bot.": "Spør botten.",
+        "Function List": "Funksjonsliste",
+        "For higher limits, contact the site owner.": "Kontakt sidens eier for høyere grenser.",
+        "Tips": "Tips",
+        "Save": "Lagre",
+        "Sign Up for Free": "Registrer deg gratis",
+        "Formula Cheat Sheet": "Formel-jukseark",
+        "Grist's AI Assistance": "Grists AI-assistanse",
+        "Formula AI Assistant is only available for logged in users.": "AI-formelassistenten er kun tilgjengelig for innloggede brukere.",
+        "Grist's AI Formula Assistance. ": "Grists AI-formelassistanse ",
+        "upgrade to the Pro Team plan": "oppgrader til proff lagplan",
+        "You have used all available credits.": "Du har brukt alle tilgjengelige planpoeng.",
+        "upgrade your plan": "oppgrader din plan",
+        "Formula Help. ": "Formelhjelp. ",
+        "You have {{numCredits}} remaining credits.": "Du har {{numCredits}} planpoeng igjen.",
+        "Capabilities": "Ferdigeter",
+        "What do you need help with?": "Hva trenger du hjelp med?",
+        "Cancel": "Avbryt",
+        "Need help? Our AI assistant can help.": "Hjelp? Vår AI-assistent kan hjelpe deg.",
+        "AI Assistant": "AI-assistant",
+        "For higher limits, {{upgradeNudge}}.": "{{upgradeNudge}} for høyere grenser.",
+        "There are some things you should know when working with me:": "Det er noen ting du burde vite når du jobber med meg:"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maksimer",
+        "Minimize": "Minimer"
+    },
+    "Clipboard": {
+        "Unavailable Command": "Utilgjengelig kommando",
+        "Got it": "Skjønner"
+    },
+    "SupportGristPage": {
+        "You have opted out of telemetry.": "Du har reservert deg mot datainnsamling.",
+        "Support Grist": "Støtt Grist",
+        "Opt out of Telemetry": "Skru av datainnsamling",
+        "GitHub Sponsors page": "GitHub Sponsor-side",
+        "Sponsor Grist Labs on GitHub": "Spons Grist Labs på GitHub",
+        "Manage Sponsorship": "Håndter sponsing",
+        "Help Center": "Hjelpesenter",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Kun bruksstatistikk samles inn og aldri dokumentinnhold. Dette er beskrevet nøye på {{link}}.",
+        "You can opt out of telemetry at any time from this page.": "Du kan motsette deg datainnsamling når som helst fra denne siden.",
+        "Home": "Hjem",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Denne instansen har reservert seg mot datainnsamling. Kun sidens administrator har tilgang til å endre dette.",
+        "Telemetry": "Telemetri",
+        "Opt in to Telemetry": "Tillat datainnsamling",
+        "You have opted in to telemetry. Thank you!": "Du har reservert deg mot datainnsamling. Takk.",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Denne instansen har påslått datainnsamling. Kun sidens administrator har mulighet til å endre dette.",
+        "GitHub": "GitHub"
+    },
+    "UserManager": {
+        "Anyone with link ": "Alle med lenken ",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Når du har fjernet din egen tilgang             vil du ikke kunne logge inn igjen uten hjelp              fra noen andre som har tilstrekkelig tilgang til {{name}}.",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} av {{limitTop}} {{collaborator}}s",
+        "Your role for this team site": "Din rolle på denne lagsiden",
+        "Copy Link": "Kopier lenke",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Bruker har visningstilgang for {{resource}}, som følge av manuelt satt tilgang til ressursene som finnes der. Hvis fjernet her vil brukeren miste tilgang til ressursene i {{resource}}.",
+        "User may not modify their own access.": "Brukere kan ikke endre egen tilgang.",
+        "member": "medlem",
+        "Add {{member}} to your team": "Legg til {{member}} på laget ditt",
+        "Collaborator": "Medarbeider",
+        "Link copied to clipboard": "Lenke kopiert til utklippstavlen",
+        "team site": "lagside",
+        "Create a team to share with more people": "Opprett et lag for å dele med flere",
+        "guest": "gjest",
+        "Public access: ": "Offentlig tilgang: ",
+        "Team member": "Lagmedlem",
+        "Manage members of team site": "Håndter medlemmer av lagside",
+        "Off": "Av",
+        "free collaborator": "ledig medarbeider",
+        "Save & ": "Lagre og ",
+        "Outside collaborator": "Medarbeider annensteds fra",
+        "{{collaborator}} limit exceeded": "{{collaborator}}-grense overskredet",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Bruker nedarver tilganger fra {{parent})}. Fjern ved å sette           «Nedarv tilgang» til «Ingen».",
+        "Your role for this {{resourceType}}": "Din rolle i denne {{resourceType}}",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Når du har fjernet din egen tilgang vil du ikke kunne logge inn igjen uten hjelp fra noen andre som har tilstrekkelig tilgang til {{resourceType}}.",
+        "Close": "Lukk",
+        "Allow anyone with the link to open.": "Tillat alle med lenken å åpne.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Ingen forvalgt tilgang tillater tilgang å         innvilges til individuelle dokumenter eller arbeidsoråder, snarere enn hele lagsiden.",
+        "Invite people to {{resourceType}}": "Inviter noen til {{resourceType}}",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Offentlig tilgang nedarvet fra {{parent}}. Fjern den ved å sette «Nedarv tilgang» til «Ingen».",
+        "Remove my access": "Fjern min tilgang",
+        "Public access": "Offentlig tilgang",
+        "Public Access": "Offentlig tilgang",
+        "Cancel": "Avbryt",
+        "Grist support": "Grist-støtte",
+        "You are about to remove your own access to this {{resourceType}}": "Du er i ferd med å fjerne din egen tilgang til denne {{resourceType}}",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Bruker nedarver tilganger fra {{parent}}. For å fjerne sett «Nedarv tilgang» til «Ingen».",
+        "Guest": "Gjest",
+        "Invite multiple": "Inviter flere",
+        "Confirm": "Bekreft",
+        "On": "På",
+        "Open Access Rules": "Åpne tilgangsregler",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Ingen forvalgt tilgang tillater tilgang å innvilges til individuelle dokumenter eller arbeidsoråder, snarere enn hele lagsiden."
+    },
+    "PagePanels": {
+        "Open Creator Panel": "Åpne skaperpanel",
+        "Close Creator Panel": "Lukk skaperpanel"
+    },
+    "buildViewSectionDom": {
+        "Not all data is shown": "Ikke all dataen vises",
+        "No row selected in {{title}}": "Ingen rader valgt i {{title}}",
+        "No data": "Ingen data"
+    },
+    "ColumnTitle": {
+        "Column ID copied to clipboard": "Kolonne-ID kopiert til utklippstavle",
+        "Add description": "Legg til beskrivelse",
+        "Column description": "Kolonnebeskrivelse",
+        "COLUMN ID: ": "Kolonne-ID: ",
+        "Provide a column label": "Angi en kolonneetikett",
+        "Close": "Lukk",
+        "Cancel": "Avbryt",
+        "Column label": "Kolonneetikett",
+        "Save": "Lagre"
+    },
+    "SupportGristNudge": {
+        "Support Grist": "Støtt Grist",
+        "Close": "Lukk",
+        "Opt in to Telemetry": "Tillat datainnsamling",
+        "Help Center": "Hjelpesenter",
+        "Opted In": "Tillatt",
+        "Contribute": "Bidra",
+        "Support Grist page": "«Støtt Grist»-siden"
+    },
+    "WelcomeSitePicker": {
+        "You have access to the following Grist sites.": "Du har tilgang til følgende Grist-sider.",
+        "Welcome back": "Velkommen tilbake",
+        "You can always switch sites using the account menu.": "Du kan alltid bytte sider fra kontomenyen."
+    },
+    "FieldContextMenu": {
+        "Copy anchor link": "Kopier ankerlenke",
+        "Hide field": "Skjul felt",
+        "Copy": "Kopier",
+        "Paste": "Lim inn",
+        "Clear field": "Tøm felt",
+        "Cut": "Klipp ut"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "Beskrivelse"
+    },
+    "WebhookPage": {
+        "Webhook Settings": "Vevkroksinnstillinger",
+        "Clear Queue": "Tøm kø"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Fold sammen tekstbehandler"
+    },
+    "GridView": {
+        "Click to insert": "Klikk for å sette inn"
+    },
+    "searchDropdown": {
+        "Search": "Søk"
+    },
+    "SearchModel": {
+        "Search all tables": "Søk i alle tabeller",
+        "Search all pages": "Søk på alle sider"
     }
 }
