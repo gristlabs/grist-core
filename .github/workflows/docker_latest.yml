@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.9]
-        node-version: [14.x]
+        node-version: [18.x]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2

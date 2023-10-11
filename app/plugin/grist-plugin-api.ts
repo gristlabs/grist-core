@@ -244,6 +244,15 @@ async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
 }
 
 /**
+ * Used by tests to wait for all pending requests to settle.
+ *
+ * TODO: currently only waits for requests for mappings.
+ */
+export async function testWaitForPendingRequests() {
+  return await _activeRefreshReq;
+}
+
+/**
  * Renames columns in the result using columns mapping configuration passed in ready method.
  * Returns null if not all required columns were mapped or not widget doesn't support
  * custom column mapping.

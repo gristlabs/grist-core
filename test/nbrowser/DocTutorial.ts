@@ -7,7 +7,6 @@ import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 describe('DocTutorial', function () {
   this.timeout(60000);
-  setupTestSuite();
 
   gu.bigScreen();
 
@@ -196,8 +195,10 @@ describe('DocTutorial', function () {
       const windowWidth: any = await driver.executeScript('return window.innerWidth');
       assert.equal(dims.y + dims.height, windowHeight - 16);
 
-      // Now move it offscreen as low as possible.
-      await move({y: windowHeight - dims.y - 10});
+      // Now we'll test moving the window outside the viewport. Selenium throws when
+      // the mouse exceeds the bounds of the viewport, so we can't test every scenario.
+      // Start by moving the window as low as possible.
+      await move({y: windowHeight - dims.y - 32});
 
       // Make sure it is still visible.
       dims = await driver.find('.test-floating-popup-window').getRect();
@@ -213,71 +214,33 @@ describe('DocTutorial', function () {
       assert.equal(dims.x, windowWidth - 32 * 4);
 
       // Now move it to the left as far as possible.
-      await move({x: -3000});
+      await move({x: -windowWidth + 128});
 
       // Make sure it is still visible.
       dims = await driver.find('.test-floating-popup-window').getRect();
-      assert.isBelow(dims.x, 0);
+      assert.equal(dims.x, 0);
       assert.isAbove(dims.x + dims.width, 30);
-
-      const miniButton = driver.find(".test-floating-popup-minimize-maximize");
-      // Now move it back, but this time manually as the move handle is off screen.
-      await driver.withActions((a) => a
-        .move({origin: miniButton })
-        .press()
-        .move({origin: miniButton, x: Math.abs(dims.x) + 20})
-        .release()
-      );
-
-      // Maximize it (it was minimized as we used the button to move it).
-      await driver.find(".test-floating-popup-minimize-maximize").click();
 
       // Now move it to the top as far as possible.
       // Move it a little right, so that we don't end up on the logo. Driver is clicking logo sometimes.
-      await move({y: -windowHeight, x: 100});
+      await move({y: -windowHeight + 16, x: 100});
 
       // Make sure it is still visible.
       dims = await driver.find('.test-floating-popup-window').getRect();
       assert.equal(dims.y, 16);
-      assert.isAbove(dims.x, 100);
-      assert.isBelow(dims.x, windowWidth);
+      assert.equal(dims.x, 100);
 
       // Move back where it was.
-      let moverNow = await driver.find('.test-floating-popup-move-handle').getRect();
+      const moverNow = await driver.find('.test-floating-popup-move-handle').getRect();
       await move({x: moverInitial.x - moverNow.x});
       // And restore the size by double clicking the resizer.
       await driver.withActions((a) => a.doubleClick(driver.find('.test-floating-popup-resize-handle')));
-
-      // Now test if we can't resize it offscreen.
-      await move({y: 10000});
-      await move({y: -100});
-      // Header is about 100px above the viewport.
-      dims = await driver.find('.test-floating-popup-window').getRect();
-      assert.isBelow(dims.y, windowHeight);
-      assert.isAbove(dims.x, windowHeight - 140);
-
-      // Now resize as far as possible.
-      await resize({y: 10});
-      await resize({y: 300});
-
-      // Make sure it is still visible.
-      dims = await driver.find('.test-floating-popup-window').getRect();
-      assert.isBelow(dims.y, windowHeight - 16);
-
-      // Now move back and resize.
-      moverNow = await driver.find('.test-floating-popup-move-handle').getRect();
-      await move({x: moverInitial.x - moverNow.x, y: moverInitial.y - moverNow.y});
-      await driver.withActions((a) => a.doubleClick(driver.find('.test-floating-popup-resize-handle')));
-
-      dims = await driver.find('.test-floating-popup-window').getRect();
-      assert.equal(dims.height, initialDims.height);
-      assert.equal(dims.y, initialDims.y);
-      assert.equal(dims.x, initialDims.x);
     });
 
     it('is visible on all pages', async function() {
       for (const page of ['access-rules', 'raw', 'code', 'settings']) {
         await driver.find(`.test-tools-${page}`).click();
+        if (['access-rules', 'code'].includes(page)) { await gu.waitForServer(); }
         assert.isTrue(await driver.find('.test-doc-tutorial-popup').isDisplayed());
       }
     });

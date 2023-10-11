@@ -7,6 +7,7 @@ import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
  */
 describe('FillLinkedRecords.ntest', function() {
   const cleanup = test.setupTestSuite(this);
+  const clipboard = gu.getLockableClipboard();
 
   gu.bigScreen();
 
@@ -130,9 +131,12 @@ describe('FillLinkedRecords.ntest', function() {
 
     // Copy a range of three values, and paste them into the Add-New row.
     await gu.clickCell({col: 2, rowNum: 1});
-    await gu.sendKeys([$.SHIFT, $.DOWN, $.DOWN], $.COPY);
-    await gu.clickCell({col: 2, rowNum: 5});
-    await gu.sendKeys($.PASTE);
+    await gu.sendKeys([$.SHIFT, $.DOWN, $.DOWN]);
+    await clipboard.lockAndPerform(async (cb) => {
+      await cb.copy();
+      await gu.clickCell({col: 2, rowNum: 5});
+      await cb.paste();
+    });
     await gu.waitForServer();
 
     // Verify that three new rows now show up, with Film auto-filled.

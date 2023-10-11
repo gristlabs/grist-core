@@ -77,5 +77,6 @@ jspm_packages/
 # Test
 timings.txt
 xunit.xml
+.clipboard.lock
 
 **/_build

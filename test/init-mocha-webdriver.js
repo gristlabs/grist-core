@@ -1,6 +1,6 @@
 /**
  * Settings that affect tests using mocha-webdriver. This module is imported by any run of mocha,
- * by being listed in test/mocha.opts. (Keep in mind that it's imported by non-browser tests, such
+ * by being listed in package.json. (Keep in mind that it's imported by non-browser tests, such
  * as test/common, as well.)
  */
 

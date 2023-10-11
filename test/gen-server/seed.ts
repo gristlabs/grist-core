@@ -23,7 +23,7 @@
  */
 
 import {addPath} from 'app-module-path';
-import {IHookCallbackContext} from 'mocha';
+import {Context} from 'mocha';
 import * as path from 'path';
 import {Connection, getConnectionManager, Repository} from 'typeorm';
 
@@ -643,7 +643,7 @@ function _generateData(numOrgs: number, numWorkspaces: number, numDocs: number) 
  * To set up TYPEORM_* environment variables for testing, call this in a before() call of a test
  * suite, using setUpDB(this);
  */
-export function setUpDB(context?: IHookCallbackContext) {
+export function setUpDB(context?: Context) {
   if (!process.env.TYPEORM_DATABASE) {
     process.env.TYPEORM_DATABASE = ":memory:";
   } else {

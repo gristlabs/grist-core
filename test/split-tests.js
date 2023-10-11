@@ -1,6 +1,6 @@
 /**
  * This module handles splitting tests for parallelizing them. This module is imported by any run
- * of mocha, due by being listed in test/mocha.opts.
+ * of mocha, due by being listed in package.json.
  *
  * It only does anything if TEST_SPLITS is set, which must have the form "3-of-8".
  *

@@ -24,8 +24,8 @@
             }
 
             mocha.checkLeaks();
-            // fxdriver_id is set by selenium, execWebdriverJQuery by webdriverjq.js.
-            mocha.globals(['cmd', 'fxdriver_id', 'execWebdriverJQuery']);
+            // fxdriver_id and ret_nodes are set by selenium, execWebdriverJQuery by webdriverjq.js.
+            mocha.globals(['cmd', 'fxdriver_id', 'ret_nodes', 'execWebdriverJQuery']);
             var runner = mocha.run();
             mocha.failedTests = [];
             runner.on('fail', function(test, err) {

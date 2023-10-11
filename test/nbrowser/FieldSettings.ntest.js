@@ -8,6 +8,7 @@ import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
 
 describe('FieldSettings.ntest', function() {
   const cleanup = test.setupTestSuite(this);
+  gu.bigScreen();
 
   before(async function() {
     await gu.supportOldTimeyTestCode();

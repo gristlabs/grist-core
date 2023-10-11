@@ -8,12 +8,24 @@ import {assert} from 'chai';
 import * as sinon from 'sinon';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {configForUser} from 'test/gen-server/testUtils';
+import * as testUtils from 'test/server/testUtils';
 
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('Kiwi');
 const anon = configForUser('Anonymous');
 
 describe('Telemetry', function() {
+  let oldEnv: testUtils.EnvironmentSnapshot;
+
+  before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
+    process.env.TYPEORM_DATABASE = ':memory:';
+  });
+
+  after(function() {
+    oldEnv.restore();
+  });
+
   const variants: [GristDeploymentType, TelemetryLevel, PrefSource][] = [
     ['saas', 'off', 'environment-variable'],
     ['saas', 'limited', 'environment-variable'],

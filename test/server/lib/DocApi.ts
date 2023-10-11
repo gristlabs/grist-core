@@ -17,8 +17,8 @@ import {
 import {delayAbort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
-import * as bodyParser from 'body-parser';
 import {assert} from 'chai';
+import * as express from 'express';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
@@ -3786,7 +3786,7 @@ function testDocApi() {
 
       // TODO test retries on failure and slowness in a new test
       serving = await serveSomething(app => {
-        app.use(bodyParser.json());
+        app.use(express.json());
         app.post('/200', ({body}, res) => {
           successCalled.emit(body[0].A);
           res.sendStatus(200);

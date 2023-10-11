@@ -15,31 +15,3 @@ declare namespace Chai {
     notIncludeMembers<T>(superset: T[], subset: T[], message?: string): void;
   }
 }
-
-declare module "selenium-webdriver" {
-  interface WebDriver {
-    withActions(cb: (actions: WebActions) => void): Promise<void>;
-  }
-
-  // This is not a complete definition of available methods, but only those that we use for now.
-  // TODO: find documentation for this interface or update selenium-webdriver.
-  interface WebActions {
-    contextClick(el?: WebElement): WebActions;
-    click(el?: WebElement): WebActions;
-    press(): WebActions;
-    move(params: {origin?: WebElement|string, x?: number, y?: number}): WebActions;
-    keyDown(key: string): WebActions;
-    keyUp(key: string): WebActions;
-    dragAndDrop(element: WebElement, target: WebElement): WebActions;
-    release(): WebActions;
-    doubleClick(element: WebElement): WebActions;
-    pause(ms: number): WebActions;
-  }
-}
-
-import "mocha-webdriver";
-declare module "mocha-webdriver" {
-  // It looks like this hack makes tsc see our definition as primary, adding
-  // the typed version override (of the withActions method) as the default one.
-  export declare let driver: import("selenium-webdriver").WebDriver;
-}

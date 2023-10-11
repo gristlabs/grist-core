@@ -8,6 +8,7 @@ import {EnvironmentSnapshot} from 'test/server/testUtils';
 describe('WebhookPage', function () {
   this.timeout(60000);
   const cleanup = setupTestSuite();
+  const clipboard = gu.getLockableClipboard();
 
   let session: gu.Session;
   let oldEnv: EnvironmentSnapshot;
@@ -192,7 +193,7 @@ describe('WebhookPage', function () {
     await openWebhookPage();
 
     // Open another tab.
-    await driver.executeScript("return window.open('about:blank', '_blank')");
+    await driver.executeScript("window.open('about:blank', '_blank')");
     const [ownerTab, owner2Tab] = await driver.getAllWindowHandles();
 
     await driver.switchTo().window(owner2Tab);
@@ -256,9 +257,11 @@ describe('WebhookPage', function () {
     await openWebhookPage();
     await setField(1, 'Name', '1234');
     await gu.waitForServer();
-    await gu.sendKeys(await gu.copyKey());
-    await gu.getDetailCell({col: 'Memo', rowNum: 1}).click();
-    await gu.sendKeys(await gu.pasteKey());
+    await clipboard.lockAndPerform(async (cb) => {
+      await cb.copy();
+      await gu.getDetailCell({col: 'Memo', rowNum: 1}).click();
+      await cb.paste();
+    });
     await gu.waitForServer();
     assert.equal(await getField(1, 'Memo'), '1234');
   });

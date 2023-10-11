@@ -52,7 +52,6 @@
  *
  */
 
-import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as saml2 from 'saml2-js';
@@ -161,7 +160,7 @@ export class SamlConfig {
     }));
 
     // Assert endpoint for when the login completes as POST.
-    app.post("/saml/assert", bodyParser.urlencoded({extended: true}), expressWrap(async (req, res, next) => {
+    app.post("/saml/assert", express.urlencoded({extended: true}), expressWrap(async (req, res, next) => {
       const relayState: string = req.body.RelayState;
       if (!relayState) { throw new Error('Login or logout failed to complete'); }
       const permitStore = this._gristServer.getExternalPermitStore();

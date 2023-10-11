@@ -1,6 +1,5 @@
 import {serveSomething, Serving} from "test/server/customUtil";
-import * as bodyParser from "body-parser";
-import {Request, Response} from "express-serve-static-core";
+import * as express from "express";
 import axios from "axios";
 
 export class TestProxyServer {
@@ -27,8 +26,8 @@ export class TestProxyServer {
 
   private async _prepare(portNumber: number) {
     this._proxyServing = await serveSomething(app => {
-      app.use(bodyParser.json());
-      app.all('*', async (req: Request, res: Response) => {
+      app.use(express.json());
+      app.all('*', async (req: express.Request, res: express.Response) => {
         this._proxyCallsCounter += 1;
         let responseCode;
         try {

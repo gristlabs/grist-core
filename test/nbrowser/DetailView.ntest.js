@@ -3,6 +3,7 @@ import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
 
 describe("DetailView.ntest", function () {
   const cleanup = test.setupTestSuite(this);
+  const clipboard = gu.getLockableClipboard();
   gu.bigScreen();
 
   before(async function() {
@@ -110,8 +111,6 @@ describe("DetailView.ntest", function () {
   it('should include an add record row', async function() {
     // Should include an add record row which works in card view and detail view.
     // Check that adding 'Jurassic Park' to the card view add record row adds it as a row.
-    // await gu.selectSectionByTitle("Performances detail");
-    //await gu.sendKeys([$.MOD, $.DOWN]);
     await $('.g_record_detail:nth-child(14) .field_clip').eq(1).wait().click();
     await gu.sendKeys('Jurassic Park', $.ENTER);
     await gu.waitForServer();
@@ -130,11 +129,14 @@ describe("DetailView.ntest", function () {
 
     // Should allow pasting into the add record row.
     await gu.getDetailCell('Actor', 1).click();
-    await gu.sendKeys($.COPY);
-    await $('.detail-add-btn').click();
-    // Paste '100' into the last field of the row and check that it is added as its own row.
-    await gu.getDetailCell('Character', 1).click();
-    await gu.sendKeys($.PASTE);
+    await clipboard.lockAndPerform(async (cb) => {
+      await cb.copy();
+      await $('.detail-add-btn').click();
+      await gu.waitForServer();
+      // Paste '100' into the last field of the row and check that it is added as its own row.
+      await gu.getDetailCell('Character', 1).click();
+      await cb.paste();
+    });
     await gu.waitForServer();
     assert.deepEqual(await gu.getDetailCell('Character', 1).text(), '100');
 

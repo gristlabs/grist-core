@@ -17,24 +17,11 @@ function $(key) {
   return _webdriverjqFactory(key);
 }
 
-function rep(n, value) {
-  return _.times(n, () => value);
-}
-
 // The "$" object needs some setup done asynchronously.
 // We do that later, during test initialization.
 async function applyPatchesToJquerylikeObject($) {
   $.MOD = await guBase.modKey();
-  $.COPY = await guBase.copyKey();
-  $.CUT = await guBase.cutKey();
-  $.PASTE = await guBase.pasteKey();
   $.SELECT_ALL = await guBase.selectAllKey();
-  const capabilities = await driver.getCapabilities();
-  if (capabilities.getBrowserName() === 'chrome' && await guBase.isMac()) {
-    $.SELECT_ALL_LINES = (n) => [...rep(n, $.UP), $.HOME, $.SHIFT, ...rep(n, $.DOWN), $.END]
-  } else {
-    $.SELECT_ALL_LINES = () => $.SELECT_ALL;
-  }
   $.getPage = async (url) => {
     return driver.get(url);
   };
@@ -227,8 +214,8 @@ const gu = {
     return gu.toggleSidePanel('right', 'close');
   },
 
-  clickVisibleDetailCells(column, rowNums) {
-    return gu.getDetailCell(column, rowNums[0]).click();
+  clickVisibleDetailCells(column, rowNums, section) {
+    return gu.getDetailCell(column, rowNums[0], section).click();
   },
 
   async clickRowMenuItem(rowNum, item) {
@@ -302,9 +289,15 @@ const gu = {
   *                         endCell[1]: 0-based column index.
   **/
   async selectGridArea(startCell, endCell) {
-    let start = await gu.getCell({rowNum: startCell[0], col: startCell[1]});
-    let end = await gu.getCell({rowNum: endCell[0], col: endCell[1]});
-    await driver.withActions(a => a.click(start).keyDown($.SHIFT).click(end).keyUp($.SHIFT));
+    const [startRowNum, startCol] = startCell;
+    const [endRowNum, endCol] = endCell;
+    if (startRowNum === endRowNum && startCol === endCol) {
+      await gu.getCell({rowNum: endRowNum, col: endCol}).click();
+    } else {
+      const start = await gu.getCell({rowNum: startRowNum, col: startCol});
+      const end = await gu.getCell({rowNum: endRowNum, col: endCol});
+      await driver.withActions(a => a.click(start).keyDown($.SHIFT).click(end).keyUp($.SHIFT));
+    }
   },
 
   /**

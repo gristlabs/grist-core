@@ -8,7 +8,6 @@ import values = require('lodash/values');
 
 describe('Pages', function() {
   this.timeout(60000);
-  setupTestSuite();
   let doc: DocCreationInfo;
   let api: UserAPI;
   let session: Session;

@@ -2,10 +2,16 @@ import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import log from 'app/server/lib/log';
 import * as express from 'express';
 
+export type AsyncRequestHandler = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => any | Promise<any>;
+
 /**
  * Wrapper for async express endpoints to catch errors and forward them to the error handler.
  */
-export function expressWrap(callback: express.RequestHandler): express.RequestHandler {
+export function expressWrap(callback: AsyncRequestHandler): express.RequestHandler {
   return async (req, res, next) => {
     try {
       await callback(req, res, next);

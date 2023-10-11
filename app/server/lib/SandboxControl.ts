@@ -30,12 +30,16 @@ export interface ISandboxControl {
  * Control a single process directly. A thin wrapper around the Throttle class.
  */
 export class DirectProcessControl implements ISandboxControl {
+  private _pid: number;
   private _throttle?: Throttle;
 
   constructor(private _process: childProcess.ChildProcess, logMeta?: log.ILogMeta) {
+    if (!_process.pid) { throw new Error(`process identifier (PID) is undefined`); }
+
+    this._pid = _process.pid;
     if (process.env.GRIST_THROTTLE_CPU) {
       this._throttle = new Throttle({
-        pid: _process.pid,
+        pid: this._pid,
         logMeta: {...logMeta, pid: _process.pid},
       });
     }
@@ -55,7 +59,7 @@ export class DirectProcessControl implements ISandboxControl {
   }
 
   public async getUsage() {
-    const memory = (await pidusage(this._process.pid)).memory;
+    const memory = (await pidusage(this._pid)).memory;
     return { memory };
   }
 }

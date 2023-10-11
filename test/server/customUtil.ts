@@ -20,7 +20,7 @@ export function addStatic(app: express.Express, rootDir?: string) {
           res.sendFile(req.params[0], {root:
                                         path.resolve(getAppRoot(), "static")}));
   app.use(express.static(rootDir || path.resolve(fixturesRoot, "sites"), {
-    setHeaders: (res) => {
+    setHeaders: (res: express.Response) => {
       res.set("Access-Control-Allow-Origin", "*");
     }
   }));

@@ -628,6 +628,8 @@ export class CustomSectionConfig extends Disposable {
   protected async _getWidgets() {
     const api = this._gristDoc.app.topAppModel.api;
     const widgets = await api.getWidgets();
+    if (this.isDisposed()) { return; }
+
     // Request for rest of the widgets.
     if (this._canSelect) {
       // From the start we will provide single widget definition

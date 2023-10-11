@@ -278,37 +278,49 @@ describe('Comm', function() {
     });
 
     async function testMissedResponses(sendShouldFail: boolean) {
-      const logMessages = await testUtils.captureLog('debug', async () => {
-        const {cliComm, forwarder} = await startManagedConnection({...assortedMethods,
-          // An extra method that simulates a lost connection on server side prior to response.
-          testDisconnect: async function(client, x, y) {
-            await delay(0);     //  disconnect on the same tick.
-            await forwarder.disconnectServerSide();
-            if (!sendShouldFail) {
-              // Add a delay to let the 'close' event get noticed first.
-              await delay(20);
-            }
-            return {x: x, y: y, name: "testDisconnect"};
-          },
-        });
+      let failedSendCount = 0;
 
-        const resp1 = await cliComm._makeRequest(null, null, "methodSync", "foo", 1);
-        assert.deepEqual(resp1, {name: 'methodSync', x: "foo", y: 1});
-
-        // Make more calls, with a disconnect before they return. The server should queue up responses.
-        const resp2Promise = cliComm._makeRequest(null, null, "testDisconnect", "foo", 2);
-        const resp3Promise = cliComm._makeRequest(null, null, "methodAsync", "foo", 3);
-        assert.equal(await isLongerThan(resp2Promise, 250), true);
-
-        // Once we reconnect, the response should arrive.
-        await forwarder.connect();
-        assert.deepEqual(await resp2Promise, {name: 'testDisconnect', x: "foo", y: 2});
-        assert.deepEqual(await resp3Promise, {name: 'methodAsync', x: "foo", y: 3});
+      const {cliComm, forwarder} = await startManagedConnection({...assortedMethods,
+        // An extra method that simulates a lost connection on server side prior to response.
+        testDisconnect: async function(client, x, y) {
+          setTimeout(() => forwarder.disconnectServerSide(), 0);
+          if (!sendShouldFail) {
+            // Add a delay to let the 'close' event get noticed first.
+            await delay(20);
+          }
+          return {x: x, y: y, name: "testDisconnect"};
+        },
       });
 
-      // Check that we saw the situations we were hoping to test.
-      assert.equal(logMessages.some(m => /^warn: .*send error.*WebSocket is not open/.test(m)), sendShouldFail,
-        `Expected to see a failed send:\n${logMessages.join('\n')}`);
+      const resp1 = await cliComm._makeRequest(null, null, "methodSync", "foo", 1);
+      assert.deepEqual(resp1, {name: 'methodSync', x: "foo", y: 1});
+
+      if (sendShouldFail) {
+        // In Node 18, the socket is closed during the call to 'testDisconnect'.
+        // In prior versions of Node, the socket was still disconnecting.
+        // This test is sensitive to timing and only passes in the latter, unless we
+        // stub the method below to produce similar behavior in the former.
+        sandbox.stub(Client.prototype as any, '_sendToWebsocket')
+          .onFirstCall()
+          .callsFake(() => {
+            failedSendCount += 1;
+            throw new Error('WebSocket is not open');
+          })
+          .callThrough();
+      }
+
+      // Make more calls, with a disconnect before they return. The server should queue up responses.
+      const resp2Promise = cliComm._makeRequest(null, null, "testDisconnect", "foo", 2);
+      const resp3Promise = cliComm._makeRequest(null, null, "methodAsync", "foo", 3);
+      assert.equal(await isLongerThan(resp2Promise, 250), true);
+
+      // Once we reconnect, the response should arrive.
+      await forwarder.connect();
+      assert.deepEqual(await resp2Promise, {name: 'testDisconnect', x: "foo", y: 2});
+      assert.deepEqual(await resp3Promise, {name: 'methodAsync', x: "foo", y: 3});
+
+      // Check that we saw the situation we were hoping to test.
+      assert.equal(failedSendCount, sendShouldFail ? 1 : 0, 'Expected to see a failed send');
     }
 
     it("should receive all server messages (small) in order when send doesn't fail", async function() {

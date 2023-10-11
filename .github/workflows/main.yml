@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.9]
-        node-version: [14.x]
+        node-version: [18.x]
         tests:
           - ':lint:python:client:common:smoke:'
           - ':server-1-of-2:'
@@ -30,10 +30,10 @@ jobs:
           - ':nbrowser-^[^A-S]:'
         include:
           - tests: ':lint:python:client:common:smoke:'
-            node-version: 14.x
+            node-version: 18.x
             python-version: '3.10'
           - tests: ':lint:python:client:common:smoke:'
-            node-version: 14.x
+            node-version: 18.x
             python-version: '3.11'
     steps:
       - uses: actions/checkout@v3
@@ -71,6 +71,10 @@ jobs:
 
       - name: Build Node.js code
         run: yarn run build:prod
+
+      - name: Install chromedriver
+        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:')
+        run: ./node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
 
       - name: Run smoke test
         if: contains(matrix.tests, ':smoke:')

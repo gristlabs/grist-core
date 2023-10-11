@@ -68,7 +68,6 @@ import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
-import * as bodyParser from 'body-parser';
 import * as cookie from 'cookie';
 import express from 'express';
 import * as fse from 'fs-extra';
@@ -789,7 +788,7 @@ export class FlexServer implements GristServer {
 
   public addJsonSupport() {
     if (this._check('json')) { return; }
-    this.app.use(bodyParser.json({limit: '1mb'}));  // Increase from the default 100kb
+    this.app.use(express.json({limit: '1mb'}));  // Increase from the default 100kb
   }
 
   public addSessions() {

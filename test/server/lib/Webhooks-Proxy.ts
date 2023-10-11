@@ -1,8 +1,8 @@
 import {UserAPIImpl} from 'app/common/UserAPI';
 import {WebhookSubscription} from 'app/server/lib/DocApi';
 import axios from 'axios';
-import * as bodyParser from 'body-parser';
 import {assert} from 'chai';
+import * as express from 'express';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import {createClient} from 'redis';
@@ -218,7 +218,7 @@ describe('Webhooks-Proxy', function () {
         this.timeout(30000);
         serving = await serveSomething(app => {
 
-          app.use(bodyParser.json());
+          app.use(express.json());
           app.post('/200', ({body}, res) => {
             successCalled.emit(body[0].A);
             res.sendStatus(200);

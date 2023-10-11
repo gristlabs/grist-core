@@ -3,6 +3,7 @@ import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
 
 describe('SavePosition.ntest', function() {
   const cleanup = test.setupTestSuite(this);
+  const clipboard = gu.getLockableClipboard();
 
   before(async function() {
     this.timeout(Math.max(this.timeout(), 20000)); // Long-running test, unfortunately
@@ -96,9 +97,11 @@ describe('SavePosition.ntest', function() {
   it('should paste into saved position', async function() {
     await gu.getCell({col: 1, rowNum: 9, section: 'Country'}).click();
     await gu.actions.selectTabView('City');
-    await gu.sendKeys($.COPY);
-    await gu.actions.selectTabView('Country');
-    await gu.sendKeys($.PASTE);
+    await clipboard.lockAndPerform(async (cb) => {
+      await cb.copy();
+      await gu.actions.selectTabView('Country');
+      await cb.paste();
+    });
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells(1, [8, 9, 10]),
       ['United Arab Emirates', 'Pará', 'Armenia']);

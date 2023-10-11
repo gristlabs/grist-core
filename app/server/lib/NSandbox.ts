@@ -737,6 +737,10 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
   }
   const child = spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
+  if (!child.pid) {
+    throw new Error(`failed to spawn python${pythonVersion}`);
+  }
+
   // For gvisor under ptrace, main work is done by a traced process identifiable as
   // being labeled "exe" and having a parent also labeled "exe".
   const recognizeTracedProcess = (p: ProcessInfo) => {
