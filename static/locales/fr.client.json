@@ -74,8 +74,8 @@
         "Accounts": "Comptes",
         "Add Account": "Ajouter un compte",
         "Sign Out": "Se déconnecter",
-        "Upgrade Plan": "Version Premium",
-        "Support Grist": "Centre d'aide Grist",
+        "Upgrade Plan": "Changer d'offre",
+        "Support Grist": "Support utilisateur Grist",
         "Billing Account": "Facturation",
         "Activation": "Activer",
         "Sign In": "Se connecter",
@@ -86,7 +86,8 @@
         "Action Log failed to load": "Impossible de charger le journal des actions",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "La table {{tableId}} a été ensuite supprimée dans l'action #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{action.actionNum}}",
-        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{action.actionNum}}"
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{action.actionNum}}",
+        "All tables": "Toutes les tables"
     },
     "AddNewButton": {
         "Add New": "Nouveau"
@@ -194,7 +195,9 @@
         "Widget needs to {{read}} the current table.": "Le widget a besoin de {{read}} la table actuelle.",
         "Widget does not require any permissions.": "La vue ne nécessite aucune autorisation.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} colonnes non-{{columnType}} masquées",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} colonnes de type non-{{columnType}} masquées"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} colonnes de type non-{{columnType}} masquées",
+        "No {{columnType}} columns in table.": "Pas de colonne de type {{columnType}} dans la table.",
+        "Clear selection": "Tout désélectionner"
     },
     "DataTables": {
         "Raw Data Tables": "Données sources",
@@ -791,7 +794,10 @@
         "Contact support": "Contacter le support",
         "Something went wrong": "Une erreur s’est produite",
         "There was an error: {{message}}": "Une erreur s’est produite : {{message}}",
-        "There was an unknown error.": "Une erreur inconnue s’est produite."
+        "There was an unknown error.": "Une erreur inconnue s’est produite.",
+        "Account deleted{{suffix}}": "Compte supprimé {{suffix}}",
+        "Your account has been deleted.": "Votre compte a été supprimé.",
+        "Sign up": "S'inscrire"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1013,7 +1019,7 @@
         "relational": "relationnelles",
         "Access Rules": "Règles d'accès",
         "Learn more.": "En savoir plus.",
-        "They allow for one record to point (or refer) to another.": "Ils permettent à un enregistrement de pointer (ou de faire référence) vers un autre.",
+        "They allow for one record to point (or refer) to another.": "Ils permettent à une ligne de pointer (ou de faire référence) vers une autre.",
         "Add New": "Nouveau",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
@@ -1021,7 +1027,12 @@
         "Anchor Links": "Ancres",
         "Custom Widgets": "Vues personnalisées",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Pour créer un lien d'ancrage qui amène l'utilisateur à une cellule spécifique, cliquez sur une ligne et appuyez sur {{shortcut}}.",
-        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Vous pouvez choisir l'une de nos vues prédéfinis ou intégrer la vôtre en indiquant son URL complète."
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Vous pouvez choisir l'une de nos vues prédéfinies ou intégrer la vôtre en indiquant son URL complète.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Pour configurer votre calendrier, sélectionnez les colonnes pour les dates de début/fin et le nom de l'évènement. Notez le type de chaque colonne."
+        },
+        "Calendar": "Calendrier",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Impossible de trouver les bonnes colonnes ? Cliquez sur \"Changer de vue\" pour sélectionner la table contenant les évênements."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1074,8 +1085,8 @@
         "AI Assistant": "Assistant IA",
         "Apply": "Appliquer",
         "Cancel": "Annuler",
-        "Hi, I'm the Grist Formula AI Assistant.": "Bonjour, je suis l'assistant IA de Grist pour les formules",
-        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Je peux aider seulement pour les formules, je ne peut pas créer de tables, de colonnes, de vue ou gérer les droits d'accès.",
+        "Hi, I'm the Grist Formula AI Assistant.": "Bonjour, je suis l'assistant IA de Grist pour les formules.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Je ne peux aider que pour les formules, je ne peut pas créer de tables, de colonnes, de vue ou gérer les droits d'accès.",
         "Learn more": "En apprendre plus",
         "Clear Conversation": "Effacer la conversation",
         "Code View": "Vue du code",
@@ -1100,7 +1111,9 @@
         "Close": "Fermer",
         "Contribute": "Contribuer",
         "Support Grist": "Support Grist",
-        "Opt in to Telemetry": "S'inscrire à Telemetry"
+        "Opt in to Telemetry": "S'inscrire à Telemetry",
+        "Opted In": "Accepté",
+        "Support Grist page": "Soutenir Grist"
     },
     "GridView": {
         "Click to insert": "Cliquer pour insérer"
@@ -1116,8 +1129,12 @@
         "Opt out of Telemetry": "S'inscrire à Telemetry",
         "Support Grist": "Support Grist",
         "Telemetry": "Telemetry",
-        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Cette instance est autorisée à utiliser la télémétrie. Seul l'administrateur de l'espace est autorisé à modifier ce paramètre.",
-        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Cette instance est autorisée à utiliser la télémétrie. Seul l'administrateur de l'espace est autorisé à modifier ce paramètre."
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Cette instance accepte l'envoi de données de télémétrie. Seul l'administrateur de l'espace est autorisé à modifier ce paramètre.",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Cette instance est autorisée à utiliser la télémétrie. Seul l'administrateur de l'espace est autorisé à modifier ce paramètre.",
+        "You have opted out of telemetry.": "Vous avez choisi de ne pas envoyer de données de télémétrie.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Nous ne collectons que des statistiques d'usage, comme détaillé dans notre {{link}}, jamais le contenu des documents.",
+        "You can opt out of telemetry at any time from this page.": "Vous pouvez vous désinscrire de la télémétrie à tout moment depuis cette page.",
+        "You have opted in to telemetry. Thank you!": "Merci de vous être inscrit à la télémétrie !"
     },
     "buildViewSectionDom": {
         "No data": "Aucune donnée",
@@ -1129,7 +1146,7 @@
         "Anyone with link ": "Toute personne possédant le lien ",
         "Cancel": "Annuler",
         "Close": "Fermer",
-        "Add {{member}} to your team": "Ajouter des {{member}}  à votre équipe",
+        "Add {{member}} to your team": "Ajouter {{member}} à votre équipe",
         "Confirm": "Confirmer",
         "member": "membre",
         "{{collaborator}} limit exceeded": "la limite de {{collaborator}} a été atteinte",
@@ -1139,39 +1156,39 @@
         "Collaborator": "Collaborateur",
         "Copy Link": "Copier le lien",
         "Create a team to share with more people": "Créer une équipe pour partager avec plus de personnes",
-        "Grist support": "Support Grist",
+        "Grist support": "Support utilisateur Grist",
         "Guest": "Invité",
         "Invite multiple": "Invitation multiple",
         "Invite people to {{resourceType}}": "Inviter des personnes à {{resourceType}}",
         "Link copied to clipboard": "Lien copié dans le presse-papiers",
         "Manage members of team site": "Gérer les membres de l'espace d'équipe",
-        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "L'absence d'accès par défaut permet d'accorder l'accès à des documents ou à des espaces de travail spécifiques, plutôt qu'à l'ensemble de l'espace d'équipe.",
-        "Off": "Off",
-        "On": "On",
-        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Une fois que vous avez supprimé votre propre accès, vous ne pourrez pas le récupérer sans l'aide d'une autre personne disposant d'un accès suffisant au {{name}}.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "L'absence d'accès par défaut permet d' accorder l'accès à des documents ou à des espaces de travail spécifiques, plutôt qu'à l'ensemble de l'espace d'équipe.",
+        "Off": "Désactivé",
+        "On": "Activé",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Une fois que vous avez supprimé votre propre accès, vous ne pourrez pas le récupérer sans l'aide d'une autre personne disposant d'un accès suffisant à {{name}}.",
         "Open Access Rules": "Ouvrir les règles d'accès",
         "Outside collaborator": "Collaborateur externe",
         "Public Access": "Accès public",
         "Public access": "Accès public",
-        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'accès public hérite de {{parent}}. Pour le supprimer, changer l'option 'Accès hérité' à 'Aucun'",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'accès public est hérité de {{parent}}. Pour le supprimer, changer l'option 'Accès hérité' à 'Aucun'",
         "Public access: ": "Accès public : ",
         "Remove my access": "Supprimer mon accès",
         "Save & ": "Sauvegarder & ",
-        "Team member": "Membres",
-        "User may not modify their own access.": "L'utilisateur ne peut pas modifier son propre accès.",
+        "Team member": "Membres de l'espace d'équipe",
+        "User may not modify their own access.": "L'utilisateur ne peut pas modifier ses propres accès.",
         "Your role for this team site": "Votre rôle pour cet espace d'équipe",
         "Your role for this {{resourceType}}": "Votre rôle pour cet {{resourceType}}",
-        "free collaborator": "Collaborateur gratuit",
+        "free collaborator": "collaborateur gratuit",
         "guest": "invité",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "L'absence d'accès par défaut permet d'accorder l'accès à des documents ou à des espaces de travail spécifiques, plutôt qu'à l'ensemble de l'espace d'équipe.",
-        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Une fois que vous avez supprimé votre propre accès, vous ne pourrez pas le récupérer sans l'aide d'une autre personne disposant d'un accès suffisant au {{resourceType}}.",
-        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utilisateur a un accès visuel à {{resource}} résultant d'un accès manuel aux ressources internes. S'il est supprimé ici, cet utilisateur perdra l'accès aux ressources internes.",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Une fois que vous avez supprimé vos propres accès, vous ne pourrez pas les récupérer sans l'aide d'une autre personne disposant d'un accès suffisant au {{resourceType}}.",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "L'utilisateur a un accès en lecture seule à {{resource}} résultant d'un accès des ressources à l'intérieur. S'il est supprimé ici, cet utilisateur perdra l'accès aux ressources à l'intérieur.",
         "You are about to remove your own access to this {{resourceType}}": "Vous êtes sur le point de supprimer votre propre accès à {{resourceType}}",
         "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "L'utilisateur hérite ses permissions de {{parent})}. Pour supprimer cela,            paramétrez 'Héritage d'accès à 'Aucun'."
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
-        "Search all pages": "Rechercher toutes les pages"
+        "Search all pages": "Rechercher dans toutes les pages"
     },
     "searchDropdown": {
         "Search": "Chercher"
