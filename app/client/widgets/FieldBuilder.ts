@@ -502,7 +502,7 @@ export class FieldBuilder extends Disposable {
     return this.gristDoc.docData.bundleActions(
       t("Use separate field settings for {{colId}}", { colId: this.origColumn.colId() }), () => {
         return Promise.all([
-          setSaveValue(this.field.widgetOptions, this.field.column().widgetOptions()),
+          setSaveValue(this.field.widgetOptions, this.field.column().widgetOptions() || "{}"),
           setSaveValue(this.field.visibleCol, this.field.column().visibleCol()),
           this.field.saveDisplayFormula(this.field.column()._displayColModel().formula() || '')
         ]);
