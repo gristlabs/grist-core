@@ -1211,6 +1211,7 @@ export class DocWorkerApi {
         viewSectionId: undefined,
         filters: [],
         sortOrder: [],
+        colIdAsHeader: false
       };
       await downloadXLSX(activeDoc, req, res, options);
     }));

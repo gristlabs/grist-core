@@ -79,14 +79,14 @@ export async function doMakeXLSXFromOptions(
   stream: Stream,
   options: ExportParameters
 ) {
-  const {tableId, viewSectionId, filters, sortOrder, linkingFilter} = options;
+  const {tableId, viewSectionId, filters, sortOrder, linkingFilter, colIdAsHeader} = options;
   if (viewSectionId) {
-    return doMakeXLSXFromViewSection(activeDocSource, testDates, stream, viewSectionId,
-      sortOrder || null, filters || null, linkingFilter || null);
+    return doMakeXLSXFromViewSection({activeDocSource, testDates, stream, viewSectionId, colIdAsHeader,
+      sortOrder: sortOrder || null, filters: filters || null, linkingFilter: linkingFilter || null});
   } else if (tableId) {
-    return doMakeXLSXFromTable(activeDocSource, testDates, stream, tableId);
+    return doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, colIdAsHeader});
   } else {
-    return doMakeXLSX(activeDocSource, testDates, stream);
+    return doMakeXLSX({activeDocSource, testDates, stream, colIdAsHeader});
   }
 }
 
@@ -98,7 +98,9 @@ export async function doMakeXLSXFromOptions(
  * @param {Integer[]} activeSortOrder (optional) - overriding sort order.
  * @param {Filter[]} filters (optional) - filters defined from ui.
  */
-async function doMakeXLSXFromViewSection(
+async function doMakeXLSXFromViewSection({
+  activeDocSource, testDates, stream, viewSectionId, sortOrder, filters, linkingFilter, colIdAsHeader
+}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
@@ -106,9 +108,10 @@ async function doMakeXLSXFromViewSection(
   sortOrder: number[] | null,
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null,
-) {
+  colIdAsHeader?: boolean,
+}) {
   const data = await doExportSection(activeDocSource, viewSectionId, sortOrder, filters, linkingFilter);
-  const {exportTable, end} = convertToExcel(stream, testDates);
+  const {exportTable, end} = convertToExcel(stream, testDates, {colIdAsHeader});
   exportTable(data);
   return end();
 }
@@ -119,14 +122,15 @@ async function doMakeXLSXFromViewSection(
  * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
  * @param {Integer} tableId - id of the table to export.
  */
-async function doMakeXLSXFromTable(
+async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, colIdAsHeader}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
   tableId: string,
-) {
+  colIdAsHeader?: boolean,
+}) {
   const data = await doExportTable(activeDocSource, {tableId});
-  const {exportTable, end} = convertToExcel(stream, testDates);
+  const {exportTable, end} = convertToExcel(stream, testDates, {colIdAsHeader});
   exportTable(data);
   return end();
 }
@@ -134,12 +138,13 @@ async function doMakeXLSXFromTable(
 /**
  * Creates excel document with all tables from an active Grist document.
  */
-async function doMakeXLSX(
+async function doMakeXLSX({activeDocSource, testDates, stream, colIdAsHeader}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
-): Promise<void|ExcelBuffer> {
-  const {exportTable, end} = convertToExcel(stream, testDates);
+  colIdAsHeader?: boolean,
+}): Promise<void|ExcelBuffer> {
+  const {exportTable, end} = convertToExcel(stream, testDates, {colIdAsHeader});
   await doExportDoc(activeDocSource, async (table: ExportData) => exportTable(table));
   return end();
 }
@@ -152,7 +157,7 @@ async function doMakeXLSX(
  * (The second option is for grist-static; at the time of writing
  * WorkbookWriter doesn't appear to be available in a browser context).
  */
-function convertToExcel(stream: Stream|undefined, testDates: boolean): {
+function convertToExcel(stream: Stream|undefined, testDates: boolean, options: { colIdAsHeader?: boolean }): {
   exportTable: (table: ExportData) => void,
   end: () => Promise<void|ExcelBuffer>,
 } {
@@ -206,7 +211,8 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean): {
     const formatters = columns.map(col => createExcelFormatter(col.formatter.type, col.formatter.widgetOpts));
     // Generate headers for all columns with correct styles for whole column.
     // Actual header style for a first row will be overwritten later.
-    ws.columns = columns.map((col, c) => ({ header: col.label, style: formatters[c].style() }));
+    const colHeader = options.colIdAsHeader ? 'colId' : 'label';
+    ws.columns = columns.map((col, c) => ({ header: col[colHeader], style: formatters[c].style() }));
     // style up the header row
     for (let i = 1; i <= columns.length; i++) {
       // apply to all rows (including header)
