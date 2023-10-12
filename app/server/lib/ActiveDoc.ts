@@ -85,7 +85,7 @@ import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/p
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
-import {Authorizer} from 'app/server/lib/Authorizer';
+import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
@@ -141,6 +141,7 @@ import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
 import zipObject = require('lodash/zipObject');
+import { getMetaTables } from './DocApi';
 
 bluebird.promisifyAll(tmp);
 
@@ -2804,11 +2805,26 @@ export function colIdToRef(metaTables: {[p: string]: TableDataAction}, tableId: 
 }
 
 // Helper that check if tableRef is used instead of tableId and return real tableId
-export function getRealTableId(metaTables: { [p: string]: TableDataAction }, tableId: string): string {
-  const [, , tableRefs, tableData] = metaTables._grist_Tables;
-  if(parseInt(tableId) && tableRefs.indexOf(parseInt(tableId)) >= 0){
-    const tableRowIndex = tableRefs.indexOf(parseInt(tableId));
-    return tableData.tableId[tableRowIndex]!.toString();
+// If metaTables is not define, activeDoc and req allow it to be created
+interface MetaTables {
+  metaTables: { [p: string]: TableDataAction }
+}
+interface ActiveDocAndReq {
+  activeDoc: ActiveDoc, req: RequestWithLogin
+}
+export async function getRealTableId(
+  tableId: string,
+  options:  MetaTables | ActiveDocAndReq
+  ): Promise<string> {
+  if (parseInt(tableId)) {
+    const metaTables = "metaTables" in options
+      ? options.metaTables
+      : await getMetaTables(options.activeDoc, options.req);
+    const [, , tableRefs, tableData] = metaTables._grist_Tables;
+    if (tableRefs.indexOf(parseInt(tableId)) >= 0) {
+      const tableRowIndex = tableRefs.indexOf(parseInt(tableId));
+      return tableData.tableId[tableRowIndex]!.toString();
+    }
   }
   return tableId;
 }
