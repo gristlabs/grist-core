@@ -91,12 +91,18 @@ export async function doMakeXLSXFromOptions(
 }
 
 /**
+ * @async
  * Returns a XLSX stream of a view section that can be transformed or parsed.
  *
- * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
- * @param {Integer} viewSectionId - id of the viewsection to export.
- * @param {Integer[]} activeSortOrder (optional) - overriding sort order.
- * @param {Filter[]} filters (optional) - filters defined from ui.
+ * @param {Object} options - options for the export.
+ * @param {Object} options.activeDocSource - the activeDoc that the table being converted belongs to.
+ * @param {Integer} options.viewSectionId - id of the viewsection to export.
+ * @param {Integer[]} options.activeSortOrder (optional) - overriding sort order.
+ * @param {Filter[]} options.filters (optional) - filters defined from ui.
+ * @param {FilterColValues} options.linkingFilter (optional)
+ * @param {Stream} options.stream - the stream to write to.
+ * @param {boolean} options.testDates - whether to use static dates for testing.
+ * @param {boolean} [options.colIdAsHeader] - whether to use column id as header.
  */
 async function doMakeXLSXFromViewSection({
   activeDocSource, testDates, stream, viewSectionId, sortOrder, filters, linkingFilter, colIdAsHeader
@@ -117,10 +123,16 @@ async function doMakeXLSXFromViewSection({
 }
 
 /**
+ * @async
  * Returns a XLSX stream of a table that can be transformed or parsed.
  *
- * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
- * @param {Integer} tableId - id of the table to export.
+ * @param {Object} options - options for the export.
+ * @param {Object} options.activeDocSource - the activeDoc that the table being converted belongs to.
+ * @param {Integer} options.tableId - id of the table to export.
+ * @param {Stream} options.stream - the stream to write to.
+ * @param {boolean} options.testDates - whether to use static dates for testing.
+ * @param {boolean} [options.colIdAsHeader] - whether to use column id as header.
+ *
  */
 async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, colIdAsHeader}: {
   activeDocSource: ActiveDocSource,

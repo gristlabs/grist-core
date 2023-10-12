@@ -18,11 +18,12 @@ export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
                                   res: express.Response, options: DownloadOptions) {
   log.info('Generating .csv file...');
   const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, colIdAsHeader} = options;
-  const colPropertyAsHeader = colIdAsHeader ? 'colId' : 'label';
   const data = viewSectionId ?
-    await makeCSVFromViewSection(
-      activeDoc, viewSectionId, sortOrder || null, filters || null, linkingFilter || null, colPropertyAsHeader, req) :
-    await makeCSVFromTable(activeDoc, tableId, colPropertyAsHeader, req);
+    await makeCSVFromViewSection({
+      activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
+      linkingFilter: linkingFilter || null, colIdAsHeader, req
+    }) :
+    await makeCSVFromTable({activeDoc, tableId, colIdAsHeader, req});
   res.set('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
   res.send(data);
@@ -33,38 +34,51 @@ export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
  *
  * See https://github.com/wdavidw/node-csv for API details.
  *
- * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
- * @param {Integer} viewSectionId - id of the viewsection to export.
- * @param {Integer[]} activeSortOrder (optional) - overriding sort order.
- * @param {Filter[]} filters (optional) - filters defined from ui.
+ * @param {Object} options - options for the export.
+ * @param {Object} options.activeDoc - the activeDoc that the table being converted belongs to.
+ * @param {Integer} options.viewSectionId - id of the viewsection to export.
+ * @param {Integer[]} options.activeSortOrder (optional) - overriding sort order.
+ * @param {Filter[]} options.filters (optional) - filters defined from ui.
+ * @param {FilterColValues} options.linkingFilter (optional) - linking filter defined from ui.
+ * @param {boolean} [options.colIdAsHeader] - whether to use column id as header.
+ * @param {express.Request} options.req - the request object.
+ *
  * @return {Promise<string>} Promise for the resulting CSV.
  */
-export async function makeCSVFromViewSection(
+export async function makeCSVFromViewSection({
+  activeDoc, viewSectionId, sortOrder = null, filters = null, linkingFilter = null, colIdAsHeader, req
+}: {
   activeDoc: ActiveDoc,
   viewSectionId: number,
   sortOrder: number[] | null,
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null,
-  colPropertyAsHeader: 'label' | 'colId',
-  req: express.Request) {
+  colIdAsHeader?: boolean,
+  req: express.Request
+}) {
 
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, linkingFilter, req);
-  const file = convertToCsv(data, colPropertyAsHeader);
+  const file = convertToCsv(data, { colIdAsHeader });
   return file;
 }
 
 /**
  * Returns a csv stream of a table that can be transformed or parsed.
  *
- * @param {Object} activeDoc - the activeDoc that the table being converted belongs to.
- * @param {Integer} tableId - id of the table to export.
+ * @param {Object} options - options for the export.
+ * @param {Object} options.activeDoc - the activeDoc that the table being converted belongs to.
+ * @param {Integer} options.tableId - id of the table to export.
+ * @param {boolean} [options.colIdAsHeader] - whether to use column id as header.
+ * @param {express.Request} options.req - the request object.
+ *
  * @return {Promise<string>} Promise for the resulting CSV.
  */
-export async function makeCSVFromTable(
+export async function makeCSVFromTable({ activeDoc, tableId, colIdAsHeader, req }: {
   activeDoc: ActiveDoc,
   tableId: string,
-  colPropertyAsHeader: 'label' | 'colId',
-  req: express.Request) {
+  colIdAsHeader?: boolean,
+  req: express.Request
+}) {
 
   if (!activeDoc.docData) {
     throw new Error('No docData in active document');
@@ -79,7 +93,7 @@ export async function makeCSVFromTable(
   }
 
   const data = await exportTable(activeDoc, tableRef, req);
-  const file = convertToCsv(data, colPropertyAsHeader);
+  const file = convertToCsv(data, { colIdAsHeader });
   return file;
 }
 
@@ -87,12 +101,12 @@ function convertToCsv({
   rowIds,
   access,
   columns: viewColumns,
-  docSettings,
-}: ExportData, colPropertyAsHeader: 'label' | 'colId') {
+}: ExportData, options: { colIdAsHeader?: boolean }) {
 
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
+  const colPropertyAsHeader = options.colIdAsHeader ? 'colId' : 'label';
   const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
   rowIds.forEach(row => {
