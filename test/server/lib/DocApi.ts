@@ -547,9 +547,7 @@ function testDocApi() {
   }
 
   it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
-    assert.equal(resp.status, 200);
-    assert.deepEqual(resp.data, {
+    const data = {
       id: [1, 2, 3, 4],
       A: ['hello', '', '', ''],
       B: ['', 'world', '', ''],
@@ -557,68 +555,73 @@ function testDocApi() {
       D: [null, null, null, null],
       E: ['HELLO', '', '', ''],
       manualSort: [1, 2, 3, 4]
-    });
+    };
+    const respWithTableId = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
+    assert.equal(respWithTableId.status, 200);
+    assert.deepEqual(respWithTableId.data, data);
+    const respWithTableRef = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/1/data`, chimpy);
+    assert.equal(respWithTableRef.status, 200);
+    assert.deepEqual(respWithTableRef.data, data);
   });
 
   it("GET /docs/{did}/tables/{tid}/records retrieves data in records format", async function () {
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`, chimpy);
-    assert.equal(resp.status, 200);
-    assert.deepEqual(resp.data,
-      {
-        records:
-          [
-            {
-              id: 1,
-              fields: {
-                A: 'hello',
-                B: '',
-                C: '',
-                D: null,
-                E: 'HELLO',
-              },
+    const data = {
+      records:
+        [
+          {
+            id: 1,
+            fields: {
+              A: 'hello',
+              B: '',
+              C: '',
+              D: null,
+              E: 'HELLO',
             },
-            {
-              id: 2,
-              fields: {
-                A: '',
-                B: 'world',
-                C: '',
-                D: null,
-                E: '',
-              },
+          },
+          {
+            id: 2,
+            fields: {
+              A: '',
+              B: 'world',
+              C: '',
+              D: null,
+              E: '',
             },
-            {
-              id: 3,
-              fields: {
-                A: '',
-                B: '',
-                C: '',
-                D: null,
-                E: '',
-              },
+          },
+          {
+            id: 3,
+            fields: {
+              A: '',
+              B: '',
+              C: '',
+              D: null,
+              E: '',
             },
-            {
-              id: 4,
-              fields: {
-                A: '',
-                B: '',
-                C: '',
-                D: null,
-                E: '',
-              },
+          },
+          {
+            id: 4,
+            fields: {
+              A: '',
+              B: '',
+              C: '',
+              D: null,
+              E: '',
             },
-          ]
-      });
+          },
+        ]
+    };
+    const respWithTableId = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`, chimpy);
+    assert.equal(respWithTableId.status, 200);
+    assert.deepEqual(respWithTableId.data, data);
+    const respWithTableRef = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/1/records`, chimpy);
+    assert.equal(respWithTableRef.status, 200);
+    assert.deepEqual(respWithTableRef.data, data);
   });
 
   it('GET /docs/{did}/tables/{tid}/records honors the "hidden" param', async function () {
     const params = { hidden: true };
-    const resp = await axios.get(
-      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`,
-      {...chimpy, params }
-    );
-    assert.equal(resp.status, 200);
-    assert.deepEqual(resp.data.records[0], {
+    const data = {
       id: 1,
       fields: {
         manualSort: 1,
@@ -628,7 +631,19 @@ function testDocApi() {
         D: null,
         E: 'HELLO',
       },
-    });
+    };
+    const respWithTableId = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`,
+      {...chimpy, params }
+    );
+    assert.equal(respWithTableId.status, 200);
+    assert.deepEqual(respWithTableId.data.records[0], data);
+    const respWithTableRef = await axios.get(
+      `${serverUrl}/api/docs/${docIds.Timesheets}/tables/1/records`,
+      {...chimpy, params }
+    );
+    assert.equal(respWithTableRef.status, 200);
+    assert.deepEqual(respWithTableRef.data.records[0], data);
   });
 
   it("GET /docs/{did}/tables/{tid}/records handles errors and hidden columns", async function () {
@@ -683,119 +698,121 @@ function testDocApi() {
   });
 
   it("GET /docs/{did}/tables/{tid}/columns retrieves columns", async function () {
-    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`, chimpy);
-    assert.equal(resp.status, 200);
-    assert.deepEqual(resp.data,
-      {
-        columns: [
-          {
-            id: 'A',
-            fields: {
-              colRef: 2,
-              parentId: 1,
-              parentPos: 1,
-              type: 'Text',
-              widgetOptions: '',
-              isFormula: false,
-              formula: '',
-              label: 'A',
-              description: '',
-              untieColIdFromLabel: false,
-              summarySourceCol: 0,
-              displayCol: 0,
-              visibleCol: 0,
-              rules: null,
-              recalcWhen: 0,
-              recalcDeps: null
-            }
-          },
-          {
-            id: 'B',
-            fields: {
-              colRef: 3,
-              parentId: 1,
-              parentPos: 2,
-              type: 'Text',
-              widgetOptions: '',
-              isFormula: false,
-              formula: '',
-              label: 'B',
-              description: '',
-              untieColIdFromLabel: false,
-              summarySourceCol: 0,
-              displayCol: 0,
-              visibleCol: 0,
-              rules: null,
-              recalcWhen: 0,
-              recalcDeps: null
-            }
-          },
-          {
-            id: 'C',
-            fields: {
-              colRef: 4,
-              parentId: 1,
-              parentPos: 3,
-              type: 'Text',
-              widgetOptions: '',
-              isFormula: false,
-              formula: '',
-              label: 'C',
-              description: '',
-              untieColIdFromLabel: false,
-              summarySourceCol: 0,
-              displayCol: 0,
-              visibleCol: 0,
-              rules: null,
-              recalcWhen: 0,
-              recalcDeps: null
-            }
-          },
-          {
-            id: 'D',
-            fields: {
-              colRef: 5,
-              parentId: 1,
-              parentPos: 3,
-              type: 'Any',
-              widgetOptions: '',
-              isFormula: true,
-              formula: '',
-              label: 'D',
-              description: '',
-              untieColIdFromLabel: false,
-              summarySourceCol: 0,
-              displayCol: 0,
-              visibleCol: 0,
-              rules: null,
-              recalcWhen: 0,
-              recalcDeps: null
-            }
-          },
-          {
-            id: 'E',
-            fields: {
-              colRef: 6,
-              parentId: 1,
-              parentPos: 4,
-              type: 'Any',
-              widgetOptions: '',
-              isFormula: true,
-              formula: '$A.upper()',
-              label: 'E',
-              description: '',
-              untieColIdFromLabel: false,
-              summarySourceCol: 0,
-              displayCol: 0,
-              visibleCol: 0,
-              rules: null,
-              recalcWhen: 0,
-              recalcDeps: null
-            }
+    const data = {
+      columns: [
+        {
+          id: 'A',
+          fields: {
+            colRef: 2,
+            parentId: 1,
+            parentPos: 1,
+            type: 'Text',
+            widgetOptions: '',
+            isFormula: false,
+            formula: '',
+            label: 'A',
+            description: '',
+            untieColIdFromLabel: false,
+            summarySourceCol: 0,
+            displayCol: 0,
+            visibleCol: 0,
+            rules: null,
+            recalcWhen: 0,
+            recalcDeps: null
           }
-        ]
-      }
-    );
+        },
+        {
+          id: 'B',
+          fields: {
+            colRef: 3,
+            parentId: 1,
+            parentPos: 2,
+            type: 'Text',
+            widgetOptions: '',
+            isFormula: false,
+            formula: '',
+            label: 'B',
+            description: '',
+            untieColIdFromLabel: false,
+            summarySourceCol: 0,
+            displayCol: 0,
+            visibleCol: 0,
+            rules: null,
+            recalcWhen: 0,
+            recalcDeps: null
+          }
+        },
+        {
+          id: 'C',
+          fields: {
+            colRef: 4,
+            parentId: 1,
+            parentPos: 3,
+            type: 'Text',
+            widgetOptions: '',
+            isFormula: false,
+            formula: '',
+            label: 'C',
+            description: '',
+            untieColIdFromLabel: false,
+            summarySourceCol: 0,
+            displayCol: 0,
+            visibleCol: 0,
+            rules: null,
+            recalcWhen: 0,
+            recalcDeps: null
+          }
+        },
+        {
+          id: 'D',
+          fields: {
+            colRef: 5,
+            parentId: 1,
+            parentPos: 3,
+            type: 'Any',
+            widgetOptions: '',
+            isFormula: true,
+            formula: '',
+            label: 'D',
+            description: '',
+            untieColIdFromLabel: false,
+            summarySourceCol: 0,
+            displayCol: 0,
+            visibleCol: 0,
+            rules: null,
+            recalcWhen: 0,
+            recalcDeps: null
+          }
+        },
+        {
+          id: 'E',
+          fields: {
+            colRef: 6,
+            parentId: 1,
+            parentPos: 4,
+            type: 'Any',
+            widgetOptions: '',
+            isFormula: true,
+            formula: '$A.upper()',
+            label: 'E',
+            description: '',
+            untieColIdFromLabel: false,
+            summarySourceCol: 0,
+            displayCol: 0,
+            visibleCol: 0,
+            rules: null,
+            recalcWhen: 0,
+            recalcDeps: null
+          }
+        }
+      ]
+    };
+    const respWithTableId = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`, chimpy);
+    assert.equal(respWithTableId.status, 200);
+    assert.deepEqual(respWithTableId.data, data);
+    const respWithTableRef = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/1/columns`, chimpy);
+    assert.equal(respWithTableRef.status, 200);
+    assert.deepEqual(respWithTableRef.data, data);
   });
 
   it('GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when "hidden" is set', async function () {
@@ -868,6 +885,13 @@ function testDocApi() {
         {id: "NewCol5"},
       ]
     });
+
+    // POST /columns: Create new columns using tableRef in URL
+    resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/5/columns`, {
+      columns: [{id: "NewCol6", fields: {}}],
+    }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.deepEqual(resp.data, {columns: [{id: "NewCol6"}]});
 
     // POST /columns to invalid table ID
     resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/NoSuchTable/columns`,
@@ -1032,6 +1056,7 @@ function testDocApi() {
       {colId: "NewCol4", label: 'NewCol4'},
       {colId: "NewCol4_2", label: 'NewCol4_2'},
       // NewCol5 is hidden by ACL
+      {colId: "NewCol6", label: 'NewCol6'},
     ]);
 
     resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/NewTable2_2/columns`, chimpy);
