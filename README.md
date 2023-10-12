@@ -304,6 +304,7 @@ PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
+GRIST_PROMCLIENT_PORT         | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️.
 
 #### AI Formula Assistant related variables (all optional):
 

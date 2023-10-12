@@ -7,4 +7,8 @@ if [[ "$GRIST_SANDBOX_FLAVOR" = "gvisor" ]]; then
   source ./sandbox/gvisor/get_checkpoint_path.sh
 fi
 
-NODE_PATH=_build:_build/stubs:_build/ext node _build/stubs/app/server/server.js
+if [[ -n "$GRIST_PROMCLIENT_PORT" ]]; then
+  require_promclient="--require ./_build/stubs/app/server/prometheus-exporter.js"
+fi
+
+NODE_PATH=_build:_build/stubs:_build/ext node ${require_promclient} _build/stubs/app/server/server.js

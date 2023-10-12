@@ -15,8 +15,14 @@ if [ ! -e _build ]; then
   buildtools/build.sh
 fi
 
+if [ -n "$GRIST_PROMCLIENT_PORT" ]; then
+  require_promclient="--require ./_build/stubs/app/server/prometheus-exporter.js"
+fi
+
+ls _build/stubs/app/server
+
 tsc --build -w --preserveWatchOutput $PROJECT &
 catw app/client/*.css app/client/*/*.css -o static/bundle.css -v & webpack --config $WEBPACK_CONFIG --mode development --watch &
-NODE_PATH=_build:_build/stubs:_build/ext nodemon ${NODE_INSPECT:+--inspect} --delay 1 -w _build/app/server -w _build/app/common _build/stubs/app/server/server.js &
+NODE_PATH=_build:_build/stubs:_build/ext nodemon ${NODE_INSPECT:+--inspect} --delay 1 -w _build/app/server -w _build/app/common ${require_promclient} _build/stubs/app/server/server.js &
 
 wait
