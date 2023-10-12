@@ -208,6 +208,9 @@ export class DocWorkerApi {
         session, {tableId, filters}, !immediate));
       // For metaTables we don't need to specify columns, search will infer it from the sort expression.
       const isMetaTable = tableId.startsWith('_grist');
+      console.log("////////////////////////////// in getTableData");
+      console.log("---- tableData");
+      console.log(tableData);
       const columns = isMetaTable ? null :
         await handleSandboxError('', [], activeDoc.getTableCols(session, tableId, true));
       const params = getQueryParameters(req);
@@ -217,9 +220,13 @@ export class DocWorkerApi {
     }
 
     async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
+      activeDoc: ActiveDoc,
+      req: RequestWithLogin,
+      opts?: { optTableId?: string; includeHidden?: boolean, useColRef?: boolean }
     ): Promise<TableRecordValue[]> {
       const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+      console.log("------------------- colummnDATA in getTableRecords");
+      console.log(columnData);
       const fieldNames = Object.keys(columnData).filter((k) => {
         if (k === "id") {
           return false;
@@ -257,7 +264,7 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
         const records = await getTableRecords(activeDoc, req,
-          { includeHidden: isAffirmative(req.query.hidden) }
+          { includeHidden: isAffirmative(req.query.hidden), useColRef: isAffirmative(req.query.use_col_ref) }
         );
         res.json({records});
       })

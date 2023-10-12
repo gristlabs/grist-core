@@ -2509,6 +2509,9 @@ export class ActiveDoc extends EventEmitter {
   private async _fetchQueryFromDB(query: ServerQuery, onDemand: boolean): Promise<TableDataAction> {
     // Expand query to compute formulas (or include placeholders for them).
     const expandedQuery = expandQuery(query, this.docData!, onDemand);
+    console.log("--------------fetchQueryFromDB----------------------");
+    console.log(expandedQuery);
+    console.log(this.docData!);
     const marshalled = await this.docStorage.fetchQuery(expandedQuery);
     const table = this.docStorage.decodeMarshalledData(marshalled, query.tableId);
 
@@ -2523,6 +2526,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _fetchQueryFromDataEngine(query: ServerQuery): Promise<TableDataAction> {
+    console.log("--------------_fetchQueryFromDataEngine----------------------");
+    console.log(await this._pyCall('fetch_table', query.tableId, true, query.filters));
     return this._pyCall('fetch_table', query.tableId, true, query.filters);
   }
 
