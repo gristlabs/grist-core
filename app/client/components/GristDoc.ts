@@ -47,7 +47,6 @@ import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
-import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -69,6 +68,7 @@ import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {DocStateComparison} from 'app/common/UserAPI';
+import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
@@ -1090,12 +1090,15 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   // Convert column to data column with a trigger formula
-  public async convertToTrigger(colRefs: number, formula: string): Promise<void> {
+  public async convertToTrigger(
+    colRefs: number,
+    formula: string,
+    recalcWhen: RecalcWhen = RecalcWhen.DEFAULT ): Promise<void> {
     return this.docModel.columns.sendTableAction(
       ['UpdateRecord', colRefs, {
         isFormula: false,
         formula,
-        recalcWhen: RecalcWhen.DEFAULT,
+        recalcWhen: recalcWhen,
         recalcDeps: null,
       }]
     );

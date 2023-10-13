@@ -8,8 +8,10 @@ import { testId, theme, vars } from 'app/client/ui2018/cssVars';
 import { IconName } from 'app/client/ui2018/IconList';
 import { icon } from 'app/client/ui2018/icons';
 import { cssSelectBtn } from 'app/client/ui2018/select';
-import { BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
-         MaybeObsArray, MutableObsArray, Observable, styled } from 'grainjs';
+import {
+  BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
+  MaybeObsArray, MutableObsArray, Observable, styled
+} from 'grainjs';
 import * as weasel from 'popweasel';
 
 const t = makeT('menus');
@@ -47,6 +49,27 @@ export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOp
   return weasel.menu(wrappedCreateFunc, {...defaults, ...options});
 }
 
+const cssSearchField = styled('input',
+  'border: none;'+
+  'background-color: transparent;'+
+  'padding: 8px 24px 4px 24px;'+
+  '&:focus {outline: none;}'
+);
+export function enhanceBySearch(  menuFunc: (searchCriteria: Observable<string>) => DomElementArg[]): DomElementArg[]
+{
+    const searchCriteria = Observable.create(null, '');
+    const searchInput = [
+      menuItemStatic(
+        cssSearchField(
+          dom.on('input', (_ev, elem) => searchCriteria.set(elem.value)),
+          {placeholder: '🔍\uFE0E\t' + t("Search columns")}
+        )
+      ),
+      menuDivider(),
+    ];
+    return [...searchInput, ...menuFunc(searchCriteria)];
+}
+
 // TODO Weasel doesn't allow other options for submenus, but probably should.
 export type ISubMenuOptions = weasel.ISubMenuOptions & weasel.IPopupOptions;
 
@@ -78,7 +101,7 @@ export const cssMenuElem = styled('div', `
   }
 `);
 
-const menuItemStyle = `
+export const menuItemStyle = `
   justify-content: flex-start;
   align-items: center;
   color: ${theme.menuItemFg};
@@ -93,6 +116,8 @@ const menuItemStyle = `
     --icon-color: ${theme.menuItemDisabledFg};
   }
 `;
+
+export const menuItemStatic = styled('div', menuItemStyle);
 
 export const menuCssClass = cssMenuElem.className;
 
@@ -376,17 +401,23 @@ export function selectMenu(
   items: () => DomElementArg[],
   ...args: IDomArgs<HTMLDivElement>
 ) {
-  const _menu = cssSelectMenuElem(testId('select-menu'));
   return cssSelectBtn(
     label,
     icon('Dropdown'),
-    menu(
+    listOfMenuItems(items),
+    ...args,
+  );
+}
+
+export function listOfMenuItems(items: () => DomElementArg[],) {
+  const _menu = cssSelectMenuElem(testId('select-menu'));
+  return menu(
       items,
       {
         ...weasel.defaultMenuOptions,
         menuCssClass: _menu.className + ' grist-floating-menu',
-        stretchToSelector : `.${cssSelectBtn.className}`,
-        trigger : [(triggerElem, ctl) => {
+        stretchToSelector: `.${cssSelectBtn.className}`,
+        trigger: [(triggerElem, ctl) => {
           const isDisabled = () => triggerElem.classList.contains('disabled');
           dom.onElem(triggerElem, 'click', () => isDisabled() || ctl.toggle());
           dom.onKeyElem(triggerElem as HTMLElement, 'keydown', {
@@ -395,8 +426,6 @@ export function selectMenu(
           });
         }]
       },
-    ),
-    ...args,
   );
 }
 
@@ -434,9 +463,11 @@ export const menuText = styled('div', `
   cursor: default;
 `);
 
+
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
+
 
 /**
  * A version of menuItem which runs the action on next tick, allowing the menu to close even when

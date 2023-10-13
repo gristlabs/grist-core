@@ -1,30 +1,181 @@
+import {allCommands} from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
-import { allCommands } from 'app/client/components/commands';
-import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { testId, theme } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { menuDivider, menuItem, menuItemCmd } from 'app/client/ui2018/menus';
-import { Sort } from 'app/common/SortSpec';
-import { dom, DomElementArg, styled } from 'grainjs';
+import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
+import {testId, theme} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {
+  enhanceBySearch,
+  menuDivider,
+  menuItem,
+  menuItemCmd,
+  menuItemSubmenu,
+  menuSubHeader,
+  menuText
+} from 'app/client/ui2018/menus';
+import {Sort} from 'app/common/SortSpec';
+import {dom, DomElementArg, Observable, styled} from 'grainjs';
+import {RecalcWhen} from "../../common/gristTypes";
+import {GristDoc} from "../components/GristDoc";
+import {ColumnRec} from "../models/entities/ColumnRec";
+import {FieldBuilder} from "../widgets/FieldBuilder";
 import isEqual = require('lodash/isEqual');
 
 const t = makeT('GridViewMenus');
 
+//encapsulation over the view that menu will be generated for
 interface IView {
-  addNewColumn: () => void;
+  gristDoc: GristDoc;
+  //adding new column to the view, and return a FieldBuilder that can be used to further modify the column
+  addNewColumn: () => Promise<null>;
+  addNewColumnWithoutRenamePopup: () => Promise<FieldBuilder>;
   showColumn: (colId: number, atIndex: number) => void;
+  //Add new colum to the view as formula column, with given column name and
+  //formula equation.
+  // Return a FieldBuilder that can be used to further modify the column
+  addNewFormulaColumn(formula: string, columnName: string): Promise<FieldBuilder>;
 }
 
 interface IViewSection {
   viewFields: any;
   hiddenColumns: any;
+  columns: any;
 }
 
-/**
- * Creates a menu to add a new column. Should be used only when there are hidden columns to display,
- * otherwise there is no need for this menu.
- */
-export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
+interface IColumnInfo{
+  colId: string;
+  label: string;
+  index: number;
+}
+
+
+// Section for "Show hidden column" in a colum menu.
+// If there are no hidden columns - don't show the section.
+// If there is more that X - show submenu
+function MenuHideColumnSection(gridView: IView, viewSection: IViewSection){
+  //function to generate the list with name of hidden columns and unhinging them on click
+  const listOfHiddenColumns = viewSection.hiddenColumns().map((col: any, index: number): IColumnInfo => { return {
+    colId:col.id(), label: col.label(), index: viewSection.columns().findIndex((c: any) => c.id() === col.id()),
+  }; });
+
+  //Generating dom and hadling actions in menu section for hidden columns - allow to unhide it.
+  const hiddenColumnMenu = () => {
+    //if there is more than 5 hidden columns - show submenu
+    if(listOfHiddenColumns.length > 5){
+      return[
+        menuItemSubmenu(
+          (ctl: any)=>{
+            // enhance this submenu by adding search bar on the top. enhanceBySearch is doing basically two things:
+            // adding search bar, and expose searchCriteria observable to be used to generate list of items to be shown
+            return enhanceBySearch((searchCriteria)=> {
+              // put all hidden columns into observable
+              const hiddenColumns: Array<IColumnInfo> = listOfHiddenColumns;
+              const dynamicHiddenColumnsList =  Observable.create<any[]>(null, hiddenColumns);
+              // when search criteria changes - filter the list of hidden columns and update the observable
+              searchCriteria.addListener((sc: string) => {
+                return dynamicHiddenColumnsList.set(
+                  hiddenColumns.filter((c: IColumnInfo) => c.label.includes(sc)));
+              });
+              // generate a list of menu items from the observable
+              return [
+                // each hidden column is a menu item that will call showColumn on click
+                // and place column at the end of the table
+                dom.forEach(dynamicHiddenColumnsList,
+                  (col: any) => menuItem(
+                      ()=>{ gridView.showColumn(col.colId, viewSection.columns().length); },
+                      col.label //column label as menu item text
+                  )
+                )
+              ];
+            });
+          },
+          {}, //options - we do not need any for this submenu
+          t("Show hidden columns"), //text of the submenu
+          {class: menuItem.className} // style of the submenu
+        )
+      ];
+      // in case there are less than five hidden columns - show them all in the main level of the menu
+    } else {
+      // generate a list of menu items from the list of hidden columns
+     return listOfHiddenColumns.map((col: any) =>
+       menuItem(
+         ()=> { gridView.showColumn(col.colId, viewSection.columns().length); },
+         col.label, //column label as menu item text
+         testId(`new-columns-menu-hidden-columns-${col.label.replace(' ', '-')}`)
+       )
+     );
+    }
+  };
+
+
+  return dom.maybe(() => viewSection.hiddenColumns().length > 0, ()=>[
+    menuDivider(),
+    menuSubHeader(t("Hidden Columns"), testId('new-columns-menu-hidden-columns')),
+    hiddenColumnMenu()]
+  );
+}
+
+function MenuShortcuts(gridView: IView){
+  return [
+    menuDivider(),
+    menuSubHeader(t("Shortcuts"), testId('new-columns-menu-shortcuts')),
+    menuItemSubmenu((ctl: any)=>[
+      menuItem(
+        () => addNewColumnWithTimestamp(gridView, false), t("Apply to new records"),
+        testId('new-columns-menu-shortcuts-timestamp-new')
+      ),
+      menuItem(
+        () => addNewColumnWithTimestamp(gridView, true), t("Apply on record changes"),
+        testId('new-columns-menu-shortcuts-timestamp-change')
+      ),
+    ], {}, t("Timestamp"), testId('new-columns-menu-shortcuts-timestamp')),
+    menuItemSubmenu((ctl: any)=>[
+      menuItem(
+        () => addNewColumnWithAuthor(gridView, false), t("Apply to new records"),
+        testId('new-columns-menu-shortcuts-author-new')
+      ),
+      menuItem(
+        () => addNewColumnWithAuthor(gridView, true), t("Apply on record changes"),
+        testId('new-columns-menu-shortcuts-author-change')
+      ),
+
+    ], {}, t("Authorship"), testId('new-columns-menu-shortcuts-author')),
+  ]; }
+
+function MenuLookups(viewSection: IViewSection, gridView: IView){
+  return [
+    menuDivider(),
+    menuSubHeader(t("Lookups"), testId('new-columns-menu-lookups')),
+    buildLookupsOptions(viewSection, gridView)
+  ];
+}
+
+function buildLookupsOptions(viewSection: IViewSection, gridView: IView){
+  const referenceCollection = viewSection.columns().filter((e: ColumnRec)=> e.pureType()=="Ref");
+
+  if(referenceCollection.length == 0){
+    return menuText(()=>{}, t("no reference column"), testId('new-columns-menu-lookups-none'));
+  }
+  //TODO: Make search work - right now enhanceBySearch searchQuery parameter is not subscribed and menu items are
+  // not updated when search query changes. Filter the columns names based on search query observable (like in
+  // MenuHideColumnSection)
+  return referenceCollection.map((ref: any) => menuItemSubmenu((ctl) => {
+    return enhanceBySearch((searchQuery) => [
+      ...ref.refTable().columns().all().map((col: ColumnRec) =>
+        menuItem(
+          async () => {
+            await gridView.addNewFormulaColumn(`$${ref.label()}.${col.label()}`,
+              `${ref.label()}_${col.label()}`);
+          }, col.label()
+        )
+      )
+    ]);
+  }, {}, ref.label(), {class: menuItem.className}, testId(`new-columns-menu-lookups-${ref.label()}`)));
+}
+
+// Old version of column menu
+// TODO: This is only valid as long as feature flag GRIST_NEW_COLUMN_MENU is existing in the system.
+//  Once it is removed (so production is working only with the new column menu, this function should be removed as well.
+export function ColumnAddMenuOld(gridView: IView, viewSection: IViewSection) {
   return [
     menuItem(() => gridView.addNewColumn(), t("Add Column")),
     menuDivider(),
@@ -35,6 +186,56 @@ export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
       }, t("Show column {{- label}}", {label: col.label()})))
   ];
 }
+
+/**
+ * Creates a menu to add a new column.
+ */
+export function ColumnAddMenu(gridView: IView, viewSection: IViewSection) {
+  return [
+    menuItem(
+      async () => { await gridView.addNewColumn(); },
+      `+ ${t("Add Column")}`,
+      testId('new-columns-menu-add-new')
+    ),
+    MenuHideColumnSection(gridView, viewSection),
+    MenuLookups(viewSection, gridView),
+    MenuShortcuts(gridView),
+  ];
+}
+
+//TODO: figure out how to change columns names;
+const addNewColumnWithTimestamp = async (gridView: IView, triggerOnUpdate: boolean) => {
+  await gridView.gristDoc.docData.bundleActions('Add new column with timestamp', async () => {
+    const column = await gridView.addNewColumnWithoutRenamePopup();
+    if (!triggerOnUpdate) {
+      await column.gristDoc.convertToTrigger(column.origColumn.id.peek(), 'NOW()', RecalcWhen.DEFAULT);
+      await column.field.displayLabel.setAndSave(t('Created At'));
+      await column.field.column.peek().type.setAndSave('DateTime');
+    } else {
+      await column.gristDoc.convertToTrigger(column.origColumn.id.peek(), 'NOW()', RecalcWhen.MANUAL_UPDATES);
+      await column.field.displayLabel.setAndSave(t('Last Updated At'));
+      await column.field.column.peek().type.setAndSave('DateTime');
+    }
+  }, {nestInActiveBundle: true});
+};
+
+const addNewColumnWithAuthor = async (gridView: IView, triggerOnUpdate: boolean) => {
+  await gridView.gristDoc.docData.bundleActions('Add new column with author', async () => {
+    const column = await gridView.addNewColumnWithoutRenamePopup();
+    if (!triggerOnUpdate) {
+      await column.gristDoc.convertToTrigger(column.origColumn.id.peek(), 'user.Name', RecalcWhen.DEFAULT);
+      await column.field.displayLabel.setAndSave(t('Created By'));
+      await column.field.column.peek().type.setAndSave('Text');
+    } else {
+      await column.gristDoc.convertToTrigger(column.origColumn.id.peek(), 'user.Name', RecalcWhen.MANUAL_UPDATES);
+      await column.field.displayLabel.setAndSave(t('Last Updated By'));
+      await column.field.column.peek().type.setAndSave('Text');
+    }
+  }, {nestInActiveBundle: true});
+};
+
+
+
 export interface IMultiColumnContextMenu {
   // For multiple selection, true/false means the value applies to all columns, 'mixed' means it's
   // true for some columns, but not all.

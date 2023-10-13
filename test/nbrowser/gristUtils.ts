@@ -15,6 +15,7 @@ import * as PluginApi from 'app/plugin/grist-plugin-api';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
+import { isAffirmative } from "app/common/gutil";
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { UserAction } from 'app/common/DocActions';
@@ -2328,6 +2329,9 @@ export function hexToRgb(hex: string) {
 export async function addColumn(name: string, type?: string) {
   await scrollIntoView(await driver.find('.active_section .mod-add-column'));
   await driver.find('.active_section .mod-add-column').click();
+  if (isAffirmative(process.env.GRIST_NEW_COLUMN_MENU)) {
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
+  }
   // If we are on a summary table, we could be see a menu helper
   const menu = (await driver.findAll('.grist-floating-menu'))[0];
   if (menu) {

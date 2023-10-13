@@ -676,6 +676,9 @@ export interface GristLoadConfig {
 
   permittedCustomWidgets?: IAttachedCustomWidget[];
 
+  // Feature flag for the new column menu.
+  gristNewColumnMenu?: boolean;
+
   // Used to determine which disclosure links should be provided to user of
   // formula assistance.
   assistantService?: 'OpenAI' | undefined;

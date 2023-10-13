@@ -34,7 +34,7 @@ const {onDblClickMatchElem} = require('app/client/lib/dblclick');
 // Grist UI Components
 const {dom: grainjsDom, Holder, Computed} = require('grainjs');
 const {closeRegisteredMenu, menu} = require('../ui2018/menus');
-const {calcFieldsCondition} = require('../ui/GridViewMenus');
+const {calcFieldsCondition, ColumnAddMenuOld} = require('../ui/GridViewMenus');
 const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, freezeAction} = require('../ui/GridViewMenus');
 const {RowContextMenu} = require('../ui/RowContextMenu');
 
@@ -50,6 +50,8 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
+const {FieldBuilder} = require("../widgets/FieldBuilder");
+const {GRIST_NEW_COLUMN_MENU} = require("../models/features");
 
 const t = makeT('GridView');
 
@@ -836,7 +838,7 @@ GridView.prototype.deleteRows = async function(rowIds) {
 
 GridView.prototype.addNewColumn = function() {
   this.insertColumn(this.viewSection.viewFields().peekLength)
- .then(() => this.scrollPaneRight());
+    .then(() => this.scrollPaneRight());
 };
 
 GridView.prototype.insertColumn = async function(index) {
@@ -856,6 +858,33 @@ GridView.prototype.insertColumn = async function(index) {
   this.selectColumn(index);
   this.currentEditingColumnIndex(index);
 };
+
+if(GRIST_NEW_COLUMN_MENU) {
+  GridView.prototype.addNewColumnWithoutRenamePopup = async function() {
+    const index = this.viewSection.viewFields().peekLength;
+    const pos = tableUtil.fieldInsertPositions(this.viewSection.viewFields(), index)[0];
+    var action = ['AddColumn', null, {"_position": pos}];
+    await this.gristDoc.docData.bundleActions('Insert column', async () => {
+      const colInfo = await this.tableModel.sendTableAction(action);
+      if (!this.viewSection.isRaw.peek()) {
+        const fieldInfo = {
+          colRef: colInfo.colRef,
+          parentPos: pos,
+          parentId: this.viewSection.id.peek()
+        };
+        await this.gristDoc.docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+      }
+    });
+    const builder = new FieldBuilder(this.gristDoc, this.viewSection.viewFields().peek()[this.viewSection.viewFields().peekLength - 1], this.cursor);
+    return builder;
+  };
+
+  GridView.prototype.addNewFormulaColumn = async function(formula, name) {
+    const builder = await this.addNewColumnWithoutRenamePopup();
+    await builder.gristDoc.convertToFormula(builder.field.colRef.peek(), formula);
+    return builder;
+  }
+}
 
 GridView.prototype.renameColumn = function(index) {
   this.currentEditingColumnIndex(index);
@@ -1105,6 +1134,28 @@ GridView.prototype.buildDom = function() {
     }
   };
 
+  const addColumnMenu = (gridView, viewSection)=> {
+    if(GRIST_NEW_COLUMN_MENU())
+    {
+      return menu(ctl => [ColumnAddMenu(gridView, viewSection), testId('new-columns-menu')]);
+    }
+    else {
+      return [
+        dom.on('click', ev => {
+          // If there are no hidden columns, clicking the plus just adds a new column.
+          // If there are hidden columns, display a dropdown menu.
+          if (viewSection.hiddenColumns().length === 0) {
+            ev.stopImmediatePropagation(); // Don't open the menu defined below
+            this.addNewColumn();
+          }
+        }),
+        menu((ctl => ColumnAddMenuOld(gridView, viewSection)))
+      ]
+    }
+  }
+
+
+
   return dom(
     'div.gridview_data_pane.flexvbox',
     // offset for frozen columns - how much move them to the left
@@ -1298,15 +1349,7 @@ GridView.prototype.buildDom = function() {
               this._modField = dom('div.column_name.mod-add-column.field',
                 '+',
                 kd.style("width", PLUS_WIDTH + 'px'),
-                dom.on('click', ev => {
-                  // If there are no hidden columns, clicking the plus just adds a new column.
-                  // If there are hidden columns, display a dropdown menu.
-                  if (this.viewSection.hiddenColumns().length === 0) {
-                    ev.stopImmediatePropagation(); // Don't open the menu defined below
-                    this.addNewColumn();
-                  }
-                }),
-                menu((ctl => ColumnAddMenu(this, this.viewSection)))
+                addColumnMenu(this, this.viewSection),
               )
             ))
           )
