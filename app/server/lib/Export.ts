@@ -17,7 +17,7 @@ import {BaseFormatter, createFullFormatterFromDocData} from 'app/common/ValueFor
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {docSessionFromRequest} from 'app/server/lib/DocSession';
-import {optIntegerParam, optJsonParam, stringParam} from 'app/server/lib/requestUtils';
+import {optIntegerParam, optJsonParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import {ServerColumnGetters} from 'app/server/lib/ServerColumnGetters';
 import * as express from 'express';
 import * as _ from 'underscore';
@@ -90,6 +90,8 @@ export interface ExportData {
   docSettings: DocumentSettings;
 }
 
+export type ExportHeader = 'colId' | 'label';
+
 /**
  * Export parameters that identifies a section, filters, sort order.
  */
@@ -99,7 +101,7 @@ export interface ExportParameters {
   sortOrder?: number[];
   filters?: Filter[];
   linkingFilter?: FilterColValues;
-  colIdAsHeader?: boolean;
+  header?: ExportHeader;
 }
 
 /**
@@ -118,7 +120,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
   const sortOrder = optJsonParam(req.query.activeSortSpec, []) as number[];
   const filters: Filter[] = optJsonParam(req.query.filters, []);
   const linkingFilter: FilterColValues = optJsonParam(req.query.linkingFilter, null);
-  const colIdAsHeader = gutil.isAffirmative(req.query.colIdAsHeader);
+  const header = optStringParam(req.query.header, 'header', {allowed: ['label', 'colId']}) as ExportHeader | undefined;
 
   return {
     tableId,
@@ -126,7 +128,7 @@ export function parseExportParameters(req: express.Request): ExportParameters {
     sortOrder,
     filters,
     linkingFilter,
-    colIdAsHeader,
+    header,
   };
 }
 

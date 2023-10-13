@@ -1205,13 +1205,13 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
       // Query DB for doc metadata to get the doc title (to use as the filename).
       const {name: docTitle} = await this._dbManager.getDoc(req);
-      const options = !_.isEmpty(req.query) ? this._getDownloadOptions(req, docTitle) : {
+      const options: DownloadOptions = !_.isEmpty(req.query) ? this._getDownloadOptions(req, docTitle) : {
         filename: docTitle,
         tableId: '',
         viewSectionId: undefined,
         filters: [],
         sortOrder: [],
-        colIdAsHeader: false
+        header: 'label'
       };
       await downloadXLSX(activeDoc, req, res, options);
     }));

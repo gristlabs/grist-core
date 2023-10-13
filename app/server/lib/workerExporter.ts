@@ -1,7 +1,7 @@
 import {PassThrough} from 'stream';
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {ActiveDocSource, doExportDoc, doExportSection, doExportTable,
-        ExportData, ExportParameters, Filter} from 'app/server/lib/Export';
+        ExportData, ExportHeader, ExportParameters, Filter} from 'app/server/lib/Export';
 import {createExcelFormatter} from 'app/server/lib/ExcelFormatter';
 import * as log from 'app/server/lib/log';
 import {Alignment, Border, Buffer as ExcelBuffer, stream as ExcelWriteStream,
@@ -79,14 +79,14 @@ export async function doMakeXLSXFromOptions(
   stream: Stream,
   options: ExportParameters
 ) {
-  const {tableId, viewSectionId, filters, sortOrder, linkingFilter, colIdAsHeader} = options;
+  const {tableId, viewSectionId, filters, sortOrder, linkingFilter, header} = options;
   if (viewSectionId) {
-    return doMakeXLSXFromViewSection({activeDocSource, testDates, stream, viewSectionId, colIdAsHeader,
+    return doMakeXLSXFromViewSection({activeDocSource, testDates, stream, viewSectionId, header,
       sortOrder: sortOrder || null, filters: filters || null, linkingFilter: linkingFilter || null});
   } else if (tableId) {
-    return doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, colIdAsHeader});
+    return doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, header});
   } else {
-    return doMakeXLSX({activeDocSource, testDates, stream, colIdAsHeader});
+    return doMakeXLSX({activeDocSource, testDates, stream, header});
   }
 }
 
@@ -102,10 +102,10 @@ export async function doMakeXLSXFromOptions(
  * @param {FilterColValues} options.linkingFilter (optional)
  * @param {Stream} options.stream - the stream to write to.
  * @param {boolean} options.testDates - whether to use static dates for testing.
- * @param {boolean} [options.colIdAsHeader] - whether to use column id as header.
+ * @param {string} options.header (optional) - which field of the column to use as header
  */
 async function doMakeXLSXFromViewSection({
-  activeDocSource, testDates, stream, viewSectionId, sortOrder, filters, linkingFilter, colIdAsHeader
+  activeDocSource, testDates, stream, viewSectionId, sortOrder, filters, linkingFilter, header
 }: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
@@ -114,10 +114,10 @@ async function doMakeXLSXFromViewSection({
   sortOrder: number[] | null,
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null,
-  colIdAsHeader?: boolean,
+  header?: ExportHeader,
 }) {
   const data = await doExportSection(activeDocSource, viewSectionId, sortOrder, filters, linkingFilter);
-  const {exportTable, end} = convertToExcel(stream, testDates, {colIdAsHeader});
+  const {exportTable, end} = convertToExcel(stream, testDates, {header});
   exportTable(data);
   return end();
 }
@@ -131,18 +131,18 @@ async function doMakeXLSXFromViewSection({
  * @param {Integer} options.tableId - id of the table to export.
  * @param {Stream} options.stream - the stream to write to.
  * @param {boolean} options.testDates - whether to use static dates for testing.
- * @param {boolean} [options.colIdAsHeader] - whether to use column id as header.
+ * @param {string} options.header (optional) - which field of the column to use as header
  *
  */
-async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, colIdAsHeader}: {
+async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId, header}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
   tableId: string,
-  colIdAsHeader?: boolean,
+  header?: ExportHeader,
 }) {
   const data = await doExportTable(activeDocSource, {tableId});
-  const {exportTable, end} = convertToExcel(stream, testDates, {colIdAsHeader});
+  const {exportTable, end} = convertToExcel(stream, testDates, {header});
   exportTable(data);
   return end();
 }
@@ -150,13 +150,13 @@ async function doMakeXLSXFromTable({activeDocSource, testDates, stream, tableId,
 /**
  * Creates excel document with all tables from an active Grist document.
  */
-async function doMakeXLSX({activeDocSource, testDates, stream, colIdAsHeader}: {
+async function doMakeXLSX({activeDocSource, testDates, stream, header}: {
   activeDocSource: ActiveDocSource,
   testDates: boolean,
   stream: Stream,
-  colIdAsHeader?: boolean,
+  header?: ExportHeader,
 }): Promise<void|ExcelBuffer> {
-  const {exportTable, end} = convertToExcel(stream, testDates, {colIdAsHeader});
+  const {exportTable, end} = convertToExcel(stream, testDates, {header});
   await doExportDoc(activeDocSource, async (table: ExportData) => exportTable(table));
   return end();
 }
@@ -169,7 +169,7 @@ async function doMakeXLSX({activeDocSource, testDates, stream, colIdAsHeader}: {
  * (The second option is for grist-static; at the time of writing
  * WorkbookWriter doesn't appear to be available in a browser context).
  */
-function convertToExcel(stream: Stream|undefined, testDates: boolean, options: { colIdAsHeader?: boolean }): {
+function convertToExcel(stream: Stream|undefined, testDates: boolean, options: { header?: ExportHeader }): {
   exportTable: (table: ExportData) => void,
   end: () => Promise<void|ExcelBuffer>,
 } {
@@ -223,7 +223,7 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean, options: {
     const formatters = columns.map(col => createExcelFormatter(col.formatter.type, col.formatter.widgetOpts));
     // Generate headers for all columns with correct styles for whole column.
     // Actual header style for a first row will be overwritten later.
-    const colHeader = options.colIdAsHeader ? 'colId' : 'label';
+    const colHeader = options.header ?? 'label';
     ws.columns = columns.map((col, c) => ({ header: col[colHeader], style: formatters[c].style() }));
     // style up the header row
     for (let i = 1; i <= columns.length; i++) {

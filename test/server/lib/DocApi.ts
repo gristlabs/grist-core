@@ -2592,7 +2592,7 @@ function testDocApi() {
     assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
   });
 
-  it('GET /docs/{did}/download/csv with colIdAsHeader shows columns id in the header instead of their name',
+  it('GET /docs/{did}/download/csv with header=colId shows columns id in the header instead of their name',
     async function () {
       const { docUrl } = await generateDocAndUrl('csvWithColIdAsHeader');
       const AColRef = 2;
@@ -2606,7 +2606,7 @@ function testDocApi() {
       ];
       const resp = await axios.post(`${docUrl}/apply`, userActions, chimpy);
       assert.equal(resp.status, 200);
-      const csvResp = await axios.get(`${docUrl}/download/csv?tableId=Table1&colIdAsHeader=true`, chimpy);
+      const csvResp = await axios.get(`${docUrl}/download/csv?tableId=Table1&header=colId`, chimpy);
       assert.equal(csvResp.status, 200);
       assert.equal(csvResp.data, 'AColId,B,C\na1,b1,\n');
     });
