@@ -230,6 +230,14 @@ describe('DocApi', function () {
 
 // Contains the tests. This is where you want to add more test.
 function testDocApi() {
+  async function generateDocAndUrl(docName: string = "Dummy") {
+    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const docId = await userApi.newDoc({name: docName}, wid);
+    const docUrl = `${serverUrl}/api/docs/${docId}`;
+    const tableUrl = `${serverUrl}/api/docs/${docId}/tables/Table1`;
+    return { docUrl, tableUrl, docId };
+  }
+
   it("creator should be owner of a created ws", async () => {
     const kiwiEmail = 'kiwi@getgrist.com';
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
@@ -1080,13 +1088,13 @@ function testDocApi() {
   });
 
   describe("/docs/{did}/tables/{tid}/columns", function () {
-    async function generateDocAndUrl(docName: string = "Dummy") {
-      const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
-      const docId = await userApi.newDoc({name: docName}, wid);
-      const url = `${serverUrl}/api/docs/${docId}/tables/Table1/columns`;
-      return { url, docId };
+    async function generateDocAndUrlForColumns(name: string) {
+      const { tableUrl, docId } = await generateDocAndUrl(name);
+      return {
+        docId,
+        url: `${tableUrl}/columns`,
+      };
     }
-
     describe("PUT /docs/{did}/tables/{tid}/columns", function () {
       async function getColumnFieldsMapById(url: string, params: any) {
         const result = await axios.get(url, {...chimpy, params});
@@ -1104,7 +1112,7 @@ function testDocApi() {
         expectedFieldsByColId: Record<string, object>,
         opts?: { getParams?: any }
       ) {
-        const {url} = await generateDocAndUrl('ColumnsPut');
+        const {url} = await generateDocAndUrlForColumns('ColumnsPut');
         const body: ColumnsPut = { columns };
         const resp = await axios.put(url, body, {...chimpy, params});
         assert.equal(resp.status, 200);
@@ -1175,7 +1183,7 @@ function testDocApi() {
 
       it('should forbid update by viewers', async function () {
         // given
-        const { url, docId } = await generateDocAndUrl('ColumnsPut');
+        const { url, docId } = await generateDocAndUrlForColumns('ColumnsPut');
         await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
 
         // when
@@ -1187,7 +1195,7 @@ function testDocApi() {
 
       it("should return 404 when table is not found", async function() {
         // given
-        const { url } = await generateDocAndUrl('ColumnsPut');
+        const { url } = await generateDocAndUrlForColumns('ColumnsPut');
         const notFoundUrl = url.replace("Table1", "NonExistingTable");
 
         // when
@@ -1201,7 +1209,7 @@ function testDocApi() {
 
     describe("DELETE /docs/{did}/tables/{tid}/columns/{colId}", function () {
       it('should delete some column', async function() {
-        const {url} = await generateDocAndUrl('ColumnDelete');
+        const {url} = await generateDocAndUrlForColumns('ColumnDelete');
         const deleteUrl = url + '/A';
         const resp = await axios.delete(deleteUrl, chimpy);
 
@@ -1215,7 +1223,7 @@ function testDocApi() {
       });
 
       it('should return 404 if table not found', async function() {
-        const {url} = await generateDocAndUrl('ColumnDelete');
+        const {url} = await generateDocAndUrlForColumns('ColumnDelete');
         const deleteUrl = url.replace("Table1", "NonExistingTable") + '/A';
         const resp = await axios.delete(deleteUrl, chimpy);
 
@@ -1224,7 +1232,7 @@ function testDocApi() {
       });
 
       it('should return 404 if column not found', async function() {
-        const {url} = await generateDocAndUrl('ColumnDelete');
+        const {url} = await generateDocAndUrlForColumns('ColumnDelete');
         const deleteUrl = url + '/NonExistingColId';
         const resp = await axios.delete(deleteUrl, chimpy);
 
@@ -1233,7 +1241,7 @@ function testDocApi() {
       });
 
       it('should forbid column deletion by viewers', async function() {
-        const {url, docId} = await generateDocAndUrl('ColumnDelete');
+        const {url, docId} = await generateDocAndUrlForColumns('ColumnDelete');
         await userApi.updateDocPermissions(docId, {users: {'kiwi@getgrist.com': 'viewers'}});
         const deleteUrl = url + '/A';
         const resp = await axios.delete(deleteUrl, kiwi);
@@ -2608,6 +2616,25 @@ function testDocApi() {
     assert.equal(resp2.status, 200);
     assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
   });
+
+  it('GET /docs/{did}/download/csv with header=colId shows columns id in the header instead of their name',
+    async function () {
+      const { docUrl } = await generateDocAndUrl('csvWithColIdAsHeader');
+      const AColRef = 2;
+      const userActions = [
+        ['AddRecord', 'Table1', null, {A: 'a1', B: 'b1'}],
+        ['UpdateRecord', '_grist_Tables_column', AColRef, { untieColIdFromLabel: true }],
+        ['UpdateRecord', '_grist_Tables_column', AColRef, {
+          label: 'Column label for A',
+          colId: 'AColId'
+        }]
+      ];
+      const resp = await axios.post(`${docUrl}/apply`, userActions, chimpy);
+      assert.equal(resp.status, 200);
+      const csvResp = await axios.get(`${docUrl}/download/csv?tableId=Table1&header=colId`, chimpy);
+      assert.equal(csvResp.status, 200);
+      assert.equal(csvResp.data, 'AColId,B,C\na1,b1,\n');
+    });
 
   it("GET /docs/{did}/download/csv respects permissions", async function () {
     // kiwi has no access to TestDoc
