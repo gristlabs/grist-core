@@ -70,7 +70,9 @@
         "Sign Out": "Wyloguj się",
         "Sign in": "Zaloguj się",
         "Switch Accounts": "Przełącz konta",
-        "Toggle Mobile Mode": "Przełącz na tryb mobilny"
+        "Toggle Mobile Mode": "Przełącz na tryb mobilny",
+        "Activation": "Aktywacja",
+        "Sign In": "Zaloguj się"
     },
     "ViewAsDropdown": {
         "View As": "Wyświetl jako",
@@ -791,7 +793,7 @@
     },
     "OnBoardingPopups": {
         "Next": "Następny",
-        "Finish": "Skończyć"
+        "Finish": "Zakończ"
     },
     "SortFilterConfig": {
         "Revert": "Przywrócić",

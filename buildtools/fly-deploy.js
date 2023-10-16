@@ -67,7 +67,8 @@ const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true
 const appCreate = (name) => runAction(`flyctl launch --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
-const appDeploy = (name, appRoot) => runAction(`flyctl deploy ${appRoot} --remote-only --region=ewr`, {shell: true, stdio: 'inherit'});
+const appDeploy = (name, appRoot) => runAction(`flyctl deploy ${appRoot} --remote-only --region=ewr --vm-memory 1024`,
+  {shell: true, stdio: 'inherit'});
 
 async function appDestroy(name) {
   await runAction(`flyctl apps destroy ${name} -y`);

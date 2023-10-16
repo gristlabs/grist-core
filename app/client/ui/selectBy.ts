@@ -156,6 +156,11 @@ function isValidLink(source: LinkNode, target: LinkNode) {
       return false;
     }
 
+    // If one of the section has custom row filter, we can't make cycles.
+    if (target.section.selectedRowsActive()) {
+      return false;
+    }
+
     // We know our ancestors cycle back around to ourselves
     // - lets walk back along the cyclic portion of the ancestor chain and verify that each link in that chain is
     //   a cursor-link
@@ -426,6 +431,18 @@ export class LinkConfig {
         assert(srcTableId, "srcCol not a valid reference");
       }
       assert(srcTableId === tgtTableId, "mismatched tableIds");
+
+      // If this section has a custom link filter, it can't create cycles.
+      if (this.tgtSection.selectedRowsActive()) {
+        // Make sure we don't have a cycle.
+        let src = this.tgtSection.linkSrcSection();
+        while (!src.isDisposed() && src.getRowId()) {
+          assert(src.getRowId() !== this.srcSection.getRowId(),
+            "Sections with filter linking can't be part of a cycle (same record linking)'");
+          src = src.linkSrcSection();
+        }
+      }
+
     } catch (e) {
       throw new Error(`LinkConfig invalid: ` +
         `${this.srcSection.getRowId()}:${this.srcCol?.getRowId()}[${srcTableId}] -> ` +

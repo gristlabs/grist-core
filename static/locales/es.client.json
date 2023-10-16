@@ -175,7 +175,9 @@
         "{{wrongTypeCount}} non-{{columnType}} column is not shown": "{{wrongTypeCount}} columna no {{columnType}} no se muestra",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown": "{{wrongTypeCount}} columnas no {{columnType}} no se muestran",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} no se muestra la columna {{columnType}}",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} no se muestran las columnas {{columnType}}"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} no se muestran las columnas {{columnType}}",
+        "No {{columnType}} columns in table.": "No hay columnas {{columnType}} en la tabla.",
+        "Clear selection": "Borrar la selección"
     },
     "DocHistory": {
         "Activity": "Actividad",
@@ -682,7 +684,10 @@
         "There was an unknown error.": "Hubo un error desconocido.",
         "You are now signed out.": "Ya has cerrado la sesión.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Has iniciado sesión como {{email}}. Puede iniciar sesión con otra cuenta o solicitar acceso a un administrador.",
-        "You do not have access to this organization's documents.": "No tiene acceso a los documentos de esta organización."
+        "You do not have access to this organization's documents.": "No tiene acceso a los documentos de esta organización.",
+        "Account deleted{{suffix}}": "Cuenta borrada{{suffix}}",
+        "Your account has been deleted.": "Tu cuenta ha sido eliminada.",
+        "Sign up": "Inscribirse"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Enviar archivo a Google Drive"

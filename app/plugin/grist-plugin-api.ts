@@ -77,9 +77,10 @@ export const allowSelectBy = viewApi.allowSelectBy;
  */
 export const setSelectedRows = viewApi.setSelectedRows;
 
-
+/**
+ * Sets the cursor position in a linked section.
+ */
 export const setCursorPos = viewApi.setCursorPos;
-
 
 
 /**

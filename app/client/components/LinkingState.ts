@@ -286,7 +286,7 @@ export class LinkingState extends Disposable {
 
           // Get previous linkingstate's info, if applicable (2 or more hops back)
           const prevLink = this._srcSection.linkingState?.();
-          const prevLinkHasCursor = prevLink &&
+          const prevLinkHasCursor = prevLink?.incomingCursorPos &&
             (prevLink.linkTypeDescription() === "Cursor:Same-Table" ||
               prevLink.linkTypeDescription() === "Cursor:Reference");
           const [prevLinkedPos, prevLinkedVersion] = prevLinkHasCursor ? prevLink.incomingCursorPos() :

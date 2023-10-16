@@ -53,11 +53,11 @@ import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/place
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
-import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isDefaultUser, optStringParam,
-        RequestWithGristInfo, sendOkReply, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
+import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isDefaultUser, isParameterOn, optIntegerParam,
+        optStringParam, RequestWithGristInfo, sendOkReply, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
-import {getDatabaseUrl, listenPromise} from 'app/server/lib/serverUtils';
+import {getDatabaseUrl, listenPromise, timeoutReached} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
@@ -374,6 +374,10 @@ export class FlexServer implements GristServer {
     return this._widgetRepository;
   }
 
+  public hasNotifier(): boolean {
+    return Boolean(this._notifier);
+  }
+
   public getNotifier(): INotifier {
     if (!this._notifier) { throw new Error('no notifier available'); }
     return this._notifier;
@@ -425,13 +429,45 @@ export class FlexServer implements GristServer {
     // Health check endpoint. if called with /hooks, testing hooks are required in order to be
     // considered healthy.  Testing hooks are used only in server started for tests, and
     // /status/hooks allows the tests to wait for them to be ready.
-    this.app.get('/status(/hooks)?', (req, res) => {
-      if (this._healthy && (this._hasTestingHooks || !req.url.endsWith('/hooks'))) {
+    // If db=1 query parameter is included, status will include the status of DB connection.
+    // If redis=1 query parameter is included, status will include the status of the Redis connection.
+    this.app.get('/status(/hooks)?', async (req, res) => {
+      const checks = new Map<string, Promise<boolean>|boolean>();
+      const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
+
+      // Check that the given promise resolves with no error within our timeout.
+      const asyncCheck = async (promise: Promise<unknown>|undefined) => {
+        if (!promise || await timeoutReached(timeout, promise) === true) {
+          return false;
+        }
+        return promise.then(() => true, () => false);     // Success => true, rejection => false
+      };
+
+      if (req.path.endsWith('/hooks')) {
+        checks.set('hooks', this._hasTestingHooks);
+      }
+      if (isParameterOn(req.query.db)) {
+        checks.set('db', asyncCheck(this._dbManager.connection.query('SELECT 1')));
+      }
+      if (isParameterOn(req.query.redis)) {
+        checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
+      }
+      let extra = '';
+      let ok = true;
+      // If we had any extra check, collect their status to report them.
+      if (checks.size > 0) {
+        const results = await Promise.all(checks.values());
+        ok = ok && results.every(r => r === true);
+        const notes = Array.from(checks.keys(), (key, i) => `${key} ${results[i] ? 'ok' : 'not ok'}`);
+        extra = ` (${notes.join(", ")})`;
+      }
+
+      if (this._healthy && ok) {
         this._healthCheckCounter++;
-        res.status(200).send(`Grist ${this.name} is alive.`);
+        res.status(200).send(`Grist ${this.name} is alive${extra}.`);
       } else {
         this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
-        res.status(500).send(`Grist ${this.name} is unhealthy.`);
+        res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
     });
   }
@@ -1235,16 +1271,8 @@ export class FlexServer implements GristServer {
         // delete user as an admin, as we need to remove other resources that user
         // might not have access to.
 
-        // First make sure user is not a member of any team site. We don't know yet
-        // what to do with orphaned documents.
-        const result = await this._dbManager.getOrgs(userId, null);
-        this._dbManager.checkQueryResult(result);
-        const orgs = this._dbManager.unwrapQueryResult(result);
-        if (orgs.some(org => !org.ownerId)) {
-          throw new ApiError("Cannot delete account with team sites", 400);
-        }
-
-        // Reuse Doom cli tool for account deletion.
+        // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
+        // to other (not public) team sites.
         const doom = await createDoom(req);
         await doom.deleteUser(userId);
         return resp.status(200).json(true);

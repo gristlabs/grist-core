@@ -73,6 +73,10 @@ export interface WidgetFrameOptions {
    * Optional handler to modify the iframe.
    */
   onElem?: (iframe: HTMLIFrameElement) => void;
+  /**
+   * Optional language to use for the widget.
+   */
+  preferences: {language?: string, timeZone?: any, currency?: string, culture?: string};
 }
 
 /**
@@ -175,6 +179,9 @@ export class WidgetFrame extends DisposableWithEvents {
       const urlObj = new URL(url);
       urlObj.searchParams.append('access', this._options.access);
       urlObj.searchParams.append('readonly', String(this._options.readonly));
+      // Append user and document preferences to query string.
+       const settingsParams = new URLSearchParams(this._options.preferences);
+       settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
       return urlObj.href;
     };
     const fullUrl = urlWithAccess(this._options.url);

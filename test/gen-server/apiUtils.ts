@@ -51,9 +51,11 @@ export class TestServer {
     // TypeORM doesn't give us a very clean way to shut down the db connection,
     // and node-sqlite3 has become fussier about this, and in regular tests
     // we substitute sqlite for postgres.
-    for (let i = 0; i < 30; i++) {
-      if (!this.server.getNotifier().testPending) { break; }
-      await delay(100);
+    if (this.server.hasNotifier()) {
+      for (let i = 0; i < 30; i++) {
+        if (!this.server.getNotifier().testPending) { break; }
+        await delay(100);
+      }
     }
     await removeConnection();
   }

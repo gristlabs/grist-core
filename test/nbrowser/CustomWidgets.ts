@@ -38,6 +38,11 @@ const widgetFull = fromAccess(AccessLevel.full);
 // Holds widgets manifest content.
 let widgets: ICustomWidget[] = [];
 
+// Helper function to get iframe with custom widget.
+function getCustomWidgetFrame() {
+  return driver.findWait('iframe', 500);
+}
+
 describe('CustomWidgets', function () {
   this.timeout(20000);
   const cleanup = setupTestSuite();
@@ -49,6 +54,8 @@ describe('CustomWidgets', function () {
   function useManifest(url: string) {
     return server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
   }
+
+
 
   before(async function () {
     if (server.isExternalServer()) {
@@ -100,8 +107,14 @@ describe('CustomWidgets', function () {
     // Add custom section.
     await gu.addNewSection(/Custom/, /Table1/, {selectBy: /TABLE1/});
 
-    // Override gristConfig to enable widget list.
-    await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+  });
+
+  after(async function() {
+    await server.testingHooks.setWidgetRepositoryUrl('');
+  });
+
+  after(async function() {
+    await server.testingHooks.setWidgetRepositoryUrl('');
   });
 
   after(async function() {
@@ -109,7 +122,7 @@ describe('CustomWidgets', function () {
   });
 
   // Open or close widget menu.
-  const toggle = () => driver.find('.test-config-widget-select .test-select-open').click();
+  const toggle = async () => await driver.findWait('.test-config-widget-select .test-select-open', 1000).click();
   // Get current value from widget menu.
   const current = () => driver.find('.test-config-widget-select .test-select-open').getText();
   // Get options from widget menu (must be first opened).
@@ -121,19 +134,17 @@ describe('CustomWidgets', function () {
   };
   // Get rendered content from custom section.
   const content = async () => {
-    const iframe = driver.find('iframe');
-    await driver.switchTo().frame(iframe);
-    const text = await driver.find('body').getText();
-    await driver.switchTo().defaultContent();
-    return text;
+      return gu.doInIframe(await getCustomWidgetFrame(), async ()=>{
+        const text = await driver.find('body').getText();
+        return text;
+      });
   };
+
   async function execute(
     op: (table: TableOperations) => Promise<any>,
     tableSelector: (grist: any) => TableOperations = (grist) => grist.selectedTable
   ) {
-    const iframe = await driver.find('iframe');
-    await driver.switchTo().frame(iframe);
-    try {
+    return gu.doInIframe(await getCustomWidgetFrame(), async ()=> {
       const harness = async (done: any) => {
         const grist = (window as any).grist;
         grist.ready();
@@ -157,9 +168,7 @@ describe('CustomWidgets', function () {
       const result = await driver.executeAsyncScript(cmd);
       // done callback will return null instead of undefined
       return result === "__undefined__" ? undefined : result;
-    } finally {
-      await driver.switchTo().defaultContent();
-    }
+    });
   }
   // Replace url for the Custom URL widget.
   const setUrl = async (url: string) => {
@@ -206,453 +215,510 @@ describe('CustomWidgets', function () {
   // Rejects new access level.
   const reject = () => driver.find(".test-config-widget-access-reject").click();
 
-  it('should show widgets in dropdown', async () => {
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-right-tab-pagewidget').click();
-    await gu.waitForServer();
-    await driver.find('.test-config-widget').click();
-    await gu.waitForServer(); // Wait for widgets to load.
 
-    // Selectbox should have select label.
-    assert.equal(await current(), CUSTOM_URL);
-
-    // There should be 3 options (together with Custom URL)
-    await toggle();
-    assert.deepEqual(await options(), [CUSTOM_URL, widget1.name, widget2.name]);
-    await toggle();
-  });
-
-  it('should switch between widgets', async () => {
-    // Test custom URL.
-    await toggle();
-    await select(CUSTOM_URL);
-    assert.equal(await current(), CUSTOM_URL);
-    assert.equal(await getUrl(), '');
-    await setUrl('/200');
-    assert.equal(await content(), 'OK');
-
-    // Test first widget.
-    await toggle();
-    await select(widget1.name);
-    assert.equal(await current(), widget1.name);
-    assert.equal(await content(), widget1.name);
-
-    // Test second widget.
-    await toggle();
-    await select(widget2.name);
-    assert.equal(await current(), widget2.name);
-    assert.equal(await content(), widget2.name);
-
-    // Go back to Custom URL.
-    await toggle();
-    await select(CUSTOM_URL);
-    assert.equal(await getUrl(), '');
-    assert.equal(await current(), CUSTOM_URL);
-    await setUrl('/200');
-    assert.equal(await content(), 'OK');
-
-    // Clear url and test if message page is shown.
-    await setUrl('');
-    assert.equal(await current(), CUSTOM_URL);
-    assert.isTrue((await content()).startsWith('Custom widget')); // start page
-
-    await recreatePanel();
-    assert.equal(await current(), CUSTOM_URL);
-    await gu.undo(7);
-  });
-
-  it('should support theme variables', async () => {
-    widgets = [widgetWithTheme];
-    await useManifest(manifestEndpoint);
-    await recreatePanel();
-    await toggle();
-    await select(widgetWithTheme.name);
-    assert.equal(await current(), widgetWithTheme.name);
-    assert.equal(await content(), widgetWithTheme.name);
-
-    const getWidgetColor = async () => {
-      const iframe = driver.find('iframe');
-      await driver.switchTo().frame(iframe);
-      const color = await driver.find('span').getCssValue('color');
-      await driver.switchTo().defaultContent();
-      return color;
-    };
-
-    // Check that the widget is using the text color from the GristLight theme.
-    assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
-
-    // Switch the theme to GristDark.
-    await gu.setGristTheme({appearance: 'dark', syncWithOS: false});
-    await driver.navigate().back();
-    await gu.waitForDocToLoad();
-
-    // Check that the span is using the text color from the GristDark theme.
-    assert.equal(await getWidgetColor(), 'rgba(239, 239, 239, 1)');
-
-    // Switch back to GristLight.
-    await gu.setGristTheme({appearance: 'light', syncWithOS: true});
-    await driver.navigate().back();
-    await gu.waitForDocToLoad();
-
-    // Check that the widget is back to using the GristLight text color.
-    assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
-
-    // Re-enable widget repository.
-    await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
-  });
-
-  it("should support widgets that don't use the plugin api", async () => {
-    widgets = [widgetNoPluginApi];
-    await useManifest(manifestEndpoint);
-    await recreatePanel();
-    await toggle();
-    await select(widgetNoPluginApi.name);
-    assert.equal(await current(), widgetNoPluginApi.name);
-
-    // Check that the widget loaded and its iframe is visible.
-    assert.equal(await content(), widgetNoPluginApi.name);
-    assert.isTrue(await driver.find('iframe').isDisplayed());
-
-    // Revert to original configuration.
-    widgets = [widget1, widget2];
-    await useManifest(manifestEndpoint);
-    await recreatePanel();
-  });
-
-  it('should show error message for invalid widget url list', async () => {
-    const testError = async (url: string, error: string) => {
-      // Switch section to rebuild the creator panel.
-      await useManifest(url);
+  describe('RightWidgetMenu', () => {
+    beforeEach(async function () {
+      // Override gristConfig to enable widget list.
+      await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+      // We need to be sure that widget configuration panel is open all the time.
+      await gu.toggleSidePanel('right', 'open');
       await recreatePanel();
-      assert.include(await getErrorMessage(), error);
-      await gu.wipeToasts();
-      // List should contain only a Custom URL.
+      await driver.findWait('.test-right-tab-pagewidget', 100).click();
+    });
+
+    it('should show widgets in dropdown', async () => {
+      await gu.toggleSidePanel('right', 'open');
+      await driver.find('.test-right-tab-pagewidget').click();
+      await gu.waitForServer();
+      await driver.find('.test-config-widget').click();
+      await gu.waitForServer(); // Wait for widgets to load.
+
+      // Selectbox should have select label.
+      assert.equal(await current(), CUSTOM_URL);
+
+      // There should be 3 options (together with Custom URL)
       await toggle();
-      assert.deepEqual(await options(), [CUSTOM_URL]);
+      assert.deepEqual(await options(), [CUSTOM_URL, widget1.name, widget2.name]);
       await toggle();
-    };
+    });
 
-    await testError('/404', "Remote widget list not found");
-    await testError('/500', "Remote server returned an error");
-    await testError('/401', "Remote server returned an error");
-    await testError('/403', "Remote server returned an error");
-    // Invalid content in a response.
-    await testError('/200', "Error reading widget list");
+    it('should switch between widgets', async () => {
+      // Test custom URL.
+      await toggle();
+      await select(CUSTOM_URL);
+      assert.equal(await current(), CUSTOM_URL);
+      assert.equal(await getUrl(), '');
+      await setUrl('/200');
+      assert.equal(await content(), 'OK');
 
-    // Reset to valid manifest.
-    await useManifest(manifestEndpoint);
-    await recreatePanel();
-  });
+      // Test first widget.
+      await toggle();
+      await select(widget1.name);
+      assert.equal(await current(), widget1.name);
+      assert.equal(await content(), widget1.name);
 
-  it('should show widget when it was removed from list', async () => {
-    // Select widget1 and then remove it from the list.
-    await toggle();
-    await select(widget1.name);
-    widgets = [widget2];
-    // Invalidate cache.
-    await useManifest(manifestEndpoint);
-    // Toggle sections to reset creator panel and fetch list of available widgets.
-    await recreatePanel();
-    // But still should be selected with a correct url.
-    assert.equal(await current(), widget1.name);
-    assert.equal(await content(), widget1.name);
-    await gu.undo(1);
-  });
+      // Test second widget.
+      await toggle();
+      await select(widget2.name);
+      assert.equal(await current(), widget2.name);
+      assert.equal(await content(), widget2.name);
 
-  it('should switch access level to none on new widget', async () => {
-    await toggle();
-    await select(widget1.name);
-    assert.equal(await access(), AccessLevel.none);
-    await access(AccessLevel.full);
-    assert.equal(await access(), AccessLevel.full);
+      // Go back to Custom URL.
+      await toggle();
+      await select(CUSTOM_URL);
+      assert.equal(await getUrl(), '');
+      assert.equal(await current(), CUSTOM_URL);
+      await setUrl('/200');
+      assert.equal(await content(), 'OK');
 
-    await toggle();
-    await select(widget2.name);
-    assert.equal(await access(), AccessLevel.none);
-    await access(AccessLevel.full);
-    assert.equal(await access(), AccessLevel.full);
+      // Clear url and test if message page is shown.
+      await setUrl('');
+      assert.equal(await current(), CUSTOM_URL);
+      assert.isTrue((await content()).startsWith('Custom widget')); // start page
 
-    await toggle();
-    await select(CUSTOM_URL);
-    assert.equal(await access(), AccessLevel.none);
-    await access(AccessLevel.full);
-    assert.equal(await access(), AccessLevel.full);
+      await recreatePanel();
+      assert.equal(await current(), CUSTOM_URL);
+      await gu.undo(7);
+    });
 
-    await toggle();
-    await select(widget2.name);
-    assert.equal(await access(), AccessLevel.none);
-    await access(AccessLevel.full);
-    assert.equal(await access(), AccessLevel.full);
+    it('should support theme variables', async () => {
+      widgets = [widgetWithTheme];
+      await useManifest(manifestEndpoint);
+      await recreatePanel();
+      await toggle();
+      await select(widgetWithTheme.name);
+      assert.equal(await current(), widgetWithTheme.name);
+      assert.equal(await content(), widgetWithTheme.name);
 
-    await gu.undo(8);
-  });
+      const getWidgetColor = async () => {
+        const iframe = driver.find('iframe');
+        await driver.switchTo().frame(iframe);
+        const color = await driver.find('span').getCssValue('color');
+        await driver.switchTo().defaultContent();
+        return color;
+      };
 
-  it('should prompt for access change', async () => {
-    widgets = [widget1, widget2, widgetFull, widgetNone, widgetRead];
-    await useManifest(manifestEndpoint);
-    await recreatePanel();
+      // Check that the widget is using the text color from the GristLight theme.
+      assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
 
-    const test = async (w: ICustomWidget) => {
-      // Select widget without desired access level
+      // Switch the theme to GristDark.
+      await gu.setGristTheme({appearance: 'dark', syncWithOS: false});
+      await driver.navigate().back();
+      await gu.waitForDocToLoad();
+
+      // Check that the span is using the text color from the GristDark theme.
+      assert.equal(await getWidgetColor(), 'rgba(239, 239, 239, 1)');
+
+      // Switch back to GristLight.
+      await gu.setGristTheme({appearance: 'light', syncWithOS: true});
+      await driver.navigate().back();
+      await gu.waitForDocToLoad();
+
+      // Check that the widget is back to using the GristLight text color.
+      assert.equal(await getWidgetColor(), 'rgba(38, 38, 51, 1)');
+
+      // Re-enable widget repository.
+      await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+    });
+
+    it("should support widgets that don't use the plugin api", async () => {
+      widgets = [widgetNoPluginApi];
+      await useManifest(manifestEndpoint);
+      await recreatePanel();
+      await toggle();
+      await select(widgetNoPluginApi.name);
+      assert.equal(await current(), widgetNoPluginApi.name);
+
+      // Check that the widget loaded and its iframe is visible.
+      assert.equal(await content(), widgetNoPluginApi.name);
+      assert.isTrue(await driver.find('iframe').isDisplayed());
+
+      // Revert to original configuration.
+      widgets = [widget1, widget2];
+      await useManifest(manifestEndpoint);
+      await recreatePanel();
+    });
+
+    it('should show error message for invalid widget url list', async () => {
+      const testError = async (url: string, error: string) => {
+        // Switch section to rebuild the creator panel.
+        await useManifest(url);
+        await recreatePanel();
+        assert.include(await getErrorMessage(), error);
+        await gu.wipeToasts();
+        // List should contain only a Custom URL.
+        await toggle();
+        assert.deepEqual(await options(), [CUSTOM_URL]);
+        await toggle();
+      };
+
+      await testError('/404', "Remote widget list not found");
+      await testError('/500', "Remote server returned an error");
+      await testError('/401', "Remote server returned an error");
+      await testError('/403', "Remote server returned an error");
+      // Invalid content in a response.
+      await testError('/200', "Error reading widget list");
+
+      // Reset to valid manifest.
+      await useManifest(manifestEndpoint);
+      await recreatePanel();
+    });
+
+    it('should show widget when it was removed from list', async () => {
+      // Select widget1 and then remove it from the list.
+      await toggle();
+      await select(widget1.name);
+      widgets = [widget2];
+      // Invalidate cache.
+      await useManifest(manifestEndpoint);
+      // Toggle sections to reset creator panel and fetch list of available widgets.
+      await recreatePanel();
+      // But still should be selected with a correct url.
+      assert.equal(await current(), widget1.name);
+      assert.equal(await content(), widget1.name);
+      await gu.undo(1);
+    });
+
+    it('should switch access level to none on new widget', async () => {
+      widgets = [widget1, widget2];
+      await recreatePanel();
+      await toggle();
+      await select(widget1.name);
+      assert.equal(await access(), AccessLevel.none);
+      await access(AccessLevel.full);
+      assert.equal(await access(), AccessLevel.full);
+
+      await toggle();
+      await select(widget2.name);
+      assert.equal(await access(), AccessLevel.none);
+      await access(AccessLevel.full);
+      assert.equal(await access(), AccessLevel.full);
+
+      await toggle();
+      await select(CUSTOM_URL);
+      assert.equal(await access(), AccessLevel.none);
+      await access(AccessLevel.full);
+      assert.equal(await access(), AccessLevel.full);
+
+      await toggle();
+      await select(widget2.name);
+      assert.equal(await access(), AccessLevel.none);
+      await access(AccessLevel.full);
+      assert.equal(await access(), AccessLevel.full);
+
+      await gu.undo(8);
+    });
+
+    it('should prompt for access change', async () => {
+      widgets = [widget1, widget2, widgetFull, widgetNone, widgetRead];
+      await useManifest(manifestEndpoint);
+      await recreatePanel();
+
+      const test = async (w: ICustomWidget) => {
+        // Select widget without desired access level
+        await toggle();
+        await select(widget1.name);
+        assert.isFalse(await hasPrompt());
+        assert.equal(await access(), AccessLevel.none);
+
+        // Select one with desired access level
+        await toggle();
+        await select(w.name);
+        // Access level should be still none (test by content which will display access level from query string)
+        assert.equal(await content(), AccessLevel.none);
+        assert.equal(await access(), AccessLevel.none);
+        assert.isTrue(await hasPrompt());
+
+        // Accept, and test if prompt is hidden, and level stays
+        await accept();
+        assert.isFalse(await hasPrompt());
+        assert.equal(await access(), w.accessLevel);
+
+        // Do the same, but this time reject
+        await toggle();
+        await select(widget1.name);
+        assert.isFalse(await hasPrompt());
+        assert.equal(await access(), AccessLevel.none);
+
+        await toggle();
+        await select(w.name);
+        assert.isTrue(await hasPrompt());
+        assert.equal(await content(), AccessLevel.none);
+
+        await reject();
+        assert.isFalse(await hasPrompt());
+        assert.equal(await access(), AccessLevel.none);
+        assert.equal(await content(), AccessLevel.none);
+      };
+
+      await test(widgetFull);
+      await test(widgetRead);
+    });
+
+    it('should auto accept none access level', async () => {
+      // Select widget without access level
       await toggle();
       await select(widget1.name);
       assert.isFalse(await hasPrompt());
       assert.equal(await access(), AccessLevel.none);
 
-      // Select one with desired access level
-      await toggle();
-      await select(w.name);
-      // Access level should be still none (test by content which will display access level from query string)
-      assert.equal(await content(), AccessLevel.none);
-      assert.equal(await access(), AccessLevel.none);
-      assert.isTrue(await hasPrompt());
-
-      // Accept, and test if prompt is hidden, and level stays
-      await accept();
-      assert.isFalse(await hasPrompt());
-      assert.equal(await access(), w.accessLevel);
-
-      // Do the same, but this time reject
-      await toggle();
-      await select(widget1.name);
-      assert.isFalse(await hasPrompt());
-      assert.equal(await access(), AccessLevel.none);
-
-      await toggle();
-      await select(w.name);
-      assert.isTrue(await hasPrompt());
-      assert.equal(await content(), AccessLevel.none);
-
-      await reject();
-      assert.isFalse(await hasPrompt());
-      assert.equal(await access(), AccessLevel.none);
-      assert.equal(await content(), AccessLevel.none);
-    };
-
-    await test(widgetFull);
-    await test(widgetRead);
-  });
-
-  it('should auto accept none access level', async () => {
-    // Select widget without access level
-    await toggle();
-    await select(widget1.name);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-
-    // Switch to one with none access level
-    await toggle();
-    await select(widgetNone.name);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-    assert.equal(await content(), AccessLevel.none);
-  });
-
-  it('should show prompt when user switches sections', async () => {
-    // Select widget without access level
-    await toggle();
-    await select(widget1.name);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-
-    // Switch to one with full access level
-    await toggle();
-    await select(widgetFull.name);
-    assert.isTrue(await hasPrompt());
-
-    // Switch section, and test if prompt is hidden
-    await recreatePanel();
-    assert.isTrue(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-    assert.equal(await content(), AccessLevel.none);
-  });
-
-  it('should hide prompt when user switches widget', async () => {
-    // Select widget without access level
-    await toggle();
-    await select(widget1.name);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-
-    // Switch to one with full access level
-    await toggle();
-    await select(widgetFull.name);
-    assert.isTrue(await hasPrompt());
-
-    // Switch to another level.
-    await toggle();
-    await select(widget1.name);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-  });
-
-  it('should hide prompt when manually changes access level', async () => {
-    // Select widget with no access level
-    const selectNone = async () => {
+      // Switch to one with none access level
       await toggle();
       await select(widgetNone.name);
       assert.isFalse(await hasPrompt());
       assert.equal(await access(), AccessLevel.none);
       assert.equal(await content(), AccessLevel.none);
-    };
+    });
 
-    // Selects widget with full access level
-    const selectFull = async () => {
+    it('should show prompt when user switches sections', async () => {
+      // Select widget without access level
+      await toggle();
+      await select(widget1.name);
+      assert.isFalse(await hasPrompt());
+      assert.equal(await access(), AccessLevel.none);
+
+      // Switch to one with full access level
       await toggle();
       await select(widgetFull.name);
       assert.isTrue(await hasPrompt());
+
+      // Switch section, and test if prompt is hidden
+      await recreatePanel();
+      assert.isTrue(await hasPrompt());
+      assert.equal(await access(), AccessLevel.none);
       assert.equal(await content(), AccessLevel.none);
+    });
+
+    it('should hide prompt when user switches widget', async () => {
+      // Select widget without access level
+      await toggle();
+      await select(widget1.name);
+      assert.isFalse(await hasPrompt());
+      assert.equal(await access(), AccessLevel.none);
+
+      // Switch to one with full access level
+      await toggle();
+      await select(widgetFull.name);
+      assert.isTrue(await hasPrompt());
+
+      // Switch to another level.
+      await toggle();
+      await select(widget1.name);
+      assert.isFalse(await hasPrompt());
+      assert.equal(await access(), AccessLevel.none);
+    });
+
+    it('should hide prompt when manually changes access level', async () => {
+      // Select widget with no access level
+      const selectNone = async () => {
+        await toggle();
+        await select(widgetNone.name);
+        assert.isFalse(await hasPrompt());
+        assert.equal(await access(), AccessLevel.none);
+        assert.equal(await content(), AccessLevel.none);
+      };
+
+      // Selects widget with full access level
+      const selectFull = async () => {
+        await toggle();
+        await select(widgetFull.name);
+        assert.isTrue(await hasPrompt());
+        assert.equal(await content(), AccessLevel.none);
+        assert.equal(await content(), AccessLevel.none);
+      };
+
+      await selectNone();
+      await selectFull();
+
+      // Select the same level.
+      await access(AccessLevel.full);
+      assert.isFalse(await hasPrompt());
+      assert.equal(await access(), AccessLevel.full);
+      assert.equal(await content(), AccessLevel.full);
+
+      await selectNone();
+      await selectFull();
+
+      // Select the normal level, prompt should be still there, as widget needs a higher permission.
+      await access(AccessLevel.read_table);
+      assert.isTrue(await hasPrompt());
+      assert.equal(await access(), AccessLevel.read_table);
+      assert.equal(await content(), AccessLevel.read_table);
+
+      await selectNone();
+      await selectFull();
+
+      // Select the none level.
+      await access(AccessLevel.none);
+      assert.isTrue(await hasPrompt());
+      assert.equal(await access(), AccessLevel.none);
       assert.equal(await content(), AccessLevel.none);
-    };
+    });
 
-    await selectNone();
-    await selectFull();
-
-    // Select the same level.
-    await access(AccessLevel.full);
-    assert.isFalse(await hasPrompt());
-    assert.equal(await access(), AccessLevel.full);
-    assert.equal(await content(), AccessLevel.full);
-
-    await selectNone();
-    await selectFull();
-
-    // Select the normal level, prompt should be still there, as widget needs a higher permission.
-    await access(AccessLevel.read_table);
-    assert.isTrue(await hasPrompt());
-    assert.equal(await access(), AccessLevel.read_table);
-    assert.equal(await content(), AccessLevel.read_table);
-
-    await selectNone();
-    await selectFull();
-
-    // Select the none level.
-    await access(AccessLevel.none);
-    assert.isTrue(await hasPrompt());
-    assert.equal(await access(), AccessLevel.none);
-    assert.equal(await content(), AccessLevel.none);
+    it('should offer only custom url when disabled', async () => {
+      await toggle();
+      await select(CUSTOM_URL);
+      await driver.executeScript('window.gristConfig.enableWidgetRepository = false;');
+      await recreatePanel();
+      assert.isTrue(await driver.find('.test-config-widget-url').isDisplayed());
+      assert.isFalse(await driver.find('.test-config-widget-select').isPresent());
+    });
   });
 
-  it("should support grist.selectedTable", async () => {
-    // Open a custom widget with full access.
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-config-widget').click();
-    await gu.waitForServer();
-    await toggle();
-    await select(widget1.name);
-    await access(AccessLevel.full);
+  describe('gristApiSupport', async ()=>{
+    beforeEach(async function () {
+      // Override gristConfig to enable widget list.
+      await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+      // We need to be sure that widget configuration panel is open all the time.
+      await gu.toggleSidePanel('right', 'open');
+      await recreatePanel();
+      await driver.findWait('.test-right-tab-pagewidget', 100).click();
+    });
+    it('should set language in widget url', async () => {
+      function languageMenu() {
+        return gu.currentDriver().find('.test-account-page-language .test-select-open');
+      }
+      async function language() {
+        return await gu.doInIframe(await getCustomWidgetFrame(), async ()=>{
+          const urlText = await driver.executeScript<string>('return document.location.href');
+          const url = new URL(urlText);
+          return url.searchParams.get('language');
+        });
+      }
 
-    // Check an upsert works.
-    await execute(async (table) => {
-      await table.upsert({
-        require: {A: 'hello'},
-        fields: {A: 'goodbye'}
+      async function switchLanguage(lang: string) {
+        await gu.openProfileSettingsPage();
+        await gu.waitForServer();
+        await languageMenu().click();
+        await driver.findContentWait('.test-select-menu li', lang, 100).click();
+        await gu.waitForServer();
+        await driver.navigate().back();
+        await gu.waitForServer();
+      }
+
+      widgets = [widget1];
+      await useManifest(manifestEndpoint);
+      await gu.openWidgetPanel();
+      await toggle();
+      await select(widget1.name);
+      //Switch language to Polish
+      await switchLanguage('Polski');
+      //Check if widgets have "pl" in url
+      assert.equal(await language(), 'pl');
+      //Switch back to English
+      await switchLanguage('English');
+      //Check if widgets have "en" in url
+      assert.equal(await language(), 'en');
+    });
+
+    it("should support grist.selectedTable", async () => {
+      // Open a custom widget with full access.
+      await gu.toggleSidePanel('right', 'open');
+      await driver.find('.test-config-widget').click();
+      await gu.waitForServer();
+      await toggle();
+      await select(widget1.name);
+      await access(AccessLevel.full);
+
+      // Check an upsert works.
+      await execute(async (table) => {
+        await table.upsert({
+          require: {A: 'hello'},
+          fields: {A: 'goodbye'}
+        });
+      });
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'goodbye');
+      });
+
+      // Check an update works.
+      await execute(async table => {
+        return table.update({
+          id: 2,
+          fields: {A: 'farewell'}
+        });
+      });
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 2, col: 0}).getText(), 'farewell');
+      });
+
+      // Check options are passed along.
+      await execute(async table => {
+        return table.upsert({
+          require: {},
+          fields: {A: 'goodbyes'}
+        }, {onMany: 'all', allowEmptyRequire: true});
+      });
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'goodbyes');
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 2, col: 0}).getText(), 'goodbyes');
+      });
+
+      // Check a create works.
+      const {id} = await execute(async table => {
+        return table.create({
+          fields: {A: 'partA', B: 'partB'}
+        });
+      }) as {id: number};
+      assert.equal(id, 5);
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id, col: 0}).getText(), 'partA');
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id, col: 1}).getText(), 'partB');
+      });
+
+      // Check a destroy works.
+      let result = await execute(async table => {
+        await table.destroy(1);
+      });
+      assert.isUndefined(result);
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 1, col: 0}).getText(), 'partA');
+      });
+      result = await execute(async table => {
+        await table.destroy([2]);
+      });
+      assert.isUndefined(result);
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 2, col: 0}).getText(), 'partA');
+      });
+
+      // Check errors are friendly.
+      const errMessage = await execute(async table => {
+        await table.create({fields: {ziggy: 1}});
+      });
+      assert.equal(errMessage, 'Invalid column "ziggy"');
+    });
+
+    it("should support grist.getTable", async () => {
+      // Check an update on an existing table works.
+      await execute(async table => {
+        return table.update({
+          id: 3,
+          fields: {A: 'back again'}
+        });
+      }, (grist) => grist.getTable('Table1'));
+      await gu.waitToPass(async () => {
+        assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'back again');
+      });
+
+      // Check an update on a nonexistent table fails.
+      assert.match(String(await execute(async table => {
+        return table.update({
+          id: 3,
+          fields: {A: 'back again'}
+        });
+      }, (grist) => grist.getTable('Table2'))), /Table not found/);
+    });
+
+    it("should support grist.getAccessTokens", async () => {
+      return await gu.doInIframe(await getCustomWidgetFrame(), async ()=>{
+        const tokenResult: AccessTokenResult = await driver.executeAsyncScript(
+          (done: any) => (window as any).grist.getAccessToken().then(done)
+        );
+        assert.sameMembers(Object.keys(tokenResult), ['ttlMsecs', 'token', 'baseUrl']);
+        const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
+        assert.sameMembers(Object.keys(await result.json()), ['records']);
       });
     });
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'goodbye');
-    });
-
-    // Check an update works.
-    await execute(async table => {
-      return table.update({
-        id: 2,
-        fields: {A: 'farewell'}
-      });
-    });
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 2, col: 0}).getText(), 'farewell');
-    });
-
-    // Check options are passed along.
-    await execute(async table => {
-      return table.upsert({
-        require: {},
-        fields: {A: 'goodbyes'}
-      }, {onMany: 'all', allowEmptyRequire: true});
-    });
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'goodbyes');
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 2, col: 0}).getText(), 'goodbyes');
-    });
-
-    // Check a create works.
-    const {id} = await execute(async table => {
-      return table.create({
-        fields: {A: 'partA', B: 'partB'}
-      });
-    }) as {id: number};
-    assert.equal(id, 5);
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id, col: 0}).getText(), 'partA');
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id, col: 1}).getText(), 'partB');
-    });
-
-    // Check a destroy works.
-    let result = await execute(async table => {
-      await table.destroy(1);
-    });
-    assert.isUndefined(result);
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 1, col: 0}).getText(), 'partA');
-    });
-    result = await execute(async table => {
-      await table.destroy([2]);
-    });
-    assert.isUndefined(result);
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: id - 2, col: 0}).getText(), 'partA');
-    });
-
-    // Check errors are friendly.
-    const errMessage = await execute(async table => {
-      await table.create({fields: {ziggy: 1}});
-    });
-    assert.equal(errMessage, 'Invalid column "ziggy"');
-  });
-
-  it("should support grist.getTable", async () => {
-    // Check an update on an existing table works.
-    await execute(async table => {
-      return table.update({
-        id: 3,
-        fields: {A: 'back again'}
-      });
-    }, (grist) => grist.getTable('Table1'));
-    await gu.waitToPass(async () => {
-      assert.equal(await gu.getCell({section: 'TABLE1', rowNum: 1, col: 0}).getText(), 'back again');
-    });
-
-    // Check an update on a nonexistent table fails.
-    assert.match(String(await execute(async table => {
-      return table.update({
-        id: 3,
-        fields: {A: 'back again'}
-      });
-    }, (grist) => grist.getTable('Table2'))), /Table not found/);
-  });
-
-  it("should support grist.getAccessTokens", async () => {
-    const iframe = await driver.find('iframe');
-    await driver.switchTo().frame(iframe);
-    try {
-      const tokenResult: AccessTokenResult = await driver.executeAsyncScript(
-        (done: any) => (window as any).grist.getAccessToken().then(done)
-      );
-      assert.sameMembers(Object.keys(tokenResult), ['ttlMsecs', 'token', 'baseUrl']);
-      const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
-      assert.sameMembers(Object.keys(await result.json()), ['records']);
-    } finally {
-      await driver.switchTo().defaultContent();
-    }
-  });
-
-  it('should offer only custom url when disabled', async () => {
-    await toggle();
-    await select(CUSTOM_URL);
-    await driver.executeScript('window.gristConfig.enableWidgetRepository = false;');
-    await recreatePanel();
-    assert.isTrue(await driver.find('.test-config-widget-url').isDisplayed());
-    assert.isFalse(await driver.find('.test-config-widget-select').isPresent());
   });
 });

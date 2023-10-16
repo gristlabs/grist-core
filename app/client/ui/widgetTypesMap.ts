@@ -8,7 +8,7 @@ export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
   ['detail', {label: 'Card List', icon: 'TypeCardList'}],
   ['chart', {label: 'Chart', icon: 'TypeChart'}],
   ['custom', {label: 'Custom', icon: 'TypeCustom'}],
-  ['custom.calendar', {label: 'Calendar', icon: 'FieldDate'}]
+  ['custom.calendar', {label: 'Calendar', icon: 'TypeCalendar'}],
 ]);
 
 // Widget type info.

@@ -714,16 +714,23 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       if (widgetCol.allowMultiple) {
         // We expect a list of colRefs be mapped;
         if (!Array.isArray(mappedCol)) { continue; }
-        result[widgetCol.name] = mappedCol
+        const columns = mappedCol
           // Remove all colRefs saved but deleted
           .filter(cId => colMap.has(cId))
           // And those with wrong type.
           .filter(cId => widgetCol.canByMapped(colMap.get(cId)!.pureType()))
-          .map(cId => colMap.get(cId)!.colId());
+          .map(cId => colMap.get(cId)!);
+
+        // Make a subscription to get notified when widget options are changed.
+        columns.forEach(c => c.widgetOptions());
+
+        result[widgetCol.name] = columns.map(c => c.colId());
       } else {
          // Widget expects a single value and existing column
          if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
          const selectedColumn = colMap.get(mappedCol)!;
+         // Make a subscription to the column to get notified when it changes.
+         void selectedColumn.widgetOptions();
          result[widgetCol.name] = widgetCol.canByMapped(selectedColumn.pureType()) ? selectedColumn.colId() : null;
       }
     }

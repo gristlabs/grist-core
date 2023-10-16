@@ -7,11 +7,13 @@ import * as fse from 'fs-extra';
 import escapeRegExp = require('lodash/escapeRegExp');
 import noop = require('lodash/noop');
 import startCase = require('lodash/startCase');
-import { assert, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
+import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
+import * as PluginApi from 'app/plugin/grist-plugin-api';
 
 import {csvDecodeRow} from 'app/common/csvFormat';
+import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
@@ -568,6 +570,31 @@ export async function rightClick(cell: WebElement) {
 }
 
 /**
+ * Gets the selector position in the Grid view section (or null if not present).
+ * Selector is the black box around the row number.
+ */
+export async function getSelectorPosition(section?: WebElement|string) {
+  if (typeof section === 'string') { section = await getSection(section); }
+  section = section ?? await driver.findWait('.active_section', 4000);
+  const hasSelector = await section.find('.link_selector_row').isPresent();
+  return hasSelector && Number(await section.find('.link_selector_row .gridview_data_row_num').getText());
+}
+
+/**
+ * Gets the arrow position in the Grid view section (or null if no arrow is present).
+ */
+export async function getArrowPosition(section?: WebElement|string) {
+  if (typeof section === 'string') { section = await getSection(section); }
+  section = section ?? await driver.findWait('.active_section', 4000);
+  const arrow = section.find('.gridview_data_row_info.linked_dst');
+  const hasArrow = await arrow.isPresent();
+  return hasArrow ? Number(
+      await arrow.findElement(By.xpath("./..")) //Get its parent
+                 .getText()
+    ) : null;
+}
+
+/**
  * Returns {rowNum, col} object representing the position of the cursor in the active view
  * section. RowNum is a 1-based number as in the row headers, and col is a 0-based index for
  * grid view or field name for detail view.
@@ -857,6 +884,19 @@ export async function importUrlDialog(url: string): Promise<void> {
   await setValue(await driver.findWait('#url', 5000), url);
   await driver.find('#ok').doClick();
   await driver.switchTo().defaultContent();
+}
+
+/**
+ * Executed passed function in the context of given iframe, and then switching back to original context
+ *
+ */
+export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>) {
+  try {
+    await driver.switchTo().frame(iframe);
+    return await func();
+  } finally {
+    await driver.switchTo().defaultContent();
+  }
 }
 
 /**
@@ -1178,7 +1218,7 @@ export async function renameTable(tableId: string, newName: string) {
 /**
  * Rename the given column.
  */
-export async function renameColumn(col: IColHeader, newName: string) {
+export async function renameColumn(col: IColHeader|string, newName: string) {
   const header = await getColumnHeader(col);
   await header.click();
   await header.click();   // Second click opens the label for editing.
@@ -3164,6 +3204,75 @@ export async function setGristTheme(options: {
     await waitForServer();
   }
 }
+
+/**
+ * Executes custom code inside active custom widget.
+ */
+export async function customCode(fn: (grist: typeof PluginApi) => void) {
+  const section = await driver.findWait('.active_section iframe', 4000);
+  return await doInIframe(section, async () => {
+    return await driver.executeScript(`(${fn})(grist)`);
+  });
+}
+
+/**
+ * Gets or sets widget access level (doesn't deal with prompts).
+ */
+export async function widgetAccess(level?: AccessLevel) {
+  const text = {
+    [AccessLevel.none]: 'No document access',
+    [AccessLevel.read_table]: 'Read selected table',
+    [AccessLevel.full]: 'Full document access',
+  };
+  if (!level) {
+    const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
+    return Object.entries(text).find(e => e[1] === currentAccess)![0];
+  } else {
+    await driver.find('.test-config-widget-access .test-select-open').click();
+    await driver.findContent('.test-select-menu li', text[level]).click();
+    await waitForServer();
+  }
+}
+
+/**
+ * Checks if access prompt is visible.
+ */
+export async function hasAccessPrompt() {
+  return await driver.find('.test-config-widget-access-accept').isPresent();
+}
+
+/**
+ * Accepts new access level.
+ */
+export async function acceptAccessRequest() {
+  await driver.find('.test-config-widget-access-accept').click();
+}
+
+/**
+ * Rejects new access level.
+ */
+export async function rejectAccessRequest() {
+  await driver.find('.test-config-widget-access-reject').click();
+}
+
+/**
+ * Sets widget access level (deals with requests).
+ */
+export async function changeWidgetAccess(access: 'read table'|'full'|'none') {
+  await openWidgetPanel();
+
+  // if the current access is ok do nothing
+  if ((await widgetAccess()) === access) {
+    // unless we need to confirm it
+    if (await hasAccessPrompt()) {
+      await acceptAccessRequest();
+    }
+  } else {
+    // else switch access level
+    await widgetAccess(access as AccessLevel);
+  }
+}
+
 
 } // end of namespace gristUtils
 
