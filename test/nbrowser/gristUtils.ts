@@ -3305,6 +3305,7 @@ class LockableClipboard implements ILockableClipboard {
       lockfilePath: path.join(path.resolve(getAppRoot(), 'test'), '.clipboard.lock'),
       retries: {
         /* The clipboard generally isn't locked for long, so retry frequently. */
+        minTimeout: 200,
         maxTimeout: 200,
         retries: 100,
       },
