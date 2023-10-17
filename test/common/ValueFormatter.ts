@@ -115,7 +115,7 @@ describe("ValueFormatter", function() {
       assert.equal(fmt({numMode: 'currency'}, 0.1234567, {locale: 'fr-BE'}), '0,12 €');
       assert.equal(fmt({numMode: 'currency', maxDecimals: 0}, 12.34567, {locale: 'en-GB'}), '£12.35');
       assert.equal(fmt({numMode: 'currency', decimals: 0, maxDecimals: 0}, 12.34567, {locale: 'en-IE'}), '€12');
-      assert.equal(fmt({numMode: 'currency'}, 1.015e-8, {locale: 'en-ZA'}), 'R 0,00');
+      assert.equal(fmt({numMode: 'currency'}, 1.015e-8, {locale: 'af-ZA'}), 'R 0,00');
       assert.equal(fmt({numMode: 'currency', maxDecimals: 10}, 1.015e-8, {locale: 'en-CA'}), '$0.0000000102');
       assert.equal(fmt({numMode: 'currency'}, -1.015e-8, {locale: 'nl-BE'}), '€ -0,00');
 
@@ -133,7 +133,7 @@ describe("ValueFormatter", function() {
       assert.equal(
         fmt({numMode: 'currency', decimals: 0, maxDecimals: 0}, 12.34567, {locale: 'en-IE', currency: 'SGD'}),
         '$12');
-      assert.equal(fmt({numMode: 'currency'}, 1.015e-8, {locale: 'en-ZA', currency: 'HKD'}), '$0,00');
+      assert.equal(fmt({numMode: 'currency'}, 1.015e-8, {locale: 'af-ZA', currency: 'HKD'}), '$0,00');
       assert.equal(
         fmt({numMode: 'currency', maxDecimals: 10}, 1.015e-8, {locale: 'en-CA', currency: 'RUB'}),
         '₽0.0000000102');
