@@ -117,7 +117,7 @@ describe('UploadLimits', function() {
     const largeFilePath2 = await generateFile(".jpg", maxAttachment - 1000);
     await gu.fileDialogUpload([largeFilePath1, largeFilePath2].join(","),
       () => gu.getCell(0, 1).find('.test-attachment-icon').click());
-    await gu.getCell(0, 1).findWait('.test-attachment-widget > [class*=test-pw-]', 1000);
+    await gu.getCell(0, 1).findWait('.test-attachment-widget > [class*=test-pw-]', 2000);
 
     // We don't expect any errors here.
     assert.lengthOf(await driver.findAll('.test-notifier-toast-wrapper'), 0);

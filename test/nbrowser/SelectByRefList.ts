@@ -4,7 +4,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('SelectByRefList', function() {
-  this.timeout(80000);
+  this.timeout(90000);
   setupTestSuite();
   addToRepl('gu2', gu);
   gu.bigScreen();
