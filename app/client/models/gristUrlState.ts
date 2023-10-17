@@ -188,6 +188,9 @@ export class UrlStateImpl {
    * a matter of DocWorker requiring a different version (e.g. /v/OTHER/doc/...).
    */
   public needPageLoad(prevState: IGristUrlState, newState: IGristUrlState): boolean {
+    // If we have an API URL we can't use it to switch the state, so we need a page load.
+    if (newState.api || prevState.api) { return true; }
+
     const gristConfig = this._window.gristConfig || {};
     const orgReload = prevState.org !== newState.org;
     // Reload when moving to/from a document or between doc and non-doc.

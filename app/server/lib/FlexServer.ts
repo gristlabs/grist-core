@@ -1547,9 +1547,9 @@ export class FlexServer implements GristServer {
       state.slug = getSlugIfNeeded(resource);
     }
     state.org = this._dbManager.normalizeOrgDomain(org.id, org.domain, org.ownerId);
+    state.api = purpose === 'api';
     if (!gristConfig.homeUrl) { throw new Error('Computing a resource URL requires a home URL'); }
-    return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl),
-                     { api: purpose === 'api' });
+    return encodeUrl(gristConfig, state, new URL(gristConfig.homeUrl));
   }
 
   public addUsage() {

@@ -45,6 +45,18 @@ describe('gristUrls', function() {
         {params: {themeName: 'GristDark'}},
       );
     });
+
+    it('should detect API URLs', function() {
+      assertUrlDecode(
+        'http://localhost/o/docs/api/docs',
+        {api: true},
+      );
+
+      assertUrlDecode(
+        'http://public.getgrist.com/api/docs',
+        {api: true},
+      );
+    });
   });
 
   describe('parseFirstUrlPart', function() {

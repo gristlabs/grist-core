@@ -135,6 +135,9 @@ export interface IGristUrlState {
     themeName?: ThemeName;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
+  api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
+                     // But this barely works, and is suitable only for documents. For decoding it
+                     // indicates that the URL probably points to an API endpoint.
 }
 
 // Subset of GristLoadConfig used by getOrgUrlInfo(), which affects the interpretation of the
@@ -217,9 +220,6 @@ export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgU
 export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
                           state: IGristUrlState, baseLocation: Location | URL,
                           options: {
-                            // make an api url - warning: just barely works, and
-                            // only for documents
-                            api?: boolean,
                             tweaks?: UrlTweaks,
                           } = {}): string {
   const url = new URL(baseLocation.href);
@@ -236,12 +236,12 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     }
   }
 
-  if (options.api) {
+  if (state.api) {
     parts.push(`api/`);
   }
   if (state.ws) { parts.push(`ws/${state.ws}/`); }
   if (state.doc) {
-    if (options.api) {
+    if (state.api) {
       parts.push(`docs/${encodeURIComponent(state.doc)}`);
     } else if (state.slug) {
       parts.push(`${encodeURIComponent(state.doc)}/${encodeURIComponent(state.slug)}`);
@@ -329,10 +329,27 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   location = new URL(location.href);  // Make sure location is a URL.
   options?.tweaks?.preDecode?.({ url: location });
   const parts = location.pathname.slice(1).split('/');
+  const state: IGristUrlState = {};
+
+  // Bare minimum we can do to detect API URLs.
+  if (parts[0] === 'api') { // When it starts with /api/...
+    parts.shift();
+    state.api = true;
+  } else if (parts[0] === 'o' && parts[2] === 'api') { // or with /o/{org}/api/...
+    parts.splice(2, 1);
+    state.api = true;
+  }
+
   const map = new Map<string, string>();
   for (let i = 0; i < parts.length; i += 2) {
     map.set(parts[i], decodeURIComponent(parts[i + 1]));
   }
+
+  // For the API case, we need to map "docs" to "doc" (as this is what we did in encodeUrl and what API expects).
+  if (state.api && map.has('docs')) {
+    map.set('doc', map.get('docs')!);
+  }
+
   // When the urlId is a prefix of the docId, documents are identified
   // as "<urlId>/slug" instead of "doc/<urlId>".  We can detect that because
   // the minimum length of a urlId prefix is longer than the maximum length
@@ -346,7 +363,6 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     }
   }
 
-  const state: IGristUrlState = {};
   const subdomain = parseSubdomain(location.host);
   if (gristConfig.org || gristConfig.singleOrg) {
     state.org = gristConfig.org || gristConfig.singleOrg;

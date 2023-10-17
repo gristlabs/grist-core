@@ -90,6 +90,12 @@ describe('gristUrlState', function() {
     // Billing routes
     assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/o/baz/billing')),
       {org: 'baz', billing: 'billing'});
+
+    // API routes
+    assert.deepEqual(prod.decodeUrl(new URL('https://bar.example.com/api/docs/bar')),
+      {org: 'bar', doc: 'bar', api: true});
+    assert.deepEqual(prod.decodeUrl(new URL('http://localhost:8080/o/baz/api/docs/bar')),
+      {org: 'baz', doc: 'bar', api: true});
   });
 
   it('should decode query strings in URLs correctly', function() {
@@ -139,6 +145,11 @@ describe('gristUrlState', function() {
     // Billing routes
     assert.equal(prod.encodeUrl({org: 'baz', billing: 'billing'}, hostBase),
       'https://baz.example.com/billing');
+
+    // API routes
+    assert.equal(prod.encodeUrl({org: 'baz', doc: 'bar', api: true}, hostBase), 'https://baz.example.com/api/docs/bar');
+    assert.equal(prod.encodeUrl({org: 'baz', doc: 'bar', api: true}, localBase),
+      'http://localhost:8080/o/baz/api/docs/bar');
   });
 
   it('should encode state in billing URLs correctly', function() {
