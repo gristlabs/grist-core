@@ -175,7 +175,9 @@
         "{{wrongTypeCount}} non-{{columnType}} column is not shown": "{{wrongTypeCount}} columna no {{columnType}} no se muestra",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown": "{{wrongTypeCount}} columnas no {{columnType}} no se muestran",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} no se muestra la columna {{columnType}}",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} no se muestran las columnas {{columnType}}"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} no se muestran las columnas {{columnType}}",
+        "No {{columnType}} columns in table.": "No hay columnas {{columnType}} en la tabla.",
+        "Clear selection": "Borrar la selección"
     },
     "DocHistory": {
         "Activity": "Actividad",

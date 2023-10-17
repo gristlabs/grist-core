@@ -61,7 +61,9 @@
         "Save Document": "Зберегти документ",
         "Send to Google Drive": "Надіслати на Google Drive",
         "Show in folder": "Показати в папці",
-        "Work on a Copy": "Працювати над копією"
+        "Work on a Copy": "Працювати над копією",
+        "Download...": "Завантажити...",
+        "Share": "Поділитися"
     },
     "MakeCopyMenu": {
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Зверніть увагу! В оригіналі є зміни, яких немає в цьому документі. Ці зміни будуть перезаписані.",
@@ -86,7 +88,10 @@
         "Workspace": "Робочий простір",
         "You do not have write access to the selected workspace": "Ви не маєте права на запис у вибраному робочому просторі",
         "You do not have write access to this site": "Ви не маєте права на запис на цьому сайті",
-        "However, it appears to be already identical.": "Втім, схоже, що вони вже ідентичні."
+        "However, it appears to be already identical.": "Втім, схоже, що вони вже ідентичні.",
+        "Remove all data but keep the structure to use as a template": "Видалити всі дані, але зберегти структуру, щоб використовувати як шаблон",
+        "Remove document history (can significantly reduce file size)": "Видалити історію документа (може значно зменшити розмір файлу)",
+        "Download full document and history": "Завантажити повний документ та історію"
     },
     "SortConfig": {
         "Add Column": "Додати стовпець",
@@ -134,7 +139,7 @@
         "Freeze {{count}} columns_other": "Закріпити {{count}} стовпців",
         "Hide {{count}} columns_other": "Сховати {{count}} стовпців",
         "Insert column to the {{to}}": "Вставити стовпець у {{to}}",
-        "More sort options ...": "Більше варіантів сортування…",
+        "More sort options ...": "Більше опцій сортування…",
         "Rename column": "Перейменувати стовпець",
         "Reset {{count}} columns_one": "Скинути стовпець",
         "Reset {{count}} entire columns_one": "Скинути весь стовпець",
@@ -144,7 +149,9 @@
         "Sorted (#{{count}})_other": "Відсортовано (#{{count}})",
         "Unfreeze all columns": "Відкріпити всі стовпці",
         "Unfreeze {{count}} columns_one": "Відкріпити цей стовпець",
-        "Unfreeze {{count}} columns_other": "Відкріпити {{count}} стовпців"
+        "Unfreeze {{count}} columns_other": "Відкріпити {{count}} стовпців",
+        "Insert column to the right": "Вставити стовпець праворуч",
+        "Insert column to the left": "Вставити стовпець ліворуч"
     },
     "ThemeConfig": {
         "Switch appearance automatically to match system": "Автоматично змінювати оформлення відповідно до системи",
@@ -170,7 +177,12 @@
         "Welcome to {{orgName}}": "Ласкаво просимо до {{orgName}}",
         "You have read-only access to this site. Currently there are no documents.": "Ви маєте доступ до цього сайту лише для читання. Наразі документів немає.",
         "personal site": "особистий сайт",
-        "{{signUp}} to save your work. ": "{{signUp}}, щоб зберегти вашу роботу. "
+        "{{signUp}} to save your work. ": "{{signUp}}, щоб зберегти вашу роботу. ",
+        "Welcome to Grist, {{- name}}!": "Ласкаво просимо до Grist, {{- name}}!",
+        "Visit our {{link}} to learn more about Grist.": "Відвідайте наш {{link}}, щоб дізнатися більше про Grist.",
+        "Welcome to {{- orgName}}": "Ласкаво просимо до {{- orgName}}",
+        "Sign in": "Увійти в систему",
+        "To use Grist, please either sign up or sign in.": "Щоб користуватися Grist, будь ласка, зареєструйтеся або увійдіть."
     },
     "NotifyUI": {
         "Go to your free personal site": "Перейдіть на свій безкоштовний персональний сайт",
@@ -181,7 +193,8 @@
         "Notifications": "Повідомлення",
         "Renew": "Поновити",
         "Report a problem": "Повідомити про проблему",
-        "Upgrade Plan": "Змінити тарифний план"
+        "Upgrade Plan": "Змінити тарифний план",
+        "Manage billing": "Управління рахунком"
     },
     "ViewSectionMenu": {
         "Revert": "Повернутися",
@@ -268,7 +281,9 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} не-{{columnType}} стовпець не відображається",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} не-{{columnType}} стовпці не відображаються",
         "Widget does not require any permissions.": "Віджет не вимагає ніяких дозволів.",
-        "Widget needs to {{read}} the current table.": "Віджету необхідно {{read}} поточну таблицю."
+        "Widget needs to {{read}} the current table.": "Віджету необхідно {{read}} поточну таблицю.",
+        "No {{columnType}} columns in table.": "У таблиці немає стовпців типу {{columnType}}.",
+        "Clear selection": "Очистити вибір"
     },
     "ACUserManager": {
         "Invite new member": "Запросити нового користувача",
@@ -310,7 +325,9 @@
         "Remove column {{- colId }} from {{- tableId }} rules": "Видалити стовпець {{- colId }} з правил {{- tableId }}",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При додаванні правил таблиці, автоматично додавати правило для надання ВЛАСНИКУ повного доступу.",
         "Seed rules": "Успадковані правила",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних."
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
+        "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. "
     },
     "AccountPage": {
         "API": "API",
@@ -341,7 +358,14 @@
         "Sign in": "Увійти в систему",
         "Toggle Mobile Mode": "Переключити в мобільний режим",
         "Document Settings": "Параметри документа",
-        "Switch Accounts": "Змінити обліковий запис"
+        "Switch Accounts": "Змінити обліковий запис",
+        "Activation": "Активація",
+        "Support Grist": "Підтримати Grist",
+        "Upgrade Plan": "Оновити План",
+        "Use This Template": "Використати цей шаблон",
+        "Billing Account": "Рахунок оплати",
+        "Sign In": "Увійти в систему",
+        "Sign Up": "Зареєструватися"
     },
     "ViewAsDropdown": {
         "View As": "Переглянути як",
@@ -352,7 +376,8 @@
         "Action Log failed to load": "Не вдалося завантажити журнал дій",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблиця {{tableId}} згодом була видалена під час події #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Ця строка згодом була видалена під час події {{action.actionNum}}",
-        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Колонка {{colId}} згодом була видалена під час події #{{action.actionNum}}"
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Колонка {{colId}} згодом була видалена під час події #{{action.actionNum}}",
+        "All tables": "Всі таблиці"
     },
     "ApiKey": {
         "Click to show": "Натисніть, щоб показати",
@@ -377,7 +402,8 @@
         "Home Page": "Домашня сторінка",
         "Legacy": "Застаріла версія",
         "Personal Site": "Особистий сайт",
-        "Team Site": "Сайт команди"
+        "Team Site": "Сайт команди",
+        "Grist Templates": "Шаблони від Grist"
     },
     "CellContextMenu": {
         "Clear cell": "Очистити клітинку",
@@ -398,7 +424,11 @@
         "Reset {{count}} columns_one": "Скинути стовпець",
         "Reset {{count}} columns_other": "Скинути {{count}} стовпці",
         "Reset {{count}} entire columns_one": "Скинути весь стовпець",
-        "Reset {{count}} entire columns_other": "Скинути {{count}} всі стовпці"
+        "Reset {{count}} entire columns_other": "Скинути {{count}} всі стовпці",
+        "Copy": "Копіювати",
+        "Comment": "Коментар",
+        "Cut": "Вирізати",
+        "Paste": "Вставити"
     },
     "ColorSelect": {
         "Apply": "Застосовувати",
@@ -487,7 +517,9 @@
         "API": "API",
         "Document ID copied to clipboard": "Ідентифікатор документа скопійований у буфер",
         "Ok": "ОК",
-        "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):"
+        "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):",
+        "Manage Webhooks": "Керування веб-хуками",
+        "Webhooks": "Веб-хуки"
     },
     "DocTour": {
         "No valid document tour": "Немає дійсного огляду документа",
@@ -516,7 +548,8 @@
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Додано новий пов’язаний розділ для перегляду {{viewName}}",
         "Import from file": "Імпортувати з файлу",
-        "Saved linked section {{title}} in view {{name}}": "Збережений зв'язаний розділ {{title}}, що відображається в {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Збережений зв'язаний розділ {{title}}, що відображається в {{name}}",
+        "go to webhook settings": "перейти до налаштувань веб-хуків"
     },
     "HomeLeftPane": {
         "Delete": "Видалити",
@@ -526,17 +559,33 @@
         "Manage Users": "Керувати користувачами",
         "Delete {{workspace}} and all included documents?": "Видалити {{workspace}} та всі включені документи?",
         "Create Workspace": "Створити робочій простір",
-        "Examples & Templates": "Приклади та шаблони",
+        "Examples & Templates": "Шаблони",
         "Import Document": "Імпортувати документ",
         "Trash": "Кошик",
         "Workspace will be moved to Trash.": "Робочий простір буде переміщено до кошика.",
         "Rename": "Перейменувати",
-        "Workspaces": "Робочій простір"
+        "Workspaces": "Робочій простір",
+        "Tutorial": "Туторіал"
     },
     "Importer": {
         "Merge rows that match these fields:": "Об'єднати рядки, які відповідають цим полям:",
         "Update existing records": "Оновити існуючі записи",
-        "Select fields to match on": "Оберіть поля для зіставлення"
+        "Select fields to match on": "Оберіть поля для зіставлення",
+        "Column mapping": "Співставлення колонок",
+        "Grist column": "Стовпець у Grist",
+        "{{count}} unmatched field_one": "{{count}} невідповідне поле",
+        "{{count}} unmatched field in import_one": "{{count}} невідповідне поле при імпорті",
+        "Revert": "Повернути",
+        "Skip Import": "Пропустити імпорт",
+        "{{count}} unmatched field_other": "{{count}} невідповідних полів",
+        "New Table": "Нова таблиця",
+        "Skip": "Пропустити",
+        "Column Mapping": "Співставлення колонок",
+        "Destination table": "Таблиця призначення",
+        "Skip Table on Import": "Пропустити таблицю при імпорті",
+        "Import from file": "Імпорт з файлу",
+        "{{count}} unmatched field in import_other": "{{count}} невідповідних полів при імпорті",
+        "Source column": "Вихідний стовпець"
     },
     "LeftPanelCommon": {
         "Help Center": "Центр допомоги"
@@ -609,12 +658,13 @@
         "Select Widget": "Виберіть віджет",
         "Series_one": "Серії",
         "Series_other": "Серії",
-        "Sort & Filter": "Сортування та фільтрація",
+        "Sort & Filter": "Порядок та фільтр",
         "TRANSFORM": "ПЕРЕТВОРИТИ",
         "Theme": "Тема",
         "WIDGET TITLE": "НАЗВА ВІДЖЕТА",
         "Widget": "Віджет",
-        "You do not have edit access to this document": "Ви не маєте права на редагування цього документа"
+        "You do not have edit access to this document": "Ви не маєте права на редагування цього документа",
+        "Add referenced columns": "Додати стовпець за посиланням"
     },
     "RowContextMenu": {
         "Copy anchor link": "Скопіювати якірне посилання",
@@ -679,7 +729,7 @@
         "Make On-Demand": "Встановити статус \"на вимогу\""
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Розширене сортування та фільтр",
+        "Advanced Sort & Filter": "Розширені порядок та фільтр",
         "Copy anchor link": "Скопіювати якірне посилання",
         "Data selection": "Вибір даних",
         "Delete record": "Видалити запис",
@@ -718,7 +768,8 @@
         "Override widget title": "Перевизначити назву віджета",
         "Provide a table name": "Вкажіть ім'я таблиці",
         "Save": "Зберегти",
-        "WIDGET TITLE": "НАЗВА ВІДЖЕТА"
+        "WIDGET TITLE": "НАЗВА ВІДЖЕТА",
+        "WIDGET DESCRIPTION": "ОПИС ВІДЖЕТУ"
     },
     "breadcrumbs": {
         "fiddle": "fiddle",
@@ -749,7 +800,10 @@
         "You do not have access to this organization's documents.": "У вас немає доступу до документів цієї організації.",
         "Sign in to access this organization's documents.": "Увійдіть, щоб отримати доступ до документів цієї організації.",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "Не вдалося знайти запитувану сторінку.{{separator}}Будь ласка, перевірте URL-адресу і спробуйте ще раз.",
-        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Ви увійшли як {{email}}. Ви можете увійти під іншим обліковим записом або попросити доступ у адміністратора."
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Ви увійшли як {{email}}. Ви можете увійти під іншим обліковим записом або попросити доступ у адміністратора.",
+        "Account deleted{{suffix}}": "Обліковий запис видалено{{suffix}}",
+        "Your account has been deleted.": "Ваш обліковий запис видалено.",
+        "Sign up": "Зареєструватися"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Робочі простори доступні в командних тарифах. ",
@@ -783,7 +837,8 @@
         "Find Next ": "Знайти наступне ",
         "Find Previous ": "Знайти попереднє ",
         "Search in document": "Пошук у документі",
-        "No results": "Немає результатів"
+        "No results": "Немає результатів",
+        "Search": "Пошук"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Надсилання файлу на Google Диск"
@@ -809,7 +864,10 @@
         "Default cell style": "Стиль клітинки за замовчуванням",
         "Mixed style": "Змішаний стиль",
         "Open row styles": "Відкрити стилі рядків",
-        "Cell Style": "Стиль клітинки"
+        "Cell Style": "Стиль клітинки",
+        "HEADER STYLE": "СТИЛЬ ЗАГОЛОВКА",
+        "Header Style": "Стиль Заголовка",
+        "Default header style": "За замовчуванням"
     },
     "ChoiceTextBox": {
         "CHOICES": "ВАРІАНТИ"

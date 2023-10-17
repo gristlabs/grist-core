@@ -207,7 +207,9 @@
         "{{wrongTypeCount}} non-{{columnType}} column is not shown": "{{wrongTypeCount}} nicht{{columnType}} Spalte wird nicht angezeigt",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown": "{{wrongTypeCount}} nicht{{columnType}} Spalte wird nicht angezeigt",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "Spalte {{wrongTypeCount}} Nicht-{{columnType}} wird nicht angezeigt",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "Spalten {{wrongTypeCount}} Nicht-{{columnType}} werden nicht angezeigt"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "Spalten {{wrongTypeCount}} Nicht-{{columnType}} werden nicht angezeigt",
+        "No {{columnType}} columns in table.": "Keine {{columnType}} Spalten in der Tabelle.",
+        "Clear selection": "Auswahl löschen"
     },
     "DataTables": {
         "Click to copy": "Zum Kopieren anklicken",
