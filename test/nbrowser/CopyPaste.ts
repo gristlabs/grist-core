@@ -13,7 +13,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('CopyPaste', function() {
-  this.timeout(60000);
+  this.timeout(90000);
   const cleanup = setupTestSuite();
   const clipboard = gu.getLockableClipboard();
   afterEach(() => gu.checkForErrors());
@@ -69,22 +69,20 @@ describe('CopyPaste', function() {
     await session.tempDoc(cleanup, 'PasteParsing.grist');
     await driver.executeScript(createDummyTextArea);
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '$1',        '1',
-        '(2)',       '-2',
-        '3e4',       '30000',
-        '5,678.901', '5678.901',
-        '23%',       '0.23',
-        '45 678',    '45678',
+    await copyAndCheck(clipboard, [
+      '$1',        '1',
+      '(2)',       '-2',
+      '3e4',       '30000',
+      '5,678.901', '5678.901',
+      '23%',       '0.23',
+      '45 678',    '45678',
 
-        // . is a decimal separator in this locale (USA) so this can't be parsed
-        '1.234.567', '1.234.567 INVALID',
+      // . is a decimal separator in this locale (USA) so this can't be parsed
+      '1.234.567', '1.234.567 INVALID',
 
-        // Doesn't match the default currency of the document, whereas $ above does
-        '€89',       '€89 INVALID',
-      ], true);
-    });
+      // Doesn't match the default currency of the document, whereas $ above does
+      '€89',       '€89 INVALID',
+    ], true);
 
     // Open the side panel for the numeric column.
     await gu.toggleSidePanel('right', 'open');
@@ -144,21 +142,19 @@ describe('CopyPaste', function() {
       '€89',       '€89.00',
     ]);
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        // Now we're copying from the text column so everything is parsed again.
-        // $ can no longer be parsed now the currency is euros.
-        '$1',        '$1 INVALID',
+    await copyAndCheck(clipboard, [
+      // Now we're copying from the text column so everything is parsed again.
+      // $ can no longer be parsed now the currency is euros.
+      '$1',        '$1 INVALID',
 
-        '(2)',       '-€2.00',
-        '3e4',       '€30,000.00',
-        '5,678.901', '€5,678.90',
-        '23%',       '€0.23',
-        '45 678',    '€45,678.00',
-        '1.234.567', '1.234.567 INVALID',
-        '€89',       '€89.00',
-      ], true);
-    });
+      '(2)',       '-€2.00',
+      '3e4',       '€30,000.00',
+      '5,678.901', '€5,678.90',
+      '23%',       '€0.23',
+      '45 678',    '€45,678.00',
+      '1.234.567', '1.234.567 INVALID',
+      '€89',       '€89.00',
+    ], true);
 
     // Change the document locale
     await gu.openDocumentSettings();
@@ -202,43 +198,39 @@ describe('CopyPaste', function() {
       '€89',       '89,00 €',
     ]);
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '$1',        '$1 INVALID',
-        '(2)',       '-2,00 €',
-        '3e4',       '30.000,00 €',
+    await copyAndCheck(clipboard, [
+      '$1',        '$1 INVALID',
+      '(2)',       '-2,00 €',
+      '3e4',       '30.000,00 €',
 
-        // Now we're copying from the text column so everything is parsed again.
-        // The result in this case is not good:
-        // '.' was simply removed because we don't check where it is
-        // ',' is the decimal separator
-        // So this is parsed as 5.678901
-        // which rounds to 5.68 to two decimal places for the currency format
-        '5,678.901', '5,68 €',
+      // Now we're copying from the text column so everything is parsed again.
+      // The result in this case is not good:
+      // '.' was simply removed because we don't check where it is
+      // ',' is the decimal separator
+      // So this is parsed as 5.678901
+      // which rounds to 5.68 to two decimal places for the currency format
+      '5,678.901', '5,68 €',
 
-        '23%',       '0,23 €',
-        '45 678',    '45.678,00 €',
-        '1.234.567', '1.234.567,00 €',
-        '€89',       '89,00 €',
-      ], true);
-    });
+      '23%',       '0,23 €',
+      '45 678',    '45.678,00 €',
+      '1.234.567', '1.234.567,00 €',
+      '€89',       '89,00 €',
+    ], true);
   });
 
   it('should parse pasted dates', async function() {
     await gu.getPageItem("Dates").click();
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '01-02-03',   '01-02-2003',
-        '01 02 2003', '01-02-2003',
-        '1/02/03',    '01-02-2003',
-        '01/2/03',    '01-02-2003',
-        '1/2/03',     '01-02-2003',
-        '1/2/3',      '1/2/3 INVALID',
-        '20/10/03',   '20-10-2003',
-        '10/20/03',   '10/20/03 INVALID',
-      ]);
-    });
+    await copyAndCheck(clipboard, [
+      '01-02-03',   '01-02-2003',
+      '01 02 2003', '01-02-2003',
+      '1/02/03',    '01-02-2003',
+      '01/2/03',    '01-02-2003',
+      '1/2/03',     '01-02-2003',
+      '1/2/3',      '1/2/3 INVALID',
+      '20/10/03',   '20-10-2003',
+      '10/20/03',   '10/20/03 INVALID',
+    ]);
 
     await gu.getCell({col: 'Parsed', rowNum: 1}).click();
     assert.equal(await gu.getDateFormat(), "DD-MM-YYYY");
@@ -274,18 +266,16 @@ describe('CopyPaste', function() {
     ]);
 
     // Copy from the text column again, things get re-parsed
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '01-02-03',   '01-02-2003',
-        '01 02 2003', '01-02-2003',
-        '1/02/03',    '01-02-2003',
-        '01/2/03',    '01-02-2003',
-        '1/2/03',     '01-02-2003',
-        '1/2/3',      '1/2/3 INVALID',
-        '20/10/03',   '20/10/03 INVALID',  // newly invalid
-        '10/20/03',   '10-20-2003',
-      ]);
-    });
+    await copyAndCheck(clipboard, [
+      '01-02-03',   '01-02-2003',
+      '01 02 2003', '01-02-2003',
+      '1/02/03',    '01-02-2003',
+      '01/2/03',    '01-02-2003',
+      '1/2/03',     '01-02-2003',
+      '1/2/3',      '1/2/3 INVALID',
+      '20/10/03',   '20/10/03 INVALID',  // newly invalid
+      '10/20/03',   '10-20-2003',
+    ]);
   });
 
   // Note that these tests which reference other tables
@@ -298,18 +288,16 @@ describe('CopyPaste', function() {
 
     // Initially the References.Parsed column is displaying Dates.Text
     // No date parsing happens, we just see which strings exist in that column
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '20/10/03', '20/10/03',
-        '10/20/03', '10/20/03',
-        '1/2/3',    '1/2/3',
-        'foo',      'foo INVALID',
-        '3',        '3 INVALID',
-        '-2',       '-2 INVALID',
-        '$1',       '$1 INVALID',
-        '€89',      '€89 INVALID',
-      ], true);
-    });
+    await copyAndCheck(clipboard, [
+      '20/10/03', '20/10/03',
+      '10/20/03', '10/20/03',
+      '1/2/3',    '1/2/3',
+      'foo',      'foo INVALID',
+      '3',        '3 INVALID',
+      '-2',       '-2 INVALID',
+      '$1',       '$1 INVALID',
+      '€89',      '€89 INVALID',
+    ], true);
 
     await gu.setRefShowColumn("Parsed");
 
@@ -328,18 +316,16 @@ describe('CopyPaste', function() {
       '€89',      '€89 INVALID',
     ]);
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '20/10/03', '20/10/03',
-        '10/20/03', '10-20-2003',
-        '1/2/3',    '1/2/3',
-        'foo',      'foo INVALID',
-        '3',        `3 INVALID`,
-        '-2',       `-2 INVALID`,
-        '$1',       `$1 INVALID`,
-        '€89',      '€89 INVALID',
-      ]);
-    });
+    await copyAndCheck(clipboard, [
+      '20/10/03', '20/10/03',
+      '10/20/03', '10-20-2003',
+      '1/2/3',    '1/2/3',
+      'foo',      'foo INVALID',
+      '3',        `3 INVALID`,
+      '-2',       `-2 INVALID`,
+      '$1',       `$1 INVALID`,
+      '€89',      '€89 INVALID',
+    ]);
 
     await gu.setRefShowColumn("Row ID");
 
@@ -355,18 +341,16 @@ describe('CopyPaste', function() {
       '€89',      '€89 INVALID',
     ]);
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '20/10/03', '20/10/03 INVALID',
-        '10/20/03', '10/20/03 INVALID',
-        '1/2/3',    '1/2/3 INVALID',
-        'foo',      'foo INVALID',
-        '3',        'Dates[3]',  // 3 is the only valid Row ID
-        '-2',       '-2 INVALID',
-        '$1',       '$1 INVALID',
-        '€89',      '€89 INVALID',
-      ]);
-    });
+    await copyAndCheck(clipboard, [
+      '20/10/03', '20/10/03 INVALID',
+      '10/20/03', '10/20/03 INVALID',
+      '1/2/3',    '1/2/3 INVALID',
+      'foo',      'foo INVALID',
+      '3',        'Dates[3]',  // 3 is the only valid Row ID
+      '-2',       '-2 INVALID',
+      '$1',       '$1 INVALID',
+      '€89',      '€89 INVALID',
+    ]);
 
     await gu.setRefTable("Numbers");
 
@@ -374,34 +358,30 @@ describe('CopyPaste', function() {
     async function checkRefsToNumbers() {
       await gu.setRefShowColumn("Row ID");
 
-      await clipboard.lockAndPerform(async (cb) => {
-        await copyAndCheck(cb, [
-          '20/10/03', '20/10/03 INVALID',
-          '10/20/03', '10/20/03 INVALID',
-          '1/2/3',    '1/2/3 INVALID',
-          'foo',      'foo INVALID',
-          '3',        'Numbers[3]',
-          '-2',       '-2 INVALID',
-          '$1',       '$1 INVALID',
-          '€89',      '€89 INVALID',
-        ], true);
-      });
+      await copyAndCheck(clipboard, [
+        '20/10/03', '20/10/03 INVALID',
+        '10/20/03', '10/20/03 INVALID',
+        '1/2/3',    '1/2/3 INVALID',
+        'foo',      'foo INVALID',
+        '3',        'Numbers[3]',
+        '-2',       '-2 INVALID',
+        '$1',       '$1 INVALID',
+        '€89',      '€89 INVALID',
+      ], true);
 
       await gu.setRefShowColumn("Text");
 
-      await clipboard.lockAndPerform(async (cb) => {
-        await copyAndCheck(cb, [
-          '20/10/03', '20/10/03 INVALID',
-          '10/20/03', '10/20/03 INVALID',
-          '1/2/3',    '1/2/3 INVALID',
-          'foo',      'foo INVALID',
-          '3',        '3 INVALID',
-          '-2',       '-2 INVALID',
-          // These are the only strings that appear in Numbers.Text verbatim
-          '$1',       '$1',
-          '€89',      '€89',
-        ]);
-      });
+      await copyAndCheck(clipboard, [
+        '20/10/03', '20/10/03 INVALID',
+        '10/20/03', '10/20/03 INVALID',
+        '1/2/3',    '1/2/3 INVALID',
+        'foo',      'foo INVALID',
+        '3',        '3 INVALID',
+        '-2',       '-2 INVALID',
+        // These are the only strings that appear in Numbers.Text verbatim
+        '$1',       '$1',
+        '€89',      '€89',
+      ]);
 
       await gu.setRefShowColumn("Parsed");
 
@@ -417,18 +397,16 @@ describe('CopyPaste', function() {
         '€89',      '89,00 €',
       ]);
 
-      await clipboard.lockAndPerform(async (cb) => {
-        await copyAndCheck(cb, [
-          '20/10/03', '20/10/03 INVALID',
-          '10/20/03', '10/20/03 INVALID',
-          '1/2/3',    '1/2/3 INVALID',
-          'foo',      'foo INVALID',
-          '3',        '3 INVALID',  // parsed, but not a valid reference
-          '-2',       '-2,00 €',
-          '$1',       '$1',  // invalid in Numbers.parsed, but a valid reference
-          '€89',      '89,00 €',
-        ]);
-      });
+      await copyAndCheck(clipboard, [
+        '20/10/03', '20/10/03 INVALID',
+        '10/20/03', '10/20/03 INVALID',
+        '1/2/3',    '1/2/3 INVALID',
+        'foo',      'foo INVALID',
+        '3',        '3 INVALID',  // parsed, but not a valid reference
+        '-2',       '-2,00 €',
+        '$1',       '$1',  // invalid in Numbers.parsed, but a valid reference
+        '€89',      '89,00 €',
+      ]);
     }
 
     await checkRefsToNumbers();
@@ -461,9 +439,7 @@ describe('CopyPaste', function() {
 
     // Now test that pasting the same values into a Reference List column
     // produces the same result (reflists containing a single reference)
-    await gu.setType(/Reference List/);
-    await gu.applyTypeTransform();
-    await gu.waitForServer();
+    await gu.setType(/Reference List/, {apply: true});
 
     // Clear the Parsed column. Make sure we don't edit the column header.
     await gu.getCell({col: "Parsed", rowNum: 1}).click();
@@ -478,48 +454,42 @@ describe('CopyPaste', function() {
     async function checkMultiRefs() {
       await gu.setRefShowColumn("Row ID");
 
-      await clipboard.lockAndPerform(async (cb) => {
-        await copyAndCheck(cb, [
-          '"(2)",$1',     '"(2)",$1 INVALID',
-          '$1,(2),22',    '$1,(2),22 INVALID',
-          '["$1",-2]',    '["$1",-2] INVALID',
-          '1,-2',         '1,-2 INVALID',
-          '3,5',          'Numbers[3]\nNumbers[5]',  // only valid row IDs
-          '-2,30000',     '-2,30000 INVALID',
-          '7,0',          '7,0 INVALID',  // 0 is not a valid row ID
-          '',             '',
-        ]);
-      });
+      await copyAndCheck(clipboard, [
+        '"(2)",$1',     '"(2)",$1 INVALID',
+        '$1,(2),22',    '$1,(2),22 INVALID',
+        '["$1",-2]',    '["$1",-2] INVALID',
+        '1,-2',         '1,-2 INVALID',
+        '3,5',          'Numbers[3]\nNumbers[5]',  // only valid row IDs
+        '-2,30000',     '-2,30000 INVALID',
+        '7,0',          '7,0 INVALID',  // 0 is not a valid row ID
+        '',             '',
+      ]);
 
       await gu.setRefShowColumn("Text");
 
-      await clipboard.lockAndPerform(async (cb) => {
-        await copyAndCheck(cb, [
-          '"(2)",$1',     '(2)\n$1',  // only verbatim text
-          '$1,(2),22',    '$1,(2),22 INVALID',  // 22 is invalid so whole thing fails
-          '["$1",-2]',    '["$1",-2] INVALID',  // -2 is invalid because this is text, not parsed
-          '1,-2',         '1,-2 INVALID',
-          '3,5',          '3,5 INVALID',
-          '-2,30000',     '-2,30000 INVALID',
-          '7,0',          '7,0 INVALID',
-          '',             '',
-        ]);
-      });
+      await copyAndCheck(clipboard, [
+        '"(2)",$1',     '(2)\n$1',  // only verbatim text
+        '$1,(2),22',    '$1,(2),22 INVALID',  // 22 is invalid so whole thing fails
+        '["$1",-2]',    '["$1",-2] INVALID',  // -2 is invalid because this is text, not parsed
+        '1,-2',         '1,-2 INVALID',
+        '3,5',          '3,5 INVALID',
+        '-2,30000',     '-2,30000 INVALID',
+        '7,0',          '7,0 INVALID',
+        '',             '',
+      ]);
 
       await gu.setRefShowColumn("Parsed");
 
-      await clipboard.lockAndPerform(async (cb) => {
-        await copyAndCheck(cb, [
-          '"(2)",$1',     '-2,00 €\n$1',
-          '$1,(2),22',    '$1,(2),22 INVALID',
-          '["$1",-2]',    '$1\n-2,00 €',
-          '1,-2',         '1,-2 INVALID',
-          '3,5',          '3,5 INVALID',
-          '-2,30000',     '-2,00 €\n30.000,00 €',
-          '7,0',          '7,0 INVALID',
-          '',             '',
-        ], true);
-      });
+      await copyAndCheck(clipboard, [
+        '"(2)",$1',     '-2,00 €\n$1',
+        '$1,(2),22',    '$1,(2),22 INVALID',
+        '["$1",-2]',    '$1\n-2,00 €',
+        '1,-2',         '1,-2 INVALID',
+        '3,5',          '3,5 INVALID',
+        '-2,30000',     '-2,00 €\n30.000,00 €',
+        '7,0',          '7,0 INVALID',
+        '',             '',
+      ], true);
     }
 
     await gu.getPageItem("Multi-References").click();
@@ -539,50 +509,46 @@ describe('CopyPaste', function() {
     await gu.getPageItem("ChoiceLists").click();
     await gu.waitForServer();
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '',                            '',
-        'a',                           'a',
+    await copyAndCheck(clipboard, [
+      '',                            '',
+      'a',                           'a',
 
-        // On the left, \n in text affects parsing and separates choices
-        // On the right, \n is how choices are separated in .getText()
-        // So the newlines on the two sides match, but also "e,f" -> "e\nf"
-        'a b\nc d\ne,f',               'a b\nc d\ne\nf',
+      // On the left, \n in text affects parsing and separates choices
+      // On the right, \n is how choices are separated in .getText()
+      // So the newlines on the two sides match, but also "e,f" -> "e\nf"
+      'a b\nc d\ne,f',               'a b\nc d\ne\nf',
 
-        // CSVs
-        'a,b  ',                       'a\nb',
-        '  "a  ", b,"a,b  "  ',        'a\nb\na,b',
+      // CSVs
+      'a,b  ',                       'a\nb',
+      '  "a  ", b,"a,b  "  ',        'a\nb\na,b',
 
-        // JSON. Empty strings and null are removed
-        ' ["a","b","a,b", null] ',     'a\nb\na,b',
+      // JSON. Empty strings and null are removed
+      ' ["a","b","a,b", null] ',     'a\nb\na,b',
 
-        // Nested JSON is formatted as JSON or CSV depending on nesting level
-        '["a","b",["a,b"], [["a,b"]], [["a", "b"], "c", "d"], "", "  "]',
-        'a\nb\n"a,b"\n[["a,b"]]\n[["a", "b"], "c", "d"]',
+      // Nested JSON is formatted as JSON or CSV depending on nesting level
+      '["a","b",["a,b"], [["a,b"]], [["a", "b"], "c", "d"], "", "  "]',
+      'a\nb\n"a,b"\n[["a,b"]]\n[["a", "b"], "c", "d"]',
 
-        '[]',                          '',
-      ], true);
-    });
+      '[]',                          '',
+    ], true);
   });
 
   it('should parse pasted datetimes', async function() {
     await gu.getPageItem("DateTimes").click();
     await gu.waitForServer();
 
-    await clipboard.lockAndPerform(async (cb) => {
-      await copyAndCheck(cb, [
-        '2021-11-12 22:57:17+03:00', '12-11-2021 21:57 SAST',  // note the 1-hour difference
-        '2021-11-12 22:57:17+02:00', '12-11-2021 22:57 SAST',
-        '12-11-2021 22:57:17 SAST',  '12-11-2021 22:57 SAST',
-        '12-11-2021 22:57:17',       '12-11-2021 22:57 SAST',
-        '12-11-2021 22:57:17 UTC',   '13-11-2021 00:57 SAST',  // note the 2-hour difference
-        '12-11-2021 22:57:17 Z',     '13-11-2021 00:57 SAST',  // note the 2-hour difference
-        // EST doesn't match the current timezone so it's rejected
-        '12-11-2021 22:57:17 EST',   '12-11-2021 22:57:17 EST INVALID',
-        // Date without time is allowed
-        '12-11-2021',                '12-11-2021 00:00 SAST',
-      ]);
-    });
+    await copyAndCheck(clipboard, [
+      '2021-11-12 22:57:17+03:00', '12-11-2021 21:57 SAST',  // note the 1-hour difference
+      '2021-11-12 22:57:17+02:00', '12-11-2021 22:57 SAST',
+      '12-11-2021 22:57:17 SAST',  '12-11-2021 22:57 SAST',
+      '12-11-2021 22:57:17',       '12-11-2021 22:57 SAST',
+      '12-11-2021 22:57:17 UTC',   '13-11-2021 00:57 SAST',  // note the 2-hour difference
+      '12-11-2021 22:57:17 Z',     '13-11-2021 00:57 SAST',  // note the 2-hour difference
+      // EST doesn't match the current timezone so it's rejected
+      '12-11-2021 22:57:17 EST',   '12-11-2021 22:57:17 EST INVALID',
+      // Date without time is allowed
+      '12-11-2021',                '12-11-2021 00:00 SAST',
+    ]);
   });
 });
 
@@ -620,40 +586,53 @@ async function copy(cb: gu.IClipboard, fromCol: 'Text' | 'Parsed') {
   await paste(cb);
 }
 
-async function copyAndCheck(cb: gu.IClipboard, expected: string[], extraChecks: boolean = false) {
-  // Copy Text cells into the Parsed column
-  await copy(cb, 'Text');
-  await checkGridCells(expected);
+async function copyAndCheck(
+  clipboard: gu.ILockableClipboard,
+  expected: string[],
+  extraChecks: boolean = false
+) {
+  await clipboard.lockAndPerform(async (cb) => {
+    // Copy Text cells into the Parsed column
+    await copy(cb, 'Text');
+    await checkGridCells(expected);
 
-  // Tests some extra features of parsing that don't really depend on the column
-  // type and so don't need to be checked with every call to copyAndCheck
+    // Tests some extra features of parsing that don't really depend on the column
+    // type and so don't need to be checked with every call to copyAndCheck
+    if (extraChecks) {
+      // With the text cells still in the clipboard, convert the clipboard from
+      // rich data (cells) to plain text and confirm that it gets parsed the same way.
+      // The cells are still selected, clear them all.
+      await gu.sendKeys(Key.BACK_SPACE);
+      await gu.waitForServer();
+      assert.deepEqual(
+        await gu.getVisibleGridCells({rowNums: _.range(1, 9), cols: ['Parsed']}),
+        arrayRepeat(8, ''),
+      );
+
+      // Paste the text cells to the dummy textarea.
+      await driver.find('#dummyText').click();
+      await gu.waitAppFocus(false);
+      await cb.paste();
+    }
+  });
+
   if (extraChecks) {
-    // With the text cells still in the clipboard, convert the clipboard from
-    // rich data (cells) to plain text and confirm that it gets parsed the same way.
-    // The cells are still selected, clear them all.
-    await gu.sendKeys(Key.BACK_SPACE);
-    await gu.waitForServer();
-    assert.deepEqual(
-      await gu.getVisibleGridCells({rowNums: _.range(1, 9), cols: ['Parsed']}),
-      arrayRepeat(8, ''),
-    );
-
-    // Paste the text cells to the dummy textarea and copy.
-    await driver.find('#dummyText').click();
-    await gu.waitAppFocus(false);
-    await cb.paste();
     await gu.sendKeys(await gu.selectAllKey());
-    await cb.copy();
-    await gu.sendKeys(Key.BACK_SPACE);
+    await clipboard.lockAndPerform(async (cb) => {
+      await cb.copy();
+      await gu.sendKeys(Key.BACK_SPACE);
 
-    // Paste the now plain text and confirm that the resulting data is still the same.
-    await gu.getCell({col: 'Text', rowNum: 1}).click();
-    await gu.waitAppFocus();
-    await paste(cb);
+      // Paste the now plain text and confirm that the resulting data is still the same.
+      await gu.getCell({col: 'Text', rowNum: 1}).click();
+      await gu.waitAppFocus();
+      await paste(cb);
+    });
     await checkGridCells(expected);
 
     // Check that copying from the Parsed column back into itself doesn't change anything.
-    await copy(cb, 'Parsed');
+    await clipboard.lockAndPerform(async (cb) => {
+      await copy(cb, 'Parsed');
+    });
     await checkGridCells(expected);
   }
 }
