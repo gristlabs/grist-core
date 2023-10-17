@@ -399,7 +399,20 @@
         "Unfreeze {{count}} columns_one": "Unfreeze this column",
         "Unfreeze {{count}} columns_other": "Unfreeze {{count}} columns",
         "Insert column to the left": "Insert column to the left",
-        "Insert column to the right": "Insert column to the right"
+        "Insert column to the right": "Insert column to the right",
+        "Apply on record changes": "Apply on record changes",
+        "Apply to new records": "Apply to new records",
+        "Authorship": "Authorship",
+        "Created At": "Created At",
+        "Created By": "Created By",
+        "Hidden Columns": "Hidden Columns",
+        "Last Updated At": "Last Updated At",
+        "Last Updated By": "Last Updated By",
+        "Lookups": "Lookups",
+        "Shortcuts": "Shortcuts",
+        "Show hidden columns": "Show hidden columns",
+        "Timestamp": "Timestamp",
+        "no reference column": "no reference column"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
@@ -820,7 +833,8 @@
         "Choice List": "Choice List",
         "Reference": "Reference",
         "Reference List": "Reference List",
-        "Attachment": "Attachment"
+        "Attachment": "Attachment",
+        "Search columns": "Search columns"
     },
     "modals": {
         "Cancel": "Cancel",
