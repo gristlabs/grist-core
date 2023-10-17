@@ -14,7 +14,7 @@ import {DocComm} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
-import * as GridView from 'app/client/components/GridView';
+import GridView from 'app/client/components/GridView';
 import {importFromFile, selectAndImport} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
@@ -785,7 +785,7 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public getTableModel(tableId: string): DataTableModel {
-    return this.docModel.dataTables[tableId];
+    return this.docModel.getTableModel(tableId);
   }
 
   // Get a DataTableModel, possibly wrapped to include diff data if a comparison is

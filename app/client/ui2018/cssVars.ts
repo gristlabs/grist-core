@@ -136,6 +136,7 @@ export const vars = {
   toastBg: new CustomProp('toast-bg', '#040404'),
 
   /* Z indexes */
+  insertColumnLineZIndex: new CustomProp('insert-column-line-z-index', '20'),
   menuZIndex: new CustomProp('menu-z-index', '999'),
   modalZIndex: new CustomProp('modal-z-index', '999'),
   onboardingBackdropZIndex: new CustomProp('onboarding-backdrop-z-index', '999'),

@@ -12,6 +12,7 @@ import {
   BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
   MaybeObsArray, MutableObsArray, Observable, styled
 } from 'grainjs';
+import debounce from 'lodash/debounce';
 import * as weasel from 'popweasel';
 
 const t = makeT('menus');
@@ -49,36 +50,70 @@ export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOp
   return weasel.menu(wrappedCreateFunc, {...defaults, ...options});
 }
 
-const cssSearchField = styled('input',
-  'border: none;'+
-  'background-color: transparent;'+
-  'padding: 8px 24px 4px 24px;'+
-  '&:focus {outline: none;}'
-);
-export function enhanceBySearch(  menuFunc: (searchCriteria: Observable<string>) => DomElementArg[]): DomElementArg[]
-{
-    const searchCriteria = Observable.create(null, '');
-    const searchInput = [
-      menuItemStatic(
-        cssSearchField(
-          dom.on('input', (_ev, elem) => searchCriteria.set(elem.value)),
-          {placeholder: '🔍\uFE0E\t' + t("Search columns")}
-        )
+export interface SearchableMenuOptions {
+  searchInputPlaceholder?: string;
+}
+
+export interface SearchableMenuItem {
+  cleanText: string;
+  label: string;
+  action: (item: HTMLElement) => void;
+  args?: DomElementArg[];
+}
+
+export function searchableMenu(
+  menuItems: MaybeObsArray<SearchableMenuItem>,
+  options: SearchableMenuOptions = {}
+): DomElementArg[] {
+  const {searchInputPlaceholder} = options;
+
+  const searchValue = Observable.create(null, '');
+  const setSearchValue = debounce((value) => { searchValue.set(value); }, 100);
+
+  return [
+    menuItemStatic(
+      cssMenuSearch(
+        cssMenuSearchIcon('Search'),
+        cssMenuSearchInput(
+          dom.autoDispose(searchValue),
+          dom.on('input', (_ev, elem) => { setSearchValue(elem.value); }),
+          {placeholder: searchInputPlaceholder},
+        ),
       ),
-      menuDivider(),
-    ];
-    return [...searchInput, ...menuFunc(searchCriteria)];
+    ),
+    menuDivider(),
+    dom.domComputed(searchValue, (value) => {
+      const cleanSearchValue = value.trim().toLowerCase();
+      return dom.forEach(menuItems, (item) => {
+        if (!item.cleanText.includes(cleanSearchValue)) { return null; }
+
+        return menuItem(item.action, item.label, ...(item.args ?? []));
+      });
+    }),
+  ];
 }
 
 // TODO Weasel doesn't allow other options for submenus, but probably should.
-export type ISubMenuOptions = weasel.ISubMenuOptions & weasel.IPopupOptions;
+export type ISubMenuOptions =
+  weasel.ISubMenuOptions &
+  weasel.IPopupOptions &
+  {allowNothingSelected?: boolean};
 
 export function menuItemSubmenu(
   submenu: weasel.MenuCreateFunc,
   options: ISubMenuOptions,
   ...args: DomElementArg[]
 ): Element {
-  return weasel.menuItemSubmenu(submenu, {...defaults, ...options}, ...args);
+  return weasel.menuItemSubmenu(
+    submenu,
+    {
+      ...defaults,
+      expandIcon: () => icon('Expand'),
+      ...options,
+    },
+    dom.cls(cssMenuItemSubmenu.className),
+    ...args
+  );
 }
 
 export const cssMenuElem = styled('div', `
@@ -449,7 +484,7 @@ export const menuSubHeader = styled('div', `
   font-size: ${vars.xsmallFontSize};
   text-transform: uppercase;
   font-weight: ${vars.bigControlTextWeight};
-  padding: 8px 24px 16px 24px;
+  padding: 8px 24px 8px 24px;
   cursor: default;
 `);
 
@@ -668,4 +703,44 @@ const cssCheckboxText = styled(cssLabelText, `
 
 const cssUpgradeTextButton = styled(textButton, `
   font-size: ${vars.smallFontSize};
+`);
+
+const cssMenuItemSubmenu = styled('div', `
+  color: ${theme.menuItemFg};
+  --icon-color: ${theme.menuItemFg};
+  .${weasel.cssMenuItem.className}-sel {
+    color: ${theme.menuItemSelectedFg};
+    --icon-color: ${theme.menuItemSelectedFg};
+  }
+  &.disabled {
+    cursor: default;
+    color: ${theme.menuItemDisabledFg};
+    --icon-color: ${theme.menuItemDisabledFg};
+  }
+`);
+
+const cssMenuSearch = styled('div', `
+  display: flex;
+  column-gap: 8px;
+  align-items: center;
+  padding: 8px 16px;
+`);
+
+const cssMenuSearchIcon = styled(icon, `
+  flex-shrink: 0;
+  --icon-color: ${theme.menuItemIconFg};
+`);
+
+const cssMenuSearchInput = styled('input', `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+  flex-grow: 1;
+  font-size: ${vars.mediumFontSize};
+  padding: 0px;
+  border: none;
+  outline: none;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
 `);

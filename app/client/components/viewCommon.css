@@ -61,6 +61,20 @@
   background-color: var(--field-background-color, unset);
 }
 
+/* The vertical line indicating where a column will be inserted when the
+ * Add Column menu is open. */
+.field.field-insert-before::before {
+  content: '';
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  /* Overlap the top/bottom table borders so that the line appears uninterrupted. */
+  bottom: -1px;
+  z-index: var(--grist-insert-column-line-z-index);
+  width: 3px;
+  background-color: var(--grist-theme-widget-active-border, #16B378);
+}
+
 /** Similar order is for detail view, but there is no row rules */
 .g_record_detail_value {
   background-color: var(--grist-diff-background-color,

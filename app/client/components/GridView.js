@@ -30,18 +30,24 @@ const {reportWarning} = require('app/client/models/errors');
 const {reportUndo} = require('app/client/components/modals');
 
 const {onDblClickMatchElem} = require('app/client/lib/dblclick');
+const {FocusLayer} = require('app/client/lib/FocusLayer');
 
 // Grist UI Components
 const {dom: grainjsDom, Holder, Computed} = require('grainjs');
 const {closeRegisteredMenu, menu} = require('../ui2018/menus');
-const {calcFieldsCondition, ColumnAddMenuOld} = require('../ui/GridViewMenus');
-const {ColumnAddMenu, ColumnContextMenu, MultiColumnMenu, freezeAction} = require('../ui/GridViewMenus');
 const {RowContextMenu} = require('../ui/RowContextMenu');
-
 const {setPopupToCreateDom} = require('popweasel');
 const {CellContextMenu} = require('app/client/ui/CellContextMenu');
 const {testId, isNarrowScreen} = require('app/client/ui2018/cssVars');
 const {contextMenu} = require('app/client/ui/contextMenu');
+const {
+  buildAddColumnMenu,
+  buildColumnContextMenu,
+  buildMultiColumnMenu,
+  buildOldAddColumnMenu,
+  calcFieldsCondition,
+  freezeAction,
+} = require('app/client/ui/GridViewMenus');
 const {mouseDragMatchElem} = require('app/client/ui/mouseDrag');
 const {menuToggle} = require('app/client/ui/MenuToggle');
 const {descriptionInfoTooltip, showTooltip} = require('app/client/ui/tooltips');
@@ -50,7 +56,6 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
-const {FieldBuilder} = require("../widgets/FieldBuilder");
 const {GRIST_NEW_COLUMN_MENU} = require("../models/features");
 
 const t = makeT('GridView');
@@ -209,6 +214,8 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   // Holds column index that is hovered, works only in full-edit formula mode.
   this.hoverColumn = ko.observable(-1);
 
+  this._insertColumnIndex = ko.observable(null);
+
   // Checks if there is active formula editor for a column in this table.
   this.editingFormula = ko.pureComputed(() => {
     const isEditing = this.gristDoc.docModel.editingFormula();
@@ -303,8 +310,22 @@ GridView.gridCommands = {
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
   editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
-  insertFieldBefore: function() { this.insertColumn(this.cursor.fieldIndex()); },
-  insertFieldAfter: function() { this.insertColumn(this.cursor.fieldIndex() + 1); },
+  insertFieldBefore: function() {
+    if (GRIST_NEW_COLUMN_MENU()) {
+      this._openInsertColumnMenu(this.cursor.fieldIndex());
+    } else {
+      // FIXME: remove once New Column menu is enabled by default.
+      this.insertColumn(null, {index: this.cursor.fieldIndex()});
+    }
+  },
+  insertFieldAfter: function() {
+    if (GRIST_NEW_COLUMN_MENU()) {
+      this._openInsertColumnMenu(this.cursor.fieldIndex() + 1);
+    } else {
+      // FIXME: remove once New Column menu is enabled by default.
+      this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
+    }
+  },
   renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
   deleteFields: function() {
@@ -836,58 +857,24 @@ GridView.prototype.deleteRows = async function(rowIds) {
   }
 };
 
-GridView.prototype.addNewColumn = function() {
-  this.insertColumn(this.viewSection.viewFields().peekLength)
-    .then(() => this.scrollPaneRight());
-};
-
-GridView.prototype.insertColumn = async function(index) {
-  const pos = tableUtil.fieldInsertPositions(this.viewSection.viewFields(), index)[0];
-  var action = ['AddColumn', null, {"_position": pos}];
-  await this.gristDoc.docData.bundleActions('Insert column', async () => {
-    const colInfo = await this.tableModel.sendTableAction(action);
-    if (!this.viewSection.isRaw.peek()){
-      const fieldInfo = {
-        colRef: colInfo.colRef,
-        parentPos: pos,
-        parentId: this.viewSection.id.peek()
-      };
-      await this.gristDoc.docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
-    }
-  });
+GridView.prototype.insertColumn = async function(colId = null, options = {}) {
+  const {
+    colInfo = {},
+    index = this.viewSection.viewFields().peekLength,
+    skipPopup = false
+  } = options;
+  const newColInfo = await this.viewSection.insertColumn(colId, {colInfo, index});
   this.selectColumn(index);
-  this.currentEditingColumnIndex(index);
+  if (!skipPopup) { this.currentEditingColumnIndex(index); }
+  return newColInfo;
 };
-
-if(GRIST_NEW_COLUMN_MENU) {
-  GridView.prototype.addNewColumnWithoutRenamePopup = async function() {
-    const index = this.viewSection.viewFields().peekLength;
-    const pos = tableUtil.fieldInsertPositions(this.viewSection.viewFields(), index)[0];
-    var action = ['AddColumn', null, {"_position": pos}];
-    await this.gristDoc.docData.bundleActions('Insert column', async () => {
-      const colInfo = await this.tableModel.sendTableAction(action);
-      if (!this.viewSection.isRaw.peek()) {
-        const fieldInfo = {
-          colRef: colInfo.colRef,
-          parentPos: pos,
-          parentId: this.viewSection.id.peek()
-        };
-        await this.gristDoc.docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
-      }
-    });
-    const builder = new FieldBuilder(this.gristDoc, this.viewSection.viewFields().peek()[this.viewSection.viewFields().peekLength - 1], this.cursor);
-    return builder;
-  };
-
-  GridView.prototype.addNewFormulaColumn = async function(formula, name) {
-    const builder = await this.addNewColumnWithoutRenamePopup();
-    await builder.gristDoc.convertToFormula(builder.field.colRef.peek(), formula);
-    return builder;
-  }
-}
 
 GridView.prototype.renameColumn = function(index) {
   this.currentEditingColumnIndex(index);
+};
+
+GridView.prototype.scrollPaneLeft = function() {
+  this.scrollPane.scrollLeft = 0;
 };
 
 GridView.prototype.scrollPaneRight = function() {
@@ -899,16 +886,12 @@ GridView.prototype.selectColumn = function(colIndex) {
   this.cellSelector.currentSelectType(selector.COL);
 };
 
-GridView.prototype.showColumn = function(colId, index) {
-  let fieldPos = tableUtil.fieldInsertPositions(this.viewSection.viewFields(), index, 1)[0];
-  let colInfo = {
-    parentId: this.viewSection.id(),
-    colRef: colId,
-    parentPos: fieldPos
-  };
-  return this.gristDoc.docModel.viewFields.sendTableAction(['AddRecord', null, colInfo])
-  .then(() => this.selectColumn(index))
-  .then(() => this.scrollPaneRight());
+GridView.prototype.showColumn = async function(
+  colRef,
+  index = this.viewSection.viewFields().peekLength
+) {
+  await this.viewSection.showColumn(colRef, index);
+  this.selectColumn(index);
 };
 
 // TODO: Replace alerts with custom notifications
@@ -1134,28 +1117,6 @@ GridView.prototype.buildDom = function() {
     }
   };
 
-  const addColumnMenu = (gridView, viewSection)=> {
-    if(GRIST_NEW_COLUMN_MENU())
-    {
-      return menu(ctl => [ColumnAddMenu(gridView, viewSection), testId('new-columns-menu')]);
-    }
-    else {
-      return [
-        dom.on('click', ev => {
-          // If there are no hidden columns, clicking the plus just adds a new column.
-          // If there are hidden columns, display a dropdown menu.
-          if (viewSection.hiddenColumns().length === 0) {
-            ev.stopImmediatePropagation(); // Don't open the menu defined below
-            this.addNewColumn();
-          }
-        }),
-        menu((ctl => ColumnAddMenuOld(gridView, viewSection)))
-      ]
-    }
-  }
-
-
-
   return dom(
     'div.gridview_data_pane.flexvbox',
     // offset for frozen columns - how much move them to the left
@@ -1343,13 +1304,15 @@ GridView.prototype.buildDom = function() {
                   testId('column-menu-trigger'),
                 ),
                 dom('div.selection'),
+                // FIXME: remove once New Column menu is enabled by default.
+                GRIST_NEW_COLUMN_MENU() ? this._buildInsertColumnMenu({field}) : null,
               );
             }),
             this.isPreview ? null : kd.maybe(() => !this.gristDoc.isReadonlyKo(), () => (
               this._modField = dom('div.column_name.mod-add-column.field',
                 '+',
                 kd.style("width", PLUS_WIDTH + 'px'),
-                addColumnMenu(this, this.viewSection),
+                this._buildInsertColumnMenu(),
               )
             ))
           )
@@ -1504,7 +1467,10 @@ GridView.prototype.buildDom = function() {
         kd.foreach(v.viewFields(), function(field) {
           // Whether the cell has a cursor (possibly in an inactive view section).
           var isCellSelected = ko.computed(() =>
-            isRowActive() && field._index() === self.cursor.fieldIndex());
+            isRowActive() &&
+            field._index() === self.cursor.fieldIndex() &&
+            self._insertColumnIndex() === null
+          );
 
           // Whether the cell is active: has the cursor in the active section.
           var isCellActive = ko.computed(() => isCellSelected() && v.hasFocus());
@@ -1529,6 +1495,8 @@ GridView.prototype.buildDom = function() {
 
           return dom(
             'div.field',
+            kd.toggleClass('field-insert-before', () =>
+              self._insertColumnIndex() === field._index()),
             kd.style('--frozen-position', () => ko.unwrap(self.frozenPositions.at(field._index()))),
             kd.toggleClass("frozen", () => ko.unwrap(self.frozenMap.at(field._index()))),
             kd.toggleClass('scissors', isCopyActive),
@@ -1541,8 +1509,9 @@ GridView.prototype.buildDom = function() {
             //TODO: Ensure that fields in a row resize when
             //a cell in that row becomes larger
             kd.style('borderRightWidth', v.borderWidthPx),
-
             kd.toggleClass('selected', isSelected),
+            // Optional icon. Currently only use to show formula icon.
+            dom('div.field-icon'),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
             dom('div.selection'),
           );
@@ -1881,9 +1850,9 @@ GridView.prototype.columnContextMenu = function(ctl, copySelection, field, filte
   const options = this._getColumnMenuOptions(copySelection);
 
   if (selectedColIds.length > 1 && selectedColIds.includes(field.column().colId())) {
-    return MultiColumnMenu(options);
+    return buildMultiColumnMenu(options);
   } else {
-    return ColumnContextMenu({
+    return buildColumnContextMenu({
       filterOpenFunc: () => filterTriggerCtl.open(),
       sortSpec: this.gristDoc.viewModel.activeSection.peek().activeSortSpec.peek(),
       colId: field.column.peek().id.peek(),
@@ -2000,20 +1969,113 @@ GridView.prototype._scrollColumnIntoView = function(colIndex) {
   // If there are some frozen columns.
   if (this.numFrozen.peek() && colIndex < this.numFrozen.peek()) { return; }
 
-  const offset = this.colRightOffsets.peek().getSumTo(colIndex);
+  if (colIndex === 0) {
+    this.scrollPaneLeft();
+  } else if (colIndex === this.viewSection.viewFields().peekLength - 1) {
+    this.scrollPaneRight();
+  } else {
+    const offset = this.colRightOffsets.peek().getSumTo(colIndex);
 
-  const rowNumsWidth = this._cornerDom.clientWidth;
-  const viewWidth = this.scrollPane.clientWidth - rowNumsWidth;
-  const fieldWidth = this.colRightOffsets.peek().getValue(colIndex) + 1; // +1px border
+    const rowNumsWidth = this._cornerDom.clientWidth;
+    const viewWidth = this.scrollPane.clientWidth - rowNumsWidth;
+    const fieldWidth = this.colRightOffsets.peek().getValue(colIndex) + 1; // +1px border
 
-  // Left and right pixel edge of 'viewport', starting from edge of row nums.
-  const frozenWidth = this.frozenWidth.peek();
-  const leftEdge = this.scrollPane.scrollLeft + frozenWidth;
-  const rightEdge = leftEdge + (viewWidth - frozenWidth);
+    // Left and right pixel edge of 'viewport', starting from edge of row nums.
+    const frozenWidth = this.frozenWidth.peek();
+    const leftEdge = this.scrollPane.scrollLeft + frozenWidth;
+    const rightEdge = leftEdge + (viewWidth - frozenWidth);
 
-  // If cell doesn't fit onscreen, scroll to fit.
-  const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
-  this.scrollPane.scrollLeft = this.scrollPane.scrollLeft + scrollShift;
+    // If cell doesn't fit onscreen, scroll to fit.
+    const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
+    this.scrollPane.scrollLeft = this.scrollPane.scrollLeft + scrollShift;
+  }
+}
+
+/**
+ * Attaches the Add Column menu.
+ *
+ * The menu can be triggered in two ways, depending on the presence of a `field`
+ * in `options`.
+ *
+ * If a field is present, the menu is triggered only when `_insertColumnIndex` is set
+ * to the index of the field the menu is attached to.
+ *
+ * If a field is not present, the menu is triggered either when `_insertColumnIndex`
+ * is set to `-1` or when the attached element is clicked. In practice, there will
+ * only be one element attached this way: the "+" field, which appears at the end of
+ * the GridView.
+ */
+GridView.prototype._buildInsertColumnMenu = function(options = {}) {
+  if (GRIST_NEW_COLUMN_MENU()) {
+    const {field} = options;
+    const triggers = [];
+    if (!field) { triggers.push('click'); }
+
+    return [
+      field ? kd.toggleClass('field-insert-before', () =>
+        this._insertColumnIndex() === field._index()) : null,
+      menu(
+        ctl => {
+          ctl.onDispose(() => this._insertColumnIndex(null));
+
+          let index = this._insertColumnIndex.peek();
+          if (index === null || index === -1) {
+            index = undefined;
+          }
+
+          return [
+            buildAddColumnMenu(this, index),
+            elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+            testId('new-columns-menu'),
+          ];
+        },
+        {
+          modifiers: {
+            offset: {
+              offset: '8,8',
+            },
+          },
+          selectOnOpen: true,
+          trigger: [
+            ...triggers,
+            (_, ctl) => {
+              ctl.autoDispose(this._insertColumnIndex.subscribe((index) => {
+                if (field?._index() === index || (!field && index === -1)) {
+                  ctl.open();
+                } else if (!ctl.isDisposed()) {
+                  ctl.close();
+                }
+              }));
+            },
+          ],
+        }
+      ),
+    ];
+  } else {
+    // FIXME: remove once New Column menu is enabled by default.
+    return [
+      dom.on('click', async ev => {
+        // If there are no hidden columns, clicking the plus just adds a new column.
+        // If there are hidden columns, display a dropdown menu.
+        if (this.viewSection.hiddenColumns().length === 0) {
+          // Don't open the menu defined below.
+          ev.stopImmediatePropagation();
+          await this.insertColumn();
+        }
+      }),
+      menu((() => buildOldAddColumnMenu(this, this.viewSection))),
+    ]
+  }
+}
+
+GridView.prototype._openInsertColumnMenu = function(columnIndex) {
+  if (columnIndex < this.viewSection.viewFields().peekLength) {
+    this._scrollColumnIntoView(columnIndex);
+    this._insertColumnIndex(columnIndex);
+  } else {
+    this.scrollPaneRight();
+    this._insertColumnIndex(-1);
+  }
 }
 
 function buildStyleOption(owner, computedRule, optionName) {

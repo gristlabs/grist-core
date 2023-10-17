@@ -81,6 +81,31 @@ declare module "app/client/components/BaseView" {
   export = BaseView;
 }
 
+declare module 'app/client/components/GridView' {
+  import BaseView from 'app/client/components/BaseView';
+  import {GristDoc} from 'app/client/components/GristDoc';
+  import {ColInfo, NewColInfo} from 'app/client/models/entities/ViewSectionRec';
+
+  interface InsertColOptions {
+    colInfo?: ColInfo;
+    index?: number;
+    skipPopup?: boolean;
+  }
+
+  namespace GridView {}
+
+  class GridView extends BaseView {
+    public static create(...args: any[]): any;
+
+    public gristDoc: GristDoc;
+
+    constructor(gristDoc: GristDoc, viewSectionModel: any, isPreview?: boolean);
+    public insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewColInfo>;
+    public showColumn(colRef: number, index?: number): Promise<void>;
+  }
+  export = GridView;
+}
+
 declare module "app/client/components/ViewConfigTab" {
   import {GristDoc} from 'app/client/components/GristDoc';
   import {Disposable} from 'app/client/lib/dispose';

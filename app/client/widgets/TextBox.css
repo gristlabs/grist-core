@@ -10,7 +10,9 @@
     color: #D0D0D0;
   }
 
-  .formula_field::before, .formula_field_edit::before, .formula_field_sidepane::before {
+  .formula_field .field-icon,
+  .formula_field_edit::before,
+  .formula_field_sidepane::before {
     /* based on standard icon styles */
     content: "";
     position: absolute;
@@ -28,13 +30,13 @@
     cursor: pointer;
   }
 
-  .formula_field::before, .formula_field_edit::before {
+  .formula_field .field-icon, .formula_field_edit::before {
     background-color: #D0D0D0;
   }
   .formula_field_edit:not(.readonly)::before {
     background-color: var(--grist-color-cursor);
   }
-  .formula_field.invalid::before {
+  .formula_field.invalid .field-icon {
     background-color: white;
     color: #ffb6c1;
   }

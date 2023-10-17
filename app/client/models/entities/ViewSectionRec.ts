@@ -2,6 +2,7 @@ import BaseView from 'app/client/components/BaseView';
 import {SequenceNEVER, SequenceNum} from 'app/client/components/Cursor';
 import {EmptyFilterColValues, LinkingState} from 'app/client/components/LinkingState';
 import {KoArray} from 'app/client/lib/koArray';
+import {fieldInsertPositions} from 'app/client/lib/tableUtil';
 import {ColumnToMapImpl} from 'app/client/models/ColumnToMap';
 import {
   ColumnRec,
@@ -23,13 +24,35 @@ import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
+import {RecalcWhen} from 'app/common/gristTypes';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
+import {GristObjCode} from 'app/plugin/GristData';
 import {Computed, Holder, Observable} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
+
+export interface InsertColOptions {
+  colInfo?: ColInfo;
+  index?: number;
+}
+
+export interface ColInfo {
+  label?: string;
+  type?: string;
+  isFormula?: boolean;
+  formula?: string;
+  recalcWhen?: RecalcWhen;
+  recalcDeps?: [GristObjCode.List, ...number[]]|null;
+  widgetOptions?: string;
+}
+
+export interface NewColInfo {
+  colId: string;
+  colRef: number;
+}
 
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
 // a grid section and a chart section).
@@ -231,6 +254,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   // Saves custom definition (bundles change)
   saveCustomDef(): Promise<void>;
+
+  insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewColInfo>;
+
+  showColumn(colRef: number, index?: number): Promise<void>
 }
 
 export type WidgetMappedColumn = number|number[]|null;
@@ -304,7 +331,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkedSections = recordSet(this, docModel.viewSections, 'linkSrcSectionRef');
 
   // All table columns associated with this view section, excluding any hidden helper columns.
-  this.columns = this.autoDispose(ko.pureComputed(() => this.table().columns().all().filter(c => !c.isHiddenCol())));
+  this.columns = this.autoDispose(ko.pureComputed(() => this.table().visibleColumns()));
   this.editingFormula = ko.pureComputed({
     read: () => docModel.editingFormula(),
     write: val => {
@@ -766,4 +793,36 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const list = this.view().activeCollapsedSections();
     return list.includes(this.id());
   }));
+
+  this.insertColumn = async (colId: string|null = null, options: InsertColOptions = {}) => {
+    const {colInfo = {}, index = this.viewFields().peekLength} = options;
+    const parentPos = fieldInsertPositions(this.viewFields(), index)[0];
+    const action = ['AddColumn', colId, {
+      ...colInfo,
+      '_position': parentPos,
+    }];
+    let newColInfo: NewColInfo;
+    await docModel.docData.bundleActions('Insert column', async () => {
+      newColInfo = await docModel.dataTables[this.tableId.peek()].sendTableAction(action);
+      if (!this.isRaw.peek()) {
+        const fieldInfo = {
+          colRef: newColInfo.colRef,
+          parentId: this.id.peek(),
+          parentPos,
+        };
+        await docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+      }
+    });
+    return newColInfo!;
+  };
+
+  this.showColumn = async (colRef: number, index = this.viewFields().peekLength) => {
+    const parentPos = fieldInsertPositions(this.viewFields(), index, 1)[0];
+    const colInfo = {
+      colRef,
+      parentId: this.id.peek(),
+      parentPos,
+    };
+    await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
+  };
 }

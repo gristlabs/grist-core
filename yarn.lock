@@ -4221,7 +4221,7 @@ grain-rpc@0.1.7:
     events "^1.1.1"
     ts-interface-checker "^1.0.0"
 
-grainjs@1.0.2, grainjs@^1.0.1:
+grainjs@1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/grainjs/-/grainjs-1.0.2.tgz"
   integrity sha512-wrj8TqpgxTGOKHpTlMBxMeX2uS3lTvXj4ROLKC+EZNM7J6RHQLGjMzMqWtiryBnMhGIBlbCicMNFppCrK1zv9w==
@@ -6455,12 +6455,11 @@ popper.js@1.15.0:
   resolved "https://registry.npmjs.org/popper.js/-/popper.js-1.15.0.tgz"
   integrity sha512-w010cY1oCUmI+9KwwlWki+r5jxKfTFDVoadl7MSrIujHU5MJ5OR6HTDj6Xo8aoR/QsA56x8jKjA59qGH4ELtrA==
 
-popweasel@0.1.18:
-  version "0.1.18"
-  resolved "https://registry.npmjs.org/popweasel/-/popweasel-0.1.18.tgz"
-  integrity sha512-F7+QRcnkj963ahDGURcZpucONfxhFWtlXLABawzaW7J/iOfcKMFRyjqluCebOLnBROPPBrih4g2qbq7KdQ0WMw==
+popweasel@0.1.20:
+  version "0.1.20"
+  resolved "https://registry.yarnpkg.com/popweasel/-/popweasel-0.1.20.tgz#b69af57b08288dce398c2105cb1e8a9f4e0e324c"
+  integrity sha512-iG51KFrHL49YuWTeI2yGby8BdNewdtxiKRv6y+Pyh1CkRKenLFu5CPMaKDRLbfiQJeZ/t67WW0e9ggWTt09ClA==
   dependencies:
-    grainjs "^1.0.1"
     lodash "^4.17.15"
     popper.js "1.15.0"
 

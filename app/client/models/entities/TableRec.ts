@@ -10,6 +10,7 @@ import randomcolor from 'randomcolor';
 // Represents a user-defined table.
 export interface TableRec extends IRowModel<"_grist_Tables"> {
   columns: ko.Computed<KoArray<ColumnRec>>;
+  visibleColumns: ko.Computed<ColumnRec[]>;
   validations: ko.Computed<KoArray<ValidationRec>>;
 
   primaryView: ko.Computed<ViewRec>;
@@ -45,6 +46,8 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
 
 export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.columns = recordSet(this, docModel.columns, 'parentId', {sortBy: 'parentPos'});
+  this.visibleColumns = this.autoDispose(ko.pureComputed(() =>
+    this.columns().all().filter(c => !c.isHiddenCol())));
   this.validations = recordSet(this, docModel.validations, 'tableRef');
 
   this.primaryView = refRecord(docModel.views, this.primaryViewId);

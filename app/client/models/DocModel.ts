@@ -239,6 +239,10 @@ export class DocModel {
       && this.allTableIds.all().includes('GristDocTutorial'));
   }
 
+  public getTableModel(tableId: string) {
+    return this.dataTables[tableId];
+  }
+
   private _metaTableModel<TName extends keyof SchemaTypes, TRow extends IRowModel<TName>>(
     tableId: TName,
     rowConstructor: (this: TRow, docModel: DocModel) => void,

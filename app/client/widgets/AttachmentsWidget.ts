@@ -189,7 +189,7 @@ const cssAttachmentWidget = styled('div', `
 const cssAttachmentIcon = styled('div.glyphicon.glyphicon-paperclip', `
   position: absolute;
   top: 2px;
-  left: 2px;
+  left: 5px;
   padding: 2px;
   background-color: ${theme.attachmentsCellIconBg};
   color: ${theme.attachmentsCellIconFg};
