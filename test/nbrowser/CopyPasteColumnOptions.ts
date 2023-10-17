@@ -8,7 +8,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('CopyPasteColumnOptions', function() {
-  this.timeout(10000);
+  this.timeout(20000);
   const cleanup = setupTestSuite();
   const clipboard = gu.getLockableClipboard();
   afterEach(() => gu.checkForErrors());
