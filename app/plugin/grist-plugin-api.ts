@@ -247,6 +247,8 @@ async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
  * Used by tests to wait for all pending requests to settle.
  *
  * TODO: currently only waits for requests for mappings.
+ *
+ * @internal
  */
 export async function testWaitForPendingRequests() {
   return await _activeRefreshReq;

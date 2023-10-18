@@ -209,11 +209,7 @@ export class WidgetFrame extends DisposableWithEvents {
         this.trigger('ready', this);
         this._readyCalled.set(true);
       }
-      if (
-        event.data.data?.message === 'themeInitialized' ||
-        // DEPRECATED: remove once the plugin API starts sending the message above.
-        event.data.data?.settings?.status === 'initialized'
-      ) {
+      if (event.data.data?.message === 'themeInitialized') {
         this._visible.set(true);
       }
       this._rpc.receiveMessage(event.data);
@@ -572,7 +568,6 @@ export class RecordNotifier extends BaseEventSource {
 
 export interface ConfigNotifierOptions {
   access: AccessLevel;
-  theme: Computed<Theme>;
 }
 
 /**
@@ -580,7 +575,6 @@ export interface ConfigNotifierOptions {
  */
 export class ConfigNotifier extends BaseEventSource {
   private _accessLevel = this._options.access;
-  private _theme = this._options.theme;
   private _currentConfig = Computed.create(this, use => {
     const options = use(this._section.activeCustomOptions);
     return options;
@@ -612,8 +606,6 @@ export class ConfigNotifier extends BaseEventSource {
       options: this._currentConfig.get(),
       settings: {
         accessLevel: this._accessLevel,
-        // DEPRECATED: remove once the plugin API includes the `onThemeChange` handler.
-        ...(fromReady ? {theme: this._theme.get()} : undefined),
       },
       fromReady,
     });

@@ -260,7 +260,6 @@ export class CustomView extends Disposable {
         frame.useEvents(
           ConfigNotifier.create(frame, this.viewSection, {
             access,
-            theme: this.gristDoc.currentTheme,
           }),
           new MinimumLevel(AccessLevel.none)); // none access is enough
         frame.useEvents(
