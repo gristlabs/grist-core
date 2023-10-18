@@ -117,8 +117,7 @@ export class Doom {
     await this._notifier.deleteUser(userId);
 
     // Remove user from cognito
-    const fullUser = this._dbManager.makeFullUser(user);
-    await this._loginSystem.deleteUser(fullUser);
+    await this._loginSystem.deleteUser(user);
 
     // Remove user from our db
     await this._dbManager.deleteUser({userId}, userId);

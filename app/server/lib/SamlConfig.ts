@@ -260,8 +260,9 @@ export async function getSamlLoginSystem(): Promise<GristLoginSystem|undefined> 
         },
       };
     },
-    deleteUser() {
-      throw new Error('users cannot be deleted with SAML yet');
+    async deleteUser() {
+      // If we could delete the user account in the external
+      // authentication system, this is our chance - but we can't.
     },
   };
 }

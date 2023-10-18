@@ -1,7 +1,8 @@
 import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
-import { FullUser, UserProfile } from 'app/common/UserAPI';
+import { UserProfile } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
+import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { Activations } from 'app/gen-server/lib/Activations';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
@@ -57,7 +58,7 @@ export interface GristServer {
 
 export interface GristLoginSystem {
   getMiddleware(gristServer: GristServer): Promise<GristLoginMiddleware>;
-  deleteUser(user: FullUser): Promise<void>;
+  deleteUser(user: User): Promise<void>;
 }
 
 export interface GristLoginMiddleware {
