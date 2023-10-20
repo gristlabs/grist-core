@@ -344,48 +344,6 @@ function buildLookupSection(gridView: GridView, index?: number){
     };
   }
 
-  return [
-    menuDivider(),
-    menuSubHeader(
-      t('Lookups'),
-      testId('new-columns-menu-lookups'),
-    ),
-    references.length === 0
-      ? [
-        menuText(
-          t('No reference columns.'),
-          testId('new-columns-menu-lookups-none'),
-        ),
-      ]
-      : references.map((ref) => menuItemSubmenu(
-        () => {
-          return searchableMenu(
-            ref.refTable()?.visibleColumns().map((col) => ({
-              cleanText: col.label().trim().toLowerCase(),
-              label: col.label(),
-              action: async () => {
-                await gridView.insertColumn(t(`${ref.label()}_${col.label()}`), {
-                  colInfo: {
-                    label: `${ref.label()}_${col.label()}`,
-                    isFormula: true,
-                    formula: `$${ref.colId()}.${col.colId()}`,
-                    recalcWhen: RecalcWhen.DEFAULT,
-                    recalcDeps: null,
-                  },
-                  index,
-                  skipPopup: true,
-                });
-              },
-            })) ?? [],
-            {searchInputPlaceholder: t('Search columns')}
-          );
-        },
-        {allowNothingSelected: true},
-        ref.label(),
-        testId(`new-columns-menu-lookups-${ref.label()}`),
-      )),
-  ];
-}
 
 
   function buildLookupsMenuItems() {
