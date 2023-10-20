@@ -3,7 +3,7 @@ import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {testId, theme} from 'app/client/ui2018/cssVars';
+import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {
   menuDivider,
@@ -11,14 +11,18 @@ import {
   menuItem,
   menuItemCmd,
   menuItemSubmenu,
+  menuItemTrimmed,
   menuSubHeader,
+  menuSubHeaderMenu,
   menuText,
   searchableMenu,
+  SearchableMenuItem,
 } from 'app/client/ui2018/menus';
 import {Sort} from 'app/common/SortSpec';
 import {dom, DomElementArg, styled} from 'grainjs';
-import {RecalcWhen} from "../../common/gristTypes";
-import {ColumnRec} from "../models/entities/ColumnRec";
+import {RecalcWhen} from "app/common/gristTypes";
+import {ColumnRec} from "app/client/models/entities/ColumnRec";
+import * as weasel from 'popweasel';
 import isEqual = require('lodash/isEqual');
 
 const t = makeT('GridViewMenus');
@@ -44,7 +48,7 @@ export function buildAddColumnMenu(gridView: GridView, index?: number) {
       testId('new-columns-menu-add-new'),
     ),
     buildHiddenColumnsMenuItems(gridView, index),
-    buildLookupsMenuItems(gridView, index),
+    buildLookupSection(gridView, index),
     buildShortcutsMenuItems(gridView, index),
   ];
 }
@@ -54,27 +58,11 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
   const hiddenColumns = viewSection.hiddenColumns();
   if (hiddenColumns.length === 0) { return null; }
 
-  return [
-    menuDivider(),
-    menuSubHeader(t('Hidden Columns'), testId('new-columns-menu-hidden-columns')),
-    hiddenColumns.length > 5
-      ? [
-        menuItemSubmenu(
-          () => {
-            return searchableMenu(
-              hiddenColumns.map((col) => ({
-                cleanText: col.label().trim().toLowerCase(),
-                label: col.label(),
-                action: async () => { await gridView.showColumn(col.id(), index); },
-              })),
-              {searchInputPlaceholder: t('Search columns')}
-            );
-          },
-          {allowNothingSelected: true},
-          t('Show hidden columns'),
-        ),
-      ]
-      : hiddenColumns.map((col: ColumnRec) =>
+  if (hiddenColumns.length <= 5) {
+    return [
+      menuDivider(),
+      menuSubHeader(t('Hidden Columns'), testId('new-columns-menu-hidden-columns')),
+      hiddenColumns.map((col: ColumnRec) =>
         menuItem(
           async () => {
             await gridView.showColumn(col.id(), index);
@@ -82,7 +70,25 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
           col.label(),
         )
       ),
-  ];
+    ];
+  } else {
+    return [
+      menuDivider(),
+      menuSubHeaderMenu(
+        () => {
+          return searchableMenu(
+            hiddenColumns.map((col) => ({
+              cleanText: col.label().trim().toLowerCase(),
+              builder: () => menuItemTrimmed(() => gridView.showColumn(col.id(), index), col.label())
+            })),
+            {searchInputPlaceholder: t('Search columns')}
+          );
+        },
+        {allowNothingSelected: true},
+        t('Hidden Columns'),
+      ),
+    ];
+  }
 }
 
 function buildShortcutsMenuItems(gridView: GridView, index?: number) {
@@ -264,10 +270,79 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
   );
 }
 
-function buildLookupsMenuItems(gridView: GridView, index?: number) {
-  const {viewSection} = gridView;
-  const columns = viewSection.columns();
-  const references = columns.filter((c) => c.pureType() === 'Ref');
+function menuLabelWithToast(label: string, toast: string) {
+  return cssListLabel(
+    cssListCol(label),
+    cssListFun(toast));
+}
+
+
+function buildLookupSection(gridView: GridView, index?: number){
+  function suggestAggregation(col: ColumnRec) {
+    if (col.pureType() === 'Int' || col.pureType() === 'Numeric') {
+      return [
+        'sum', 'average', 'min', 'max',
+      ];
+    } else if (col.pureType() === 'Bool') {
+      return [
+        'count', 'percent'
+      ];
+    } else if (col.pureType() === 'Date' || col.pureType() === 'DateTime') {
+      return [
+        'list', 'min', 'max',
+      ];
+    } else {
+      return [
+        'list'
+      ];
+    }
+  }
+  //colTypeOverload allow to change created column type if default is wrong.
+  function buildColumnInfo(
+    fun: string,
+    referenceToSource: string,
+    col: ColumnRec) {
+    function formula() {
+      switch(fun) {
+        case 'list': return `${referenceToSource}.${col.colId()}`;
+        case 'average': return `AVERAGE(${referenceToSource}.${col.colId()})`;
+        case 'min': return `MIN(${referenceToSource}.${col.colId()})`;
+        case 'max': return `MAX(${referenceToSource}.${col.colId()})`;
+        case 'count':
+        case 'sum': return `SUM(${referenceToSource}.${col.colId()})`;
+        case 'percent':
+          return `AVERAGE(map(int, ${referenceToSource}.${col.colId()})) if ${referenceToSource} else 0`;
+        default: return `${referenceToSource}`;
+      }
+    }
+
+    function type() {
+      switch(fun) {
+        case 'average': return 'Numeric';
+        case 'min': return col.type();
+        case 'max': return col.type();
+        case 'count': return 'Int';
+        case 'sum': return col.type();
+        case 'percent': return 'Numeric';
+        case 'list': return 'Any';
+        default: return 'Any';
+      }
+    }
+
+    function widgetOptions() {
+      switch(fun) {
+        case 'percent': return {numMode: 'percent'};
+        default: return {};
+      }
+    }
+
+    return {
+      formula: formula(),
+      type: type(),
+      widgetOptions: JSON.stringify(widgetOptions()),
+      isFormula: true,
+    };
+  }
 
   return [
     menuDivider(),
@@ -310,6 +385,189 @@ function buildLookupsMenuItems(gridView: GridView, index?: number) {
         testId(`new-columns-menu-lookups-${ref.label()}`),
       )),
   ];
+}
+
+
+  function buildLookupsMenuItems() {
+    // Function that builds a menu for one of our Ref columns, we will show all columns
+// from the referenced table and offer to create a formula column with aggregation in case
+// our column is RefList.
+    function buildRefColMenu(
+      ref: ColumnRec, col: ColumnRec): SearchableMenuItem {
+      // Helper for searching for this entry.
+      const cleanText = col.label().trim().toLowerCase();
+
+      // Next the label we will show.
+      let label: string|HTMLElement;
+      // For Ref column we will just show the column name.
+      if (ref.pureType() === 'Ref') {
+        label = col.label();
+      } else {
+        // For RefList column we will show the column name and the aggregation function which is the first
+        // on of suggested action (and a default action).
+        label = menuLabelWithToast(col.label(), suggestAggregation(col)[0]);
+      }
+
+      return {
+        cleanText,
+        builder: buildItem
+      };
+
+      function buildItem() {
+        if (ref.pureType() === 'Ref') {
+          // Just insert a plain menu item that will insert a formula column with lookup.
+          return menuItemTrimmed(() => insertPlainLookup(), col.label());
+        } else {
+          // Built nested menu.
+          return menuItemSubmenu(
+            () => suggestAggregation(col).map((fun) => menuItem(() => insertAggLookup(fun), fun)),
+            {},
+            label
+          );
+        }
+      }
+
+      function insertAggLookup(fun: string) {
+        return gridView.insertColumn(`${ref.label()}_${col.label()}`, {
+          colInfo: {
+            label: `${ref.label()}_${col.label()}`,
+            ...buildColumnInfo(
+              fun,
+              `$${ref.colId()}`,
+              col,
+            ),
+            recalcDeps: null,
+          },
+          index,
+          skipPopup: true,
+        });
+      }
+
+      function insertPlainLookup() {
+        return gridView.insertColumn(`${ref.label()}_${col.label()}`, {
+          colInfo: {
+            label: `${ref.label()}_${col.label()}`,
+            isFormula: true,
+            formula: `$${ref.colId()}.${col.colId()}`,
+            recalcDeps: null,
+            type: col.type(),
+            widgetOptions: col.cleanWidgetOptionsJson()
+          },
+          index,
+          skipPopup: true,
+        });
+      }
+    }
+    const {viewSection} = gridView;
+    const columns = viewSection.columns();
+    const onlyRefOrRefList = (c: ColumnRec) => c.pureType() === 'Ref' || c.pureType() === 'RefList';
+    const references = columns.filter(onlyRefOrRefList);
+
+    return references.map((ref) => menuItemSubmenu(
+        () => searchableMenu(
+          ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
+          {
+            searchInputPlaceholder: t('Search columns')
+          }
+        ),
+        {allowNothingSelected: true},
+        ref.label(),
+        testId(`new-columns-menu-lookups-${ref.colId()}`),
+      )
+    );
+  }
+
+
+  function buildReverseLookupsMenuItems() {
+    interface refTable {
+      tableId: string,
+      columns: ColumnRec[],
+      referenceFields: ColumnRec[]
+    }
+
+    const getReferencesToThisTable = (): refTable[] => {
+      const {viewSection} = gridView;
+      const otherTables = gridView.gristDoc.docModel.allTables.all()
+        .filter((tab) => tab.tableId.peek() != viewSection.tableId());
+      return otherTables.map((tab) => {
+        return {
+          tableId: tab.tableId(),
+          columns: tab.visibleColumns(),
+          referenceFields:
+            tab.columns().peek().filter((c) => (c.pureType() === 'Ref' || c.pureType() == 'RefList') &&
+              c.refTable()?.tableId() === viewSection.tableId())
+        };
+      })
+        .filter((tab) => tab.referenceFields.length > 0);
+    };
+
+    const buildColumn = async (tab: refTable, col: any, refCol: any, aggregate: string) => {
+      const formula = `${tab.tableId}.lookupRecords(${refCol.colId()}=
+      ${refCol.pureType() == 'RefList' ? 'CONTAINS($id)' : '$id'})`;
+      await gridView.insertColumn(`${tab.tableId}_${col.label()}`, {
+        colInfo: {
+          label: `${tab.tableId}_${col.label()}`,
+          ...buildColumnInfo(aggregate,
+            formula,
+            col)
+        },
+        index,
+        skipPopup: true
+      });
+    };
+
+    const buildSubmenuForRevLookup = (tab: refTable, refCol: any) => {
+      const buildSubmenuForRevLookupMenuItem = (col: ColumnRec): SearchableMenuItem => {
+        const suggestedColumns = suggestAggregation(col);
+        const primarySuggestedColumn = suggestedColumns[0];
+
+        return {
+          cleanText: col.label().trim().toLowerCase(),
+          builder: () => {
+            if (suggestedColumns.length === 1) {
+              return menuItem(() => buildColumn(tab, col, refCol, primarySuggestedColumn),
+                menuLabelWithToast(col.label(), primarySuggestedColumn));
+            } else {
+              return menuItemSubmenu((ctl) =>
+                  suggestedColumns.map(fun =>
+                    menuItem(async () =>
+                      buildColumn(tab, col, refCol, fun), t(fun)))
+                , {}, menuLabelWithToast(col.label(), primarySuggestedColumn));
+            }
+          }
+        };
+      };
+
+      return menuItemSubmenu(
+        () =>
+          searchableMenu(
+            tab.columns.map(col => buildSubmenuForRevLookupMenuItem(col)),
+            {searchInputPlaceholder: t('Search columns')}
+          ),
+        {allowNothingSelected: true}, `${tab.tableId} By ${refCol.label()}`);
+    };
+
+    const tablesWithAnyRefColumn = getReferencesToThisTable();
+    return tablesWithAnyRefColumn.map((tab: refTable) => tab.referenceFields.map((refCol) =>
+      buildSubmenuForRevLookup(tab, refCol)
+    ));
+  }
+
+  const lookupMenu  = buildLookupsMenuItems();
+  const reverseLookupMenu = buildReverseLookupsMenuItems();
+
+  const menuContent = (lookupMenu.length === 0 && reverseLookupMenu.length === 0)
+  ? [ menuText(
+      t('No reference columns.'),
+      testId('new-columns-menu-lookups-none'),
+    )]
+    : [lookupMenu, reverseLookupMenu];
+
+  return [
+      menuDivider(),
+      menuSubHeader(t("Lookups"), testId('new-columns-menu-lookups')),
+    ...menuContent
+    ];
 }
 
 export interface IMultiColumnContextMenu {
@@ -606,3 +864,29 @@ function customMenuItem(action: () => void, ...args: DomElementArg[]) {
   );
   return element;
 }
+
+const cssListLabel = styled('div', `
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex: 1;
+`);
+
+const cssListCol = styled('div', `
+  flex: 1 0 auto;
+`);
+
+const cssListFun = styled('div', `
+  flex: 0 0 auto;
+  margin-left: 8px;
+  text-transform: lowercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background-color: ${theme.choiceTokenBg};
+  font-size: ${vars.xsmallFontSize};
+  min-width: 28px;
+  text-align: center;
+  .${weasel.cssMenuItem.className}-sel & {
+    color: ${theme.choiceTokenFg};
+  }
+`);

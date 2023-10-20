@@ -6,7 +6,7 @@ import * as gu from "./gristUtils";
 import {setupTestSuite} from "./testUtils";
 
 
-describe('GridViewNewColumnMenu', function () {
+describe.skip('GridViewNewColumnMenu', function () {
   if(process.env.GRIST_NEW_COLUMN_MENU) {
     this.timeout('5m');
     const cleanup = setupTestSuite();

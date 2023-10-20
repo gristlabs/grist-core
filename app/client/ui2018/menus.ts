@@ -56,8 +56,10 @@ export interface SearchableMenuOptions {
 
 export interface SearchableMenuItem {
   cleanText: string;
-  label: string;
-  action: (item: HTMLElement) => void;
+  builder?: () => Element;
+
+  label?: string;
+  action?: (item: HTMLElement) => void;
   args?: DomElementArg[];
 }
 
@@ -86,12 +88,19 @@ export function searchableMenu(
       const cleanSearchValue = value.trim().toLowerCase();
       return dom.forEach(menuItems, (item) => {
         if (!item.cleanText.includes(cleanSearchValue)) { return null; }
-
-        return menuItem(item.action, item.label, ...(item.args ?? []));
+        if (item.label && item.action) {
+          return menuItem(item.action, item.label, ...(item.args || []));
+        } else if (item.builder) {
+          return item.builder();
+        } else {
+          throw new Error('Invalid menu item');
+        }
       });
     }),
   ];
 }
+
+
 
 // TODO Weasel doesn't allow other options for submenus, but probably should.
 export type ISubMenuOptions =
@@ -99,6 +108,9 @@ export type ISubMenuOptions =
   weasel.IPopupOptions &
   {allowNothingSelected?: boolean};
 
+/**
+ * Menu item with submenu
+ */
 export function menuItemSubmenu(
   submenu: weasel.MenuCreateFunc,
   options: ISubMenuOptions,
@@ -108,13 +120,49 @@ export function menuItemSubmenu(
     submenu,
     {
       ...defaults,
-      expandIcon: () => icon('Expand'),
+      expandIcon: () => cssExpandIcon('Expand'),
+      menuCssClass: `${cssSubMenuElem.className} ${defaults.menuCssClass}`,
       ...options,
     },
     dom.cls(cssMenuItemSubmenu.className),
     ...args
   );
 }
+
+/**
+ * Subheader as a menu item.
+ */
+export function menuSubHeaderMenu(
+  submenu: weasel.MenuCreateFunc,
+  options: ISubMenuOptions,
+  ...args: DomElementArg[]
+): Element {
+  return menuItemSubmenu(
+    submenu,
+    {
+      ...options,
+    },
+    menuSubHeader.cls(''),
+    cssPointer.cls(''),
+    ...args,
+  );
+}
+
+export const cssEllipsisLabel = styled('div', `
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`);
+
+export const cssExpandIcon = styled(icon, `
+  position: absolute;
+  right: 4px;
+`);
+
+const cssSubMenuElem = styled('div', `
+  white-space: nowrap;
+  min-width: 200px;
+`);
 
 export const cssMenuElem = styled('div', `
   font-family: ${vars.fontFamily};
@@ -483,9 +531,13 @@ export const menuSubHeader = styled('div', `
   color: ${theme.menuSubheaderFg};
   font-size: ${vars.xsmallFontSize};
   text-transform: uppercase;
-  font-weight: ${vars.bigControlTextWeight};
+  font-weight: ${vars.headerControlTextWeight};
   padding: 8px 24px 8px 24px;
   cursor: default;
+`);
+
+export const cssPointer = styled('div', `
+  cursor: pointer;
 `);
 
 export const menuText = styled('div', `
@@ -502,6 +554,12 @@ export const menuText = styled('div', `
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
+
+// when element name is, to long, it will be trimmed with ellipsis ("...")
+export function menuItemTrimmed(
+  action: (item: HTMLElement, ev: Event) => void, label: string, ...args: DomElementArg[]) {
+  return menuItem(action, cssEllipsisLabel(label), ...args);
+}
 
 
 /**
@@ -706,6 +764,7 @@ const cssUpgradeTextButton = styled(textButton, `
 `);
 
 const cssMenuItemSubmenu = styled('div', `
+  position: relative;
   color: ${theme.menuItemFg};
   --icon-color: ${theme.menuItemFg};
   .${weasel.cssMenuItem.className}-sel {

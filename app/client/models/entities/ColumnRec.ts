@@ -25,6 +25,8 @@ export type BEHAVIOR = "empty"|"formula"|"data";
 export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   table: ko.Computed<TableRec>;
   widgetOptionsJson: ObjObservable<any>;
+  /** Widget options that are save to copy over (for now, without rules) */
+  cleanWidgetOptionsJson: ko.Computed<string>;
   viewFields: ko.Computed<KoArray<ViewFieldRec>>;
   summarySource: ko.Computed<ColumnRec>;
 
@@ -168,6 +170,14 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
     const key = `formula-assistant-history-v2-${docId}-${this.table().tableId()}-${this.colId()}`;
     return localStorageJsonObs(key, {messages: [], conversationId: uuidv4()} as ChatHistory);
   }));
+
+  this.cleanWidgetOptionsJson = ko.pureComputed(() => {
+    const options = this.widgetOptionsJson();
+    if (options && options.rules) {
+      delete options.rules;
+    }
+    return JSON.stringify(options);
+  });
 }
 
 export function formatterForRec(
