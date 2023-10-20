@@ -537,7 +537,18 @@
         "Unfreeze {{count}} columns_other": "Открепить {{count}} столбцов",
         "Unfreeze {{count}} columns_one": "Открепить этот столбец",
         "Insert column to the left": "Вставить столбец слева",
-        "Insert column to the right": "Вставить столбец справа"
+        "Insert column to the right": "Вставить столбец справа",
+        "Shortcuts": "Ярлыки",
+        "Show hidden columns": "Показывать скрытые столбцы",
+        "Created At": "Создан в",
+        "Authorship": "Авторство",
+        "Last Updated By": "Последний обновивший",
+        "Hidden Columns": "Скрытые столбцы",
+        "Apply on record changes": "Применять при изменениях записи",
+        "Created By": "Создатель",
+        "Last Updated At": "Последнее обновление в",
+        "Apply to new records": "Применять к новым записям",
+        "no reference column": "нет ссылочного столбца"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -902,7 +913,8 @@
         "Attachment": "Вложения",
         "DateTime": "Дата и Время",
         "Integer": "Целочисленный",
-        "Reference": "Ссылка"
+        "Reference": "Ссылка",
+        "Search columns": "Поиск столбцов"
     },
     "modals": {
         "Cancel": "Отмена",
