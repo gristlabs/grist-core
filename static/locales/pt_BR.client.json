@@ -430,7 +430,20 @@
         "Unfreeze {{count}} columns_one": "Descongelar esta coluna",
         "Unfreeze {{count}} columns_other": "Descongelar {{count}} colunas",
         "Insert column to the left": "Inserir coluna à esquerda",
-        "Insert column to the right": "Inserir coluna à direita"
+        "Insert column to the right": "Inserir coluna à direita",
+        "Shortcuts": "Atalhos",
+        "Show hidden columns": "Mostrar colunas ocultas",
+        "Created At": "Criado em",
+        "Authorship": "Autoria",
+        "Last Updated By": "Última atualização por",
+        "Hidden Columns": "Colunas ocultas",
+        "Lookups": "Pesquisas",
+        "Apply on record changes": "Aplicar em alterações de registro",
+        "Created By": "Criado por",
+        "Last Updated At": "Última atualização em",
+        "Apply to new records": "Aplicar a novos registros",
+        "Timestamp": "Carimbo de data/hora",
+        "no reference column": "nenhuma coluna de referência"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
@@ -876,7 +889,8 @@
         "Attachment": "Anexo",
         "Any": "Qualquer",
         "Choice": "Opção",
-        "Reference": "Referência"
+        "Reference": "Referência",
+        "Search columns": "Procurar colunas"
     },
     "modals": {
         "Cancel": "Cancelar",
