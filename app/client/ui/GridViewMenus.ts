@@ -109,7 +109,7 @@ function buildTimestampMenuItems(gridView: GridView, index?: number) {
         await gridView.insertColumn(t('Created At'), {
           colInfo: {
             label: t('Created At'),
-            type: 'DateTime',
+            type: `DateTime:${gridView.gristDoc.docModel.docInfoRow.timezone()}`,
             isFormula: false,
             formula: 'NOW()',
             recalcWhen: RecalcWhen.DEFAULT,
@@ -127,7 +127,7 @@ function buildTimestampMenuItems(gridView: GridView, index?: number) {
         await gridView.insertColumn(t('Last Updated At'), {
           colInfo: {
             label: t('Last Updated At'),
-            type: 'DateTime',
+            type: `DateTime:${gridView.gristDoc.docModel.docInfoRow.timezone()}`,
             isFormula: false,
             formula: 'NOW()',
             recalcWhen: RecalcWhen.MANUAL_UPDATES,
