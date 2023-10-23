@@ -80,6 +80,7 @@ export const commonUrls = {
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
+  helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",

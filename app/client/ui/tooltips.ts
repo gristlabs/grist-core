@@ -12,7 +12,7 @@ import {makeLinks} from 'app/client/ui2018/links';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {dom, DomContents, DomElementArg, DomElementMethod, styled} from 'grainjs';
 import Popper from 'popper.js';
-import {cssMenu, defaultMenuOptions, IMenuOptions, setPopupToCreateDom} from 'popweasel';
+import {cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import merge = require('lodash/merge');
 
 export interface ITipOptions {
@@ -307,10 +307,41 @@ export function tooltipCloseButton(ctl: ITooltipControl): HTMLElement {
   );
 }
 
+export interface InfoTooltipOptions {
+  /** Defaults to `click`. */
+  variant?: InfoTooltipVariant;
+  /** Only applicable to the `click` variant. */
+  popupOptions?: IPopupOptions;
+}
+
+export type InfoTooltipVariant = 'click' | 'hover';
+
 /**
- * Renders an info icon that shows a tooltip with the specified `content` on click.
+ * Renders an info icon that shows a tooltip with the specified `content`.
  */
-export function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ...domArgs: DomElementArg[]) {
+export function infoTooltip(
+  content: DomContents,
+  options: InfoTooltipOptions = {},
+  ...domArgs: DomElementArg[]
+) {
+  const {variant = 'click'} = options;
+  switch (variant) {
+    case 'click': {
+      const {popupOptions} = options;
+      return buildClickableInfoTooltip(content, popupOptions, domArgs);
+    }
+    case 'hover': {
+      return buildHoverableInfoTooltip(content, domArgs);
+    }
+  }
+
+}
+
+function buildClickableInfoTooltip(
+  content: DomContents,
+  popupOptions?: IPopupOptions,
+  ...domArgs: DomElementArg[]
+) {
   return cssInfoTooltipButton('?',
     (elem) => {
       setPopupToCreateDom(
@@ -336,7 +367,7 @@ export function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ..
             testId('info-tooltip-popup'),
           );
         },
-        {...defaultMenuOptions, ...{placement: 'bottom-end'}, ...menuOptions},
+        {...defaultMenuOptions, ...{placement: 'bottom-end'}, ...popupOptions},
       );
     },
     testId('info-tooltip'),
@@ -344,22 +375,41 @@ export function infoTooltip(content: DomContents, menuOptions?: IMenuOptions, ..
   );
 }
 
+function buildHoverableInfoTooltip(content: DomContents, ...domArgs: DomElementArg[]) {
+  return cssInfoTooltipIcon('?',
+    hoverTooltip(() => cssInfoTooltipTransientPopup(
+      content,
+      cssTooltipCorner(testId('tooltip-origin')),
+      {tabIndex: '-1'},
+      testId('info-tooltip-popup'),
+    ), {closeOnClick: false}),
+    testId('info-tooltip'),
+    ...domArgs,
+  );
+}
+
 export interface WithInfoTooltipOptions {
+  /** Defaults to `click`. */
+  variant?: InfoTooltipVariant;
   domArgs?: DomElementArg[];
-  tooltipButtonDomArgs?: DomElementArg[];
-  tooltipMenuOptions?: IMenuOptions;
+  iconDomArgs?: DomElementArg[];
+  /** Only applicable to the `click` variant. */
+  popupOptions?: IPopupOptions;
 }
 
 /**
- * Wraps `domContent` with a info tooltip button that displays the provided
- * `tooltipContent` on click, and returns the wrapped element.
+ * Wraps `domContent` with a info tooltip icon that displays the provided
+ * `tooltipContent` and returns the wrapped element.
  *
  * The tooltip button is displayed to the right of `domContents`, and displays
- * a popup on click. The popup can be dismissed by clicking away from it, clicking
- * the close button in the top-right corner, or pressing Enter or Escape.
+ * a popup on click by default. The popup can be dismissed by clicking away from
+ * it; clicking the close button in the top-right corner; or pressing Enter or Escape.
+ *
+ * You may optionally specify `options.variant`, which controls whether the tooltip
+ * is shown on hover or on click.
  *
  * Arguments can be passed to both the top-level wrapped DOM element and the
- * tooltip button element with `options.domArgs` and `options.tooltipButtonDomArgs`
+ * tooltip icon element with `options.domArgs` and `options.tooltipIconDomArgs`
  * respectively.
  *
  * Usage:
@@ -374,10 +424,10 @@ export function withInfoTooltip(
   tooltipContent: DomContents,
   options: WithInfoTooltipOptions = {},
 ) {
-  const {domArgs, tooltipButtonDomArgs, tooltipMenuOptions} = options;
+  const {variant = 'click', domArgs, iconDomArgs, popupOptions} = options;
   return cssDomWithTooltip(
     domContents,
-    infoTooltip(tooltipContent, tooltipMenuOptions, tooltipButtonDomArgs),
+    infoTooltip(tooltipContent, {variant, popupOptions}, iconDomArgs),
     ...(domArgs ?? [])
   );
 }
@@ -395,7 +445,7 @@ export function descriptionInfoTooltip(
     key: 'columnDescription',
     openOnClick: true,
   };
-  const builder = () => cssDescriptionInfoTooltip(
+  const builder = () => cssInfoTooltipTransientPopup(
     body,
     // Used id test to find the origin of the tooltip regardless webdriver implementation (some of them start)
     cssTooltipCorner(testId('tooltip-origin')),
@@ -422,7 +472,7 @@ const cssTooltipCorner = styled('div', `
   visibility: hidden;
 `);
 
-const cssDescriptionInfoTooltip = styled('div', `
+const cssInfoTooltipTransientPopup = styled('div', `
   position: relative;
   white-space: pre-wrap;
   text-align: left;
@@ -489,7 +539,7 @@ const cssTooltipCloseButton = styled('div', `
   }
 `);
 
-const cssInfoTooltipButton = styled('div', `
+const cssInfoTooltipIcon = styled('div', `
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -499,8 +549,16 @@ const cssInfoTooltipButton = styled('div', `
   border: 1px solid ${theme.controlSecondaryFg};
   color: ${theme.controlSecondaryFg};
   border-radius: 50%;
-  cursor: pointer;
   user-select: none;
+
+  .${cssMenuItem.className}-sel & {
+    color: ${theme.menuItemSelectedFg};
+    border-color: ${theme.menuItemSelectedFg};
+  }
+`);
+
+const cssInfoTooltipButton = styled(cssInfoTooltipIcon, `
+  cursor: pointer;
 
   &:hover {
     border: 1px solid ${theme.controlSecondaryHoverFg};

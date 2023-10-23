@@ -3,6 +3,8 @@ import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
+import {GristTooltips} from 'app/client/ui/GristTooltips';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {
@@ -265,7 +267,11 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
         await gridView.gristDoc.convertToTrigger(colRef, 'UUID()');
       }, {nestInActiveBundle: true});
     },
-    t('UUID'),
+    withInfoTooltip(
+      t('UUID'),
+      GristTooltips.uuid(),
+      {variant: 'hover'}
+    ),
     testId('new-columns-menu-shortcuts-uuid'),
   );
 }
@@ -522,8 +528,15 @@ function buildLookupSection(gridView: GridView, index?: number){
     : [lookupMenu, reverseLookupMenu];
 
   return [
-      menuDivider(),
-      menuSubHeader(t("Lookups"), testId('new-columns-menu-lookups')),
+    menuDivider(),
+    menuSubHeader(
+      withInfoTooltip(
+        t('Lookups'),
+        GristTooltips.lookups(),
+        {variant: 'hover'}
+      ),
+      testId('new-columns-menu-lookups'),
+    ),
     ...menuContent
     ];
 }

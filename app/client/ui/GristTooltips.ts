@@ -35,7 +35,9 @@ export type Tooltip =
   | 'workOnACopy'
   | 'openAccessRules'
   | 'addRowConditionalStyle'
-  | 'addColumnConditionalStyle';
+  | 'addColumnConditionalStyle'
+  | 'uuid'
+  | 'lookups';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -95,6 +97,21 @@ see or edit which parts of your document.')
     dom('div', t('Click on “Open row styles” to apply conditional formatting to rows.')),
     dom('div',
       cssLink({href: commonUrls.helpConditionalFormatting, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
+  ),
+  uuid: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div', t('A UUID is a randomly-generated string that is useful for unique identifiers and link keys.')),
+    dom('div',
+      cssLink({href: commonUrls.helpLinkKeys, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
+  ),
+  lookups: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div', t('Lookups return data from related tables.')),
+    dom('div', t('Use reference columns to relate data in different tables.')),
+    dom('div',
+      cssLink({href: commonUrls.helpColRefs, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),

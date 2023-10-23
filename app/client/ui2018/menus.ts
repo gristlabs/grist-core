@@ -80,6 +80,7 @@ export function searchableMenu(
           dom.autoDispose(searchValue),
           dom.on('input', (_ev, elem) => { setSearchValue(elem.value); }),
           {placeholder: searchInputPlaceholder},
+          testId('searchable-menu-input'),
         ),
       ),
     ),
@@ -97,6 +98,7 @@ export function searchableMenu(
         }
       });
     }),
+    testId('searchable-menu'),
   ];
 }
 

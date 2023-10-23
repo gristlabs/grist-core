@@ -256,7 +256,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
       withInfoTooltip(
         t("Edit without affecting the original"),
         GristTooltips.workOnACopy(),
-        {tooltipMenuOptions: {attach: null}}
+        {popupOptions: {attach: null}}
       )
     ),
   ];

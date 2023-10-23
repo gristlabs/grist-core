@@ -68,7 +68,7 @@ describe('GridViewNewColumnMenu', function () {
     });
 
     describe('column creation', function () {
-      it('should show rename menu  after new column click', async function () {
+      it('should show rename menu after new column click', async function () {
         const menu = await openAddColumnIcon();
         await menu.findWait('.test-new-columns-menu-add-new', 100).click();
         await driver.findWait('.test-column-title-popup', 100, 'rename menu is not present');
@@ -84,6 +84,39 @@ describe('GridViewNewColumnMenu', function () {
         const columns = await gu.getColumnNames();
         assert.include(columns, 'D', 'new column is not present');
         assert.lengthOf(columns, 4, 'wrong number of columns');
+        await gu.undo();
+      });
+
+      it('should support inserting before selected column', async function () {
+        await gu.openColumnMenu('A', 'Insert column to the left');
+        await driver.findWait(".test-new-columns-menu", 100);
+        await gu.sendKeys(Key.ENTER);
+        await gu.waitForServer();
+        await driver.findWait('.test-column-title-close', 100).click();
+        const columns = await gu.getColumnNames();
+        assert.deepEqual(columns, ['D', 'A', 'B', 'C']);
+        await gu.undo();
+      });
+
+      it('should support inserting after selected column', async function () {
+        await gu.openColumnMenu('A', 'Insert column to the right');
+        await driver.findWait(".test-new-columns-menu", 100);
+        await gu.sendKeys(Key.ENTER);
+        await gu.waitForServer();
+        await driver.findWait('.test-column-title-close', 100).click();
+        const columns = await gu.getColumnNames();
+        assert.deepEqual(columns, ['A', 'D', 'B', 'C']);
+        await gu.undo();
+      });
+
+      it('should support inserting after the last visible column', async function () {
+        await gu.openColumnMenu('C', 'Insert column to the right');
+        await driver.findWait(".test-new-columns-menu", 100);
+        await gu.sendKeys(Key.ENTER);
+        await gu.waitForServer();
+        await driver.findWait('.test-column-title-close', 100).click();
+        const columns = await gu.getColumnNames();
+        assert.deepEqual(columns, ['A', 'B', 'C', 'D']);
         await gu.undo();
       });
     });
@@ -103,13 +136,13 @@ describe('GridViewNewColumnMenu', function () {
           await gu.addColumn('Add3');
         });
 
-        it('1 to 5 hidden columns, secion should be inline', async function () {
+        it('1 to 5 hidden columns, section should be inline', async function () {
           const checkSection = async (...columns: string[]) => {
             const menu = await openAddColumnIcon();
             await menu.findWait(".test-new-columns-menu-hidden-columns", 100,
               'hidden section is not present');
             for (const column of columns) {
-              const isColumnPresent = await menu.find(`.test-new-columns-menu-hidden-columns-${column}`).isPresent();
+              const isColumnPresent = await menu.findContent('li', column).isPresent();
               assert.isTrue(isColumnPresent, `column ${column} is not present`);
             }
             await closeAddColumnMenu();
@@ -123,7 +156,7 @@ describe('GridViewNewColumnMenu', function () {
           await gu.moveToHidden('Add1');
           await gu.moveToHidden('Add2');
           await checkSection('A', 'B', 'C', 'Add1', 'Add2');
-          await gu.undo(5);
+          await gu.undo(11);
         });
 
         it('inline button should show column at the end of the table', async function () {
@@ -156,11 +189,7 @@ describe('GridViewNewColumnMenu', function () {
       });
     });
 
-    describe('shortucts', function () {
-      describe('Timestamp', function () {
-        it('created at - should create new column with date triggered on create');
-      });
-
+    describe('shortcuts', function () {
       describe('Timestamp', function () {
         it('created at - should create new column with date triggered on create', function () {
 
@@ -176,6 +205,84 @@ describe('GridViewNewColumnMenu', function () {
         });
         it('modified by - should create new column with author name triggered on change', function () {
 
+        });
+      });
+
+      describe('Detect Duplicates in...', function () {
+        it('should show columns in a searchable sub-menu', async function () {
+          const menu = await openAddColumnIcon();
+          await menu.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
+          await gu.waitToPass(async () => {
+            assert.deepEqual(
+              await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+              ['A', 'B', 'C']
+            );
+          }, 500);
+          await driver.find('.test-searchable-menu-input').click();
+          await gu.sendKeys('A');
+          await gu.waitToPass(async () => {
+            assert.deepEqual(
+              await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+              ['A']
+            );
+          }, 250);
+
+          await gu.sendKeys('BC');
+          await gu.waitToPass(async () => {
+            assert.deepEqual(
+              await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+              []
+            );
+          }, 250);
+
+          await gu.clearInput();
+          await gu.waitToPass(async () => {
+            assert.deepEqual(
+              await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
+              ['A', 'B', 'C']
+            );
+          }, 250);
+        });
+
+        it('should create new column that checks for duplicates in the specified column', async function () {
+          const menu = await openAddColumnIcon();
+          await menu.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
+          await driver.findContentWait('.test-searchable-menu li', 'A', 500).click();
+          await gu.waitForServer();
+          await gu.sendKeys(Key.ENTER);
+
+          // Just checking the formula looks plausible - correctness is best left to a python test.
+          assert.equal(
+            await driver.find('.test-formula-editor').getText(),
+            'True if len(Table1.lookupRecords(A=$A)) > 1 else False'
+          );
+          await gu.sendKeys(Key.ESCAPE);
+          const columns = await gu.getColumnNames();
+          assert.deepEqual(columns, ['A', 'B', 'C', 'Duplicate in A']);
+          await gu.undo();
+        });
+      });
+
+      describe('UUID', function () {
+        it('should create new column that generates a UUID on new record', async function () {
+          await gu.getCell(2, 1).click();
+          await gu.sendKeys('A', Key.ENTER);
+          await gu.waitForServer();
+          const menu = await openAddColumnIcon();
+          await menu.findWait('.test-new-columns-menu-shortcuts-uuid', 100).click();
+          await gu.waitForServer();
+          const cells1 = await gu.getVisibleGridCells({col: 'UUID', rowNums: [1, 2]});
+          assert.match(cells1[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
+          assert.equal(cells1[1], '');
+          await gu.getCell(2, 2).click();
+          await gu.sendKeys('B', Key.ENTER);
+          await gu.waitForServer();
+          const cells2 = await gu.getVisibleGridCells({col: 'UUID', rowNums: [1, 2, 3]});
+          assert.match(cells2[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
+          assert.match(cells2[1], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
+          assert.equal(cells2[2], '');
+          assert.equal(cells1[0], cells2[0]);
+          await gu.undo(3);
         });
       });
     });

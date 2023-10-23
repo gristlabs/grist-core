@@ -386,7 +386,7 @@ export class PageWidgetSelect extends Disposable {
                           testId('selectby'))
               ),
               GristTooltips.selectBy(),
-              {tooltipMenuOptions: {attach: null}, domArgs: [
+              {popupOptions: {attach: null}, domArgs: [
                 this._behavioralPromptsManager.attachTip('pageWidgetPickerSelectBy', {
                   popupOptions: {
                     attach: null,
