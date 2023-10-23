@@ -350,7 +350,9 @@
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} stolpec, ki ni{{columnType}}, ni prikazan",
         "Select Custom Widget": "Izberite Prilagojeni pripomoček",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} stolpci, ki niso{{columnType}}, niso prikazani",
-        "Widget needs to {{read}} the current table.": "Widget mora {{read}} trenutno tabelo."
+        "Widget needs to {{read}} the current table.": "Widget mora {{read}} trenutno tabelo.",
+        "No {{columnType}} columns in table.": "V tabeli ni stolpcev tipa {{columnType}}.",
+        "Clear selection": "Briši izbor"
     },
     "DocHistory": {
         "Activity": "Dejavnost",

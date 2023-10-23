@@ -358,7 +358,19 @@
         "Unfreeze {{count}} columns_one": "Descongelar esta columna",
         "Unfreeze {{count}} columns_other": "Descongelar {{count}} columnas",
         "Insert column to the right": "Insertar columna a la derecha",
-        "Insert column to the left": "Insertar columna a la izquierda"
+        "Insert column to the left": "Insertar columna a la izquierda",
+        "Show hidden columns": "Mostrar las columnas ocultas",
+        "Created At": "Creado en",
+        "Authorship": "Autor",
+        "Last Updated By": "Última actualización por",
+        "Hidden Columns": "Columnas ocultas",
+        "Lookups": "Consultas",
+        "Apply on record changes": "Aplicar los cambios en el registro",
+        "Created By": "Creado por",
+        "Last Updated At": "Última actualización en",
+        "Apply to new records": "Aplicar a los nuevos registros",
+        "Timestamp": "Marca temporal",
+        "no reference column": "Sin columna de referencia"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", o encontrar un experto a través de nuestro",
@@ -881,7 +893,8 @@
         "Reference List": "Lista de referencia",
         "Attachment": "Adjunto",
         "Any": "Cualquiera",
-        "Toggle": "Cambiar"
+        "Toggle": "Cambiar",
+        "Search columns": "Búsqueda por columnas"
     },
     "modals": {
         "Cancel": "Cancelar",
