@@ -71,7 +71,9 @@ class ContextMenuController extends Disposable implements IOpenController {
     const ev = this._event;
     const rect = content.getBoundingClientRect();
     // position menu on the right of the cursor if it can fit, on the left otherwise
-    content.style.left = ((ev.pageX + rect.width < window.innerWidth) ? ev.pageX : ev.pageX - rect.width) + 'px';
+    content.style.left = ((ev.pageX + rect.width < window.innerWidth)
+      ? ev.pageX
+      : Math.max(ev.pageX - rect.width, 0)) + 'px';
     // position menu below the cursor if it can fit, otherwise fit at the bottom of the screen
     content.style.bottom = Math.max(window.innerHeight - (ev.pageY + rect.height), 0) + 'px';
     // show content
