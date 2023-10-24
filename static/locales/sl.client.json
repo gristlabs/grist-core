@@ -218,7 +218,14 @@
         "Last Updated At": "Nazadnje posodobljeno ob",
         "Apply to new records": "Uporabi na novih zapisih",
         "Timestamp": "Časovni žig",
-        "no reference column": "ni referenčnega stolpca"
+        "no reference column": "ni referenčnega stolpca",
+        "Detect Duplicates in...": "Zaznaj dvojnike v ...",
+        "UUID": "UUID",
+        "No reference columns.": "Ni referenčnih stolpcev.",
+        "Duplicate in {{- label}}": "Dvojnik v {{- label}}",
+        "Search columns": "Preišči stolpce",
+        "Adding UUID column": "Dodajanje UUID stolpca",
+        "Adding duplicates column": "Dodajanje podvojenega stolpca"
     },
     "HomeLeftPane": {
         "Trash": "Koš",
