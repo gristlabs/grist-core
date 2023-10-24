@@ -36,6 +36,7 @@ setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain, parseServerTypes} from 'app/server/mergedServerMain';
 import * as fse from 'fs-extra';
+import {runPrometheusExporter} from './prometheus-exporter';
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,
@@ -100,6 +101,10 @@ export async function main() {
   if (!debugging) {
     console.log(`In quiet mode, see http://localhost:${G.port} to use.`);
     console.log('For full logs, re-run with DEBUG=1');
+  }
+
+  if (process.env.GRIST_PROMCLIENT_PORT) {
+    runPrometheusExporter(parseInt(process.env.GRIST_PROMCLIENT_PORT, 10));
   }
 
   // If SAML is not configured, there's no login system, so provide a default email address.
