@@ -310,19 +310,17 @@ GridView.gridCommands = {
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
   editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
-  insertFieldBefore: function() {
-    if (GRIST_NEW_COLUMN_MENU()) {
+  insertFieldBefore: function(maybeKeyboardEvent) {
+    if (GRIST_NEW_COLUMN_MENU() && !maybeKeyboardEvent) {
       this._openInsertColumnMenu(this.cursor.fieldIndex());
     } else {
-      // FIXME: remove once New Column menu is enabled by default.
       this.insertColumn(null, {index: this.cursor.fieldIndex()});
     }
   },
-  insertFieldAfter: function() {
-    if (GRIST_NEW_COLUMN_MENU()) {
+  insertFieldAfter: function(maybeKeyboardEvent) {
+    if (GRIST_NEW_COLUMN_MENU() && !maybeKeyboardEvent) {
       this._openInsertColumnMenu(this.cursor.fieldIndex() + 1);
     } else {
-      // FIXME: remove once New Column menu is enabled by default.
       this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
     }
   },

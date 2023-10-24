@@ -119,6 +119,22 @@ describe('GridViewNewColumnMenu', function () {
         assert.deepEqual(columns, ['A', 'B', 'C', 'D']);
         await gu.undo();
       });
+
+      it('should skip showing menu when inserting with keyboard shortcuts', async function () {
+        await gu.sendKeys(Key.chord(Key.ALT, '='));
+        await gu.waitForServer();
+        assert.isFalse(await driver.find('.test-new-columns-menu').isPresent());
+        await gu.sendKeys(Key.ENTER);
+        let columns = await gu.getColumnNames();
+        assert.deepEqual(columns, ['A', 'B', 'C', 'D']);
+        await gu.sendKeys(Key.chord(Key.SHIFT, Key.ALT, '='));
+        await gu.waitForServer();
+        assert.isFalse(await driver.find('.test-new-columns-menu').isPresent());
+        await gu.sendKeys(Key.ENTER);
+        columns = await gu.getColumnNames();
+        assert.deepEqual(columns, ['A', 'B', 'C', 'E', 'D']);
+        await gu.undo(2);
+      });
     });
 
     describe('hidden columns', function () {
@@ -245,7 +261,7 @@ describe('GridViewNewColumnMenu', function () {
         });
 
         it('should create new column that checks for duplicates in the specified column', async function () {
-          const menu = await openAddColumnIcon();
+          let menu = await openAddColumnIcon();
           await menu.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
           await driver.findContentWait('.test-searchable-menu li', 'A', 500).click();
           await gu.waitForServer();
@@ -254,12 +270,30 @@ describe('GridViewNewColumnMenu', function () {
           // Just checking the formula looks plausible - correctness is best left to a python test.
           assert.equal(
             await driver.find('.test-formula-editor').getText(),
-            'True if len(Table1.lookupRecords(A=$A)) > 1 else False'
+            '$A != "" and $A is not None and len(Table1.lookupRecords(A=$A)) > 1'
           );
           await gu.sendKeys(Key.ESCAPE);
-          const columns = await gu.getColumnNames();
+          let columns = await gu.getColumnNames();
           assert.deepEqual(columns, ['A', 'B', 'C', 'Duplicate in A']);
           await gu.undo();
+
+          // Try it with list-based columns; the formula should look a little different.
+          for (const [label, type] of [['Choice', 'Choice List'], ['Ref', 'Reference List']]) {
+            await gu.addColumn(label, type);
+            menu = await openAddColumnIcon();
+            await menu.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
+            await driver.findContentWait('.test-searchable-menu li', label, 500).click();
+            await gu.waitForServer();
+            await gu.sendKeys(Key.ENTER);
+            assert.equal(
+              await driver.find('.test-formula-editor').getText(),
+              `any([len(Table1.lookupRecords(${label}=CONTAINS(x))) > 1 for x in $${label}])`
+            );
+            await gu.sendKeys(Key.ESCAPE);
+            columns = await gu.getColumnNames();
+            assert.deepEqual(columns, ['A', 'B', 'C', label, `Duplicate in ${label}`]);
+            await gu.undo(4);
+          }
         });
       });
 

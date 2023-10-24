@@ -22,7 +22,7 @@ import {
 } from 'app/client/ui2018/menus';
 import {Sort} from 'app/common/SortSpec';
 import {dom, DomElementArg, styled} from 'grainjs';
-import {RecalcWhen} from "app/common/gristTypes";
+import {isListType, RecalcWhen} from "app/common/gristTypes";
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import * as weasel from 'popweasel';
 import isEqual = require('lodash/isEqual');
@@ -42,6 +42,7 @@ export function buildOldAddColumnMenu(gridView: GridView, viewSection: ViewSecti
 }
 
 export function buildAddColumnMenu(gridView: GridView, index?: number) {
+  const isSummaryTable = Boolean(gridView.viewSection.table().summarySourceTable());
   return [
     menuItem(
       async () => { await gridView.insertColumn(null, {index}); },
@@ -50,8 +51,10 @@ export function buildAddColumnMenu(gridView: GridView, index?: number) {
       testId('new-columns-menu-add-new'),
     ),
     buildHiddenColumnsMenuItems(gridView, index),
-    buildLookupSection(gridView, index),
-    buildShortcutsMenuItems(gridView, index),
+    isSummaryTable ? null : [
+      buildLookupSection(gridView, index),
+      buildShortcutsMenuItems(gridView, index),
+    ],
   ];
 }
 
@@ -190,51 +193,63 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
   const {viewSection} = gridView;
   return menuItemSubmenu(
     () => searchableMenu(
-      viewSection.columns().map((col) => ({
-        cleanText: col.label().trim().toLowerCase(),
-        label: col.label(),
-        action: async () => {
-          await gridView.gristDoc.docData.bundleActions(t('Adding duplicates column'), async () => {
-            const newColInfo = await gridView.insertColumn(
-              t('Duplicate in {{- label}}', {label: col.label()}),
-              {
-                colInfo: {
-                  label: t('Duplicate in {{- label}}', {label: col.label()}),
-                  type: 'Bool',
-                  isFormula: true,
-                  formula: `True if len(${col.table().tableId()}.lookupRecords(` +
-                    `${col.colId()}=$${col.colId()})) > 1 else False`,
-                  recalcWhen: RecalcWhen.DEFAULT,
-                  recalcDeps: null,
-                  widgetOptions: JSON.stringify({
-                    rulesOptions: [{
-                      fillColor: '#ffc23d',
-                      textColor: '#262633',
-                    }],
-                  }),
-                },
-                index,
-                skipPopup: true,
+      viewSection.columns().map((col) => {
+        function buildFormula() {
+          if (isListType(col.type())) {
+            return `any([len(${col.table().tableId()}.lookupRecords(${col.colId()}` +
+              `=CONTAINS(x))) > 1 for x in $${col.colId()}])`;
+          } else {
+            return `$${col.colId()} != "" and $${col.colId()} is not None and ` +
+              `len(${col.table().tableId()}.lookupRecords(` +
+              `${col.colId()}=$${col.colId()})) > 1`;
+          }
+        }
+
+        return {
+          cleanText: col.label().trim().toLowerCase(),
+          label: col.label(),
+          action: async () => {
+            await gridView.gristDoc.docData.bundleActions(t('Adding duplicates column'), async () => {
+              const newColInfo = await gridView.insertColumn(
+                t('Duplicate in {{- label}}', {label: col.label()}),
+                {
+                  colInfo: {
+                    label: t('Duplicate in {{- label}}', {label: col.label()}),
+                    type: 'Bool',
+                    isFormula: true,
+                    formula: buildFormula(),
+                    recalcWhen: RecalcWhen.DEFAULT,
+                    recalcDeps: null,
+                    widgetOptions: JSON.stringify({
+                      rulesOptions: [{
+                        fillColor: '#ffc23d',
+                        textColor: '#262633',
+                      }],
+                    }),
+                  },
+                  index,
+                  skipPopup: true,
+                }
+              );
+
+              // TODO: do the steps below as part of the AddColumn action.
+              const newField = viewSection.viewFields().all()
+                .find(field => field.colId() === newColInfo.colId);
+              if (!newField) {
+                throw new Error(`Unable to find field for column ${newColInfo.colId}`);
               }
-            );
 
-            // TODO: do the steps below as part of the AddColumn action.
-            const newField = viewSection.viewFields().all()
-              .find(field => field.colId() === newColInfo.colId);
-            if (!newField) {
-              throw new Error(`Unable to find field for column ${newColInfo.colId}`);
-            }
+              await newField.addEmptyRule();
+              const newRule = newField.rulesCols()[0];
+              if (!newRule) {
+                throw new Error(`Unable to find conditional rule for field ${newField.label()}`);
+              }
 
-            await newField.addEmptyRule();
-            const newRule = newField.rulesCols()[0];
-            if (!newRule) {
-              throw new Error(`Unable to find conditional rule for field ${newField.label()}`);
-            }
-
-            await newRule.formula.setAndSave(`$${newColInfo.colId}`);
-          }, {nestInActiveBundle: true});
-        },
-      })),
+              await newRule.formula.setAndSave(`$${newColInfo.colId}`);
+            }, {nestInActiveBundle: true});
+          },
+        };
+      }),
       {searchInputPlaceholder: t('Search columns')}
     ),
     {allowNothingSelected: true},
@@ -354,10 +369,9 @@ function buildLookupSection(gridView: GridView, index?: number){
 
   function buildLookupsMenuItems() {
     // Function that builds a menu for one of our Ref columns, we will show all columns
-// from the referenced table and offer to create a formula column with aggregation in case
-// our column is RefList.
-    function buildRefColMenu(
-      ref: ColumnRec, col: ColumnRec): SearchableMenuItem {
+    // from the referenced table and offer to create a formula column with aggregation in case
+    // our column is RefList.
+    function buildRefColMenu(ref: ColumnRec, col: ColumnRec): SearchableMenuItem {
       // Helper for searching for this entry.
       const cleanText = col.label().trim().toLowerCase();
 
@@ -422,40 +436,41 @@ function buildLookupSection(gridView: GridView, index?: number){
         });
       }
     }
+
     const {viewSection} = gridView;
     const columns = viewSection.columns();
     const onlyRefOrRefList = (c: ColumnRec) => c.pureType() === 'Ref' || c.pureType() === 'RefList';
     const references = columns.filter(onlyRefOrRefList);
 
     return references.map((ref) => menuItemSubmenu(
-        () => searchableMenu(
-          ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
-          {
-            searchInputPlaceholder: t('Search columns')
-          }
-        ),
-        {allowNothingSelected: true},
-        ref.label(),
-        testId(`new-columns-menu-lookups-${ref.colId()}`),
-      )
-    );
+      () => searchableMenu(
+        ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
+        {
+          searchInputPlaceholder: t('Search columns')
+        }
+      ),
+      {allowNothingSelected: true},
+      `${ref.refTable()?.tableNameDef()} [${ref.label()}]`,
+      testId(`new-columns-menu-lookups-${ref.colId()}`),
+    ));
   }
 
+  interface RefTable {
+    tableId: string,
+    tableName: string,
+    columns: ColumnRec[],
+    referenceFields: ColumnRec[]
+  }
 
   function buildReverseLookupsMenuItems() {
-    interface refTable {
-      tableId: string,
-      columns: ColumnRec[],
-      referenceFields: ColumnRec[]
-    }
-
-    const getReferencesToThisTable = (): refTable[] => {
+    const getReferencesToThisTable = (): RefTable[] => {
       const {viewSection} = gridView;
-      const otherTables = gridView.gristDoc.docModel.allTables.all()
-        .filter((tab) => tab.tableId.peek() != viewSection.tableId());
+      const otherTables = gridView.gristDoc.docModel.allTables.all().filter((tab) =>
+        tab.summarySourceTable() === 0 && tab.tableId.peek() !== viewSection.tableId());
       return otherTables.map((tab) => {
         return {
           tableId: tab.tableId(),
+          tableName: tab.tableNameDef(),
           columns: tab.visibleColumns(),
           referenceFields:
             tab.columns().peek().filter((c) => (c.pureType() === 'Ref' || c.pureType() == 'RefList') &&
@@ -465,7 +480,7 @@ function buildLookupSection(gridView: GridView, index?: number){
         .filter((tab) => tab.referenceFields.length > 0);
     };
 
-    const buildColumn = async (tab: refTable, col: any, refCol: any, aggregate: string) => {
+    const buildColumn = async (tab: RefTable, col: ColumnRec, refCol: ColumnRec, aggregate: string) => {
       const formula = `${tab.tableId}.lookupRecords(${refCol.colId()}=
       ${refCol.pureType() == 'RefList' ? 'CONTAINS($id)' : '$id'})`;
       await gridView.insertColumn(`${tab.tableId}_${col.label()}`, {
@@ -480,7 +495,7 @@ function buildLookupSection(gridView: GridView, index?: number){
       });
     };
 
-    const buildSubmenuForRevLookup = (tab: refTable, refCol: any) => {
+    const buildSubmenuForRevLookup = (tab: RefTable, refCol: any) => {
       const buildSubmenuForRevLookupMenuItem = (col: ColumnRec): SearchableMenuItem => {
         const suggestedColumns = suggestAggregation(col);
         const primarySuggestedColumn = suggestedColumns[0];
@@ -508,11 +523,11 @@ function buildLookupSection(gridView: GridView, index?: number){
             tab.columns.map(col => buildSubmenuForRevLookupMenuItem(col)),
             {searchInputPlaceholder: t('Search columns')}
           ),
-        {allowNothingSelected: true}, `${tab.tableId} By ${refCol.label()}`);
+        {allowNothingSelected: true}, `${tab.tableName} [← ${refCol.label()}]`);
     };
 
     const tablesWithAnyRefColumn = getReferencesToThisTable();
-    return tablesWithAnyRefColumn.map((tab: refTable) => tab.referenceFields.map((refCol) =>
+    return tablesWithAnyRefColumn.map((tab: RefTable) => tab.referenceFields.map((refCol) =>
       buildSubmenuForRevLookup(tab, refCol)
     ));
   }

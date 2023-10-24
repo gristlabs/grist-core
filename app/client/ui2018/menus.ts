@@ -576,7 +576,7 @@ export const menuItemAsync: typeof weasel.menuItem = function(action, ...args) {
 
 export function menuItemCmd(cmd: Command, label: string, ...args: DomElementArg[]) {
   return menuItem(
-    cmd.run,
+    () => cmd.run(),
     dom('span', label, testId('cmd-name')),
     cmd.humanKeys.length ? cssCmdKey(cmd.humanKeys[0]) : null,
     cssMenuItemCmd.cls(''), // overrides some menu item styles
