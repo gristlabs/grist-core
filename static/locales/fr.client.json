@@ -396,7 +396,27 @@
         "Sorted (#{{count}})_one": "Trié (#{{count}})",
         "Sorted (#{{count}})_other": "Triés (#{{count}})",
         "Insert column to the right": "Insérer une colonne à droite",
-        "Insert column to the left": "Insérer une colonne à gauche"
+        "Insert column to the left": "Insérer une colonne à gauche",
+        "Detect Duplicates in...": "Détecter les duplicas dans...",
+        "UUID": "UUID",
+        "Shortcuts": "Raccourcis",
+        "Show hidden columns": "Montrer les colonnes cachées",
+        "Created At": "Créé(e) le",
+        "Authorship": "Paternité",
+        "Last Updated By": "Dernière mise à jour par",
+        "Hidden Columns": "Colonnes cachées",
+        "Lookups": "Champ rapporté",
+        "No reference columns.": "Pas de colonne de référence.",
+        "Apply on record changes": "Appliquer lors de changements d'enregistrements",
+        "Duplicate in {{- label}}": "Duplica dans {{-label}}",
+        "Created By": "Créé(e) par",
+        "Last Updated At": "Dernière mise à jour le",
+        "Apply to new records": "Appliquer au nouveaux enregistrements",
+        "Search columns": "Chercher des colonnes",
+        "Timestamp": "Horodatage",
+        "no reference column": "pas de colonne de référence",
+        "Adding UUID column": "Ajout d'une colonne UUID",
+        "Adding duplicates column": "Ajouter des colonnes dupliquées"
     },
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",
@@ -814,7 +834,8 @@
         "Choice List": "Choix multiple",
         "Toggle": "Booléen",
         "Reference": "Référence",
-        "Any": "Non défini"
+        "Any": "Non défini",
+        "Search columns": "Chercher des colonnes"
     },
     "modals": {
         "Save": "Enregistrer",
