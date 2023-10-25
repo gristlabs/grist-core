@@ -1322,7 +1322,7 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
   protected _buildDomWarning(): DomContents {
     return dom.maybe(
       (use) => use(this._body).every(rule => rule.isBuiltInOrEmpty(use)),
-      () => cssConditionError({style: 'margin-left: 56px; margin-bottom: 8px;'},
+      () => cssError(
         t("This default should be changed if editors' access is to be limited. "),
         dom('a', {style: 'color: inherit; text-decoration: underline'},
           'Dismiss', dom.on('click', () => this._allowEditors('confirm'))),
@@ -1969,10 +1969,17 @@ const cssInput = styled(textInput, `
   }
 `);
 
+const cssError = styled('div', `
+  color: ${theme.errorText};
+  margin-left: 56px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+`);
+
 const cssConditionError = styled('div', `
+  color: ${theme.errorText};
   margin-top: 4px;
   width: 100%;
-  color: ${theme.errorText};
 `);
 
 /**

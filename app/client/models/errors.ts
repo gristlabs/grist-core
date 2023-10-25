@@ -70,17 +70,32 @@ export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions
   return reportMessage(msg, {level: 'success', ...options});
 }
 
-// Errors from cross-origin scripts, and some add-ons, show up as unhelpful sanitized "Script
-// error." messages. We want to know if they occur, but they are useless to the user, and useless
-// to report multiple times. We report them just once to the server.
-//
-// In particular, this addresses a bug on iOS version of Firefox, which produces uncaught
-// sanitized errors on load AND on attempts to report them, leading to a loop that hangs the
-// browser. Reporting just once is a sufficient workaround.
 function isUnhelpful(ev: ErrorEvent) {
-  return !ev.filename && !ev.lineno && ev.message?.toLowerCase().includes('script error');
+  if (ev.message === 'ResizeObserver loop completed with undelivered notifications.') {
+    // Sometimes on Chrome, changing the browser zoom level causes this benign error to
+    // be thrown. It seems to only appear on the Access Rules page, and may have something
+    // to do with Ace. In any case, the error seems harmless and it isn't particularly helpful,
+    // so we don't report it more than once. A quick Google search for the error message
+    // produces many reports, although at the time of this comment, none seem to be related
+    // to Ace, so there's a chance something else is amiss.
+    return true;
+  }
+
+  if (!ev.filename && !ev.lineno && ev.message?.toLowerCase().includes('script error')) {
+    // Errors from cross-origin scripts, and some add-ons, show up as unhelpful sanitized "Script
+    // error." messages. We want to know if they occur, but they are useless to the user, and useless
+    // to report multiple times. We report them just once to the server.
+    //
+    // In particular, this addresses a bug on iOS version of Firefox, which produces uncaught
+    // sanitized errors on load AND on attempts to report them, leading to a loop that hangs the
+    // browser. Reporting just once is a sufficient workaround.
+    return true;
+  }
+
+  return false;
 }
-let unhelpfulErrors = 0;
+
+const unhelpfulErrors = new Set<string>();
 
 /**
  * Report an error to the user using the global Notifier instance. If the argument is a UserError
@@ -99,8 +114,9 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
   if (ev && isUnhelpful(ev)) {
     // Report just once to the server. There is little point reporting subsequent such errors once
     // we know they happen, since each individual error has no useful information.
-    if (++unhelpfulErrors <= 1) {
+    if (!unhelpfulErrors.has(ev.message)) {
       logError(err);
+      unhelpfulErrors.add(ev.message);
     }
     return;
   }
