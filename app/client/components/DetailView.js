@@ -473,14 +473,15 @@ DetailView.prototype._duplicateRows = async function() {
 }
 
 DetailView.prototype._canSingleClick = function(field) {
-  // we can't simple click if :
+  // we can't single click if :
   // - the field is a formula
   // - the field is toggle (switch or checkbox)
   if (
-    field.column().isRealFormula() || field.column().hasTriggerFormula()
-    || (
-      field.column().pureType() === "Bool"
-      && ["Switch", "CheckBox"].includes(field.column().visibleColFormatter().widgetOpts.widget)
+    field.column().isRealFormula() ||
+    field.column().hasTriggerFormula() ||
+    (
+      field.column().pureType() === "Bool" &&
+      ["Switch", "CheckBox"].includes(field.visibleColFormatter().widgetOpts.widget)
     )
   ) {
     return false;

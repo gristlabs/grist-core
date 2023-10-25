@@ -10,20 +10,27 @@ import { dom } from 'grainjs';
  * ToggleBase - The base class for toggle widgets, such as a checkbox or a switch.
  */
 abstract class ToggleBase extends NewAbstractWidget {
-  protected _addClickEventHandler(row: DataRowModel) {
-    return dom.on('click', (event) => {
-      if (event.shiftKey) {
-        // Shift-click is for selection, don't also toggle the checkbox during it.
-        return;
-      }
-      if (!this.field.column().isRealFormula()) {
-        // Move the cursor here, and pretend that spacebar was pressed. This triggers an editing
-        // flow which is handled by CheckBoxEditor.skipEditor(). This way the edit applies to
-        // editRow, which handles setting default values based on widget linking.
-        commands.allCommands.setCursor.run(row, this.field);
-        commands.allCommands.input.run(' ');
-      }
-    });
+  protected _addClickEventHandlers(row: DataRowModel) {
+    return [
+      dom.on('click', (event) => {
+        if (event.shiftKey) {
+          // Shift-click is for selection, don't also toggle the checkbox during it.
+          return;
+        }
+        if (!this.field.column().isRealFormula()) {
+          // Move the cursor here, and pretend that spacebar was pressed. This triggers an editing
+          // flow which is handled by CheckBoxEditor.skipEditor(). This way the edit applies to
+          // editRow, which handles setting default values based on widget linking.
+          commands.allCommands.setCursor.run(row, this.field);
+          commands.allCommands.input.run(' ');
+        }
+      }),
+      dom.on('dblclick', (event) => {
+        // Don't start editing the field when a toggle is double-clicked.
+        event.stopPropagation();
+        event.preventDefault();
+      }),
+    ];
   }
 }
 
@@ -41,7 +48,7 @@ export class ToggleCheckBox extends ToggleBase {
           dom('div.checkmark_kick'),
           dom('div.checkmark_stem')
         ),
-        this._addClickEventHandler(row),
+        this._addClickEventHandlers(row),
       )
     );
   }
@@ -60,7 +67,7 @@ export class ToggleSwitch extends ToggleBase {
         dom.cls('switch_transition', row._isRealChange),
         dom('div.switch_slider'),
         dom('div.switch_circle'),
-        this._addClickEventHandler(row),
+        this._addClickEventHandlers(row),
       )
     );
   }
