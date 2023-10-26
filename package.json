@@ -168,6 +168,7 @@
     "multiparty": "4.2.2",
     "node-abort-controller": "3.0.1",
     "node-fetch": "2.6.7",
+    "openid-client": "^5.6.1",
     "pg": "8.6.0",
     "piscina": "3.2.0",
     "plotly.js-basic-dist": "2.13.2",
