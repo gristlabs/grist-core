@@ -443,7 +443,14 @@
         "Last Updated At": "Última atualização em",
         "Apply to new records": "Aplicar a novos registros",
         "Timestamp": "Carimbo de data/hora",
-        "no reference column": "nenhuma coluna de referência"
+        "no reference column": "nenhuma coluna de referência",
+        "Detect Duplicates in...": "Detectar duplicatas em...",
+        "UUID": "UUID",
+        "No reference columns.": "Não há colunas de referência.",
+        "Duplicate in {{- label}}": "Duplicar em {{- label}}",
+        "Search columns": "Procurar colunas",
+        "Adding UUID column": "Adicionando coluna UUID",
+        "Adding duplicates column": "Adicionar coluna duplicatas"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
