@@ -557,6 +557,30 @@ class TestEngine(EngineTestCase):
     self.assertEqualDocData({'Address': data},
         {'Address': testutil.table_data_from_rows('Address', col_names, [])})
 
+    # Test unhashable values in the column and in the query
+    self.add_column('Address', 'list', type='Any', isFormula=True,
+                    formula='[1] if $id == 21 else 2')
+    col_names.append('list')
+
+    data = self.engine.fetch_table('Address', query={'list': [[1]]})
+    self.assertEqualDocData({'Address': data},
+        {'Address': testutil.table_data_from_rows('Address', col_names, [
+          [ 21,   "New York", "NY"   , 1, [1]],
+        ])})
+
+    data = self.engine.fetch_table('Address', query={'list': [2]})
+    self.assertEqualDocData({'Address': data},
+        {'Address': testutil.table_data_from_rows('Address', col_names, [
+          [ 22,   "Albany",   "NY"   , 2, 2],
+        ])})
+
+    data = self.engine.fetch_table('Address', query={'list': [[1], 2]})
+    self.assertEqualDocData({'Address': data},
+        {'Address': testutil.table_data_from_rows('Address', col_names, [
+          [ 21,   "New York", "NY"   , 1, [1]],
+          [ 22,   "Albany",   "NY"   , 2, 2],
+        ])})
+
   def test_schema_restore_on_error(self):
     # Simulate an error inside a DocAction, and make sure we restore the schema (don't leave it in
     # inconsistent with metadata).

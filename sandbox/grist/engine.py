@@ -388,9 +388,27 @@ class Engine(object):
 
     query_cols = []
     if query:
-      query_cols = [(table.get_column(col_id), values) for (col_id, values) in six.iteritems(query)]
-    row_ids = [r for r in table.row_ids
-               if all((c.raw_get(r) in values) for (c, values) in query_cols)]
+      for col_id, values in six.iteritems(query):
+        col = table.get_column(col_id)
+        try:
+          # Try to use a set for speed.
+          values = set(values)
+        except TypeError:
+          # Values contains an unhashable value, leave it as a list.
+          pass
+        query_cols.append((col, values))
+    row_ids = []
+    for r in table.row_ids:
+      for (c, values) in query_cols:
+        try:
+          if c.raw_get(r) not in values:
+            break
+        except TypeError:
+          # values is a set but c.raw_get(r) is unhashable, so it's definitely not in values
+          break
+      else:
+        # No break, i.e. all columns matched
+        row_ids.append(r)
 
     for c in six.itervalues(table.all_columns):
       # pylint: disable=too-many-boolean-expressions
