@@ -239,7 +239,7 @@ export class CustomView extends Disposable {
           GristDocAPIImpl.defaultAccess);
         frame.exposeAPI(
           "GristView",
-          new GristViewImpl(view), new MinimumLevel(AccessLevel.read_table));
+          new GristViewImpl(view, access), new MinimumLevel(AccessLevel.read_table));
         frame.exposeAPI(
           "CustomSectionAPI",
           new CustomSectionAPIImpl(

@@ -11,8 +11,10 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
 import {Theme} from 'app/common/ThemePrefs';
-import {AccessTokenOptions, CursorPos, CustomSectionAPI, GristDocAPI, GristView,
-        InteractionOptionsRequest, WidgetAPI, WidgetColumnMap} from 'app/plugin/grist-plugin-api';
+import {
+  AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
+  InteractionOptionsRequest, WidgetAPI, WidgetColumnMap
+} from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
 import noop = require('lodash/noop');
@@ -374,13 +376,14 @@ export class GristDocAPIImpl implements GristDocAPI {
  * GristViewAPI implemented over BaseView.
  */
 export class GristViewImpl implements GristView {
-  constructor(private _baseView: BaseView) {}
+  constructor(private _baseView: BaseView, private _access: AccessLevel) {
+  }
 
-  public async fetchSelectedTable(): Promise<any> {
+  public async fetchSelectedTable(options: FetchSelectedOptions = {}): Promise<any> {
     // If widget has a custom columns mapping, we will ignore hidden columns section.
     // Hidden/Visible columns will eventually reflect what is available, but this operation
     // is not instant - and widget can receive rows with fields that are not in the mapping.
-    const columns: ColumnRec[] = this._visibleColumns();
+    const columns: ColumnRec[] = this._visibleColumns(options);
     const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != 'new');
     const data: BulkColValues = {};
     for (const column of columns) {
@@ -394,13 +397,13 @@ export class GristViewImpl implements GristView {
     return data;
   }
 
-  public async fetchSelectedRecord(rowId: number): Promise<any> {
+  public async fetchSelectedRecord(rowId: number, options: FetchSelectedOptions = {}): Promise<any> {
     // Prepare an object containing the fields available to the view
     // for the specified row.  A RECORD()-generated rendering would be
     // more useful. but the data engine needs to know what information
     // the custom view depends on, so we shouldn't volunteer any untracked
     // information here.
-    const columns: ColumnRec[] = this._visibleColumns();
+    const columns: ColumnRec[] = this._visibleColumns(options);
     const data: RowRecord = {id: rowId};
     for (const column of columns) {
       const colId: string = column.displayColModel.peek().colId.peek();
@@ -434,16 +437,32 @@ export class GristViewImpl implements GristView {
     return Promise.resolve();
   }
 
-  private _visibleColumns() {
+  private _visibleColumns(options: FetchSelectedOptions): ColumnRec[] {
     const columns: ColumnRec[] = this._baseView.viewSection.columns.peek();
-    const hiddenCols = this._baseView.viewSection.hiddenColumns.peek().map(c => c.id.peek());
-    const mappings = this._baseView.viewSection.mappedColumns.peek();
-    const mappedColumns = new Set(flatMap(Object.values(mappings || {})));
-    const notHidden = (col: ColumnRec) => !hiddenCols.includes(col.id.peek());
-    const mapped = (col: ColumnRec) => mappings && mappedColumns.has(col.colId.peek());
     // If columns are mapped, return only those that are mapped.
-    // Otherwise return all not hidden columns;
-    return mappings ? columns.filter(mapped) : columns.filter(notHidden);
+    const mappings = this._baseView.viewSection.mappedColumns.peek();
+    if (mappings) {
+      const mappedColumns = new Set(flatMap(Object.values(mappings)));
+      const mapped = (col: ColumnRec) => mappedColumns.has(col.colId.peek());
+      return columns.filter(mapped);
+    } else if (options.includeColumns === 'shown' || !options.includeColumns) {
+      // Return columns that have been shown by the user, i.e. have a corresponding view field.
+      const hiddenCols = this._baseView.viewSection.hiddenColumns.peek().map(c => c.id.peek());
+      const notHidden = (col: ColumnRec) => !hiddenCols.includes(col.id.peek());
+      return columns.filter(notHidden);
+    }
+    // These options are newer and expose more data than the user may have intended,
+    // so they require full access.
+    if (this._access !== AccessLevel.full) {
+      throwError(this._access);
+    }
+    if (options.includeColumns === 'normal') {
+      // Return all 'normal' columns of the table, regardless of whether the user has shown them.
+      return columns;
+    } else {
+      // Return *all* columns, including special invisible columns like manualSort.
+      return this._baseView.viewSection.table.peek().columns.peek().all();
+    }
   }
 }
 

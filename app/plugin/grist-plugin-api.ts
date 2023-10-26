@@ -20,8 +20,10 @@
 
 import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
          WidgetColumnMap } from './CustomSectionAPI';
-import { AccessTokenOptions, AccessTokenResult, GristAPI, GristDocAPI,
-         GristView, RPC_GRISTAPI_INTERFACE } from './GristAPI';
+import {
+  AccessTokenOptions, AccessTokenResult, FetchSelectedOptions, GristAPI, GristDocAPI,
+  GristView, RPC_GRISTAPI_INTERFACE
+} from './GristAPI';
 import { RowRecord } from './GristData';
 import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
 import { decodeObject, mapValues } from './objtypes';
@@ -53,7 +55,34 @@ export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers
 /**
  * Interface for the records backing a custom widget.
  */
-export const viewApi = rpc.getStub<GristView>('GristView', checkers.GristView);
+const viewApiStub = rpc.getStub<GristView>('GristView', checkers.GristView);
+export const viewApi: GristView = {
+  ...viewApiStub,
+  // Decoded objects aren't fully preserved over the RPC channel, so decoding has to happen on this side.
+  async fetchSelectedTable(options: FetchSelectedOptions = {}) {
+    let data = await viewApiStub.fetchSelectedTable(options);
+    if (options.keepEncoded === false) {
+      data = mapValues<any[], any[]>(data, (col) => col.map(decodeObject));
+    }
+    if (options.format === 'rows') {
+      const rows: RowRecord[] = [];
+      for (let i = 0; i < data.id.length; i++) {
+        const row: RowRecord = {id: data.id[i]};
+        for (const key of Object.keys(data)) {
+          row[key] = data[key][i];
+        }
+        rows.push(row);
+      }
+      return rows;
+    } else {
+      return data;
+    }
+  },
+  async fetchSelectedRecord(rowId: number, options: FetchSelectedOptions = {}) {
+    const rec = await viewApiStub.fetchSelectedRecord(rowId, options);
+    return options.keepEncoded === false ? mapValues(rec, decodeObject) : rec;
+  },
+};
 
 /**
  * Interface for the state of a custom widget.
@@ -84,25 +113,19 @@ export const setCursorPos = viewApi.setCursorPos;
 
 
 /**
- * Fetches data backing the widget as for [[GristView.fetchSelectedTable]],
- * but decoding data by default, replacing e.g. ['D', timestamp] with
- * a moment date. Option `keepEncoded` skips the decoding step.
+ * Same as [[GristView.fetchSelectedTable]], but the option `keepEncoded` is `false` by default.
  */
- export async function fetchSelectedTable(options: {keepEncoded?: boolean} = {}) {
-  const table = await viewApi.fetchSelectedTable();
-  return options.keepEncoded ? table :
-    mapValues<any[], any[]>(table, (col) => col.map(decodeObject));
+export async function fetchSelectedTable(options: FetchSelectedOptions = {}) {
+  options = {...options, keepEncoded: options.keepEncoded || false};
+  return await viewApi.fetchSelectedTable(options);
 }
 
 /**
- * Fetches current selected record as for [[GristView.fetchSelectedRecord]],
- * but decoding data by default, replacing e.g. ['D', timestamp] with
- * a moment date. Option `keepEncoded` skips the decoding step.
+ * Same as [[GristView.fetchSelectedRecord]], but the option `keepEncoded` is `false` by default.
  */
-export async function fetchSelectedRecord(rowId: number, options: {keepEncoded?: boolean} = {}) {
-  const rec = await viewApi.fetchSelectedRecord(rowId);
-  return options.keepEncoded ? rec :
-    mapValues(rec, decodeObject);
+export async function fetchSelectedRecord(rowId: number, options: FetchSelectedOptions = {}) {
+  options = {...options, keepEncoded: options.keepEncoded || false};
+  return await viewApi.fetchSelectedRecord(rowId, options);
 }
 
 
@@ -343,17 +366,33 @@ export function mapColumnNamesBack(data: any, options?: {
 }
 
 /**
+ * While `fetchSelected(Record|Table)` check the access level on 'the Grist side',
+ * `onRecord(s)` needs to check this in advance for the caller to be able to handle the error.
+ */
+function checkAccessLevelForColumns(options: FetchSelectedOptions) {
+  const accessLevel = new URL(window.location.href).searchParams.get("access");
+  if (accessLevel !== "full" && options.includeColumns && options.includeColumns !== "shown") {
+    throw new Error("Access not granted. Current access level " + accessLevel);
+  }
+}
+
+/**
  * For custom widgets, add a handler that will be called whenever the
  * row with the cursor changes - either by switching to a different row, or
  * by some value within the row potentially changing.  Handler may
  * in the future be called with null if the cursor moves away from
  * any row.
+ * By default, `options.keepEncoded` is `false`.
  */
-export function onRecord(callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown) {
+export function onRecord(
+  callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown,
+  options: FetchSelectedOptions = {},
+) {
+  checkAccessLevelForColumns(options);
   // TODO: currently this will be called even if the content of a different row changes.
   on('message', async function(msg) {
     if (!msg.tableId || !msg.rowId || msg.rowId === 'new') { return; }
-    const rec = await docApi.fetchSelectedRecord(msg.rowId);
+    const rec = await docApi.fetchSelectedRecord(msg.rowId, options);
     callback(rec, await getMappingsIfChanged(msg));
   });
 }
@@ -372,22 +411,19 @@ export function onNewRecord(callback: (mappings: WidgetColumnMap | null) => unkn
 
 /**
  * For custom widgets, add a handler that will be called whenever the
- * selected records change.  Handler will be called with a list of records.
+ * selected records change.
+ * By default, `options.format` is `'rows'` and `options.keepEncoded` is `false`.
  */
-export function onRecords(callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown) {
+export function onRecords(
+  callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown,
+  options: FetchSelectedOptions = {},
+) {
+  checkAccessLevelForColumns(options);
+  options = {...options, format: options.format || 'rows'};
   on('message', async function(msg) {
     if (!msg.tableId || !msg.dataChange) { return; }
-    const data = await docApi.fetchSelectedTable();
-    if (!data.id) { return; }
-    const rows: RowRecord[] = [];
-    for (let i = 0; i < data.id.length; i++) {
-      const row: RowRecord = {id: data.id[i]};
-      for (const key of Object.keys(data)) {
-        row[key] = data[key][i];
-      }
-      rows.push(row);
-    }
-    callback(rows, await getMappingsIfChanged(msg));
+    const data = await docApi.fetchSelectedTable(options);
+    callback(data, await getMappingsIfChanged(msg));
   });
 }
 

@@ -135,20 +135,53 @@ export interface GristDocAPI {
 }
 
 /**
+ * Options for functions which fetch data from the selected table or record:
+ *
+ * - [[onRecords]]
+ * - [[onRecord]]
+ * - [[fetchSelectedRecord]]
+ * - [[fetchSelectedTable]]
+ * - [[GristView.fetchSelectedRecord]]
+ * - [[GristView.fetchSelectedTable]]
+ *
+ * The different methods have different default values for `keepEncoded` and `format`.
+ **/
+export interface FetchSelectedOptions {
+  /**
+   * - `true`: the returned data will contain raw `CellValue`s.
+   * - `false`: the values will be decoded, replacing e.g. `['D', timestamp]` with a moment date.
+   */
+  keepEncoded?: boolean;
+
+  /**
+   * - `rows`, the returned data will be an array of objects, one per row, with column names as keys.
+   * - `columns`, the returned data will be an object with column names as keys, and arrays of values.
+   */
+  format?: 'rows' | 'columns';
+
+  /**
+   * - `shown` (default): return only columns that are explicitly shown
+   *   in the right panel configuration of the widget. This is the only value that doesn't require full access.
+   * - `normal`: return all 'normal' columns, regardless of whether the user has shown them.
+   * - `all`: also return special invisible columns like `manualSort` and display helper columns.
+   */
+  includeColumns?: 'shown' | 'normal' | 'all';
+}
+
+/**
  * Interface for the data backing a single widget.
  */
 export interface GristView {
   /**
    * Like [[GristDocAPI.fetchTable]], but gets data for the custom section specifically, if there is any.
+   * By default, `options.keepEncoded` is `true` and `format` is `columns`.
    */
-  fetchSelectedTable(): Promise<any>;
-  // TODO: return type is Promise{[colId: string]: CellValue[]}> but cannot be specified
-  // because ts-interface-builder does not properly support index-signature.
+  fetchSelectedTable(options?: FetchSelectedOptions): Promise<any>;
 
   /**
-   * Fetches selected record by its `rowId`.
+   * Fetches selected record by its `rowId`. By default, `options.keepEncoded` is `true`.
    */
-  fetchSelectedRecord(rowId: number): Promise<any>;
+  fetchSelectedRecord(rowId: number, options?: FetchSelectedOptions): Promise<any>;
   // TODO: return type is Promise{[colId: string]: CellValue}> but cannot be specified
   // because ts-interface-builder does not properly support index-signature.
 

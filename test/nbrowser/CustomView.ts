@@ -530,6 +530,123 @@ describe('CustomView', function() {
     const opinions = await api.getDocAPI(doc.id).getRows('Opinions');
     assert.equal(opinions['A'][0], 'do not zap plz');
   });
+
+  it('allows custom options for fetching data', async function () {
+    const mainSession = await gu.session().teamSite.login();
+    const doc = await mainSession.tempDoc(cleanup, 'FetchSelectedOptions.grist', {load: false});
+    await mainSession.loadDoc(`/doc/${doc.id}`);
+
+    await gu.toggleSidePanel('right', 'open');
+    await gu.getSection('TABLE1 Custom').click();
+    await driver.find('.test-config-widget-url').click();
+    await gu.sendKeys(`${serving.url}/fetchSelectedOptions`, Key.ENTER);
+    await gu.waitForServer();
+
+    const expected = {
+      "default": {
+        "fetchSelectedTable": {
+          "id": [1, 2],
+          "A": [["a", "b"], ["c", "d"]],
+        },
+        "fetchSelectedRecord": {
+          "id": 1,
+          "A": ["a", "b"]
+        },
+        // The viewApi methods don't decode data by default, hence the "L" prefixes.
+        "viewApiFetchSelectedTable": {
+          "id": [1, 2],
+          "A": [["L", "a", "b"], ["L", "c", "d"]],
+        },
+        "viewApiFetchSelectedRecord": {
+          "id": 2,
+          "A": ["L", "c", "d"]
+        },
+        // onRecords returns rows by default, not columns.
+        "onRecords": [
+          {"id": 1, "A": ["a", "b"]},
+          {"id": 2, "A": ["c", "d"]}
+        ],
+        "onRecord": {
+          "id": 1,
+          "A": ["a", "b"]
+        },
+      },
+      "options": {
+        // This is the result of calling the same methods as above,
+        // but with the values of `keepEncoded` and `format` being the opposite of their defaults.
+        // `includeColumns` is also set to either 'normal' or 'all' instead of the default 'shown',
+        // which means that the 'B' column is included in all the results,
+        // and the 'manualSort' columns is included in half of them.
+        "fetchSelectedTable": [
+          {"id": 1, "manualSort": 1, "A": ["L", "a", "b"], "B": 1},
+          {"id": 2, "manualSort": 2, "A": ["L", "c", "d"], "B": 2},
+        ],
+        "fetchSelectedRecord": {
+          "id": 1,
+          "A": ["L", "a", "b"],
+          "B": 1
+        },
+        "viewApiFetchSelectedTable": [
+          {"id": 1, "manualSort": 1, "A": ["a", "b"], "B": 1},
+          {"id": 2, "manualSort": 2, "A": ["c", "d"], "B": 2}
+        ],
+        "viewApiFetchSelectedRecord": {
+          "id": 2,
+          "A": ["c", "d"],
+          "B": 2
+        },
+        "onRecords": {
+          "id": [1, 2],
+          "manualSort": [1, 2],
+          "A": [["L", "a", "b"], ["L", "c", "d"]],
+          "B": [1, 2],
+        },
+        "onRecord": {
+          "id": 1,
+          "A": ["L", "a", "b"],
+          "B": 1
+        },
+      }
+    };
+
+    async function getData() {
+      await driver.findContentWait('#data', /\{/, 1000);
+      const data = await driver.find('#data').getText();
+      return JSON.parse(data);
+    }
+
+    await inFrame(async () => {
+      const parsed = await getData();
+      assert.deepEqual(parsed, expected);
+    });
+
+    // Change the access level away from 'full'.
+    await setAccess("read table");
+    await gu.waitForServer();
+
+    await inFrame(async () => {
+      const parsed = await getData();
+      // The default options don't require full access, so the result is the same.
+      assert.deepEqual(parsed.default, expected.default);
+
+      // The alternative options all set includeColumns to 'normal' or 'all',
+      // which requires full access.
+      assert.deepEqual(parsed.options, {
+        "onRecord":
+          "Error: Access not granted. Current access level read table",
+        "onRecords":
+          "Error: Access not granted. Current access level read table",
+        "fetchSelectedTable":
+          "Error: Access not granted. Current access level read table",
+        "fetchSelectedRecord":
+          "Error: Access not granted. Current access level read table",
+        "viewApiFetchSelectedTable":
+          "Error: Access not granted. Current access level read table",
+        "viewApiFetchSelectedRecord":
+          "Error: Access not granted. Current access level read table"
+      });
+    });
+  });
 });
 
 async function inFrame(op: () => Promise<void>)  {

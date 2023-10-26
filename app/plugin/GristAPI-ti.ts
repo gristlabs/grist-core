@@ -30,9 +30,15 @@ export const GristDocAPI = t.iface([], {
   "getAccessToken": t.func("AccessTokenResult", t.param("options", "AccessTokenOptions")),
 });
 
+export const FetchSelectedOptions = t.iface([], {
+  "keepEncoded": t.opt("boolean"),
+  "format": t.opt(t.union(t.lit('rows'), t.lit('columns'))),
+  "includeColumns": t.opt(t.union(t.lit('shown'), t.lit('normal'), t.lit('all'))),
+});
+
 export const GristView = t.iface([], {
-  "fetchSelectedTable": t.func("any"),
-  "fetchSelectedRecord": t.func("any", t.param("rowId", "number")),
+  "fetchSelectedTable": t.func("any", t.param("options", "FetchSelectedOptions", true)),
+  "fetchSelectedRecord": t.func("any", t.param("rowId", "number"), t.param("options", "FetchSelectedOptions", true)),
   "allowSelectBy": t.func("void"),
   "setSelectedRows": t.func("void", t.param("rowIds", t.union(t.array("number"), "null"))),
   "setCursorPos": t.func("void", t.param("pos", "CursorPos")),
@@ -54,6 +60,7 @@ const exportedTypeSuite: t.ITypeSuite = {
   ComponentKind,
   GristAPI,
   GristDocAPI,
+  FetchSelectedOptions,
   GristView,
   AccessTokenOptions,
   AccessTokenResult,
