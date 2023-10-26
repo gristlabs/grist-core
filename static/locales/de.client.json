@@ -443,7 +443,14 @@
         "Last Updated At": "Zuletzt aktualisiert am",
         "Apply to new records": "Auf neue Datensätze anwenden",
         "Timestamp": "Zeitstempel",
-        "no reference column": "keine Referenzspalte"
+        "no reference column": "keine Referenzspalte",
+        "Detect Duplicates in...": "Duplikate erkennen in...",
+        "UUID": "UUID",
+        "No reference columns.": "Keine Referenzspalten.",
+        "Duplicate in {{- label}}": "Duplikate in {{- label}}",
+        "Search columns": "Spalten suchen",
+        "Adding UUID column": "Hinzufügen der UUID-Spalte",
+        "Adding duplicates column": "Hinzufügen einer Duplikatspalte"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
