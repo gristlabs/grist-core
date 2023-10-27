@@ -8,6 +8,12 @@ import iso8601
 import six
 from six.moves import zip
 
+try:
+  from functools import lru_cache
+except ImportError:
+  from backports.functools_lru_cache import lru_cache  # noqa
+
+
 # This is prepared by sandbox/install_tz.py
 ZoneRecord = namedtuple("ZoneRecord", ("name", "abbrs", "offsets", "untils"))
 
@@ -45,6 +51,7 @@ def utc_to_ts_ms(dt):
 
 # Converts timestamp in seconds to datetime in the given timezone. If tzinfo is given, then zone
 # is ignored and may be None.
+@lru_cache(maxsize=1024)
 def ts_to_dt(timestamp, zone, tzinfo=None):
   return (EPOCH_UTC + timedelta(seconds=timestamp)).astimezone(tzinfo or zone.get_tzinfo(None))
 
@@ -57,6 +64,7 @@ def dt_to_ts(dt, timezone=None):
   return (dt.replace(tzinfo=None) - offset - EPOCH).total_seconds()
 
 # Converts timestamp in seconds to date.
+@lru_cache(maxsize=1024)
 def ts_to_date(timestamp):
   return DATE_EPOCH + timedelta(seconds=timestamp)
 
