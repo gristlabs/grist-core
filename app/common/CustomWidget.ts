@@ -1,3 +1,5 @@
+import sortBy = require('lodash/sortBy');
+
 /**
  * Custom widget manifest definition.
  */
@@ -8,6 +10,9 @@ export interface ICustomWidget {
   name: string;
   /**
    * Widget unique id, probably in npm package format @gristlabs/custom-widget-name.
+   *
+   * There could be multiple versions of the same widget with the
+   * same id, e.g. a bundled version and an external version.
    */
   widgetId: string;
   /**
@@ -25,6 +30,14 @@ export interface ICustomWidget {
    * applying the Grist theme.
    */
   renderAfterReady?: boolean;
+
+  /**
+   * If the widget came from a plugin, we track that here.
+   */
+  source?: {
+    pluginId: string;
+    name: string;
+  };
 }
 
 /**
@@ -55,4 +68,22 @@ export function isSatisfied(current: AccessLevel, minimum: AccessLevel) {
     }
   }
   return ordered(current) >= ordered(minimum);
+}
+
+/**
+ * Find the best match for a widgetId/pluginId combination among the
+ * given widgets. An exact widgetId match is required. A pluginId match
+ * is preferred but not required.
+ */
+export function matchWidget(widgets: ICustomWidget[], options: {
+  widgetId: string,
+  pluginId?: string,
+}): ICustomWidget|undefined {
+  const prefs = sortBy(widgets, (w) => {
+    return [w.widgetId !== options.widgetId,
+            (w.source?.pluginId||'') !== options.pluginId];
+  });
+  if (prefs.length === 0) { return; }
+  if (prefs[0].widgetId !== options.widgetId) { return; }
+  return prefs[0];
 }

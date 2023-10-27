@@ -6,7 +6,8 @@ import {hooks} from 'app/client/Hooks';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeTestId} from 'app/client/lib/domUtils';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {AccessLevel, isSatisfied} from 'app/common/CustomWidget';
+import {reportError} from 'app/client/models/errors';
+import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
@@ -46,6 +47,15 @@ export interface WidgetFrameOptions {
    */
   url: string;
   /**
+   * ID of widget, if known. When set, the url for the specified widget
+   * in the WidgetRepository, if found, will take precedence.
+   */
+  widgetId?: string|null;
+  /**
+   * ID of the plugin that provided the widget (if it came from a plugin).
+   */
+  pluginId?: string;
+  /**
    * Assigned access level. Iframe is rebuild each time access level is changed.
    */
   access: AccessLevel;
@@ -72,6 +82,10 @@ export interface WidgetFrameOptions {
    * Optional language to use for the widget.
    */
   preferences: {language?: string, timeZone?: any, currency?: string, culture?: string};
+  /**
+   * The containing document.
+   */
+  gristDoc: GristDoc;
 }
 
 /**
@@ -86,6 +100,7 @@ export class WidgetFrame extends DisposableWithEvents {
   private _readyCalled = Observable.create(this, false);
   // Whether the iframe is visible.
   private _visible = Observable.create(this, !this._options.showAfterReady);
+  private readonly _widget = Observable.create<ICustomWidget|null>(this, null);
 
   constructor(private _options: WidgetFrameOptions) {
     super();
@@ -112,7 +127,10 @@ export class WidgetFrame extends DisposableWithEvents {
 
     // Call custom configuration handler.
     _options.configure?.(this);
+
+    this._checkWidgetRepository().catch(reportError);
   }
+
   /**
    * Attach an EventSource with desired access level.
    */
@@ -166,6 +184,21 @@ export class WidgetFrame extends DisposableWithEvents {
   }
 
   public buildDom() {
+    const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
+    return onElem(
+      (this._iframe = dom(
+        'iframe',
+        dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
+        dom.cls('clipboard_focus'),
+        dom.cls('custom_view'),
+        dom.attr('src', use => this._getUrl(use(this._widget))),
+        hooks.iframeAttributes,
+        testId('ready', this._readyCalled),
+      ))
+    );
+  }
+
+  private _getUrl(widget: ICustomWidget|null): string {
     // Append access level to query string.
     const urlWithAccess = (url: string) => {
       if (!url) {
@@ -175,23 +208,12 @@ export class WidgetFrame extends DisposableWithEvents {
       urlObj.searchParams.append('access', this._options.access);
       urlObj.searchParams.append('readonly', String(this._options.readonly));
       // Append user and document preferences to query string.
-       const settingsParams = new URLSearchParams(this._options.preferences);
-       settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
+      const settingsParams = new URLSearchParams(this._options.preferences);
+      settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
       return urlObj.href;
     };
-    const fullUrl = urlWithAccess(this._options.url);
-    const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
-    return onElem(
-      (this._iframe = dom('iframe',
-        dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
-        dom.cls('clipboard_focus'),
-        dom.cls('custom_view'), {
-          src: fullUrl,
-          ...hooks.iframeAttributes,
-        },
-        testId('ready', this._readyCalled),
-      ))
-    );
+    const url = widget?.url || this._options.url || 'about:blank';
+    return urlWithAccess(url);
   }
 
   private _onMessage(event: MessageEvent) {
@@ -216,6 +238,19 @@ export class WidgetFrame extends DisposableWithEvents {
       }
       this._rpc.receiveMessage(event.data);
     }
+  }
+
+  /**
+   * If we have a widgetId, look it up in the WidgetRepository and
+   * get the best URL we can for it.
+   */
+  private async _checkWidgetRepository() {
+    const {widgetId, pluginId} = this._options;
+    if (this.isDisposed() || !widgetId) { return; }
+    const widgets = await this._options.gristDoc.app.topAppModel.getWidgets();
+    if (this.isDisposed()) { return; }
+    const widget = matchWidget(widgets, {widgetId, pluginId});
+    this._widget.set(widget || null);
   }
 }
 

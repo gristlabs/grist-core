@@ -16,13 +16,20 @@ describe('AttachedCustomWidget', function () {
   // Valid widget url.
   const widgetEndpoint = '/widget';
   // Create some widgets:
-  const widget1: ICustomWidget = {widgetId: '1', name: 'Calendar', url: widgetEndpoint + '?name=Calendar'};
+  const widget1: ICustomWidget = {
+    widgetId: '@gristlabs/widget-calendar',
+    name: 'Calendar',
+    url: widgetEndpoint + '?name=Calendar',
+  };
   let widgetServerUrl = '';
   // Holds widgets manifest content.
   let widgets: ICustomWidget[] = [];
   // Switches widget manifest url
-  function useManifest(url: string) {
-    return server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
+  async function useManifest(url: string) {
+    await server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
+    await driver.executeAsyncScript(
+      (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
+    );
   }
 
   async function buildWidgetServer(){
@@ -77,8 +84,8 @@ describe('AttachedCustomWidget', function () {
 
   it('should be able to attach Calendar Widget', async () => {
     await gu.openAddWidgetToPage();
-    const notepadElement = await driver.findContent('.test-wselect-type', /Calendar/);
-    assert.exists(notepadElement, 'Calendar widget is not found in the list of widgets');
+    const calendarElement = await driver.findContent('.test-wselect-type', /Calendar/);
+    assert.exists(calendarElement, 'Calendar widget is not found in the list of widgets');
   });
 
   it('should not ask for permission', async () => {

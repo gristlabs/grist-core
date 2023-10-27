@@ -107,6 +107,12 @@ export async function main() {
   // Set directory for uploaded documents.
   setDefaultEnv('GRIST_DATA_DIR', 'docs');
   setDefaultEnv('GRIST_SERVERS', 'home,docs,static');
+  if (process.env.GRIST_SERVERS?.includes('home')) {
+    // By default, we will now start an untrusted port alongside a
+    // home server, for bundled custom widgets.
+    // Suppress with GRIST_UNTRUSTED_PORT=''
+    setDefaultEnv('GRIST_UNTRUSTED_PORT', '0');
+  }
   const serverTypes = parseServerTypes(process.env.GRIST_SERVERS);
 
   await fse.mkdirp(process.env.GRIST_DATA_DIR!);

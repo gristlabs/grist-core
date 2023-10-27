@@ -3271,6 +3271,27 @@ export async function changeWidgetAccess(access: 'read table'|'full'|'none') {
   }
 }
 
+
+/**
+ * Recently, driver.switchTo().window() has become a little flakey,
+ * methods may fail if called immediately after switching to a
+ * window. This method works around the problem by waiting for
+ * driver.getCurrentUrl to succeed.
+ *  https://github.com/SeleniumHQ/selenium/issues/12277
+ */
+export async function switchToWindow(target: string) {
+  await driver.switchTo().window(target);
+  for (let i = 0; i < 10; i++) {
+    try {
+      await driver.getCurrentUrl();
+      break;
+    } catch (e) {
+      console.log("switchToWindow retry after error:", e);
+      await driver.sleep(250);
+    }
+  }
+}
+
 /*
  * Returns an instance of `LockableClipboard`, making sure to unlock it after
  * each test.

@@ -37,6 +37,9 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
   await home.addTelemetry();
   await home.addDoc();
   home.addApiErrorHandlers();
+  home.finalizeEndpoints();
+  await home.finalizePlugins(null);
+  home.ready();
   serverUrl = home.getOwnUrl();
 }
 
@@ -110,7 +113,8 @@ describe('Authorizer', function() {
     const resp2 = await axios.get(`${serverUrl}/o/pr/doc/Bananas2`, charon);
     assert.equal(resp2.status, 404);
     assert.notMatch(resp.data, /sample_6/);
-    assert.deepEqual(resp.data, resp2.data);
+    assert.deepEqual(withoutTimestamp(resp.data),
+                     withoutTimestamp(resp2.data));
   });
 
   it("viewer can access title", async function() {
@@ -304,3 +308,7 @@ describe('Authorizer', function() {
     await cli.close();
   });
 });
+
+function withoutTimestamp(txt: string): string {
+  return txt.replace(/"timestampMs":[ 0-9]+/, '"timestampMs": NNNN');
+}

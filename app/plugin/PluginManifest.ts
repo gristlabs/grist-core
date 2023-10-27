@@ -36,6 +36,11 @@ export interface PublishedPlugin extends BarePlugin {
  */
 export interface BarePlugin {
   /**
+   * An optional human-readable name.
+   */
+  name?: string;
+
+  /**
    * Components describe how the plugin runs. A plugin may provide UI and behavior that runs in
    * the browser, Python code that runs in a secure sandbox, and arbitrary code that runs in Node.
    */
@@ -81,6 +86,13 @@ export interface BarePlugin {
      *
      */
     unsafeNode?: string;
+
+    /**
+     * Relative path to a specialized manifest of custom widgets.
+     * I'm unsure how this fits into components and contributions,
+     * this seemed the least-worst spot for it.
+     */
+    widgets?: string;
 
     /**
      * Options for when to deactivate the plugin, i.e. when to stop any plugin processes. (Note

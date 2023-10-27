@@ -272,11 +272,24 @@ export interface CustomViewSectionDef {
    * The url.
    */
   url: modelUtil.KoSaveableObservable<string|null>;
-   /**
-   * Custom widget information.
+  /**
+   * A widgetId, if available. Preferred to url.
+   * For bundled custom widgets, it is important to refer
+   * to them by something other than url, since url will
+   * vary with deployment, and it should be possible to move
+   * documents between deployments if they have compatible
+   * widgets available.
    */
-  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
+  widgetId: modelUtil.KoSaveableObservable<string|null>;
    /**
+    * Custom widget information. This is a record of what was
+    * in a custom widget manifest entry when the widget was
+    * configured. Its contents should not be relied on too much.
+    * In particular, any URL contained may come from an entirely
+    * different installation of Grist.
+    */
+  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
+  /**
    * Custom widget options.
    */
   widgetOptions: modelUtil.KoSaveableObservable<Record<string, any>|null>;
@@ -363,6 +376,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.customDef = {
     mode: customDefObj.prop('mode'),
     url: customDefObj.prop('url'),
+    widgetId: customDefObj.prop('widgetId'),
     widgetDef: customDefObj.prop('widgetDef'),
     widgetOptions: customDefObj.prop('widgetOptions'),
     columnsMapping: customDefObj.prop('columnsMapping'),

@@ -11,6 +11,8 @@ import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
 import {SupportGristNudge} from 'app/client/ui/SupportGristNudge';
 import {attachCssThemeVars, prefersDarkModeObs} from 'app/client/ui2018/cssVars';
+import {AsyncCreate} from 'app/common/AsyncCreate';
+import {ICustomWidget} from 'app/common/CustomWidget';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, isLegacyPlan, Product} from 'app/common/Features';
 import {GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
@@ -61,6 +63,8 @@ export interface TopAppModel {
   orgs: Observable<Organization[]>;
   users: Observable<FullUser[]>;
 
+  customWidgets: Observable<ICustomWidget[]|null>;
+
   // Reinitialize the app. This is called when org or user changes.
   initialize(): void;
 
@@ -75,6 +79,17 @@ export interface TopAppModel {
    * Reloads orgs and accounts for current user.
    */
   fetchUsersAndOrgs(): Promise<void>;
+
+  /**
+   * Enumerate the widgets in the WidgetRepository for this installation
+   * of Grist.
+   */
+  getWidgets(): Promise<ICustomWidget[]>;
+
+  /**
+   * Reload cached list of widgets, for testing purposes.
+   */
+  testReloadWidgets(): Promise<void>;
 }
 
 /**
@@ -142,7 +157,12 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly orgs = Observable.create<Organization[]>(this, []);
   public readonly users = Observable.create<FullUser[]>(this, []);
   public readonly plugins: LocalPlugin[] = [];
+  public readonly customWidgets = Observable.create<ICustomWidget[]|null>(this, null);
   private readonly _gristConfig?: GristLoadConfig;
+  // Keep a list of available widgets, once requested, so we don't have to
+  // keep reloading it. Downside: browser page will need reloading to pick
+  // up new widgets - that seems ok.
+  private readonly _widgets: AsyncCreate<ICustomWidget[]>;
 
   constructor(
     window: {gristConfig?: GristLoadConfig},
@@ -153,6 +173,11 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     this.isSingleOrg = Boolean(window.gristConfig && window.gristConfig.singleOrg);
     this.productFlavor = getFlavor(window.gristConfig && window.gristConfig.org);
     this._gristConfig = window.gristConfig;
+    this._widgets = new AsyncCreate<ICustomWidget[]>(async () => {
+      const widgets = await this.api.getWidgets();
+      this.customWidgets.set(widgets);
+      return widgets;
+    });
 
     // Initially, and on any change to subdomain, call initialize() to get the full Organization
     // and the FullUser to use for it (the user may change when switching orgs).
@@ -173,6 +198,19 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       const {currentUser, currentOrg, orgError} = app;
       AppModelImpl.create(this.appObs, this, currentUser, currentOrg, orgError);
     }
+  }
+
+  public async getWidgets(): Promise<ICustomWidget[]> {
+    return this._widgets.get();
+  }
+
+  public async testReloadWidgets() {
+    console.log("testReloadWidgets");
+    this._widgets.clear();
+    this.customWidgets.set(null);
+    console.log("testReloadWidgets cleared and nulled");
+    const result = await this.getWidgets();
+    console.log("testReloadWidgets got", {result});
   }
 
   public getUntrustedContentOrigin() {

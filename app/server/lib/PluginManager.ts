@@ -137,8 +137,10 @@ async function scanDirectory(dir: string, kind: "installed"|"builtIn"): Promise<
   try {
     listDir = await fse.readdir(dir);
   } catch (e) {
-    // non existing dir is treated as an empty dir
-    log.info(`No plugins directory: ${e.message}`);
+    // Non existing dir is treated as an empty dir.
+    // It is hard for user to avoid Grist checking a dir,
+    // so phrase the message as information rather than error.
+    log.info(`No plugins found in directory: ${dir}`);
     return [];
   }
 

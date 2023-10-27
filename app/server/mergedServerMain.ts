@@ -31,6 +31,26 @@ export function parseServerTypes(serverTypes: string|undefined): ServerType[] {
   return types as ServerType[];
 }
 
+function checkUserContentPort(): number | null {
+  // Check whether a port is explicitly set for user content.
+  if (process.env.GRIST_UNTRUSTED_PORT) {
+    return parseInt(process.env.GRIST_UNTRUSTED_PORT, 10);
+  }
+  // Checks whether to serve user content on same domain but on different port
+  if (process.env.APP_UNTRUSTED_URL && process.env.APP_HOME_URL) {
+    const homeUrl = new URL(process.env.APP_HOME_URL);
+    const pluginUrl = new URL(process.env.APP_UNTRUSTED_URL);
+    // If the hostname of both home and plugin url are the same,
+    // but the ports are different
+    if (homeUrl.hostname === pluginUrl.hostname &&
+        homeUrl.port !== pluginUrl.port) {
+      const port = parseInt(pluginUrl.port || '80', 10);
+      return port;
+    }
+  }
+  return null;
+}
+
 interface ServerOptions extends FlexServerOptions {
   logToConsole?: boolean;  // If set, messages logged to console (default: false)
                            //   (but if options are not given at all in call to main,
@@ -51,6 +71,14 @@ export async function main(port: number, serverTypes: ServerType[],
   const includeApp = serverTypes.includes("app");
 
   const server = new FlexServer(port, `server(${serverTypes.join(",")})`, options);
+
+  // We need to know early on whether we will be serving plugins or not.
+  if (includeHome) {
+    const userPort = checkUserContentPort();
+    server.setServesPlugins(userPort !== undefined);
+  } else {
+    server.setServesPlugins(false);
+  }
 
   if (options.loginSystem) {
     server.setLoginSystem(options.loginSystem);
@@ -141,10 +169,11 @@ export async function main(port: number, serverTypes: ServerType[],
       server.addClientSecrets();
     }
 
-    server.finalize();
-
+    server.finalizeEndpoints();
+    await server.finalizePlugins(includeHome ? checkUserContentPort() : null);
     server.checkOptionCombinations();
     server.summary();
+    server.ready();
     return server;
   } catch(e) {
     await server.close();

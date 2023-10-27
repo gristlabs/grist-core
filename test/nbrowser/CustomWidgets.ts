@@ -1,13 +1,16 @@
-import {assert, driver, Key} from 'mocha-webdriver';
-import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {serveSomething} from 'test/server/customUtil';
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {AccessTokenResult} from 'app/plugin/GristAPI';
 import {TableOperations} from 'app/plugin/TableOperations';
 import {getAppRoot} from 'app/server/lib/places';
+import * as fse from 'fs-extra';
+import {assert, driver, Key} from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import * as path from 'path';
+import * as gu from 'test/nbrowser/gristUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {serveSomething} from 'test/server/customUtil';
+import {createTmpDir} from 'test/server/docTools';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 // Valid manifest url.
 const manifestEndpoint = '/manifest.json';
@@ -45,14 +48,18 @@ function getCustomWidgetFrame() {
 
 describe('CustomWidgets', function () {
   this.timeout(20000);
+  gu.bigScreen();
   const cleanup = setupTestSuite();
 
   // Holds url for sample widget server.
   let widgetServerUrl = '';
 
   // Switches widget manifest url
-  function useManifest(url: string) {
-    return server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
+  async function useManifest(url: string) {
+    await server.testingHooks.setWidgetRepositoryUrl(url ? `${widgetServerUrl}${url}` : '');
+    await driver.executeAsyncScript(
+      (done: any) => (window as any).gristApp?.topAppModel.testReloadWidgets().then(done).catch(done) || done()
+    );
   }
 
 
@@ -107,14 +114,6 @@ describe('CustomWidgets', function () {
     // Add custom section.
     await gu.addNewSection(/Custom/, /Table1/, {selectBy: /TABLE1/});
 
-  });
-
-  after(async function() {
-    await server.testingHooks.setWidgetRepositoryUrl('');
-  });
-
-  after(async function() {
-    await server.testingHooks.setWidgetRepositoryUrl('');
   });
 
   after(async function() {
@@ -215,16 +214,17 @@ describe('CustomWidgets', function () {
   // Rejects new access level.
   const reject = () => driver.find(".test-config-widget-access-reject").click();
 
+  async function enableWidgetsAndShowPanel() {
+    // Override gristConfig to enable widget list.
+    await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
+    // We need to be sure that widget configuration panel is open all the time.
+    await gu.toggleSidePanel('right', 'open');
+    await recreatePanel();
+    await driver.findWait('.test-right-tab-pagewidget', 100).click();
+  }
 
   describe('RightWidgetMenu', () => {
-    beforeEach(async function () {
-      // Override gristConfig to enable widget list.
-      await driver.executeScript('window.gristConfig.enableWidgetRepository = true;');
-      // We need to be sure that widget configuration panel is open all the time.
-      await gu.toggleSidePanel('right', 'open');
-      await recreatePanel();
-      await driver.findWait('.test-right-tab-pagewidget', 100).click();
-    });
+    beforeEach(enableWidgetsAndShowPanel);
 
     it('should show widgets in dropdown', async () => {
       await gu.toggleSidePanel('right', 'open');
@@ -364,7 +364,12 @@ describe('CustomWidgets', function () {
       await recreatePanel();
     });
 
-    it('should show widget when it was removed from list', async () => {
+    /**
+     * Need to think about whether this is desirable?
+     * The document could be on a different Grist installation to the
+     * one where it was created.
+     */
+    it.skip('should show widget when it was removed from list', async () => {
       // Select widget1 and then remove it from the list.
       await toggle();
       await select(widget1.name);
@@ -718,6 +723,156 @@ describe('CustomWidgets', function () {
         assert.sameMembers(Object.keys(tokenResult), ['ttlMsecs', 'token', 'baseUrl']);
         const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
         assert.sameMembers(Object.keys(await result.json()), ['records']);
+      });
+    });
+  });
+
+  describe('Bundling', function () {
+    let oldEnv: EnvironmentSnapshot;
+
+    before(async function () {
+      oldEnv = new EnvironmentSnapshot();
+    });
+
+    after(async function() {
+      oldEnv.restore();
+      await server.restart();
+    });
+
+    it('can add widgets via plugins', async function () {
+      // Double-check that using one external widget, we see
+      // just that widget listed.
+      widgets = [widget1];
+      await useManifest(manifestEndpoint);
+      await enableWidgetsAndShowPanel();
+      await toggle();
+      assert.deepEqual(await options(), [
+        CUSTOM_URL, widget1.name,
+      ]);
+
+      // Get a temporary directory that will be cleaned up,
+      // and populated it as follows:
+      //   plugins/
+      //     my-widgets/
+      //       manifest.yml   # a plugin manifest, listing widgets.json
+      //       widgets.json   # a widget set manifest, grist-widget style
+      //       p1.html        # one of the widgets in widgets.json
+      //       p2.html        # another of the widgets in widgets.json
+      //       grist-plugin-api.js   # a dummy api file, to check it is overridden
+      const dir = await createTmpDir();
+      const pluginDir = path.join(dir, 'plugins', 'my-widgets');
+      await fse.mkdirp(pluginDir);
+
+      // A plugin, with some widgets in it.
+      await fse.writeFile(path.join(pluginDir, 'manifest.yml'), `
+        name: My Widgets
+        components:
+          widgets: widgets.json
+      `);
+
+      // A list of a pair of custom widgets, with the widget
+      // source in the same directory.
+      await fse.writeFile(
+        path.join(pluginDir, 'widgets.json'),
+        JSON.stringify([
+          {
+            widgetId: 'p1',
+            name: 'P1',
+            url: './p1.html',
+          },
+          {
+            widgetId: 'p2',
+            name: 'P2',
+            url: './p2.html',
+          },
+        ]),
+      );
+
+      // The first widget - just contains the text P1.
+      await fse.writeFile(
+        path.join(pluginDir, 'p1.html'),
+        '<html><body>P1</body></html>',
+      );
+
+      // The second widget. This contains the text P2
+      // if grist is defined after loading grist-plugin-api.js
+      // (but the js bundled with the widget just throws an
+      // alert).
+      await fse.writeFile(
+        path.join(pluginDir, 'p2.html'),
+        `
+        <html>
+        <script src="./grist-plugin-api.js"></script>
+        <body>
+          <div id="readout"></div>
+          <script>
+             if (typeof grist !== 'undefined') {
+               document.getElementById('readout').innerText = 'P2';
+             }
+          </script>
+        </body>
+        </html>
+        `
+      );
+      // A dummy grist-plugin-api.js - hopefully the actual
+      // js for the current version of Grist will be served in
+      // its place.
+      await fse.writeFile(
+        path.join(pluginDir, 'grist-plugin-api.js'),
+        'alert("Error: built in api version used");',
+      );
+
+      // Restart server and reload doc now plugins are in place.
+      process.env.GRIST_USER_ROOT = dir;
+      await server.restart();
+      await gu.reloadDoc();
+
+      // Continue using one external widget.
+      await useManifest(manifestEndpoint);
+      await enableWidgetsAndShowPanel();
+
+      // Check we see one external widget and two bundled ones.
+      await toggle();
+      assert.deepEqual(await options(), [
+        CUSTOM_URL, widget1.name, 'P1 (My Widgets)', 'P2 (My Widgets)',
+      ]);
+
+      // Prepare to check content of widgets.
+      async function getWidgetText(): Promise<string> {
+        return gu.doInIframe(await getCustomWidgetFrame(), () => {
+          return driver.executeScript(
+            () => document.body.innerText
+          );
+        });
+      }
+
+      // Check built-in P1 works as expected.
+      await select(/P1/);
+      assert.equal(await current(), 'P1 (My Widgets)');
+      await gu.waitToPass(async () => {
+        assert.equal(await getWidgetText(), 'P1');
+      });
+
+      // Check external W1 works as expected.
+      await toggle();
+      await select(/W1/);
+      assert.equal(await current(), 'W1');
+      await gu.waitToPass(async () => {
+        assert.equal(await getWidgetText(), 'W1');
+      });
+
+      // Check build-in P2 works as expected.
+      await toggle();
+      await select(/P2/);
+      assert.equal(await current(), 'P2 (My Widgets)');
+      await gu.waitToPass(async () => {
+        assert.equal(await getWidgetText(), 'P2');
+      });
+
+      // Make sure widget setting is sticky.
+      await gu.reloadDoc();
+      await gu.waitToPass(async () => {
+        assert.equal(await getWidgetText(), 'P2');
       });
     });
   });

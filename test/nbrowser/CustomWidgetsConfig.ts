@@ -340,6 +340,10 @@ describe('CustomWidgetsConfig', function () {
   });
 
   it('should hide mappings when there is no good column', async () => {
+    if ((await currentWidget()) !== CUSTOM_URL) {
+      await toggleWidgetMenu();
+      await clickOption(CUSTOM_URL);
+    }
     await gu.setWidgetUrl(
       createConfigUrl({
         columns: [{name: 'M2', type: 'Date'}],
@@ -392,6 +396,10 @@ describe('CustomWidgetsConfig', function () {
 
   it('should clear optional mapping', async () => {
     const revert = await gu.begin();
+    if ((await currentWidget()) !== CUSTOM_URL) {
+      await toggleWidgetMenu();
+      await clickOption(CUSTOM_URL);
+    }
     await gu.setWidgetUrl(
       createConfigUrl({
         columns: [{name: 'M2', type: 'Date', optional: true}],

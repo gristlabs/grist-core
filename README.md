@@ -295,8 +295,10 @@ GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown b
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
-GRIST_USER_ROOT     | an extra path to look for plugins in.
+GRIST_TRUST_PLUGINS | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications.
+GRIST_USER_ROOT     | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`.
 GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.
+GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL.
 GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default `https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json` is used
 COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
@@ -345,6 +347,41 @@ When using forward authentication, you may wish to also set the following variab
 
 GRIST_FORWARD_AUTH_HEADER is similar to GRIST_PROXY_AUTH_HEADER, but enables
 a login system (assuming you have some forward authentication set up).
+
+#### Plugins:
+
+Grist has a plugin system, used internally. One useful thing you can
+do with it is include custom widgets in a build of Grist. Custom widgets
+are usually made available just by setting `GRIST_WIDGET_LIST_URL`,
+but that has the downside of being an external dependency, which can
+be awkward for offline use or for archiving. Plugins offer an alternative.
+
+To "bundle" custom widgets as a plugin:
+
+ * Add a subdirectory of `plugins`, e.g. `plugins/my-widgets`.
+   Alternatively, you can set the `GRIST_USER_ROOT` environment
+   variable to any path you want, and then create `plugins/my-widgets`
+   within that.
+ * Add a `manifest.yml` file in that subdirectory that looks like
+   this:
+
+```
+name: My Widgets
+components:
+  widgets: widgets.json
+```
+
+ * The `widgets.json` file should be in the format produced by
+   the [grist-widget](https://github.com/gristlabs/grist-widget)
+   repository, and should be placed in the same directory as
+   `manifest.yml`. Any material in `plugins/my-widgets`
+   will be served by Grist, and relative URLs can be used in
+   `widgets.json`.
+ * Once all files are in place, restart Grist. Your widgets should
+   now be available in the custom widgets dropdown, along with
+   any others from `GRIST_WIDGET_LIST_URL`.
+ * If you like, you can add multiple plugin subdirectories, with
+   multiple sets of widgets, and they'll all be made available.
 
 #### Google Drive integrations:
 

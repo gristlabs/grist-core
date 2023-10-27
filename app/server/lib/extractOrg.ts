@@ -1,8 +1,10 @@
 import { ApiError } from 'app/common/ApiError';
 import { mapGetOrSet, MapWithTTL } from 'app/common/AsyncCreate';
 import { extractOrgParts, getHostType, getKnownOrg } from 'app/common/gristUrls';
+import { isAffirmative } from 'app/common/gutil';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
+import { GristServer } from 'app/server/lib/GristServer';
 import { getOriginUrl } from 'app/server/lib/requestUtils';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { IncomingMessage } from 'http';
@@ -41,7 +43,7 @@ export class Hosts {
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
   constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager,
-              private _pluginUrl: string|undefined) {
+              private _gristServer: GristServer|undefined) {
   }
 
   /**
@@ -165,6 +167,8 @@ export class Hosts {
   }
 
   private _getHostType(host: string) {
-    return getHostType(host, {baseDomain: this._baseDomain, pluginUrl: this._pluginUrl});
+    const pluginUrl = isAffirmative(process.env.GRIST_TRUST_PLUGINS) ?
+        undefined : this._gristServer?.getPluginUrl();
+    return getHostType(host, {baseDomain: this._baseDomain, pluginUrl});
   }
 }

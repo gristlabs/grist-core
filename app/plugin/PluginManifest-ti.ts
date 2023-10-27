@@ -10,10 +10,12 @@ export const PublishedPlugin = t.iface(["BarePlugin"], {
 });
 
 export const BarePlugin = t.iface([], {
+  "name": t.opt("string"),
   "components": t.iface([], {
     "safeBrowser": t.opt("string"),
     "safePython": t.opt("string"),
     "unsafeNode": t.opt("string"),
+    "widgets": t.opt("string"),
     "deactivate": t.opt(t.iface([], {
       "inactivitySec": t.opt("number"),
     })),

@@ -50,7 +50,11 @@ export class ManifestError extends Error {
  */
 export async function readManifest(pluginPath: string): Promise<BarePlugin> {
   const notices: string[] = [];
-  const manifest = await _readManifest(pluginPath);
+  const manifest: any = await _readManifest(pluginPath);
+  // We allow contributions and components to be omitted as shorthand
+  // for being the empty object.
+  if (!manifest.contributions) { manifest.contributions = {}; }
+  if (!manifest.components) { manifest.components = {}; }
   if (isValidManifest(manifest, notices)) {
     return manifest as BarePlugin;
   }
@@ -58,6 +62,9 @@ export async function readManifest(pluginPath: string): Promise<BarePlugin> {
 }
 
 async function _readManifest(pluginPath: string): Promise<object> {
+  async function readManifestFile(fileExtension: string): Promise<string> {
+    return await fse.readFile(path.join(pluginPath, "manifest." + fileExtension), "utf8");
+  }
   try {
     return yaml.safeLoad(await readManifestFile("yml"));
   } catch (e) {
@@ -72,8 +79,5 @@ async function _readManifest(pluginPath: string): Promise<object> {
       throw new Error('error parsing json manifest' + e.message);
     }
     throw new Error('cannot read manifest file: ' + e.message);
-  }
-  async function readManifestFile(fileExtension: string): Promise<string> {
-    return await fse.readFile(path.join(pluginPath, "manifest." + fileExtension), "utf8");
   }
 }

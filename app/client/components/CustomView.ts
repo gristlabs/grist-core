@@ -34,6 +34,17 @@ import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 
+/**
+ *
+ * Built in settings for a custom widget. Used when the custom
+ * widget is the implementation of a native-looking widget,
+ * for example the calendar widget.
+ *
+ */
+export interface CustomViewSettings {
+  widgetId?: string;
+  accessLevel?: AccessLevel;
+}
 
 /**
  * CustomView components displays arbitrary html. There are two modes available, in the "url" mode
@@ -83,11 +94,10 @@ export class CustomView extends Disposable {
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
 
-
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
 
-    this.customDef =  this.viewSection.customDef;
+    this.customDef = this.viewSection.customDef;
 
     this.autoDisposeCallback(() => {
       if (this._customSection) {
@@ -107,16 +117,20 @@ export class CustomView extends Disposable {
     this._updatePluginInstance();
   }
 
-
   public async triggerPrint() {
     if (!this.isDisposed() && this._frame) {
       return await this._frame.callRemote('print');
     }
   }
 
+  protected getBuiltInSettings(): CustomViewSettings {
+    return {};
+  }
+
   protected getEmptyWidgetPage(): string {
     return new URL("custom-widget.html", getGristConfig().homeUrl!).href;
   }
+
   /**
    * Find a plugin instance that matches the plugin id, update the `found` observables, then tries to
    * find a matching section.
@@ -156,13 +170,13 @@ export class CustomView extends Disposable {
   }
 
   private _buildDom() {
-    const {mode, url, access, renderAfterReady} = this.customDef;
+    const {mode, url, access, renderAfterReady, widgetDef, widgetId, pluginId} = this.customDef;
     const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
     const showAfterReady = () => {
       // The empty widget page calls `grist.ready()`.
-      if (!url()) { return true; }
+      if (!url() && !widgetId()) { return true; }
 
-      return this.customDef.widgetDef()?.renderAfterReady ?? renderAfterReady();
+      return renderAfterReady();
     };
 
     // When both plugin and section are not found, let's show only plugin notification.
@@ -172,18 +186,27 @@ export class CustomView extends Disposable {
         // For the view to update when switching from one section to another one, the computed
         // observable must always notify.
         .extend({notify: 'always'});
+    // Some widgets have built-in settings that should override anything
+    // that is in the rest of the view options. Ideally, everything would
+    // be consistent. We could fix inconsistencies if we find them, but
+    // we are not guaranteed to have write privileges at this point.
+    const builtInSettings = this.getBuiltInSettings();
     return dom('div.flexauto.flexvbox.custom_view_container',
       dom.autoDispose(showPlugin),
       dom.autoDispose(showPluginNotification),
       dom.autoDispose(showSectionNotification),
       dom.autoDispose(showPluginContent),
       // todo: should display content in webview when running electron
-      kd.scope(() => [mode(), url(), access()], ([_mode, _url, _access]: string[]) =>
+      // prefer widgetId; spelunk in widgetDef for older docs
+      kd.scope(() => [mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()],
+               ([_mode, _url, _access, _widgetId, _pluginId]: string[]) =>
         _mode === "url" ?
           this._buildIFrame({
             baseUrl: _url,
-            access: (_access as AccessLevel || AccessLevel.none),
+            access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
             showAfterReady: showAfterReady(),
+            widgetId: builtInSettings.widgetId || _widgetId,
+            pluginId: _pluginId,
           })
           : null
       ),
@@ -213,12 +236,16 @@ export class CustomView extends Disposable {
     baseUrl: string|null,
     access: AccessLevel,
     showAfterReady?: boolean,
+    widgetId?: string|null,
+    pluginId?: string
   }) {
-    const {baseUrl, access, showAfterReady} = options;
+    const {baseUrl, access, showAfterReady, widgetId, pluginId} = options;
     const documentSettings = this.gristDoc.docData.docSettings();
     const readonly = this.gristDoc.isReadonly.get();
     return grains.create(WidgetFrame, {
       url: baseUrl || this.getEmptyWidgetPage(),
+      widgetId,
+      pluginId,
       access,
       preferences:
       {
@@ -273,7 +300,8 @@ export class CustomView extends Disposable {
         }
         // allow menus to close if any
         closeRegisteredMenu();
-      })
+      }),
+      gristDoc: this.gristDoc,
     });
 
   }

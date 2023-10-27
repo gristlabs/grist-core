@@ -1,4 +1,6 @@
+import { ICustomWidget } from 'app/common/CustomWidget';
 import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
+import { LocalPlugin } from 'app/common/plugin';
 import { UserProfile } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
@@ -54,6 +56,10 @@ export interface GristServer {
   sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void>;
   getAccessTokens(): IAccessTokens;
   resolveLoginSystem(): Promise<GristLoginSystem>;
+  getPluginUrl(): string|undefined;
+  getPlugins(): LocalPlugin[];
+  servesPlugins(): boolean;
+  getBundledWidgets(): ICustomWidget[];
 }
 
 export interface GristLoginSystem {
@@ -136,6 +142,10 @@ export function createDummyGristServer(): GristServer {
     sendAppPage() { return Promise.resolve(); },
     getAccessTokens() { throw new Error('no access tokens'); },
     resolveLoginSystem() { throw new Error('no login system'); },
+    getPluginUrl() { return undefined; },
+    servesPlugins() { return false; },
+    getPlugins() { return []; },
+    getBundledWidgets() { return []; },
   };
 }
 
