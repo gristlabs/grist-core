@@ -74,12 +74,20 @@ export class BehavioralPromptsManager extends Disposable {
     return this._dismissedTips.get().has(prompt);
   }
 
-  public shouldShowTips() {
-    return !this._prefs.get().dontShowTips;
-  }
-
   public shouldShowTip(prompt: BehavioralPrompt): boolean {
     if (this._isDisabled) { return false; }
+
+    // For non-SaaS flavors of Grist, don't show tips if the Help Center is explicitly
+    // disabled. A separate opt-out feature could be added down the road for more granularity,
+    // but will require communication in advance to avoid disrupting users.
+    const {deploymentType, features} = getGristConfig();
+    if (
+      !features?.includes('helpCenter') &&
+      // This one is an easter egg, so we make an exception.
+      prompt !== 'rickRow'
+    ) {
+      return false;
+    }
 
     const {
       showContext = 'desktop',
@@ -87,7 +95,6 @@ export class BehavioralPromptsManager extends Disposable {
       forceShow = false,
     } = GristBehavioralPrompts[prompt];
 
-    const {deploymentType} = getGristConfig();
     if (
       showDeploymentTypes !== '*' &&
       (!deploymentType || !showDeploymentTypes.includes(deploymentType))

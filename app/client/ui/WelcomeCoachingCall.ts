@@ -13,12 +13,9 @@ export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
   const {deploymentType} = getGristConfig();
   if (deploymentType !== 'saas') { return false; }
 
-  const {behavioralPromptsManager, dismissedWelcomePopups} = appModel;
-
   // Defer showing coaching call until Add New tip is dismissed.
-  const hasSeenAddNewTip = behavioralPromptsManager.hasSeenTip('addNew');
-  const shouldShowTips = behavioralPromptsManager.shouldShowTips();
-  if (!hasSeenAddNewTip && shouldShowTips) { return false; }
+  const {behavioralPromptsManager, dismissedWelcomePopups} = appModel;
+  if (behavioralPromptsManager.shouldShowTip('addNew')) { return false; }
 
   const popup = dismissedWelcomePopups.get().find(p => p.id === 'coachingCall');
   return (

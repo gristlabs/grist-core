@@ -19,6 +19,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, Observable, styled} from 'grainjs';
 
 const t = makeT('LeftPanelCommon');
@@ -31,12 +32,15 @@ export function createHelpTools(appModel: AppModel): DomContents {
   if (!isFeatureEnabled("helpCenter")) {
     return [];
   }
+  const {deploymentType} = getGristConfig();
   return cssSplitPageEntry(
     cssPageEntryMain(
       cssPageLink(cssPageIcon('Help'),
         cssLinkText(t("Help Center")),
         dom.cls('tour-help-center'),
-        dom.on('click', (ev) => beaconOpenMessage({appModel})),
+        deploymentType === 'saas'
+          ? dom.on('click', () => beaconOpenMessage({appModel}))
+          : {href: commonUrls.help, target: '_blank'},
         testId('left-feedback'),
       ),
     ),

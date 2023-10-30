@@ -67,6 +67,7 @@ import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
+import {getGristConfig} from 'app/common/urlUtils';
 import {DocStateComparison} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
 import {CursorPos} from 'app/plugin/GristAPI';
@@ -1644,6 +1645,14 @@ export class GristDoc extends DisposableWithEvents {
    * a doc tutorial or tour isn't available.
    */
   private _shouldAutoStartWelcomeTour(): boolean {
+    // For non-SaaS flavors of Grist, don't show the tour if the Help Center is explicitly
+    // disabled. A separate opt-out feature could be added down the road for more granularity,
+    // but will require communication in advance to avoid disrupting users.
+    const {features} = getGristConfig();
+    if (!features?.includes('helpCenter')) {
+      return false;
+    }
+
     // If a doc tutorial or tour are available, leave the welcome tour for another
     // doc (e.g. a new one).
     if (this._disableAutoStartingTours || this.docModel.isTutorial() || this.docModel.hasDocTour()) {
