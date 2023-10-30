@@ -430,7 +430,27 @@
         "Unfreeze {{count}} columns_one": "Diese Spalte entsperren",
         "Unfreeze {{count}} columns_other": "{{count}} Spalten entsperren",
         "Insert column to the right": "Spalte rechts einfügen",
-        "Insert column to the left": "Spalte links einfügen"
+        "Insert column to the left": "Spalte links einfügen",
+        "Shortcuts": "Abkürzungen",
+        "Show hidden columns": "Ausgeblendete Spalten anzeigen",
+        "Created At": "Erstellt am",
+        "Authorship": "Urheberschaft",
+        "Last Updated By": "Zuletzt aktualisiert von",
+        "Hidden Columns": "Ausgeblendete Spalten",
+        "Lookups": "Nachschlagen",
+        "Apply on record changes": "Auf Datensatzänderungen anwenden",
+        "Created By": "Erstellt von",
+        "Last Updated At": "Zuletzt aktualisiert am",
+        "Apply to new records": "Auf neue Datensätze anwenden",
+        "Timestamp": "Zeitstempel",
+        "no reference column": "keine Referenzspalte",
+        "Detect Duplicates in...": "Duplikate erkennen in...",
+        "UUID": "UUID",
+        "No reference columns.": "Keine Referenzspalten.",
+        "Duplicate in {{- label}}": "Duplikate in {{- label}}",
+        "Search columns": "Spalten suchen",
+        "Adding UUID column": "Hinzufügen der UUID-Spalte",
+        "Adding duplicates column": "Hinzufügen einer Duplikatspalte"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
@@ -876,7 +896,8 @@
         "Text": "Text",
         "Integer": "Ganze Zahl",
         "Toggle": "Umschalten",
-        "Date": "Datum"
+        "Date": "Datum",
+        "Search columns": "Spalten suchen"
     },
     "modals": {
         "Cancel": "Abbrechen",

@@ -205,7 +205,27 @@
         "Unfreeze {{count}} columns_other": "Odmrznite {{count}} stolpcev",
         "Insert column to the right": "Vstavi stolpec na desno",
         "Reset {{count}} entire columns_one": "Ponastavi celoten stolpec",
-        "Insert column to the left": "Vstavi stolpec na levo"
+        "Insert column to the left": "Vstavi stolpec na levo",
+        "Shortcuts": "Bližnjice",
+        "Show hidden columns": "Prikaži skrite stolpce",
+        "Created At": "Ustvarjeno pri",
+        "Authorship": "Avtorstvo",
+        "Last Updated By": "Nazadnje posodobil",
+        "Hidden Columns": "Skriti stolpci",
+        "Lookups": "Iskanje",
+        "Apply on record changes": "Uporabi na spremenjenih zapisih",
+        "Created By": "Ustvaril",
+        "Last Updated At": "Nazadnje posodobljeno ob",
+        "Apply to new records": "Uporabi na novih zapisih",
+        "Timestamp": "Časovni žig",
+        "no reference column": "ni referenčnega stolpca",
+        "Detect Duplicates in...": "Zaznaj dvojnike v ...",
+        "UUID": "UUID",
+        "No reference columns.": "Ni referenčnih stolpcev.",
+        "Duplicate in {{- label}}": "Dvojnik v {{- label}}",
+        "Search columns": "Preišči stolpce",
+        "Adding UUID column": "Dodajanje UUID stolpca",
+        "Adding duplicates column": "Dodajanje podvojenega stolpca"
     },
     "HomeLeftPane": {
         "Trash": "Koš",
@@ -995,7 +1015,8 @@
         "Toggle": "Preklopi",
         "Choice List": "Izbirni seznam",
         "Any": "Katerikoli",
-        "DateTime": "Datum čas"
+        "DateTime": "Datum čas",
+        "Search columns": "Iskalni stolpci"
     },
     "errorPages": {
         "Something went wrong": "Nekaj je šlo narobe",

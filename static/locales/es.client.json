@@ -370,7 +370,15 @@
         "Last Updated At": "Última actualización en",
         "Apply to new records": "Aplicar a los nuevos registros",
         "Timestamp": "Marca temporal",
-        "no reference column": "Sin columna de referencia"
+        "no reference column": "Sin columna de referencia",
+        "Shortcuts": "Atajos",
+        "Detect Duplicates in...": "Detectar duplicados en...",
+        "UUID": "UUID",
+        "No reference columns.": "Sin columnas de referencia.",
+        "Duplicate in {{- label}}": "Duplicado en {{- label}}",
+        "Search columns": "Buscar columnas",
+        "Adding UUID column": "Añadiendo una columna UUID",
+        "Adding duplicates column": "Añadiendo la columna de duplicados"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", o encontrar un experto a través de nuestro",

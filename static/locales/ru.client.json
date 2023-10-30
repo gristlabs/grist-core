@@ -548,7 +548,15 @@
         "Created By": "Создатель",
         "Last Updated At": "Последнее обновление в",
         "Apply to new records": "Применять к новым записям",
-        "no reference column": "нет ссылочного столбца"
+        "no reference column": "нет ссылочного столбца",
+        "Detect Duplicates in...": "Обнаружение дубликатов в...",
+        "UUID": "UUID",
+        "No reference columns.": "Нет ссылочных столбцов.",
+        "Duplicate in {{- label}}": "Дублирование в {{- label}}",
+        "Search columns": "Поисковые столбцы",
+        "Timestamp": "Метка времени",
+        "Adding UUID column": "Добавление столбца UUID",
+        "Adding duplicates column": "Добавление столбца дубликатов"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
