@@ -944,7 +944,8 @@
         "Mixed types": "Mixed types",
         "Revert field settings for {{colId}} to common": "Revert field settings for {{colId}} to common",
         "Save field settings for {{colId}} as common": "Save field settings for {{colId}} as common",
-        "Use separate field settings for {{colId}}": "Use separate field settings for {{colId}}"
+        "Use separate field settings for {{colId}}": "Use separate field settings for {{colId}}",
+        "Changing column type": "Changing column type"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "It should be impossible to save a plain data value into a formula column",
@@ -1051,7 +1052,10 @@
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Can't find the right columns? Click 'Change Widget' to select the table with events data.",
         "To configure your calendar, select columns for start": {
             "end dates and event titles. Note each column's type.": "To configure your calendar, select columns for start/end dates and event titles. Note each column's type."
-        }
+        },
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.",
+        "Lookups return data from related tables.": "Lookups return data from related tables.",
+        "Use reference columns to relate data in different tables.": "Use reference columns to relate data in different tables."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
