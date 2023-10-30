@@ -267,7 +267,7 @@ export function getWidgetsInPlugins(gristServer: GristServer,
         gristServer.getTag() + '/widgets/' + plugin.id + '/';
     places.push({
       urlBase,
-      dir: plugin.path,
+      dir: path.resolve(plugin.path, path.dirname(components.widgets)),
       file: path.join(plugin.path, components.widgets),
       name: plugin.manifest.name || plugin.id,
       pluginId: plugin.id,
