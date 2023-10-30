@@ -100,9 +100,13 @@ export class TypeTransform extends ColumnTransform {
     const gristHelper_TransformRef = newColInfos[1].colRef;
     this.transformColumn = docModel.columns.getRowModel(gristHelper_TransformRef);
     this._convertColumn = docModel.columns.getRowModel(gristHelper_ConvertedRef);
-    const colInfo = await TypeConversion.prepTransformColInfo(
-      docModel, this.origColumn,
-      this.origDisplayCol, toType, this._convertColumn.colId.peek());
+    const colInfo = await TypeConversion.prepTransformColInfo({
+      docModel,
+      origCol: this.origColumn,
+      origDisplayCol: this.origDisplayCol,
+      toTypeMaybeFull: toType,
+      convertedRef: this._convertColumn.colId.peek()
+    });
     // NOTE: We could add rules with AddColumn action, but there are some optimizations that converts array values.
     const rules = colInfo.rules;
     delete (colInfo as any).rules;
@@ -165,9 +169,13 @@ export class TypeTransform extends ColumnTransform {
    */
   public async setType(toType: string) {
     const docModel = this.gristDoc.docModel;
-    const colInfo = await TypeConversion.prepTransformColInfo(
-      docModel, this.origColumn, this.origDisplayCol,
-      toType, this._convertColumn.colId.peek());
+    const colInfo = await TypeConversion.prepTransformColInfo({
+      docModel,
+      origCol: this.origColumn,
+      origDisplayCol: this.origDisplayCol,
+      toTypeMaybeFull: toType,
+      convertedRef: this._convertColumn.colId.peek()
+    });
     const tcol = this.transformColumn;
     await tcol.updateColValues(colInfo as any);
   }

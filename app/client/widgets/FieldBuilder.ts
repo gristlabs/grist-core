@@ -2,7 +2,7 @@ import { ColumnTransform } from 'app/client/components/ColumnTransform';
 import { Cursor } from 'app/client/components/Cursor';
 import { FormulaTransform } from 'app/client/components/FormulaTransform';
 import { GristDoc } from 'app/client/components/GristDoc';
-import { addColTypeSuffix } from 'app/client/components/TypeConversion';
+import { addColTypeSuffix, guessWidgetOptionsSync } from 'app/client/components/TypeConversion';
 import { TypeTransform } from 'app/client/components/TypeTransform';
 import { FloatingEditor } from 'app/client/widgets/FloatingEditor';
 import { UnsavedChange } from 'app/client/components/UnsavedChanges';
@@ -36,8 +36,9 @@ import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
 import * as gristTypes from 'app/common/gristTypes';
 import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
 import { CellValue } from 'app/plugin/GristData';
-import { Computed, Disposable, fromKo, dom as grainjsDom,
-         makeTestId, MultiHolder, Observable, styled, toKo } from 'grainjs';
+import { bundleChanges, Computed, Disposable, fromKo,
+         dom as grainjsDom, makeTestId, MultiHolder, Observable, styled, toKo } from 'grainjs';
+import isEqual from 'lodash/isEqual';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
 
@@ -160,9 +161,9 @@ export class FieldBuilder extends Disposable {
       write: val => {
         const type = this.field.column().type();
         if (type.startsWith('Ref:')) {
-          void this._setType(`Ref:${val}`);
+          this._setType(`Ref:${val}`);
         } else {
-          void this._setType(`RefList:${val}`);
+          this._setType(`RefList:${val}`);
         }
       }
     }));
@@ -331,28 +332,57 @@ export class FieldBuilder extends Disposable {
   }
 
   // Helper function to set the column type to newType.
-  public _setType(newType: string): Promise<unknown>|undefined {
+  public _setType(newType: string): void {
+    // If the original column is a formula, we won't be showing any transform UI, so we can
+    // just set the type directly. We test original column as this field might be in the middle
+    // of transformation and temporary be connected to a helper column (but formula columns are
+    // never transformed using UI).
     if (this.origColumn.isFormula()) {
       // Do not type transform a new/empty column or a formula column. Just make a best guess for
       // the full type, and set it. If multiple columns are selected (and all are formulas/empty),
       // then we will set the type for all of them using full type guessed from the first column.
-      const column = this.field.column();
+      const column = this.field.column(); // same as this.origColumn.
       const calculatedType = addColTypeSuffix(newType, column, this._docModel);
+      const fields = this.field.viewSection.peek().selectedFields.peek();
       // If we selected multiple empty/formula columns, make the change for all of them.
-      if (this.field.viewSection.peek().selectedFields.peek().length > 1 &&
-          ['formula', 'empty'].indexOf(this.field.viewSection.peek().columnsBehavior.peek())) {
-        return this.gristDoc.docData.bundleActions(t("Changing multiple column types"), () =>
+      if (
+        fields.length > 1 &&
+        fields.every(f => f.column.peek().isFormula() || f.column.peek().isEmpty())
+      ) {
+        this.gristDoc.docData.bundleActions(t("Changing multiple column types"), () =>
           Promise.all(this.field.viewSection.peek().selectedFields.peek().map(f =>
             f.column.peek().type.setAndSave(calculatedType)
         ))).catch(reportError);
+      } else if (column.pureType() === 'Any') {
+        // If this is Any column, guess the final options.
+        const guessedOptions = guessWidgetOptionsSync({
+          docModel: this._docModel,
+          origCol: this.origColumn,
+          toTypeMaybeFull: newType,
+        });
+        const existingOptions = column.widgetOptionsJson.peek();
+        const widgetOptions = JSON.stringify({...existingOptions, ...guessedOptions});
+        bundleChanges(() => {
+          this.gristDoc.docData.bundleActions(t("Changing column type"), () =>
+            Promise.all([
+              // This order is better for any other UI modifications, as first we are updating options
+              // and then saving type.
+              !isEqual(existingOptions, guessedOptions)
+                ? column.widgetOptions.setAndSave(widgetOptions)
+                : Promise.resolve(),
+                column.type.setAndSave(calculatedType),
+            ])
+          ).catch(reportError);
+        });
+      } else {
+        column.type.setAndSave(calculatedType).catch(reportError);
       }
-      column.type.setAndSave(calculatedType).catch(reportError);
     } else if (!this.columnTransform) {
       this.columnTransform = TypeTransform.create(null, this.gristDoc, this);
-      return this.columnTransform.prepare(newType);
+      this.columnTransform.prepare(newType).catch(reportError);
     } else {
       if (this.columnTransform instanceof TypeTransform) {
-        return this.columnTransform.setType(newType);
+        this.columnTransform.setType(newType).catch(reportError);
       }
     }
   }

@@ -12,6 +12,7 @@ import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
 import * as PluginApi from 'app/plugin/grist-plugin-api';
 
+import {CommandName} from 'app/client/components/commandList';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
@@ -3411,6 +3412,21 @@ class Clipboard implements IClipboard {
     const menuItemName = action.charAt(0).toUpperCase() + action.slice(1);
     await driver.findContent('.grist-floating-menu li', menuItemName).click();
   }
+}
+
+/**
+ * Runs a Grist command in the browser window.
+ */
+export async function sendCommand(name: CommandName) {
+  await driver.executeAsyncScript((name: any, done: any) => {
+    const result = (window as any).gristApp.allCommands[name].run();
+    if (result?.finally) {
+      result.finally(done);
+    } else {
+      done();
+    }
+  }, name);
+  await waitForServer();
 }
 
 

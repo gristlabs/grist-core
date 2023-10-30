@@ -17,14 +17,15 @@ import {dateTimeWidgetOptions, guessDateFormat, timeFormatOptions} from 'app/com
 import {TableData} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 
-interface ColInfo {
+interface PrepColInfo {
   type: string;
   isFormula: boolean;
-  formula: string;
+  formula?: string;
   visibleCol: number;
   widgetOptions?: string;
   rules: gristTypes.RefListValue
 }
+
 
 /**
  * Returns the suggested full type for `column` given a desired pure type to convert it to.
@@ -85,8 +86,14 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
 // ColInfo to use for the transform column. Note that isFormula will be set to true, and formula
 // will be set to the expression to compute the new values from the old ones.
 // @param toTypeMaybeFull: Type to convert the column to, either full ('Ref:Foo') or pure ('Ref').
-export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRec, origDisplayCol: ColumnRec,
-                                           toTypeMaybeFull: string, convertedRef: string): Promise<ColInfo> {
+export async function prepTransformColInfo(options: {
+  docModel: DocModel;
+  origCol: ColumnRec;
+  origDisplayCol: ColumnRec;
+  toTypeMaybeFull: string;
+  convertedRef?: string
+}): Promise<PrepColInfo> {
+  const {docModel, origCol, origDisplayCol, toTypeMaybeFull, convertedRef} = options;
   const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
   const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
 
@@ -115,7 +122,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     }
   }
 
-  const colInfo: ColInfo = {
+  const colInfo: PrepColInfo = {
     type: addColTypeSuffix(toTypeMaybeFull, origCol, docModel),
     isFormula: true,
     visibleCol: 0,
@@ -123,6 +130,71 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
     rules: origCol.rules(),
   };
 
+  switch (toType) {
+    case 'Ref':
+    case 'RefList':
+    {
+      // Set suggested destination table and visible column.
+      // Undefined if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
+      const optTableId = gutil.removePrefix(toTypeMaybeFull, `${toType}:`) || undefined;
+
+      let suggestedColRef: number;
+      let suggestedTableId: string;
+      const origColTypeInfo = gristTypes.extractInfoFromColType(origCol.type.peek());
+      if (!optTableId && (origColTypeInfo.type === "Ref" || origColTypeInfo.type === "RefList")) {
+        // When converting between Ref and Reflist, initially suggest the same table and visible column.
+        // When converting, if the table is the same, it's a special case.
+        // The visible column will not affect conversion.
+        // It will simply wrap the reference (row ID) in a list or extract the one element of a reference list.
+        suggestedColRef = origCol.visibleCol.peek();
+        suggestedTableId = origColTypeInfo.tableId;
+      } else {
+        // Finds a reference suggestion column and sets it as the current reference value.
+        const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
+        if (!columnData) { break; }
+        columnData.delete(gristTypes.getDefaultForType(origCol.type()));
+
+        // 'findColFromValues' function requires an array since it sends the values to the sandbox.
+        const matches: number[] = await docModel.docData.findColFromValues(Array.from(columnData), 2, optTableId);
+        suggestedColRef = matches.find(match => match !== origCol.getRowId())!;
+        if (!suggestedColRef) { break; }
+        const suggestedCol = docModel.columns.getRowModel(suggestedColRef);
+        suggestedTableId = suggestedCol.table().tableId();
+        if (optTableId && suggestedTableId !== optTableId) {
+          console.warn("Inappropriate column received from findColFromValues");
+          break;
+        }
+      }
+      colInfo.type = `${toType}:${suggestedTableId}`;
+      colInfo.visibleCol = suggestedColRef;
+      break;
+    }
+    default:
+      widgetOptions = guessWidgetOptionsSync({docModel, origCol, toTypeMaybeFull, widgetOptions});
+  }
+
+  if (Object.keys(widgetOptions).length) {
+    colInfo.widgetOptions = JSON.stringify(widgetOptions);
+  }
+  return colInfo;
+}
+
+/**
+ * Tries to guess widget options for a given column, based on the type it's being converted to.
+ * It works synchronously, so it can't reason about options that require async calls to the data-engine.
+ */
+export function guessWidgetOptionsSync(options: {
+  docModel: DocModel;
+  origCol: ColumnRec;
+  toTypeMaybeFull: string;
+  widgetOptions?: any;
+}): object {
+  const {docModel, origCol, toTypeMaybeFull} = options;
+  const toType = gristTypes.extractTypeFromColType(toTypeMaybeFull);
+  let widgetOptions = {...(options.widgetOptions ?? {})};
+  const tableData: TableData = docModel.docData.getTable(origCol.table().tableId())!;
+  const visibleCol = origCol.visibleColModel();
+  const sourceCol = visibleCol.getRowId() !== 0 ? visibleCol : origCol;
   switch (toType) {
     case 'Bool':
       // Most types use a TextBox as the default widget.
@@ -162,9 +234,9 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
         // trouble than desired behavior. For many choices, recommend using a Ref to helper table.
         const columnData = tableData.getDistinctValues(sourceCol.colId(), 100);
         if (columnData) {
-          const choices = Array.from(columnData, String).filter((choice) => {
-            return choice !== null && choice.trim() !== '';
-          });
+          const choices = Array.from(columnData).filter(isNonNullish)
+                                                .map(v => String(v).trim())
+                                                .filter(Boolean);
           widgetOptions = {...widgetOptions, choices};
         }
       }
@@ -181,7 +253,7 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
           value = String(decodeObject(value)).trim();
           const tags: unknown[] = (value.startsWith('[') && gutil.safeJsonParse(value, null)) || csvDecodeRow(value);
           for (const tag of tags) {
-            const choice = String(tag).trim();
+            const choice = !tag ? '' : String(tag).trim();
             if (choice === '') { continue; }
             choices.add(choice);
             if (choices.size > 100) { break; }    // Don't suggest excessively many choices.
@@ -191,51 +263,10 @@ export async function prepTransformColInfo(docModel: DocModel, origCol: ColumnRe
       }
       break;
     }
-    case 'Ref':
-    case 'RefList':
-    {
-      // Set suggested destination table and visible column.
-      // Undefined if toTypeMaybeFull is a pure type (e.g. converting to Ref before a table is chosen).
-      const optTableId = gutil.removePrefix(toTypeMaybeFull, `${toType}:`) || undefined;
-
-      let suggestedColRef: number;
-      let suggestedTableId: string;
-      const origColTypeInfo = gristTypes.extractInfoFromColType(origCol.type.peek());
-      if (!optTableId && (origColTypeInfo.type === "Ref" || origColTypeInfo.type === "RefList")) {
-        // When converting between Ref and Reflist, initially suggest the same table and visible column.
-        // When converting, if the table is the same, it's a special case.
-        // The visible column will not affect conversion.
-        // It will simply wrap the reference (row ID) in a list or extract the one element of a reference list.
-        suggestedColRef = origCol.visibleCol.peek();
-        suggestedTableId = origColTypeInfo.tableId;
-      } else {
-        // Finds a reference suggestion column and sets it as the current reference value.
-        const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
-        if (!columnData) { break; }
-        columnData.delete(gristTypes.getDefaultForType(origCol.type()));
-
-        // 'findColFromValues' function requires an array since it sends the values to the sandbox.
-        const matches: number[] = await docModel.docData.findColFromValues(Array.from(columnData), 2, optTableId);
-        suggestedColRef = matches.find(match => match !== origCol.getRowId())!;
-        if (!suggestedColRef) { break; }
-        const suggestedCol = docModel.columns.getRowModel(suggestedColRef);
-        suggestedTableId = suggestedCol.table().tableId();
-        if (optTableId && suggestedTableId !== optTableId) {
-          console.warn("Inappropriate column received from findColFromValues");
-          break;
-        }
-      }
-      colInfo.type = `${toType}:${suggestedTableId}`;
-      colInfo.visibleCol = suggestedColRef;
-      break;
-    }
   }
-
-  if (Object.keys(widgetOptions).length) {
-    colInfo.widgetOptions = JSON.stringify(widgetOptions);
-  }
-  return colInfo;
+  return widgetOptions;
 }
+
 
 // Given the transformCol, calls (if needed) a user action to update its displayCol.
 export async function setDisplayFormula(
