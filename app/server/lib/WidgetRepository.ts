@@ -209,8 +209,8 @@ class CachedWidgetRepository extends WidgetRepositoryImpl {
     return list;
   }
 
-  public testOverrideUrl(url: string) {
-    super.testOverrideUrl(url);
+  public testOverrideUrl(overrideUrl: string) {
+    super.testOverrideUrl(overrideUrl);
     this._cache.reset();
   }
 }
