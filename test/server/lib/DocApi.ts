@@ -852,7 +852,7 @@ function testDocApi() {
     const respWithTableId = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`);
     assert.equal(respWithTableId.status, 200);
     assert.deepEqual(respWithTableId.data, data);
-    const respWithTableRef = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`);
+    const respWithTableRef = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/1`);
     assert.equal(respWithTableRef.status, 200);
     assert.deepEqual(respWithTableRef.data, data);
 
