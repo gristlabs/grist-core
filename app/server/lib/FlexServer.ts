@@ -173,8 +173,6 @@ export class FlexServer implements GristServer {
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   private _getLoginSystem?: () => Promise<GristLoginSystem>;
-  // Called by ready() to allow requests to be served.
-  private _ready: () => void;
   // Set once ready() is called
   private _isReady: boolean = false;
 
@@ -182,20 +180,6 @@ export class FlexServer implements GristServer {
               public readonly options: FlexServerOptions = {}) {
     this.app = express();
     this.app.set('port', port);
-
-    // Before doing anything, we pause any request handling to wait
-    // for the server being entirely ready. The specific reason to do
-    // so is because, if we are serving plugins, and using an
-    // OS-assigned port to do so, we won't know the URL to use for
-    // plugins until quite late. But it seems a nice thing to
-    // guarantee in general.
-    const readyPromise = new Promise(resolve => {
-      this._ready = () => resolve(undefined);
-    });
-    this.app.use(async (_req, _res, next) => {
-      await readyPromise;
-      next();
-    });
 
     this.appRoot = getAppRoot();
     this.host = process.env.GRIST_HOST || "localhost";
@@ -452,6 +436,7 @@ export class FlexServer implements GristServer {
     // /status/hooks allows the tests to wait for them to be ready.
     // If db=1 query parameter is included, status will include the status of DB connection.
     // If redis=1 query parameter is included, status will include the status of the Redis connection.
+    // If ready=1 query parameter is included, status will include whether the server is fully ready.
     this.app.get('/status(/hooks)?', async (req, res) => {
       const checks = new Map<string, Promise<boolean>|boolean>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
@@ -473,6 +458,9 @@ export class FlexServer implements GristServer {
       if (isParameterOn(req.query.redis)) {
         checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
       }
+      if (isParameterOn(req.query.ready)) {
+        checks.set('ready', this._isReady);
+      }
       let extra = '';
       let ok = true;
       // If we had any extra check, collect their status to report them.
@@ -490,6 +478,18 @@ export class FlexServer implements GristServer {
         this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
+    });
+  }
+
+  public denyRequestsIfNotReady() {
+    this.app.use((_req, res, next) => {
+      if (!this._isReady) {
+        // If ready() hasn't been called yet, don't continue, and
+        // give a clear error. This is to avoid exposing the service
+        // in a partially configured form.
+        return res.status(503).json({error: 'Service unavailable during start up'});
+      }
+      next();
     });
   }
 
@@ -1568,9 +1568,7 @@ export class FlexServer implements GristServer {
   }
 
   public ready() {
-    if (this._isReady) { return; }
     this._isReady = true;
-    this._ready();
   }
 
   public checkOptionCombinations() {

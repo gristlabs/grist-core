@@ -104,6 +104,7 @@ export async function main(port: number, serverTypes: ServerType[],
   }
 
   server.addHealthCheck();
+  server.denyRequestsIfNotReady();
 
   if (includeHome || includeStatic || includeApp) {
     server.setDirectory();
