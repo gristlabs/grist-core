@@ -163,6 +163,13 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
+function isDocInternalUrl(host: string) {
+  if (!process.env.APP_DOC_INTERNAL_URL) { return false; }
+  const internalUrl = new URL('/', process.env.APP_DOC_INTERNAL_URL);
+  const internalHostnameAndMaybePort = internalUrl.hostname + (internalUrl.port ? `:${internalUrl.port}` : '');
+  return internalHostnameAndMaybePort === host;
+}
+
 /**
  * Given host (optionally with port), baseDomain, and pluginUrl, determine whether to interpret host
  * as a custom domain, a native domain, or a plugin domain.
@@ -180,8 +187,10 @@ export function getHostType(host: string, options: {
 
   const hostname = host.split(":")[0];
   if (!options.baseDomain) { return 'native'; }
-  if (hostname !== 'localhost' && !hostname.endsWith(options.baseDomain)) { return 'custom'; }
-  return 'native';
+  if (hostname === 'localhost' || isDocInternalUrl(host) || hostname.endsWith(options.baseDomain)) {
+    return 'native';
+  }
+  return 'custom';
 }
 
 export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgUrlOptions): OrgUrlInfo {
