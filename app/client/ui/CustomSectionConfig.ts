@@ -551,10 +551,12 @@ export class CustomSectionConfig extends Disposable {
     // Options for the select-box (all widgets definitions and Custom URL)
     const options = Computed.create(holder, use => [
       {label: 'Custom URL', value: 'custom'},
-      ...(use(this._widgets) || []).map(w => ({
-        label: w.source?.name ? `${w.name} (${w.source.name})` : w.name,
-        value: (w.source?.pluginId || '') + ':' + w.widgetId,
-      })),
+      ...(use(this._widgets) || [])
+           .filter(w => w?.published !== false)
+           .map(w => ({
+             label: w.source?.name ? `${w.name} (${w.source.name})` : w.name,
+             value: (w.source?.pluginId || '') + ':' + w.widgetId,
+           })),
     ]);
     function buildPrompt(level: AccessLevel|null) {
       if (!level) {

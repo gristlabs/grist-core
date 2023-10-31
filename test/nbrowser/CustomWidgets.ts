@@ -734,146 +734,167 @@ describe('CustomWidgets', function () {
       oldEnv = new EnvironmentSnapshot();
     });
 
-    after(async function() {
+    afterEach(async function() {
       oldEnv.restore();
       await server.restart();
+      await gu.reloadDoc();
     });
 
-    it('can add widgets via plugins', async function () {
-      // Double-check that using one external widget, we see
-      // just that widget listed.
-      widgets = [widget1];
-      await useManifest(manifestEndpoint);
-      await enableWidgetsAndShowPanel();
-      await toggle();
-      assert.deepEqual(await options(), [
-        CUSTOM_URL, widget1.name,
-      ]);
+    for (const variant of ['flat', 'nested'] as const) {
+      it(`can add widgets via plugins (${variant} layout)`, async function () {
+        // Double-check that using one external widget, we see
+        // just that widget listed.
+        widgets = [widget1];
+        await useManifest(manifestEndpoint);
+        await enableWidgetsAndShowPanel();
+        await toggle();
+        assert.deepEqual(await options(), [
+          CUSTOM_URL, widget1.name,
+        ]);
 
-      // Get a temporary directory that will be cleaned up,
-      // and populated it as follows:
-      //   plugins/
-      //     my-widgets/
-      //       manifest.yml   # a plugin manifest, listing widgets.json
-      //       widgets.json   # a widget set manifest, grist-widget style
-      //       p1.html        # one of the widgets in widgets.json
-      //       p2.html        # another of the widgets in widgets.json
-      //       grist-plugin-api.js   # a dummy api file, to check it is overridden
-      const dir = await createTmpDir();
-      const pluginDir = path.join(dir, 'plugins', 'my-widgets');
-      await fse.mkdirp(pluginDir);
+        // Get a temporary directory that will be cleaned up,
+        // and populated it as follows ('flat' variant)
+        //   plugins/
+        //     my-widgets/
+        //       manifest.yml   # a plugin manifest, listing widgets.json
+        //       widgets.json   # a widget set manifest, grist-widget style
+        //       p1.html        # one of the widgets in widgets.json
+        //       p2.html        # another of the widgets in widgets.json
+        //       grist-plugin-api.js   # a dummy api file, to check it is overridden
+        // In 'nested' variant, widgets.json and the files it refers to are in
+        // a subdirectory.
+        const dir = await createTmpDir();
+        const pluginDir = path.join(dir, 'plugins', 'my-widgets');
+        const widgetDir = variant === 'nested' ? path.join(pluginDir, 'nested') : pluginDir;
+        await fse.mkdirp(pluginDir);
+        await fse.mkdirp(widgetDir);
 
-      // A plugin, with some widgets in it.
-      await fse.writeFile(path.join(pluginDir, 'manifest.yml'), `
-        name: My Widgets
-        components:
-          widgets: widgets.json
-      `);
+        // A plugin, with some widgets in it.
+        await fse.writeFile(
+          path.join(pluginDir, 'manifest.yml'),
+          `name: My Widgets\n` +
+          `components:\n` +
+          `  widgets: ${variant === 'nested' ? 'nested/' : ''}widgets.json\n`
+        );
 
-      // A list of a pair of custom widgets, with the widget
-      // source in the same directory.
-      await fse.writeFile(
-        path.join(pluginDir, 'widgets.json'),
-        JSON.stringify([
-          {
-            widgetId: 'p1',
-            name: 'P1',
-            url: './p1.html',
-          },
-          {
-            widgetId: 'p2',
-            name: 'P2',
-            url: './p2.html',
-          },
-        ]),
-      );
+        // A list of a pair of custom widgets, with the widget
+        // source in the same directory.
+        await fse.writeFile(
+          path.join(widgetDir, 'widgets.json'),
+          JSON.stringify([
+            {
+              widgetId: 'p1',
+              name: 'P1',
+              url: './p1.html',
+            },
+            {
+              widgetId: 'p2',
+              name: 'P2',
+              url: './p2.html',
+            },
+            {
+              widgetId: 'p3',
+              name: 'P3',
+              url: './p3.html',
+              published: false,
+            },
+          ]),
+        );
 
-      // The first widget - just contains the text P1.
-      await fse.writeFile(
-        path.join(pluginDir, 'p1.html'),
-        '<html><body>P1</body></html>',
-      );
+        // The first widget - just contains the text P1.
+        await fse.writeFile(
+          path.join(widgetDir, 'p1.html'),
+          '<html><body>P1</body></html>',
+        );
 
-      // The second widget. This contains the text P2
-      // if grist is defined after loading grist-plugin-api.js
-      // (but the js bundled with the widget just throws an
-      // alert).
-      await fse.writeFile(
-        path.join(pluginDir, 'p2.html'),
-        `
-        <html>
-        <script src="./grist-plugin-api.js"></script>
-        <body>
+        // The second widget. This contains the text P2
+        // if grist is defined after loading grist-plugin-api.js
+        // (but the js bundled with the widget just throws an
+        // alert).
+        await fse.writeFile(
+          path.join(widgetDir, 'p2.html'),
+          `
+          <html>
+          <head><script src="./grist-plugin-api.js"></script></head>
+          <body>
           <div id="readout"></div>
           <script>
-             if (typeof grist !== 'undefined') {
-               document.getElementById('readout').innerText = 'P2';
-             }
+            if (typeof grist !== 'undefined') {
+              document.getElementById('readout').innerText = 'P2';
+            }
           </script>
-        </body>
-        </html>
-        `
-      );
-      // A dummy grist-plugin-api.js - hopefully the actual
-      // js for the current version of Grist will be served in
-      // its place.
-      await fse.writeFile(
-        path.join(pluginDir, 'grist-plugin-api.js'),
-        'alert("Error: built in api version used");',
-      );
+          </body>
+          </html>
+          `
+        );
 
-      // Restart server and reload doc now plugins are in place.
-      process.env.GRIST_USER_ROOT = dir;
-      await server.restart();
-      await gu.reloadDoc();
+        // The third widget - just contains the text P3.
+        await fse.writeFile(
+          path.join(widgetDir, 'p3.html'),
+          '<html><body>P3</body></html>',
+        );
 
-      // Continue using one external widget.
-      await useManifest(manifestEndpoint);
-      await enableWidgetsAndShowPanel();
+        // A dummy grist-plugin-api.js - hopefully the actual
+        // js for the current version of Grist will be served in
+        // its place.
+        await fse.writeFile(
+          path.join(widgetDir, 'grist-plugin-api.js'),
+          'alert("Error: built in api version used");',
+        );
 
-      // Check we see one external widget and two bundled ones.
-      await toggle();
-      assert.deepEqual(await options(), [
-        CUSTOM_URL, widget1.name, 'P1 (My Widgets)', 'P2 (My Widgets)',
-      ]);
+        // Restart server and reload doc now plugins are in place.
+        process.env.GRIST_USER_ROOT = dir;
+        await server.restart();
+        await gu.reloadDoc();
 
-      // Prepare to check content of widgets.
-      async function getWidgetText(): Promise<string> {
-        return gu.doInIframe(await getCustomWidgetFrame(), () => {
-          return driver.executeScript(
-            () => document.body.innerText
-          );
+        // Continue using one external widget.
+        await useManifest(manifestEndpoint);
+        await enableWidgetsAndShowPanel();
+
+        // Check we see one external widget and two bundled ones.
+        await toggle();
+        assert.deepEqual(await options(), [
+          CUSTOM_URL, widget1.name, 'P1 (My Widgets)', 'P2 (My Widgets)',
+        ]);
+
+        // Prepare to check content of widgets.
+        async function getWidgetText(): Promise<string> {
+          return gu.doInIframe(await getCustomWidgetFrame(), () => {
+            return driver.executeScript(
+              () => document.body.innerText
+            );
+          });
+        }
+
+        // Check built-in P1 works as expected.
+        await select(/P1/);
+        assert.equal(await current(), 'P1 (My Widgets)');
+        await gu.waitToPass(async () => {
+          assert.equal(await getWidgetText(), 'P1');
         });
-      }
 
-      // Check built-in P1 works as expected.
-      await select(/P1/);
-      assert.equal(await current(), 'P1 (My Widgets)');
-      await gu.waitToPass(async () => {
-        assert.equal(await getWidgetText(), 'P1');
-      });
+        // Check external W1 works as expected.
+        await toggle();
+        await select(/W1/);
+        assert.equal(await current(), 'W1');
+        await gu.waitToPass(async () => {
+          assert.equal(await getWidgetText(), 'W1');
+        });
 
-      // Check external W1 works as expected.
-      await toggle();
-      await select(/W1/);
-      assert.equal(await current(), 'W1');
-      await gu.waitToPass(async () => {
-        assert.equal(await getWidgetText(), 'W1');
-      });
+        // Check build-in P2 works as expected.
+        await toggle();
+        await select(/P2/);
+        assert.equal(await current(), 'P2 (My Widgets)');
+        await gu.waitToPass(async () => {
+          assert.equal(await getWidgetText(), 'P2');
+        });
 
-      // Check build-in P2 works as expected.
-      await toggle();
-      await select(/P2/);
-      assert.equal(await current(), 'P2 (My Widgets)');
-      await gu.waitToPass(async () => {
-        assert.equal(await getWidgetText(), 'P2');
+        // Make sure widget setting is sticky.
+        await gu.reloadDoc();
+        await gu.waitToPass(async () => {
+          assert.equal(await getWidgetText(), 'P2');
+        });
       });
-
-      // Make sure widget setting is sticky.
-      await gu.reloadDoc();
-      await gu.waitToPass(async () => {
-        assert.equal(await getWidgetText(), 'P2');
-      });
-    });
+    }
   });
 });
