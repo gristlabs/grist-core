@@ -406,6 +406,23 @@ export class DocWorkerApi {
       })
     );
 
+    // Get the specified table information of specified document in recordish format
+    this._app.get('/api/docs/:docId/tables/:tableId', canView,
+      withDoc(async (activeDoc, req, res) => {
+        const tableId = await getRealTableId(req.params.tableId, {activeDoc, req});
+        const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
+        const table = records.find((record) => record.fields.tableId === tableId);
+        if (!table) {
+          throw new ApiError(`Table not found "${tableId}"`, 404);
+        }
+        res.json({id: table.fields.tableId,
+          fields: {
+            ..._.omit(table.fields, "tableId"),
+            tableRef: table.id,
+          }});
+      })
+    );
+
     // The upload should be a multipart post with an 'upload' field containing one or more files.
     // Returns the list of rowIds for the rows created in the _grist_Attachments table.
     this._app.post('/api/docs/:docId/attachments', canEdit, withDoc(async (activeDoc, req, res) => {

@@ -838,6 +838,26 @@ function testDocApi() {
     });
   });
 
+  it('GET /docs/{did}/tables/{tid} retrieve specific table information',  async function () {
+    const data = {
+      "id": "Table1",
+      "fields": {
+        "rawViewSectionRef": 2,
+        "primaryViewId": 1,
+        "onDemand": false,
+        "summarySourceTable": 0,
+        "tableRef": 1
+      }
+    };
+    const respWithTableId = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`);
+    assert.equal(respWithTableId.status, 200);
+    assert.deepEqual(respWithTableId.data, data);
+    const respWithTableRef = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`);
+    assert.equal(respWithTableRef.status, 200);
+    assert.deepEqual(respWithTableRef.data, data);
+
+  });
+
   it("GET/POST/PATCH /docs/{did}/tables and /columns", async function () {
     // POST /tables: Create new tables
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables`, {
