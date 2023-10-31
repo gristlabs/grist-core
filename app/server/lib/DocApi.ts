@@ -844,6 +844,10 @@ export class DocWorkerApi {
         const webhookId = req.params.webhookId;
         const {fields, trigger, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
 
+        if (fields.enabled === false) {
+          await activeDoc.triggers.clearSingleWebhookQueue(webhookId);
+        }
+
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
         await this._dbManager.connection.transaction(async manager => {

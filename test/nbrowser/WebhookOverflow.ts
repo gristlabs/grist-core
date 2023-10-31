@@ -13,11 +13,12 @@ describe('WebhookOverflow', function () {
   let oldEnv: EnvironmentSnapshot;
   let doc: DocCreationInfo;
   let docApi: DocAPI;
+  gu.bigScreen();
 
   before(async function () {
     oldEnv = new EnvironmentSnapshot();
     process.env.ALLOWED_WEBHOOK_DOMAINS = '*';
-    process.env.GRIST_MAX_QUEUE_SIZE = '2';
+    process.env.GRIST_MAX_QUEUE_SIZE = '4';
     await server.restart();
     session = await gu.session().teamSite.login();
     const api = session.createHomeApi();
@@ -25,14 +26,16 @@ describe('WebhookOverflow', function () {
     docApi = api.getDocAPI(doc.id);
     await api.applyUserActions(doc.id, [
       ['AddTable', 'Table2', [{id: 'A'}, {id: 'B'}, {id: 'C'}, {id: 'D'}, {id: 'E'}]],
+      ['AddRecord', 'Table2', null, {}],
     ]);
     const webhookDetails: WebhookFields = {
       url: 'https://localhost/WrongWebhook',
-      eventTypes: ["add", "update"],
+      eventTypes: ["update"],
       enabled: true,
       name: 'test webhook',
       tableId: 'Table2',
     };
+    await docApi.addWebhook(webhookDetails);
     await docApi.addWebhook(webhookDetails);
   });
 
@@ -49,28 +52,57 @@ describe('WebhookOverflow', function () {
     await driver.sendKeys(...keys);
   }
 
-  it('should show a message when overflowed', async function () {
+  async function getNumWaiting() {
+    const cells = await gu.getVisibleDetailCells({col: 'Status', rowNums: [1, 2]});
+    return cells.map((cell) => {
+      const status = JSON.parse(cell.replace(/\n/g, ''));
+      return status.numWaiting;
+    });
+  }
+
+  async function overflowWebhook() {
     await gu.openPage('Table2');
     await gu.getCell('A', 1).click();
-    await gu.enterCell('123');
+    await gu.enterCell(new Date().toString());
     await gu.getCell('B', 1).click();
-    await enterCellWithoutWaitingOnServer('124');
+    await enterCellWithoutWaitingOnServer(new Date().toString());
     await gu.waitToPass(async () => {
       const toast = await gu.getToasts();
       assert.include(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
         ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
     }, 4000);
-  });
+  }
 
-  it('message should disappear after clearing queue', async function () {
-    await openWebhookPageWithoutWaitForServer();
-    await driver.findContent('button', /Clear Queue/).click();
+  async function overflowResolved() {
     await gu.waitForServer();
     await gu.waitToPass(async () => {
       const toast = await gu.getToasts();
       assert.notInclude(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
         ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
     }, 12500);
+  }
+
+  it('should show a message when overflowed', async function () {
+    await overflowWebhook();
+  });
+
+  it('message should disappear after clearing queue', async function () {
+    await openWebhookPageWithoutWaitForServer();
+    assert.deepEqual(await getNumWaiting(), [2, 2]);
+    await driver.findContent('button', /Clear Queue/).click();
+    await overflowResolved();
+    assert.deepEqual(await getNumWaiting(), [0, 0]);
+  });
+
+  it('should clear a single webhook queue when that webhook is disabled', async function () {
+    await overflowWebhook();
+    await openWebhookPageWithoutWaitForServer();
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await getNumWaiting(), [2, 2]);
+    }, 4000);
+    await gu.getDetailCell({col: 'Enabled', rowNum: 1}).click();
+    await overflowResolved();
+    assert.deepEqual(await getNumWaiting(), [0, 2]);
   });
 });
 

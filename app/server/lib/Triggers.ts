@@ -209,7 +209,7 @@ export class DocTriggers {
 
         // Fetch the modified records in full so they can be sent in webhooks
         // They will also be used to check if the record is ready
-        const tableDataAction = this._activeDoc.fetchQuery(docSession, {tableId, filters})
+        const tableDataAction = this._activeDoc.fetchQuery(docSession, {tableId, filters}, true)
           .then(tableFetchResult => tableFetchResult.tableData);
         tasks.push({tableDelta, triggers, tableDataAction, recordDeltas});
       }
@@ -242,7 +242,7 @@ export class DocTriggers {
     // Prevent further document activity while the queue is too full.
     while (this._drainingQueue && !this._shuttingDown) {
       const sendNotificationPromise =  this._activeDoc.sendWebhookNotification(WebhookMessageType.Overflow);
-      const delayPromise = delayAbort(5000, this._loopAbort?.signal);
+      const delayPromise = delayAbort(5000, this._loopAbort?.signal).catch(() => {});
       await Promise.all([sendNotificationPromise, delayPromise]);
     }
 
@@ -327,6 +327,7 @@ export class DocTriggers {
   }
 
   public async clearWebhookQueue() {
+    this._log("Webhook being queue cleared");
     // Make sure we are after start and in sync with redis.
     if (this._getRedisQueuePromise) {
       await this._getRedisQueuePromise;
@@ -342,21 +343,20 @@ export class DocTriggers {
       await this._redisClient.multi().del(this._redisQueueKey).execAsync();
     }
     await this._stats.clear();
+    this._log("Webhook queue cleared", {numRemoved: removed});
   }
 
   public async clearSingleWebhookQueue(webhookId: string) {
+    this._log("Single webhook queue being cleared", {webhookId});
     // Make sure we are after start and in sync with redis.
     if (this._getRedisQueuePromise) {
       await this._getRedisQueuePromise;
     }
     // Clear in-memory queue for given webhook key.
-    let removed = 0;
-    for(let i=0; i< this._webHookEventQueue.length; i++){
-      if(this._webHookEventQueue[i].id == webhookId){
-        this._webHookEventQueue.splice(i, 1);
-        removed++;
-      }
-    }
+    const lengthBefore = this._webHookEventQueue.length;
+    this._webHookEventQueue = this._webHookEventQueue.filter(e => e.id !== webhookId);
+    const removed = lengthBefore - this._webHookEventQueue.length;
+
     // Notify the loop that it should restart.
     this._loopAbort?.abort();
     // If we have backup in redis, clear it also.
@@ -367,11 +367,14 @@ export class DocTriggers {
       multi.del(this._redisQueueKey);
 
       // Re-add all the remaining events to the queue.
-      const strings = this._webHookEventQueue.map(e => JSON.stringify(e));
-      multi.rpush(this._redisQueueKey, ...strings);
+      if (this._webHookEventQueue.length) {
+        const strings = this._webHookEventQueue.map(e => JSON.stringify(e));
+        multi.rpush(this._redisQueueKey, ...strings);
+      }
       await multi.execAsync();
     }
     await this._stats.clear();
+    this._log("Single webhook queue cleared", {numRemoved: removed, webhookId});
   }
 
   // Converts a table to tableId by looking it up in _grist_Tables.
