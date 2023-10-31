@@ -960,7 +960,8 @@
         "Apply Formula to Data": "Aplicar Fórmula a Datos",
         "CELL FORMAT": "FORMATO DE CELDA",
         "Changing multiple column types": "Cambiar varios tipos de columna",
-        "Mixed format": "Formato mixto"
+        "Mixed format": "Formato mixto",
+        "Changing column type": "Cambiar el tipo de columna"
     },
     "CurrencyPicker": {
         "Invalid currency": "Moneda inválida"
@@ -1105,7 +1106,9 @@
             "end dates and event titles. Note each column's type.": "Para configurar tu calendario, selecciona las columnas para las fechas de inicio y fin y los títulos de los eventos. Ten en cuenta el tipo de cada columna."
         },
         "Calendar": "Calendario",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "¿No encuentras las columnas adecuadas? Haz clic en \"Cambiar widget\" para seleccionar la tabla con los datos de los eventos."
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "¿No encuentras las columnas adecuadas? Haz clic en \"Cambiar widget\" para seleccionar la tabla con los datos de los eventos.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID es una cadena generada aleatoriamente que resulta útil para identificadores únicos y claves de los enlaces.",
+        "Lookups return data from related tables.": "Las búsquedas devuelven datos de tablas relacionadas."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
