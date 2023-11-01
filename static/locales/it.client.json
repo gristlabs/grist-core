@@ -239,7 +239,10 @@
         "There was an error: {{message}}": "Si è verificato un errore: {{message}}",
         "You are now signed out.": "Adesso sei scollegato.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Sei collegato come {{email}}. Puoi accedere con un account diverso, o chiedere l'accesso a un amministratore.",
-        "You do not have access to this organization's documents.": "Non hai accesso ai documenti di questa organizzazione."
+        "You do not have access to this organization's documents.": "Non hai accesso ai documenti di questa organizzazione.",
+        "Account deleted{{suffix}}": "Account eliminato {{suffix}}",
+        "Your account has been deleted.": "Il tuo account è stato cancellato.",
+        "Sign up": "Iscriviti"
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Notare che questo non copia i dati ma crea un'altra vista dagli stessi dati.",
@@ -306,7 +309,8 @@
         "DATA FROM TABLE": "DATI DALLA TABELLA",
         "Revert field settings for {{colId}} to common": "Ripristina le impostazioni dei campi per {{colId}} a quelli comuni",
         "Use separate field settings for {{colId}}": "Usa impostazioni dei campi separate per {{colId}}",
-        "Save field settings for {{colId}} as common": "Salva le impostazioni dei campi per {{colId}} come quelli comuni"
+        "Save field settings for {{colId}} as common": "Salva le impostazioni dei campi per {{colId}} come quelli comuni",
+        "Changing column type": "Cambio tipo colonna"
     },
     "FormulaEditor": {
         "Error in the cell": "Errore nella cella",
@@ -387,7 +391,8 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonna {{colId}} è stata successivamente rimossa nell'azione #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "La tabella {{tableId}} è stata successivamente rimossa nell'azione #{{actionNum}}",
         "Action Log failed to load": "Impossibile caricare il log delle azioni",
-        "This row was subsequently removed in action {{action.actionNum}}": "Questa riga è stata successivamente rimossa nell'azione {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Questa riga è stata successivamente rimossa nell'azione {{action.actionNum}}",
+        "All tables": "Tutte le tabelle"
     },
     "App": {
         "Memory Error": "Errore di memoria",
@@ -558,7 +563,9 @@
         "Add": "Aggiungi",
         "Enter Custom URL": "Inserisci URL personalizzata",
         "Learn more about custom widgets": "Scopri di più sui widget personalizzati",
-        "Select Custom Widget": "Seleziona un Widget personalizzato"
+        "Select Custom Widget": "Seleziona un Widget personalizzato",
+        "No {{columnType}} columns in table.": "Nessuna colonna {{columnType}} nella tabella.",
+        "Clear selection": "Deseleziona tutto"
     },
     "DataTables": {
         "Click to copy": "Clicca per copiare",
@@ -756,7 +763,27 @@
         "Sorted (#{{count}})_other": "Ordinati (#{{count}})",
         "Unfreeze {{count}} columns_other": "Sblocca {{count}} colonne",
         "Insert column to the left": "Inserisci colonna a sinistra",
-        "Insert column to the right": "Inserisci colonna a destra"
+        "Insert column to the right": "Inserisci colonna a destra",
+        "Detect Duplicates in...": "Rilevati duplicati in...",
+        "UUID": "UUID",
+        "Shortcuts": "Scorciatoie",
+        "Show hidden columns": "Mostra colonne nascoste",
+        "Created At": "Creato il",
+        "Authorship": "Autore",
+        "Last Updated By": "Ultimo aggiornamento da",
+        "Hidden Columns": "Colonne nascoste",
+        "Lookups": "Campi relativi",
+        "No reference columns.": "Non ci sono colonne referenziate.",
+        "Apply on record changes": "Applica quando il record è modificato",
+        "Duplicate in {{- label}}": "Duplicato in {{- label}}",
+        "Created By": "Creato da",
+        "Last Updated At": "Ultimo aggiornamento il",
+        "Apply to new records": "Applica ai nuovi record",
+        "Search columns": "Cerca colonne",
+        "Timestamp": "Data e ora",
+        "no reference column": "nessuna colonna referenziata",
+        "Adding UUID column": "Aggiungere colonna UUID",
+        "Adding duplicates column": "Aggiungere colonna duplicati"
     },
     "GristDoc": {
         "Import from file": "Importa da file",
@@ -928,7 +955,8 @@
         "Choice List": "Scelta da lista",
         "Attachment": "Allegato",
         "Numeric": "Numerico",
-        "Choice": "Scelta"
+        "Choice": "Scelta",
+        "Search columns": "Cerca colonne"
     },
     "modals": {
         "Cancel": "Annulla",
@@ -1019,7 +1047,15 @@
         "Anchor Links": "Link interno",
         "Custom Widgets": "Widget personalizzati",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puoi scegliere uno dei nostri widget pronti all'uso, o inserirne uno fatto da te, immettendo la sua URL completa.",
-        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Per creare un link che porta l'utente a una cella specifica, fai clic su una riga e premi {{shortcut}}."
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Per creare un link che porta l'utente a una cella specifica, fai clic su una riga e premi {{shortcut}}.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID è una stringa generata automaticamente, uitle come identificatore univoco e chiave per i link.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Per configurare il calendario, seleziona le colonne per le date di inizio/fine, e i titoli degli eventi. Nota il tipo di ciascuna colonna."
+        },
+        "Calendar": "Calendario",
+        "Lookups return data from related tables.": "Un lookup restituisce dati dalle tabelle collegate.",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Non trovi la colonna giusta? Fai clic su \"Cambia widget\" per selezionare la tabella con i dati degli eventi.",
+        "Use reference columns to relate data in different tables.": "Usa colonne di riferimenti per collegare dati da altre tabelle."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
