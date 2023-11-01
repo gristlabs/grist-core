@@ -42,6 +42,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   assistantOpen: {
+    category: 'AIAssistant',
     description: 'Triggered when the AI Assistant is first opened.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'short',
@@ -69,6 +70,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   assistantSend: {
+    category: 'AIAssistant',
     description: 'Triggered when a message is sent to the AI Assistant.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'short',
@@ -112,7 +114,8 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   assistantReceive: {
-    description: 'Triggered when a message is received from the AI Assistant is received.',
+    category: 'AIAssistant',
+    description: 'Triggered when a message is received from the AI Assistant.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'short',
     metadataContracts: {
@@ -159,6 +162,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   assistantSave: {
+    category: 'AIAssistant',
     description: 'Triggered when changes in the expanded formula editor are saved after the AI Assistant ' +
       'was opened.',
     minimumTelemetryLevel: Level.full,
@@ -195,6 +199,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   assistantCancel: {
+    category: 'AIAssistant',
     description: 'Triggered when changes in the expanded formula editor are discarded after the AI Assistant ' +
       'was opened.',
     minimumTelemetryLevel: Level.full,
@@ -207,6 +212,10 @@ export const TelemetryContracts: TelemetryContracts = {
       conversationId: {
         description: 'A random identifier for the current conversation with the assistant.',
         dataType: 'string',
+      },
+      conversationLength: {
+        description: 'The number of messages sent and received since opening the AI Assistant.',
+        dataType: 'number',
       },
       context: {
         description: 'The type of assistant (e.g. "formula"), table id, and column id.',
@@ -222,7 +231,41 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  assistantApplySuggestion: {
+    category: 'AIAssistant',
+    description: 'Triggered when a suggested formula from one of the received messages was applied and saved.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      conversationId: {
+        description: 'A random identifier for the current conversation with the assistant.',
+        dataType: 'string',
+      },
+      conversationLength: {
+        description: 'The number of messages sent and received since opening the AI Assistant.',
+        dataType: 'number',
+      },
+      conversationHistoryLength: {
+        description: "The number of messages in the conversation's history. May be less than conversationLength "
+          + "if the conversation history was cleared in the same session.",
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   assistantClearConversation: {
+    category: 'AIAssistant',
     description: 'Triggered when a conversation in the AI Assistant is cleared.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'short',
@@ -250,6 +293,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   assistantClose: {
+    category: 'AIAssistant',
     description: 'Triggered when a formula is saved or discarded after the AI Assistant was opened.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -286,6 +330,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   beaconOpen: {
+    category: 'HelpCenter',
     description: 'Triggered when HelpScout Beacon is opened.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -301,6 +346,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   beaconArticleViewed: {
+    category: 'HelpCenter',
     description: 'Triggered when an article is opened in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -320,6 +366,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   beaconEmailSent: {
+    category: 'HelpCenter',
     description: 'Triggered when an email is sent in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -335,6 +382,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   beaconSearch: {
+    category: 'HelpCenter',
     description: 'Triggered when a search is made in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -806,7 +854,44 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  tutorialOpened: {
+    category: 'Tutorial',
+    description: 'Triggered when a tutorial is opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      tutorialForkIdDigest: {
+        description: 'A hash of the tutorial fork id.',
+        dataType: 'string',
+      },
+      tutorialTrunkIdDigest: {
+        description: 'A hash of the tutorial trunk id.',
+        dataType: 'string',
+      },
+      lastSlideIndex: {
+        description: 'The 0-based index of the last tutorial slide the user had open.',
+        dataType: 'number',
+      },
+      numSlides: {
+        description: 'The total number of slides in the tutorial.',
+        dataType: 'number',
+      },
+      percentComplete: {
+        description: 'Percentage of tutorial completion.',
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   tutorialProgressChanged: {
+    category: 'Tutorial',
     description: 'Triggered on changes to tutorial progress.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -842,6 +927,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   tutorialRestarted: {
+    category: 'Tutorial',
     description: 'Triggered when a tutorial is restarted.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -881,6 +967,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   watchedVideoTour: {
+    category: 'Welcome',
     description: 'Triggered when the video tour is closed.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -901,18 +988,173 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  welcomeQuestionsSubmitted: {
-    description: 'Triggered when the welcome questionnaire is submitted.',
+  answeredUseCaseQuestion: {
+    category: 'Welcome',
+    description: 'Triggered for each selected use case in the welcome questionnaire.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
-      useCases: {
-        description: 'The selected use cases.',
-        dataType: 'string[]',
-      },
-      useOther: {
-        description: 'The value of the Other use case.',
+      useCase: {
+        description: 'The selected use case. If "Other", the response is also included.',
         dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  clickedScheduleCoachingCall: {
+    category: 'Welcome',
+    description: 'Triggered when the link to schedule a coaching call is clicked.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  deletedAccount: {
+    category: 'SubscriptionPlan',
+    description: 'Triggered when an account is deleted.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+  },
+  createdSite: {
+    category: 'TeamSite',
+    description: 'Triggered when a site is created.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      siteId: {
+        description: 'The id of the site.',
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  deletedSite: {
+    category: 'TeamSite',
+    description: 'Triggered when a site is deleted.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      siteId: {
+        description: 'The id of the site.',
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  openedTemplate: {
+    category: 'TemplateUsage',
+    description: 'Triggered when a template is opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      templateId: {
+        description: 'The document id of the template.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  openedTemplateTour: {
+    category: 'TemplateUsage',
+    description: 'Triggered when a document tour for a template is opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      templateId: {
+        description: 'The document id of the template.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  subscribedToPlan: {
+    category: 'SubscriptionPlan',
+    description: 'Triggered on subscription to a plan.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      planName: {
+        description: 'The name of the plan.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  cancelledPlan: {
+    category: 'SubscriptionPlan',
+    description: 'Triggered on cancellation of a plan.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      planName: {
+        description: 'The name of the plan.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  createdWorkspace: {
+    category: 'DocumentUsage',
+    description: 'Triggered when a workspace is created.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      workspaceId: {
+        description: 'The id of the workspace.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  deletedWorkspace: {
+    category: 'DocumentUsage',
+    description: 'Triggered when a workspace is deleted.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      workspaceId: {
+        description: 'The id of the workspace.',
+        dataType: 'number',
       },
       userId: {
         description: 'The id of the user that triggered this event.',
@@ -931,6 +1173,7 @@ export const TelemetryEvents = StringUnion(
   'assistantReceive',
   'assistantSave',
   'assistantCancel',
+  'assistantApplySuggestion',
   'assistantClearConversation',
   'assistantClose',
   'beaconOpen',
@@ -947,17 +1190,39 @@ export const TelemetryEvents = StringUnion(
   'signupVerified',
   'siteMembership',
   'siteUsage',
+  'tutorialOpened',
   'tutorialProgressChanged',
   'tutorialRestarted',
   'watchedVideoTour',
-  'welcomeQuestionsSubmitted',
+  'answeredUseCaseQuestion',
+  'clickedScheduleCoachingCall',
+  'deletedAccount',
+  'createdSite',
+  'deletedSite',
+  'openedTemplate',
+  'openedTemplateTour',
+  'subscribedToPlan',
+  'cancelledPlan',
+  'createdWorkspace',
+  'deletedWorkspace',
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
+
+type TelemetryEventCategory =
+  | 'AIAssistant'
+  | 'HelpCenter'
+  | 'TemplateUsage'
+  | 'Tutorial'
+  | 'Welcome'
+  | 'SubscriptionPlan'
+  | 'DocumentUsage'
+  | 'TeamSite';
 
 interface TelemetryEventContract {
   description: string;
   minimumTelemetryLevel: Level;
   retentionPeriod: TelemetryRetentionPeriod;
+  category?: TelemetryEventCategory;
   metadataContracts?: Record<string, MetadataContract>;
 }
 

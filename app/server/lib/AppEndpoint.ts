@@ -19,7 +19,6 @@ import {customizeDocWorkerUrl, getWorker, useWorkerPool} from 'app/server/lib/Do
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
-import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import {getAssignmentId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
@@ -165,11 +164,9 @@ export function attachAppEndpoint(options: AttachOptions): void {
 
     const isPublic = ((doc as unknown) as APIDocument).public ?? false;
     const isSnapshot = Boolean(parseUrlId(urlId).snapshotId);
-    // TODO: Remove the right side once all template docs have their type set to "template".
-    const isTemplate = doc.type === 'template' ||
-      (doc.workspace.org.domain === getTemplateOrg() && doc.type !== 'tutorial');
+    const isTemplate = doc.type === 'template';
     if (isPublic || isTemplate) {
-      gristServer.getTelemetry().logEvent('documentOpened', {
+      gristServer.getTelemetry().logEvent(mreq, 'documentOpened', {
         limited: {
           docIdDigest: docId,
           access: doc.access,
@@ -184,8 +181,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
           userId: mreq.userId,
           altSessionId: mreq.altSessionId,
         },
-      })
-      .catch(e => log.error('failed to log telemetry event documentOpened', e));
+      });
     }
 
     if (isTemplate) {

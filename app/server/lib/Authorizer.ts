@@ -397,14 +397,13 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   };
   log.rawDebug(`Auth[${meta.method}]: ${meta.host} ${meta.path}`, meta);
   if (hasApiKey) {
-    options.gristServer.getTelemetry().logEvent('apiUsage', {
+    options.gristServer.getTelemetry().logEvent(mreq, 'apiUsage', {
       full: {
         method: mreq.method,
         userId: mreq.userId,
         userAgent: mreq.headers['user-agent'],
       },
-    })
-    .catch(e => log.error('failed to log telemetry event apiUsage', e));
+    });
   }
 
   return next();

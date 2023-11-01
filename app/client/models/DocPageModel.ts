@@ -27,6 +27,7 @@ import {Document, NEW_DOCUMENT_CODE, Organization, UserAPI, Workspace} from 'app
 import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 
 // tslint:disable:no-console
 
@@ -363,6 +364,14 @@ It also disables formulas. [{{error}}]", {error: err.message})
       if (doc.urlId && doc.urlId !== urlId) {
         // Replace the URL to reflect the canonical urlId.
         await this.updateUrlNoReload(doc.urlId, doc.openMode);
+      }
+
+      if (doc.isTemplate) {
+        logTelemetryEvent('openedTemplate', {
+          full: {
+            templateId: parseUrlId(doc.urlId || doc.id).trunkId,
+          },
+        });
       }
 
       this.currentDoc.set(doc);

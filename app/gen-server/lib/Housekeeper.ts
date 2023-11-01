@@ -178,7 +178,7 @@ export class Housekeeper {
     await this._dbManager.connection.transaction('READ UNCOMMITTED', async (manager) => {
       const usageSummaries = await this._getOrgUsageSummaries(manager);
       for (const summary of usageSummaries) {
-        this._telemetry.logEvent('siteUsage', {
+        this._telemetry.logEvent(null, 'siteUsage', {
           limited: {
             siteId: summary.site_id,
             siteType: summary.site_type,
@@ -192,13 +192,12 @@ export class Housekeeper {
           full: {
             stripePlanId: summary.stripe_plan_id,
           },
-        })
-        .catch(e => log.error('failed to log telemetry event siteUsage', e));
+        });
       }
 
       const membershipSummaries = await this._getOrgMembershipSummaries(manager);
       for (const summary of membershipSummaries) {
-        this._telemetry.logEvent('siteMembership', {
+        this._telemetry.logEvent(null, 'siteMembership', {
           limited: {
             siteId: summary.site_id,
             siteType: summary.site_type,
@@ -206,8 +205,7 @@ export class Housekeeper {
             numEditors: Number(summary.num_editors),
             numViewers: Number(summary.num_viewers),
           },
-        })
-        .catch(e => log.error('failed to log telemetry event siteMembership', e));
+        });
       }
     });
   }

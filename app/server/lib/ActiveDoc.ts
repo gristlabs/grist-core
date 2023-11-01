@@ -89,7 +89,6 @@ import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
-import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
@@ -1420,9 +1419,7 @@ export class ActiveDoc extends EventEmitter {
 
       await dbManager.forkDoc(userId, doc, forkIds.forkId);
 
-      // TODO: Remove the right side once all template docs have their type set to "template".
-      const isTemplate = doc.type === 'template' ||
-        (doc.workspace.org.domain === getTemplateOrg() && doc.type !== 'tutorial');
+      const isTemplate = doc.type === 'template';
       this.logTelemetryEvent(docSession, 'documentForked', {
         limited: {
           forkIdDigest: forkIds.forkId,
@@ -1827,11 +1824,10 @@ export class ActiveDoc extends EventEmitter {
     event: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ) {
-    this._docManager.gristServer.getTelemetry().logEvent(event, merge(
+    this._docManager.gristServer.getTelemetry().logEvent(docSession, event, merge(
       this._getTelemetryMeta(docSession),
       metadata,
-    ))
-    .catch(e => this._log.error(docSession, `failed to log telemetry event ${event}`, e));
+    ));
   }
 
   /**

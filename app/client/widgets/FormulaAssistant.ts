@@ -172,9 +172,16 @@ export class FormulaAssistant extends Disposable {
     this._triggerFinalize = bundleInfo.triggerFinalize;
     this.onDispose(() => {
       if (this._hasExpandedOnce) {
+        const suggestionApplied = this._chat.conversationSuggestedFormulas.get()
+          .includes(this._options.column.formula.peek());
+        if (suggestionApplied) {
+          this._logTelemetryEvent('assistantApplySuggestion', false, {
+            conversationLength: this._chat.conversationLength.get(),
+            conversationHistoryLength: this._chat.conversationHistoryLength.get(),
+          });
+        }
         this._logTelemetryEvent('assistantClose', false, {
-          suggestionApplied: this._chat.conversationSuggestedFormulas.get()
-            .includes(this._options.column.formula.peek()),
+          suggestionApplied,
           conversationLength: this._chat.conversationLength.get(),
           conversationHistoryLength: this._chat.conversationHistoryLength.get(),
         });
@@ -400,7 +407,9 @@ export class FormulaAssistant extends Disposable {
    */
   private _cancel() {
     if (this._hasExpandedOnce) {
-      this._logTelemetryEvent('assistantCancel', true);
+      this._logTelemetryEvent('assistantCancel', true, {
+        conversationLength: this._chat.conversationLength.get(),
+      });
     }
     this._action = 'cancel';
     this._triggerFinalize();

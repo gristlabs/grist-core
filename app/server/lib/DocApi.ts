@@ -1044,7 +1044,7 @@ export class DocWorkerApi {
           const tutorialTrunkId = options.sourceDocId;
           await this._dbManager.connection.transaction(async (manager) => {
             // Fetch the tutorial trunk doc so we can replace the tutorial doc's name.
-            const tutorialTrunk = await this._dbManager.getRawDocById(tutorialTrunkId, manager);
+            const tutorialTrunk = await this._dbManager.getDoc({...scope, urlId: tutorialTrunkId}, manager);
             await this._dbManager.updateDocument(
               scope,
               {
@@ -1152,7 +1152,7 @@ export class DocWorkerApi {
       const userId = getUserId(req);
       const wsId = integerParam(req.params.wid, 'wid');
       const uploadId = integerParam(req.body.uploadId, 'uploadId');
-      const result = await this._docManager.importDocToWorkspace({
+      const result = await this._docManager.importDocToWorkspace(mreq, {
         userId,
         uploadId,
         workspaceId: wsId,
@@ -1284,7 +1284,7 @@ export class DocWorkerApi {
           asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
         });
       } else if (uploadId !== undefined) {
-        const result = await this._docManager.importDocToWorkspace({
+        const result = await this._docManager.importDocToWorkspace(mreq, {
           userId,
           uploadId,
           documentName: optStringParam(parameters.documentName, 'documentName'),
@@ -1343,7 +1343,7 @@ export class DocWorkerApi {
     }
 
     // Then, import the copy to the workspace.
-    const result = await this._docManager.importDocToWorkspace({
+    const result = await this._docManager.importDocToWorkspace(mreq, {
       userId,
       uploadId: uploadResult.uploadId,
       documentName,
@@ -1419,13 +1419,12 @@ export class DocWorkerApi {
 
   private _logDocumentCreatedTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
     const mreq = req as RequestWithLogin;
-    this._grist.getTelemetry().logEvent('documentCreated', _.merge({
+    this._grist.getTelemetry().logEvent(mreq, 'documentCreated', _.merge({
       full: {
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,
       },
-    }, metadata))
-    .catch(e => log.error('failed to log telemetry event documentCreated', e));
+    }, metadata));
   }
 
   /**

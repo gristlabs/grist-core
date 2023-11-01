@@ -154,7 +154,8 @@ export function createDummyTelemetry(): ITelemetry {
     addEndpoints() { /* do nothing */ },
     addPages() { /* do nothing */ },
     start() { return Promise.resolve(); },
-    logEvent() { return Promise.resolve(); },
+    logEvent() { /* do nothing */ },
+    logEventAsync() { return Promise.resolve(); },
     getTelemetryConfig() { return undefined; },
     fetchTelemetryPrefs() { return Promise.resolve(); },
   };

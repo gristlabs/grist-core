@@ -83,7 +83,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     gristNewColumnMenu: isAffirmative(process.env.GRIST_NEW_COLUMN_MENU),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
-    telemetry: server?.getTelemetry().getTelemetryConfig(),
+    telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
     templateOrg: getTemplateOrg(),
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),

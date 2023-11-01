@@ -189,8 +189,15 @@ export class ApiServer {
     // Body params: name
     // Create a new workspace owned by the specific organization.
     this._app.post('/api/orgs/:oid/workspaces', expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
       const org = getOrgKey(req);
       const query = await this._dbManager.addWorkspace(getScope(req), org, req.body);
+      this._gristServer.getTelemetry().logEvent(mreq, 'createdWorkspace', {
+        full: {
+          workspaceId: query.data,
+          userId: mreq.userId,
+        },
+      });
       return sendReply(req, res, query);
     }));
 
@@ -206,8 +213,15 @@ export class ApiServer {
     // DELETE /api/workspaces/:wid
     // Delete the specified workspace and all included docs.
     this._app.delete('/api/workspaces/:wid', expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
       const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.deleteWorkspace(getScope(req), wsId);
+      this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
+        full: {
+          workspaceId: wsId,
+          userId: mreq.userId,
+        },
+      });
       return sendReply(req, res, query);
     }));
 
@@ -217,7 +231,14 @@ export class ApiServer {
     this._app.post('/api/workspaces/:wid/remove', expressWrap(async (req, res) => {
       const wsId = integerParam(req.params.wid, 'wid');
       if (isParameterOn(req.query.permanent)) {
+        const mreq = req as RequestWithLogin;
         const query = await this._dbManager.deleteWorkspace(getScope(req), wsId);
+        this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
+          full: {
+            workspaceId: wsId,
+            userId: mreq.userId,
+          },
+        });
         return sendReply(req, res, query);
       } else {
         await this._dbManager.softDeleteWorkspace(getScope(req), wsId);
@@ -240,7 +261,7 @@ export class ApiServer {
       const mreq = req as RequestWithLogin;
       const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.addDocument(getScope(req), wsId, req.body);
-      this._gristServer.getTelemetry().logEvent('documentCreated', {
+      this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
         limited: {
           docIdDigest: query.data!,
           sourceDocIdDigest: undefined,
@@ -252,8 +273,7 @@ export class ApiServer {
           userId: mreq.userId,
           altSessionId: mreq.altSessionId,
         },
-      })
-      .catch(e => log.error('failed to log telemetry event documentCreated', e));
+      });
       return sendReply(req, res, query);
     }));
 

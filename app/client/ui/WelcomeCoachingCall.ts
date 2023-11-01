@@ -1,3 +1,4 @@
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {AppModel} from 'app/client/models/AppModel';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -93,7 +94,10 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
       cssPopupButtons(
         bigPrimaryButtonLink(
           'Schedule Call',
-          dom.on('click', () => dismissPopup(false)),
+          dom.on('click', () => {
+            dismissPopup(false);
+            logTelemetryEvent('clickedScheduleCoachingCall');
+          }),
           {
             href: FREE_COACHING_CALL_URL,
             target: '_blank',

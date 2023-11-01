@@ -1309,6 +1309,7 @@ export class FlexServer implements GristServer {
         // to other (not public) team sites.
         const doom = await createDoom(req);
         await doom.deleteUser(userId);
+        this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedAccount');
         return resp.status(200).json(true);
       }));
 
@@ -1341,6 +1342,14 @@ export class FlexServer implements GristServer {
         // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
         const doom = await createDoom(req);
         await doom.deleteOrg(org.id);
+
+        this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedSite', {
+          full: {
+            siteId: org.id,
+            userId: mreq.userId,
+          },
+        });
+
         return resp.status(200).send();
       }));
     }
@@ -1442,14 +1451,15 @@ export class FlexServer implements GristServer {
         // If we failed to record, at least log the data, so we could potentially recover it.
         log.rawWarn(`Failed to record new user info: ${e.message}`, {newUserQuestions: row});
       });
-      this.getTelemetry().logEvent('welcomeQuestionsSubmitted', {
-        full: {
-          userId,
-          useCases,
-          useOther,
-        },
-      })
-      .catch(e => log.error('failed to log telemetry event welcomeQuestionsSubmitted', e));
+      const nonOtherUseCases = useCases.filter(useCase => useCase !== 'Other');
+      for (const useCase of [...nonOtherUseCases, ...(useOther ? [`Other - ${useOther}`] : [])]) {
+        this.getTelemetry().logEvent(req as RequestWithLogin, 'answeredUseCaseQuestion', {
+          full: {
+            userId,
+            useCase,
+          },
+        });
+      }
 
       resp.status(200).send();
     }), jsonErrorHandler); // Add a final error handler that reports errors as JSON.

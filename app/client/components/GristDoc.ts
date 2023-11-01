@@ -24,6 +24,7 @@ import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {setTestState} from 'app/client/lib/testState';
 import {selectFiles} from 'app/client/lib/uploads';
 import {AppModel, reportError} from 'app/client/models/AppModel';
@@ -62,7 +63,7 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
 import {isList, isListType, isRefListType, RecalcWhen} from 'app/common/gristTypes';
-import {HashLink, IDocPage, isViewDocPage, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
+import {HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
 import {LocalPlugin} from "app/common/plugin";
 import {StringUnion} from 'app/common/StringUnion';
@@ -400,6 +401,16 @@ export class GristDoc extends DisposableWithEvents {
               && markAsSeen(this._seenDocTours, this.docId())
             );
             await startDocTour(this.docData, this.docComm, onFinishCB);
+            if (this.docPageModel.isTemplate.get()) {
+              const doc = this.docPageModel.currentDoc.get();
+              if (!doc) { return; }
+
+              logTelemetryEvent('openedTemplateTour', {
+                full: {
+                  templateId: parseUrlId(doc.urlId || doc.id).trunkId,
+                },
+              });
+            }
           } else {
             startWelcomeTour(() => this._showGristTour.set(false));
           }

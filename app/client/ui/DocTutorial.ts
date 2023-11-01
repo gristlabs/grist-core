@@ -59,6 +59,8 @@ export class DocTutorial extends FloatingPopup {
     if (tableData) {
       this.autoDispose(tableData.tableActionEmitter.addListener(() => this._reloadSlides()));
     }
+
+    this._logTelemetryEvent('tutorialOpened');
   }
 
   protected _buildTitle() {
@@ -158,6 +160,24 @@ export class DocTutorial extends FloatingPopup {
     ];
   }
 
+  private _logTelemetryEvent(event: 'tutorialOpened' | 'tutorialProgressChanged') {
+    const currentSlideIndex = this._currentSlideIndex.get();
+    const numSlides = this._slides.get()?.length;
+    let percentComplete: number | undefined = undefined;
+    if (numSlides !== undefined && numSlides > 0) {
+      percentComplete = Math.floor(((currentSlideIndex + 1) / numSlides) * 100);
+    }
+    logTelemetryEvent(event, {
+      full: {
+        tutorialForkIdDigest: this._currentFork?.id,
+        tutorialTrunkIdDigest: this._currentFork?.trunkId,
+        lastSlideIndex: currentSlideIndex,
+        numSlides,
+        percentComplete,
+      },
+    });
+  }
+
   private async _loadSlides() {
     const tableId = 'GristDocTutorial';
     if (!this._docData.getTable(tableId)) {
@@ -234,7 +254,6 @@ export class DocTutorial extends FloatingPopup {
   private async _saveCurrentSlidePosition() {
     const currentOptions = this._currentDoc?.options ?? {};
     const currentSlideIndex = this._currentSlideIndex.get();
-    const numSlides = this._slides.get()?.length;
     await this._appModel.api.updateDoc(this._docId, {
       options: {
         ...currentOptions,
@@ -243,20 +262,7 @@ export class DocTutorial extends FloatingPopup {
         }
       }
     });
-
-    let percentComplete: number | undefined = undefined;
-    if (numSlides !== undefined && numSlides > 0) {
-      percentComplete = Math.floor(((currentSlideIndex + 1) / numSlides) * 100);
-    }
-    logTelemetryEvent('tutorialProgressChanged', {
-      full: {
-        tutorialForkIdDigest: this._currentFork?.id,
-        tutorialTrunkIdDigest: this._currentFork?.trunkId,
-        lastSlideIndex: currentSlideIndex,
-        numSlides,
-        percentComplete,
-      },
-    });
+    this._logTelemetryEvent('tutorialProgressChanged');
   }
 
   private async _changeSlide(slideIndex: number) {

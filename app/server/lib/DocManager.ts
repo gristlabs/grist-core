@@ -15,7 +15,8 @@ import {tbind} from 'app/common/tbind';
 import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {NEW_DOCUMENT_CODE} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode} from 'app/server/lib/Authorizer';
+import {assertAccess, Authorizer, DocAuthorizer, DummyAuthorizer, isSingleUserMode,
+        RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {
   getDocSessionCachedDoc,
@@ -198,7 +199,7 @@ export class DocManager extends EventEmitter {
    *
    * Cleans up `uploadId` and returns creation info about the imported doc.
    */
-  public async importDocToWorkspace(options: {
+  public async importDocToWorkspace(mreq: RequestWithLogin, options: {
     userId: number,
     uploadId: number,
     documentName?: string,
@@ -232,14 +233,13 @@ export class DocManager extends EventEmitter {
       userId,
     });
 
-    this.gristServer.getTelemetry().logEvent('documentCreated', merge({
+    this.gristServer.getTelemetry().logEvent(mreq, 'documentCreated', merge({
       limited: {
         docIdDigest: docCreationInfo.id,
         fileType: uploadInfo.files[0].ext.trim().slice(1),
         isSaved: workspaceId !== undefined,
       },
-    }, telemetryMetadata))
-    .catch(e => log.error('failed to log telemetry event documentCreated', e));
+    }, telemetryMetadata));
 
     return docCreationInfo;
     // The imported document is associated with the worker that did the import.
