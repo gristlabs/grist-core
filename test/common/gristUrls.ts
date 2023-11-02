@@ -1,5 +1,6 @@
 import {decodeUrl, getHostType, IGristUrlState, parseFirstUrlPart} from 'app/common/gristUrls';
 import {assert} from 'chai';
+import * as testUtils from 'test/server/testUtils';
 
 describe('gristUrls', function() {
 
@@ -68,29 +69,36 @@ describe('gristUrls', function() {
   describe('getHostType', function() {
     const defaultOptions = {
       baseDomain: 'getgrist.com',
-      pluginUrl: 'https://plugin.getgrist.com/path',
+      pluginUrl: 'https://plugin.getgrist.com',
     };
+
+    const oldEnv = new testUtils.EnvironmentSnapshot();
     afterEach(function () {
-      delete process.env.APP_DOC_INTERNAL_URL;
+      oldEnv.restore();
     });
+
     it('should interpret localhost as "native"', function() {
       assert.equal(getHostType('localhost', defaultOptions), 'native');
       assert.equal(getHostType('localhost:8080', defaultOptions), 'native');
     });
+
     it('should interpret base domain as "native"', function() {
       assert.equal(getHostType('getgrist.com', defaultOptions), 'native');
       assert.equal(getHostType('www.getgrist.com', defaultOptions), 'native');
       assert.equal(getHostType('foo.getgrist.com', defaultOptions), 'native');
       assert.equal(getHostType('foo.getgrist.com:8080', defaultOptions), 'native');
     });
+
     it('should interpret plugin domain as "plugin"', function() {
       assert.equal(getHostType('plugin.getgrist.com', defaultOptions), 'plugin');
       assert.equal(getHostType('PLUGIN.getgrist.com', { pluginUrl: 'https://pLuGin.getgrist.com' }), 'plugin');
     });
+
     it('should interpret other domains as "custom"', function() {
       assert.equal(getHostType('foo.com', defaultOptions), 'custom');
       assert.equal(getHostType('foo.bar.com', defaultOptions), 'custom');
     });
+
     it('should interpret doc internal url as "native"', function() {
       process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal/path';
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'native');
