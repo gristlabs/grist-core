@@ -20,8 +20,6 @@
  *        The client secret for the application, as registered with the IdP.
  *    env GRIST_OIDC_IDP_SCOPES
  *        The scopes to request from the IdP, as a space-separated list. Defaults to "openid email profile".
- *    env GRIST_OIDC_IDP_CODE_CHALLENGE_METHOD
- *        The method to use for code challenge. Defaults to "S256".
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -122,7 +120,7 @@ export class OIDCConfig {
     const authUrl = this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
       code_challenge: codeChallenge,
-      code_challenge_method: process.env.GRIST_OIDC_IDP_CODE_CHALLENGE_METHOD || 'S256',
+      code_challenge_method: 'S256',
       state,
     });
     return authUrl;
