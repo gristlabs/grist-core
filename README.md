@@ -250,7 +250,7 @@ Variable | Purpose
 -------- | -------
 ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com). You can set this to `*` to allow all domains, but if doing so, we recommend using a carefully locked-down proxy (see `GRIST_HTTPS_PROXY`) if you do not entirely trust users. Otherwise services on your internal network may become vulnerable to manipulation.
 APP_DOC_URL | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis)
-APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by the home server to join the server using an internal domain name resolution (like in a docker environment). Defaults to APP_DOC_URL
+APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by the home server to reach the server using an internal domain name resolution (like in a docker environment). Defaults to `APP_DOC_URL`
 APP_HOME_URL | url prefix for home api (home and doc servers need this)
 APP_STATIC_URL | url prefix for static resources
 APP_STATIC_INCLUDE_CUSTOM_CSS | set to "true" to include custom.css (from APP_STATIC_URL) in static pages

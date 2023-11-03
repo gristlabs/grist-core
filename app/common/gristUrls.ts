@@ -166,8 +166,7 @@ export interface OrgUrlInfo {
 function isDocInternalUrl(host: string) {
   if (!process.env.APP_DOC_INTERNAL_URL) { return false; }
   const internalUrl = new URL('/', process.env.APP_DOC_INTERNAL_URL);
-  const internalHostnameAndMaybePort = internalUrl.hostname + (internalUrl.port ? `:${internalUrl.port}` : '');
-  return internalHostnameAndMaybePort === host;
+  return internalUrl.host === host;
 }
 
 /**
