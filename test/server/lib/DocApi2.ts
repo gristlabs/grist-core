@@ -17,9 +17,10 @@ describe('DocApi2', function() {
   let owner: UserAPI;
   let wsId: number;
   testUtils.setTmpLogLevel('error');
-  const oldEnv = new testUtils.EnvironmentSnapshot();
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
     const tmpDir = await createTmpDir();
     process.env.GRIST_DATA_DIR = tmpDir;
     process.env.STRIPE_ENDPOINT_SECRET = 'TEST_WITHOUT_ENDPOINT_SECRET';

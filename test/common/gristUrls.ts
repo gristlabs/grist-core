@@ -72,7 +72,12 @@ describe('gristUrls', function() {
       pluginUrl: 'https://plugin.getgrist.com',
     };
 
-    const oldEnv = new testUtils.EnvironmentSnapshot();
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
+    beforeEach(function () {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+    });
+
     afterEach(function () {
       oldEnv.restore();
     });
