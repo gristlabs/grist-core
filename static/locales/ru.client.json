@@ -216,7 +216,8 @@
         "Mixed types": "Смешанные типы",
         "Revert field settings for {{colId}} to common": "Вернуть настройки полей для {{colId}} к общим",
         "Save field settings for {{colId}} as common": "Сохранить настройки полей для {{colId}} как общие",
-        "Use separate field settings for {{colId}}": "Использовать отдельные настройки полей для {{colId}}"
+        "Use separate field settings for {{colId}}": "Использовать отдельные настройки полей для {{colId}}",
+        "Changing column type": "Изменение типа столбца"
     },
     "FieldConfig": {
         "TRIGGER FORMULA": "ТРИГГЕРНАЯ ФОРМУЛА",
@@ -1050,7 +1051,8 @@
             "end dates and event titles. Note each column's type.": "Чтобы настроить календарь, выберите столбцы для дат начала/окончания и названий событий. Обратите внимание на тип каждого столбца."
         },
         "Calendar": "Календарь",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете найти нужные столбцы? Нажмите «Изменить виджет», чтобы выбрать таблицу с данными о событиях."
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете найти нужные столбцы? Нажмите «Изменить виджет», чтобы выбрать таблицу с данными о событиях.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID - это случайно сгенерированная строка, которая полезна для уникальных идентификаторов и ключевых ссылок."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
