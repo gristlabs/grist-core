@@ -674,7 +674,10 @@
         "Try out changes in a copy, then decide whether to replace the original with your edits.": "Preizkusite spremembe v kopiji, nato pa se odločite, ali boste izvirnik zamenjali s svojimi popravki.",
         "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "Na strani z neobdelanimi podatki so navedene vse podatkovne tabele v vašem dokumentu, vključno s tabelami s povzetki in tabelami, ki niso vključene v postavitve strani.",
         "Reference columns are the key to {{relational}} data in Grist.": "Referenčni stolpci so ključ do {{relational}} podatkov v Gristu.",
-        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Celice v referenčnem stolpcu vedno identificirajo {{entire}} zapis v tej tabeli, vendar lahko izberete, kateri stolpec iz tega zapisa želite prikazati."
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Celice v referenčnem stolpcu vedno identificirajo {{entire}} zapis v tej tabeli, vendar lahko izberete, kateri stolpec iz tega zapisa želite prikazati.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID je naključno ustvarjen niz, ki je uporaben za edinstvene identifikatorje in ključe povezav.",
+        "Lookups return data from related tables.": "Iskanje vrne podatke iz povezanih tabel.",
+        "Use reference columns to relate data in different tables.": "Uporabite referenčne stolpce za povezavo podatkov v različnih tabelah."
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -1136,7 +1139,8 @@
         "Save field settings for {{colId}} as common": "Shrani nastavitve polja za {{colId}} kot običajne",
         "Changing multiple column types": "Spreminjanje več tipov stolpca",
         "Use separate field settings for {{colId}}": "Uporabite ločene nastavitve polja za {{colId}}",
-        "Apply Formula to Data": "Izvedi formulo nad podatki"
+        "Apply Formula to Data": "Izvedi formulo nad podatki",
+        "Changing column type": "Spreminjanje vrste stolpca"
     },
     "FormulaEditor": {
         "Enter formula or {{button}}.": "Vnesite formulo ali {{button}}.",

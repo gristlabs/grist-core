@@ -32,6 +32,11 @@ export interface ICustomWidget {
   renderAfterReady?: boolean;
 
   /**
+   * If set to false, do not offer to user in UI.
+   */
+  published?: boolean;
+
+  /**
    * If the widget came from a plugin, we track that here.
    */
   source?: {
