@@ -469,6 +469,9 @@ export const GristLight: ThemeColors = {
   'tutorials-popup-border': '#D9D9D9',
   'tutorials-popup-header-fg': '#FFFFFF',
   'tutorials-popup-box-bg': '#F5F5F5',
+  'tutorials-popup-code-fg': '#333333',
+  'tutorials-popup-code-bg': '#FFFFFF',
+  'tutorials-popup-code-border': '#E1E4E5',
 
   /* Ace */
   'ace-editor-bg': 'white',

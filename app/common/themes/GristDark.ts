@@ -469,6 +469,9 @@ export const GristDark: ThemeColors = {
   'tutorials-popup-border': '#70707D',
   'tutorials-popup-header-fg': '#FFFFFF',
   'tutorials-popup-box-bg': '#60606D',
+  'tutorials-popup-code-fg': '#FFFFFF',
+  'tutorials-popup-code-bg': '#262633',
+  'tutorials-popup-code-border': '#929299',
 
   /* Ace */
   'ace-editor-bg': '#32323F',

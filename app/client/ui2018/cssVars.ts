@@ -762,6 +762,9 @@ export const theme = {
   tutorialsPopupHeaderFg: new CustomProp('theme-tutorials-popup-header-fg', undefined,
     colors.lightGreen),
   tutorialsPopupBoxBg: new CustomProp('theme-tutorials-popup-box-bg', undefined, '#F5F5F5'),
+  tutorialsPopupCodeFg: new CustomProp('theme-tutorials-popup-code-fg', undefined, '#333333'),
+  tutorialsPopupCodeBg: new CustomProp('theme-tutorials-popup-code-bg', undefined, '#FFFFFF'),
+  tutorialsPopupCodeBorder: new CustomProp('theme-tutorials-popup-code-border', undefined, '#E1E4E5'),
 
   /* Ace */
   aceEditorBg: new CustomProp('theme-ace-editor-bg', undefined, 'white'),

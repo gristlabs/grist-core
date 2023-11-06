@@ -490,6 +490,9 @@ export interface ThemeColors {
   'tutorials-popup-border': string;
   'tutorials-popup-header-fg': string;
   'tutorials-popup-box-bg': string;
+  'tutorials-popup-code-fg': string;
+  'tutorials-popup-code-bg': string;
+  'tutorials-popup-code-border': string;
 
   /* Ace */
   'ace-editor-bg': string;

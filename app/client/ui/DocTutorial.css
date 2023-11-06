@@ -1,29 +1,52 @@
 .doc-tutorial-popup h1,
 .doc-tutorial-popup h2,
 .doc-tutorial-popup h3,
+.doc-tutorial-popup h4,
+.doc-tutorial-popup h5,
+.doc-tutorial-popup h6,
 .doc-tutorial-popup p,
 .doc-tutorial-popup li {
   color: var(--grist-theme-text, #262633);
+}
+
+.doc-tutorial-popup h2,
+.doc-tutorial-popup h3,
+.doc-tutorial-popup h4,
+.doc-tutorial-popup h5,
+.doc-tutorial-popup h6 {
+  margin: 20px 0px 10px 0px;
+  font-weight: 400;
 }
 
 .doc-tutorial-popup h1 {
   margin: 0px 0px 24px 0px;
   font-weight: 500;
   font-size: 28px;
-  line-height: 40px;
+  line-height: 42px;
 }
 
 .doc-tutorial-popup h2 {
-  margin: 20px 0px 10px 0px;
-  font-weight: 400;
   font-size: 24px;
-  line-height: 32px;
+  line-height: 36px;
 }
 
 .doc-tutorial-popup h3 {
-  margin: 20px 0px 10px 0px;
-  font-weight: 400;
+  font-size: 22px;
+  line-height: 33px;
+}
+
+.doc-tutorial-popup h4 {
   font-size: 20px;
+  line-height: 30px;
+}
+
+.doc-tutorial-popup h5 {
+  font-size: 18px;
+  line-height: 27px;
+}
+
+.doc-tutorial-popup h6 {
+  font-size: 16px;
   line-height: 24px;
 }
 
@@ -31,7 +54,7 @@
   margin: 0px 0px 16px 0px;
   font-weight: 400;
   font-size: 14px;
-  line-height: 22px;
+  line-height: 21px;
 }
 
 .doc-tutorial-popup a,
@@ -42,7 +65,7 @@
 .doc-tutorial-popup li {
   font-weight: 400;
   font-size: 14px;
-  line-height: 22px;
+  line-height: 21px;
 }
 
 .doc-tutorial-popup ol,
@@ -52,11 +75,21 @@
 
 .doc-tutorial-popup code {
   padding: 2px 5px;
-  background: #FFFFFF;
-  border: 1px solid #E1E4E5;
-  color: #333333;
+  color: var(--grist-theme-tutorials-popup-code-fg, #333333);
+  background: var(--grist-theme-tutorials-popup-code-bg, #FFFFFF);
+  border: 1px solid var(--grist-theme-tutorials-popup-code-border, #E1E4E5);
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.doc-tutorial-popup pre {
+  background: var(--grist-theme-tutorials-popup-code-bg, #FFFFFF);
+  border: 1px solid var(--grist-theme-tutorials-popup-code-border, #E1E4E5);
+}
+
+.doc-tutorial-popup pre > code {
+  background: none;
+  border: none;
 }
 
 .doc-tutorial-popup iframe {
