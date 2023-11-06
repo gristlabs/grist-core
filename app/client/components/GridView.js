@@ -44,7 +44,6 @@ const {
   buildAddColumnMenu,
   buildColumnContextMenu,
   buildMultiColumnMenu,
-  buildOldAddColumnMenu,
   calcFieldsCondition,
   freezeAction,
 } = require('app/client/ui/GridViewMenus');
@@ -56,7 +55,6 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
-const {GRIST_NEW_COLUMN_MENU} = require("../models/features");
 
 const t = makeT('GridView');
 
@@ -311,14 +309,14 @@ GridView.gridCommands = {
   editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
 
   insertFieldBefore: function(maybeKeyboardEvent) {
-    if (GRIST_NEW_COLUMN_MENU() && !maybeKeyboardEvent) {
+    if (!maybeKeyboardEvent) {
       this._openInsertColumnMenu(this.cursor.fieldIndex());
     } else {
       this.insertColumn(null, {index: this.cursor.fieldIndex()});
     }
   },
   insertFieldAfter: function(maybeKeyboardEvent) {
-    if (GRIST_NEW_COLUMN_MENU() && !maybeKeyboardEvent) {
+    if (!maybeKeyboardEvent) {
       this._openInsertColumnMenu(this.cursor.fieldIndex() + 1);
     } else {
       this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
@@ -1302,8 +1300,7 @@ GridView.prototype.buildDom = function() {
                   testId('column-menu-trigger'),
                 ),
                 dom('div.selection'),
-                // FIXME: remove once New Column menu is enabled by default.
-                GRIST_NEW_COLUMN_MENU() ? this._buildInsertColumnMenu({field}) : null,
+                this._buildInsertColumnMenu({field}),
               );
             }),
             this.isPreview ? null : kd.maybe(() => !this.gristDoc.isReadonlyKo(), () => (
@@ -2004,66 +2001,50 @@ GridView.prototype._scrollColumnIntoView = function(colIndex) {
  * the GridView.
  */
 GridView.prototype._buildInsertColumnMenu = function(options = {}) {
-  if (GRIST_NEW_COLUMN_MENU()) {
-    const {field} = options;
-    const triggers = [];
-    if (!field) { triggers.push('click'); }
+  const {field} = options;
+  const triggers = [];
+  if (!field) { triggers.push('click'); }
 
-    return [
-      field ? kd.toggleClass('field-insert-before', () =>
-        this._insertColumnIndex() === field._index()) : null,
-      menu(
-        ctl => {
-          ctl.onDispose(() => this._insertColumnIndex(null));
+  return [
+    field ? kd.toggleClass('field-insert-before', () =>
+      this._insertColumnIndex() === field._index()) : null,
+    menu(
+      ctl => {
+        ctl.onDispose(() => this._insertColumnIndex(null));
 
-          let index = this._insertColumnIndex.peek();
-          if (index === null || index === -1) {
-            index = undefined;
-          }
+        let index = this._insertColumnIndex.peek();
+        if (index === null || index === -1) {
+          index = undefined;
+        }
 
-          return [
-            buildAddColumnMenu(this, index),
-            elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
-            testId('new-columns-menu'),
-          ];
-        },
-        {
-          modifiers: {
-            offset: {
-              offset: '8,8',
-            },
+        return [
+          buildAddColumnMenu(this, index),
+          elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+          testId('new-columns-menu'),
+        ];
+      },
+      {
+        modifiers: {
+          offset: {
+            offset: '8,8',
           },
-          selectOnOpen: true,
-          trigger: [
-            ...triggers,
-            (_, ctl) => {
-              ctl.autoDispose(this._insertColumnIndex.subscribe((index) => {
-                if (field?._index() === index || (!field && index === -1)) {
-                  ctl.open();
-                } else if (!ctl.isDisposed()) {
-                  ctl.close();
-                }
-              }));
-            },
-          ],
-        }
-      ),
-    ];
-  } else {
-    // FIXME: remove once New Column menu is enabled by default.
-    return [
-      dom.on('click', async ev => {
-        // If there are no hidden columns, clicking the plus just adds a new column.
-        // If there are hidden columns, display a dropdown menu.
-        if (this.viewSection.hiddenColumns().length === 0) {
-          // Don't open the menu defined below.
-          ev.stopImmediatePropagation();
-          await this.insertColumn();
-        }
-      }),
-      menu((() => buildOldAddColumnMenu(this, this.viewSection))),
-    ]
-  }
+        },
+        selectOnOpen: true,
+        trigger: [
+          ...triggers,
+          (_, ctl) => {
+            ctl.autoDispose(this._insertColumnIndex.subscribe((index) => {
+              if (field?._index() === index || (!field && index === -1)) {
+                ctl.open();
+              } else if (!ctl.isDisposed()) {
+                ctl.close();
+              }
+            }));
+          },
+        ],
+      }
+    ),
+  ];
 }
 
 GridView.prototype._openInsertColumnMenu = function(columnIndex) {

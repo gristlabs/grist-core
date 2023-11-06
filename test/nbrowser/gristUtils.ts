@@ -16,7 +16,6 @@ import {CommandName} from 'app/client/components/commandList';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
 import { decodeUrl } from 'app/common/gristUrls';
-import { isAffirmative } from "app/common/gutil";
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { UserAction } from 'app/common/DocActions';
@@ -689,20 +688,26 @@ export async function enterFormula(formula: string) {
 }
 
 /**
- * Check that formula editor is shown and its value matches the given regexp.
+ * Check that formula editor is shown and returns its value.
+ * By default returns only text that is visible to the user, pass false to get all text.
  */
-export async function getFormulaText() {
+export async function getFormulaText(onlyVisible = true): Promise<string> {
   assert.equal(await driver.findWait('.test-formula-editor', 500).isDisplayed(), true);
-  return await driver.find('.code_editor_container').getText();
+  if (onlyVisible) {
+    return await driver.find('.code_editor_container').getText();
+  } else {
+    return await driver.executeScript(
+      () => (document as any).querySelector(".code_editor_container").innerText
+    );
+  }
 }
 
 /**
  * Check that formula editor is shown and its value matches the given regexp.
  */
 export async function checkFormulaEditor(value: RegExp|string) {
-  assert.equal(await driver.findWait('.test-formula-editor', 500).isDisplayed(), true);
   const valueRe = typeof value === 'string' ? exactMatch(value) : value;
-  assert.match(await driver.find('.code_editor_container').getText(), valueRe);
+  assert.match(await getFormulaText(), valueRe);
 }
 
 /**
@@ -1292,6 +1297,40 @@ export async function begin(invariant: () => any = () => true) {
 }
 
 /**
+ * A hook that can be used to clear a state after suite is finished and current test passed.
+ * If under debugging session and NO_CLEANUP env variable is set it will skip this cleanup and allow you
+ * to examine the state of the database or browser.
+ */
+export function afterCleanup(test: () => void | Promise<void>) {
+  after(function() {
+    if (process.env.NO_CLEANUP) {
+      function anyTestFailed(suite: Mocha.Suite): boolean {
+        return suite.tests.some(t => t.state === 'failed') || suite.suites.some(anyTestFailed);
+      }
+
+      if (this.currentTest?.parent && anyTestFailed(this.currentTest?.parent)) {
+        return;
+      }
+    }
+    return test();
+  });
+}
+
+/**
+ * A hook that can be used to clear state after each test that has passed.
+ * If under debugging session and NO_CLEANUP env variable is set it will skip this cleanup and allow you
+ * to examine the state of the database or browser.
+ */
+export function afterEachCleanup(test: () => void | Promise<void>) {
+  afterEach(function() {
+    if (this.currentTest?.state !== 'passed' && !this.currentTest?.pending && process.env.NO_CLEANUP) {
+      return;
+    }
+    return test();
+  });
+}
+
+/**
  * Simulates a transaction on the GristDoc. Use with cautions, as there is no guarantee it will undo correctly
  * in a case of failure.
  * Optionally accepts a function which should return the same result before and after the test.
@@ -1546,6 +1585,7 @@ export function openColumnMenu(col: IColHeader|string, option?: string): WebElem
 export async function deleteColumn(col: IColHeader|string) {
   await openColumnMenu(col, 'Delete column');
   await waitForServer();
+  await wipeToasts();
 }
 
 export type ColumnType =
@@ -2339,9 +2379,7 @@ export function hexToRgb(hex: string) {
 export async function addColumn(name: string, type?: string) {
   await scrollIntoView(await driver.find('.active_section .mod-add-column'));
   await driver.find('.active_section .mod-add-column').click();
-  if (isAffirmative(process.env.GRIST_NEW_COLUMN_MENU)) {
-    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
-  }
+  await driver.findWait('.test-new-columns-menu-add-new', 100).click();
   // If we are on a summary table, we could be see a menu helper
   const menu = (await driver.findAll('.grist-floating-menu'))[0];
   if (menu) {
@@ -2360,7 +2398,11 @@ export async function addColumn(name: string, type?: string) {
 export async function showColumn(name: string) {
   await scrollIntoView(await driver.find('.active_section .mod-add-column'));
   await driver.find('.active_section .mod-add-column').click();
-  await driver.findContent('.grist-floating-menu li', `Show column ${name}`).click();
+  if (await driver.findContent('.test-new-columns-menu-hidden-column-inlined', `${name}`).isPresent()) {
+    await driver.findContent('.test-new-columns-menu-hidden-column-inlined', `${name}`).click();
+  } else {
+    await driver.findContent('.test-new-columns-menu-hidden-column-collapsed', `${name}`).click();
+  }
   await waitForServer();
 }
 
@@ -2740,6 +2782,40 @@ export async function onNewTab(action: () => Promise<void>) {
 }
 
 /**
+ * Returns a controller for the current tab.
+ */
+export async function myTab() {
+  const tabs = await driver.getAllWindowHandles();
+  const myTab = tabs[tabs.length - 1];
+  return {
+    open() {
+      return driver.switchTo().window(myTab);
+    }
+  };
+}
+
+/**
+ * Duplicate current tab and return a controller for it. Assumes the current tab shows document.
+ */
+export async function duplicateTab() {
+  const url = await driver.getCurrentUrl();
+  await driver.executeScript("window.open('about:blank', '_blank')");
+  const tabs = await driver.getAllWindowHandles();
+  const myTab = tabs[tabs.length - 1];
+  await driver.switchTo().window(myTab);
+  await driver.get(url);
+  await waitForDocToLoad();
+  return {
+    close() {
+      return driver.close();
+    },
+    open() {
+      return driver.switchTo().window(myTab);
+    }
+  };
+}
+
+/**
  * Scrolls active Grid or Card list view.
  */
 export async function scrollActiveView(x: number, y: number) {
@@ -3040,6 +3116,10 @@ export async function changeBehavior(option: BehaviorActions|RegExp) {
   await driver.find('.test-field-behaviour').click();
   await driver.findContent('.grist-floating-menu li', option).click();
   await waitForServer();
+}
+
+export async function columnBehavior() {
+  return (await driver.find(".test-field-behaviour").getText());
 }
 
 /**
@@ -3426,15 +3506,15 @@ class Clipboard implements IClipboard {
 /**
  * Runs a Grist command in the browser window.
  */
-export async function sendCommand(name: CommandName) {
-  await driver.executeAsyncScript((name: any, done: any) => {
-    const result = (window as any).gristApp.allCommands[name].run();
+export async function sendCommand(name: CommandName, argument: any = null) {
+  await driver.executeAsyncScript((name: any, argument: any, done: any) => {
+    const result = (window as any).gristApp.allCommands[name].run(argument);
     if (result?.finally) {
       result.finally(done);
     } else {
       done();
     }
-  }, name);
+  }, name, argument);
   await waitForServer();
 }
 

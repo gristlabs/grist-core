@@ -253,6 +253,8 @@ describe('ReferenceList', function() {
       // Create a new Reference List column.
       await driver.find('.test-right-tab-field').click();
       await driver.find('.mod-add-column').click();
+      await driver.findWait('.test-new-columns-menu-add-new', 100).click();
+
       await gu.waitForServer();
       await gu.setType(/Reference List/);
       await gu.waitForServer();

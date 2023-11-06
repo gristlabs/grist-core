@@ -20,6 +20,7 @@ describe('ReferenceColumns', function() {
     it('should render Row ID values as TableId[RowId]', async function() {
       await driver.find('.test-right-tab-field').click();
       await driver.find('.mod-add-column').click();
+      await driver.findWait('.test-new-columns-menu-add-new', 100).click();
       await gu.waitForServer();
       await gu.setType(/Reference/);
       await gu.waitForServer();

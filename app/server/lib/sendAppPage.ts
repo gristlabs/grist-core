@@ -80,7 +80,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     featureFormulaAssistant: Boolean(process.env.OPENAI_API_KEY || process.env.ASSISTANT_CHAT_COMPLETION_ENDPOINT),
     assistantService: process.env.OPENAI_API_KEY ? 'OpenAI' : undefined,
     permittedCustomWidgets: getPermittedCustomWidgets(server),
-    gristNewColumnMenu: isAffirmative(process.env.GRIST_NEW_COLUMN_MENU),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),

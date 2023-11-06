@@ -577,6 +577,7 @@ async function clickAddDescription() {
 
 async function addColumn() {
   await driver.find(".mod-add-column").click();
+  await driver.find('.test-new-columns-menu-add-new').click();
   await gu.waitForServer();
 }
 

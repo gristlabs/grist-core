@@ -25,10 +25,6 @@ export function WHICH_FORMULA_ASSISTANT() {
   return getGristConfig().assistantService;
 }
 
-export function GRIST_NEW_COLUMN_MENU(){
-  return Boolean(getGristConfig().gristNewColumnMenu);
-}
-
 export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
   const G = getBrowserGlobals('document', 'window');
   if (!G.window.PERMITTED_CUSTOM_WIDGETS) {

@@ -129,23 +129,23 @@ describe('MultiColumn', function() {
 
     it('should show proper behavior label', async () => {
       await selectColumns('Test1');
-      assert.equal(await columnBehavior(), 'Empty Column');
+      assert.equal(await gu.columnBehavior(), 'Empty Column');
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Empty Columns');
+      assert.equal(await gu.columnBehavior(), 'Empty Columns');
 
       // Change first to be data column.
       await selectColumns('Test1');
       await driver.find(".test-field-set-data").click();
       await gu.waitForServer();
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Mixed Behavior');
+      assert.equal(await gu.columnBehavior(), 'Mixed Behavior');
 
       // Change second to be a data column
       await selectColumns('Test2');
       await driver.find(".test-field-set-data").click();
       await gu.waitForServer();
       await selectColumns('Test1', 'Test2');
-      assert.equal(await columnBehavior(), 'Data Columns');
+      assert.equal(await gu.columnBehavior(), 'Data Columns');
       // Now make them all formulas
       await gu.sendActions([
         ['ModifyColumn', 'Table1', 'Test1', {formula: '1', isFormula: true}],
@@ -153,13 +153,13 @@ describe('MultiColumn', function() {
         ['ModifyColumn', 'Table1', 'Test3', {formula: '1', isFormula: true}],
       ]);
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Formula Columns');
+      assert.equal(await gu.columnBehavior(), 'Formula Columns');
 
       // Make one of them data column and test that the mix is recognized.
       await selectColumns('Test1');
       await gu.changeBehavior('Convert column to data');
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Mixed Behavior');
+      assert.equal(await gu.columnBehavior(), 'Mixed Behavior');
     });
 
     it('should reset multiple columns', async () => {
@@ -170,14 +170,14 @@ describe('MultiColumn', function() {
         ['ModifyColumn', 'Table1', 'Test3', {formula: '1', isFormula: true}],
       ]);
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Formula Columns');
+      assert.equal(await gu.columnBehavior(), 'Formula Columns');
       await alignment('center');
       assert.equal(await alignment(), 'center');
 
       // Reset all of them
       assert.deepEqual(await gu.availableBehaviorOptions(), ['Convert columns to data', 'Clear and reset']);
       await gu.changeBehavior('Clear and reset');
-      assert.equal(await columnBehavior(), 'Empty Columns');
+      assert.equal(await gu.columnBehavior(), 'Empty Columns');
       assert.equal(await alignment(), 'left');
 
       // Make them all data columns
@@ -185,17 +185,17 @@ describe('MultiColumn', function() {
       await gu.getCell('Test2', 1).click(); await gu.enterCell('a');
       await gu.getCell('Test3', 1).click(); await gu.enterCell('a');
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Data Columns');
+      assert.equal(await gu.columnBehavior(), 'Data Columns');
       await selectColumns('Test1');
-      assert.equal(await columnBehavior(), 'Data Column');
+      assert.equal(await gu.columnBehavior(), 'Data Column');
 
       // Reset all of them
       await selectColumns('Test1', 'Test3');
       assert.deepEqual(await gu.availableBehaviorOptions(), ['Clear and reset']);
       await gu.changeBehavior('Clear and reset');
-      assert.equal(await columnBehavior(), 'Empty Columns');
+      assert.equal(await gu.columnBehavior(), 'Empty Columns');
       await selectColumns('Test1');
-      assert.equal(await columnBehavior(), 'Empty Column');
+      assert.equal(await gu.columnBehavior(), 'Empty Column');
       assert.equal(await gu.getCell('Test1', 1).getText(), '');
       assert.equal(await gu.getCell('Test2', 1).getText(), '');
       assert.equal(await gu.getCell('Test3', 1).getText(), '');
@@ -203,12 +203,12 @@ describe('MultiColumn', function() {
 
     it('should convert to data multiple columns', async () => {
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Empty Columns');
+      assert.equal(await gu.columnBehavior(), 'Empty Columns');
       assert.deepEqual(await gu.availableBehaviorOptions(), ['Convert columns to data', 'Clear and reset']);
       await gu.changeBehavior('Convert columns to data');
-      assert.equal(await columnBehavior(), 'Data Columns');
+      assert.equal(await gu.columnBehavior(), 'Data Columns');
       await selectColumns('Test1');
-      assert.equal(await columnBehavior(), 'Data Column');
+      assert.equal(await gu.columnBehavior(), 'Data Column');
 
       // Now make them all formula columns
       await gu.sendActions([
@@ -217,14 +217,14 @@ describe('MultiColumn', function() {
         ['ModifyColumn', 'Table1', 'Test3', {formula: '3', isFormula: true}],
       ]);
       await selectColumns('Test1', 'Test3');
-      assert.equal(await columnBehavior(), 'Formula Columns');
+      assert.equal(await gu.columnBehavior(), 'Formula Columns');
 
       // Convert them to data
       assert.deepEqual(await gu.availableBehaviorOptions(), ['Convert columns to data', 'Clear and reset']);
       await gu.changeBehavior('Convert columns to data');
-      assert.equal(await columnBehavior(), 'Data Columns');
+      assert.equal(await gu.columnBehavior(), 'Data Columns');
       await selectColumns('Test1');
-      assert.equal(await columnBehavior(), 'Data Column');
+      assert.equal(await gu.columnBehavior(), 'Data Column');
       // Test that data stays.
       assert.equal(await gu.getCell('Test1', 1).getText(), '1');
       assert.equal(await gu.getCell('Test2', 1).getText(), '2');
@@ -1250,9 +1250,7 @@ async function toggleDerived() {
   await gu.waitForServer();
 }
 
-async function columnBehavior() {
-  return (await driver.find(".test-field-behaviour").getText());
-}
+
 
 async function wrapDisabled() {
   return (await driver.find(".test-tb-wrap-text > div").matches('[class*=disabled]'));

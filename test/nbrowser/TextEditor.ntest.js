@@ -133,6 +133,7 @@ describe('TextEditor.ntest', function() {
   async function addColumnRightOf(index) {
     // Add a column. We have to hover over the column header first.
     await gu.openColumnMenu({col: index}, 'Insert column to the right');
+    await driver.find('.test-new-columns-menu-add-new').click();
     await gu.waitForServer();
     await gu.sendKeys($.ESCAPE);
   }

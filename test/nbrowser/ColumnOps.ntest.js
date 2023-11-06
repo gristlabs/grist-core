@@ -18,6 +18,7 @@ describe('ColumnOps.ntest', function() {
 
   it("should allow adding and deleting columns", async function() {
     await gu.clickColumnMenuItem('Name', 'Insert column to the right');
+    await $('.test-new-columns-menu-add-new').click();
     await gu.waitForServer();
     // Newly created columns labels become editable automatically.  The next line checks that the
     // label is editable and then closes the editor.
@@ -78,7 +79,7 @@ describe('ColumnOps.ntest', function() {
     // Then show it using the add column menu
     await $('.mod-add-column').scrollIntoView(true);
     await $(".mod-add-column").click();
-    await gu.actions.selectFloatingOption('Show column Name');
+    await showColumn('Name');
     await gu.waitForServer();
     await assert.isPresent(gu.getColumnHeader('Name'), true);
   });
@@ -86,13 +87,14 @@ describe('ColumnOps.ntest', function() {
   it("[+] button show add column directly if no hidden columns", async function() {
     await $('.mod-add-column').scrollIntoView(true);
     await $(".mod-add-column").click();
-    await gu.actions.selectFloatingOption('Show column Pop');
+    await showColumn("Pop");
     await gu.waitForServer();
     await assert.isPresent(gu.getColumnHeader("Pop. '000"), true);
 
     await assert.isPresent(gu.getColumnHeader('B'), false);
     await $('.mod-add-column').scrollIntoView(true);
     await $(".mod-add-column").click();
+    await $('.test-new-columns-menu-add-new').click();
     await gu.waitToPass(() => gu.getColumnHeader('B'));
     await gu.getOpenEditingLabel(await gu.getColumnHeader('B')).wait().sendKeys($.ENTER);
     await gu.waitForServer();
@@ -273,3 +275,7 @@ describe('ColumnOps.ntest', function() {
 
   });
 });
+
+function showColumn(name) {
+  return $(`.test-new-columns-menu-hidden-column-inlined:contains(${name})`).click();
+}
