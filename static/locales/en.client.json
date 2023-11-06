@@ -1055,7 +1055,8 @@
         },
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.",
         "Lookups return data from related tables.": "Lookups return data from related tables.",
-        "Use reference columns to relate data in different tables.": "Use reference columns to relate data in different tables."
+        "Use reference columns to relate data in different tables.": "Use reference columns to relate data in different tables.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
