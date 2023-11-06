@@ -36,12 +36,12 @@
  */
 
 import * as express from 'express';
-import {GristLoginSystem, GristServer} from './GristServer';
+import { GristLoginSystem, GristServer } from './GristServer';
 import { Client, generators, Issuer, UserinfoResponse } from 'openid-client';
-import {Sessions} from './Sessions';
+import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
-import {appSettings} from './AppSettings';
-import {RequestWithLogin} from './Authorizer';
+import { appSettings } from './AppSettings';
+import { RequestWithLogin } from './Authorizer';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -74,7 +74,7 @@ export class OIDCConfig {
       client_id: clientId,
       client_secret: clientSecret,
       redirect_uris: [ this._redirectUrl ],
-      response_types: ['code'],
+      response_types: [ 'code' ],
     });
   }
 
