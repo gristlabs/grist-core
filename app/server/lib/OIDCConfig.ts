@@ -24,7 +24,10 @@
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
  *   https://www.keycloak.org/getting-started/getting-started-docker
- * When running on localhost and http, the settings tested were with:
+ *
+ * /!\ CAUTION: For production, be sure to use https for all URLs. /!\
+ *
+ * For development of this module on localhost, these settings should work:
  *   - GRIST_OIDC_SP_HOST=http://localhost:8484 (or whatever port you use for Grist)
  *   - GRIST_OIDC_IDP_ISSUER=http://localhost:8080/realms/myrealm (replace 8080 by the port you use for keycloak)
  *   - GRIST_OIDC_IDP_CLIENT_ID=my_grist_instance
