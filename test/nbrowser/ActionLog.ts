@@ -133,7 +133,7 @@ describe('ActionLog', function() {
     assert.equal(await gu.getActiveCell().getText(), 'f');
 
     // Delete Table1Renamed.
-    await gu.removeTable('Table1Renamed');
+    await gu.removeTable('Table1Renamed', {dismissTips: true});
     await driver.findContent('.action_log label', /All tables/).find('input').click();
 
     const item4 = await getActionLogItem(4);
