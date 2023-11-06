@@ -11,9 +11,9 @@
  *
  * Expected environment variables:
  *    env GRIST_OIDC_SP_HOST=https://<your-domain>
- *        Host at which our /oidc endpoint will live; identifies our application.
+ *        Host at which our /oauth2 endpoint will live, usually the same value as `APP_HOME_URL`.
  *    env GRIST_OIDC_IDP_ISSUER
- *        The issuer URL for the IdP.
+ *        The issuer URL for the IdP, passed to node-openid-client, see: https://github.com/panva/node-openid-client/blob/a84d022f195f82ca1c97f8f6b2567ebcef8738c3/docs/README.md#issuerdiscoverissuer.
  *    env GRIST_OIDC_IDP_CLIENT_ID
  *        The client ID for the application, as registered with the IdP.
  *    env GRIST_OIDC_IDP_CLIENT_SECRET
@@ -27,7 +27,7 @@
  * When running on localhost and http, the settings tested were with:
  *   - GRIST_OIDC_SP_HOST=http://localhost:8484 (or whatever port you use for Grist)
  *   - GRIST_OIDC_IDP_ISSUER=http://localhost:8080/realms/myrealm (replace 8080 by the port you use for keycloak)
- *   - GRIST_OIDC_IDP_CLIENT_ID=myclient
+ *   - GRIST_OIDC_IDP_CLIENT_ID=my_grist_instance
  *   - GRIST_OIDC_IDP_CLIENT_SECRET=YOUR_SECRET (as set in keycloak)
  *   - GRIST_OIDC_IDP_SCOPES="openid email profile"
  */
@@ -40,13 +40,14 @@ import log from 'app/server/lib/log';
 import {Permit} from './Permit';
 
 const CALLBACK_URL = '/oauth2/callback';
-const LOGIN_URL = '/oauth2/login';
 
+// Variables used for temporary permits.
 const LOGIN_ACTION = 'oidc-login';
 const WAIT_IN_MINUTES = 20;
 
 export class OIDCConfig {
   private _client: Client;
+  private _redirectUrl: string;
 
   public constructor(private _gristServer: GristServer) {
   }
@@ -62,16 +63,16 @@ export class OIDCConfig {
     }
     const spHost: string = process.env.GRIST_OIDC_SP_HOST;
     const issuer = await Issuer.discover(process.env.GRIST_OIDC_IDP_ISSUER);
+    this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     this._client = new issuer.Client({
       client_id: process.env.GRIST_OIDC_IDP_CLIENT_ID,
       client_secret: process.env.GRIST_OIDC_IDP_CLIENT_SECRET,
-      redirect_uris: [ new URL(CALLBACK_URL, spHost).href ],
+      redirect_uris: [ this._redirectUrl ],
       response_types: ['code'],
     });
   }
 
   public addEndpoints(app: express.Application, sessions: Sessions): void {
-    app.get(LOGIN_URL, this.handleLogin.bind(this));
     app.get(CALLBACK_URL, this.handleCallback.bind(this, sessions));
   }
 
@@ -83,9 +84,10 @@ export class OIDCConfig {
       if (!state) {
         throw new Error('Login or logout failed to complete');
       }
-      const codeVerifier = await this._retrieveCodeVerifierFromPermit(state);
+      const sessionId = sessions.getSessionIdFromRequest(req);
+      const codeVerifier = await this._retrieveCodeVerifierFromPermit(state, sessionId);
       const tokenSet = await this._client.callback(
-        new URL(CALLBACK_URL, process.env.GRIST_OIDC_SP_HOST).href,
+        this._redirectUrl,
         params,
         { state, code_verifier: codeVerifier }
       );
@@ -94,22 +96,11 @@ export class OIDCConfig {
       const scopedSession = sessions.getOrCreateSessionFromRequest(req);
       await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
         profile,
-        accessToken: tokenSet.access_token,
-        refreshToken: tokenSet.refresh_token,
       }));
       res.redirect('/');
     } catch (err) {
       log.error(`OIDC callback failed: ${err.message}`);
-      res.status(500).send(`Cannot connect to OIDC provider: ${err.message}`);
-    }
-  }
-
-  public async handleLogin(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      res.redirect(await this.getLoginRedirectUrl(req));
-    } catch (ex) {
-      log.error(`OIDC login failed: ${ex.message}`);
-      res.status(500).send(`Cannot connect to OIDC provider: ${ex.message}`);
+      res.status(500).send(`OIDC callback failed: ${err.message}`);
     }
   }
 
@@ -146,11 +137,14 @@ export class OIDCConfig {
     return { codeVerifier, state };
   }
 
-  private async _retrieveCodeVerifierFromPermit(state: string) {
+  private async _retrieveCodeVerifierFromPermit(state: string, sessionId: string | null) {
     const permitStore = this._gristServer.getExternalPermitStore();
     const permit = await permitStore.getPermit(state);
-    if (!permit || !permit.codeVerifier) {
-      throw new Error('Login or logout is stale');
+    if (!permit || !sessionId || permit.sessionId !== sessionId) {
+      throw new Error('Login is stale or session mismatch');
+    }
+    if (!permit.codeVerifier) {
+      throw new Error('Login is stale');
     }
     if (permit.action !== LOGIN_ACTION) {
       throw new Error(`Unexpected action: "${permit.action}"`);
