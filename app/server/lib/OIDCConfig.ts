@@ -37,36 +37,39 @@ import {GristLoginSystem, GristServer} from './GristServer';
 import { Client, generators, Issuer, UserinfoResponse } from 'openid-client';
 import {Sessions} from './Sessions';
 import log from 'app/server/lib/log';
-import {Permit} from './Permit';
+import {appSettings} from './AppSettings';
+import {RequestWithLogin} from './Authorizer';
 
 const CALLBACK_URL = '/oauth2/callback';
-
-// Variables used for temporary permits.
-const LOGIN_ACTION = 'oidc-login';
-const WAIT_IN_MINUTES = 20;
 
 export class OIDCConfig {
   private _client: Client;
   private _redirectUrl: string;
 
-  public constructor(private _gristServer: GristServer) {
+  public constructor() {
   }
 
   public async initOIDC(): Promise<void> {
-    if (!process.env.GRIST_OIDC_SP_HOST) { throw new Error('initOIDC requires GRIST_OIDC_SP_HOST to be set'); }
-    if (!process.env.GRIST_OIDC_IDP_ISSUER) { throw new Error('initOIDC requires GRIST_OIDC_IDP_ISSUER to be set'); }
-    if (!process.env.GRIST_OIDC_IDP_CLIENT_ID) {
-      throw new Error('initOIDC requires GRIST_OIDC_IDP_CLIENT_ID to be set');
-    }
-    if (!process.env.GRIST_OIDC_IDP_CLIENT_SECRET) {
-      throw new Error('initOIDC requires GRIST_OIDC_IDP_CLIENT_SECRET to be set');
-    }
-    const spHost: string = process.env.GRIST_OIDC_SP_HOST;
-    const issuer = await Issuer.discover(process.env.GRIST_OIDC_IDP_ISSUER);
+    const section = appSettings.section('login').section('system').section('oidc');
+    const spHost = section.flag('spHost').requireString({
+      envVar: 'GRIST_OIDC_SP_HOST',
+      defaultValue: process.env.APP_HOME_URL,
+    });
+    const issuerUrl = section.flag('issuer').requireString({
+      envVar: 'GRIST_OIDC_IDP_ISSUER',
+    });
+    const clientId = section.flag('clientId').requireString({
+      envVar: 'GRIST_OIDC_IDP_CLIENT_ID',
+    });
+    const clientSecret = section.flag('clientSecret').requireString({
+      envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
+    });
+
+    const issuer = await Issuer.discover(issuerUrl);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     this._client = new issuer.Client({
-      client_id: process.env.GRIST_OIDC_IDP_CLIENT_ID,
-      client_secret: process.env.GRIST_OIDC_IDP_CLIENT_SECRET,
+      client_id: clientId,
+      client_secret: clientSecret,
       redirect_uris: [ this._redirectUrl ],
       response_types: ['code'],
     });
@@ -77,26 +80,29 @@ export class OIDCConfig {
   }
 
   public async handleCallback(sessions: Sessions, req: express.Request, res: express.Response): Promise<void> {
-
     try {
       const params = this._client.callbackParams(req);
       const { state } = params;
       if (!state) {
         throw new Error('Login or logout failed to complete');
       }
-      const sessionId = sessions.getSessionIdFromRequest(req);
-      const codeVerifier = await this._retrieveCodeVerifierFromPermit(state, sessionId);
+
+      const codeVerifier = await this._retrieveCodeVerifierFromSession(req);
+
       const tokenSet = await this._client.callback(
         this._redirectUrl,
         params,
         { state, code_verifier: codeVerifier }
       );
+
       const userInfo = await this._client.userinfo(tokenSet);
       const profile = this._makeUserProfileFromUserInfo(userInfo);
+
       const scopedSession = sessions.getOrCreateSessionFromRequest(req);
       await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
         profile,
       }));
+
       res.redirect('/');
     } catch (err) {
       log.error(`OIDC callback failed: ${err.message}`);
@@ -105,8 +111,9 @@ export class OIDCConfig {
   }
 
   public async getLoginRedirectUrl(req: express.Request): Promise<string> {
-    const { state, codeVerifier } = await this._generateAndStoreCodeVerifier(req, this._gristServer.getSessions());
+    const codeVerifier = await this._generateAndStoreCodeVerifier(req);
     const codeChallenge = generators.codeChallenge(codeVerifier);
+    const state = generators.state();
 
     const authUrl = this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
@@ -123,34 +130,26 @@ export class OIDCConfig {
     });
   }
 
-  private async _generateAndStoreCodeVerifier(req: express.Request, sessions: Sessions) {
-    const permitStore = this._gristServer.getExternalPermitStore();
-    const sessionId = sessions.getSessionIdFromRequest(req);
-    if (!sessionId) { throw new Error('no session available'); }
+  private async _generateAndStoreCodeVerifier(req: express.Request) {
+    const mreq = req as RequestWithLogin;
+    if (!mreq.session) { throw new Error('no session available'); }
     const codeVerifier = generators.codeVerifier();
-    const permit: Permit = {
-      action: LOGIN_ACTION,
-      sessionId,
+    mreq.session.oidc = {
       codeVerifier,
     };
-    const state = await permitStore.setPermit(permit, WAIT_IN_MINUTES * 60 * 1000);
-    return { codeVerifier, state };
+    console.log('mreq.session = ', mreq.session);
+
+    return codeVerifier;
   }
 
-  private async _retrieveCodeVerifierFromPermit(state: string, sessionId: string | null) {
-    const permitStore = this._gristServer.getExternalPermitStore();
-    const permit = await permitStore.getPermit(state);
-    if (!permit || !sessionId || permit.sessionId !== sessionId) {
-      throw new Error('Login is stale or session mismatch');
-    }
-    if (!permit.codeVerifier) {
-      throw new Error('Login is stale');
-    }
-    if (permit.action !== LOGIN_ACTION) {
-      throw new Error(`Unexpected action: "${permit.action}"`);
-    }
-    const { codeVerifier } = permit;
-    await permitStore.removePermit(state);
+  private async _retrieveCodeVerifierFromSession(req: express.Request) {
+    const mreq = req as RequestWithLogin;
+    if (!mreq.session) { throw new Error('no session available'); }
+    const codeVerifier = mreq.session.oidc?.codeVerifier;
+    if (!codeVerifier) { throw new Error('Login is stale'); }
+    console.log('mreq.session = ', mreq.session);
+    delete mreq.session.oidc?.codeVerifier;
+    console.log('zzzz mreq.session = ', mreq.session);
     return codeVerifier;
   }
 
@@ -169,7 +168,7 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> 
   if (!process.env.GRIST_OIDC_SP_HOST) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = new OIDCConfig(gristServer);
+      const config = new OIDCConfig();
       await config.initOIDC();
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),

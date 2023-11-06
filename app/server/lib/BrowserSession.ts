@@ -68,6 +68,11 @@ export interface SessionObj {
                           // anonymous editing (e.g. to allow the user to edit
                           // something they just added, without allowing the suer
                           // to edit other people's contributions).
+
+  oidc?: {
+    // codeVerifier is used during OIDC authentication, to protect against attacks like CSRF.
+    codeVerifier?: string;
+  }
 }
 
 // Make an artificial change to a session to encourage express-session to set a cookie.
