@@ -19,7 +19,7 @@
         "Add Default Rule": "添加默认规则",
         "Add Table Rules": "添加表格规则",
         "Add User Attributes": "添加用户属性",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "允许每个人复制整个文档，或在演示模式下完整查看。\n适用于示例和模板，但不要用在有敏感数据的情况下。",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "允许所有人复制整个文档，或在演示模式下完整查看。\n适用于示例和模板，但不适用于包含敏感数据的文档。",
         "Attribute name": "属性名称",
         "Condition": "条件",
         "Default Rules": "默认规则",
@@ -144,7 +144,7 @@
         "Cut": "剪切"
     },
     "ACUserManager": {
-        "Enter email address": "请输入电邮地址",
+        "Enter email address": "请输入电子邮件地址",
         "Invite new member": "邀请新成员",
         "We'll email an invite to {{email}}": "我们将通过电子邮件向 {{email}} 发送邀请"
     },
