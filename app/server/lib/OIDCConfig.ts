@@ -168,7 +168,7 @@ export class OIDCConfig {
 }
 
 export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> {
-  if (!process.env.GRIST_OIDC_SP_HOST) { return undefined; }
+  if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
       const config = new OIDCConfig();
