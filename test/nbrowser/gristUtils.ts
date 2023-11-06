@@ -894,8 +894,17 @@ export async function importUrlDialog(url: string): Promise<void> {
  * Executed passed function in the context of given iframe, and then switching back to original context
  *
  */
-export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>) {
+export async function doInIframe<T>(func: () => Promise<T>): Promise<T>
+export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>): Promise<T>
+export async function doInIframe<T>(frameOrFunc: WebElement|(() => Promise<T>), func?: () => Promise<T>): Promise<T> {
   try {
+    let iframe: WebElement;
+    if (!func) {
+      func = frameOrFunc as () => Promise<T>;
+      iframe = await driver.findWait('iframe', 5000);
+    } else {
+      iframe = frameOrFunc as WebElement;
+    }
     await driver.switchTo().frame(iframe);
     return await func();
   } finally {

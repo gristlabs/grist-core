@@ -4,11 +4,12 @@ import {getCollapsedSection, openCollapsedSectionMenu} from 'test/nbrowser/ViewL
 import {assert, driver, Key, WebElement, WebElementPromise} from 'mocha-webdriver';
 import {arrayRepeat} from 'app/plugin/gutil';
 import {addStatic, serveSomething} from 'test/server/customUtil';
+import {AccessLevel} from 'app/common/CustomWidget';
 
 const GAP = 16;     // Distance between buttons representing collapsed widgets.
 
 describe("ViewLayoutCollapse", function() {
-  this.timeout(40000);
+  this.timeout('50s');
   const cleanup = setupTestSuite();
   gu.bigScreen();
   let session: gu.Session;
@@ -17,6 +18,45 @@ describe("ViewLayoutCollapse", function() {
     session = await gu.session().login();
     await session.tempDoc(cleanup, 'Investment Research.grist');
     await gu.openPage("Overview");
+  });
+
+  it('fix: custom widget should restart when added back after collapsing', async function() {
+    const revert = await gu.begin();
+
+    // Add custom section.
+    await gu.addNewPage('Table', 'Companies');
+    await gu.addNewSection('Custom', 'Companies', { selectBy: 'COMPANIES'});
+
+    // Serve custom widget.
+    const widgetServer = await serveSomething(app => {
+      addStatic(app);
+    });
+    cleanup.addAfterAll(widgetServer.shutdown);
+    await gu.openWidgetPanel();
+    await gu.setWidgetUrl(widgetServer.url + '/probe/index.html');
+    await gu.widgetAccess(AccessLevel.full);
+
+    // Collapse it.
+    await collapseByMenu('COMPANIES Custom');
+
+    // Now restore its position.
+    await addToMainByMenu('COMPANIES Custom');
+
+    // Collapsed widget used to lost connection with Grist as it was disposed to early.
+    // Make sure that this widget can call the API.
+    await gu.doInIframe(async () => {
+      await gu.waitToPass(async () => {
+        assert.equal(await driver.find('#output').getText(),
+          `["Companies","Investments","Companies_summary_category_code","Investments_summary_funded_year",` +
+          `"Investments_summary_Company_category_code_funded_year","Investments_summary_Company_category_code"]`
+        );
+      });
+    });
+
+
+    // Make sure we don't have an error.
+    await gu.checkForErrors();
+    await revert();
   });
 
   it('fix: custom widget should not throw errors when collapsed', async function() {
@@ -33,9 +73,7 @@ describe("ViewLayoutCollapse", function() {
     cleanup.addAfterAll(widgetServer.shutdown);
     await gu.openWidgetPanel();
     await gu.setWidgetUrl(widgetServer.url + '/probe/index.html');
-    await driver.find('.test-config-widget-access .test-select-open').click();
-    await driver.findContent('.test-select-menu li', 'Full document access').click();
-    await gu.waitForServer();
+    await gu.widgetAccess(AccessLevel.full);
 
     // Collapse it.
     await collapseByMenu('COMPANIES Custom');

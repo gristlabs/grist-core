@@ -185,17 +185,17 @@ export class WidgetFrame extends DisposableWithEvents {
 
   public buildDom() {
     const onElem = this._options.onElem ?? ((el: HTMLIFrameElement) => el);
-    return onElem(
-      (this._iframe = dom(
-        'iframe',
-        dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
-        dom.cls('clipboard_focus'),
-        dom.cls('custom_view'),
-        dom.attr('src', use => this._getUrl(use(this._widget))),
-        hooks.iframeAttributes,
-        testId('ready', this._readyCalled),
-      ))
+    this._iframe = dom(
+      'iframe',
+      dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
+      dom.cls('clipboard_focus'),
+      dom.cls('custom_view'),
+      dom.attr('src', use => this._getUrl(use(this._widget))),
+      hooks.iframeAttributes,
+      testId('ready', this._readyCalled),
+      self => void onElem(self),
     );
+    return this._iframe;
   }
 
   private _getUrl(widget: ICustomWidget|null): string {
