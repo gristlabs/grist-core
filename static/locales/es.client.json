@@ -1109,7 +1109,8 @@
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "¿No encuentras las columnas adecuadas? Haz clic en \"Cambiar widget\" para seleccionar la tabla con los datos de los eventos.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID es una cadena generada aleatoriamente que resulta útil para identificadores únicos y claves de los enlaces.",
         "Lookups return data from related tables.": "Las búsquedas devuelven datos de tablas relacionadas.",
-        "Use reference columns to relate data in different tables.": "Utilizar las columnas de referencia para relacionar los datos de distintas tablas."
+        "Use reference columns to relate data in different tables.": "Utilizar las columnas de referencia para relacionar los datos de distintas tablas.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puedes elegir entre los widgets disponibles en el menú desplegable, o incrustar el suyo propio proporcionando su dirección URL completa."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
