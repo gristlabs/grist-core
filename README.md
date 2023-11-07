@@ -280,7 +280,7 @@ GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) 
 GRIST_OFFER_ALL_LANGUAGES | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user).
 GRIST_ORG_IN_PATH | if true, encode org in path rather than domain
 GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all.
-GRIST_PROXY_AUTH_HEADER | header which will be set by a (reverse) proxy webserver with an authorized users' email. This can be used as an alternative to a SAML service. See also GRIST_FORWARD_AUTH_HEADER.
+~GRIST_PROXY_AUTH_HEADER~ | Deprecated, and interpreted as a synonym for GRIST_FORWARD_AUTH_HEADER.
 GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer
 GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy)
 GRIST_SERVERS | the types of server to setup. Comma separated values which may contain "home", "docs", static" and/or "app". Defaults to "home,docs,static".
@@ -339,16 +339,34 @@ GRIST_FORWARD_AUTH_HEADER | if set, trust the specified header (e.g. "x-forwarde
 GRIST_FORWARD_AUTH_LOGIN_PATH | if GRIST_FORWARD_AUTH_HEADER is set, Grist will listen at this path for logins. Defaults to `/auth/login`.
 GRIST_FORWARD_AUTH_LOGOUT_PATH | if GRIST_FORWARD_AUTH_HEADER is set, Grist will forward to this path when user logs out.
 
+Forward authentication supports two modes, distinguished by `GRIST_IGNORE_SESSION`:
+
+1. With sessions, and forward-auth on login endpoints.
+
+   For example, using traefik reverse proxy with
+   [traefik-forward-auth](https://github.com/thomseddon/traefik-forward-auth) middleware:
+
+   - `GRIST_IGNORE_SESSION`: do NOT set, or set to a falsy value.
+   - Make sure your reverse proxy applies the forward auth middleware to
+     `GRIST_FORWARD_AUTH_LOGIN_PATH` and `GRIST_FORWARD_AUTH_LOGOUT_PATH`.
+   - If you want to allow anonymous access in some cases, make sure all other paths are free of
+     the forward auth middleware. Grist will trigger it as needed by redirecting to
+     `GRIST_FORWARD_AUTH_LOGIN_PATH`. Once the user is logged in, Grist will use sessions to
+     identify the user until logout.
+
+2. With no sessions, and forward-auth on all endpoints.
+
+   For example, using HTTP Basic Auth and server configuration that sets the header (specified in
+   `GRIST_FORWARD_AUTH_HEADER`) to the logged-in user.
+
+  - `GRIST_IGNORE_SESSION`: set to `true`. Grist sessions will not be used.
+  - Make sure your reverse proxy sets the header you specified for all requests that may need
+    login information. It is imperative that this header cannot be spoofed by the user, since
+    Grist will trust whatever is in it.
+
 When using forward authentication, you may wish to also set the following variables:
 
-  * GRIST_FORCE_LOGIN=true to disable anonymous access.
-  * GRIST_IGNORE_SESSION=true to ignore any user identity information in a cookie.
-    Only do this if you use forward authentication on all paths.
-    You may not want to use forward authentication on all paths if it makes
-    signing in required, and you are trying to permit anonymous access.
-
-GRIST_FORWARD_AUTH_HEADER is similar to GRIST_PROXY_AUTH_HEADER, but enables
-a login system (assuming you have some forward authentication set up).
+  * `GRIST_FORCE_LOGIN=true` to disable anonymous access.
 
 #### Plugins:
 

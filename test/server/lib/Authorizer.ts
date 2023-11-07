@@ -78,7 +78,10 @@ describe('Authorizer', function() {
     this.timeout(5000);
     setUpDB(this);
     oldEnv = new testUtils.EnvironmentSnapshot();
+    // GRIST_PROXY_AUTH_HEADER now only affects requests directly when GRIST_IGNORE_SESSION is
+    // also set.
     process.env.GRIST_PROXY_AUTH_HEADER = 'X-email';
+    process.env.GRIST_IGNORE_SESSION = 'true';
     await createInitialDb();
     await activateServer(server, docTools.getDocManager());
     await loadFixtureDocs();
@@ -185,7 +188,9 @@ describe('Authorizer', function() {
     const applyUserActions = await cli.send("applyUserActions",
                                             0,
                                             [["UpdateRecord", "Table1", 1, {A: nonce}]]);
-    assert.lengthOf(cli.messages, 1);  // user actions pushed to client
+    // Skip messages with no actions (since docUsage may or may not appear by now)
+    const messagesWithActions = cli.messages.filter(m => m.data.docActions);
+    assert.lengthOf(messagesWithActions, 1);  // user actions pushed to client
     assert.equal(applyUserActions.error, undefined);
     const fetchTable = await cli.send("fetchTable", 0, "Table1");
     assert.equal(fetchTable.error, undefined);

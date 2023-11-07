@@ -96,44 +96,38 @@ export function isSingleUserMode(): boolean {
   return process.env.GRIST_SINGLE_USER === '1';
 }
 
-
 /**
  * Returns a profile if it can be deduced from the request. This requires a
- * header to specify the users' email address. The header to set comes from the
- * environment variable GRIST_PROXY_AUTH_HEADER, or may be passed in.
+ * header to specify the users' email address.
  * A result of null means that the user should be considered known to be anonymous.
  * A result of undefined means we should go on to consider other authentication
  * methods (such as cookies).
  */
 export function getRequestProfile(req: Request|IncomingMessage,
-                                  header?: string): UserProfile|null|undefined {
-  header = header || process.env.GRIST_PROXY_AUTH_HEADER;
+                                  header: string): UserProfile|null|undefined {
   let profile: UserProfile|null|undefined;
 
-  if (header) {
-    // Careful reading headers. If we have an IncomingMessage, there is no
-    // get() function, and header names are lowercased.
-    const headerContent = ('get' in req) ? req.get(header) : req.headers[header.toLowerCase()];
-    if (headerContent) {
-      const userEmail = headerContent.toString();
-      const [userName] = userEmail.split("@", 1);
-      if (userEmail && userName) {
-        profile = {
-          "email": userEmail,
-          "name": userName
-        };
-      }
+  // Careful reading headers. If we have an IncomingMessage, there is no
+  // get() function, and header names are lowercased.
+  const headerContent = ('get' in req) ? req.get(header) : req.headers[header.toLowerCase()];
+  if (headerContent) {
+    const userEmail = headerContent.toString();
+    const [userName] = userEmail.split("@", 1);
+    if (userEmail && userName) {
+      profile = {
+        "email": userEmail,
+        "name": userName
+      };
     }
-    // If no profile at this point, and header was present,
-    // treat as anonymous user, represented by null value.
-    // Don't go on to look at session.
-    if (!profile && headerContent !== undefined) {
-      profile = null;
-    }
+  }
+  // If no profile at this point, and header was present,
+  // treat as anonymous user, represented by null value.
+  // Don't go on to look at session.
+  if (!profile && headerContent !== undefined) {
+    profile = null;
   }
   return profile;
 }
-
 
 /**
  * Returns the express request object with user information added, if it can be
@@ -144,13 +138,15 @@ export function getRequestProfile(req: Request|IncomingMessage,
  *     as would typically be the case, credentials were not presented)
  *   - req.users: set for org-and-session-based logins, with list of profiles in session
  */
-export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPermitStore,
-                                     options: {
-                                       gristServer: GristServer,
-                                       skipSession?: boolean,
-                                       getProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
-                                     },
-                                     req: Request, res: Response, next: NextFunction) {
+export async function addRequestUser(
+  dbManager: HomeDBManager, permitStore: IPermitStore,
+  options: {
+    gristServer: GristServer,
+    skipSession?: boolean,
+    overrideProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
+  },
+  req: Request, res: Response, next: NextFunction
+) {
   const mreq = req as RequestWithLogin;
   let profile: UserProfile|undefined;
 
@@ -236,21 +232,20 @@ export async function addRequestUser(dbManager: HomeDBManager, permitStore: IPer
   // If this is the case, we won't use session information.
   let skipSession: boolean = options.skipSession || authDone;
   if (!authDone && !mreq.userId) {
-    let candidate = await options.getProfile?.(mreq);
-    if (candidate === undefined) {
-      candidate = getRequestProfile(mreq);
-    }
-    if (candidate !== undefined) {
+    const candidateProfile = await options.overrideProfile?.(mreq);
+    if (candidateProfile !== undefined) {
+      // Either a valid or a null profile tells us that another login system determined the user,
+      // and that we should skip sessions.
       skipSession = true;
-    }
-    if (candidate) {
-      profile = candidate;
-      const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
-      if (user) {
-        mreq.user = user;
-        mreq.users = [profile];
-        mreq.userId = user.id;
-        mreq.userIsAuthorized = true;
+      if (candidateProfile) {
+        profile = candidateProfile;
+        const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
+        if (user) {
+          mreq.user = user;
+          mreq.users = [profile];
+          mreq.userId = user.id;
+          mreq.userIsAuthorized = true;
+        }
       }
     }
   }
@@ -698,7 +693,7 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
     ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
     ...(Origin ? { Origin } : undefined),
   };
-  const extraHeader = process.env.GRIST_PROXY_AUTH_HEADER;
+  const extraHeader = process.env.GRIST_FORWARD_AUTH_HEADER;
   const extraHeaderValue = extraHeader && req.get(extraHeader);
   if (extraHeader && extraHeaderValue) {
     result[extraHeader] = extraHeaderValue;

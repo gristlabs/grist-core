@@ -671,7 +671,7 @@ export class FlexServer implements GristServer {
       this._userIdMiddleware = expressWrap(addRequestUser.bind(
         null, this._dbManager, this._internalPermitStore,
         {
-          getProfile: this._loginMiddleware.getProfile?.bind(this._loginMiddleware),
+          overrideProfile: this._loginMiddleware.overrideProfile?.bind(this._loginMiddleware),
             // Set this to false to stop Grist using a cookie for authentication purposes.
           skipSession,
           gristServer: this,

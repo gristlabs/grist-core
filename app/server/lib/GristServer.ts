@@ -79,10 +79,11 @@ export interface GristLoginMiddleware {
   getWildcardMiddleware?(): express.RequestHandler[];
   // Returns arbitrary string for log.
   addEndpoints(app: express.Express): Promise<string>;
-  // Optionally, extract profile from request. Result can be a profile,
-  // or null if anonymous (and other methods of determining profile such
-  // as a cookie should not be used), or undefined to use other methods.
-  getProfile?(req: express.Request|IncomingMessage): Promise<UserProfile|null|undefined>;
+  // Normally, the profile is obtained from the user's session object, which is set at login, and
+  // is identified by a session cookie. When given, overrideProfile() will be called first to
+  // extract the profile from each request. Result can be a profile, or null if anonymous
+  // (sessions will then not be used), or undefined to fall back to using session info.
+  overrideProfile?(req: express.Request|IncomingMessage): Promise<UserProfile|null|undefined>;
   // Called on first visit to an app page after a signup, for reporting or telemetry purposes.
   onFirstVisit?(req: express.Request): void;
 }

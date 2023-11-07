@@ -42,7 +42,6 @@ import {parseFirstUrlPart} from 'app/common/gristUrls';
 import {firstDefined, safeJsonParse} from 'app/common/gutil';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import * as version from 'app/common/version';
-import {getRequestProfile} from 'app/server/lib/Authorizer';
 import {ScopedSession} from "app/server/lib/BrowserSession";
 import {Client, ClientMethod} from "app/server/lib/Client";
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -198,8 +197,7 @@ export class Comm extends EventEmitter {
    */
   private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile|null> {
     return await firstDefined(
-      async () => this._options.loginMiddleware?.getProfile?.(req),
-      async () => getRequestProfile(req),
+      async () => this._options.loginMiddleware?.overrideProfile?.(req),
       async () => scopedSession.getSessionProfile(),
     ) || null;
   }
