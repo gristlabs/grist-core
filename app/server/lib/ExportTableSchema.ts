@@ -1,7 +1,7 @@
 import * as express from 'express';
 import {ApiError} from 'app/common/ApiError';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {DownloadOptions, ExportColumn, exportTable} from 'app/server/lib/Export';
+import {DownloadOptions, ExportColumn, ExportHeader, exportTable} from 'app/server/lib/Export';
 
 interface FrictionlessFormat {
   name: string;
@@ -51,21 +51,21 @@ export async function collectTableSchemaInFrictionlessFormat(
   }
 
   const data = await exportTable(activeDoc, tableRef, req);
-  const tableSchema = columnsToTableSchema(tableId, data, settings.locale);
+  const tableSchema = columnsToTableSchema(tableId, data, {locale: settings.locale, header: options.header});
   return tableSchema;
 }
 
 function columnsToTableSchema(
   tableId: string,
   {tableName, columns}: {tableName: string, columns: ExportColumn[]},
-  locale: string,
+  {locale, header = "label"}: {locale: string, header?: ExportHeader},
 ): FrictionlessFormat {
   return {
     name: tableId.toLowerCase().replace(/_/g, '-'),
     title: tableName,
     schema: {
       fields: columns.map(col => ({
-        name: col.label,
+        name: col[header],
         ...(col.description ? {description: col.description} : {}),
         ...buildTypeField(col, locale),
       })),
