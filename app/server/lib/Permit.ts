@@ -32,7 +32,6 @@ export interface Permit {
   sessionId?: string;   // A particular session.
   url?: string;         // A particular url.
   action?: string;      // A string denoting what kind of action the permit applies to.
-  codeVerifier?: string;
 }
 
 /* A store of permits */
