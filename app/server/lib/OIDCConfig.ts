@@ -11,9 +11,10 @@
  *
  * Expected environment variables:
  *    env GRIST_OIDC_SP_HOST=https://<your-domain>
- *        Host at which our /oauth2 endpoint will live, usually the same value as `APP_HOME_URL`.
+ *        Host at which our /oauth2 endpoint will live. Optional, defaults to `APP_HOME_URL`.
  *    env GRIST_OIDC_IDP_ISSUER
  *        The issuer URL for the IdP, passed to node-openid-client, see: https://github.com/panva/node-openid-client/blob/a84d022f195f82ca1c97f8f6b2567ebcef8738c3/docs/README.md#issuerdiscoverissuer.
+ *        This variable turns on the OIDC login system.
  *    env GRIST_OIDC_IDP_CLIENT_ID
  *        The client ID for the application, as registered with the IdP.
  *    env GRIST_OIDC_IDP_CLIENT_SECRET
@@ -66,6 +67,7 @@ export class OIDCConfig {
     });
     const clientSecret = section.flag('clientSecret').requireString({
       envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
+      censor: true,
     });
 
     const issuer = await Issuer.discover(issuerUrl);
@@ -140,7 +142,6 @@ export class OIDCConfig {
     mreq.session.oidc = {
       codeVerifier,
     };
-    console.log('mreq.session = ', mreq.session);
 
     return codeVerifier;
   }
@@ -150,9 +151,7 @@ export class OIDCConfig {
     if (!mreq.session) { throw new Error('no session available'); }
     const codeVerifier = mreq.session.oidc?.codeVerifier;
     if (!codeVerifier) { throw new Error('Login is stale'); }
-    console.log('mreq.session = ', mreq.session);
     delete mreq.session.oidc?.codeVerifier;
-    console.log('zzzz mreq.session = ', mreq.session);
     return codeVerifier;
   }
 
