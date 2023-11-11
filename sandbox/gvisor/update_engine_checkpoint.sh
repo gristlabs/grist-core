@@ -21,9 +21,9 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 export NODE_PATH=_build:_build/core:_build/stubs:_build/ext
 source $SCRIPT_DIR/get_checkpoint_path.sh
 
-if [[ -z "GRIST_CHECKPOINT" ]]; then
+if [[ -z "$GRIST_CHECKPOINT" ]]; then
   echo "Skipping checkpoint generation"
-  return
+  exit 0
 fi
 
 export GRIST_CHECKPOINT_MAKE=1
