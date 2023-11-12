@@ -41,4 +41,15 @@ describe('GridView', function() {
     // This throws an error, as the cell is not rendered.
     assert.equal(await gu.getCell(0, 2).getText(), "2021-09-27 Mo\n2021-10-04 Mo");
   });
+
+  it("should show a tooltip for ellided column names", async function () {
+    const columnName = "AReallyReallyReallyLongColumnName";
+    await gu.addColumn(columnName);
+    await gu.getColumnHeader({ col: columnName }).mouseMove();
+    await driver.wait(
+      () => driver.findWait(".test-tooltip", 500).isDisplayed(),
+      3000
+    );
+    assert.equal(await driver.find(".test-tooltip").getText(), columnName);
+  });
 });
