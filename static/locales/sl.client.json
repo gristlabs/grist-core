@@ -75,7 +75,7 @@
         "Toggle Mobile Mode": "Preklapljanje mobilnega načina",
         "Activation": "Aktivacija",
         "Billing Account": "Račun za zaračunavanje",
-        "Support Grist": "Podpora Grist",
+        "Support Grist": "Grist podpora",
         "Upgrade Plan": "Načrt nadgradnje",
         "Sign In": "Prijavi se",
         "Use This Template": "Uporabite to predlogo",
@@ -176,7 +176,7 @@
         "Examples & Templates": "Primeri & predloge"
     },
     "GridViewMenus": {
-        "Rename column": "Preimenovanje stolpca",
+        "Rename column": "Preimenuj stolpec",
         "Delete {{count}} columns_one": "Brisanje stolpca",
         "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
         "Unfreeze {{count}} columns_one": "Odmrzni ta stolpec",
@@ -185,12 +185,12 @@
         "Freeze {{count}} columns_other": "Zamrznite {{count}} stolpcev",
         "Show column {{- label}}": "Prikaži stolpec {{- label}}",
         "Sort": "Razvrsti",
-        "Column Options": "Možnosti stolpcev",
+        "Column Options": "Možnosti stolpca",
         "Filter Data": "Filtriranje podatkov",
         "Hide {{count}} columns_other": "Skrij {{count}} stolpcev",
         "Add Column": "Dodaj stolpec",
         "Reset {{count}} columns_one": "Ponastavitev stolpca",
-        "Freeze {{count}} columns_one": "Zamrznite ta stolpec",
+        "Freeze {{count}} columns_one": "Zamrzni stolpec",
         "More sort options ...": "Več možnosti razvrščanja…",
         "Freeze {{count}} more columns_one": "Zamrznite še en stolpec",
         "Reset {{count}} columns_other": "Ponastavi {{count}} stolpcev",
@@ -229,7 +229,7 @@
     },
     "HomeLeftPane": {
         "Trash": "Koš",
-        "Rename": "Preimenovanje",
+        "Rename": "Preimenuj",
         "Delete": "Izbriši",
         "Delete {{workspace}} and all included documents?": "Izbriši {{workspace}} in vse vključene dokumente?",
         "All Documents": "Vsi dokumenti",
@@ -277,7 +277,7 @@
         "Return to viewing as yourself": "Vrnite se k ogledu kot vi"
     },
     "pages": {
-        "Rename": "Preimenovanje",
+        "Rename": "Preimenuj",
         "Duplicate Page": "Podvojena stran",
         "You do not have edit access to this document": "Nimate dovoljenja za urejanje tega dokumenta",
         "Remove": "Odstrani"
@@ -290,7 +290,7 @@
         "Search": "Iskanje"
     },
     "AddNewButton": {
-        "Add New": "Dodaj novo"
+        "Add New": "Dodaj"
     },
     "DataTables": {
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbrišite podatke {{formattedTableName}} in jih odstranite z vseh strani?",
@@ -642,7 +642,7 @@
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Pravila dostopa vam omogočajo, da ustvarite podrobna pravila, s katerimi določite, kdo lahko vidi ali ureja posamezne dele dokumenta.",
         "Rearrange the fields in your card by dragging and resizing cells.": "Z vlečenjem in spreminjanjem velikosti polj na kartici spremenite njihovo razporeditev.",
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Uporabno za shranjevanje časovnega žiga ali avtorja novega zapisa, čiščenje podatkov in drugo.",
-        "Click the Add New button to create new documents or workspaces, or import data.": "Če želite ustvariti nove dokumente ali delovne prostore ali uvoziti podatke, kliknite gumb Dodaj novo.",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Če želite ustvariti nove dokumente ali delovne prostore ali uvoziti podatke, kliknite gumb Dodaj.",
         "Nested Filtering": "Vgnezdeno filtriranje",
         "Only those rows will appear which match all of the filters.": "Prikazane bodo samo tiste vrstice, ki ustrezajo vsem filtrom.",
         "Editing Card Layout": "Urejanje postavitve kartice",
@@ -677,7 +677,8 @@
         "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Celice v referenčnem stolpcu vedno identificirajo {{entire}} zapis v tej tabeli, vendar lahko izberete, kateri stolpec iz tega zapisa želite prikazati.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID je naključno ustvarjen niz, ki je uporaben za edinstvene identifikatorje in ključe povezav.",
         "Lookups return data from related tables.": "Iskanje vrne podatke iz povezanih tabel.",
-        "Use reference columns to relate data in different tables.": "Uporabite referenčne stolpce za povezavo podatkov v različnih tabelah."
+        "Use reference columns to relate data in different tables.": "Uporabite referenčne stolpce za povezavo podatkov v različnih tabelah.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Izbirate lahko med pripomočki, ki so vam na voljo v spustnem meniju, ali vdelate svojega tako, da navedete njegov polni URL."
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -1124,7 +1125,7 @@
         "Customizing columns": "Prilagajanje stolpcev",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Dvokliknite ali pritisnite {{enter}} na celico, da jo uredite. ",
         "Welcome to Grist!": "Dobrodošli v Gristu!",
-        "Add New": "Dodaj novo",
+        "Add New": "Dodaj",
         "Toggle the {{creatorPanel}} to format columns, ": "Preklopite {{creatorPanel}} za oblikovanje stolpcev, ",
         "convert to card view, select data, and more.": "pretvorite v pogled kartice, izberite podatke in drugo.",
         "Building up": "Gradnja",
