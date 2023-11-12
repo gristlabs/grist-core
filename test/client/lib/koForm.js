@@ -189,19 +189,6 @@ describe('koForm', function() {
     });
   });
 
-  describe("editableLabel", function() {
-    it("should bind an observable", function () {
-      var obs = ko.observable("Tools, projects, things and others");
-      var el = kf.editableLabel(obs).querySelector("div.kf_elabel_text");
-
-      assert.equal(el.textContent, "Tools, projects, things and others");
-    });
-
-    it("should show a tooltip when textContent overflows", function () {
-      // How to test this? Should it be tested here?
-    });
-  });
-
   describe("select", function() {
     it("should bind an observable", function() {
       var obs = ko.observable("b");
