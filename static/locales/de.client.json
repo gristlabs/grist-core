@@ -1005,7 +1005,8 @@
         "CELL FORMAT": "ZELLENFORMAT",
         "DATA FROM TABLE": "DATEN AUS TABELLE",
         "Save field settings for {{colId}} as common": "Feldeinstellungen für {{colId}} als Algemein speichern",
-        "Use separate field settings for {{colId}}": "Verwenden Sie separate Feldeinstellungen für {{colId}}"
+        "Use separate field settings for {{colId}}": "Verwenden Sie separate Feldeinstellungen für {{colId}}",
+        "Changing column type": "Ändern des Spaltentyps"
     },
     "EditorTooltip": {
         "Convert column to formula": "Spalte in Formel umwandeln"
@@ -1115,7 +1116,11 @@
             "end dates and event titles. Note each column's type.": "Um Ihren Kalender zu konfigurieren, wählen Sie Spalten für das Start-/Enddatum und den Titel des Ereignisses. Beachten Sie den Typ jeder Spalte."
         },
         "Calendar": "Kalender",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Sie können die richtigen Spalten nicht finden? Klicken Sie auf \"Widget ändern\", um die Tabelle mit den Ereignisdaten auszuwählen."
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Sie können die richtigen Spalten nicht finden? Klicken Sie auf \"Widget ändern\", um die Tabelle mit den Ereignisdaten auszuwählen.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Eine UUID ist ein zufällig generierter String, der für eindeutige Kennungen und Linkschlüssel nützlich ist.",
+        "Lookups return data from related tables.": "Lookups geben Daten aus Bezugstabellen zurück.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Sie können aus Widgets wählen, die Ihnen im Dropdown zur Verfügung stehen, oder Sie selbst einbetten, indem Sie seine volle URL angeben.",
+        "Use reference columns to relate data in different tables.": "Verwenden Sie Referenzspalten, um Daten in verschiedenen Tabellen zu beziehen."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
