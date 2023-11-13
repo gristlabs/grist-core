@@ -172,6 +172,7 @@ export function isEmptyList(value: CellValue): boolean {
 function isNumber(v: CellValue) { return typeof v === 'number' || typeof v === 'boolean'; }
 function isNumberOrNull(v: CellValue) { return isNumber(v) || v === null; }
 function isBoolean(v: CellValue) { return typeof v === 'boolean' || v === 1 || v === 0; }
+function isBooleanOrNull(v: CellValue) { return isBoolean(v) || v === null; }
 
 // These values are not regular cell values, even in a column of type Any.
 const abnormalValueTypes: string[] = [GristObjCode.Exception, GristObjCode.Pending, GristObjCode.Skip,
@@ -191,7 +192,7 @@ const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
   Text:           isString,
   Blob:           isString,
   Int:            isNumberOrNull,
-  Bool:           isBoolean,
+  Bool:           isBooleanOrNull,
   Date:           isNumberOrNull,
   DateTime:       isNumberOrNull,
   Numeric:        isNumberOrNull,
