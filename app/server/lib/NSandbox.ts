@@ -16,7 +16,7 @@ import {
 } from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
-import {ChildProcess, fork, spawn} from 'child_process';
+import {ChildProcess, fork, spawn, SpawnOptionsWithoutStdio} from 'child_process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -77,7 +77,7 @@ export interface ISandboxOptions {
  */
 export interface SandboxProcess {
   child?: ChildProcess;
-  control: ISandboxControl;
+  control: () => ISandboxControl;
   dataToSandboxDescriptor?: number;    // override sandbox's 'stdin' for data
   dataFromSandboxDescriptor?: number;  // override sandbox's 'stdout' for data
   getData?: (cb: (data: any) => void) => void;  // use a callback instead of a pipe to get data
@@ -134,10 +134,14 @@ export class NSandbox implements ISandbox {
     this._exportedFunctions = options.exports || {};
 
     const sandboxProcess = spawner(options);
-    this._control = sandboxProcess.control;
     this.childProc = sandboxProcess.child;
-
     this._logMeta = {sandboxPid: this.childProc?.pid, ...options.logMeta};
+
+    // Handle childProc events early, especially the 'error' event which may lead to node exiting.
+    this.childProc?.on('close', this._onExit.bind(this));
+    this.childProc?.on('error', this._onError.bind(this));
+
+    this._control = sandboxProcess.control();
 
     if (this.childProc) {
       if (options.minimalPipeMode) {
@@ -285,9 +289,6 @@ export class NSandbox implements ISandbox {
       sandboxStderrLogger(data);
     });
 
-    this.childProc.on('close', this._onExit.bind(this));
-    this.childProc.on('error', this._onError.bind(this));
-
     this._streamFromSandbox.on('data', (data) => this._onSandboxData(data));
     this._streamFromSandbox.on('end', () => this._onSandboxClose());
     this._streamFromSandbox.on('error', (err) => {
@@ -318,7 +319,7 @@ export class NSandbox implements ISandbox {
 
 
   private _close() {
-    this._control.prepareToClose();
+    this._control?.prepareToClose();    // ?. operator in case _control failed to get initialized.
     if (!this._isWriteClosed) {
       // Close the pipe to the sandbox, which should cause the sandbox to exit cleanly.
       this._streamToSandbox?.end();
@@ -584,7 +585,7 @@ function pynbox(options: ISandboxOptions): SandboxProcess {
 
   const noLog = unsilenceLog ? [] :
     (process.env.OS === 'Windows_NT' ? ['-l', 'NUL'] : ['-l', '/dev/null']);
-  const child = spawn('sandbox/nacl/bin/sel_ldr', [
+  const child = adjustedSpawn('sandbox/nacl/bin/sel_ldr', [
     '-B', './sandbox/nacl/lib/irt_core.nexe', '-m', './sandbox/nacl/root:/:ro',
     ...noLog,
     ...wrapperArgs.get(),
@@ -592,7 +593,7 @@ function pynbox(options: ISandboxOptions): SandboxProcess {
     '--library-path', '/slib', '/python/bin/python2.7.nexe',
     ...pythonArgs
   ], spawnOptions);
-  return {child, control: new DirectProcessControl(child, options.logMeta)};
+  return {child, control: () => new DirectProcessControl(child, options.logMeta)};
 }
 
 /**
@@ -621,9 +622,9 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
     spawnOptions.stdio.push('pipe', 'pipe');
   }
   const command = findPython(options.command, options.preferredPythonVersion);
-  const child = spawn(command, pythonArgs,
+  const child = adjustedSpawn(command, pythonArgs,
                       {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
-  return {child, control: new DirectProcessControl(child, options.logMeta)};
+  return {child, control: () => new DirectProcessControl(child, options.logMeta)};
 }
 
 function pyodide(options: ISandboxOptions): SandboxProcess {
@@ -648,7 +649,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
                      {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {
     child,
-    control: new DirectProcessControl(child, options.logMeta),
+    control: () => new DirectProcessControl(child, options.logMeta),
     dataToSandboxDescriptor: 4,  // Cannot use normal descriptor, node
     // makes it non-blocking. Can be worked around in linux and osx, but
     // for windows just using a different file descriptor seems simplest.
@@ -728,16 +729,17 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   if (options.useGristEntrypoint && pythonVersion === '3' && process.env.GRIST_CHECKPOINT && !paths.importDir) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
-        spawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
+        adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
                         `python${pythonVersion}`, '--', ...pythonArgs]);
       // We don't want process control for this.
-      return {child, control: new NoProcessControl(child)};
+      return {child, control: () => new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
     wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
   }
-  const child = spawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
-  if (!child.pid) {
+  const child = adjustedSpawn(command, [...wrapperArgs.get(), `python${pythonVersion}`, '--', ...pythonArgs]);
+  const childPid = child.pid;
+  if (!childPid) {
     throw new Error(`failed to spawn python${pythonVersion}`);
   }
 
@@ -751,8 +753,8 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     return p.label.includes('runsc-sandbox');
   };
   // If docker is in use, this process control will log a warning message and do nothing.
-  return {child, control: new SubprocessControl({
-    pid: child.pid,
+  return {child, control: () => new SubprocessControl({
+    pid: childPid,
     recognizers: {
       sandbox: recognizeSandboxProcess,   // this process we start and stop
       memory: recognizeTracedProcess,     // measure memory for the ptraced process
@@ -800,7 +802,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     ...pythonArgs,
   ]);
   log.rawDebug("cannot do process control via docker yet", {...options.logMeta});
-  return {child, control: new NoProcessControl(child)};
+  return {child, control: () => new NoProcessControl(child)};
 }
 
 /**
@@ -890,7 +892,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const profileString = profile.join('\n');
   const child = spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
                       {cwd, env});
-  return {child, control: new DirectProcessControl(child, options.logMeta)};
+  return {child, control: () => new DirectProcessControl(child, options.logMeta)};
 }
 
 /**
@@ -1080,5 +1082,14 @@ function realpathSync(src: string) {
     return fs.realpathSync(src);
   } catch (e) {
     return src;
+  }
+}
+
+function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithoutStdio) {
+  const oomScoreAdj = process.env.GRIST_SANDBOX_OOM_SCORE_ADJ;
+  if (oomScoreAdj) {
+    return spawn('choom', ['-n', oomScoreAdj, '--', cmd, ...args], options);
+  } else {
+    return spawn(cmd, args, options);
   }
 }

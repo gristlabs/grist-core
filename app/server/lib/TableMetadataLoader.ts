@@ -1,4 +1,5 @@
 import { BulkColValues, TableColValues, TableDataAction, toTableDataAction } from 'app/common/DocActions';
+import log from 'app/server/lib/log';
 
 import fromPairs = require('lodash/fromPairs');
 
@@ -185,7 +186,9 @@ export class TableMetadataLoader {
     // Be careful to do the core push first, once we can.
     if (!this._corePushed) {
       if (this._corePush === undefined && newPushes.has('_grist_Tables') && newPushes.has('_grist_Tables_column')) {
-        this._corePush = this._counted(this.opCorePush());
+        this._corePush = this._counted(this.opCorePush()).catch(e => {
+          log.warn(`TableMetadataLoader opCorePush failed: ${e}`);
+        });
       }
       return;
     }
