@@ -78,6 +78,7 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
+    log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
   }
 
   public addEndpoints(app: express.Application, sessions: Sessions): void {
@@ -105,6 +106,7 @@ export class OIDCConfig {
 
       const userInfo = await this._client.userinfo(tokenSet);
       const profile = this._makeUserProfileFromUserInfo(userInfo);
+      log.info(`OIDCConfig: got OIDC response for ${profile.email} (${profile.name}) redirecting to ${targetUrl}`);
 
       const scopedSession = sessions.getOrCreateSessionFromRequest(req);
       await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
