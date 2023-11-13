@@ -242,7 +242,7 @@ export class CustomView extends Disposable {
     const {baseUrl, access, showAfterReady, widgetId, pluginId} = options;
     const documentSettings = this.gristDoc.docData.docSettings();
     const readonly = this.gristDoc.isReadonly.get();
-    const frame = WidgetFrame.create(null,  {
+    const widgetFrame = WidgetFrame.create(null,  {
       url: baseUrl || this.getEmptyWidgetPage(),
       widgetId,
       pluginId,
@@ -309,7 +309,7 @@ export class CustomView extends Disposable {
     // array of nodes (comment, node, comment) and it somehow breaks the dispose order. Collapsed widgets
     // relay on a correct order of dispose, and are detaching nodes just before they are disposed, so if
     // the order is wrong, the node is disposed without being detached first.
-    return grains.update(frame.buildDom(), dom.autoDispose(frame));
+    return grains.update(widgetFrame.buildDom(), dom.autoDispose(widgetFrame));
   }
 }
 
