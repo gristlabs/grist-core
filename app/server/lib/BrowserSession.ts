@@ -72,6 +72,8 @@ export interface SessionObj {
   oidc?: {
     // codeVerifier is used during OIDC authentication, to protect against attacks like CSRF.
     codeVerifier?: string;
+    state?: string;
+    targetUrl?: string;
   }
 }
 
