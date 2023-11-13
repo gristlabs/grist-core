@@ -1007,7 +1007,8 @@
         "Save field settings for {{colId}} as common": "Salvar configurações de campo da {{colId}} como comum",
         "Revert field settings for {{colId}} to common": "Reverter configurações de campo da {{colId}} para comum",
         "Mixed types": "Tipos mistos",
-        "Use separate field settings for {{colId}}": "Use configurações de campo separadas para {{colId}}"
+        "Use separate field settings for {{colId}}": "Use configurações de campo separadas para {{colId}}",
+        "Changing column type": "Alterando o tipo de coluna"
     },
     "FormulaEditor": {
         "Column or field is required": "Coluna ou campo é obrigatório",
@@ -1115,7 +1116,11 @@
             "end dates and event titles. Note each column's type.": "Para configurar seu calendário, selecione colunas para datas de início/fim e títulos de eventos. Observe o tipo de cada coluna."
         },
         "Calendar": "Calendário",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Não consegue encontrar as colunas certas? Clique em \"Change Widget\" (Alterar widget) para selecionar a tabela com os dados dos eventos."
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Não consegue encontrar as colunas certas? Clique em \"Change Widget\" (Alterar widget) para selecionar a tabela com os dados dos eventos.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Um UUID é uma cadeia de caracteres gerada aleatoriamente que é útil para identificadores exclusivos e chaves de link.",
+        "Lookups return data from related tables.": "As pesquisas retornam dados de tabelas relacionadas.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Você pode escolher entre os widgets disponíveis no menu suspenso ou incorporar o seu próprio widget fornecendo o URL completo.",
+        "Use reference columns to relate data in different tables.": "Use colunas de referência para relacionar dados em diferentes tabelas."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
