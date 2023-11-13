@@ -1,0 +1,27 @@
+{
+    "AccessRules": {
+        "Add Column Rule": "Přidej Sloupcové Pravidlo",
+        "Lookup Column": "Vyhledávací Sloupec",
+        "Enter Condition": "Napiš Podmínku",
+        "Everyone Else": "Všichni Ostatní",
+        "Allow everyone to view Access Rules.": "Umožni všem zobrazit Přístupové Práva.",
+        "Lookup Table": "Vyhledávací Tabulka",
+        "Add Table Rules": "Přidej Tabulkové Pravidlo",
+        "Invalid": "Neplatné",
+        "Condition": "Podmínka",
+        "Delete Table Rules": "Vymaž Tabulkové Pravidla",
+        "Default Rules": "Základní Práva",
+        "Attribute name": "Jméno Atributu",
+        "Add User Attributes": "Přidej Uživatelské Atributy",
+        "Attribute to Look Up": "Atribut k Vyhledání",
+        "Everyone": "Všichni",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Umožni všem kopírovat celý dokument, nebo zobrazit plně v \"fiddle\" režimu.\nUžiitečné pro ukázky a šablony, ale ne pro citlivá data.",
+        "Add Default Rule": "Přidej Základní Pravidlo",
+        "Checking...": "Kontroluji…"
+    },
+    "ACUserManager": {
+        "Invite new member": "Pozvi nového uživatele",
+        "We'll email an invite to {{email}}": "Zašleme pozvánku emailem na {{email}}",
+        "Enter email address": "Napiš e-mailovou adresu"
+    }
+}

@@ -557,7 +557,8 @@
         "Search columns": "Поисковые столбцы",
         "Timestamp": "Метка времени",
         "Adding UUID column": "Добавление столбца UUID",
-        "Adding duplicates column": "Добавление столбца дубликатов"
+        "Adding duplicates column": "Добавление столбца дубликатов",
+        "Lookups": "Lookups"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -1052,7 +1053,9 @@
         },
         "Calendar": "Календарь",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете найти нужные столбцы? Нажмите «Изменить виджет», чтобы выбрать таблицу с данными о событиях.",
-        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID - это случайно сгенерированная строка, которая полезна для уникальных идентификаторов и ключевых ссылок."
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID - это случайно сгенерированная строка, которая полезна для уникальных идентификаторов и ключевых ссылок.",
+        "Lookups return data from related tables.": "Lookups возвращают данные из связанных таблиц.",
+        "Use reference columns to relate data in different tables.": "Используйте ссылочные столбцы для сопоставления данных в разных таблицах."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"

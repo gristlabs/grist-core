@@ -214,6 +214,8 @@ async function removeData(filename: string) {
   for (const tableId of tableIds) {
     await db.run(`DELETE FROM ${quoteIdent(tableId)}`);
   }
+  await db.run(`DELETE FROM _grist_Attachments`);
+  await db.run(`DELETE FROM _gristsys_Files`);
   await db.close();
 }
 

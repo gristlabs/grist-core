@@ -1251,8 +1251,9 @@ export async function renameColumn(col: IColHeader|string, newName: string) {
 /**
  * Removes a table using RAW data view.
  */
-export async function removeTable(tableId: string) {
+export async function removeTable(tableId: string, options: {dismissTips?: boolean} = {}) {
   await driver.find(".test-tools-raw").click();
+  if (options.dismissTips) { await dismissBehavioralPrompts(); }
   const tableIdList = await driver.findAll('.test-raw-data-table-id', e => e.getText());
   const tableIndex = tableIdList.indexOf(tableId);
   assert.isTrue(tableIndex >= 0, `No raw table with id ${tableId}`);

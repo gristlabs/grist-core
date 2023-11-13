@@ -1,0 +1,86 @@
+{
+    "AccessRules": {
+        "Permission to access the document in full when needed": "الإذن بالنفاذ إلى المستند بالكامل عند الحاجة",
+        "Permissions": "الأذون",
+        "Type a message...": "اكتب رسالة…",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "السماح للمحررين بتحرير البنية (أي التعديل والحذف في الجداول والأعمدة والترتيبات)، وكتابة الصيغ الرياضية، وهذا يجعلهم نافذين إلى كل البيانات بغض النظر عن قيود القراءة.",
+        "Save": "حفظ"
+    },
+    "AccountPage": {
+        "Theme": "السمة",
+        "Change Password": "تغيير كلمة السر",
+        "Password & Security": "كلمة السر والأمان",
+        "Account settings": "إعدادات الحساب",
+        "Two-factor authentication": "المصادقة ذات العاملين",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "المصادقة ذات العاملين Two-factor authentication طبقة إضافية من الحماية لحسابك في Grista مصممة للتأكد من أنك الشخص الوحيد القادر على النفاذ إلى حسابك، حتى لو كان شخص آخر يعرف كلمة السر خاصتك.",
+        "Language": "اللغة",
+        "Edit": "تحرير",
+        "Login Method": "طريقة الدخول",
+        "Allow signing in to this account with Google": "السماح بالدخول إلى هذا الحساب باستخدام Google",
+        "Save": "حفظ"
+    },
+    "AccountWidget": {
+        "Add Account": "إضافة حساب",
+        "Switch Accounts": "تبديل الحساب",
+        "Activation": "التفعيل",
+        "Support Grist": "ادعم Grist",
+        "Upgrade Plan": "ترقية الخطة",
+        "Sign Out": "خروج",
+        "Profile Settings": "إعدادات الملف الشخصي",
+        "Sign in": "دخول",
+        "Pricing": "التسعير",
+        "Use This Template": "استعمل هذا القالب",
+        "Billing Account": "حساب الفوترة",
+        "Sign In": "دخول",
+        "Accounts": "الحسابات",
+        "Sign Up": "خروج"
+    },
+    "ACUserManager": {
+        "Invite new member": "دعوة عضو جديد",
+        "We'll email an invite to {{email}}": "سنرسل دعوة إلى البريد الإلكتروني {{email}}",
+        "Enter email address": "أدخل عنوان البريد الإلكتروني"
+    },
+    "ApiKey": {
+        "Click to show": "انقر لتعرض"
+    },
+    "ChartView": {
+        "Pick a column": "اختر عمودا"
+    },
+    "CellContextMenu": {
+        "Insert row below": "إدراج صف تحته",
+        "Copy": "نسخ",
+        "Delete {{count}} columns_other": "حذف {{count}} من الأعمدة",
+        "Insert row above": "إدراج صف فوقه",
+        "Delete {{count}} rows_other": "حذف {{count}} من الصفوف",
+        "Comment": "تعليق",
+        "Insert column to the right": "إدراج عمود إلى اليمين",
+        "Cut": "قص",
+        "Insert column to the left": "إدراج عمود إلى اليسار",
+        "Paste": "لصق"
+    },
+    "ColumnFilterMenu": {
+        "No matching values": "لا قيم مطابقة"
+    },
+    "ColorSelect": {
+        "Apply": "تطبيق",
+        "Cancel": "إلغاء"
+    },
+    "AppHeader": {
+        "Personal Site": "الموقع الشخصي",
+        "Home Page": "الصفحة الرئيسية",
+        "Team Site": "موقع الفريق",
+        "Grist Templates": "قوالب Grist"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (اختياري)"
+    },
+    "DataTables": {
+        "Click to copy": "انقر لتنسخ"
+    },
+    "DocHistory": {
+        "Activity": "النشاط"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "موقع الفريق هذا معلق. يمكن قراءة المستندات لكن لا يمكن تعديلها."
+    }
+}

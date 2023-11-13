@@ -454,7 +454,7 @@ describe('ChoiceList', function() {
 
   it('should allow ChoiceList conversions for column used in summary', async function() {
     // Add a widget with a summary on column A.
-    await gu.addNewSection(/Table/, /Table1/, {summarize: [/^A$/]});
+    await gu.addNewSection(/Table/, /Table1/, {dismissTips: true, summarize: [/^A$/]});
     await testTextChoiceListConversions();
     await gu.undo();
   });

@@ -1,6 +1,6 @@
 # This number should be bumped up if making a non-additive change
 # to python packages.
-GRIST_PYODIDE_VERSION = 2
+GRIST_PYODIDE_VERSION = 3
 
 default:
 	echo "Welcome to the pyodide sandbox"
