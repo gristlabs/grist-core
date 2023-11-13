@@ -8,7 +8,7 @@ import {
   UserActionBundle
 } from 'app/common/ActionBundle';
 import {ApplyUAExtendedOptions} from 'app/common/ActiveDocAPI';
-import {CALCULATING_USER_ACTIONS, DocAction, getNumRows, UserAction} from 'app/common/DocActions';
+import {DocAction, getNumRows, SYSTEM_ACTIONS, UserAction} from 'app/common/DocActions';
 import {allToken} from 'app/common/sharing';
 import {GranularAccessForBundle} from 'app/server/lib/GranularAccess';
 import log from 'app/server/lib/log';
@@ -246,7 +246,7 @@ export class Sharing {
 
     try {
 
-      const isCalculate = (userActions.length === 1 && CALCULATING_USER_ACTIONS.has(userActions[0][0] as string));
+      const isCalculate = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
       // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.
       // - Adding attachment metadata when uploading attachments,

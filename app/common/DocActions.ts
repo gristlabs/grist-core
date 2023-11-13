@@ -145,8 +145,22 @@ export interface TableRecordValue {
 
 export type UserAction = Array<string|number|object|boolean|null|undefined>;
 
-// Actions that trigger formula calculations in the data engine
-export const CALCULATING_USER_ACTIONS = new Set(['Calculate', 'UpdateCurrentTime', 'RespondToRequests']);
+// Actions that are performed automatically by the server
+// for things like regular maintenance or triggering formula calculations in the data engine.
+// Typically applied using `makeExceptionalDocSession("system")`.
+// They're also 'non-essential' in the sense that we don't need to worry about storing them
+// in action/undo history if they don't change anything (which they often won't)
+// and we can dismiss their result if the document is shutting down.
+export const SYSTEM_ACTIONS = new Set([
+  // Initial dummy action performed when the document laods.
+  'Calculate',
+  // Called automatically at regular intervals, again to trigger formula calculations.
+  'UpdateCurrentTime',
+  // Part of the formula calculation process for formulas that use the `REQUEST` function.
+  'RespondToRequests',
+  // Performed at shutdown to clean up temporary helper columns.
+  'RemoveTransformColumns'
+]);
 
 export function getNumRows(action: DocAction): number {
   return !isDataAction(action) ? 0

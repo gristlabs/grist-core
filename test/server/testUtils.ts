@@ -67,7 +67,7 @@ class CaptureTransport extends winston.Transport {
   private _captureFunc: (level: string, msg: string, meta: any) => void;
 
   public constructor(options: any) {
-    super();
+    super(options);
     this._captureFunc = options.captureFunc;
     if (options.name) {
       this.name = options.name;
@@ -125,7 +125,8 @@ export function setTmpLogLevel(level: string, optCaptureFunc?: (level: string, m
  * strings. These may be tested using testUtils.assertMatchArray(). Callback may return a promise.
  */
 export async function captureLog(
-  minLevel: string, callback: (messages: string[]) => void|Promise<void>
+  minLevel: string, callback: (messages: string[]) => void|Promise<void>,
+  options: {timestamp: boolean} = {timestamp: false}
 ): Promise<string[]> {
   const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;
@@ -133,14 +134,15 @@ export async function captureLog(
 
   function capture(level: string, msg: string, meta: any) {
     if ((log as any).levels[level] <= (log as any).levels[minLevel]) {  // winston types are off?
-      messages.push(level + ': ' + msg + (meta ? ' ' + serialize(meta) : ''));
+      const timePrefix = options.timestamp ? new Date().toISOString() + ' ' : '';
+      messages.push(`${timePrefix}${level}: ${msg}${meta ? ' ' + serialize(meta) : ''}`);
     }
   }
 
   if (!process.env.VERBOSE) {
     log.transports.file.level = -1 as any;   // Suppress all log output.
   }
-  log.add(CaptureTransport as any, { captureFunc: capture, name });  // types are off.
+  log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel});  // types are off.
   try {
     await callback(messages);
   } finally {

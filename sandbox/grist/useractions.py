@@ -1246,10 +1246,7 @@ class UserActions(object):
     # Remove also all autogenereted formula columns for conditional styles.
     # But not from transform columns, as those columns borrow rules from original columns
     more_removals.update([rule
-                          for col in col_recs if not col.colId.startswith((
-                            'gristHelper_Transform',
-                            'gristHelper_Converted',
-                          ))
+                          for col in col_recs if not _is_transform_col(col.colId)
                           for rule in col.rules])
 
     # Add any extra removals after removing the requested columns in the requested order.
@@ -1353,10 +1350,7 @@ class UserActions(object):
 
     transform = (
         col_id is not None and
-        col_id.startswith((
-          'gristHelper_Transform',
-          'gristHelper_Converted',
-        ))
+        _is_transform_col(col_id)
     )
 
     ret = self.doAddColumn(table_id, col_id, col_info)
@@ -1387,11 +1381,8 @@ class UserActions(object):
     table_rec = self._docmodel.get_table_rec(table_id)
 
     transform = (
-      col_id is not None and
-      col_id.startswith((
-        'gristHelper_Transform',
-        'gristHelper_Converted',
-      ))
+        col_id is not None and
+        _is_transform_col(col_id)
     )
 
     # Add a field for this column to the view(s) for this table.
@@ -1403,7 +1394,6 @@ class UserActions(object):
           # with the client-side.
           self._docmodel.insert(section.fields, col_info.get('_position'), colRef=ret['colRef'])
     return ret
-
 
   @classmethod
   def _pick_col_name(cls, table_rec, col_id, old_col_id=None, avoid_extra=None):
@@ -1489,6 +1479,12 @@ class UserActions(object):
       if display_col_ref is not None:
         # Update the col's displayCol ref
         self._docmodel.update([col_rec], displayCol=display_col_ref)
+
+  @useraction
+  def RemoveTransformColumns(self):
+    self._docmodel.remove([
+      col for col in self._docmodel.columns.all if _is_transform_col(col.colId)
+    ])
 
   # Helper function to get a helper column with the given formula, or to add one if none
   # currently exist.
@@ -2208,3 +2204,10 @@ class UserActions(object):
   def GenImporterView(self, source_table_id, dest_table_id, transform_rule=None, options=None):
     return self._import_actions.DoGenImporterView(
         source_table_id, dest_table_id, transform_rule, options or {})
+
+
+def _is_transform_col(col_id):
+  return col_id.startswith((
+    'gristHelper_Transform',
+    'gristHelper_Converted',
+  ))

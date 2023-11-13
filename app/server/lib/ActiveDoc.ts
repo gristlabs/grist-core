@@ -1994,6 +1994,14 @@ export class ActiveDoc extends EventEmitter {
         // even if the doc is only ever opened briefly, without having to slow down startup.
         await safeCallAndWait("removeUnusedAttachments", () => this.removeUnusedAttachments(true, usageOptions));
 
+        if (this._dataEngine && this._fullyLoaded) {
+          // Note that this must happen before `this._shuttingDown = true` because of this line in Sharing.ts:
+          //     if (this._activeDoc.isShuttingDown && isCalculate) {
+          await safeCallAndWait("removeTransformColumns",
+            () => this.applyUserActions(docSession, [["RemoveTransformColumns"]])
+          );
+        }
+
         // Update data size; we'll be syncing both it and attachments size to the database soon.
         await safeCallAndWait("_updateDataSize", () => this._updateDataSize(usageOptions));
       }
