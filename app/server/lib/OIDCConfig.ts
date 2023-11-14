@@ -6,8 +6,9 @@
  *    IdP is the "Identity Provider", somewhere users log into, e.g. Okta or Google Apps.
  *
  * We also use optional attributes for the user's name, for which we accept any of:
- *    given_name
- *    family_name
+ *    given_name + family_name
+ *    display_name
+ *    name
  *
  * Expected environment variables:
  *    env GRIST_OIDC_SP_HOST=https://<your-domain>
@@ -171,9 +172,16 @@ export class OIDCConfig {
       const email = userInfo.email;
       const fname = userInfo.given_name ?? '';
       const lname = userInfo.family_name ?? '';
+
+      const fullname = `${fname} ${lname}`.trim() ||
+        // display_name is provided by Authelia for example.
+        userInfo.display_name ||
+        // name is provided by Gitlab for example.
+        userInfo.name;
+
       return {
         email,
-        name: `${fname} ${lname}`.trim(),
+        name: fullname,
       };
   }
 }
