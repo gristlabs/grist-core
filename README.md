@@ -30,8 +30,8 @@ Here are some specific feature highlights of Grist:
     - Any tool that can read SQLite can read numeric and text data from a Grist file.
     - Enables [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can confidently restore in full.
     - Great for moving between different hosts.
-  - Can be displayed on a static website with [`grist-static`](https://github.com/gristlabs/grist-static) – no special server needed.
-  - A self-contained desktop app for viewing and editing locally: [`grist-electron`](https://github.com/gristlabs/grist-electron).
+  * Can be displayed on a static website with [`grist-static`](https://github.com/gristlabs/grist-static) – no special server needed.
+  * A self-contained desktop app for viewing and editing locally: [`grist-electron`](https://github.com/gristlabs/grist-electron).
   * Convenient editing and formatting features.
     - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records.
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
@@ -66,7 +66,6 @@ Here are some specific feature highlights of Grist:
     - On macOS, you can use native sandboxing.
     - On any OS, including Windows, you can use a wasm-based sandbox.
   * Translated to many languages.
-  * Support for an AI Formula Assistant (using OpenAI gpt-3.5-turbo or comparable models).
   * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support.
   * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist) and publish [monthly newsletters](https://support.getgrist.com/newsletters/).
 
@@ -173,7 +172,7 @@ did the hard work of making a good chunk of the application localizable. Merci b
 
 This repository, [grist-core](https://github.com/gristlabs/grist-core), is maintained by Grist
 Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see
-here, combined with business-specific software designed to scale it to many users, handle billing,
+here, combined with business-specific software designed to scale to many users, handle billing,
 etc.
 
 Grist Labs is an open-core company. We offer Grist hosting as a
@@ -181,11 +180,7 @@ service, with free and paid plans. We also develop and sell
 features related to Grist using a proprietary license, targeted at the
 needs of enterprises with large self-managed installations. 
 
-We see data portability and autonomy as a key value Grist can bring to our
-users, and `grist-core` as an essential means to deliver that. We are
-committed to maintaining and improving the `grist-core` codebase, and
-to be thoughtful about how proprietary offerings impact data portability
-and autonomy.
+We see data portability and autonomy as a key value, and `grist-core` is an essential part of that. We are committed to maintaining and improving the `grist-core` codebase, and to be thoughtful about how proprietary offerings impact data portability and autonomy.
 
 By opening its source code and offering an [OSI](https://opensource.org/)-approved free license,
 Grist benefits its users:
