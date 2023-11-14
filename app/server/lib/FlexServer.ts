@@ -596,14 +596,19 @@ export class FlexServer implements GristServer {
 
   // Plugin operation relies currently on grist-plugin-api.js being available,
   // and with Grist's static assets to be also available on the untrusted
-  // host.  The assets should be available without version tags.
+  // host.  The assets should be available without version tags, but not
+  // at the root level - we nest them in /plugins/assets.
   public async addAssetsForPlugins() {
     if (this._check('pluginUntaggedAssets', 'dir')) { return; }
     this.app.use(/^\/(grist-plugin-api.js)$/, expressWrap(async (req, res) =>
       res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
     // Plugins get access to static resources without a tag
-    this.app.use(limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'static'))));
-    this.app.use(limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'bower_components'))));
+    this.app.use(
+      '/plugins/assets',
+      limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'static'))));
+    this.app.use(
+      '/plugins/assets',
+      limitToPlugins(this, express.static(getAppPathTo(this.appRoot, 'bower_components'))));
     // Serve custom-widget.html message for anyone.
     this.app.use(/^\/(custom-widget.html)$/, expressWrap(async (req, res) =>
       res.sendFile(req.params[0], {root: getAppPathTo(this.appRoot, 'static')})));
