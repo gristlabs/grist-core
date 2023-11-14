@@ -141,6 +141,10 @@ export class OIDCConfig {
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
+    // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
+    if (this._client.issuer.metadata.end_session_endpoint === undefined) {
+      return redirectUrl.href;
+    }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href
     });
