@@ -1993,8 +1993,13 @@ export class FlexServer implements GristServer {
     // Only used as {userRoot}/plugins as a place for plugins in addition to {appRoot}/plugins
     const userRoot = path.resolve(process.env.GRIST_USER_ROOT || getAppPathTo(this.appRoot, '.grist'));
     this.info.push(['userRoot', userRoot]);
-
-    const pluginManager = new PluginManager(this.appRoot, userRoot);
+    // Some custom widgets may be included as an npm package called @gristlabs/grist-widget.
+    const bundledRoot = isAffirmative(process.env.GRIST_SKIP_BUNDLED_WIDGETS) ? undefined : path.join(
+      getAppPathTo(this.appRoot, 'node_modules'),
+      '@gristlabs', 'grist-widget', 'dist'
+    );
+    this.info.push(['bundledRoot', bundledRoot]);
+    const pluginManager = new PluginManager(this.appRoot, userRoot, bundledRoot);
     // `initialize()` is asynchronous and reads plugins manifests; if PluginManager is used before it
     // finishes, it will act as if there are no plugins.
     // ^ I think this comment was here to justify calling initialize without waiting for

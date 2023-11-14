@@ -46,7 +46,8 @@ function servePluginContent(req: express.Request, res: express.Response,
       req.get('X-From-Plugin-WebView') === "true" ||
       mimeTypes.lookup(path.extname(pluginPath)) === "application/javascript") {
     const dirs = pluginManager.dirs();
-    const contentRoot = pluginKind === "installed" ? dirs.installed : dirs.builtIn;
+    const contentRoot = pluginKind === "installed" ? dirs.installed :
+        (pluginKind === "builtIn" ? dirs.builtIn : dirs.bundled);
     // Note that pluginPath may not be safe, but `sendFile` with the "root" option restricts
     // relative paths to be within the root folder (see the 3rd party library unit-test:
     // https://github.com/pillarjs/send/blob/3daa901cf731b86187e4449fa2c52f971e0b3dbc/test/send.js#L1363)
