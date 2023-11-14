@@ -12,7 +12,7 @@ import {
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
-import {isAffirmative} from "app/common/gutil";
+import {isAffirmative, timeoutReached} from "app/common/gutil";
 import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
@@ -101,6 +101,9 @@ const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
 // then the _dailyUsage cache may become unreliable and users may be able to exceed their allocated requests.
 const MAX_ACTIVE_DOCS_USAGE_CACHE = 1000;
 
+// Maximum amount of time that a webhook endpoint can hold the mutex for in withDocTriggersLock.
+const MAX_DOC_TRIGGERS_LOCK_MS = 15_000;
+
 // Maximum duration of a call to /sql. Does not apply to internal calls to SQLite.
 const MAX_CUSTOM_SQL_MSEC = appSettings.section('integrations')
   .section('sql').flag('timeout').requireInt({
@@ -186,7 +189,25 @@ export class DocWorkerApi {
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
     const throttled = this._apiThrottle.bind(this);
+
     const withDoc = (callback: WithDocHandler) => throttled(this._requireActiveDoc(callback));
+
+    // Like withDoc, but only one such callback can run at a time per active doc.
+    // This is used for webhook endpoints to prevent simultaneous changes to configuration
+    // or clearing queues which could lead to weird problems.
+    const withDocTriggersLock = (callback: WithDocHandler) => withDoc(
+      async (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) =>
+        await activeDoc.triggersLock.runExclusive(async () => {
+          // We don't want to hold the mutex indefinitely so that if one call gets stuck
+          // (especially while trying to apply user actions which are stalled by a full queue)
+          // another call which would clear a queue, disable a webhook, or fix something related
+          // can eventually succeed.
+          if (await timeoutReached(MAX_DOC_TRIGGERS_LOCK_MS, callback(activeDoc, req, resp), {rethrow: true})) {
+            log.rawError(`Webhook endpoint timed out, releasing mutex`,
+              {method: req.method, path: req.path, docId: activeDoc.docName});
+          }
+        })
+    );
 
     // Apply user actions to a document.
     this._app.post('/api/docs/:docId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
@@ -376,7 +397,6 @@ export class DocWorkerApi {
       return {
         fields,
         url,
-        trigger,
       };
     }
 
@@ -793,7 +813,7 @@ export class DocWorkerApi {
 
     // Add a new webhook and trigger
     this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
-      withDoc(async (activeDoc, req, res) => {
+      withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhooks: Array<WebhookSubscription> = [];
         for(const webhook of req.body.webhooks) {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
@@ -809,7 +829,7 @@ export class DocWorkerApi {
      @deprecated please call to POST /webhooks instead, this endpoint is only for sake of backward compatibility
      */
     this._app.post('/api/docs/:docId/tables/:tableId/_subscribe', isOwner, validate(WebhookSubscribe),
-      withDoc(async (activeDoc, req, res) => {
+      withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhook = await registerWebhook(activeDoc, req, req.body);
         res.json(registeredWebhook);
       })
@@ -817,7 +837,7 @@ export class DocWorkerApi {
 
     // Clears all outgoing webhooks in the queue for this document.
     this._app.delete('/api/docs/:docId/webhooks/queue', isOwner,
-      withDoc(async (activeDoc, req, res) => {
+      withDocTriggersLock(async (activeDoc, req, res) => {
         await activeDoc.clearWebhookQueue();
         await activeDoc.sendWebhookNotification();
         res.json({success: true});
@@ -826,23 +846,24 @@ export class DocWorkerApi {
 
     // Remove webhook and trigger created above
     this._app.delete('/api/docs/:docId/webhooks/:webhookId', isOwner,
-      withDoc(removeWebhook)
+      withDocTriggersLock(removeWebhook)
     );
 
     /**
      @deprecated please call to DEL /webhooks instead, this endpoint is only for sake of backward compatibility
      */
     this._app.post('/api/docs/:docId/tables/:tableId/_unsubscribe', canEdit,
-      withDoc(removeWebhook)
+      withDocTriggersLock(removeWebhook)
     );
 
     // Update a webhook
     this._app.patch(
-      '/api/docs/:docId/webhooks/:webhookId', isOwner, validate(WebhookPatch), withDoc(async (activeDoc, req, res) => {
+      '/api/docs/:docId/webhooks/:webhookId', isOwner, validate(WebhookPatch),
+      withDocTriggersLock(async (activeDoc, req, res) => {
 
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
-        const {fields, trigger, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
+        const {fields, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
 
         if (fields.enabled === false) {
           await activeDoc.triggers.clearSingleWebhookQueue(webhookId);
@@ -850,24 +871,18 @@ export class DocWorkerApi {
 
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
-        await this._dbManager.connection.transaction(async manager => {
+        // update url in homedb
+        if (url) {
+          await this._dbManager.updateWebhookUrl(webhookId, docId, url);
+          activeDoc.triggers.webhookDeleted(webhookId); // clear cache
+        }
 
-          // update url
-          if (url) {
-            await this._dbManager.updateWebhookUrl(webhookId, docId, url, manager);
-            activeDoc.triggers.webhookDeleted(webhookId); // clear cache
-          }
-
-          // then update sqlite.
-          if (Object.keys(fields).length) {
-            // In order to make sure to push a valid modification, let's update all fields since
-            // some may have changed since lookup.
-            _.defaults(fields, _.omit(trigger, 'id'));
-            await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
-              docSessionFromRequest(req),
-              [['UpdateRecord', "_grist_Triggers", triggerRowId, fields]]));
-          }
-        });
+        // then update document
+        if (Object.keys(fields).length) {
+          await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
+            docSessionFromRequest(req),
+            [['UpdateRecord', "_grist_Triggers", triggerRowId, fields]]));
+        }
 
         await activeDoc.sendWebhookNotification();
 
@@ -875,11 +890,9 @@ export class DocWorkerApi {
       })
     );
 
-
-
     // Clears a single webhook in the queue for this document.
     this._app.delete('/api/docs/:docId/webhooks/queue/:webhookId', isOwner,
-      withDoc(async (activeDoc, req, res) => {
+      withDocTriggersLock(async (activeDoc, req, res) => {
         const webhookId = req.params.webhookId;
         await activeDoc.clearSingleWebhookQueue(webhookId);
         await activeDoc.sendWebhookNotification();
@@ -889,7 +902,7 @@ export class DocWorkerApi {
 
     // Lists all webhooks and their current status in the document.
     this._app.get('/api/docs/:docId/webhooks', isOwner,
-      withDoc(async (activeDoc, req, res) => {
+      withDocTriggersLock(async (activeDoc, req, res) => {
         res.json(await activeDoc.webhooksSummary());
       })
     );

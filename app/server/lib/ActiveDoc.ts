@@ -216,6 +216,8 @@ export class ActiveDoc extends EventEmitter {
   public readonly docPluginManager: DocPluginManager|null;
   public readonly docClients: DocClients;               // Only exposed for Sharing.ts
   public docData: DocData|null = null;
+  // Used by DocApi to only allow one webhook-related endpoint to run at a time.
+  public readonly triggersLock: Mutex = new Mutex();
 
   protected _actionHistory: ActionHistory;
   protected _docManager: DocManager;

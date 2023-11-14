@@ -886,7 +886,9 @@ export function isValidHex(val: string): boolean {
  * Resolves to true if promise is still pending after msec milliseconds have passed. Otherwise
  * returns false, including when promise is rejected.
  */
-export async function timeoutReached(msec: number, promise: Promise<unknown>): Promise<boolean> {
+export async function timeoutReached(
+  msec: number, promise: Promise<unknown>, options: {rethrow: boolean} = {rethrow: false}
+): Promise<boolean> {
   const timedOut = {};
   // Be careful to clean up the timer after ourselves, so it doesn't remain in the event loop.
   let timer: NodeJS.Timer;
@@ -895,6 +897,9 @@ export async function timeoutReached(msec: number, promise: Promise<unknown>): P
     const res = await Promise.race([promise, delayPromise]);
     return res == timedOut;
   } catch (err) {
+    if (options.rethrow) {
+      throw err;
+    }
     return false;
   } finally {
     clearTimeout(timer!);
