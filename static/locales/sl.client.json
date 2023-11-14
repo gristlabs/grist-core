@@ -26,12 +26,12 @@
         "Checking...": "Preverjanje…",
         "Condition": "Stanje",
         "Enter Condition": "Vnesite pogoj",
-        "Add Column Rule": "Dodajanje pravila za stolpce",
+        "Add Column Rule": "Dodaj pravila za stolpec",
         "Add Default Rule": "Dodaj privzeto pravilo",
-        "Add Table Rules": "Dodajanje pravil tabele",
-        "Add User Attributes": "Dodajanje atributov uporabnika",
+        "Add Table Rules": "Dodaj pravila  za tabelo",
+        "Add User Attributes": "Dodaj atribute za uporabnika",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Vsakomur omogočite kopiranje celotnega dokumenta ali pa si ga oglejte v celoti v načinu fiddle.\nUporabno za primere in predloge, ne pa za občutljive podatke.",
-        "Allow everyone to view Access Rules.": "Vsakomur omogočite ogled pravil za dostop.",
+        "Allow everyone to view Access Rules.": "Omogoči vsakomur  ogled pravil za dostop.",
         "Attribute name": "Ime atributa",
         "Attribute to Look Up": "Atribut za iskanje",
         "Lookup Table": "Preglednica za iskanje",
@@ -40,8 +40,8 @@
     },
     "ACUserManager": {
         "We'll email an invite to {{email}}": "Vabilo bomo poslali po e-pošti {{email}}",
-        "Enter email address": "Vnesite e-poštni naslov",
-        "Invite new member": "Povabite novega člana"
+        "Enter email address": "Vnesi e-poštni naslov",
+        "Invite new member": "Povabi novega člana"
     },
     "AccountPage": {
         "API": "API",
@@ -110,7 +110,7 @@
         "Translators: please translate this only when your language is ready to be offered to users": "Prevajalci: prosimo, prevedite to šele, ko bo vaš jezik pripravljen, da se ponudi uporabnikom"
     },
     "CellContextMenu": {
-        "Delete {{count}} columns_one": "Brisanje stolpca",
+        "Delete {{count}} columns_one": "Briši stolpec",
         "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
         "Delete {{count}} rows_one": "Brisanje vrstice",
         "Delete {{count}} rows_other": "Brisanje vrstic {{count}}",
@@ -123,7 +123,7 @@
         "Insert row": "Vstavljanje vrstice",
         "Insert row above": "Vstavite vrstico zgoraj",
         "Insert row below": "Vstavi vrstico spodaj",
-        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Reset {{count}} columns_one": "Ponastavi stolpec",
         "Reset {{count}} columns_other": "Ponastavit {{count}} stolpcev",
         "Reset {{count}} entire columns_one": "Ponastavi celote stolpec",
         "Reset {{count}} entire columns_other": "Ponastavi {{count}} celotnih stolpcev",
@@ -177,7 +177,7 @@
     },
     "GridViewMenus": {
         "Rename column": "Preimenuj stolpec",
-        "Delete {{count}} columns_one": "Brisanje stolpca",
+        "Delete {{count}} columns_one": "Briši stolpec",
         "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
         "Unfreeze {{count}} columns_one": "Odmrzni ta stolpec",
         "Sorted (#{{count}})_one": "Razvrščeno (#{{count}})",
@@ -189,7 +189,7 @@
         "Filter Data": "Filtriranje podatkov",
         "Hide {{count}} columns_other": "Skrij {{count}} stolpcev",
         "Add Column": "Dodaj stolpec",
-        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Reset {{count}} columns_one": "Ponastavi stolpec",
         "Freeze {{count}} columns_one": "Zamrzni stolpec",
         "More sort options ...": "Več možnosti razvrščanja…",
         "Freeze {{count}} more columns_one": "Zamrznite še en stolpec",
@@ -278,7 +278,7 @@
     },
     "pages": {
         "Rename": "Preimenuj",
-        "Duplicate Page": "Podvojena stran",
+        "Duplicate Page": "Podvoji stran",
         "You do not have edit access to this document": "Nimate dovoljenja za urejanje tega dokumenta",
         "Remove": "Odstrani"
     },
@@ -1219,7 +1219,7 @@
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Upoštevajte, da s tem ne kopirate podatkov, ampak ustvarite drug pogled istih podatkov.",
-        "Duplicate page {{pageName}}": "Podvojena stran {{pageName}}"
+        "Duplicate page {{pageName}}": "Podvoji stran {{pageName}}"
     },
     "CurrencyPicker": {
         "Invalid currency": "Neveljavna valuta"
