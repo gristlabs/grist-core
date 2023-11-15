@@ -7,7 +7,6 @@
  *
  * We also use optional attributes for the user's name, for which we accept any of:
  *    given_name + family_name
- *    display_name
  *    name
  *
  * Expected environment variables:
@@ -22,6 +21,11 @@
  *        The client secret for the application, as registered with the IdP.
  *    env GRIST_OIDC_IDP_SCOPES
  *        The scopes to request from the IdP, as a space-separated list. Defaults to "openid email profile".
+ *    env GRIST_OIDC_SP_PROFILE_NAME_ATTR
+ *        The key of the attribute to use for the user's name.
+ *        If omitted, the name will either be the concatenation of "given_name" + "family_name" or the "name" attribute.
+ *    env GRIST_OIDC_SP_PROFILE_EMAIL_ATTR
+ *        The key of the attribute to use for the user's email. Defaults to "email".
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -44,12 +48,15 @@ import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
+import { UserProfile } from 'app/common/LoginSessionAPI';
 
 const CALLBACK_URL = '/oauth2/callback';
 
 export class OIDCConfig {
   private _client: Client;
   private _redirectUrl: string;
+  private _namePropertyKey?: string;
+  private _emailPropertyKey?: string;
 
   public constructor() {
   }
@@ -69,6 +76,14 @@ export class OIDCConfig {
     const clientSecret = section.flag('clientSecret').requireString({
       envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
       censor: true,
+    });
+    this._namePropertyKey = section.flag('namePropertyKey').readString({
+      envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
+    });
+
+    this._emailPropertyKey = section.flag('emailPropertyKey').readString({
+      envVar: 'GRIST_OIDC_SP_PROFILE_EMAIL_ATTR',
+      defaultValue: 'email',
     });
 
     const issuer = await Issuer.discover(issuerUrl);
@@ -172,21 +187,22 @@ export class OIDCConfig {
     return codeVerifier;
   }
 
-  private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse) {
-      const email = userInfo.email;
-      const fname = userInfo.given_name ?? '';
-      const lname = userInfo.family_name ?? '';
+  private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
+    return {
+      email: userInfo[ this._emailPropertyKey! ] as string,
+      name: this._extractName(userInfo)
 
-      const fullname = `${fname} ${lname}`.trim() ||
-        // display_name is provided by Authelia for example.
-        userInfo.display_name ||
-        // name is provided by Gitlab for example.
-        userInfo.name;
+    };
+  }
 
-      return {
-        email,
-        name: fullname,
-      };
+  private _extractName(userInfo: UserinfoResponse): string|undefined {
+    if (this._namePropertyKey) {
+      return userInfo[ this._namePropertyKey ] as string|undefined;
+    }
+    const fname = userInfo.given_name ?? '';
+    const lname = userInfo.family_name ?? '';
+
+    return `${fname} ${lname}`.trim() || userInfo.name;
   }
 }
 
