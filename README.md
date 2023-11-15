@@ -1,23 +1,12 @@
 # Grist
 
-Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the
-robustness of a database to organize your data and make you more productive.
+Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database to organize your data and make you more productive.
 
-This repository, `grist-core`, is the heart of Grist, and has what you
-need to run a powerful spreadsheet hosting server. If you wish to view and edit
-spreadsheets stored locally, another option is to use the
-[`grist-electron`](https://github.com/gristlabs/grist-electron) desktop app for Linux, Mac, and Windows. And to show Grist spreadsheets on a website
-without any special back-end support, your options include
-[`grist-static`](https://github.com/gristlabs/grist-static),
-a fully in-browser build of Grist.
-The `grist-core` repository is the basis for all these options, and
-for the hosted spreadsheet services offered by
-[`Grist Labs`](https://getgrist.com), an NYC-based company 🇺🇸 that is the main developer of Grist, and by
-[`ANCT Données et Territoires`](https://donnees.incubateur.anct.gouv.fr/toolbox/grist),
-a French government agency 🇫🇷 whose developers have made many
-contributions to the code-base.
-The `grist-core`, `grist-electron`, and `grist-static` repositories
-are all open-source (Apache License, Version 2.0).
+This repository, `grist-core`, is the heart of Grist, and has what you need to run a powerful spreadsheet hosting server. If you wish to view and edit spreadsheets stored locally, another option is to use the [`grist-electron`](https://github.com/gristlabs/grist-electron) desktop app for Linux, Mac, and Windows. And to show Grist spreadsheets on a website without any special back-end support, you can use [`grist-static`](https://github.com/gristlabs/grist-static), a fully in-browser build of Grist.
+
+The `grist-core` repository is the basis for all these options, and for the hosted spreadsheet services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 that is the main developer of Grist, and by [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist), a French government agency 🇫🇷 whose developers have made many contributions to the codebase.
+
+The `grist-core`, `grist-electron`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
 
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
@@ -25,81 +14,69 @@ https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-97
 
 Grist is a hybrid database/spreadsheet, meaning that:
 
-  - Columns work like they do in databases. They are named, and hold one kind of data.
+  - Columns work like they do in databases: they are named, and they hold one kind of data.
   - Columns can be filled by formula, spreadsheet-style, with automatic updates when referenced cells change.
 
-This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance!
-If you are coming from Airtable, you'll find the model familiar though (and there's a
-[Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article that might interest you).
-
+This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance! If you are coming from Airtable, you'll find the model familiar though (and there's a [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article that might interest you).
 
 Here are some specific feature highlights of Grist:
 
   * Python formulas.
-    - Full [Python syntax is supported](https://support.getgrist.com/formulas/#python), and the standard library.
+    - Full [Python syntax is supported](https://support.getgrist.com/formulas/#python), including the standard library.
     - Many [Excel functions](https://support.getgrist.com/functions/) also available.
+    - An [AI Assistant](https://www.getgrist.com/ai-formula-assistant/) specifically tuned for formula generation (using OpenAI gpt-3.5-turbo or [Llama](https://ai.meta.com/llama/) via <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>).
   * A portable, self-contained format.
     - Based on SQLite, the most widely deployed database engine.
     - Any tool that can read SQLite can read numeric and text data from a Grist file.
-    - Great format for [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can be confident you can restore in full.
-    - Great format for moving between different hosts.
-  - Can be displayed on a static website with [grist-static](https://github.com/gristlabs/grist-static), no special server needed.
-  - There's a self-contained desktop app available for viewing and editing: [grist-electron](https://github.com/gristlabs/grist-electron).
+    - Enables [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can confidently restore in full.
+    - Great for moving between different hosts.
+  * Can be displayed on a static website with [`grist-static`](https://github.com/gristlabs/grist-static) – no special server needed.
+  * A self-contained desktop app for viewing and editing locally: [`grist-electron`](https://github.com/gristlabs/grist-electron).
   * Convenient editing and formatting features.
-    - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records without fuss.
+    - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records.
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
     - [Attachments](https://support.getgrist.com/col-types/#attachment-columns), to include media or document files in records.
     - Dates and times, toggles, and special numerics such as currency all have specialized editors and formatting options.
-    - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas, to draw attention to important information.
-  * Great for dashboards, visualizations, and data entry.
+    - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas to draw attention to important information.
+  * Drag-and-drop dashboards.
     - [Charts](https://support.getgrist.com/widget-chart/) for visualization.
     - [Summary tables](https://support.getgrist.com/summary-tables/) for summing and counting across groups.
     - [Widget linking](https://support.getgrist.com/linking-widgets/) streamlines filtering and editing data.
     Grist has a unique approach to visualization, where you can lay out and link distinct widgets to show together,
     without cramming mixed material into a table.
-    - The [Filter bar](https://support.getgrist.com/search-sort-filter/#filter-buttons) is great for quick slicing and dicing.
+    - [Filter bar](https://support.getgrist.com/search-sort-filter/#filter-buttons) for quick slicing and dicing.
   * [Incremental imports](https://support.getgrist.com/imports/#updating-existing-records).
-    - So you can import a CSV of the last three months activity from your bank...
-    - ... and import new activity a month later without fuss or duplicates.
+    - Import a CSV of the last three months activity from your bank...
+    - ...and import new activity a month later without fuss or duplication.
   * Integrations.
     - A [REST API](https://support.getgrist.com/api/), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
     - Import/export to Google drive, Excel format, CSV.
-    - Can link data with custom widgets hosted externally.
-    - You can set up outgoing webhooks.
+    - Link data with [custom widgets](https://support.getgrist.com/widget-custom/#_top), hosted externally.
+    - Configurable outgoing webhooks.
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
-    - (You'll need SSO logins set up to make use of these options; [grist-omnibus](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
-    - Share [individual documents](https://support.getgrist.com/sharing/), or workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
+    - (You'll need SSO logins set up to make use of these options; [`grist-omnibus`](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
+    - Share [individual documents](https://support.getgrist.com/sharing/), workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
     - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
     - Control access based on cell values and user attributes.
-  * Can be self-maintained.
+  * Self-maintainable.
     - Useful for intranet operation and specific compliance requirements.
   * Sandboxing options for untrusted documents.
-    - On Linux or with docker, you can enable
-      [gVisor](https://github.com/google/gvisor) sandboxing at the individual
-      document level.
-    - On OSX, you can use native sandboxing.
+    - On Linux or with Docker, you can enable [gVisor](https://github.com/google/gvisor) sandboxing at the individual document level.
+    - On macOS, you can use native sandboxing.
     - On any OS, including Windows, you can use a wasm-based sandbox.
   * Translated to many languages.
-  * Support for an AI Formula Assistant (using OpenAI gpt-3.5-turbo or comparable models).
-  * `F1` key brings up some quick help. This used to go without saying. In general Grist has good keyboard support.
-  * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist).
+  * `F1` key brings up some quick help. This used to go without saying, but in general Grist has good keyboard support.
+  * We post progress on [𝕏 or Twitter or whatever](https://twitter.com/getgrist) and publish [monthly newsletters](https://support.getgrist.com/newsletters/).
 
-If you are curious about where Grist is going heading,
-see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a
-question in [our forum](https://community.getgrist.com),
-or browse [our extensive documentation](https://support.getgrist.com).
-
+If you are curious about where Grist is heading, see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a question in [our forum](https://community.getgrist.com), or browse [our extensive documentation](https://support.getgrist.com).
 
 ## Using Grist
 
 If you just want a quick demo of Grist:
 
-  * You can try Grist out at the hosted service run
-    by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com)
-  (no registration needed).
-  * Or you can see an experimental fully in-browser build of Grist
-    at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
+  * You can try Grist out at the hosted service run by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com) (no registration needed).
+  * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-electron](https://github.com/gristlabs/grist-electron).
 
 To get `grist-core` running on your computer with [Docker](https://www.docker.com/get-started), do:
@@ -150,7 +127,7 @@ Grist formulas in documents will be run using Python executed directly on your
 machine. You can configure sandboxing using a `GRIST_SANDBOX_FLAVOR`
 environment variable.
 
- * On OSX, `export GRIST_SANDBOX_FLAVOR=macSandboxExec`
+ * On macOS, `export GRIST_SANDBOX_FLAVOR=macSandboxExec`
    uses the native `sandbox-exec` command for sandboxing.
  * On Linux with [gVisor's runsc](https://github.com/google/gvisor)
    installed, `export GRIST_SANDBOX_FLAVOR=gvisor` is an option.
@@ -195,18 +172,15 @@ did the hard work of making a good chunk of the application localizable. Merci b
 
 This repository, [grist-core](https://github.com/gristlabs/grist-core), is maintained by Grist
 Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see
-here, combined with business-specific software designed to scale it to many users, handle billing,
+here, combined with business-specific software designed to scale to many users, handle billing,
 etc.
 
 Grist Labs is an open-core company. We offer Grist hosting as a
 service, with free and paid plans. We also develop and sell
 features related to Grist using a proprietary license, targeted at the
-needs of enterprises with large self-managed installations. We see
-data portability and autonomy as a key value Grist can bring to our
-users, and `grist-core` as an essential means to deliver that. We are
-committed to maintaining and improving the `grist-core` codebase, and
-to be thoughtful about how proprietary offerings impact data portability
-and autonomy.
+needs of enterprises with large self-managed installations. 
+
+We see data portability and autonomy as a key value, and `grist-core` is an essential part of that. We are committed to maintaining and improving the `grist-core` codebase, and to be thoughtful about how proprietary offerings impact data portability and autonomy.
 
 By opening its source code and offering an [OSI](https://opensource.org/)-approved free license,
 Grist benefits its users:
@@ -223,10 +197,9 @@ Grist benefits its users:
 - **Price flexibility.** If you are low on funds but have time to invest, self-hosting is a great
   option to have. And DIY users may have the technical savvy and motivation to delve in and make improvements,
   which can benefit all users of Grist.
-- **Extensibility.** For developers, having the source open makes it easier to build extensions (such as the
-  experimental [Custom Widget](https://support.getgrist.com/widget-custom/)). You can more easily
-  include Grist in your pipeline. And if a feature is missing, you can just take the source code and
-  build on top of it.
+- **Extensibility.** For developers, having the source open makes it easier to build extensions (such as [Custom Widgets](https://support.getgrist.com/widget-custom/)). You can more easily include Grist in your pipeline. And if a feature is missing, you can just take the source code and build on top of it.
+
+For more on Grist Labs' history and principles, see our [About Us](https://www.getgrist.com/about/) page.
 
 ## Sponsors
 
