@@ -80,6 +80,7 @@ import { StringUnionError } from 'app/common/StringUnion';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from './oidc/Protections';
 import { SessionObj } from './BrowserSession';
 import { getOriginUrl } from './requestUtils';
+import pick from 'lodash/pick';
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -357,7 +358,8 @@ export class OIDCConfig {
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
     return {
       email: String(userInfo[this._emailPropertyKey]),
-      name: this._extractName(userInfo)
+      name: this._extractName(userInfo),
+      extra: pick(userInfo, process.env.GRIST_OIDC_SP_EXTRA_PROPS_TO_STORE?.split(',') || [])
     };
   }
 
