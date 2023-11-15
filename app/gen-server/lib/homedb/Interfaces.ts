@@ -29,6 +29,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
+  options?: Partial<UserOptions>;
 }
 
 // A specification of the users available during a request.  This can be a single
