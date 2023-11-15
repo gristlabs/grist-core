@@ -78,6 +78,7 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
+    log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
   }
 
   public addEndpoints(app: express.Application, sessions: Sessions): void {
@@ -85,15 +86,18 @@ export class OIDCConfig {
   }
 
   public async handleCallback(sessions: Sessions, req: express.Request, res: express.Response): Promise<void> {
+    const mreq = req as RequestWithLogin;
     try {
       const params = this._client.callbackParams(req);
-      const { state } = params;
+      const { state, targetUrl } = mreq.session?.oidc ?? {};
       if (!state) {
         throw new Error('Login or logout failed to complete');
       }
 
       const codeVerifier = await this._retrieveCodeVerifierFromSession(req);
 
+      // The callback function will compare the state present in the params and the one we retrieved from the session.
+      // If they don't match, it will throw an error.
       const tokenSet = await this._client.callback(
         this._redirectUrl,
         params,
@@ -102,23 +106,29 @@ export class OIDCConfig {
 
       const userInfo = await this._client.userinfo(tokenSet);
       const profile = this._makeUserProfileFromUserInfo(userInfo);
+      log.info(`OIDCConfig: got OIDC response for ${profile.email} (${profile.name}) redirecting to ${targetUrl}`);
 
       const scopedSession = sessions.getOrCreateSessionFromRequest(req);
       await scopedSession.operateOnScopedSession(req, async (user) => Object.assign(user, {
         profile,
       }));
 
-      res.redirect('/');
+      delete mreq.session.oidc;
+      res.redirect(targetUrl ?? '/');
     } catch (err) {
-      log.error(`OIDC callback failed: ${err.message}`);
-      res.status(500).send(`OIDC callback failed: ${err.message}`);
+      log.error(`OIDC callback failed: ${err.stack}`);
+      // Delete the session data even if the login failed.
+      // This way, we prevent several login attempts.
+      //
+      // Also session deletion must be done before sending the response.
+      delete mreq.session.oidc;
+      res.status(500).send(`OIDC callback failed.`);
     }
   }
 
-  public async getLoginRedirectUrl(req: express.Request): Promise<string> {
-    const codeVerifier = await this._generateAndStoreCodeVerifier(req);
+  public async getLoginRedirectUrl(req: express.Request, targetUrl: URL): Promise<string> {
+    const { codeVerifier, state } = await this._generateAndStoreConnectionInfo(req, targetUrl.href);
     const codeChallenge = generators.codeChallenge(codeVerifier);
-    const state = generators.state();
 
     const authUrl = this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
@@ -135,15 +145,18 @@ export class OIDCConfig {
     });
   }
 
-  private async _generateAndStoreCodeVerifier(req: express.Request) {
+  private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
     const codeVerifier = generators.codeVerifier();
+    const state = generators.state();
     mreq.session.oidc = {
       codeVerifier,
+      state,
+      targetUrl
     };
 
-    return codeVerifier;
+    return { codeVerifier, state };
   }
 
   private async _retrieveCodeVerifierFromSession(req: express.Request) {
@@ -151,7 +164,6 @@ export class OIDCConfig {
     if (!mreq.session) { throw new Error('no session available'); }
     const codeVerifier = mreq.session.oidc?.codeVerifier;
     if (!codeVerifier) { throw new Error('Login is stale'); }
-    delete mreq.session.oidc?.codeVerifier;
     return codeVerifier;
   }
 
