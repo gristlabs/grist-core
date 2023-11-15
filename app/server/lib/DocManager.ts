@@ -301,13 +301,14 @@ export class DocManager extends EventEmitter {
                        openMode: OpenDocMode = 'default',
                        linkParameters: Record<string, string> = {}): Promise<OpenLocalDocResult> {
     let auth: Authorizer;
+    let userId: number | undefined;
     const dbManager = this._homeDbManager;
     if (!isSingleUserMode()) {
       if (!dbManager) { throw new Error("HomeDbManager not available"); }
       // Sets up authorization of the document.
       const org = client.getOrg();
       if (!org) { throw new Error('Documents can only be opened in the context of a specific organization'); }
-      const userId = await client.getUserId(dbManager) || dbManager.getAnonymousUserId();
+      userId = await client.getUserId(dbManager) || dbManager.getAnonymousUserId();
       const userRef = await client.getUserRef(dbManager);
 
       // We use docId in the key, and disallow urlId, so we can be sure that we are looking at the
@@ -396,6 +397,14 @@ export class DocManager extends EventEmitter {
       if (!activeDoc.muted) {
         this.emit('open-doc', this.storageManager.getPath(activeDoc.docName));
       }
+
+      this.gristServer.getTelemetry().logEvent(docSession, 'openedDoc', {
+        full: {
+          docIdDigest: docId,
+          userId,
+          altSessionId: client.getAltSessionId(),
+        },
+      });
 
       return {activeDoc, result};
     });

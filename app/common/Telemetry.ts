@@ -745,6 +745,7 @@ export const TelemetryContracts: TelemetryContracts = {
     },
   },
   signupFirstVisit: {
+    category: 'ProductVisits',
     description: 'Triggered when a new user first opens the Grist app',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -1058,6 +1059,86 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  invitedMember: {
+    category: 'TeamSite',
+    description: 'Triggered when users are added to a team site.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      count: {
+        description: 'The number of users added.',
+        dataType: 'number',
+      },
+      siteId: {
+        description: 'The id of the site.',
+        dataType: 'number',
+      },
+    },
+  },
+  uninvitedMember: {
+    category: 'TeamSite',
+    description: 'Triggered when users are removed from a team site.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      count: {
+        description: 'The number of users removed.',
+        dataType: 'number',
+      },
+      siteId: {
+        description: 'The id of the site.',
+        dataType: 'number',
+      },
+    },
+  },
+  invitedDocUser: {
+    category: 'DocumentUsage',
+    description: 'Triggered when users are added to a document.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      access: {
+        description: 'The access level granted to the added users.',
+        dataType: 'string',
+      },
+      count: {
+        description: 'The number of users added.',
+        dataType: 'number',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  madeDocPublic: {
+    category: 'DocumentUsage',
+    description: 'Triggered when public access to a document is enabled.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      access: {
+        description: 'The access level granted to public users.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
+  madeDocPrivate: {
+    category: 'DocumentUsage',
+    description: 'Triggered when public access to a document is disabled.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
   openedTemplate: {
     category: 'TemplateUsage',
     description: 'Triggered when a template is opened.',
@@ -1081,6 +1162,26 @@ export const TelemetryContracts: TelemetryContracts = {
   openedTemplateTour: {
     category: 'TemplateUsage',
     description: 'Triggered when a document tour for a template is opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      templateId: {
+        description: 'The document id of the template.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  copiedTemplate: {
+    category: 'TemplateUsage',
+    description: 'Triggered when a copy of a template is saved.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
@@ -1138,7 +1239,7 @@ export const TelemetryContracts: TelemetryContracts = {
     metadataContracts: {
       workspaceId: {
         description: 'The id of the workspace.',
-        dataType: 'string',
+        dataType: 'number',
       },
       userId: {
         description: 'The id of the user that triggered this event.',
@@ -1159,6 +1260,139 @@ export const TelemetryContracts: TelemetryContracts = {
       userId: {
         description: 'The id of the user that triggered this event.',
         dataType: 'number',
+      },
+    },
+  },
+  visitedPage: {
+    category: 'ProductVisits',
+    description: 'Triggered when a page is loaded.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id. Only included on visits to doc pages.',
+        dataType: 'string',
+      },
+      url: {
+        description: 'The URL of the visited page. Link keys, doc ids, and other identifiers ' +
+          'are excluded from the URL.',
+        dataType: 'string',
+      },
+      path: {
+        description: 'The path of the visited page (e.g. "app.html").',
+        dataType: 'string',
+      },
+      userAgent: {
+        description: 'The User-Agent HTTP request header.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  openedDoc: {
+    category: 'DocumentUsage',
+    description: 'Triggered when a document is opened.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  'createdDoc-Empty': {
+    category: 'DocumentUsage',
+    description: 'Triggered when a new empty document is created.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  'createdDoc-FileImport': {
+    category: 'DocumentUsage',
+    description: 'Triggered when a document is created via file import.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  'createdDoc-CopyTemplate': {
+    category: 'DocumentUsage',
+    description: 'Triggered when a document is created by saving a copy of a template.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  'createdDoc-CopyDoc': {
+    category: 'DocumentUsage',
+    description: 'Triggered when a document is created by saving a copy of a document.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
       },
     },
   },
@@ -1199,12 +1433,24 @@ export const TelemetryEvents = StringUnion(
   'deletedAccount',
   'createdSite',
   'deletedSite',
+  'invitedMember',
+  'uninvitedMember',
+  'invitedDocUser',
+  'madeDocPublic',
+  'madeDocPrivate',
   'openedTemplate',
   'openedTemplateTour',
+  'copiedTemplate',
   'subscribedToPlan',
   'cancelledPlan',
   'createdWorkspace',
   'deletedWorkspace',
+  'visitedPage',
+  'openedDoc',
+  'createdDoc-Empty',
+  'createdDoc-FileImport',
+  'createdDoc-CopyTemplate',
+  'createdDoc-CopyDoc',
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
 
@@ -1216,7 +1462,8 @@ type TelemetryEventCategory =
   | 'Welcome'
   | 'SubscriptionPlan'
   | 'DocumentUsage'
-  | 'TeamSite';
+  | 'TeamSite'
+  | 'ProductVisits';
 
 interface TelemetryEventContract {
   description: string;

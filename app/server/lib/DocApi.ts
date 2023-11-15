@@ -1185,6 +1185,11 @@ export class DocWorkerApi {
           },
         },
       });
+      this._logCreatedFileImportDocTelemetryEvent(req, {
+        full: {
+          docIdDigest: result.id,
+        },
+      });
       res.json(result);
     }));
 
@@ -1319,6 +1324,11 @@ export class DocWorkerApi {
           },
         });
         docId = result.id;
+        this._logCreatedFileImportDocTelemetryEvent(req, {
+          full: {
+            docIdDigest: docId,
+          },
+        });
       } else if (workspaceId !== undefined) {
         docId = await this._createNewSavedDoc(req, {
           workspaceId: workspaceId,
@@ -1376,6 +1386,30 @@ export class DocWorkerApi {
         },
       },
     });
+
+    const sourceDocument = await this._dbManager.getRawDocById(sourceDocumentId);
+    const isTemplateCopy = sourceDocument.type === 'template';
+    if (isTemplateCopy) {
+      this._grist.getTelemetry().logEvent(mreq, 'copiedTemplate', {
+        full: {
+          templateId: parseUrlId(sourceDocument.urlId || sourceDocument.id).trunkId,
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      });
+    }
+    this._grist.getTelemetry().logEvent(
+      mreq,
+      `createdDoc-${isTemplateCopy ? 'CopyTemplate' : 'CopyDoc'}`,
+      {
+        full: {
+          docIdDigest: result.id,
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      }
+    );
+
     return result.id;
   }
 
@@ -1387,19 +1421,25 @@ export class DocWorkerApi {
     const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
       name: documentName ?? 'Untitled document',
     });
+    const docId = data!;
     if (status !== 200) {
       throw new ApiError(errMessage || 'unable to create document', status);
     }
     this._logDocumentCreatedTelemetryEvent(req, {
       limited: {
-        docIdDigest: data!,
+        docIdDigest: docId,
         sourceDocIdDigest: undefined,
         isImport: false,
         fileType: undefined,
         isSaved: true,
       },
     });
-    return data!;
+    this._logCreatedEmptyDocTelemetryEvent(req, {
+      full: {
+        docIdDigest: docId,
+      },
+    });
+    return docId;
   }
 
   private async _createNewUnsavedDoc(req: Request, options: {
@@ -1431,12 +1471,39 @@ export class DocWorkerApi {
         isSaved: false,
       },
     });
+    this._logCreatedEmptyDocTelemetryEvent(req, {
+      full: {
+        docIdDigest: docId,
+      },
+    });
     return docId;
   }
 
   private _logDocumentCreatedTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
     const mreq = req as RequestWithLogin;
     this._grist.getTelemetry().logEvent(mreq, 'documentCreated', _.merge({
+      full: {
+        userId: mreq.userId,
+        altSessionId: mreq.altSessionId,
+      },
+    }, metadata));
+  }
+
+  private _logCreatedEmptyDocTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
+    this._logCreatedDocTelemetryEvent(req, 'createdDoc-Empty', metadata);
+  }
+
+  private _logCreatedFileImportDocTelemetryEvent(req: Request, metadata: TelemetryMetadataByLevel) {
+    this._logCreatedDocTelemetryEvent(req, 'createdDoc-FileImport', metadata);
+  }
+
+  private _logCreatedDocTelemetryEvent(
+    req: Request,
+    event: 'createdDoc-Empty' | 'createdDoc-FileImport',
+    metadata: TelemetryMetadataByLevel,
+  ) {
+    const mreq = req as RequestWithLogin;
+    this._grist.getTelemetry().logEvent(mreq, event, _.merge({
       full: {
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,

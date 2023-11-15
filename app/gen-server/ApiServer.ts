@@ -6,7 +6,8 @@ import {Request} from 'express';
 
 import {ApiError} from 'app/common/ApiError';
 import {FullUser} from 'app/common/LoginSessionAPI';
-import {OrganizationProperties} from 'app/common/UserAPI';
+import {BasicRole} from 'app/common/roles';
+import {OrganizationProperties, PermissionDelta} from 'app/common/UserAPI';
 import {User} from 'app/gen-server/entity/User';
 import {BillingOptions, HomeDBManager, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -235,7 +236,7 @@ export class ApiServer {
         const query = await this._dbManager.deleteWorkspace(getScope(req), wsId);
         this._gristServer.getTelemetry().logEvent(mreq, 'deletedWorkspace', {
           full: {
-            workspaceId: wsId,
+            workspaceId: query.data,
             userId: mreq.userId,
           },
         });
@@ -261,15 +262,23 @@ export class ApiServer {
       const mreq = req as RequestWithLogin;
       const wsId = integerParam(req.params.wid, 'wid');
       const query = await this._dbManager.addDocument(getScope(req), wsId, req.body);
+      const docId = query.data!;
       this._gristServer.getTelemetry().logEvent(mreq, 'documentCreated', {
         limited: {
-          docIdDigest: query.data!,
+          docIdDigest: docId,
           sourceDocIdDigest: undefined,
           isImport: false,
           fileType: undefined,
           isSaved: true,
         },
         full: {
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      });
+      this._gristServer.getTelemetry().logEvent(mreq, 'createdDoc-Empty', {
+        full: {
+          docIdDigest: docId,
           userId: mreq.userId,
           altSessionId: mreq.altSessionId,
         },
@@ -345,6 +354,7 @@ export class ApiServer {
     this._app.patch('/api/docs/:did/access', expressWrap(async (req, res) => {
       const delta = req.body.delta;
       const query = await this._dbManager.updateDocPermissions(getDocScope(req), delta);
+      this._logInvitedDocUserTelemetryEvents(req as RequestWithLogin, delta);
       return sendReply(req, res, query);
     }));
 
@@ -612,6 +622,47 @@ export class ApiServer {
     }
     const extendedScope = addPermit(scope, this._dbManager.getSupportUserId(), {org});
     return await op(extendedScope);
+  }
+
+  private _logInvitedDocUserTelemetryEvents(mreq: RequestWithLogin, delta: PermissionDelta) {
+    if (!delta.users) { return; }
+
+    const numInvitedUsersByAccess: Record<BasicRole, number> = {
+      'viewers': 0,
+      'editors': 0,
+      'owners': 0,
+    };
+    for (const [email, access] of Object.entries(delta.users)) {
+      if (email === 'everyone@getgrist.com') { continue; }
+      if (access === null || access === 'members') { continue; }
+
+      numInvitedUsersByAccess[access] += 1;
+    }
+    for (const [access, count] of Object.entries(numInvitedUsersByAccess)) {
+      if (count === 0) { continue; }
+
+      this._gristServer.getTelemetry().logEvent(mreq, 'invitedDocUser', {
+        full: {
+          access,
+          count,
+          userId: mreq.userId,
+        },
+      });
+    }
+
+    const publicAccess = delta.users['everyone@getgrist.com'];
+    if (publicAccess !== undefined) {
+      this._gristServer.getTelemetry().logEvent(
+        mreq,
+        publicAccess ? 'madeDocPublic' : 'madeDocPrivate',
+        {
+          full: {
+            ...(publicAccess ? {access: publicAccess} : {}),
+            userId: mreq.userId,
+          },
+        }
+      );
+    }
   }
 }
 

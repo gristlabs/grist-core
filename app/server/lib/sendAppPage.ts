@@ -116,13 +116,13 @@ export function makeSendAppPage(opts: {
 }) {
   const {server, staticDir, tag, testLogin} = opts;
   return async (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => {
-      const config = makeGristConfig({
-        homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
-        extra: options.config,
-        baseDomain: opts.baseDomain,
-        req,
-        server,
-      });
+    const config = makeGristConfig({
+      homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
+      extra: options.config,
+      baseDomain: opts.baseDomain,
+      req,
+      server,
+    });
 
     // We could cache file contents in memory, but the filesystem does caching too, and compared
     // to that, the performance gain is unlikely to be meaningful. So keep it simple here.
@@ -156,8 +156,44 @@ export function makeSendAppPage(opts: {
         "<!-- INSERT CONFIG -->",
         `<script>window.gristConfig = ${jsesc(config, {isScriptContext: true, json: true})};</script>`
       );
+    logVisitedPageTelemetryEvent(req as RequestWithLogin, {
+      server,
+      pagePath: options.path,
+      docId: config.assignmentId,
+    });
     resp.status(options.status).type('html').send(content);
   };
+}
+
+interface LogVisitedPageEventOptions {
+  server: GristServer;
+  pagePath: string;
+  docId?: string;
+}
+
+function logVisitedPageTelemetryEvent(req: RequestWithLogin, options: LogVisitedPageEventOptions) {
+  const {server, pagePath, docId} = options;
+
+  // Construct a fake URL and append the utm_* parameters from the original URL.
+  // We avoid using the original URL here because it may contain sensitive identifiers,
+  // such as link key parameters and site/doc ids.
+  const url = new URL('fake', server.getMergedOrgUrl(req));
+  for (const [key, value] of Object.entries(req.query)) {
+    if (key.startsWith('utm_')) {
+      url.searchParams.set(key, String(value));
+    }
+  }
+
+  server.getTelemetry().logEvent(req, 'visitedPage', {
+    full: {
+      docIdDigest: docId,
+      url: url.toString(),
+      path: pagePath,
+      userAgent: req.headers['user-agent'],
+      userId: req.userId,
+      altSessionId: req.altSessionId,
+    },
+  });
 }
 
 function shouldSupportAnon() {

@@ -252,12 +252,22 @@ export class Telemetry implements ITelemetry {
     metadata?: TelemetryMetadata
   ) {
     let isInternalUser: boolean | undefined;
+    let isTeamSite: boolean | undefined;
     if (requestOrSession) {
-      const email = ('get' in requestOrSession)
-        ? requestOrSession.user?.loginEmail
-        : getDocSessionUser(requestOrSession)?.email;
+      let email: string | undefined;
+      let org: string | undefined;
+      if ('get' in requestOrSession) {
+        email = requestOrSession.user?.loginEmail;
+        org = requestOrSession.org;
+      } else {
+        email = getDocSessionUser(requestOrSession)?.email;
+        org = requestOrSession.client?.getOrg() ?? requestOrSession.req?.org;
+      }
       if (email) {
         isInternalUser = email !== 'anon@getgrist.com' && email.endsWith('@getgrist.com');
+      }
+      if (org && !process.env.GRIST_SINGLE_ORG) {
+        isTeamSite = !this._dbManager.isMergedOrg(org);
       }
     }
     const {category: eventCategory} = TelemetryContracts[event];
@@ -268,6 +278,7 @@ export class Telemetry implements ITelemetry {
       eventSource: `grist-${this._deploymentType}`,
       installationId: this._activation!.id,
       ...(isInternalUser !== undefined ? {isInternalUser} : undefined),
+      ...(isTeamSite !== undefined ? {isTeamSite} : undefined),
     });
   }
 
