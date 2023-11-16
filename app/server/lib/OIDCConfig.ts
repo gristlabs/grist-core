@@ -26,6 +26,9 @@
  *        If omitted, the name will either be the concatenation of "given_name" + "family_name" or the "name" attribute.
  *    env GRIST_OIDC_SP_PROFILE_EMAIL_ATTR
  *        The key of the attribute to use for the user's email. Defaults to "email".
+ *    env GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT
+ *        If set to "true", on logout, there won't be any attempt to call the IdP's end_session_endpoint
+ *        (the user will remain logged in in the IdP).
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -56,7 +59,8 @@ export class OIDCConfig {
   private _client: Client;
   private _redirectUrl: string;
   private _namePropertyKey?: string;
-  private _emailPropertyKey?: string;
+  private _emailPropertyKey: string;
+  private _skipEndSessionEndpoint: boolean;
 
   public constructor() {
   }
@@ -81,10 +85,15 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
     });
 
-    this._emailPropertyKey = section.flag('emailPropertyKey').readString({
+    this._emailPropertyKey = section.flag('emailPropertyKey').requireString({
       envVar: 'GRIST_OIDC_SP_PROFILE_EMAIL_ATTR',
       defaultValue: 'email',
     });
+
+    this._skipEndSessionEndpoint = section.flag('endSessionEndpoint').readBool({
+      envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
+      defaultValue: false,
+    })!;
 
     const issuer = await Issuer.discover(issuerUrl);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
@@ -157,8 +166,13 @@ export class OIDCConfig {
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
-    if (this._client.issuer.metadata.end_session_endpoint === undefined) {
+    if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
+    }
+    if (this._client.issuer.metadata.end_session_endpoint === undefined) {
+      log.error('The Identity provider does not propose end_session_endpoint. ' +
+        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true');
+      throw new Error('The identity provider does not propose end_session_endpoint.');
     }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href
@@ -189,7 +203,7 @@ export class OIDCConfig {
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
     return {
-      email: userInfo[ this._emailPropertyKey! ] as string,
+      email: String(userInfo[ this._emailPropertyKey ]),
       name: this._extractName(userInfo)
 
     };
@@ -197,7 +211,7 @@ export class OIDCConfig {
 
   private _extractName(userInfo: UserinfoResponse): string|undefined {
     if (this._namePropertyKey) {
-      return userInfo[ this._namePropertyKey ] as string|undefined;
+      return (userInfo[ this._namePropertyKey ] as any)?.toString();
     }
     const fname = userInfo.given_name ?? '';
     const lname = userInfo.family_name ?? '';
