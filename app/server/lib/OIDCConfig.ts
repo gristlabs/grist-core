@@ -103,6 +103,10 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
+    if (this._client.issuer.metadata.end_session_endpoint === undefined && !this._skipEndSessionEndpoint) {
+      throw new Error('The Identity provider does not propose end_session_endpoint. ' +
+        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true');
+    }
     log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
   }
 
@@ -168,11 +172,6 @@ export class OIDCConfig {
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
-    }
-    if (this._client.issuer.metadata.end_session_endpoint === undefined) {
-      log.error('The Identity provider does not propose end_session_endpoint. ' +
-        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true');
-      throw new Error('The identity provider does not propose end_session_endpoint.');
     }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href
