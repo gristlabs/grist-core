@@ -1,7 +1,7 @@
 import * as express from 'express';
 import {ApiError} from 'app/common/ApiError';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {DownloadOptions, ExportColumn, ExportHeader, exportTable} from 'app/server/lib/Export';
+import {DownloadOptions, ExportColumn, exportTable} from 'app/server/lib/Export';
 
 interface FrictionlessFormat {
   name: string;
@@ -36,7 +36,7 @@ export async function collectTableSchemaInFrictionlessFormat(
   req: express.Request,
   options: DownloadOptions
 ): Promise<FrictionlessFormat> {
-  const {tableId} = options;
+  const {tableId, header} = options;
   if (!activeDoc.docData) {
     throw new Error('No docData in active document');
   }
@@ -50,24 +50,15 @@ export async function collectTableSchemaInFrictionlessFormat(
     throw new ApiError(`Table ${tableId} not found.`, 404);
   }
 
-  const data = await exportTable(activeDoc, tableRef, req);
-  const tableSchema = columnsToTableSchema(tableId, data, {locale: settings.locale, header: options.header});
-  return tableSchema;
-}
-
-function columnsToTableSchema(
-  tableId: string,
-  {tableName, columns}: {tableName: string, columns: ExportColumn[]},
-  {locale, header = "label"}: {locale: string, header?: ExportHeader},
-): FrictionlessFormat {
+  const {tableName, columns} = await exportTable(activeDoc, tableRef, req);
   return {
     name: tableId.toLowerCase().replace(/_/g, '-'),
     title: tableName,
     schema: {
       fields: columns.map(col => ({
-        name: col[header],
+        name: col[header || "label"],
         ...(col.description ? {description: col.description} : {}),
-        ...buildTypeField(col, locale),
+        ...buildTypeField(col, settings.locale),
       })),
     }
   };
