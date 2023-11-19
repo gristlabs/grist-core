@@ -19,7 +19,7 @@
         "Type a message...": "Vnesite sporočilo…",
         "User Attributes": "Atributi uporabnika",
         "View As": "Poglej kot",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri dodajanju pravil za tabele samodejno dodajte pravilo, ki lastniku omogoča popoln dostop.",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri dodajanju pravil za tabele samodejno dodaj pravilo, ki lastniku omogoča popoln dostop.",
         "Permission to edit document structure": "Dovoljenje za urejanje strukture dokumenta",
         "Everyone": "Vsi",
         "Everyone Else": "Vsi ostali",
@@ -270,7 +270,7 @@
         "Access Rules": "Pravila dostopa",
         "Code View": "Pogled kode",
         "Raw Data": "Neobdelani podatki",
-        "Document History": "Zgodovina dokumentov",
+        "Document History": "Zgodovina Dokumentov",
         "Validate Data": "Potrdi podatke",
         "How-to Tutorial": "Vadnica kako narediti",
         "Tour of this Document": "Ogled tega dokumenta",
@@ -293,7 +293,7 @@
         "Add New": "Dodaj"
     },
     "DataTables": {
-        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbrišite podatke {{formattedTableName}} in jih odstranite z vseh strani?",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbriši podatke {{formattedTableName}} in jih odstrani z vseh strani?",
         "Click to copy": "Kliknite za kopiranje",
         "Duplicate Table": "Podvojena tabela",
         "Table ID copied to clipboard": "ID tabele kopiran v odložišče",
@@ -423,7 +423,7 @@
         "Formula Columns_other": "Stolpci formule",
         "Formula Columns_one": "Stolpec formule",
         "Enter formula": "Vnesite formulo",
-        "Clear and make into formula": "Brišite in pretvorite v formulo",
+        "Clear and make into formula": "Briši in pretvori v formulo",
         "Mixed Behavior": "Mešano vedenje",
         "Convert to trigger formula": "Pretvori v sprožitveno formulo",
         "Data Columns_one": "Stolpec podatkov",
@@ -440,7 +440,7 @@
     },
     "DocPageModel": {
         "Sorry, access to this document has been denied. [{{error}}]": "Žal je bil dostop do tega dokumenta zavrnjen. [{{error}}]",
-        "Add Empty Table": "Dodajte prazno tabelo",
+        "Add Empty Table": "Dodaj prazno tabelo",
         "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta",
         "Add Widget to Page": "Dodaj widget na stran",
         "Add Page": "Dodaj stran",
@@ -688,7 +688,7 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Uporabnik ima vpogled v {{resource}}, ki je posledica ročno nastavljenega dostopa do virov v njem. Če ga tukaj odstranite, bo ta uporabnik izgubil dostop do notranjih virov.",
         "User may not modify their own access.": "Uporabnik ne more spreminjati lastnega dostopa.",
         "member": "član",
-        "Add {{member}} to your team": "Dodajte {{member}} v svojo ekipo",
+        "Add {{member}} to your team": "Dodaj {{member}} v svojo ekipo",
         "Collaborator": "Sodelavec",
         "Link copied to clipboard": "Povezava kopirana v odložišče",
         "team site": "spletno mesto ekipe",
@@ -758,7 +758,7 @@
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "ID stolpca kopiran v odložišče",
-        "Add description": "Dodajte opis",
+        "Add description": "Dodaj opis",
         "Column description": "Opis stolpca",
         "Provide a column label": "Navedite oznako stolpca",
         "Close": "Zapri",
@@ -870,7 +870,7 @@
     },
     "RecordLayoutEditor": {
         "Show field {{- label}}": "Prikaži polje {{- label}}",
-        "Add Field": "Dodajte polje",
+        "Add Field": "Dodaj polje",
         "Save Layout": "Shrani postavitev",
         "Cancel": "Prekliči",
         "Create New Field": "Ustvari novo polje"
@@ -1170,8 +1170,8 @@
     "ConditionalStyle": {
         "Rule must return True or False": "Pravilo mora vrniti True ali False",
         "Row Style": "Slog vrstice",
-        "Add another rule": "Dodajte še eno pravilo",
-        "Add conditional style": "Dodajte pogojni slog",
+        "Add another rule": "Dodaj dodatno pravilo",
+        "Add conditional style": "Dodaj pogojni slog",
         "Error in style rule": "Napaka v slogovnem pravilu"
     },
     "EditorTooltip": {
