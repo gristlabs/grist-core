@@ -17,7 +17,9 @@
         "Everyone": "Všichni",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Umožni všem kopírovat celý dokument, nebo zobrazit plně v \"fiddle\" režimu.\nUžiitečné pro ukázky a šablony, ale ne pro citlivá data.",
         "Add Default Rule": "Přidej Základní Pravidlo",
-        "Checking...": "Kontroluji…"
+        "Checking...": "Kontroluji…",
+        "Permissions": "Povolení",
+        "Permission to view Access Rules": "Povolení na zobrazení Přistupových Pravidel"
     },
     "ACUserManager": {
         "Invite new member": "Pozvi nového uživatele",
