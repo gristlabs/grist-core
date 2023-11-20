@@ -36,7 +36,7 @@ export async function collectTableSchemaInFrictionlessFormat(
   req: express.Request,
   options: DownloadOptions
 ): Promise<FrictionlessFormat> {
-  const {tableId} = options;
+  const {tableId, header} = options;
   if (!activeDoc.docData) {
     throw new Error('No docData in active document');
   }
@@ -50,24 +50,15 @@ export async function collectTableSchemaInFrictionlessFormat(
     throw new ApiError(`Table ${tableId} not found.`, 404);
   }
 
-  const data = await exportTable(activeDoc, tableRef, req);
-  const tableSchema = columnsToTableSchema(tableId, data, settings.locale);
-  return tableSchema;
-}
-
-function columnsToTableSchema(
-  tableId: string,
-  {tableName, columns}: {tableName: string, columns: ExportColumn[]},
-  locale: string,
-): FrictionlessFormat {
+  const {tableName, columns} = await exportTable(activeDoc, tableRef, req);
   return {
     name: tableId.toLowerCase().replace(/_/g, '-'),
     title: tableName,
     schema: {
       fields: columns.map(col => ({
-        name: col.label,
+        name: col[header || "label"],
         ...(col.description ? {description: col.description} : {}),
-        ...buildTypeField(col, locale),
+        ...buildTypeField(col, settings.locale),
       })),
     }
   };

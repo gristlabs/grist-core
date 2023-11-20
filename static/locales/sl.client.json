@@ -19,19 +19,19 @@
         "Type a message...": "Vnesite sporočilo…",
         "User Attributes": "Atributi uporabnika",
         "View As": "Poglej kot",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri dodajanju pravil za tabele samodejno dodajte pravilo, ki lastniku omogoča popoln dostop.",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Pri dodajanju pravil za tabele samodejno dodaj pravilo, ki lastniku omogoča popoln dostop.",
         "Permission to edit document structure": "Dovoljenje za urejanje strukture dokumenta",
         "Everyone": "Vsi",
         "Everyone Else": "Vsi ostali",
         "Checking...": "Preverjanje…",
         "Condition": "Stanje",
         "Enter Condition": "Vnesite pogoj",
-        "Add Column Rule": "Dodajanje pravila za stolpce",
+        "Add Column Rule": "Dodaj pravila za stolpec",
         "Add Default Rule": "Dodaj privzeto pravilo",
-        "Add Table Rules": "Dodajanje pravil tabele",
-        "Add User Attributes": "Dodajanje atributov uporabnika",
+        "Add Table Rules": "Dodaj pravila  za tabelo",
+        "Add User Attributes": "Dodaj atribute za uporabnika",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Vsakomur omogočite kopiranje celotnega dokumenta ali pa si ga oglejte v celoti v načinu fiddle.\nUporabno za primere in predloge, ne pa za občutljive podatke.",
-        "Allow everyone to view Access Rules.": "Vsakomur omogočite ogled pravil za dostop.",
+        "Allow everyone to view Access Rules.": "Omogoči vsakomur  ogled pravil za dostop.",
         "Attribute name": "Ime atributa",
         "Attribute to Look Up": "Atribut za iskanje",
         "Lookup Table": "Preglednica za iskanje",
@@ -40,8 +40,8 @@
     },
     "ACUserManager": {
         "We'll email an invite to {{email}}": "Vabilo bomo poslali po e-pošti {{email}}",
-        "Enter email address": "Vnesite e-poštni naslov",
-        "Invite new member": "Povabite novega člana"
+        "Enter email address": "Vnesi e-poštni naslov",
+        "Invite new member": "Povabi novega člana"
     },
     "AccountPage": {
         "API": "API",
@@ -110,7 +110,7 @@
         "Translators: please translate this only when your language is ready to be offered to users": "Prevajalci: prosimo, prevedite to šele, ko bo vaš jezik pripravljen, da se ponudi uporabnikom"
     },
     "CellContextMenu": {
-        "Delete {{count}} columns_one": "Brisanje stolpca",
+        "Delete {{count}} columns_one": "Briši stolpec",
         "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
         "Delete {{count}} rows_one": "Brisanje vrstice",
         "Delete {{count}} rows_other": "Brisanje vrstic {{count}}",
@@ -118,12 +118,12 @@
         "Copy anchor link": "Kopiranje sidrne povezave",
         "Duplicate rows_one": "Podvoji vrstico",
         "Duplicate rows_other": "Podvoji vrstice",
-        "Insert column to the right": "Vstavi stolpec na desno",
-        "Insert column to the left": "Vstavi stolpec na levo",
+        "Insert column to the right": "Vstavi stolpec na desno stran",
+        "Insert column to the left": "Vstavi stolpec na levo stran",
         "Insert row": "Vstavljanje vrstice",
         "Insert row above": "Vstavite vrstico zgoraj",
         "Insert row below": "Vstavi vrstico spodaj",
-        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Reset {{count}} columns_one": "Ponastavi stolpec",
         "Reset {{count}} columns_other": "Ponastavit {{count}} stolpcev",
         "Reset {{count}} entire columns_one": "Ponastavi celote stolpec",
         "Reset {{count}} entire columns_other": "Ponastavi {{count}} celotnih stolpcev",
@@ -177,7 +177,7 @@
     },
     "GridViewMenus": {
         "Rename column": "Preimenuj stolpec",
-        "Delete {{count}} columns_one": "Brisanje stolpca",
+        "Delete {{count}} columns_one": "Briši stolpec",
         "Delete {{count}} columns_other": "Brisanje stolpcev {{count}}",
         "Unfreeze {{count}} columns_one": "Odmrzni ta stolpec",
         "Sorted (#{{count}})_one": "Razvrščeno (#{{count}})",
@@ -189,7 +189,7 @@
         "Filter Data": "Filtriranje podatkov",
         "Hide {{count}} columns_other": "Skrij {{count}} stolpcev",
         "Add Column": "Dodaj stolpec",
-        "Reset {{count}} columns_one": "Ponastavitev stolpca",
+        "Reset {{count}} columns_one": "Ponastavi stolpec",
         "Freeze {{count}} columns_one": "Zamrzni stolpec",
         "More sort options ...": "Več možnosti razvrščanja…",
         "Freeze {{count}} more columns_one": "Zamrznite še en stolpec",
@@ -200,10 +200,10 @@
         "Freeze {{count}} more columns_other": "Zamrznite še {{count}} stolpcev",
         "Hide {{count}} columns_one": "Skrij stolpec",
         "Sorted (#{{count}})_other": "Razvrščeno (#{{count}})",
-        "Insert column to the {{to}}": "Vstavi stolpec v {{to}}",
+        "Insert column to the {{to}}": "Vstavi stolpec na {{to}}",
         "Reset {{count}} entire columns_other": "Ponastavi {{count}} stolpcev",
         "Unfreeze {{count}} columns_other": "Odmrznite {{count}} stolpcev",
-        "Insert column to the right": "Vstavi stolpec na desno",
+        "Insert column to the right": "Vstavi stolpec na desno stran",
         "Reset {{count}} entire columns_one": "Ponastavi celoten stolpec",
         "Insert column to the left": "Vstavi stolpec na levo",
         "Shortcuts": "Bližnjice",
@@ -270,7 +270,7 @@
         "Access Rules": "Pravila dostopa",
         "Code View": "Pogled kode",
         "Raw Data": "Neobdelani podatki",
-        "Document History": "Zgodovina dokumentov",
+        "Document History": "Zgodovina Dokumentov",
         "Validate Data": "Potrdi podatke",
         "How-to Tutorial": "Vadnica kako narediti",
         "Tour of this Document": "Ogled tega dokumenta",
@@ -278,7 +278,7 @@
     },
     "pages": {
         "Rename": "Preimenuj",
-        "Duplicate Page": "Podvojena stran",
+        "Duplicate Page": "Podvoji stran",
         "You do not have edit access to this document": "Nimate dovoljenja za urejanje tega dokumenta",
         "Remove": "Odstrani"
     },
@@ -293,7 +293,7 @@
         "Add New": "Dodaj"
     },
     "DataTables": {
-        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbrišite podatke {{formattedTableName}} in jih odstranite z vseh strani?",
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Izbriši podatke {{formattedTableName}} in jih odstrani z vseh strani?",
         "Click to copy": "Kliknite za kopiranje",
         "Duplicate Table": "Podvojena tabela",
         "Table ID copied to clipboard": "ID tabele kopiran v odložišče",
@@ -305,8 +305,8 @@
         "Delete widget": "Izbriši gradnik",
         "Advanced Sort & Filter": "Napredno razvrščanje in filtriranje",
         "Data selection": "Izbira podatkov",
-        "Download as XLSX": "Prenesite kot XLSX",
-        "Download as CSV": "Prenesite kot CSV",
+        "Download as XLSX": "Prenesi kot XLSX",
+        "Download as CSV": "Prenesi kot CSV",
         "Widget options": "Možnosti gradnika",
         "Print widget": "Gradnik za tiskanje",
         "Open configuration": "Odpri konfiguracijo",
@@ -423,13 +423,13 @@
         "Formula Columns_other": "Stolpci formule",
         "Formula Columns_one": "Stolpec formule",
         "Enter formula": "Vnesite formulo",
-        "Clear and make into formula": "Brišite in pretvorite v formulo",
+        "Clear and make into formula": "Briši in pretvori v formulo",
         "Mixed Behavior": "Mešano vedenje",
         "Convert to trigger formula": "Pretvori v sprožitveno formulo",
         "Data Columns_one": "Stolpec podatkov",
         "TRIGGER FORMULA": "SPROŽILNA FORMULA",
-        "Set trigger formula": "Nastavite sprožitveno formulo",
-        "Make into data column": "Spremenite v podatkovni stolpec",
+        "Set trigger formula": "Nastavi sprožitveno formulo",
+        "Make into data column": "Spremeni v podatkovni stolpec",
         "COLUMN BEHAVIOR": "OBNAŠANJE STOLPCA"
     },
     "DuplicateTable": {
@@ -440,7 +440,7 @@
     },
     "DocPageModel": {
         "Sorry, access to this document has been denied. [{{error}}]": "Žal je bil dostop do tega dokumenta zavrnjen. [{{error}}]",
-        "Add Empty Table": "Dodajte prazno tabelo",
+        "Add Empty Table": "Dodaj prazno tabelo",
         "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta",
         "Add Widget to Page": "Dodaj widget na stran",
         "Add Page": "Dodaj stran",
@@ -552,7 +552,7 @@
         "SOURCE DATA": "IZVORNI PODATKI",
         "CHART TYPE": "VRSTA DIAGRAMA",
         "Detach": "Odklopi",
-        "Change Widget": "Spremite widget",
+        "Change Widget": "Spremeni  Pripomoček",
         "Columns_one": "Stolpec",
         "Series_other": "Serija",
         "Fields_other": "Polja",
@@ -661,8 +661,8 @@
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Uporabi pogojno oblikovanje za celice v tem stolpcu, ko so izpolnjeni pogoji formule.",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Če želite narediti sidrno povezavo, ki uporabnika pripelje do določene celice, kliknite vrstico in pritisnite {{shortcut}}.",
         "Unpin to hide the the button while keeping the filter.": "Odpnite, da skrijete gumb in obdržite filter.",
-        "Apply conditional formatting to rows based on formulas.": "Uporabite pogojno oblikovanje za vrstice na podlagi formul.",
-        "Click on “Open row styles” to apply conditional formatting to rows.": "Kliknite »Odpri sloge vrstic«, da za vrstice uporabite pogojno oblikovanje.",
+        "Apply conditional formatting to rows based on formulas.": "Uporabi pogojno oblikovanje za vrstice na podlagi formul.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Klikni »Odpri sloge vrstic«, da za vrstice uporabiš pogojno oblikovanje.",
         "Pinned filters are displayed as buttons above the widget.": "Pripeti filtri so prikazani kot gumbi nad pripomočkom.",
         "Link your new widget to an existing widget on this page.": "Povežite svoj novi pripomoček z obstoječim pripomočkom na tej strani.",
         "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Uporabite ikono \\u{1D6BA} za ustvarjanje povzetkov (ali vrtilnih) tabel za vsote ali delne vsote.",
@@ -688,7 +688,7 @@
         "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Uporabnik ima vpogled v {{resource}}, ki je posledica ročno nastavljenega dostopa do virov v njem. Če ga tukaj odstranite, bo ta uporabnik izgubil dostop do notranjih virov.",
         "User may not modify their own access.": "Uporabnik ne more spreminjati lastnega dostopa.",
         "member": "član",
-        "Add {{member}} to your team": "Dodajte {{member}} v svojo ekipo",
+        "Add {{member}} to your team": "Dodaj {{member}} v svojo ekipo",
         "Collaborator": "Sodelavec",
         "Link copied to clipboard": "Povezava kopirana v odložišče",
         "team site": "spletno mesto ekipe",
@@ -758,7 +758,7 @@
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "ID stolpca kopiran v odložišče",
-        "Add description": "Dodajte opis",
+        "Add description": "Dodaj opis",
         "Column description": "Opis stolpca",
         "Provide a column label": "Navedite oznako stolpca",
         "Close": "Zapri",
@@ -870,7 +870,7 @@
     },
     "RecordLayoutEditor": {
         "Show field {{- label}}": "Prikaži polje {{- label}}",
-        "Add Field": "Dodajte polje",
+        "Add Field": "Dodaj polje",
         "Save Layout": "Shrani postavitev",
         "Cancel": "Prekliči",
         "Create New Field": "Ustvari novo polje"
@@ -926,7 +926,7 @@
         "Switch appearance automatically to match system": "Samodejno preklopite videz, da se ujema s sistemom"
     },
     "SiteSwitcher": {
-        "Switch Sites": "Preklopite mesta",
+        "Switch Sites": "Preklopi mesta",
         "Create new team site": "Ustvarite novo spletno mesto ekipe"
     },
     "WebhookPage": {
@@ -1016,7 +1016,7 @@
         "Reference List": "Referenčni seznam",
         "* Workspaces are available on team plans. ": "* Delovni prostori so na voljo v skupinskih načrtih. ",
         "Upgrade now": "Nadgradi zdaj",
-        "Toggle": "Preklopi",
+        "Toggle": "Preklop",
         "Choice List": "Izbirni seznam",
         "Any": "Katerikoli",
         "DateTime": "Datum čas",
@@ -1170,8 +1170,8 @@
     "ConditionalStyle": {
         "Rule must return True or False": "Pravilo mora vrniti True ali False",
         "Row Style": "Slog vrstice",
-        "Add another rule": "Dodajte še eno pravilo",
-        "Add conditional style": "Dodajte pogojni slog",
+        "Add another rule": "Dodaj dodatno pravilo",
+        "Add conditional style": "Dodaj pogojni slog",
         "Error in style rule": "Napaka v slogovnem pravilu"
     },
     "EditorTooltip": {
@@ -1219,7 +1219,7 @@
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Upoštevajte, da s tem ne kopirate podatkov, ampak ustvarite drug pogled istih podatkov.",
-        "Duplicate page {{pageName}}": "Podvojena stran {{pageName}}"
+        "Duplicate page {{pageName}}": "Podvoji stran {{pageName}}"
     },
     "CurrencyPicker": {
         "Invalid currency": "Neveljavna valuta"

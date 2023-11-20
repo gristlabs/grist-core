@@ -1055,7 +1055,8 @@
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете найти нужные столбцы? Нажмите «Изменить виджет», чтобы выбрать таблицу с данными о событиях.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID - это случайно сгенерированная строка, которая полезна для уникальных идентификаторов и ключевых ссылок.",
         "Lookups return data from related tables.": "Lookups возвращают данные из связанных таблиц.",
-        "Use reference columns to relate data in different tables.": "Используйте ссылочные столбцы для сопоставления данных в разных таблицах."
+        "Use reference columns to relate data in different tables.": "Используйте ссылочные столбцы для сопоставления данных в разных таблицах.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Вы можете выбрать виджеты, доступные вам в раскрывающемся списке, или встроить свой собственный, указав его полный URL-адрес."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"

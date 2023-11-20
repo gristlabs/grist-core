@@ -2700,6 +2700,43 @@ function testDocApi() {
     assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
   });
 
+  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document with header=colId", async function () {
+    const { docUrl, tableUrl } = await generateDocAndUrl('tableSchemaWithColIdAsHeader');
+    const columns = [
+      {
+        id: 'Some_ID',
+        fields: {
+          label: 'Some Label',
+          type: 'Text',
+        }
+      },
+    ];
+    const setupColResp = await axios.put(`${tableUrl}/columns`, { columns }, {...chimpy, params: { replaceall: true }});
+    assert.equal(setupColResp.status, 200);
+
+    const resp = await axios.get(`${docUrl}/download/table-schema?tableId=Table1&header=colId`, chimpy);
+    assert.equal(resp.status, 200);
+    const expected = {
+      format: "csv",
+      mediatype: "text/csv",
+      encoding: "utf-8",
+      dialect: {
+        delimiter: ",",
+        doubleQuote: true,
+      },
+      name: 'table1',
+      title: 'Table1',
+      schema: {
+        fields: [{
+          name: 'Some_ID',
+          type: 'string',
+          format: 'default',
+        }]
+      }
+    };
+    assert.deepInclude(resp.data, expected);
+  });
+
   it("GET /docs/{did}/download/table-schema respects permissions", async function () {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1`, kiwi);
