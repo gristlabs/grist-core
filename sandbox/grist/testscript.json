@@ -2382,8 +2382,8 @@
       "ACTIONS": {
         "stored": [
           ["BulkRemoveRecord", "_grist_Views_section", [1, 2, 3]],
-          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 0}],
           ["UpdateRecord", "_grist_Tables", 4, {"rawViewSectionRef": 0}],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 0}],
           ["RemoveRecord", "_grist_TabBar", 1],
           ["RemoveRecord", "_grist_Pages", 1],
           ["RemoveRecord", "_grist_Views", 1],
@@ -2397,8 +2397,8 @@
           ["BulkAddRecord", "_grist_Views_section", [1, 2, 3],
             {"borderWidth": [1, 1, 1], "defaultWidth": [100, 100, 100], "parentId": [1, 0, 0],
               "parentKey": ["record", "record", "single"], "sortColRefs": ["[]", "", ""], "tableRef": [4, 4, 4]}],
-          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 3}],
           ["UpdateRecord", "_grist_Tables", 4, {"rawViewSectionRef": 2}],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 3}],
           ["AddRecord", "_grist_TabBar", 1, {"tabPos": 1.0, "viewRef": 1}],
           ["AddRecord", "_grist_Pages", 1, {"pagePos": 1.0, "viewRef": 1}],
           ["AddRecord", "_grist_Views", 1, {"name": "Foo", "type": "raw_data"}],

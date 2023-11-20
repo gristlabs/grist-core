@@ -1072,7 +1072,7 @@ class UserActions(object):
 
     # Also remove any references to this row from other tables.
     row_id_set = set(row_ids)
-    for ref_col in table._back_references:
+    for ref_col in sorted(table._back_references, key=lambda c: c.node):
       if ref_col.is_formula() or not isinstance(ref_col, column.BaseReferenceColumn):
         continue
       updates = ref_col.get_updates_for_removed_target_rows(row_id_set)
