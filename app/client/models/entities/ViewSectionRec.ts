@@ -85,6 +85,19 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
   isRaw: ko.Computed<boolean>;
+
+  tableRecordCard: ko.Computed<ViewSectionRec>
+  isRecordCard: ko.Computed<boolean>;
+
+  /** True if this section is disabled. Currently only used by Record Card sections. */
+  disabled: modelUtil.KoSaveableObservable<boolean>;
+
+  /**
+   * True if the Record Card section of this section's table is disabled. Shortcut for
+   * `this.tableRecordCard().disabled()`.
+   */
+  isTableRecordCardDisabled: ko.Computed<boolean>;
+
   isVirtual: ko.Computed<boolean>;
   isCollapsed: ko.Computed<boolean>;
 
@@ -443,7 +456,13 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
-  this.isRaw = this.autoDispose(ko.pureComputed(() => this.table().rawViewSectionRef() === this.getRowId()));
+  this.isRaw = this.autoDispose(ko.pureComputed(() => this.table().rawViewSectionRef() === this.id()));
+
+  this.tableRecordCard = this.autoDispose(ko.pureComputed(() => this.table().recordCardViewSection()));
+  this.isRecordCard = this.autoDispose(ko.pureComputed(() =>
+    this.table().recordCardViewSectionRef() === this.id()));
+  this.disabled = modelUtil.fieldWithDefault(this.optionsObj.prop('disabled'), false);
+  this.isTableRecordCardDisabled = ko.pureComputed(() => this.tableRecordCard().disabled());
 
   this.isVirtual = this.autoDispose(ko.pureComputed(() => typeof this.id() === 'string'));
 
@@ -818,7 +837,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     let newColInfo: NewColInfo;
     await docModel.docData.bundleActions('Insert column', async () => {
       newColInfo = await docModel.dataTables[this.tableId.peek()].sendTableAction(action);
-      if (!this.isRaw.peek()) {
+      if (!this.isRaw.peek() && !this.isRecordCard.peek()) {
         const fieldInfo = {
           colRef: newColInfo.colRef,
           parentId: this.id.peek(),

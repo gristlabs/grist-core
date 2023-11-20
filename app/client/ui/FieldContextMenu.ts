@@ -1,6 +1,5 @@
 import {allCommands} from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
-import {IRowContextMenu} from 'app/client/ui/RowContextMenu';
 import {menuDivider, menuItemCmd} from 'app/client/ui2018/menus';
 import {dom} from 'grainjs';
 
@@ -11,7 +10,7 @@ export interface IFieldContextMenu {
   isReadonly: boolean;
 }
 
-export function FieldContextMenu(_rowOptions: IRowContextMenu, fieldOptions: IFieldContextMenu) {
+export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
   const {disableModify, isReadonly} = fieldOptions;
   const disableForReadonlyColumn = dom.cls('disabled', disableModify || isReadonly);
   return [

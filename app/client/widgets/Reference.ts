@@ -1,12 +1,16 @@
 import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
+import {TableRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
+import {RECORD_CARDS} from 'app/client/models/features';
+import {urlState} from 'app/client/models/gristUrlState';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
+import {UIRowId} from 'app/plugin/GristAPI';
 import {Computed, dom, styled} from 'grainjs';
 
 
@@ -16,6 +20,7 @@ const t = makeT('Reference');
  * Reference - The widget for displaying references to another table's records.
  */
 export class Reference extends NTextBox {
+  private _refTable: Computed<TableRec | null>;
   private _visibleColRef: Computed<number>;
   private _validCols: Computed<Array<IOptionFull<number>>>;
 
@@ -26,8 +31,10 @@ export class Reference extends NTextBox {
     // Note that saveOnly is used here to prevent display value flickering on visible col change.
     this._visibleColRef.onWrite((val) => this.field.visibleColRef.saveOnly(val));
 
+    this._refTable = Computed.create(this, (use) => use(use(this.field.column).refTable));
+
     this._validCols = Computed.create(this, (use) => {
-      const refTable = use(use(this.field.column).refTable);
+      const refTable = use(this._refTable);
       if (!refTable) { return []; }
       return use(use(refTable.columns).getObservable())
         .filter(col => !use(col.isHiddenCol))
@@ -75,16 +82,16 @@ export class Reference extends NTextBox {
       return id && use(id);
     });
     const formattedValue = Computed.create(null, (use) => {
-      let [value, hasBlankReference] = ['', false];
+      let [value, hasBlankReference, hasRecordCard] = ['', false, false];
       if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
         // Work around JS errors during certain changes (noticed when visibleCol field gets removed
         // for a column using per-field settings).
-        return {value, hasBlankReference};
+        return {value, hasBlankReference, hasRecordCard};
       }
 
       const displayValueObs = row.cells[use(use(this.field.displayColModel).colId)];
       if (!displayValueObs) {
-        return {value, hasBlankReference};
+        return {value, hasBlankReference, hasRecordCard};
       }
 
       const displayValue = use(displayValueObs);
@@ -97,8 +104,12 @@ export class Reference extends NTextBox {
         use(this.field.formatter).formatAny(displayValue);
 
       hasBlankReference = referenceId.get() !== 0 && value.trim() === '';
+      const refTable = use(this._refTable);
+      if (refTable) {
+        hasRecordCard = !use(use(refTable.recordCardViewSection).disabled);
+      }
 
-      return {value, hasBlankReference};
+      return {value, hasBlankReference, hasRecordCard};
     });
 
     return cssRef(
@@ -107,12 +118,39 @@ export class Reference extends NTextBox {
       cssRef.cls('-blank', use => use(formattedValue).hasBlankReference),
       dom.style('text-align', this.alignment),
       dom.cls('text_wrapping', this.wrapping),
-      cssRefIcon('FieldReference', testId('ref-link-icon'), hideInPrintView()),
-      dom.text(use => {
-        if (use(referenceId) === 0) { return ''; }
-        if (use(formattedValue).hasBlankReference) { return '[Blank]'; }
-        return use(formattedValue).value;
-      })
+      cssRefIcon('FieldReference',
+        cssRefIcon.cls('-view-as-card', use =>
+          RECORD_CARDS() && use(referenceId) !== 0 && use(formattedValue).hasRecordCard),
+        dom.on('click', async () => {
+          if (!RECORD_CARDS()) { return; }
+          if (referenceId.get() === 0 || !formattedValue.get().hasRecordCard) { return; }
+
+          const rowId = referenceId.get() as UIRowId;
+          const sectionId = this._refTable.get()?.recordCardViewSectionRef();
+          if (sectionId === undefined) {
+            throw new Error('Unable to find Record Card section');
+          }
+
+          const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
+          await urlState().pushUrl(anchorUrlState, {replace: true});
+        }),
+        dom.on('mousedown', (ev) => {
+          if (!RECORD_CARDS()) { return; }
+
+          ev.stopPropagation();
+          ev.preventDefault();
+        }),
+        hideInPrintView(),
+        testId('ref-link-icon'),
+      ),
+      dom('span',
+        dom.text(use => {
+          if (use(referenceId) === 0) { return ''; }
+          if (use(formattedValue).hasBlankReference) { return '[Blank]'; }
+          return use(formattedValue).value;
+        }),
+        testId('ref-text'),
+      ),
     );
   }
 }
@@ -121,6 +159,13 @@ const cssRefIcon = styled(icon, `
   float: left;
   --icon-color: ${theme.lightText};
   margin: -1px 2px 2px 0;
+
+  &-view-as-card {
+    cursor: pointer;
+  }
+  &-view-as-card:hover {
+    --icon-color: ${theme.controlFg};
+  }
 `);
 
 const cssRef = styled('div.field_clip', `

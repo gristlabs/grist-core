@@ -7,7 +7,7 @@ import { theme } from 'app/client/ui2018/cssVars';
 import {menuCssClass} from 'app/client/ui2018/menus';
 import {ModalControl} from 'app/client/ui2018/modals';
 import { Computed, dom, DomElementArg, makeTestId, Observable, styled } from 'grainjs';
-import {IOpenController, setPopupToCreateDom} from 'popweasel';
+import {IOpenController, IPopupOptions, PopupControl, setPopupToCreateDom} from 'popweasel';
 import { descriptionInfoTooltip } from './tooltips';
 import { autoGrow } from './forms';
 import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from 'app/client/ui/RenamePopupStyles';
@@ -18,41 +18,105 @@ const t = makeT('WidgetTitle');
 interface WidgetTitleOptions {
   tableNameHidden?: boolean,
   widgetNameHidden?: boolean,
+  disabled?: boolean,
 }
 
 export function buildWidgetTitle(vs: ViewSectionRec, options: WidgetTitleOptions, ...args: DomElementArg[]) {
   const title = Computed.create(null, use => use(vs.titleDef));
   const description = Computed.create(null, use => use(vs.description));
-  return buildRenameWidget(vs, title, description, options, dom.autoDispose(title), ...args);
+  return buildRenamableTitle(vs, title, description, options, dom.autoDispose(title), ...args);
 }
 
-export function buildTableName(vs: ViewSectionRec, ...args: DomElementArg[]) {
+interface TableNameOptions {
+  isEditing: Observable<boolean>,
+  disabled?: boolean,
+}
+
+export function buildTableName(vs: ViewSectionRec, options: TableNameOptions, ...args: DomElementArg[]) {
   const title = Computed.create(null, use => use(use(vs.table).tableNameDef));
   const description = Computed.create(null, use => use(vs.description));
-  return buildRenameWidget(vs, title, description, { widgetNameHidden: true }, dom.autoDispose(title), ...args);
+  return buildRenamableTitle(
+    vs,
+    title,
+    description,
+    {
+      openOnClick: false,
+      widgetNameHidden: true,
+      ...options,
+    },
+    dom.autoDispose(title),
+    ...args
+  );
 }
 
-export function buildRenameWidget(
+interface RenamableTitleOptions {
+  tableNameHidden?: boolean,
+  widgetNameHidden?: boolean,
+  /** Defaults to true. */
+  openOnClick?: boolean,
+  isEditing?: Observable<boolean>,
+  disabled?: boolean,
+}
+
+function buildRenamableTitle(
   vs: ViewSectionRec,
   title: Observable<string>,
   description: Observable<string>,
-  options: WidgetTitleOptions,
-  ...args: DomElementArg[]) {
+  options: RenamableTitleOptions,
+  ...args: DomElementArg[]
+) {
+  const {openOnClick = true, disabled = false, isEditing, ...renameTitleOptions} = options;
+  let popupControl: PopupControl | undefined;
   return cssTitleContainer(
     cssTitle(
       testId('text'),
       dom.text(title),
+      dom.on('click', () => {
+        // The popup doesn't close if `openOnClick` is false and the title is
+        // clicked. Make sure that it does.
+        if (!openOnClick) { popupControl?.close(); }
+      }),
       // In case titleDef is all blank space, make it visible on hover.
       cssTitle.cls("-empty", use => !use(title)?.trim()),
+      cssTitle.cls("-open-on-click", openOnClick),
+      cssTitle.cls("-disabled", disabled),
       elem => {
-        setPopupToCreateDom(elem, ctl => buildWidgetRenamePopup(ctl, vs, options), {
+        if (disabled) { return; }
+
+        // The widget title popup can be configured to open in up to two ways:
+        //   1. When the title is clicked - done by setting `openOnClick` to `true`.
+        //   2. When `isEditing` is set to true - done by setting `isEditing` to `true`.
+        //
+        // Typically, the former should be set. The latter is useful for triggering the
+        // popup from a different part of the UI, like a menu item.
+        const trigger: IPopupOptions['trigger'] = [];
+        if (openOnClick) { trigger.push('click'); }
+        if (isEditing) {
+          trigger.push((_: Element, ctl: PopupControl) => {
+            popupControl = ctl;
+            ctl.autoDispose(isEditing.addListener((editing) => {
+              if (editing) {
+                ctl.open();
+              } else if (!ctl.isDisposed()) {
+                ctl.close();
+              }
+            }));
+          });
+        }
+        setPopupToCreateDom(elem, ctl => {
+          if (isEditing) {
+            ctl.onDispose(() => isEditing.set(false));
+          }
+
+          return buildRenameTitlePopup(ctl, vs, renameTitleOptions);
+        }, {
           placement: 'bottom-start',
-          trigger: ['click'],
+          trigger,
           attach: 'body',
           boundaries: 'viewport',
         });
       },
-      dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+      openOnClick ? dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }) : null,
     ),
     dom.maybe(description, () => [
       descriptionInfoTooltip(description.get(), "widget")
@@ -61,7 +125,7 @@ export function buildRenameWidget(
   );
 }
 
-function buildWidgetRenamePopup(ctrl: IOpenController, vs: ViewSectionRec, options: WidgetTitleOptions) {
+function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, options: RenamableTitleOptions) {
   const tableRec = vs.table.peek();
   // If the table is a summary table.
   const isSummary = Boolean(tableRec.summarySourceTable.peek());
@@ -279,14 +343,16 @@ const cssTitleContainer = styled('div', `
 `);
 
 const cssTitle = styled('div', `
-  cursor: pointer;
   overflow: hidden;
   border-radius: 3px;
   margin: -4px;
   padding: 4px;
   text-overflow: ellipsis;
   align-self: start;
-  &:hover {
+  &-open-on-click:not(&-disabled) {
+    cursor: pointer;
+  }
+  &-open-on-click:not(&-disabled):hover {
     background-color: ${theme.hover};
   }
   &-empty {

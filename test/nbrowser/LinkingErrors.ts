@@ -76,11 +76,11 @@ describe("LinkingErrors", function() {
     const planetsTable = tables.filterRecords({tableId: 'Planets'})[0];
     assert.isOk(planetsTable);
     const planetsSections = sections.filterRecords({tableRef: planetsTable.id});
-    assert.lengthOf(planetsSections, 3);
-    assert.equal(planetsSections[0].parentId, planetsSections[2].parentId);
-    assert.deepEqual(planetsSections.map(s => s.linkTargetColRef), [0, 0, 0]);
-    assert.deepEqual(planetsSections.map(s => s.linkSrcSectionRef), [0, 0, 0]);
-    assert.deepEqual(planetsSections.map(s => s.linkSrcColRef), [0, 0, 0]);
+    assert.lengthOf(planetsSections, 4);
+    assert.equal(planetsSections[0].parentId, planetsSections[3].parentId);
+    assert.deepEqual(planetsSections.map(s => s.linkTargetColRef), [0, 0, 0, 0]);
+    assert.deepEqual(planetsSections.map(s => s.linkSrcSectionRef), [0, 0, 0, 0]);
+    assert.deepEqual(planetsSections.map(s => s.linkSrcColRef), [0, 0, 0, 0]);
 
     // Switch to another page and back and check that there are no errors.
     await gu.getPageItem('Moons').click();
@@ -151,8 +151,8 @@ describe("LinkingErrors", function() {
       ['AddEmptyTable', null],
       ['UpdateRecord', '_grist_Tables_column', 6, {type: 'Ref:Table1'}],
       ['CreateViewSection', 2, 1, 'record', null, null],
-      ['UpdateRecord', '_grist_Views_section', 3, {linkSrcSectionRef: 1, linkSrcColRef: 0, linkTargetColRef: 0}],
-      ['UpdateRecord', '_grist_Views_section', 6, {linkSrcSectionRef: 1, linkSrcColRef: 0, linkTargetColRef: 6}],
+      ['UpdateRecord', '_grist_Views_section', 4, {linkSrcSectionRef: 1, linkSrcColRef: 0, linkTargetColRef: 0}],
+      ['UpdateRecord', '_grist_Views_section', 8, {linkSrcSectionRef: 1, linkSrcColRef: 0, linkTargetColRef: 6}],
       [
         'UpdateRecord',
         '_grist_Views',

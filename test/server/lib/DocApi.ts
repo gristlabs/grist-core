@@ -982,6 +982,7 @@ function testDocApi() {
             "id": "Table1",
             "fields": {
               "rawViewSectionRef": 2,
+              "recordCardViewSectionRef": 3,
               "primaryViewId": 1,
               "onDemand": false,
               "summarySourceTable": 0,
@@ -992,7 +993,8 @@ function testDocApi() {
           {
             "id": "Table2",
             "fields": {
-              "rawViewSectionRef": 4,
+              "rawViewSectionRef": 5,
+              "recordCardViewSectionRef": 6,
               "primaryViewId": 2,
               "onDemand": false,
               "summarySourceTable": 0,
@@ -1002,7 +1004,8 @@ function testDocApi() {
           {
             "id": "Table3_Renamed",
             "fields": {
-              "rawViewSectionRef": 6,
+              "rawViewSectionRef": 8,
+              "recordCardViewSectionRef": 9,
               "primaryViewId": 3,
               "onDemand": false,
               "summarySourceTable": 0,
@@ -1012,7 +1015,8 @@ function testDocApi() {
           {
             "id": "NewTable1",
             "fields": {
-              "rawViewSectionRef": 8,
+              "rawViewSectionRef": 11,
+              "recordCardViewSectionRef": 12,
               "primaryViewId": 4,
               "onDemand": false,
               "summarySourceTable": 0,
@@ -1022,7 +1026,8 @@ function testDocApi() {
           {
             "id": "NewTable2",
             "fields": {
-              "rawViewSectionRef": 10,
+              "rawViewSectionRef": 14,
+              "recordCardViewSectionRef": 15,
               "primaryViewId": 5,
               "onDemand": false,
               "summarySourceTable": 0,

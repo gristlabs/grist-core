@@ -1235,3 +1235,57 @@ def migration39(tdset):
   if 'description' not in tdset.all_tables['_grist_Views_section'].columns:
     doc_actions.append(add_column('_grist_Views_section', 'description', 'Text'))
   return tdset.apply_doc_actions(doc_actions)
+
+@migration(schema_version=40)
+def migration40(tdset):
+  """
+  Adds a recordCardViewSectionRef column to _grist_Tables, populating it
+  for each non-summary table in _grist_Tables that has a rawViewSectionRef.
+  """
+  doc_actions = [
+    add_column(
+      '_grist_Tables',
+      'recordCardViewSectionRef',
+      'Ref:_grist_Views_section'
+    ),
+  ]
+
+  tables = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables"]))
+  columns = list(actions.transpose_bulk_action(tdset.all_tables["_grist_Tables_column"]))
+
+  new_view_section_id = next_id(tdset, "_grist_Views_section")
+
+  for table in sorted(tables, key=lambda t: t.tableId):
+    if not table.rawViewSectionRef or table.summarySourceTable:
+      continue
+
+    table_columns = [
+      col for col in columns
+      if table.id == col.parentId and is_visible_column(col.colId)
+    ]
+    table_columns.sort(key=lambda c: c.parentPos)
+    fields = {
+      "parentId": [new_view_section_id] * len(table_columns),
+      "colRef": [col.id for col in table_columns],
+      "parentPos": [col.parentPos for col in table_columns],
+    }
+    field_ids = [None] * len(table_columns)
+
+    doc_actions += [
+      actions.AddRecord("_grist_Views_section", new_view_section_id, {
+        "tableRef": table.id,
+        "parentId": 0,
+        "parentKey": "single",
+        "title": "",
+        "defaultWidth": 100,
+        "borderWidth": 1,
+      }),
+      actions.UpdateRecord("_grist_Tables", table.id, {
+        "recordCardViewSectionRef": new_view_section_id,
+      }),
+      actions.BulkAddRecord("_grist_Views_section_field", field_ids, fields),
+    ]
+
+    new_view_section_id += 1
+
+  return tdset.apply_doc_actions(doc_actions)

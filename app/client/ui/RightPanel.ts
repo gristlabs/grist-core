@@ -356,7 +356,10 @@ export class RightPanel extends Disposable {
         dom.maybe(this._validSection, (activeSection) => (
           buildConfigContainer(
             subTab === 'widget' ? dom.create(this._buildPageWidgetConfig.bind(this), activeSection) :
-              subTab === 'sortAndFilter' ? dom.create(this._buildPageSortFilterConfig.bind(this)) :
+              subTab === 'sortAndFilter' ? [
+                dom.create(this._buildPageSortFilterConfig.bind(this)),
+                cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
+              ] :
               subTab === 'data' ? dom.create(this._buildPageDataConfig.bind(this), activeSection) :
               null
           )
@@ -397,33 +400,35 @@ export class RightPanel extends Disposable {
 
     return dom.maybe(viewConfigTab, (vct) => [
       this._disableIfReadonly(),
-      cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
-        dom.style('margin-bottom', '14px'),
-      ),
-      cssRow(cssTextInput(
-        Computed.create(owner, (use) => use(activeSection.titleDef)),
-        val => activeSection.titleDef.saveOnly(val),
-        dom.boolAttr('disabled', use => {
-          const isRawTable = use(activeSection.isRaw);
-          const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
-          return isRawTable && isSummaryTable;
-        }),
-        testId('right-widget-title')
-      )),
+      dom.maybe(use => !use(activeSection.isRecordCard), () => [
+        cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
+          dom.style('margin-bottom', '14px'),
+        ),
+        cssRow(cssTextInput(
+          Computed.create(owner, (use) => use(activeSection.titleDef)),
+          val => activeSection.titleDef.saveOnly(val),
+          dom.boolAttr('disabled', use => {
+            const isRawTable = use(activeSection.isRaw);
+            const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
+            return isRawTable && isSummaryTable;
+          }),
+          testId('right-widget-title')
+        )),
 
-      cssSection(
-        dom.create(buildDescriptionConfig, activeSection.description, { cursor, "testPrefix": "right-widget" }),
-      ),
+        cssSection(
+          dom.create(buildDescriptionConfig, activeSection.description, { cursor, "testPrefix": "right-widget" }),
+        ),
+      ]),
 
       dom.maybe(
-        (use) => !use(activeSection.isRaw),
+        (use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
         () => cssRow(
           primaryButton(t("Change Widget"), this._createPageWidgetPicker()),
           cssRow.cls('-top-space')
         ),
       ),
 
-      cssSeparator(),
+      cssSeparator(dom.hide(activeSection.isRecordCard)),
 
       dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
         cssLabel(t("Theme")),
@@ -744,7 +749,7 @@ export class RightPanel extends Disposable {
         dom.hide((use) => !use(use(table).summarySourceTable)),
       ),
 
-      dom.maybe((use) => !use(activeSection.isRaw), () =>
+      dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
         cssButtonRow(primaryButton(t("Edit Data Selection"), this._createPageWidgetPicker(),
           testId('pwc-editDataSelection')),
           dom.maybe(
@@ -764,9 +769,9 @@ export class RightPanel extends Disposable {
       dom.maybe(viewConfigTab, (vct) => cssRow(
         dom('div', vct._buildAdvancedSettingsDom()),
       )),
-      cssSeparator(),
 
-      dom.maybe((use) => !use(activeSection.isRaw), () => [
+      dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () => [
+        cssSeparator(),
         cssLabel(t("SELECT BY")),
         cssRow(
           dom.update(
@@ -1032,6 +1037,10 @@ const cssConfigContainer = styled('div.test-config-container', `
   }
   & .fieldbuilder_settings {
     margin: 16px 0 0 0;
+  }
+  &-disabled {
+    opacity: 0.4;
+    pointer-events: none;
   }
 `);
 

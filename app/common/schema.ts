@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 39;
+export const SCHEMA_VERSION = 40;
 
 export const schema = {
 
@@ -23,6 +23,7 @@ export const schema = {
     summarySourceTable  : "Ref:_grist_Tables",
     onDemand            : "Bool",
     rawViewSectionRef   : "Ref:_grist_Views_section",
+    recordCardViewSectionRef: "Ref:_grist_Views_section",
   },
 
   "_grist_Tables_column": {
@@ -234,6 +235,7 @@ export interface SchemaTypes {
     summarySourceTable: number;
     onDemand: boolean;
     rawViewSectionRef: number;
+    recordCardViewSectionRef: number;
   };
 
   "_grist_Tables_column": {

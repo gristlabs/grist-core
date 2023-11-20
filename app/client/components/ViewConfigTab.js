@@ -8,7 +8,7 @@ var koArray = require('../lib/koArray');
 var commands = require('./commands');
 var {CustomSectionElement} = require('../lib/CustomSectionElement');
 const {ChartConfig} = require('./ChartView');
-const {Computed, dom: grainjsDom, makeTestId} = require('grainjs');
+const {Computed, dom: grainjsDom, makeTestId, Holder} = require('grainjs');
 
 const {cssRow} = require('app/client/ui/RightPanelStyles');
 const {SortFilterConfig} = require('app/client/ui/SortFilterConfig');
@@ -37,6 +37,7 @@ function ViewConfigTab(options) {
   var self = this;
   this.gristDoc = options.gristDoc;
   this.viewModel = options.viewModel;
+  this._viewSectionDataHolder = Holder.create(this);
 
   // viewModel may point to different views, but viewSectionData is a single koArray reflecting
   // the sections of the current view.
@@ -58,18 +59,21 @@ function ViewConfigTab(options) {
     return this.viewModel.activeSection().parentKey() === 'custom';}, this));
   this.isRaw = this.autoDispose(ko.computed(function() {
     return this.viewModel.activeSection().isRaw();}, this));
+  this.isRecordCard = this.autoDispose(ko.computed(function() {
+    return this.viewModel.activeSection().isRecordCard();}, this));
 
-  this.activeRawSectionData = this.autoDispose(ko.computed(function() {
-    return self.isRaw() ? ViewSectionData.create(self.viewModel.activeSection()) : null;
+  this.activeRawOrRecordCardSectionData = this.autoDispose(ko.computed(function() {
+    return self.isRaw() || self.isRecordCard()
+      ? self._viewSectionDataHolder.autoDispose(ViewSectionData.create(self.viewModel.activeSection()))
+      : null;
   }));
-
   this.activeSectionData = this.autoDispose(ko.computed(function() {
     return (
       _.find(self.viewSectionData.all(), function(sectionData) {
         return sectionData.section &&
           sectionData.section.getRowId() === self.viewModel.activeSectionId();
       })
-      || self.activeRawSectionData()
+      || self.activeRawOrRecordCardSectionData()
       || self.viewSectionData.at(0)
     );
   }));

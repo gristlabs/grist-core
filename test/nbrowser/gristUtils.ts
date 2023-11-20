@@ -1260,7 +1260,7 @@ export async function removeTable(tableId: string, options: {dismissTips?: boole
   const menus = await driver.findAll(".test-raw-data-table .test-raw-data-table-menu");
   assert.equal(menus.length, tableIdList.length);
   await menus[tableIndex].click();
-  await driver.find(".test-raw-data-menu-remove").click();
+  await driver.find(".test-raw-data-menu-remove-table").click();
   await driver.find(".test-modal-confirm").click();
   await waitForServer();
 }
@@ -1521,8 +1521,9 @@ export async function openRawTable(tableId: string) {
 export async function renameRawTable(tableId: string, newName: string) {
   await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`)
     .findClosest('.test-raw-data-table')
-    .find('.test-widget-title-text')
+    .find('.test-raw-data-table-menu')
     .click();
+  await driver.find('.test-raw-data-menu-rename-table').click();
   const input = await driver.find(".test-widget-title-table-name-input");
   await input.doClear();
   await input.click();

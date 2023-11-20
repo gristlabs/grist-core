@@ -65,9 +65,21 @@ export function buildViewSectionDom(options: {
   focusable?: boolean, /* defaults to true */
   tableNameHidden?: boolean,
   widgetNameHidden?: boolean,
+  renamable?: boolean,
+  hideTitleControls?: boolean,
 }) {
   const isResizing = options.isResizing ?? Observable.create(null, false);
-  const {gristDoc, sectionRowId, viewModel, draggable = true, focusable = true} = options;
+  const {
+    gristDoc,
+    sectionRowId,
+    viewModel,
+    draggable = true,
+    focusable = true,
+    tableNameHidden,
+    widgetNameHidden,
+    renamable = true,
+    hideTitleControls = false,
+  } = options;
 
   // Creating normal section dom
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
@@ -92,8 +104,13 @@ export function buildViewSectionDom(options: {
       ),
       dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
         cssSigmaIcon('Pivot', testId('sigma'))),
-      buildWidgetTitle(vs, options, testId('viewsection-title'), cssTestClick(testId("viewsection-blank"))),
-      viewInstance.buildTitleControls(),
+      buildWidgetTitle(
+        vs,
+        {tableNameHidden, widgetNameHidden, disabled: !renamable},
+        testId('viewsection-title'),
+        cssTestClick(testId("viewsection-blank")),
+      ),
+      hideTitleControls ? null : viewInstance.buildTitleControls(),
       dom('div.viewsection_buttons',
         dom.create(viewSectionMenu, gristDoc, vs)
       )

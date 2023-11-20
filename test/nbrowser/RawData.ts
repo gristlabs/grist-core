@@ -374,7 +374,7 @@ describe('RawData', function () {
 
     // The last table should have disabled remove button.
     await openMenu(allTables[0]);
-    assert.isTrue(await driver.find('.test-raw-data-menu-remove.disabled').isDisplayed());
+    assert.isTrue(await driver.find('.test-raw-data-menu-remove-table.disabled').isDisplayed());
     await gu.sendKeys(Key.ESCAPE);
   });
 
@@ -542,8 +542,8 @@ describe('RawData', function () {
     await gu.selectSectionByTitle("COUNTRY Card List");
     await gu.getDetailCell('Code', 1).click();
     await gu.addNewSection(/Chart/, /CountryLanguage/);
-    // s19 is the new section id, we also strip row/column.
-    let chartLink = replaceAnchor(await gu.getAnchor(), {s: '19', a: '2'});
+    // s22 is the new section id, we also strip row/column.
+    let chartLink = replaceAnchor(await gu.getAnchor(), {s: '22', a: '2'});
     await gu.getPageItem('City').click();
     chartLink = (await driver.getCurrentUrl()) + '#' + chartLink.split('#')[1];
     await waitForAnchorPopup(chartLink);
@@ -623,7 +623,7 @@ async function clickDuplicateTable() {
 }
 
 async function clickRemove() {
-  await driver.find('.test-raw-data-menu-remove').click();
+  await driver.find('.test-raw-data-menu-remove-table').click();
 }
 
 async function removeRawTable(tableId: string) {
@@ -681,7 +681,7 @@ async function waitForRawData() {
 
 async function isRemovable(tableId: string){
   await openMenu(tableId);
-  const disabledItems = await driver.findAll('.test-raw-data-menu-remove.disabled');
+  const disabledItems = await driver.findAll('.test-raw-data-menu-remove-table.disabled');
   await gu.sendKeys(Key.ESCAPE);
   return disabledItems.length === 0;
 }

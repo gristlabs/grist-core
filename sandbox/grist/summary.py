@@ -202,7 +202,8 @@ class SummaryActions(object):
         encode_summary_table_name(source_table.tableId, groupby_col_ids),
         [get_colinfo_dict(ci, with_id=True) for ci in groupby_colinfo + formula_colinfo],
         summarySourceTableRef=source_table.id,
-        raw_section=True)
+        raw_section=True,
+        record_card_section=False)
       summary_table = self.docmodel.tables.table.get_record(result['id'])
       created = True
       # Note that in this case, _get_or_add_columns() below should not add any new columns,

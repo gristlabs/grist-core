@@ -114,6 +114,7 @@ export type CommandName =
   | 'clearCopySelection'
   | 'detachEditor'
   | 'activateAssistant'
+  | 'viewAsCard'
   ;
 
 
@@ -269,6 +270,11 @@ export const groups: CommendGroupDef[] = [{
       name: 'activateAssistant',
       keys: [],
       desc: 'Activate assistant',
+    },
+    {
+      name: 'viewAsCard',
+      keys: [],
+      desc: 'Show the record card widget of the selected record',
     },
   ]
 }, {

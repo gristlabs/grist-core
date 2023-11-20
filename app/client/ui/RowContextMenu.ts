@@ -1,6 +1,7 @@
 import { allCommands } from 'app/client/components/commands';
 import { makeT } from 'app/client/lib/localization';
-import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
+import { RECORD_CARDS } from 'app/client/models/features';
+import { menuDivider, menuIcon, menuItemCmd, menuItemCmdLabel } from 'app/client/ui2018/menus';
 import { dom } from 'grainjs';
 
 const t = makeT('RowContextMenu');
@@ -8,12 +9,29 @@ const t = makeT('RowContextMenu');
 export interface IRowContextMenu {
   disableInsert: boolean;
   disableDelete: boolean;
+  disableShowRecordCard: boolean;
   isViewSorted: boolean;
   numRows: number;
 }
 
-export function RowContextMenu({ disableInsert, disableDelete, isViewSorted, numRows }: IRowContextMenu) {
+export function RowContextMenu({
+  disableInsert,
+  disableDelete,
+  disableShowRecordCard,
+  isViewSorted,
+  numRows
+}: IRowContextMenu) {
   const result: Element[] = [];
+  if (RECORD_CARDS() && numRows === 1) {
+    result.push(
+      menuItemCmd(
+        allCommands.viewAsCard,
+        () => menuItemCmdLabel(menuIcon('TypeCard'), t("View as card")),
+        dom.cls('disabled', disableShowRecordCard),
+      ),
+      menuDivider(),
+    );
+  }
   if (isViewSorted) {
     // When the view is sorted, any newly added records get shifts instantly at the top or
     // bottom. It could be very confusing for users who might expect the record to stay above or

@@ -58,6 +58,7 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertPartialData("_grist_Views_section_field", ["id", "colRef", "widgetOptions"], [
       [1,   23,   ""],
       [2,   23,   ""],
+      [3,   23,   ""],
     ])
     self.assertPartialData("Schools", ["id", "city"], [
       [1,   "New York"  ],
@@ -78,8 +79,11 @@ class TestUserActions(test_engine.EngineTestCase):
         'grist_Transform', 'formula': 'return $city', 'label': 'grist_Transform',
         'type': 'Text'
       }],
-      ["AddRecord", "_grist_Views_section_field", 3, {
-        "colRef": 24, "parentId": 2, "parentPos": 3.0
+      ["AddRecord", "_grist_Views_section_field", 4, {
+        "colRef": 24, "parentId": 2, "parentPos": 4.0
+      }],
+      ["AddRecord", "_grist_Views_section_field", 5, {
+        "colRef": 24, "parentId": 3, "parentPos": 5.0
       }],
       ["BulkUpdateRecord", "Schools", [1, 2, 3],
         {"grist_Transform": ["New York", "Colombia", "New York"]}],
@@ -122,7 +126,7 @@ class TestUserActions(test_engine.EngineTestCase):
 
     out_actions = self.remove_column('Schools', 'grist_Transform')
     self.assertPartialOutActions(out_actions, { "stored": [
-      ["RemoveRecord", "_grist_Views_section_field", 3],
+      ["BulkRemoveRecord", "_grist_Views_section_field", [4, 5]],
       ['RemoveRecord', '_grist_Tables_column', 24],
       ['RemoveColumn', 'Schools', 'grist_Transform'],
     ]})
@@ -205,10 +209,10 @@ class TestUserActions(test_engine.EngineTestCase):
       Column(25, "C", "Any", isFormula=True, formula="", summarySourceCol=0),
     ])
     new_view = View(1, sections=[
-      Section(2, parentKey="record", tableRef=2, fields=[
-        Field(4, colRef=23),
-        Field(5, colRef=24),
-        Field(6, colRef=25),
+      Section(3, parentKey="record", tableRef=2, fields=[
+        Field(7, colRef=23),
+        Field(8, colRef=24),
+        Field(9, colRef=25),
       ])
     ])
     self.assertTables([self.starting_table, new_table])
@@ -223,10 +227,10 @@ class TestUserActions(test_engine.EngineTestCase):
       Column(29, "C", "Any", isFormula=True, formula="", summarySourceCol=0),
     ])
     new_view.sections.append(
-      Section(4, parentKey="record", tableRef=3, fields=[
-        Field(10, colRef=27),
-        Field(11, colRef=28),
-        Field(12, colRef=29),
+      Section(6, parentKey="record", tableRef=3, fields=[
+        Field(16, colRef=27),
+        Field(17, colRef=28),
+        Field(18, colRef=29),
       ])
     )
     # Check that we have a new table, only the new view; and a new section.
@@ -256,8 +260,8 @@ class TestUserActions(test_engine.EngineTestCase):
       Column(35, "count", "Int", isFormula=True, formula="len($group)", summarySourceCol=0),
     ])
     self.assertTables([self.starting_table, new_table, new_table2, new_table3, summary_table])
-    new_view.sections.append(Section(7, parentKey="record", tableRef=5, fields=[
-      Field(17, colRef=35)
+    new_view.sections.append(Section(10, parentKey="record", tableRef=5, fields=[
+      Field(26, colRef=35)
     ]))
     self.assertViews([new_view])
 
@@ -311,26 +315,26 @@ class TestUserActions(test_engine.EngineTestCase):
         ]),
       ]),
       View(2, sections=[
-        Section(3, parentKey="detail", tableRef=1, fields=[
-          Field(7, colRef=2),
-          Field(8, colRef=3),
-          Field(9, colRef=4),
+        Section(4, parentKey="detail", tableRef=1, fields=[
+          Field(10, colRef=2),
+          Field(11, colRef=3),
+          Field(12, colRef=4),
         ]),
-        Section(5, parentKey="record", tableRef=2, fields=[
-          Field(13, colRef=5),
-          Field(14, colRef=7),
-          Field(15, colRef=8),
+        Section(6, parentKey="record", tableRef=2, fields=[
+          Field(16, colRef=5),
+          Field(17, colRef=7),
+          Field(18, colRef=8),
         ]),
-        Section(8, parentKey='record', tableRef=3, fields=[
-          Field(21, colRef=10),
-          Field(22, colRef=11),
-          Field(23, colRef=12),
+        Section(10, parentKey='record', tableRef=3, fields=[
+          Field(27, colRef=10),
+          Field(28, colRef=11),
+          Field(29, colRef=12),
         ]),
       ]),
       View(3, sections=[
-        Section(6, parentKey="chart", tableRef=1, fields=[
-          Field(16, colRef=2),
-          Field(17, colRef=3),
+        Section(7, parentKey="chart", tableRef=1, fields=[
+          Field(19, colRef=2),
+          Field(20, colRef=3),
         ]),
       ])
     ])
@@ -468,10 +472,10 @@ class TestUserActions(test_engine.EngineTestCase):
                             {'title': 'Z'}])
 
     self.assertTableData('_grist_Tables', cols="subset", data=[
-      ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef'],
-      [1, 'Z', 1, 2],
-      [2, 'Z_summary_state', 0, 4],
-      [3, 'Table1', 0, 7],
+      ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef', 'recordCardViewSectionRef'],
+      [1, 'Z', 1, 2, 3],
+      [2, 'Z_summary_state', 0, 5, 0],
+      [3, 'Table1', 0, 8, 9],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
       ['id', 'name'],
@@ -485,11 +489,11 @@ class TestUserActions(test_engine.EngineTestCase):
       {'id': 'city', 'type': 'Text'},
     ]])
     self.assertTableData('_grist_Tables', cols="subset", data=[
-      ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef'],
-      [1, 'Z', 1, 2],
-      [2, 'Z_summary_state', 0, 4],
-      [3, 'Table1', 0, 7],
-      [4, 'Stations', 4, 10],
+      ['id', 'tableId', 'primaryViewId', 'rawViewSectionRef', 'recordCardViewSectionRef'],
+      [1, 'Z', 1, 2, 3],
+      [2, 'Z_summary_state', 0, 5, 0],
+      [3, 'Table1', 0, 8, 9],
+      [4, 'Stations', 4, 12, 13],
     ])
     self.assertTableData('_grist_Views', cols="subset", data=[
       ['id', 'name'],
@@ -542,32 +546,32 @@ class TestUserActions(test_engine.EngineTestCase):
         ]),
       ]),
       View(2, sections=[
-        Section(3, parentKey="detail", tableRef=1, fields=[
-          Field(7, colRef=2),
-          Field(8, colRef=3),
-          Field(9, colRef=4),
+        Section(4, parentKey="detail", tableRef=1, fields=[
+          Field(10, colRef=2),
+          Field(11, colRef=3),
+          Field(12, colRef=4),
         ]),
-        Section(5, parentKey="record", tableRef=2, fields=[
-          Field(13, colRef=5),
-          Field(14, colRef=7),
-          Field(15, colRef=8),
+        Section(6, parentKey="record", tableRef=2, fields=[
+          Field(16, colRef=5),
+          Field(17, colRef=7),
+          Field(18, colRef=8),
         ]),
-        Section(8, parentKey='record', tableRef=3, fields=[
-          Field(21, colRef=10),
-          Field(22, colRef=11),
-          Field(23, colRef=12),
+        Section(10, parentKey='record', tableRef=3, fields=[
+          Field(27, colRef=10),
+          Field(28, colRef=11),
+          Field(29, colRef=12),
         ]),
       ]),
       View(3, sections=[
-        Section(6, parentKey="chart", tableRef=1, fields=[
-          Field(16, colRef=2),
-          Field(17, colRef=3),
+        Section(7, parentKey="chart", tableRef=1, fields=[
+          Field(19, colRef=2),
+          Field(20, colRef=3),
         ]),
       ])
     ])
 
     # Remove a couple of sections. Ensure their fields get removed.
-    self.apply_user_action(['BulkRemoveRecord', '_grist_Views_section', [5, 8]])
+    self.apply_user_action(['BulkRemoveRecord', '_grist_Views_section', [6, 10]])
 
     self.assertViews([
       View(1, sections=[
@@ -578,16 +582,16 @@ class TestUserActions(test_engine.EngineTestCase):
         ]),
       ]),
       View(2, sections=[
-        Section(3, parentKey="detail", tableRef=1, fields=[
-          Field(7, colRef=2),
-          Field(8, colRef=3),
-          Field(9, colRef=4),
+        Section(4, parentKey="detail", tableRef=1, fields=[
+          Field(10, colRef=2),
+          Field(11, colRef=3),
+          Field(12, colRef=4),
         ])
       ]),
       View(3, sections=[
-        Section(6, parentKey="chart", tableRef=1, fields=[
-          Field(16, colRef=2),
-          Field(17, colRef=3),
+        Section(7, parentKey="chart", tableRef=1, fields=[
+          Field(19, colRef=2),
+          Field(20, colRef=3),
         ]),
       ])
     ])
@@ -613,8 +617,8 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertEqual(count_calls[0], 0)
 
     # Do a schema action to ensure it gets called: this causes a table rename.
-    # 7 is id of raw view section for the Tabl1 table
-    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 7, {'title': 'C'}])
+    # 8 is id of raw view section for the Table1 table
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 8, {'title': 'C'}])
     self.assertEqual(count_calls[0], 1)
 
     self.assertTableData('_grist_Tables', cols="subset", data=[
@@ -1403,6 +1407,7 @@ class TestUserActions(test_engine.EngineTestCase):
       ["id",  "parentId", "tableRef"],
       [1, 1, 2],
       [2, 0, 2],  # the raw view section
+      [3, 0, 2],  # the record card view section
     ])
     self.assertTableData('_grist_Views_section_field', cols="subset", data=[
       ["id",  "parentId"],
@@ -1414,6 +1419,11 @@ class TestUserActions(test_engine.EngineTestCase):
       [4, 2],
       [5, 2],
       [6, 2],
+
+      # the record card view section
+      [7, 3],
+      [8, 3],
+      [9, 3],
     ])
 
     # Test that the records cannot be removed by normal user actions
@@ -1433,6 +1443,7 @@ class TestUserActions(test_engine.EngineTestCase):
       ["id",  "parentId", "tableRef"],
       [1, 1, 2],
       [2, 0, 2],  # the raw view section
+      [3, 0, 2],  # the record card view section
     ])
     self.assertTableData('_grist_Views_section_field', cols="subset", data=[
       ["id",  "parentId"],
@@ -1444,6 +1455,45 @@ class TestUserActions(test_engine.EngineTestCase):
       [4, 2],
       [5, 2],
       [6, 2],
+
+      # the record card view section
+      [7, 3],
+      [8, 3],
+      [9, 3],
+    ])
+
+  def test_record_card_view_section_restrictions(self):
+    self.load_sample(self.sample)
+    self.apply_user_action(["AddEmptyTable", None])
+
+    # Check that record card view sections cannot be removed by normal user actions.
+    with self.assertRaisesRegex(ValueError, "Cannot remove record card view section$"):
+      self.apply_user_action(["RemoveRecord", '_grist_Views_section', 3])
+
+    # Check that most of their column values can't be changed.
+    with self.assertRaisesRegex(ValueError, "Cannot modify record card view section$"):
+      self.apply_user_action(["UpdateRecord", '_grist_Views_section', 3, {"parentId": 1}])
+    with self.assertRaisesRegex(ValueError, "Cannot modify record card view section fields$"):
+      self.apply_user_action(["UpdateRecord", '_grist_Views_section_field', 9, {"parentId": 1}])
+
+    # Make sure nothing got removed or updated.
+    self.assertTableData('_grist_Views_section', cols="subset", data=[
+      ["id", "parentId", "tableRef"],
+      [1, 1, 2],
+      [2, 0, 2],
+      [3, 0, 2],
+    ])
+    self.assertTableData('_grist_Views_section_field', cols="subset", data=[
+      ["id", "parentId"],
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [4, 2],
+      [5, 2],
+      [6, 2],
+      [7, 3],
+      [8, 3],
+      [9, 3],
     ])
 
   def test_update_current_time(self):

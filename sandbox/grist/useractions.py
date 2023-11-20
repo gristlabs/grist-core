@@ -479,6 +479,24 @@ class UserActions(object):
     ):
       raise ValueError("Cannot modify raw view section fields")
 
+    # Prevent modifying record card widgets and their fields.
+    if (
+        table_id == "_grist_Views_section"
+        and any(rec.isRecordCard for i, rec in self._bulk_action_iter(table_id, row_ids))
+    ):
+      allowed_fields = {"layoutSpec", "options", "theme"}
+      if not set(column_values) <= allowed_fields:
+        raise ValueError("Cannot modify record card view section")
+
+    if (
+        table_id == "_grist_Views_section_field"
+        and any(rec.parentId.isRecordCard for i, rec in self._bulk_action_iter(table_id, row_ids))
+        and not set(column_values) <= {
+          "displayCol", "parentPos", "rules", "visibleCol", "widgetOptions"
+          }
+    ):
+      raise ValueError("Cannot modify record card view section fields")
+
     # If any extra actions were generated (e.g. to adjust positions), apply them.
     for a in extra_actions:
       self._do_doc_action(a)
@@ -1300,13 +1318,15 @@ class UserActions(object):
   def _removeViewSectionRecords(self, table_id, row_ids):
     """
     Remove view sections, including their fields.
-    Raises an error if trying to remove a table's rawViewSectionRef.
+    Raises an error if trying to remove a table's rawViewSectionRef or recordCardViewSectionRef.
     To bypass that check, call _doRemoveViewSectionRecords.
     """
     recs = [rec for i, rec in self._bulk_action_iter(table_id, row_ids)]
     for rec in recs:
       if rec.isRaw:
         raise ValueError("Cannot remove raw view section")
+      if rec.isRecordCard:
+        raise ValueError("Cannot remove record card view section")
     self._doRemoveViewSectionRecords(recs)
 
   def _doRemoveViewSectionRecords(self, recs):
@@ -1355,16 +1375,35 @@ class UserActions(object):
 
     ret = self.doAddColumn(table_id, col_id, col_info)
 
-    if not transform and table_rec.rawViewSectionRef:
-      # Add a field for this column to the "raw_data" section for this table.
-      # TODO: the position of the inserted field or of the inserted column will often be
-      # bogus, since fields and columns are not the same. This requires better coordination
-      # with the client-side.
-      self._docmodel.insert(
-        table_rec.rawViewSectionRef.fields,
-        col_info.get('_position'),
-        colRef=ret['colRef']
-      )
+    if not transform:
+      if table_rec.rawViewSectionRef:
+        # Add a field for this column to the "raw_data" section for this table.
+        # TODO: the position of the inserted field or of the inserted column will often be
+        # bogus, since fields and columns are not the same. This requires better coordination
+        # with the client-side.
+        self._docmodel.insert(
+          table_rec.rawViewSectionRef.fields,
+          col_info.get('_position'),
+          colRef=ret['colRef']
+        )
+
+      if table_rec.recordCardViewSectionRef:
+        # If the record card section or one of its fields hasn't yet been modified,
+        # add a field for this column.
+        section = table_rec.recordCardViewSectionRef
+        modified = (
+          section.layoutSpec or
+          section.options or
+          section.rules or
+          section.theme or
+          any(f.widgetOptions for f in section.fields)
+        )
+        if not modified:
+          self._docmodel.insert(
+            table_rec.recordCardViewSectionRef.fields,
+            col_info.get('_position'),
+            colRef=ret['colRef']
+          )
 
     return ret
 
@@ -1807,7 +1846,8 @@ class UserActions(object):
       columns,
       manual_sort=True,
       primary_view=True,
-      raw_section=True)
+      raw_section=True,
+      record_card_section=True)
 
 
   @useraction
@@ -1821,12 +1861,14 @@ class UserActions(object):
       columns,
       manual_sort=True,
       primary_view=False,
-      raw_section=True
+      raw_section=True,
+      record_card_section=True
     )
 
 
   def doAddTable(self, table_id, columns, manual_sort=False, primary_view=False,
-                 raw_section=False, summarySourceTableRef=0):
+                 raw_section=False, record_card_section=False,
+                 summarySourceTableRef=0):
     """
     Add the given table with columns with or without additional views.
     """
@@ -1887,10 +1929,20 @@ class UserActions(object):
         table_title if not summarySourceTableRef else ""
       )
 
-    if primary_view or raw_section:
+    if record_card_section:
+      record_card_section = self.create_plain_view_section(
+        result["id"],
+        table_id,
+        self._docmodel.view_sections,
+        "single",
+        ""
+      )
+
+    if primary_view or raw_section or record_card_section:
       self.UpdateRecord('_grist_Tables', result["id"], {
         'primaryViewId': primary_view["id"] if primary_view else 0,
         'rawViewSectionRef': raw_section.id if raw_section else 0,
+        'recordCardViewSectionRef': record_card_section.id if record_card_section else 0,
       })
 
     return result
@@ -1924,6 +1976,7 @@ class UserActions(object):
 
     # Copy the columns from the raw view section to a new table.
     raw_section = existing_table.rawViewSectionRef
+    record_card_section = existing_table.recordCardViewSectionRef
     raw_section_cols = [f.colRef for f in raw_section.fields]
     col_info = [summary.make_col_info(col=c) for c in raw_section_cols]
     columns = [summary.get_colinfo_dict(ci, with_id=True) for ci in col_info]
@@ -1933,13 +1986,19 @@ class UserActions(object):
       manual_sort=True,
       primary_view=False,
       raw_section=True,
+      record_card_section=True,
     )
 
     new_table_id = result['table_id']
-    new_raw_section = self._docmodel.get_table_rec(new_table_id).rawViewSectionRef
+    new_table = self._docmodel.get_table_rec(new_table_id)
+    new_raw_section = new_table.rawViewSectionRef
+    new_record_card_section = new_table.recordCardViewSectionRef
 
-    # Copy view section options to the new raw view section.
-    self._docmodel.update([new_raw_section], options=raw_section.options)
+    # Copy view section options to the new raw and record card view sections.
+    self._docmodel.update(
+      [new_raw_section, new_record_card_section],
+      options=[raw_section.options, record_card_section.options]
+    )
 
     old_to_new_col_refs = {}
     for existing_field, new_field in zip(raw_section.fields, new_raw_section.fields):

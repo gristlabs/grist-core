@@ -55,6 +55,9 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
+const {reportError} = require('app/client/models/AppModel');
+const {RECORD_CARDS} = require('app/client/models/features');
+const {urlState} = require('app/client/models/gristUrlState');
 
 const t = makeT('GridView');
 
@@ -370,7 +373,17 @@ GridView.gridCommands = {
       return;
     }
     this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
-  }
+  },
+  viewAsCard() {
+    if (!RECORD_CARDS()) { return; }
+    if (this._isRecordCardDisabled()) { return; }
+
+    const selectedRows = this.selectedRows();
+    const rowId = selectedRows[0];
+    const sectionId = this.viewSection.tableRecordCard().id();
+    const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
+    urlState().pushUrl(anchorUrlState, {replace: true}).catch(reportError);
+  },
 };
 
 GridView.prototype.onTableLoaded = function() {
@@ -1909,18 +1922,39 @@ GridView.prototype.rowContextMenu = function() {
 
 GridView.prototype._getRowContextMenuOptions = function() {
   return {
-    disableInsert: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.tableModel.tableMetaRow.onDemand()),
-    disableDelete: Boolean(this.gristDoc.isReadonly.get() || this.viewSection.disableAddRemoveRows() || this.getSelection().onlyAddRowSelected()),
-    isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
-    numRows: this.getSelection().rowIds.length,
+    ...this._getCellContextMenuOptions(),
+    disableShowRecordCard: this._isRecordCardDisabled(),
   };
 };
 
+GridView.prototype._isRecordCardDisabled = function() {
+  return this.getSelection().onlyAddRowSelected() ||
+    this.viewSection.isTableRecordCardDisabled() ||
+    this.viewSection.table().summarySourceTable() !== 0;
+}
+
 GridView.prototype.cellContextMenu = function() {
   return CellContextMenu(
-    this._getRowContextMenuOptions(),
+    this._getCellContextMenuOptions(),
     this._getColumnMenuOptions(this.getSelection())
   );
+};
+
+GridView.prototype._getCellContextMenuOptions = function() {
+  return {
+    disableInsert: Boolean(
+      this.gristDoc.isReadonly.get() ||
+      this.viewSection.disableAddRemoveRows() ||
+      this.tableModel.tableMetaRow.onDemand()
+    ),
+    disableDelete: Boolean(
+      this.gristDoc.isReadonly.get() ||
+      this.viewSection.disableAddRemoveRows() ||
+      this.getSelection().onlyAddRowSelected()
+    ),
+    isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
+    numRows: this.getSelection().rowIds.length,
+  };
 };
 
 // End Context Menus

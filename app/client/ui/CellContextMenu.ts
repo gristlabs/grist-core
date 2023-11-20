@@ -2,32 +2,36 @@ import { allCommands } from 'app/client/components/commands';
 import { makeT } from 'app/client/lib/localization';
 import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
 import { IMultiColumnContextMenu } from 'app/client/ui/GridViewMenus';
-import { IRowContextMenu } from 'app/client/ui/RowContextMenu';
 import { COMMENTS } from 'app/client/models/features';
 import { dom } from 'grainjs';
 
 const t = makeT('CellContextMenu');
 
-export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiColumnContextMenu) {
+export interface ICellContextMenu {
+  disableInsert: boolean;
+  disableDelete: boolean;
+  isViewSorted: boolean;
+  numRows: number;
+}
 
-  const { disableInsert, disableDelete, isViewSorted } = rowOptions;
-  const { disableModify, isReadonly } = colOptions;
+export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
+
+  const { disableInsert, disableDelete, isViewSorted, numRows } = cellOptions;
+  const { numColumns, disableModify, isReadonly, isFiltered } = colOptions;
 
   // disableModify is true if the column is a summary column or is being transformed.
   // isReadonly is true for readonly mode.
   const disableForReadonlyColumn = dom.cls('disabled', Boolean(disableModify) || isReadonly);
   const disableForReadonlyView = dom.cls('disabled', isReadonly);
 
-  const numCols: number = colOptions.numColumns;
-  const nameClearColumns = colOptions.isFiltered ?
-    t("Reset {{count}} entire columns", {count: numCols}) :
-    t("Reset {{count}} columns", {count: numCols});
-  const nameDeleteColumns = t("Delete {{count}} columns", {count: numCols});
+  const nameClearColumns = isFiltered ?
+    t("Reset {{count}} entire columns", {count: numColumns}) :
+    t("Reset {{count}} columns", {count: numColumns});
+  const nameDeleteColumns = t("Delete {{count}} columns", {count: numColumns});
 
-  const numRows: number = rowOptions.numRows;
   const nameDeleteRows = t("Delete {{count}} rows", {count: numRows});
 
-  const nameClearCells = (numRows > 1 || numCols > 1) ? t("Clear values") : t("Clear cell");
+  const nameClearCells = (numRows > 1 || numColumns > 1) ? t("Clear values") : t("Clear cell");
 
   const result: Array<Element|null> = [];
 
@@ -42,13 +46,13 @@ export function CellContextMenu(rowOptions: IRowContextMenu, colOptions: IMultiC
       menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
 
     ...(
-      (numCols > 1 || numRows > 1) ? [] : [
+      (numColumns > 1 || numRows > 1) ? [] : [
         menuDivider(),
         menuItemCmd(allCommands.copyLink, t("Copy anchor link")),
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
         menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
-         isReadonly || numRows === 0 || numCols === 0
+         isReadonly || numRows === 0 || numColumns === 0
         )), dom.hide(use => !use(COMMENTS()))) //TODO: i18next
       ]
     ),

@@ -205,14 +205,14 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         this._onResize();
         // Reset active section to the first one if the section is popup is collapsed.
         if (prev
-            && this.viewModel.activeCollapsedSections.peek().includes(prev)
-            && this.previousSectionId) {
-          // Make sure that previous section exists still.
-          if (this.viewModel.viewSections.peek().all()
-                  .some(s => !s.isDisposed() && s.id.peek() === this.previousSectionId)) {
-            this.viewModel.activeSectionId(this.previousSectionId);
-          }
+          && this.viewModel.activeCollapsedSections.peek().includes(prev)
+          && this.previousSectionId) {
+        // Make sure that previous section exists still.
+        if (this.viewModel.viewSections.peek().all()
+                .some(s => !s.isDisposed() && s.id.peek() === this.previousSectionId)) {
+          this.viewModel.activeSectionId(this.previousSectionId);
         }
+      }
       } else {
         // Otherwise resize only active one (the one in popup).
         const section = this.viewModel.activeSection.peek();

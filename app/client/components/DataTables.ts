@@ -1,22 +1,27 @@
+import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
+import {RECORD_CARDS} from 'app/client/models/features';
 import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
 import {duplicateTable, DuplicateTableResponse} from 'app/client/ui/DuplicateTable';
-import {showTransientTooltip} from 'app/client/ui/tooltips';
+import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {buildTableName} from 'app/client/ui/WidgetTitle';
 import * as css from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots} from 'app/client/ui2018/loaders';
-import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
+import {menu, menuDivider, menuIcon, menuItem, menuItemAsync, menuText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import * as weasel from 'popweasel';
 
 const testId = makeTestId('test-raw-data-');
 
 const t = makeT('DataTables');
+
+const DATA_TABLES_TOOLTIP_KEY = 'dataTablesTooltip';
 
 export class DataTables extends Disposable {
   private _tables: Observable<TableRec[]>;
@@ -47,17 +52,19 @@ export class DataTables extends Disposable {
         testId('list'),
         cssHeader(t("Raw Data Tables")),
         cssList(
-          dom.forEach(this._tables, tableRec =>
-            cssItem(
+          dom.forEach(this._tables, tableRec => {
+            const isEditingName = observable(false);
+            return cssTable(
+              dom.autoDispose(isEditingName),
               testId('table'),
-              cssLeft(
+              cssTableIcon(
                 dom.domComputed((use) => cssTableTypeIcon(
                   use(tableRec.summarySourceTable) !== 0 ? 'PivotLight' : 'TypeTable',
                   testId(`table-id-${use(tableRec.tableId)}`)
                 )),
               ),
-              cssMiddle(
-                cssTitleRow(cssTableTitle(this._tableTitle(tableRec), testId('table-title'))),
+              cssTableNameAndId(
+                cssTitleRow(cssTableTitle(this._tableTitle(tableRec, isEditingName), testId('table-title'))),
                 cssDetailsRow(
                   cssTableIdWrapper(cssHoverWrapper(
                     cssUpperCase("Table ID: "),
@@ -76,14 +83,34 @@ export class DataTables extends Disposable {
                       setTestState({clipboard: tableRec.tableId.peek()});
                     })
                   )),
-                  this._tableRows(tableRec),
                 ),
               ),
-              cssRight(
-                docMenuTrigger(
+              this._tableRows(tableRec),
+              cssTableButtons(
+                cssRecordCardButton(
+                  icon('TypeCard'),
+                  dom.on('click', (ev) => {
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    if (!tableRec.recordCardViewSection().disabled()) {
+                      this._editRecordCard(tableRec);
+                    }
+                  }),
+                  hoverTooltip(
+                    dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled)
+                      ? t('Record Card Disabled')
+                      : t('Record Card')),
+                    {key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false}
+                  ),
+                  dom.hide(!RECORD_CARDS()),
+                  // Make the button invisible to maintain consistent alignment with non-summary tables.
+                  dom.style('visibility', u => u(tableRec.summarySourceTable) === 0 ? 'visible' : 'hidden'),
+                  cssRecordCardButton.cls('-disabled', use => use(use(tableRec.recordCardViewSection).disabled)),
+                ),
+                cssDotsButton(
                   testId('table-menu'),
                   icon('Dots'),
-                  menu(() => this._menuItems(tableRec), {placement: 'bottom-start'}),
+                  menu(() => this._menuItems(tableRec, isEditingName), {placement: 'bottom-start'}),
                   dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
                 )
               ),
@@ -94,14 +121,14 @@ export class DataTables extends Disposable {
                 }
                 this._gristDoc.viewModel.activeSectionId(sectionId);
               })
-            )
-          )
+            );
+          })
         ),
       ),
     );
   }
 
-  private _tableTitle(table: TableRec) {
+  private _tableTitle(table: TableRec, isEditing: Observable<boolean>) {
     return dom.domComputed((use) => {
       const rawViewSectionRef = use(fromKo(table.rawViewSectionRef));
       const isSummaryTable = use(table.summarySourceTable) !== 0;
@@ -113,37 +140,75 @@ export class DataTables extends Disposable {
         ].filter(p => Boolean(p?.trim())).join(' ');
         return cssTableName(tableName);
       } else {
-        return dom('div', // to disable flex grow in the widget
+        return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
-            buildTableName(vs, testId('widget-title'))
-          )
+            buildTableName(vs, {isEditing}, cssRenamableTableName.cls(''), testId('widget-title'))
+          ),
+          cssRenameTableButton(icon('Pencil'),
+            dom.on('click', (ev) => {
+              ev.stopPropagation();
+              ev.preventDefault();
+              isEditing.set(true);
+            }),
+            cssRenameTableButton.cls('-active', isEditing),
+          ),
         );
       }
     });
   }
 
-  private _menuItems(table: TableRec) {
+  private _menuItems(table: TableRec, isEditingName: Observable<boolean>) {
     const {isReadonly, docModel} = this._gristDoc;
     return [
       menuItem(
+        () => { isEditingName.set(true); },
+        t("Rename Table"),
+        dom.cls('disabled', use => use(isReadonly) || use(table.summarySourceTable) !== 0),
+        testId('menu-rename-table'),
+      ),
+      menuItem(
         () => this._duplicateTable(table),
         t("Duplicate Table"),
-        testId('menu-duplicate-table'),
         dom.cls('disabled', use =>
           use(isReadonly) ||
           use(table.isHidden) ||
           use(table.summarySourceTable) !== 0
         ),
+        testId('menu-duplicate-table'),
       ),
       menuItem(
         () => this._removeTable(table),
-        'Remove',
-        testId('menu-remove'),
+        t("Remove Table"),
         dom.cls('disabled', use => use(isReadonly) || (
           // Can't delete last visible table, unless it is a hidden table.
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
-        ))
+        )),
+        testId('menu-remove-table'),
       ),
+      dom.maybe(use => RECORD_CARDS() && use(table.summarySourceTable) === 0, () => [
+        menuDivider(),
+        menuItem(
+          () => this._editRecordCard(table),
+          cssMenuItemIcon('TypeCard'),
+          t("Edit Record Card"),
+          dom.cls('disabled', use => use(isReadonly)),
+          testId('menu-edit-record-card'),
+        ),
+        dom.domComputed(use => use(use(table.recordCardViewSection).disabled), (isDisabled) => {
+          return menuItemAsync(
+            async () => {
+              if (isDisabled) {
+                await this._enableRecordCard(table);
+              } else {
+                await this._disableRecordCard(table);
+              }
+            },
+            t('{{action}} Record Card', {action: isDisabled ? 'Enable' : 'Disable'}),
+            dom.cls('disabled', use => use(isReadonly)),
+            testId(`menu-${isDisabled ? 'enable' : 'disable'}-record-card`),
+          );
+        }),
+      ]),
       dom.maybe(isReadonly, () => menuText(t("You do not have edit access to this document"))),
     ];
   }
@@ -166,6 +231,24 @@ export class DataTables extends Disposable {
     ), 'Delete', doRemove);
   }
 
+  private _editRecordCard(r: TableRec) {
+    const sectionId = r.recordCardViewSection.peek().getRowId();
+    if (!sectionId) {
+      throw new Error(`Table ${r.tableId.peek()} doesn't have a record card view section.`);
+    }
+
+    this._gristDoc.viewModel.activeSectionId(sectionId);
+    commands.allCommands.editLayout.run();
+  }
+
+  private async _enableRecordCard(r: TableRec) {
+    await r.recordCardViewSection().disabled.setAndSave(false);
+  }
+
+  private async _disableRecordCard(r: TableRec) {
+    await r.recordCardViewSection().disabled.setAndSave(true);
+  }
+
   private _tableRows(table: TableRec) {
     return dom.maybe(this._rowCount, (rowCounts) => {
       if (rowCounts === 'hidden') { return null; }
@@ -183,6 +266,18 @@ export class DataTables extends Disposable {
   }
 }
 
+const cssMenuItemIcon = styled(menuIcon, `
+  --icon-color: ${css.theme.menuItemFg};
+
+  .${weasel.cssMenuItem.className}-sel & {
+    --icon-color: ${css.theme.menuItemSelectedFg};
+  }
+
+  .${weasel.cssMenuItem.className}.disabled & {
+    --icon-color: ${css.theme.menuItemDisabledFg};
+  }
+`);
+
 const container = styled('div', `
   overflow-y: auto;
   position: relative;
@@ -198,42 +293,37 @@ const cssList = styled('div', `
   gap: 12px;
 `);
 
-const cssItem = styled('div', `
-  display: flex;
-  align-items: center;
+const cssTable = styled('div', `
+  display: grid;
+  grid-template-columns: 16px auto 100px 56px;
+  grid-template-rows: 1fr;
+  grid-column-gap: 8px;
   cursor: pointer;
   border-radius: 3px;
   width: 100%;
   height: calc(1em * 56/13); /* 56px for 13px font */
   max-width: 750px;
+  padding: 0px 12px 0px 12px;
   border: 1px solid ${css.theme.rawDataTableBorder};
   &:hover {
     border-color: ${css.theme.rawDataTableBorderHover};
   }
 `);
 
-// Holds icon in top left corner
-const cssLeft = styled('div', `
+const cssTableIcon = styled('div', `
   padding-top: 11px;
-  padding-left: 12px;
-  margin-right: 8px;
-  align-self: flex-start;
   display: flex;
-  flex: none;
 `);
 
-const cssMiddle = styled('div', `
-  flex-grow: 1;
+const cssTableNameAndId = styled('div', `
   min-width: 0px;
   display: flex;
-  flex-wrap: wrap;
-  margin-top: 6px;
-  margin-bottom: 4px;
+  flex-direction: column;
+  margin-top: 8px;
 `);
 
 const cssTitleRow = styled('div', `
   min-width: 100%;
-  margin-right: 4px;
 `);
 
 const cssDetailsRow = styled('div', `
@@ -243,13 +333,12 @@ const cssDetailsRow = styled('div', `
 `);
 
 
-// Holds dots menu (which is 24px x 24px, but has its own 4px right margin)
-const cssRight = styled('div', `
-  padding-right: 8px;
-  margin-left: 8px;
-  align-self: center;
+// Holds dots menu (which is 24px x 24px)
+const cssTableButtons = styled('div', `
   display: flex;
-  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: 8px;
 `);
 
 const cssTableTypeIcon = styled(icon, `
@@ -270,13 +359,10 @@ const cssTableIdWrapper = styled('div', `
 
 const cssTableRowsWrapper = styled('div', `
   display: flex;
-  flex-shrink: 0;
-  min-width: 100px;
   overflow: hidden;
-  align-items: baseline;
+  align-items: center;
   color: ${css.theme.lightText};
   line-height: 18px;
-  padding: 0px 2px;
 `);
 
 const cssHoverWrapper = styled('div', `
@@ -301,6 +387,8 @@ const cssTableRows = cssTableId;
 
 const cssTableTitle = styled('div', `
   color: ${css.theme.text};
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 `);
 
@@ -326,4 +414,67 @@ const cssLoadingDots = styled(loadingDots, `
 
 const cssTableName = styled('span', `
   color: ${css.theme.text};
+`);
+
+const cssRecordCardButton = styled('div', `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  cursor: default;
+  padding: 4px;
+  border-radius: 3px;
+  --icon-color: ${css.theme.lightText};
+
+  &:hover {
+    background-color: ${css.theme.hover};
+    --icon-color: ${css.theme.controlFg};
+  }
+
+  &-disabled {
+    --icon-color: ${css.theme.lightText};
+    padding: 0px;
+    opacity: 0.4;
+  }
+
+  &-disabled:hover {
+    background: none;
+    --icon-color: ${css.theme.lightText};
+  }
+`);
+
+const cssDotsButton = styled(docMenuTrigger, `
+  margin: 0px;
+
+  &:hover, &.weasel-popup-open {
+    background-color: ${css.theme.hover};
+  }
+`);
+
+const cssRenameTableButton = styled('div', `
+  flex-shrink: 0;
+  width: 16px;
+  visibility: hidden;
+  cursor: default;
+  --icon-color: ${css.theme.lightText};
+  &:hover  {
+    --icon-color: ${css.theme.controlFg};
+  }
+  &-active  {
+    visibility: hidden;
+  }
+  .${cssTableTitle.className}:hover & {
+    visibility: visible;
+  }
+`);
+
+const cssFlexRow = styled('div', `
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+`);
+
+const cssRenamableTableName = styled('div', `
+  flex: initial;
 `);

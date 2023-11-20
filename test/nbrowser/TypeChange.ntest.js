@@ -141,7 +141,7 @@ describe('TypeChange.ntest', function() {
     // Prepare new table and section
     await gu.actions.addNewSection('New', 'Table');
     await gu.waitForServer();
-    await $('.test-viewlayout-section-4').click();
+    await $('.test-viewlayout-section-6').click();
     await gu.addRecord(['green']);
     await gu.addRecord(['blue']);
 

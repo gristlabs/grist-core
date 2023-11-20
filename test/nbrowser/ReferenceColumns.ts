@@ -164,7 +164,8 @@ describe('ReferenceColumns', function() {
     it('should open to correct item selected, and leave it unchanged on Enter', async function() {
       const checkRefCell = stackWrapFunc(async (col: string, rowNum: number, expValue: string) => {
         // Click cell and open for editing.
-        const cell = await gu.getCell({section: 'References', col, rowNum}).doClick();
+        const cell = await gu.getCell({section: 'References', col, rowNum})
+          .find('.test-ref-text').doClick();
         assert.equal(await cell.getText(), expValue);
         await driver.sendKeys(Key.ENTER);
         // Wait for expected value to appear in the list; check that it's selected.
@@ -453,7 +454,8 @@ describe('ReferenceColumns', function() {
     });
 
     it('should update choices as user types into textbox', async function() {
-      let cell = await gu.getCell({section: 'References', col: 'School', rowNum: 1}).doClick();
+      let cell = await gu.getCell({section: 'References', col: 'School', rowNum: 1})
+        .find('.test-ref-text').doClick();
       assert.equal(await cell.getText(), 'TECHNOLOGY, ARTS AND SCIENCES STUDIO');
       await driver.sendKeys(Key.ENTER);
       assert.deepEqual(await getACOptions(3), [
@@ -493,7 +495,8 @@ describe('ReferenceColumns', function() {
     it('should highlight matching parts of items', async function() {
       await driver.sendKeys(Key.HOME);
 
-      let cell = await gu.getCell({section: 'References', col: 'Color', rowNum: 2}).doClick();
+      let cell = await gu.getCell({section: 'References', col: 'Color', rowNum: 2})
+        .find('.test-ref-text').doClick();
       assert.equal(await cell.getText(), 'Red');
       await driver.sendKeys(Key.ENTER);
       await driver.findWait('.test-ref-editor-item', 1000);
@@ -505,7 +508,8 @@ describe('ReferenceColumns', function() {
         ['Re']);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'School', rowNum: 1}).doClick();
+      cell = await gu.getCell({section: 'References', col: 'School', rowNum: 1})
+        .find('.test-ref-text').doClick();
       await driver.sendKeys('br tech');
       assert.deepEqual(
         await driver.findContentWait('.test-ref-editor-item', /BROOKLYN TECH/, 1000).findAll('span', e => e.getText()),

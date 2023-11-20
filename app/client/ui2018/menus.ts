@@ -9,7 +9,7 @@ import { IconName } from 'app/client/ui2018/IconList';
 import { icon } from 'app/client/ui2018/icons';
 import { cssSelectBtn } from 'app/client/ui2018/select';
 import {
-  BindableValue, Computed, dom, DomElementArg, DomElementMethod, IDomArgs,
+  BindableValue, Computed, dom, DomContents, DomElementArg, DomElementMethod, IDomArgs,
   MaybeObsArray, MutableObsArray, Observable, styled
 } from 'grainjs';
 import debounce from 'lodash/debounce';
@@ -574,15 +574,26 @@ export const menuItemAsync: typeof weasel.menuItem = function(action, ...args) {
   return menuItem(() => setTimeout(action, 0), ...args);
 };
 
-export function menuItemCmd(cmd: Command, label: string, ...args: DomElementArg[]) {
+export function menuItemCmd(
+  cmd: Command,
+  label: string | (() => DomContents),
+  ...args: DomElementArg[]
+) {
   return menuItem(
     () => cmd.run(),
-    dom('span', label, testId('cmd-name')),
+    typeof label === 'string'
+          ? dom('span', label, testId('cmd-name'))
+          : dom('div', label(), testId('cmd-name')),
     cmd.humanKeys.length ? cssCmdKey(cmd.humanKeys[0]) : null,
     cssMenuItemCmd.cls(''), // overrides some menu item styles
     ...args
   );
 }
+
+export const menuItemCmdLabel = styled('div', `
+  display: flex;
+  align-items: center;
+`);
 
 export function menuAnnotate(text: string, ...args: DomElementArg[]) {
   return cssAnnotateMenuItem(text, ...args);
@@ -701,6 +712,15 @@ const cssInputButtonMenuElem = styled(cssMenuElem, `
 
 const cssMenuItemCmd = styled('div', `
   justify-content: space-between;
+  --icon-color: ${theme.menuItemFg};
+
+  .${weasel.cssMenuItem.className}-sel & {
+    --icon-color: ${theme.menuItemSelectedFg};
+  }
+
+  .${weasel.cssMenuItem.className}.disabled & {
+    --icon-color: ${theme.menuItemDisabledFg};
+  }
 `);
 
 const cssCmdKey = styled('span', `
@@ -712,7 +732,7 @@ const cssCmdKey = styled('span', `
     color: ${theme.menuItemIconSelectedFg};
   }
 
-  .${weasel.cssMenuItem.className}.disabled > & {
+  .${weasel.cssMenuItem.className}.disabled & {
     color: ${theme.menuItemDisabledFg};
   }
 `);

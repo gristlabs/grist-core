@@ -77,7 +77,11 @@ export class CellStyle extends Disposable {
       }),
       cssLine(
         cssLabel(t('CELL STYLE')),
-        cssButton(t('Open row styles'), dom.on('click', allCommands.viewTabOpen.run)),
+        cssButton(
+          t('Open row styles'),
+          dom.on('click', allCommands.viewTabOpen.run),
+          dom.hide(!isTableWidget),
+        ),
       ),
       cssRow(
         testId('cell-color-select'),

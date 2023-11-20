@@ -17,6 +17,7 @@ import {EditorMonitor} from "app/client/components/EditorMonitor";
 import GridView from 'app/client/components/GridView';
 import {importFromFile, selectAndImport} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
+import {RecordCardPopup} from 'app/client/components/RecordCardPopup';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
@@ -125,7 +126,7 @@ export interface IExtraTool {
   content: TabContent[] | IDomComponent;
 }
 
-interface RawSectionOptions {
+interface PopupSectionOptions {
   viewSection: ViewSectionRec;
   hash: HashLink;
   close: () => void;
@@ -179,7 +180,7 @@ export class GristDoc extends DisposableWithEvents {
   // the space.
   public maximizedSectionId: Observable<number | null> = Observable.create(this, null);
   // This is id of the section that is currently shown in the popup. Probably this is an external
-  // section, like raw data view, or a section from another view..
+  // section, like raw data view, or a section from another view.
   public externalSectionId: Computed<number | null>;
   public viewLayout: ViewLayout | null = null;
 
@@ -201,14 +202,13 @@ export class GristDoc extends DisposableWithEvents {
   private _rightPanelTool = createSessionObs(this, "rightPanelTool", "none", RightPanelTool.guard);
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
-  private _rawSectionOptions: Observable<RawSectionOptions | null> = Observable.create(this, null);
-  private _activeContent: Computed<IDocPage | RawSectionOptions>;
+  private _popupSectionOptions: Observable<PopupSectionOptions | null> = Observable.create(this, null);
+  private _activeContent: Computed<IDocPage | PopupSectionOptions>;
   private _docTutorialHolder = Holder.create<DocTutorial>(this);
   private _isRickRowing: Observable<boolean> = Observable.create(this, false);
   private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
   private _backgroundVideoPlayerHolder: Holder<YouTubePlayer> = Holder.create(this);
   private _disableAutoStartingTours: boolean = false;
-
 
   constructor(
     public readonly app: App,
@@ -256,9 +256,9 @@ export class GristDoc extends DisposableWithEvents {
       const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
       return viewId || use(defaultViewId);
     });
-    this._activeContent = Computed.create(this, use => use(this._rawSectionOptions) ?? use(this.activeViewId));
+    this._activeContent = Computed.create(this, use => use(this._popupSectionOptions) ?? use(this.activeViewId));
     this.externalSectionId = Computed.create(this, use => {
-      const externalContent = use(this._rawSectionOptions);
+      const externalContent = use(this._popupSectionOptions);
       return externalContent ? use(externalContent.viewSection.id) : null;
     });
     // This viewModel reflects the currently active view, relying on the fact that
@@ -302,7 +302,7 @@ export class GristDoc extends DisposableWithEvents {
 
 
       try {
-        if (state.hash.popup) {
+        if (state.hash.popup || state.hash.recordCard) {
           await this.openPopup(state.hash);
         } else {
           // Navigate to an anchor if one is present in the url hash.
@@ -615,7 +615,17 @@ export class GristDoc extends DisposableWithEvents {
             owner.autoDispose(this.activeViewId.addListener(content.close));
             // In case the section is removed, close the popup.
             content.viewSection.autoDispose({dispose: content.close});
-            return dom.create(RawDataPopup, this, content.viewSection, content.close);
+
+            const {recordCard} = content.hash;
+            if (recordCard) {
+              return dom.create(RecordCardPopup, {
+                gristDoc: this,
+                viewSection: content.viewSection,
+                onClose: content.close,
+              });
+            } else {
+              return dom.create(RawDataPopup, this, content.viewSection, content.close);
+            }
           }) :
           dom.create((owner) => {
             this.viewLayout = ViewLayout.create(owner, this, content);
@@ -671,7 +681,11 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
       // If this is completely unknown section (without a parent), it is probably an import preview.
-      if (!desiredSection.parentId.peek() && !desiredSection.isRaw.peek()) {
+      if (
+        !desiredSection.parentId.peek() &&
+        !desiredSection.isRaw.peek() &&
+        !desiredSection.isRecordCard.peek()
+      ) {
         const view = desiredSection.viewInstance.peek();
         // Make sure we have a view instance here - it will prove our assumption that this is
         // an import preview. Section might also be disconnected during undo/redo.
@@ -1215,7 +1229,8 @@ export class GristDoc extends DisposableWithEvents {
         }, false, silent, visitedSections.concat([section.id.peek()]));
       }
       const view: ViewRec = section.view.peek();
-      const docPage: ViewDocPage = section.isRaw.peek() ? "data" : view.getRowId();
+      const isRawOrRecordCardView = section.isRaw.peek() || section.isRecordCard.peek();
+      const docPage: ViewDocPage = isRawOrRecordCardView ? 'data' : view.getRowId();
       if (docPage != this.activeViewId.get()) {
         await this.openDocPage(docPage);
       }
@@ -1303,20 +1318,21 @@ export class GristDoc extends DisposableWithEvents {
     // We need to make it active, so that cursor on this section will be the
     // active one. This will change activeViewSectionId on a parent view of this section,
     // which might be a diffrent view from what we currently have. If the section is
-    // a raw data section it will use `EmptyRowModel` as raw sections don't have parents.
+    // a raw data or record card section, it will use `EmptyRowModel` as these sections
+    // don't currently have parent views.
     popupSection.hasFocus(true);
-    this._rawSectionOptions.set({
+    this._popupSectionOptions.set({
       hash,
       viewSection: popupSection,
       close: () => {
-        // In case we are already close, do nothing.
-        if (!this._rawSectionOptions.get()) {
+        // In case we are already closed, do nothing.
+        if (!this._popupSectionOptions.get()) {
           return;
         }
         if (popupSection !== prevSection) {
-          // We need to blur raw view section. Otherwise it will automatically be opened
-          // on raw data view. Note: raw data section doesn't have its own view, it uses
-          // empty row model as a parent (which feels like a hack).
+          // We need to blur the popup section. Otherwise it will automatically be opened
+          // on raw data view. Note: raw data and record card sections don't have parent views;
+          // they use the empty row model as a parent (which feels like a hack).
           if (!popupSection.isDisposed()) {
             popupSection.hasFocus(false);
           }
@@ -1328,17 +1344,21 @@ export class GristDoc extends DisposableWithEvents {
             prevSection.hasFocus(true);
           }
         }
-        // Clearing popup data will close this popup.
-        this._rawSectionOptions.set(null);
+        // Clearing popup section data will close this popup.
+        this._popupSectionOptions.set(null);
       }
     });
     // If the anchor link is valid, set the cursor.
-    if (hash.colRef && hash.rowId) {
-      const fieldIndex = popupSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
-      if (fieldIndex >= 0) {
-        const view = await this._waitForView(popupSection);
-        view?.setCursorPos({rowId: hash.rowId, fieldIndex});
+    if (hash.rowId || hash.colRef) {
+      const {rowId} = hash;
+      let fieldIndex;
+      if (hash.colRef) {
+        const maybeFieldIndex = popupSection.viewFields.peek().all()
+          .findIndex(f => f.colRef.peek() === hash.colRef);
+        if (maybeFieldIndex !== -1) { fieldIndex = maybeFieldIndex; }
       }
+      const view = await this._waitForView(popupSection);
+      view?.setCursorPos({rowId, fieldIndex});
     }
   }
 
@@ -1586,8 +1606,8 @@ export class GristDoc extends DisposableWithEvents {
    */
   private async _switchToSectionId(sectionId: number) {
     const section: ViewSectionRec = this.docModel.viewSections.getRowModel(sectionId);
-    if (section.isRaw.peek()) {
-      // This is raw data view
+    if (section.isRaw.peek() || section.isRecordCard.peek()) {
+      // This is a raw data or record card view.
       await urlState().pushUrl({docPage: 'data'});
       this.viewModel.activeSectionId(sectionId);
     } else if (section.isVirtual.peek()) {

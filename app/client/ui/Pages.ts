@@ -86,7 +86,7 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
   const docData = activeDoc.docData;
   // Create a set with tables on other pages (but not on this one).
   const tablesOnOtherViews = new Set(activeDoc.docModel.viewSections.rowModels
-    .filter(vs => !vs.isRaw.peek() && vs.parentId.peek() !== viewId)
+    .filter(vs => !vs.isRaw.peek() && !vs.isRecordCard.peek() && vs.parentId.peek() !== viewId)
     .map(vs => vs.tableRef.peek()));
 
   // Check if this page is a last page for some tables.

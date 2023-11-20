@@ -290,9 +290,15 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     queryParams[`${k}_`] = v;
   }
   const hashParts: string[] = [];
-  if (state.hash && (state.hash.rowId || state.hash.popup)) {
+  if (state.hash && (state.hash.rowId || state.hash.popup || state.hash.recordCard)) {
     const hash = state.hash;
-    hashParts.push(state.hash?.popup ? 'a2' : `a1`);
+    if (hash.recordCard) {
+      hashParts.push('a3');
+    } else if (hash.popup) {
+      hashParts.push('a2');
+    } else {
+      hashParts.push('a1');
+    }
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
       const partValue = hash[key];
       if (partValue) {
@@ -480,13 +486,13 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         hashMap.set(part.slice(0, 1), part.slice(1));
       }
     }
-    if (hashMap.has('#') && ['a1', 'a2'].includes(hashMap.get('#') || '')) {
+    if (hashMap.has('#') && ['a1', 'a2', 'a3'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
         'sectionId',
         'rowId',
         'colRef',
-      ] as Array<Exclude<keyof HashLink, 'popup' | 'rickRow'>>;
+      ] as Array<Exclude<keyof HashLink, 'popup' | 'rickRow' | 'recordCard'>>;
       for (const key of keys) {
         let ch: string;
         if (key === 'rowId' && hashMap.has('rr')) {
@@ -504,7 +510,9 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         }
       }
       if (hashMap.get('#') === 'a2') {
-        link.popup =  true;
+        link.popup = true;
+      } else if (hashMap.get('#') === 'a3') {
+        link.recordCard = true;
       }
       state.hash = link;
     }
@@ -722,6 +730,8 @@ export interface GristLoadConfig {
 
   // Whether to show the "Delete Account" button in the account page.
   canCloseAccount?: boolean;
+
+  experimentalPlugins?: boolean;
 }
 
 export const Features = StringUnion(
@@ -966,6 +976,7 @@ export interface HashLink {
   colRef?: number;
   popup?: boolean;
   rickRow?: boolean;
+  recordCard?: boolean;
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be

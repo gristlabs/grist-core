@@ -168,7 +168,7 @@ export class RefSelect extends Disposable {
     this._getReferrerFields(item.value).forEach(refField => {
       const sectionId = this._fieldObs()!.viewSection().getRowId();
       if (refField.column().viewFields().all()
-          .filter(field => !field.viewSection().isRaw())
+          .filter(field => !field.viewSection().isRaw() && !field.viewSection().isRecordCard())
           .some(field => field.parentId() !== sectionId)) {
         // The col has fields in other sections, remove only the fields in this section.
         return this._docModel.viewFields.sendTableAction(['RemoveRecord', refField.getRowId()]);

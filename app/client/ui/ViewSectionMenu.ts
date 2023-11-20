@@ -69,6 +69,7 @@ export function viewSectionMenu(
          && use(gristDoc.maximizedSectionId) !== use(viewSection.id) // not in when we are maximized
          && use(gristDoc.externalSectionId) !== use(viewSection.id) // not in when we are external
          && !use(viewSection.isRaw) // not in raw mode
+         && !use(viewSection.isRecordCard)
          && !use(singleVisible) // not in single section
          ;
   });
@@ -145,6 +146,7 @@ export function viewSectionMenu(
           ctl.close();
         }),
       ]}),
+      dom.hide(viewSection.isRecordCard),
     ),
     cssMenu(
       testId('viewLayout'),

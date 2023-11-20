@@ -141,6 +141,9 @@ class MetaTableExtras(object):
     def isRaw(rec, table):
       return rec.tableRef.rawViewSectionRef == rec
 
+    def isRecordCard(rec, table):
+      return rec.tableRef.recordCardViewSectionRef == rec
+
   class _grist_Filters(object):
     def setAutoRemove(rec, table):
       """Marks the filter for removal if its column no longer exists."""

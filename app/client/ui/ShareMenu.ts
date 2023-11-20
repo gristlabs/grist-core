@@ -16,7 +16,7 @@ import {buildUrlId, isFeatureEnabled, parseUrlId} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
 import {dom, DomContents, styled} from 'grainjs';
-import {MenuCreateFunc} from 'popweasel';
+import {cssMenuItem, MenuCreateFunc} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('ShareMenu');
@@ -378,9 +378,12 @@ const cssMenuIconLink = styled('a', `
   padding: 8px 24px;
   --icon-color: ${theme.controlFg};
 
-  &:hover {
-    background-color: ${theme.hover};
-    --icon-color: ${theme.controlHoverFg};
+  .${cssMenuItem.className}-sel > & {
+    --icon-color: ${theme.menuItemIconSelectedFg};
+  }
+
+  .${cssMenuItem.className}.disabled & {
+    --icon-color: ${theme.menuItemDisabledFg};
   }
 `);
 

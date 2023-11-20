@@ -15,6 +15,7 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
 
   primaryView: ko.Computed<ViewRec>;
   rawViewSection: ko.Computed<ViewSectionRec>;
+  recordCardViewSection: ko.Computed<ViewSectionRec>;
   summarySource: ko.Computed<TableRec>;
 
   // A Set object of colRefs for all summarySourceCols of table.
@@ -52,6 +53,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
 
   this.primaryView = refRecord(docModel.views, this.primaryViewId);
   this.rawViewSection = refRecord(docModel.viewSections, this.rawViewSectionRef);
+  this.recordCardViewSection = refRecord(docModel.viewSections, this.recordCardViewSectionRef);
   this.summarySource = refRecord(docModel.tables, this.summarySourceTable);
   this.isHidden = this.autoDispose(
     // This is repeated logic from isHiddenTable.

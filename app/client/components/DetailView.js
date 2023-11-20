@@ -17,8 +17,8 @@ const {CopySelection} = require('./CopySelection');
 const RecordLayout  = require('./RecordLayout');
 const commands      = require('./commands');
 const tableUtil     = require('../lib/tableUtil');
+const {CardContextMenu} = require('../ui/CardContextMenu');
 const {FieldContextMenu} = require('../ui/FieldContextMenu');
-const {RowContextMenu} = require('../ui/RowContextMenu');
 const {parsePasteForView} = require("./BaseView2");
 const {descriptionInfoTooltip} = require("../ui/tooltips");
 
@@ -39,7 +39,7 @@ function DetailView(gristDoc, viewSectionModel) {
   this.recordLayout = this.autoDispose(RecordLayout.create({
     viewSection: this.viewSection,
     buildFieldDom: this.buildFieldDom.bind(this),
-    buildRowContextMenu : this.buildRowContextMenu.bind(this),
+    buildCardContextMenu : this.buildCardContextMenu.bind(this),
     buildFieldContextMenu : this.buildFieldContextMenu.bind(this),
     resizeCallback: () => {
       if (!this._isSingle) {
@@ -246,15 +246,14 @@ DetailView.prototype.getSelection = function() {
   );
 };
 
-DetailView.prototype.buildRowContextMenu = function(row) {
-  const rowOptions = this._getRowContextMenuOptions(row);
-  return RowContextMenu(rowOptions);
+DetailView.prototype.buildCardContextMenu = function(row) {
+  const cardOptions = this._getCardContextMenuOptions(row);
+  return CardContextMenu(cardOptions);
 }
 
-DetailView.prototype.buildFieldContextMenu = function(row) {
-  const rowOptions = this._getRowContextMenuOptions(row);
+DetailView.prototype.buildFieldContextMenu = function() {
   const fieldOptions = this._getFieldContextMenuOptions();
-  return FieldContextMenu(rowOptions, fieldOptions);
+  return FieldContextMenu(fieldOptions);
 }
 
 /**
@@ -490,8 +489,9 @@ DetailView.prototype._canSingleClick = function(field) {
 };
 
 DetailView.prototype._clearCardFields = function() {
-  const {isFormula} = this._getFieldContextMenuOptions();
-  if (isFormula === true) {
+  const selection = this.getSelection();
+  const isFormula = Boolean(selection.fields[0]?.column.peek().isRealFormula.peek());
+  if (isFormula) {
     this.activateEditorAtCursor({init: ''});
   } else {
     const clearAction = tableUtil.makeDeleteAction(this.getSelection());
@@ -520,7 +520,7 @@ DetailView.prototype._clearCopySelection = function() {
   this.copySelection(null);
 };
 
-DetailView.prototype._getRowContextMenuOptions = function(row) {
+DetailView.prototype._getCardContextMenuOptions = function(row) {
   return {
     disableInsert: Boolean(
       this.gristDoc.isReadonly.get() ||
@@ -542,7 +542,6 @@ DetailView.prototype._getFieldContextMenuOptions = function() {
   return {
     disableModify: Boolean(selection.fields[0]?.disableModify.peek()),
     isReadonly: this.gristDoc.isReadonly.get() || this.isPreview,
-    isFormula: Boolean(selection.fields[0]?.column.peek().isRealFormula.peek()),
   };
 }
 

@@ -58,6 +58,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
 
   const showRawData = (use: UseCB) => {
     return !use(viewSection.isRaw)// Don't show raw data if we're already in raw data.
+        && !use(viewSection.isRecordCard)
         && !isSinglePage // Don't show raw data in single page mode.
            ;
   };
@@ -88,20 +89,22 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     dom.maybe(!isSinglePage, () => [
       menuDivider(),
       menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId('widget-options')),
-      menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter")),
-      menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection")),
+      menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter"), dom.hide(viewSection.isRecordCard)),
+      menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection"), dom.hide(viewSection.isRecordCard)),
     ]),
 
-    menuDivider(),
+    menuDivider(dom.hide(viewSection.isRecordCard)),
     dom.maybe((use) => use(viewSection.parentKey) === 'custom' && use(viewSection.hasCustomOptions), () =>
       menuItemCmd(allCommands.openWidgetConfiguration, t("Open configuration"),
         testId('section-open-configuration')),
     ),
     menuItemCmd(allCommands.collapseSection, t("Collapse widget"),
       dom.cls('disabled', dontCollapseSection()),
+      dom.hide(viewSection.isRecordCard),
       testId('section-collapse')),
     menuItemCmd(allCommands.deleteSection, t("Delete widget"),
       dom.cls('disabled', dontRemoveSection()),
+      dom.hide(viewSection.isRecordCard),
       testId('section-delete')),
   ];
 }

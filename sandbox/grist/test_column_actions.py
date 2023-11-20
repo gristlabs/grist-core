@@ -223,15 +223,15 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(2, colRef=12),
           Field(3, colRef=13),
         ]),
-        Section(4, parentKey="record", tableRef=2, fields=[
-          Field(10, colRef=15),
-          Field(11, colRef=16),
-          Field(12, colRef=17),
+        Section(5, parentKey="record", tableRef=2, fields=[
+          Field(13, colRef=15),
+          Field(14, colRef=16),
+          Field(15, colRef=17),
         ]),
-        Section(6, parentKey="record", tableRef=3, fields=[
-          Field(16, colRef=18),
-          Field(17, colRef=20),
-          Field(18, colRef=21),
+        Section(7, parentKey="record", tableRef=3, fields=[
+          Field(19, colRef=18),
+          Field(20, colRef=20),
+          Field(21, colRef=21),
         ]),
       ]),
       View(2, sections=[
@@ -311,14 +311,14 @@ class TestColumnActions(test_engine.EngineTestCase):
           Field(2, colRef=12),
           Field(3, colRef=13),
         ]),
-        Section(4, parentKey="record", tableRef=2, fields=[
-          Field(10, colRef=15),
-          Field(12, colRef=17),
+        Section(5, parentKey="record", tableRef=2, fields=[
+          Field(13, colRef=15),
+          Field(15, colRef=17),
         ]),
-        Section(6, parentKey="record", tableRef=3, fields=[
-          Field(16, colRef=18),
-          Field(17, colRef=20),
-          Field(18, colRef=21),
+        Section(7, parentKey="record", tableRef=3, fields=[
+          Field(19, colRef=18),
+          Field(20, colRef=20),
+          Field(21, colRef=21),
         ]),
       ]),
       View(2, sections=[
@@ -368,13 +368,13 @@ class TestColumnActions(test_engine.EngineTestCase):
         Section(1, parentKey="record", tableRef=1, fields=[
           Field(3, colRef=13),
         ]),
-        Section(4, parentKey="record", tableRef=2, fields=[
-          Field(10, colRef=15),
-          Field(12, colRef=17),
+        Section(5, parentKey="record", tableRef=2, fields=[
+          Field(13, colRef=15),
+          Field(15, colRef=17),
         ]),
-        Section(6, parentKey="record", tableRef=4, fields=[
-          Field(17, colRef=23),
-          Field(18, colRef=24),
+        Section(7, parentKey="record", tableRef=4, fields=[
+          Field(20, colRef=23),
+          Field(21, colRef=24),
         ]),
       ]),
       View(2, sections=[
@@ -420,14 +420,14 @@ class TestColumnActions(test_engine.EngineTestCase):
     self.init_sample_data()
 
     # Add sortSpecs to ViewSections.
-    self.apply_user_action(['BulkUpdateRecord', '_grist_Views_section', [2, 3, 4],
+    self.apply_user_action(['BulkUpdateRecord', '_grist_Views_section', [2, 3, 5],
       {'sortColRefs': ['[15, -16]', '[-15, 16, 17]', '[19]']}
     ])
     self.assertTableData('_grist_Views_section', cols="subset", rows="subset", data=[
       ["id",  "sortColRefs"  ],
       [2,     '[15, -16]'    ],
       [3,     '[-15, 16, 17]'],
-      [4,     '[19]'         ],
+      [5,     '[19]'         ],
     ])
 
     # Remove column, and check that the correct sortColRefs items are removed.
@@ -436,7 +436,7 @@ class TestColumnActions(test_engine.EngineTestCase):
       ["id",  "sortColRefs"],
       [2,     '[15]'       ],
       [3,     '[-15, 17]'  ],
-      [4,     '[19]'       ],
+      [5,     '[19]'       ],
     ])
 
     # Update sortColRefs for next test.
@@ -450,5 +450,5 @@ class TestColumnActions(test_engine.EngineTestCase):
       ["id",  "sortColRefs"],
       [2,     '[]'         ],
       [3,     '[-16]'      ],
-      [4,     '[]'         ],
+      [5,     '[]'         ],
     ])
