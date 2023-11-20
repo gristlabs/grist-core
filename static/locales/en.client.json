@@ -209,7 +209,13 @@
         "Duplicate Table": "Duplicate Table",
         "Raw Data Tables": "Raw Data Tables",
         "Table ID copied to clipboard": "Table ID copied to clipboard",
-        "You do not have edit access to this document": "You do not have edit access to this document"
+        "You do not have edit access to this document": "You do not have edit access to this document",
+        "Edit Record Card": "Edit Record Card",
+        "Record Card": "Record Card",
+        "Record Card Disabled": "Record Card Disabled",
+        "Remove Table": "Remove Table",
+        "Rename Table": "Rename Table",
+        "{{action}} Record Card": "{{action}} Record Card"
     },
     "DocHistory": {
         "Activity": "Activity",
@@ -616,7 +622,8 @@
         "Duplicate rows_other": "Duplicate rows",
         "Insert row": "Insert row",
         "Insert row above": "Insert row above",
-        "Insert row below": "Insert row below"
+        "Insert row below": "Insert row below",
+        "View as card": "View as card"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copied to clipboard"
@@ -1231,5 +1238,13 @@
     "FloatingPopup": {
         "Maximize": "Maximize",
         "Minimize": "Minimize"
+    },
+    "CardContextMenu": {
+        "Copy anchor link": "Copy anchor link",
+        "Delete card": "Delete card",
+        "Duplicate card": "Duplicate card",
+        "Insert card": "Insert card",
+        "Insert card above": "Insert card above",
+        "Insert card below": "Insert card below"
     }
 }
