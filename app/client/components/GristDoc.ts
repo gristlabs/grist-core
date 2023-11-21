@@ -209,6 +209,8 @@ export class GristDoc extends DisposableWithEvents {
   private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
   private _backgroundVideoPlayerHolder: Holder<YouTubePlayer> = Holder.create(this);
   private _disableAutoStartingTours: boolean = false;
+  private _isShowingPopupSection = false;
+  private _prevSectionId: number | null = null;
 
   constructor(
     public readonly app: App,
@@ -565,6 +567,13 @@ export class GristDoc extends DisposableWithEvents {
         commands.allCommands.viewTabFocus.run();
       }
     }));
+
+    this.autoDispose(this._popupSectionOptions.addListener((popupOptions) => {
+      if (!popupOptions) {
+        this._isShowingPopupSection = false;
+        this._prevSectionId = null;
+      }
+    }));
   }
 
   /**
@@ -616,10 +625,16 @@ export class GristDoc extends DisposableWithEvents {
             // In case the section is removed, close the popup.
             content.viewSection.autoDispose({dispose: content.close});
 
-            const {recordCard} = content.hash;
+            const {recordCard, rowId} = content.hash;
             if (recordCard) {
+              if (!rowId || rowId === 'new') {
+                // Should be unreachable, but just to be sure (and to satisfy type checking)...
+                throw new Error('Unable to open Record Card: undefined row id');
+              }
+
               return dom.create(RecordCardPopup, {
                 gristDoc: this,
+                rowId,
                 viewSection: content.viewSection,
                 onClose: content.close,
               });
@@ -629,7 +644,15 @@ export class GristDoc extends DisposableWithEvents {
           }) :
           dom.create((owner) => {
             this.viewLayout = ViewLayout.create(owner, this, content);
-            this.viewLayout.maximized.addListener(n => this.maximizedSectionId.set(n));
+            this.viewLayout.maximized.addListener(sectionId => {
+              this.maximizedSectionId.set(sectionId);
+
+              if (sectionId === null && !this._isShowingPopupSection) {
+                // If we didn't navigate to another section in the popup, move focus
+                // back to the previous section.
+                this._focusPreviousSection();
+              }
+            });
             owner.onDispose(() => this.viewLayout = null);
             return this.viewLayout;
           })
@@ -1290,11 +1313,11 @@ export class GristDoc extends DisposableWithEvents {
     if (!hash.sectionId) {
       return;
     }
+    if (!this._prevSectionId) {
+      this._prevSectionId = this.viewModel.activeSection.peek().id();
+    }
     // We might open popup either for a section in this view or some other section (like Raw Data Page).
     if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
-      if (this.viewLayout) {
-        this.viewLayout.previousSectionId = this.viewModel.activeSectionId.peek();
-      }
       this.viewModel.activeSectionId(hash.sectionId);
       // If the anchor link is valid, set the cursor.
       if (hash.colRef && hash.rowId) {
@@ -1308,10 +1331,10 @@ export class GristDoc extends DisposableWithEvents {
       this.viewLayout?.maximized.set(hash.sectionId);
       return;
     }
+    this._isShowingPopupSection = true;
     // We will borrow active viewModel and will trick him into believing that
     // the section from the link is his viewSection and it is active. Fortunately
     // he doesn't care. After popup is closed, we will restore the original.
-    const prevSection = this.viewModel.activeSection.peek();
     this.viewModel.activeSectionId(hash.sectionId);
     // Now we have view section we want to show in the popup.
     const popupSection = this.viewModel.activeSection.peek();
@@ -1329,20 +1352,17 @@ export class GristDoc extends DisposableWithEvents {
         if (!this._popupSectionOptions.get()) {
           return;
         }
-        if (popupSection !== prevSection) {
+        if (popupSection.id() !== this._prevSectionId) {
           // We need to blur the popup section. Otherwise it will automatically be opened
           // on raw data view. Note: raw data and record card sections don't have parent views;
           // they use the empty row model as a parent (which feels like a hack).
           if (!popupSection.isDisposed()) {
             popupSection.hasFocus(false);
           }
-          // We need to restore active viewSection for a view that we borrowed.
           // When this popup was opened we tricked active view by setting its activeViewSection
-          // to our viewSection (which might be a completely diffrent section or a raw data section) not
-          // connected to this view.
-          if (!prevSection.isDisposed()) {
-            prevSection.hasFocus(true);
-          }
+          // to our viewSection (which might be a completely different section or a raw data section) not
+          // connected to this view. We need to return focus back to the previous section.
+          this._focusPreviousSection();
         }
         // Clearing popup section data will close this popup.
         this._popupSectionOptions.set(null);
@@ -1399,6 +1419,19 @@ export class GristDoc extends DisposableWithEvents {
 
     this._isRickRowing.set(false);
     this._showBackgroundVideoPlayer.set(false);
+  }
+
+  private _focusPreviousSection() {
+    const prevSectionId = this._prevSectionId;
+    if (!prevSectionId) { return; }
+
+    if (
+      this.viewModel.viewSections.peek().all().some(s =>
+        !s.isDisposed() && s.id.peek() === prevSectionId)
+    ) {
+      this.viewModel.activeSectionId(prevSectionId);
+    }
+    this._prevSectionId = null;
   }
 
   /**

@@ -1,6 +1,5 @@
 import { allCommands } from 'app/client/components/commands';
 import { makeT } from 'app/client/lib/localization';
-import { RECORD_CARDS } from 'app/client/models/features';
 import { menuDivider, menuIcon, menuItemCmd, menuItemCmdLabel } from 'app/client/ui2018/menus';
 import { dom } from 'grainjs';
 
@@ -22,7 +21,7 @@ export function RowContextMenu({
   numRows
 }: IRowContextMenu) {
   const result: Element[] = [];
-  if (RECORD_CARDS() && numRows === 1) {
+  if (numRows === 1) {
     result.push(
       menuItemCmd(
         allCommands.viewAsCard,

@@ -2,7 +2,6 @@ import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {TableRec} from 'app/client/models/DocModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {RECORD_CARDS} from 'app/client/models/features';
 import {urlState} from 'app/client/models/gristUrlState';
 import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {hideInPrintView, testId, theme} from 'app/client/ui2018/cssVars';
@@ -20,7 +19,7 @@ const t = makeT('Reference');
  * Reference - The widget for displaying references to another table's records.
  */
 export class Reference extends NTextBox {
-  private _refTable: Computed<TableRec | null>;
+  protected _refTable: Computed<TableRec | null>;
   private _visibleColRef: Computed<number>;
   private _validCols: Computed<Array<IOptionFull<number>>>;
 
@@ -120,23 +119,20 @@ export class Reference extends NTextBox {
       dom.cls('text_wrapping', this.wrapping),
       cssRefIcon('FieldReference',
         cssRefIcon.cls('-view-as-card', use =>
-          RECORD_CARDS() && use(referenceId) !== 0 && use(formattedValue).hasRecordCard),
+          use(referenceId) !== 0 && use(formattedValue).hasRecordCard),
         dom.on('click', async () => {
-          if (!RECORD_CARDS()) { return; }
           if (referenceId.get() === 0 || !formattedValue.get().hasRecordCard) { return; }
 
           const rowId = referenceId.get() as UIRowId;
           const sectionId = this._refTable.get()?.recordCardViewSectionRef();
           if (sectionId === undefined) {
-            throw new Error('Unable to find Record Card section');
+            throw new Error('Unable to open Record Card: undefined section id');
           }
 
           const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
           await urlState().pushUrl(anchorUrlState, {replace: true});
         }),
         dom.on('mousedown', (ev) => {
-          if (!RECORD_CARDS()) { return; }
-
           ev.stopPropagation();
           ev.preventDefault();
         }),

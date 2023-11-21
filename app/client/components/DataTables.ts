@@ -3,7 +3,6 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {setTestState} from 'app/client/lib/testState';
 import {TableRec} from 'app/client/models/DocModel';
-import {RECORD_CARDS} from 'app/client/models/features';
 import {docListHeader, docMenuTrigger} from 'app/client/ui/DocMenuCss';
 import {duplicateTable, DuplicateTableResponse} from 'app/client/ui/DuplicateTable';
 import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
@@ -99,13 +98,14 @@ export class DataTables extends Disposable {
                   hoverTooltip(
                     dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled)
                       ? t('Record Card Disabled')
-                      : t('Record Card')),
+                      : t('Edit Record Card')),
                     {key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false}
                   ),
-                  dom.hide(!RECORD_CARDS()),
+                  dom.hide(this._gristDoc.isReadonly),
                   // Make the button invisible to maintain consistent alignment with non-summary tables.
                   dom.style('visibility', u => u(tableRec.summarySourceTable) === 0 ? 'visible' : 'hidden'),
                   cssRecordCardButton.cls('-disabled', use => use(use(tableRec.recordCardViewSection).disabled)),
+                  testId('table-record-card'),
                 ),
                 cssDotsButton(
                   testId('table-menu'),
@@ -120,7 +120,8 @@ export class DataTables extends Disposable {
                   throw new Error(`Table ${tableRec.tableId.peek()} doesn't have a raw view section.`);
                 }
                 this._gristDoc.viewModel.activeSectionId(sectionId);
-              })
+              }),
+              cssTable.cls('-readonly', this._gristDoc.isReadonly),
             );
           })
         ),
@@ -132,7 +133,8 @@ export class DataTables extends Disposable {
     return dom.domComputed((use) => {
       const rawViewSectionRef = use(fromKo(table.rawViewSectionRef));
       const isSummaryTable = use(table.summarySourceTable) !== 0;
-      if (!rawViewSectionRef || isSummaryTable) {
+      const isReadonly = use(this._gristDoc.isReadonly);
+      if (!rawViewSectionRef || isSummaryTable || isReadonly) {
         // Some very old documents might not have a rawViewSection, and raw summary
         // tables can't currently be renamed.
         const tableName = [
@@ -185,7 +187,7 @@ export class DataTables extends Disposable {
         )),
         testId('menu-remove-table'),
       ),
-      dom.maybe(use => RECORD_CARDS() && use(table.summarySourceTable) === 0, () => [
+      dom.maybe(use => use(table.summarySourceTable) === 0, () => [
         menuDivider(),
         menuItem(
           () => this._editRecordCard(table),
@@ -307,6 +309,10 @@ const cssTable = styled('div', `
   border: 1px solid ${css.theme.rawDataTableBorder};
   &:hover {
     border-color: ${css.theme.rawDataTableBorderHover};
+  }
+  &-readonly {
+    /* Row count column is hidden when document is read-only. */
+    grid-template-columns: 16px auto 56px;
   }
 `);
 

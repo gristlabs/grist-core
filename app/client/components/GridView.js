@@ -56,7 +56,6 @@ const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
 const {reportError} = require('app/client/models/AppModel');
-const {RECORD_CARDS} = require('app/client/models/features');
 const {urlState} = require('app/client/models/gristUrlState');
 
 const t = makeT('GridView');
@@ -375,13 +374,15 @@ GridView.gridCommands = {
     this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
   },
   viewAsCard() {
-    if (!RECORD_CARDS()) { return; }
     if (this._isRecordCardDisabled()) { return; }
 
     const selectedRows = this.selectedRows();
+    if (selectedRows.length !== 1) { return; }
+
+    const colRef = this.viewSection.viewFields().at(this.cursor.fieldIndex()).column().id();
     const rowId = selectedRows[0];
     const sectionId = this.viewSection.tableRecordCard().id();
-    const anchorUrlState = {hash: {rowId, sectionId, recordCard: true}};
+    const anchorUrlState = {hash: {colRef, rowId, sectionId, recordCard: true}};
     urlState().pushUrl(anchorUrlState, {replace: true}).catch(reportError);
   },
 };

@@ -84,7 +84,6 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   public viewModel: ViewRec;
   public layoutSpec: ko.Computed<BoxSpec>;
   public maximized: Observable<number|null>;
-  public previousSectionId = 0; // Used to restore focus after a maximized section is closed.
   public isResizing = Observable.create(this, false);
   public layout: Layout;
   public layoutEditor: LayoutEditor;
@@ -203,16 +202,6 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       // If we are closing popup, resize all sections.
       if (!sectionId) {
         this._onResize();
-        // Reset active section to the first one if the section is popup is collapsed.
-        if (prev
-          && this.viewModel.activeCollapsedSections.peek().includes(prev)
-          && this.previousSectionId) {
-        // Make sure that previous section exists still.
-        if (this.viewModel.viewSections.peek().all()
-                .some(s => !s.isDisposed() && s.id.peek() === this.previousSectionId)) {
-          this.viewModel.activeSectionId(this.previousSectionId);
-        }
-      }
       } else {
         // Otherwise resize only active one (the one in popup).
         const section = this.viewModel.activeSection.peek();

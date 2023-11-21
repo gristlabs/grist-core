@@ -274,7 +274,9 @@ BaseView.prototype.deleteRecords = function(source) {
     buildConfirmDelete(selectedCell, onSave, rowIds.length <= 1);
   } else {
     onSave().then(() => {
-      reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}.`);
+      if (!this.isDisposed()) {
+        reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}.`);
+      }
       return true;
     });
   }

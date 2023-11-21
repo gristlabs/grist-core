@@ -573,6 +573,19 @@ export async function rightClick(cell: WebElement) {
 }
 
 /**
+ * Clicks a Reference List cell, taking care not to click the icon (which can
+ * cause an unexpected Record Card popup to appear).
+ */
+export async function clickReferenceListCell(cell: WebElement) {
+  const tokens = await cell.findAll('.test-ref-list-cell-token-label');
+  if (tokens.length > 0) {
+    await tokens[0].click();
+  } else {
+    await cell.click();
+  }
+}
+
+/**
  * Gets the selector position in the Grid view section (or null if not present).
  * Selector is the black box around the row number.
  */

@@ -33,6 +33,7 @@ function DetailView(gristDoc, viewSectionModel) {
 
   this.viewFields = gristDoc.docModel.viewFields;
   this._isSingle = (this.viewSection.parentKey.peek() === 'single');
+  this._isExternalSectionPopup = gristDoc.externalSectionId.get() === this.viewSection.id();
 
   //--------------------------------------------------
   // Create and attach the DOM for the view.
@@ -191,7 +192,9 @@ DetailView.prototype.deleteRows = async function(rowIds) {
   try {
     await BaseView.prototype.deleteRows.call(this, rowIds);
   } finally {
-    this.cursor.rowIndex(index);
+    if (!this.isDisposed()) {
+      this.cursor.rowIndex(index);
+    }
   }
 };
 
@@ -365,7 +368,13 @@ DetailView.prototype.buildTitleControls = function() {
   // the controls can be confusing in this case.
   // Note that the controls should still be visible with a filter link.
   const showControls = ko.computed(() => {
-    if (!this._isSingle || this.recordLayout.layoutEditor()) { return false; }
+    if (
+      !this._isSingle||
+      this.recordLayout.layoutEditor() ||
+      this._isExternalSectionPopup
+    ) {
+      return false;
+    }
     const linkingState = this.viewSection.linkingState();
     return !(linkingState && Boolean(linkingState.cursorPos));
   });

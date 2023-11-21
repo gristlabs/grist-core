@@ -183,7 +183,12 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   await gu.waitForServer();
 
   const selectByTable = selectBy.split(' ')[0];
-  await gu.getCell({section: selectByTable, col: 0, rowNum: 3}).click();
+  const cell = await gu.getCell({section: selectByTable, col: 0, rowNum: 3});
+  if (selectByTable === 'REFLISTS') {
+    await gu.clickReferenceListCell(cell);
+  } else {
+    await cell.click();
+  }
 
   let numSourceRows = 0;
 
@@ -207,7 +212,12 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   }
 
   for (let i = 0; i < sourceData.length; i++) {
-    await gu.getCell({section: selectByTable, col: 0, rowNum: i + 1}).click();
+    const cell = await gu.getCell({section: selectByTable, col: 0, rowNum: i + 1});
+    if (selectByTable === 'REFLISTS') {
+      await gu.clickReferenceListCell(cell);
+    } else {
+      await cell.click();
+    }
     await checkSourceGroup(i);
   }
 

@@ -78,7 +78,6 @@ export function buildViewSectionDom(options: {
     tableNameHidden,
     widgetNameHidden,
     renamable = true,
-    hideTitleControls = false,
   } = options;
 
   // Creating normal section dom
@@ -110,7 +109,7 @@ export function buildViewSectionDom(options: {
         testId('viewsection-title'),
         cssTestClick(testId("viewsection-blank")),
       ),
-      hideTitleControls ? null : viewInstance.buildTitleControls(),
+      viewInstance.buildTitleControls(),
       dom('div.viewsection_buttons',
         dom.create(viewSectionMenu, gristDoc, vs)
       )

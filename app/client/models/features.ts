@@ -33,7 +33,3 @@ export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
   }
   return G.window.PERMITTED_CUSTOM_WIDGETS;
 }
-
-export function RECORD_CARDS() {
-  return Boolean(getGristConfig().experimentalPlugins);
-}

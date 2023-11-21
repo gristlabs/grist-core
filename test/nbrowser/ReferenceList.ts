@@ -5,7 +5,6 @@ import {Session} from 'test/nbrowser/gristUtils';
 
 describe('ReferenceList', function() {
   this.timeout(60000);
-  setupTestSuite();
   let session: Session;
   const cleanup = setupTestSuite({team: true});
 
@@ -79,6 +78,7 @@ describe('ReferenceList', function() {
       await gu.sendKeys(Key.ARROW_DOWN, Key.ENTER, 'The Avengers', Key.ENTER, Key.ENTER);
 
       // Check that the cells are rendered correctly.
+      await gu.resizeColumn({col: 'Favorite Film'}, 100);
       assert.deepEqual(await gu.getVisibleGridCells('Favorite Film', [1, 2, 3, 4, 5, 6]),
         [
           'Forrest Gump\nAlien',
@@ -273,6 +273,7 @@ describe('ReferenceList', function() {
       await driver.find('.test-fbuilder-ref-col-select').click();
       await driver.findContent('.test-select-row', /Name/).click();
       await gu.waitForServer();
+      await gu.resizeColumn({col: 'A'}, 100);
       assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6]),
         ['Roger\nTom', 'Tom', 'Sydney\nBill\nEvan', '', '', '']);
 
@@ -311,7 +312,7 @@ describe('ReferenceList', function() {
       const cell = gu.getCell({col: 'A', rowNum: 1});
       await server.pauseUntil(async () => {
         assert.equal(await cell.getText(), 'Friends[1]\nFriends[2]');
-        await cell.click();
+        await gu.clickReferenceListCell(cell);
         await gu.sendKeys('5');
         // Check that the autocomplete has no items yet.
         assert.isEmpty(await driver.findAll('.test-autocomplete .test-ref-editor-new-item'));
@@ -324,7 +325,7 @@ describe('ReferenceList', function() {
       assert.equal(await cell.getText(), 'Friends[1]\nFriends[2]');
 
       // Once server is responsive, a valid value should not offer a "new item".
-      await cell.click();
+      await gu.clickReferenceListCell(cell);
       await gu.sendKeys('5');
       await driver.findWait('.test-ref-editor-item', 500);
       assert.isFalse(await driver.find('.test-ref-editor-new-item').isPresent());
@@ -750,7 +751,8 @@ describe('ReferenceList', function() {
     });
 
     it('should update choices as user types into textbox', async function() {
-      let cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 1}).doClick();
+      let cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 1});
+      await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), 'TECHNOLOGY, ARTS AND SCIENCES STUDIO');
       await driver.sendKeys('TECHNOLOGY, ARTS AND SCIENCES STUDIO');
       assert.deepEqual(await getACOptions(3), [
@@ -759,7 +761,8 @@ describe('ReferenceList', function() {
         'SCHOOL OF SCIENCE AND TECHNOLOGY',
       ]);
       await driver.sendKeys(Key.ESCAPE);
-      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 2}).doClick();
+      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 2});
+      await gu.clickReferenceListCell(cell);
       await driver.sendKeys('stuy');
       assert.deepEqual(await getACOptions(3), [
         'STUYVESANT HIGH SCHOOL',
@@ -790,7 +793,8 @@ describe('ReferenceList', function() {
     it('should highlight matching parts of items', async function() {
       await driver.sendKeys(Key.HOME);
 
-      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2}).doClick();
+      let cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 2});
+      await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), 'Red');
       await driver.sendKeys(Key.ENTER, 'Red');
       await driver.findWait('.test-ref-editor-item', 1000);
@@ -802,7 +806,8 @@ describe('ReferenceList', function() {
         ['Re']);
       await driver.sendKeys(Key.ESCAPE);
 
-      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 1}).doClick();
+      cell = await gu.getCell({section: 'References', col: 'Schools', rowNum: 1});
+      await gu.clickReferenceListCell(cell);
       await driver.sendKeys('br tech');
       assert.deepEqual(
         await driver.findContentWait('.test-ref-editor-item', /BROOKLYN TECH/, 1000).findAll('span', e => e.getText()),
@@ -819,19 +824,20 @@ describe('ReferenceList', function() {
     it('should reflect changes to the target column', async function() {
       await driver.sendKeys(Key.HOME);
 
-      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 4}).doClick();
+      const cell = await gu.getCell({section: 'References', col: 'Colors', rowNum: 4});
+      await gu.clickReferenceListCell(cell);
       assert.equal(await cell.getText(), '');
       await driver.sendKeys(Key.ENTER);
       assert.deepEqual(await getACOptions(2), ['Alice Blue', 'Añil']);
       await driver.sendKeys(Key.ESCAPE);
 
       // Change a color
-      await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
-      await driver.sendKeys('HAZELNUT', Key.ENTER);
+      await gu.clickReferenceListCell(await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}));
+      await driver.sendKeys('HAZELNUT', Key.ENTER, Key.ENTER);
       await gu.waitForServer();
 
       // See that the old value is gone from the autocomplete, and the new one is present.
-      await cell.click();
+      await gu.clickReferenceListCell(cell);
       await driver.sendKeys(Key.ENTER);
       assert.deepEqual(await getACOptions(2), ['Añil', 'Aqua']);
       await driver.sendKeys('H');
@@ -839,11 +845,11 @@ describe('ReferenceList', function() {
       await driver.sendKeys(Key.ESCAPE);
 
       // Delete a row.
-      await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}).doClick();
+      await gu.clickReferenceListCell(await gu.getCell({section: 'Colors', col: 'Color Name', rowNum: 1}));
       await gu.removeRow(1);
 
       // See that the value is gone from the autocomplete.
-      await cell.click();
+      await gu.clickReferenceListCell(cell);
       await driver.sendKeys('H');
       assert.deepEqual(await getACOptions(2), ['Honeydew', 'Hot Pink']);
       await driver.sendKeys(Key.ESCAPE);
@@ -856,7 +862,7 @@ describe('ReferenceList', function() {
       await gu.waitForServer();
 
       // See that the new value is visible in the autocomplete.
-      await cell.click();
+      await gu.clickReferenceListCell(cell);
       await driver.sendKeys('H');
       assert.deepEqual(await getACOptions(2), ['HELIOTROPE', 'Honeydew']);
       await driver.sendKeys(Key.BACK_SPACE);
@@ -866,7 +872,7 @@ describe('ReferenceList', function() {
       // Undo all the changes.
       await gu.undo(4);
 
-      await cell.click();
+      await gu.clickReferenceListCell(cell);
       await driver.sendKeys('H');
       assert.deepEqual(await getACOptions(2), ['Honeydew', 'Hot Pink']);
       await driver.sendKeys(Key.BACK_SPACE);
