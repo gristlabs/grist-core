@@ -6,8 +6,8 @@
  *    IdP is the "Identity Provider", somewhere users log into, e.g. Okta or Google Apps.
  *
  * We also use optional attributes for the user's name, for which we accept any of:
- *    given_name
- *    family_name
+ *    given_name + family_name
+ *    name
  *
  * Expected environment variables:
  *    env GRIST_OIDC_SP_HOST=https://<your-domain>
@@ -21,6 +21,14 @@
  *        The client secret for the application, as registered with the IdP.
  *    env GRIST_OIDC_IDP_SCOPES
  *        The scopes to request from the IdP, as a space-separated list. Defaults to "openid email profile".
+ *    env GRIST_OIDC_SP_PROFILE_NAME_ATTR
+ *        The key of the attribute to use for the user's name.
+ *        If omitted, the name will either be the concatenation of "given_name" + "family_name" or the "name" attribute.
+ *    env GRIST_OIDC_SP_PROFILE_EMAIL_ATTR
+ *        The key of the attribute to use for the user's email. Defaults to "email".
+ *    env GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT
+ *        If set to "true", on logout, there won't be any attempt to call the IdP's end_session_endpoint
+ *        (the user will remain logged in in the IdP).
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -43,12 +51,16 @@ import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
+import { UserProfile } from 'app/common/LoginSessionAPI';
 
 const CALLBACK_URL = '/oauth2/callback';
 
 export class OIDCConfig {
   private _client: Client;
   private _redirectUrl: string;
+  private _namePropertyKey?: string;
+  private _emailPropertyKey: string;
+  private _skipEndSessionEndpoint: boolean;
 
   public constructor() {
   }
@@ -69,6 +81,19 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
       censor: true,
     });
+    this._namePropertyKey = section.flag('namePropertyKey').readString({
+      envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
+    });
+
+    this._emailPropertyKey = section.flag('emailPropertyKey').requireString({
+      envVar: 'GRIST_OIDC_SP_PROFILE_EMAIL_ATTR',
+      defaultValue: 'email',
+    });
+
+    this._skipEndSessionEndpoint = section.flag('endSessionEndpoint').readBool({
+      envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
+      defaultValue: false,
+    })!;
 
     const issuer = await Issuer.discover(issuerUrl);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
@@ -78,6 +103,10 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
+    if (this._client.issuer.metadata.end_session_endpoint === undefined && !this._skipEndSessionEndpoint) {
+      throw new Error('The Identity provider does not propose end_session_endpoint. ' +
+        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true');
+    }
     log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
   }
 
@@ -140,6 +169,10 @@ export class OIDCConfig {
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
+    // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
+    if (this._skipEndSessionEndpoint) {
+      return redirectUrl.href;
+    }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href
     });
@@ -167,14 +200,22 @@ export class OIDCConfig {
     return codeVerifier;
   }
 
-  private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse) {
-      const email = userInfo.email;
-      const fname = userInfo.given_name ?? '';
-      const lname = userInfo.family_name ?? '';
-      return {
-        email,
-        name: `${fname} ${lname}`.trim(),
-      };
+  private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
+    return {
+      email: String(userInfo[ this._emailPropertyKey ]),
+      name: this._extractName(userInfo)
+
+    };
+  }
+
+  private _extractName(userInfo: UserinfoResponse): string|undefined {
+    if (this._namePropertyKey) {
+      return (userInfo[ this._namePropertyKey ] as any)?.toString();
+    }
+    const fname = userInfo.given_name ?? '';
+    const lname = userInfo.family_name ?? '';
+
+    return `${fname} ${lname}`.trim() || userInfo.name;
   }
 }
 
