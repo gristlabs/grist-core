@@ -26,6 +26,10 @@
 # python in gvisor.
 
 function check_gvisor {
+  # If we already have working gvisor flags, return.
+  if [[ -n "$GVISOR_FLAGS" ]]; then
+    return
+  fi
   # Check if a trivial command works under gvisor with the proposed flags.
   if runsc --network none "$@" "do" true 2> /dev/null; then
     export GVISOR_FLAGS="$@"
@@ -33,17 +37,11 @@ function check_gvisor {
   fi
 }
 
-if [[ -z "$GVISOR_FLAGS" ]]; then
-  check_gvisor --unprivileged --ignore-cgroups
-fi
-if [[ -z "$GVISOR_FLAGS" ]]; then
-  check_gvisor --unprivileged
-fi
+check_gvisor --unprivileged --ignore-cgroups
+check_gvisor --unprivileged
 
 # If we can't use --unprivileged, stick with --rootless. We will not make a checkpoint.
-if [[ -z "$GVISOR_FLAGS" ]]; then
-  check_gvisor --rootless
-fi
+check_gvisor --rootless
 
 if [[ "$GVISOR_FLAGS" =~ "--unprivileged" ]]; then
   export GRIST_CHECKPOINT=/tmp/engine_$(echo $PWD | sed "s/[^a-zA-Z0-9]/_/g")

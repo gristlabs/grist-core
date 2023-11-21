@@ -5,8 +5,8 @@ set -e
 if [[ "$GRIST_SANDBOX_FLAVOR" = "gvisor" ]]; then
   source ./sandbox/gvisor/get_checkpoint_path.sh
 
-  # Check GVISOR_FLAGS we ended up with.
-  if runsc --network none $GVISOR_FLAGS "do" true 2> /dev/null; then
+  # Check GVISOR_FLAGS we ended up with. Don't ignore the output, it may be helpful in troubleshooting.
+  if runsc --network none $GVISOR_FLAGS "do" true; then
     echo "gvisor check ok (flags: ${GVISOR_FLAGS})"
   else
     echo "gvisor check failed (flags: ${GVISOR_FLAGS}); consider different GVISOR_FLAGS or GRIST_SANDBOX_FLAVOR"
