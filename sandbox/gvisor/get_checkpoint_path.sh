@@ -43,6 +43,6 @@ check_gvisor --unprivileged
 # If we can't use --unprivileged, stick with --rootless. We will not make a checkpoint.
 check_gvisor --rootless
 
-if [[ "$GVISOR_FLAGS" =~ "--unprivileged" ]]; then
+if [[ "$GVISOR_FLAGS" =~ "-unprivileged" ]]; then
   export GRIST_CHECKPOINT=/tmp/engine_$(echo $PWD | sed "s/[^a-zA-Z0-9]/_/g")
 fi
