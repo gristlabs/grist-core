@@ -543,7 +543,8 @@
         "Insert row above": "Insertar fila arriba",
         "Insert row below": "Insertar fila debajo",
         "Duplicate rows_one": "Duplicar fila",
-        "Duplicate rows_other": "Duplicar filas"
+        "Duplicate rows_other": "Duplicar filas",
+        "View as card": "Ver como tarjeta"
     },
     "ShareMenu": {
         "Access Details": "Detalles de Acceso",
@@ -718,7 +719,13 @@
         "Duplicate Table": "Duplicar tabla",
         "Raw Data Tables": "Tablas de datos brutos",
         "Table ID copied to clipboard": "ID de tabla copiado al portapapeles",
-        "Click to copy": "Haga clic para copiar"
+        "Click to copy": "Haga clic para copiar",
+        "Edit Record Card": "Editar la ficha del registro",
+        "Rename Table": "Cambiar el nombre de la tabla",
+        "{{action}} Record Card": "{{action}} Ficha",
+        "Record Card": "Ficha de registro",
+        "Remove Table": "Quitar la tabla",
+        "Record Card Disabled": "Tarjeta de registro desactivada"
     },
     "DocPageModel": {
         "Add Empty Table": "Agregar tabla vacía",
@@ -1285,5 +1292,13 @@
     "FloatingPopup": {
         "Maximize": "Maximizar",
         "Minimize": "Minimizar"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Inserte la tarjeta arriba",
+        "Duplicate card": "Tarjeta duplicada",
+        "Insert card below": "Inserte la tarjeta a continuación",
+        "Delete card": "Borrar la tarjeta",
+        "Copy anchor link": "Copiar enlace fijado",
+        "Insert card": "Insertar la tarjeta"
     }
 }
