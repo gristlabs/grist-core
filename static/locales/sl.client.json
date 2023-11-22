@@ -260,7 +260,8 @@
         "Copy anchor link": "Kopiraj sidrno povezavo",
         "Duplicate rows_one": "Podvoji vrstico",
         "Duplicate rows_other": "Podvoji vrstice",
-        "Insert row above": "Vstavi vrstico zgoraj"
+        "Insert row above": "Vstavi vrstico zgoraj",
+        "View as card": "Kartični pogled"
     },
     "Tools": {
         "Delete": "Izbriši",
@@ -298,7 +299,13 @@
         "Duplicate Table": "Podvojena tabela",
         "Table ID copied to clipboard": "ID tabele kopiran v odložišče",
         "You do not have edit access to this document": "Nimate dostopa za urejanje tega dokumenta",
-        "Raw Data Tables": "Neobdelana tabela"
+        "Raw Data Tables": "Neobdelana tabela",
+        "Edit Record Card": "Uredi evidenčno kartico",
+        "Rename Table": "Preimenuj Tabelo",
+        "{{action}} Record Card": "{{action}} Evidenčno Kartico",
+        "Record Card": "Evidenčna kartica",
+        "Remove Table": "Odstrani Tabelo",
+        "Record Card Disabled": "Evidenčna kartica onemogočena"
     },
     "ViewLayoutMenu": {
         "Delete record": "Brisanje zapisa",
@@ -1231,5 +1238,13 @@
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Pošiljanje datoteke v Google Drive"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Vstavi kartico zgoraj",
+        "Duplicate card": "Podvoji kartico",
+        "Insert card below": "Vstavi kartico spodaj",
+        "Delete card": "Briši kartico",
+        "Copy anchor link": "Kopiraj sidrno povezavo",
+        "Insert card": "Vstavi kartico"
     }
 }
