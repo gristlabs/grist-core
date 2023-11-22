@@ -4,6 +4,7 @@ import {createTmpDir} from 'app/server/lib/uploads';
 import {delay} from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
+import {isAffirmative} from 'app/common/gutil';
 
 // A special token representing a deleted document, used in places where a
 // checksum is expected otherwise.
@@ -230,9 +231,17 @@ export class ChecksummedExternalStorage implements ExternalStorage {
           // you may get an old version for some time.
           // If a snapshotId was specified, we can skip this check.
           if (expectedChecksum && expectedChecksum !== checksum) {
-            log.error("ext %s download: data for %s has wrong checksum: %s (expected %s)",
-                      this.label, fromKey, checksum, expectedChecksum);
-            return undefined;
+            const message = `ext ${this.label} download: data for ${fromKey} has wrong checksum:` +
+              ` ${checksum} (expected ${expectedChecksum})`;
+
+            // Only warn if GRIST_DISCARD_REDIS_CHECKSUM_MISMATCH is set. This flag is experimental
+            // and should be removed once we are confident that the checksums verification is useless.
+            if (isAffirmative(process.env.GRIST_DISCARD_REDIS_CHECKSUM_MISMATCH)) {
+              log.warn(message);
+            } else {
+              log.error(message);
+              return undefined;
+            }
           }
         }
 
