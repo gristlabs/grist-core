@@ -1,12 +1,15 @@
 import {allCommands} from 'app/client/components/commands';
 import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
+import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {IconName} from "app/client/ui2018/IconList";
 import {icon} from 'app/client/ui2018/icons';
 import {
+  menuCssClass,
   menuDivider,
   menuIcon,
   menuItem,
@@ -19,11 +22,12 @@ import {
   searchableMenu,
   SearchableMenuItem,
 } from 'app/client/ui2018/menus';
+import * as UserType from "app/client/widgets/UserType";
+import {isListType, RecalcWhen} from "app/common/gristTypes";
 import {Sort} from 'app/common/SortSpec';
 import {dom, DomElementArg, styled} from 'grainjs';
-import {isListType, RecalcWhen} from "app/common/gristTypes";
-import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import * as weasel from 'popweasel';
+import * as commands from "../components/commands";
 import isEqual = require('lodash/isEqual');
 
 const t = makeT('GridViewMenus');
@@ -31,17 +35,93 @@ const t = makeT('GridViewMenus');
 export function buildAddColumnMenu(gridView: GridView, index?: number) {
   const isSummaryTable = Boolean(gridView.viewSection.table().summarySourceTable());
   return [
-    menuItem(
-      async () => { await gridView.insertColumn(null, {index}); },
-      menuIcon('Plus'),
-      t("Add Column"),
-      testId('new-columns-menu-add-new'),
-    ),
+    buildAddNewColumMenuSection(gridView, index),
     buildHiddenColumnsMenuItems(gridView, index),
     isSummaryTable ? null : [
       buildLookupSection(gridView, index),
       buildShortcutsMenuItems(gridView, index),
     ],
+  ];
+}
+
+function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomElementArg[] {
+  function buildEmptyNewColumMenuItem() {
+    return menuItem(
+      async () => {
+        await gridView.insertColumn(null, {index});
+      },
+      t("Add Column"),
+      testId('new-columns-menu-add-new'),
+    );
+  }
+
+  function BuildNewColumnWithTypeSubmenu() {
+    const columnTypes = [
+      "Text",
+      "Numeric",
+      "Int",
+      "Bool",
+      "Date",
+      `DateTime:${gridView.gristDoc.docModel.docInfoRow.timezone()}`,
+      "Choice",
+      "ChoiceList",
+      `Ref:${gridView.tableModel.tableMetaRow.tableId()}`,
+      `RefList:${gridView.tableModel.tableMetaRow.tableId()}`,
+      "Attachments"].map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
+      .map((ct): { displayName: string, colType: string, testIdName: string, icon: IconName | undefined } => ({
+        displayName: t(ct.obj.label),
+        colType: ct.type,
+        testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
+        icon: ct.obj.icon
+      }));
+
+    return menuItemSubmenu(
+      (ctl) => [
+        ...columnTypes.map((colType) =>
+          menuItem(
+            async () => {
+              await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}});
+            },
+            menuIcon(colType.icon as IconName),
+            colType.displayName === 'Reference'?
+                  gridView.gristDoc.behavioralPromptsManager.attachTip('referenceColumns', {
+                    popupOptions: {
+                      attach: `.${menuCssClass}`,
+                      placement: 'left-start',
+                    }
+                  }):null,
+            colType.displayName,
+            testId(`new-columns-menu-add-${colType.testIdName}`)),
+        ),
+        testId('new-columns-menu-add-with-type-submenu'),
+      ],
+      {allowNothingSelected: false},
+      t('Add column with type'),
+      testId('new-columns-menu-add-with-type')
+    );
+  }
+
+  function buildNewFunctionColumnMenuItem() {
+    return menuItem(
+      async () => {
+        await gridView.insertColumn(null, {index, skipPopup: true, colInfo: {isFormula: true}});
+        gridView.activateEditorAtCursor();
+        commands.allCommands.makeFormula.run();
+        commands.allCommands.detachEditor.run();
+      },
+      withInfoTooltip(
+        t('Add formula column'),
+        GristTooltips.formulaColumn(),
+        {variant: 'hover'}
+      ),
+      testId('new-columns-menu-add-formula'),
+    );
+  }
+
+  return [
+    buildEmptyNewColumMenuItem(),
+    BuildNewColumnWithTypeSubmenu(),
+    buildNewFunctionColumnMenuItem()
   ];
 }
 

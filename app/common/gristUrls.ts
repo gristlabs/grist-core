@@ -88,6 +88,7 @@ export const commonUrls = {
   community: 'https://community.getgrist.com',
   functions: 'https://support.getgrist.com/functions',
   formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
+  formulas: 'https://support.getgrist.com/formulas',
 
   basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',

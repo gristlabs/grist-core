@@ -37,7 +37,8 @@ export type Tooltip =
   | 'addRowConditionalStyle'
   | 'addColumnConditionalStyle'
   | 'uuid'
-  | 'lookups';
+  | 'lookups'
+  | 'formulaColumn'
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -112,6 +113,13 @@ see or edit which parts of your document.')
     dom('div', t('Use reference columns to relate data in different tables.')),
     dom('div',
       cssLink({href: commonUrls.helpColRefs, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
+  ),
+  formulaColumn: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div', t('Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.')),
+    dom('div',
+      cssLink({href: commonUrls.formulas, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),

@@ -7,11 +7,13 @@ import {UserAPIImpl} from 'app/common/UserAPI';
 describe('GridViewNewColumnMenu', function () {
   this.timeout('2m');
   const cleanup = setupTestSuite();
+  gu.bigScreen();
   let api: UserAPIImpl;
   let docId: string;
+  let session: gu.Session;
 
   before(async function () {
-    const session = await gu.session().login();
+    session = await gu.session().login({showTips:true});
     api = session.createHomeApi();
     docId = await session.tempNewDoc(cleanup, 'ColumnMenu');
 
@@ -141,6 +143,140 @@ describe('GridViewNewColumnMenu', function () {
       assert.deepEqual(columns, ['A', 'B', 'C', 'E', 'D']);
     });
   });
+
+  describe('create column with type', function () {
+    revertThis();
+    it('should show "Add Column With type" option', async function () {
+      // open add new colum menu
+      await clickAddColumn();
+      // check if "Add Column With type" option is persent
+      const addWithType = await driver.findWait(
+        '.test-new-columns-menu-add-with-type',
+        100,
+        'Add Column With Type is not present');
+      assert.equal(await addWithType.getText(), 'Add column with type');
+    });
+
+    it('should display reference column popup when opened for the first time', async function(){
+      // open add new colum menu
+      await clickAddColumn();
+      // select "Add Column With type" option
+      await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
+      // wait for submenu to appear
+      await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
+      // check if popup is showed
+      await driver.findWait('.test-behavioral-prompt', 100, 'Reference column popup is not present');
+      // close popup
+      await gu.dismissBehavioralPrompts();
+      // close menu
+      await closeAddColumnMenu();
+      // open it again
+      await clickAddColumn();
+      await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
+      await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
+      // popup should not be showed
+      assert.isFalse(await driver.find('.test-behavioral-prompt').isPresent());
+      await gu.disableTips(session.email);
+      await closeAddColumnMenu();
+    });
+
+    const optionsToBeDisplayed = [
+      "Text",
+      "Numeric",
+      "Integer",
+      "Toggle",
+      "Date",
+      "DateTime",
+      "Choice",
+      "Choice List",
+      "Reference",
+      "Reference List",
+      "Attachment",
+    ].map((option) => ({type:option, testClass: option.toLowerCase().replace(' ', '-')}));
+    for (const option of optionsToBeDisplayed) {
+    it(`should allow to select column type ${option.type}`, async function () {
+      // open add new colum menu
+      await clickAddColumn();
+      // select "Add Column With type" option
+      await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
+      // wait for submenu to appear
+      await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
+      // check if it is present in the menu
+      const element = await driver.findWait(
+        `.test-new-columns-menu-add-${option.testClass}`.toLowerCase(),
+        100,
+        `${option.type} option is not present`);
+      // click on the option and check if column is added with a proper type
+      await element.click();
+        //discard rename menu
+        await driver.findWait('.test-column-title-close', 100).click();
+        //check if new column is present
+        await gu.waitForServer();
+        await gu.selectColumn('D');
+        await gu.openColumnPanel();
+        const type = await gu.getType();
+        assert.equal(type, option.type);
+
+        await gu.undo(1);
+      });
+    }
+  });
+
+  describe('create formula column', function(){
+    revertThis();
+    it('should show "create formula column" option with tooltip', async function () {
+      // open add new colum menu
+      await clickAddColumn();
+      // check if "create formula column" option is present
+      const addWithType = await driver.findWait('.test-new-columns-menu-add-formula', 100,
+        'Add formula column is not present');
+      // check if it has a tooltip button
+      const tooltip = await addWithType.findWait('.test-info-tooltip', 100,
+        'Tooltip button is not present');
+      // check if tooltip is show after hovering
+      await tooltip.mouseMove();
+      const tooltipContainer = await driver.findWait('.test-info-tooltip-popup',
+        100,
+        'Tooltip is not shown');
+      // check if tooltip is showing valid message
+      const tooltipText = await tooltipContainer.getText();
+      assert.include(tooltipText,
+        'Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.',
+        'Tooltip is showing wrong message');
+      // check if link in tooltip has a proper href
+      const hrefAddress = await tooltipContainer.findWait('a',
+        100,
+        'Tooltip link is not present');
+      assert.equal(await hrefAddress.getText(), 'Learn more.');
+      assert.equal(await hrefAddress.getAttribute('href'),
+        'https://support.getgrist.com/formulas',
+        'Tooltip link has wrong href');
+    });
+
+    it('should allow to select formula column', async function () {
+      // open column panel - we will need it later
+      await gu.openColumnPanel();
+      // open add new colum menu
+      await clickAddColumn();
+      // select "create formula column" option
+      await driver.findWait('.test-new-columns-menu-add-formula', 100).click();
+      // there should not be a rename poup
+      assert.isFalse(await driver.find('test-column-title-popup').isPresent());
+      //check if new column is present
+      await gu.waitForServer();
+      // check if editor popup is opened
+      await driver.findWait('.test-floating-editor-popup', 200, 'Editor popup is not present');
+      // write some formula
+      await gu.sendKeys('1+1');
+      await driver.find('.test-formula-editor-save-button').click();
+      await gu.waitForServer();
+      // check if column is created with a proper type
+      const type = await gu.columnBehavior();
+      assert.equal(type, 'Formula Column');
+
+    });
+  });
+
 
   describe('hidden columns', function () {
     revertThis();
