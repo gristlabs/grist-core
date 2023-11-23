@@ -178,7 +178,7 @@ etc.
 Grist Labs is an open-core company. We offer Grist hosting as a
 service, with free and paid plans. We also develop and sell
 features related to Grist using a proprietary license, targeted at the
-needs of enterprises with large self-managed installations. 
+needs of enterprises with large self-managed installations.
 
 We see data portability and autonomy as a key value, and `grist-core` is an essential part of that. We are committed to maintaining and improving the `grist-core` codebase, and to be thoughtful about how proprietary offerings impact data portability and autonomy.
 
@@ -396,6 +396,7 @@ TYPEORM_PASSWORD | password to use
 TYPEORM_PORT     | port number for db if not the default for that db type
 TYPEORM_TYPE     | set to 'sqlite' or 'postgres'
 TYPEORM_USERNAME | username to connect as
+TYPEORM_EXTRA    | any other properties to pass to TypeORM in JSON format
 
 #### Testing:
 
