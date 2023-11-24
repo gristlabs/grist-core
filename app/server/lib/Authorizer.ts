@@ -348,10 +348,13 @@ export async function addRequestUser(
       // A user record will be created automatically for emails we've never seen before.
       if (profile && !mreq.userId) {
         const userOptions: UserOptions = {};
-        if (profile?.loginMethod === 'Email + Password') {
+        if (profile.loginMethod === 'Email + Password') {
           // Link the session authSubject, if present, to the user. This has no effect
           // if the user already has an authSubject set in the db.
           userOptions.authSubject = sessionUser.authSubject;
+        }
+        if (profile.connectId) {
+          await dbManager.ensureExternalUser(profile);
         }
         const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
         if (user) {

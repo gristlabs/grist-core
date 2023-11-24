@@ -203,8 +203,9 @@ export class OIDCConfig {
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
     return {
       email: String(userInfo[ this._emailPropertyKey ]),
-      name: this._extractName(userInfo)
-
+      name: this._extractName(userInfo),
+      connectId: userInfo.sub,
+      loginMethod: 'External',
     };
   }
 
