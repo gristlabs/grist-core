@@ -217,7 +217,13 @@
         "Duplicate Table": "Tabelle duplizieren",
         "Raw Data Tables": "Rohdaten-Tabellen",
         "Table ID copied to clipboard": "Tabellen-ID in die Zwischenablage kopiert",
-        "You do not have edit access to this document": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument"
+        "You do not have edit access to this document": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument",
+        "Edit Record Card": "Karteikarte bearbeiten",
+        "Rename Table": "Tabelle umbenennen",
+        "{{action}} Record Card": "{{action}} Karteikarte",
+        "Record Card": "Karteikarte",
+        "Remove Table": "Tabelle entfernen",
+        "Record Card Disabled": "Karteikarte Deaktiviert"
     },
     "DocHistory": {
         "Activity": "Aktivität",
@@ -663,7 +669,8 @@
         "Insert row above": "Zeile oben einfügen",
         "Insert row below": "Zeile unten einfügen",
         "Duplicate rows_one": "Zeile duplizieren",
-        "Duplicate rows_other": "Zeilen duplizieren"
+        "Duplicate rows_other": "Zeilen duplizieren",
+        "View as card": "Ansicht als Karte"
     },
     "SelectionSummary": {
         "Copied to clipboard": "In die Zwischenablage kopiert"
@@ -1295,5 +1302,13 @@
     },
     "searchDropdown": {
         "Search": "Suchen"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Karte oben einfügen",
+        "Duplicate card": "Karte duplizieren",
+        "Insert card below": "Karte unten einfügen",
+        "Delete card": "Karte löschen",
+        "Copy anchor link": "Ankerlink kopieren",
+        "Insert card": "Karte einfügen"
     }
 }

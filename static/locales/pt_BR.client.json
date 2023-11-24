@@ -217,7 +217,13 @@
         "Duplicate Table": "Duplicar a Tabela",
         "Raw Data Tables": "Tabelas de Dados Primários",
         "Table ID copied to clipboard": "ID da Tabela copiada para a área de transferência",
-        "You do not have edit access to this document": "Você não tem permissão de edição desse documento"
+        "You do not have edit access to this document": "Você não tem permissão de edição desse documento",
+        "Edit Record Card": "Editar cartão de registro",
+        "Rename Table": "Renomear tabela",
+        "{{action}} Record Card": "{{action}} Cartão de registro",
+        "Record Card": "Cartão de registro",
+        "Remove Table": "Remover tabela",
+        "Record Card Disabled": "Cartão de registro desabilitado"
     },
     "DocHistory": {
         "Activity": "Atividade",
@@ -663,7 +669,8 @@
         "Insert row above": "Inserir linha acima",
         "Insert row below": "Inserir linha abaixo",
         "Duplicate rows_one": "Duplicar linha",
-        "Duplicate rows_other": "Duplicar linhas"
+        "Duplicate rows_other": "Duplicar linhas",
+        "View as card": "Ver como cartão"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copiado para a área de transferência"
@@ -1295,5 +1302,13 @@
     "FloatingPopup": {
         "Maximize": "Maximizar",
         "Minimize": "Minimizar"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Inserir cartão acima",
+        "Duplicate card": "Duplicar o cartão",
+        "Insert card below": "Inserir cartão abaixo",
+        "Delete card": "Excluir cartão",
+        "Copy anchor link": "Copiar link de ancoragem",
+        "Insert card": "Inserir cartão"
     }
 }

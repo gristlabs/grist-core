@@ -29,6 +29,9 @@
  *    env GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT
  *        If set to "true", on logout, there won't be any attempt to call the IdP's end_session_endpoint
  *        (the user will remain logged in in the IdP).
+ *    env GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
+ *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
+ *        Defaults to false.
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -61,6 +64,7 @@ export class OIDCConfig {
   private _namePropertyKey?: string;
   private _emailPropertyKey: string;
   private _skipEndSessionEndpoint: boolean;
+  private _ignoreEmailVerified: boolean;
 
   public constructor() {
   }
@@ -92,6 +96,11 @@ export class OIDCConfig {
 
     this._skipEndSessionEndpoint = section.flag('endSessionEndpoint').readBool({
       envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
+      defaultValue: false,
+    })!;
+
+    this._ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
+      envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
       defaultValue: false,
     })!;
 
@@ -134,6 +143,11 @@ export class OIDCConfig {
       );
 
       const userInfo = await this._client.userinfo(tokenSet);
+
+      if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
+        throw new Error(`OIDCConfig: email not verified for ${userInfo.email}`);
+      }
+
       const profile = this._makeUserProfileFromUserInfo(userInfo);
       log.info(`OIDCConfig: got OIDC response for ${profile.email} (${profile.name}) redirecting to ${targetUrl}`);
 
