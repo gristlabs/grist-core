@@ -99,8 +99,8 @@
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Želite izbrisati ključ API. To bo povzročilo zavrnitev vseh prihodnjih zahtevkov, ki bodo uporabljali ta ključ API. Ali še vedno želite izbrisati?",
         "Click to show": "Kliknite za prikaz",
         "Remove API Key": "Odstranite API ključ",
-        "This API key can be used to access this account anonymously via the API.": "Ta API ključ lahko uporabite za anonimen dostop do tega računa prek vmesnika API.",
-        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Ta ključ API lahko uporabite za dostop do svojega računa prek vmesnika API. Svojega ključa API ne delite z nikomer.",
+        "This API key can be used to access this account anonymously via the API.": "Ta ključ lahko uporabite za anonimen dostop do tega računa prek vmesnika API.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "API ključ lahko uporabite za dostop do svojega računa prek API vmesnika.  Svojega API ključa ne delite z nikomer.",
         "By generating an API key, you will be able to make API calls for your own account.": "Z ustvarjanjem API ključa boste lahko uporabljali klice API funkcij za svoj račun."
     },
     "App": {
@@ -269,7 +269,7 @@
         "TOOLS": "ORODJA",
         "Settings": "Nastavitve",
         "Access Rules": "Pravila dostopa",
-        "Code View": "Pogled kode",
+        "Code View": "Koda",
         "Raw Data": "Neobdelani podatki",
         "Document History": "Zgodovina Dokumentov",
         "Validate Data": "Potrdi podatke",
@@ -406,7 +406,7 @@
     },
     "CodeEditorPanel": {
         "Access denied": "Dostop zavrnjen",
-        "Code View is available only when you have full document access.": "Pogled kode je na voljo le, če imate popoln dostop do dokumenta."
+        "Code View is available only when you have full document access.": "Koda je na voljo le, če imate popoln dostop do dokumenta."
     },
     "ColorSelect": {
         "Apply": "Uporabi",
