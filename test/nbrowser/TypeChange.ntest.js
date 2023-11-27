@@ -291,12 +291,12 @@ describe('TypeChange.ntest', function() {
 
   it('should trigger a transform when reference table is changed', async function() {
     // Set up conditions for the test
-    await gu.getSection('Table1').click();
+    await gu.actions.viewSection('Table1').selectSection();
     await gu.enterGridValues(2, 3, [['red', 'yellow']]);
     await gu.actions.addNewSection('New', 'Table');
-    await gu.getSection('TABLE3').click();
+    await gu.actions.viewSection('TABLE3').selectSection();
     await gu.enterGridValues(0, 1, [['yellow', 'red', 'green', 'blue']]);
-    await gu.getSection('Table1').click();
+    await gu.actions.viewSection('Table1').selectSection();
     await gu.clickCellRC(0, 3);
     await gu.openSidePane('field');
     await gu.setType('Reference');
@@ -365,7 +365,7 @@ describe('TypeChange.ntest', function() {
   //  column were mistaken for row ids and converted to row values instead of AltText values.
   it('should properly convert from integer to reference', async function() {
     // Set up conditions for the test
-    await gu.getSection('TABLE3').click();
+    await gu.actions.viewSection('TABLE3').selectSection();
     await gu.enterGridValues(0, 2, [['3', '3', '4', '1']]);
     await gu.waitForServer();
     await gu.setType('Integer');

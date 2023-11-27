@@ -25,7 +25,7 @@ describe('SavePosition.ntest', function() {
     await $('.test-config-data').click();
 
     // Connect CITY -> CITY Card List
-    await gu.getSection('CITY Card List').click();
+    await gu.actions.viewSection('CITY Card List').selectSection();
     await $('.test-right-select-by').click();
     await $('.test-select-row:contains(CITY)').click();
     await gu.waitForServer();

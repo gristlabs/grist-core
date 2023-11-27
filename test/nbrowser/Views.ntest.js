@@ -111,7 +111,7 @@ describe('Views.ntest', function() {
     // Reference: https://phab.getgrist.com/T327
     await gu.actions.addNewSection('New', 'Table');
     await gu.waitForServer();
-    await gu.getSection('TABLE4').click();
+    await gu.actions.viewSection('TABLE4').selectSection();
     // Delete the section
     await gu.actions.viewSection('TABLE4').selectMenuOption('viewLayout', 'Delete widget');
     await gu.waitForServer();

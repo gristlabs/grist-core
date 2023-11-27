@@ -28,19 +28,19 @@ describe('FillLinkedRecords.ntest', function() {
 
     // Link the sections first since the sample document start with no links.
     // Connect Friends -> Films
-    await gu.getSection('Films record').click();
+    await gu.actions.viewSection('Films record').selectSection();
     await $('.test-right-select-by').click();
     await $('.test-select-row:contains(Friends record)').click();
     await gu.waitForServer();
 
     // Connect Films -> Performances grid
-    await gu.getSection('Performances record').click();
+    await gu.actions.viewSection('Performances record').selectSection();
     await $('.test-right-select-by').click();
     await $('.test-select-row:contains(Films record)').click();
     await gu.waitForServer();
 
     // Connect Films -> Performances detail
-    await gu.getSection('Performances detail').click();
+    await gu.actions.viewSection('Performances detail').selectSection();
     await $('.test-right-select-by').click();
     await $('.test-select-row:contains(Films record)').click();
     await gu.waitForServer();
