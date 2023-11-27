@@ -1,5 +1,6 @@
 import {CellValue} from 'app/common/DocActions';
 import {AclMatchFunc, InfoView} from 'app/common/GranularAccessClause';
+import {GristObjCode} from 'app/plugin/GristData';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {User} from 'app/server/lib/GranularAccess';
@@ -192,5 +193,49 @@ describe('ACLFormula', function() {
     compiled = await setAndCompile('(user.Email in rec.emails) == (user.Name in rec.emails)');
     assert.equal(compiled({user, rec: V({emails: null})}), true);
     assert.equal(compiled({user, rec: V({emails: 'X@'})}), false);
+  });
+
+  it('should decode cell values so that "in" is safe to use with lists', async function () {
+    const user = new User({Email: 'L'});
+
+    // A previous bug meant that the above user would always pass this formula,
+    // because an encoded list always starts with the 'L' type code,
+    // and encoded cell values were used in evaluating formulas.
+    let compiled = await setAndCompile('user.Email in rec.emails');
+    assert.equal(compiled({user, rec: V({emails: [GristObjCode.List]})}), false);
+    assert.equal(compiled({user, rec: V({emails: [GristObjCode.List, "X"]})}), false);
+    assert.equal(compiled({user, rec: V({emails: [GristObjCode.List, "L"]})}), true);
+
+    // This should never happen (nothing should be encoded as an empty list),
+    // this just shows what would happen.
+    assert.throws(() => compiled({user, rec: V({emails: [] as any})}),
+      /\.includes is not a function/);
+
+    // List literals aren't decoded and work as expected.
+    compiled = await setAndCompile('user.Email in []');
+    assert.equal(compiled({user, rec: V({})}), false);
+
+    compiled = await setAndCompile('user.Email in ["X"]');
+    assert.equal(compiled({user, rec: V({})}), false);
+
+    compiled = await setAndCompile('user.Email in ["L"]');
+    assert.equal(compiled({user, rec: V({})}), true);
+  });
+
+  it('should allow comparing dates', async function () {
+    const user = new User({});
+
+    const compiled = await setAndCompile('rec.date1 < rec.date2');
+    for (let i = 0; i < 150; i++) {
+      const date1 = i * 10000000000;
+      for (let j = 0; j < 150; j++) {
+        const date2 = j * 10000000000;
+        const rec = V({
+          date1: [GristObjCode.Date, date1],
+          date2: [GristObjCode.Date, date2],
+        });
+        assert.equal(compiled({user, rec}), date1 < date2);
+      }
+    }
   });
 });

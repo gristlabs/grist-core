@@ -11,6 +11,7 @@
 import {CellValue} from 'app/common/DocActions';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
 import {AclMatchFunc, AclMatchInput, ParsedAclFormula} from 'app/common/GranularAccessClause';
+import {decodeObject} from "app/plugin/objtypes";
 import constant = require('lodash/constant');
 
 const GRIST_CONSTANTS: Record<string, string> = {
@@ -94,7 +95,7 @@ function getAttr(value: any, attrName: string, valueNode: ParsedAclFormula): any
     }
     throw new Error(`No value for '${describeNode(valueNode)}'`);
   }
-  return (typeof value.get === 'function' ? value.get(attrName) : // InfoView
+  return (typeof value.get === 'function' ? decodeObject(value.get(attrName)) : // InfoView
           value[attrName]);
 }
 
