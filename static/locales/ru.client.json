@@ -334,7 +334,13 @@
         "Duplicate Table": "Дублировать таблицу",
         "Table ID copied to clipboard": "Идентификатор таблицы скопирован в буфер обмена",
         "You do not have edit access to this document": "У вас нет доступа к редактированию этого документа",
-        "Delete {{formattedTableName}} data, and remove it from all pages?": "Удалить {{formattedTableName}} данные, и удалить их со всех страниц?"
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Удалить {{formattedTableName}} данные, и удалить их со всех страниц?",
+        "Edit Record Card": "Редактировать карточку записи",
+        "Rename Table": "Переименовать Таблицу",
+        "{{action}} Record Card": "{{action}} Карточка записи",
+        "Record Card": "Карточка записи",
+        "Remove Table": "Удалить Таблицу",
+        "Record Card Disabled": "Карточка записи отключена"
     },
     "DocHistory": {
         "Snapshots": "Снимки",
@@ -603,7 +609,8 @@
         "Insert row below": "Вставить строку ниже",
         "Insert row": "Вставить строку",
         "Insert row above": "Вставить строку выше",
-        "Delete": "Удалить"
+        "Delete": "Удалить",
+        "View as card": "Посмотреть как карточку"
     },
     "RecordLayout": {
         "Updating record layout.": "Обновление макета записи."
@@ -1231,5 +1238,13 @@
     "FloatingPopup": {
         "Maximize": "Максимизировать",
         "Minimize": "Минимизировать"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Вставить карточку выше",
+        "Duplicate card": "Дублировать карточку",
+        "Insert card below": "Вставить карточку ниже",
+        "Delete card": "Удалить карточку",
+        "Copy anchor link": "Скопировать якорную ссылку",
+        "Insert card": "Вставить карточку"
     }
 }
