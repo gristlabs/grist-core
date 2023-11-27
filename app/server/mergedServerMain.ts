@@ -144,12 +144,12 @@ export async function main(port: number, serverTypes: ServerType[],
         server.addDocApiForwarder();
       }
       server.addJsonSupport();
+      await server.addTelemetry();
       await server.addLandingPages();
       // todo: add support for home api to standalone app
       server.addHomeApi();
       server.addBillingApi();
       server.addNotifier();
-      await server.addTelemetry();
       await server.addHousekeeper();
       await server.addLoginRoutes();
       server.addAccountPage();
