@@ -45,6 +45,7 @@ export interface ITelemetry {
     name: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ): Promise<void>;
+  shouldLogEvent(name: TelemetryEvent): boolean;
   addEndpoints(app: express.Express): void;
   addPages(app: express.Express, middleware: express.RequestHandler[]): void;
   getTelemetryConfig(requestOrSession?: RequestOrSession): TelemetryConfig | undefined;
@@ -210,9 +211,35 @@ export class Telemetry implements ITelemetry {
     await this._fetchTelemetryPrefs();
   }
 
+  // Checks if the event should be logged.
+  public shouldLogEvent(event: TelemetryEvent): boolean {
+    return Boolean(this._prepareToLogEvent(event));
+  }
+
   private async _fetchTelemetryPrefs() {
     this._telemetryPrefs = await getTelemetryPrefs(this._dbManager, this._activation);
     this._checkTelemetryEvent = buildTelemetryEventChecker(this._telemetryPrefs.telemetryLevel.value);
+  }
+
+  private _prepareToLogEvent(
+    event: TelemetryEvent
+  ): {checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel}|undefined {
+    if (!this._checkTelemetryEvent) {
+      this._logger.error(null, 'telemetry event checker is undefined');
+      return;
+    }
+
+    const prefs = this._telemetryPrefs;
+    if (!prefs) {
+      this._logger.error(null, 'telemetry preferences are undefined');
+      return;
+    }
+
+    const telemetryLevel = prefs.telemetryLevel.value;
+    if (TelemetryContracts[event] && TelemetryContracts[event].minimumTelemetryLevel > Level[telemetryLevel]) {
+      return;
+    }
+    return {checkTelemetryEvent: this._checkTelemetryEvent, telemetryLevel};
   }
 
   private async _checkAndLogEvent(
@@ -220,24 +247,13 @@ export class Telemetry implements ITelemetry {
     event: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ) {
-    if (!this._checkTelemetryEvent) {
-      this._logger.error(null, 'logEvent called but telemetry event checker is undefined');
+    const result = this._prepareToLogEvent(event);
+    if (!result) {
       return;
     }
 
-    const prefs = this._telemetryPrefs;
-    if (!prefs) {
-      this._logger.error(null, 'logEvent called but telemetry preferences are undefined');
-      return;
-    }
-
-    const {telemetryLevel} = prefs;
-    if (TelemetryContracts[event] && TelemetryContracts[event].minimumTelemetryLevel > Level[telemetryLevel.value]) {
-      return;
-    }
-
-    metadata = filterMetadata(metadata, telemetryLevel.value);
-    this._checkTelemetryEvent(event, metadata);
+    metadata = filterMetadata(metadata, result.telemetryLevel);
+    result.checkTelemetryEvent(event, metadata);
 
     if (this._shouldForwardTelemetryEvents) {
       await this._forwardEvent(requestOrSession, event, metadata);

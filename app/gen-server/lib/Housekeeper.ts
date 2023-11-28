@@ -1,4 +1,5 @@
 import { ApiError } from 'app/common/ApiError';
+import { delay } from 'app/common/delay';
 import { buildUrlId } from 'app/common/gristUrls';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
@@ -21,6 +22,9 @@ import { EntityManager } from 'typeorm';
 const DELETE_TRASH_PERIOD_MS = 1 * 60 * 60 * 1000;  // operate every 1 hour
 const LOG_METRICS_PERIOD_MS = 24 * 60 * 60 * 1000;  // operate every day
 const AGE_THRESHOLD_OFFSET = '-30 days';            // should be an interval known by postgres + sqlite
+
+const SYNC_WORK_LIMIT_MS = 50;      // Don't keep doing synchronous work longer than this.
+const SYNC_WORK_BREAK_MS = 50;      // Once reached SYNC_WORK_LIMIT_MS, take a break of this length.
 
 /**
  * Take care of periodic tasks:
@@ -175,9 +179,17 @@ export class Housekeeper {
    * Logs metrics regardless of what other servers may be doing.
    */
   public async logMetrics() {
-    await this._dbManager.connection.transaction('READ UNCOMMITTED', async (manager) => {
+    if (this._telemetry.shouldLogEvent('siteUsage')) {
+      log.warn("logMetrics siteUsage starting");
+      // Avoid using a transaction since it may end up being held up for a while, and for no good
+      // reason (atomicity matters for this reporting).
+      const manager = this._dbManager.connection.manager;
       const usageSummaries = await this._getOrgUsageSummaries(manager);
-      for (const summary of usageSummaries) {
+
+      // We sleep occasionally during this logging. We may log many MANY lines, which can hang up a
+      // server for minutes (unclear why; perhaps filling up buffers, and allocating memory very
+      // inefficiently?)
+      await forEachWithBreaks("logMetrics siteUsage progress", usageSummaries, summary => {
         this._telemetry.logEvent(null, 'siteUsage', {
           limited: {
             siteId: summary.site_id,
@@ -193,10 +205,14 @@ export class Housekeeper {
             stripePlanId: summary.stripe_plan_id,
           },
         });
-      }
+      });
+    }
 
+    if (this._telemetry.shouldLogEvent('siteMembership')) {
+      log.warn("logMetrics siteMembership starting");
+      const manager = this._dbManager.connection.manager;
       const membershipSummaries = await this._getOrgMembershipSummaries(manager);
-      for (const summary of membershipSummaries) {
+      await forEachWithBreaks("logMetrics siteMembership progress", membershipSummaries, summary => {
         this._telemetry.logEvent(null, 'siteMembership', {
           limited: {
             siteId: summary.site_id,
@@ -206,8 +222,8 @@ export class Housekeeper {
             numViewers: Number(summary.num_viewers),
           },
         });
-      }
-    });
+      });
+    }
   }
 
   public addEndpoints(app: express.Application) {
@@ -422,4 +438,27 @@ function normalizedDateTimeString(dateTime: any): string {
     return moment.utc(dateTime).toISOString();
   }
   throw new Error(`normalizedDateTimeString cannot handle ${dateTime}`);
+}
+
+/**
+ * Call callback(item) for each item on the list, sleeping periodically to allow other works to
+ * happen. Any time work takes more than SYNC_WORK_LIMIT_MS, will sleep for SYNC_WORK_BREAK_MS.
+ * At each sleep will log a message with logText and progress info.
+ */
+async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item: T) => void): Promise<void> {
+  const delayMs = SYNC_WORK_BREAK_MS;
+  const itemsTotal = items.length;
+  let itemsProcesssed = 0;
+  const start = Date.now();
+  let syncWorkStart = start;
+  for (const item of items) {
+    callback(item);
+    itemsProcesssed++;
+    if (Date.now() >= syncWorkStart + SYNC_WORK_LIMIT_MS) {
+      log.rawInfo(logText, {itemsProcesssed, itemsTotal, delayMs});
+      await delay(delayMs);
+      syncWorkStart = Date.now();
+    }
+  }
+  log.rawInfo(logText, {itemsProcesssed, itemsTotal, timeMs: Date.now() - start});
 }
