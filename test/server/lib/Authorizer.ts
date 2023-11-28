@@ -101,40 +101,47 @@ describe('Authorizer', function() {
   it.skip("viewer gets redirect by title", async function() {
     const resp = await axios.get(`${serverUrl}/o/pr/doc/Bananas`, chimpy);
     assert.equal(resp.status, 200);
-    assert.equal(getGristConfig(resp.data).assignmentId, 'sample_6');
-    assert.match(resp.request.res.responseUrl, /\/doc\/sample_6$/);
+    assert.equal(getGristConfig(resp.data).assignmentId, 'sampledocid_6');
+    assert.match(resp.request.res.responseUrl, /\/doc\/sampledocid_6$/);
     const resp2 = await axios.get(`${serverUrl}/o/nasa/doc/Pluto`, chimpy);
     assert.equal(resp2.status, 200);
-    assert.equal(getGristConfig(resp2.data).assignmentId, 'sample_2');
-    assert.match(resp2.request.res.responseUrl, /\/doc\/sample_2$/);
+    assert.equal(getGristConfig(resp2.data).assignmentId, 'sampledocid_2');
+    assert.match(resp2.request.res.responseUrl, /\/doc\/sampledocid_2$/);
+  });
+
+  it('viewer loads document without slug in the URL', async function () {
+    const docId = docs.Bananas.id;
+    console.log('docId = ', docId);
+    const resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
+    assert.equal(resp.status, 200);
   });
 
   it("stranger gets consistent refusal regardless of title", async function() {
     const resp = await axios.get(`${serverUrl}/o/pr/doc/Bananas`, charon);
     assert.equal(resp.status, 404);
-    assert.notMatch(resp.data, /sample_6/);
+    assert.notMatch(resp.data, /sampledocid_6/);
     const resp2 = await axios.get(`${serverUrl}/o/pr/doc/Bananas2`, charon);
     assert.equal(resp2.status, 404);
-    assert.notMatch(resp.data, /sample_6/);
+    assert.notMatch(resp.data, /sampledocid_6/);
     assert.deepEqual(withoutTimestamp(resp.data),
                      withoutTimestamp(resp2.data));
   });
 
   it("viewer can access title", async function() {
-    const resp = await axios.get(`${serverUrl}/o/pr/doc/sample_6`, chimpy);
+    const resp = await axios.get(`${serverUrl}/o/pr/doc/sampledocid_6`, chimpy);
     assert.equal(resp.status, 200);
     const config = getGristConfig(resp.data);
     assert.equal(config.getDoc![config.assignmentId!].name, 'Bananas');
   });
 
   it("stranger cannot access title", async function() {
-    const resp = await axios.get(`${serverUrl}/o/pr/doc/sample_6`, charon);
+    const resp = await axios.get(`${serverUrl}/o/pr/doc/sampledocid_6`, charon);
     assert.equal(resp.status, 403);
     assert.notMatch(resp.data, /Bananas/);
   });
 
   it("viewer cannot access document from wrong org", async function() {
-    const resp = await axios.get(`${serverUrl}/o/nasa/doc/sample_6`, chimpy);
+    const resp = await axios.get(`${serverUrl}/o/nasa/doc/sampledocid_6`, chimpy);
     assert.equal(resp.status, 404);
   });
 
@@ -142,7 +149,7 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'chimpy@getgrist.com', 'pr');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    const openDoc = await cli.send("openDoc", "sample_6");
+    const openDoc = await cli.send("openDoc", "sampledocid_6");
     assert.equal(openDoc.error, undefined);
     assert.match(JSON.stringify(openDoc.data), /Table1/);
     await cli.close();
@@ -152,7 +159,7 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'charon@getgrist.com', 'pr');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    const openDoc = await cli.send("openDoc", "sample_6");
+    const openDoc = await cli.send("openDoc", "sampledocid_6");
     assert.match(openDoc.error!, /No view access/);
     assert.equal(openDoc.data, undefined);
     assert.match(openDoc.errorCode!, /AUTH_NO_VIEW/);
@@ -163,7 +170,7 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'charon@getgrist.com', 'nasa');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    const openDoc = await cli.openDocOnConnect("sample_2");
+    const openDoc = await cli.openDocOnConnect("sampledocid_2");
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
@@ -182,7 +189,7 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'chimpy@getgrist.com', 'nasa');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    const openDoc = await cli.openDocOnConnect("sample_2");
+    const openDoc = await cli.openDocOnConnect("sampledocid_2");
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
@@ -209,9 +216,9 @@ describe('Authorizer', function() {
     editor.ignoreTrivialActions();
     viewer.ignoreTrivialActions();
     stranger.ignoreTrivialActions();
-    assert.equal((await editor.send("openDoc", "sample_2")).error, undefined);
-    assert.equal((await viewer.send("openDoc", "sample_2")).error, undefined);
-    assert.match((await stranger.send("openDoc", "sample_2")).error!, /No view access/);
+    assert.equal((await editor.send("openDoc", "sampledocid_2")).error, undefined);
+    assert.equal((await viewer.send("openDoc", "sampledocid_2")).error, undefined);
+    assert.match((await stranger.send("openDoc", "sampledocid_2")).error!, /No view access/);
 
     const action = [0, [["UpdateRecord", "Table1", 1, {A: "foo"}]]];
     assert.equal((await editor.send("applyUserActions", ...action)).error, undefined);
@@ -224,7 +231,7 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'thumbnail@getgrist.com', 'nasa');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    const openDoc = await cli.send("openDoc", "sample_2");
+    const openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
@@ -243,12 +250,12 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'charon@getgrist.com', 'nasa');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    const openDoc = await cli.send("openDoc", "sample_2");
+    const openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.equal(openDoc.error, undefined);
     const result = await cli.send("fork", 0);
     assert.equal(result.data.docId, result.data.urlId);
     const parts = parseUrlId(result.data.docId);
-    assert.equal(parts.trunkId, "sample_2");
+    assert.equal(parts.trunkId, "sampledocid_2");
     assert.isAbove(parts.forkId!.length, 4);
     assert.equal(parts.forkUserId, await dbManager.testGetId('Charon') as number);
   });
@@ -258,31 +265,31 @@ describe('Authorizer', function() {
     const cli = await openClient(server, 'anon@getgrist.com', 'nasa');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    let openDoc = await cli.send("openDoc", "sample_2");
+    let openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.match(openDoc.error!, /No view access/);
 
     // grant anon access to doc and retry
     await dbManager.updateDocPermissions({
       userId: await dbManager.testGetId('Chimpy') as number,
-      urlId: 'sample_2',
+      urlId: 'sampledocid_2',
       org: 'nasa'
     }, {users: {"anon@getgrist.com": "viewers"}});
     dbManager.flushDocAuthCache();
-    openDoc = await cli.send("openDoc", "sample_2");
+    openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.equal(openDoc.error, undefined);
 
     // make a fork
     const result = await cli.send("fork", 0);
     assert.equal(result.data.docId, result.data.urlId);
     const parts = parseUrlId(result.data.docId);
-    assert.equal(parts.trunkId, "sample_2");
+    assert.equal(parts.trunkId, "sampledocid_2");
     assert.isAbove(parts.forkId!.length, 4);
     assert.equal(parts.forkUserId, undefined);
   });
 
   it("can set user via GRIST_PROXY_AUTH_HEADER", async function() {
     // User can access a doc by setting header.
-    const docUrl = `${serverUrl}/o/pr/api/docs/sample_6`;
+    const docUrl = `${serverUrl}/o/pr/api/docs/sampledocid_6`;
     const resp = await axios.get(docUrl, {
       headers: {'X-email': 'chimpy@getgrist.com'}
     });
@@ -297,7 +304,7 @@ describe('Authorizer', function() {
     let cli = await openClient(server, 'chimpy@getgrist.com', 'pr', 'X-email');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    let openDoc = await cli.send("openDoc", "sample_6");
+    let openDoc = await cli.send("openDoc", "sampledocid_6");
     assert.equal(openDoc.error, undefined);
     assert.match(JSON.stringify(openDoc.data), /Table1/);
     await cli.close();
@@ -306,7 +313,7 @@ describe('Authorizer', function() {
     cli = await openClient(server, 'notchimpy@getgrist.com', 'pr', 'X-email');
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, 'clientConnect');
-    openDoc = await cli.send("openDoc", "sample_6");
+    openDoc = await cli.send("openDoc", "sampledocid_6");
     assert.match(openDoc.error!, /No view access/);
     assert.equal(openDoc.data, undefined);
     assert.match(openDoc.errorCode!, /AUTH_NO_VIEW/);

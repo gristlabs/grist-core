@@ -21,10 +21,10 @@ const chimpy = configForUser('Chimpy');
 
 // some doc ids
 const docIds: { [name: string]: string } = {
-  ApiDataRecordsTest: 'sample_7',
-  Timesheets: 'sample_13',
-  Bananas: 'sample_6',
-  Antartic: 'sample_11'
+  ApiDataRecordsTest: 'sampledocid_7',
+  Timesheets: 'sampledocid_13',
+  Bananas: 'sampledocid_6',
+  Antartic: 'sampledocid_11',
 };
 
 let dataDir: string;
