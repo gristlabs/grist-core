@@ -43,7 +43,7 @@ export type ActivationPage = typeof ActivationPage.type;
 export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
-export const SupportGristPage = StringUnion('support-grist');
+export const SupportGristPage = StringUnion('support');
 export type SupportGristPage = typeof SupportGristPage.type;
 
 // Overall UI style.  "full" is normal, "singlePage" is a single page focused, panels hidden experience.
@@ -408,8 +408,8 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.activation = ActivationPage.parse(map.get('activation')) || 'activation';
   }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
-  if (map.has('support-grist')) {
-    state.supportGrist = SupportGristPage.parse(map.get('support-grist')) || 'support-grist';
+  if (map.has('support')) {
+    state.supportGrist = SupportGristPage.parse(map.get('support')) || 'support';
   }
   if (sp.has('planType')) { state.params!.planType = sp.get('planType')!; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }

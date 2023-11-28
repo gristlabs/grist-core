@@ -22,7 +22,7 @@ type ButtonState =
   | 'expanded';
 
 type CardPage =
-  | 'support-grist'
+  | 'support'
   | 'opted-in';
 
 /**
@@ -45,7 +45,7 @@ export class SupportGristNudge extends Disposable {
     this._buttonState = localStorageObs(
       `u=${this._appModel.currentValidUser?.id ?? 0};supportGristNudge`, 'expanded'
     ) as Observable<ButtonState>;
-    this._currentPage = Observable.create(null, 'support-grist');
+    this._currentPage = Observable.create(null, 'support');
     this._isClosed = Observable.create(this, false);
   }
 
@@ -122,7 +122,7 @@ export class SupportGristNudge extends Disposable {
   private _buildCard() {
     return cssCard(
       dom.domComputed(this._currentPage, page => {
-        if (page === 'support-grist') {
+        if (page === 'support') {
           return this._buildSupportGristCardContent();
         } else {
           return this._buildOptedInCardContent();
@@ -205,7 +205,7 @@ function helpCenterLink() {
 function supportGristLink() {
   return cssLink(
     t('Support Grist page'),
-    {href: urlState().makeUrl({supportGrist: 'support-grist'}), target: '_blank'},
+    {href: urlState().makeUrl({supportGrist: 'support'}), target: '_blank'},
   );
 }
 

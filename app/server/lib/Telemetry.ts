@@ -186,7 +186,7 @@ export class Telemetry implements ITelemetry {
 
   public addPages(app: express.Application, middleware: express.RequestHandler[]) {
     if (this._deploymentType === 'core') {
-      app.get('/support-grist', ...middleware, expressWrap(async (req, resp) => {
+      app.get('/support', ...middleware, expressWrap(async (req, resp) => {
         return this._gristServer.sendAppPage(req, resp,
           {path: 'app.html', status: 200, config: {}});
       }));

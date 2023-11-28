@@ -658,7 +658,6 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1' ]);
   });
 
-
   async function hideTable(tableId: string) {
     await api.applyUserActions(doc.id, [
       ['AddRecord', '_grist_ACLResources', -1, {tableId, colIds: '*'}],
