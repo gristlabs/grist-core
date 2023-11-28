@@ -14,9 +14,14 @@ export interface PluginDirectories {
    */
   readonly builtIn?: string;
   /**
-   * Directory where user installed plugins are localted.
+   * Directory where user installed plugins are located.
    */
   readonly installed?: string;
+  /**
+   * Yet another option, for plugins that are included
+   * during a build but not part of the codebase itself.
+   */
+  readonly bundled?: string;
 }
 
 /**
@@ -44,10 +49,12 @@ export class PluginManager {
    * @param {string} userRoot: path to user's grist directory; `null` is allowed, to only uses built in plugins.
    *
    */
-  public constructor(public appRoot?: string, userRoot?: string) {
+  public constructor(public appRoot?: string, userRoot?: string,
+                     public bundledRoot?: string) {
     this._dirs = {
       installed: userRoot ? path.join(userRoot, 'plugins') : undefined,
-      builtIn: appRoot ? getAppPathTo(appRoot, 'plugins') : undefined
+      builtIn: appRoot ? getAppPathTo(appRoot, 'plugins') : undefined,
+      bundled: bundledRoot ? getAppPathTo(bundledRoot, 'plugins') : undefined,
     };
   }
 
@@ -91,6 +98,11 @@ export class PluginManager {
       this._entries.push(...await scanDirectory(this._dirs.builtIn, "builtIn"));
     }
 
+    // Load bundled plugins
+    if (this._dirs.bundled) {
+      this._entries.push(...await scanDirectory(this._dirs.bundled, "bundled"));
+    }
+
     if (!process.env.GRIST_EXPERIMENTAL_PLUGINS ||
        process.env.GRIST_EXPERIMENTAL_PLUGINS === '0') {
       // Remove experimental plugins
@@ -130,7 +142,7 @@ export class PluginManager {
 }
 
 
-async function scanDirectory(dir: string, kind: "installed"|"builtIn"): Promise<DirectoryScanEntry[]> {
+async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled"): Promise<DirectoryScanEntry[]> {
   const plugins: DirectoryScanEntry[] = [];
   let listDir;
 

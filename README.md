@@ -260,6 +260,7 @@ GRIST_SERVERS | the types of server to setup. Comma separated values which may c
 GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
 GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN
 GRIST_SESSION_SECRET | a key used to encode sessions
+GRIST_SKIP_BUNDLED_WIDGETS | if set, Grist will ignore any bundled widgets included via NPM packages.
 GRIST_ANON_PLAYGROUND    | When set to 'false' deny anonymous users access to the home page
 GRIST_FORCE_LOGIN    | Much like GRIST_ANON_PLAYGROUND but don't support anonymous access at all (features like sharing docs publicly requires authentication)
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
