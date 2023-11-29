@@ -226,7 +226,7 @@ export class AccountWidget extends Disposable {
     return menuItemLink(
       t('Support Grist'),
       cssHeartIcon('💛'),
-      urlState().setLinkUrl({supportGrist: 'support-grist'}),
+      urlState().setLinkUrl({supportGrist: 'support'}),
       testId('usermenu-support-grist'),
     );
   }

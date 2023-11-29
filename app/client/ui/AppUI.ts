@@ -77,7 +77,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
       return dom.create(WelcomePage, appModel);
     } else if (pageType === 'account') {
       return domAsync(loadAccountPage().then(ap => dom.create(ap.AccountPage, appModel)));
-    } else if (pageType === 'support-grist') {
+    } else if (pageType === 'support') {
       return domAsync(loadSupportGristPage().then(sgp => dom.create(sgp.SupportGristPage, appModel)));
     } else if (pageType === 'activation') {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.ActivationPage, appModel)));

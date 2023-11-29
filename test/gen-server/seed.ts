@@ -449,7 +449,7 @@ class Seed {
           const d = new Document();
           d.name = doc;
           d.workspace = w;
-          d.id = `sample_${docId}`;
+          d.id = `sampledocid_${docId}`;
           docId++;
           await d.save();
           const dgrps = await this.createGroups(w);
