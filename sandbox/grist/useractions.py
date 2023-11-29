@@ -460,7 +460,7 @@ class UserActions(object):
         table_id == "_grist_Views_section"
         and any(rec.isRaw for i, rec in self._bulk_action_iter(table_id, row_ids))
     ):
-      allowed_fields = {"title", "options", "sortColRefs", "rules"}
+      allowed_fields = {"title", "description", "options", "sortColRefs", "rules"}
       has_summary_section = any(rec.tableRef.summarySourceTable
                                 for i, rec in self._bulk_action_iter(table_id, row_ids))
       if has_summary_section:

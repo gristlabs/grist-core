@@ -1531,16 +1531,25 @@ export async function openRawTable(tableId: string) {
   await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`).click();
 }
 
-export async function renameRawTable(tableId: string, newName: string) {
+export async function renameRawTable(tableId: string, newName?: string, newDescription?: string) {
   await driver.find(`.test-raw-data-table .test-raw-data-table-id-${tableId}`)
     .findClosest('.test-raw-data-table')
     .find('.test-raw-data-table-menu')
     .click();
   await driver.find('.test-raw-data-menu-rename-table').click();
-  const input = await driver.find(".test-widget-title-table-name-input");
-  await input.doClear();
-  await input.click();
-  await driver.sendKeys(newName, Key.ENTER);
+  if (newName !== undefined) {
+    const input = await driver.find(".test-widget-title-table-name-input");
+    await input.doClear();
+    await input.click();
+    await driver.sendKeys(newName);
+  }
+  if (newDescription !== undefined) {
+    const input = await driver.find(".test-widget-title-section-description-input");
+    await input.doClear();
+    await input.click();
+    await driver.sendKeys(newDescription);
+  }
+  await driver.find(".test-widget-title-save").click();
   await waitForServer();
 }
 

@@ -482,5 +482,6 @@ const cssFlexRow = styled('div', `
 `);
 
 const cssRenamableTableName = styled('div', `
+  align-items: center;
   flex: initial;
 `);

@@ -108,6 +108,36 @@ describe('RawData', function () {
     assert.deepEqual(tables, ['Town', 'Empire', 'CountryLanguage', 'Table1'].sort());
   });
 
+  it('should show table description', async function () {
+    // Give Empire table a description.
+    await gu.renameRawTable('Empire', undefined, 'My raw data table description.');
+
+    // Check that a description icon tooltip is shown next to the title.
+    await driver.findContent('.test-raw-data-table-title', 'Empire')
+      .find('.test-widget-info-tooltip')
+      .click();
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.find('.test-widget-info-tooltip-popup').isDisplayed());
+    });
+    assert.equal(
+      await driver.find('.test-widget-info-tooltip-popup').getText(),
+      'My raw data table description.'
+    );
+
+    // Open Empire table and check that the tooltip is shown there as well.
+    await driver.findContent('.test-raw-data-table-title', 'Empire').click();
+    await gu.waitForServer();
+    await driver.find('.test-viewsection-title .test-widget-info-tooltip').click();
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.find('.test-widget-info-tooltip-popup').isDisplayed());
+    });
+    assert.equal(
+      await driver.find('.test-widget-info-tooltip-popup').getText(),
+      'My raw data table description.'
+    );
+    await gu.closeRawTable();
+  });
+
   it('should remove table', async function () {
     // Open menu for Town
     await openMenu('Town');
