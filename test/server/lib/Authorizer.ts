@@ -111,7 +111,6 @@ describe('Authorizer', function() {
 
   it('viewer loads document without slug in the URL', async function () {
     const docId = docs.Bananas.id;
-    console.log('docId = ', docId);
     const resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
     assert.equal(resp.status, 200);
   });
