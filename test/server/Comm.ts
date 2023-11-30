@@ -11,7 +11,7 @@ import * as tmp from 'tmp';
 import {GristWSConnection, GristWSSettings} from 'app/client/components/GristWSConnection';
 import {Comm as ClientComm} from 'app/client/components/Comm';
 import * as log from 'app/client/lib/log';
-import {Comm, sendDocMessage} from 'app/server/lib/Comm';
+import {Comm} from 'app/server/lib/Comm';
 import {Client, ClientMethod} from 'app/server/lib/Client';
 import {CommClientConnect} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
@@ -73,8 +73,8 @@ describe('Comm', function() {
       return {x: x, y: y, name: "methodAsync"};
     },
     methodSend: async function(client, docFD) {
-      sendDocMessage(client, docFD, "fooType" as any, "foo");
-      sendDocMessage(client, docFD, "barType" as any, "bar");
+      void(client.sendMessage({docFD, type: "fooType" as any, data: "foo"}));
+      void(client.sendMessage({docFD, type: "barType" as any, data: "bar"}));
     }
   };
 

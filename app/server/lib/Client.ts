@@ -34,9 +34,6 @@ export type ClientMethod = (client: Client, ...args: any[]) => Promise<unknown>;
 // How long the client state persists after a disconnect.
 const clientRemovalTimeoutMs = 300 * 1000;   // 300s = 5 minutes.
 
-// A hook for dependency injection.
-export const Deps = {clientRemovalTimeoutMs};
-
 // How much memory to allow using for large JSON responses before waiting for some to clear.
 // Max total across all clients and all JSON responses.
 const jsonResponseTotalReservation = 500 * 1024 * 1024;
@@ -44,6 +41,9 @@ const jsonResponseTotalReservation = 500 * 1024 * 1024;
 // above, it works to limit parallelism (to 25 responses that can be started in parallel).
 const jsonResponseReservation = 20 * 1024 * 1024;
 export const jsonMemoryPool = new MemoryPool(jsonResponseTotalReservation);
+
+// A hook for dependency injection.
+export const Deps = {clientRemovalTimeoutMs, jsonResponseReservation};
 
 /**
  * Generates and returns a random string to use as a clientId. This is better
@@ -198,6 +198,19 @@ export class Client {
   }
 
   /**
+   * Sends a message to the client. If the send fails in a way that the message can't get queued
+   * (e.g. due to an unexpected exception in code), logs an error and interrupts the connection.
+   */
+  public async sendMessageOrInterrupt(messageObj: CommMessage|CommResponse|CommResponseError): Promise<void> {
+    try {
+      await this.sendMessage(messageObj);
+    } catch (e) {
+      this._log.error(null, 'sendMessage error', e);
+      this.interruptConnection();
+    }
+  }
+
+  /**
    * Sends a message to the client, queuing it up on failure or if the client is disconnected.
    */
   public async sendMessage(messageObj: CommMessage|CommResponse|CommResponseError): Promise<void> {
@@ -221,7 +234,7 @@ export class Client {
     // Overall, a better solution would be to stream large responses, or to have the client
     // request data piecemeal (as we'd have to for handling large data).
 
-    await jsonMemoryPool.withReserved(jsonResponseReservation, async (updateReservation) => {
+    await jsonMemoryPool.withReserved(Deps.jsonResponseReservation, async (updateReservation) => {
       if (this._destroyed) {
         // If this Client got destroyed while waiting, stop here and release the reservation.
         return;
@@ -562,7 +575,7 @@ export class Client {
         }
       }
     }
-    await this.sendMessage(response);
+    await this.sendMessageOrInterrupt(response);
   }
 
   // Fetch the user database record from profile.email, or null when profile is not set.

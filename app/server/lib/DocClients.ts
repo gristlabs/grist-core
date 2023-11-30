@@ -3,12 +3,11 @@
  * open, and what FD they are using.
  */
 
-import {CommDocEventType} from 'app/common/CommTypes';
+import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Authorizer} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {sendDocMessage} from 'app/server/lib/Comm';
 import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
 
@@ -85,7 +84,14 @@ export class DocClients {
   public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
                                    filterMessage?: (docSession: OptDocSession,
                                                     messageData: any) => Promise<any>): Promise<void> {
-    const send = (curr: DocSession) => this._send(curr, client, type, messageData, filterMessage);
+    const send = async (target: DocSession) => {
+      const msg = await this._prepareMessage(target, type, messageData, filterMessage);
+      if (msg) {
+        const fromSelf = (target.client === client);
+        await target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage);
+      }
+    };
+
     if (Deps.BROADCAST_ORDER === 'parallel') {
       await Promise.all(this._docSessions.map(send));
     } else {
@@ -101,30 +107,30 @@ export class DocClients {
   }
 
   /**
-   * Send a message to a single client. See broadcastDocMessage for parameters.
+   * Prepares a message to a single client. See broadcastDocMessage for parameters.
    */
-  private async _send(target: DocSession, client: Client|null, type: CommDocEventType, messageData: any,
-                      filterMessage?: (docSession: OptDocSession,
-                                       messageData: any) => Promise<any>): Promise<void> {
-    const fromSelf = (target.client === client);
+  private async _prepareMessage(
+    target: DocSession, type: CommDocEventType, messageData: any,
+    filterMessage?: (docSession: OptDocSession, messageData: any) => Promise<any>
+  ): Promise<{type: CommDocEventType, data: unknown}|undefined> {
     try {
       // Make sure user still has view access.
       await target.authorizer.assertAccess('viewers');
       if (!filterMessage) {
-        sendDocMessage(target.client, target.fd, type, messageData, fromSelf);
+        return {type, data: messageData};
       } else {
         try {
           const filteredMessageData = await filterMessage(target, messageData);
           if (filteredMessageData) {
-            sendDocMessage(target.client, target.fd, type, filteredMessageData, fromSelf);
+            return {type, data: filteredMessageData};
           } else {
             this._log.debug(target, 'skip broadcastDocMessage because it is not allowed for this client');
           }
         } catch (e) {
           if (e.code && e.code === 'NEED_RELOAD') {
-            sendDocMessage(target.client, target.fd, 'docShutdown', null, fromSelf);
+            return {type: 'docShutdown', data: null};
           } else {
-            sendDocMessage(target.client, target.fd, 'docUserAction', {error: String(e)}, fromSelf);
+            return {type: 'docUserAction', data: {error: String(e)}};
           }
         }
       }
@@ -134,9 +140,10 @@ export class DocClients {
         this._log.debug(target, 'skip broadcastDocMessage because AUTH_NO_VIEW');
         // Go further and trigger a shutdown for this user, in case they are granted
         // access again later.
-        sendDocMessage(target.client, target.fd, 'docShutdown', null, fromSelf);
+        return {type: 'docShutdown', data: null};
       } else {
-        throw(e);
+        // Propagate any totally unexpected exceptions.
+        throw e;
       }
     }
   }

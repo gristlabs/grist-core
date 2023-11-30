@@ -9,6 +9,7 @@ import {exitPromise} from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {delay} from "bluebird";
 import fetch from "node-fetch";
+import {Writable} from "stream";
 
 /**
  * This starts a server in a separate process.
@@ -20,10 +21,11 @@ export class TestServer {
     suitename: string,
     customEnv?: NodeJS.ProcessEnv,
     _homeUrl?: string,
+    options: {output?: Writable} = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
 
     const server = new TestServer(serverTypes, tempDirectory, suitename);
-    await server.start(_homeUrl, customEnv);
+    await server.start(_homeUrl, customEnv, options);
     return server;
   }
 
@@ -55,14 +57,18 @@ export class TestServer {
       ...process.env
     };
   }
-  public async start(_homeUrl?: string, customEnv?: NodeJS.ProcessEnv) {
+  public async start(_homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
     // put node logs into files with meaningful name that relate to the suite name and server type
     const fixedName = this._serverTypes.replace(/,/, '_');
     const nodeLogPath = path.join(this.rootDir, `${this._suiteName}-${fixedName}-node.log`);
     const nodeLogFd = await fse.open(nodeLogPath, 'a');
-    const serverLog = process.env.VERBOSE ? 'inherit' : nodeLogFd;
+    const serverLog = options.output ? 'pipe' : (process.env.VERBOSE ? 'inherit' : nodeLogFd);
     // use a path for socket that relates to suite name and server types
     this.testingSocket = path.join(this.rootDir, `${this._suiteName}-${fixedName}.socket`);
+    if (this.testingSocket.length >= 108) {
+      // Unix socket paths typically can't be longer than this. Who knew. Make the error obvious.
+      throw new Error(`Path of testingSocket too long: ${this.testingSocket.length} (${this.testingSocket})`);
+    }
     const env = {
       APP_HOME_URL: _homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
@@ -74,6 +80,11 @@ export class TestServer {
       env,
       stdio: ['inherit', serverLog, serverLog]
     });
+    if (options.output) {
+      this._server.stdout!.pipe(options.output);
+      this._server.stderr!.pipe(options.output);
+    }
+
     this._exitPromise = exitPromise(this._server);
 
     // Try to be more helpful when server exits by printing out the tail of its log.

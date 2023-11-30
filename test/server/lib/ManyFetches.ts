@@ -7,6 +7,7 @@ import * as log from 'app/server/lib/log';
 import {getGristConfig} from 'test/gen-server/testUtils';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
 import {TestServer} from 'test/server/lib/helpers/TestServer';
+import {waitForIt} from 'test/server/wait';
 import {createTestDir, EnvironmentSnapshot, setTmpLogLevel} from 'test/server/testUtils';
 import {assert} from 'chai';
 import * as cookie from 'cookie';
@@ -65,7 +66,7 @@ describe('ManyFetches', function() {
     // memory use limited in Client.ts by jsonMemoryPool.
 
     // Reduce the limit controlling memory for JSON responses from the default of 500MB to 50MB.
-    await docs.testingHooks.commSetClientJsonMemoryLimit(50 * 1024 * 1024);
+    await docs.testingHooks.commSetClientJsonMemoryLimits({totalSize: 50 * 1024 * 1024});
 
     // Create a large document where fetches would have a noticeable memory footprint.
     // 40k rows should produce ~2MB fetch response.
@@ -133,6 +134,59 @@ describe('ManyFetches', function() {
     }
   });
 
+  it('should cope gracefully when client messages fail', async function() {
+    // It used to be that sending data to the client could produce uncaught errors (in particular,
+    // for exceeding V8 JSON limits). This test case fakes errors to make sure they get handled.
+
+    // Create a document, initially empty. We'll add lots of rows later.
+    const {docId} = await createLargeDoc({rows: 0});
+
+    // If the server dies, testingHooks calls may hang. This wrapper prevents that.
+    const serverErrorPromise = docs.getExitPromise().then(() => { throw new Error("server exited"); });
+
+    // Make a connection.
+    const createConnectionFunc = await prepareGristWSConnection(docId);
+    const connectionA = createConnectionFunc();
+    const fetcherA = await connect(connectionA, docId);
+
+    // We'll expect 20k rows, taking up about 1MB. Set a lower limit for a fake exception.
+    const prev = await docs.testingHooks.commSetClientJsonMemoryLimits({
+      jsonResponseReservation: 100 * 1024,
+      maxReservationSize: 200 * 1024,
+    });
+
+    try {
+      // Adding lots of rows will produce an action that gets sent to the connected client.
+      // We've arranged for this send to fail. Promise.race helps notice if the server exits.
+      assert.equal(connectionA.established, true);
+      await Promise.race([serverErrorPromise, addRows(docId, 20_000, 20_000)]);
+
+      // Check that the send in fact failed, and the connection did get interrupted.
+      await waitForIt(() =>
+        assert.equal(connectionA.established, false, "Failed message should interrupt connection"),
+        1000, 100);
+
+      // Restore limits, so that fetch works below.
+      await docs.testingHooks.commSetClientJsonMemoryLimits(prev);
+
+      // Fetch data to make sure that the "addRows" call itself succeeded.
+      const connectionB = createConnectionFunc();
+      const fetcherB = await connect(connectionB, docId);
+      try {
+        fetcherB.startPausedFetch();
+        const data = await Promise.race([serverErrorPromise, fetcherB.completeFetch()]);
+        assert.lengthOf(data.tableData[2], 20_000);
+        assert.lengthOf(data.tableData[3].Num, 20_000);
+        assert.lengthOf(data.tableData[3].Text, 20_000);
+      } finally {
+        fetcherB.end();
+      }
+
+    } finally {
+      fetcherA.end();
+    }
+  });
+
   // Creates a document with the given number of rows, and about 50 bytes per row.
   async function createLargeDoc({rows}: {rows: number}): Promise<{docId: string}> {
     log.info("Preparing a doc of %s rows", rows);
@@ -142,7 +196,11 @@ describe('ManyFetches', function() {
       {id: 'Num', type: 'Numeric'},
       {id: 'Text', type: 'Text'}
     ]]]);
-    const chunk = 10_000;
+    await addRows(docId, rows);
+    return {docId};
+  }
+
+  async function addRows(docId: string, rows: number, chunk = 10_000): Promise<void> {
     for (let i = 0; i < rows; i += chunk) {
       const currentNumRows = Math.min(chunk, rows - i);
       await userApi.getDocAPI(docId).addRows('TestTable', {
@@ -152,7 +210,6 @@ describe('ManyFetches', function() {
         Text: Array.from(Array(currentNumRows), (_, n) => `Hello, world, again for the ${i + n}th time.`),
       });
     }
-    return {docId};
   }
 
   // Get all the info for how to create a GristWSConnection, and returns a connection-creating

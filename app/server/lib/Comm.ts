@@ -37,7 +37,6 @@ import * as http from 'http';
 import * as https from 'https';
 import * as WebSocket from 'ws';
 
-import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
 import {parseFirstUrlPart} from 'app/common/gristUrls';
 import {firstDefined, safeJsonParse} from 'app/common/gutil';
 import {UserProfile} from 'app/common/LoginSessionAPI';
@@ -269,20 +268,4 @@ export class Comm extends EventEmitter {
     }
     return wss;
   }
-}
-
-/**
- * Sends a per-doc message to the given client.
- * @param {Object} client - The client object, as passed to all per-doc methods.
- * @param {Number} docFD - The document's file descriptor in the given client.
- * @param {String} type - The type of the message, e.g. 'docUserAction'.
- * @param {Object} messageData - The data for this type of message.
- * @param {Boolean} fromSelf - Whether `client` is the originator of this message.
- */
-export function sendDocMessage(
-  client: Client, docFD: number, type: CommDocEventType, data: unknown, fromSelf?: boolean
-) {
-  // TODO Warning disabled to preserve past behavior, but perhaps better to return the Promise?
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  client.sendMessage({type, docFD, data, fromSelf} as CommMessage);
 }

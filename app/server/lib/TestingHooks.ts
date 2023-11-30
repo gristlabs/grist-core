@@ -8,10 +8,11 @@ import * as Client from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
 import log from 'app/server/lib/log';
 import {IMessage, Rpc} from 'grain-rpc';
+import {EventEmitter} from 'events';
 import {Request} from 'express';
 import * as t from 'ts-interface-checker';
 import {FlexServer} from './FlexServer';
-import {ITestingHooks} from './ITestingHooks';
+import {ClientJsonMemoryLimits, ITestingHooks} from './ITestingHooks';
 import ITestingHooksTI from './ITestingHooks-ti';
 import {connect, fromCallback} from './serverUtils';
 import {WidgetRepositoryImpl} from 'app/server/lib/WidgetRepository';
@@ -127,11 +128,42 @@ export class TestingHooks implements ITestingHooks {
     return prev;
   }
 
-  // Set the amount of memory Client.ts can use for JSON responses, in bytes.
-  // Returns the old limit.
-  public async commSetClientJsonMemoryLimit(newTotalSize: number): Promise<number> {
-    log.info("TestingHooks.commSetClientJsonMemoryLimit called with", newTotalSize);
-    return Client.jsonMemoryPool.setTotalSize(newTotalSize);
+  // Set one or more limits that Client.ts can use for JSON responses, in bytes.
+  // Returns the old limits.
+  // - totalSize limits total amount of memory Client allocates to JSON response
+  // - jsonResponseReservation sets the initial amount reserved for each response
+  // - maxReservationSize monkey-patches reservation logic to fail when reservation exceeds the
+  //      given amount, to simulate unexpected failures.
+  public async commSetClientJsonMemoryLimits(limits: ClientJsonMemoryLimits): Promise<ClientJsonMemoryLimits> {
+    log.info("TestingHooks.commSetClientJsonMemoryLimits called with", limits);
+    const previous: ClientJsonMemoryLimits = {};
+    if (limits.totalSize !== undefined) {
+      previous.totalSize = Client.jsonMemoryPool.setTotalSize(limits.totalSize);
+    }
+    if (limits.jsonResponseReservation !== undefined) {
+      previous.jsonResponseReservation = CommClientDeps.jsonResponseReservation;
+      CommClientDeps.jsonResponseReservation = limits.jsonResponseReservation;
+    }
+    if (limits.maxReservationSize !== undefined) {
+      previous.maxReservationSize = null;
+      const orig = Object.getPrototypeOf(Client.jsonMemoryPool)._updateReserved;
+      if (limits.maxReservationSize === null) {
+        (Client.jsonMemoryPool as any)._updateReserved = orig;
+      } else {
+        // Monkey-patch reservation logic to simulate unexpected failures.
+        const jsonMemoryThrowLimit = limits.maxReservationSize;
+        function updateReservedWithLimit(this: typeof Client.jsonMemoryPool, sizeDelta: number) {
+          const newSize: number = (this as any)._reservedSize + sizeDelta;
+          log.warn(`TestingHooks _updateReserved reserving ${newSize}, limit ${jsonMemoryThrowLimit}`);
+          if (newSize > jsonMemoryThrowLimit) {
+            throw new Error(`TestingHooks: hit JsonMemoryThrowLimit: ${newSize} > ${jsonMemoryThrowLimit}`);
+          }
+          return orig.call(this, sizeDelta);
+        }
+        (Client.jsonMemoryPool as any)._updateReserved = updateReservedWithLimit;
+      }
+    }
+    return previous;
   }
 
   public async closeDocs(): Promise<void> {
@@ -228,5 +260,19 @@ export class TestingHooks implements ITestingHooks {
 
   public async getMemoryUsage(): Promise<NodeJS.MemoryUsage> {
     return process.memoryUsage();
+  }
+
+  // This is for testing the handling of unhandled exceptions and rejections.
+  public async tickleUnhandledErrors(errType: 'exception'|'rejection'|'error-event'): Promise<void> {
+    if (errType === 'exception') {
+      setTimeout(() => { throw new Error("TestingHooks: Fake exception"); }, 0);
+    } else if (errType === 'rejection') {
+      void(Promise.resolve(null).then(() => { throw new Error("TestingHooks: Fake rejection"); }));
+    } else if (errType === 'error-event') {
+      const emitter = new EventEmitter();
+      setTimeout(() => emitter.emit('error', new Error('TestingHooks: Fake error-event')), 0);
+    } else {
+      throw new Error(`Unrecognized errType ${errType}`);
+    }
   }
 }

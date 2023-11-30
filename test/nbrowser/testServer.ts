@@ -87,6 +87,10 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     // immediately.  It is simplest to use a diffent socket each time
     // we restart.
     const testingSocket = path.join(this.testDir, `testing-${this._starts}.socket`);
+    if (testingSocket.length >= 108) {
+      // Unix socket paths typically can't be longer than this. Who knew. Make the error obvious.
+      throw new Error(`Path of testingSocket too long: ${testingSocket.length} (${testingSocket})`);
+    }
 
     const stubCmd = '_build/stubs/app/server/server';
     const isCore = await fse.pathExists(stubCmd + '.js');

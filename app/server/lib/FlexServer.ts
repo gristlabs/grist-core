@@ -515,6 +515,26 @@ export class FlexServer implements GristServer {
     if (this._check('cleanup')) { return; }
     // Set up signal handlers. Note that nodemon sends SIGUSR2 to restart node.
     shutdown.cleanupOnSignals('SIGINT', 'SIGTERM', 'SIGHUP', 'SIGUSR2');
+
+    // We listen for uncaughtExceptions / unhandledRejections, but do exit when they happen. It is
+    // a strong recommendation, which seems best to follow
+    // (https://nodejs.org/docs/latest-v18.x/api/process.html#warning-using-uncaughtexception-correctly).
+    // We do try to shutdown cleanly (i.e. do any planned cleanup), which goes somewhat against
+    // the recommendation to do only synchronous work.
+
+    let counter = 0;
+
+    // Note that this event catches also 'unhandledRejection' (origin should be either
+    // 'uncaughtException' or 'unhandledRejection').
+    process.on('uncaughtException', (err, origin) => {
+      log.error(`UNHANDLED ERROR ${origin} (${counter}):`, err);
+      if (counter === 0) {
+        // Only call shutdown once. It's async and could in theory fail, in which case it would be
+        // another unhandledRejection, and would get caught and reported by this same handler.
+        void(shutdown.exit(1));
+      }
+      counter++;
+    });
   }
 
   public addTagChecker() {
