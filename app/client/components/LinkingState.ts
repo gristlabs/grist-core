@@ -350,7 +350,11 @@ export class LinkingState extends Disposable {
    * Returns a boolean indicating whether editing should be disabled in the destination section.
    */
   public disableEditing(): boolean {
-    return Boolean(this.filterState) && this._srcSection.activeRowId() === 'new';
+    if (!this.filterState) {
+      return false;
+    }
+    const srcRowId = this._srcSection.activeRowId();
+    return srcRowId === 'new' || srcRowId === null;
   }
 
 
@@ -438,11 +442,6 @@ export class LinkingState extends Disposable {
       //Get selector-rowId
       const srcRowId = this._srcSection.activeRowId();
 
-      if (srcRowId === null) {
-        console.warn("LinkingState._makeFilterObs activeRowId is null");
-        return EmptyFilterState;
-      }
-
       //Get values from selector row
       const selectorCellVal = selectorValGetter(srcRowId);
       const displayCellVal  = displayValGetter(srcRowId);
@@ -473,30 +472,45 @@ export class LinkingState extends Disposable {
         }
       }
 
-      //Need to use 'intersects' for ChoiceLists or RefLists
+      // ==== Determine operation to use for filter ====
+      // Common case: use 'in' for single vals, or 'intersects' for ChoiceLists & RefLists
       let operation = (tgtColId && isListType(tgtCol!.type())) ? 'intersects' : 'in';
 
-      // If selectorVal is a blank-cell value, need to change operation for correct behavior with lists
+      // # Special case 1:
       // Blank selector shouldn't mean "show no records", it should mean "show records where tgt column is also blank"
-      if(srcRowId !== 'new') { //(EXCEPTION: the add-row, which is when we ACTUALLY want to show no records)
+      // This is the default behavior for single-ref -> single-ref links
+      // However, if tgtCol is a list and the selectorVal is blank/empty, the default behavior ([] intersects tgtlist)
+      //    doesn't work, we need to explicitly specify the operation to be 'empty', to select empty cells
+      if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "")    { operation = 'empty'; }
+      else if (isTgtRefList               && !isSrcRefList && selectorCellVal === 0)     { operation = 'empty'; }
+      else if (isTgtRefList               &&  isSrcRefList && filterValues.length === 0) { operation = 'empty'; }
+      // Note, we check each case separately since they have different "blank" values"
+      // Other types can have different falsey values when non-blank (e.g. a Ref=0 is a blank cell, but for numbers,
+      //      0 would be a valid value, and to check for an empty number-cell you'd check for null)
+      // However, we don't need to check for those here, since they can't be linked to list types
 
-        // If tgtCol is a list (RefList or Choicelist) and selectorVal is null/blank, operation must be 'empty'
-        if (tgtCol?.type() === "ChoiceList" && !isSrcRefList && selectorCellVal === "")    { operation = 'empty'; }
-        else if (isTgtRefList               && !isSrcRefList && selectorCellVal === 0)     { operation = 'empty'; }
-        else if (isTgtRefList               &&  isSrcRefList && filterValues.length === 0) { operation = 'empty'; }
-        // other types can have falsey values when non-blank (e.g. for numbers, 0 is a valid value; blank cell is null)
-        // However, we don't need to check for those here, since we only care about lists (Reflist or Choicelist)
+      // NOTES ON CHOICELISTS: they only show up in a few cases.
+      // - ChoiceList can only ever appear in links as the tgtcol
+      //   (ChoiceLists can only be linked from summ. tables, and summary flattens lists, so srcCol would be 'Choice')
+      // - empty Choice is [""].
 
-        // If tgtCol is a single ref, nullness is represented by [0], not by [], so need to create that null explicitly
-        else if (!isTgtRefList && isSrcRefList && filterValues.length === 0) {
-          filterValues = [0];
-          displayValues = [''];
-        }
+      // # Special case 2:
+      //  If tgtCol is a single ref, blankness is represented by [0]
+      //  However if srcCol is a RefList, blankness is represented by [], which won't match the [0].
+      //  We create the 0 explicitly so the filter will select the blank Refs
+      else if (!isTgtRefList && isSrcRefList && filterValues.length === 0) {
+        filterValues = [0];
+        displayValues = [''];
+      }
 
-        // NOTES ON CHOICELISTS: they only show up in a few cases.
-        // - ChoiceList can only ever appear in links as the tgtcol
-        //   (ChoiceLists can only be linked from summ. tables, and summary flattens lists, so srcCol would be 'Choice')
-        // - empty choicelist is [""].
+      // # Special case 3:
+      // If the srcSection has no row selected (cursor on the add-row, or no data in srcSection), we should
+      //    show no rows in tgtSection. (we also gray it out and show the "No row selected in $SRCSEC" msg)
+      // This should line up with when this.disableEditing() returns true
+      if (srcRowId === 'new' || srcRowId === null) {
+        operation = 'in';
+        filterValues = [];
+        displayValues = [];
       }
 
       // Run values through formatters (for dates, numerics, Refs with visCol = rowId)
