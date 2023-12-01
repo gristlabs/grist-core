@@ -50,7 +50,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
       async () => {
         await gridView.insertColumn(null, {index});
       },
-      t("Add Column"),
+      t("Add column"),
       testId('new-columns-menu-add-new'),
     );
   }
@@ -184,9 +184,9 @@ function buildTimestampMenuItems(gridView: GridView, index?: number) {
   return menuItemSubmenu(() => [
     menuItem(
       async () => {
-        await gridView.insertColumn(t('Created At'), {
+        await gridView.insertColumn(t('Created at'), {
           colInfo: {
-            label: t('Created At'),
+            label: t('Created at'),
             type: `DateTime:${gridView.gristDoc.docModel.docInfoRow.timezone()}`,
             isFormula: false,
             formula: 'NOW()',
@@ -202,9 +202,9 @@ function buildTimestampMenuItems(gridView: GridView, index?: number) {
     ),
     menuItem(
       async () => {
-        await gridView.insertColumn(t('Last Updated At'), {
+        await gridView.insertColumn(t('Last updated at'), {
           colInfo: {
-            label: t('Last Updated At'),
+            label: t('Last updated at'),
             type: `DateTime:${gridView.gristDoc.docModel.docInfoRow.timezone()}`,
             isFormula: false,
             formula: 'NOW()',
@@ -228,9 +228,9 @@ function buildAuthorshipMenuItems(gridView: GridView, index?: number) {
   return menuItemSubmenu(() => [
     menuItem(
       async () => {
-        await gridView.insertColumn(t('Created By'), {
+        await gridView.insertColumn(t('Created by'), {
           colInfo: {
-            label: t('Created By'),
+            label: t('Created by'),
             type: 'Text',
             isFormula: false,
             formula: 'user.Name',
@@ -246,9 +246,9 @@ function buildAuthorshipMenuItems(gridView: GridView, index?: number) {
     ),
     menuItem(
       async () => {
-        await gridView.insertColumn(t('Last Updated By'), {
+        await gridView.insertColumn(t('Last updated by'), {
           colInfo: {
-            label: t('Last Updated By'),
+            label: t('Last updated by'),
             type: 'Text',
             isFormula: false,
             formula: 'user.Name',
@@ -329,7 +329,7 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
       {searchInputPlaceholder: t('Search columns')}
     ),
     {allowNothingSelected: true},
-    t('Detect Duplicates in...'),
+    t('Detect duplicates in...'),
     testId('new-columns-menu-shortcuts-duplicates'),
   );
 }

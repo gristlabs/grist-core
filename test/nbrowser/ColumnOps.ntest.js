@@ -1,9 +1,11 @@
+"use strict";
 import { assert, driver } from 'mocha-webdriver';
 import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
 
 const colHeaderScrollOpts = {block: "start", inline: "end"};
 
 describe('ColumnOps.ntest', function() {
+  gu.bigScreen();
   const cleanup = test.setupTestSuite(this);
 
   before(async function() {
@@ -41,7 +43,7 @@ describe('ColumnOps.ntest', function() {
     await assert.isPresent(gu.getColumnHeader('A'), false);
     await $('.mod-add-column').scrollIntoView(true);
     await $('.mod-add-column').click();
-    await gu.actions.selectFloatingOption('Add Column');
+    await gu.actions.selectFloatingOption('Add column');
     await gu.userActionsCollect(true);
     await gu.waitToPass(() => gu.getColumnHeader('A'));
     await gu.getOpenEditingLabel(await gu.getColumnHeader('A')).wait().sendKeys($.ENTER);
@@ -76,7 +78,7 @@ describe('ColumnOps.ntest', function() {
     await gu.waitForServer();
     await assert.isPresent(gu.getColumnHeader('Name'), false);
 
-    // Then show it using the add column menu
+    // Then show it using the Add column menu
     await $('.mod-add-column').scrollIntoView(true);
     await $(".mod-add-column").click();
     await showColumn('Name');
@@ -84,7 +86,7 @@ describe('ColumnOps.ntest', function() {
     await assert.isPresent(gu.getColumnHeader('Name'), true);
   });
 
-  it("[+] button show add column directly if no hidden columns", async function() {
+  it("[+] button show Add column directly if no hidden columns", async function() {
     await $('.mod-add-column').scrollIntoView(true);
     await $(".mod-add-column").click();
     await showColumn("Pop");

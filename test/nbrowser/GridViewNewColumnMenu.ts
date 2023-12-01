@@ -992,11 +992,11 @@ describe('GridViewNewColumnMenu', function () {
 
         // Make sure we have Created At column at the end.
         const columns = await gu.getColumnNames();
-        assert.deepEqual(columns, ['A', 'B', 'C', 'Created At']);
+        assert.deepEqual(columns, ['A', 'B', 'C', 'Created at']);
 
         // Make sure this is the column that is selected.
-        assert.equal(await driver.find('.test-field-label').value(), 'Created At');
-        assert.equal(await driver.find('.test-field-col-id').value(), '$Created_At');
+        assert.equal(await driver.find('.test-field-label').value(), 'Created at');
+        assert.equal(await driver.find('.test-field-col-id').value(), '$Created_at');
 
         // Check behavior - this is trigger formula
         assert.equal(await gu.columnBehavior(), "Data Column");
@@ -1019,11 +1019,11 @@ describe('GridViewNewColumnMenu', function () {
 
         // Make sure we have this column at the end.
         const columns = await gu.getColumnNames();
-        assert.deepEqual(columns, ['A', 'B', 'C', 'Last Updated At']);
+        assert.deepEqual(columns, ['A', 'B', 'C', 'Last updated at']);
 
         // Make sure this is the column that is selected.
-        assert.equal(await driver.find('.test-field-label').value(), 'Last Updated At');
-        assert.equal(await driver.find('.test-field-col-id').value(), '$Last_Updated_At');
+        assert.equal(await driver.find('.test-field-label').value(), 'Last updated at');
+        assert.equal(await driver.find('.test-field-col-id').value(), '$Last_updated_at');
 
         // Check behavior - this is trigger formula
         assert.equal(await gu.columnBehavior(), "Data Column");
@@ -1053,11 +1053,11 @@ describe('GridViewNewColumnMenu', function () {
 
         // Make sure we have this column at the end.
         const columns = await gu.getColumnNames();
-        assert.deepEqual(columns, ['A', 'B', 'C', 'Created By']);
+        assert.deepEqual(columns, ['A', 'B', 'C', 'Created by']);
 
         // Make sure this is the column that is selected.
-        assert.equal(await driver.find('.test-field-label').value(), 'Created By');
-        assert.equal(await driver.find('.test-field-col-id').value(), '$Created_By');
+        assert.equal(await driver.find('.test-field-label').value(), 'Created by');
+        assert.equal(await driver.find('.test-field-col-id').value(), '$Created_by');
 
         // Check behavior - this is trigger formula
         assert.equal(await gu.columnBehavior(), "Data Column");
@@ -1081,11 +1081,11 @@ describe('GridViewNewColumnMenu', function () {
 
         // Make sure we have this column at the end.
         const columns = await gu.getColumnNames();
-        assert.deepEqual(columns, ['A', 'B', 'C', 'Last Updated By']);
+        assert.deepEqual(columns, ['A', 'B', 'C', 'Last updated by']);
 
         // Make sure this is the column that is selected.
-        assert.equal(await driver.find('.test-field-label').value(), 'Last Updated By');
-        assert.equal(await driver.find('.test-field-col-id').value(), '$Last_Updated_By');
+        assert.equal(await driver.find('.test-field-label').value(), 'Last updated by');
+        assert.equal(await driver.find('.test-field-col-id').value(), '$Last_updated_by');
 
         // Check behavior - this is trigger formula
         assert.equal(await gu.columnBehavior(), "Data Column");
