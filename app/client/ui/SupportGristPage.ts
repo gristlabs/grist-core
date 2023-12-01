@@ -194,7 +194,7 @@ export class SupportGristPage extends Disposable {
       const suffix = getPageTitleSuffix(getGristConfig());
       switch (page) {
         case undefined:
-        case 'support-grist': {
+        case 'support': {
           return document.title = `Support Grist${suffix}`;
         }
       }

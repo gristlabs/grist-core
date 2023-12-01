@@ -205,7 +205,13 @@
         "Table ID copied to clipboard": "Identifiant de table copié",
         "Duplicate Table": "Dupliquer la table",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
-        "Delete {{formattedTableName}} data, and remove it from all pages?": "Supprimer les données de {{formattedTableName}} et les supprimer de toutes les pages ?"
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Supprimer les données de {{formattedTableName}} et les supprimer de toutes les pages ?",
+        "Edit Record Card": "Modifier la vue carte",
+        "Rename Table": "Renommer la table",
+        "{{action}} Record Card": "{{action}} la vue carte",
+        "Record Card": "Vue carte",
+        "Remove Table": "Supprimer la table",
+        "Record Card Disabled": "Vue carte désactivée"
     },
     "DocHistory": {
         "Activity": "Activité",
@@ -416,7 +422,9 @@
         "Timestamp": "Horodatage",
         "no reference column": "pas de colonne de référence",
         "Adding UUID column": "Ajout d'une colonne UUID",
-        "Adding duplicates column": "Ajouter des colonnes dupliquées"
+        "Adding duplicates column": "Ajouter des colonnes dupliquées",
+        "Add formula column": "Ajouter une colonne formule",
+        "Add column with type": "Ajouter une colonne de type"
     },
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",
@@ -613,7 +621,8 @@
         "Duplicate rows_one": "Dupliquer la ligne",
         "Duplicate rows_other": "Dupliquer les lignes",
         "Delete": "Supprimer",
-        "Copy anchor link": "Copier l'ancre"
+        "Copy anchor link": "Copier l'ancre",
+        "View as card": "Voir en carte"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copié dans le presse-papier"
@@ -907,7 +916,8 @@
         "Mixed format": "Format composite",
         "Revert field settings for {{colId}} to common": "Réinitialiser les paramètres par défaut pour {{colId}}",
         "Save field settings for {{colId}} as common": "Sauvegarder les paramètres pour {{colId}}",
-        "Use separate field settings for {{colId}}": "Utiliser des paramètres spécifiques pour {{colId}}"
+        "Use separate field settings for {{colId}}": "Utiliser des paramètres spécifiques pour {{colId}}",
+        "Changing column type": "Changement du type de colonne"
     },
     "WelcomeTour": {
         "Customizing columns": "Personnaliser les colonnes",
@@ -1053,7 +1063,12 @@
             "end dates and event titles. Note each column's type.": "Pour configurer votre calendrier, sélectionnez les colonnes pour les dates de début/fin et le nom de l'évènement. Notez le type de chaque colonne."
         },
         "Calendar": "Calendrier",
-        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Impossible de trouver les bonnes colonnes ? Cliquez sur \"Changer de vue\" pour sélectionner la table contenant les évènements."
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Impossible de trouver les bonnes colonnes ? Cliquez sur \"Changer de vue\" pour sélectionner la table contenant les évènements.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID est un texte généré aléatoirement qui est utile pour les identifiants uniques et les clés de jointures.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Les formules supportent beaucoup de fonctions Excel et la syntaxe Python complète. Un assistant IA est disponible sur certaines instances.",
+        "Lookups return data from related tables.": "Récupère les données d'une table liée.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Vous pouvez choisir parmi les widgets disponibles dans le menu déroulant, ou utilisez le votre en fournissant son URL complète.",
+        "Use reference columns to relate data in different tables.": "Utilisez les colonnes de type Référence pour lier différentes tables entre elles."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1228,5 +1243,13 @@
         "Welcome back": "Bon retour parmi nous",
         "You can always switch sites using the account menu.": "Vous pouvez toujours changer d'espace en utilisant le menu du compte.",
         "You have access to the following Grist sites.": "Vous avez accès aux espaces Grist suivants."
+    },
+    "CardContextMenu": {
+        "Insert card above": "Insérer une carte au dessus",
+        "Duplicate card": "Dupliquer la carte",
+        "Insert card below": "Insérer une carte en dessous",
+        "Delete card": "Supprimer la carte",
+        "Copy anchor link": "Copier le lien d'ancrage",
+        "Insert card": "Insérer une carte"
     }
 }

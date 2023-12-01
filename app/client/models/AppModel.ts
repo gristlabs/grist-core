@@ -41,7 +41,7 @@ export type PageType =
   | "billing"
   | "welcome"
   | "account"
-  | "support-grist"
+  | "support"
   | "activation";
 
 const G = getBrowserGlobals('document', 'window');
@@ -316,7 +316,7 @@ export class AppModelImpl extends Disposable implements AppModel {
       } else if (state.account) {
         return 'account';
       } else if (state.supportGrist) {
-        return 'support-grist';
+        return 'support';
       } else if (state.activation) {
         return 'activation';
       } else {

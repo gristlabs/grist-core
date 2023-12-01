@@ -142,6 +142,7 @@ export function getTypeORMSettings(): DataSourceOptions {
     "subscribers": [
       `${codeRoot}/app/gen-server/subscriber/*.js`
     ],
+    ...JSON.parse(process.env.TYPEORM_EXTRA || "{}"),
     ...cache,
   };
 }

@@ -564,7 +564,9 @@
         "Timestamp": "Метка времени",
         "Adding UUID column": "Добавление столбца UUID",
         "Adding duplicates column": "Добавление столбца дубликатов",
-        "Lookups": "Lookups"
+        "Lookups": "Lookups",
+        "Add formula column": "Добавить вычисляемый столбец",
+        "Add column with type": "Добавить столбец с типом"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -1063,7 +1065,8 @@
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID - это случайно сгенерированная строка, которая полезна для уникальных идентификаторов и ключевых ссылок.",
         "Lookups return data from related tables.": "Lookups возвращают данные из связанных таблиц.",
         "Use reference columns to relate data in different tables.": "Используйте ссылочные столбцы для сопоставления данных в разных таблицах.",
-        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Вы можете выбрать виджеты, доступные вам в раскрывающемся списке, или встроить свой собственный, указав его полный URL-адрес."
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Вы можете выбрать виджеты, доступные вам в раскрывающемся списке, или встроить свой собственный, указав его полный URL-адрес.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Формулы поддерживают множество функций Excel, полный синтаксис Python и включает полезного помощника AI."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"

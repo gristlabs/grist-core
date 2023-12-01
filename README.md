@@ -178,7 +178,7 @@ etc.
 Grist Labs is an open-core company. We offer Grist hosting as a
 service, with free and paid plans. We also develop and sell
 features related to Grist using a proprietary license, targeted at the
-needs of enterprises with large self-managed installations. 
+needs of enterprises with large self-managed installations.
 
 We see data portability and autonomy as a key value, and `grist-core` is an essential part of that. We are committed to maintaining and improving the `grist-core` codebase, and to be thoughtful about how proprietary offerings impact data portability and autonomy.
 
@@ -260,6 +260,7 @@ GRIST_SERVERS | the types of server to setup. Comma separated values which may c
 GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie
 GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN
 GRIST_SESSION_SECRET | a key used to encode sessions
+GRIST_SKIP_BUNDLED_WIDGETS | if set, Grist will ignore any bundled widgets included via NPM packages.
 GRIST_ANON_PLAYGROUND    | When set to 'false' deny anonymous users access to the home page
 GRIST_FORCE_LOGIN    | Much like GRIST_ANON_PLAYGROUND but don't support anonymous access at all (features like sharing docs publicly requires authentication)
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
@@ -396,6 +397,7 @@ TYPEORM_PASSWORD | password to use
 TYPEORM_PORT     | port number for db if not the default for that db type
 TYPEORM_TYPE     | set to 'sqlite' or 'postgres'
 TYPEORM_USERNAME | username to connect as
+TYPEORM_EXTRA    | any other properties to pass to TypeORM in JSON format
 
 #### Testing:
 
