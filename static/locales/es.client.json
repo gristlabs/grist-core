@@ -1120,7 +1120,7 @@
         "Lookups return data from related tables.": "Las búsquedas devuelven datos de tablas relacionadas.",
         "Use reference columns to relate data in different tables.": "Utilizar las columnas de referencia para relacionar los datos de distintas tablas.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puedes elegir entre los widgets disponibles en el menú desplegable, o incrustar el suyo propio proporcionando su dirección URL completa.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Las fórmulas admiten muchas funciones de Excel, sintaxis completa de Python e incluyen un útil Asistente AI."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Las fórmulas admiten muchas funciones de Excel, sintaxis completa de Python e incluyen un útil asistente de inteligencia artificial."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
