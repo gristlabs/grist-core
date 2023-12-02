@@ -212,6 +212,6 @@ export function attachAppEndpoint(options: AttachOptions): void {
   // The * is a wildcard in express 4, rather than a regex symbol.
   // See https://expressjs.com/en/guide/routing.html
   app.get('/doc/:urlId([^/]+):remainder(*)', ...docMiddleware, docHandler);
-  app.get('/:urlId([^/]{12,})(/:slug([^/]+):remainder(*))?',
+  app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
 }
