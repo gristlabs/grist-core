@@ -154,7 +154,8 @@
         "Duplicate rows_other": "Duplica righe",
         "Insert row": "Inserisci riga",
         "Insert row above": "Inserisci riga sopra",
-        "Insert row below": "Inserisci riga sotto"
+        "Insert row below": "Inserisci riga sotto",
+        "View as card": "Vedi come scheda"
     },
     "SortFilterConfig": {
         "Save": "Salva",
@@ -573,7 +574,13 @@
         "Raw Data Tables": "Tabelle dati primarie",
         "Table ID copied to clipboard": "ID tabella copiato",
         "You do not have edit access to this document": "Non hai accesso in scrittura a questo documento",
-        "Delete {{formattedTableName}} data, and remove it from all pages?": "Cancellare i dati di {{formattedTableName}} e rimuoverla da tutte le pagine?"
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Cancellare i dati di {{formattedTableName}} e rimuoverla da tutte le pagine?",
+        "Edit Record Card": "Modifica scheda dei dati",
+        "Rename Table": "Rinomina tabella",
+        "{{action}} Record Card": "{{action}} Scheda dei dati",
+        "Record Card": "Scheda dei dati",
+        "Remove Table": "Rimuovi tabella",
+        "Record Card Disabled": "Scheda dei dati disabilitata"
     },
     "DocHistory": {
         "Compare to Previous": "Confronta con il precedente",
@@ -783,7 +790,9 @@
         "Timestamp": "Data e ora",
         "no reference column": "nessuna colonna referenziata",
         "Adding UUID column": "Aggiungere colonna UUID",
-        "Adding duplicates column": "Aggiungere colonna duplicati"
+        "Adding duplicates column": "Aggiungere colonna duplicati",
+        "Add formula column": "Aggiungi colonna con formula",
+        "Add column with type": "Aggiungi colonna con tipo"
     },
     "GristDoc": {
         "Import from file": "Importa da file",
@@ -1055,7 +1064,9 @@
         "Calendar": "Calendario",
         "Lookups return data from related tables.": "Un lookup restituisce dati dalle tabelle collegate.",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Non trovi la colonna giusta? Fai clic su \"Cambia widget\" per selezionare la tabella con i dati degli eventi.",
-        "Use reference columns to relate data in different tables.": "Usa colonne di riferimenti per collegare dati da altre tabelle."
+        "Use reference columns to relate data in different tables.": "Usa colonne di riferimenti per collegare dati da altre tabelle.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Le formule supportano molte funzioni di Excel, la sintassi completa di Python, e includono un utile assistente AI.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puoi scegliere tra i widget disponibili nella lista, o incorporare il tuo fornendo la sua URL completa."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -1230,5 +1241,13 @@
     "FloatingPopup": {
         "Maximize": "Espandi",
         "Minimize": "Riduci"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Inserisci scheda sopra",
+        "Duplicate card": "Duplica scheda",
+        "Insert card below": "Inserisci scheda sotto",
+        "Delete card": "Elimina scheda",
+        "Copy anchor link": "Copia il link",
+        "Insert card": "Inserisci scheda"
     }
 }
