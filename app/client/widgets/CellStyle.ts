@@ -54,6 +54,7 @@ export class CellStyle extends Disposable {
                   textColor: new ColorOption({
                     color: headerTextColor,
                     defaultColor: theme.tableHeaderFg.toString(),
+                    allowsNone: true,
                     noneText: 'default',
                   }),
                   fillColor: new ColorOption({
@@ -109,6 +110,7 @@ export class CellStyle extends Disposable {
               textColor: new ColorOption({
                 color: textColor,
                 defaultColor: this._defaultTextColor,
+                allowsNone: true,
                 noneText: 'default',
               }),
               fillColor: new ColorOption({

@@ -324,7 +324,7 @@ class PickerComponent extends Disposable {
           )
         ),
         cssEmptyBox(
-          cssEmptyBox.cls('-selected', (use) => !use(this._colorCss)),
+          cssEmptyBox.cls('-selected', (use) => !use(this._colorHex)),
           dom.on('click', () => this._setValue(undefined)),
           dom.hide(!this._options.allowsNone),
           cssNoneIcon('Empty'),

@@ -5734,10 +5734,10 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-mocha-webdriver@0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/mocha-webdriver/-/mocha-webdriver-0.3.1.tgz#5ed238e710ee2e4dfe72208cdd1dc4a15d2aa644"
-  integrity sha512-4apKuGdB72aEqnT2LdspLCOGXpWui5EJ/mVsw9UcI8ps2SkKHAhHZtHf05CKuTmQJJZcDa2mpcP4oXNXXDsZlA==
+mocha-webdriver@0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/mocha-webdriver/-/mocha-webdriver-0.3.2.tgz#cfaf7cab18335993eeaccbd43f2547a236d0cd26"
+  integrity sha512-hUM9g/Z8RYebRrCHGfmSMfi/EfPcm1ETzJxFA4XfKOu0xp9HumEo38qkiIbb724eZ0kwLy3X97hMjLIOuc5ihQ==
   dependencies:
     chai "^4.1.2"
     chai-as-promised "^7.1.1"
