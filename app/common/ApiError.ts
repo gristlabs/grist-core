@@ -23,6 +23,8 @@ export interface ApiLimit {
  * Structured details about an API error.
  */
 export interface ApiErrorDetails {
+  code?: ApiErrorCode;
+
   limit?: ApiLimit;
 
   // If set, this is the more user-friendly message to show to the user than error.message.
@@ -33,6 +35,9 @@ export interface ApiErrorDetails {
 
   memos?: string[];
 }
+
+export type ApiErrorCode =
+  | 'UserNotConfirmed';
 
 /**
  * An error with an http status code.
