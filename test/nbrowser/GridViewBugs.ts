@@ -2,17 +2,33 @@ import {assert, driver} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 import {DocCreationInfo} from "app/common/DocListAPI";
+import {UserAPI} from 'app/common/UserAPI';
 
-describe('GridView', function() {
-  this.timeout(20000);
+describe('GridViewBugs', function() {
+  this.timeout('20s');
   const cleanup = setupTestSuite();
-  let session: gu.Session, doc: DocCreationInfo, api;
+  let session: gu.Session, doc: DocCreationInfo, api: UserAPI;
 
-  it('should show tables with no columns without errors', async function() {
+  before(async function() {
     session = await gu.session().login();
     doc = await session.tempDoc(cleanup, 'Hello.grist');
     api = session.createHomeApi();
+  });
 
+  // This test is for a bug where hiding multiple columns at once would cause an error in the menu.
+  // Selection wasn't updated and the column index was out of bounds.
+  it('should hide multiple columns without an error', async function() {
+    await gu.selectColumnRange('A', 'B');
+    await gu.openColumnMenu('B', 'Hide 2 columns');
+    await gu.waitForServer();
+    await gu.selectColumnRange('C', 'D');
+    await gu.openColumnMenu('D', 'Hide 2 columns');
+    await gu.waitForServer();
+    await gu.openColumnMenu('E');
+    await gu.checkForErrors();
+  });
+
+  it('should show tables with no columns without errors', async function() {
     // Create and open a new table with no columns
     await api.applyUserActions(doc.id, [
       ['AddTable', 'Empty', []],

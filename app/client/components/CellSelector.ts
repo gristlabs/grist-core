@@ -39,6 +39,10 @@ export class CellSelector extends Disposable {
     super();
     this.autoDispose(this.view.cursor.rowIndex.subscribe(() => this.setToCursor()));
     this.autoDispose(this.view.cursor.fieldIndex.subscribe(() => this.setToCursor()));
+    const fieldsLength = this.autoDispose(ko.pureComputed(() => this.view.viewSection.viewFields().all().length));
+    this.autoDispose(fieldsLength.subscribe((length) => {
+      this.col.end(Math.min(this.col.end.peek(), length - 1));
+    }));
     this.setToCursor();
   }
 
