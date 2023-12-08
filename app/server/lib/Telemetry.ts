@@ -26,12 +26,23 @@ import {hashId} from 'app/server/lib/hashingUtils';
 import {LogMethods} from 'app/server/lib/LogMethods';
 import {stringParam} from 'app/server/lib/requestUtils';
 import {getLogMetaFromDocSession} from 'app/server/lib/serverUtils';
+import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import merge = require('lodash/merge');
 import pickBy = require('lodash/pickBy');
 
 type RequestOrSession = RequestWithLogin | OptDocSession | null;
+
+interface RequestWithMatomoVisitorId extends RequestWithLogin {
+  /**
+   * Extracted from a cookie set by Matomo.
+   *
+   * Used by an AWS Lambda (LogsToMatomo_grist) to associate Grist telemetry
+   * events with Matomo visits.
+   */
+  matomoVisitorId?: string | null;
+}
 
 export interface ITelemetry {
   start(): Promise<void>;
@@ -265,16 +276,21 @@ export class Telemetry implements ITelemetry {
   private _logEvent(
     requestOrSession: RequestOrSession,
     event: TelemetryEvent,
-    metadata?: TelemetryMetadata
+    metadata: TelemetryMetadata = {}
   ) {
+    const isAnonymousUser = metadata.userId === this._dbManager.getAnonymousUserId();
     let isInternalUser: boolean | undefined;
     let isTeamSite: boolean | undefined;
+    let visitorId: string | null | undefined;
     if (requestOrSession) {
       let email: string | undefined;
       let org: string | undefined;
       if ('get' in requestOrSession) {
         email = requestOrSession.user?.loginEmail;
         org = requestOrSession.org;
+        if (isAnonymousUser) {
+          visitorId = this._getAndSetMatomoVisitorId(requestOrSession);
+        }
       } else {
         email = getDocSessionUser(requestOrSession)?.email;
         org = requestOrSession.client?.getOrg() ?? requestOrSession.req?.org;
@@ -295,7 +311,23 @@ export class Telemetry implements ITelemetry {
       installationId: this._activation!.id,
       ...(isInternalUser !== undefined ? {isInternalUser} : undefined),
       ...(isTeamSite !== undefined ? {isTeamSite} : undefined),
+      ...(visitorId ? {visitorId} : undefined),
+      ...(isAnonymousUser ? {userId: undefined} : undefined),
     });
+  }
+
+  private _getAndSetMatomoVisitorId(req: RequestWithMatomoVisitorId) {
+    if (req.matomoVisitorId === undefined) {
+      const cookies = cookie.parse(req.headers.cookie || '');
+      const matomoVisitorCookie = Object.entries(cookies)
+        .find(([key]) => key.startsWith('_pk_id'));
+      if (matomoVisitorCookie) {
+        req.matomoVisitorId = (matomoVisitorCookie[1] as string).split('.')[0];
+      } else {
+        req.matomoVisitorId = null;
+      }
+    }
+    return req.matomoVisitorId;
   }
 
   private async _forwardEvent(
