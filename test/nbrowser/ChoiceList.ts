@@ -448,7 +448,7 @@ describe('ChoiceList', function() {
 
   it('should allow reasonable conversions between ChoiceList and other types', async function() {
     await gu.enterGridRows({rowNum: 1, col: 'A'},
-      [['Hello'], ['World'], [' Foo,Bar;Baz!,"Qux, quux corge", "80\'s",']]);
+      [['Hello'], ['World'], ['Foo,Bar;Baz!,"Qux, quux corge", "80\'s",']]);
     await testTextChoiceListConversions();
   });
 
@@ -534,7 +534,7 @@ describe('ChoiceList', function() {
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: ['A']}), [
       'Hello',
       'World',
-      ' Foo,Bar;Baz!,"Qux, quux corge", "80\'s",',   // That's the text originally entered into this Text cell.
+      'Foo,Bar;Baz!,"Qux, quux corge", "80\'s",',   // That's the text originally entered into this Text cell.
     ]);
   }
 

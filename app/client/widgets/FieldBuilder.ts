@@ -699,6 +699,7 @@ export class FieldBuilder extends Disposable {
   public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: {
     init?: string,
     state?: any
+    event?: KeyboardEvent | MouseEvent
   }) {
     // If the user attempts to edit a value during transform, finalize (i.e. cancel or execute)
     // the transform.
@@ -733,7 +734,13 @@ export class FieldBuilder extends Disposable {
       return clearOwn();
     }
 
-    if (!this._readonly.get() && saveWithoutEditor(editorCtor, editRow, this.field, options.init)) {
+    if (
+      !this._readonly.get() &&
+      saveWithoutEditor(editorCtor, editRow, this.field, {
+        typedVal: options.init,
+        event: options.event,
+      })
+    ) {
       return clearOwn();
     }
 

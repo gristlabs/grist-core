@@ -308,7 +308,7 @@ GridView.gridCommands = {
 
   fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex() + 1); },
   // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
-  editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
+  editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
 
   insertFieldBefore: function(maybeKeyboardEvent) {
     if (!maybeKeyboardEvent) {

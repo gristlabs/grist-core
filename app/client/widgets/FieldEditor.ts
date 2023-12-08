@@ -24,16 +24,20 @@ const t = makeT('FieldEditor');
 
 /**
  * Check if the typed-in value should change the cell without opening the cell editor, and if so,
- * saves and returns true. E.g. on typing space, CheckBoxEditor toggles the cell without opening.
+ * saves and returns true. E.g. on typing enter, CheckBoxEditor toggles the cell without opening.
  */
 export function saveWithoutEditor(
-  editorCtor: IEditorConstructor, editRow: DataRowModel, field: ViewFieldRec, typedVal: string|undefined
+  editorCtor: IEditorConstructor,
+  editRow: DataRowModel,
+  field: ViewFieldRec,
+  options: {typedVal?: string, event?: KeyboardEvent|MouseEvent}
 ): boolean {
+  const {typedVal, event} = options;
   // Never skip the editor if editing a formula. Also, check that skipEditor static function
   // exists (we don't bother adding it on old-style JS editors that don't need it).
   if (!field.column.peek().isRealFormula.peek() && editorCtor.skipEditor) {
     const origVal = editRow.cells[field.colId()].peek();
-    const skipEditorValue = editorCtor.skipEditor(typedVal, origVal);
+    const skipEditorValue = editorCtor.skipEditor(typedVal, origVal, {event});
     if (skipEditorValue !== undefined) {
       setAndSave(editRow, field, skipEditorValue).catch(reportError);
       return true;

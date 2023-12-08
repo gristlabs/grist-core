@@ -10,9 +10,10 @@ dispose.makeDisposable(CheckBoxEditor);
 _.extend(CheckBoxEditor.prototype, TextEditor.prototype);
 
 // For documentation, see NewBaseEditor.ts
-CheckBoxEditor.skipEditor = function(typedVal, cellVal) {
-  if (typedVal === ' ') {
-    // This is a special case when user hits <space>. We return the toggled value to save, and by
+CheckBoxEditor.skipEditor = function(typedVal, cellVal, {event}) {
+  // eslint-disable-next-line no-undef
+  if (typedVal === '<enter>' || (event && event instanceof KeyboardEvent)) {
+    // This is a special case when user hits <enter>. We return the toggled value to save, and by
     // this indicate that the editor should not open.
     return !cellVal;
   }

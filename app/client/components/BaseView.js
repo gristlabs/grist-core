@@ -228,7 +228,7 @@ BaseView.commonCommands = {
     this.scrollToCursor(true).catch(reportError);
     this.activateEditorAtCursor({init});
   },
-  editField: function() { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor(); },
+  editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
 
   insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
   insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
@@ -243,6 +243,12 @@ BaseView.commonCommands = {
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
   duplicateRows: function() { this._duplicateRows().catch(reportError); },
   openDiscussion: function() { this.openDiscussionAtCursor(); },
+  viewAsCard: function() {
+    /* Overridden by subclasses.
+     *
+     * This is still needed so that <space> doesn't trigger the `input` command
+     * if a subclass doesn't support opening the current record as a card. */
+  },
 };
 
 BaseView.prototype.selectedRows = function() {

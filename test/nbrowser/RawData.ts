@@ -269,6 +269,27 @@ describe('RawData', function () {
     ]);
   });
 
+  it('shows Record Card button for all non-summary tables', async function () {
+    const displayed = await getRawTableRecordCardButtonsIsDisplayed();
+    assert.deepEqual(displayed, [
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
+    const enabled = await getRawTableRecordCardButtonsIsEnabled();
+    assert.deepEqual(enabled, [
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
+  });
+
   it('shows preview of summary table when clicked', async function () {
     // Open a summary table.
     await driver.findContent('.test-raw-data-table-title', 'CountryLanguage [by Country]').click();
@@ -612,6 +633,139 @@ describe('RawData', function () {
     await gu.checkForErrors();
     await assertNoPopup();
   });
+
+  it("can edit a table's Record Card", async () => {
+    // Open the Record Card for the Country table.
+    await openRawData();
+    await editRecordCard('Country');
+
+    // Check that the Record Card is shown.
+    assert.isTrue(await driver.findWait('.test-raw-data-overlay', 100).isDisplayed());
+
+    // Check that layout editing is toggled by default.
+    assert.isTrue(await driver.find('.test-edit-layout-controls').isDisplayed());
+
+    // Check that the title is correct. Note that it's initially obscured by the layout
+    // editing buttons; it becomes visible after the layout is saved.
+    assert.equal(await gu.getSectionTitle(), 'COUNTRY Card');
+
+    // Modify the layout and theme.
+    await gu.openWidgetPanel('widget');
+    assert.isTrue(
+      await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
+      gu.exactMatch('Continent')).isPresent()
+    );
+    await gu.moveToHidden('Continent');
+    assert.isFalse(
+      await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
+      gu.exactMatch('Continent')).isPresent()
+    );
+    await driver.findContent('.test-edit-layout-controls button', 'Save').click();
+    await gu.waitForServer();
+    await driver.find('.test-vconfigtab-detail-theme').click();
+    await driver.findContent('.test-select-row', /Blocks/).click();
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    // Close the overlay.
+    await gu.sendKeys(Key.ESCAPE);
+
+    // Re-open the Record Card and check that the new layout and theme persisted.
+    await editRecordCard('Country');
+    assert.isFalse(
+      await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
+      gu.exactMatch('Continent')).isPresent()
+    );
+    assert.equal(
+      await driver.find('.test-vconfigtab-detail-theme').getText(),
+      'Blocks'
+    );
+    await gu.sendKeys(Key.ESCAPE, Key.ESCAPE);
+
+    // Open the Record Card from outside the Raw Data page and check that the
+    // new layout and theme is used.
+    await gu.openPage('Country');
+    await (await gu.openRowMenu(1)).findContent('li', /View as card/).click();
+    assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
+    assert.isFalse(
+      await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
+      gu.exactMatch('Continent')).isPresent()
+    );
+    assert.equal(
+      await driver.find('.test-vconfigtab-detail-theme').getText(),
+      'Blocks'
+    );
+    await gu.sendKeys(Key.ESCAPE);
+  });
+
+  it("can disable a table's Record Card", async () => {
+    // Disable the Record Card for the Country table.
+    await openRawData();
+    await disableRecordCard('Country');
+
+    // Check that the button to edit the Record Card is disabled.
+    assert.isFalse(await isRecordCardEnabled('Country'));
+    await editRecordCard('Country');
+    assert.isFalse(await driver.find('.test-raw-data-overlay').isPresent());
+
+    // Check that the Edit Record Card menu item still works though.
+    await openMenu('Country');
+    await driver.find('.test-raw-data-menu-edit-record-card').click();
+    assert.isTrue(await driver.findWait('.test-raw-data-overlay', 100).isDisplayed());
+    assert.equal(await gu.getSectionTitle(), 'COUNTRY Card');
+
+    // Stop editing the layout and close the overlay.
+    await gu.sendKeys(Key.ESCAPE, Key.ESCAPE);
+
+    // Check that it's no longer possible to open a Record Card from outside
+    // the Raw Data page, even with the keyboard shortcut.
+    await gu.openPage('Country');
+    await (await gu.openRowMenu(1)).findContent('li.disabled', /View as card/);
+    await gu.sendKeys(Key.ESCAPE, Key.SPACE);
+    assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
+
+    // Check that clicking the icon in Reference and Reference List columns also
+    // doesn't open a Record Card.
+    await gu.openPage('CountryLanguage');
+    await gu.getCell(0, 1).find('.test-ref-link-icon').click();
+    assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
+    await gu.setType('Reference List', {apply: true});
+    await gu.getCell(0, 1).find('.test-ref-list-link-icon').click();
+    assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
+  });
+
+  it("can enable a table's Record Card", async () => {
+    // Enable the Record Card for the Country table.
+    await openRawData();
+    await enableRecordCard('Country');
+
+    // Check that the button to edit the Record Card is enabled again.
+    assert.isTrue(await isRecordCardEnabled('Country'));
+    await editRecordCard('Country');
+    assert.isTrue(await driver.findWait('.test-raw-data-overlay', 100).isDisplayed());
+    assert.equal(await gu.getSectionTitle(), 'COUNTRY Card');
+
+    // Check that it's possible again to open the Record Card from outside
+    // the Raw Data page.
+    await gu.openPage('Country');
+    await (await gu.openRowMenu(1)).findContent('li', /View as card/).click();
+    assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
+    await gu.sendKeys(Key.ESCAPE);
+    assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
+    await gu.sendKeys(Key.SPACE);
+    assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
+
+    // Check that clicking the icon in Reference and Reference List columns opens a
+    // Record Card again.
+    await gu.openPage('CountryLanguage');
+    await gu.getCell(0, 1).find('.test-ref-list-link-icon').click();
+    assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
+    await gu.sendKeys(Key.ESCAPE);
+    assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
+    await gu.setType('Reference', {apply: true});
+    await gu.getCell(0, 1).find('.test-ref-link-icon').click();
+    assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
+  });
 });
 
 const anchorRegex = /#a(\d+)\.s(\d+)\.r(\d+)\.c(\d+)/gm;
@@ -695,6 +849,18 @@ async function getRawTableRows() {
   return await driver.findAll('.test-raw-data-table-rows', e => e.getText());
 }
 
+async function getRawTableRecordCardButtonsIsDisplayed() {
+  return await driver.findAll('.test-raw-data-table-record-card', e => e.isDisplayed());
+}
+
+async function getRawTableRecordCardButtonsIsEnabled() {
+  return await driver.findAll('.test-raw-data-table-record-card', async e => {
+    const isDisplayed = await e.isDisplayed();
+    const className = await e.getAttribute('class');
+    return isDisplayed && !className.includes('-disabled');
+  });
+}
+
 async function openMenu(tableId: string) {
   const allTables = await getRawTableIds();
   const tableIndex = allTables.indexOf(tableId);
@@ -714,6 +880,37 @@ async function isRemovable(tableId: string){
   const disabledItems = await driver.findAll('.test-raw-data-menu-remove-table.disabled');
   await gu.sendKeys(Key.ESCAPE);
   return disabledItems.length === 0;
+}
+
+async function editRecordCard(tableId: string, wait = true) {
+  await driver.findContent('.test-raw-data-table-title', tableId)
+    .findClosest('.test-raw-data-table')
+    .find('.test-raw-data-table-record-card')
+    .click();
+  if (wait) {
+    await gu.waitForServer();
+  }
+}
+
+async function disableRecordCard(tableId: string) {
+  await openMenu(tableId);
+  await driver.find('.test-raw-data-menu-disable-record-card').click();
+  await gu.waitForServer();
+}
+
+async function enableRecordCard(tableId: string) {
+  await openMenu(tableId);
+  await driver.find('.test-raw-data-menu-enable-record-card').click();
+  await gu.waitForServer();
+}
+
+async function isRecordCardEnabled(tableId: string) {
+  const recordCard = await driver.findContent('.test-raw-data-table-title', tableId)
+    .findClosest('.test-raw-data-table')
+    .find('.test-raw-data-table-record-card');
+  const isDisplayed = await recordCard.isDisplayed();
+  const className = await recordCard.getAttribute('class');
+  return isDisplayed && !className.includes('-disabled');
 }
 
 async function waitForPopup() {

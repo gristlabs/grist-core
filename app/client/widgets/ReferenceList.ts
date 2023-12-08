@@ -86,6 +86,7 @@ export class ReferenceList extends Reference {
                   ev.stopPropagation();
                   ev.preventDefault();
                 }),
+                testId('ref-list-link-icon'),
               ),
               cssLabel(isBlankReference ? '[Blank]' : formattedValue,
                 testId('ref-list-cell-token-label'),

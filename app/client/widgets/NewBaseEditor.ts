@@ -54,9 +54,13 @@ export abstract class NewBaseEditor extends Disposable {
 
   /**
    * Check if the typed-in value should change the cell without opening the editor, and if so,
-   * returns the value to save. E.g. on typing " ", CheckBoxEditor toggles value without opening.
+   * returns the value to save. E.g. on typing <enter>, CheckBoxEditor toggles value without opening.
    */
-  public static skipEditor(typedVal: string|undefined, origVal: CellValue): CellValue|undefined {
+  public static skipEditor(
+    typedVal: string|undefined,
+    origVal: CellValue,
+    options?: {event?: KeyboardEvent|MouseEvent}
+  ): CellValue|undefined {
     return undefined;
   }
 

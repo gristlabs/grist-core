@@ -18,11 +18,11 @@ abstract class ToggleBase extends NewAbstractWidget {
           return;
         }
         if (!this.field.column().isRealFormula()) {
-          // Move the cursor here, and pretend that spacebar was pressed. This triggers an editing
+          // Move the cursor here, and pretend that enter was pressed. This triggers an editing
           // flow which is handled by CheckBoxEditor.skipEditor(). This way the edit applies to
           // editRow, which handles setting default values based on widget linking.
           commands.allCommands.setCursor.run(row, this.field);
-          commands.allCommands.input.run(' ');
+          commands.allCommands.input.run('<enter>');
         }
       }),
       dom.on('dblclick', (event) => {

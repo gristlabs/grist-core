@@ -71,7 +71,6 @@ export type CommandName =
   | 'input'
   | 'editLabel'
   | 'editLayout'
-  | 'toggleCheckbox'
   | 'historyPrevious'
   | 'historyNext'
   | 'makeFormula'
@@ -273,7 +272,7 @@ export const groups: CommendGroupDef[] = [{
     },
     {
       name: 'viewAsCard',
-      keys: [],
+      keys: ['Space'],
       desc: 'Show the record card widget of the selected record',
     },
   ]
@@ -483,10 +482,6 @@ export const groups: CommendGroupDef[] = [{
       name: 'editLayout',
       keys: [],
       desc: 'Edit record layout'
-    }, {
-      name: 'toggleCheckbox',
-      keys: ['Enter', 'Space'],
-      desc: 'Toggles the value of checkbox cells'
     }, {
       name: 'historyPrevious',
       keys: ['Up'],
