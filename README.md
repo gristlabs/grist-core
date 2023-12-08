@@ -78,6 +78,7 @@ If you just want a quick demo of Grist:
   * You can try Grist out at the hosted service run by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com) (no registration needed).
   * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-electron](https://github.com/gristlabs/grist-electron).
+  * Or you can deploy a self-hosted version of Grist in [one click with Dome](https://app.trydome.io/signup?package=grist-core)
 
 To get `grist-core` running on your computer with [Docker](https://www.docker.com/get-started), do:
 
