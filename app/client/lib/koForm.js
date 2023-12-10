@@ -26,6 +26,8 @@ var koArray  = require('./koArray');
 
 var modelUtil = require('../models/modelUtil');
 
+const { overflowTooltip } = require("app/client/ui/tooltips");
+
 var setSaveValue = modelUtil.setSaveValue;
 
 
@@ -902,7 +904,8 @@ exports.editableLabel = function(valueObservable, optToggleObservable) {
   return dom('div.kf_editable_label',
     dom('div.kf_elabel_text',
       kd.text(valueObservable),
-      kd.hide(isEditing)
+      kd.hide(isEditing),
+      overflowTooltip({placement: 'top'})
     ),
     contentSizer = dom('div.elabel_content_measure'),
     (!optToggleObservable ? dom.on('click', () => isEditing(true)) : null),
