@@ -65,4 +65,5 @@ TEST_ADD_SAMPLES=1 TEST_ACCOUNT_PASSWORD=not-needed \
   GRIST_SESSION_COOKIE=grist_test_cookie \
   GRIST_TEST_LOGIN=1 \
   NODE_PATH=_build:_build/stubs \
+  LANGUAGE=en_US \
   $MOCHA _build/test/deployment/*.js --slow 6000 -g "${GREP_TESTS:-}" "$@"
