@@ -456,7 +456,9 @@
         "Duplicate in {{- label}}": "Duplicar em {{- label}}",
         "Search columns": "Procurar colunas",
         "Adding UUID column": "Adicionando coluna UUID",
-        "Adding duplicates column": "Adicionar coluna duplicatas"
+        "Adding duplicates column": "Adicionar coluna duplicatas",
+        "Add formula column": "Añadir una columna de fórmulas",
+        "Add column with type": "Adicionar coluna com tipo"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
@@ -1127,7 +1129,8 @@
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Um UUID é uma cadeia de caracteres gerada aleatoriamente que é útil para identificadores exclusivos e chaves de link.",
         "Lookups return data from related tables.": "As pesquisas retornam dados de tabelas relacionadas.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Você pode escolher entre os widgets disponíveis no menu suspenso ou incorporar o seu próprio widget fornecendo o URL completo.",
-        "Use reference columns to relate data in different tables.": "Use colunas de referência para relacionar dados em diferentes tabelas."
+        "Use reference columns to relate data in different tables.": "Use colunas de referência para relacionar dados em diferentes tabelas.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "As fórmulas suportam muitas funções do Excel, sintaxe Python completa e incluem um assistente de IA útil."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"

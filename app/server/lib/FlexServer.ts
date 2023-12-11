@@ -2019,9 +2019,15 @@ export class FlexServer implements GristServer {
     const userRoot = path.resolve(process.env.GRIST_USER_ROOT || getAppPathTo(this.appRoot, '.grist'));
     this.info.push(['userRoot', userRoot]);
     // Some custom widgets may be included as an npm package called @gristlabs/grist-widget.
+    // The package doesn't actually  contain node code, but should be in the same vicinity
+    // as other packages that do, so we can use require.resolve on one of them to find it.
+    // This seems a little overcomplicated, but works well when grist-core is bundled within
+    // a larger project like grist-electron.
+    // TODO: maybe add a little node code to @gristlabs/grist-widget so it can be resolved
+    // directly?
+    const gristLabsModules = path.dirname(path.dirname(require.resolve('@gristlabs/express-session')));
     const bundledRoot = isAffirmative(process.env.GRIST_SKIP_BUNDLED_WIDGETS) ? undefined : path.join(
-      getAppPathTo(this.appRoot, 'node_modules'),
-      '@gristlabs', 'grist-widget', 'dist'
+      gristLabsModules, 'grist-widget', 'dist'
     );
     this.info.push(['bundledRoot', bundledRoot]);
     const pluginManager = new PluginManager(this.appRoot, userRoot, bundledRoot);

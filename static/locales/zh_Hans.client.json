@@ -100,7 +100,9 @@
         "Enter Custom URL": "输入自定义URL",
         "Pick a {{columnType}} column": "选择一个 {{columnType}} 列",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} 非 {{columnType}} 列未显示",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} 非 {{columnType}} 列未显示"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} 非 {{columnType}} 列未显示",
+        "No {{columnType}} columns in table.": "表格中没有{{columnType}} 列。",
+        "Clear selection": "清除选择"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "为所选列的每个值创建单独的系列。",
@@ -116,7 +118,13 @@
         "Duplicate Table": "复制表",
         "Raw Data Tables": "原始数据表",
         "Table ID copied to clipboard": "表 ID 已复制到剪贴板",
-        "You do not have edit access to this document": "您没有对此文档的编辑权限"
+        "You do not have edit access to this document": "您没有对此文档的编辑权限",
+        "Edit Record Card": "编辑记录卡片",
+        "Rename Table": "重新命名表格",
+        "{{action}} Record Card": "{{action}} 记录卡片",
+        "Record Card": "记录卡片",
+        "Remove Table": "移除表格",
+        "Record Card Disabled": "记录卡片禁用"
     },
     "CellContextMenu": {
         "Duplicate rows_one": "重复行",
@@ -152,7 +160,8 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "列 {{colId}} 将在操作 #{{action.actionNum}} 中删除",
         "Action Log failed to load": "操作日志加载失败",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "表 {{tableId}} 将在操作 #{{actionNum}} 中删除",
-        "This row was subsequently removed in action {{action.actionNum}}": "该行将在操作 {{action.actionNum}} 中删除"
+        "This row was subsequently removed in action {{action.actionNum}}": "该行将在操作 {{action.actionNum}} 中删除",
+        "All tables": "所有表格"
     },
     "ApiKey": {
         "This API key can be used to access this account anonymously via the API.": "该API密钥可用于通过API匿名访问该账户。",
@@ -325,7 +334,10 @@
         "You have read-only access to this site. Currently there are no documents.": "您对该站点具有只读访问权限。 目前没有文件。",
         "{{signUp}} to save your work. ": "{{signUp}} 保存您的工作。 ",
         "Welcome to {{- orgName}}": "欢迎来到 {{- orgName}}",
-        "Welcome to Grist, {{- name}}!": "欢迎来到 Grist，{{- name}}！"
+        "Welcome to Grist, {{- name}}!": "欢迎来到 Grist，{{- name}}！",
+        "Visit our {{link}} to learn more about Grist.": "访问我们的{{link}} ，了解有关 Grist 的更多信息。",
+        "Sign in": "登录",
+        "To use Grist, please either sign up or sign in.": "要使用 Grist，请注册或登录。"
     },
     "HomeLeftPane": {
         "Delete": "删除",
@@ -425,12 +437,13 @@
     },
     "RowContextMenu": {
         "Insert row below": "在下方插入行",
-        "Copy anchor link": "复制锚链接",
+        "Copy anchor link": "复制锚点链接",
         "Delete": "删除",
         "Duplicate rows_one": "重复行",
         "Duplicate rows_other": "重复行",
         "Insert row": "插入行",
-        "Insert row above": "在上方插入行"
+        "Insert row above": "在上方插入行",
+        "View as card": "以卡片形式查看"
     },
     "UserManagerModel": {
         "In Full": "在全",
@@ -463,7 +476,7 @@
         "Open configuration": "打开配置",
         "Print widget": "打印小部件",
         "Advanced Sort & Filter": "高级排序和过滤",
-        "Copy anchor link": "复制锚链接",
+        "Copy anchor link": "复制锚点链接",
         "Data selection": "数据选择",
         "Delete widget": "删除小部件",
         "Download as CSV": "下载为 CSV",
@@ -555,7 +568,8 @@
         "DATA FROM TABLE": "表中数据",
         "Mixed format": "混合格式",
         "Mixed types": "混合类型",
-        "Use separate field settings for {{colId}}": "为 {{colId}} 使用单独的字段设置"
+        "Use separate field settings for {{colId}}": "为 {{colId}} 使用单独的字段设置",
+        "Changing column type": "更改列类型"
     },
     "FormulaEditor": {
         "Column or field is required": "列或字段是必需的",
@@ -694,7 +708,29 @@
         "Unfreeze {{count}} columns_other": "解冻 {{count}} 列",
         "Show column {{- label}}": "显示列 {{- label}}",
         "Insert column to the left": "在左侧插入列",
-        "Insert column to the right": "在右侧插入列"
+        "Insert column to the right": "在右侧插入列",
+        "Detect Duplicates in...": "在……中检测重复",
+        "UUID": "UUID",
+        "Shortcuts": "捷径",
+        "Show hidden columns": "显示隐藏列",
+        "Created At": "创建于",
+        "Authorship": "作者",
+        "Add formula column": "添加公式列",
+        "Last Updated By": "最后更新者",
+        "Hidden Columns": "隐藏栏",
+        "Lookups": "查询",
+        "No reference columns.": "无引用列。",
+        "Apply on record changes": "应用记录更改",
+        "Duplicate in {{- label}}": "在{{- label}}中的重复",
+        "Created By": "创建者",
+        "Last Updated At": "最后更新时间",
+        "Add column with type": "添加特定类型的列",
+        "Apply to new records": "应用到新记录",
+        "Search columns": "搜索列",
+        "Timestamp": "时间戳",
+        "no reference column": "无引用列",
+        "Adding UUID column": "添加 UUID 列",
+        "Adding duplicates column": "添加重复列"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "添加了新的链接部分以查看 {{viewName}}",
@@ -824,14 +860,14 @@
         "Any field": "任何领域",
         "Apply on changes to:": "应用更改：",
         "Apply on record changes": "应用记录更改",
-        "Apply to new records": "申请新记录",
+        "Apply to new records": "应用到新记录",
         "Cancel": "取消",
         "Close": "关闭",
         "Current field ": "当前字段 ",
         "OK": "好的"
     },
     "TypeTransformation": {
-        "Apply": "申请",
+        "Apply": "应用",
         "Cancel": "取消",
         "Preview": "预览",
         "Revise": "修订",
@@ -868,7 +904,8 @@
         "Any": "任何",
         "Numeric": "数值",
         "Text": "文本",
-        "Integer": "整数"
+        "Integer": "整数",
+        "Search columns": "搜索列"
     },
     "errorPages": {
         "Add account": "新增帐户",
@@ -887,7 +924,10 @@
         "Signed out{{suffix}}": "退出{{suffix}}",
         "Page not found{{suffix}}": "找不到页面 {{suffix}}",
         "Access denied{{suffix}}": "访问被拒绝{{suffix}}",
-        "Error{{suffix}}": "错误{{suffix}}"
+        "Error{{suffix}}": "错误{{suffix}}",
+        "Account deleted{{suffix}}": "账户已删除{{suffix}}",
+        "Your account has been deleted.": "您的账户已被删除。",
+        "Sign up": "注册"
     },
     "modals": {
         "Cancel": "取消",
@@ -920,7 +960,7 @@
         "View As": "查看为"
     },
     "TypeTransform": {
-        "Apply": "申请",
+        "Apply": "应用",
         "Cancel": "取消",
         "Preview": "预览",
         "Revise": "修订",
@@ -1013,10 +1053,20 @@
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "单击每个单元格中的 {{EyeHideIcon}} 可隐藏此视图中的字段而不将其删除。",
         "Editing Card Layout": "编辑卡片布局",
         "Formulas that trigger in certain cases, and store the calculated value as data.": "在某些情况下触发的公式，并将计算值存储为数据。",
-        "Anchor Links": "锚链接",
+        "Anchor Links": "锚点链接",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "要创建将用户带到特定单元格的锚点链接，请单击行并按 {{shortcut}} 。",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "您可以选择我们的一个预制小部件或通过提供其完整的URL嵌入您自己的。",
-        "Custom Widgets": "自定义小部件"
+        "Custom Widgets": "自定义小部件",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID 是随机生成的字符串，可用于唯一标识符和链接密钥。",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "要配置日历，请为开始/结束日期和事件标题选择栏目。注意每一列的类型。"
+        },
+        "Calendar": "日历",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "公式支持许多 Excel 函数和完整的 Python 语法，还包括一个有用的人工智能助手。",
+        "Lookups return data from related tables.": "查找会返回相关表中的数据。",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "您可以从下拉菜单中选择可用的小部件，也可以通过提供完整的 URL 嵌入自己的小部件。",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "找不到正确的列？点击 \"更改小部件\"，选择包含事件数据的表格。",
+        "Use reference columns to relate data in different tables.": "使用参考列来关联不同表格中的数据。"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "描述"
@@ -1074,7 +1124,13 @@
         "Grist's AI Assistance": "Grist 人工智能助手",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "注册一个免费的Grist帐户，开始使用Formula AI助手。",
         "Sign Up for Free": "免费注册",
-        "Formula AI Assistant is only available for logged in users.": "公式 AI 助手仅适用于登录用户。"
+        "Formula AI Assistant is only available for logged in users.": "公式 AI 助手仅适用于登录用户。",
+        "For higher limits, contact the site owner.": "如需更高限额，请联系网站所有者。",
+        "upgrade to the Pro Team plan": "升级到专业团队计划",
+        "You have used all available credits.": "您已使用所有可用积分。",
+        "upgrade your plan": "升级您的计划",
+        "You have {{numCredits}} remaining credits.": "您还有{{numCredits}} 剩余积分。",
+        "For higher limits, {{upgradeNudge}}.": "如需更高限额，{{upgradeNudge}} 。"
     },
     "WebhookPage": {
         "Clear Queue": "清除队列",
@@ -1185,5 +1241,13 @@
     "FloatingPopup": {
         "Maximize": "最大化",
         "Minimize": "最小化"
+    },
+    "CardContextMenu": {
+        "Insert card above": "在上方插入卡片",
+        "Duplicate card": "复制卡片",
+        "Insert card below": "在下方插入卡片",
+        "Delete card": "删除卡片",
+        "Copy anchor link": "复制锚点链接",
+        "Insert card": "插入卡片"
     }
 }

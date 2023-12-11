@@ -4,7 +4,7 @@ import * as fse from 'fs-extra';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import {ApiError} from 'app/common/ApiError';
-import {removeTrailingSlash} from 'app/common/gutil';
+import {isAffirmative, removeTrailingSlash} from 'app/common/gutil';
 import {GristServer} from 'app/server/lib/GristServer';
 import LRUCache from 'lru-cache';
 import * as url from 'url';
@@ -96,7 +96,8 @@ export class CombinedWidgetRepository implements IWidgetRepository {
  * Repository that gets a list of widgets from a URL.
  */
 export class UrlWidgetRepository implements IWidgetRepository {
-  constructor(private _staticUrl = STATIC_URL) {}
+  constructor(private _staticUrl = STATIC_URL,
+              private _required: boolean = true) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
     if (!this._staticUrl) {
@@ -126,10 +127,16 @@ export class UrlWidgetRepository implements IWidgetRepository {
       fixUrls(widgets, this._staticUrl);
       return widgets;
     } catch (err) {
-      if (!(err instanceof ApiError)) {
-        throw new ApiError(String(err), 500);
+      if (this._required) {
+        if (!(err instanceof ApiError)) {
+          throw new ApiError(String(err), 500);
+        }
+        throw err;
+      } else {
+        log.error("WidgetRepository: Error fetching widget list - " +
+            String(err));
+        return [];
       }
-      throw err;
     }
   }
 }
@@ -177,7 +184,9 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
     const repos: IWidgetRepository[] = [];
     this._staticUrl = overrideUrl ?? STATIC_URL;
     if (this._staticUrl) {
-      this._urlWidgets = new UrlWidgetRepository(this._staticUrl);
+      const optional = isAffirmative(process.env.GRIST_WIDGET_LIST_URL_OPTIONAL);
+      this._urlWidgets = new UrlWidgetRepository(this._staticUrl,
+                                                 !optional);
       repos.push(this._urlWidgets);
     }
     if (this._diskWidgets) { repos.push(this._diskWidgets); }
