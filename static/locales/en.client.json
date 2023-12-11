@@ -427,7 +427,13 @@
         "Search columns": "Search columns",
         "UUID": "UUID",
         "Add column with type": "Add column with type",
-        "Add formula column": "Add formula column"
+        "Add formula column": "Add formula column",
+        "Add column": "Add column",
+        "Created at": "Created at",
+        "Created by": "Created by",
+        "Detect duplicates in...": "Detect duplicates in...",
+        "Last updated at": "Last updated at",
+        "Last updated by": "Last updated by"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
