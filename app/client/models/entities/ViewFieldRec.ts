@@ -17,7 +17,9 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
 
   widthPx: ko.Computed<string>;
   column: ko.Computed<ColumnRec>;
+  origLabel: ko.Computed<string>;
   origCol: ko.Computed<ColumnRec>;
+  pureType: ko.Computed<string>;
   colId: ko.Computed<string>;
   label: ko.Computed<string>;
   description: modelUtil.KoSaveableObservable<string>;
@@ -101,6 +103,9 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   // `formatter` formats actual cell values, e.g. a whole list from the display column.
   formatter: ko.Computed<BaseFormatter>;
 
+  /** Label in FormView. By default FormView uses label, use this to override it. */
+  question: modelUtil.KoSaveableObservable<string|undefined>;
+
   createValueParser(): (value: string) => any;
 
   // Helper which adds/removes/updates field's displayCol to match the formula.
@@ -111,11 +116,13 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.viewSection = refRecord(docModel.viewSections, this.parentId);
   this.widthDef = modelUtil.fieldWithDefault(this.width, () => this.viewSection().defaultWidth());
 
-  this.widthPx = ko.pureComputed(() => this.widthDef() + 'px');
-  this.column = refRecord(docModel.columns, this.colRef);
-  this.origCol = ko.pureComputed(() => this.column().origCol());
-  this.colId = ko.pureComputed(() => this.column().colId());
-  this.label = ko.pureComputed(() => this.column().label());
+  this.widthPx = this.autoDispose(ko.pureComputed(() => this.widthDef() + 'px'));
+  this.column = this.autoDispose(refRecord(docModel.columns, this.colRef));
+  this.origCol = this.autoDispose(ko.pureComputed(() => this.column().origCol()));
+  this.pureType = this.autoDispose(ko.pureComputed(() => this.column().pureType()));
+  this.colId = this.autoDispose(ko.pureComputed(() => this.column().colId()));
+  this.label = this.autoDispose(ko.pureComputed(() => this.column().label()));
+  this.origLabel = this.autoDispose(ko.pureComputed(() => this.origCol().label()));
   this.description = modelUtil.savingComputed({
     read: () => this.column().description(),
     write: (setter, val) => setter(this.column().description, val)
@@ -249,6 +256,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.headerFontUnderline = this.widgetOptionsJson.prop('headerFontUnderline');
   this.headerFontItalic = this.widgetOptionsJson.prop('headerFontItalic');
   this.headerFontStrikethrough = this.widgetOptionsJson.prop('headerFontStrikethrough');
+  this.question = this.widgetOptionsJson.prop('question');
 
   this.documentSettings = ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson());
   this.style = ko.pureComputed({

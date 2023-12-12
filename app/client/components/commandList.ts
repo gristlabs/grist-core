@@ -114,6 +114,7 @@ export type CommandName =
   | 'detachEditor'
   | 'activateAssistant'
   | 'viewAsCard'
+  | 'showColumns'
   ;
 
 
@@ -123,6 +124,11 @@ export interface CommandDef {
   desc: string | null;
   bindKeys?: boolean;
   deprecated?: boolean;
+}
+
+export interface MenuCommand {
+  humanKeys: string[];
+  run: (...args: any[]) => any;
 }
 
 export interface CommendGroupDef {
@@ -595,7 +601,11 @@ export const groups: CommendGroupDef[] = [{
       name: 'duplicateRows',
       keys: ['Mod+Shift+d'],
       desc: 'Duplicate selected rows'
-    },
+    }, {
+      name: 'showColumns',
+      keys: [],
+      desc: 'Show hidden columns'
+    }
   ],
 }, {
   group: 'Sorting',

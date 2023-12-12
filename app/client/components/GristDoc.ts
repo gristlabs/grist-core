@@ -913,8 +913,18 @@ export class GristDoc extends DisposableWithEvents {
       if (name === undefined) {
         return;
       }
-      const result = await this.docData.sendAction(['AddEmptyTable', name]);
-      await this.openDocPage(result.views[0].id);
+      let newViewId: IDocPage;
+      if (val.type === 'record') {
+        const result = await this.docData.sendAction(['AddEmptyTable', name]);
+        newViewId = result.views[0].id;
+      } else {
+        // This will create a new table and page.
+        const result = await this.docData.sendAction(
+          ['CreateViewSection', /* new table */0, 0, val.type, null, name]
+        );
+        newViewId = result.viewRef;
+      }
+      await this.openDocPage(newViewId);
     } else {
       let result: any;
       await this.docData.bundleActions(`Add new page`, async () => {

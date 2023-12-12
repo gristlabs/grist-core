@@ -5,6 +5,7 @@ import * as commands from 'app/client/components/commands';
 import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
 import * as DetailView from 'app/client/components/DetailView';
+import {FormView} from 'app/client/components/Forms/FormView';
 import * as GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BoxSpec, Layout} from 'app/client/components/Layout';
@@ -44,6 +45,7 @@ const viewSectionTypes: {[key: string]: any} = {
   chart: ChartView,
   single: DetailView,
   custom: CustomView,
+  form: FormView,
   'custom.calendar': CustomCalendarView,
 };
 

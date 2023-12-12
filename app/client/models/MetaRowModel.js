@@ -54,6 +54,16 @@ MetaRowModel.prototype._assignColumn = function(colName) {
 MetaRowModel.Floater = function(tableModel, rowIdObs) {
   this._table = tableModel;
   this.rowIdObs = rowIdObs;
+
+  // Some tsc error prevents me from adding this at the module level.
+  // This method is part of the interface of MetaRowModel.
+  // TODO: Fix the tsc error and move this to the module level.
+  if (!this.constructor.prototype.getRowId) {
+    this.constructor.prototype.getRowId = function() {
+      return this.rowIdObs();
+    }
+  }
+
   // Note that ._index isn't supported because it doesn't make sense for a floating row model.
 
   this._underlyingRowModel = this.autoDispose(ko.computed(function() {

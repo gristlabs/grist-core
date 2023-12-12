@@ -3,7 +3,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
+import {GRIST_FORMS_FEATURE, PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {linkId, NoLink} from 'app/client/ui/selectBy';
 import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
@@ -35,7 +35,7 @@ import without = require('lodash/without');
 
 const t = makeT('PageWidgetPicker');
 
-type TableId = number|'New Table'|null;
+type TableRef = number|'New Table'|null;
 
 // Describes a widget selection.
 export interface IPageWidget {
@@ -44,7 +44,7 @@ export interface IPageWidget {
   type: IWidgetType;
 
   // The table (one of the listed tables or 'New Table')
-  table: TableId;
+  table: TableRef;
 
   // Whether to summarize the table (not available for "New Table").
   summarize: boolean;
@@ -89,22 +89,26 @@ export interface IOptions extends ISelectOptions {
 
 const testId = makeTestId('test-wselect-');
 
+function maybeForms(): Array<'form'> {
+  return GRIST_FORMS_FEATURE() ? ['form'] : [];
+}
+
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
-function getCompatibleTypes(tableId: TableId, isNewPage: boolean|undefined): IWidgetType[] {
+function getCompatibleTypes(tableId: TableRef, isNewPage: boolean|undefined): IWidgetType[] {
   if (tableId !== 'New Table') {
-    return ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar'];
+    return ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', ...maybeForms()];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
-    return ['record'];
+    return ['record', ...maybeForms()];
   } else {
     // The type 'chart' makes little sense when creating a new table.
-    return ['record', 'single', 'detail'];
+    return ['record', 'single', 'detail', ...maybeForms()];
   }
 }
 
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
-function isValidSelection(table: TableId, type: IWidgetType, isNewPage: boolean|undefined) {
+function isValidSelection(table: TableRef, type: IWidgetType, isNewPage: boolean|undefined) {
   return table !== null && getCompatibleTypes(table, isNewPage).includes(type);
 }
 
@@ -262,7 +266,7 @@ const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS
 const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a=>
   registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  'record', 'single', 'detail', 'chart', ...finalListOfCustomWidgetToShow, 'custom'
+  'record', 'single', 'detail', ...maybeForms(), 'chart', ...finalListOfCustomWidgetToShow, 'custom'
 ];
 
 
@@ -425,7 +429,7 @@ export class PageWidgetSelect extends Disposable {
     this._value.type.set(type);
   }
 
-  private _selectTable(tid: TableId) {
+  private _selectTable(tid: TableRef) {
     if (tid !== this._value.table.get()) {
       this._value.link.set(NoLink);
     }
@@ -437,7 +441,7 @@ export class PageWidgetSelect extends Disposable {
     return el.classList.contains(cssEntry.className + '-selected');
   }
 
-  private _selectPivot(tid: TableId, pivotEl: HTMLElement) {
+  private _selectPivot(tid: TableRef, pivotEl: HTMLElement) {
     if (this._isSelected(pivotEl)) {
       this._closeSummarizePanel();
     } else {
@@ -456,7 +460,7 @@ export class PageWidgetSelect extends Disposable {
     this._value.columns.set(newIds);
   }
 
-  private _isTypeDisabled(type: IWidgetType, table: TableId) {
+  private _isTypeDisabled(type: IWidgetType, table: TableRef) {
     if (table === null) {
       return false;
     }

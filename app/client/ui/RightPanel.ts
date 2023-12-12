@@ -15,6 +15,7 @@
  */
 
 import * as commands from 'app/client/components/commands';
+import {HiddenQuestionConfig} from 'app/client/components/Forms/HiddenQuestionConfig';
 import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
 import {EmptyFilterState} from "app/client/components/LinkingState";
 import {RefSelect} from 'app/client/components/RefSelect';
@@ -26,7 +27,7 @@ import {createSessionObs, isBoolean, SessionObs} from 'app/client/lib/sessionObs
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
-import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
+import {buildDescriptionConfig, buildTextInput} from 'app/client/ui/DescriptionConfig';
 import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
@@ -263,6 +264,18 @@ export class RightPanel extends Disposable {
     // Builder for the reference display column multiselect.
     const refSelect = RefSelect.create(owner, {docModel, origColumn, fieldBuilder});
 
+    // The original selected field model.
+    const fieldRef = owner.autoDispose(ko.pureComputed(() => {
+      return ((fieldBuilder()?.field)?.id()) ?? 0;
+    }));
+    const selectedField = owner.autoDispose(docModel.viewFields.createFloatingRowModel(fieldRef));
+
+    // For forms we will show some extra options.
+    const isForm = owner.autoDispose(ko.computed(() => {
+      const vs = this._gristDoc.viewModel.activeSection();
+      return vs.parentKey() === 'form';
+    }));
+
     // build cursor position observable
     const cursor = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
@@ -276,6 +289,14 @@ export class RightPanel extends Disposable {
           cssSection(
             dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
           ),
+          dom.maybe(isForm, () => [
+            cssSection(
+              dom.create(buildTextInput, {
+                cursor, label: 'Question', value: selectedField.question,
+                placeholder: selectedField.origLabel
+              }),
+            ),
+          ]),
           cssSection(
             dom.create(buildDescriptionConfig, origColumn.description, { cursor, "testPrefix": "column" }),
           ),
@@ -430,6 +451,19 @@ export class RightPanel extends Disposable {
 
       cssSeparator(dom.hide(activeSection.isRecordCard)),
 
+      dom.domComputed(use => {
+        const vs = use(activeSection.viewInstance);
+        if (!vs || use(activeSection.parentKey) !== 'form') { return null; }
+        return [
+          cssRow(
+            primaryButton(t("Reset form"), dom.on('click', () => {
+              activeSection.layoutSpecObj.setAndSave(null).catch(reportError);
+            })),
+            cssRow.cls('-top-space')
+          ),
+        ];
+      }),
+
       dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
         cssLabel(t("Theme")),
         dom('div',
@@ -486,11 +520,16 @@ export class RightPanel extends Disposable {
           use(hasCustomMapping) ||
           use(this._pageWidgetType) === 'chart' ||
           use(activeSection.isRaw)
-        ),
+        ) && use(activeSection.parentKey) !== 'form',
         () => [
           cssSeparator(),
           dom.create(VisibleFieldsConfig, this._gristDoc, activeSection),
         ]),
+
+      dom.maybe(use => use(activeSection.parentKey) === 'form', () => [
+        cssSeparator(),
+        dom.create(HiddenQuestionConfig, activeSection),
+      ]),
     ]);
   }
 

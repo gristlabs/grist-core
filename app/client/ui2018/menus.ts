@@ -1,4 +1,4 @@
-import { Command } from 'app/client/components/commands';
+import { MenuCommand } from 'app/client/components/commandList';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
 import { makeT } from 'app/client/lib/localization';
 import { NeedUpgradeError, reportError } from 'app/client/models/errors';
@@ -575,7 +575,7 @@ export const menuItemAsync: typeof weasel.menuItem = function(action, ...args) {
 };
 
 export function menuItemCmd(
-  cmd: Command,
+  cmd: MenuCommand,
   label: string | (() => DomContents),
   ...args: DomElementArg[]
 ) {
@@ -787,8 +787,9 @@ const cssUpgradeTextButton = styled(textButton, `
 
 const cssMenuItemSubmenu = styled('div', `
   position: relative;
+  justify-content: flex-start;
   color: ${theme.menuItemFg};
-  --icon-color: ${theme.menuItemFg};
+  --icon-color: ${theme.accentIcon};
   .${weasel.cssMenuItem.className}-sel {
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};

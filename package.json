@@ -152,7 +152,6 @@
     "i18next": "21.9.1",
     "i18next-http-middleware": "3.3.2",
     "image-size": "0.6.3",
-    "isomorphic-dompurify": "1.11.0",
     "jquery": "3.5.0",
     "js-yaml": "3.14.1",
     "jsdom": "^23.0.0",

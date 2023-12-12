@@ -1,5 +1,6 @@
 import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer";
 import {createEmptyActionSummary} from "app/common/ActionSummary";
+import {QueryFilters} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
 import {
@@ -11,8 +12,9 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
+import {Box, RenderBox, RenderContext} from "app/common/Forms";
 import {buildUrlId, parseUrlId} from "app/common/gristUrls";
-import {isAffirmative, timeoutReached} from "app/common/gutil";
+import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
 import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
@@ -60,6 +62,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {HashUtil} from 'app/server/lib/HashUtil';
 import {makeForkIds} from "app/server/lib/idUtils";
 import log from 'app/server/lib/log';
+import {getAppPathTo} from 'app/server/lib/places';
 import {
   getDocId,
   getDocScope,
@@ -81,9 +84,11 @@ import {fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
 import * as assert from 'assert';
 import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
+import jsesc from 'jsesc';
 import * as _ from "lodash";
 import LRUCache from 'lru-cache';
 import * as moment from 'moment';
+import * as fse from 'fs-extra';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
@@ -163,7 +168,8 @@ export class DocWorkerApi {
 
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
-              private _dbManager: HomeDBManager, private _grist: GristServer) {}
+              private _dbManager: HomeDBManager, private _grist: GristServer,
+              private _staticPath: string) {}
 
   /**
    * Adds endpoints for the doc api.
@@ -215,14 +221,18 @@ export class DocWorkerApi {
       res.json(await activeDoc.applyUserActions(docSessionFromRequest(req), req.body, {parseStrings}));
     }));
 
-    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string) {
-      const filters = req.query.filter ? JSON.parse(String(req.query.filter)) : {};
+
+    async function readTable(
+      req: RequestWithLogin,
+      activeDoc: ActiveDoc,
+      tableId: string,
+      filters: QueryFilters,
+      params: QueryParameters & {immediate?: boolean}) {
       // Option to skip waiting for document initialization.
-      const immediate = isAffirmative(req.query.immediate);
+      const immediate = isAffirmative(params.immediate);
       if (!Object.keys(filters).every(col => Array.isArray(filters[col]))) {
         throw new ApiError("Invalid query: filter values must be arrays", 400);
       }
-      const tableId = await getRealTableId(optTableId || req.params.tableId, {activeDoc, req});
       const session = docSessionFromRequest(req);
       const {tableData} = await handleSandboxError(tableId, [], activeDoc.fetchQuery(
         session, {tableId, filters}, !immediate));
@@ -230,16 +240,22 @@ export class DocWorkerApi {
       const isMetaTable = tableId.startsWith('_grist');
       const columns = isMetaTable ? null :
         await handleSandboxError('', [], activeDoc.getTableCols(session, tableId, true));
-      const params = getQueryParameters(req);
       // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
       // and sql.
       return applyQueryParameters(fromTableDataAction(tableData), params, columns);
     }
 
-    async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
-    ): Promise<TableRecordValue[]> {
-      const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string) {
+      const filters = req.query.filter ? JSON.parse(String(req.query.filter)) : {};
+      // Option to skip waiting for document initialization.
+      const immediate = isAffirmative(req.query.immediate);
+      const tableId = await getRealTableId(optTableId || req.params.tableId, {activeDoc, req});
+      const params = getQueryParameters(req);
+      return await readTable(req, activeDoc, tableId, filters, {...params, immediate});
+    }
+
+    function asRecords(
+      columnData: TableColValues, opts?: { optTableId?: string; includeHidden?: boolean }): TableRecordValue[] {
       const fieldNames = Object.keys(columnData).filter((k) => {
         if (k === "id") {
           return false;
@@ -264,6 +280,13 @@ export class DocWorkerApi {
         }
         return result;
       });
+    }
+
+    async function getTableRecords(
+      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
+    ): Promise<TableRecordValue[]> {
+      const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+      return asRecords(columnData, opts);
     }
 
     // Get the specified table in column-oriented format
@@ -1343,6 +1366,99 @@ export class DocWorkerApi {
 
       return res.status(200).json(docId);
     }));
+
+    // Get the specified table in record-oriented format
+    this._app.get('/api/docs/:docId/forms/:id', canView,
+      withDoc(async (activeDoc, req, res) => {
+        // Get the viewSection record for the specified id.
+        const id = integerParam(req.params.id, 'id');
+        const records = asRecords(await readTable(
+          req, activeDoc, '_grist_Views_section', { id: [id] }, {  }
+        ));
+        const vs = records.find(r => r.id === id);
+        if (!vs) {
+          throw new ApiError(`ViewSection ${id} not found`, 404);
+        }
+
+        // Prepare the context that will be needed for rendering this form.
+        const fields = asRecords(await readTable(
+          req, activeDoc, '_grist_Views_section_field', { parentId: [id] }, {  }
+        ));
+        const cols = asRecords(await readTable(
+          req, activeDoc, '_grist_Tables_column', { parentId: [vs.fields.tableRef] }, {  }
+        ));
+
+        // Read the box specs
+        const spec = vs.fields.layoutSpec;
+        let box: Box = safeJsonParse(spec ? String(spec) : '', null);
+        if (!box) {
+          const editable = fields.filter(f => {
+            const col = cols.find(c => c.id === f.fields.colRef);
+            // Can't do attachments and formulas.
+            return col && !(col.fields.isFormula && col.fields.formula) && col.fields.type !== 'Attachment';
+          });
+          box = {
+            type: 'Layout',
+            children: editable.map(f => ({
+              type: 'Field',
+              leaf: f.id
+            }))
+          };
+          box.children!.push({
+            type: 'Submit'
+          });
+        }
+
+        const context: RenderContext = {
+          field(fieldRef: number) {
+            const field = fields.find(f => f.id === fieldRef);
+            if (!field) { throw new Error(`Field ${fieldRef} not found`); }
+            const col = cols.find(c => c.id === field.fields.colRef);
+            if (!col) { throw new Error(`Column ${field.fields.colRef} not found`); }
+            const fieldOptions = safeJsonParse(field.fields.widgetOptions as string, {});
+            const colOptions = safeJsonParse(col.fields.widgetOptions as string, {});
+            const options = {...colOptions, ...fieldOptions};
+            return {
+              colId: col.fields.colId as string,
+              description: options.description,
+              question: options.question,
+              type: (col.fields.type as string).split(':')[0],
+              options,
+            };
+          }
+        };
+
+        // Now render the box to HTML.
+        const html = RenderBox.new(box, context).toHTML();
+
+        // The html will be inserted into a form as a replacement for:
+        //   document.write(sanitize(`<!-- INSERT CONTENT -->`))
+        // We need to properly escape `
+        const escaped = jsesc(html, {isScriptContext: true, quotes: 'backtick'});
+        // And wrap it with the form template.
+        const form = await fse.readFile(path.join(getAppPathTo(this._staticPath, 'static'),
+                                              'forms/form.html'), 'utf8');
+        // TODO: externalize css. Currently the redirect mechanism depends on the relative base URL, so
+        // we can't change it at this moment. But once custom success page will be implemented this should
+        // be possible.
+
+        const staticOrigin = process.env.APP_STATIC_URL || "";
+        const staticBaseUrl = `${staticOrigin}/v/${this._grist.getTag()}/`;
+        // Fill out the blanks and send the result.
+        const doc = await this._dbManager.getDoc(req);
+        const docUrl = await this._grist.getResourceUrl(doc, 'html');
+        const tableId = await getRealTableId(String(vs.fields.tableRef), {activeDoc, req});
+        res.status(200).send(form
+          .replace('<!-- INSERT CONTENT -->', escaped || '')
+          .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">`)
+          .replace('<!-- INSERT DOC URL -->', docUrl)
+          .replace('<!-- INSERT TABLE ID -->', tableId)
+        );
+
+        // Return the HTML if it exists, otherwise return 404.
+        res.send(html);
+      })
+    );
   }
 
   private async _copyDocToWorkspace(req: Request, options: {
@@ -1877,9 +1993,9 @@ export class DocWorkerApi {
 
 export function addDocApiRoutes(
   app: Application, docWorker: DocWorker, docWorkerMap: IDocWorkerMap, docManager: DocManager, dbManager: HomeDBManager,
-  grist: GristServer
+  grist: GristServer, staticPath: string
 ) {
-  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, grist);
+  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, grist, staticPath);
   api.addEndpoints();
 }
 

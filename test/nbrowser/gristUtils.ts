@@ -1154,7 +1154,7 @@ export async function addNewTable(name?: string) {
 
 // Add a new page using the 'Add New' menu and wait for the new page to be shown.
 export async function addNewPage(
-  typeRe: RegExp|'Table'|'Card'|'Card List'|'Chart'|'Custom',
+  typeRe: RegExp|'Table'|'Card'|'Card List'|'Chart'|'Custom'|'Form',
   tableRe: RegExp|string,
   options?: PageWidgetPickerOptions) {
   const url = await driver.getCurrentUrl();
@@ -2855,7 +2855,8 @@ export async function duplicateTab() {
 export async function scrollActiveView(x: number, y: number) {
   await driver.executeScript(function(x1: number, y1: number) {
     const view = document.querySelector(".active_section .grid_view_data") ||
-                 document.querySelector(".active_section .detailview_scroll_pane");
+                 document.querySelector(".active_section .detailview_scroll_pane") ||
+                 document.querySelector(".active_section .test-forms-editor");
     view!.scrollBy(x1, y1);
   }, x, y);
   await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
@@ -2864,7 +2865,8 @@ export async function scrollActiveView(x: number, y: number) {
 export async function scrollActiveViewTop() {
   await driver.executeScript(function() {
     const view = document.querySelector(".active_section .grid_view_data") ||
-                 document.querySelector(".active_section .detailview_scroll_pane");
+                 document.querySelector(".active_section .detailview_scroll_pane") ||
+                 document.querySelector(".active_section .test-forms-editor");
     view!.scrollTop = 0;
   });
   await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
@@ -3551,6 +3553,51 @@ export async function sendCommand(name: CommandName, argument: any = null) {
   }, name, argument);
   await waitForServer();
 }
+
+/**
+ * Helper controller for choices list editor.
+ */
+export const choicesEditor = {
+  async hasReset() {
+    return (await driver.find(".test-choice-list-entry-edit").getText()) === "Reset";
+  },
+  async reset() {
+    await driver.find(".test-choice-list-entry-edit").click();
+  },
+  async label() {
+    return await driver.find(".test-choice-list-entry-row").getText();
+  },
+  async add(label: string) {
+    await driver.find(".test-tokenfield-input").click();
+    await driver.find(".test-tokenfield-input").clear();
+    await sendKeys(label, Key.ENTER);
+  },
+  async rename(label: string, label2: string) {
+    const entry = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${label}']`, 100);
+    await entry.click();
+    await sendKeys(label2);
+    await sendKeys(Key.ENTER);
+  },
+  async color(token: string, color: string) {
+    const label = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${token}']`, 100);
+    await label.findClosest(".test-tokenfield-token").find(".test-color-button").click();
+    await setFillColor(color);
+    await sendKeys(Key.ENTER);
+  },
+  async read() {
+    return await driver.findAll(".test-choice-list-entry-label", e => e.getText());
+  },
+  async edit() {
+    await this.reset();
+  },
+  async save() {
+    await driver.find(".test-choice-list-entry-save").click();
+    await waitForServer();
+  },
+  async cancel() {
+    await driver.find(".test-choice-list-entry-cancel").click();
+  }
+};
 
 
 } // end of namespace gristUtils

@@ -1,5 +1,18 @@
-import {BindableValue, DomElementMethod, IKnockoutReadObservable, ISubscribable, Listener, Observable,
-        subscribeElem, UseCB, UseCBOwner} from 'grainjs';
+import {
+  BindableValue,
+  Computed,
+  DomElementMethod,
+  Holder,
+  IDisposableOwner,
+  IKnockoutReadObservable,
+  ISubscribable,
+  Listener,
+  MultiHolder,
+  Observable,
+  subscribeElem,
+  UseCB,
+  UseCBOwner
+} from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
 import identity = require('lodash/identity');
 
@@ -827,9 +840,9 @@ export async function waitGrainObs<T>(observable: Observable<T>,
 // `dom.style` does not work here because custom css property (ie: `--foo`) needs to be set using
 // `style.setProperty` (credit: https://vanseodesign.com/css/custom-properties-and-javascript/).
 // TODO: consider making PR to fix `dom.style` in grainjs.
-export function inlineStyle(property: string, valueObs: BindableValue<string>): DomElementMethod {
+export function inlineStyle(property: string, valueObs: BindableValue<any>): DomElementMethod {
   return (elem) => subscribeElem(elem, valueObs, (val) => {
-    elem.style.setProperty(property, val);
+    elem.style.setProperty(property, String(val ?? ''));
   });
 }
 
@@ -951,6 +964,24 @@ export const unwrap: UseCB = (obs: ISubscribable) => {
 };
 
 /**
+ * Subscribes to BindableValue
+ */
+export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
+  if (obs === null || obs === undefined) { return obs; }
+
+  const smth = obs as any;
+
+  // If knockout
+  if (typeof smth === 'function' && 'peek' in smth) { return use(smth) as T; }
+  // If grainjs Observable or Computed
+  if (typeof smth === 'object' && '_getDepItem' in smth) { return use(smth) as T; }
+  // If use function ComputedCallback
+  if (typeof smth === 'function') { return smth(use) as T; }
+
+  return obs as T;
+}
+
+/**
  * Use helper for simple boolean negation.
  */
 export const not = (obs: Observable<any>|IKnockoutReadObservable<any>) => (use: UseCBOwner) => !use(obs);
@@ -1006,3 +1037,20 @@ export function notSet(value: any) {
 export function ifNotSet(value: any, def: any = null) {
   return notSet(value) ? def : value;
 }
+
+/**
+ * Creates a computed observable with a nested owner that can be used to dispose,
+ * any disposables created inside the computed. Similar to domComputedOwned method.
+ */
+export function computedOwned<T>(
+  owner: IDisposableOwner,
+  func: (owner: IDisposableOwner, use: UseCBOwner) => T
+): Computed<T> {
+  const holder = Holder.create(owner);
+  return Computed.create(owner, use => {
+    const computedOwner = MultiHolder.create(holder);
+    return func(computedOwner, use);
+  });
+}
+
+export type Constructor<T> = new (...args: any[]) => T;

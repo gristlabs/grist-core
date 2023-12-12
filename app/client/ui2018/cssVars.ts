@@ -56,10 +56,10 @@ export const colors = {
   darkBg: new CustomProp('color-dark-bg', '#262633'),
   slate: new CustomProp('color-slate', '#929299'),
 
+  lighterGreen: new CustomProp('color-lighter-green', '#b1ffe2'),
   lightGreen: new CustomProp('color-light-green', '#16B378'),
   darkGreen: new CustomProp('color-dark-green', '#009058'),
   darkerGreen: new CustomProp('color-darker-green', '#007548'),
-  lighterGreen: new CustomProp('color-lighter-green', '#b1ffe2'),
 
   lighterBlue: new CustomProp('color-lighter-blue', '#87b2f9'),
   lightBlue: new CustomProp('color-light-blue', '#3B82F6'),

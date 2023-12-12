@@ -1,4 +1,5 @@
 import {allCommands} from 'app/client/components/commands';
+import {GristDoc} from 'app/client/components/GristDoc';
 import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
@@ -44,6 +45,36 @@ export function buildAddColumnMenu(gridView: GridView, index?: number) {
   ];
 }
 
+export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false) {
+  const typeNames = [
+    "Text",
+    "Numeric",
+    "Int",
+    "Bool",
+    "Date",
+    `DateTime:${gristDoc.docModel.docInfoRow.timezone()}`,
+    "Choice",
+    "ChoiceList",
+    `Ref:${tableId}`,
+    `RefList:${tableId}`,
+    "Attachments"];
+  return typeNames.map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
+    .map((ct): { displayName: string, colType: string, testIdName: string, icon: IconName | undefined } => ({
+      displayName: t(ct.obj.label),
+      colType: ct.type,
+      testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
+      icon: ct.obj.icon
+  })).map(ct => {
+    if (!pure) { return ct; }
+    else {
+      return {
+        ...ct,
+        colType: ct.colType.split(':')[0]
+      };
+    }
+  });
+}
+
 function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomElementArg[] {
   function buildEmptyNewColumMenuItem() {
     return menuItem(
@@ -56,24 +87,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
   }
 
   function BuildNewColumnWithTypeSubmenu() {
-    const columnTypes = [
-      "Text",
-      "Numeric",
-      "Int",
-      "Bool",
-      "Date",
-      `DateTime:${gridView.gristDoc.docModel.docInfoRow.timezone()}`,
-      "Choice",
-      "ChoiceList",
-      `Ref:${gridView.tableModel.tableMetaRow.tableId()}`,
-      `RefList:${gridView.tableModel.tableMetaRow.tableId()}`,
-      "Attachments"].map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
-      .map((ct): { displayName: string, colType: string, testIdName: string, icon: IconName | undefined } => ({
-        displayName: t(ct.obj.label),
-        colType: ct.type,
-        testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
-        icon: ct.obj.icon
-      }));
+    const columnTypes = getColumnTypes(gridView.gristDoc, gridView.tableModel.tableMetaRow.tableId());
 
     return menuItemSubmenu(
       (ctl) => [

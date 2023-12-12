@@ -37,6 +37,7 @@ import defaults = require('lodash/defaults');
 export interface InsertColOptions {
   colInfo?: ColInfo;
   index?: number;
+  nestInActiveBundle?: boolean;
 }
 
 export interface ColInfo {
@@ -52,6 +53,10 @@ export interface ColInfo {
 export interface NewColInfo {
   colId: string;
   colRef: number;
+}
+
+export interface NewFieldInfo extends NewColInfo {
+  fieldRef: number;
 }
 
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
@@ -103,7 +108,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   borderWidthPx: ko.Computed<string>;
 
-  layoutSpecObj: modelUtil.ObjObservable<any>;
+  layoutSpecObj: modelUtil.SaveableObjObservable<any>;
 
   _savedFilters: ko.Computed<KoArray<FilterRec>>;
 
@@ -268,9 +273,11 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Saves custom definition (bundles change)
   saveCustomDef(): Promise<void>;
 
-  insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewColInfo>;
+  insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewFieldInfo>;
 
-  showColumn(colRef: number, index?: number): Promise<void>
+  showColumn(col: number|string, index?: number): Promise<number>
+
+  removeField(colRef: number): Promise<void>;
 }
 
 export type WidgetMappedColumn = number|number[]|null;
@@ -834,7 +841,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       ...colInfo,
       '_position': parentPos,
     }];
-    let newColInfo: NewColInfo;
+    let newColInfo: NewFieldInfo;
     await docModel.docData.bundleActions('Insert column', async () => {
       newColInfo = await docModel.dataTables[this.tableId.peek()].sendTableAction(action);
       if (!this.isRaw.peek() && !this.isRecordCard.peek()) {
@@ -843,19 +850,28 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
           parentId: this.id.peek(),
           parentPos,
         };
-        await docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+        const fieldRef = await docModel.viewFields.sendTableAction(['AddRecord', null, fieldInfo]);
+        newColInfo.fieldRef = fieldRef;
       }
-    });
+    }, {nestInActiveBundle: options.nestInActiveBundle});
     return newColInfo!;
   };
 
-  this.showColumn = async (colRef: number, index = this.viewFields().peekLength) => {
+  this.showColumn = async (col: string|number, index = this.viewFields().peekLength) => {
     const parentPos = fieldInsertPositions(this.viewFields(), index, 1)[0];
+    const colRef = typeof col === 'string'
+                    ? this.table().columns().all().find(c => c.colId() === col)?.getRowId()
+                    : col;
     const colInfo = {
       colRef,
       parentId: this.id.peek(),
       parentPos,
     };
-    await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
+    return await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
+  };
+
+  this.removeField = async (fieldRef: number) => {
+    const action = ['RemoveRecord', fieldRef];
+    await docModel.viewFields.sendTableAction(action);
   };
 }

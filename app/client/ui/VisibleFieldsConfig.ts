@@ -276,14 +276,7 @@ export class VisibleFieldsConfig extends Disposable {
   }
 
   public async removeField(field: IField) {
-    const existing = this._section.viewFields.peek().peek()
-      .find((f) => f.column.peek().getRowId() === field.origCol.peek().id.peek());
-    if (!existing) {
-      return;
-    }
-    const id = existing.id.peek();
-    const action = ['RemoveRecord', id];
-    await this._gristDoc.docModel.viewFields.sendTableAction(action);
+    await this._section.removeField(field.getRowId());
   }
 
   public async addField(column: IField, nextField: ViewFieldRec|null = null) {

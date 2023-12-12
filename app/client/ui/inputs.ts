@@ -39,9 +39,9 @@ export const cssInput = styled('input', `
 /**
  * Builds a text input that updates `obs` as you type.
  */
-export function textInput(obs: Observable<string>, ...args: DomElementArg[]): HTMLInputElement {
+export function textInput(obs: Observable<string|undefined>, ...args: DomElementArg[]): HTMLInputElement {
   return cssInput(
-    dom.prop('value', obs),
+    dom.prop('value', u => u(obs) || ''),
     dom.on('input', (_e, elem) => obs.set(elem.value)),
     ...args,
   );

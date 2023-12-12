@@ -10,7 +10,7 @@
 
 import { WebDriver, WebElement } from 'mocha-webdriver';
 
-type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom';
+type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom'|'Form';
 
 export class GristWebDriverUtils {
   public constructor(public driver: WebDriver) {

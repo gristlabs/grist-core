@@ -419,6 +419,10 @@ export interface UserAPI {
    * is specific to Grist installation, and might not be supported.
    */
   closeOrg(): Promise<void>;
+  /**
+   * Creates publicly shared URL for a rendered form.
+   */
+  formUrl(docId: string, vsId: number): string;
 }
 
 /**
@@ -508,6 +512,10 @@ export interface DocWorkerAPI {
 export class UserAPIImpl extends BaseAPI implements UserAPI {
   constructor(private _homeUrl: string, private _options: IOptions = {}) {
     super(_options);
+  }
+
+  public formUrl(docId: string, vsId: number): string {
+    return `${this._url}/api/docs/${docId}/forms/${vsId}`;
   }
 
   public forRemoved(): UserAPI {
