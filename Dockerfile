@@ -113,6 +113,12 @@ RUN \
   mv /grist/static-built/* /grist/static && \
   rmdir /grist/static-built
 
+RUN \
+  groupadd grist -g 10022 && \
+  useradd -ms /bin/bash grist -g grist -u 10022 && \
+  chown -R grist:grist /grist && \
+  chown -R grist:grist /persist
+
 WORKDIR /grist
 
 # Set some default environment variables to give a setup that works out of the box when
@@ -141,5 +147,7 @@ ENV \
   TYPEORM_DATABASE=/persist/home.sqlite3
 
 EXPOSE 8484
+
+USER grist
 
 CMD ./sandbox/run.sh
