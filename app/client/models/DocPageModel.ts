@@ -294,7 +294,8 @@ Recovery mode opens the document to be fully accessible to owners, and inaccessi
 It also disables formulas. [{{error}}]", {error: err.message})
             : isDenied
               ? t('Sorry, access to this document has been denied. [{{error}}]', {error: err.message})
-              : t("Document owners can attempt to recover the document. [{{error}}]", {error: err.message})
+              : t("Please reload the document and if the error persist, "+
+                "contact the document owners to attempt a document recovery. [{{error}}]", {error: err.message})
         ),
         hideCancel: true,
         extraButtons: !(isDocOwner && !isDenied) ? null : bigBasicButton(
