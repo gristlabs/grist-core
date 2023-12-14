@@ -3,7 +3,7 @@
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
 * `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server.
-* [`grist-electron`](https://github.com/gristlabs/grist-electron) is a desktop app for Linux, macOS, and Windows for viewing and editing spreadsheets stored locally.
+* [`grist-electron`](https://github.com/gristlabs/grist-electron) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
 The `grist-core` repo is the heart of Grist, including the hosted services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 and Grist's main developer. The French government agency [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) 🇫🇷 has also made significant contributions to the codebase.
@@ -43,7 +43,7 @@ Here are some specific feature highlights of Grist:
     - Dates and times, toggles, and special numerics such as currency all have specialized editors and formatting options.
     - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas to draw attention to important information.
   * Drag-and-drop dashboards.
-    - [Charts](https://support.getgrist.com/widget-chart/), [card views](https://support.getgrist.com/widget-card/) and even a [calendar widget](https://support.getgrist.com/widget-calendar/) for visualization.
+    - [Charts](https://support.getgrist.com/widget-chart/), [card views](https://support.getgrist.com/widget-card/) and a [calendar widget](https://support.getgrist.com/widget-calendar/) for visualization.
     - [Summary tables](https://support.getgrist.com/summary-tables/) for summing and counting across groups.
     - [Widget linking](https://support.getgrist.com/linking-widgets/) streamlines filtering and editing data.
     Grist has a unique approach to visualization, where you can lay out and link distinct widgets to show together,
