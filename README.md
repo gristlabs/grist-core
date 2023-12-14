@@ -1,12 +1,16 @@
 # Grist
 
-Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database to organize your data and make you more productive.
+Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
-This repository, `grist-core`, is the heart of Grist, and has what you need to run a powerful spreadsheet hosting server. If you wish to view and edit spreadsheets stored locally, another option is to use the [`grist-electron`](https://github.com/gristlabs/grist-electron) desktop app for Linux, Mac, and Windows. And to show Grist spreadsheets on a website without any special back-end support, you can use [`grist-static`](https://github.com/gristlabs/grist-static), a fully in-browser build of Grist.
+* `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server.
+* [`grist-electron`](https://github.com/gristlabs/grist-electron) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
+* [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
-The `grist-core` repository is the basis for all these options, and for the hosted spreadsheet services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 that is the main developer of Grist, and by [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist), a French government agency 🇫🇷 whose developers have made many contributions to the codebase.
+The `grist-core` repo is the heart of Grist, including the hosted services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 and Grist's main developer. The French government agency [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) 🇫🇷 has also made significant contributions to the codebase.
 
 The `grist-core`, `grist-electron`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
+
+> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
 
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
@@ -17,7 +21,7 @@ Grist is a hybrid database/spreadsheet, meaning that:
   - Columns work like they do in databases: they are named, and they hold one kind of data.
   - Columns can be filled by formula, spreadsheet-style, with automatic updates when referenced cells change.
 
-This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance! If you are coming from Airtable, you'll find the model familiar though (and there's a [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article that might interest you).
+This difference can confuse people coming directly from Excel or Google Sheets. Give it a chance! There's also a [Grist for Spreadsheet Users](https://www.getgrist.com/blog/grist-for-spreadsheet-users/) article to help get you oriented. If you're coming from Airtable, you'll find the model familiar (and there's also our [Grist vs Airtable](https://www.getgrist.com/blog/grist-v-airtable/) article for a direct comparison).
 
 Here are some specific feature highlights of Grist:
 
@@ -39,7 +43,7 @@ Here are some specific feature highlights of Grist:
     - Dates and times, toggles, and special numerics such as currency all have specialized editors and formatting options.
     - [Conditional Formatting](https://support.getgrist.com/conditional-formatting/), letting you control the style of cells with formulas to draw attention to important information.
   * Drag-and-drop dashboards.
-    - [Charts](https://support.getgrist.com/widget-chart/) for visualization.
+    - [Charts](https://support.getgrist.com/widget-chart/), [card views](https://support.getgrist.com/widget-card/) and a [calendar widget](https://support.getgrist.com/widget-calendar/) for visualization.
     - [Summary tables](https://support.getgrist.com/summary-tables/) for summing and counting across groups.
     - [Widget linking](https://support.getgrist.com/linking-widgets/) streamlines filtering and editing data.
     Grist has a unique approach to visualization, where you can lay out and link distinct widgets to show together,
@@ -170,20 +174,13 @@ did the hard work of making a good chunk of the application localizable. Merci b
 
 ## Why free and open source software
 
-This repository, [grist-core](https://github.com/gristlabs/grist-core), is maintained by Grist
-Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see
-here, combined with business-specific software designed to scale to many users, handle billing,
-etc.
+This repository, `grist-core`, is maintained by Grist Labs. Our flagship product available at [getgrist.com](https://www.getgrist.com) is built from the code you see here, combined with business-specific software designed to scale to many users, handle billing, etc.
 
-Grist Labs is an open-core company. We offer Grist hosting as a
-service, with free and paid plans. We also develop and sell
-features related to Grist using a proprietary license, targeted at the
-needs of enterprises with large self-managed installations.
+Grist Labs is an open-core company. We offer Grist hosting as a service, with free and paid plans. We also develop and sell features related to Grist using a proprietary license, targeted at the needs of enterprises with large self-managed installations.
 
 We see data portability and autonomy as a key value, and `grist-core` is an essential part of that. We are committed to maintaining and improving the `grist-core` codebase, and to be thoughtful about how proprietary offerings impact data portability and autonomy.
 
-By opening its source code and offering an [OSI](https://opensource.org/)-approved free license,
-Grist benefits its users:
+By opening its source code and offering an [OSI](https://opensource.org/)-approved free license, Grist benefits its users:
 
 - **Developer community.** The freedom to examine source code, make bug fixes, and develop
   new features is a big deal for a general-purpose spreadsheet-like product, where there is a
@@ -442,7 +439,4 @@ env GREP_TESTS=summary yarn test:python
 
 ## License
 
-This repository, `grist-core`, is released under the [Apache License, Version
-2.0](http://www.apache.org/licenses/LICENSE-2.0), which is an
-[OSI](https://opensource.org/)-approved free software license.
-See LICENSE.txt and NOTICE.txt for more information.
+This repository, `grist-core`, is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which is an [OSI](https://opensource.org/)-approved free software license. See LICENSE.txt and NOTICE.txt for more information.
