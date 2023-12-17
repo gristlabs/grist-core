@@ -52,7 +52,9 @@
         "Widget needs to {{read}} the current table.": "O Widget necessita {{read}} a tabela atual.",
         "Widget needs {{fullAccess}} to this document.": "O Widget necessita {{fullAccess}} ao documento.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} a não-{{columnType}} coluna não é mostrada",
-        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} as não-{{columnType}} colunas não são mostradas"
+        "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} as não-{{columnType}} colunas não são mostradas",
+        "No {{columnType}} columns in table.": "Não há colunas {{columnType}} na tabela.",
+        "Clear selection": "Limpar seleção"
     },
     "DocHistory": {
         "Activity": "Atividade",
@@ -107,7 +109,8 @@
     "GristDoc": {
         "Import from file": "Importação de ficheiro",
         "Added new linked section to view {{viewName}}": "Adicionada nova secção vinculada para visualizar {{viewName}}}",
-        "Saved linked section {{title}} in view {{name}}": "Secção vinculada gravada {{title}} em exibição {{name}}"
+        "Saved linked section {{title}} in view {{name}}": "Secção vinculada gravada {{title}} em exibição {{name}}",
+        "go to webhook settings": "ir para configurações webhook"
     },
     "FormulaAssistant": {
         "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Consulte o nosso {{helpFunction}} e {{formulaCheat}} ou visite o nosso {{community}} para obter mais ajuda.",
@@ -138,7 +141,14 @@
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Inscreva-se para uma conta gratuita do Grist para começar a usar o Assistente de Fórmula AI.",
         "There are some things you should know when working with me:": "Há algumas coisas que deve saber ao trabalhar comigo:",
         "What do you need help with?": "Em que precisa de ajuda?",
-        "Sign Up for Free": "Inscreva-se gratuitamente"
+        "Sign Up for Free": "Inscreva-se gratuitamente",
+        "For higher limits, contact the site owner.": "Para limites maiores, entre em contato com o proprietário do site.",
+        "Formula AI Assistant is only available for logged in users.": "O Assistente de Fórmula de IA só está disponível para utilizadores registados.",
+        "upgrade to the Pro Team plan": "atualize para o plano Para o Team",
+        "You have used all available credits.": "Você utilizou todos os créditos disponíveis.",
+        "upgrade your plan": "Atualize o seu plano",
+        "You have {{numCredits}} remaining credits.": "Você tem {{numCredits}} créditos restantes.",
+        "For higher limits, {{upgradeNudge}}.": "Para limites maiores, {{upgradeNudge}}."
     },
     "WelcomeSitePicker": {
         "You can always switch sites using the account menu.": "Sempre pode alternar entre sites através do menu da conta.",
@@ -168,7 +178,10 @@
         "You do not have write access to this site": "Não tem acesso de gravação a este site",
         "As Template": "Como Modelo",
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Tenha cuidado, o original tem mudanças que não estão neste documento. Essas mudanças serão sobrescritas.",
-        "Enter document name": "Digite o nome do documento"
+        "Enter document name": "Digite o nome do documento",
+        "Remove all data but keep the structure to use as a template": "Remova todos os dados, mas mantenha a estrutura para usar como um modelo",
+        "Remove document history (can significantly reduce file size)": "Remova o histórico do documento (pode reduzir significativamente o tamanho do ficheiro)",
+        "Download full document and history": "Descarregue documento completo e histórico"
     },
     "Pages": {
         "Delete": "Apagar",
@@ -228,7 +241,8 @@
         "Manage Users": "Gerir Utilizadores",
         "Original": "Original",
         "Replace {{termToUse}}...": "Substituir {{termToUse}}…",
-        "Share": "Partilhar"
+        "Share": "Partilhar",
+        "Download...": "Descarregar..."
     },
     "SiteSwitcher": {
         "Create new team site": "Criar site de equipa",
@@ -253,7 +267,8 @@
         "Changing multiple column types": "Alterar vários tipos de colunas",
         "Revert field settings for {{colId}} to common": "Reverter configurações de campo da {{colId}} para comum",
         "Save field settings for {{colId}} as common": "Gravar configurações de campo da {{colId}} como comum",
-        "Use separate field settings for {{colId}}": "Use configurações de campo separadas para {{colId}}"
+        "Use separate field settings for {{colId}}": "Use configurações de campo separadas para {{colId}}",
+        "Changing column type": "A alterar o tipo de coluna"
     },
     "NumericTextBox": {
         "Number Format": "Formato de número",
@@ -374,7 +389,8 @@
         "Duplicate rows_other": "Duplicar linhas",
         "Insert row": "Inserir linha",
         "Insert row above": "Inserir linha acima",
-        "Insert row below": "Inserir linha abaixo"
+        "Insert row below": "Inserir linha abaixo",
+        "View as card": "Ver como cartão"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copiado para a área de transferência"
@@ -530,7 +546,35 @@
         "Unfreeze {{count}} columns_one": "Descongelar esta coluna",
         "Unfreeze {{count}} columns_other": "Descongelar {{count}} colunas",
         "Insert column to the left": "Inserir coluna à esquerda",
-        "Insert column to the right": "Inserir coluna à direita"
+        "Insert column to the right": "Inserir coluna à direita",
+        "Created by": "Criado por",
+        "Detect Duplicates in...": "Detetar duplicatas em...",
+        "UUID": "UUID",
+        "Shortcuts": "Atalhos",
+        "Show hidden columns": "Mostrar colunas ocultas",
+        "Created at": "Criado em",
+        "Created At": "Criado em",
+        "Authorship": "Autoria",
+        "Add formula column": "Añadir una columna de fórmulas",
+        "Last Updated By": "Última atualização por",
+        "Hidden Columns": "Colunas ocultas",
+        "Lookups": "Pesquisas",
+        "No reference columns.": "Não há colunas de referência.",
+        "Add column": "Adicionar coluna",
+        "Apply on record changes": "Aplicar em alterações de registro",
+        "Last updated by": "Última atualização por",
+        "Duplicate in {{- label}}": "Duplicar em {{- label}}",
+        "Created By": "Criado por",
+        "Last Updated At": "Última atualização em",
+        "Add column with type": "Adicionar coluna com tipo",
+        "Apply to new records": "Aplicar a novos registros",
+        "Search columns": "Procurar colunas",
+        "Timestamp": "Carimbo de data/hora",
+        "no reference column": "nenhuma coluna de referência",
+        "Adding UUID column": "A adicionar coluna UUID",
+        "Adding duplicates column": "Adicionar coluna duplicatas",
+        "Detect duplicates in...": "Detetar duplicados em...",
+        "Last updated at": "Última atualização em"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Qualquer documento criado neste site aparecerá aqui.",
@@ -554,7 +598,10 @@
         "personal site": "Site pessoal",
         "{{signUp}} to save your work. ": "{{signUp}} para gravar o seu trabalho. ",
         "Welcome to Grist, {{- name}}!": "Bem-vindo ao Grist, {{-name}}!",
-        "Welcome to {{- orgName}}": "Bem-vindo a {{-orgName}}"
+        "Welcome to {{- orgName}}": "Bem-vindo a {{-orgName}}",
+        "Visit our {{link}} to learn more about Grist.": "Visite o nosso site {{link}} para saber mais sobre o Grist.",
+        "Sign in": "Entrar",
+        "To use Grist, please either sign up or sign in.": "Para usar o Grist, inscreva-se ou faça login."
     },
     "GristTooltips": {
         "Apply conditional formatting to rows based on formulas.": "Aplicar formatação condicional em linhas com base em fórmulas.",
@@ -598,7 +645,17 @@
         "Anchor Links": "Ligações de âncora",
         "Custom Widgets": "Widgets personalizados",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para criar uma ligação de âncora que leve o utilizador a uma célula específica, clique numa linha e pressione {{shortcut}}.",
-        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Pode escolher um dos nossos widgets pré-feitos ou incorporar o seu próprio, fornecendo a sua URL completa."
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Pode escolher um dos nossos widgets pré-feitos ou incorporar o seu próprio, fornecendo a sua URL completa.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Um UUID é uma cadeia de caracteres gerada aleatoriamente que é útil para identificadores exclusivos e chaves de ligação.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Para configurar o seu calendário, selecione colunas para datas de início/fim e títulos de eventos. Observe o tipo de cada coluna."
+        },
+        "Calendar": "Calendário",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "As fórmulas suportam muitas funções do Excel, sintaxe Python completa e incluem um assistente de IA útil.",
+        "Lookups return data from related tables.": "As pesquisas retornam dados de tabelas relacionadas.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Pode escolher entre os widgets disponíveis no menu suspenso ou incorporar o seu próprio widget fornecendo o URL completo.",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Não consegue encontrar as colunas certas? Clique em \"Change Widget\" (Alterar widget) para selecionar a tabela com os dados dos eventos.",
+        "Use reference columns to relate data in different tables.": "Use colunas de referência para relacionar dados em diferentes tabelas."
     },
     "WelcomeQuestions": {
         "IT & Technology": "TI e Tecnologia",
@@ -653,14 +710,20 @@
         "There was an unknown error.": "Houve um erro desconhecido.",
         "You are now signed out.": "Agora está fora da sessão.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Está inscrito como {{email}}. Pode entrar com uma conta diferente, ou pedir acesso a um administrador.",
-        "You do not have access to this organization's documents.": "Não tem acesso aos documentos desta organização."
+        "You do not have access to this organization's documents.": "Não tem acesso aos documentos desta organização.",
+        "Account deleted{{suffix}}": "Conta excluída{{suffix}}",
+        "Your account has been deleted.": "A sua conta foi apagada.",
+        "Sign up": "Cadastre-se"
     },
     "CellStyle": {
         "Cell Style": "Estilo de célula",
         "Default cell style": "Estilo de célula padrão",
         "Mixed style": "Estilo misto",
         "Open row styles": "Estilos de linha aberta",
-        "CELL STYLE": "ESTILO DE CÉLULA"
+        "CELL STYLE": "ESTILO DE CÉLULA",
+        "HEADER STYLE": "ESTILO DE CABEÇALHO",
+        "Header Style": "Estilo de cabeçalho",
+        "Default header style": "Estilo de cabeçalho padrão"
     },
     "ChoiceTextBox": {
         "CHOICES": "ESCOLHAS"
@@ -749,7 +812,8 @@
         "Billing Account": "Conta de faturação",
         "Upgrade Plan": "Atualizar o Plano",
         "Sign In": "Entrar",
-        "Sign Up": "Inscrever-se"
+        "Sign Up": "Inscrever-se",
+        "Use This Template": "Use este modelo"
     },
     "ViewAsDropdown": {
         "View As": "Ver como",
@@ -760,7 +824,8 @@
         "Action Log failed to load": "Falha ao carregar o Log de Ações",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "A Coluna {{colId}} foi posteriormente removida em ação #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "A Tabela {{tableId}} foi posteriormente removida em ação #{{actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "Essa linha foi posteriormente removida em ação {{action.actionNum}}"
+        "This row was subsequently removed in action {{action.actionNum}}": "Essa linha foi posteriormente removida em ação {{action.actionNum}}",
+        "All tables": "Todas as tabelas"
     },
     "AddNewButton": {
         "Add New": "Adicionar Novo"
@@ -827,7 +892,13 @@
         "Duplicate Table": "Duplicar a Tabela",
         "Raw Data Tables": "Tabelas de Dados Primários",
         "Table ID copied to clipboard": "ID da Tabela copiada para a área de transferência",
-        "You do not have edit access to this document": "Não tem permissão de edição desse documento"
+        "You do not have edit access to this document": "Não tem permissão de edição desse documento",
+        "Edit Record Card": "Editar cartão de registro",
+        "Rename Table": "Renomear tabela",
+        "{{action}} Record Card": "{{action}} Cartão de registro",
+        "Record Card": "Cartão de registro",
+        "Remove Table": "Remover tabela",
+        "Record Card Disabled": "Cartão de registro desativado"
     },
     "DocPageModel": {
         "Add Empty Table": "Adicionar Tabela Vazia",
@@ -914,7 +985,22 @@
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
         "Select fields to match on": "Selecione os campos a serem correspondidos em",
-        "Update existing records": "Atualizar os registos existentes"
+        "Update existing records": "Atualizar os registos existentes",
+        "Column mapping": "Mapeamento de coluna",
+        "Grist column": "Coluna de Grist",
+        "{{count}} unmatched field_one": "{{count}} campo sem equivalente",
+        "{{count}} unmatched field in import_one": "{{count}} campo sem equivalente na importação",
+        "Revert": "Reverter",
+        "Skip Import": "Pular importação",
+        "{{count}} unmatched field_other": "{{count}} campos sem equivalente",
+        "New Table": "Nova tabela",
+        "Skip": "Pular",
+        "Column Mapping": "Mapeamento de coluna",
+        "Destination table": "Tabela de destino",
+        "Skip Table on Import": "Pular tabela na importação",
+        "Import from file": "Importar de ficheiro",
+        "{{count}} unmatched field in import_other": "{{count}} campos sem equivalente na importação",
+        "Source column": "Coluna de origem"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de Ajuda"
@@ -971,7 +1057,8 @@
         "Choice List": "Lista de opções",
         "Reference": "Referência",
         "Reference List": "Lista de Referências",
-        "Attachment": "Anexo"
+        "Attachment": "Anexo",
+        "Search columns": "Procurar colunas"
     },
     "modals": {
         "Cancel": "Cancelar",
@@ -1160,5 +1247,13 @@
     "FloatingPopup": {
         "Maximize": "Maximizar",
         "Minimize": "Minimizar"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Inserir cartão acima",
+        "Duplicate card": "Duplicar o cartão",
+        "Insert card below": "Inserir cartão abaixo",
+        "Delete card": "Apagar cartão",
+        "Copy anchor link": "Copiar ligação de ancoragem",
+        "Insert card": "Inserir cartão"
     }
 }
