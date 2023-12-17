@@ -94,7 +94,7 @@ export class OIDCConfig {
       defaultValue: 'email',
     });
 
-    this._skipEndSessionEndpoint = section.flag('endSessionEndpoint').readBool({
+    this._skipEndSessionEndpoint = section.flag('skipEndSessionEndpoint').readBool({
       envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
       defaultValue: false,
     })!;
