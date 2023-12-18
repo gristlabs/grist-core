@@ -227,7 +227,13 @@
         "Adding UUID column": "Dodajanje UUID stolpca",
         "Adding duplicates column": "Dodajanje podvojenega stolpca",
         "Add formula column": "Dodaj stolpec z formulo",
-        "Add column with type": "Dodaj stolpec z tipom"
+        "Add column with type": "Dodaj stolpec z tipom",
+        "Created by": "Ustvaril",
+        "Created at": "Ustvarjeno ob",
+        "Add column": "Dodaj stolpec",
+        "Last updated by": "Nazadnje posodobil",
+        "Detect duplicates in...": "Zaznaj dvojnike v ...",
+        "Last updated at": "Nazadnje posodobljeno ob"
     },
     "HomeLeftPane": {
         "Trash": "Koš",
