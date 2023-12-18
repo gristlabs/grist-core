@@ -9,7 +9,9 @@ import {UserAction} from 'app/common/DocActions';
 import {isFullReferencingType} from 'app/common/gristTypes';
 import {SchemaTypes} from 'app/common/schema';
 import {BulkColValues} from 'app/plugin/GristData';
+import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
 import omit = require('lodash/omit');
+import pick = require('lodash/pick');
 
 /**
  * Given a 2-d paste column-oriented paste data and target cols, transform the data to omit
@@ -86,4 +88,19 @@ export async function parsePasteForView(
   }
 
   return result;
+}
+
+/**
+ * Get default values for a new record so that it continues to satisfy the current linking filters.
+ * Exclude formula columns since we can't set their values.
+ */
+export function getDefaultColValues(viewSection: ViewSectionRec): Record<string, any> {
+  const linkingState = viewSection.linkingState.peek();
+  if (!linkingState) {
+    return {};
+  }
+  const dataColIds = viewSection.columns.peek()
+    .filter(col => !col.isRealFormula.peek())
+    .map(col => col.colId.peek());
+  return pick(linkingState.getDefaultColValues(), dataColIds);
 }

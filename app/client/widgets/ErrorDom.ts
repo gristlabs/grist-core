@@ -7,6 +7,7 @@ import {dom} from 'grainjs';
 
 export function buildErrorDom(row: DataRowModel, field: ViewFieldRec) {
   const value = row.cells[field.colId.peek()];
+  if (value === undefined) { return null; }   // Work around JS errors during field removal.
   const options = field.widgetOptionsJson;
   // The "invalid" class sets the pink background, as long as the error text is non-empty.
   return dom('div.field_clip.invalid',

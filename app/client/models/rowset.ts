@@ -82,10 +82,10 @@ export class RowListener extends DisposableWithEvents {
    * Subscribes to the given rowSource and adds the rows currently in it.
    */
   public subscribeTo(rowSource: RowSource): void {
-    this.onAddRows(rowSource.getAllRows());
+    this.onAddRows(rowSource.getAllRows(), rowSource);
     this.listenTo(rowSource, 'rowChange', (changeType: ChangeType, rows: RowList) => {
       const method: ChangeMethod = _changeTypes[changeType];
-      this[method](rows);
+      this[method](rows, rowSource);
     });
     this.listenTo(rowSource, 'rowNotify', this.onRowNotify);
   }
@@ -103,17 +103,17 @@ export class RowListener extends DisposableWithEvents {
   /**
    * Process row additions. To be implemented by derived classes.
    */
-  protected onAddRows(rows: RowList) { /* no-op */ }
+  protected onAddRows(rows: RowList, rowSource?: RowSource) { /* no-op */ }
 
   /**
    * Process row removals. To be implemented by derived classes.
    */
-  protected onRemoveRows(rows: RowList) { /* no-op */ }
+  protected onRemoveRows(rows: RowList, rowSource?: RowSource) { /* no-op */ }
 
   /**
    * Process row updates. To be implemented by derived classes.
    */
-  protected onUpdateRows(rows: RowList) { /* no-op */ }
+  protected onUpdateRows(rows: RowList, rowSource?: RowSource) { /* no-op */ }
 
   /**
    * Derived classes may override this event to handle row notifications. By default, it re-triggers
@@ -127,15 +127,6 @@ export class RowListener extends DisposableWithEvents {
 // ----------------------------------------------------------------------
 // MappedRowSource
 // ----------------------------------------------------------------------
-
-/**
- * A trivial RowSource returning a fixed list of rows.
- */
-export abstract class ArrayRowSource extends RowSource {
-  constructor(private _rows: UIRowId[]) { super(); }
-  public getAllRows(): RowList { return this._rows; }
-  public getNumRows(): number { return this._rows.length; }
-}
 
 /**
  * MappedRowSource wraps any other RowSource, and passes through all rows, replacing each row
@@ -772,4 +763,43 @@ function _allRowsSorted<T>(array: T[], allRows: Set<T>, sortedRows: Iterable<T>,
     last = index;
   }
   return true;
+}
+
+
+/**
+ * Track rows that should temporarily be visible even if they don't match filters.
+ * This is so that a newly added row doesn't immediately disappear, which would be confusing.
+ * This doesn't have much to do with BaseFilteredRowSource, it's just reusing some implementation.
+ */
+export class ExemptFromFilterRowSource extends BaseFilteredRowSource {
+  public constructor() {
+    super(() => false);
+  }
+
+  /**
+   * Call this when one or more new rows are added to keep them temporarily visible.
+   */
+  public addExemptRows(rows: RowList) {
+    const newRows = [];
+    for (const r of rows) {
+      if (!this._matchingRows.has(r)) {
+        this._matchingRows.add(r);
+        newRows.push(r);
+      }
+    }
+    if (newRows.length > 0) {
+      this.trigger('rowChange', 'add', newRows);
+    }
+  }
+
+  public addExemptRow(rowId: number) {
+    this.addExemptRows([rowId]);
+  }
+
+  /**
+   * Call this when linking or filters change to clear out the temporary rows.
+   */
+  public reset() {
+    this.onRemoveRows(this.getAllRows());
+  }
 }

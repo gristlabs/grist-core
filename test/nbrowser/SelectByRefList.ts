@@ -106,10 +106,9 @@ describe('SelectByRefList', function() {
       ],
     ];
     // LINKTARGET is being filtered by the `id` column
-    // There's no column to set a default value for that would help
-    // The newly added row disappears immediately
+    // There's no column to set a default value for.
     // TODO should we be appending the new row ID to the reflist in the source table?
-    newRow = ['', '', ''];
+    newRow = ['99', '', ''];
     await checkSelectingRecords('REFLISTS • LinkTarget_reflist', sourceData, newRow);
 
     // Similar to the above but indirect. We connect LINKTARGET.ref and REFLISTS.reflist,

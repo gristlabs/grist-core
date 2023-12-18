@@ -117,6 +117,22 @@ export class QuerySetManager extends Disposable {
  * RowSource.
  */
 export class DynamicQuerySet extends RowSource {
+  /**
+   * Replace the query represented by this DynamicQuerySet. If multiple makeQuery() calls are made
+   * quickly (while waiting for the server), cb() may only be called for the latest one.
+   *
+   * If there is an error fetching data, cb(err) will be called with that error. The second
+   * argument to cb() is true if any data was changed, and false if not. Note that for a series of
+   * makeQuery() calls, cb() is always called at least once, and always asynchronously.
+   *
+   * It's possible for this to be called very quickly in succession,
+   * e.g. when selecting another row of a linked summary table grouped by multiple columns,
+   * as an observable gets triggered for each one.
+   * We only want to keep the last call, and _updateQuerySetDebounced may not be called
+   * in the correct order, so we first debounce here.
+   */
+  public readonly makeQuery = debounce(tbind(this._makeQuery, this), 0);
+
   // Holds a reference to the currently active QuerySet.
   private _holder = Holder.create<IRefCountSub<QuerySet>>(this);
 
@@ -147,17 +163,13 @@ export class DynamicQuerySet extends RowSource {
     return this._querySet ? this._querySet.isTruncated : false;
   }
 
-  /**
-   * Replace the query represented by this DynamicQuerySet. If multiple makeQuery() calls are made
-   * quickly (while waiting for the server), cb() may only be called for the latest one.
-   *
-   * If there is an error fetching data, cb(err) will be called with that error. The second
-   * argument to cb() is true if any data was changed, and false if not. Note that for a series of
-   * makeQuery() calls, cb() is always called at least once, and always asynchronously.
-   */
-  public makeQuery(filters: {[colId: string]: any[]},
-                   operations: {[colId: string]: QueryOperation},
-                   cb: (err: Error|null, changed: boolean) => void): void {
+  private _makeQuery(filters: { [colId: string]: any[] },
+                     operations: {[colId: string]: QueryOperation},
+                     cb: (err: Error|null, changed: boolean) => void): void {
+    if (this.isDisposed()) {
+      cb(new Error('Disposed'), false);
+      return;
+    }
     const query: ClientQuery = {tableId: this._tableModel.tableData.tableId, filters, operations};
     const newQuerySet = this._querySetManager.useQuerySet(this._holder, query);
 

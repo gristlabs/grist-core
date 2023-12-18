@@ -15,15 +15,15 @@ describe('rowset', function() {
       sinon.spy(lis, "onUpdateRows");
 
       lis.subscribeTo(src);
-      assert.deepEqual(lis.onAddRows.args, [[[1, 2, 3]]]);
+      assert.deepEqual(lis.onAddRows.args, [[[1, 2, 3], src]]);
       lis.onAddRows.resetHistory();
 
       src.trigger('rowChange', 'add', [5, 6]);
       src.trigger('rowChange', 'remove', [6, 1]);
       src.trigger('rowChange', 'update', [3, 5]);
-      assert.deepEqual(lis.onAddRows.args, [[[5, 6]]]);
-      assert.deepEqual(lis.onRemoveRows.args, [[[6, 1]]]);
-      assert.deepEqual(lis.onUpdateRows.args, [[[3, 5]]]);
+      assert.deepEqual(lis.onAddRows.args, [[[5, 6], src]]);
+      assert.deepEqual(lis.onRemoveRows.args, [[[6, 1], src]]);
+      assert.deepEqual(lis.onUpdateRows.args, [[[3, 5], src]]);
     });
 
     it('should support subscribing to multiple sources', function() {
@@ -40,18 +40,18 @@ describe('rowset', function() {
 
       lis.subscribeTo(src1);
       lis.subscribeTo(src2);
-      assert.deepEqual(lis.onAddRows.args, [[[1, 2, 3]], [["a", "b", "c"]]]);
+      assert.deepEqual(lis.onAddRows.args, [[[1, 2, 3], src1], [["a", "b", "c"], src2]]);
 
       src1.trigger('rowChange', 'update', [2, 3]);
       src2.trigger('rowChange', 'remove', ["b"]);
-      assert.deepEqual(lis.onUpdateRows.args, [[[2, 3]]]);
-      assert.deepEqual(lis.onRemoveRows.args, [[["b"]]]);
+      assert.deepEqual(lis.onUpdateRows.args, [[[2, 3], src1]]);
+      assert.deepEqual(lis.onRemoveRows.args, [[["b"], src2]]);
 
       lis.onAddRows.resetHistory();
       lis.unsubscribeFrom(src1);
       src1.trigger('rowChange', 'add', [4]);
       src2.trigger('rowChange', 'add', ["d"]);
-      assert.deepEqual(lis.onAddRows.args, [[["d"]]]);
+      assert.deepEqual(lis.onAddRows.args, [[["d"], src2]]);
     });
   });
 

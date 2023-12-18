@@ -118,17 +118,60 @@ describe('SelectBySummary', function() {
       // so those values will be used as defaults in the source table
       await gu.getCell({section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 2}).click();
 
-      // Create a new record with rownum=99
+      // Create new records with rownum = 99 and 100
       await gu.getCell({section: 'TABLE1', col: 'rownum', rowNum: 3}).click();
       await gu.enterCell('99');
+      await gu.enterCell('100');
 
       assert.deepEqual(
         await gu.getVisibleGridCells({
           section: 'TABLE1',
           cols: ['onetwo', 'choices', 'rownum'],
-          rowNums: [3],
+          rowNums: [1, 2, 3, 4, 5],
         }),
-        ['2', 'a', '99'],
+        [
+          '2', 'a', '2',
+          '2', 'a\nb', '6',
+          // The two rows we just added.
+          // The filter link sets the default value 'a'.
+          // It can't set a default value for 'onetwo' because that's a formula column.
+          // This first row doesn't match the filter link, but it still shows temporarily.
+          '1', 'a', '99',
+          '2', 'a', '100',
+          '', '', '',  // new row
+        ],
+      );
+
+      // Select a different record in the summary table, sanity check the linked table.
+      await gu.getCell({section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 3}).click();
+      assert.deepEqual(
+        await gu.getVisibleGridCells({
+          section: 'TABLE1',
+          cols: ['onetwo', 'choices', 'rownum'],
+          rowNums: [1, 2, 3],
+        }),
+        [
+          '1', 'b', '3',
+          '1', 'a\nb', '5',
+          '', '', '',  // new row
+        ],
+      );
+
+      // Now go back to the previously selected summary table row.
+      await gu.getCell({section: 'TABLE1 [by onetwo, choices]', col: 'rownum', rowNum: 2}).click();
+      assert.deepEqual(
+        await gu.getVisibleGridCells({
+          section: 'TABLE1',
+          cols: ['onetwo', 'choices', 'rownum'],
+          rowNums: [1, 2, 3, 4],
+        }),
+        [
+          '2', 'a', '2',
+          '2', 'a\nb', '6',
+          // The row ['1', 'a', '99'] is now filtered out as normal.
+          '2', 'a', '100',
+          '', '', '',  // new row
+        ],
       );
     })
   );

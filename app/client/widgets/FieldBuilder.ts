@@ -685,6 +685,7 @@ export class FieldBuilder extends Disposable {
           kd.scope(widgetObs, (widget: NewAbstractWidget) => {
             if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
             const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
+            if (cellDom === null) { return null; }
             return dom(cellDom, kd.toggleClass('has_cursor', isActive),
                        kd.toggleClass('field-error-from-style', errorInStyle),
                        kd.toggleClass('font-bold', fontBold),

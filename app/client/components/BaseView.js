@@ -13,6 +13,7 @@ const {DynamicQuerySet} = require('../models/QuerySet');
 const {SortFunc} = require('app/common/SortFunc');
 const rowset = require('../models/rowset');
 const Base = require('./Base');
+const {getDefaultColValues} = require("./BaseView2");
 const {Cursor} = require('./Cursor');
 const FieldBuilder = require('../widgets/FieldBuilder');
 const commands = require('./commands');
@@ -21,6 +22,7 @@ const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
 const {reportError, reportSuccess} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
 const {SectionFilter} = require('app/client/models/SectionFilter');
+const {UnionRowSource} = require('app/client/models/UnionRowSource');
 const {copyToClipboard} = require('app/client/lib/clipboardUtils');
 const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
@@ -70,17 +72,24 @@ function BaseView(gristDoc, viewSectionModel, options) {
     this._mainRowSource = rowset.ExtendedRowSource.create(this, this._mainRowSource, extraRowIds);
   }
 
+  // Rows that should temporarily be visible even if they don't match filters.
+  // This is so that a newly added row doesn't immediately disappear, which would be confusing.
+  this._exemptFromFilterRows = rowset.ExemptFromFilterRowSource.create(this);
+  this._exemptFromFilterRows.subscribeTo(this.tableModel);
+
   // Create a section filter and a filtered row source that subscribes to its changes.
-  // `sectionFilter` also provides an `addTemporaryRow()` to allow views to display newly inserted rows,
-  // and `setFilterOverride()` to allow controlling a filter from a column menu.
-  this._sectionFilter = SectionFilter.create(this, this.viewSection, this.tableModel.tableData);
+  // `sectionFilter` also provides `setFilterOverride()` to allow controlling a filter from a column menu.
+  // Whenever changes are made to filters, exempt rows are reset.
+  this._sectionFilter = SectionFilter.create(
+    this, this.viewSection, this.tableModel.tableData, () => this._exemptFromFilterRows.reset()
+  );
   this._filteredRowSource = rowset.FilteredRowSource.create(this, this._sectionFilter.sectionFilterFunc.get());
   this._filteredRowSource.subscribeTo(this._mainRowSource);
   this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener(filterFunc => {
     this._filteredRowSource.updateFilter(filterFunc);
   }));
 
-  this.rowSource = this._filteredRowSource;
+  this.rowSource = UnionRowSource.create(this, [this._filteredRowSource, this._exemptFromFilterRows]);
 
   // Sorted collection of all rows to show in this view.
   this.sortedRows = rowset.SortedRowSet.create(this, null, this.tableModel.tableData);
@@ -96,7 +105,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
   }, this));
 
   // Here we are subscribed to the bulk of the data (main table, possibly filtered).
-  this.sortedRows.subscribeTo(this._filteredRowSource);
+  this.sortedRows.subscribeTo(this.rowSource);
 
   // We create a special one-row RowSource for the "Add new" row, in case we need it.
   this.newRowSource = rowset.RowSource.create(this);
@@ -201,6 +210,7 @@ function BaseView(gristDoc, viewSectionModel, options) {
     this._queryRowSource.makeQuery(linkingFilter.filters, linkingFilter.operations, (err) => {
       if (this.isDisposed()) { return; }
       if (err) { reportError(err); }
+      this._exemptFromFilterRows.reset();
       this.onTableLoaded();
     });
   }));
@@ -442,7 +452,7 @@ BaseView.prototype.insertRow = function(index) {
   return this.sendTableAction(['AddRecord', null, { 'manualSort': insertPos }])
   .then(rowId => {
     if (!this.isDisposed()) {
-      this._sectionFilter.addTemporaryRow(rowId);
+      this._exemptFromFilterRows.addExemptRow(rowId);
       this.setCursorPos({rowId});
     }
     return rowId;
@@ -450,11 +460,7 @@ BaseView.prototype.insertRow = function(index) {
 };
 
 BaseView.prototype._getDefaultColValues = function() {
-  const linkingState = this.viewSection.linkingState.peek();
-  if (!linkingState) {
-    return {};
-  }
-  return linkingState.getDefaultColValues();
+  return getDefaultColValues(this.viewSection);
 };
 
 /**
@@ -562,7 +568,7 @@ BaseView.prototype._saveEditRowField = function(editRowModel, colName, value) {
     // Once we know the new row's rowId, add it to column filters to make sure it's displayed.
     .then(rowId => {
       if (!this.isDisposed()) {
-        this._sectionFilter.addTemporaryRow(rowId);
+        this._exemptFromFilterRows.addExemptRow(rowId);
         this.setCursorPos({rowId});
       }
       return rowId;
@@ -581,7 +587,7 @@ BaseView.prototype._saveEditRowField = function(editRowModel, colName, value) {
       // unless the filter is on a Bool column
       .then((result) => {
         if (!this.isDisposed() && this.currentColumn().pureType() !== 'Bool') {
-          this._sectionFilter.addTemporaryRow(rowId);
+          this._exemptFromFilterRows.addExemptRow(rowId);
         }
         return result;
       })

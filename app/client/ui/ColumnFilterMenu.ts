@@ -54,7 +54,7 @@ export interface IFilterMenuOptions {
   rangeInputOptions?: IRangeInputOptions;
   showAllFiltersButton?: boolean;
   doCancel(): void;
-  doSave(reset: boolean): void;
+  doSave(): void;
   renderValue(key: CellValue, value: IFilterCount): DomElementArg;
   onClose(): void;
   valueParser?(val: string): any;
@@ -104,7 +104,6 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
 
   let searchInput: HTMLInputElement;
   let cancel = false;
-  let reset = false;
 
   const filterMenu: HTMLElement = cssMenu(
     { tabindex: '-1' }, // Allow menu to be focused
@@ -128,7 +127,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     dom.cls(menuCssClass),
     dom.autoDispose(filterListener),
     // Save or cancel on disposal, which should always happen as part of closing.
-    dom.onDispose(() => cancel ? doCancel() : doSave(reset)),
+    dom.onDispose(() => cancel ? doCancel() : doSave()),
     dom.onKeyDown({
       Enter: () => onClose(),
       Escape: () => onClose(),
@@ -327,7 +326,6 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           dom('div',
             cssPrimaryButton('Close', testId('apply-btn'),
               dom.on('click', () => {
-                reset = true;
                 onClose();
               }),
             ),
@@ -696,16 +694,13 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
     model,
     valueCounts,
     onClose: () => { openCtl.close(); onClose(); },
-    doSave: (reset: boolean = false) => {
+    doSave: () => {
       const spec = columnFilter.makeFilterJson();
       const {viewSection} = sectionFilter;
       viewSection.setFilter(
         fieldOrColumn.origCol().origColRef(),
         {filter: spec}
       );
-      if (reset) {
-        sectionFilter.resetTemporaryRows();
-      }
 
       // Check if the save was for a new filter, and if that new filter was pinned. If it was, and
       // it is the second pinned filter in the section, trigger a tip that explains how multiple
