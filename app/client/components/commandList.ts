@@ -431,7 +431,7 @@ export const groups: CommendGroupDef[] = [{
       desc: 'Finish editing a cell, saving the value'
     }, {
       name: 'detachEditor',
-      keys: [''],
+      keys: [],
       desc: 'Detach active editor'
     }, {
       name: 'fieldEditSaveHere',
