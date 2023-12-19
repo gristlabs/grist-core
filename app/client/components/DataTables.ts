@@ -297,7 +297,7 @@ const cssList = styled('div', `
 
 const cssTable = styled('div', `
   display: grid;
-  grid-template-columns: 16px auto 100px 56px;
+  grid-template-columns: 16px minmax(32px, auto) minmax(0, 100px) minmax(0, 56px);
   grid-template-rows: 1fr;
   grid-column-gap: 8px;
   cursor: pointer;
@@ -342,6 +342,7 @@ const cssDetailsRow = styled('div', `
 // Holds dots menu (which is 24px x 24px)
 const cssTableButtons = styled('div', `
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   column-gap: 8px;
