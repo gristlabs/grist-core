@@ -1,7 +1,7 @@
 {
     "ACUserManager": {
         "Invite new member": "Inviter un nouveau membre",
-        "Enter email address": "Entrer votre adresse e-mail",
+        "Enter email address": "Entrer l'adresse e-mail",
         "We'll email an invite to {{email}}": "Nous allons envoyer une invitation à {{email}}"
     },
     "AccessRules": {
@@ -9,7 +9,7 @@
         "Saved": "Enregistré",
         "Invalid": "Invalide",
         "Save": "Enregistrer",
-        "Reset": "Réinitialiser",
+        "Reset": "Annuler",
         "Add Table Rules": "Ajouter des règles pour la table",
         "Add User Attributes": "Ajouter des propriétés d'utilisateur",
         "Users": "Utilisateurs",
@@ -341,14 +341,14 @@
         "Mixed Behavior": "Comportement mixte",
         "Clear and make into formula": "Effacer et transformer en formule",
         "Convert column to data": "Convertir la colonne en données",
-        "Convert to trigger formula": "Convertir en formule",
+        "Convert to trigger formula": "Convertir en formule d'initialisation",
         "Clear and reset": "Effacer et réinitialiser",
         "Enter formula": "Saisir la formule",
         "COLUMN BEHAVIOR": "NATURE DE COLONNE",
         "Set formula": "Définir la formule",
         "Set trigger formula": "Définir une formule d’initialisation",
         "Make into data column": "Transformer en colonne de données",
-        "TRIGGER FORMULA": "TRIGGER FORMULA",
+        "TRIGGER FORMULA": "FORMULE D'INITIALISATION",
         "DESCRIPTION": "DESCRIPTION"
     },
     "FieldMenus": {
@@ -424,7 +424,13 @@
         "Adding UUID column": "Ajout d'une colonne UUID",
         "Adding duplicates column": "Ajouter des colonnes dupliquées",
         "Add formula column": "Ajouter une colonne formule",
-        "Add column with type": "Ajouter une colonne de type"
+        "Add column with type": "Ajouter une colonne de type",
+        "Created by": "Créé par",
+        "Created at": "Créé à",
+        "Add column": "Ajouter une colonne",
+        "Last updated by": "Dernière mise à jour par",
+        "Detect duplicates in...": "Détecter les duplicats dans...",
+        "Last updated at": "Dernière mise à jour"
     },
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",
@@ -989,7 +995,7 @@
         "It should be impossible to save a plain data value into a formula column": "Il devrait être impossible d'enregistrer une valeur de donnée brute dans une colonne de formule"
     },
     "FormulaEditor": {
-        "Errors in all {{numErrors}} cells": "Erreur dans toutes les {{numErrors}} cellules",
+        "Errors in all {{numErrors}} cells": "Erreur dans les {{numErrors}} cellules",
         "Error in the cell": "Erreur dans la cellule",
         "Column or field is required": "Colonne ou champ requis",
         "Errors in {{numErrors}} of {{numCells}} cells": "Erreur dans {{numErrors}} des {{numCells}} cellules",
