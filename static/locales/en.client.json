@@ -433,7 +433,19 @@
         "Created by": "Created by",
         "Detect duplicates in...": "Detect duplicates in...",
         "Last updated at": "Last updated at",
-        "Last updated by": "Last updated by"
+        "Last updated by": "Last updated by",
+        "Any": "Any",
+        "Numeric": "Numeric",
+        "Text": "Text",
+        "Integer": "Integer",
+        "Toggle": "Toggle",
+        "Date": "Date",
+        "DateTime": "DateTime",
+        "Choice": "Choice",
+        "Choice List": "Choice List",
+        "Reference": "Reference",
+        "Reference List": "Reference List",
+        "Attachment": "Attachment"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
