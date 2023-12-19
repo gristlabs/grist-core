@@ -380,7 +380,13 @@
         "Adding UUID column": "Añadiendo una columna UUID",
         "Adding duplicates column": "Añadiendo la columna de duplicados",
         "Add formula column": "Añadir una columna de fórmulas",
-        "Add column with type": "Añadir columna con tipo"
+        "Add column with type": "Añadir columna con tipo",
+        "Created by": "Creado por",
+        "Created at": "Creado en",
+        "Add column": "Añadir una columna",
+        "Last updated by": "Última actualización",
+        "Detect duplicates in...": "Detectar duplicados en...",
+        "Last updated at": "Última actualización en"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", o encontrar un experto a través de nuestro",
