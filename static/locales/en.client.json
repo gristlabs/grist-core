@@ -861,7 +861,16 @@
     "modals": {
         "Cancel": "Cancel",
         "Ok": "OK",
-        "Save": "Save"
+        "Save": "Save",
+        "Are you sure you want to delete these records?": "Are you sure you want to delete these records?",
+        "Are you sure you want to delete this record?": "Are you sure you want to delete this record?",
+        "Delete": "Delete",
+        "Dismiss": "Dismiss",
+        "Don't ask again.": "Don't ask again.",
+        "Don't show again.": "Don't show again.",
+        "Don't show tips": "Don't show tips",
+        "Undo to restore": "Undo to restore",
+        "Got it": "Got it"
     },
     "pages": {
         "Duplicate Page": "Duplicate Page",
