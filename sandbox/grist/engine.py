@@ -383,6 +383,7 @@ class Engine(object):
     """
     Returns TableData object representing all data in this table.
     """
+    print("Je suis dans le fichier de PYTHON YOUHOUUUUUUU", file=sys.stderr)
     table = self.tables[table_id]
     column_values = {}
 

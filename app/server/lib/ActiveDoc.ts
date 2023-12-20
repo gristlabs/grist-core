@@ -2516,6 +2516,9 @@ export class ActiveDoc extends EventEmitter {
   private async _fetchQueryFromDB(query: ServerQuery, onDemand: boolean): Promise<TableDataAction> {
     // Expand query to compute formulas (or include placeholders for them).
     const expandedQuery = expandQuery(query, this.docData!, onDemand);
+    console.log("--------------fetchQueryFromDB----------------------");
+    console.log(expandedQuery);
+    console.log(this.docData!);
     const marshalled = await this.docStorage.fetchQuery(expandedQuery);
     const table = this.docStorage.decodeMarshalledData(marshalled, query.tableId);
 
@@ -2530,6 +2533,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _fetchQueryFromDataEngine(query: ServerQuery): Promise<TableDataAction> {
+    console.log("--------------_fetchQueryFromDataEngine----------------------");
+    console.log(await this._pyCall('fetch_table', query.tableId, true, query.filters));
     return this._pyCall('fetch_table', query.tableId, true, query.filters);
   }
 
@@ -2833,6 +2838,28 @@ export async function getRealTableId(
     }
   }
   return tableId;
+}
+
+// Helper that check if colRef is used instead of colId and return real colId
+export async function getRealColId(
+  tableId: string,
+  colId: string,
+  options:  MetaTables | ActiveDocAndReq
+  ): Promise<string> {
+  if(parseInt(colId)){
+    const metaTables = "metaTables" in options
+      ? options.metaTables
+      : await getMetaTables(options.activeDoc, options.req);
+    const tableRef = tableIdToRef(metaTables, tableId);
+    const [, , colRefs, columnData] = metaTables._grist_Tables_column;
+    const colRowIndex = colRefs.findIndex((_, i) => (
+      colRefs[i] === parseInt(colId) && columnData.parentId[i] === tableRef
+    ));
+    if(colRowIndex >= 0) {
+      return columnData.colId[colRowIndex]!.toString();
+    }
+  }
+  return colId;
 }
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {

@@ -32,7 +32,13 @@ import {
   TableOperationsImpl,
   TableOperationsPlatform
 } from 'app/plugin/TableOperationsImpl';
-import {ActiveDoc, colIdToRef as colIdToReference, getRealTableId, tableIdToRef} from "app/server/lib/ActiveDoc";
+import {
+  ActiveDoc,
+  colIdToRef as colIdToReference,
+  getRealColId,
+  getRealTableId,
+  tableIdToRef
+} from "app/server/lib/ActiveDoc";
 import {appSettings} from "app/server/lib/AppSettings";
 import {sendForCompletion} from 'app/server/lib/Assistance';
 import {
@@ -228,6 +234,9 @@ export class DocWorkerApi {
         session, {tableId, filters}, !immediate));
       // For metaTables we don't need to specify columns, search will infer it from the sort expression.
       const isMetaTable = tableId.startsWith('_grist');
+      console.log("////////////////////////////// in getTableData");
+      console.log("---- tableData");
+      console.log(tableData);
       const columns = isMetaTable ? null :
         await handleSandboxError('', [], activeDoc.getTableCols(session, tableId, true));
       const params = getQueryParameters(req);
@@ -237,9 +246,13 @@ export class DocWorkerApi {
     }
 
     async function getTableRecords(
-      activeDoc: ActiveDoc, req: RequestWithLogin, opts?: { optTableId?: string; includeHidden?: boolean }
+      activeDoc: ActiveDoc,
+      req: RequestWithLogin,
+      opts?: { optTableId?: string; includeHidden?: boolean, useColRef?: boolean }
     ): Promise<TableRecordValue[]> {
       const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+      console.log("------------------- colummnDATA in getTableRecords");
+      console.log(columnData);
       const fieldNames = Object.keys(columnData).filter((k) => {
         if (k === "id") {
           return false;
@@ -277,7 +290,7 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables/:tableId/records', canView,
       withDoc(async (activeDoc, req, res) => {
         const records = await getTableRecords(activeDoc, req,
-          { includeHidden: isAffirmative(req.query.hidden) }
+          { includeHidden: isAffirmative(req.query.hidden), useColRef: isAffirmative(req.query.use_col_ref) }
         );
         res.json({records});
       })
@@ -801,8 +814,9 @@ export class DocWorkerApi {
 
     this._app.delete('/api/docs/:docId/tables/:tableId/columns/:colId', canEdit,
       withDoc(async (activeDoc, req, res) => {
-        const {colId} = req.params;
-        const tableId = await getRealTableId(req.params.tableId, {activeDoc, req});
+        const metaTables = await getMetaTables(activeDoc, req);
+        const tableId = await getRealTableId(req.params.tableId, {metaTables});
+        const colId = await getRealColId(tableId, req.params.colId, {metaTables});
         const actions = [ [ 'RemoveColumn', tableId, colId ] ];
         await handleSandboxError(tableId, [colId],
           activeDoc.applyUserActions(docSessionFromRequest(req), actions)
