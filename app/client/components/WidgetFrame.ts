@@ -489,7 +489,9 @@ export class GristViewImpl implements GristView {
     // These options are newer and expose more data than the user may have intended,
     // so they require full access.
     if (this._access !== AccessLevel.full) {
-      throwError(this._access);
+      throw new Error(
+        `Setting includeColumns to ${options.includeColumns} requires full access.` +
+        ` Current access level is ${this._access}`);
     }
     if (options.includeColumns === 'normal') {
       // Return all 'normal' columns of the table, regardless of whether the user has shown them.

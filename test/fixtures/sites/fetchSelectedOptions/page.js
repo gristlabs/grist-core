@@ -2,16 +2,13 @@
 
 function setup() {
   const data = {
+    shown: 0,
     default: {},
     options: {},
   };
-  let showCount = 0;
 
   function showData() {
-    showCount += 1;
-    if (showCount < 12) {
-      return;
-    }
+    data.shown += 1;
     document.getElementById('data').innerHTML = JSON.stringify(data, null, 2);
   }
 
@@ -40,24 +37,17 @@ function setup() {
     showData();
   });
 
-  try {
-    grist.onRecord(function (rec) {
-      data.options.onRecord = rec;
-      showData();
-    }, {keepEncoded: true, includeColumns: 'normal', format: 'columns'});
-  } catch (e) {
-    data.options.onRecord = String(e);
+  // NOTE: These cases will hit an access error when trying to trigger the callback
+  // when access level isn't full, and we can't catch that error.
+  grist.onRecord(function (rec) {
+    data.options.onRecord = rec;
     showData();
-  }
-  try {
-    grist.onRecords(function (recs) {
-      data.options.onRecords = recs;
-      showData();
-    }, {keepEncoded: true, includeColumns: 'all', format: 'columns'});
-  } catch (e) {
-    data.options.onRecords = String(e);
+  }, {keepEncoded: true, includeColumns: 'normal', format: 'columns'});
+  grist.onRecords(function (recs) {
+    data.options.onRecords = recs;
     showData();
-  }
+  }, {keepEncoded: true, includeColumns: 'all', format: 'columns'});
+
   grist.fetchSelectedTable(
     {keepEncoded: true, includeColumns: 'all', format: 'rows'}
   ).then(function (table) {

@@ -366,17 +366,6 @@ export function mapColumnNamesBack(data: any, options?: {
 }
 
 /**
- * While `fetchSelected(Record|Table)` check the access level on 'the Grist side',
- * `onRecord(s)` needs to check this in advance for the caller to be able to handle the error.
- */
-function checkAccessLevelForColumns(options: FetchSelectedOptions) {
-  const accessLevel = new URL(window.location.href).searchParams.get("access");
-  if (accessLevel !== "full" && options.includeColumns && options.includeColumns !== "shown") {
-    throw new Error("Access not granted. Current access level " + accessLevel);
-  }
-}
-
-/**
  * For custom widgets, add a handler that will be called whenever the
  * row with the cursor changes - either by switching to a different row, or
  * by some value within the row potentially changing.  Handler may
@@ -388,7 +377,6 @@ export function onRecord(
   callback: (data: RowRecord | null, mappings: WidgetColumnMap | null) => unknown,
   options: FetchSelectedOptions = {},
 ) {
-  checkAccessLevelForColumns(options);
   // TODO: currently this will be called even if the content of a different row changes.
   on('message', async function(msg) {
     if (!msg.tableId || !msg.rowId || msg.rowId === 'new') { return; }
@@ -418,7 +406,6 @@ export function onRecords(
   callback: (data: RowRecord[], mappings: WidgetColumnMap | null) => unknown,
   options: FetchSelectedOptions = {},
 ) {
-  checkAccessLevelForColumns(options);
   options = {...options, format: options.format || 'rows'};
   on('message', async function(msg) {
     if (!msg.tableId || !msg.dataChange) { return; }

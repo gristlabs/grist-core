@@ -609,14 +609,17 @@ describe('CustomView', function() {
       }
     };
 
-    async function getData() {
-      await driver.findContentWait('#data', /\{/, 1000);
+    async function getData(shown: number) {
+      await driver.findContentWait('#data', `"shown": ${shown}`, 1000);
       const data = await driver.find('#data').getText();
-      return JSON.parse(data);
+      const result = JSON.parse(data);
+      assert.equal(result.shown, shown);
+      delete result.shown;
+      return result;
     }
 
     await inFrame(async () => {
-      const parsed = await getData();
+      const parsed = await getData(12);
       assert.deepEqual(parsed, expected);
     });
 
@@ -625,25 +628,25 @@ describe('CustomView', function() {
     await gu.waitForServer();
 
     await inFrame(async () => {
-      const parsed = await getData();
+      // onRecord(s) with custom includeColumns without full access will fail
+      // with an error that we can't catch and display,
+      // so only wait for 10 results instead of 12.
+      const parsed = await getData(10);
+
       // The default options don't require full access, so the result is the same.
       assert.deepEqual(parsed.default, expected.default);
 
       // The alternative options all set includeColumns to 'normal' or 'all',
       // which requires full access.
       assert.deepEqual(parsed.options, {
-        "onRecord":
-          "Error: Access not granted. Current access level read table",
-        "onRecords":
-          "Error: Access not granted. Current access level read table",
         "fetchSelectedTable":
-          "Error: Access not granted. Current access level read table",
+          "Error: Setting includeColumns to all requires full access. Current access level is read table",
         "fetchSelectedRecord":
-          "Error: Access not granted. Current access level read table",
+          "Error: Setting includeColumns to normal requires full access. Current access level is read table",
         "viewApiFetchSelectedTable":
-          "Error: Access not granted. Current access level read table",
+          "Error: Setting includeColumns to all requires full access. Current access level is read table",
         "viewApiFetchSelectedRecord":
-          "Error: Access not granted. Current access level read table"
+          "Error: Setting includeColumns to normal requires full access. Current access level is read table"
       });
     });
   });
