@@ -2,7 +2,7 @@
     "ACUserManager": {
         "Enter email address": "E-Mail Adresse eingeben",
         "Invite new member": "Neues Mitglied einladen",
-        "We'll email an invite to {{email}}": "Wir schicken eine Einladung zu {{email}}"
+        "We'll email an invite to {{email}}": "Wir schicken eine Einladung an {{email}}"
     },
     "AccessRules": {
         "Add Column Rule": "Spaltenregel hinzufügen",
@@ -110,10 +110,10 @@
     },
     "AppHeader": {
         "Home Page": "Startseite",
-        "Legacy": "Hinterlassenschaft",
+        "Legacy": "Veraltet",
         "Personal Site": "Persönliche Seite",
         "Team Site": "Teamseite",
-        "Grist Templates": "Grist Vorlagen"
+        "Grist Templates": "Grist-Vorlagen"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Diese Teamseite ist gesperrt. Die Dokumente können gelesen, aber nicht geändert werden."
@@ -150,7 +150,7 @@
         "Reset {{count}} entire columns_other": "{{count}} ganze Spalten zurücksetzen",
         "Comment": "Kommentar",
         "Copy": "Kopieren",
-        "Cut": "Schneiden",
+        "Cut": "Ausschneiden",
         "Paste": "Einfügen"
     },
     "ChartView": {
@@ -294,9 +294,9 @@
     "DocumentSettings": {
         "Currency:": "Währung:",
         "Document Settings": "Dokument-Einstellungen",
-        "Engine (experimental {{span}} change at own risk):": "Motor (experimental {{span}} auf eigene Gefahr ändern):",
+        "Engine (experimental {{span}} change at own risk):": "Engine (experimentell {{span}} auf eigene Gefahr ändern):",
         "Local currency ({{currency}})": "Lokale Währung ({{currency}})",
-        "Locale:": "Lokale:",
+        "Locale:": "Sprache:",
         "Save": "Speichern",
         "Save and Reload": "Speichern und neu laden",
         "This document's ID (for API use):": "Die ID dieses Dokuments (für API-Verwendung):",
@@ -304,8 +304,8 @@
         "API": "API",
         "Document ID copied to clipboard": "Dokument-ID in die Zwischenablage kopiert",
         "Ok": "OK",
-        "Webhooks": "Webhaken",
-        "Manage Webhooks": "Webhaken verwalten"
+        "Webhooks": "Webhooks",
+        "Manage Webhooks": "Webhooks verwalten"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
