@@ -2705,6 +2705,16 @@ export async function selectBy(table: string|RegExp) {
   await waitForServer();
 }
 
+/**
+ * Returns "Select by" of the current section.
+ */
+export async function selectedBy() {
+  await toggleSidePanel('right', 'open');
+  await driver.find('.test-right-tab-pagewidget').click();
+  await driver.find('.test-config-data').click();
+  return await driver.find('.test-right-select-by').getText();
+}
+
 // Add column to sort.
 export async function addColumnToSort(colName: RegExp|string) {
   await driver.find(".test-sort-config-add").click();

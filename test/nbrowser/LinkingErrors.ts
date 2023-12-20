@@ -1,7 +1,7 @@
 /**
  * Test various error situations with linking page widgets.
  */
-import {assert, driver, stackWrapFunc} from 'mocha-webdriver';
+import {assert, driver} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
@@ -19,9 +19,79 @@ describe("LinkingErrors", function() {
 
   afterEach(() => gu.checkForErrors());
 
-  it("should link correctly in the normal case", async function() {
+  before(async function() {
     session = await gu.session().teamSite.login();
     api = session.createHomeApi();
+  });
+
+  it("should maintain links after reload", async function() {
+    await session.tempNewDoc(cleanup);
+
+    // Recreate the bug.
+    await gu.sendActions([
+      ['AddEmptyTable', 'Table2'], // NOTICE: The order here matters, the bug was all about ordering.
+      ['AddEmptyTable', 'Table0'],
+      ['ModifyColumn', 'Table1', 'B', {type: 'Ref:Table0'}],
+      ['ModifyColumn', 'Table2', 'A', {type: 'Ref:Table1'}],
+
+      ['AddRecord', 'Table0', null, {A: 'A'}],
+      ['AddRecord', 'Table0', null, {A: 'B'}],
+      ['AddRecord', 'Table1', null, {A: 'a', B: 1}],
+      ['AddRecord', 'Table1', null, {A: 'b', B: 1}],
+      ['AddRecord', 'Table1', null, {A: 'c', B: 1}],
+      ['AddRecord', 'Table1', null, {A: 'd', B: 1}],
+      ['AddRecord', 'Table2', null, {A: 2, B: 1}],
+      ['AddRecord', 'Table2', null, {A: 2, B: 2}],
+      ['AddRecord', 'Table2', null, {A: 4, B: 3}],
+      ['AddRecord', 'Table2', null, {A: 4, B: 4}],
+      ['AddRecord', 'Table2', null, {A: 1, B: 5}],
+      ['AddRecord', 'Table2', null, {A: 1, B: 6}],
+      ['AddRecord', 'Table2', null, {A: 3, B: 7}],
+      ['AddRecord', 'Table2', null, {A: 3, B: 8}],
+    ]);
+
+    // Now add those two tables to a page, and link them.
+    // Pay attention to order.
+    await gu.addNewPage('Table', 'Table1');
+    await gu.getCell('B', 1).click();
+    await gu.openColumnPanel();
+    await gu.setRefShowColumn('A');
+
+    await gu.addNewSection('Table', 'Table2', {selectBy: 'TABLE1'});
+    await gu.getCell('A', 1).click();
+    await gu.openColumnPanel();
+    await gu.setRefShowColumn('A');
+
+    await gu.addNewSection('Table', 'Table0');
+    await gu.selectSectionByTitle('TABLE1');
+    await gu.openWidgetPanel('data');
+    await gu.selectBy('TABLE0');
+
+    // Place cursor on the first row of Table0
+    await gu.getCell({section: 'Table1', rowNum: 1, col: 'A'}).click();
+
+    const checkLink = async () => {
+      // This should show the linked rows in Table1
+      assert.deepEqual(await gu.getVisibleGridCells({section: 'Table1', col: 'A', rowNums: [1, 2, 3, 4]}),
+        ['a', 'b', 'c', 'd']);
+
+      // This should show the linked rows in Table2
+      assert.deepEqual(await gu.getVisibleGridCells({section: 'Table2', col: 'B', rowNums: [1, 2]}),
+        ['5', '6']);
+    };
+
+    await checkLink();
+
+    // After reloading, we should see the same thing.
+    await gu.reloadDoc();
+    await gu.waitToPass(async () => {
+      // Linking is done asynchronously, so make sure it is loaded first.
+      assert.equal(await gu.selectedBy(), 'TABLE0');
+      await checkLink();
+    });
+  });
+
+  it("should link correctly in the normal case", async function() {
     docId = await session.tempNewDoc(cleanup, 'LinkingErrors1', {load: false});
 
     // Make a table with some data.
@@ -46,20 +116,9 @@ describe("LinkingErrors", function() {
     await checkLinking();
   });
 
-  // Check that normal linking works.
-  const checkLinking = stackWrapFunc(async function() {
-    await gu.getCell({section: 'PLANETS', rowNum: 1, col: 'PlanetName'}).click();
-    assert.deepEqual(await gu.getVisibleGridCells({section: 'MOONS', col: 'MoonName', rowNums: [1, 2]}),
-      ['Moon', '']);
-    await gu.getCell({section: 'PLANETS', rowNum: 2, col: 'PlanetName'}).click();
-    assert.deepEqual(await gu.getVisibleGridCells({section: 'MOONS', col: 'MoonName', rowNums: [1, 2, 3]}),
-      ['Phobos', 'Deimos', '']);
-  });
-
   it("should unset linking setting when changing the data table for a widget", async function() {
     await gu.getCell({section: 'Moons', rowNum: 1, col: 'MoonName'}).click();
-    await gu.toggleSidePanel('right', 'open');
-    await driver.find('.test-right-tab-pagewidget').click();
+    await gu.openWidgetPanel();
     await driver.findContent('.test-right-panel button', /Change Widget/).click();
 
     assert.equal(await driver.find('.test-wselect-table-label[class*=-selected]').getText(), 'Moons');
@@ -173,10 +232,21 @@ describe("LinkingErrors", function() {
     await revert();
     await gu.checkForErrors();
   });
+
 });
 
 async function getTableData(docApi: DocAPI, tableId: string): Promise<TableData> {
   const colValues = await docApi.getRows(tableId);
   const tableAction = toTableDataAction(tableId, colValues);
   return new TableData(tableId, tableAction, (schema as any)[tableId]);
+}
+
+// Check that normal linking works.
+async function checkLinking() {
+  await gu.getCell({section: 'PLANETS', rowNum: 1, col: 'PlanetName'}).click();
+  assert.deepEqual(await gu.getVisibleGridCells({section: 'MOONS', col: 'MoonName', rowNums: [1, 2]}),
+    ['Moon', '']);
+  await gu.getCell({section: 'PLANETS', rowNum: 2, col: 'PlanetName'}).click();
+  assert.deepEqual(await gu.getVisibleGridCells({section: 'MOONS', col: 'MoonName', rowNums: [1, 2, 3]}),
+    ['Phobos', 'Deimos', '']);
 }
