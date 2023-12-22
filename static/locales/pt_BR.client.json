@@ -458,7 +458,13 @@
         "Adding UUID column": "Adicionando coluna UUID",
         "Adding duplicates column": "Adicionar coluna duplicatas",
         "Add formula column": "Añadir una columna de fórmulas",
-        "Add column with type": "Adicionar coluna com tipo"
+        "Add column with type": "Adicionar coluna com tipo",
+        "Created by": "Criado por",
+        "Created at": "Criado em",
+        "Add column": "Adicionar coluna",
+        "Last updated by": "Última atualização por",
+        "Detect duplicates in...": "Detectar duplicações em...",
+        "Last updated at": "Última atualização em"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
