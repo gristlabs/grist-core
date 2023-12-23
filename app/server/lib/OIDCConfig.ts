@@ -121,7 +121,8 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
-    if (this._client.issuer.metadata.end_session_endpoint === undefined && !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
+    if (this._client.issuer.metadata.end_session_endpoint === undefined &&
+        !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
         'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
         'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
