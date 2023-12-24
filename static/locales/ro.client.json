@@ -271,6 +271,7 @@
         "Add Widget to Page": "Adăugați widget pe pagină",
         "Add Page": "Adăugați pagina",
         "Document owners can attempt to recover the document. [{{error}}]": "Proprietarii de documente pot încerca să recupereze documentul. [{{error}}]",
-        "Enter recovery mode": "Intrați în modul de recuperare"
+        "Enter recovery mode": "Intrați în modul de recuperare",
+        "Error accessing document": "Eroare la accesarea documentului"
     }
 }
