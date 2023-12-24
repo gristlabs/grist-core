@@ -792,7 +792,13 @@
         "Adding UUID column": "Aggiungere colonna UUID",
         "Adding duplicates column": "Aggiungere colonna duplicati",
         "Add formula column": "Aggiungi colonna con formula",
-        "Add column with type": "Aggiungi colonna con tipo"
+        "Add column with type": "Aggiungi colonna con tipo",
+        "Created by": "Creato da",
+        "Created at": "Creato a",
+        "Add column": "Aggiungi colonna",
+        "Last updated by": "Ultimo aggiornamento di",
+        "Detect duplicates in...": "Rileva duplicati in...",
+        "Last updated at": "Ultimo aggiornamento alle"
     },
     "GristDoc": {
         "Import from file": "Importa da file",
