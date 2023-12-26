@@ -97,6 +97,7 @@ export function makeSimpleCreator(opts: {
       return notifier?.create(dbManager, gristConfig) ?? {
         get testPending() { return false; },
         async deleteUser()      { /* do nothing */ },
+        testSetSendMessageCallback() { return undefined; },
       };
     },
     ExternalStorage(purpose, extraPrefix) {
