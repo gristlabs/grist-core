@@ -189,7 +189,29 @@
         "(The organization needs a paid plan)": "(Organizația are nevoie de un plan plătit)",
         "By Name": "După nume",
         "Examples & Templates": "Exemple & Șabloane",
-        "Document will be moved to Trash.": "Documentul va fi mutat în Coșul de gunoi."
+        "Document will be moved to Trash.": "Documentul va fi mutat în Coșul de gunoi.",
+        "This service is not available right now": "Acest serviciu nu este disponibil momentan",
+        "Workspace not found": "Spațiul de lucru nu a fost găsit",
+        "Pin Document": "Fixați documentul",
+        "Remove": "Elimină",
+        "Rename": "Redenumiți",
+        "Move": "Mută",
+        "Trash is empty.": "Coșul de gunoi este gol.",
+        "Unpin Document": "Anulați fixarea documentului",
+        "Requires edit permissions": "Necesită permisiuni de editare",
+        "More Examples and Templates": "Mai multe exemple și șabloane",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Sunteți în spaţiul {{siteName}}. De asemenea, aveți acces la următoarele spaţii:",
+        "Other Sites": "Alte spaţii",
+        "Pinned Documents": "Documente fixate",
+        "Featured": "Recomandat",
+        "Manage Users": "Gestionare Utilizatori",
+        "To restore this document, restore the workspace first.": "Pentru a restaura acest document, mai întâi restaurați spațiul de lucru.",
+        "You may delete a workspace forever once it has no documents in it.": "Puteți șterge pentru totdeauna un spațiu de lucru odată ce nu are documente în el.",
+        "Trash": "Gunoi",
+        "You are on your personal site. You also have access to the following sites:": "Ești în spaţiul tău personal. De asemenea, aveți acces la următoarele spaţii:",
+        "Restore": "Restaurează",
+        "Move {{name}} to workspace": "Mutați {{name}} în spațiul de lucru",
+        "Permanently Delete \"{{name}}\"?": "Ștergeți definitiv „{{name}}”?"
     },
     "ActionLog": {
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Coloana {{colId}} a fost eliminată ulterior în acțiunea #{{action.actionNum}}",
@@ -220,7 +242,7 @@
     "AppHeader": {
         "Personal Site": "Site personal",
         "Home Page": "Pagina principală",
-        "Team Site": "Site-ul echipei",
+        "Team Site": "Spaţiul echipei",
         "Legacy": "Versiune veche",
         "Grist Templates": "Șabloane Grist"
     },
@@ -232,16 +254,1006 @@
     "App": {
         "Description": "Descriere",
         "Memory Error": "Eroare de memorie",
-        "Key": "Cheie"
+        "Key": "Cheie",
+        "Translators: please translate this only when your language is ready to be offered to users": "Traducători: vă rugăm să traduceți acest text numai atunci când limba dvs. este pregătită pentru a fi oferită utilizatorilor"
     },
     "CodeEditorPanel": {
         "Code View is available only when you have full document access.": "Vizualizarea codului este disponibilă numai atunci când aveți acces complet la documente.",
         "Access denied": "Acces interzis"
     },
     "AddNewButton": {
-        "Add New": "Adaugă nou"
+        "Add New": "Adăugare"
     },
     "AppModel": {
-        "This team site is suspended. Documents can be read, but not modified.": "Acest site al echipei este suspendat. Documentele pot fi citite, dar nu modificate."
+        "This team site is suspended. Documents can be read, but not modified.": "Acest spaţiu al echipei este suspendat. Documentele pot fi citite, dar nu modificate."
+    },
+    "DocPageModel": {
+        "Add Empty Table": "Adăugați un tabel gol",
+        "Add Widget to Page": "Adăugați widget pe pagină",
+        "Add Page": "Adăugați pagina",
+        "Document owners can attempt to recover the document. [{{error}}]": "Proprietarii de documente pot încerca să recupereze documentul. [{{error}}]",
+        "Enter recovery mode": "Intrați în modul de recuperare",
+        "Error accessing document": "Eroare la accesarea documentului",
+        "Sorry, access to this document has been denied. [{{error}}]": "Ne pare rău, accesul la acest document a fost refuzat. [{{error}}]",
+        "You do not have edit access to this document": "Nu aveți acces de editare la acest document",
+        "Reload": "Reîncărcați",
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Puteți încerca să reîncărcați documentul sau să utilizați modul de recuperare. Modul de recuperare deschide documentul pentru a fi pe deplin accesibil proprietarilor și inaccesibil pentru alții. De asemenea, dezactivează formulele. [{{error}}]"
+    },
+    "breadcrumbs": {
+        "override": "suprascrie",
+        "unsaved": "nesalvat",
+        "fiddle": "experimentează",
+        "recovery mode": "mod de recuperare",
+        "snapshot": "instantaneu",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Puteți face modificări, dar va fi creată o nouă copie și \naceste modificări nu vor afecta documentul original."
+    },
+    "HomeLeftPane": {
+        "All Documents": "Toate documentele",
+        "Manage Users": "Gestionare Utilizatori",
+        "Tutorial": "Tutorial",
+        "Delete {{workspace}} and all included documents?": "Ștergeți {{workspace}} și toate documentele incluse?",
+        "Create Empty Document": "Creați un document gol",
+        "Create Workspace": "Creați spațiu de lucru",
+        "Import Document": "Import document",
+        "Access Details": "Detalii de acces",
+        "Rename": "Redenumiți",
+        "Trash": "Gunoi",
+        "Workspaces": "Spații de lucru",
+        "Workspace will be moved to Trash.": "Spațiul de lucru va fi mutat în Coșul de gunoi.",
+        "Examples & Templates": "Șabloane",
+        "Delete": "Șterge"
+    },
+    "RowContextMenu": {
+        "Insert row": "Inserați rând",
+        "Insert row below": "Introduceți rândul de mai jos",
+        "Delete": "Șterge",
+        "View as card": "Vedeți ca un card",
+        "Copy anchor link": "Copiați linkul de ancorare",
+        "Duplicate rows_one": "Rând duplicat",
+        "Duplicate rows_other": "Rânduri duplicate",
+        "Insert row above": "Introduceți rândul de deasupra"
+    },
+    "Drafts": {
+        "Undo discard": "Anulați eliminarea",
+        "Restore last edit": "Restaurați ultima editare"
+    },
+    "FormulaAssistant": {
+        "Data": "Date",
+        "Press Enter to apply suggested formula.": "Apăsați Enter pentru a aplica formula sugerată.",
+        "See our {{helpFunction}} and {{formulaCheat}}, or visit our {{community}} for more help.": "Consultați {{helpFunction}} și {{formulaCheat}} sau vizitați {{community}} pentru mai mult ajutor.",
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Înscrieți-vă pentru un cont Grist gratuit pentru a începe să utilizați Asistentul AI pentru formule.",
+        "Clear Conversation": "Anulează conversația",
+        "New Chat": "Chat nou",
+        "Code View": "Vizualizare cod",
+        "Apply": "Aplică",
+        "Learn more": "Află mai multe",
+        "Regenerate": "Regenerează",
+        "Community": "Comunitate",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Pot să ajut doar cu formule. Nu pot crea tabele, coloane și vizualizări sau nu pot scrie reguli de acces.",
+        "Hi, I'm the Grist Formula AI Assistant.": "Bună, sunt asistentul AI Grist pentru formule.",
+        "Preview": "Previzualizare",
+        "Ask the bot.": "Întrebați robotul.",
+        "Function List": "Lista de funcții",
+        "For higher limits, contact the site owner.": "Pentru limite mai mari, contactați proprietarul spaţiului.",
+        "Tips": "Sfaturi",
+        "Save": "Salvați",
+        "Sign Up for Free": "Înregistrează-te gratuit",
+        "Formula Cheat Sheet": "Cheat sheet pentru formule",
+        "Grist's AI Assistance": "Asistența AI Grist",
+        "Formula AI Assistant is only available for logged in users.": "Asistentul AI pentru formule este disponibil numai pentru utilizatorii conectați.",
+        "Grist's AI Formula Assistance. ": "Asistență AI pentru formulele Grist. ",
+        "upgrade to the Pro Team plan": "actualizare la planul Pro Team",
+        "You have used all available credits.": "Ați folosit toate creditele disponibile.",
+        "upgrade your plan": "îmbunătățiți-vă planul",
+        "Formula Help. ": "Ajutor la formule. ",
+        "You have {{numCredits}} remaining credits.": "Mai aveți {{numCredits}} credite rămase.",
+        "Capabilities": "Capabilități",
+        "What do you need help with?": "La ce ai nevoie de ajutor?",
+        "Cancel": "Anulare",
+        "Need help? Our AI assistant can help.": "Nevoie de ajutor? Asistentul nostru AI poate ajuta.",
+        "AI Assistant": "Asistent AI",
+        "For higher limits, {{upgradeNudge}}.": "Pentru limite mai mari, {{upgradeNudge}}.",
+        "There are some things you should know when working with me:": "Sunt câteva lucruri pe care ar trebui să le știi când lucrezi cu mine:"
+    },
+    "GridViewMenus": {
+        "Unfreeze {{count}} columns_one": "Deblocați această coloană",
+        "Created by": "Creat de",
+        "Detect Duplicates in...": "Detectează duplicatele în...",
+        "UUID": "UUID",
+        "Shortcuts": "Comenzi rapide",
+        "Sorted (#{{count}})_one": "Sortat (#{{count}})",
+        "Unfreeze all columns": "Deblocați toate coloanele",
+        "Show hidden columns": "Afișează coloanele ascunse",
+        "Freeze {{count}} columns_other": "Înghețați {{count}} coloane",
+        "Show column {{- label}}": "Afișați coloana {{- label}}",
+        "Sort": "Ordonează",
+        "Column Options": "Opțiuni de coloană",
+        "Rename column": "Redenumiți coloana",
+        "Created at": "Creat la",
+        "Filter Data": "Filtrați datele",
+        "Delete {{count}} columns_one": "Ștergeți coloana",
+        "Created At": "Creat la",
+        "Insert column to the {{to}}": "Inserați coloana în {{to}}",
+        "Authorship": "Autor",
+        "Hide {{count}} columns_other": "Ascundeți {{count}} coloane",
+        "Add formula column": "Adăugați coloana cu formule",
+        "Add Column": "Adăugați Coloană",
+        "Last Updated By": "Ultima actualizare de către",
+        "Hidden Columns": "Coloane ascunse",
+        "Lookups": "Câmp conex",
+        "Reset {{count}} columns_one": "Resetează coloana",
+        "No reference columns.": "Fără coloane de referință.",
+        "Freeze {{count}} columns_one": "Înghețați această coloană",
+        "More sort options ...": "Mai multe opțiuni de sortare…",
+        "Freeze {{count}} more columns_one": "Înghețați încă o coloană",
+        "Reset {{count}} entire columns_other": "Resetați {{count}} coloane întregi",
+        "Add column": "Adăugați coloană",
+        "Apply on record changes": "Aplicați modificările înregistrate",
+        "Last updated by": "Ultima actualizare de către",
+        "Reset {{count}} columns_other": "Resetați {{count}} coloane",
+        "Clear values": "Ștergeți valorile",
+        "Delete {{count}} columns_other": "Ștergeți {{count}} coloane",
+        "Duplicate in {{- label}}": "Duplicați în {{- label}}",
+        "Created By": "Creat de",
+        "Unfreeze {{count}} columns_other": "Deblocați {{count}} coloane",
+        "Last Updated At": "Ultima actualizare la",
+        "Add column with type": "Adăugați coloană cu tip",
+        "Apply to new records": "Aplicați la noi înregistrări",
+        "Add to sort": "Adăugați pentru a sorta",
+        "Insert column to the right": "Inserați coloana la dreapta",
+        "Search columns": "Căutați coloane",
+        "Timestamp": "Data și ora",
+        "no reference column": "nicio coloană de referință",
+        "Reset {{count}} entire columns_one": "Resetați întreaga coloană",
+        "Adding UUID column": "Adăugarea coloanei UUID",
+        "Convert formula to data": "Convertiți formula în date",
+        "Freeze {{count}} more columns_other": "Înghețați încă {{count}} coloane",
+        "Adding duplicates column": "Adăugarea coloanei duplicate",
+        "Hide {{count}} columns_one": "Ascundeți coloana",
+        "Insert column to the left": "Inserați coloana la stânga",
+        "Sorted (#{{count}})_other": "Sortat (#{{count}})",
+        "Detect duplicates in...": "Detectează duplicatele în...",
+        "Last updated at": "Ultima actualizare la"
+    },
+    "RightPanel": {
+        "WIDGET TITLE": "TITLUL WIDGET-ULUI",
+        "COLUMN TYPE": "TIP COLOANĂ",
+        "SELECT BY": "SELECTARE PRIN",
+        "Edit Data Selection": "Editați selecția datelor",
+        "DATA TABLE NAME": "NUME TABEL DE DATE",
+        "Fields_one": "Câmp",
+        "Save": "Salvați",
+        "You do not have edit access to this document": "Nu aveți acces de editare la acest document",
+        "DATA TABLE": "TABEL DE DATE",
+        "Theme": "Temă",
+        "Columns_other": "Coloane",
+        "Data": "Date",
+        "Series_one": "Serie",
+        "ROW STYLE": "STIL RÂND",
+        "GROUPED BY": "GRUPAT DUPĂ",
+        "SOURCE DATA": "DATE SURSĂ",
+        "CHART TYPE": "TIP GRAFIC",
+        "Detach": "Desprinde",
+        "Change Widget": "Schimbați widgetul",
+        "Columns_one": "Coloană",
+        "Series_other": "Serii",
+        "Fields_other": "Câmpuri",
+        "Row Style": "Stil de rând",
+        "CUSTOM": "PERSONALIZAT",
+        "Select Widget": "Selectați Widget",
+        "Add referenced columns": "Adăugați coloane la care se face referire",
+        "TRANSFORM": "TRANSFORMĂ",
+        "SELECTOR FOR": "SELECTOR PENTRU",
+        "Sort & Filter": "Sortare și filtrare",
+        "Widget": "Widget"
+    },
+    "FloatingPopup": {
+        "Maximize": "Maximizați",
+        "Minimize": "Minimizați"
+    },
+    "MakeCopyMenu": {
+        "Include the structure without any of the data.": "Includeți structura fără niciuna dintre date.",
+        "Original Looks Unrelated": "Originalul nu pare a fi legat",
+        "Overwrite": "Suprascrie",
+        "It will be overwritten, losing any content not in this document.": "Acesta va fi suprascris, pierzând orice conținut care nu este în acest document.",
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Atenție, originalul are modificări nu în acest document. Aceste modificări vor fi suprascrise.",
+        "Workspace": "Spațiul de lucru",
+        "As Template": "Ca șablon",
+        "Cancel": "Anulare",
+        "Sign up": "Înscrie-te",
+        "Enter document name": "Introduceți numele documentului",
+        "Name": "Nume",
+        "Update": "Actualizați",
+        "Original Has Modifications": "Originalul are modificări",
+        "No destination workspace": "Fără spațiu de lucru destinație",
+        "You do not have write access to the selected workspace": "Nu aveți acces de scriere la spațiul de lucru selectat",
+        "Remove all data but keep the structure to use as a template": "Eliminați toate datele, dar păstrați structura pentru a o folosi ca șablon",
+        "Original Looks Identical": "Originalul arată identic",
+        "Organization": "Organizația",
+        "Replacing the original requires editing rights on the original document.": "Înlocuirea originalului necesită drepturi de editare asupra documentului original.",
+        "Remove document history (can significantly reduce file size)": "Eliminați istoricul documentelor (poate reduce semnificativ dimensiunea fișierului)",
+        "To save your changes, please sign up, then reload this page.": "Pentru a salva modificările, vă rugăm să vă înscrieți, apoi să reîncărcați această pagină.",
+        "The original version of this document will be updated.": "Versiunea originală a acestui document va fi actualizată.",
+        "However, it appears to be already identical.": "Cu toate acestea, pare să fie deja identic.",
+        "Update Original": "Actualizați originalul",
+        "You do not have write access to this site": "Nu aveți acces de scriere la acest spaţiu",
+        "Download full document and history": "Descărcați documentul complet și istoricul"
+    },
+    "GristTooltips": {
+        "They allow for one record to point (or refer) to another.": "Acestea permit ca o înregistrare să indice (sau să se refere) la alta.",
+        "Updates every 5 minutes.": "Actualizări la fiecare 5 minute.",
+        "entire": "întreg",
+        "Select the table to link to.": "Selectați tabelul la care să faceți legătura.",
+        "The total size of all data in this document, excluding attachments.": "Dimensiunea totală a tuturor datelor din acest document, cu excepția atașamentelor.",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID este un șir generat aleatoriu care este util pentru identificatori unici și chei de legătură.",
+        "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puteți alege unul dintre widget-urile noastre prefabricate sau puteți încorpora pe al dvs., furnizând adresa URL completă.",
+        "Reference Columns": "Coloane de referință",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Pentru a vă configura calendarul, selectați coloanele pentru datele de început/sfârșit și titlurile evenimentelor. Notați tipul fiecărei coloane."
+        },
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Regulile de acces vă oferă puterea de a crea reguli nuanțate pentru a determina cine poate vedea sau edita ce părți ale documentului dvs.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Rearanjați câmpurile din cardul dvs. trăgând și redimensionând celulele.",
+        "Calendar": "Calendar",
+        "You can filter by more than one column.": "Puteți filtra după mai multe coloane.",
+        "Apply conditional formatting to cells in this column when formula conditions are met.": "Aplicați formatare condiționată celulelor din această coloană când sunt îndeplinite condițiile formulei.",
+        "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Pentru a crea un link de ancorare care duce utilizatorul la o anumită celulă, faceți clic pe un rând și apăsați pe {{shortcut}}.",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulele acceptă multe funcții Excel, sintaxă Python completă și includ un asistent AI util.",
+        "Unpin to hide the the button while keeping the filter.": "Anulați fixarea pentru a ascunde butonul în timp ce păstrați filtrul.",
+        "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Util pentru stocarea marcajului temporal sau a autorului unei noi înregistrări, curățarea datelor și multe altele.",
+        "Anchor Links": "Legături de ancorare",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Faceți clic pe butonul Adăugare pentru a crea noi documente sau spații de lucru sau pentru a importa date.",
+        "Nested Filtering": "Filtrare imbricată",
+        "relational": "relaționale",
+        "Apply conditional formatting to rows based on formulas.": "Aplicați formatare condiționată la rânduri bazate pe formule.",
+        "Add New": "Adăugare",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Faceți clic pe „Deschideți stiluri de rând” pentru a aplica formatarea condiționată rândurilor.",
+        "Pinned filters are displayed as buttons above the widget.": "Filtrele fixate sunt afișate ca butoane deasupra widgetului.",
+        "Link your new widget to an existing widget on this page.": "Conectați-vă noul widget la un widget existent pe această pagină.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Utilizați pictograma \\u{1D6BA} pentru a crea tabele rezumative (sau pivot), pentru totaluri sau subtotaluri.",
+        "Lookups return data from related tables.": "Căutările returnează date din tabelele asociate.",
+        "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilizați pictograma 𝚺 pentru a crea tabele rezumative (sau pivot), pentru totaluri sau subtotaluri.",
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puteți alege dintre widget-urile disponibile în meniul drop-down sau puteți să le încorporați pe ale dvs. furnizând adresa URL completă.",
+        "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Făcând clic pe {{EyeHideIcon}} în fiecare celulă, câmpul ascunde din această vizualizare fără a-l șterge.",
+        "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Nu găsiți coloanele potrivite? Faceți clic pe „Modificați widgetul” pentru a selecta tabelul cu date despre evenimente.",
+        "Only those rows will appear which match all of the filters.": "Vor apărea doar acele rânduri care se potrivesc cu toate filtrele.",
+        "Custom Widgets": "Widgeturi personalizate",
+        "This is the secret to Grist's dynamic and productive layouts.": "Acesta este secretul layout-urilor dinamice și productive ale lui Grist.",
+        "Editing Card Layout": "Editarea aspectului cardului",
+        "Linking Widgets": "Conectarea widgeturilor",
+        "Raw Data page": "Pagina de date brute",
+        "Selecting Data": "Selectarea Datelor",
+        "Access Rules": "Reguli de acces",
+        "Learn more.": "Află mai multe.",
+        "Try out changes in a copy, then decide whether to replace the original with your edits.": "Încercați modificările într-o copie, apoi decideți dacă înlocuiți originalul cu editările dvs.",
+        "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "Pagina Date brute listează toate tabelele de date din documentul dvs., inclusiv tabelele rezumative și tabelele care nu sunt incluse în aspectul paginii.",
+        "Formulas that trigger in certain cases, and store the calculated value as data.": "Formule care se declanșează în anumite cazuri și stochează valoarea calculată ca date.",
+        "Select the table containing the data to show.": "Selectați tabelul care conține datele de afișat.",
+        "Pinning Filters": "Fixarea filtrelor",
+        "Reference columns are the key to {{relational}} data in Grist.": "Coloanele de referință sunt cheia pentru datele {{relational}} din Grist.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Celulele dintr-o coloană de referință identifică întotdeauna o înregistrare {{entire}} în acel tabel, dar puteți selecta ce coloană din înregistrarea respectivă să afișați.",
+        "Use reference columns to relate data in different tables.": "Utilizați coloanele de referință pentru a lega datele din diferite tabele."
+    },
+    "SortConfig": {
+        "Add Column": "Adăugați o coloană",
+        "Natural sort": "Ordonare naturală",
+        "Search Columns": "Căutați coloane",
+        "Empty values last": "Valorile necompletate ultimele",
+        "Update Data": "Actualizați datele",
+        "Use choice position": "Utilizați poziția de alegere"
+    },
+    "Clipboard": {
+        "Unavailable Command": "Comanda indisponibilă",
+        "Got it": "Am înţeles"
+    },
+    "SupportGristPage": {
+        "You have opted out of telemetry.": "Ați renunțat la telemetrie.",
+        "Support Grist": "Sprijină Grist",
+        "Opt out of Telemetry": "Renunțați la Telemetrie",
+        "GitHub Sponsors page": "Pagina de sponsori GitHub",
+        "Sponsor Grist Labs on GitHub": "Sponsorizează Grist Labs pe GitHub",
+        "Manage Sponsorship": "Gestionați sponsorizarea",
+        "Help Center": "Centru de ajutor",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Colectăm doar statistici de utilizare, așa cum este detaliat în {{link}}, nu documentăm niciodată conținutul.",
+        "You can opt out of telemetry at any time from this page.": "Puteți renunța oricând la telemetrie din această pagină.",
+        "Home": "Acasă",
+        "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Această instanță este renunțată la telemetrie. Doar administratorul spaţiului are permisiunea de a schimba acest lucru.",
+        "Telemetry": "Telemetrie",
+        "Opt in to Telemetry": "Înscrieți-vă la Telemetrie",
+        "You have opted in to telemetry. Thank you!": "Ați optat pentru telemetrie. Mulțumesc!",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Această instanță este înscrisă la telemetrie. Doar administratorul spaţiului are permisiunea de a schimba acest lucru.",
+        "GitHub": "GitHub"
+    },
+    "VisibleFieldsConfig": {
+        "Show {{label}}": "Afișați {{label}}",
+        "Cannot drop items into Hidden Fields": "Nu se pot plasa articole în Câmpuri ascunse",
+        "Hidden {{label}}": "{{label}} ascuns",
+        "Hidden Fields cannot be reordered": "Câmpurile ascunse nu pot fi reordonate",
+        "Visible {{label}}": "Vizibil {{label}}",
+        "Select All": "Selectează tot",
+        "Hide {{label}}": "Ascunde {{label}}",
+        "Clear": "Ștergeți"
+    },
+    "FieldConfig": {
+        "Column options are limited in summary tables.": "Opțiunile coloanelor sunt limitate în tabelele sintetice.",
+        "Set formula": "Setați formula",
+        "Data Columns_other": "Coloane de date",
+        "DESCRIPTION": "DESCRIERE",
+        "Clear and reset": "Ștergeți și resetați",
+        "Convert column to data": "Convertiți coloana în date",
+        "Empty Columns_other": "Coloane goale",
+        "COLUMN LABEL AND ID": "Eticheta coloanei și ID",
+        "Empty Columns_one": "Coloană goală",
+        "Formula Columns_other": "Coloane cu formule",
+        "Formula Columns_one": "Coloana cu formule",
+        "Make into data column": "Faceți în coloana de date",
+        "Enter formula": "Introduceți formula",
+        "Clear and make into formula": "Limpeziți și transformați în formulă",
+        "Mixed Behavior": "Comportament mixt",
+        "Convert to trigger formula": "Convertiți în formula de declanșare",
+        "COLUMN BEHAVIOR": "COMPORTAMENTUL COLOANEI",
+        "Data Columns_one": "Coloana de date",
+        "TRIGGER FORMULA": "FORMULĂ DE DECLANȘARE",
+        "Set trigger formula": "Setați formula de declanșare"
+    },
+    "UserManager": {
+        "Anyone with link ": "Oricine are legătura ",
+        "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "După ce v-ați eliminat propriul acces, nu îl veți putea recupera fără asistență de la altcineva cu acces suficient la {{name}}.",
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} de {{limitTop}} {{collaborator}}i",
+        "Your role for this team site": "Rolul tău pentru acest spaţiu de echipă",
+        "Copy Link": "Copiază legătura",
+        "User has view access to {{resource}} resulting from manually-set access to resources inside. If removed here, this user will lose access to resources inside.": "Utilizatorul are acces de vizualizare la {{resource}} rezultat din accesul setat manual la resursele din interior. Dacă este eliminat aici, acest utilizator va pierde accesul la resursele din interior.",
+        "User may not modify their own access.": "Utilizatorul nu poate modifica propriul acces.",
+        "member": "membru",
+        "Add {{member}} to your team": "Adaugă {{member}} în echipa ta",
+        "Collaborator": "Colaborator",
+        "Link copied to clipboard": "Link copiat în clipboard",
+        "team site": "spaţiul echipei",
+        "Create a team to share with more people": "Creați o echipă pe care să o împărtășiți cu mai mulți oameni",
+        "guest": "oaspete",
+        "Public access: ": "Acces public: ",
+        "Team member": "Membru al echipei",
+        "Manage members of team site": "Gestionați membrii spaţiului echipei",
+        "Off": "Oprit",
+        "free collaborator": "colaborator gratuit",
+        "Save & ": "Salvează & ",
+        "Outside collaborator": "Colaborator extern",
+        "{{collaborator}} limit exceeded": "Limita {{collaborator}} a fost depășită",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "Utilizatorul moștenește permisiunile de la {{părinte})}. Pentru a elimina, setați opțiunea „Moștenire acces” la „Niciuna”.",
+        "Your role for this {{resourceType}}": "Rolul dvs. pentru acest {{resourceType}}",
+        "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "După ce v-ați eliminat propriul acces, nu îl veți putea recupera fără asistență de la altcineva cu acces suficient la {{resourceType}}.",
+        "Close": "Închide",
+        "Allow anyone with the link to open.": "Permiteți oricui are legătura să o deschidă.",
+        "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Niciun acces implicit nu permite accesul la documente sau spații de lucru individuale, mai degrabă decât la spaţiul complet al echipei.",
+        "Invite people to {{resourceType}}": "Invită persoane la {{resourceType}}",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Acces public moștenit de la {{parent}}. Pentru a elimina, setați opțiunea „Moștenire acces” la „Niciuna”.",
+        "Remove my access": "Elimină accesul meu",
+        "Public access": "Acces public",
+        "Public Access": "Acces Public",
+        "Cancel": "Anulare",
+        "Grist support": "Suport Grist",
+        "You are about to remove your own access to this {{resourceType}}": "Sunteți pe cale să vă eliminați propriul acces la acest {{resourceType}}",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Utilizatorul moștenește permisiunile de la {{parent}}. Pentru a elimina, setați opțiunea „Moștenire acces” la „Niciuna”.",
+        "Guest": "Oaspete",
+        "Invite multiple": "Invitați mai mulți",
+        "Confirm": "Confirmă",
+        "On": "Activat",
+        "Open Access Rules": "Reguli de acces deschis",
+        "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Niciun acces implicit nu permite accesul la documente sau spații de lucru individuale, mai degrabă decât la spaţiul complet al echipei."
+    },
+    "WelcomeQuestions": {
+        "Welcome to Grist!": "Bun venit la Grist!",
+        "HR & Management": "Resurse Umane și Management",
+        "Sales": "Vânzări",
+        "Marketing": "Marketing",
+        "Type here": "Scrie aici",
+        "Other": "Altele",
+        "Product Development": "Dezvoltare de produs",
+        "Media Production": "Producție media",
+        "What brings you to Grist? Please help us serve you better.": "Ce vă aduce la Grist? Vă rugăm să ne ajutați să vă servim mai bine.",
+        "Education": "Educaţie",
+        "IT & Technology": "IT și Tehnologie",
+        "Finance & Accounting": "Finanțe și Contabilitate",
+        "Research": "Cercetare"
+    },
+    "PagePanels": {
+        "Open Creator Panel": "Deschide Panoul creatorului",
+        "Close Creator Panel": "Închide Panoul creatorului"
+    },
+    "GristDoc": {
+        "go to webhook settings": "accesați setările ancorei Web",
+        "Saved linked section {{title}} in view {{name}}": "Secțiunea legată salvată {{title}} în vizualizarea {{name}}",
+        "Added new linked section to view {{viewName}}": "S-a adăugat o nouă secțiune conectată pentru a vizualiza {{viewName}}",
+        "Import from file": "Import din fișier"
+    },
+    "CardContextMenu": {
+        "Insert card above": "Introduceți cardul deasupra",
+        "Duplicate card": "Duplicați cardul",
+        "Insert card below": "Introduceți cardul mai jos",
+        "Delete card": "Ștergeți cardul",
+        "Copy anchor link": "Copiați linkul de ancorare",
+        "Insert card": "Introduceți cardul"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "Ar trebui să fie imposibil să salvați o valoare de date simplă într-o coloană de formulă",
+        "Unable to finish saving edited cell": "Nu se poate termina salvarea celulei editate"
+    },
+    "DuplicateTable": {
+        "Only the document default access rules will apply to the copy.": "Numai regulile de acces implicite la document se vor aplica copiei.",
+        "Copy all data in addition to the table structure.": "Copiați toate datele în plus față de structura tabelului.",
+        "Name for new table": "Nume pentru tabelul nou",
+        "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "În loc să duplicați tabelele, este de obicei mai bine să segmentați datele folosind vizualizări legate. {{link}}"
+    },
+    "ColumnInfo": {
+        "Cancel": "Anulare",
+        "COLUMN ID: ": "ID COLOANĂ: ",
+        "Save": "Salvați",
+        "COLUMN DESCRIPTION": "DESCRIEREA COLOANEI",
+        "COLUMN LABEL": "ETICHETA COLOANEI"
+    },
+    "DiscussionEditor": {
+        "Show resolved comments": "Afișați comentariile rezolvate",
+        "Save": "Salvați",
+        "Reply to a comment": "Răspunde la un comentariu",
+        "Comment": "Comentariu",
+        "Started discussion": "Discuție începută",
+        "Write a comment": "Scrie un comentariu",
+        "Cancel": "Anulare",
+        "Only current page": "Doar pagina curentă",
+        "Reply": "Răspunde",
+        "Marked as resolved": "Marcat ca rezolvat",
+        "Remove": "Elimină",
+        "Open": "Deschide",
+        "Only my threads": "Doar firele mele",
+        "Edit": "Editați",
+        "Resolve": "Rezolvă",
+        "Showing last {{nb}} comments": "Se afișează ultimele {{nb}} comentarii"
+    },
+    "Importer": {
+        "Merge rows that match these fields:": "Îmbinați rândurile care se potrivesc cu aceste câmpuri:",
+        "Column mapping": "Maparea coloanei",
+        "Grist column": "Coloana Grist",
+        "{{count}} unmatched field_one": "{{count}} câmp nepotrivit",
+        "{{count}} unmatched field in import_one": "{{count}} câmp nepotrivit în import",
+        "Revert": "Restabilește",
+        "Skip Import": "Omite importul",
+        "{{count}} unmatched field_other": "{{count}} câmpuri nepotrivite",
+        "Select fields to match on": "Selectați câmpurile pentru a se potrivi",
+        "New Table": "Tabel nou",
+        "Skip": "Omite",
+        "Column Mapping": "Maparea Coloanelor",
+        "Destination table": "Tabel de destinație",
+        "Skip Table on Import": "Omiteți tabelul la import",
+        "Import from file": "Import din fișier",
+        "{{count}} unmatched field in import_other": "{{count}} câmpuri nepotrivite în import",
+        "Update existing records": "Actualizați înregistrările existente",
+        "Source column": "Coloana sursă"
+    },
+    "WelcomeTour": {
+        "Make it relational! Use the {{ref}} type to link tables. ": "Fă-o relațională! Utilizați tipul {{ref}} pentru a lega tabele. ",
+        "Enter": "Intrare",
+        "Use {{helpCenter}} for documentation or questions.": "Utilizați {{helpCenter}} pentru documentație sau întrebări.",
+        "creator panel": "panoul creatorilor",
+        "Sharing": "Partajare",
+        "Configuring your document": "Configurarea documentului dvs",
+        "Reference": "Referinţă",
+        "Editing Data": "Editarea datelor",
+        "template library": "biblioteca de șabloane",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Utilizați {{addNew}} pentru a adăuga widget-uri, pagini sau pentru a importa mai multe date. ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Folosiți butonul Partajare ({{share}}) pentru a partaja documentul sau pentru a exporta datele.",
+        "Help Center": "Centru de ajutor",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Răsfoiți {{templateLibrary}} pentru a descoperi ce este posibil și inspirați-vă.",
+        "Share": "Partajează",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Setați opțiuni de formatare, formule sau tipuri de coloane, cum ar fi datele, opțiunile sau atașamentele. ",
+        "Flying higher": "Pentru mai multe",
+        "Customizing columns": "Personalizarea coloanelor",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Faceți dublu clic sau apăsați pe {{enter}} pe o celulă pentru a o edita. ",
+        "Welcome to Grist!": "Bun venit la Grist!",
+        "Add New": "Adăugare",
+        "Toggle the {{creatorPanel}} to format columns, ": "Comutați {{creatorPanel}} pentru a formata coloanele, ",
+        "convert to card view, select data, and more.": "convertiți în vizualizarea cardului, selectați date și multe altele.",
+        "Building up": "În construcție",
+        "Start with {{equal}} to enter a formula.": "Începeți cu {{equal}} pentru a introduce o formulă."
+    },
+    "buildViewSectionDom": {
+        "Not all data is shown": "Nu sunt afișate toate datele",
+        "No row selected in {{title}}": "Niciun rând selectat în {{title}}",
+        "No data": "Nu există date"
+    },
+    "ViewSectionMenu": {
+        "FILTER": "FILTRU",
+        "(customized)": "(personalizat)",
+        "Revert": "Refacere",
+        "Save": "Salvați",
+        "Custom options": "Opțiuni personalizate",
+        "SORT": "ORDONEAZĂ",
+        "Update Sort&Filter settings": "Actualizați setările de sortare și filtrare",
+        "(empty)": "(gol)",
+        "(modified)": "(modificat)"
+    },
+    "Tools": {
+        "Delete document tour?": "Ștergeți turul documentului?",
+        "TOOLS": "INSTRUMENTE",
+        "Delete": "Șterge",
+        "Settings": "Setări",
+        "Access Rules": "Reguli de acces",
+        "Validate Data": "Validați datele",
+        "How-to Tutorial": "Tutorial practic",
+        "Tour of this Document": "Tur al acestui document",
+        "Code View": "Vizualizare cod",
+        "Return to viewing as yourself": "Reveniți la vizualizarea ca dvs",
+        "Raw Data": "Date neprelucrate",
+        "Document History": "Istoricul documentelor"
+    },
+    "menus": {
+        "Reference List": "Referință multiplă",
+        "Integer": "Întreg",
+        "* Workspaces are available on team plans. ": "* Spațiile de lucru sunt disponibile pentru planuri de echipă. ",
+        "Text": "Text",
+        "Attachment": "Atașament",
+        "Upgrade now": "Actualizare acum",
+        "Toggle": "Comutare",
+        "Choice": "Alegere",
+        "Select fields": "Selectați câmpuri",
+        "Choice List": "Alegere multiplă",
+        "Reference": "Referinţă",
+        "Search columns": "Căutați coloane",
+        "Any": "Oricare",
+        "Numeric": "Numeric",
+        "DateTime": "Data și ora",
+        "Date": "Data"
+    },
+    "DocumentSettings": {
+        "Ok": "OK",
+        "Manage Webhooks": "Gestionați ancore Web",
+        "API": "API",
+        "Save": "Salvați",
+        "Document ID copied to clipboard": "ID-ul documentului a fost copiat în clipboard",
+        "Local currency ({{currency}})": "Moneda locală ({{currency}})",
+        "Save and Reload": "Salvați și reîncărcați",
+        "Time Zone:": "Fus orar:",
+        "Webhooks": "Ancore Web",
+        "Currency:": "Valută:",
+        "Engine (experimental {{span}} change at own risk):": "Motor (modificare experimentală de {{span}} pe propriul risc):",
+        "Document Settings": "Setări document",
+        "Locale:": "Limba:",
+        "This document's ID (for API use):": "ID-ul acestui document (pentru utilizarea API):"
+    },
+    "ColumnTitle": {
+        "Column ID copied to clipboard": "ID-ul coloanei a fost copiat în clipboard",
+        "Add description": "Adaugă descriere",
+        "Column description": "Descrierea coloanei",
+        "COLUMN ID: ": "ID COLOANĂ: ",
+        "Provide a column label": "Furnizați o etichetă a coloanei",
+        "Close": "Închide",
+        "Cancel": "Anulare",
+        "Column label": "Eticheta coloanei",
+        "Save": "Salvați"
+    },
+    "ViewConfigTab": {
+        "Section: ": "Secțiune: ",
+        "Form": "Formular",
+        "Unmark On-Demand": "Nu faceți la cerere",
+        "Compact": "Compactează",
+        "Blocks": "Blocuri",
+        "Advanced settings": "Setări avansate",
+        "Make On-Demand": "Creare la cerere",
+        "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Tabelele mari pot fi marcate ca „la cerere” pentru a evita încărcarea lor în motorul de date.",
+        "Plugin: ": "Plugin: ",
+        "Edit Card Layout": "Editați aspectul cardului"
+    },
+    "FieldBuilder": {
+        "Mixed format": "Format mixt",
+        "CELL FORMAT": "FORMATARE DE CELULĂ",
+        "Mixed types": "Tipuri mixte",
+        "DATA FROM TABLE": "DATE DIN TABEL",
+        "Revert field settings for {{colId}} to common": "Reveniți setările de câmp pentru {{colId}} la obișnuit",
+        "Save field settings for {{colId}} as common": "Salvați setările de câmp pentru {{colId}} ca obișnuite",
+        "Changing multiple column types": "Modificarea mai multor tipuri de coloane",
+        "Use separate field settings for {{colId}}": "Utilizați setări de câmp separate pentru {{colId}}",
+        "Changing column type": "Schimbarea tipului de coloană",
+        "Apply Formula to Data": "Aplicați formula datelor"
+    },
+    "SupportGristNudge": {
+        "Support Grist": "Sprijină Grist",
+        "Close": "Închide",
+        "Opt in to Telemetry": "Înscrieți-vă la Telemetrie",
+        "Help Center": "Centru de ajutor",
+        "Opted In": "A optat pentru a participa",
+        "Contribute": "Contribuie",
+        "Support Grist page": "Pagina Susține Grist"
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "Actualizați formula (Shift+Enter)",
+        "Rule {{length}}": "Regula {{length}}"
+    },
+    "ViewLayoutMenu": {
+        "Widget options": "Opțiuni widget",
+        "Advanced Sort & Filter": "Sortare și filtrare avansată",
+        "Print widget": "Imprimare widget",
+        "Data selection": "Selectarea datelor",
+        "Download as XLSX": "Descărcați ca XLSX",
+        "Open configuration": "Deschideți configurația",
+        "Edit Card Layout": "Editați aspectul cardului",
+        "Add to page": "Adăugați la pagină",
+        "Delete record": "Șterge înregistrarea",
+        "Collapse widget": "Restrângeți widgetul",
+        "Show raw data": "Afișați datele brute",
+        "Delete widget": "Ștergeți widgetul",
+        "Copy anchor link": "Copiați legătura de ancorare",
+        "Download as CSV": "Descărcați ca CSV"
+    },
+    "HomeIntro": {
+        "personal site": "spaţiu personal",
+        "Any documents created in this site will appear here.": "Orice documente create în acest spaţiu vor apărea aici.",
+        "Welcome to Grist, {{- name}}!": "Bun venit la Grist, {{- name}}!",
+        "Get started by inviting your team and creating your first Grist document.": "Începeți prin a vă invita echipa și a crea primul document Grist.",
+        "You have read-only access to this site. Currently there are no documents.": "Aveți acces numai pentru citire în acest spaţiu. Momentan nu există documente.",
+        "Help Center": "Centru de Ajutor",
+        "Interested in using Grist outside of your team? Visit your free ": "Sunteți interesat să folosești Grist în afara echipei tale? Vizitați gratuit ",
+        "Get started by creating your first Grist document.": "Începeți prin a crea primul dvs. document Grist.",
+        "This workspace is empty.": "Acest spațiu de lucru este gol.",
+        "Visit our {{link}} to learn more.": "Vizitați {{link}} pentru a afla mai multe.",
+        "Visit our {{link}} to learn more about Grist.": "Vizitați {{link}} pentru a afla mai multe despre Grist.",
+        "{{signUp}} to save your work. ": "{{signUp}} pentru a vă salva munca. ",
+        "Welcome to {{- orgName}}": "Bun venit la {{- orgName}}",
+        "Welcome to Grist, {{name}}!": "Bun venit la Grist, {{name}}!",
+        "Browse Templates": "Răsfoiți șabloane",
+        "Sign in": "Conectare",
+        "Welcome to {{orgName}}": "Bun venit la {{orgName}}",
+        "Invite Team Members": "Invitați membrii echipei",
+        "Get started by exploring templates, or creating your first Grist document.": "Începeți prin a explora șabloane sau prin a crea primul document Grist.",
+        "Import Document": "Importă Document",
+        "Create Empty Document": "Creați un document gol",
+        "Sign up": "Înscrie-te",
+        "Sprouts Program": "Consultanță pentru a începe",
+        "To use Grist, please either sign up or sign in.": "Pentru a utiliza Grist, vă rugăm fie să vă înregistrați, fie să vă conectați.",
+        "Welcome to Grist!": "Bun venit la Grist!"
+    },
+    "WelcomeSitePicker": {
+        "You have access to the following Grist sites.": "Aveți acces la următoarele spaţii Grist.",
+        "Welcome back": "Bine ați revenit",
+        "You can always switch sites using the account menu.": "Puteți schimba oricând spaţiul folosind meniul contului."
+    },
+    "TopBar": {
+        "Manage Team": "Gestionează echipa"
+    },
+    "GridOptions": {
+        "Horizontal Gridlines": "Grile Orizontale",
+        "Vertical Gridlines": "Grile Verticale",
+        "Grid Options": "Opțiuni Grilă",
+        "Zebra Stripes": "Dungi Zebra"
+    },
+    "FormulaEditor": {
+        "Enter formula or {{button}}.": "Introduceți formula sau {{button}}.",
+        "Error in the cell": "Eroare în celulă",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Erori în {{numErrors}} din {{numCells}} celule",
+        "Enter formula.": "Introduceți formula.",
+        "Column or field is required": "Coloana sau câmpul este obligatoriu",
+        "Expand Editor": "Extinde Editorul",
+        "use AI Assistant": "utilizați asistentul AI",
+        "Errors in all {{numErrors}} cells": "Erori în toate celulele {{numErrors}}",
+        "editingFormula is required": "EditingFormula este necesară"
+    },
+    "ShareMenu": {
+        "Current Version": "Versiune curentă",
+        "Return to {{termToUse}}": "Reveniți la {{termToUse}}",
+        "Download...": "Descarcă...",
+        "Show in folder": "Arată în dosar",
+        "Share": "Partajează",
+        "Export CSV": "Exportați CSV",
+        "Send to Google Drive": "Trimiteți pe Google Drive",
+        "Export XLSX": "Exportați XLSX",
+        "Access Details": "Detalii de acces",
+        "Compare to {{termToUse}}": "Comparați cu {{termToUse}}",
+        "Download": "Descarcă",
+        "Replace {{termToUse}}...": "Înlocuiți {{termToUse}}…",
+        "Duplicate Document": "Duplicare Document",
+        "Original": "Original",
+        "Back to Current": "Înapoi la curent",
+        "Edit without affecting the original": "Editați fără a afecta originalul",
+        "Work on a Copy": "Lucrați la o copie",
+        "Manage Users": "Gestionare Utilizatori",
+        "Unsaved": "Nesalvat",
+        "Save Document": "Salvați documentul",
+        "Save Copy": "Salvare copie"
+    },
+    "UserManagerModel": {
+        "View & Edit": "Vizualizați și editați",
+        "Owner": "Proprietar",
+        "None": "Nici unul",
+        "View Only": "Doar vizualizare",
+        "No Default Access": "Fără acces implicit",
+        "In Full": "În întregime",
+        "Viewer": "Vizualizator",
+        "Editor": "Editor"
+    },
+    "DocumentUsage": {
+        "Data Size": "Dimensiunea datelor",
+        "Usage statistics are only available to users with full access to the document data.": "Statisticile de utilizare sunt disponibile numai pentru utilizatorii cu acces complet la datele documentului.",
+        "Usage": "Utilizare",
+        "Attachments Size": "Dimensiunea atașamentelor",
+        "For higher limits, ": "Pentru limite mai mari, ",
+        "Contact the site owner to upgrade the plan to raise limits.": "Contactați proprietarul pentru a actualiza planul ca să crească limitele.",
+        "start your 30-day free trial of the Pro plan.": "începeți încercarea gratuită de 30 de zile a planului Pro.",
+        "Rows": "Rânduri"
+    },
+    "NotifyUI": {
+        "Go to your free personal site": "Accesați spaţiul dvs. personal gratuit",
+        "Upgrade Plan": "Îmbunătățiți-vă abonamentul",
+        "Ask for help": "Întreabă pentru ajutor",
+        "Renew": "Reînnoiește",
+        "Manage billing": "Gestionați facturarea",
+        "Give feedback": "Oferă feedback",
+        "Cannot find personal site, sorry!": "Spaţiul personal nu poate fi găsit, scuze!",
+        "Notifications": "Notificări",
+        "Report a problem": "Raportați o problemă",
+        "No notifications": "Nicio notificare"
+    },
+    "FieldContextMenu": {
+        "Copy anchor link": "Copiați linkul de ancorare",
+        "Hide field": "Ascunde câmpul",
+        "Copy": "Copiază",
+        "Paste": "Lipește",
+        "Clear field": "Şterge câmpul",
+        "Cut": "Taie"
+    },
+    "WidgetTitle": {
+        "Override widget title": "Înlocuiți titlul widgetului",
+        "WIDGET TITLE": "TITLU WIDGET",
+        "DATA TABLE NAME": "NUME TABEL DE DATE",
+        "Cancel": "Anulare",
+        "WIDGET DESCRIPTION": "DESCRIERE WIDGET",
+        "Save": "Salvați",
+        "Provide a table name": "Indicați un nume de tabel"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "ALEGERILE"
+    },
+    "ExampleInfo": {
+        "Afterschool Program": "Program după școală",
+        "Welcome to the Investment Research template": "Bun venit la șablonul Cercetare de investiții",
+        "Welcome to the Afterschool Program template": "Bun venit la șablonul Program după școală",
+        "Check out our related tutorial to learn how to create summary tables and charts, and to link charts dynamically.": "Consultați tutorialul nostru asociat pentru a afla cum să creați tabele și diagrame rezumative și cum să conectați diagramele în mod dinamic.",
+        "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Consultați tutorialul nostru legat pentru cum să conectați datele și să creați machete de înaltă productivitate.",
+        "Investment Research": "Cercetare de investiții",
+        "Tutorial: Create a CRM": "Tutorial: Creați un CRM",
+        "Check out our related tutorial for how to model business data, use formulas, and manage complexity.": "Consultați tutorialul nostru legat pentru cum să modelați datele de afaceri, să utilizați formule și să gestionați complexitatea.",
+        "Welcome to the Lightweight CRM template": "Bun venit la șablonul CRM Simplu",
+        "Lightweight CRM": "CRM simplu",
+        "Tutorial: Manage Business Data": "Tutorial: Gestionați datele de afaceri",
+        "Tutorial: Analyze & Visualize": "Tutorial: Analizați și vizualizați"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Utilizator necunoscut"
+    },
+    "PermissionsWidget": {
+        "Deny All": "Negați tot",
+        "Read Only": "Numai citire",
+        "Allow All": "Permite Toate"
+    },
+    "errorPages": {
+        "Account deleted{{suffix}}": "Contul a fost șters{{suffix}}",
+        "Something went wrong": "Ceva nu a mers bine",
+        "There was an error: {{message}}": "A apărut o eroare: {{message}}",
+        "Go to main page": "Accesați pagina principală",
+        "Sign in": "Conectare",
+        "Access denied{{suffix}}": "Acces refuzat{{suffix}}",
+        "There was an unknown error.": "A apărut o eroare necunoscută.",
+        "Add account": "Adaugă cont",
+        "You do not have access to this organization's documents.": "Nu aveți acces la documentele acestei organizații.",
+        "You are now signed out.": "Acum sunteți deconectat.",
+        "Signed out{{suffix}}": "Deconectat{{suffix}}",
+        "Your account has been deleted.": "Contul dvs. a fost șters.",
+        "Page not found{{suffix}}": "Pagina nu a fost găsită {{suffix}}",
+        "Error{{suffix}}": "Eroare {{suffix}}",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Sunteți conectat ca {{email}}. Vă puteți conecta cu un alt cont sau puteți solicita accesul unui administrator.",
+        "Sign up": "Înscriere",
+        "Sign in again": "Conectați-vă din nou",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Pagina solicitată nu a putut fi găsită.{{separator}}Verificați adresa URL și încercați din nou.",
+        "Sign in to access this organization's documents.": "Conectați-vă pentru a accesa documentele acestei organizații.",
+        "Contact support": "Contactați asistența"
+    },
+    "RecordLayoutEditor": {
+        "Show field {{- label}}": "Afișați câmpul {{- label}}",
+        "Add Field": "Adăugați câmp",
+        "Save Layout": "Salvați aspectul",
+        "Cancel": "Anulare",
+        "Create New Field": "Creați un câmp nou"
+    },
+    "CellStyle": {
+        "HEADER STYLE": "STIL ANTET",
+        "Header Style": "Stil antet",
+        "Default header style": "Stilul de antet implicit",
+        "Mixed style": "Stilul mixt",
+        "Default cell style": "Stilul de celulă implicit",
+        "CELL STYLE": "STILUL CELULEI",
+        "Cell Style": "Stilul Celulei",
+        "Open row styles": "Deschideți stilurile de rând"
+    },
+    "ConditionalStyle": {
+        "Rule must return True or False": "Regula trebuie să returneze Adevărat sau Fals",
+        "Row Style": "Stil de rând",
+        "Add another rule": "Adăugați o altă regulă",
+        "Add conditional style": "Adăugați stil condiționat",
+        "Error in style rule": "Eroare în regula de stil"
+    },
+    "search": {
+        "Search in document": "Caută în document",
+        "Find Next ": "Găsește următorul ",
+        "No results": "Fără rezultate",
+        "Find Previous ": "Găsește precedentul ",
+        "Search": "Căutare"
+    },
+    "FieldMenus": {
+        "Use separate settings": "Utilizați setări separate",
+        "Revert to common settings": "Reveniți la setările comune",
+        "Using common settings": "Utilizarea setărilor comune",
+        "Using separate settings": "Folosiți setări separate",
+        "Save as common settings": "Salvați ca setări comune"
+    },
+    "FilterConfig": {
+        "Add Column": "Adăugați o coloană"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Convertiți coloana în formulă"
+    },
+    "PageWidgetPicker": {
+        "Select Widget": "Selectați Widget",
+        "Add to Page": "Adăugați la pagină",
+        "Select Data": "Selectați Date",
+        "Group by": "Grupează după",
+        "Building {{- label}} widget": "Crearea widgetului {{- label}}"
+    },
+    "Pages": {
+        "The following tables will no longer be visible_one": "Următorul tabel nu va mai fi vizibil",
+        "Delete": "Șterge",
+        "The following tables will no longer be visible_other": "Următoarele tabele nu vor mai fi vizibile",
+        "Delete data and this page.": "Ștergeți datele și această pagină."
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "DESCRIERE"
+    },
+    "WebhookPage": {
+        "Webhook Settings": "Setări ancoră Web",
+        "Clear Queue": "Ștergeți coada"
+    },
+    "TriggerFormulas": {
+        "Close": "Închide",
+        "Cancel": "Anulare",
+        "Apply on changes to:": "Aplicați la modificări la:",
+        "Apply to new records": "Aplicați la noi înregistrări",
+        "OK": "OK",
+        "Current field ": "Câmp curent ",
+        "Any field": "Orice domeniu",
+        "Apply on record changes": "Aplicați modificările înregistrate"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Importul nu a reușit: "
+    },
+    "NTextBox": {
+        "false": "fals",
+        "true": "adevărat"
+    },
+    "FilterBar": {
+        "Search Columns": "Căutați Coloane",
+        "SearchColumns": "Căutați coloane"
+    },
+    "TypeTransformation": {
+        "Revise": "Revizuire",
+        "Update formula (Shift+Enter)": "Actualizați formula (Shift+Enter)",
+        "Preview": "Previzualizare",
+        "Apply": "Aplică",
+        "Cancel": "Anulare"
+    },
+    "NumericTextBox": {
+        "Decimals": "Zecimale",
+        "Currency": "Moneda",
+        "Default currency ({{defaultCurrency}})": "Moneda implicită ({{defaultCurrency}})",
+        "Number Format": "Format de număr"
+    },
+    "OnBoardingPopups": {
+        "Finish": "Terminați",
+        "Next": "Următorul"
+    },
+    "Reference": {
+        "CELL FORMAT": "FORMAT DE CELULA",
+        "Row ID": "ID rând",
+        "SHOW COLUMN": "ARATĂ COLOANA"
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[eticheta legăturii] URL"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Restrângeți editorul"
+    },
+    "ThemeConfig": {
+        "Switch appearance automatically to match system": "Schimbați automat aspectul pentru a se potrivi cu sistemul",
+        "Appearance ": "Aspect "
+    },
+    "GridView": {
+        "Click to insert": "Faceți clic pentru a insera"
+    },
+    "pages": {
+        "Duplicate Page": "Duplicare pagină",
+        "You do not have edit access to this document": "Nu aveți acces de editare la acest document",
+        "Remove": "Elimină",
+        "Rename": "Redenumiți"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "DESCRIEREA COLOANEI",
+        "COLUMN LABEL": "ETICHETA COLOANEI"
+    },
+    "RefSelect": {
+        "No columns to add": "Nu există coloane de adăugat",
+        "Add Column": "Adăugați o coloană"
+    },
+    "SortFilterConfig": {
+        "Update Sort & Filter settings": "Actualizați setările de sortare și filtrare",
+        "Save": "Salvați",
+        "Sort": "ORDONARE",
+        "Filter": "FILTRU",
+        "Revert": "Refacere"
+    },
+    "ACLUsers": {
+        "View As": "Vizualizare ca",
+        "Example Users": "Exemplu de utilizatori",
+        "Users from table": "Utilizatori de la masă"
+    },
+    "TypeTransform": {
+        "Cancel": "Anulare",
+        "Revise": "Revizuire",
+        "Apply": "Aplică",
+        "Update formula (Shift+Enter)": "Actualizați formula (Shift+Enter)",
+        "Preview": "Previzualizare"
+    },
+    "LanguageMenu": {
+        "Language": "Limba"
+    },
+    "OpenVideoTour": {
+        "Video Tour": "Tur video",
+        "YouTube video player": "Player video YouTube",
+        "Grist Video Tour": "Tur video Grist"
+    },
+    "duplicatePage": {
+        "Note that this does not copy data, but creates another view of the same data.": "Rețineți că aceasta nu copiază datele, ci creează o altă vizualizare a acelorași date.",
+        "Duplicate page {{pageName}}": "Dublați pagina {{pageName}}"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Moneda nevalidă"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Centru de ajutor"
+    },
+    "searchDropdown": {
+        "Search": "Căutare"
+    },
+    "SearchModel": {
+        "Search all tables": "Căutați în toate tabelele",
+        "Search all pages": "Căutați în toate paginile"
+    },
+    "modals": {
+        "Save": "Salvați",
+        "Cancel": "Anulare",
+        "Ok": "OK"
+    },
+    "SiteSwitcher": {
+        "Switch Sites": "Schimbați spaţiul",
+        "Create new team site": "Creați un nou spaţiu de echipă"
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Actualizarea aspectului înregistrării."
+    },
+    "DocTour": {
+        "No valid document tour": "Nici un tur de document valid",
+        "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Nu se poate construi un tur al documentului din datele din acest document. Asigurați-vă că există un tabel numit GristDocTour cu coloanele Titlu, Corp, Plasare și Locație."
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Copiat în clipboard"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "DESCRIERE"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Se trimite fișierul la Google Drive"
     }
 }

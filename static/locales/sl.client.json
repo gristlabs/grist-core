@@ -28,10 +28,10 @@
         "Enter Condition": "Vnesite pogoj",
         "Add Column Rule": "Dodaj pravila za stolpec",
         "Add Default Rule": "Dodaj privzeto pravilo",
-        "Add Table Rules": "Dodaj pravila  za tabelo",
+        "Add Table Rules": "Dodaj pravila za tabelo",
         "Add User Attributes": "Dodaj atribute za uporabnika",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Vsakomur omogoči kopiranje celotnega dokumenta ali pa ogled v fiddle načinu.\nUporabno za primere in predloge, ne pa za občutljive podatke.",
-        "Allow everyone to view Access Rules.": "Omogoči vsakomur  ogled pravil za dostop.",
+        "Allow everyone to view Access Rules.": "Omogoči vsakomur ogled pravil za dostop.",
         "Attribute name": "Ime atributa",
         "Attribute to Look Up": "Atribut za iskanje",
         "Lookup Table": "Preglednica za iskanje",
@@ -100,7 +100,7 @@
         "Click to show": "Kliknite za prikaz",
         "Remove API Key": "Odstranite API ključ",
         "This API key can be used to access this account anonymously via the API.": "Ta ključ lahko uporabite za anonimen dostop do tega računa prek vmesnika API.",
-        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "API ključ lahko uporabite za dostop do svojega računa prek API vmesnika.  Svojega API ključa ne delite z nikomer.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "API ključ lahko uporabite za dostop do svojega računa prek API vmesnika. Svojega API ključa ne delite z nikomer.",
         "By generating an API key, you will be able to make API calls for your own account.": "Z ustvarjanjem API ključa boste lahko uporabljali klice API funkcij za svoj račun."
     },
     "App": {
@@ -567,7 +567,7 @@
         "SOURCE DATA": "IZVORNI PODATKI",
         "CHART TYPE": "VRSTA DIAGRAMA",
         "Detach": "Odklopi",
-        "Change Widget": "Spremeni  Pripomoček",
+        "Change Widget": "Spremeni Pripomoček",
         "Columns_one": "Stolpec",
         "Series_other": "Serija",
         "Fields_other": "Polja",
@@ -657,7 +657,7 @@
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Pravila dostopa vam omogočajo, da ustvarite podrobna pravila, s katerimi določite, kdo lahko vidi ali ureja posamezne dele dokumenta.",
         "Rearrange the fields in your card by dragging and resizing cells.": "Z vlečenjem in spreminjanjem velikosti polj na kartici spremenite njihovo razporeditev.",
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Uporabno za shranjevanje časovnega žiga ali avtorja novega zapisa, čiščenje podatkov in drugo.",
-        "Click the Add New button to create new documents or workspaces, or import data.": "Klikni gumb dodaj novega, če želiš ustvariti nove dokumente, delovne prostore ali uvoziti podatke,",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Klikni gumb dodaj novega, če želiš ustvariti nove dokumente, delovne prostore ali uvoziti podatke.",
         "Nested Filtering": "Vgnezdeno filtriranje",
         "Only those rows will appear which match all of the filters.": "Prikazane bodo samo tiste vrstice, ki ustrezajo vsem filtrom.",
         "Editing Card Layout": "Uredi postavitev kartice",
@@ -694,7 +694,7 @@
         "Lookups return data from related tables.": "Iskanje vrne podatke iz povezanih tabel.",
         "Use reference columns to relate data in different tables.": "Uporabite referenčne stolpce za povezavo podatkov v različnih tabelah.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Izbirate lahko med pripomočki, ki so vam na voljo v spustnem meniju, ali vdelate svojega tako, da navedete njegov polni URL.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formule podpirajo številne Excelove funkcije, polno Pythonovo sintakso  in vključujejo koristnega AI pomočnika."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formule podpirajo številne Excelove funkcije, polno Pythonovo sintakso in vključujejo koristnega AI pomočnika."
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",

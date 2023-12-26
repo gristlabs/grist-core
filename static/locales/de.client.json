@@ -458,7 +458,13 @@
         "Adding UUID column": "Hinzufügen der UUID-Spalte",
         "Adding duplicates column": "Hinzufügen einer Duplikatspalte",
         "Add formula column": "Formelspalte hinzufügen",
-        "Add column with type": "Spalte mit Typ hinzufügen"
+        "Add column with type": "Spalte mit Typ hinzufügen",
+        "Created by": "Erstellt von",
+        "Created at": "Erstellt am",
+        "Add column": "Spalte hinzufügen",
+        "Last updated by": "Zuletzt aktualisiert von",
+        "Detect duplicates in...": "Erkennen Sie Duplikate in...",
+        "Last updated at": "Zuletzt aktualisiert am"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
