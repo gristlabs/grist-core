@@ -44,6 +44,9 @@ export function attachAppEndpoint(options: AttachOptions): void {
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
     sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins}, googleTagManager: 'anon'})));
 
+  app.get('/apiconsole', expressWrap(async (req, res) =>
+    sendAppPage(req, res, {path: 'apiconsole.html', status: 200, config: {}})));
+
   app.get('/api/worker/:assignmentId([^/]+)/?*', expressWrap(async (req, res) => {
     if (!useWorkerPool()) {
       // Let the client know there is not a separate pool of workers,
