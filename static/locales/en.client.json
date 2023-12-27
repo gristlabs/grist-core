@@ -621,7 +621,8 @@
         "WIDGET TITLE": "WIDGET TITLE",
         "Widget": "Widget",
         "You do not have edit access to this document": "You do not have edit access to this document",
-        "Add referenced columns": "Add referenced columns"
+        "Add referenced columns": "Add referenced columns",
+        "Reset form": "Reset form"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -1255,5 +1256,8 @@
         "Insert card": "Insert card",
         "Insert card above": "Insert card above",
         "Insert card below": "Insert card below"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Hidden fields"
     }
 }
