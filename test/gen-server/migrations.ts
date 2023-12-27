@@ -5,6 +5,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {assert} from 'chai';
 import {addSeedData, createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 import {Initial1536634251710 as Initial} from 'app/gen-server/migration/1536634251710-Initial';
 import {Login1539031763952 as Login} from 'app/gen-server/migration/1539031763952-Login';
@@ -63,9 +64,18 @@ function assertMembersGroup(org: Organization, exists: boolean) {
 }
 
 describe('migrations', function() {
+  let oldEnv: EnvironmentSnapshot;
 
   before(function() {
+    oldEnv = new EnvironmentSnapshot();
+    // This test is incompatible with TEST_CLEAN_DATABASE, and also
+    // does not need it.
+    delete process.env.TEST_CLEAN_DATABASE;
     setUpDB(this);
+  });
+
+  after(function() {
+    oldEnv.restore();
   });
 
   beforeEach(async function() {
