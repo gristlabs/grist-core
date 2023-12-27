@@ -14,7 +14,6 @@ import {signal} from 'test/server/lib/helpers/Signal';
 import {TestProxyServer} from 'test/server/lib/helpers/TestProxyServer';
 import {TestServer} from 'test/server/lib/helpers/TestServer';
 import * as testUtils from 'test/server/testUtils';
-import clone = require('lodash/clone');
 
 const chimpy = configForUser('Chimpy');
 
@@ -39,12 +38,12 @@ async function cleanRedisDatabase() {
 }
 
 function backupEnvironmentVariables() {
-  let oldEnv: NodeJS.ProcessEnv;
+  let oldEnv: testUtils.EnvironmentSnapshot;
   before(() => {
-    oldEnv = clone(process.env);
+    oldEnv = new testUtils.EnvironmentSnapshot();
   });
   after(() => {
-    Object.assign(process.env, oldEnv);
+    oldEnv.restore();
   });
 }
 

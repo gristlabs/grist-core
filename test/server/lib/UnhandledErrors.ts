@@ -1,6 +1,7 @@
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
 import {TestServer} from 'test/server/lib/helpers/TestServer';
 import {createTestDir, setTmpLogLevel} from 'test/server/testUtils';
+import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import {assert} from 'chai';
 import fetch from 'node-fetch';
@@ -17,10 +18,16 @@ describe('UnhandledErrors', function() {
   setTmpLogLevel('warn');
 
   let testDir: string;
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
     testDir = await createTestDir('UnhandledErrors');
     await prepareDatabase(testDir);
+  });
+
+  after(function() {
+    oldEnv.restore();
   });
 
   for (const errType of ['exception', 'rejection', 'error-event']) {
