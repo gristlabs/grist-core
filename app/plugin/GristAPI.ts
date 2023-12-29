@@ -65,6 +65,11 @@ export interface CursorPos {
    * The id of a section that this cursor is in. Ignored when setting a cursor position for a particular view.
    */
   sectionId?: number;
+  /**
+   * When in a linked section, CursorPos may include which rows in the controlling sections are
+   * selected: the rowId in the linking-source section, in _that_ section's linking source, etc.
+   */
+  linkingRowIds?: UIRowId[];
 }
 
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";

@@ -72,7 +72,7 @@ import {TableData} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
 import {DocStateComparison} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
-import {CursorPos} from 'app/plugin/GristAPI';
+import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
   Computed,
@@ -1182,6 +1182,29 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
+   * If the given section is the target of linking, collect and return the active rowIDs up the
+   * chain of links, returning the list of rowIds starting with the current section's parent. This
+   * method is intended for when there is ambiguity such as when RefList linking is involved.
+   * In other cases, returns undefined.
+   */
+  public getLinkingRowIds(sectionId: number): UIRowId[]|undefined {
+    const linkingRowIds: UIRowId[] = [];
+    let anyAmbiguity = false;
+    let section = this.docModel.viewSections.getRowModel(sectionId);
+    const seen = new Set<number>();
+    while (section?.id.peek() && !seen.has(section.id.peek())) {
+      seen.add(section.id.peek());
+      const rowId = section.activeRowId.peek() || 'new';
+      if (isRefListType(section.linkTargetCol.peek().type.peek()) || rowId === 'new') {
+        anyAmbiguity = true;
+      }
+      linkingRowIds.push(rowId);
+      section = section.linkSrcSection.peek();
+    }
+    return anyAmbiguity ? linkingRowIds.slice(1) : undefined;
+  }
+
+  /**
    * Move to the desired cursor position.  If colRef is supplied, the cursor will be
    * moved to a field with that colRef.  Any linked sections that need their cursors
    * moved in order to achieve the desired outcome are handled recursively.
@@ -1211,6 +1234,8 @@ export class GristDoc extends DisposableWithEvents {
       }
 
       const srcSection = section.linkSrcSection.peek();
+      const linkingRowId = cursorPos.linkingRowIds?.[0];
+      const linkingRowIds = cursorPos.linkingRowIds?.slice(1);
       if (srcSection.id.peek()) {
         // We're in a linked section, so we need to recurse to make sure the row we want
         // will be visible.
@@ -1218,7 +1243,11 @@ export class GristDoc extends DisposableWithEvents {
         let controller: any;
         if (linkTargetCol.colId.peek()) {
           const destTable = await this._getTableData(section);
-          controller = destTable.getValue(cursorPos.rowId, linkTargetCol.colId.peek());
+          if (cursorPos.rowId === 'new') {
+            controller = 'new';
+          } else {
+            controller = destTable.getValue(cursorPos.rowId, linkTargetCol.colId.peek());
+          }
         } else {
           controller = cursorPos.rowId;
         }
@@ -1228,8 +1257,15 @@ export class GristDoc extends DisposableWithEvents {
         if (!colId && !isSrcSummary) {
           // Simple case - source linked by rowId, not a summary.
           if (isList(controller)) {
-            // Should be a reference list. Pick the first reference.
-            controller = controller[1];  // [0] is the L type code, [1] is the first value
+            // Should be a reference list. Use linkingRowId if available and present in the list,
+            if (linkingRowId && controller.indexOf(linkingRowId) > 0) {
+              controller = linkingRowId;
+            } else {
+              // Otherwise, pick the first reference.
+              controller = controller[1];  // [0] is the L type code, [1] is the first value
+            }
+          } else if (controller === 'new' && linkingRowId) {
+            controller = linkingRowId;
           }
           srcRowId = controller;
         } else {
@@ -1253,12 +1289,13 @@ export class GristDoc extends DisposableWithEvents {
           }
           srcRowId = srcTable.getRowIds().find(getFilterFunc(this.docData, query));
         }
-        if (!srcRowId || typeof srcRowId !== 'number') {
+        if (!srcRowId || (typeof srcRowId !== 'number' && srcRowId !== 'new')) {
           throw new Error('cannot trace rowId');
         }
         await this.recursiveMoveToCursorPos({
           rowId: srcRowId,
           sectionId: srcSection.id.peek(),
+          linkingRowIds,
         }, false, silent, visitedSections.concat([section.id.peek()]));
       }
       const view: ViewRec = section.view.peek();
@@ -1694,6 +1731,7 @@ export class GristDoc extends DisposableWithEvents {
       if (fieldIndex >= 0) {
         cursorPos.fieldIndex = fieldIndex;
       }
+      cursorPos.linkingRowIds = hash.linkingRowIds;
     }
     return cursorPos;
   }

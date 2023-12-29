@@ -395,7 +395,8 @@ BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
   const fieldIndex = this.cursor.fieldIndex.peek();
   const field = fieldIndex !== null ? this.viewSection.viewFields().peek()[fieldIndex] : null;
   const colRef = field?.colRef.peek();
-  return {hash: {sectionId, rowId, colRef}};
+  const linkingRowIds = sectionId ? this.gristDoc.getLinkingRowIds(sectionId) : undefined;
+  return {hash: {sectionId, rowId, colRef, linkingRowIds}};
 }
 
 // Copy an anchor link for the current row to the clipboard.
