@@ -18,7 +18,7 @@ import {delayAbort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
-import * as express from 'express';
+import express from 'express';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
@@ -3306,7 +3306,6 @@ function testDocApi() {
   });
 
   describe('webhooks related endpoints', async function () {
-
       /*
         Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
       */
@@ -3502,8 +3501,6 @@ function testDocApi() {
       assert.equal(webhookList.length, 3);
     });
 
-
-
     it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
 
       const subscribeResponse = await subscribeWebhook();
@@ -3562,6 +3559,7 @@ function testDocApi() {
       assert.equal(accessResp.status, 200);
       await flushAuth();
     });
+
   });
 
   describe("Daily API Limit", () => {
@@ -3969,6 +3967,28 @@ function testDocApi() {
         }
       });
 
+      async function createWebhooks({docId, tableId, eventTypesSet, isReadyColumn, enabled}:
+        {docId: string, tableId: string, eventTypesSet: string[][], isReadyColumn: string, enabled?: boolean}
+      ) {
+        const subscribeResponses = [];
+        const webhookIds: Record<string, string> = {};
+        // Ensure the isReady column is a Boolean
+        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+          ['ModifyColumn', tableId, isReadyColumn, {type: 'Bool'}],
+        ], chimpy);
+
+        for (const eventTypes of eventTypesSet) {
+          const {data, status} = await axios.post(
+            `${serverUrl}/api/docs/${docId}/tables/${tableId}/_subscribe`,
+            {eventTypes, url: `${serving.url}/${eventTypes}`, isReadyColumn, enabled}, chimpy
+          );
+          assert.equal(status, 200);
+          subscribeResponses.push(data);
+          webhookIds[data.webhookId] = String(eventTypes);
+        }
+        return {subscribeResponses, webhookIds};
+      }
+
       it("delivers expected payloads from combinations of changes, with retrying and batching",
         async function () {
         // Create a test document.
@@ -3976,27 +3996,15 @@ function testDocApi() {
         const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
         const doc = userApi.getDocAPI(docId);
 
-        // For some reason B is turned into Numeric even when given bools
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-          ['ModifyColumn', 'Table1', 'B', {type: 'Bool'}],
-        ], chimpy);
-
         // Make a webhook for every combination of event types
-        const subscribeResponses = [];
-        const webhookIds: Record<string, string> = {};
-        for (const eventTypes of [
-          ["add"],
-          ["update"],
-          ["add", "update"],
-        ]) {
-          const {data, status} = await axios.post(
-            `${serverUrl}/api/docs/${docId}/tables/Table1/_subscribe`,
-            {eventTypes, url: `${serving.url}/${eventTypes}`, isReadyColumn: "B"}, chimpy
-          );
-          assert.equal(status, 200);
-          subscribeResponses.push(data);
-          webhookIds[data.webhookId] = String(eventTypes);
-        }
+        const {subscribeResponses, webhookIds} = await createWebhooks({
+          docId, tableId: 'Table1', isReadyColumn: "B",
+          eventTypesSet: [
+            ["add"],
+            ["update"],
+            ["add", "update"],
+          ]
+        });
 
         // Add and update some rows, trigger some events
         // Values of A where B is true and thus the record is ready are [1, 4, 7, 8]
@@ -4099,6 +4107,26 @@ function testDocApi() {
           _.sum(expectedTrims),
         );
 
+      });
+
+      it("doesn't send trigger webhook that has been disabled", async function () {
+        // Create a test document.
+        const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+        const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
+        const doc = userApi.getDocAPI(docId);
+
+        await createWebhooks({
+          docId, tableId: 'Table1', isReadyColumn: "B", eventTypesSet: [ ["add"] ], enabled: false
+        });
+
+        await doc.addRows("Table1", {
+          A: [42],
+          B: [true]
+        });
+
+        const queueRedisCalls = redisCalls.filter(args => args[1] === "webhook-queue-" + docId);
+        assert.equal(queueRedisCalls.findIndex(args => args[0] === "rpush"), -1,
+          "Should not have pushed any events to the redis queue");
       });
     });
 
