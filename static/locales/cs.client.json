@@ -19,11 +19,122 @@
         "Add Default Rule": "Přidej Základní Pravidlo",
         "Checking...": "Kontroluji…",
         "Permissions": "Povolení",
-        "Permission to view Access Rules": "Povolení na zobrazení Přistupových Pravidel"
+        "Permission to view Access Rules": "Povolení na zobrazení Přistupových Pravidel",
+        "Permission to access the document in full when needed": "Povolení plného přístupu k dokumentu pokud je to potřeba",
+        "Reset": "Resetuj",
+        "Remove {{- tableId }} rules": "Vymaž pravidla týkající se {{- tableId }}",
+        "Remove {{- name }} user attribute": "Odstraň uživatelský atribut - {{- name }}",
+        "Saved": "Uloženo",
+        "Remove column {{- colId }} from {{- tableId }} rules": "Vymaž sloupec {{- colId }} z {{- tableId }} pravidel",
+        "Type a message...": "Napiš zprávu…",
+        "View As": "Zobraz Jako",
+        "User Attributes": "Uživatelské Atributy",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Když přidáváš nové tabulkové pravidla, automaticky přidej pravidlo - uděl MAJITELI plné práva.",
+        "Permission to edit document structure": "Povolení k editaci struktury dokumentu",
+        "Seed rules": "Seed pravidla",
+        "Save": "Ulož",
+        "Rules for table ": "Pravidla pro tabulku ",
+        "Special Rules": "Speciální Pravidla"
     },
     "ACUserManager": {
         "Invite new member": "Pozvi nového uživatele",
         "We'll email an invite to {{email}}": "Zašleme pozvánku emailem na {{email}}",
         "Enter email address": "Napiš e-mailovou adresu"
+    },
+    "ApiKey": {
+        "Remove API Key": "Odeber API klíč",
+        "Click to show": "Klikni pro zobrazení",
+        "Create": "Vytvoř",
+        "Remove": "Odeber",
+        "By generating an API key, you will be able to make API calls for your own account.": "Tím že vygeneruješ API klíč, budeš schopen používat \"API calls\" pro svůj vlastní účet."
+    },
+    "AccountPage": {
+        "Theme": "Motiv",
+        "API": "API",
+        "Change Password": "Změň heslo",
+        "Email": "E-mail",
+        "Password & Security": "Heslo a Zabezpečení",
+        "Account settings": "Uživatelské nastavení",
+        "Two-factor authentication": "Dvoufázové ověřování",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Dvoufázové ověřování je extra vrstva zabezpečení pro tvůj Grist účet. Slouží k tomu aby jsi byl opravdu jediný, kdo se do tvého účtu dostane i-kdyby někdo jiný znal tvé heslo.",
+        "Language": "Jazyk",
+        "Edit": "Uprav",
+        "Names only allow letters, numbers and certain special characters": "Jména povolují pouze písmena, čísla a některé speciální znaky",
+        "Login Method": "Přihlašovací metody",
+        "API Key": "API klíč",
+        "Name": "Jméno",
+        "Save": "Ulož"
+    },
+    "AccountWidget": {
+        "Add Account": "Přidej Účet",
+        "Switch Accounts": "Přepni Účty",
+        "Activation": "Aktivace",
+        "Toggle Mobile Mode": "Přepni Mobilní režim",
+        "Support Grist": "Podpoř Grist",
+        "Access Details": "Přístupové detaily",
+        "Upgrade Plan": "Upgraduj svůj Plán",
+        "Sign Out": "Odhlásit se",
+        "Profile Settings": "Nastavení Profilu",
+        "Sign in": "Přihlásit se",
+        "Pricing": "Ceník",
+        "Document Settings": "Nastavení Dokumentu",
+        "Use This Template": "Použij tuto Šablonu",
+        "Manage Team": "Spravuj tým",
+        "Billing Account": "Fakturační účet",
+        "Sign In": "Přihlaš se",
+        "Accounts": "Účty",
+        "Sign Up": "Odhlaš se"
+    },
+    "FieldConfig": {
+        "Set formula": "nastav formuli",
+        "Data Columns_other": "Data Sloupce",
+        "DESCRIPTION": "POPIS",
+        "Empty Columns_other": "Prázdné Sloupce",
+        "Empty Columns_one": "Prázdný Sloupec",
+        "Formula Columns_other": "Formula Sloupce",
+        "Formula Columns_one": "Formula Sloupec",
+        "Make into data column": "Změň na data sloupec",
+        "Enter formula": "Zadej formuli",
+        "Data Columns_one": "Data Sloupec",
+        "Set trigger formula": "Nastav \"trigger\" formuli"
+    },
+    "ActionLog": {
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Sloupec {{colId}} byl odstraněn po spuštění akce #{{action.actionNum}}",
+        "Action Log failed to load": "Historii akcí se nepovedlo načíst",
+        "This row was subsequently removed in action {{action.actionNum}}": "Tento řádek byl odstraněn po spuštění akce {{action.actionNum}}",
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabulka {{tableId}} byla odstraněna po spuštění akce #{{actionNum}}",
+        "All tables": "Všechny tabulky"
+    },
+    "FieldMenus": {
+        "Use separate settings": "Použij rozdílné nastavení",
+        "Revert to common settings": "Převeď na standardní nastavení",
+        "Using common settings": "Použito standardní nastavení",
+        "Using separate settings": "Použito rozdílné nastavení",
+        "Save as common settings": "Ulož jako standardní nastavení"
+    },
+    "FilterConfig": {
+        "Add Column": "Přidej Sloupec"
+    },
+    "AppHeader": {
+        "Personal Site": "Osobní stránka",
+        "Home Page": "Domácí stránka",
+        "Team Site": "Stránka Týmu",
+        "Grist Templates": "Šablony Grist"
+    },
+    "ViewAsDropdown": {
+        "View As": "Zobraz Jako",
+        "Example Users": "\"Příkladoví\" Uživatelé",
+        "Users from table": "Uživatelé z tabulky"
+    },
+    "App": {
+        "Description": "Popis",
+        "Memory Error": "Chyba paměti",
+        "Key": "Klíč"
+    },
+    "FilterBar": {
+        "SearchColumns": "Prohledej sloupce"
+    },
+    "AddNewButton": {
+        "Add New": "Přidej Nový"
     }
 }

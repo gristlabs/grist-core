@@ -37,7 +37,6 @@ import {signal} from 'test/server/lib/helpers/Signal';
 import {TestServer} from 'test/server/lib/helpers/TestServer';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
-import clone = require('lodash/clone');
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
 
@@ -71,9 +70,11 @@ let userApi: UserAPIImpl;
 describe('DocApi', function () {
   this.timeout(30000);
   testUtils.setTmpLogLevel('error');
-  const oldEnv = clone(process.env);
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function () {
+    oldEnv = new testUtils.EnvironmentSnapshot();
+
     // Clear redis test database if redis is in use.
     if (process.env.TEST_REDIS_URL) {
       const cli = createClient(process.env.TEST_REDIS_URL);
@@ -94,7 +95,7 @@ describe('DocApi', function () {
   });
 
   after(() => {
-    Object.assign(process.env, oldEnv);
+    oldEnv.restore();
   });
 
   /**
