@@ -2397,7 +2397,9 @@ export class HomeDBManager extends EventEmitter {
     .leftJoinAndSelect('workspace_group_users.logins', 'workspace_user_logins')
     // Join the org and groups/users.
     .leftJoinAndSelect('workspaces.org', 'org')
-    .leftJoinAndSelect('org.aclRules', 'org_acl_rules')
+    .leftJoinAndSelect('org.aclRules', 'org_acl_rules',
+      '("org_acl_rules"."permissions" <> "acl_rules"."permissions")'
+    )
     .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
     .leftJoinAndSelect('org_groups.memberUsers', 'org_group_users')
     .leftJoinAndSelect('org_group_users.logins', 'org_user_logins');
