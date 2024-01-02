@@ -695,7 +695,8 @@
         "TOOLS": "TOOLS",
         "Tour of this Document": "Tour of this Document",
         "Validate Data": "Validate Data",
-        "Settings": "Settings"
+        "Settings": "Settings",
+        "API Console": "API Console"
     },
     "TopBar": {
         "Manage Team": "Manage Team"
