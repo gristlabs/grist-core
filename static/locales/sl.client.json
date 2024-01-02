@@ -578,7 +578,8 @@
         "TRANSFORM": "TRANSFORM",
         "SELECTOR FOR": "SELEKTOR ZA",
         "Sort & Filter": "Razvrščanje in filtriranje",
-        "Widget": "Pripomoček"
+        "Widget": "Pripomoček",
+        "Reset form": "Ponastavi obrazec"
     },
     "FloatingPopup": {
         "Maximize": "Povečajte",
@@ -1255,5 +1256,8 @@
         "Delete card": "Briši kartico",
         "Copy anchor link": "Kopiraj sidrno povezavo",
         "Insert card": "Vstavi kartico"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Skrita polja"
     }
 }
