@@ -145,7 +145,8 @@
         "Series_one": "Serie",
         "Series_other": "Serie",
         "Sort & Filter": "Ordina e filtra",
-        "Add referenced columns": "Aggiungi colonne referenziate"
+        "Add referenced columns": "Aggiungi colonne referenziate",
+        "Reset form": "Resetta modulo"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copia link",
@@ -1255,5 +1256,8 @@
         "Delete card": "Elimina scheda",
         "Copy anchor link": "Copia il link",
         "Insert card": "Inserisci scheda"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Campi nascosti"
     }
 }
