@@ -4558,6 +4558,37 @@ function testDocApi() {
         await unsubscribe1();
       });
 
+      it('should not block document load (gh issue #799)', async function () {
+        // Create a test document.
+        const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+        const docId = await userApi.newDoc({name: 'testdoc5'}, ws1);
+        const doc = userApi.getDocAPI(docId);
+        // Before #799, formula of this type would block document load because of a deadlock
+        // and make this test fail.
+        const formulaEvaluatedAtDocLoad = 'NOW()';
+
+        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+          ['ModifyColumn', 'Table1', 'C', {isFormula: true, formula: formulaEvaluatedAtDocLoad}],
+        ], chimpy);
+
+        const unsubscribeWebhook1 = await autoSubscribe('probe', docId);
+
+        // Create a first row.
+        await doc.addRows("Table1", {
+          A: [1],
+        });
+
+        await doc.forceReload();
+
+        // Create a second row after document reload.
+        // This should not timeout.
+        await doc.addRows("Table1", {
+          A: [2],
+        });
+
+        await unsubscribeWebhook1();
+      });
+
       it("should monitor failures", async () => {
         const webhook3 = await subscribe('probe', docId);
         const webhook4 = await subscribe('probe', docId);

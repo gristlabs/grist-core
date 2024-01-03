@@ -22,6 +22,7 @@ import {ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {WorkCoordinator} from './WorkCoordinator';
+import {createEmptyActionSummary} from 'app/common/ActionSummary';
 
 // Describes the request to apply a UserActionBundle. It includes a Client (so that broadcast
 // message can set `.fromSelf` property), and methods to resolve or reject the promise for when
@@ -336,7 +337,9 @@ export class Sharing {
       }
       await this._activeDoc.processActionBundle(ownActionBundle);
 
-      const actionSummary = await this._activeDoc.handleTriggers(localActionBundle);
+      const actionSummary = !isCalculate ?
+        await this._activeDoc.handleTriggers(localActionBundle) :
+        createEmptyActionSummary();
 
       await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
 
