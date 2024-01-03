@@ -1832,6 +1832,22 @@ export class ActiveDoc extends EventEmitter {
     ));
   }
 
+  public async syncShares(docSession: OptDocSession) {
+    const metaTables = await this.fetchMetaTables(docSession);
+    const shares = metaTables['_grist_Shares'];
+    const ids = shares[2];
+    const vals = shares[3];
+    const goodShares = ids.map((id, idx) => {
+      return {
+        id,
+        linkId: String(vals['linkId'][idx]),
+        options: String(vals['options'][idx]),
+      };
+    });
+    await this.getHomeDbManager()?.syncShares(this.docName, goodShares);
+    return goodShares;
+  }
+
   /**
    * Loads an open document from DocStorage.  Returns a list of the tables it contains.
    */

@@ -572,7 +572,8 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       'Email': 'foo.bar@getgrist.com',
       'Access': 'owners',
       'SessionID': 'u1',
-      'IsLoggedIn': True
+      'IsLoggedIn': True,
+      'ShareRef': None
     }
     user2 = {
       'Name': 'Baz Qux',
@@ -584,7 +585,8 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       'Email': 'baz.qux@getgrist.com',
       'Access': 'owners',
       'SessionID': 'u2',
-      'IsLoggedIn': True
+      'IsLoggedIn': True,
+      'ShareRef': None
     }
     # Use formula to store last modified by data (user name and email). Check that it works as expected.
     self.load_sample(self.sample)

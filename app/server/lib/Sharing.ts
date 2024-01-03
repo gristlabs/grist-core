@@ -338,6 +338,14 @@ export class Sharing {
 
       const actionSummary = await this._activeDoc.handleTriggers(localActionBundle);
 
+      // Opportunistically use actionSummary to see if _grist_Shares was
+      // changed.
+      if (actionSummary.tableDeltas._grist_Shares) {
+        // This is a little risky, since it entangles us with home db
+        // availability. But we aren't doing a lot...?
+        await this._activeDoc.syncShares(makeExceptionalDocSession('system'));
+      }
+
       await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
 
       // Broadcast the action to connected browsers.

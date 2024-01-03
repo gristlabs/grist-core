@@ -1,8 +1,10 @@
 import {parsePermissions, permissionSetToText, splitSchemaEditPermissionSet} from 'app/common/ACLPermissions';
+import {ACLShareRules, TableWithOverlay} from 'app/common/ACLShareRules';
 import {AclRuleProblem} from 'app/common/ActiveDocAPI';
 import {DocData} from 'app/common/DocData';
 import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
 import {getSetMapValue, isNonNullish} from 'app/common/gutil';
+import {ShareOptions} from 'app/common/ShareOptions';
 import {MetaRowRecord} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 import sortBy = require('lodash/sortBy');
@@ -347,7 +349,9 @@ export class ACLRuleCollection {
     const names: string[] = [];
     for (const rule of this.getUserAttributeRules().values()) {
       const tableRef = tablesTable.findRow('tableId', rule.tableId);
-      const colRef = columnsTable.findMatchingRowId({parentId: tableRef, colId: rule.lookupColId});
+      const colRef = columnsTable.findMatchingRowId({
+        parentId: tableRef, colId: rule.lookupColId,
+      });
       if (!colRef) {
         invalidUAColumns.push(`${rule.tableId}.${rule.lookupColId}`);
         names.push(rule.name);
@@ -379,11 +383,13 @@ export class ACLRuleCollection {
 export interface ReadAclOptions {
   log: ILogger;     // For logging warnings during rule processing.
   compile?: (parsed: ParsedAclFormula) => AclMatchFunc;
-  // If true, call addHelperCols to add helper columns of restricted columns to rule sets.
-  // Used in the server for extra filtering, but not in the client, because:
-  // 1. They would show in the UI
-  // 2. They would be saved back after editing, causing them to accumulate
-  includeHelperCols?: boolean;
+  // If true, add and modify access rules in some special ways.
+  // Specifically, call addHelperCols to add helper columns of restricted columns to rule sets,
+  // and use ACLShareRules to implement any special shares as access rules.
+  // Used in the server, but not in the client, because of at least the following:
+  // 1. Rules would show in the UI
+  // 2. Rules would be saved back after editing, causing them to accumulate
+  enrichRulesForImplementation?: boolean;
 
   // If true, rules with 'schemaEdit' permission are moved out of the '*:*' resource into a
   // fictitious '*SPECIAL:SchemaEdit' resource. This is used only on the client, to present
@@ -455,12 +461,31 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
  * Parse all ACL rules in the document from DocData into a list of RuleSets and of
  * UserAttributeRules. This is used by both client-side code and server-side.
  */
-function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadAclOptions): ReadAclResults {
-  const resourcesTable = docData.getMetaTable('_grist_ACLResources');
-  const rulesTable = docData.getMetaTable('_grist_ACLRules');
+function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementation}: ReadAclOptions): ReadAclResults {
+  // Wrap resources and rules tables so we can have "virtual" rules
+  // to implement special shares.
+  const resourcesTable = new TableWithOverlay(docData.getMetaTable('_grist_ACLResources'));
+  const rulesTable = new TableWithOverlay(docData.getMetaTable('_grist_ACLRules'));
+  const sharesTable = docData.getMetaTable('_grist_Shares');
 
   const ruleSets: RuleSet[] = [];
   const userAttributes: UserAttributeRule[] = [];
+
+  let hasShares: boolean = false;
+  const shares = sharesTable.getRecords();
+  // ACLShareRules is used to edit resourcesTable and rulesTable in place.
+  const shareRules = new ACLShareRules(docData, resourcesTable, rulesTable);
+  // Add virtual rules to implement shares, if there are any.
+  // Add the virtual rules only when implementing/interpreting them, as
+  // opposed to accessing them for presentation or manipulation in the UI.
+  if (enrichRulesForImplementation && shares.length > 0) {
+    for (const share of shares) {
+      const options: ShareOptions = JSON.parse(share.options || '{}');
+      shareRules.addRulesForShare(share.id, options);
+    }
+    shareRules.addDefaultRulesForShares();
+    hasShares = true;
+  }
 
   // Group rules by resource first, ordering by rulePos. Each group will become a RuleSet.
   const rulesByResource = new Map<number, Array<MetaRowRecord<'_grist_ACLRules'>>>();
@@ -472,7 +497,6 @@ function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadA
     const resourceRec = resourcesTable.getRecord(resourceId);
     if (!resourceRec) {
       throw new Error(`ACLRule ${rules[0].id} refers to an invalid ACLResource ${resourceId}`);
-      continue;
     }
     if (!resourceRec.tableId || !resourceRec.colIds) {
       // This should only be the case for the old-style default rule/resource, which we
@@ -482,7 +506,7 @@ function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadA
     const tableId = resourceRec.tableId;
     const colIds = resourceRec.colIds === '*' ? '*' : resourceRec.colIds.split(',');
 
-    if (includeHelperCols && Array.isArray(colIds)) {
+    if (enrichRulesForImplementation && Array.isArray(colIds)) {
       colIds.push(...getHelperCols(docData, tableId, colIds, log));
     }
 
@@ -506,7 +530,13 @@ function readAclRules(docData: DocData, {log, compile, includeHelperCols}: ReadA
       } else if (rule.aclFormula && !rule.aclFormulaParsed) {
         throw new Error(`ACLRule ${rule.id} invalid because missing its parsed formula`);
       } else {
-        const aclFormulaParsed = rule.aclFormula && JSON.parse(String(rule.aclFormulaParsed));
+        let aclFormulaParsed = rule.aclFormula && JSON.parse(String(rule.aclFormulaParsed));
+        // If we have "virtual" rules to implement shares, then regular
+        // rules need to be tweaked so that they don't apply when the
+        // share is active.
+        if (hasShares && rule.id >= 0) {
+          aclFormulaParsed = shareRules.transformNonShareRules({rule, aclFormulaParsed});
+        }
         body.push({
           origRecord: rule,
           aclFormula: String(rule.aclFormula),

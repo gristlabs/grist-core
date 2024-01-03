@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 40
+SCHEMA_VERSION = 41
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -163,6 +163,7 @@ def schema_create_actions():
       make_column("viewRef", "Ref:_grist_Views"),
       make_column("indentation", "Int"),
       make_column("pagePos", "PositionNumber"),
+      make_column("shareRef", "Ref:_grist_Shares"),
     ]),
 
     # All user views.
@@ -199,6 +200,7 @@ def schema_create_actions():
       make_column("embedId",            "Text"),
       # Points to formula columns that hold conditional formatting rules for this view section.
       make_column("rules",              "RefList:_grist_Tables_column"),
+      make_column("shareOptions",       "Text"),
     ]),
     # The fields of a view section.
     actions.AddTable("_grist_Views_section_field", [
@@ -349,6 +351,14 @@ def schema_create_actions():
       # JSON representation of the metadata.
       make_column("content",        "Text"),
       make_column("userRef",        "Text"),
+    ]),
+
+    actions.AddTable('_grist_Shares', [
+      make_column('linkId',         'Text'),   # Used to match records in home db without
+                                               # necessarily trusting the document much.
+      make_column('options',        'Text'),
+      make_column('label',          'Text'),
+      make_column('description',    'Text'),
     ]),
   ]
 

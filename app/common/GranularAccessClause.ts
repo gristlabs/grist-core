@@ -47,6 +47,8 @@ export interface UserInfo {
   UserID: number | null;
   UserRef: string | null;
   SessionID: string | null;
+  ShareRef: number | null;   // This is a rowId in the _grist_Shares table, if the user
+                             // is accessing a document via a share. Otherwise null.
   [attributes: string]: unknown;
   toJSON(): {[key: string]: any};
 }

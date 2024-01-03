@@ -17,7 +17,7 @@ import {menu, menuDivider, menuIcon, menuItem, menuText} from 'app/client/ui2018
 import {confirmModal} from 'app/client/ui2018/modals';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
-import {OpenDocMode, UserOverride} from 'app/common/DocListAPI';
+import {OpenDocMode, OpenDocOptions, UserOverride} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
 import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
@@ -182,8 +182,13 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
         if (!urlId) {
           this._openerHolder.clear();
         } else {
-          FlowRunner.create(this._openerHolder,
-            (flow: AsyncFlow) => this._openDoc(flow, urlId, urlOpenMode, state.params?.compare, linkParameters)
+          FlowRunner.create(
+            this._openerHolder,
+            (flow: AsyncFlow) => this._openDoc(flow, urlId, {
+              openMode: urlOpenMode,
+              linkParameters,
+              originalUrlId: state.doc,
+            }, state.params?.compare)
           )
           .resultPromise.catch(err => this._onOpenError(err));
         }
@@ -325,9 +330,9 @@ It also disables formulas. [{{error}}]", {error: err.message})
     this.offerRecovery(err);
   }
 
-  private async _openDoc(flow: AsyncFlow, urlId: string, urlOpenMode: OpenDocMode | undefined,
-                         comparisonUrlId: string | undefined,
-                         linkParameters: Record<string, string> | undefined): Promise<void> {
+  private async _openDoc(flow: AsyncFlow, urlId: string, options: OpenDocOptions,
+                         comparisonUrlId: string | undefined): Promise<void> {
+    const {openMode: urlOpenMode, linkParameters} = options;
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
                 (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
     const gristDocModulePromise = loadGristDoc();
@@ -383,7 +388,11 @@ It also disables formulas. [{{error}}]", {error: err.message})
     comm.useDocConnection(doc.id);
     flow.onDispose(() => comm.releaseDocConnection(doc.id));
 
-    const openDocResponse = await comm.openDoc(doc.id, doc.openMode, linkParameters);
+    const openDocResponse = await comm.openDoc(doc.id, {
+      openMode: doc.openMode,
+      linkParameters,
+      originalUrlId: options.originalUrlId,
+    });
     if (openDocResponse.recoveryMode || openDocResponse.userOverride) {
       doc.isRecoveryMode = Boolean(openDocResponse.recoveryMode);
       doc.userOverride = openDocResponse.userOverride || null;
@@ -493,7 +502,6 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const isPreFork = openMode === 'fork';
   const isTemplate = doc.type === 'template' && (isFork || isPreFork);
   const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
-
   return {
     ...doc,
     isFork,

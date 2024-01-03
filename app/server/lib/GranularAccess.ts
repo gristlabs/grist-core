@@ -37,8 +37,8 @@ import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
-import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionUser,
-         OptDocSession } from 'app/server/lib/DocSession';
+import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionShare,
+         getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
 import { IPermissionInfo, MixedPermissionSetWithContext,
@@ -98,7 +98,8 @@ function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
 // specifically _grist_Attachments.
 const STRUCTURAL_TABLES = new Set(['_grist_Tables', '_grist_Tables_column', '_grist_Views',
                                    '_grist_Views_section', '_grist_Views_section_field',
-                                   '_grist_ACLResources', '_grist_ACLRules']);
+                                   '_grist_ACLResources', '_grist_ACLRules',
+                                   '_grist_Shares']);
 
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
 // A few may be innocuous, but that hasn't been figured out yet.
@@ -238,7 +239,8 @@ export interface GranularAccessForBundle {
  *    (the UserAction has been compiled to DocActions).
  *  - canApplyBundle(), called when DocActions have been produced from UserActions,
  *    but before those DocActions have been applied to the DB.  If fails, the modification
- *    will be abandoned.
+ *    will be abandoned. This method will also finalize some bundle state,
+ *    specifically the `maybeHasShareChanges` flag.
  *  - appliedBundle(), called when DocActions have been applied to the DB, but before
  *    those changes have been sent to clients.
  *  - sendDocUpdateForBundle() is called once a bundle has been applied, to notify
@@ -279,7 +281,9 @@ export class GranularAccess implements GranularAccessForBundle {
     // Flag for whether doc actions mention a rule change, even if passive due to
     // schema changes.
     hasAnyRuleChange: boolean,
+    maybeHasShareChanges: boolean,
     options: ApplyUAExtendedOptions|null,
+    shareRef?: number;
   }|null;
 
   public constructor(
@@ -308,6 +312,7 @@ export class GranularAccess implements GranularAccessForBundle {
     this._activeBundle = {
       docSession, docActions, undo, userActions, isDirect,
       applied: false, hasDeliberateRuleChange: false, hasAnyRuleChange: false,
+      maybeHasShareChanges: false,
       options,
     };
     this._activeBundle.hasDeliberateRuleChange =
@@ -497,6 +502,35 @@ export class GranularAccess implements GranularAccessForBundle {
             return this._checkIncomingDocAction({docSession, action, actionIdx});
           }
         }));
+      const shares = this._docData.getMetaTable('_grist_Shares');
+      /**
+       * This is a good point at which to determine whether we may be
+       * making a change to special shares. If we may be, then currently
+       * we will reload any connected web clients accessing the document
+       * via a share.
+       *
+       * The role of the `maybeHasShareChanges` flag is to trigger
+       * reloads of web clients that are accessing the document via a
+       * share, if share configuration may have changed. It doesn't
+       * actually impact access control itself. The sketch of order of
+       * operations given in the docstring for the GranularAccess
+       * class is helpful for understanding this flow.
+       *
+       * At the time of writing, web client support for special shares
+       * is not an official feature - but it is super convenient for testing
+       * and will be important later.
+       */
+      if (shares.getRowIds().length > 0 &&
+          docActions.some(
+            action => getTableId(action).startsWith('_grist'))) {
+        // TODO: could actually compare new rules with old rules and
+        // see if they've changed. Or could exclude some tables that
+        // could easily change without an impact on share rules,
+        // such as _grist_Attachments. Either improvement could
+        // greatly reduce unnecessary web client reloads for shares
+        // if that becomes an issue.
+        this._activeBundle.maybeHasShareChanges = true;
+      }
     }
 
     await this._canApplyCellActions(currentUser, userIsOwner);
@@ -517,6 +551,8 @@ export class GranularAccess implements GranularAccessForBundle {
           _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction(),
           _grist_ACLResources: this._docData.getMetaTable('_grist_ACLResources').getTableDataAction(),
           _grist_ACLRules: this._docData.getMetaTable('_grist_ACLRules').getTableDataAction(),
+          _grist_Shares: this._docData.getMetaTable('_grist_Shares').getTableDataAction(),
+          // WATCH OUT - Shares may need more tables, check.
         });
       for (const da of docActions) {
         tmpDocData.receiveAction(da);
@@ -534,6 +570,8 @@ export class GranularAccess implements GranularAccessForBundle {
         throw new ApiError(err.message, 400);
       }
     }
+
+    // TODO: any changes needed to this logic for shares?
   }
 
   /**
@@ -591,6 +629,11 @@ export class GranularAccess implements GranularAccessForBundle {
       // TODO: could avoid reloading in many cases, especially for an owner who has full
       // document access.
       throw new ErrorWithCode('NEED_RELOAD', 'document needs reload, access rules changed');
+    }
+
+    const linkId = getDocSessionShare(docSession);
+    if (linkId && this._activeBundle?.maybeHasShareChanges) {
+      throw new ErrorWithCode('NEED_RELOAD', 'document needs reload, share may have changed');
     }
 
     // Optimize case where there are no rules to enforce.
@@ -1354,7 +1397,15 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.update();
       return;
     }
-    if (!this._ruler.haveRules()) { return; }
+    const shares = this._docData.getMetaTable('_grist_Shares');
+    if (shares.getRowIds().length > 0 &&
+        docActions.some(action => getTableId(action).startsWith('_grist'))) {
+      await this.update();
+      return;
+    }
+    if (!shares && !this._ruler.haveRules()) {
+      return;
+    }
     // If there is a schema change, redo from scratch for now.
     if (docActions.some(docAction => isSchemaAction(docAction))) {
       await this.update();
@@ -1799,6 +1850,20 @@ export class GranularAccess implements GranularAccessForBundle {
     const attrs = this._getUserAttributes(docSession);
     access = getDocSessionAccess(docSession);
 
+    const linkId = getDocSessionShare(docSession);
+    let shareRef: number = 0;
+    if (linkId) {
+      const rowIds = this._docData.getMetaTable('_grist_Shares').filterRowIds({
+        linkId,
+      });
+      if (rowIds.length > 1) {
+        throw new Error('Share identifier is not unique');
+      }
+      if (rowIds.length === 1) {
+        shareRef = rowIds[0];
+      }
+    }
+
     if (docSession.forkingAsOwner) {
       // For granular access purposes, we become an owner.
       // It is a bit of a bluff, done on the understanding that this session will
@@ -1823,6 +1888,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const user = new User();
     user.Access = access;
+    user.ShareRef = shareRef || null;
     const isAnonymous = fullUser?.id === this._homeDbManager?.getAnonymousUserId() ||
       fullUser?.id === null;
     user.UserID = (!isAnonymous && fullUser?.id) || null;
@@ -2569,7 +2635,7 @@ export class Ruler {
    * Update granular access from DocData.
    */
   public async update(docData: DocData) {
-    await this.ruleCollection.update(docData, {log, compile: compileAclFormula, includeHelperCols: true});
+    await this.ruleCollection.update(docData, {log, compile: compileAclFormula, enrichRulesForImplementation: true});
 
     // Also clear the per-docSession cache of rule evaluations.
     this.clearCache();
@@ -3039,6 +3105,8 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
       return rec => rec;
     case '_grist_ACLRules':
       return rec => rec;
+    case '_grist_Shares':
+      return rec => rec;
     case '_grist_Cells':
         return rec => rec.set('content', [GristObjCode.Censored]).set('userRef', '');
     default:
@@ -3174,6 +3242,7 @@ export class User implements UserInfo {
   public Email: string | null = null;
   public SessionID: string | null = null;
   public UserRef: string | null = null;
+  public ShareRef: number | null = null;
   [attribute: string]: any;
 
   constructor(_info: Record<string, unknown> = {}) {

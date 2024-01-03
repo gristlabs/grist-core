@@ -6,7 +6,7 @@
 import * as express from 'express';
 
 import {ApiError} from 'app/common/ApiError';
-import {getSlugIfNeeded, parseUrlId} from 'app/common/gristUrls';
+import {getSlugIfNeeded, parseUrlId, SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {LocalPlugin} from "app/common/plugin";
 import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
 import {Document as APIDocument} from 'app/common/UserAPI';
@@ -105,7 +105,8 @@ export function attachAppEndpoint(options: AttachOptions): void {
       const slug = getSlugIfNeeded(doc);
       const slugMismatch = (req.params.slug || null) !== (slug || null);
       const preferredUrlId = doc.urlId || doc.id;
-      if (urlId !== preferredUrlId || slugMismatch) {
+      if (!req.params.viaShare &&  // Don't bother canonicalizing for shares yet.
+          (urlId !== preferredUrlId || slugMismatch)) {
         // Prepare to redirect to canonical url for document.
         // Preserve any query parameters or fragments.
         const queryOrFragmentCheck = req.originalUrl.match(/([#?].*)/);
@@ -215,6 +216,14 @@ export function attachAppEndpoint(options: AttachOptions): void {
   // The * is a wildcard in express 4, rather than a regex symbol.
   // See https://expressjs.com/en/guide/routing.html
   app.get('/doc/:urlId([^/]+):remainder(*)', ...docMiddleware, docHandler);
+  app.get('/s/:urlId([^/]+):remainder(*)',
+          (req, res, next) => {
+            // /s/<key> is another way of writing /doc/<prefix><key> for shares.
+            req.params.urlId = SHARE_KEY_PREFIX + req.params.urlId;
+            req.params.viaShare = "1";
+            next();
+          },
+          ...docMiddleware, docHandler);
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
 }

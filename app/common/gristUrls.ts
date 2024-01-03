@@ -1,7 +1,7 @@
 import {BillingPage, BillingSubPage, BillingTask} from 'app/common/BillingAPI';
 import {OpenDocMode} from 'app/common/DocListAPI';
 import {EngineCode} from 'app/common/DocumentSettings';
-import {encodeQueryParams, isAffirmative} from 'app/common/gutil';
+import {encodeQueryParams, isAffirmative, removePrefix} from 'app/common/gutil';
 import {LocalPlugin} from 'app/common/plugin';
 import {StringUnion} from 'app/common/StringUnion';
 import {TelemetryLevel} from 'app/common/Telemetry';
@@ -56,6 +56,10 @@ export const DEFAULT_HOME_SUBDOMAIN = 'api';
 // This is the minimum length a urlId may have if it is chosen
 // as a prefix of the docId.
 export const MIN_URLID_PREFIX_LENGTH = 12;
+
+// A prefix that identifies a urlId as a share key.
+// Important that this not be part of a valid docId.
+export const SHARE_KEY_PREFIX = 's.';
 
 /**
  * Special ways to open a document, based on what the user intends to do.
@@ -140,6 +144,7 @@ export interface IGristUrlState {
   api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
                      // But this barely works, and is suitable only for documents. For decoding it
                      // indicates that the URL probably points to an API endpoint.
+  viaShare?: boolean; // Accessing document via a special share.
 }
 
 // Subset of GristLoadConfig used by getOrgUrlInfo(), which affects the interpretation of the
@@ -253,6 +258,13 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   if (state.doc) {
     if (state.api) {
       parts.push(`docs/${encodeURIComponent(state.doc)}`);
+    } else if (state.viaShare) {
+      // Use a special path, and remove SHARE_KEY_PREFIX from id.
+      let id = state.doc;
+      if (id.startsWith(SHARE_KEY_PREFIX)) {
+        id = id.substring(SHARE_KEY_PREFIX.length);
+      }
+      parts.push(`s/${encodeURIComponent(id)}`);
     } else if (state.slug) {
       parts.push(`${encodeURIComponent(state.doc)}/${encodeURIComponent(state.slug)}`);
     } else {
@@ -364,6 +376,13 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   // For the API case, we need to map "docs" to "doc" (as this is what we did in encodeUrl and what API expects).
   if (state.api && map.has('docs')) {
     map.set('doc', map.get('docs')!);
+  }
+
+  // /s/<key> is accepted as another way to write -> /doc/<share-prefix><key>
+  if (map.has('s')) {
+    const key = map.get('s');
+    map.set('doc', `${SHARE_KEY_PREFIX}${key}`);
+    state.viaShare = true;
   }
 
   // When the urlId is a prefix of the docId, documents are identified
@@ -919,33 +938,41 @@ export function parseFirstUrlPart(tag: string, path: string): {value?: string, p
 }
 
 /**
- * The internal structure of a UrlId.  There is no internal structure. unless the id is
- * for a fork, in which case the fork has a separate id, and a user id may also be
- * embedded to track ownership.
+ * The internal structure of a UrlId. There is no internal structure,
+ * except in the following cases. The id may be for a fork, in which
+ * case the fork has a separate id, and a user id may also be embedded
+ * to track ownership. The id may be a share key, in which case it
+ * has some special syntax to identify it as so.
  */
 export interface UrlIdParts {
   trunkId: string;
   forkId?: string;
   forkUserId?: number;
   snapshotId?: string;
+  shareKey?: string;
 }
 
 // Parse a string of the form trunkId or trunkId~forkId or trunkId~forkId~forkUserId
 // or trunkId[....]~v=snapshotId
+// or <SHARE-KEY-PREFIX>shareKey
 export function parseUrlId(urlId: string): UrlIdParts {
   let snapshotId: string|undefined;
   const parts = urlId.split('~');
-  const bareParts = parts.filter(part => !part.includes('='));
+  const bareParts = parts.filter(part => !part.includes('v='));
   for (const part of parts) {
     if (part.startsWith('v=')) {
       snapshotId = decodeURIComponent(part.substr(2).replace(/_/g, '%'));
     }
   }
+  const trunkId = bareParts[0];
+  // IDs starting with SHARE_KEY_PREFIX are in fact shares.
+  const shareKey = removePrefix(trunkId, SHARE_KEY_PREFIX) || undefined;
   return {
     trunkId: bareParts[0],
     forkId: bareParts[1],
     forkUserId: (bareParts[2] !== undefined) ? parseInt(bareParts[2], 10) : undefined,
     snapshotId,
+    shareKey,
   };
 }
 
@@ -984,7 +1011,7 @@ export interface HashLink {
 // a candidate for use in prettier urls.
 function shouldIncludeSlug(doc: {id: string, urlId: string|null}): boolean {
   if (!doc.urlId || doc.urlId.length < MIN_URLID_PREFIX_LENGTH) { return false; }
-  return doc.id.startsWith(doc.urlId);
+  return doc.id.startsWith(doc.urlId) || doc.urlId.startsWith(SHARE_KEY_PREFIX);
 }
 
 // Convert the name of a document into a slug.  Only alphanumerics are retained,

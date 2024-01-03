@@ -166,6 +166,16 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
   throw new Error('getDocSessionAccess could not find access information in DocSession');
 }
 
+export function getDocSessionShare(docSession: OptDocSession): string|null {
+  if (docSession.authorizer) {
+    return docSession.authorizer.getCachedAuth().cachedDoc?.linkId || null;
+  }
+  if (docSession.req) {
+    return docSession.req.docAuth?.cachedDoc?.linkId || null;
+  }
+  return null;
+}
+
 export function getDocSessionAccessOrNull(docSession: OptDocSession): Role|null {
   try {
     return getDocSessionAccess(docSession);

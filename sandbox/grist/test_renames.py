@@ -346,7 +346,8 @@ class TestRenames(test_engine.EngineTestCase):
       'Email': 'foo@example.com',
       'Access': 'owners',
       'SessionID': 'u1',
-      'IsLoggedIn': True
+      'IsLoggedIn': True,
+      'ShareRef': None
     }
 
     # Renaming a table should not leave the old name available for auto-complete.

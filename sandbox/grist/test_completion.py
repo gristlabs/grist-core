@@ -18,7 +18,8 @@ class TestCompletion(test_engine.EngineTestCase):
     'Email': 'foo@example.com',
     'Access': 'owners',
     'SessionID': 'u1',
-    'IsLoggedIn': True
+    'IsLoggedIn': True,
+    'ShareRef': None
   }
 
   def setUp(self):
@@ -100,9 +101,10 @@ class TestCompletion(test_engine.EngineTestCase):
         ('user.Name', "'Foo'"),
         ('user.Origin', 'None'),
         ('user.SessionID', "'u1'"),
+        ('user.ShareRef', 'None'),
         ('user.StudentInfo', 'Students[1]'),
         ('user.UserID', '1'),
-        ('user.UserRef', "'1'"),
+        ('user.UserRef', "'1'")
       ]
     )
     # Should follow user attribute references and autocomplete those types.
@@ -133,7 +135,8 @@ class TestCompletion(test_engine.EngineTestCase):
       'UserRef': '2',
       'Access': 'owners',
       'SessionID': 'u2',
-      'IsLoggedIn': True
+      'IsLoggedIn': True,
+      'ShareRef': None
     }
     self.assertEqual(
       self.autocomplete("user.", "Schools", "lastModified", user2, row_id=2),
@@ -145,6 +148,7 @@ class TestCompletion(test_engine.EngineTestCase):
         ('user.Name', "'Bar'"),
         ('user.Origin', 'None'),
         ('user.SessionID', "'u2'"),
+        ('user.ShareRef', 'None'),
         ('user.UserID', '2'),
         ('user.UserRef', "'2'"),
       ]

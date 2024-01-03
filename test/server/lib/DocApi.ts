@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
+import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
@@ -39,6 +40,7 @@ import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
+import { getDatabase } from 'test/testUtils';
 
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('Kiwi');
@@ -2812,6 +2814,44 @@ function testDocApi() {
     assert.equal(resp.data.title, 'Untitled upload');
     assert.equal(typeof resp.data.id, 'string');
     assert.notEqual(resp.data.id, '');
+  });
+
+
+  it("handles /s/ variants for shares", async function () {
+    const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
+    const docId = await userApi.newDoc({name: 'BlankTest'}, wid);
+    // const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
+    const userActions = [
+      ['AddRecord', '_grist_Shares', null, {
+        linkId: 'x',
+        options: '{"publish": true}'
+      }],
+      ['UpdateRecord', '_grist_Views_section', 1,
+       {shareOptions: '{"publish": true, "form": true}'}],
+      ['UpdateRecord', '_grist_Pages', 1, {shareRef: 1}],
+    ];
+    let resp: AxiosResponse;
+    resp = await axios.post(`${serverUrl}/api/docs/${docId}/apply`, userActions, chimpy);
+    assert.equal(resp.status, 200);
+
+    const db = await getDatabase();
+    const shares = await db.connection.query('select * from shares');
+    const {key} = shares[0];
+
+    resp = await axios.get(`${serverUrl}/api/docs/${docId}/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 200);
+
+    resp = await axios.get(`${serverUrl}/api/s/${key}/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 200);
+
+    resp = await axios.get(`${serverUrl}/api/docs/${key}/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 404);
+
+    resp = await axios.get(`${serverUrl}/api/docs/${SHARE_KEY_PREFIX}${key}/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 200);
+
+    resp = await axios.get(`${serverUrl}/api/s/${key}xxx/tables/Table1/records`, chimpy);
+    assert.equal(resp.status, 404);
   });
 
   it("document is protected during upload-and-import sequence", async function () {

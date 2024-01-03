@@ -27,7 +27,7 @@ import * as dispose from 'app/client/lib/dispose';
 import * as log from 'app/client/lib/log';
 import {CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent} from 'app/common/CommTypes';
 import {UserAction} from 'app/common/DocActions';
-import {DocListAPI, OpenLocalDocResult} from 'app/common/DocListAPI';
+import {DocListAPI, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {GristServerAPI} from 'app/common/GristServerAPI';
 import {getInitialDocAssignment} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
@@ -149,9 +149,8 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * committed to a document that is called in hosted Grist - all other methods
    * are called via DocComm.
    */
-  public async openDoc(docName: string, mode?: string,
-                       linkParameters?: Record<string, string>): Promise<OpenLocalDocResult> {
-    return this._makeRequest(null, docName, 'openDoc', docName, mode, linkParameters);
+  public async openDoc(docName: string, options?: OpenDocOptions): Promise<OpenLocalDocResult> {
+    return this._makeRequest(null, docName, 'openDoc', docName, options);
   }
 
   /**

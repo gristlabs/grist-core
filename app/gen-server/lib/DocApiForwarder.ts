@@ -3,6 +3,7 @@ import fetch, { RequestInit } from 'node-fetch';
 import {AbortController} from 'node-abort-controller';
 
 import { ApiError } from 'app/common/ApiError';
+import { SHARE_KEY_PREFIX } from 'app/common/gristUrls';
 import { removeTrailingSlash } from 'app/common/gutil';
 import { HomeDBManager } from "app/gen-server/lib/HomeDBManager";
 import { assertAccess, getOrSetDocAuth, getTransitiveHeaders, RequestWithLogin } from 'app/server/lib/Authorizer';
@@ -33,6 +34,13 @@ export class DocApiForwarder {
   }
 
   public addEndpoints(app: express.Application) {
+    app.use((req, res, next) => {
+      if (req.url.startsWith('/api/s/')) {
+        req.url = req.url.replace('/api/s/', `/api/docs/${SHARE_KEY_PREFIX}`);
+      }
+      next();
+    });
+
     // Middleware to forward a request about an existing document that user has access to.
     // We do not check whether the document has been soft-deleted; that will be checked by
     // the worker if needed.

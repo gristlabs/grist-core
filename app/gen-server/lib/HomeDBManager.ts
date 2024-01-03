@@ -36,6 +36,7 @@ import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/e
 import {Pref} from "app/gen-server/entity/Pref";
 import {getDefaultProductNames, personalFreeFeatures, Product} from "app/gen-server/entity/Product";
 import {Secret} from "app/gen-server/entity/Secret";
+import {Share} from "app/gen-server/entity/Share";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {Limit} from 'app/gen-server/entity/Limit';
@@ -1194,10 +1195,41 @@ export class HomeDBManager extends EventEmitter {
     // Doc permissions of forks are based on the "trunk" document, so make sure
     // we look up permissions of trunk if we are on a fork (we'll fix the permissions
     // up for the fork immediately afterwards).
-    const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(key.urlId);
+    const {trunkId, forkId, forkUserId, snapshotId,
+           shareKey} = parseUrlId(key.urlId);
+    let doc: Document;
+    if (shareKey) {
+      const res = await (transaction || this._connection).createQueryBuilder()
+        .select('shares')
+        .from(Share, 'shares')
+        .leftJoinAndSelect('shares.doc', 'doc')
+        .where('key = :key', {key: shareKey})
+        .getOne();
+      if (!res) {
+        throw new ApiError('Share not known', 404);
+      }
+      doc = {
+        name: res.doc?.name,
+        id: res.docId,
+        linkId: res.linkId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isPinned: false,
+        urlId: key.urlId,
+        // For the moment, I don't include a useful workspace.
+        // TODO: look up the document properly, perhaps delegating
+        // to the regular path through this method.
+        workspace: this.unwrapQueryResult<Workspace>(
+          await this.getWorkspace({userId: this.getSupportUserId()},
+                                  this._exampleWorkspaceId)),
+        aliases: [],
+        access: 'editors',  // a share may have view/edit access,
+                            // need to check at granular level
+      } as any;
+      return doc;
+    }
     const urlId = trunkId;
     if (forkId || snapshotId) { key = {...key, urlId}; }
-    let doc: Document;
     if (urlId === NEW_DOCUMENT_CODE) {
       if (!forkId) { throw new ApiError('invalid document identifier', 400); }
       // We imagine current user owning trunk if there is no embedded userId, or
@@ -3020,6 +3052,41 @@ export class HomeDBManager extends EventEmitter {
     }
 
     return limitOrError;
+  }
+
+  public async syncShares(docId: string, shares: ShareInfo[]) {
+    return this._connection.transaction(async manager => {
+      for (const share of shares) {
+        const key = makeId();
+        await manager.createQueryBuilder()
+          .insert()
+        // if urlId has been used before, update it
+          .onConflict(`(doc_id, link_id) DO UPDATE SET options = :options`)
+          .setParameter('options', share.options)
+          .into(Share)
+          .values({
+            linkId: share.linkId,
+            docId,
+            options: JSON.parse(share.options),
+            key,
+          })
+          .execute();
+      }
+      const dbShares = await manager.createQueryBuilder()
+        .select('shares')
+        .from(Share, 'shares')
+        .where('doc_id = :docId', {docId})
+        .getMany();
+      const activeLinkIds = new Set(shares.map(share => share.linkId));
+      const oldShares = dbShares.filter(share => !activeLinkIds.has(share.linkId));
+      if (oldShares.length > 0) {
+        await manager.createQueryBuilder()
+          .delete()
+          .from('shares')
+          .whereInIds(oldShares.map(share => share.id))
+          .execute();
+      }
+    });
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -4865,4 +4932,9 @@ export function getDocAuthKeyFromScope(scope: Scope): DocAuthKey {
   const {urlId, userId, org} = scope;
   if (!urlId) { throw new Error('document required'); }
   return {urlId, userId, org};
+}
+
+interface ShareInfo {
+  linkId: string;
+  options: string;
 }

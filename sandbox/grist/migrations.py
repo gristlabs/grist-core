@@ -1289,3 +1289,21 @@ def migration40(tdset):
     new_view_section_id += 1
 
   return tdset.apply_doc_actions(doc_actions)
+
+@migration(schema_version=41)
+def migration41(tdset):
+  """
+  Add a table for tracking special shares.
+  """
+  doc_actions = [
+    actions.AddTable("_grist_Shares", [
+      schema.make_column("linkId", "Text"),
+      schema.make_column("options", "Text"),
+      schema.make_column("label", "Text"),
+      schema.make_column("description", "Text"),
+    ]),
+    add_column('_grist_Pages', 'shareRef', 'Ref:_grist_Shares'),
+    add_column('_grist_Views_section', 'shareOptions', 'Text'),
+  ]
+
+  return tdset.apply_doc_actions(doc_actions)

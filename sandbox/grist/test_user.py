@@ -22,7 +22,8 @@ class TestUser(test_engine.EngineTestCase):
       'Origin': 'https://getgrist.com',
       'StudentInfo': ['Students', 1],
       'SessionID': 'u1',
-      'IsLoggedIn': True
+      'IsLoggedIn': True,
+      'ShareRef': None
     }
     u = User(data, self.engine.tables)
     self.assertEqual(u.Name, 'Foo Bar')
@@ -51,7 +52,8 @@ class TestUser(test_engine.EngineTestCase):
       'Origin': 'https://getgrist.com',
       'StudentInfo': ['Students', 1],
       'SessionID': 'u1',
-      'IsLoggedIn': True
+      'IsLoggedIn': True,
+      'ShareRef': None
     }
     u = User(data, self.engine.tables, is_sample=True)
     self.assertEqual(u.StudentInfo.id, 0)

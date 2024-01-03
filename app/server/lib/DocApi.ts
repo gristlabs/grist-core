@@ -13,7 +13,7 @@ import {
 } from 'app/common/DocActions';
 import {isRaisedException} from "app/common/gristTypes";
 import {Box, RenderBox, RenderContext} from "app/common/Forms";
-import {buildUrlId, parseUrlId} from "app/common/gristUrls";
+import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
 import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
@@ -178,6 +178,12 @@ export class DocWorkerApi {
    * to apply to these routes.
    */
   public addEndpoints() {
+    this._app.use((req, res, next) => {
+      if (req.url.startsWith('/api/s/')) {
+        req.url = req.url.replace('/api/s/', `/api/docs/${SHARE_KEY_PREFIX}`);
+      }
+      next();
+    });
 
     // check document exists (not soft deleted) and user can view it
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));

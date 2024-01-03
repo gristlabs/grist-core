@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 40;
+export const SCHEMA_VERSION = 41;
 
 export const schema = {
 
@@ -92,6 +92,7 @@ export const schema = {
     viewRef             : "Ref:_grist_Views",
     indentation         : "Int",
     pagePos             : "PositionNumber",
+    shareRef            : "Ref:_grist_Shares",
   },
 
   "_grist_Views": {
@@ -119,6 +120,7 @@ export const schema = {
     linkTargetColRef    : "Ref:_grist_Tables_column",
     embedId             : "Text",
     rules               : "RefList:_grist_Tables_column",
+    shareOptions        : "Text",
   },
 
   "_grist_Views_section_field": {
@@ -216,6 +218,13 @@ export const schema = {
     userRef             : "Text",
   },
 
+  "_grist_Shares": {
+    linkId              : "Text",
+    options             : "Text",
+    label               : "Text",
+    description         : "Text",
+  },
+
 };
 
 export interface SchemaTypes {
@@ -304,6 +313,7 @@ export interface SchemaTypes {
     viewRef: number;
     indentation: number;
     pagePos: number;
+    shareRef: number;
   };
 
   "_grist_Views": {
@@ -331,6 +341,7 @@ export interface SchemaTypes {
     linkTargetColRef: number;
     embedId: string;
     rules: [GristObjCode.List, ...number[]]|null;
+    shareOptions: string;
   };
 
   "_grist_Views_section_field": {
@@ -426,6 +437,13 @@ export interface SchemaTypes {
     type: number;
     content: string;
     userRef: string;
+  };
+
+  "_grist_Shares": {
+    linkId: string;
+    options: string;
+    label: string;
+    description: string;
   };
 
 }

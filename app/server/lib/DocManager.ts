@@ -8,8 +8,9 @@ import * as path from 'path';
 import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
-import {DocCreationInfo, DocEntry, DocListAPI, OpenDocMode, OpenLocalDocResult} from 'app/common/DocListAPI';
+import {DocCreationInfo, DocEntry, DocListAPI, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
+import {parseUrlId} from 'app/common/gristUrls';
 import {Invite} from 'app/common/sharing';
 import {tbind} from 'app/common/tbind';
 import {TelemetryMetadataByLevel} from 'app/common/Telemetry';
@@ -298,8 +299,13 @@ export class DocManager extends EventEmitter {
    *      `doc` - the object with metadata tables.
    */
   public async openDoc(client: Client, docId: string,
-                       openMode: OpenDocMode = 'default',
-                       linkParameters: Record<string, string> = {}): Promise<OpenLocalDocResult> {
+                       options?: OpenDocOptions): Promise<OpenLocalDocResult> {
+    if (typeof options === 'string') {
+      throw new Error('openDoc call with outdated parameter type');
+    }
+    const openMode = options?.openMode || 'default';
+    const linkParameters = options?.linkParameters || {};
+    const originalUrlId = options?.originalUrlId;
     let auth: Authorizer;
     let userId: number | undefined;
     const dbManager = this._homeDbManager;
@@ -313,7 +319,12 @@ export class DocManager extends EventEmitter {
 
       // We use docId in the key, and disallow urlId, so we can be sure that we are looking at the
       // right doc when we re-query the DB over the life of the websocket.
-      const key = {urlId: docId, userId, org};
+      const useShareUrlId = Boolean(originalUrlId && parseUrlId(originalUrlId).shareKey);
+      const key = {
+        urlId: useShareUrlId ? originalUrlId! : docId,
+        userId,
+        org
+      };
       log.debug("DocManager.openDoc Authorizer key", key);
       const docAuth = await dbManager.getDocAuthCached(key);
       assertAccess('viewers', docAuth);
