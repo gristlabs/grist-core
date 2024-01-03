@@ -26,6 +26,9 @@
  *        If omitted, the name will either be the concatenation of "given_name" + "family_name" or the "name" attribute.
  *    env GRIST_OIDC_SP_PROFILE_EMAIL_ATTR
  *        The key of the attribute to use for the user's email. Defaults to "email".
+ *    env GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+ *        If set, overrides the IdP's end_session_endpoint with an alternative URL to redirect user upon logout
+ *        (for an IdP that has a logout endpoint but does not support the OIDC RP-Initiated Logout specification).
  *    env GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT
  *        If set to "true", on logout, there won't be any attempt to call the IdP's end_session_endpoint
  *        (the user will remain logged in in the IdP).
@@ -63,6 +66,7 @@ export class OIDCConfig {
   private _redirectUrl: string;
   private _namePropertyKey?: string;
   private _emailPropertyKey: string;
+  private _endSessionEndpoint: string;
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
 
@@ -94,6 +98,11 @@ export class OIDCConfig {
       defaultValue: 'email',
     });
 
+    this._endSessionEndpoint = section.flag('endSessionEndpoint').readString({
+      envVar: 'GRIST_OIDC_IDP_END_SESSION_ENDPOINT',
+      defaultValue: '',
+    })!;
+
     this._skipEndSessionEndpoint = section.flag('skipEndSessionEndpoint').readBool({
       envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
       defaultValue: false,
@@ -112,9 +121,11 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
-    if (this._client.issuer.metadata.end_session_endpoint === undefined && !this._skipEndSessionEndpoint) {
+    if (this._client.issuer.metadata.end_session_endpoint === undefined &&
+        !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
-        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true');
+        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
+        'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
     }
     log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
   }
@@ -186,6 +197,10 @@ export class OIDCConfig {
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
+    }
+    // Alternatively, we could use a logout URL specified by configuration.
+    if (this._endSessionEndpoint) {
+      return this._endSessionEndpoint;
     }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href
