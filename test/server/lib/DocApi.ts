@@ -3833,6 +3833,7 @@ function testDocApi() {
       eventTypes?: string[],
       name?: string,
       memo?: string,
+      enabled?: boolean,
     }) {
       // Subscribe helper that returns a method to unsubscribe.
       const {data, status} = await axios.post(
@@ -3841,7 +3842,7 @@ function testDocApi() {
           eventTypes: options?.eventTypes ?? ['add', 'update'],
           url: `${serving.url}/${endpoint}`,
           isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
-          ...pick(options, 'name', 'memo'),
+          ...pick(options, 'name', 'memo', 'enabled'),
         }, chimpy
       );
       assert.equal(status, 200);
@@ -3978,11 +3979,7 @@ function testDocApi() {
         ], chimpy);
 
         for (const eventTypes of eventTypesSet) {
-          const {data, status} = await axios.post(
-            `${serverUrl}/api/docs/${docId}/tables/${tableId}/_subscribe`,
-            {eventTypes, url: `${serving.url}/${eventTypes}`, isReadyColumn, enabled}, chimpy
-          );
-          assert.equal(status, 200);
+          const data = await subscribe(String(eventTypes), docId, {tableId, eventTypes, isReadyColumn, enabled});
           subscribeResponses.push(data);
           webhookIds[data.webhookId] = String(eventTypes);
         }
