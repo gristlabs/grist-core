@@ -3971,12 +3971,13 @@ function testDocApi() {
       async function createWebhooks({docId, tableId, eventTypesSet, isReadyColumn, enabled}:
         {docId: string, tableId: string, eventTypesSet: string[][], isReadyColumn: string, enabled?: boolean}
       ) {
-        const subscribeResponses = [];
-        const webhookIds: Record<string, string> = {};
         // Ensure the isReady column is a Boolean
         await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
           ['ModifyColumn', tableId, isReadyColumn, {type: 'Bool'}],
         ], chimpy);
+
+        const subscribeResponses = [];
+        const webhookIds: Record<string, string> = {};
 
         for (const eventTypes of eventTypesSet) {
           const data = await subscribe(String(eventTypes), docId, {tableId, eventTypes, isReadyColumn, enabled});
@@ -4106,24 +4107,39 @@ function testDocApi() {
 
       });
 
-      it("doesn't send trigger webhook that has been disabled", async function () {
-        // Create a test document.
-        const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
-        const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
-        const doc = userApi.getDocAPI(docId);
+      [{
+        itMsg: "doesn't trigger webhook that has been disabled",
+        enabled: false,
+      }, {
+        itMsg: "does trigger webhook that has been enable",
+        enabled: true,
+      }].forEach((ctx) => {
 
-        await createWebhooks({
-          docId, tableId: 'Table1', isReadyColumn: "B", eventTypesSet: [ ["add"] ], enabled: false
+        it(ctx.itMsg, async function () {
+          // Create a test document.
+          const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+          const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
+          const doc = userApi.getDocAPI(docId);
+
+          await createWebhooks({
+            docId, tableId: 'Table1', isReadyColumn: "B", eventTypesSet: [ ["add"] ], enabled: ctx.enabled
+          });
+
+          await doc.addRows("Table1", {
+            A: [42],
+            B: [true]
+          });
+
+          const queueRedisCalls = redisCalls.filter(args => args[1] === "webhook-queue-" + docId);
+          const redisPushIndex = queueRedisCalls.findIndex(args => args[0] === "rpush");
+
+          if (ctx.enabled) {
+            assert.isAbove(redisPushIndex, 0, "Should have pushed events to the redis queue");
+          } else {
+            assert.equal(redisPushIndex, -1, "Should not have pushed any events to the redis queue");
+          }
         });
 
-        await doc.addRows("Table1", {
-          A: [42],
-          B: [true]
-        });
-
-        const queueRedisCalls = redisCalls.filter(args => args[1] === "webhook-queue-" + docId);
-        assert.equal(queueRedisCalls.findIndex(args => args[0] === "rpush"), -1,
-          "Should not have pushed any events to the redis queue");
       });
     });
 
