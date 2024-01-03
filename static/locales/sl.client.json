@@ -283,7 +283,8 @@
         "Validate Data": "Potrdi podatke",
         "How-to Tutorial": "Vadnica kako narediti",
         "Tour of this Document": "Ogled tega dokumenta",
-        "Return to viewing as yourself": "Vrnite se k ogledu kot vi"
+        "Return to viewing as yourself": "Vrnite se k ogledu kot vi",
+        "API Console": "API Konzola"
     },
     "pages": {
         "Rename": "Preimenuj",
