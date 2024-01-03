@@ -337,8 +337,10 @@ export class Sharing {
       }
       await this._activeDoc.processActionBundle(ownActionBundle);
 
-      const isCalculate = userActions.length === 1 && userActions[0][0] === 'Calculate';
-      const actionSummary = !isCalculate ?
+      // Don't trigger webhooks for single Calculate actions, this causes a deadlock on document load.
+      // See gh issue #799
+      const isSingleCalculateAction = userActions.length === 1 && userActions[0][0] === 'Calculate';
+      const actionSummary = !isSingleCalculateAction ?
         await this._activeDoc.handleTriggers(localActionBundle) :
         summarizeAction(localActionBundle);
 
