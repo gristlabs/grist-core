@@ -174,7 +174,7 @@ export class DocTriggers {
     const triggersTable = docData.getMetaTable("_grist_Triggers");
     const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
 
-    const triggersByTableRef = _.groupBy(triggersTable.getRecords(), "tableRef");
+    const triggersByTableRef = _.groupBy(triggersTable.getRecords().filter(t => t.enabled), "tableRef");
     const triggersByTableId: Array<[string, Trigger[]]> = [];
 
     // First we need a list of columns which must be included in full in the action summary
@@ -545,9 +545,7 @@ export class DocTriggers {
     tableDelta: TableDelta,
   ): boolean {
     let readyBefore: boolean;
-    if (!trigger.enabled) {
-      return false;
-    } else if (!trigger.isReadyColRef) {
+    if (!trigger.isReadyColRef) {
       // User hasn't configured a column, so all records are considered ready immediately
       readyBefore = recordDelta.existedBefore;
     } else {
