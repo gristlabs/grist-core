@@ -34,6 +34,10 @@ export interface ColumnToMap {
   strictType?: boolean,
 }
 
+/**
+ * Tells Grist what columns a Custom Widget expects and allows users to map between existing column names
+ * and those requested by the Custom Widget.
+ */
 export type ColumnsToMap = (string|ColumnToMap)[];
 
 /**
@@ -78,6 +82,9 @@ export interface WidgetColumnMap {
   [key: string]: string|string[]|null
 }
 
+/**
+ * Interface for the mapping of a custom widget.
+ */
 export interface CustomSectionAPI {
   /**
    * Initial request from a Custom Widget that wants to declare its requirements.

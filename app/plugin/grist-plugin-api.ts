@@ -52,10 +52,11 @@ export const rpc: Rpc = new Rpc({logger: createRpcLogger()});
 export const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
 export const coreDocApi = rpc.getStub<GristDocAPI>('GristDocAPI@grist', checkers.GristDocAPI);
 
+const viewApiStub = rpc.getStub<GristView>('GristView', checkers.GristView);
+
 /**
  * Interface for the records backing a custom widget.
  */
-const viewApiStub = rpc.getStub<GristView>('GristView', checkers.GristView);
 export const viewApi: GristView = {
   ...viewApiStub,
   // Decoded objects aren't fully preserved over the RPC channel, so decoding has to happen on this side.

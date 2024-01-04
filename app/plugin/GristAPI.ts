@@ -113,7 +113,7 @@ export interface GristDocAPI {
   listTables(): Promise<string[]>;
 
   /**
-   * Returns a complete table of data as [[RowRecords]], including the
+   * Returns a complete table of data as [[GristData.RowRecords]], including the
    * 'id' column. Do not modify the returned arrays in-place, especially if used
    * directly (not over RPC).
    */
