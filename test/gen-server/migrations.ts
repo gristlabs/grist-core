@@ -79,6 +79,13 @@ describe('migrations', function() {
 
   beforeEach(async function() {
     await home.connect();
+    // If testing against postgres, remove all tables.
+    // If SQLite, we're using a fresh in-memory db each time.
+    const sqlite = home.connection.driver.options.type === 'sqlite';
+    if (!sqlite) {
+      await home.connection.query('DROP SCHEMA public CASCADE');
+      await home.connection.query('CREATE SCHEMA public');
+    }
     await createInitialDb(home.connection, false);
   });
 
