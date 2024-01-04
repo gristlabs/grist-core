@@ -615,7 +615,8 @@
         "TOOLS": "HERRAMIENTAS",
         "Tour of this Document": "Recorrido por este documento",
         "Validate Data": "Validar datos",
-        "Settings": "Ajustes"
+        "Settings": "Ajustes",
+        "API Console": "Consola de la API"
     },
     "TopBar": {
         "Manage Team": "Administrar equipo"
