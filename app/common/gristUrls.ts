@@ -758,6 +758,7 @@ export const Features = StringUnion(
   "helpCenter",
   "billing",
   "templates",
+  "createSite",
   "multiSite",
   "multiAccounts",
   "sendToDrive",

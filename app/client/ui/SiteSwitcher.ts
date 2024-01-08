@@ -42,12 +42,14 @@ export function buildSiteSwitcher(appModel: AppModel) {
         testId('org'),
       )
     ),
-    menuItem(
-      () => appModel.showNewSiteModal(),
-      menuIcon('Plus'),
-      t("Create new team site"),
-      testId('create-new-site'),
-    ),
+    dom.maybe(() => isFeatureEnabled("createSite"), () => [
+      menuItem(
+        () => appModel.showNewSiteModal(),
+        menuIcon('Plus'),
+        t("Create new team site"),
+        testId('create-new-site'),
+      )
+    ]),
   ];
 }
 
