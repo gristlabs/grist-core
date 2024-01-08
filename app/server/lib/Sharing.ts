@@ -22,6 +22,7 @@ import {ActionHistory, asActionGroup, getActionUndoInfo} from './ActionHistory';
 import {ActiveDoc} from './ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from './DocSession';
 import {WorkCoordinator} from './WorkCoordinator';
+import {summarizeAction} from 'app/common/ActionSummarizer';
 
 // Describes the request to apply a UserActionBundle. It includes a Client (so that broadcast
 // message can set `.fromSelf` property), and methods to resolve or reject the promise for when
@@ -246,14 +247,14 @@ export class Sharing {
 
     try {
 
-      const isCalculate = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
+      const isSystemAction = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
       // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.
       // - Adding attachment metadata when uploading attachments,
       //   because then the attachment file may get hard-deleted and redo won't work properly.
       // - Action was rejected but it had some side effects (e.g. NOW() or UUID() formulas).
       const internal =
-        isCalculate ||
+        isSystemAction ||
         userActions.every(a => a[0] === "AddRecord" && a[1] === "_grist_Attachments") ||
         !!failure;
 
@@ -305,7 +306,7 @@ export class Sharing {
 
       // If the document has shut down in the meantime, and this was just a "Calculate" action,
       // return a trivial result.  This is just to reduce noisy warnings in migration tests.
-      if (this._activeDoc.isShuttingDown && isCalculate) {
+      if (this._activeDoc.isShuttingDown && isSystemAction) {
         return {
           actionNum: localActionBundle.actionNum,
           retValues: [],
@@ -336,7 +337,12 @@ export class Sharing {
       }
       await this._activeDoc.processActionBundle(ownActionBundle);
 
-      const actionSummary = await this._activeDoc.handleTriggers(localActionBundle);
+      // Don't trigger webhooks for single Calculate actions, this causes a deadlock on document load.
+      // See gh issue #799
+      const isSingleCalculateAction = userActions.length === 1 && userActions[0][0] === 'Calculate';
+      const actionSummary = !isSingleCalculateAction ?
+        await this._activeDoc.handleTriggers(localActionBundle) :
+        summarizeAction(localActionBundle);
 
       // Opportunistically use actionSummary to see if _grist_Shares was
       // changed.

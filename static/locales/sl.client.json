@@ -283,7 +283,8 @@
         "Validate Data": "Potrdi podatke",
         "How-to Tutorial": "Vadnica kako narediti",
         "Tour of this Document": "Ogled tega dokumenta",
-        "Return to viewing as yourself": "Vrnite se k ogledu kot vi"
+        "Return to viewing as yourself": "Vrnite se k ogledu kot vi",
+        "API Console": "API Konzola"
     },
     "pages": {
         "Rename": "Preimenuj",
@@ -578,7 +579,8 @@
         "TRANSFORM": "TRANSFORM",
         "SELECTOR FOR": "SELEKTOR ZA",
         "Sort & Filter": "Razvrščanje in filtriranje",
-        "Widget": "Pripomoček"
+        "Widget": "Pripomoček",
+        "Reset form": "Ponastavi obrazec"
     },
     "FloatingPopup": {
         "Maximize": "Povečajte",
@@ -1255,5 +1257,8 @@
         "Delete card": "Briši kartico",
         "Copy anchor link": "Kopiraj sidrno povezavo",
         "Insert card": "Vstavi kartico"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Skrita polja"
     }
 }

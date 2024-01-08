@@ -445,7 +445,8 @@
         "TRANSFORM": "TRANSFORMĂ",
         "SELECTOR FOR": "SELECTOR PENTRU",
         "Sort & Filter": "Sortare și filtrare",
-        "Widget": "Widget"
+        "Widget": "Widget",
+        "Reset form": "Resetare formular"
     },
     "FloatingPopup": {
         "Maximize": "Maximizați",
@@ -1255,5 +1256,8 @@
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Se trimite fișierul la Google Drive"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Câmpuri ascunse"
     }
 }

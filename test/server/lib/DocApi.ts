@@ -19,7 +19,7 @@ import {delayAbort} from 'app/server/lib/serverUtils';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {delay} from 'bluebird';
 import {assert} from 'chai';
-import * as express from 'express';
+import express from 'express';
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
@@ -3347,7 +3347,6 @@ function testDocApi() {
   });
 
   describe('webhooks related endpoints', async function () {
-
       /*
         Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
       */
@@ -3543,8 +3542,6 @@ function testDocApi() {
       assert.equal(webhookList.length, 3);
     });
 
-
-
     it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
 
       const subscribeResponse = await subscribeWebhook();
@@ -3603,6 +3600,7 @@ function testDocApi() {
       assert.equal(accessResp.status, 200);
       await flushAuth();
     });
+
   });
 
   describe("Daily API Limit", () => {
@@ -3876,6 +3874,7 @@ function testDocApi() {
       eventTypes?: string[],
       name?: string,
       memo?: string,
+      enabled?: boolean,
     }) {
       // Subscribe helper that returns a method to unsubscribe.
       const {data, status} = await axios.post(
@@ -3884,7 +3883,7 @@ function testDocApi() {
           eventTypes: options?.eventTypes ?? ['add', 'update'],
           url: `${serving.url}/${endpoint}`,
           isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
-          ...pick(options, 'name', 'memo'),
+          ...pick(options, 'name', 'memo', 'enabled'),
         }, chimpy
       );
       assert.equal(status, 200);
@@ -4010,6 +4009,25 @@ function testDocApi() {
         }
       });
 
+      async function createWebhooks({docId, tableId, eventTypesSet, isReadyColumn, enabled}:
+        {docId: string, tableId: string, eventTypesSet: string[][], isReadyColumn: string, enabled?: boolean}
+      ) {
+        // Ensure the isReady column is a Boolean
+        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+          ['ModifyColumn', tableId, isReadyColumn, {type: 'Bool'}],
+        ], chimpy);
+
+        const subscribeResponses = [];
+        const webhookIds: Record<string, string> = {};
+
+        for (const eventTypes of eventTypesSet) {
+          const data = await subscribe(String(eventTypes), docId, {tableId, eventTypes, isReadyColumn, enabled});
+          subscribeResponses.push(data);
+          webhookIds[data.webhookId] = String(eventTypes);
+        }
+        return {subscribeResponses, webhookIds};
+      }
+
       it("delivers expected payloads from combinations of changes, with retrying and batching",
         async function () {
         // Create a test document.
@@ -4017,27 +4035,15 @@ function testDocApi() {
         const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
         const doc = userApi.getDocAPI(docId);
 
-        // For some reason B is turned into Numeric even when given bools
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-          ['ModifyColumn', 'Table1', 'B', {type: 'Bool'}],
-        ], chimpy);
-
         // Make a webhook for every combination of event types
-        const subscribeResponses = [];
-        const webhookIds: Record<string, string> = {};
-        for (const eventTypes of [
-          ["add"],
-          ["update"],
-          ["add", "update"],
-        ]) {
-          const {data, status} = await axios.post(
-            `${serverUrl}/api/docs/${docId}/tables/Table1/_subscribe`,
-            {eventTypes, url: `${serving.url}/${eventTypes}`, isReadyColumn: "B"}, chimpy
-          );
-          assert.equal(status, 200);
-          subscribeResponses.push(data);
-          webhookIds[data.webhookId] = String(eventTypes);
-        }
+        const {subscribeResponses, webhookIds} = await createWebhooks({
+          docId, tableId: 'Table1', isReadyColumn: "B",
+          eventTypesSet: [
+            ["add"],
+            ["update"],
+            ["add", "update"],
+          ]
+        });
 
         // Add and update some rows, trigger some events
         // Values of A where B is true and thus the record is ready are [1, 4, 7, 8]
@@ -4139,6 +4145,41 @@ function testDocApi() {
           _.sum(redisTrims),
           _.sum(expectedTrims),
         );
+
+      });
+
+      [{
+        itMsg: "doesn't trigger webhook that has been disabled",
+        enabled: false,
+      }, {
+        itMsg: "does trigger webhook that has been enable",
+        enabled: true,
+      }].forEach((ctx) => {
+
+        it(ctx.itMsg, async function () {
+          // Create a test document.
+          const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+          const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
+          const doc = userApi.getDocAPI(docId);
+
+          await createWebhooks({
+            docId, tableId: 'Table1', isReadyColumn: "B", eventTypesSet: [ ["add"] ], enabled: ctx.enabled
+          });
+
+          await doc.addRows("Table1", {
+            A: [42],
+            B: [true]
+          });
+
+          const queueRedisCalls = redisCalls.filter(args => args[1] === "webhook-queue-" + docId);
+          const redisPushIndex = queueRedisCalls.findIndex(args => args[0] === "rpush");
+
+          if (ctx.enabled) {
+            assert.isAbove(redisPushIndex, 0, "Should have pushed events to the redis queue");
+          } else {
+            assert.equal(redisPushIndex, -1, "Should not have pushed any events to the redis queue");
+          }
+        });
 
       });
     });
@@ -4596,6 +4637,37 @@ function testDocApi() {
         await waitForQueue(0);
         await unsubscribe2();
         await unsubscribe1();
+      });
+
+      it('should not block document load (gh issue #799)', async function () {
+        // Create a test document.
+        const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+        const docId = await userApi.newDoc({name: 'testdoc5'}, ws1);
+        const doc = userApi.getDocAPI(docId);
+        // Before #799, formula of this type would block document load because of a deadlock
+        // and make this test fail.
+        const formulaEvaluatedAtDocLoad = 'NOW()';
+
+        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+          ['ModifyColumn', 'Table1', 'C', {isFormula: true, formula: formulaEvaluatedAtDocLoad}],
+        ], chimpy);
+
+        const unsubscribeWebhook1 = await autoSubscribe('probe', docId);
+
+        // Create a first row.
+        await doc.addRows("Table1", {
+          A: [1],
+        });
+
+        await doc.forceReload();
+
+        // Create a second row after document reload.
+        // This should not timeout.
+        await doc.addRows("Table1", {
+          A: [2],
+        });
+
+        await unsubscribeWebhook1();
       });
 
       it("should monitor failures", async () => {
