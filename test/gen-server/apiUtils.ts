@@ -22,6 +22,7 @@ import * as path from 'path';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import {setPlan} from 'test/gen-server/testUtils';
 import {fixturesRoot} from 'test/server/testUtils';
+import {isAffirmative} from 'app/common/gutil';
 
 export class TestServer {
   public serverUrl: string;
@@ -36,7 +37,7 @@ export class TestServer {
   public async start(servers: ServerType[] = ["home"],
                      options: FlexServerOptions = {}): Promise<string> {
     await createInitialDb();
-    this.server = await mergedServerMain(0, servers, {logToConsole: true,
+    this.server = await mergedServerMain(0, servers, {logToConsole: isAffirmative(process.env.DEBUG),
                                                       externalStorage: false,
                                                       ...options});
     this.serverUrl = this.server.getOwnUrl();
