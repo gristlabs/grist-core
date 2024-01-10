@@ -36,7 +36,7 @@ export class TestServer {
   public async start(servers: ServerType[] = ["home"],
                      options: FlexServerOptions = {}): Promise<string> {
     await createInitialDb();
-    this.server = await mergedServerMain(0, servers, {logToConsole: false,
+    this.server = await mergedServerMain(0, servers, {logToConsole: true,
                                                       externalStorage: false,
                                                       ...options});
     this.serverUrl = this.server.getOwnUrl();

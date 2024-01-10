@@ -2347,17 +2347,7 @@ export class HomeDBManager extends EventEmitter {
 
   // Returns UserAccessData for all users with any permissions on the org.
   public async getOrgAccess(scope: Scope, orgKey: string|number): Promise<QueryResult<PermissionData>> {
-    const orgQuery = this.org(scope, orgKey, {
-      markPermissions: Permissions.VIEW,
-      needRealOrg: true,
-      allowSpecialPermit: true
-    })
-    // Join the org's ACL rules (with 1st level groups/users listed).
-    .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-    .leftJoinAndSelect('acl_rules.group', 'org_groups')
-    .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users')
-    .leftJoinAndSelect('org_member_users.logins', 'user_logins');
-    const queryResult = await verifyIsPermitted(orgQuery);
+    const queryResult = await this._getOrgWithACLRules(scope, orgKey);
     if (queryResult.status !== 200) {
       // If the query for the doc failed, return the failure result.
       return queryResult;
@@ -2386,35 +2376,29 @@ export class HomeDBManager extends EventEmitter {
   // maxInheritedRole set on the workspace. Note that information for all users in the org
   // is given to indicate which users have access to the org but not to this particular workspace.
   public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
-    const wsQuery = this._workspace(scope, wsId, {
-      markPermissions: Permissions.VIEW
-    })
-    // Join the workspace's ACL rules (with 1st level groups/users listed).
-    .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
-    .leftJoinAndSelect('acl_rules.group', 'workspace_groups')
-    .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_group_users')
-    .leftJoinAndSelect('workspace_groups.memberGroups', 'workspace_group_groups')
-    .leftJoinAndSelect('workspace_group_users.logins', 'workspace_user_logins')
-    // Join the org and groups/users.
-    .leftJoinAndSelect('workspaces.org', 'org')
-    .leftJoinAndSelect('org.aclRules', 'org_acl_rules',
-      '("org_acl_rules"."permissions" <> "acl_rules"."permissions")'
-    )
-    .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-    .leftJoinAndSelect('org_groups.memberUsers', 'org_group_users')
-    .leftJoinAndSelect('org_group_users.logins', 'org_user_logins');
-    const queryResult = await verifyIsPermitted(wsQuery);
-    if (queryResult.status !== 200) {
+    const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId);
+    if (wsQueryResult.status !== 200) {
       // If the query for the doc failed, return the failure result.
-      return queryResult;
+      return wsQueryResult;
     }
-    const workspace: Workspace = queryResult.data;
+    const workspace: Workspace = wsQueryResult.data;
+
     const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
+
+    // Also fetch the organization ACLs so we can determine inherited rights.
+    const orgQueryResult = await this._getOrgWithACLRules(scope, workspace.org.id);
+    if (orgQueryResult.status !== 200) {
+      // If the query for the doc failed, return the failure result.
+      return orgQueryResult;
+    }
+    const org: Organization = orgQueryResult.data;
+
     // The orgMap gives the org access inherited by each user.
-    const orgMap = getMemberUserRoles(workspace.org, this.defaultBasicGroupNames);
-    const orgMapWithMembership = getMemberUserRoles(workspace.org, this.defaultGroupNames);
+    const orgMap = getMemberUserRoles(org, this.defaultBasicGroupNames);
+    const orgMapWithMembership = getMemberUserRoles(org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
-    const users: UserAccessData[] = getResourceUsers([workspace, workspace.org]).map(u => {
+
+    const users: UserAccessData[] = getResourceUsers([workspace, org]).map(u => {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
@@ -4747,6 +4731,35 @@ export class HomeDBManager extends EventEmitter {
     if (thisUser) { users.push(thisUser); }
     return { personal: true, public: !realAccess };
   }
+
+  private _getWorkspaceWithACLRules(scope: Scope, wsId: number) {
+    const query = this._workspace(scope, wsId, {
+      markPermissions: Permissions.VIEW
+    })
+    // Join the workspace's ACL rules (with 1st level groups/users listed).
+    .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
+    .leftJoinAndSelect('acl_rules.group', 'workspace_groups')
+    .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_group_users')
+    .leftJoinAndSelect('workspace_groups.memberGroups', 'workspace_group_groups')
+    .leftJoinAndSelect('workspace_group_users.logins', 'workspace_user_logins')
+    .leftJoinAndSelect('workspaces.org', 'org');
+    return verifyIsPermitted(query);
+  }
+
+  private _getOrgWithACLRules(scope: Scope, org: number|string) {
+    const orgQuery = this.org(scope, org, {
+      markPermissions: Permissions.VIEW,
+      needRealOrg: true,
+      allowSpecialPermit: true
+    })
+    // Join the org's ACL rules (with 1st level groups/users listed).
+    .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
+    .leftJoinAndSelect('acl_rules.group', 'org_groups')
+    .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users')
+    .leftJoinAndSelect('org_member_users.logins', 'user_logins');
+    return verifyIsPermitted(orgQuery);
+  }
+
 }
 
 // Return a QueryResult reflecting the output of a query builder.

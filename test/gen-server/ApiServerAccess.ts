@@ -846,6 +846,7 @@ describe('ApiServerAccess', function() {
     const oid = await dbManager.testGetId('Chimpyland');
     const wid = await dbManager.testGetId('Public');
     const resp1 = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
+    console.log('resp1.data = ', resp1.data);
     assert.equal(resp1.status, 200);
     assert.deepEqual(resp1.data, {
       maxInheritedRole: "owners",
