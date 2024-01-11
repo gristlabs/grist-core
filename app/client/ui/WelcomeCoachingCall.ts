@@ -7,8 +7,7 @@ import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
 import {icon} from 'app/client/ui2018/icons';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, styled} from 'grainjs';
-
-const FREE_COACHING_CALL_URL = 'https://calendly.com/grist-team/grist-free-coaching-call';
+import {getFreeCoachingCallUrl} from 'app/common/gristUrls';
 
 export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
   const {deploymentType} = getGristConfig();
@@ -99,7 +98,7 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
             logTelemetryEvent('clickedScheduleCoachingCall');
           }),
           {
-            href: FREE_COACHING_CALL_URL,
+            href: getFreeCoachingCallUrl(),
             target: '_blank',
           },
           testId('popup-primary-button'),
