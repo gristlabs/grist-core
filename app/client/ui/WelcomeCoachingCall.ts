@@ -13,6 +13,7 @@ import { makeT } from '../lib/localization';
 const t = makeT('WelcomeCoachingCall');
 
 export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
+  return true;
   const {deploymentType} = getGristConfig();
   if (deploymentType !== 'saas') { return false; }
 
@@ -65,7 +66,6 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
       ctl.close();
     };
 
-    // TODO: i18n
     return [
       cssPopup.cls(''),
       cssPopupHeader(
@@ -79,7 +79,10 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
           testId('popup-close-button'),
         ),
       ),
-      cssPopupTitle(t('Free Coaching Call'), testId('popup-title')),
+      cssPopupTitle(t('free coaching call'),
+        dom.style('text-transform', 'capitalize'),
+        testId('popup-title')
+      ),
       cssPopupBody(
         cssBody(
           dom('div',
