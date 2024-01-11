@@ -118,7 +118,7 @@ export interface GristDocAPI {
   listTables(): Promise<string[]>;
 
   /**
-   * Returns a complete table of data as [[GristData.RowRecords]], including the
+   * Returns a complete table of data as {@link GristData.RowRecords | GristData.RowRecords}, including the
    * 'id' column. Do not modify the returned arrays in-place, especially if used
    * directly (not over RPC).
    */
@@ -142,18 +142,18 @@ export interface GristDocAPI {
 /**
  * Options for functions which fetch data from the selected table or record:
  *
- * - [[onRecords]]
- * - [[onRecord]]
- * - [[fetchSelectedRecord]]
- * - [[fetchSelectedTable]]
- * - [[GristView.fetchSelectedRecord]]
- * - [[GristView.fetchSelectedTable]]
+ * - {@link onRecords}
+ * - {@link onRecord}
+ * - {@link fetchSelectedRecord}
+ * - {@link fetchSelectedTable}
+ * - {@link GristView.fetchSelectedRecord | GristView.fetchSelectedRecord}
+ * - {@link GristView.fetchSelectedTable | GristView.fetchSelectedTable}
  *
  * The different methods have different default values for `keepEncoded` and `format`.
  **/
 export interface FetchSelectedOptions {
   /**
-   * - `true`: the returned data will contain raw `CellValue`s.
+   * - `true`: the returned data will contain raw {@link GristData.CellValue}'s.
    * - `false`: the values will be decoded, replacing e.g. `['D', timestamp]` with a moment date.
    */
   keepEncoded?: boolean;
@@ -178,7 +178,8 @@ export interface FetchSelectedOptions {
  */
 export interface GristView {
   /**
-   * Like [[GristDocAPI.fetchTable]], but gets data for the custom section specifically, if there is any.
+   * Like {@link GristDocAPI.fetchTable | GristDocAPI.fetchTable},
+   * but gets data for the custom section specifically, if there is any.
    * By default, `options.keepEncoded` is `true` and `format` is `columns`.
    */
   fetchSelectedTable(options?: FetchSelectedOptions): Promise<any>;
