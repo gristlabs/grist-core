@@ -13,7 +13,6 @@ import { makeT } from '../lib/localization';
 const t = makeT('WelcomeCoachingCall');
 
 export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
-  return true;
   const {deploymentType} = getGristConfig();
   if (deploymentType !== 'saas') { return false; }
 
