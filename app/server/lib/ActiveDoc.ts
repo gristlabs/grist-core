@@ -123,6 +123,7 @@ import {
   DocSession,
   getDocSessionAccess,
   getDocSessionAltSessionId,
+  getDocSessionUsage,
   getDocSessionUser,
   getDocSessionUserId,
   makeExceptionalDocSession,
@@ -1829,7 +1830,15 @@ export class ActiveDoc extends EventEmitter {
     ));
   }
 
-  public async syncShares(docSession: OptDocSession) {
+  /**
+   * Make sure the shares listed for the doc in the home db and the
+   * shares listed within the doc itself are in sync. If skipIfNoShares
+   * is set, we skip checking the home db if there are no shares listed
+   * within the doc, as a small optimization.
+   */
+  public async syncShares(docSession: OptDocSession, options: {
+    skipIfNoShares?: boolean,
+  } = {}) {
     const metaTables = await this.fetchMetaTables(docSession);
     const shares = metaTables['_grist_Shares'];
     const ids = shares[2];
@@ -1841,7 +1850,9 @@ export class ActiveDoc extends EventEmitter {
         options: String(vals['options'][idx]),
       };
     });
-    await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
+    if (goodShares.length > 0 || !options.skipIfNoShares) {
+      await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
+    }
     return goodShares;
   }
 
@@ -2370,6 +2381,13 @@ export class ActiveDoc extends EventEmitter {
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
       this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
+      const docUsage = getDocSessionUsage(docSession);
+      if (!docUsage) {
+        // This looks be the first time this installation of Grist is touching
+        // the document. If it has any shares, the home db needs to know.
+        // TODO: could offer a UI to control whether shares are activated.
+        await this.syncShares(docSession, { skipIfNoShares: true });
+      }
       void this._initializeDocUsage(docSession);
 
       // Start the periodic work, unless this doc has already started shutting down.
