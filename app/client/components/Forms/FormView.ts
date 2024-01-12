@@ -6,23 +6,31 @@ import * as components from 'app/client/components/Forms/elements';
 import {Box, BoxModel, BoxType, LayoutModel, parseBox, Place} from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {Disposable} from 'app/client/lib/dispose';
-import {makeTestId} from 'app/client/lib/domUtils';
+import {AsyncComputed, makeTestId} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
+import {makeT} from 'app/client/lib/localization';
+import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
+import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import * as menus from 'app/client/ui2018/menus';
+import {confirmModal} from 'app/client/ui2018/modals';
 import {not} from 'app/common/gutil';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDisposableOwner, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import defaults from 'lodash/defaults';
 import isEqual from 'lodash/isEqual';
 import {v4 as uuidv4} from 'uuid';
+
+const t = makeT('FormView');
 
 const testId = makeTestId('test-forms-');
 
@@ -44,6 +52,11 @@ export class FormView extends Disposable {
   private _savedLayout: any;
   private _saving: boolean = false;
   private _url: Computed<string>;
+  private _copyingLink: Observable<boolean>;
+  private _pageShare: Computed<ShareRec | null>;
+  private _remoteShare: AsyncComputed<{key: string}|null>;
+  private _published: Computed<boolean>;
+  private _showPublishedMessage: Observable<boolean>;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, {'addNewRow': false});
@@ -242,9 +255,43 @@ export class FormView extends Disposable {
     this._url = Computed.create(this, use => {
       const doc = use(this.gristDoc.docPageModel.currentDoc);
       if (!doc) { return ''; }
-      const url = this.gristDoc.app.topAppModel.api.formUrl(doc.id, use(this.viewSection.id));
+      const url = this.gristDoc.app.topAppModel.api.formUrl({
+        urlId: doc.id,
+        vsId: use(this.viewSection.id),
+      });
       return url;
     });
+
+    this._copyingLink = Observable.create(this, false);
+
+    this._pageShare = Computed.create(this, use => {
+      const page = use(use(this.viewSection.view).page);
+      if (!page) { return null; }
+      return use(page.share);
+    });
+
+    this._remoteShare = AsyncComputed.create(this, async (use) => {
+      const share = use(this._pageShare);
+      if (!share) { return null; }
+      const remoteShare = await this.gristDoc.docComm.getShare(use(share.linkId));
+      return remoteShare ?? null;
+    });
+
+    this._published = Computed.create(this, use => {
+      const pageShare = use(this._pageShare);
+      const remoteShare = use(this._remoteShare) || use(this._remoteShare.dirty);
+      const validShare = pageShare && remoteShare;
+      if (!validShare) { return false; }
+
+      return use(pageShare.optionsObj.prop('publish')) &&
+        use(this.viewSection.shareOptionsObj.prop('publish'));
+    });
+
+    const userId = this.gristDoc.app.topAppModel.appObs.get()?.currentUser?.id || 0;
+    this._showPublishedMessage = this.autoDispose(localStorageBoolObs(
+      `u:${userId};d:${this.gristDoc.docId()};vs:${this.viewSection.id()};formShowPublishedMessage`,
+      true
+    ));
 
     // Last line, build the dom.
     this.viewPane = this.autoDispose(this.buildDom());
@@ -260,13 +307,12 @@ export class FormView extends Disposable {
 
   public buildDom() {
     return dom('div.flexauto.flexvbox',
-      this._buildSwitcher(),
       style.cssFormEdit.cls('-preview', not(this.isEdit)),
       style.cssFormEdit.cls('', this.isEdit),
       testId('preview', not(this.isEdit)),
       testId('editor', this.isEdit),
 
-      dom.maybe(this.isEdit, () => [
+      dom.maybe(this.isEdit, () => style.cssFormEditBody(
         style.cssFormContainer(
           dom.forEach(this._root.children, (child) => {
             if (!child) {
@@ -285,12 +331,13 @@ export class FormView extends Disposable {
           }),
           this.buildDropzone(this, this._root.placeAfterListChild()),
         ),
-      ]),
+      )),
       dom.maybe(not(this.isEdit), () => [
         style.cssPreview(
           dom.prop('src', this._url),
         )
       ]),
+      this._buildSwitcher(),
       dom.on('click', () => this.selectedBox.set(null))
     );
   }
@@ -639,6 +686,100 @@ export class FormView extends Disposable {
     }
   }
 
+  private async _publish() {
+    confirmModal(t('Publish your form?'),
+      t('Publish'),
+      async () => {
+        await this.gristDoc.docModel.docData.bundleActions('Publish form', async () => {
+          const page = this.viewSection.view().page();
+          if (!page) {
+            throw new Error('Unable to publish form: undefined page');
+          }
+
+          if (page.shareRef() === 0) {
+            const shareRef = await this.gristDoc.docModel.docData.sendAction([
+              'AddRecord',
+              '_grist_Shares',
+              null,
+              {
+                linkId: uuidv4(),
+                options: JSON.stringify({
+                  publish: true,
+                }),
+              }
+            ]);
+            await this.gristDoc.docModel.docData.sendAction(['UpdateRecord', '_grist_Pages', page.id(), {shareRef}]);
+          } else {
+            const share = page.share();
+            share.optionsObj.update({publish: true});
+            await share.optionsObj.save();
+          }
+
+          this.viewSection.shareOptionsObj.update({
+            form: true,
+            publish: true,
+          });
+          await this.viewSection.shareOptionsObj.save();
+        });
+      },
+      {
+        explanation: (
+          dom('div',
+            style.cssParagraph(
+              t(
+                'Publishing your form will generate a share link. Anyone with the link can ' +
+                'see the empty form and submit a response.'
+              ),
+            ),
+            style.cssParagraph(
+              t(
+                'Users are limited to submitting ' +
+                'entries (records in your table) and reading pre-set values in designated ' +
+                'fields, such as reference and choice columns.'
+              ),
+            ),
+          )
+        ),
+      },
+    );
+  }
+
+  private async _unpublish() {
+    confirmModal(t('Unpublish your form?'),
+      t('Unpublish'),
+      async () => {
+        await this.gristDoc.docModel.docData.bundleActions('Unpublish form', async () => {
+          this.viewSection.shareOptionsObj.update({
+            publish: false,
+          });
+          await this.viewSection.shareOptionsObj.save();
+
+          const view = this.viewSection.view();
+          if (view.viewSections().peek().every(vs => !vs.shareOptionsObj.prop('publish')())) {
+            const share = this._pageShare.get();
+            if (!share) { return; }
+
+            share.optionsObj.update({
+              publish: false,
+            });
+            await share.optionsObj.save();
+          }
+        });
+      },
+      {
+        explanation: (
+          dom('div',
+            style.cssParagraph(
+              t(
+                'Unpublishing the form will disable the share link so that users accessing ' +
+                'your form via that link will see an error.'
+              ),
+            ),
+          )
+        ),
+      },
+    );
+  }
   private _buildSwitcher() {
 
     const toggle = (val: boolean) => () => {
@@ -646,31 +787,94 @@ export class FormView extends Disposable {
       this._saveNow().catch(reportError);
     };
 
-    return style.cssButtonGroup(
-      style.cssIconButton(
-        icon('Pencil'),
-        testId('edit'),
-        dom('div', 'Editor'),
-        cssButton.cls('-primary', this.isEdit),
-        style.cssIconButton.cls('-standard', not(this.isEdit)),
-        dom.on('click', toggle(true))
-      ),
-      style.cssIconButton(
-        icon('EyeShow'),
-        dom('div', 'Preview'),
-        testId('preview'),
-        cssButton.cls('-primary', not(this.isEdit)),
-        style.cssIconButton.cls('-standard', (this.isEdit)),
-        dom.on('click', toggle(false))
-      ),
-      style.cssIconLink(
-        icon('FieldAttachment'),
-        testId('link'),
-        dom('div', 'Link'),
-        dom.prop('href', this._url),
-        {target: '_blank'}
+    return style.cssSwitcher(
+      this._buildSwitcherMessage(),
+      style.cssButtonGroup(
+        style.cssIconButton(
+          icon('Pencil'),
+          testId('edit'),
+          dom('div', 'Editor'),
+          cssButton.cls('-primary', this.isEdit),
+          style.cssIconButton.cls('-standard', not(this.isEdit)),
+          dom.on('click', toggle(true))
+        ),
+        style.cssIconButton(
+          icon('EyeShow'),
+          dom('div', 'Preview'),
+          testId('preview'),
+          cssButton.cls('-primary', not(this.isEdit)),
+          style.cssIconButton.cls('-standard', (this.isEdit)),
+          dom.on('click', toggle(false))
+        ),
+        style.cssIconButton(
+          icon('FieldAttachment'),
+          testId('link'),
+          dom('div', 'Copy Link'),
+          dom.prop('disabled', this._copyingLink),
+          dom.show(use => this.gristDoc.appModel.isOwner() && use(this._published)),
+          dom.on('click', async (_event, element) => {
+            try {
+              this._copyingLink.set(true);
+              const share = this._pageShare.get();
+              if (!share) {
+                throw new Error('Unable to copy link: form is not published');
+              }
+
+              const remoteShare = await this.gristDoc.docComm.getShare(share.linkId());
+              if (!remoteShare) {
+                throw new Error('Unable to copy link: form is not published');
+              }
+
+              const url = this.gristDoc.app.topAppModel.api.formUrl({
+                shareKey:remoteShare.key,
+                vsId: this.viewSection.id(),
+              });
+              await copyToClipboard(url);
+              showTransientTooltip(element, 'Link copied to clipboard', {key: 'copy-form-link'});
+            } finally {
+              this._copyingLink.set(false);
+            }
+          }),
+        ),
+        dom.domComputed(this._published, published => {
+          return published
+            ? style.cssIconButton(
+              dom('div', 'Unpublish'),
+              dom.show(this.gristDoc.appModel.isOwner()),
+              style.cssIconButton.cls('-warning'),
+              dom.on('click', () => this._unpublish()),
+              testId('unpublish'),
+            )
+            : style.cssIconButton(
+              dom('div', 'Publish'),
+              dom.show(this.gristDoc.appModel.isOwner()),
+              cssButton.cls('-primary'),
+              dom.on('click', () => this._publish()),
+              testId('publish'),
+            );
+        }),
       ),
     );
+  }
+
+  private _buildSwitcherMessage() {
+    return dom.maybe(use => use(this._published) && use(this._showPublishedMessage), () => {
+      return style.cssSwitcherMessage(
+        style.cssSwitcherMessageBody(
+          t(
+            'Your form is published. Every change is live and visible to users ' +
+            'with access to the form. If you want to make changes in draft, unpublish the form.'
+          ),
+        ),
+        style.cssSwitcherMessageDismissButton(
+          icon('CrossSmall'),
+          dom.on('click', () => {
+            this._showPublishedMessage.set(false);
+          }),
+        ),
+        dom.show(this.gristDoc.appModel.isOwner()),
+      );
+    });
   }
 }
 

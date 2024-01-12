@@ -422,7 +422,30 @@ export interface UserAPI {
   /**
    * Creates publicly shared URL for a rendered form.
    */
-  formUrl(docId: string, vsId: number): string;
+  formUrl(options: FormUrlOptions): string;
+}
+
+interface FormUrlOptions {
+  vsId: number;
+  /**
+   * The canonical URL or document ID.
+   *
+   * If set, the returned form URL will only be accessible by users with access to the
+   * document. This is currently only used for the preview functionality in the widget,
+   * where document access is a pre-requisite.
+   *
+   * Only one of `urlId` or `shareKey` should be set.
+   */
+  urlId?: string;
+  /**
+   * The key of the Share granting access to the form.
+   *
+   * If set, the returned form URL will be accessible by anyone, so long as the form
+   * is published.
+   *
+   * Only one of `urlId` or `shareKey` should be set.
+   */
+  shareKey?: string;
 }
 
 /**
@@ -514,8 +537,17 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     super(_options);
   }
 
-  public formUrl(docId: string, vsId: number): string {
-    return `${this._url}/api/docs/${docId}/forms/${vsId}`;
+  public formUrl(options: FormUrlOptions): string {
+    const {urlId, shareKey, vsId} = options;
+    if (!urlId && !shareKey) {
+      throw new Error('Invalid form URL: missing urlId or shareKey');
+    }
+
+    if (urlId) {
+      return `${this._url}/api/docs/${urlId}/forms/${vsId}`;
+    } else {
+      return `${this._url}/forms/${shareKey}/${vsId}`;
+    }
   }
 
   public forRemoved(): UserAPI {

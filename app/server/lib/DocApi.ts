@@ -11,6 +11,7 @@ import {
   TableRecordValue,
   UserAction
 } from 'app/common/DocActions';
+import {DocData} from 'app/common/DocData';
 import {isRaisedException} from "app/common/gristTypes";
 import {Box, RenderBox, RenderContext} from "app/common/Forms";
 import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
@@ -47,7 +48,8 @@ import {
   RequestWithLogin
 } from 'app/server/lib/Authorizer';
 import {DocManager} from "app/server/lib/DocManager";
-import {docSessionFromRequest, makeExceptionalDocSession, OptDocSession} from "app/server/lib/DocSession";
+import {docSessionFromRequest, getDocSessionShare, makeExceptionalDocSession,
+        OptDocSession} from "app/server/lib/DocSession";
 import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
@@ -1373,29 +1375,49 @@ export class DocWorkerApi {
       return res.status(200).json(docId);
     }));
 
-    // Get the specified table in record-oriented format
+    /**
+     * Get the specified section's form as HTML.
+     *
+     * Forms are typically accessed via shares, with URLs like: https://docs.getgrist.com/forms/${shareKey}/${id}.
+     *
+     * AppEndpoint.ts handles forwarding of such URLs to this endpoint.
+     */
     this._app.get('/api/docs/:docId/forms/:id', canView,
       withDoc(async (activeDoc, req, res) => {
+        const docSession = docSessionFromRequest(req);
+        const linkId = getDocSessionShare(docSession);
+        const sectionId = integerParam(req.params.id, 'id');
+        if (linkId) {
+          /* If accessed via a share, the share's `linkId` will be present and
+           * we'll need to check that the form is in fact published, and that the
+           * share key is associated with the form, before granting access to the
+           * form. */
+          this._assertFormIsPublished({
+            docData: activeDoc.docData,
+            linkId,
+            sectionId,
+          });
+        }
+
         // Get the viewSection record for the specified id.
-        const id = integerParam(req.params.id, 'id');
         const records = asRecords(await readTable(
-          req, activeDoc, '_grist_Views_section', { id: [id] }, {  }
+          req, activeDoc, '_grist_Views_section', { id: [sectionId] }, {}
         ));
-        const vs = records.find(r => r.id === id);
-        if (!vs) {
-          throw new ApiError(`ViewSection ${id} not found`, 404);
+        const section = records.find(r => r.id === sectionId);
+        if (!section) {
+          throw new ApiError('Form not found', 404);
         }
 
         // Prepare the context that will be needed for rendering this form.
         const fields = asRecords(await readTable(
-          req, activeDoc, '_grist_Views_section_field', { parentId: [id] }, {  }
+          req, activeDoc, '_grist_Views_section_field', { parentId: [sectionId] }, {  }
         ));
         const cols = asRecords(await readTable(
-          req, activeDoc, '_grist_Tables_column', { parentId: [vs.fields.tableRef] }, {  }
+          req, activeDoc, '_grist_Tables_column', { parentId: [section.fields.tableRef] }, {  }
         ));
 
         // Read the box specs
-        const spec = vs.fields.layoutSpec;
+        const spec = section.fields.layoutSpec;
         let box: Box = safeJsonParse(spec ? String(spec) : '', null);
         if (!box) {
           const editable = fields.filter(f => {
@@ -1453,18 +1475,65 @@ export class DocWorkerApi {
         // Fill out the blanks and send the result.
         const doc = await this._dbManager.getDoc(req);
         const docUrl = await this._grist.getResourceUrl(doc, 'html');
-        const tableId = await getRealTableId(String(vs.fields.tableRef), {activeDoc, req});
+        const tableId = await getRealTableId(String(section.fields.tableRef), {activeDoc, req});
         res.status(200).send(form
           .replace('<!-- INSERT CONTENT -->', escaped || '')
           .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">`)
           .replace('<!-- INSERT DOC URL -->', docUrl)
           .replace('<!-- INSERT TABLE ID -->', tableId)
         );
-
-        // Return the HTML if it exists, otherwise return 404.
-        res.send(html);
       })
     );
+  }
+
+  /**
+   * Throws if the specified section is not of a published form.
+   */
+  private _assertFormIsPublished(params: {
+    docData: DocData | null,
+    linkId: string,
+    sectionId: number,
+  }) {
+    const {docData, linkId, sectionId} = params;
+    if (!docData) {
+      throw new ApiError('DocData not available', 500);
+    }
+
+    // Check that the request is for a valid section in the document.
+    const sections = docData.getMetaTable('_grist_Views_section');
+    const section = sections.getRecords().find(s => s.id === sectionId);
+    if (!section) {
+      throw new ApiError('Form not found', 404);
+    }
+
+    // Check that the section is for a form.
+    const sectionShareOptions = safeJsonParse(section.shareOptions, {});
+    if (!sectionShareOptions.form) {
+      throw new ApiError('Form not found', 400);
+    }
+
+    // Check that the form is associated with a share.
+    const viewId = section.parentId;
+    const pages = docData.getMetaTable('_grist_Pages');
+    const page = pages.getRecords().find(p => p.viewRef === viewId);
+    if (!page) {
+      throw new ApiError('Form not found', 404);
+    }
+    const shares = docData.getMetaTable('_grist_Shares');
+    const share = shares.getRecord(page.shareRef);
+    if (!share) {
+      throw new ApiError('Form not found', 404);
+    }
+
+    // Check that the share's link id matches the expected link id.
+    if (share.linkId !== linkId) {
+      throw new ApiError('Form not found', 404);
+    }
+
+    // Finally, check that both the section and share are published.
+    if (!sectionShareOptions.publish || !safeJsonParse(share.options, {})?.publish) {
+      throw new ApiError('Form not published', 400);
+    }
   }
 
   private async _copyDocToWorkspace(req: Request, options: {

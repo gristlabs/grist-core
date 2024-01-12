@@ -268,6 +268,21 @@ type ISuggestion = string | [string, string, boolean];
 // Suggestion paired with an optional example value to show on the right
 export type ISuggestionWithValue = [ISuggestion, string | null];
 
+/**
+ * Share information from a Grist document.
+ */
+export interface ShareInfo {
+  linkId: string;
+  options: string;
+}
+
+/**
+ * Share information from the Grist home database.
+ */
+export interface RemoteShareInfo {
+  key: string;
+}
+
 export interface ActiveDocAPI {
   /**
    * Closes a document, and unsubscribes from its userAction events.
@@ -330,7 +345,7 @@ export interface ActiveDocAPI {
    * Returns a diff of changes that will be applied to the destination table from `transformRule`
    * if the data from `hiddenTableId` is imported with the specified `mergeOptions`.
    */
-   generateImportDiff(hiddenTableId: string, transformRule: TransformRule,
+  generateImportDiff(hiddenTableId: string, transformRule: TransformRule,
                       mergeOptions: MergeOptions): Promise<DocStateComparison>;
 
   /**
@@ -428,4 +443,6 @@ export interface ActiveDocAPI {
    * Get users that are worth proposing to "View As" for access control purposes.
    */
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
+
+  getShare(linkId: string): Promise<RemoteShareInfo>;
 }

@@ -26,7 +26,35 @@ describe('FormView', function() {
     const session = await gu.session().login();
     docId = await session.tempNewDoc(cleanup);
     api = session.createHomeApi();
+    await driver.executeScript(createClipboardTextArea);
   });
+
+  after(async function() {
+    await driver.executeScript(removeClipboardTextArea);
+  });
+
+  /**
+   * Adds a temporary textarea to the document for pasting the contents of
+   * the clipboard.
+   *
+   * Used to test copying of form URLs to the clipboard.
+   */
+  function createClipboardTextArea() {
+    const textArea = document.createElement('textarea');
+    textArea.style.position = 'absolute';
+    textArea.style.top = '0';
+    textArea.style.height = '2rem';
+    textArea.style.width = '16rem';
+    textArea.id = 'clipboardText';
+    window.document.body.appendChild(textArea);
+  }
+
+  function removeClipboardTextArea() {
+    const textArea = document.getElementById('clipboardText');
+    if (textArea) {
+      window.document.body.removeChild(textArea);
+    }
+  }
 
   async function createFormWith(type: string, more = false) {
     await gu.addNewSection('Form', 'Table1');
@@ -44,9 +72,22 @@ describe('FormView', function() {
     // Make sure we see this new question (D).
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
+    await driver.find('.test-forms-publish').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+
     // Now open the form in external window.
-    const formUrl = await driver.find(`.test-forms-link`).getAttribute('href');
-    return formUrl;
+    await clipboard.lockAndPerform(async (cb) => {
+      await driver.find(`.test-forms-link`).click();
+      await gu.waitForServer();
+      await gu.waitToPass(async () => assert.match(
+        await driver.find('.test-tooltip').getText(), /Link copied to clipboard/), 1000);
+      await driver.find('#clipboardText').click();
+      await gu.selectAll();
+      await cb.paste();
+    });
+
+    return await driver.find('#clipboardText').value();
   }
 
   async function removeForm() {
@@ -218,6 +259,33 @@ describe('FormView', function() {
     await expectSingle(['L', 'Foo', 'Baz']);
 
     await removeForm();
+  });
+
+  it('can unpublish forms', async function() {
+    const formUrl = await createFormWith('Text');
+    await driver.find('.test-forms-unpublish').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      assert.match(
+        await driver.findWait('.test-error-header', 2000).getText(),
+        /Something went wrong/
+      );
+      assert.match(
+        await driver.findWait('.test-error-content', 2000).getText(),
+        /There was an error: Form not published\./
+      );
+    });
+
+    // Republish the form and check that the same URL works again.
+    await driver.find('.test-forms-publish').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      await driver.findWait('input[name="D"]', 1000);
+    });
   });
 
   it('can create a form for a blank table', async function() {

@@ -1,4 +1,5 @@
 import {DocModel, IRowModel, refRecord, ViewRec} from 'app/client/models/DocModel';
+import {ShareRec} from 'app/client/models/entities/ShareRec';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.
@@ -7,6 +8,7 @@ export interface PageRec extends IRowModel<"_grist_Pages"> {
   isHidden: ko.Computed<boolean>;
   isCensored: ko.Computed<boolean>;
   isSpecial: ko.Computed<boolean>;
+  share: ko.Computed<ShareRec>;
 }
 
 export function createPageRec(this: PageRec, docModel: DocModel): void {
@@ -36,4 +38,5 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
   this.isHidden = ko.pureComputed(() => {
     return this.isCensored() || this.isSpecial();
   });
+  this.share = refRecord(docModel.shares, this.shareRef);
 }

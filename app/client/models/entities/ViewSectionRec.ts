@@ -71,6 +71,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   columns: ko.Computed<ColumnRec[]>;
 
   optionsObj: modelUtil.SaveableObjObservable<any>;
+  shareOptionsObj: modelUtil.SaveableObjObservable<any>;
 
   customDef: CustomViewSectionDef;
 
@@ -380,6 +381,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
     (obj: any) => defaults(obj || {}, defaultOptions));
+  this.shareOptionsObj = modelUtil.jsonObservable(this.shareOptions);
 
   const customViewDefaults = {
     mode: 'url',
