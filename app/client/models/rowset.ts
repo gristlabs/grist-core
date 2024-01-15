@@ -802,4 +802,6 @@ export class ExemptFromFilterRowSource extends BaseFilteredRowSource {
   public reset() {
     this.onRemoveRows(this.getAllRows());
   }
+
+  public onUpdateRows() { /* no-op */ }
 }
