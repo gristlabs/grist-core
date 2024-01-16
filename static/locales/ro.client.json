@@ -783,7 +783,8 @@
         "Code View": "Vizualizare cod",
         "Return to viewing as yourself": "Reveniți la vizualizarea ca dvs",
         "Raw Data": "Date neprelucrate",
-        "Document History": "Istoricul documentelor"
+        "Document History": "Istoricul documentelor",
+        "API Console": "Consola API"
     },
     "menus": {
         "Reference List": "Referință multiplă",

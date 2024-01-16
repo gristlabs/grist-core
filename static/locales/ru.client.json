@@ -319,7 +319,8 @@
         "TOOLS": "ИНСТРУМЕНТЫ",
         "Tour of this Document": "Тур по этому документу",
         "Validate Data": "Проверка данных",
-        "Settings": "Настройки"
+        "Settings": "Настройки",
+        "API Console": "API-консоль"
     },
     "TypeTransformation": {
         "Cancel": "Отмена",
@@ -566,7 +567,13 @@
         "Adding duplicates column": "Добавление столбца дубликатов",
         "Lookups": "Lookups",
         "Add formula column": "Добавить вычисляемый столбец",
-        "Add column with type": "Добавить столбец с типом"
+        "Add column with type": "Добавить столбец с типом",
+        "Add column": "Добавить столбец",
+        "Created at": "Создан в",
+        "Created by": "Создано",
+        "Detect duplicates in...": "Обнаружение дубликатов в...",
+        "Last updated at": "Последнее обновление",
+        "Last updated by": "Последнее обновление"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -675,7 +682,8 @@
         "WIDGET TITLE": "ЗАГОЛОВОК ВИДЖЕТА",
         "You do not have edit access to this document": "У вас нет прав на редактирование этого документа",
         "Widget": "Виджет",
-        "Add referenced columns": "Добавить ссылочные столбцы"
+        "Add referenced columns": "Добавить ссылочные столбцы",
+        "Reset form": "Сброс формы"
     },
     "PermissionsWidget": {
         "Allow All": "Разрешить все",
@@ -1249,5 +1257,8 @@
         "Delete card": "Удалить карточку",
         "Copy anchor link": "Скопировать якорную ссылку",
         "Insert card": "Вставить карточку"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Скрытые поля"
     }
 }
