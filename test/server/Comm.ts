@@ -188,17 +188,21 @@ describe('Comm', function() {
       ]);
     });
 
-    it('should return error for malformed JSON data', async function () {
+    it('should only log warning for malformed JSON data', async function () {
       const logMessages  = await testUtils.captureLog('warn', async () => {
         ws.send('foobar');
-        const messages = await getMessages(ws, 1);
-        const resp = messages[0];
-        assert.equal(resp.data, undefined);
-        assert.equal(resp.reqId, undefined);
-        assert.include(resp.error, 'Unexpected token');
-      });
+      }, {waitForFirstLog: true});
       testUtils.assertMatchArray(logMessages, [
         /^warn: Client.* Unexpected token.*/
+      ]);
+    });
+
+    it('should log warning when null value is passed', async function () {
+      const logMessages  = await testUtils.captureLog('warn', async () => {
+        ws.send('null');
+      }, {waitForFirstLog: true});
+      testUtils.assertMatchArray(logMessages, [
+        /^warn: Client.*Cannot read properties of null*/
       ]);
     });
 
