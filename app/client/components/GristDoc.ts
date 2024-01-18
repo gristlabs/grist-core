@@ -38,6 +38,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
+import TableModel from 'app/client/models/TableModel';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {App} from 'app/client/ui/App';
 import {DocHistory} from 'app/client/ui/DocHistory';
@@ -45,7 +46,7 @@ import {startDocTour} from "app/client/ui/DocTour";
 import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
-import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
+import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
@@ -71,7 +72,7 @@ import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
 import {DocStateComparison} from 'app/common/UserAPI';
-import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType} from 'app/common/widgetTypes';
+import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
@@ -82,8 +83,10 @@ import {
   fromKo,
   Holder,
   IDisposable,
+  IDisposableOwner,
   IDomComponent,
   keyframes,
+  MultiHolder,
   Observable,
   styled,
   subscribe,
@@ -474,6 +477,7 @@ export class GristDoc extends DisposableWithEvents {
       // Command to be manually triggered on cell selection. Moves the cursor to the selected cell.
       // This is overridden by the formula editor to insert "$col" variables when clicking cells.
       setCursor: this.onSetCursorPos.bind(this),
+      createForm: this.onCreateForm.bind(this),
     }, this, true));
 
     this.listenTo(app.comm, 'docUserAction', this.onDocUserAction);
@@ -873,7 +877,7 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
     }
-    const res = await docData.bundleActions(
+    const res: {sectionRef: number} = await docData.bundleActions(
       t("Added new linked section to view {{viewName}}", {viewName}),
       () => this.addWidgetToPageImpl(val, tableId ?? null)
     );
@@ -886,6 +890,21 @@ export class GristDoc extends DisposableWithEvents {
     if (AttachedCustomWidgets.guard(val.type)) {
       this._handleNewAttachedCustomWidget(val.type).catch(reportError);
     }
+
+    return res.sectionRef;
+  }
+
+  public async onCreateForm() {
+    const table = this.currentView.get()?.viewSection.tableRef.peek();
+    if (!table) {
+      return;
+    }
+    await this.addWidgetToPage({
+      ...DefaultPageWidget(),
+      table,
+      type: WidgetType.Form,
+    });
+    commands.allCommands.expandSection.run();
   }
 
   /**
@@ -914,7 +933,7 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
       let newViewId: IDocPage;
-      if (val.type === 'record') {
+      if (val.type === WidgetType.Table) {
         const result = await this.docData.sendAction(['AddEmptyTable', name]);
         newViewId = result.views[0].id;
       } else {
@@ -1466,6 +1485,32 @@ export class GristDoc extends DisposableWithEvents {
 
     this._isRickRowing.set(false);
     this._showBackgroundVideoPlayer.set(false);
+  }
+
+  /**
+   * Creates computed with all the data for the given column.
+   */
+  public columnObserver(owner: IDisposableOwner, tableId: Observable<string>, columnId: Observable<string>) {
+    const tableModel = Computed.create(owner, (use) => this.docModel.dataTables[use(tableId)]);
+    const refreshed = Observable.create(owner, 0);
+    const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
+    const holder = Holder.create(owner);
+    const listener = (tab: TableModel) => {
+      // Now subscribe to any data change in that table.
+      const subs = MultiHolder.create(holder);
+      subs.autoDispose(tab.tableData.dataLoadedEmitter.addListener(toggle));
+      subs.autoDispose(tab.tableData.tableActionEmitter.addListener(toggle));
+      tab.fetch().catch(reportError);
+    };
+    owner.autoDispose(tableModel.addListener(listener));
+    listener(tableModel.get());
+    const values = Computed.create(owner, refreshed, (use) => {
+      const rows = use(tableModel).getAllRows();
+      const colValues = use(tableModel).tableData.getColValues(use(columnId));
+      if (!colValues) { return []; }
+      return rows.map((row, i) => [row, colValues[i]]);
+    });
+    return values;
   }
 
   private _focusPreviousSection() {

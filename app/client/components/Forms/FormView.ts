@@ -1,34 +1,32 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import {allCommands} from 'app/client/components/commands';
 import {Cursor} from 'app/client/components/Cursor';
 import * as components from 'app/client/components/Forms/elements';
+import {NewBox} from 'app/client/components/Forms/Menu';
 import {Box, BoxModel, BoxType, LayoutModel, parseBox, Place} from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {Disposable} from 'app/client/lib/dispose';
-import {AsyncComputed, makeTestId} from 'app/client/lib/domUtils';
-import {FocusLayer} from 'app/client/lib/FocusLayer';
+import {AsyncComputed, makeTestId, stopEvent} from 'app/client/lib/domUtils';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import DataTableModel from 'app/client/models/DataTableModel';
-import {ViewSectionRec} from 'app/client/models/DocModel';
+import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
 import {SortedRowSet} from 'app/client/models/rowset';
-import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
-import * as menus from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {not} from 'app/common/gutil';
+import {INITIAL_FIELDS_COUNT} from "app/common/Forms";
 import {Events as BackboneEvents} from 'backbone';
-import {Computed, dom, Holder, IDisposableOwner, IDomArgs, MultiHolder, Observable} from 'grainjs';
+import {Computed, dom, Holder, IDomArgs, Observable} from 'grainjs';
 import defaults from 'lodash/defaults';
 import isEqual from 'lodash/isEqual';
 import {v4 as uuidv4} from 'uuid';
+import * as ko from 'knockout';
 
 const t = makeT('FormView');
 
@@ -38,8 +36,8 @@ export class FormView extends Disposable {
   public viewPane: HTMLElement;
   public gristDoc: GristDoc;
   public viewSection: ViewSectionRec;
-  public isEdit: Observable<boolean>;
   public selectedBox: Observable<BoxModel | null>;
+  public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
 
   protected sortedRows: SortedRowSet;
   protected tableModel: DataTableModel;
@@ -60,12 +58,10 @@ export class FormView extends Disposable {
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, {'addNewRow': false});
-    this.isEdit = Observable.create(this, true);
     this.menuHolder = Holder.create(this);
-
+    this.selectedBox = Observable.create(this, null);
     this.bundle = (clb) => this.gristDoc.docData.bundleActions('Saving form layout', clb, {nestInActiveBundle: true});
 
-    this.selectedBox = Observable.create(this, null);
 
     this.selectedBox.addListener((v) => {
       if (!v) { return; }
@@ -76,34 +72,49 @@ export class FormView extends Disposable {
       this.cursor.setCursorPos({fieldIndex});
     });
 
+    this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
+      const result = this.viewSection.viewFields().all().filter((field, index) => {
+        // During column removal or restoring (with undo), some columns fields
+        // might be disposed.
+        if (field.isDisposed() || field.column().isDisposed()) { return false; }
+        return this.cursor.currentPosition().fieldIndex === index;
+      });
+      return result;
+    }));
+
+    // Wire up selected fields to the cursor.
+    this.autoDispose(this.selectedColumns.subscribe((columns) => {
+      this.viewSection.selectedFields(columns);
+    }));
+    this.viewSection.selectedFields(this.selectedColumns.peek());
+
+
     this._autoLayout = Computed.create(this, use => {
       // If the layout is already there, don't do anything.
       const existing = use(this.viewSection.layoutSpecObj);
       if (!existing || !existing.id) {
-        // Else create a temporary one.
         const fields = use(use(this.viewSection.viewFields).getObservable());
-        const children: Box[] = fields.map(f => {
-          return {
-            type: 'Field',
-            leaf: use(f.id),
-          };
-        });
-        children.push({type: 'Submit'});
-        return {
-          type: 'Layout',
-          children,
-        };
+        return this._formTemplate(fields);
       }
       return existing;
     });
 
-    this._root = this.autoDispose(new LayoutModel(this._autoLayout.get(), null, async () => {
-      await this._saveNow();
+    this._root = this.autoDispose(new LayoutModel(this._autoLayout.get(), null, async (clb?: () => Promise<void>) => {
+      await this.bundle(async () => {
+        // If the box is autogenerated we need to save it first.
+        if (!this.viewSection.layoutSpecObj.peek()?.id) {
+          await this.save();
+        }
+        if (clb) {
+          await clb();
+        }
+        await this.save();
+      });
     }, this));
 
     this._autoLayout.addListener((v) => {
       if (this._saving) {
-        console.error('Layout changed while saving');
+        console.warn('Layout changed while saving');
         return;
       }
       // When the layout has changed, we will update the root, but only when it is not the same
@@ -140,20 +151,17 @@ export class FormView extends Disposable {
           } else {
             this.selectedBox.set(this.selectedBox.get()!.insertBefore(boxInClipboard));
           }
-
-          // Remove the orginal box from the clipboard.
-          const cutted = this._root.find(boxInClipboard.id);
-          cutted?.removeSelf();
-
+          // Remove the original box from the clipboard.
+          const cut = this._root.get(boxInClipboard.id);
+          cut?.removeSelf();
           await this._root.save();
-
           await navigator.clipboard.writeText('');
         };
         doPast().catch(reportError);
       },
       nextField: () => {
         const current = this.selectedBox.get();
-        const all = [...this._root.list()];
+        const all = [...this._root.iterate()];
         if (!all.length) { return; }
         if (!current) {
           this.selectedBox.set(all[0]);
@@ -168,7 +176,7 @@ export class FormView extends Disposable {
       },
       prevField: () => {
         const current = this.selectedBox.get();
-        const all = [...this._root.list()];
+        const all = [...this._root.iterate()];
         if (!all.length) { return; }
         if (!current) {
           this.selectedBox.set(all[all.length - 1]);
@@ -182,12 +190,12 @@ export class FormView extends Disposable {
         }
       },
       lastField: () => {
-        const all = [...this._root.list()];
+        const all = [...this._root.iterate()];
         if (!all.length) { return; }
         this.selectedBox.set(all[all.length - 1]);
       },
       firstField: () => {
-        const all = [...this._root.list()];
+        const all = [...this._root.iterate()];
         if (!all.length) { return; }
         this.selectedBox.set(all[0]);
       },
@@ -204,39 +212,74 @@ export class FormView extends Disposable {
           await selected.deleteSelf();
         }).catch(reportError);
       },
-      insertFieldBefore: (type: {field: BoxType} | {structure: BoxType}) => {
+      hideFields: (colId: [string]) => {
+        // Get the ref from colId.
+        const existing: Array<[number, string]> =
+          this.viewSection.viewFields().all().map(f => [f.id(), f.column().colId()]);
+        const ref = existing.filter(([_, c]) => colId.includes(c)).map(([r, _]) => r);
+        if (!ref.length) { return; }
+        const box = Array.from(this._root.filter(b => ref.includes(b.prop('leaf')?.get())));
+        box.forEach(b => b.removeSelf());
+        this._root.save(async () => {
+          await this.viewSection.removeField(ref);
+        }).catch(reportError);
+      },
+      insertFieldBefore: (what: NewBox) => {
         const selected = this.selectedBox.get();
         if (!selected) { return; }
-        if ('field' in type) {
-          this.addNewQuestion(selected.placeBeforeMe(), type.field).catch(reportError);
+        if ('add' in what || 'show' in what) {
+          this.addNewQuestion(selected.placeBeforeMe(), what).catch(reportError);
         } else {
-          selected.insertBefore(components.defaultElement(type.structure));
+          selected.insertBefore(components.defaultElement(what.structure));
         }
       },
-      insertFieldAfter: (type: {field: BoxType} | {structure: BoxType}) => {
+      insertField: (what: NewBox) => {
         const selected = this.selectedBox.get();
         if (!selected) { return; }
-        if ('field' in type) {
-          this.addNewQuestion(selected.placeAfterMe(), type.field).catch(reportError);
+        const place = selected.placeAfterListChild();
+        if ('add' in what || 'show' in what) {
+          this.addNewQuestion(place, what).catch(reportError);
         } else {
-          selected.insertAfter(components.defaultElement(type.structure));
+          place(components.defaultElement(what.structure));
+          this.save().catch(reportError);
+        }
+      },
+      insertFieldAfter: (what: NewBox) => {
+        const selected = this.selectedBox.get();
+        if (!selected) { return; }
+        if ('add' in what || 'show' in what) {
+          this.addNewQuestion(selected.placeAfterMe(), what).catch(reportError);
+        } else {
+          selected.insertAfter(components.defaultElement(what.structure));
         }
       },
       showColumns: (colIds: string[]) => {
-        this.bundle(async () => {
+        // Sanity check that type is correct.
+        if (!colIds.every(c => typeof c === 'string')) { throw new Error('Invalid column id'); }
+        this._root.save(async () => {
           const boxes: Box[] = [];
           for (const colId of colIds) {
             const fieldRef = await this.viewSection.showColumn(colId);
             const field = this.viewSection.viewFields().all().find(f => f.getRowId() === fieldRef);
             if (!field) { continue; }
             const box = {
-              type: field.pureType.peek() as BoxType,
               leaf: fieldRef,
+              type: 'Field' as BoxType,
             };
             boxes.push(box);
           }
-          boxes.forEach(b => this._root.append(b));
-          await this._saveNow();
+          // Add to selected or last section, or root.
+          const selected = this.selectedBox.get();
+          if (selected instanceof components.SectionModel) {
+            boxes.forEach(b => selected.append(b));
+          } else {
+            const topLevel = this._root.kids().reverse().find(b => b instanceof components.SectionModel);
+            if (topLevel) {
+              boxes.forEach(b => topLevel.append(b));
+            } else {
+              boxes.forEach(b => this._root.append(b));
+            }
+          }
         }).catch(reportError);
       },
     };
@@ -250,6 +293,7 @@ export class FormView extends Disposable {
       shiftUp: keyboardActions.firstField,
       editField: keyboardActions.edit,
       deleteFields: keyboardActions.clearValues,
+      hideFields: keyboardActions.hideFields,
     }, this, this.viewSection.hasFocus));
 
     this._url = Computed.create(this, use => {
@@ -273,8 +317,15 @@ export class FormView extends Disposable {
     this._remoteShare = AsyncComputed.create(this, async (use) => {
       const share = use(this._pageShare);
       if (!share) { return null; }
-      const remoteShare = await this.gristDoc.docComm.getShare(use(share.linkId));
-      return remoteShare ?? null;
+      try {
+        const remoteShare = await this.gristDoc.docComm.getShare(use(share.linkId));
+        return remoteShare ?? null;
+      } catch(ex) {
+        // TODO: for now ignore the error, but the UI should be updated to not show editor
+        // for non owners.
+        if (ex.code === 'AUTH_NO_OWNER') { return null; }
+        throw ex;
+      }
     });
 
     this._published = Computed.create(this, use => {
@@ -306,374 +357,60 @@ export class FormView extends Disposable {
   }
 
   public buildDom() {
-    return dom('div.flexauto.flexvbox',
-      style.cssFormEdit.cls('-preview', not(this.isEdit)),
-      style.cssFormEdit.cls('', this.isEdit),
-      testId('preview', not(this.isEdit)),
-      testId('editor', this.isEdit),
-
-      dom.maybe(this.isEdit, () => style.cssFormEditBody(
+    return  style.cssFormView(
+      testId('editor'),
+      style.cssFormEditBody(
         style.cssFormContainer(
           dom.forEach(this._root.children, (child) => {
             if (!child) {
-              // This shouldn't happen, and it is bad design, as columns allow nulls, where other container
-              // don't. But for now, just ignore it.
               return dom('div', 'Empty node');
             }
-            const element = this.renderBox(this._root.children, child);
-            if (Array.isArray(element)) {
-              throw new Error('Element is an array');
-            }
-            if (!(element instanceof HTMLElement)) {
+            const element = child.render();
+            if (!(element instanceof Node)) {
               throw new Error('Element is not an HTMLElement');
             }
             return element;
           }),
-          this.buildDropzone(this, this._root.placeAfterListChild()),
+          this._buildPublisher(),
         ),
-      )),
-      dom.maybe(not(this.isEdit), () => [
-        style.cssPreview(
-          dom.prop('src', this._url),
-        )
-      ]),
-      this._buildSwitcher(),
+      ),
       dom.on('click', () => this.selectedBox.set(null))
     );
   }
 
-  public renderBox(owner: IDisposableOwner, box: BoxModel, ...args: IDomArgs<HTMLElement>): HTMLElement {
-    const overlay = Observable.create(owner, true);
-
-    return this.buildEditor(owner, {box, overlay},
-      dom.domComputedOwned(box.type, (scope, type) => {
-        const renderedElement = box.render({overlay});
-        const element = renderedElement;
-        return dom.update(
-          element,
-          testId('element'),
-          testId(box.type),
-          ...args,
-        );
-      })
-    );
-  }
-
-  public buildDropzone(owner: IDisposableOwner, insert: Place, ...args: IDomArgs) {
-    const dragHover = Observable.create(owner, false);
-    const forceShow = Observable.create(owner, false);
-    return style.cssAddElement(
-      testId('dropzone'),
-      style.cssDrag(),
-      style.cssAddText(),
-      this.buildAddMenu(insert, {
-        onOpen: () => forceShow.set(true),
-        onClose: () => forceShow.set(false),
-      }),
-      style.cssAddElement.cls('-hover', use => use(dragHover)),
-      // And drop zone handlers
-      dom.on('drop', async (ev) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-        dragHover.set(false);
-
-        // Get the box that was dropped.
-        const dropped = parseBox(ev.dataTransfer!.getData('text/plain'));
-
-        // We need to remove it from the parent, so find it first.
-        const droppedId = dropped.id;
-
-        const droppedRef = this._root.find(droppedId);
-
-        await this.bundle(async () => {
-          // Save the layout if it is not saved yet.
-          await this._saveNow();
-          // Remove the orginal box from the clipboard.
-          droppedRef?.removeSelf();
-          await insert(dropped).onDrop();
-
-          // Save the change.
-          await this._saveNow();
-        });
-      }),
-      dom.on('dragover', (ev) => {
-        ev.preventDefault();
-        ev.dataTransfer!.dropEffect = "move";
-        dragHover.set(true);
-      }),
-      dom.on('dragleave', (ev) => {
-        ev.preventDefault();
-        dragHover.set(false);
-      }),
-      style.cssAddElement.cls('-hover', dragHover),
-      ...args,
-    );
-  }
-
-  public buildFieldPanel() {
-    return dom('div', 'Hello there');
-  }
-
-  public buildEditor(
-    owner: IDisposableOwner | null,
-    options: {
-      box: BoxModel,
-      overlay: Observable<boolean>
-    }
-    ,
-    ...args: IDomArgs
-  ) {
-    const {box, overlay} = options;
-    const myOwner = new MultiHolder();
-    if (owner) {
-      owner.autoDispose(myOwner);
-    }
-
-    let element: HTMLElement;
-    const dragHover = Observable.create(myOwner, false);
-
-    myOwner.autoDispose(this.selectedBox.addListener(v => {
-      if (v !== box) { return; }
-      if (!element) { return; }
-      element.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
-    }));
-
-    const isSelected = Computed.create(myOwner, use => {
-      if (!this.viewSection || this.viewSection.isDisposed()) { return false; }
-      if (use(this.selectedBox) === box) {
-        // We are only selected when the section is also selected.
-        return use(this.viewSection.hasFocus);
-      }
-      return false;
-    });
-
-    return style.cssFieldEditor(
-      testId('editor'),
-      style.cssDrag(),
-
-      dom.maybe(overlay, () => this.buildOverlay(myOwner, box)),
-
-      owner ? null : dom.autoDispose(myOwner),
-      (el) => { element = el; },
-      // Control panel
-      style.cssControls(
-        style.cssControlsLabel(dom.text(box.type)),
-      ),
-
-      // Turn on active like state when we clicked here.
-      style.cssFieldEditor.cls('-selected', isSelected),
-      style.cssFieldEditor.cls('-cut', use => use(box.cut)),
-      testId('field-editor-selected', isSelected),
-
-      // Select on click.
-      (el) => {
-        dom.onElem(el, 'click', (ev) => {
-          // Only if the click was in this element.
-          const target = ev.target as HTMLElement;
-          if (!target.closest) { return; }
-          // Make sure that the closest editor is this one.
-          const closest = target.closest(`.${style.cssFieldEditor.className}`);
-          if (closest !== el) { return; }
-
-          // It looks like we clicked somewhere in this editor, and not inside any other inside.
-          this.selectedBox.set(box);
-          ev.stopPropagation();
-          ev.preventDefault();
-          ev.stopImmediatePropagation();
-        });
-      },
-
-      // Attach menu
-      menus.menu((ctl) => {
-        this.menuHolder.autoDispose(ctl);
-        this.selectedBox.set(box);
-        const field = (type: string) => ({field: type});
-        const struct = (structure: string) => ({structure});
-        const above = (el: {field: string} | {structure: string}) => () => allCommands.insertFieldBefore.run(el);
-        const below: typeof above = (el) => () => allCommands.insertFieldAfter.run(el);
-        const quick = ['Text', 'Numeric', 'Choice', 'Date'];
-        const commonTypes = () => getNewColumnTypes(this.gristDoc, this.viewSection.tableId());
-        const isQuick = ({colType}: {colType: string}) => quick.includes(colType);
-        const notQuick = ({colType}: {colType: string}) => !quick.includes(colType);
-        const insertMenu = (where: typeof above) => () => {
-          return [
-            menus.menuSubHeader('New question'),
-            ...commonTypes()
-              .filter(isQuick)
-              .map(ct => menus.menuItem(where(field(ct.colType)), menus.menuIcon(ct.icon!), ct.displayName))
-            ,
-            menus.menuItemSubmenu(
-              () => commonTypes()
-                .filter(notQuick)
-                .map(ct => menus.menuItem(where(field(ct.colType)), menus.menuIcon(ct.icon!), ct.displayName)),
-              {},
-              menus.menuIcon('Dots'),
-              dom('span', "More", dom.style('margin-right', '8px'))
-            ),
-            menus.menuDivider(),
-            menus.menuSubHeader('Static element'),
-            menus.menuItem(where(struct('Section')), menus.menuIcon('Page'), "Section",),
-            menus.menuItem(where(struct('Columns')), menus.menuIcon('TypeCell'), "Columns"),
-            menus.menuItem(where(struct('Paragraph')), menus.menuIcon('Page'), "Paragraph",),
-            // menus.menuItem(where(struct('Button')),    menus.menuIcon('Tick'), "Button",  ),
-          ];
-        };
-
-
-        return [
-          menus.menuItemSubmenu(insertMenu(above), {action: above(field('Text'))}, "Insert question above"),
-          menus.menuItemSubmenu(insertMenu(below), {action: below(field('Text'))}, "Insert question below"),
-          menus.menuDivider(),
-          menus.menuItemCmd(allCommands.contextMenuCopy, "Copy"),
-          menus.menuItemCmd(allCommands.contextMenuCut, "Cut"),
-          menus.menuItemCmd(allCommands.contextMenuPaste, "Paste"),
-          menus.menuDivider(),
-          menus.menuItemCmd(allCommands.deleteFields, "Hide"),
-        ];
-      }, {trigger: ['contextmenu']}),
-
-      dom.on('contextmenu', (ev) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-      }),
-
-      // And now drag and drop support.
-      {draggable: "true"},
-
-      // When started, we just put the box into the dataTransfer as a plain text.
-      // TODO: this might be very sofisticated in the future.
-      dom.on('dragstart', (ev) => {
-        // Prevent propagation, as we might be in a nested editor.
-        ev.stopPropagation();
-        ev.dataTransfer?.setData('text/plain', JSON.stringify(box.toJSON()));
-        ev.dataTransfer!.dropEffect = "move";
-      }),
-
-      dom.on('dragover', (ev) => {
-        // As usual, prevent propagation.
-        ev.stopPropagation();
-        ev.preventDefault();
-        // Here we just change the style of the element.
-        ev.dataTransfer!.dropEffect = "move";
-        dragHover.set(true);
-      }),
-
-      dom.on('dragleave', (ev) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-        // Just remove the style and stop propagation.
-        dragHover.set(false);
-      }),
-
-      dom.on('drop', async (ev) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-        dragHover.set(false);
-        const dropped = parseBox(ev.dataTransfer!.getData('text/plain'));
-        // We need to remove it from the parent, so find it first.
-        const droppedId = dropped.id;
-        if (droppedId === box.id) { return; }
-        const droppedRef = this._root.find(droppedId);
-        await this.bundle(async () => {
-          await this._root.save();
-          droppedRef?.removeSelf();
-          await box.drop(dropped)?.onDrop();
-          await this._saveNow();
-        });
-      }),
-
-      style.cssFieldEditor.cls('-drag-hover', dragHover),
-
-      ...args,
-    );
-  }
-
-  public buildOverlay(owner: IDisposableOwner, box: BoxModel) {
+  public buildOverlay(...args: IDomArgs) {
     return style.cssSelectedOverlay(
+      ...args,
     );
   }
 
-  public async addNewQuestion(insert: Place, type: string) {
+  public async addNewQuestion(insert: Place, action: {add: string}|{show: string}) {
     await this.gristDoc.docData.bundleActions(`Saving form layout`, async () => {
-      // First save the layout, so that
-      await this._saveNow();
-      // Now that the layout is saved, we won't be bottered with autogenerated layout,
+      // First save the layout, so that we don't have autogenerated layout.
+      await this.save();
+      // Now that the layout is saved, we won't be bothered with autogenerated layout,
       // and we can safely insert to column.
-      const {fieldRef} = await this.insertColumn(null, {
-        colInfo: {
-          type,
-        }
-      });
-
+      let fieldRef = 0;
+      if ('show' in action) {
+        fieldRef = await this.showColumn(action.show);
+      } else {
+        const result = await this.insertColumn(null, {
+          colInfo: {
+            type: action.add,
+          }
+        });
+        fieldRef = result.fieldRef;
+      }
       // And add it into the layout.
       this.selectedBox.set(insert({
         leaf: fieldRef,
         type: 'Field'
       }));
-
       await this._root.save();
     }, {nestInActiveBundle: true});
   }
 
-  public buildAddMenu(insert: Place, {
-    onClose: onClose = () => {},
-    onOpen: onOpen = () => {},
-    customItems = [] as Element[],
-  } = {}) {
-    return menus.menu(
-      (ctl) => {
-        onOpen();
-        ctl.onDispose(onClose);
-
-        const field = (colType: BoxType) => ({field: colType});
-        const struct = (structure: BoxType) => ({structure});
-        const where = (el: {field: string} | {structure: BoxType}) => () => {
-          if ('field' in el) {
-            return this.addNewQuestion(insert, el.field);
-          } else {
-            insert(components.defaultElement(el.structure));
-            return this._root.save();
-          }
-        };
-        const quick = ['Text', 'Numeric', 'Choice', 'Date'];
-        const commonTypes = () => getNewColumnTypes(this.gristDoc, this.viewSection.tableId());
-        const isQuick = ({colType}: {colType: string}) => quick.includes(colType);
-        const notQuick = ({colType}: {colType: string}) => !quick.includes(colType);
-        return [
-          menus.menuSubHeader('New question'),
-          ...commonTypes()
-            .filter(isQuick)
-            .map(ct => menus.menuItem(where(field(ct.colType as BoxType)), menus.menuIcon(ct.icon!), ct.displayName))
-          ,
-          menus.menuItemSubmenu(
-            () => commonTypes()
-              .filter(notQuick)
-              .map(ct => menus.menuItem(where(field(ct.colType as BoxType)), menus.menuIcon(ct.icon!), ct.displayName)),
-            {},
-            menus.menuIcon('Dots'),
-            dom('span', "More", dom.style('margin-right', '8px'))
-          ),
-          menus.menuDivider(),
-          menus.menuSubHeader('Static element'),
-          menus.menuItem(where(struct('Section')), menus.menuIcon('Page'), "Section",),
-          menus.menuItem(where(struct('Columns')), menus.menuIcon('TypeCell'), "Columns"),
-          menus.menuItem(where(struct('Paragraph')), menus.menuIcon('Page'), "Paragraph",),
-          // menus.menuItem(where(struct('Button')),    menus.menuIcon('Tick'), "Button",  ),
-          elem => void FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}),
-          customItems.length ? menus.menuDivider(dom.style('min-width', '200px')) : null,
-          ...customItems,
-        ];
-      },
-      {
-        selectOnOpen: true,
-        trigger: [
-          'click',
-        ],
-      }
-    );
-  }
-
-  private async _saveNow() {
+  public async save() {
     try {
       this._saving = true;
       const newVersion = {...this._root.toJSON()};
@@ -690,13 +427,27 @@ export class FormView extends Disposable {
     confirmModal(t('Publish your form?'),
       t('Publish'),
       async () => {
-        await this.gristDoc.docModel.docData.bundleActions('Publish form', async () => {
-          const page = this.viewSection.view().page();
-          if (!page) {
-            throw new Error('Unable to publish form: undefined page');
+        const page = this.viewSection.view().page();
+        if (!page) {
+          throw new Error('Unable to publish form: undefined page');
+        }
+        let validShare = page.shareRef() !== 0;
+        // If page is shared, make sure home server is aware of it.
+        if (validShare) {
+          try {
+          const pageShare = page.share();
+          const serverShare = await this.gristDoc.docComm.getShare(pageShare.linkId());
+          validShare = !!serverShare;
+          } catch(ex) {
+            // TODO: for now ignore the error, but the UI should be updated to not show editor
+            if (ex.code === 'AUTH_NO_OWNER') {
+              return;
+            }
+            throw ex;
           }
-
-          if (page.shareRef() === 0) {
+        }
+        await this.gristDoc.docModel.docData.bundleActions('Publish form', async () => {
+          if (!validShare) {
             const shareRef = await this.gristDoc.docModel.docData.sendAction([
               'AddRecord',
               '_grist_Shares',
@@ -715,6 +466,7 @@ export class FormView extends Disposable {
             await share.optionsObj.save();
           }
 
+          await this.save();
           this.viewSection.shareOptionsObj.update({
             form: true,
             publish: true,
@@ -780,31 +532,34 @@ export class FormView extends Disposable {
       },
     );
   }
-  private _buildSwitcher() {
-
-    const toggle = (val: boolean) => () => {
-      this.isEdit.set(val);
-      this._saveNow().catch(reportError);
-    };
-
+  private _buildPublisher() {
     return style.cssSwitcher(
       this._buildSwitcherMessage(),
       style.cssButtonGroup(
         style.cssIconButton(
-          icon('Pencil'),
-          testId('edit'),
-          dom('div', 'Editor'),
-          cssButton.cls('-primary', this.isEdit),
-          style.cssIconButton.cls('-standard', not(this.isEdit)),
-          dom.on('click', toggle(true))
+          style.cssIconButton.cls('-frameless'),
+          icon('Revert'),
+          testId('reset'),
+          dom('div', 'Reset form'),
+          dom.style('margin-right', 'auto'), // move it to the left
+          dom.on('click', () => {
+            this._resetForm().catch(reportError);
+          })
         ),
-        style.cssIconButton(
-          icon('EyeShow'),
-          dom('div', 'Preview'),
+        style.cssIconLink(
           testId('preview'),
-          cssButton.cls('-primary', not(this.isEdit)),
-          style.cssIconButton.cls('-standard', (this.isEdit)),
-          dom.on('click', toggle(false))
+          icon('EyeShow'),
+          dom.text('Preview'),
+          dom.prop('href', this._url),
+          dom.prop('target', '_blank'),
+          dom.on('click', async (ev) => {
+            // If this form is not yet saved, we will save it first.
+            if (!this._savedLayout) {
+              stopEvent(ev);
+              await this.save();
+              window.open(this._url.get());
+            }
+          })
         ),
         style.cssIconButton(
           icon('FieldAttachment'),
@@ -831,6 +586,10 @@ export class FormView extends Disposable {
               });
               await copyToClipboard(url);
               showTransientTooltip(element, 'Link copied to clipboard', {key: 'copy-form-link'});
+            } catch(ex) {
+              if (ex.code === 'AUTH_NO_OWNER') {
+                throw new Error('Publishing form is only available to owners');
+              }
             } finally {
               this._copyingLink.set(false);
             }
@@ -876,8 +635,81 @@ export class FormView extends Disposable {
       );
     });
   }
+
+  /**
+   * Generates a form template based on the fields in the view section.
+   */
+  private _formTemplate(fields: ViewFieldRec[]) {
+    const boxes: Box[] = fields.map(f => {
+      return {
+        type: 'Field',
+        leaf: f.id()
+      } as Box;
+    });
+    const section = {
+      type: 'Section',
+      children: [
+        {type: 'Paragraph', text: SECTION_TITLE},
+        {type: 'Paragraph', text: SECTION_DESC},
+        ...boxes,
+      ],
+    };
+    return {
+      type: 'Layout',
+      children: [
+        {type: 'Paragraph', text: FORM_TITLE, alignment: 'center', },
+        {type: 'Paragraph', text: FORM_DESC, alignment: 'center', },
+        section,
+        {type: 'Submit'}
+      ]
+    };
+  }
+
+  private async _resetForm() {
+    this.selectedBox.set(null);
+    await this.gristDoc.docData.bundleActions('Reset form', async () => {
+      // First we will remove all fields from this section, and add top 9 back.
+      const toDelete = this.viewSection.viewFields().all().map(f => f.getRowId());
+
+      const toAdd = this.viewSection.table().columns().peek().filter(c => {
+        // If hidden than no.
+        if (c.isHiddenCol()) { return false; }
+
+        // If formula column, no.
+        if (c.isFormula() && c.formula()) { return false; }
+
+        return true;
+      });
+      toAdd.sort((a, b) => a.parentPos() - b.parentPos());
+
+      const colRef = toAdd.slice(0, INITIAL_FIELDS_COUNT).map(c => c.id());
+      const parentId = colRef.map(() => this.viewSection.id());
+      const parentPos = colRef.map((_, i) => i + 1);
+      const ids = colRef.map(() => null);
+
+      await this.gristDoc.docData.sendActions([
+        ['BulkRemoveRecord', '_grist_Views_section_field', toDelete],
+        ['BulkAddRecord', '_grist_Views_section_field', ids, {
+          colRef,
+          parentId,
+          parentPos,
+        }],
+      ]);
+
+      const fields = this.viewSection.viewFields().all().slice(0, 9);
+      await this.viewSection.layoutSpecObj.setAndSave(this._formTemplate(fields));
+    });
+  }
 }
 
 // Getting an ES6 class to work with old-style multiple base classes takes a little hacking. Credits: ./ChartView.ts
 defaults(FormView.prototype, BaseView.prototype);
 Object.assign(FormView.prototype, BackboneEvents);
+
+// Default values when form is reset.
+const FORM_TITLE = "## **My Super Form**";
+const FORM_DESC = "This is the UI design work in progress on Grist Forms. We are working hard to " +
+                  "give you the best possible experience with this feature";
+
+const SECTION_TITLE = '### **Header**';
+const SECTION_DESC = 'Description';

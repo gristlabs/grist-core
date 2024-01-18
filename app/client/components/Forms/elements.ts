@@ -10,11 +10,16 @@ export * from "./Section";
 export * from './Field';
 export * from './Columns';
 export * from './Submit';
+export * from './Label';
 
 export function defaultElement(type: BoxType): Box {
   switch(type) {
     case 'Columns': return Columns();
     case 'Placeholder': return Placeholder();
+    case 'Separator': return {
+      type: 'Paragraph',
+      text: '---',
+    };
     default: return {type};
   }
 }

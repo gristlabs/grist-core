@@ -3,6 +3,7 @@
   margin: -1px auto;
   width: 30px;
   height: 17px;
+  flex: none;
 }
 
 .switch_slider {

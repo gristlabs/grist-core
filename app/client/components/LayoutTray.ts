@@ -197,7 +197,7 @@ export class LayoutTray extends DisposableWithEvents {
         // And ask the viewLayout to save the specs.
         viewLayout.saveLayoutSpec();
       },
-      expandSection: () => {
+      restoreSection: () => {
         // Get the section that is collapsed and clicked (we are setting this value).
         const leafId = viewLayout.viewModel.activeCollapsedSectionId();
         if (!leafId) { return; }

@@ -9,3 +9,12 @@ export type IAttachedCustomWidget = typeof AttachedCustomWidgets.type;
 
 // all widget types
 export type IWidgetType = 'record' | 'detail' | 'single' | 'chart' | 'custom' | 'form' | IAttachedCustomWidget;
+export enum WidgetType {
+  Table = 'record',
+  Card = 'single',
+  CardList = 'detail',
+  Chart = 'chart',
+  Custom = 'custom',
+  Form = 'form',
+  Calendar = 'custom.calendar',
+}

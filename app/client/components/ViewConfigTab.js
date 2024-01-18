@@ -147,21 +147,19 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
 };
 
 ViewConfigTab.prototype._buildThemeDom = function() {
-  return kd.maybe(this.activeSectionData, (sectionData) => {
-    var section = sectionData.section;
-    if (this.isDetail()) {
-      const theme = Computed.create(null, (use) => use(section.themeDef));
-      theme.onWrite(val => section.themeDef.setAndSave(val));
-      return cssRow(
-        dom.autoDispose(theme),
-        select(theme, [
-          {label: t("Form"),        value: 'form'   },
-          {label: t("Compact"),     value: 'compact'},
-          {label: t("Blocks"),      value: 'blocks'  },
-        ]),
-        testId('detail-theme')
-      );
-    }
+  return kd.maybe(() => this.isDetail() ? this.activeSectionData() : null, (sectionData) => {
+    const section = sectionData.section;
+    const theme = Computed.create(null, (use) => use(section.themeDef));
+    theme.onWrite(val => section.themeDef.setAndSave(val));
+    return cssRow(
+      dom.autoDispose(theme),
+      select(theme, [
+        {label: t("Form"),        value: 'form'   },
+        {label: t("Compact"),     value: 'compact'},
+        {label: t("Blocks"),      value: 'blocks'  },
+      ]),
+      testId('detail-theme')
+    );
   });
 };
 
@@ -170,21 +168,19 @@ ViewConfigTab.prototype._buildChartConfigDom = function() {
 };
 
 ViewConfigTab.prototype._buildLayoutDom = function() {
-  return kd.maybe(this.activeSectionData, (sectionData) => {
-    if (this.isDetail()) {
-      const view = sectionData.section.viewInstance.peek();
-      const layoutEditorObs = ko.computed(() => view && view.recordLayout && view.recordLayout.layoutEditor());
-      return cssRow({style: 'margin-top: 16px;'},
-        kd.maybe(layoutEditorObs, (editor) => editor.buildFinishButtons()),
-        primaryButton(t("Edit Card Layout"),
-          dom.autoDispose(layoutEditorObs),
-          dom.on('click', () => commands.allCommands.editLayout.run()),
-          grainjsDom.hide(layoutEditorObs),
-          grainjsDom.cls('behavioral-prompt-edit-card-layout'),
-          testId('detail-edit-layout'),
-        )
-      );
-    }
+  return kd.maybe(() => this.isDetail() ? this.activeSectionData() : null, (sectionData) => {
+    const view = sectionData.section.viewInstance.peek();
+    const layoutEditorObs = ko.computed(() => view && view.recordLayout && view.recordLayout.layoutEditor());
+    return cssRow({style: 'margin-top: 16px;'},
+      kd.maybe(layoutEditorObs, (editor) => editor.buildFinishButtons()),
+      primaryButton(t("Edit Card Layout"),
+        dom.autoDispose(layoutEditorObs),
+        dom.on('click', () => commands.allCommands.editLayout.run()),
+        grainjsDom.hide(layoutEditorObs),
+        grainjsDom.cls('behavioral-prompt-edit-card-layout'),
+        testId('detail-edit-layout'),
+      )
+    );
   });
 };
 

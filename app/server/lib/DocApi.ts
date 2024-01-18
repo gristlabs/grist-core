@@ -12,8 +12,8 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {isRaisedException} from "app/common/gristTypes";
-import {Box, RenderBox, RenderContext} from "app/common/Forms";
+import {extractTypeFromColType, isRaisedException} from "app/common/gristTypes";
+import {Box, BoxType, FieldModel, INITIAL_FIELDS_COUNT, RenderBox, RenderContext} from "app/common/Forms";
 import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
 import {SchemaTypes} from "app/common/schema";
@@ -86,11 +86,11 @@ import {fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
 import * as assert from 'assert';
 import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
-import jsesc from 'jsesc';
+import * as fse from 'fs-extra';
+import * as handlebars from 'handlebars';
 import * as _ from "lodash";
 import LRUCache from 'lru-cache';
 import * as moment from 'moment';
-import * as fse from 'fs-extra';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as t from "ts-interface-checker";
@@ -158,6 +158,17 @@ function validateCore(checker: Checker, req: Request, body: any) {
       throw new ApiError('Invalid payload', 400, {userError: String(err)});
     }
 }
+
+/**
+ * Helper used in forms rendering for purifying html.
+ */
+handlebars.registerHelper('dompurify', (html: string) => {
+  return new handlebars.SafeString(`
+    <script data-html="${handlebars.escapeExpression(html)}">
+      document.write(DOMPurify.sanitize(document.currentScript.getAttribute('data-html')));
+    </script>
+  `);
+});
 
 export class DocWorkerApi {
   // Map from docId to number of requests currently being handled for that doc
@@ -1398,90 +1409,129 @@ export class DocWorkerApi {
             sectionId,
           });
         }
-
-        // Get the viewSection record for the specified id.
-        const records = asRecords(await readTable(
-          req, activeDoc, '_grist_Views_section', { id: [sectionId] }, {}
-        ));
-        const section = records.find(r => r.id === sectionId);
+        const Views_section = activeDoc.docData!.getMetaTable('_grist_Views_section');
+        const section = Views_section.getRecord(sectionId);
         if (!section) {
           throw new ApiError('Form not found', 404);
         }
-
-        // Prepare the context that will be needed for rendering this form.
-        const fields = asRecords(await readTable(
-          req, activeDoc, '_grist_Views_section_field', { parentId: [sectionId] }, {  }
-        ));
-        const cols = asRecords(await readTable(
-          req, activeDoc, '_grist_Tables_column', { parentId: [section.fields.tableRef] }, {  }
-        ));
+        const Tables = activeDoc.docData!.getMetaTable('_grist_Tables');
+        const Views_section_field = activeDoc.docData!.getMetaTable('_grist_Views_section_field');
+        const fields = Views_section_field.filterRecords({parentId: sectionId});
+        const Tables_column = activeDoc.docData!.getMetaTable('_grist_Tables_column');
 
         // Read the box specs
-        const spec = section.fields.layoutSpec;
+        const spec = section.layoutSpec;
         let box: Box = safeJsonParse(spec ? String(spec) : '', null);
         if (!box) {
           const editable = fields.filter(f => {
-            const col = cols.find(c => c.id === f.fields.colRef);
+            const col = Tables_column.getRecord(f.colRef);
             // Can't do attachments and formulas.
-            return col && !(col.fields.isFormula && col.fields.formula) && col.fields.type !== 'Attachment';
+            return col && !(col.isFormula && col.formula) && col.type !== 'Attachment';
           });
           box = {
             type: 'Layout',
-            children: editable.map(f => ({
-              type: 'Field',
-              leaf: f.id
-            }))
+            children: [
+              {type: 'Label'},
+              {type: 'Label'},
+              {
+                type: 'Section',
+                children: [
+                  {type: 'Label'},
+                  {type: 'Label'},
+                  ...editable.slice(0, INITIAL_FIELDS_COUNT).map(f => ({
+                    type: 'Field' as BoxType,
+                    leaf: f.id
+                  }))
+                ]
+              }
+            ],
           };
-          box.children!.push({
-            type: 'Submit'
-          });
         }
 
+        // Cache the table reads based on tableId. We are caching only the promise, not the result,
+        const table = _.memoize(
+          (tableId: string) => readTable(req, activeDoc, tableId, {  }, {  }).then(r => asRecords(r))
+        );
+
+        const readValues = async (tId: string, colId: string) => {
+          const records = await table(tId);
+          return records.map(r => [r.id as number, r.fields[colId]]);
+        };
+
+        const refValues = (col: MetaRowRecord<'_grist_Tables_column'>) => {
+          return async () => {
+            const refId = col.visibleCol;
+            if (!refId) { return [] as any; }
+            const refCol = Tables_column.getRecord(refId);
+            if (!refCol) { return []; }
+            const refTable = Tables.getRecord(refCol.parentId);
+            if (!refTable) { return []; }
+            const refTableId = refTable.tableId as string;
+            const refColId = refCol.colId as string;
+            if (!refTableId || !refColId) { return () => []; }
+            if (typeof refTableId !== 'string' || typeof refColId !== 'string') { return []; }
+            return await readValues(refTableId, refColId);
+          };
+        };
+
         const context: RenderContext = {
-          field(fieldRef: number) {
-            const field = fields.find(f => f.id === fieldRef);
+          field(fieldRef: number): FieldModel {
+            const field = Views_section_field.getRecord(fieldRef);
             if (!field) { throw new Error(`Field ${fieldRef} not found`); }
-            const col = cols.find(c => c.id === field.fields.colRef);
-            if (!col) { throw new Error(`Column ${field.fields.colRef} not found`); }
-            const fieldOptions = safeJsonParse(field.fields.widgetOptions as string, {});
-            const colOptions = safeJsonParse(col.fields.widgetOptions as string, {});
+            const col = Tables_column.getRecord(field.colRef);
+            if (!col) { throw new Error(`Column ${field.colRef} not found`); }
+            const fieldOptions = safeJsonParse(field.widgetOptions as string, {});
+            const colOptions = safeJsonParse(col.widgetOptions as string, {});
             const options = {...colOptions, ...fieldOptions};
+            const type = extractTypeFromColType(col.type as string);
+            const colId = col.colId as string;
+
             return {
-              colId: col.fields.colId as string,
-              description: options.description,
-              question: options.question,
-              type: (col.fields.type as string).split(':')[0],
+              colId,
+              description: fieldOptions.description || col.description,
+              question: options.question || col.label || colId,
               options,
+              type,
+              // If this is reference field, we will need to fetch the referenced table.
+              values: refValues(col)
             };
-          }
+          },
+          root: box
         };
 
         // Now render the box to HTML.
-        const html = RenderBox.new(box, context).toHTML();
 
-        // The html will be inserted into a form as a replacement for:
-        //   document.write(sanitize(`<!-- INSERT CONTENT -->`))
-        // We need to properly escape `
-        const escaped = jsesc(html, {isScriptContext: true, quotes: 'backtick'});
+        let redirectUrl = !box.successURL ? '' : box.successURL;
+        // Make sure it is a valid URL.
+        try {
+          new URL(redirectUrl);
+        } catch (e) {
+          redirectUrl = '';
+        }
+
+        const html = await RenderBox.new(box, context).toHTML();
         // And wrap it with the form template.
         const form = await fse.readFile(path.join(getAppPathTo(this._staticPath, 'static'),
                                               'forms/form.html'), 'utf8');
-        // TODO: externalize css. Currently the redirect mechanism depends on the relative base URL, so
-        // we can't change it at this moment. But once custom success page will be implemented this should
-        // be possible.
-
         const staticOrigin = process.env.APP_STATIC_URL || "";
         const staticBaseUrl = `${staticOrigin}/v/${this._grist.getTag()}/`;
         // Fill out the blanks and send the result.
         const doc = await this._dbManager.getDoc(req);
-        const docUrl = await this._grist.getResourceUrl(doc, 'html');
-        const tableId = await getRealTableId(String(section.fields.tableRef), {activeDoc, req});
-        res.status(200).send(form
-          .replace('<!-- INSERT CONTENT -->', escaped || '')
-          .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">`)
-          .replace('<!-- INSERT DOC URL -->', docUrl)
-          .replace('<!-- INSERT TABLE ID -->', tableId)
-        );
+        const tableId = await getRealTableId(String(section.tableRef), {activeDoc, req});
+
+        const template = handlebars.compile(form);
+        const renderedHtml = template({
+          // Trusted content generated by us.
+          BASE: staticBaseUrl,
+          DOC_URL: await this._grist.getResourceUrl(doc, 'html'),
+          TABLE_ID: tableId,
+          ANOTHER_RESPONSE: Boolean(box.anotherResponse),
+          // Not trusted content entered by user.
+          CONTENT: html,
+          SUCCESS_TEXT: box.successText || `Thank you! Your response has been recorded.`,
+          SUCCESS_URL: redirectUrl,
+        });
+        res.status(200).send(renderedHtml);
       })
     );
   }
@@ -1501,7 +1551,7 @@ export class DocWorkerApi {
 
     // Check that the request is for a valid section in the document.
     const sections = docData.getMetaTable('_grist_Views_section');
-    const section = sections.getRecords().find(s => s.id === sectionId);
+    const section = sections.getRecord(sectionId);
     if (!section) {
       throw new ApiError('Form not found', 404);
     }

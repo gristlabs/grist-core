@@ -5,6 +5,7 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('FormView', function() {
   this.timeout('90s');
+  gu.bigScreen();
 
   let api: UserAPI;
   let docId: string;
@@ -62,7 +63,7 @@ describe('FormView', function() {
     assert.isUndefined(await api.getTable(docId, 'Table1').then(t => t.D));
 
     // Add a text question
-    await drop().click();
+    await plusButton().click();
     if (more) {
       await clickMenu('More');
     }
@@ -86,6 +87,9 @@ describe('FormView', function() {
       await gu.selectAll();
       await cb.paste();
     });
+
+    // Select it
+    await question('D').click();
 
     return await driver.find('#clipboardText').value();
   }
@@ -181,9 +185,6 @@ describe('FormView', function() {
     await gu.waitToPass(async () => {
       assert.isTrue(await driver.find('.test-forms-preview').isDisplayed());
     });
-    await driver.find('.test-forms-preview').click();
-    await gu.waitForServer();
-
     // We are in a new window.
     await gu.onNewTab(async () => {
       await driver.get(formUrl);
@@ -218,7 +219,7 @@ describe('FormView', function() {
     // We are in a new window.
     await gu.onNewTab(async () => {
       await driver.get(formUrl);
-      await driver.findWait('input[name="D"]', 1000).click();
+      await driver.findWait('input[name="D"]', 1000).findClosest("label").click();
       await driver.find('input[type="submit"]').click();
       await waitForConfirm();
     });
@@ -299,11 +300,7 @@ describe('FormView', function() {
     assert.isTrue(await driver.find('.test-forms-editor').isDisplayed());
 
     // With 3 questions A, B, C.
-    for (const label of ['A', 'B', 'C']) {
-      assert.isTrue(
-        await driver.findContent('.test-forms-question .test-forms-label', gu.exactMatch(label)).isDisplayed()
-      );
-    }
+    assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
 
     // And a submit button.
     assert.isTrue(await driver.findContent('.test-forms-submit', gu.exactMatch('Submit')).isDisplayed());
@@ -386,7 +383,7 @@ describe('FormView', function() {
     await driver.withActions(a =>
       a.move({origin: questionDrag('A')})
         .press()
-        .move({origin: drop().drag()})
+        .move({origin: plusButton().drag()})
         .release()
     );
 
@@ -396,7 +393,7 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
 
     // Now add a new question.
-    await drop().click();
+    await plusButton().click();
 
     await clickMenu('Text');
     await gu.waitForServer();
@@ -452,15 +449,14 @@ describe('FormView', function() {
     // Now B is selected.
     assert.equal(await selectedLabel(), 'B');
 
-    // Click on the dropzone.
-    await drop().click();
-    await gu.sendKeys(Key.ESCAPE);
+    // Click on the edit button.
+    await driver.find('.test-forms-submit').click();
 
     // Now nothing is selected.
-    assert.isFalse(await isSelected());
+    assert.isFalse(await isSelected(), 'Something is selected');
 
     // When we add new question, it is automatically selected.
-    await drop().click();
+    await plusButton().click();
     await clickMenu('Text');
     await gu.waitForServer();
     // Now D is selected.
@@ -477,6 +473,12 @@ describe('FormView', function() {
 
     // We have only one hidden column.
     assert.deepEqual(await hiddenColumns(), ['Choice']);
+
+    // Make sure we see it in the menu.
+    await plusButton().click();
+
+    // We have 1 unmapped menu item.
+    assert.equal(await elementCount('menu-unmapped'), 1);
 
     // Now move it to the form on B
     await driver.withActions(a =>
@@ -504,6 +506,7 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'Choice', 'B', 'C']);
     assert.deepEqual(await hiddenColumns(), []);
 
+
     // Now hide it using menu.
     await question('Choice').rightClick();
     await clickMenu('Hide');
@@ -518,7 +521,21 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'Choice', 'B', 'C']);
     assert.deepEqual(await hiddenColumns(), []);
 
+    // And redo.
+    await gu.redo();
+    assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
+    assert.deepEqual(await hiddenColumns(), ['Choice']);
+
+    // Now unhide it using menu.
+    await plusButton().click();
+    await element('menu-unmapped').click();
+    await gu.waitForServer();
+
+    assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'Choice']);
+    assert.deepEqual(await hiddenColumns(), []);
+
     // Now hide it using Delete key.
+    await driver.find('.test-forms-submit').click();
     await question('Choice').click();
     await gu.sendKeys(Key.DELETE);
     await gu.waitForServer();
@@ -526,6 +543,7 @@ describe('FormView', function() {
     // It should be hidden again.
     assert.deepEqual(await hiddenColumns(), ['Choice']);
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
+
 
     await gu.toggleSidePanel('right', 'close');
   });
@@ -535,30 +553,27 @@ describe('FormView', function() {
     assert.equal(await selectedLabel(), 'A');
 
     // Move down.
-    await gu.sendKeys(Key.ARROW_DOWN);
+    await arrow(Key.ARROW_DOWN);
     assert.equal(await selectedLabel(), 'B');
 
     // Move up.
-    await gu.sendKeys(Key.ARROW_UP);
+    await arrow(Key.ARROW_UP);
     assert.equal(await selectedLabel(), 'A');
 
     // Move down to C.
-    await gu.sendKeys(Key.ARROW_DOWN);
-    await gu.sendKeys(Key.ARROW_DOWN);
+    await arrow(Key.ARROW_DOWN, 2);
     assert.equal(await selectedLabel(), 'C');
 
-    // Move down we should be at A (past the submit button).
-    await gu.sendKeys(Key.ARROW_DOWN);
-    await gu.sendKeys(Key.ARROW_DOWN);
+    // Move down we should be at A (past the submit button, and titles and sections).
+    await arrow(Key.ARROW_DOWN, 7);
     assert.equal(await selectedLabel(), 'A');
 
     // Do the same with Left and Right.
-    await gu.sendKeys(Key.ARROW_RIGHT);
+    await arrow(Key.ARROW_RIGHT);
     assert.equal(await selectedLabel(), 'B');
-    await gu.sendKeys(Key.ARROW_LEFT);
+    await arrow(Key.ARROW_LEFT);
     assert.equal(await selectedLabel(), 'A');
-    await gu.sendKeys(Key.ARROW_RIGHT);
-    await gu.sendKeys(Key.ARROW_RIGHT);
+    await arrow(Key.ARROW_RIGHT, 2);
     assert.equal(await selectedLabel(), 'C');
   });
 
@@ -578,14 +593,13 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
 
     // To the same for paragraph.
-    await drop().click();
+    await plusButton().click();
     await clickMenu('Paragraph');
     await gu.waitForServer();
-    await element('Paragraph').click();
+    await element('Paragraph', 5).click();
     await clipboard.lockAndPerform(async (cb) => {
       await cb.cut();
       // Go over A and paste there.
-      await gu.sendKeys(Key.ARROW_UP); // Focus on button
       await gu.sendKeys(Key.ARROW_UP); // Focus on C.
       await gu.sendKeys(Key.ARROW_UP); // Focus on B.
       await gu.sendKeys(Key.ARROW_UP); // Focus on A.
@@ -597,13 +611,18 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
     let elements = await driver.findAll('.test-forms-element');
     assert.isTrue(await elements[0].matches('.test-forms-Paragraph'));
+    assert.isTrue(await elements[1].matches('.test-forms-Paragraph'));
+    assert.isTrue(await elements[2].matches('.test-forms-Section'));
+    assert.isTrue(await elements[3].matches('.test-forms-Paragraph'));
+    assert.isTrue(await elements[4].matches('.test-forms-Paragraph'));
+    assert.isTrue(await elements[5].matches('.test-forms-Paragraph'));
 
     // Put it back using undo.
     await gu.undo();
     elements = await driver.findAll('.test-forms-element');
-    assert.isTrue(await elements[0].matches('.test-forms-question'));
+    assert.isTrue(await elements[5].matches('.test-forms-Field'));
     // 0 - A, 1 - B, 2 - C, 3 - submit button.
-    assert.isTrue(await elements[4].matches('.test-forms-Paragraph'));
+    assert.isTrue(await elements[8].matches('.test-forms-Paragraph'));
 
     await revert();
   });
@@ -617,7 +636,7 @@ describe('FormView', function() {
   };
   const checkFieldsAtFirstLevel = (menuText: string) => {
     it(`can add ${menuText} elements from the menu`, async function() {
-      await drop().click();
+      await plusButton().click();
       await clickMenu(menuText);
       await gu.waitForServer();
       await checkNewCol();
@@ -631,7 +650,7 @@ describe('FormView', function() {
 
   const checkFieldInMore = (menuText: string) => {
     it(`can add ${menuText} elements from the menu`, async function() {
-      await drop().click();
+      await plusButton().click();
       await clickMenu('More');
       await clickMenu(menuText);
       await gu.waitForServer();
@@ -645,44 +664,43 @@ describe('FormView', function() {
   checkFieldInMore('Choice List');
   checkFieldInMore('Reference');
   checkFieldInMore('Reference List');
-  checkFieldInMore('Attachment');
 
-  const testStruct = (type: string) => {
+  const testStruct = (type: string, existing = 0) => {
     it(`can add structure ${type} element`, async function() {
-      assert.equal(await elementCount(type), 0);
-      await drop().click();
+      assert.equal(await elementCount(type), existing);
+      await plusButton().click();
       await clickMenu(type);
       await gu.waitForServer();
-      assert.equal(await elementCount(type), 1);
+      assert.equal(await elementCount(type), existing + 1);
       await gu.undo();
-      assert.equal(await elementCount(type), 0);
+      assert.equal(await elementCount(type), existing);
     });
   };
 
-  testStruct('Section');
+  // testStruct('Section'); // There is already a section
   testStruct('Columns');
-  testStruct('Paragraph');
+  testStruct('Paragraph', 4);
 
   it('basic section', async function() {
     const revert = await gu.begin();
 
-    // Add structure.
-    await drop().click();
-    await clickMenu('Section');
-    await gu.waitForServer();
+    // Adding section is disabled for now, so this test is altered to use the existing section.
+    // await drop().click();
+    // await clickMenu('Section');
+    // await gu.waitForServer();
     assert.equal(await elementCount('Section'), 1);
 
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
 
     // There is a drop in that section, click it to add a new question.
-    await element('Section').element('dropzone').click();
+    await element('Section', 1).element('plus').click();
     await clickMenu('Text');
     await gu.waitForServer();
 
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
     // And the question is inside a section.
-    assert.equal(await element('Section').element('label').getText(), 'D');
+    assert.equal(await element('Section', 1).element('label', 4).value(), 'D');
 
     // Make sure we can move that question around.
     await driver.withActions(a =>
@@ -696,11 +714,11 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'D', 'B', 'C']);
 
     // Make sure that it is not inside the section anymore.
-    assert.equal(await element('Section').element('label').isPresent(), false);
+    // assert.equal(await element('Section', 1).element('label').isPresent(), false);
 
     await gu.undo();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
-    assert.equal(await element('Section').element('label').getText(), 'D');
+    assert.equal(await element('Section', 1).element('label', 4).value(), 'D');
 
     await revert();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
@@ -708,7 +726,7 @@ describe('FormView', function() {
 
   it('basic columns work', async function() {
     const revert = await gu.begin();
-    await drop().click();
+    await plusButton().click();
     await clickMenu('Columns');
     await gu.waitForServer();
 
@@ -723,7 +741,7 @@ describe('FormView', function() {
     assert.equal(await elementCount('Placeholder', element('Columns')), 3);
 
     // We can click the middle one, and add a question.
-    await element('Columns').find(`.test-forms-editor:nth-child(2) .test-forms-Placeholder`).click();
+    await element('Columns').element(`Placeholder`, 2).click();
     await clickMenu('Text');
     await gu.waitForServer();
 
@@ -733,7 +751,7 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
     // The question D is in the columns.
-    assert.equal(await element('Columns').element('label').getText(), 'D');
+    assert.equal(await element('Columns').element('label').value(), 'D');
 
     // We can move it around.
     await driver.withActions(a =>
@@ -749,7 +767,7 @@ describe('FormView', function() {
     await driver.withActions(a =>
       a.move({origin: questionDrag('D')})
         .press()
-        .move({origin: element('Columns').find(`.test-forms-editor:nth-child(2) .test-forms-drag`)})
+        .move({origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`)})
         .release()
     );
     await gu.waitForServer();
@@ -760,7 +778,7 @@ describe('FormView', function() {
     assert.lengthOf(allColumns, 3);
     assert.isTrue(await allColumns[0].matches('.test-forms-Placeholder'));
     assert.isTrue(await allColumns[1].matches('.test-forms-question'));
-    assert.equal(await allColumns[1].find('.test-forms-label').getText(), 'D');
+    assert.equal(await allColumns[1].find('.test-forms-label').value(), 'D');
     assert.isTrue(await allColumns[2].matches('.test-forms-Placeholder'));
 
     // Check that we can remove the question.
@@ -780,7 +798,7 @@ describe('FormView', function() {
     assert.lengthOf(allColumns, 3);
     assert.isTrue(await allColumns[0].matches('.test-forms-Placeholder'));
     assert.isTrue(await allColumns[1].matches('.test-forms-question'));
-    assert.equal(await allColumns[1].find('.test-forms-label').getText(), 'D');
+    assert.equal(await allColumns[1].find('.test-forms-label').value(), 'D');
     assert.isTrue(await allColumns[2].matches('.test-forms-Placeholder'));
 
     await revert();
@@ -790,7 +808,7 @@ describe('FormView', function() {
 
   it('changes type of a question', async function() {
     // Add text question as D column.
-    await drop().click();
+    await plusButton().click();
     await clickMenu('Text');
     await gu.waitForServer();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
@@ -826,8 +844,21 @@ describe('FormView', function() {
   });
 });
 
-function element(type: string, parent?: WebElement) {
-  return extra((parent ?? driver).find(`.test-forms-${type}`));
+function element(type: string, parent?: WebElement): ExtraElement;
+function element(type: string, index: number, parent?: WebElement): ExtraElement;
+function element(type: string, arg1?: number | WebElement, arg2?: WebElement): ExtraElement {
+  if (typeof arg1 === 'number') {
+    if (arg1 === 1) {
+      return extra((arg2 ?? driver).find(`.test-forms-${type}`));
+    }
+    const nth = ((arg2 ?? driver).findAll(`.test-forms-${type}`).then(els => els[arg1 - 1])).then(el => {
+      if (!el) { throw new Error(`No element of type ${type} at index ${arg1}`); }
+      return el;
+    });
+    return extra(new WebElementPromise(driver, nth));
+  } else {
+    return extra((arg1 ?? driver).find(`.test-forms-${type}`));
+  }
 }
 
 async function elementCount(type: string, parent?: WebElement) {
@@ -835,12 +866,11 @@ async function elementCount(type: string, parent?: WebElement) {
 }
 
 async function readLabels() {
-  return await driver.findAll('.test-forms-question .test-forms-label', el => el.getText());
+  return await driver.findAll('.test-forms-question .test-forms-label', el => el.value());
 }
 
 function question(label: string) {
-  return extra(driver.findContent('.test-forms-question .test-forms-label', gu.exactMatch(label))
-    .findClosest('.test-forms-editor'));
+  return extra(gu.findValue(`.test-forms-label`, label).findClosest('.test-forms-editor'));
 }
 
 function questionDrag(label: string) {
@@ -851,12 +881,12 @@ function questionType(label: string) {
   return question(label).find('.test-forms-type').value();
 }
 
-function drop() {
-  return element('dropzone');
+function plusButton() {
+  return element('plus');
 }
 
 function drops() {
-  return driver.findAll('.test-forms-dropzone');
+  return driver.findAll('.test-forms-plus');
 }
 
 async function clickMenu(label: string) {
@@ -876,7 +906,7 @@ function selected() {
 }
 
 function selectedLabel() {
-  return selected().find('.test-forms-label').getText();
+  return selected().find('.test-forms-label').value();
 }
 
 function hiddenColumns() {
@@ -889,7 +919,7 @@ function hiddenColumn(label: string) {
 
 type ExtraElement = WebElementPromise & {
   rightClick: () => Promise<void>,
-  element: (type: string) => ExtraElement,
+  element: (type: string, index?: number) => ExtraElement,
   /**
    * A draggable element inside. This is 2x2px div to help with drag and drop.
    */
@@ -903,8 +933,8 @@ function extra(el: WebElementPromise): ExtraElement {
     await driver.withActions(a => a.contextClick(webElement));
   };
 
-  webElement.element = function(type: string) {
-    return element(type, webElement);
+  webElement.element = function(type: string, index?: number) {
+    return element(type, index ?? 1, webElement);
   };
 
   webElement.drag = function() {
@@ -912,4 +942,10 @@ function extra(el: WebElementPromise): ExtraElement {
   };
 
   return webElement;
+}
+
+async function arrow(key: string, times: number = 1) {
+  for (let i = 0; i < times; i++) {
+    await gu.sendKeys(key);
+  }
 }

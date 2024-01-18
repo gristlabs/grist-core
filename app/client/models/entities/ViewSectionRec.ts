@@ -27,6 +27,7 @@ import {UserAction} from 'app/common/DocActions';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
+import {WidgetType} from 'app/common/widgetTypes';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {GristObjCode} from 'app/plugin/GristData';
@@ -259,6 +260,8 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Common type of selected columns or mixed.
   columnsType: ko.PureComputed<string|'mixed'>;
 
+  widgetType: modelUtil.KoSaveableObservable<WidgetType>;
+
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
@@ -276,9 +279,19 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewFieldInfo>;
 
+  /**
+   * Shows column (by adding a view field)
+   * @param col ColId or ColRef
+   * @param index Position to insert the column at
+   * @returns ViewField rowId
+   */
   showColumn(col: number|string, index?: number): Promise<number>
 
-  removeField(colRef: number): Promise<void>;
+  /**
+   * Removes one or multiple fields.
+   * @param colRef
+   */
+  removeField(colRef: number|Array<number>): Promise<void>;
 }
 
 export type WidgetMappedColumn = number|number[]|null;
@@ -361,6 +374,7 @@ export interface Filter {
 }
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
+  this.widgetType = this.parentKey as any;
   this.viewFields = recordSet(this, docModel.viewFields, 'parentId', {sortBy: 'parentPos'});
   this.linkedSections = recordSet(this, docModel.viewSections, 'linkSrcSectionRef');
 
@@ -872,8 +886,13 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
   };
 
-  this.removeField = async (fieldRef: number) => {
-    const action = ['RemoveRecord', fieldRef];
-    await docModel.viewFields.sendTableAction(action);
+  this.removeField = async (fieldRef: number|number[]) => {
+    if (Array.isArray(fieldRef)) {
+      const action = ['BulkRemoveRecord', fieldRef];
+      await docModel.viewFields.sendTableAction(action);
+    } else {
+      const action = ['RemoveRecord', fieldRef];
+      await docModel.viewFields.sendTableAction(action);
+    }
   };
 }

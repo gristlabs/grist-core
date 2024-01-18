@@ -982,7 +982,7 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
 }
 
 /**
- * Use helper for simple boolean negation.
+ * Useful helper for simple boolean negation.
  */
 export const not = (obs: Observable<any>|IKnockoutReadObservable<any>) => (use: UseCBOwner) => !use(obs);
 
