@@ -2,6 +2,7 @@ import {hooks} from 'app/client/Hooks';
 import {makeT} from 'app/client/lib/localization';
 import {allCommands} from 'app/client/components/commands';
 import {ViewSectionRec} from 'app/client/models/DocModel';
+import {GRIST_FORMS_FEATURE} from 'app/client/models/features';
 import {urlState} from 'app/client/models/gristUrlState';
 import {testId} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuItemCmd, menuItemLink} from 'app/client/ui2018/menus';
@@ -95,7 +96,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId('widget-options')),
       menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter"), dom.hide(viewSection.isRecordCard)),
       menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection"), dom.hide(viewSection.isRecordCard)),
-      menuItemCmd(allCommands.createForm, t("Create a form"), dom.show(isTable)),
+      !GRIST_FORMS_FEATURE() ? null : menuItemCmd(allCommands.createForm, t("Create a form"), dom.show(isTable)),
     ]),
 
     menuDivider(dom.hide(viewSection.isRecordCard)),
