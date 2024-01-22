@@ -622,7 +622,23 @@
         "Widget": "Widget",
         "You do not have edit access to this document": "You do not have edit access to this document",
         "Add referenced columns": "Add referenced columns",
-        "Reset form": "Reset form"
+        "Reset form": "Reset form",
+        "Configuration": "Configuration",
+        "Default field value": "Default field value",
+        "Display button": "Display button",
+        "Enter text": "Enter text",
+        "Field rules": "Field rules",
+        "Field title": "Field title",
+        "Hidden field": "Hidden field",
+        "Layout": "Layout",
+        "Redirect automatically after submission": "Redirect automatically after submission",
+        "Redirection": "Redirection",
+        "Required field": "Required field",
+        "Submission": "Submission",
+        "Submit another response": "Submit another response",
+        "Submit button label": "Submit button label",
+        "Success text": "Success text",
+        "Table column name": "Table column name"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -761,7 +777,8 @@
         "Show raw data": "Show raw data",
         "Widget options": "Widget options",
         "Add to page": "Add to page",
-        "Collapse widget": "Collapse widget"
+        "Collapse widget": "Collapse widget",
+        "Create a form": "Create a form"
     },
     "ViewSectionMenu": {
         "(customized)": "(customized)",
@@ -1266,5 +1283,28 @@
         "Publish your form?": "Publish your form?",
         "Unpublish": "Unpublish",
         "Unpublish your form?": "Unpublish your form?"
+    },
+    "Editor": {
+        "Delete": "Delete"
+    },
+    "Menu": {
+        "Building blocks": "Building blocks",
+        "Columns": "Columns",
+        "Copy": "Copy",
+        "Cut": "Cut",
+        "Insert question above": "Insert question above",
+        "Insert question below": "Insert question below",
+        "Paragraph": "Paragraph",
+        "Paste": "Paste",
+        "Separator": "Separator",
+        "Unmapped fields": "Unmapped fields"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Clear",
+        "Map fields": "Map fields",
+        "Mapped": "Mapped",
+        "Select All": "Select All",
+        "Unmap fields": "Unmap fields",
+        "Unmapped": "Unmapped"
     }
 }
