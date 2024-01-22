@@ -1260,5 +1260,11 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Hidden fields"
+    },
+    "FormView": {
+        "Publish": "Publish",
+        "Publish your form?": "Publish your form?",
+        "Unpublish": "Unpublish",
+        "Unpublish your form?": "Unpublish your form?"
     }
 }
