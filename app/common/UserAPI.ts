@@ -419,33 +419,6 @@ export interface UserAPI {
    * is specific to Grist installation, and might not be supported.
    */
   closeOrg(): Promise<void>;
-  /**
-   * Creates publicly shared URL for a rendered form.
-   */
-  formUrl(options: FormUrlOptions): string;
-}
-
-interface FormUrlOptions {
-  vsId: number;
-  /**
-   * The canonical URL or document ID.
-   *
-   * If set, the returned form URL will only be accessible by users with access to the
-   * document. This is currently only used for the preview functionality in the widget,
-   * where document access is a pre-requisite.
-   *
-   * Only one of `urlId` or `shareKey` should be set.
-   */
-  urlId?: string;
-  /**
-   * The key of the Share granting access to the form.
-   *
-   * If set, the returned form URL will be accessible by anyone, so long as the form
-   * is published.
-   *
-   * Only one of `urlId` or `shareKey` should be set.
-   */
-  shareKey?: string;
 }
 
 /**
@@ -535,19 +508,6 @@ export interface DocWorkerAPI {
 export class UserAPIImpl extends BaseAPI implements UserAPI {
   constructor(private _homeUrl: string, private _options: IOptions = {}) {
     super(_options);
-  }
-
-  public formUrl(options: FormUrlOptions): string {
-    const {urlId, shareKey, vsId} = options;
-    if (!urlId && !shareKey) {
-      throw new Error('Invalid form URL: missing urlId or shareKey');
-    }
-
-    if (urlId) {
-      return `${this._url}/api/docs/${urlId}/forms/${vsId}`;
-    } else {
-      return `${this._url}/forms/${shareKey}/${vsId}`;
-    }
   }
 
   public forRemoved(): UserAPI {

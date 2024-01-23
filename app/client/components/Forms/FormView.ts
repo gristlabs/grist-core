@@ -15,6 +15,7 @@ import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
+import {urlState} from 'app/client/models/gristUrlState';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
@@ -299,9 +300,12 @@ export class FormView extends Disposable {
     this._url = Computed.create(this, use => {
       const doc = use(this.gristDoc.docPageModel.currentDoc);
       if (!doc) { return ''; }
-      const url = this.gristDoc.app.topAppModel.api.formUrl({
-        urlId: doc.id,
-        vsId: use(this.viewSection.id),
+      const url = urlState().makeUrl({
+        api: true,
+        doc: doc.id,
+        form: {
+          vsId: use(this.viewSection.id),
+        },
       });
       return url;
     });
@@ -580,9 +584,12 @@ export class FormView extends Disposable {
                 throw new Error('Unable to copy link: form is not published');
               }
 
-              const url = this.gristDoc.app.topAppModel.api.formUrl({
-                shareKey:remoteShare.key,
-                vsId: this.viewSection.id(),
+              const url = urlState().makeUrl({
+                doc: undefined,
+                form: {
+                  shareKey: remoteShare.key,
+                  vsId: this.viewSection.id(),
+                },
               });
               await copyToClipboard(url);
               showTransientTooltip(element, 'Link copied to clipboard', {key: 'copy-form-link'});

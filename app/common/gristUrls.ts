@@ -145,6 +145,12 @@ export interface IGristUrlState {
                      // But this barely works, and is suitable only for documents. For decoding it
                      // indicates that the URL probably points to an API endpoint.
   viaShare?: boolean; // Accessing document via a special share.
+
+  // Form URLs can currently be encoded but not decoded.
+  form?: {
+    vsId: number;      // a view section id of a form.
+    shareKey?: string; // only one of shareKey or doc should be set.
+  },
 }
 
 // Subset of GristLoadConfig used by getOrgUrlInfo(), which affects the interpretation of the
@@ -278,6 +284,27 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     }
   } else if (state.homePage === 'trash' || state.homePage === 'templates') {
     parts.push(`p/${state.homePage}`);
+  }
+
+  /**
+   * Form URLS can take two forms. If a docId/urlId is set, rather than
+   * a share key, the returned form URL will only be accessible by users
+   * with access to the document. This is currently only used for the
+   * preview functionality in the widget, where document access is a
+   * pre-requisite.
+   *
+   * When a share key is set, the returned form URL will be accessible
+   * by anyone, so long as the form is published.
+   *
+   * Only one of `doc` (docId/urlId) or `shareKey` should be set.
+   */
+  if (state.form) {
+    if (state.doc) { parts.push('/'); }
+    parts.push('forms/');
+    if (state.form.shareKey) {
+      parts.push(state.form.shareKey + '/');
+    }
+    parts.push(String(state.form.vsId));
   }
 
   if (state.account) {

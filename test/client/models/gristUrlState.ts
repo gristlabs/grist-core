@@ -236,6 +236,16 @@ describe('gristUrlState', function() {
     assert.equal(mockWindow.location.href, 'https://foo.example.com/ws/12/');
     assert.deepEqual(state.state.get(), {org: 'foo', ws: 12});
     assert.equal(state.makeUrl({ws: 4}), 'https://foo.example.com/ws/4/');
+
+    // Check form URLs in prod setup. They are produced on document pages.
+    await state.pushUrl({org: 'foo', doc: 'abc'});
+    state.loadState();
+    assert.equal(state.makeUrl({doc: undefined, form: { vsId: 4, shareKey: 'key' }}),
+                 'https://foo.example.com/forms/key/4');
+    assert.equal(state.makeUrl({api: true, doc: 'abc', form: { vsId: 4 }}),
+                 'https://foo.example.com/api/docs/abc/forms/4');
+    assert.equal(state.makeUrl({api: true, form: { vsId: 4 }}),
+                 'https://foo.example.com/api/docs/abc/forms/4');
   });
 
   it('should produce correct results with single-org config', async function() {
@@ -265,6 +275,16 @@ describe('gristUrlState', function() {
     assert.equal(mockWindow.location.href, 'https://example.com/o/foo/');
     assert.deepEqual(state.state.get(), {org: 'foo'});
     assert.equal(link.getAttribute('href'), 'https://example.com/o/foo/ws/4/');
+
+    // Check form URLs in single org setup from document pages.
+    await state.pushUrl({org: 'foo', doc: 'abc'});
+    state.loadState();
+    assert.equal(state.makeUrl({doc: undefined, form: { vsId: 4, shareKey: 'key' }}),
+                 'https://example.com/o/foo/forms/key/4');
+    assert.equal(state.makeUrl({api: true, doc: 'abc', form: { vsId: 4 }}),
+                 'https://example.com/o/foo/api/docs/abc/forms/4');
+    assert.equal(state.makeUrl({api: true, form: { vsId: 4 }}),
+                 'https://example.com/o/foo/api/docs/abc/forms/4');
   });
 
   it('should produce correct results with custom config', async function() {
