@@ -3,7 +3,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
-import {GRIST_FORMS_FEATURE, PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
+import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
 import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {linkId, NoLink} from 'app/client/ui/selectBy';
 import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
@@ -98,21 +98,17 @@ export interface IOptions extends ISelectOptions {
 
 const testId = makeTestId('test-wselect-');
 
-function maybeForms(): Array<'form'> {
-  return GRIST_FORMS_FEATURE() ? ['form'] : [];
-}
-
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableRef, isNewPage: boolean|undefined): IWidgetType[] {
   if (tableId !== 'New Table') {
-    return ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', ...maybeForms()];
+    return ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
-    return ['record', ...maybeForms()];
+    return ['record', 'form'];
   } else {
     // The type 'chart' makes little sense when creating a new table.
-    return ['record', 'single', 'detail', ...maybeForms()];
+    return ['record', 'single', 'detail', 'form'];
   }
 }
 
@@ -275,7 +271,7 @@ const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS
 const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a=>
   registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  'record', 'single', 'detail', ...maybeForms(), 'chart', ...finalListOfCustomWidgetToShow, 'custom'
+  'record', 'single', 'detail', 'form', 'chart', ...finalListOfCustomWidgetToShow, 'custom'
 ];
 
 

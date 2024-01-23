@@ -60,6 +60,7 @@ describe('FormView', function() {
   async function createFormWith(type: string, more = false) {
     await gu.addNewSection('Form', 'Table1');
 
+    // Make sure column D is not there.
     assert.isUndefined(await api.getTable(docId, 'Table1').then(t => t.D));
 
     // Add a text question
@@ -117,9 +118,61 @@ describe('FormView', function() {
     assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.D), [value]);
   }
 
-  async function expect(values: any[]) {
+  async function expectInD(values: any[]) {
     assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.D), values);
   }
+
+  it('updates creator panel when navigated away', async function() {
+    // Add 2 new pages.
+    await gu.addNewPage('Form', 'New Table', {tableName: 'TabA'});
+    await gu.renamePage('TabA');
+    await gu.addNewPage('Form', 'New Table', {tableName: 'TabB'});
+
+    // Open the creator panel on field tab
+    await gu.openColumnPanel();
+
+    // Select A column
+    await question('A').click();
+
+    // Make sure it is selected.
+    assert.equal(await selectedLabel(), 'A');
+
+    // And creator panel reflects it.
+    assert.equal(await driver.find('.test-field-label').value(), "A");
+
+    // Now switch to page TabA.
+    await gu.openPage('TabA');
+
+    // And select B column.
+    await question('B').click();
+    assert.equal(await selectedLabel(), 'B');
+
+    // Make sure creator panel reflects it (it didn't).
+    assert.equal(await driver.find('.test-field-label').value(), "B");
+
+    await gu.undo(2); // There was a bug with second undo.
+    await gu.undo();
+  });
+
+  it('triggers trigger formulas', async function() {
+    const formUrl = await createFormWith('Text');
+    // Add a trigger formula for this column.
+    await gu.showRawData();
+    await gu.getCell('D', 1).click();
+    await gu.openColumnPanel();
+    await driver.find(".test-field-set-trigger").click();
+    await gu.waitAppFocus(false);
+    await gu.sendKeys('"Hello from trigger"', Key.ENTER);
+    await gu.waitForServer();
+    await gu.closeRawTable();
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      await driver.find('input[type="submit"]').click();
+      await waitForConfirm();
+    });
+    await expectSingle('Hello from trigger');
+    await removeForm();
+  });
 
   it('can submit a form with Text field', async function() {
     const formUrl = await createFormWith('Text');
@@ -189,7 +242,7 @@ describe('FormView', function() {
     await gu.onNewTab(async () => {
       await driver.get(formUrl);
       // Make sure options are there.
-      assert.deepEqual(await driver.findAll('select[name="D"] option', e => e.getText()), ['Foo', 'Bar', 'Baz']);
+      assert.deepEqual(await driver.findAll('select[name="D"] option', e => e.getText()), ['', 'Foo', 'Bar', 'Baz']);
       await driver.findWait('select[name="D"]', 1000).click();
       await driver.find("option[value='Bar']").click();
       await driver.find('input[type="submit"]').click();
@@ -229,7 +282,7 @@ describe('FormView', function() {
       await driver.find('input[type="submit"]').click();
       await waitForConfirm();
     });
-    await expect([true, false]);
+    await expectInD([true, false]);
 
     // Remove the additional record added just now.
     await gu.sendActions([
@@ -258,6 +311,78 @@ describe('FormView', function() {
       await waitForConfirm();
     });
     await expectSingle(['L', 'Foo', 'Baz']);
+
+    await removeForm();
+  });
+
+  it('can submit a form with Ref field', async function() {
+    const formUrl = await createFormWith('Reference', true);
+    // Add some options.
+    await gu.openColumnPanel();
+    await gu.setRefShowColumn('A');
+    // Add 3 records to this table (it is now empty).
+    await gu.sendActions([
+      ['AddRecord', 'Table1', null, {A: 'Foo'}], // id 1
+      ['AddRecord', 'Table1', null, {A: 'Bar'}], // id 2
+      ['AddRecord', 'Table1', null, {A: 'Baz'}], // id 3
+    ]);
+    await gu.toggleSidePanel('right', 'close');
+    // We are in a new window.
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      assert.deepEqual(
+        await driver.findAll('select[name="D"] option', e => e.getText()),
+        ['', ...['Bar', 'Baz', 'Foo']]
+      );
+      assert.deepEqual(
+        await driver.findAll('select[name="D"] option', e => e.value()),
+        ['', ...['2', '3', '1']]
+      );
+      await driver.findWait('select[name="D"]', 1000).click();
+      await driver.find('option[value="2"]').click();
+      await driver.find('input[type="submit"]').click();
+      await waitForConfirm();
+    });
+    await expectInD([0, 0, 0, 2]);
+
+    // Remove 3 records.
+    await gu.sendActions([
+      ['BulkRemoveRecord', 'Table1', [1, 2, 3, 4]],
+    ]);
+
+    await removeForm();
+  });
+
+  it('can submit a form with RefList field', async function() {
+    const formUrl = await createFormWith('Reference List', true);
+    // Add some options.
+    await gu.openColumnPanel();
+
+    await gu.setRefShowColumn('A');
+    // Add 3 records to this table (it is now empty).
+    await gu.sendActions([
+      ['AddRecord', 'Table1', null, {A: 'Foo'}], // id 1
+      ['AddRecord', 'Table1', null, {A: 'Bar'}], // id 2
+      ['AddRecord', 'Table1', null, {A: 'Baz'}], // id 3
+    ]);
+    await gu.toggleSidePanel('right', 'close');
+    // We are in a new window.
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      await driver.findWait('input[name="D[]"][value="1"]', 1000).click();
+      await driver.findWait('input[name="D[]"][value="2"]', 1000).click();
+      assert.equal(await driver.find('.grist-checkbox:has(input[name="D[]"][value="1"])').getText(), 'Foo');
+      assert.equal(await driver.find('.grist-checkbox:has(input[name="D[]"][value="2"])').getText(), 'Bar');
+      assert.equal(await driver.find('.grist-checkbox:has(input[name="D[]"][value="3"])').getText(), 'Baz');
+      await driver.find('input[type="submit"]').click();
+      await waitForConfirm();
+    });
+    await expectInD([null, null, null, ['L', 2, 1]]);
+
+    // Remove 3 records.
+    await gu.sendActions([
+      ['BulkRemoveRecord', 'Table1', [1, 2, 3, 4]],
+    ]);
 
     await removeForm();
   });

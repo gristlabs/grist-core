@@ -1,12 +1,13 @@
 import {allCommands} from 'app/client/components/commands';
+import * as components from 'app/client/components/Forms/elements';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {BoxModel, BoxType, Place} from 'app/client/components/Forms/Model';
+import {BoxModel, Place} from 'app/client/components/Forms/Model';
 import {makeTestId, stopEvent} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
 import * as menus from 'app/client/ui2018/menus';
-import * as components from 'app/client/components/Forms/elements';
+import {BoxType} from 'app/common/Forms';
 import {Computed, dom, IDomArgs, MultiHolder} from 'grainjs';
 
 const t = makeT('FormView');
@@ -140,8 +141,9 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
           ]),
           menus.menuDivider(),
           menus.menuSubHeader(t('Building blocks')),
-          menus.menuItem(where(struct('Columns')), menus.menuIcon('Columns'), t("Columns")),
+          menus.menuItem(where(struct('Header')), menus.menuIcon('Headband'), t("Header")),
           menus.menuItem(where(struct('Paragraph')), menus.menuIcon('Paragraph'), t("Paragraph")),
+          menus.menuItem(where(struct('Columns')), menus.menuIcon('Columns'), t("Columns")),
           menus.menuItem(where(struct('Separator')), menus.menuIcon('Separator'), t("Separator")),
         ];
       };

@@ -12,8 +12,10 @@ import {marked} from 'marked';
 /**
  * All allowed boxes.
  */
-export type BoxType = 'Paragraph' | 'Section' | 'Columns' | 'Submit' | 'Placeholder' | 'Layout' | 'Field' |
- 'Label';
+export type BoxType =   'Paragraph' | 'Section' | 'Columns' | 'Submit'
+                      | 'Placeholder' | 'Layout' | 'Field' | 'Label'
+                      | 'Separator' | 'Header'
+                      ;
 
 /**
  * Number of fields to show in the form by default.
@@ -24,7 +26,7 @@ export const INITIAL_FIELDS_COUNT = 9;
  * Box model is a JSON that represents a form element. Every element can be converted to this element and every
  * ViewModel should be able to read it and built itself from it.
  */
-export interface Box extends Record<string, any> {
+export interface Box {
   type: BoxType,
   children?: Array<Box>,
 
@@ -33,6 +35,18 @@ export interface Box extends Record<string, any> {
   successURL?: string,
   successText?: string,
   anotherResponse?: boolean,
+
+  // Unique ID of the field, used only in UI.
+  id?: string,
+
+  // Some properties used by fields and stored in the column/field.
+  formRequired?: boolean,
+  // Used by Label and Paragraph.
+  text?: string,
+  // Used by Paragraph.
+  alignment?: string,
+  // Used by Field.
+  leaf?: number,
 }
 
 /**
@@ -83,10 +97,9 @@ export class RenderBox {
 
 class Label extends RenderBox {
   public override async toHTML() {
-    const text = this.box['text'];
-    const cssClass = this.box['cssClass'] || '';
+    const text = this.box.text || '';
     return `
-      <div class="grist-label ${cssClass}">${text || ''}</div>
+      <div class="grist-label">${text || ''}</div>
     `;
   }
 }
@@ -160,7 +173,7 @@ class Field extends RenderBox {
   }
 
   public async toHTML() {
-    const field = this.ctx.field(this.box['leaf']);
+    const field = this.box.leaf ? this.ctx.field(this.box.leaf) : null;
     if (!field) {
       return `<div class="grist-field">Field not found</div>`;
     }
@@ -232,6 +245,8 @@ class Choice extends BaseQuestion  {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     const choices: string[] = field.options.choices || [];
+    // Insert empty option.
+    choices.unshift('');
     return `
       <select name='${field.colId}' ${required} >
         ${choices.map((choice) => `<option value='${choice}'>${choice}</option>`).join('')}
@@ -272,7 +287,7 @@ class ChoiceList extends BaseQuestion  {
     const required = field.options.formRequired ? 'required' : '';
     const choices: string[] = field.options.choices || [];
     return `
-      <div name='${field.colId}' class='grist-choice-list ${required}'>
+      <div name='${field.colId}' class='grist-choice-list grist-checkbox-list ${required}'>
         ${choices.map((choice) => `
           <label>
             <input type='checkbox' name='${field.colId}[]' value='${choice}' />
@@ -288,16 +303,20 @@ class ChoiceList extends BaseQuestion  {
 
 class RefList extends BaseQuestion {
   public async input(field: FieldModel, context: RenderContext) {
+    const required = field.options.formRequired ? 'required' : '';
     const choices: [number, CellValue][] = (await field.values()) ?? [];
     // Sort by the second value, which is the display value.
     choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-    // Support for 20 choices, TODO: make it dynamic.
-    choices.splice(20);
+    // Support for 30 choices, TODO: make it dynamic.
+    choices.splice(30);
     return `
-      <div name='${field.colId}' class='grist-ref-list'>
+      <div name='${field.colId}' class='grist-ref-list grist-checkbox-list ${required}'>
         ${choices.map((choice) => `
           <label class='grist-checkbox'>
-            <input type='checkbox' name='${field.colId}[]' value='${String(choice[0])}' />
+            <input type='checkbox'
+                   data-grist-type='${field.type}'
+                   name='${field.colId}[]'
+                   value='${String(choice[0])}' />
             <span>
               ${String(choice[1] ?? '')}
             </span>
@@ -310,14 +329,17 @@ class RefList extends BaseQuestion {
 
 class Ref extends BaseQuestion {
   public async input(field: FieldModel) {
-    const choices: [number, CellValue][] = (await field.values()) ?? [];
+    const choices: [number|string, CellValue][] = (await field.values()) ?? [];
     // Sort by the second value, which is the display value.
     choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
     // Support for 1000 choices, TODO: make it dynamic.
     choices.splice(1000);
+    // Insert empty option.
+    choices.unshift(['', '']);
     // <option type='number' is not standard, we parse it ourselves.
+    const required = field.options.formRequired ? 'required' : '';
     return `
-      <select name='${field.colId}' class='grist-ref' data-grist-type='${field.type}'>
+      <select name='${field.colId}' class='grist-ref' data-grist-type='${field.type}' ${required}>
         ${choices.map((choice) => `<option value='${String(choice[0])}'>${String(choice[1] ?? '')}</option>`).join('')}
       </select>
     `;
@@ -351,4 +373,8 @@ const elements = {
   'Layout': Layout,
   'Field': Field,
   'Label': Label,
+
+  // Those are just aliases for Paragraph.
+  'Separator': Paragraph,
+  'Header': Paragraph,
 };

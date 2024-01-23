@@ -1,10 +1,11 @@
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {buildMenu} from 'app/client/components/Forms/Menu';
-import {Box, BoxModel} from 'app/client/components/Forms/Model';
+import {BoxModel} from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
 import {makeTestId} from 'app/client/lib/domUtils';
 import {icon} from 'app/client/ui2018/icons';
 import * as menus from 'app/client/ui2018/menus';
+import {Box} from 'app/common/Forms';
 import {inlineStyle, not} from 'app/common/gutil';
 import {bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled} from 'grainjs';
 
@@ -30,8 +31,7 @@ export class ColumnsModel extends BoxModel {
     if (!this.parent) { throw new Error('No parent'); }
 
     // We need to remove it from the parent, so find it first.
-    const droppedId = dropped.id;
-    const droppedRef = this.root().get(droppedId);
+    const droppedRef = dropped.id ? this.root().get(dropped.id) : null;
 
     // Now we simply insert it after this box.
     droppedRef?.removeSelf();
@@ -163,6 +163,10 @@ export class PlaceholderModel extends BoxModel {
       box.removeSelf();
     }
   }
+}
+
+export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): Box {
+  return {type: 'Paragraph', text, alignment};
 }
 
 export function Placeholder(): Box {

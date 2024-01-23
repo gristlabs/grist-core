@@ -1,12 +1,13 @@
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {Box, BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
+import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
 import * as css from 'app/client/components/Forms/styles';
 import {stopEvent} from 'app/client/lib/domUtils';
 import {refRecord} from 'app/client/models/DocModel';
 import {autoGrow} from 'app/client/ui/forms';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors} from 'app/client/ui2018/cssVars';
+import {Box} from 'app/common/Forms';
 import {Constructor} from 'app/common/gutil';
 import {
   BindableValue,
@@ -63,7 +64,11 @@ export class FieldModel extends BoxModel {
    * Field row id.
    */
   public get leaf() {
-    return this.props['leaf'] as Observable<number>;
+    return this.prop('leaf') as Observable<number>;
+  }
+
+  public get required() {
+    return this.prop('formRequired', false) as Observable<boolean|undefined>;
   }
 
   /**
@@ -260,41 +265,47 @@ class TextModel extends Question {
 }
 
 class ChoiceModel extends Question {
-  public renderInput() {
+  protected choices: Computed<string[]> = Computed.create(this, use => {
+    // Read choices from field.
+    const list = use(use(use(this.model.field).origCol).widgetOptionsJson.prop('choices')) || [];
+
+    // Make sure it is array of strings.
+    if (!Array.isArray(list) || list.some((v) => typeof v !== 'string')) {
+      return [];
+    }
+    return list;
+  });
+
+  protected choicesWithEmpty = Computed.create(this, use => {
+    const list = Array.from(use(this.choices));
+    // Add empty choice if not present.
+    if (list.length === 0 || list[0] !== '') {
+      list.unshift('');
+    }
+    return list;
+  });
+
+  public renderInput(): HTMLElement {
     const field = this.model.field;
-    const choices: Computed<string[]> = Computed.create(this, use => {
-      return use(use(use(field).origCol).widgetOptionsJson.prop('choices')) || [];
-    });
-    const typedChoices = Computed.create(this, use => {
-      const value = use(choices);
-      // Make sure it is array of strings.
-      if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) {
-        return [];
-      }
-      return value;
-    });
     return css.cssSelect(
       {tabIndex: "-1"},
       ignoreClick,
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(typedChoices, (choice) => dom('option', choice, {value: choice})),
+      dom.forEach(this.choicesWithEmpty, (choice) => dom('option', choice, {value: choice})),
     );
   }
 }
 
-class ChoiceListModel extends Question {
+class ChoiceListModel extends ChoiceModel {
   public renderInput() {
     const field = this.model.field;
-    const choices: Computed<string[]> = Computed.create(this, use => {
-      return use(use(use(field).origCol).widgetOptionsJson.prop('choices')) || [];
-    });
     return dom('div',
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(choices, (choice) => css.cssCheckboxLabel(
+      dom.forEach(this.choices, (choice) => css.cssCheckboxLabel(
         squareCheckbox(observable(false)),
         choice
       )),
-      dom.maybe(use => use(choices).length === 0, () => [
+      dom.maybe(use => use(this.choices).length === 0, () => [
         dom('div', 'No choices defined'),
       ]),
     );
@@ -393,12 +404,19 @@ class RefListModel extends Question {
 }
 
 class RefModel extends RefListModel {
+  protected withEmpty = Computed.create(this, use => {
+    const list = Array.from(use(this.choices));
+    // Add empty choice if not present.
+    list.unshift([0, '']);
+    return list;
+  });
+
   public renderInput() {
     return css.cssSelect(
       {tabIndex: "-1"},
       ignoreClick,
       dom.prop('name', this.model.colId),
-      dom.forEach(this.choices, (choice) => dom('option', String(choice[1] ?? ''), {value: String(choice[0])})),
+      dom.forEach(this.withEmpty, (choice) => dom('option', String(choice[1] ?? ''), {value: String(choice[0])})),
     );
   }
 }

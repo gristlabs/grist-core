@@ -1,9 +1,10 @@
 import * as style from './styles';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {buildMenu} from 'app/client/components/Forms/Menu';
-import {Box, BoxModel} from 'app/client/components/Forms/Model';
-import {dom, styled} from 'grainjs';
+import {BoxModel} from 'app/client/components/Forms/Model';
 import {makeTestId} from 'app/client/lib/domUtils';
+import {Box} from 'app/common/Forms';
+import {dom, styled} from 'grainjs';
 
 const testId = makeTestId('test-forms-');
 
@@ -53,8 +54,7 @@ export class SectionModel extends BoxModel {
       return null;
     }
     // We need to remove it from the parent, so find it first.
-    const droppedId = dropped.id;
-    const droppedRef = this.root().get(droppedId);
+    const droppedRef = dropped.id ? this.root().get(dropped.id) : null;
     if (droppedRef) {
       droppedRef.removeSelf();
     }

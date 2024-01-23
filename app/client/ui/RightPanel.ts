@@ -67,7 +67,8 @@ import {
   MultiHolder,
   Observable,
   styled,
-  subscribe
+  subscribe,
+  toKo
 } from 'grainjs';
 import * as ko from 'knockout';
 
@@ -955,12 +956,25 @@ export class RightPanel extends Disposable {
       return vsi && vsi.activeFieldBuilder();
     }));
 
-    const formView = owner.autoDispose(ko.computed(() => {
+    // Sorry for the acrobatics below, but grainjs are not reentred when the active section changes.
+    const viewInstance = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
-      return (vsi ?? null) as FormView|null;
+      if (!vsi || vsi.isDisposed() || !toKo(ko, this._isForm)) { return null; }
+      return vsi;
     }));
 
-    const selectedBox = Computed.create(owner, (use) => use(formView) && use(use(formView)!.selectedBox));
+    const formView = owner.autoDispose(ko.computed(() => {
+      const view = viewInstance() as unknown as FormView;
+      if (!view || !view.selectedBox) { return null; }
+      return view;
+    }));
+
+    const selectedBox = owner.autoDispose(ko.pureComputed(() => {
+      const view = formView();
+      if (!view) { return null; }
+      const box = toKo(ko, view.selectedBox)();
+      return box;
+    }));
     const selectedField = Computed.create(owner, (use) => {
       const box = use(selectedBox);
       if (!box) { return null; }
@@ -983,33 +997,38 @@ export class RightPanel extends Disposable {
       }
     });
 
-    return cssSection(
+    return domAsync(imports.loadViewPane().then(() => buildConfigContainer(cssSection(
       // Field config.
-      dom.maybe(selectedField, (field) => {
+      dom.maybeOwned(selectedField, (scope, field) => {
         const requiredField = field.widgetOptionsJson.prop('formRequired');
         // V2 thing.
         // const hiddenField = field.widgetOptionsJson.prop('formHidden');
         const defaultField = field.widgetOptionsJson.prop('formDefault');
         const toComputed = (obs: typeof defaultField) => {
-          const result = Computed.create(null, (use) => use(obs));
+          const result = Computed.create(scope, (use) => use(obs));
           result.onWrite(val => obs.setAndSave(val));
           return result;
         };
+        const fieldTitle = field.widgetOptionsJson.prop('question');
+
         return [
           cssLabel(t("Field title")),
           cssRow(
             cssTextInput(
-              fromKo(field.label),
-              (val) => field.displayLabel.saveOnly(val),
+              fromKo(fieldTitle),
+              (val) => fieldTitle.saveOnly(val).catch(reportError),
               dom.prop('readonly', use => use(field.disableModify)),
+              dom.prop('placeholder', use => use(field.displayLabel) || use(field.colId)),
+              testId('field-title'),
             ),
           ),
           cssLabel(t("Table column name")),
           cssRow(
             cssTextInput(
-              fromKo(field.colId),
-              (val) => field.column().colId.saveOnly(val),
+              fromKo(field.displayLabel),
+              (val) => field.displayLabel.saveOnly(val).catch(reportError),
               dom.prop('readonly', use => use(field.disableModify)),
+              testId('field-label'),
             ),
           ),
           // TODO: this is for V1 as it requires full cell editor here.
@@ -1038,7 +1057,11 @@ export class RightPanel extends Disposable {
           ]),
           cssSeparator(),
           cssLabel(t("Field rules")),
-          cssRow(labeledSquareCheckbox(toComputed(requiredField), t("Required field")),),
+          cssRow(labeledSquareCheckbox(
+            toComputed(requiredField),
+            t("Required field"),
+            testId('field-required'),
+          )),
           // V2 thing
           // cssRow(labeledSquareCheckbox(toComputed(hiddenField), t("Hidden field")),),
         ];
@@ -1071,7 +1094,7 @@ export class RightPanel extends Disposable {
       dom.maybe(u => !u(selectedColumn) && !u(selectedBox), () => [
         cssLabel(t('Layout')),
       ])
-    );
+    ))));
   }
 }
 

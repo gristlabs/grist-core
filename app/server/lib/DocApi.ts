@@ -166,6 +166,7 @@ handlebars.registerHelper('dompurify', (html: string) => {
   return new handlebars.SafeString(`
     <script data-html="${handlebars.escapeExpression(html)}">
       document.write(DOMPurify.sanitize(document.currentScript.getAttribute('data-html')));
+      document.currentScript.remove(); // remove the script tag so it is easier to inspect the DOM
     </script>
   `);
 });
