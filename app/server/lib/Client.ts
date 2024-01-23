@@ -526,11 +526,19 @@ export class Client {
     }
   }
 
+  private async _onMessage(message: string): Promise<void> {
+    try {
+      await this._onMessageImpl(message);
+    } catch (err) {
+      this._log.warn(null, 'onMessage error received for message "%s": %s', shortDesc(message), err.stack);
+    }
+  }
+
   /**
    * Processes a request from a client. All requests from a client get a response, at least to
    * indicate success or failure.
    */
-  private async _onMessage(message: string): Promise<void> {
+  private async _onMessageImpl(message: string): Promise<void> {
     const request = JSON.parse(message);
     if (request.beat) {
       // this is a heart beat, to keep the websocket alive.  No need to reply.

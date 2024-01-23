@@ -188,6 +188,24 @@ describe('Comm', function() {
       ]);
     });
 
+    it('should only log warning for malformed JSON data', async function () {
+      const logMessages  = await testUtils.captureLog('warn', async () => {
+        ws.send('foobar');
+      }, {waitForFirstLog: true});
+      testUtils.assertMatchArray(logMessages, [
+        /^warn: Client.* Unexpected token.*/
+      ]);
+    });
+
+    it('should log warning when null value is passed', async function () {
+      const logMessages  = await testUtils.captureLog('warn', async () => {
+        ws.send('null');
+      }, {waitForFirstLog: true});
+      testUtils.assertMatchArray(logMessages, [
+        /^warn: Client.*Cannot read properties of null*/
+      ]);
+    });
+
     it("should support app-level events correctly", async function() {
       comm!.broadcastMessage('fooType' as any, 'hello');
       comm!.broadcastMessage('barType' as any, 'world');
