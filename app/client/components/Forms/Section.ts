@@ -42,6 +42,9 @@ export class SectionModel extends BoxModel {
     );
   }
 
+  public override willAccept(): 'sibling' | 'child' | null {
+    return 'child';
+  }
 
   /**
    * Accepts box from clipboard and inserts it before this box or if this is a container box, then
@@ -54,7 +57,7 @@ export class SectionModel extends BoxModel {
       return null;
     }
     // We need to remove it from the parent, so find it first.
-    const droppedRef = dropped.id ? this.root().get(dropped.id) : null;
+    const droppedRef = dropped.id ? this.root().find(dropped.id) : null;
     if (droppedRef) {
       droppedRef.removeSelf();
     }

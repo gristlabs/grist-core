@@ -23,6 +23,8 @@ export type BoxType =   'Paragraph' | 'Section' | 'Columns' | 'Submit'
  */
 export const INITIAL_FIELDS_COUNT = 9;
 
+export const CHOOSE_TEXT = '— Choose —';
+
 /**
  * Box model is a JSON that represents a form element. Every element can be converted to this element and every
  * ViewModel should be able to read it and built itself from it.
@@ -217,8 +219,9 @@ abstract class BaseQuestion implements Question {
     // This might be HTML.
     const label = field.question;
     const name = this.name(field);
+    const required = field.options.formRequired ? 'grist-label-required' : '';
     return `
-      <label class='grist-label' for='${name}'>${label}</label>
+      <label class='grist-label ${required}' for='${name}'>${label}</label>
     `;
   }
 
@@ -255,12 +258,12 @@ class DateTime extends BaseQuestion {
 class Choice extends BaseQuestion  {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
-    const choices: string[] = field.options.choices || [];
+    const choices: Array<string|null> = field.options.choices || [];
     // Insert empty option.
-    choices.unshift('');
+    choices.unshift(null);
     return `
       <select name='${this.name(field)}' ${required} >
-        ${choices.map((choice) => `<option value='${choice}'>${choice}</option>`).join('')}
+        ${choices.map((choice) => `<option value='${choice ?? ''}'>${choice ?? CHOOSE_TEXT}</option>`).join('')}
       </select>
     `;
   }
@@ -278,11 +281,12 @@ class Bool extends BaseQuestion {
   }
 
   public input(field: FieldModel, context: RenderContext): string {
+    const requiredLabel = field.options.formRequired ? 'grist-label-required' : '';
     const required = field.options.formRequired ? 'required' : '';
     const label = field.question ? field.question : field.colId;
     return `
-      <label class='grist-switch'>
-        <input type='checkbox' name='${this.name(field)}' value="1" ${required} />
+      <label class='grist-switch ${requiredLabel}'>
+        <input type='checkbox' name='${this.name(field)}' value="1" ${required}  />
         <div class="grist-widget_switch grist-switch_transition">
           <div class="grist-switch_slider"></div>
           <div class="grist-switch_circle"></div>
@@ -346,7 +350,7 @@ class Ref extends BaseQuestion {
     // Support for 1000 choices, TODO: make it dynamic.
     choices.splice(1000);
     // Insert empty option.
-    choices.unshift(['', '']);
+    choices.unshift(['', CHOOSE_TEXT]);
     // <option type='number' is not standard, we parse it ourselves.
     const required = field.options.formRequired ? 'required' : '';
     return `

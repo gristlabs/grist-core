@@ -53,7 +53,10 @@ export abstract class BoxModel extends Disposable {
    */
   public cut = Observable.create(this, false);
 
-  public selected: Observable<boolean>;
+  /**
+   * Computed if this box is selected or not.
+   */
+  public selected: Computed<boolean>;
 
   /**
    * Any other dynamically added properties (that are not concrete fields in the derived classes)
@@ -134,10 +137,29 @@ export abstract class BoxModel extends Disposable {
    * Cuts self and puts it into clipboard.
    */
   public async cutSelf() {
-    [...this.root().iterate()].forEach(box => box?.cut.set(false));
+    [...this.root().traverse()].forEach(box => box?.cut.set(false));
     // Add this box as a json to clipboard.
     await navigator.clipboard.writeText(JSON.stringify(this.toJSON()));
     this.cut.set(true);
+  }
+
+  /**
+   * The way this box will accept dropped content.
+   * - sibling: it will add it as a sibling
+   * - child: it will add it as a child.
+   * - swap: swaps with the box
+   */
+  public willAccept(box?: Box|BoxModel|null): 'sibling' | 'child' | 'swap' | null {
+    // If myself and the dropped element share the same parent, and the parent is a column
+    // element, just swap us.
+    if (this.parent && box instanceof BoxModel && this.parent === box?.parent && box.parent?.type === 'Columns') {
+      return 'swap';
+    }
+
+    // If we are in column, we won't accept anything.
+    if (this.parent?.type === 'Columns') { return null; }
+
+    return 'sibling';
   }
 
   /**
@@ -152,7 +174,7 @@ export abstract class BoxModel extends Disposable {
     }
     // We need to remove it from the parent, so find it first.
     const droppedId = dropped.id;
-    const droppedRef = droppedId ? this.root().get(droppedId) : null;
+    const droppedRef = droppedId ? this.root().find(droppedId) : null;
     if (droppedRef) {
       droppedRef.removeSelf();
     }
@@ -182,6 +204,16 @@ export abstract class BoxModel extends Disposable {
     const newOne = BoxModel.new(box, this);
     this.children.splice(index, 1, newOne);
     return newOne;
+  }
+
+  public swap(box1: BoxModel, box2: BoxModel) {
+    const index1 = this.children.get().indexOf(box1);
+    const index2 = this.children.get().indexOf(box2);
+    if (index1 < 0 || index2 < 0) { throw new Error('Cannot swap boxes that are not in parent'); }
+    const box1JSON = box1.toJSON();
+    const box2JSON = box2.toJSON();
+    this.replace(box1, box2JSON);
+    this.replace(box2, box1JSON);
   }
 
   public append(box: Box) {
@@ -255,10 +287,11 @@ export abstract class BoxModel extends Disposable {
   /**
    * Finds a box with a given id in the tree.
    */
-  public get(droppedId: string): BoxModel | null {
+  public find(droppedId: string|undefined|null): BoxModel | null {
+    if (!droppedId) { return null; }
     for (const child of this.kids()) {
       if (child.id === droppedId) { return child; }
-      const found = child.get(droppedId);
+      const found = child.find(droppedId);
       if (found) { return found; }
     }
     return null;
@@ -341,10 +374,10 @@ export abstract class BoxModel extends Disposable {
     };
   }
 
-  public * iterate(): IterableIterator<BoxModel> {
+  public * traverse(): IterableIterator<BoxModel> {
     for (const child of this.kids()) {
       yield child;
-      yield* child.iterate();
+      yield* child.traverse();
     }
   }
 
@@ -387,7 +420,7 @@ export function unwrap<T>(val: T | Computed<T>): T {
   return val instanceof Computed ? val.get() : val;
 }
 
-export function parseBox(text: string) {
+export function parseBox(text: string): Box|null {
   try {
     const json = JSON.parse(text);
     return json && typeof json === 'object' && json.type ? json : null;

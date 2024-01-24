@@ -23,7 +23,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {Box, BoxType, INITIAL_FIELDS_COUNT} from "app/common/Forms";
 import {Events as BackboneEvents} from 'backbone';
-import {Computed, dom, Holder, IDomArgs, Observable} from 'grainjs';
+import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import defaults from 'lodash/defaults';
 import isEqual from 'lodash/isEqual';
 import {v4 as uuidv4} from 'uuid';
@@ -37,7 +37,7 @@ export class FormView extends Disposable {
   public viewPane: HTMLElement;
   public gristDoc: GristDoc;
   public viewSection: ViewSectionRec;
-  public selectedBox: Observable<BoxModel | null>;
+  public selectedBox: Computed<BoxModel | null>;
   public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
 
   protected sortedRows: SortedRowSet;
@@ -60,7 +60,38 @@ export class FormView extends Disposable {
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, {'addNewRow': false});
     this.menuHolder = Holder.create(this);
-    this.selectedBox = Observable.create(this, null);
+
+    // We will store selected box here.
+    const selectedBox = Observable.create(this, null as BoxModel|null);
+
+    // But we will guard it with a computed, so that if box is disposed we will clear it.
+    this.selectedBox = Computed.create(this, use => use(selectedBox));
+
+    // Prepare scope for the method calls.
+    const holder = Holder.create(this);
+
+    this.selectedBox.onWrite((box) => {
+      // Create new scope and dispose the previous one (using holder).
+      const scope = MultiHolder.create(holder);
+      if (!box) {
+        selectedBox.set(null);
+        return;
+      }
+      if (box.isDisposed()) {
+        throw new Error('Box is disposed');
+      }
+      selectedBox.set(box);
+
+      // Now subscribe to the new box, if it is disposed, remove it from the selected box.
+      // Note that the dispose listener itself is disposed when the box is switched as we don't
+      // care anymore for this event if the box is switched.
+      scope.autoDispose(box.onDispose(() => {
+        if (selectedBox.get() === box) {
+          selectedBox.set(null);
+        }
+      }));
+    });
+
     this.bundle = (clb) => this.gristDoc.docData.bundleActions('Saving form layout', clb, {nestInActiveBundle: true});
 
 
@@ -153,7 +184,7 @@ export class FormView extends Disposable {
             this.selectedBox.set(this.selectedBox.get()!.insertBefore(boxInClipboard));
           }
           // Remove the original box from the clipboard.
-          const cut = this._root.get(boxInClipboard.id);
+          const cut = this._root.find(boxInClipboard.id);
           cut?.removeSelf();
           await this._root.save();
           await navigator.clipboard.writeText('');
@@ -162,7 +193,7 @@ export class FormView extends Disposable {
       },
       nextField: () => {
         const current = this.selectedBox.get();
-        const all = [...this._root.iterate()];
+        const all = [...this._root.traverse()];
         if (!all.length) { return; }
         if (!current) {
           this.selectedBox.set(all[0]);
@@ -177,7 +208,7 @@ export class FormView extends Disposable {
       },
       prevField: () => {
         const current = this.selectedBox.get();
-        const all = [...this._root.iterate()];
+        const all = [...this._root.traverse()];
         if (!all.length) { return; }
         if (!current) {
           this.selectedBox.set(all[all.length - 1]);
@@ -191,12 +222,12 @@ export class FormView extends Disposable {
         }
       },
       lastField: () => {
-        const all = [...this._root.iterate()];
+        const all = [...this._root.traverse()];
         if (!all.length) { return; }
         this.selectedBox.set(all[all.length - 1]);
       },
       firstField: () => {
-        const all = [...this._root.iterate()];
+        const all = [...this._root.traverse()];
         if (!all.length) { return; }
         this.selectedBox.set(all[0]);
       },

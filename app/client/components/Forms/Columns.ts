@@ -26,22 +26,29 @@ export class ColumnsModel extends BoxModel {
     this.replace(box, Placeholder());
   }
 
-  // Dropping a box on a column will replace it.
+  // Dropping a box on this component (Columns) directly will add it as a new column.
   public accept(dropped: Box): BoxModel {
     if (!this.parent) { throw new Error('No parent'); }
 
     // We need to remove it from the parent, so find it first.
-    const droppedRef = dropped.id ? this.root().get(dropped.id) : null;
+    const droppedRef = dropped.id ? this.root().find(dropped.id) : null;
 
-    // Now we simply insert it after this box.
+    // If this is already my child, don't do anything.
+    if (droppedRef && droppedRef.parent === this) {
+      return droppedRef;
+    }
+
     droppedRef?.removeSelf();
 
-    return this.parent.replace(this, dropped);
+    return this.append(dropped);
   }
 
   public render(...args: IDomArgs<HTMLElement>): HTMLElement {
-    // Now render the dom.
+    const dragHover = Observable.create(null, false);
+
     const content: HTMLElement = style.cssColumns(
+      dom.autoDispose(dragHover),
+
       // Pass column count as a css variable (to style the grid).
       inlineStyle(`--css-columns-count`, this._columnCount),
 
@@ -52,11 +59,27 @@ export class ColumnsModel extends BoxModel {
       }),
 
       // Append + button at the end.
-      dom('div',
+      cssPlaceholder(
         testId('add'),
         icon('Plus'),
         dom.on('click', () => this.placeAfterListChild()(Placeholder())),
-        style.cssColumn.cls('-add-button')
+        style.cssColumn.cls('-add-button'),
+        style.cssColumn.cls('-drag-over', dragHover),
+
+        dom.on('dragleave', (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          // Just remove the style and stop propagation.
+          dragHover.set(false);
+        }),
+        dom.on('dragover', (ev) => {
+          // As usual, prevent propagation.
+          ev.stopPropagation();
+          ev.preventDefault();
+          // Here we just change the style of the element.
+          ev.dataTransfer!.dropEffect = "move";
+          dragHover.set(true);
+        }),
       ),
 
       ...args,
@@ -91,6 +114,8 @@ export class PlaceholderModel extends BoxModel {
     return cssPlaceholder(
       style.cssDrop(),
       testId('Placeholder'),
+      testId('element'),
+      dom.attr('data-box-model', String(box.type)),
       dom.autoDispose(scope),
 
       style.cssColumn.cls('-drag-over', dragHover),
@@ -133,12 +158,20 @@ export class PlaceholderModel extends BoxModel {
 
         // We need to remove it from the parent, so find it first.
         const droppedId = dropped.id;
-        const droppedRef = box.root().get(droppedId);
-        if (!droppedRef) { return; }
+        const droppedRef = box.root().find(droppedId);
+
+        // Make sure that the dropped stuff is not our parent.
+        if (droppedRef) {
+          for(const child of droppedRef.traverse()) {
+            if (this === child) {
+              return;
+            }
+          }
+        }
 
         // Now we simply insert it after this box.
         bundleChanges(() => {
-          droppedRef.removeSelf();
+          droppedRef?.removeSelf();
           const parent = box.parent!;
           parent.replace(box, dropped);
           parent.save().catch(reportError);
@@ -179,4 +212,8 @@ export function Columns(): Box {
 
 const cssPlaceholder = styled('div', `
   position: relative;
+  & * {
+    /* Otherwise it will emit drag events that we want to ignore to avoid flickering */
+    pointer-events: none;
+  }
 `);

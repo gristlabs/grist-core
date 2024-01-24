@@ -296,6 +296,20 @@ body {
   display: block;
 }
 
+.grist-label-required::after {
+  content: "*";
+  color: var(--primary, #16b378);
+  margin-left: 4px;
+}
+
+/**
+ * When an empty value is selected, show the placeholder in italic gray.
+ * The css is: every select that has an empty option selected, and is not active (so not open).
+ */
+.grist-form select:has(option[value='']:checked):not(:active) {
+  font-style: italic;
+  color: var(--light-gray, #bfbfbf);
+}
 
 /* Markdown reset */
 

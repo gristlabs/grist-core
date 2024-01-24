@@ -117,6 +117,46 @@ export function textbox(obs: Observable<string|undefined>, ...args: DomElementAr
   );
 }
 
+export const cssQuestion = styled('div', `
+
+`);
+
+export const cssRequiredWrapper = styled('div', `
+  margin-bottom: 8px;
+  min-height: 16px;
+  &-required {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px;
+  }
+  &-required:after {
+    content: "*";
+    color: ${colors.lightGreen};
+    font-size: 11px;
+    font-weight: 700;
+  }
+`);
+
+export const cssRenderedLabel = styled('div', `
+  font-weight: normal;
+  padding: 0px;
+  border: 0px;
+  width: 100%;
+  margin: 0px;
+  background: transparent;
+  cursor: pointer;
+  min-height: 16px;
+
+  color: ${colors.darkText};
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: pre-wrap;
+  &-placeholder {
+    font-style: italic
+  }
+`);
+
 export const cssEditableLabel = styled(textarea, `
   font-weight: normal;
   outline: none;
@@ -143,8 +183,17 @@ export const cssEditableLabel = styled(textarea, `
     outline-offset: 1px;
     border-radius: 2px;
   }
-  &-normal {
+`);
+
+export const cssLabelInline = styled('div', `
+  margin-bottom: 0px;
+  & .${cssRenderedLabel.className} {
     color: ${theme.mediumText};
+    font-size: 15px;
+    font-weight: normal;
+  }
+  & .${cssEditableLabel.className} {
+    color: ${colors.darkText};
     font-size: 15px;
     font-weight: normal;
   }
@@ -191,6 +240,10 @@ export const cssSelect = styled('select', `
 
   &-invalid {
     color: ${theme.inputInvalid};
+  }
+  &:has(option[value='']:checked) {
+    font-style: italic;
+    color: ${colors.slate};
   }
 `);
 
@@ -239,15 +292,13 @@ export const cssPlusIcon = styled(icon, `
  --icon-color: ${theme.controlPrimaryFg};
 `);
 
-export const cssPadding = styled('div', `
-`);
 
 export const cssColumns = styled('div', `
   --css-columns-count: 2;
   display: grid;
   grid-template-columns: repeat(var(--css-columns-count), 1fr) 32px;
   gap: 8px;
-  padding: 12px 4px;
+  padding: 8px 4px;
 
   .${cssFormView.className}-preview & {
     background: transparent;
@@ -293,7 +344,6 @@ export const cssColumn = styled('div', `
   }
 
   &-add-button {
-    align-self: flex-end;
   }
 
   .${cssFormView.className}-preview &-add-button {

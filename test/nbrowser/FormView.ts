@@ -1,4 +1,6 @@
+import {CHOOSE_TEXT} from 'app/common/Forms';
 import {UserAPI} from 'app/common/UserAPI';
+import {escapeRegExp} from 'lodash';
 import {addToRepl, assert, driver, Key, WebElement, WebElementPromise} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
@@ -11,10 +13,6 @@ describe('FormView', function() {
   let docId: string;
 
   const cleanup = setupTestSuite();
-
-  gu.withEnvironmentSnapshot({
-    'GRIST_EXPERIMENTAL_PLUGINS': '1'
-  });
 
   addToRepl('question', question);
   addToRepl('labels', readLabels);
@@ -245,7 +243,9 @@ describe('FormView', function() {
     await gu.onNewTab(async () => {
       await driver.get(formUrl);
       // Make sure options are there.
-      assert.deepEqual(await driver.findAll('select[name="D"] option', e => e.getText()), ['', 'Foo', 'Bar', 'Baz']);
+      assert.deepEqual(
+        await driver.findAll('select[name="D"] option', e => e.getText()), [CHOOSE_TEXT, 'Foo', 'Bar', 'Baz']
+      );
       await driver.findWait('select[name="D"]', 1000).click();
       await driver.find("option[value='Bar']").click();
       await driver.find('input[type="submit"]').click();
@@ -335,7 +335,7 @@ describe('FormView', function() {
       await driver.get(formUrl);
       assert.deepEqual(
         await driver.findAll('select[name="D"] option', e => e.getText()),
-        ['', ...['Bar', 'Baz', 'Foo']]
+        [CHOOSE_TEXT, ...['Bar', 'Baz', 'Foo']]
       );
       assert.deepEqual(
         await driver.findAll('select[name="D"] option', e => e.value()),
@@ -877,7 +877,7 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
     // And the question is inside a section.
-    assert.equal(await element('Section', 1).element('label', 4).value(), 'D');
+    assert.equal(await element('Section', 1).element('label', 4).getText(), 'D');
 
     // Make sure we can move that question around.
     await driver.withActions(a =>
@@ -895,7 +895,7 @@ describe('FormView', function() {
 
     await gu.undo();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
-    assert.equal(await element('Section', 1).element('label', 4).value(), 'D');
+    assert.equal(await element('Section', 1).element('label', 4).getText(), 'D');
 
     await revert();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
@@ -903,6 +903,10 @@ describe('FormView', function() {
 
   it('basic columns work', async function() {
     const revert = await gu.begin();
+
+    // Open the creator panel to make sure it works.
+    await gu.openColumnPanel();
+
     await plusButton().click();
     await clickMenu('Columns');
     await gu.waitForServer();
@@ -928,7 +932,7 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
     // The question D is in the columns.
-    assert.equal(await element('Columns').element('label').value(), 'D');
+    assert.equal(await element('Columns').element('label').getText(), 'D');
 
     // We can move it around.
     await driver.withActions(a =>
@@ -950,13 +954,12 @@ describe('FormView', function() {
     await gu.waitForServer();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
-    let allColumns = await driver.findAll('.test-forms-column');
 
-    assert.lengthOf(allColumns, 3);
-    assert.isTrue(await allColumns[0].matches('.test-forms-Placeholder'));
-    assert.isTrue(await allColumns[1].matches('.test-forms-question'));
-    assert.equal(await allColumns[1].find('.test-forms-label').value(), 'D');
-    assert.isTrue(await allColumns[2].matches('.test-forms-Placeholder'));
+    assert.equal(await elementCount('column'), 3);
+    assert.equal(await element('column', 1).type(), 'Placeholder');
+    assert.equal(await element('column', 2).type(), 'Field');
+    assert.equal(await element('column', 2).element('label').getText(), 'D');
+    assert.equal(await element('column', 3).type(), 'Placeholder');
 
     // Check that we can remove the question.
     await question('D').rightClick();
@@ -971,16 +974,183 @@ describe('FormView', function() {
     await gu.undo();
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
-    allColumns = await driver.findAll('.test-forms-column');
-    assert.lengthOf(allColumns, 3);
-    assert.isTrue(await allColumns[0].matches('.test-forms-Placeholder'));
-    assert.isTrue(await allColumns[1].matches('.test-forms-question'));
-    assert.equal(await allColumns[1].find('.test-forms-label').value(), 'D');
-    assert.isTrue(await allColumns[2].matches('.test-forms-Placeholder'));
+    assert.equal(await elementCount('column'), 3);
+    assert.equal(await element('column', 1).type(), 'Placeholder');
+    assert.equal(await element('column', 2).type(), 'Field');
+    assert.equal(await element('column', 2).element('label').getText(), 'D');
+    assert.equal(await element('column', 3).type(), 'Placeholder');
+
+    // There was a bug with paragraph and columns.
+    // Add a paragraph to first placeholder.
+    await element('Columns').element(`Placeholder`, 1).click();
+    await clickMenu('Paragraph');
+    await gu.waitForServer();
+
+    // Now click this paragraph.
+    await element('Columns').element(`Paragraph`, 1).click();
+    // And make sure there aren't any errors.
+    await gu.checkForErrors();
 
     await revert();
     assert.lengthOf(await driver.findAll('.test-forms-column'), 0);
     assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
+  });
+
+  it('drags and drops on columns properly', async function() {
+    const revert = await gu.begin();
+    // Open the creator panel to make sure it works.
+    await gu.openColumnPanel();
+
+    await plusButton().click();
+    await clickMenu('Columns');
+    await gu.waitForServer();
+
+    // Make sure that dragging columns on its placeholder doesn't do anything.
+    await driver.withActions(a =>
+      a.move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
+        .press()
+        .move({origin: element('Columns').element(`Placeholder`, 2).find(`.test-forms-drag`)})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    // Make sure we see form correctly.
+    const testNothingIsMoved = async () => {
+      assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
+      assert.deepEqual(await elements(), [
+        'Paragraph',
+        'Paragraph',
+        'Section',
+        'Paragraph',
+        'Paragraph',
+        'Field',
+        'Field',
+        'Field',
+        'Columns',
+        'Placeholder',
+        'Placeholder'
+      ]);
+    };
+
+    await testNothingIsMoved();
+
+    // Now do the same but move atop the + placeholder.
+    await driver.withActions(a =>
+      a.move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
+        .press()
+        .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+    await testNothingIsMoved();
+
+    // Now move C column into first column.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('C')})
+        .press()
+        .move({origin: element('Columns').element(`Placeholder`, 1).find(`.test-forms-drag`)})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    // Check that it worked.
+    assert.equal(await element('column', 1).type(), 'Field');
+    assert.equal(await element('column', 1).element('label').getText(), 'C');
+    assert.equal(await element('column', 2).type(), 'Placeholder');
+
+    // Try to move B over C.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('B')})
+        .press()
+        .move({origin: questionDrag('C')})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    // Make sure it didn't work.
+    assert.equal(await element('column', 1).type(), 'Field');
+    assert.equal(await element('column', 1).element('label').getText(), 'C');
+
+    // And B is still there.
+    assert.equal(await element('Field', 2).element('label').getText(), 'B');
+
+    // Now move B on the empty placholder.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('B')})
+        .press()
+        .move({origin: element('column', 2).drag()})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    // Make sure it worked.
+    assert.equal(await element('column', 1).type(), 'Field');
+    assert.equal(await element('column', 1).element('label').getText(), 'C');
+    assert.equal(await element('column', 2).type(), 'Field');
+    assert.equal(await element('column', 2).element('label').getText(), 'B');
+
+    // Now swap them moving C over B.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('C')})
+        .press()
+        .move({origin: questionDrag('B')})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+    assert.equal(await element('column', 1).element('label').getText(), 'B');
+    assert.equal(await element('column', 2).element('label').getText(), 'C');
+
+    // And swap them back.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('B')})
+        .press()
+        .move({origin: questionDrag('C')})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+    assert.equal(await element('column', 1).element('label').getText(), 'C');
+    assert.equal(await element('column', 2).element('label').getText(), 'B');
+
+    // Make sure we still have two columns only.
+    assert.lengthOf(await driver.findAll('.test-forms-column'), 2);
+
+    // Make sure draggin column on the add button doesn't add column.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('B')})
+        .press()
+        .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+
+    // Make sure we still have two columns only.
+    assert.lengthOf(await driver.findAll('.test-forms-column'), 2);
+    assert.equal(await element('column', 1).element('label').getText(), 'C');
+    assert.equal(await element('column', 2).element('label').getText(), 'B');
+
+    // Now move A over the + button to add a new column.
+    await driver.withActions(a =>
+      a.move({origin: questionDrag('A')})
+        .press()
+        .move({origin: driver.find('.test-forms-Columns .test-forms-add')})
+        .release()
+    );
+    await gu.waitForServer();
+    await gu.checkForErrors();
+    assert.lengthOf(await driver.findAll('.test-forms-column'), 3);
+    assert.equal(await element('column', 1).element('label').getText(), 'C');
+    assert.equal(await element('column', 2).element('label').getText(), 'B');
+    assert.equal(await element('column', 3).element('label').getText(), 'A');
+
+    await revert();
   });
 
   it('changes type of a question', async function() {
@@ -1043,11 +1213,12 @@ async function elementCount(type: string, parent?: WebElement) {
 }
 
 async function readLabels() {
-  return await driver.findAll('.test-forms-question .test-forms-label', el => el.value());
+  return await driver.findAll('.test-forms-question .test-forms-label', el => el.getText());
 }
 
 function question(label: string) {
-  return extra(gu.findValue(`.test-forms-label`, label).findClosest('.test-forms-editor'));
+  return extra(driver.findContent(`.test-forms-label`, new RegExp('^' + escapeRegExp(label) + '\\*?$'))
+                     .findClosest('.test-forms-editor'));
 }
 
 function questionDrag(label: string) {
@@ -1083,7 +1254,7 @@ function selected() {
 }
 
 function selectedLabel() {
-  return selected().find('.test-forms-label').value();
+  return selected().find('.test-forms-label-rendered').getText();
 }
 
 function hiddenColumns() {
@@ -1101,21 +1272,25 @@ type ExtraElement = WebElementPromise & {
    * A draggable element inside. This is 2x2px div to help with drag and drop.
    */
   drag: () => WebElementPromise,
+  type: () => Promise<string>,
 };
 
 function extra(el: WebElementPromise): ExtraElement {
   const webElement: any = el;
 
   webElement.rightClick = async function() {
-    await driver.withActions(a => a.contextClick(webElement));
+    await driver.withActions(a => a.contextClick(el));
   };
 
   webElement.element = function(type: string, index?: number) {
-    return element(type, index ?? 1, webElement);
+    return element(type, index ?? 1, el);
   };
 
   webElement.drag = function() {
-    return webElement.find('.test-forms-drag');
+    return el.find('.test-forms-drag');
+  };
+  webElement.type = async function() {
+    return await el.getAttribute('data-box-model');
   };
 
   return webElement;
@@ -1125,4 +1300,8 @@ async function arrow(key: string, times: number = 1) {
   for (let i = 0; i < times; i++) {
     await gu.sendKeys(key);
   }
+}
+
+async function elements() {
+  return await driver.findAll('.test-forms-element', el => el.getAttribute('data-box-model'));
 }
