@@ -2380,7 +2380,11 @@ export class ActiveDoc extends EventEmitter {
       // took longer, scale it up proportionately.
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
-      this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
+      log.rawDebug('ActiveDoc load timing', {
+        ...this.getLogMeta(docSession),
+        loadMs,
+        closeTimeout,
+      });
       const docUsage = getDocSessionUsage(docSession);
       if (!docUsage) {
         // This looks be the first time this installation of Grist is touching
