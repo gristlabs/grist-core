@@ -311,6 +311,8 @@ DetailView.prototype.buildFieldDom = function(field, row) {
       kd.toggleClass('scissors', isCopyActive),
       kd.toggleClass('record-add', row._isAddRow),
       dom.autoDispose(isCopyActive),
+      // Optional icon. Currently only use to show formula icon.
+      dom('div.field-icon'),
       fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected)
     )
   );

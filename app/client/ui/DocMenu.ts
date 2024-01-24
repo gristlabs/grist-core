@@ -15,6 +15,7 @@ import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildTutorialCard} from 'app/client/ui/TutorialCard';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
+import {makeShareDocUrl} from 'app/client/ui/ShareMenu';
 import {transition} from 'app/client/ui/transitions';
 import {shouldShowWelcomeCoachingCall, showWelcomeCoachingCall} from 'app/client/ui/WelcomeCoachingCall';
 import {shouldShowWelcomeQuestions, showWelcomeQuestions} from 'app/client/ui/WelcomeQuestions';
@@ -496,7 +497,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       resourceType: 'document',
       resourceId: doc.id,
       resource: doc,
-      linkToCopy: urlState().makeUrl(docUrl(doc)),
+      linkToCopy: makeShareDocUrl(doc),
       reload: () => api.getDocAccess(doc.id),
       appModel: home.app,
     });
