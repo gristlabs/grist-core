@@ -1,3 +1,4 @@
+import {isHiddenCol} from 'app/common/gristTypes';
 import {CellValue, GristType} from 'app/plugin/GristData';
 import {MaybePromise} from 'app/plugin/gutil';
 import _ from 'lodash';
@@ -70,6 +71,7 @@ export interface FieldModel {
   description: string;
   colId: string;
   type: string;
+  isFormula: boolean;
   options: FieldOptions;
   values(): MaybePromise<[number, CellValue][]>;
 }
@@ -202,10 +204,19 @@ abstract class BaseQuestion implements Question {
     `;
   }
 
+  public name(field: FieldModel): string {
+    const excludeFromFormData = (
+      field.isFormula ||
+      field.type === 'Attachments' ||
+      isHiddenCol(field.colId)
+    );
+    return `${excludeFromFormData ? '_' : ''}${field.colId}`;
+  }
+
   public label(field: FieldModel): string {
     // This might be HTML.
     const label = field.question;
-    const name = field.colId;
+    const name = this.name(field);
     return `
       <label class='grist-label' for='${name}'>${label}</label>
     `;
@@ -218,7 +229,7 @@ class Text extends BaseQuestion {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <input type='text' name='${field.colId}' ${required}/>
+      <input type='text' name='${this.name(field)}' ${required}/>
     `;
   }
 }
@@ -227,7 +238,7 @@ class Date extends BaseQuestion  {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <input type='date' name='${field.colId}' ${required}/>
+      <input type='date' name='${this.name(field)}' ${required}/>
     `;
   }
 }
@@ -236,7 +247,7 @@ class DateTime extends BaseQuestion {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <input type='datetime-local' name='${field.colId}' ${required}/>
+      <input type='datetime-local' name='${this.name(field)}' ${required}/>
     `;
   }
 }
@@ -248,7 +259,7 @@ class Choice extends BaseQuestion  {
     // Insert empty option.
     choices.unshift('');
     return `
-      <select name='${field.colId}' ${required} >
+      <select name='${this.name(field)}' ${required} >
         ${choices.map((choice) => `<option value='${choice}'>${choice}</option>`).join('')}
       </select>
     `;
@@ -271,7 +282,7 @@ class Bool extends BaseQuestion {
     const label = field.question ? field.question : field.colId;
     return `
       <label class='grist-switch'>
-        <input type='checkbox' name='${field.colId}' value="1" ${required}  />
+        <input type='checkbox' name='${this.name(field)}' value="1" ${required} />
         <div class="grist-widget_switch grist-switch_transition">
           <div class="grist-switch_slider"></div>
           <div class="grist-switch_circle"></div>
@@ -287,10 +298,10 @@ class ChoiceList extends BaseQuestion  {
     const required = field.options.formRequired ? 'required' : '';
     const choices: string[] = field.options.choices || [];
     return `
-      <div name='${field.colId}' class='grist-choice-list grist-checkbox-list ${required}'>
+      <div name='${this.name(field)}' class='grist-checkbox-list ${required}'>
         ${choices.map((choice) => `
-          <label>
-            <input type='checkbox' name='${field.colId}[]' value='${choice}' />
+          <label class='grist-checkbox'>
+            <input type='checkbox' name='${this.name(field)}[]' value='${choice}' />
             <span>
               ${choice}
             </span>
@@ -310,12 +321,12 @@ class RefList extends BaseQuestion {
     // Support for 30 choices, TODO: make it dynamic.
     choices.splice(30);
     return `
-      <div name='${field.colId}' class='grist-ref-list grist-checkbox-list ${required}'>
+      <div name='${this.name(field)}' class='grist-checkbox-list ${required}'>
         ${choices.map((choice) => `
           <label class='grist-checkbox'>
             <input type='checkbox'
                    data-grist-type='${field.type}'
-                   name='${field.colId}[]'
+                   name='${this.name(field)}[]'
                    value='${String(choice[0])}' />
             <span>
               ${String(choice[1] ?? '')}
@@ -339,7 +350,7 @@ class Ref extends BaseQuestion {
     // <option type='number' is not standard, we parse it ourselves.
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <select name='${field.colId}' class='grist-ref' data-grist-type='${field.type}' ${required}>
+      <select name='${this.name(field)}' class='grist-ref' data-grist-type='${field.type}' ${required}>
         ${choices.map((choice) => `<option value='${String(choice[0])}'>${String(choice[1] ?? '')}</option>`).join('')}
       </select>
     `;

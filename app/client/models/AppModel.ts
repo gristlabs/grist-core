@@ -48,6 +48,7 @@ const G = getBrowserGlobals('document', 'window');
 
 // TopAppModel is the part of the app model that persists across org and user switches.
 export interface TopAppModel {
+  options: TopAppModelOptions;
   api: UserAPI;
   isSingleOrg: boolean;
   productFlavor: ProductFlavor;
@@ -147,6 +148,11 @@ export interface AppModel {
   switchUser(user: FullUser, org?: string): Promise<void>;
 }
 
+export interface TopAppModelOptions {
+  /** Defaults to true. */
+  attachTheme?: boolean;
+}
+
 export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly isSingleOrg: boolean;
   public readonly productFlavor: ProductFlavor;
@@ -167,6 +173,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   constructor(
     window: {gristConfig?: GristLoadConfig},
     public readonly api: UserAPI = newUserAPIImpl(),
+    public readonly options: TopAppModelOptions = {}
   ) {
     super();
     setErrorNotifier(this.notifier);
@@ -350,7 +357,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   ) {
     super();
 
-    this._setTheme();
+    this._setUpTheme();
     this._recordSignUpIfIsNewUser();
 
     const state = urlState().state.get();
@@ -525,9 +532,14 @@ export class AppModelImpl extends Disposable implements AppModel {
     );
   }
 
-  private _setTheme() {
-    // Custom CSS is incompatible with custom themes.
-    if (getGristConfig().enableCustomCss) { return; }
+  private _setUpTheme() {
+    if (
+      this.topAppModel.options.attachTheme === false ||
+      // Custom CSS is incompatible with custom themes.
+      getGristConfig().enableCustomCss
+    ) {
+      return;
+    }
 
     attachCssThemeVars(this.currentTheme.get());
     this.autoDispose(this.currentTheme.addListener((newTheme, oldTheme) => {

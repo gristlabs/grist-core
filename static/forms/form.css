@@ -1,8 +1,8 @@
 html,
 body {
+  background-color: #f7f7f7;
   padding: 0px;
   margin: 0px;
-  background-color: #f7f7f7;
   line-height: 1.42857143;
 }
 
@@ -13,6 +13,7 @@ body {
 .grist-form-container {
   --icon-Tick: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTExLjYxODMwNjksNC42NzcwMjg0NyBDMTEuNzk2Njc4OSw0LjQ2NjIyNTE3IDEyLjExMjE2NzgsNC40Mzk5MzQ0MyAxMi4zMjI5NzExLDQuNjE4MzA2NDUgQzEyLjUzMzc3NDQsNC43OTY2Nzg0OCAxMi41NjAwNjUyLDUuMTEyMTY3NDEgMTIuMzgxNjkzMSw1LjMyMjk3MDcxIEw2LjUzMDY4ODI3LDEyLjIzNzc5NDYgTDMuNjQ2NDQ2NjEsOS4zNTM1NTI5OCBDMy40NTExODQ0Niw5LjE1ODI5MDg0IDMuNDUxMTg0NDYsOC44NDE3MDgzNSAzLjY0NjQ0NjYxLDguNjQ2NDQ2MiBDMy44NDE3MDg3Niw4LjQ1MTE4NDA2IDQuMTU4MjkxMjQsOC40NTExODQwNiA0LjM1MzU1MzM5LDguNjQ2NDQ2MiBMNi40NjkzMTE3MywxMC43NjIyMDQ1IEwxMS42MTgzMDY5LDQuNjc3MDI4NDcgWiIgZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9zdmc+);
   --icon-Minus: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJub256ZXJvIiB4PSIyIiB5PSI3LjUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxIiByeD0iLjUiLz48L3N2Zz4=);
+  --icon-Expand: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTgsOS4xNzQ2MzA1MiBMMTAuOTIxODI3Myw2LjE4OTAyMzIgQzExLjE2ODQ3NDIsNS45MzY5OTIyNyAxMS41NjgzNjc5LDUuOTM2OTkyMjcgMTEuODE1MDE0OCw2LjE4OTAyMzIgQzEyLjA2MTY2MTcsNi40NDEwNTQxMyAxMi4wNjE2NjE3LDYuODQ5Njc3MDEgMTEuODE1MDE0OCw3LjEwMTcwNzk0IEw4LDExIEw0LjE4NDk4NTE5LDcuMTAxNzA3OTQgQzMuOTM4MzM4MjcsNi44NDk2NzcwMSAzLjkzODMzODI3LDYuNDQxMDU0MTMgNC4xODQ5ODUxOSw2LjE4OTAyMzIgQzQuNDMxNjMyMTEsNS45MzY5OTIyNyA0LjgzMTUyNTc4LDUuOTM2OTkyMjcgNS4wNzgxNzI3LDYuMTg5MDIzMiBMOCw5LjE3NDYzMDUyIFoiIGZpbGw9IiMwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIgdHJhbnNmb3JtPSJyb3RhdGUoLTkwIDggOC41KSIvPjwvc3ZnPg==');
   --primary: #16b378;
   --primary-dark: #009058;
   --dark-gray: #D9D9D9;
@@ -29,20 +30,23 @@ body {
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-
-
 .grist-form-container .grist-form-confirm {
+  background-color: white;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  border: 1px solid var(--dark-gray);
+  border-radius: 3px;
+  max-width: 600px;
+  margin: 0px auto;
 }
 
 .grist-form {
   margin: 0px auto;
   background-color: white;
-  border: 1px solid #E8E8E8;
+  border: 1px solid var(--dark-gray);
   width: 600px;
   border-radius: 8px;
   display: flex;
@@ -71,7 +75,7 @@ body {
 
 .grist-form .grist-section {
   border-radius: 3px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid var(--dark-gray);
   padding: 16px 24px;
   padding: 24px;
   margin-top: 24px;
@@ -86,7 +90,7 @@ body {
 .grist-form input[type="datetime-local"],
 .grist-form input[type="number"] {
   padding: 4px 8px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid var(--dark-gray);
   border-radius: 3px;
   outline: none;
 }
@@ -110,9 +114,9 @@ body {
 .grist-form .grist-field input[type="text"] {
   padding: 4px 8px;
   border-radius: 3px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid var(--dark-gray);
   font-size: 13px;
-  outline-color: #16b378;
+  outline-color: var(--primary);
   outline-width: 1px;
   line-height: inherit;
   width: 100%;
@@ -125,8 +129,8 @@ body {
 }
 
 .grist-form input[type="submit"], .grist-form-container button {
-  background-color: #16b378;
-  border: 1px solid #16b378;
+  background-color: var(--primary);
+  border: 1px solid var(--primary);
   color: white;
   padding: 10px 24px;
   border-radius: 4px;
@@ -145,11 +149,6 @@ body {
   line-height: inherit;
 }
 
-
-.grist-form input[type="checkbox"] {
-  margin: 0px;
-}
-
 .grist-form .grist-columns {
   display: grid;
   grid-template-columns: repeat(var(--grist-columns-count), 1fr);
@@ -159,9 +158,9 @@ body {
 .grist-form select {
   padding: 4px 8px;
   border-radius: 3px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid var(--dark-gray);
   font-size: 13px;
-  outline-color: #16b378;
+  outline-color: var(--primary);
   outline-width: 1px;
   background: white;
   line-height: inherit;
@@ -169,7 +168,7 @@ body {
   width: 100%;
 }
 
-.grist-form .grist-choice-list {
+.grist-form .grist-checkbox-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -177,9 +176,6 @@ body {
 
 .grist-form .grist-checkbox {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  --color: var(--dark-gray);
 }
 .grist-form .grist-checkbox:hover {
   --color: var(--light-gray);
@@ -193,11 +189,9 @@ body {
   display: inline-block;
   width: 16px;
   height: 16px;
-  outline: none !important;
   --radius: 3px;
   position: relative;
-  margin: 0;
-  margin-right: 4px;
+  margin-right: 8px;
   vertical-align: baseline;
 }
 
@@ -249,7 +243,6 @@ body {
   background-color: var(--light);
 }
 
-
 .grist-form .grist-submit input[type="submit"]:hover, .grist-form-container button:hover {
   border-color: var(--primary-dark);
   background-color: var(--primary-dark);
@@ -257,7 +250,7 @@ body {
 
 .grist-power-by {
   margin-top: 24px;
-  color: var(--dark-text, #494949);
+  color: #494949;
   font-size: 13px;
   font-style: normal;
   font-weight: 600;
@@ -276,7 +269,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: var(--dark-text, #494949);
+  color: #494949;
   text-decoration: none;
 }
 
@@ -294,10 +287,11 @@ body {
 
 .grist-question > .grist-label {
   color: var(--dark, #262633);
-  font-size: 12px;
+  font-size: 13px;
   font-style: normal;
   font-weight: 700;
   line-height: 16px; /* 145.455% */
+  margin-top: 8px;
   margin-bottom: 8px;
   display: block;
 }
@@ -431,4 +425,101 @@ input:checked + .grist-switch_transition > .grist-switch_circle {
 .grist-switch_transition > .grist-switch_slider, .grist-switch_transition > .grist-switch_circle {
   -webkit-transition: .4s;
   transition: .4s;
+}
+
+.grist-form-confirm-container {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.grist-form-confirm-body {
+  padding: 48px 16px 16px 16px;
+}
+
+.grist-form-confirm-image {
+  width: 250px;
+  height: 215px;
+}
+
+.grist-form-confirm-text {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  margin-top: 32px;
+  white-space: prewrap;
+}
+
+.grist-form-confirm-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.grist-form-confirm-new-response-button {
+  position: relative;
+  outline: none;
+  border-style: none;
+  line-height: normal;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 24px;
+  min-height: 40px;
+  background: var(--primary, #16B378);
+  border-radius: 3px;
+  color: #FFFFFF;
+}
+
+.grist-form-confirm-new-response-button:hover {
+  background: var(--primary-dark);
+  cursor: pointer;
+}
+
+.grist-form-confirm-footer {
+  border-top: 1px solid var(--dark-gray);
+  padding: 8px 16px;
+  width: 100%;
+}
+
+.grist-form-confirm-footer .grist-power-by {
+  margin-top: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  border-top: none;
+}
+
+.grist-form-confirm-build-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.grist-form-confirm-build-form-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 16px;
+  text-decoration-line: underline;
+  color: var(--primary-dark);
+}
+
+.grist-form-icon {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  width: 16px;
+  height: 16px;
+  background-color: black;
+}
+
+.grist-form-icon-expand {
+  -webkit-mask-image: var(--icon-Expand);
+  background-color: var(--primary-dark);
 }

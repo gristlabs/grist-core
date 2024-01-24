@@ -31,7 +31,6 @@ import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
 import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
-import {autoGrow} from 'app/client/ui/forms';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
@@ -927,11 +926,15 @@ export class RightPanel extends Disposable {
     return [
       cssLabel(t("Submit button label")),
       cssRow(
-        cssTextInput(submitButton, (val) => submitButton.set(val)),
+        cssTextInput(submitButton, (val) => submitButton.set(val), {placeholder: 'Submit'}),
       ),
       cssLabel(t("Success text")),
       cssRow(
-        cssTextArea(successText, {onInput: true}, autoGrow(successText)),
+        cssTextArea(
+          successText,
+          {autoGrow: true, save: (val) => successText.set(val)},
+          {placeholder: 'Thank you! Your response has been recorded.'}
+        ),
       ),
       cssLabel(t("Submit another response")),
       cssRow(
@@ -944,7 +947,7 @@ export class RightPanel extends Disposable {
         labeledSquareCheckbox(redirection, t('Redirect automatically after submission')),
       ),
       cssRow(
-        cssTextInput(successURL, (val) => successURL.set(val)),
+        cssTextInput(successURL, (val) => successURL.set(val), {placeholder: t('Enter redirect URL')}),
         dom.show(redirection),
       ),
     ];

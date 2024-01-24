@@ -1510,6 +1510,7 @@ export class FlexServer implements GristServer {
       if (resp.headersSent || !this._sendAppPage) { return next(err); }
       try {
         const errPage = (
+          err.details?.code === 'FormNotFound' ? 'form-not-found' :
           err.status === 403 ? 'access-denied' :
           err.status === 404 ? 'not-found' :
           'other-error'

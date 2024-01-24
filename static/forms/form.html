@@ -38,13 +38,40 @@
           </a>
       </div>
     </form>
-    <div class='grist-form-confirm' style='display: none'>
-      <div>
-        {{ SUCCESS_TEXT }}
+
+    <div class="grist-form-confirm-container">
+      <div class='grist-form-confirm' style='display: none'>
+        <div class="grist-form-confirm-body">
+          <img class='grist-form-confirm-image' src="forms/form-submitted.svg">
+          <div class='grist-form-confirm-text'>
+            {{ SUCCESS_TEXT }}
+          </div>
+          {{#if ANOTHER_RESPONSE }}
+          <div class='grist-form-confirm-buttons'>
+            <button
+              class='grist-form-confirm-new-response-button'
+              onclick='window.location.reload()'
+            >
+              Submit new response
+            </button>
+          </div>
+          {{/if}}
+        </div>
+        <div class='grist-form-confirm-footer'>
+          <div class="grist-power-by">
+            <a href="https://www.getgrist.com" target="_blank">
+                <div>Powered by</div>
+                <div class="grist-logo"></div>
+              </a>
+          </div>
+          <div class='grist-form-confirm-build-form'>
+            <a class='grist-form-confirm-build-form-link' href="https://www.getgrist.com/forms/" target="_blank">
+              Build your own form
+              <div class="grist-form-icon grist-form-icon-expand"></div>
+            </a>
+          </div>
+        </div>
       </div>
-      {{#if ANOTHER_RESPONSE }}
-      <button onclick="window.location.reload()">Submit another response</button>
-      {{/if}}
     </div>
   </main>
   <script>

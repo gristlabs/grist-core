@@ -237,7 +237,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       res.send(html);
     } else {
       const error = await response.json();
-      throw new ApiError(error?.error ?? 'Failed to fetch form', response.status);
+      throw new ApiError(error?.error ?? 'An unknown error occurred.', response.status, error?.details);
     }
   }));
 }

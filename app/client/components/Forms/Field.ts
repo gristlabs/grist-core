@@ -369,11 +369,8 @@ class RefListModel extends Question {
   public renderInput() {
     return dom('div',
       dom.prop('name', this.model.colId),
-      dom.forEach(this.choices, (choice) => css.cssLabel(
-        dom('input',
-          dom.prop('name', this.model.colId),
-          {type: 'checkbox', value: String(choice[0]), style: 'margin-right: 5px;'}
-        ),
+      dom.forEach(this.choices, (choice) => css.cssCheckboxLabel(
+        squareCheckbox(observable(false)),
         String(choice[1] ?? '')
       )),
       dom.maybe(use => use(this.choices).length === 0, () => [

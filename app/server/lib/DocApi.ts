@@ -1493,6 +1493,7 @@ export class DocWorkerApi {
               question: options.question || col.label || colId,
               options,
               type,
+              isFormula: Boolean(col.isFormula && col.formula),
               // If this is reference field, we will need to fetch the referenced table.
               values: refValues(col)
             };
@@ -1529,7 +1530,7 @@ export class DocWorkerApi {
           ANOTHER_RESPONSE: Boolean(box.anotherResponse),
           // Not trusted content entered by user.
           CONTENT: html,
-          SUCCESS_TEXT: box.successText || `Thank you! Your response has been recorded.`,
+          SUCCESS_TEXT: box.successText || 'Thank you! Your response has been recorded.',
           SUCCESS_URL: redirectUrl,
         });
         res.status(200).send(renderedHtml);
@@ -1550,40 +1551,37 @@ export class DocWorkerApi {
       throw new ApiError('DocData not available', 500);
     }
 
+    const notFoundError = () => {
+      throw new ApiError("Oops! The form you're looking for doesn't exist.", 404, {
+        code: 'FormNotFound',
+      });
+    };
+
     // Check that the request is for a valid section in the document.
     const sections = docData.getMetaTable('_grist_Views_section');
     const section = sections.getRecord(sectionId);
-    if (!section) {
-      throw new ApiError('Form not found', 404);
-    }
+    if (!section) { return notFoundError(); }
 
     // Check that the section is for a form.
     const sectionShareOptions = safeJsonParse(section.shareOptions, {});
-    if (!sectionShareOptions.form) {
-      throw new ApiError('Form not found', 400);
-    }
+    if (!sectionShareOptions.form) { return notFoundError(); }
 
     // Check that the form is associated with a share.
     const viewId = section.parentId;
     const pages = docData.getMetaTable('_grist_Pages');
     const page = pages.getRecords().find(p => p.viewRef === viewId);
-    if (!page) {
-      throw new ApiError('Form not found', 404);
-    }
+    if (!page) { return notFoundError(); }
+
     const shares = docData.getMetaTable('_grist_Shares');
     const share = shares.getRecord(page.shareRef);
-    if (!share) {
-      throw new ApiError('Form not found', 404);
-    }
+    if (!share) { return notFoundError(); }
 
     // Check that the share's link id matches the expected link id.
-    if (share.linkId !== linkId) {
-      throw new ApiError('Form not found', 404);
-    }
+    if (share.linkId !== linkId) { return notFoundError(); }
 
     // Finally, check that both the section and share are published.
     if (!sectionShareOptions.publish || !safeJsonParse(share.options, {})?.publish) {
-      throw new ApiError('Form not published', 400);
+      throw new ApiError('Oops! This form is no longer published.', 404, {code: 'FormNotFound'});
     }
   }
 

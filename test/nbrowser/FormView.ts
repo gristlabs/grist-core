@@ -75,8 +75,11 @@ describe('FormView', function() {
     assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
 
     await driver.find('.test-forms-publish').click();
-    await driver.find('.test-modal-confirm').click();
+    if (await driver.find('.test-modal-confirm').isPresent()) {
+      await driver.find('.test-modal-confirm').click();
+    }
     await gu.waitForServer();
+
 
     // Now open the form in external window.
     await clipboard.lockAndPerform(async (cb) => {
@@ -387,6 +390,39 @@ describe('FormView', function() {
     await removeForm();
   });
 
+  it('can submit a form with a formula field', async function() {
+    const formUrl = await createFormWith('Text');
+
+    // Temporarily make A a formula column.
+    await gu.sendActions([
+      ['AddRecord', 'Table1', null, {A: 'Foo'}],
+      ['UpdateRecord', '_grist_Tables_column', 2, {formula: '"hello"', isFormula: true}],
+    ]);
+    assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), ['hello']);
+
+    await gu.onNewTab(async () => {
+      await driver.get(formUrl);
+      await driver.findWait('input[name="D"]', 1000).click();
+      await gu.sendKeys('Hello World');
+      await driver.find('input[name="_A"]').click();
+      await gu.sendKeys('goodbye');
+      await driver.find('input[type="submit"]').click();
+      await waitForConfirm();
+    });
+
+    // Make sure we see the new record.
+    await expectInD(['', 'Hello World']);
+
+    // And check that A was not modified.
+    assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), ['hello', 'hello']);
+
+    await gu.sendActions([
+      ['RemoveRecord', 'Table1', 1],
+      ['UpdateRecord', '_grist_Tables_column', 2, {formula: '', isFormula: false}],
+    ]);
+    await removeForm();
+  });
+
   it('can unpublish forms', async function() {
     const formUrl = await createFormWith('Text');
     await driver.find('.test-forms-unpublish').click();
@@ -395,12 +431,8 @@ describe('FormView', function() {
     await gu.onNewTab(async () => {
       await driver.get(formUrl);
       assert.match(
-        await driver.findWait('.test-error-header', 2000).getText(),
-        /Something went wrong/
-      );
-      assert.match(
-        await driver.findWait('.test-error-content', 2000).getText(),
-        /There was an error: Form not published\./
+        await driver.findWait('.test-error-text', 2000).getText(),
+        /Oops! This form is no longer published\./
       );
     });
 
@@ -412,6 +444,26 @@ describe('FormView', function() {
       await driver.get(formUrl);
       await driver.findWait('input[name="D"]', 1000);
     });
+  });
+
+  it('can stop showing warning when publishing or unpublishing', async function() {
+    // Click "Don't show again" in both modals and confirm.
+    await driver.find('.test-forms-unpublish').click();
+    await driver.find('.test-modal-dont-show-again').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+    await driver.find('.test-forms-publish').click();
+    await driver.find('.test-modal-dont-show-again').click();
+    await driver.find('.test-modal-confirm').click();
+    await gu.waitForServer();
+
+    // Check that the modals are no longer shown when publishing or unpublishing.
+    await driver.find('.test-forms-unpublish').click();
+    await gu.waitForServer();
+    assert.isFalse(await driver.find('.test-modal-title').isPresent());
+    await driver.find('.test-forms-publish').click();
+    await gu.waitForServer();
+    assert.isFalse(await driver.find('.test-modal-title').isPresent());
   });
 
   it('can create a form for a blank table', async function() {
@@ -431,7 +483,7 @@ describe('FormView', function() {
     assert.isTrue(await driver.findContent('.test-forms-submit', gu.exactMatch('Submit')).isDisplayed());
   });
 
-  it('doesnt generates fields when they are added', async function() {
+  it("doesn't generate fields when they are added", async function() {
     await gu.sendActions([
       ['AddVisibleColumn', 'Form', 'Choice',
         {type: 'Choice', widgetOption: JSON.stringify({choices: ['A', 'B', 'C']})}],
