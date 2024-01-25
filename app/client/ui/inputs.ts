@@ -1,3 +1,4 @@
+import {autoGrow} from 'app/client/ui/forms';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {dom, DomElementArg, IDomArgs, IInputOptions, Observable, styled, subscribe} from 'grainjs';
 
@@ -47,24 +48,50 @@ export function textInput(obs: Observable<string|undefined>, ...args: DomElement
   );
 }
 
+export interface ITextAreaOptions extends IInputOptions {
+  autoGrow?: boolean;
+  save?: (value: string) => void;
+}
+
 export function textarea(
-  obs: Observable<string>, options: IInputOptions, ...args: IDomArgs<HTMLTextAreaElement>
+  obs: Observable<string>, options?: ITextAreaOptions|null, ...args: IDomArgs<HTMLTextAreaElement>
 ): HTMLTextAreaElement {
 
-  const isValid = options.isValid;
+  const isValid = options?.isValid;
 
   function setValue(elem: HTMLTextAreaElement) {
-    obs.set(elem.value);
+    if (options?.save) { options.save(elem.value); }
+    else { obs.set(elem.value); }
     if (isValid) { isValid.set(elem.validity.valid); }
   }
 
+  const value = options?.autoGrow ? Observable.create(null, obs.get()) : null;
+  const trackInput = Boolean(options?.onInput || options?.autoGrow);
+  const onInput = trackInput ? dom.on('input', (e, elem: HTMLTextAreaElement) => {
+    if (options?.onInput) {
+      setValue(elem);
+    }
+    if (options?.autoGrow) {
+      value?.set(elem.value);
+    }
+  }) : null;
+
+
   return dom('textarea', ...args,
-    dom.prop('value', obs),
+    value ? [
+      dom.autoDispose(value),
+      dom.autoDispose(obs.addListener(v => value.set(v))),
+    ] : null,
+    dom.prop('value', use => use(obs) ?? ''),
     (isValid ?
       (elem) => dom.autoDisposeElem(elem,
         subscribe(obs, (use) => isValid.set(elem.checkValidity()))) :
       null),
-    options.onInput ? dom.on('input', (e, elem) => setValue(elem)) : null,
+    onInput,
+    options?.autoGrow ? [
+      autoGrow(value!),
+      dom.style('resize', 'none')
+    ] : null,
     dom.on('change', (e, elem) => setValue(elem)),
   );
 }

@@ -28,11 +28,7 @@ export class SectionFilter extends Disposable {
 
   private _openFilterOverride: Observable<OpenColumnFilter|null> = Observable.create(this, null);
 
-  constructor(
-    public viewSection: ViewSectionRec,
-    private _tableData: TableData,
-    private _resetExemptRows: () => void,
-  ) {
+  constructor(public viewSection: ViewSectionRec, private _tableData: TableData) {
     super();
 
     this.sectionFilterFunc = Computed.create(this, this._openFilterOverride, (use, openFilter) => {
@@ -65,10 +61,8 @@ export class SectionFilter extends Disposable {
    * Builds a filter function that combines the filter function of all the columns. You can use
    * `getFilterFunc(column, colFilter)` to customize the filter func for each column. It calls
    * `getFilterFunc` right away.
-   * This also immediately resets rows that were temporarily exempted from filtering.
    */
   public buildFilterFunc(getFilterFunc: ColFilterCB, use: UseCB) {
-    this._resetExemptRows();
     const filters = use(this.viewSection.filters);
     const funcs: Array<RowFilterFunc<UIRowId> | null> = filters.map(({filter, fieldOrColumn}) => {
       const colFilter = buildColFilter(use(filter), use(use(fieldOrColumn.origCol).type));

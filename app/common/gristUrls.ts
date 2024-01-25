@@ -313,7 +313,11 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
       hashParts.push('a1');
     }
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
-      const partValue = hash[key];
+      let enhancedRowId: string|undefined;
+      if (key === 'rowId' && hash.linkingRowIds?.length) {
+        enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
+      }
+      const partValue = enhancedRowId ?? hash[key];
       if (partValue) {
         const partKey = key === 'rowId' && state.hash?.rickRow ? 'rr' : key[0];
         hashParts.push(`${partKey}${partValue}`);
@@ -512,7 +516,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         'sectionId',
         'rowId',
         'colRef',
-      ] as Array<Exclude<keyof HashLink, 'popup' | 'rickRow' | 'recordCard'>>;
+      ] as Array<'sectionId'|'rowId'|'colRef'>;
       for (const key of keys) {
         let ch: string;
         if (key === 'rowId' && hashMap.has('rr')) {
@@ -525,6 +529,10 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         const value = hashMap.get(ch);
         if (key === 'rowId' && value === 'new') {
           link[key] = 'new';
+        } else if (key === 'rowId' && value && value.includes("-")) {
+          const rowIdParts = value.split("-").map(p => (p === 'new' ? p : parseInt(p, 10)));
+          link[key] = rowIdParts[0];
+          link.linkingRowIds = rowIdParts.slice(1);
         } else {
           link[key] = parseInt(value!, 10);
         }
@@ -1006,6 +1014,7 @@ export interface HashLink {
   popup?: boolean;
   rickRow?: boolean;
   recordCard?: boolean;
+  linkingRowIds?: UIRowId[];
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be

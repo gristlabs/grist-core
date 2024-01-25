@@ -22,7 +22,7 @@ export type CommandName =
   | 'printSection'
   | 'showRawData'
   | 'openWidgetConfiguration'
-  | 'maximizeActiveSection'
+  | 'expandSection'
   | 'leftPanelOpen'
   | 'rightPanelOpen'
   | 'videoTourToolsOpen'
@@ -95,7 +95,7 @@ export type CommandName =
   | 'addSection'
   | 'deleteSection'
   | 'collapseSection'
-  | 'expandSection'
+  | 'restoreSection'
   | 'deleteCollapsedSection'
   | 'duplicateRows'
   | 'sortAsc'
@@ -115,6 +115,8 @@ export type CommandName =
   | 'activateAssistant'
   | 'viewAsCard'
   | 'showColumns'
+  | 'createForm'
+  | 'insertField'
   ;
 
 
@@ -252,7 +254,7 @@ export const groups: CommendGroupDef[] = [{
       desc: 'Open Custom widget configuration screen',
     },
     {
-      name: 'maximizeActiveSection',
+      name: 'expandSection',
       keys: [],
       desc: 'Maximize the active section',
     },
@@ -280,6 +282,16 @@ export const groups: CommendGroupDef[] = [{
       name: 'viewAsCard',
       keys: ['Space'],
       desc: 'Show the record card widget of the selected record',
+    },
+    {
+      name: 'createForm',
+      keys: [],
+      desc: 'Creates form for active table',
+    },
+    {
+      name: 'insertField',
+      keys: [],
+      desc: 'Insert new column in default location',
     },
   ]
 }, {
@@ -590,7 +602,7 @@ export const groups: CommendGroupDef[] = [{
       keys: [],
       desc: 'Collapse the currently active viewsection'
     }, {
-      name: 'expandSection',
+      name: 'restoreSection',
       keys: [],
       desc: 'Expand collapsed viewsection'
     }, {

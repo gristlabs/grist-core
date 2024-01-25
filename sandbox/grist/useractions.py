@@ -2116,9 +2116,11 @@ class UserActions(object):
       title = ''
     section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
                                  title=title, borderWidth=1, defaultWidth=100)[0]
-    # TODO: We should address the automatic selection of fields for charts in a better way.
+    # TODO: We should address the automatic selection of fields for charts
+    # and forms in a better way.
+    limit = 2 if section_type == 'chart' else 9 if section_type == 'form' else None
     self._RebuildViewFields(tableId, section.id,
-                            limit=(2 if section_type == 'chart' else None))
+                            limit=limit)
     return section
 
   @useraction

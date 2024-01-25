@@ -3562,7 +3562,7 @@ export const choicesEditor = {
     return (await driver.find(".test-choice-list-entry-edit").getText()) === "Reset";
   },
   async reset() {
-    await driver.find(".test-choice-list-entry-edit").click();
+    await driver.findWait(".test-choice-list-entry-edit", 100).click();
   },
   async label() {
     return await driver.find(".test-choice-list-entry-row").getText();
@@ -3599,6 +3599,20 @@ export const choicesEditor = {
   }
 };
 
+export function findValue(selector: string, value: string|RegExp) {
+  const inner = async () => {
+    const all = await driver.findAll(selector);
+    const tested: string[] = [];
+    for(const el of all) {
+      const elValue = await el.value();
+      tested.push(elValue);
+      const found = typeof value === 'string' ? elValue === value : value.test(elValue);
+      if (found) { return el; }
+    }
+    throw new Error(`No element found matching ${selector}, tested ${tested.join(', ')}`);
+  };
+  return new WebElementPromise(driver, inner());
+}
 
 } // end of namespace gristUtils
 

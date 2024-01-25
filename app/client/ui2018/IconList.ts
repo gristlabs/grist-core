@@ -49,11 +49,13 @@ export type IconName = "ChartArea" |
   "Chat" |
   "Code" |
   "Collapse" |
+  "Columns" |
   "Convert" |
   "Copy" |
   "CrossBig" |
   "CrossSmall" |
   "Database" |
+  "Desktop" |
   "Dots" |
   "Download" |
   "DragDrop" |
@@ -94,6 +96,7 @@ export type IconName = "ChartArea" |
   "Message" |
   "Minimize" |
   "Minus" |
+  "Mobile" |
   "MobileChat" |
   "MobileChat2" |
   "NewNotification" |
@@ -102,6 +105,7 @@ export type IconName = "ChartArea" |
   "Page" |
   "PanelLeft" |
   "PanelRight" |
+  "Paragraph" |
   "Pencil" |
   "PinBig" |
   "PinSmall" |
@@ -123,6 +127,8 @@ export type IconName = "ChartArea" |
   "Robot" |
   "Script" |
   "Search" |
+  "Section" |
+  "Separator" |
   "Settings" |
   "Share" |
   "Sort" |
@@ -198,11 +204,13 @@ export const IconList: IconName[] = ["ChartArea",
   "Chat",
   "Code",
   "Collapse",
+  "Columns",
   "Convert",
   "Copy",
   "CrossBig",
   "CrossSmall",
   "Database",
+  "Desktop",
   "Dots",
   "Download",
   "DragDrop",
@@ -243,6 +251,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Message",
   "Minimize",
   "Minus",
+  "Mobile",
   "MobileChat",
   "MobileChat2",
   "NewNotification",
@@ -251,6 +260,7 @@ export const IconList: IconName[] = ["ChartArea",
   "Page",
   "PanelLeft",
   "PanelRight",
+  "Paragraph",
   "Pencil",
   "PinBig",
   "PinSmall",
@@ -272,6 +282,8 @@ export const IconList: IconName[] = ["ChartArea",
   "Robot",
   "Script",
   "Search",
+  "Section",
+  "Separator",
   "Settings",
   "Share",
   "Sort",

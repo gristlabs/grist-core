@@ -79,13 +79,11 @@ function BaseView(gristDoc, viewSectionModel, options) {
 
   // Create a section filter and a filtered row source that subscribes to its changes.
   // `sectionFilter` also provides `setFilterOverride()` to allow controlling a filter from a column menu.
-  // Whenever changes are made to filters, exempt rows are reset.
-  this._sectionFilter = SectionFilter.create(
-    this, this.viewSection, this.tableModel.tableData, () => this._exemptFromFilterRows.reset()
-  );
+  this._sectionFilter = SectionFilter.create(this, this.viewSection, this.tableModel.tableData);
   this._filteredRowSource = rowset.FilteredRowSource.create(this, this._sectionFilter.sectionFilterFunc.get());
   this._filteredRowSource.subscribeTo(this._mainRowSource);
   this.autoDispose(this._sectionFilter.sectionFilterFunc.addListener(filterFunc => {
+    this._exemptFromFilterRows.reset();
     this._filteredRowSource.updateFilter(filterFunc);
   }));
 
@@ -395,7 +393,8 @@ BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
   const fieldIndex = this.cursor.fieldIndex.peek();
   const field = fieldIndex !== null ? this.viewSection.viewFields().peek()[fieldIndex] : null;
   const colRef = field?.colRef.peek();
-  return {hash: {sectionId, rowId, colRef}};
+  const linkingRowIds = sectionId ? this.gristDoc.getLinkingRowIds(sectionId) : undefined;
+  return {hash: {sectionId, rowId, colRef, linkingRowIds}};
 }
 
 // Copy an anchor link for the current row to the clipboard.

@@ -1,3 +1,4 @@
+import {ShareInfo} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
@@ -1221,7 +1222,7 @@ export class HomeDBManager extends EventEmitter {
         // to the regular path through this method.
         workspace: this.unwrapQueryResult<Workspace>(
           await this.getWorkspace({userId: this.getSupportUserId()},
-                                  this._exampleWorkspaceId)),
+                                   this._exampleWorkspaceId)),
         aliases: [],
         access: 'editors',  // a share may have view/edit access,
                             // need to check at granular level
@@ -3089,6 +3090,22 @@ export class HomeDBManager extends EventEmitter {
     });
   }
 
+  public async getShareByKey(key: string) {
+    return this._connection.createQueryBuilder()
+      .select('shares')
+      .from(Share, 'shares')
+      .where('shares.key = :key', {key})
+      .getOne();
+  }
+
+  public async getShareByLinkId(docId: string, linkId: string) {
+    return this._connection.createQueryBuilder()
+      .select('shares')
+      .from(Share, 'shares')
+      .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
+      .getOne();
+  }
+
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
     if (accountId === 0) {
       throw new Error(`getLimit: called for not existing account`);
@@ -4932,9 +4949,4 @@ export function getDocAuthKeyFromScope(scope: Scope): DocAuthKey {
   const {urlId, userId, org} = scope;
   if (!urlId) { throw new Error('document required'); }
   return {urlId, userId, org};
-}
-
-interface ShareInfo {
-  linkId: string;
-  options: string;
 }

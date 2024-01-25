@@ -401,6 +401,30 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  ratedHelpCenterArticle: {
+    category: 'HelpCenter',
+    description: 'Sent by HelpCenter when user clicks thumbs-up or thumbs-down',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      url: {
+        description: 'The URL of the visited page.',
+        dataType: 'string',
+      },
+      rating: {
+        description: 'Feedback from user ("thumbsUp" or "thumbsDown")',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   documentCreated: {
     description: 'Triggered when a document is created.',
     minimumTelemetryLevel: Level.limited,
@@ -1414,6 +1438,7 @@ export const TelemetryEvents = StringUnion(
   'beaconArticleViewed',
   'beaconEmailSent',
   'beaconSearch',
+  'ratedHelpCenterArticle',
   'documentCreated',
   'documentForked',
   'documentOpened',

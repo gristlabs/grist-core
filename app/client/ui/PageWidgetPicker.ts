@@ -59,6 +59,15 @@ export interface IPageWidget {
   section: number;
 }
 
+export const DefaultPageWidget: () => IPageWidget = () => ({
+  type: 'record',
+  table: null,
+  summarize: false,
+  columns: [],
+  link: NoLink,
+  section: 0,
+});
+
 // Creates a IPageWidget from a ViewSectionRec.
 export function toPageWidget(section: ViewSectionRec): IPageWidget {
   const link = linkId({

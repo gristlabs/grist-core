@@ -7,3 +7,5 @@ import times = require('lodash/times');
 export function arrayRepeat<T>(count: number, value: T): T[] {
   return times(count, constant(value));
 }
+
+export type MaybePromise<T> = T | Promise<T>;

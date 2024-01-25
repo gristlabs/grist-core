@@ -80,6 +80,7 @@ import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {Document} from 'app/gen-server/entity/Document';
+import {Share} from 'app/gen-server/entity/Share';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -88,6 +89,7 @@ import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
+import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
@@ -140,7 +142,6 @@ import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
 import zipObject = require('lodash/zipObject');
-import { getMetaTables } from './DocApi';
 
 bluebird.promisifyAll(tmp);
 
@@ -1367,11 +1368,7 @@ export class ActiveDoc extends EventEmitter {
    * TODO: reconcile the two ways there are now of preparing a fork.
    */
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
-    const dbManager = this.getHomeDbManager();
-    if (!dbManager) {
-      throw new Error('HomeDbManager not available');
-    }
-
+    const dbManager = this._getHomeDbManagerOrFail();
     const user = getDocSessionUser(docSession);
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
@@ -1386,7 +1383,7 @@ export class ActiveDoc extends EventEmitter {
     if (docSession.authorizer) {
       doc = await docSession.authorizer.getDoc();
     } else if (docSession.req) {
-      doc = await this.getHomeDbManager()?.getDoc(docSession.req);
+      doc = await dbManager.getDoc(docSession.req);
     }
     if (!doc) { throw new Error('Document not found'); }
 
@@ -1844,8 +1841,12 @@ export class ActiveDoc extends EventEmitter {
         options: String(vals['options'][idx]),
       };
     });
-    await this.getHomeDbManager()?.syncShares(this.docName, goodShares);
+    await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
     return goodShares;
+  }
+
+  public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share|null> {
+    return await this._getHomeDbManagerOrFail().getShareByLinkId(this.docName, linkId);
   }
 
   /**
@@ -2787,6 +2788,16 @@ export class ActiveDoc extends EventEmitter {
       await this.shutdown();
     }
   }
+
+  private _getHomeDbManagerOrFail() {
+    const dbManager = this.getHomeDbManager();
+    if (!dbManager) {
+      throw new Error('HomeDbManager not available');
+    }
+
+    return dbManager;
+  }
+
 }
 
 // Helper to initialize a sandbox action bundle with no values.

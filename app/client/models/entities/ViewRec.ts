@@ -1,7 +1,7 @@
 import {BoxSpec} from 'app/client/components/Layout';
 import {KoArray} from 'app/client/lib/koArray';
 import * as koUtil from 'app/client/lib/koUtil';
-import {DocModel, IRowModel, recordSet, refRecord} from 'app/client/models/DocModel';
+import {DocModel, IRowModel, PageRec, recordSet, refRecord} from 'app/client/models/DocModel';
 import {TabBarRec, ViewSectionRec} from 'app/client/models/DocModel';
 import * as modelUtil from 'app/client/models/modelUtil';
 import * as ko from 'knockout';
@@ -30,6 +30,8 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
 
   // If the active section is removed, set the next active section to be the default.
   _isActiveSectionGone: ko.Computed<boolean>;
+
+  page: ko.Computed<PageRec|null>;
 }
 
 export function createViewRec(this: ViewRec, docModel: DocModel): void {
@@ -75,6 +77,11 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
     if (gone) {
       this.activeSectionId(0);
     }
+  }));
+
+  this.page = this.autoDispose(ko.pureComputed(() => {
+    const viewRef = this.id();
+    return docModel.allPages().find(p => p.viewRef() === viewRef) ?? null;
   }));
 }
 

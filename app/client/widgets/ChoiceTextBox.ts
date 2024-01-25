@@ -9,7 +9,8 @@ import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {choiceToken, DEFAULT_BACKGROUND_COLOR, DEFAULT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
-import {Computed, dom, styled} from 'grainjs';
+import {WidgetType} from 'app/common/widgetTypes';
+import {Computed, dom, styled, UseCB} from 'grainjs';
 
 export type IChoiceOptions = Style
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
@@ -84,8 +85,14 @@ export class ChoiceTextBox extends NTextBox {
       use => !use(disabled)
         && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions')))
       );
+
+    // If we are on forms, we don't want to show alignment options.
+    const notForm = (use: UseCB) => {
+      return use(use(this.field.viewSection).parentKey) !== WidgetType.Form;
+    };
+
     return [
-      super.buildConfigDom(),
+      dom.maybe(notForm, () => super.buildConfigDom()),
       cssLabel(t('CHOICES')),
       cssRow(
         dom.autoDispose(disabled),

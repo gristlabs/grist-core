@@ -34,6 +34,7 @@ import {ColumnRec, createColumnRec} from 'app/client/models/entities/ColumnRec';
 import {createDocInfoRec, DocInfoRec} from 'app/client/models/entities/DocInfoRec';
 import {createFilterRec, FilterRec} from 'app/client/models/entities/FilterRec';
 import {createPageRec, PageRec} from 'app/client/models/entities/PageRec';
+import {createShareRec, ShareRec} from 'app/client/models/entities/ShareRec';
 import {createTabBarRec, TabBarRec} from 'app/client/models/entities/TabBarRec';
 import {createTableRec, TableRec} from 'app/client/models/entities/TableRec';
 import {createValidationRec, ValidationRec} from 'app/client/models/entities/ValidationRec';
@@ -127,6 +128,7 @@ export class DocModel {
   public tabBar: MTM<TabBarRec> = this._metaTableModel("_grist_TabBar", createTabBarRec);
   public validations: MTM<ValidationRec> = this._metaTableModel("_grist_Validations", createValidationRec);
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
+  public shares: MTM<ShareRec> = this._metaTableModel("_grist_Shares", createShareRec);
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
   public filters: MTM<FilterRec> = this._metaTableModel("_grist_Filters", createFilterRec);
   public cells: MTM<CellRec> = this._metaTableModel("_grist_Cells", createCellRec);
@@ -149,6 +151,7 @@ export class DocModel {
 
   public allTabs: KoArray<TabBarRec> = this.tabBar.createAllRowsModel('tabPos');
 
+  public allPages: ko.Computed<PageRec[]>;
   /** Pages that are shown in the menu. These can include censored pages if they have children. */
   public menuPages: ko.Computed<PageRec[]>;
   // Excludes pages hidden by ACL rules or other reasons (e.g. doc-tour)
@@ -217,8 +220,9 @@ export class DocModel {
 
     // Get a list of only the visible pages.
     const allPages = this.pages.createAllRowsModel('pagePos');
+    this.allPages = ko.computed(() => allPages.all());
     this.menuPages = ko.computed(() => {
-      const pagesToShow = allPages.all().filter(p => !p.isSpecial()).sort((a, b) => a.pagePos() - b.pagePos());
+      const pagesToShow = this.allPages().filter(p => !p.isSpecial()).sort((a, b) => a.pagePos() - b.pagePos());
       // Helper to find all children of a page.
       const children = memoize((page: PageRec) => {
         const following = pagesToShow.slice(pagesToShow.indexOf(page) + 1);
@@ -230,7 +234,7 @@ export class DocModel {
       const hide = memoize((page: PageRec): boolean => page.isCensored() && children(page).every(p => hide(p)));
       return pagesToShow.filter(p => !hide(p));
     });
-    this.visibleDocPages = ko.computed(() => allPages.all().filter(p => !p.isHidden()));
+    this.visibleDocPages = ko.computed(() => this.allPages().filter(p => !p.isHidden()));
 
     this.hasDocTour = ko.computed(() => this.visibleTableIds.all().includes('GristDocTour'));
 

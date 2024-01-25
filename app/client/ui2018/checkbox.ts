@@ -110,6 +110,7 @@ export const cssLabelText = styled('span', `
   font-weight: initial;   /* negate bootstrap */
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 16px;
 `);
 
 type CheckboxArg = DomArg<HTMLInputElement>;

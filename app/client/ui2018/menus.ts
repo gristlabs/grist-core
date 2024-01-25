@@ -132,7 +132,7 @@ export function menuItemSubmenu(
 }
 
 /**
- * Subheader as a menu item.
+ * Header with a submenu (used in collapsed menus scenarios).
  */
 export function menuSubHeaderMenu(
   submenu: weasel.MenuCreateFunc,
@@ -557,7 +557,7 @@ export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
 
-// when element name is, to long, it will be trimmed with ellipsis ("...")
+// when element name is too long, it will be trimmed with ellipsis ("...")
 export function menuItemTrimmed(
   action: (item: HTMLElement, ev: Event) => void, label: string, ...args: DomElementArg[]) {
   return menuItem(action, cssEllipsisLabel(label), ...args);
@@ -584,7 +584,7 @@ export function menuItemCmd(
     typeof label === 'string'
           ? dom('span', label, testId('cmd-name'))
           : dom('div', label(), testId('cmd-name')),
-    cmd.humanKeys.length ? cssCmdKey(cmd.humanKeys[0]) : null,
+    cmd.humanKeys?.length ? cssCmdKey(cmd.humanKeys[0]) : null,
     cssMenuItemCmd.cls(''), // overrides some menu item styles
     ...args
   );
@@ -826,3 +826,52 @@ const cssMenuSearchInput = styled('input', `
     color: ${theme.inputPlaceholderFg};
   }
 `);
+
+type MenuDefinition = Array<MenuItem>;
+
+
+interface MenuItem {
+  label?: string;
+  header?: string;
+  action?: string | (() => void);
+  disabled?: boolean;
+  icon?: IconName;
+  shortcut?: string;
+  submenu?: MenuDefinition;
+  maxSubmenu?: number;
+  type?: 'header' | 'separator' | 'item'; // default to item.
+}
+
+export function buildMenu(definition: MenuDefinition, onclick?: (action: string) => any) {
+  function *buildMenuItems(current: MenuDefinition): IterableIterator<Element> {
+    for (const item of current) {
+      const isHeader = item.type === 'header' || item.header;
+      // If this is header with submenu.
+      if (isHeader && item.submenu) {
+        yield menuSubHeaderMenu(() => [...buildMenuItems(item.submenu!)], {}, item.header ?? item.label);
+        continue;
+      } else if (isHeader) {
+        yield menuSubHeader(item.header ?? item.label);
+        continue;
+      }
+
+      // Not a header, so it's an item or a separator.
+      if (item.type === 'separator') {
+        yield menuDivider();
+        continue;
+      }
+
+      // If this is an item with submenu.
+      if (item.submenu) {
+        yield menuItemSubmenu(() => [...buildMenuItems(item.submenu!)], {}, item.label);
+        continue;
+      }
+
+      // Not a submenu, so it's a regular item.
+      const action = typeof item.action === 'function' ? item.action : () => onclick?.(item.action as string);
+      yield menuItem(action, item.icon && menuIcon(item.icon), item.label, item.shortcut && cssCmdKey(item.shortcut));
+
+    }
+  }
+  return menu((ctl) => [...buildMenuItems(definition)], {});
+}

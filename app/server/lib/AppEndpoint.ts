@@ -226,4 +226,18 @@ export function attachAppEndpoint(options: AttachOptions): void {
           ...docMiddleware, docHandler);
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
+  app.get('/forms/:urlId([^/]+)/:sectionId', ...middleware, expressWrap(async (req, res) => {
+    const formUrl = gristServer.getHomeUrl(req,
+      `/api/s/${req.params.urlId}/forms/${req.params.sectionId}`);
+    const response = await fetch(formUrl, {
+      headers: getTransitiveHeaders(req),
+    });
+    if (response.status === 200) {
+      const html = await response.text();
+      res.send(html);
+    } else {
+      const error = await response.json();
+      throw new ApiError(error?.error ?? 'Failed to fetch form', response.status);
+    }
+  }));
 }

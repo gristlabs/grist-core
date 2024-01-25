@@ -135,6 +135,7 @@ export class DocWorker {
       waitForInitialization:    activeDocMethod.bind(null, 'viewers', 'waitForInitialization'),
       getUsersForViewAs:        activeDocMethod.bind(null, 'viewers', 'getUsersForViewAs'),
       getAccessToken:           activeDocMethod.bind(null, 'viewers', 'getAccessToken'),
+      getShare:                 activeDocMethod.bind(null, 'owners', 'getShare'),
     });
   }
 
@@ -193,7 +194,7 @@ export class DocWorker {
  * Translates calls from the browser client into calls of the form
  * `activeDoc.method(docSession, ...args)`.
  */
-async function activeDocMethod(role: 'viewers'|'editors'|null, methodName: string, client: Client,
+async function activeDocMethod(role: 'viewers'|'editors'|'owners'|null, methodName: string, client: Client,
                                docFD: number, ...args: any[]): Promise<any> {
   const docSession = client.getDocSession(docFD);
   const activeDoc = docSession.activeDoc;

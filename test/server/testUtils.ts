@@ -126,25 +126,32 @@ export function setTmpLogLevel(level: string, optCaptureFunc?: (level: string, m
  */
 export async function captureLog(
   minLevel: string, callback: (messages: string[]) => void|Promise<void>,
-  options: {timestamp: boolean} = {timestamp: false}
+  options: {timestamp?: boolean, waitForFirstLog?: boolean} = {timestamp: false, waitForFirstLog: false}
 ): Promise<string[]> {
   const messages: string[] = [];
   const prevLogLevel = log.transports.file.level;
   const name = _.uniqueId('CaptureLog');
 
-  function capture(level: string, msg: string, meta: any) {
-    if ((log as any).levels[level] <= (log as any).levels[minLevel]) {  // winston types are off?
-      const timePrefix = options.timestamp ? new Date().toISOString() + ' ' : '';
-      messages.push(`${timePrefix}${level}: ${msg}${meta ? ' ' + serialize(meta) : ''}`);
+  const captureFirstLogPromise = new Promise((resolve) => {
+    function capture(level: string, msg: string, meta: any) {
+      if ((log as any).levels[level] <= (log as any).levels[minLevel]) {  // winston types are off?
+        const timePrefix = options.timestamp ? new Date().toISOString() + ' ' : '';
+        messages.push(`${timePrefix}${level}: ${msg}${meta ? ' ' + serialize(meta) : ''}`);
+        resolve(null);
+      }
     }
-  }
 
-  if (!process.env.VERBOSE) {
-    log.transports.file.level = -1 as any;   // Suppress all log output.
-  }
-  log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel});  // types are off.
+    if (!process.env.VERBOSE) {
+      log.transports.file.level = -1 as any;   // Suppress all log output.
+    }
+    log.add(CaptureTransport as any, { captureFunc: capture, name, level: minLevel});  // types are off.
+  });
+
   try {
     await callback(messages);
+    if (options.waitForFirstLog) {
+      await captureFirstLogPromise;
+    }
   } finally {
     log.remove(name);
     log.transports.file.level = prevLogLevel;
