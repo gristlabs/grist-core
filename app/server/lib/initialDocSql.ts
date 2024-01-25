@@ -39,10 +39,6 @@ CREATE TABLE IF NOT EXISTS "_grist_Shares" (id INTEGER PRIMARY KEY, "linkId" TEX
 CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent);
 COMMIT;
 `;
-TRIGGER BY TABLE ID --------
-////////////////////////////
-TRIGGER BY TABLE ID --------
-////////////////////////////
 
 export const GRIST_DOC_WITH_TABLE1_SQL = `
 PRAGMA foreign_keys=OFF;
@@ -102,5 +98,3 @@ CREATE TABLE IF NOT EXISTS "Table1" (id INTEGER PRIMARY KEY, "manualSort" NUMERI
 CREATE INDEX _grist_Attachments_fileIdent ON _grist_Attachments(fileIdent);
 COMMIT;
 `;
-TRIGGER BY TABLE ID --------
-////////////////////////////
