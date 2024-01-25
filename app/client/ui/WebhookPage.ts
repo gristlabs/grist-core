@@ -60,6 +60,12 @@ const WEBHOOK_COLUMNS = [
     }),
   },
   {
+    id: 'vt_webhook_fc10',
+    colId: 'columnIds',
+    type: 'Text',
+    label: 'Columns (séparé par des ;)',
+  },
+  {
     id: 'vt_webhook_fc4',
     colId: 'enabled',
     type: 'Bool',
@@ -107,6 +113,7 @@ const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
   'name', 'memo',
   'eventTypes', 'url',
   'tableId', 'isReadyColumn',
+  'columnIds',
   'webhookId', 'enabled',
   'status'
 ];
@@ -127,7 +134,7 @@ class WebhookExternalTable implements IExternalTable {
   public name = 'GristHidden_WebhookTable';
   public initialActions = _prepareWebhookInitialActions(this.name);
   public saveableFields = [
-    'tableId', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
+    'tableId', 'columnIds', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
   public webhooks: ObservableArray<WebhookSummary> =  observableArray<WebhookSummary>([]);
 
@@ -178,6 +185,25 @@ class WebhookExternalTable implements IExternalTable {
     const {delta} = editor;
     const updates = new Set(delta.updateRows);
     const addsAndUpdates = new Set([...delta.addRows, ...delta.updateRows]);
+    // if (delta.columnDeltas.tableId) {
+    //   // TODO CHANGE THIS CODE !!! the first [1] have ti correspond to the webhook id
+    //   // if tableId has been changes it appears in columnDeltas,
+    //   // the deltas are indexed by the webhookId and is an array [oldValue, newValue]
+    //   const newTableId = delta.columnDeltas.tableId[1][1];
+    //   if (newTableId) {
+    //     const choicesColIds = editor.gristDoc.docModel.dataTables[newTableId[0]].tableData.getColIds();
+    //     // CAN NOT DO THAT !!! : modification pour toutes les instances ! il faut faire juste un filtre
+    //     // ou rendre no selectionnable les colonnes qui ne correspondent pas à la table sélectionnée
+    //     editor.gristDoc.docData.receiveAction([
+    //       'UpdateRecord', '_grist_Tables_column', 'vt_webhook_fc10' as any, {
+    //         widgetOptions: JSON.stringify({
+    //           widget: 'TextBox',
+    //           alignment: 'left',
+    //           choices: choicesColIds,
+    //         })
+    //       }]);
+    //   }
+    // }
     for (const recId of addsAndUpdates) {
       const rec = editor.getRecord(recId);
       if (!rec) {
@@ -264,6 +290,27 @@ class WebhookExternalTable implements IExternalTable {
           choices,
         })
       }]);
+    // const choicesColumns = editor.gristDoc.docModel.visibleTables.all().reduce(
+    //   (obj1, tableRec) => {
+    //     const listCol = tableRec.columns().peek().map(columnRec => columnRec.colId());
+    //     return { ...obj1, [tableRec.tableId()]: listCol };
+    //   }, {}
+    // );
+    // const initialArray: string[] = [];
+    // const choicesColumns = editor.gristDoc.docModel.visibleTables.all().reduce(
+    //   (obj, tableRec) => {
+    //     const listCol = tableRec.columns().peek().map(columnRec => tableRec.tableId() + ": " + columnRec.colId());
+    //     return [ ...obj, ...listCol];
+    //   }, initialArray
+    // );
+    // editor.gristDoc.docData.receiveAction([
+    //   'UpdateRecord', '_grist_Tables_column', 'vt_webhook_fc10' as any, {
+    //     widgetOptions: JSON.stringify({
+    //       widget: 'TextBox',
+    //       alignment: 'left',
+    //       choices: choicesColumns,
+    //     })
+    //   }]);
   }
 
   private _initalizeWebhookList(webhooks: WebhookSummary[]){

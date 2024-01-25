@@ -980,6 +980,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 
   public async addWebhook(webhook: WebhookSubscribe & {tableId: string}): Promise<{webhookId: string}> {
     const {tableId} = webhook;
+    console.log("INSIDE the User API addWebhook");
+    console.log(webhook);
     return this.requestJson(`${this._url}/tables/${tableId}/_subscribe`, {
       method: 'POST',
       body: JSON.stringify(
@@ -988,6 +990,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async updateWebhook(webhook: WebhookUpdate): Promise<void> {
+    console.log("-------- INSIDE the User API updateWebhook");
+    console.log(webhook);
     return this.requestJson(`${this._url}/webhooks/${webhook.id}`, {
       method: 'PATCH',
       body: JSON.stringify(webhook.fields),

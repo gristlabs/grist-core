@@ -15,6 +15,7 @@ import {
   WebhookSummaryCollection,
   WebhookUsage
 } from 'app/common/Triggers';
+import { GristObjCode } from 'app/plugin/GristData';
 import {decodeObject} from 'app/plugin/objtypes';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
@@ -177,11 +178,15 @@ export class DocTriggers {
     const triggersByTableRef = _.groupBy(triggersTable.getRecords().filter(t => t.enabled), "tableRef");
     const triggersByTableId: Array<[string, Trigger[]]> = [];
 
+    console.log("TRIGGER BY TABLE ID --------");
+
     // First we need a list of columns which must be included in full in the action summary
     const isReadyColIds: string[] = [];
     for (const tableRef of Object.keys(triggersByTableRef).sort()) {
       const triggers = triggersByTableRef[tableRef];
       const tableId = getTableId(Number(tableRef))!;  // groupBy makes tableRef a string
+      console.log(triggersByTableId);
+      console.log(triggers);
       triggersByTableId.push([tableId, triggers]);
       for (const trigger of triggers) {
         if (trigger.isReadyColRef) {
@@ -199,11 +204,16 @@ export class DocTriggers {
     const tasks: Task[] = [];
 
     // For each table in the document which is monitored by one or more triggers...
+    console.log("////////////////////////////");
     for (const [tableId, triggers] of triggersByTableId) {
       const tableDelta = summary.tableDeltas[tableId];
       // ...if the monitored table was modified by the summarized actions,
       // fetch the modified/created records and note the work that needs to be done.
       if (tableDelta) {
+        console.log("---------------------------------------");
+        console.log(tableDelta);
+        console.log(tableDelta.columnDeltas);
+        console.log(tableDelta.columnDeltas.Region);
         const recordDeltas = this._getRecordDeltas(tableDelta);
         const filters = {id: [...recordDeltas.keys()]};
 
@@ -288,6 +298,10 @@ export class DocTriggers {
             // Other fields used to register this webhook.
             eventTypes: decodeObject(t.eventTypes) as string[],
             isReadyColumn: getColId(t.isReadyColRef) ?? null,
+            columnIds: [
+              GristObjCode.List,
+              t.columnRefList?.slice(1).map(columnRef => getColId(columnRef as number))
+            ].join("; "),
             tableId: getTableId(t.tableRef) ?? null,
             // For future use - for now every webhook is enabled.
             enabled: t.enabled,
@@ -502,6 +516,7 @@ export class DocTriggers {
           for (const action of webhookActions) {
             const colId = this._getColId(trigger.isReadyColRef); // no validation
             const tableId = this._getTableId(trigger.tableRef);
+            // TODO copy that for columns !!
             const error = `isReadyColumn is not valid: colId ${colId} does not belong to ${tableId}`;
             this._stats.logInvalid(action.id, error).catch(e => log.error("Webhook stats failed to log", e));
           }
