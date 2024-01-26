@@ -12,6 +12,7 @@ import {IAttachedCustomWidget} from "app/common/widgetTypes";
 import {UIRowId} from 'app/plugin/GristAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
+import slugify from 'slugify';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -1051,13 +1052,11 @@ function shouldIncludeSlug(doc: {id: string, urlId: string|null}): boolean {
   return doc.id.startsWith(doc.urlId) || doc.urlId.startsWith(SHARE_KEY_PREFIX);
 }
 
-// Convert the name of a document into a slug.  Only alphanumerics are retained,
-// and spaces are replaced with hyphens.
-// TODO: investigate whether there's a better option with unicode than just
-// deleting it, seems unfair to languages using anything other than unaccented
-// Latin characters.
+// Convert the name of a document into a slug. The slugify library normalizes unicode characters,
+// replaces those with a reasonable ascii representation. Only alphanumerics are retained, and
+// spaces are replaced with hyphens.
 function nameToSlug(name: string): string {
-  return name.trim().replace(/ /g, '-').replace(/[^-a-zA-Z0-9]/g, '').replace(/---*/g, '-');
+  return slugify(name, {strict: true});
 }
 
 // Returns a slug for the given docId/urlId/name, or undefined if a slug should

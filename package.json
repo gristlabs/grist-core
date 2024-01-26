@@ -182,6 +182,7 @@
     "redlock": "3.1.2",
     "saml2-js": "2.0.5",
     "short-uuid": "3.1.1",
+    "slugify": "1.6.6",
     "tmp": "0.0.33",
     "ts-interface-checker": "1.0.2",
     "typeorm": "0.3.9",
