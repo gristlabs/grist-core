@@ -45,7 +45,6 @@ import {
   getTableId,
   isSchemaAction,
   TableDataAction,
-  TableRecordValue,
   toTableDataAction,
   UserAction
 } from 'app/common/DocActions';
@@ -81,6 +80,7 @@ import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {Document} from 'app/gen-server/entity/Document';
 import {Share} from 'app/gen-server/entity/Share';
+import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -1115,7 +1115,7 @@ export class ActiveDoc extends EventEmitter {
   public async getTableCols(
     docSession: OptDocSession,
     tableId: string,
-    includeHidden = false): Promise<TableRecordValue[]> {
+    includeHidden = false): Promise<RecordWithStringId[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
@@ -1123,7 +1123,7 @@ export class ActiveDoc extends EventEmitter {
     // colId is pulled out of fields and used as the root id
     const fieldNames = without(Object.keys(columnData), "colId");
 
-    const columns: TableRecordValue[] = [];
+    const columns: RecordWithStringId[] = [];
     (columnData.colId as string[]).forEach((id, index) => {
       const hasNoId = !id;
       const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
@@ -1132,7 +1132,7 @@ export class ActiveDoc extends EventEmitter {
       if (skip) {
         return;
       }
-      const column: TableRecordValue = { id, fields: { colRef: colRefs[index] } };
+      const column: RecordWithStringId = { id, fields: { colRef: colRefs[index] } };
       for (const key of fieldNames) {
         column.fields[key] = columnData[key][index];
       }

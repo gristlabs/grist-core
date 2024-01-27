@@ -100,17 +100,6 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       testId('settings'),
     ),
     cssSpacer(),
-    // TODO make this look nice, then make it visible when the console is ready.
-    // For now let's keep it private, so this shouldn't be uncommented.
-    // cssPageEntry(
-    //   cssPageLink(
-    //     cssPageIcon('Code'),
-    //     cssPageIcon('FieldLink'),
-    //     cssLinkText(t("API Console")),
-    //     {href: window.origin + '/apiconsole', target: '_blank'}
-    //   ),
-    //   testId('api'),
-    // ),
     dom.maybe(docPageModel.currentDoc, (doc) => {
       const ex = buildExamples().find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }

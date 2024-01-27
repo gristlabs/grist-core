@@ -352,7 +352,7 @@ export interface UserAPI {
   getOrgs(merged?: boolean): Promise<Organization[]>;
   getWorkspace(workspaceId: number): Promise<Workspace>;
   getOrg(orgId: number|string): Promise<Organization>;
-  getOrgWorkspaces(orgId: number|string): Promise<Workspace[]>;
+  getOrgWorkspaces(orgId: number|string, includeSupport?: boolean): Promise<Workspace[]>;
   getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary>;
   getTemplates(onlyFeatured?: boolean): Promise<Workspace[]>;
   getDoc(docId: string): Promise<Document>;
@@ -540,8 +540,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/orgs/${orgId}`, { method: 'GET' });
   }
 
-  public async getOrgWorkspaces(orgId: number|string): Promise<Workspace[]> {
-    return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=1`,
+  public async getOrgWorkspaces(orgId: number|string, includeSupport = true): Promise<Workspace[]> {
+    return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=${includeSupport ? 1 : 0}`,
       { method: 'GET' });
   }
 
@@ -906,6 +906,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     super(options);
     this._url = `${url}/api/docs/${docId}`;
   }
+
+  public getBaseUrl(): string { return this._url; }
 
   public async getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues> {
     return this._getRecords(tableId, 'data', options);

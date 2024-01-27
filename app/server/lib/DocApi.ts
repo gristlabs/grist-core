@@ -458,8 +458,8 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/tables', canView,
       withDoc(async (activeDoc, req, res) => {
         const records = await getTableRecords(activeDoc, req, { optTableId: "_grist_Tables" });
-        const tables = records.map((record) => ({
-          id: record.fields.tableId,
+        const tables: Types.RecordWithStringId[] = records.map((record) => ({
+          id: String(record.fields.tableId),
           fields: {
             ..._.omit(record.fields, "tableId"),
             tableRef: record.id,

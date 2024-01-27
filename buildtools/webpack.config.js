@@ -13,6 +13,7 @@ module.exports = {
   entry: {
     main: "app/client/app",
     errorPages: "app/client/errorMain",
+    apiconsole: "app/client/apiconsole",
     billing: "app/client/billingMain",
     // Include client test harness if it is present (it won't be in
     // docker image).
