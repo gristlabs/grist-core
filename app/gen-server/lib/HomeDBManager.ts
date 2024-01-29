@@ -2387,7 +2387,7 @@ export class HomeDBManager extends EventEmitter {
 
     // Also fetch the organization ACLs so we can determine inherited rights.
     const orgQuery = this._buildOrgWithACLRulesQuery(scope, workspace.org.id);
-    const orgQueryResult = await verifyEntity(orgQuery, { discardPermissionsCheck: true });
+    const orgQueryResult = await verifyEntity(orgQuery, { skipPermissionCheck: true });
     if (orgQueryResult.status !== 200) {
       // If the query for the org failed, return the failure result.
       return orgQueryResult;
@@ -4772,13 +4772,18 @@ export class HomeDBManager extends EventEmitter {
 // Return a QueryResult reflecting the output of a query builder.
 // Checks on the "is_permitted" field which select queries set on resources to
 // indicate whether the user has access.
+//
 // If the output is empty, we signal that the desired resource does not exist.
+//
 // If we retrieve more than 1 entity, we signal that the request is ambiguous.
-// If the "is_permitted" field is falsy, we signal that the resource is forbidden.
+//
+// If the "is_permitted" field is falsy, we signal that the resource is forbidden,
+// unless skipPermissionCheck is set.
+//
 // Returns the resource fetched by the queryBuilder.
 async function verifyEntity(
   queryBuilder: SelectQueryBuilder<any>,
-  options: { discardPermissionsCheck?: boolean } = {}
+  options: { skipPermissionCheck?: boolean } = {}
 ): Promise<QueryResult<any>> {
   const results = await queryBuilder.getRawAndEntities();
   if (results.entities.length === 0) {
@@ -4791,7 +4796,7 @@ async function verifyEntity(
       status: 400,
       errMessage: `ambiguous ${getFrom(queryBuilder)} request`
     };
-  } else if (!options.discardPermissionsCheck && !results.raw[0].is_permitted) {
+  } else if (!options.skipPermissionCheck && !results.raw[0].is_permitted) {
     return {
       status: 403,
       errMessage: "access denied"
