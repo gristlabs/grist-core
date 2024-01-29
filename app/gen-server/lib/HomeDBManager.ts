@@ -811,7 +811,7 @@ export class HomeDBManager extends EventEmitter {
         .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
       const result = await orgQuery.getRawAndEntities();
       if (result.entities.length === 0) {
-        // If the query for the doc failed, return the failure result.
+        // If the query for the org failed, return the failure result.
         throw new ApiError('org not found', 404);
       }
       org = result.entities[0];
@@ -2378,7 +2378,7 @@ export class HomeDBManager extends EventEmitter {
   public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
     const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId);
     if (wsQueryResult.status !== 200) {
-      // If the query for the doc failed, return the failure result.
+      // If the query for the workspace failed, return the failure result.
       return wsQueryResult;
     }
     const workspace: Workspace = wsQueryResult.data;
@@ -2388,7 +2388,7 @@ export class HomeDBManager extends EventEmitter {
     // Also fetch the organization ACLs so we can determine inherited rights.
     const orgQueryResult = await this._getOrgWithACLRules(scope, workspace.org.id);
     if (orgQueryResult.status !== 200) {
-      // If the query for the doc failed, return the failure result.
+      // If the query for the org failed, return the failure result.
       return orgQueryResult;
     }
     const org: Organization = orgQueryResult.data;
