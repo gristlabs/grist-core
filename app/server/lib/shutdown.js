@@ -81,7 +81,7 @@ function signalExit(signal) {
     log.info("Server %s exiting on %s", prog, signal);
     process.removeListener(signal, dup);
     delete signalsHandled[signal];
-    process.exit(0);
+    process.kill(process.pid, signal);
   });
 }
 
