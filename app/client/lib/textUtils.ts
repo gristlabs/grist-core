@@ -32,9 +32,8 @@ For 'Link (in http://www.uk?)'
 'url-regex' [ 'http://www.uk?)' ]
 */
 
-
-// Match http or https then domain name or capture markdown link text and URL separately 
-const urlRegex = /(?:\[(.*?)\]\()?https?:\/\/[A-Za-z\d][A-Za-z\d-.]*\.[A-Za-z]{2,}(?::\d+)?(?:\/[^\s\)]*)?(?:\))?/;
+// Match http or https then domain name and capture markdown link text and URL separately
+const urlRegex = /(?:\[(.*?)\]\()?https?:\/\/[A-Za-z\d][A-Za-z\d-.]*\.[A-Za-z]{2,}(?::\d+)?(?:\/[^\s)]*)?(?:\))?/;
 
 /**
  * Detects URLs in a text and returns list of tokens { value, link, isLink }
@@ -44,12 +43,12 @@ export function findLinks(text: string):  Array<{value: string, link: string, is
     return [{ value: text, link: text, isLink: false }];
   }
 
-  let tokens = [];
+  const tokens = [];
   let lastIndex = 0;
   text.replace(urlRegex, (match: string, markdownText: string, offset: number) => {
     // Add text before the URL
     if (offset > lastIndex) {
-      const currentValue = text.substring(lastIndex, offset)
+      const currentValue = text.substring(lastIndex, offset);
       tokens.push({ value: currentValue, link: currentValue, isLink: false });
     }
 
@@ -77,7 +76,7 @@ export function findLinks(text: string):  Array<{value: string, link: string, is
 
   // Add any remaining text after the last URL
   if (lastIndex < text.length) {
-    const currentValue = text.substring(lastIndex)
+    const currentValue = text.substring(lastIndex);
     tokens.push({ value: currentValue, link: currentValue, isLink: false });
   }
 
