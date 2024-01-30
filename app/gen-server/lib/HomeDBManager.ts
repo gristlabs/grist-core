@@ -2376,23 +2376,36 @@ export class HomeDBManager extends EventEmitter {
   // maxInheritedRole set on the workspace. Note that information for all users in the org
   // is given to indicate which users have access to the org but not to this particular workspace.
   public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
-    const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId);
-    if (wsQueryResult.status !== 200) {
-      // If the query for the workspace failed, return the failure result.
-      return wsQueryResult;
+    // Run the query for the workspace and org in a transaction. This brings some isolation protection
+    // against changes to the workspace or org while we are querying.
+    // The default isolation level for postgres is "read committed" (which is a good tradeoff with performance),
+    // and the default one for sqlite is "serializable".
+    const { workspace, org, queryFailure } = await this._connection.transaction(async manager => {
+      const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId, { manager });
+      if (wsQueryResult.status !== 200) {
+        // If the query for the workspace failed, return the failure result.
+        return { queryFailure: wsQueryResult };
+      }
+
+      const orgQuery = this._buildOrgWithACLRulesQuery(scope, wsQueryResult.data.org.id, { manager });
+      const orgQueryResult = await verifyEntity(orgQuery, { skipPermissionCheck: true });
+      if (orgQueryResult.status !== 200) {
+        // If the query for the org failed, return the failure result.
+        return { queryFailure: orgQueryResult };
+      }
+
+      return {
+        workspace: wsQueryResult.data,
+        org: orgQueryResult.data
+      };
+    });
+    if (queryFailure) {
+      return queryFailure;
     }
-    const workspace: Workspace = wsQueryResult.data;
 
     const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
 
     // Also fetch the organization ACLs so we can determine inherited rights.
-    const orgQuery = this._buildOrgWithACLRulesQuery(scope, workspace.org.id);
-    const orgQueryResult = await verifyEntity(orgQuery, { skipPermissionCheck: true });
-    if (orgQueryResult.status !== 200) {
-      // If the query for the org failed, return the failure result.
-      return orgQueryResult;
-    }
-    const org: Organization = orgQueryResult.data;
 
     // The orgMap gives the org access inherited by each user.
     const orgMap = getMemberUserRoles(org, this.defaultBasicGroupNames);
@@ -4733,9 +4746,10 @@ export class HomeDBManager extends EventEmitter {
     return { personal: true, public: !realAccess };
   }
 
-  private _getWorkspaceWithACLRules(scope: Scope, wsId: number) {
+  private _getWorkspaceWithACLRules(scope: Scope, wsId: number, options: Partial<QueryOptions> = {}) {
     const query = this._workspace(scope, wsId, {
-      markPermissions: Permissions.VIEW
+      markPermissions: Permissions.VIEW,
+      ...options
     })
     // Join the workspace's ACL rules (with 1st level groups/users listed).
     .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
