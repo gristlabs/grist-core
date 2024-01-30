@@ -2378,9 +2378,8 @@ export class HomeDBManager extends EventEmitter {
   public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
     // Run the query for the workspace and org in a transaction. This brings some isolation protection
     // against changes to the workspace or org while we are querying.
-    // The default isolation level for postgres is "read committed" (which is a good tradeoff with performance),
-    // and the default one for sqlite is "serializable".
-    const { workspace, org, queryFailure } = await this._connection.transaction(async manager => {
+    // As we deal with permission issues, use the highest isolation level.
+    const { workspace, org, queryFailure } = await this._connection.transaction('SERIALIZABLE', async manager => {
       const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId, { manager });
       if (wsQueryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
