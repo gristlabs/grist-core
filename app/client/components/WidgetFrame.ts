@@ -544,6 +544,7 @@ export class WidgetAPIImpl implements WidgetAPI {
 const COMMAND_MINIMUM_ACCESS_LEVELS: Map<CommandName, AccessLevel> = new Map([
   ['undo', AccessLevel.full],
   ['redo', AccessLevel.full],
+  ['viewAsCard', AccessLevel.read_table],
 ]);
 
 export class CommandAPI {

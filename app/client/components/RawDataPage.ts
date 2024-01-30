@@ -4,7 +4,7 @@ import {DocumentUsage} from 'app/client/components/DocumentUsage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {printViewSection} from 'app/client/components/Printing';
 import {ViewSectionHelper} from 'app/client/components/ViewLayout';
-import {mediaSmall, theme} from 'app/client/ui2018/cssVars';
+import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import {reportError} from 'app/client/models/errors';
@@ -115,7 +115,8 @@ export class RawDataPopup extends Disposable {
 const cssContainer = styled('div', `
   height: 100%;
   overflow: hidden;
-  position: relative;
+  inset: 0px;
+  position: absolute;
 `);
 
 const cssPage = styled('div', `
@@ -132,10 +133,9 @@ const cssPage = styled('div', `
 export const cssOverlay = styled('div', `
   background-color: ${theme.modalBackdrop};
   inset: 0px;
-  height: 100%;
-  width: 100%;
   padding: 20px 56px 20px 56px;
   position: absolute;
+  z-index: ${vars.popupSectionBackdropZIndex};
   @media ${mediaSmall} {
     & {
       padding: 22px;

@@ -816,5 +816,18 @@ BaseView.prototype._duplicateRows = async function() {
   return result;
 }
 
+BaseView.prototype.viewSelectedRecordAsCard = function() {
+  if (this.isRecordCardDisabled()) { return; }
+
+  const colRef = this.viewSection.viewFields().at(this.cursor.fieldIndex()).column().id();
+  const rowId = this.viewData.getRowId(this.cursor.rowIndex());
+  const sectionId = this.viewSection.tableRecordCard().id();
+  const anchorUrlState = {hash: {colRef, rowId, sectionId, recordCard: true}};
+  urlState().pushUrl(anchorUrlState, {replace: true}).catch(reportError);
+}
+
+BaseView.prototype.isRecordCardDisabled = function() {
+  return this.viewSection.isTableRecordCardDisabled();
+}
 
 module.exports = BaseView;

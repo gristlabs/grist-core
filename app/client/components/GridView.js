@@ -55,8 +55,6 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
-const {reportError} = require('app/client/models/AppModel');
-const {urlState} = require('app/client/models/gristUrlState');
 
 const t = makeT('GridView');
 
@@ -374,16 +372,10 @@ GridView.gridCommands = {
     this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
   },
   viewAsCard() {
-    if (this._isRecordCardDisabled()) { return; }
-
     const selectedRows = this.selectedRows();
     if (selectedRows.length !== 1) { return; }
 
-    const colRef = this.viewSection.viewFields().at(this.cursor.fieldIndex()).column().id();
-    const rowId = selectedRows[0];
-    const sectionId = this.viewSection.tableRecordCard().id();
-    const anchorUrlState = {hash: {colRef, rowId, sectionId, recordCard: true}};
-    urlState().pushUrl(anchorUrlState, {replace: true}).catch(reportError);
+    this.viewSelectedRecordAsCard();
   },
 };
 
@@ -1924,14 +1916,13 @@ GridView.prototype.rowContextMenu = function() {
 GridView.prototype._getRowContextMenuOptions = function() {
   return {
     ...this._getCellContextMenuOptions(),
-    disableShowRecordCard: this._isRecordCardDisabled(),
+    disableShowRecordCard: this.isRecordCardDisabled(),
   };
 };
 
-GridView.prototype._isRecordCardDisabled = function() {
-  return this.getSelection().onlyAddRowSelected() ||
-    this.viewSection.isTableRecordCardDisabled() ||
-    this.viewSection.table().summarySourceTable() !== 0;
+GridView.prototype.isRecordCardDisabled = function() {
+  return BaseView.prototype.isRecordCardDisabled.call(this) ||
+    this.getSelection().onlyAddRowSelected();
 }
 
 GridView.prototype.cellContextMenu = function() {

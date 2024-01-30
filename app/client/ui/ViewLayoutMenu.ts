@@ -72,11 +72,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     dom.maybe(showRawData,
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
-        dom.on('click', (ev) => {
+        dom.on('click', () => {
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
-          ev.stopImmediatePropagation();
-          ev.preventDefault();
           urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
         })
       )
@@ -128,11 +126,9 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
     dom.maybe((use) => !use(viewSection.isRaw) && !isSinglePage && !use(gristDoc.maximizedSectionId),
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
-        dom.on('click', (ev) => {
+        dom.on('click', () => {
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
-          ev.stopImmediatePropagation();
-          ev.preventDefault();
           urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
         })
       )

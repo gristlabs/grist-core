@@ -515,8 +515,8 @@ describe('RawData', function () {
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
     // Click on another cell, check page hasn't changed (there was a bug about that)
-    await gu.getCell({rowNum: 10, col: 1}).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 10, col: 1});
+    await gu.getCell({rowNum: 21, col: 1}).click();
+    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 21, col: 1});
     assert.equal(await gu.getCurrentPageName(), 'City');
 
     // Close by hitting escape.

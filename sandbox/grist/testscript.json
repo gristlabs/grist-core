@@ -921,9 +921,10 @@
 
           // Record card widget
           ["AddRecord", "_grist_Views_section", 3, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "single", "tableRef": 4, "title": ""}],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 3}],
           ["AddRecord", "_grist_Views_section_field", 3, {"colRef": 34, "parentId": 3, "parentPos": 3.0}],
 
-          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2, "recordCardViewSectionRef": 3}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}],
 
           // Actions generated from AddColumn.
           ["AddColumn", "Bar", "world",
@@ -937,7 +938,7 @@
         ],
         "direct": [true, true, true, true, true, true, true,
                    true, true, true, true, true, true, true,
-                   true, true, true],
+                   true, true, true, true],
         "undo": [
           ["RemoveTable", "Bar"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -950,8 +951,9 @@
           ["RemoveRecord", "_grist_Views_section", 2],
           ["RemoveRecord", "_grist_Views_section_field", 2],
           ["RemoveRecord", "_grist_Views_section", 3],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 0}],
           ["RemoveRecord", "_grist_Views_section_field", 3],
-          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0, "recordCardViewSectionRef": 0}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0}],
           ["RemoveColumn", "Bar", "world"],
           ["RemoveRecord", "_grist_Tables_column", 35],
           ["RemoveRecord", "_grist_Views_section_field", 4],
@@ -1267,15 +1269,16 @@
           ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4, "title": ""}],
           ["BulkAddRecord", "_grist_Views_section_field", [3, 4], {"colRef": [31, 32], "parentId": [2, 2], "parentPos": [3.0, 4.0]}],
           ["AddRecord", "_grist_Views_section", 3, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "single", "tableRef": 4, "title": ""}],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 3}],
           ["BulkAddRecord", "_grist_Views_section_field", [5, 6], {"colRef": [31, 32], "parentId": [3, 3], "parentPos": [5.0, 6.0]}],
-          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2, "recordCardViewSectionRef": 3}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}],
           ["BulkRemoveRecord", "_grist_Views_section_field", [1, 3, 5]],
           ["RemoveRecord", "_grist_Tables_column", 31],
           ["RemoveColumn", "ViewTest", "hello"]
 
         ],
         "direct": [true, true, true, true, true, true, true, true, true,
-                   true, true, true, true, true, true, true],
+                   true, true, true, true, true, true, true, true],
         "undo": [
           ["RemoveTable", "ViewTest"],
           ["RemoveRecord", "_grist_Tables", 4],
@@ -1288,8 +1291,9 @@
           ["RemoveRecord", "_grist_Views_section", 2],
           ["BulkRemoveRecord", "_grist_Views_section_field", [3, 4]],
           ["RemoveRecord", "_grist_Views_section", 3],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 0}],
           ["BulkRemoveRecord", "_grist_Views_section_field", [5, 6]],
-          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0, "recordCardViewSectionRef": 0}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0}],
           ["BulkAddRecord", "_grist_Views_section_field", [1, 3, 5],
             {"colRef": [31, 31, 31], "parentId": [1, 2, 3], "parentPos": [1.0, 3.0, 5.0]}],
           ["AddRecord", "_grist_Tables_column", 31,
@@ -2213,7 +2217,8 @@
               "parentId": 1, "parentKey": "record", "sortColRefs": "[]", "title": ""}],
           ["AddRecord", "_grist_Views_section", 2, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 4, "title": ""}],
           ["AddRecord", "_grist_Views_section", 3, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "single", "tableRef": 4, "title": ""}],
-          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2, "recordCardViewSectionRef": 3}],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 3}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}],
           ["AddTable", "Bar", [
             {"id": "manualSort", "formula": "", "isFormula": false, "type": "ManualSortPos"},
             {"isFormula": false, "formula": "", "type": "Text", "id": "hello"},
@@ -2245,15 +2250,16 @@
           ["AddRecord", "_grist_Views_section", 5, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "record", "tableRef": 5, "title": ""}],
           ["BulkAddRecord", "_grist_Views_section_field", [4, 5, 6], {"colRef": [32, 33, 34], "parentId": [5, 5, 5], "parentPos": [4.0, 5.0, 6.0]}],
           ["AddRecord", "_grist_Views_section", 6, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "single", "tableRef": 5, "title": ""}],
+          ["UpdateRecord", "_grist_Tables", 5, {"recordCardViewSectionRef": 6}],
           ["BulkAddRecord", "_grist_Views_section_field", [7, 8, 9], {"colRef": [32, 33, 34], "parentId": [6, 6, 6], "parentPos": [7.0, 8.0, 9.0]}],
-          ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 2, "rawViewSectionRef": 5, "recordCardViewSectionRef": 6}],
+          ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 2, "rawViewSectionRef": 5}],
           ["AddRecord", "Bar", 1, {"foo": 0, "hello": "a", "manualSort": 1.0}],
           ["AddRecord", "Bar", 2, {"foo": 1, "hello": "b", "manualSort": 2.0}],
           ["AddRecord", "Bar", 3, {"foo": 1, "hello": "c", "manualSort": 3.0}],
           ["BulkUpdateRecord", "Bar", [1, 2, 3], {"world": ["A", "B", "C"]}]
         ],
         "direct": [true, true, true, true, true, true, true, true,
-                   true, true, true, true, true, true,
+                   true, true, true, true, true, true, true, true,
                    true, true, true, true, true, true, true, true, true,
                    true, true, true, false],
         "undo": [
@@ -2266,7 +2272,8 @@
           ["RemoveRecord", "_grist_Views_section", 1],
           ["RemoveRecord", "_grist_Views_section", 2],
           ["RemoveRecord", "_grist_Views_section", 3],
-          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0, "recordCardViewSectionRef": 0}],
+          ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 0}],
+          ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0}],
           ["RemoveTable", "Bar"],
           ["RemoveRecord", "_grist_Tables", 5],
           ["BulkRemoveRecord", "_grist_Tables_column", [31,32,33,34]],
@@ -2278,8 +2285,9 @@
           ["RemoveRecord", "_grist_Views_section", 5],
           ["BulkRemoveRecord", "_grist_Views_section_field", [4, 5, 6]],
           ["RemoveRecord", "_grist_Views_section", 6],
+          ["UpdateRecord", "_grist_Tables", 5, {"recordCardViewSectionRef": 0}],
           ["BulkRemoveRecord", "_grist_Views_section_field", [7, 8, 9]],
-          ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 0, "rawViewSectionRef": 0, "recordCardViewSectionRef": 0}],
+          ["UpdateRecord", "_grist_Tables", 5, {"primaryViewId": 0, "rawViewSectionRef": 0}],
           ["RemoveRecord", "Bar", 1],
           ["RemoveRecord", "Bar", 2],
           ["RemoveRecord", "Bar", 3]
@@ -2355,9 +2363,10 @@
            // Record card widget
            ["AddRecord", "_grist_Views_section", 3, {"borderWidth": 1, "defaultWidth": 100, "parentKey": "single", "tableRef": 4, "title": ""}],
            // As part of adding a table, we also set the primaryViewId.
-           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2, "recordCardViewSectionRef": 3}]
+           ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 3}],
+           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 1, "rawViewSectionRef": 2}]
          ],
-         "direct": [true, true, true, true, true, true, true, true, true, true],
+         "direct": [true, true, true, true, true, true, true, true, true, true, true],
          "undo": [
            ["RemoveTable", "Foo"],
            ["RemoveRecord", "_grist_Tables", 4],
@@ -2368,7 +2377,8 @@
            ["RemoveRecord", "_grist_Views_section", 1],
            ["RemoveRecord", "_grist_Views_section", 2],
            ["RemoveRecord", "_grist_Views_section", 3],
-           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0, "recordCardViewSectionRef": 0}]
+           ["UpdateRecord", "_grist_Tables", 4, {"recordCardViewSectionRef": 0}],
+           ["UpdateRecord", "_grist_Tables", 4, {"primaryViewId": 0, "rawViewSectionRef": 0}]
          ]
        }
      }],
