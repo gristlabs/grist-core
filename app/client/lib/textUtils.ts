@@ -72,6 +72,7 @@ export function findLinks(text: string):  Array<{value: string, link: string, is
     });
 
     lastIndex = offset + match.length;
+    return match;
   });
 
   // Add any remaining text after the last URL
