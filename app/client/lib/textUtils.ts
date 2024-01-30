@@ -32,18 +32,56 @@ For 'Link (in http://www.uk?)'
 'url-regex' [ 'http://www.uk?)' ]
 */
 
-// Match http or https then domain name (with optional port) then any text that ends with letter or number.
-export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/[^\s]*)?[\w\d/])/;
+
+// Match http or https then domain name or capture markdown link text and URL separately 
+const urlRegex = /(?:\[(.*?)\]\()?https?:\/\/[A-Za-z\d][A-Za-z\d-.]*\.[A-Za-z]{2,}(?::\d+)?(?:\/[^\s\)]*)?(?:\))?/;
 
 /**
- * Detects URLs in a text and returns list of tokens { value, isLink }
+ * Detects URLs in a text and returns list of tokens { value, link, isLink }
  */
-export function findLinks(text: string): Array<{value: string, isLink: boolean}> {
+export function findLinks(text: string):  Array<{value: string, link: string, isLink: boolean}>  {
   if (!text) {
-    return [{ value: text, isLink: false }];
+    return [{ value: text, link: text, isLink: false }];
   }
-  // urls will be at odd-number indices
-  return text.split(urlRegex).map((value, i) => ({ value, isLink : (i % 2) === 1}));
+
+  let tokens = [];
+  let lastIndex = 0;
+  text.replace(urlRegex, (match: string, markdownText: string, offset: number) => {
+    // Add text before the URL
+    if (offset > lastIndex) {
+      const currentValue = text.substring(lastIndex, offset)
+      tokens.push({ value: currentValue, link: currentValue, isLink: false });
+    }
+
+    // Extracting the actual URL and link text
+    let actualUrl, displayText;
+    if (markdownText) {
+      const markdownMatch = match.match(/\[(.*?)\]\((.*?)\)/);
+      if (markdownMatch && markdownMatch.length === 3) {
+        displayText = markdownMatch[1];
+        actualUrl = markdownMatch[2];
+      }
+    } else {
+      displayText = actualUrl = match;
+    }
+
+    // Add the URL
+    tokens.push({
+      value: displayText,
+      link: actualUrl,
+      isLink: true
+    });
+
+    lastIndex = offset + match.length;
+  });
+
+  // Add any remaining text after the last URL
+  if (lastIndex < text.length) {
+    const currentValue = text.substring(lastIndex)
+    tokens.push({ value: currentValue, link: currentValue, isLink: false });
+  }
+
+  return tokens;
 }
 
 /**
