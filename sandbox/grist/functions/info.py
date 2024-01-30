@@ -395,7 +395,8 @@ _url_regexp = re.compile(
   ([A-Za-z0-9]                    # Each part of hostname must start with alphanumeric
     ([A-Za-z0-9-]*[A-Za-z0-9])?\. # May have dashes inside, but end in alphanumeric
   )+
-  [A-Za-z]{2,24}                   # Restrict top-level domain to length {2,24}. Google seems
+  [A-Za-z]{2,24}                  # Restrict top-level domain to length {2,24} (theoretically,
+                                  # the max length is 63 bytes as per RFC 1034). Google seems
                                   # to use a whitelist for TLDs longer than 2 characters.
   ([/?][-\w!#$%&'()*+,./:;=?@~]*)?$ # Notably, this excludes <, >, and ".
   """, re.VERBOSE)
@@ -440,6 +441,8 @@ def ISURL(value):
   >>> ISURL("http://user@www.google.com")
   True
   >>> ISURL("http://foo.com/!#$%25&'()*+,-./=?@_~")
+  True
+  >>> ISURL("http://collectivite.isla.corsica")
   True
   >>> ISURL("http://../")
   False
