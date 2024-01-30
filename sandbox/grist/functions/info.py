@@ -319,7 +319,7 @@ def ISEMAIL(value):
   >>> ISEMAIL("marie@isola.corsica")                          # False,    True
   True
   >>> ISEMAIL("fabio@disapproved.solutions")                  # False,    True
-  False
+  True
   >>> ISEMAIL(u"фыва@mail.ru")                                # False,    True
   True
   >>> ISEMAIL("my@baddash.-.com")                             # True,     False
