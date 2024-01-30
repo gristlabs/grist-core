@@ -32,6 +32,12 @@ describe('RawData', function () {
     assert.deepEqual(uiTables, tables);
   });
 
+  it('shows blank creator panel', async function () {
+    await gu.toggleSidePanel('right', 'open');
+    assert.isEmpty(await driver.find('.test-right-panel').getText());
+    await gu.toggleSidePanel('right', 'close');
+  });
+
   it('shows row counts of all tables', async function () {
     assert.deepEqual(await getRawTableRows(), [
       '4,079',

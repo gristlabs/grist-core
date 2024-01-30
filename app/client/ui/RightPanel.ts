@@ -123,6 +123,8 @@ export class RightPanel extends Disposable {
     return use(this._pageWidgetType) === 'form';
   });
 
+  private _hasActiveWidget = Computed.create(this, (use) => Boolean(use(this._pageWidgetType)));
+
   // Returns the active section if it's valid, null otherwise.
   private _validSection = Computed.create(this, (use) => {
     const sec = use(this._gristDoc.viewModel.activeSection);
@@ -253,7 +255,7 @@ export class RightPanel extends Disposable {
             dom.create(this._buildPageFormHeader.bind(this)),
             dom.create(this._buildPageWidgetContent.bind(this)),
           ];
-        } else {
+        } else if (use(this._hasActiveWidget)) {
           return [
             dom.create(this._buildPageWidgetHeader.bind(this)),
             dom.create(this._buildPageWidgetContent.bind(this)),
