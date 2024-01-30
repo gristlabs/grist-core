@@ -84,7 +84,7 @@ export const typeDefs: any = {
     widgets: {
       TextBox: {
         cons: 'NumericTextBox',
-        editCons: 'TextEditor',
+        editCons: 'NumericEditor',
         icon: 'FieldTextbox',
         options: {
           alignment: 'right',
@@ -98,7 +98,7 @@ export const typeDefs: any = {
       },
       Spinner: {
         cons: 'Spinner',
-        editCons: 'TextEditor',
+        editCons: 'NumericEditor',
         icon: 'FieldSpinner',
         options: {
           alignment: 'right',

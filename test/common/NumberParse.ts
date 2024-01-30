@@ -230,7 +230,7 @@ describe("NumberParse", function() {
     assert.deepEqual(parser.guessOptions(["$1"]), {numMode: "currency", decimals: 0});
     assert.deepEqual(parser.guessOptions(["$1.2"]), {numMode: "currency", decimals: 0});
     assert.deepEqual(parser.guessOptions(["$1.23"]), {numMode: "currency"});
-    assert.deepEqual(parser.guessOptions(["$1.234"]), {numMode: "currency"});
+    assert.deepEqual(parser.guessOptions(["$1.234"]), {numMode: "currency", maxDecimals: 3});
 
     // Otherwise decimal places are guessed based on trailing zeroes
     assert.deepEqual(parser.guessOptions(["$1.0"]), {numMode: "currency", decimals: 1});

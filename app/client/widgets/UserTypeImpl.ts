@@ -15,6 +15,7 @@ import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {NTextEditor} from 'app/client/widgets/NTextEditor';
+import {NumericEditor} from 'app/client/widgets/NumericEditor';
 import {NumericTextBox} from 'app/client/widgets/NumericTextBox';
 import {Reference} from 'app/client/widgets/Reference';
 import {ReferenceEditor} from 'app/client/widgets/ReferenceEditor';
@@ -32,6 +33,7 @@ export const nameToWidget = {
   'TextBox': NTextBox,
   'TextEditor': NTextEditor,
   'NumericTextBox': NumericTextBox,
+  'NumericEditor': NumericEditor,
   'HyperLinkTextBox': HyperLinkTextBox,
   'HyperLinkEditor': HyperLinkEditor,
   'Spinner': Spinner,

@@ -69,7 +69,8 @@ abstract class ValueGuesser<T> {
 
       const parsed = this.parse(value);
       // Give up if too many strings failed to parse or if the parsed value changes when converted back to text
-      if (typeof parsed === "string" && ++unparsed > maxUnparsed || formatter.formatAny(parsed) !== value) {
+      if ((typeof parsed === "string" && ++unparsed > maxUnparsed) ||
+        !this.isEqualFormatted(formatter.formatAny(parsed), value)) {
         return null;
       }
       result.push(parsed);
@@ -82,6 +83,10 @@ abstract class ValueGuesser<T> {
    */
   protected allowBlank(): boolean {
     return true;
+  }
+
+  protected isEqualFormatted(formatted1: string, formatted2: string): boolean {
+    return formatted1 === formatted2;
   }
 }
 
@@ -125,6 +130,14 @@ class NumericGuesser extends ValueGuesser<number> {
 
   public parse(value: string): number | string {
     return this._parser.cleanParse(value);
+  }
+
+  protected isEqualFormatted(formatted1: string, formatted2: string): boolean {
+    // Consider format guessing successful if it returns the typed-in numeric value exactly or
+    // differing only in whitespace.
+    formatted1 = formatted1.replace(NumberParse.removeCharsRegex, "");
+    formatted2 = formatted2.replace(NumberParse.removeCharsRegex, "");
+    return formatted1 === formatted2;
   }
 }
 

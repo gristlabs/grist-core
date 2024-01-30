@@ -23,8 +23,9 @@ describe("LanguageSettings", function() {
   for (const [locale, countryCode, language] of locales) {
     describe(`correctly detects browser language ${locale}`, () => {
       // Change the language to the one we want to test.
-      withLang(locale);
+      const skipStatus = withLang(locale);
       before(async function() {
+        if (skipStatus.skipped) { return; }
         const session = await gu.session().personalSite.anon.login();
         await session.loadRelPath("/");
         await gu.waitForDocMenuToLoad();
@@ -116,34 +117,38 @@ describe("LanguageSettings", function() {
       const anonym = await gu.session().personalSite.anon.login();
       await anonym.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
+      assert.isNull(await languageInCookie());
 
       // Change language to french.
       await langButton().click();
       await driver.find(".test-language-lang-fr").click();
       await waitForLangButton("fr");
+      assert.equal(await languageInCookie(), "fr");
 
       // Login as user.
       await user.login();
       await anonym.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
+      // But now we should have a cookie (cookie is reused).
+      assert.equal(await languageInCookie(), 'fr');
 
       // Language should still be french.
       await waitForHiddenButton("fr");
-      // But now we should have a cookie (cookie is reused).
-      assert.equal(await languageInCookie(), 'fr');
       await clearCookie();
     });
   });
 
   describe("for logged in user with nb-NO", function() {
-    withLang("de");
+    const skipStatus = withLang("de");
     let session: gu.Session;
     before(async function() {
+      if (skipStatus.skipped) { return; }
       session = await gu.session().login();
       await session.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
     });
     after(async function() {
+      if (skipStatus.skipped) { return; }
       await clearCookie();
       const api = session.createHomeApi();
       await api.updateUserLocale(null);
@@ -215,12 +220,13 @@ async function languageInCookie(): Promise<string | null> {
   return cookie2.match(/grist_user_locale=([^;]+)/)?.[1] ?? null;
 }
 
-function withLang(locale: string) {
+function withLang(locale: string): {skipped: boolean} {
   let customDriver: WebDriver;
   let oldLanguage: string | undefined;
+  const skipStatus = {skipped: false};
   before(async function() {
-    // On Mac we can't change the language, so skip the test.
-    if (await gu.isMac()) { return this.skip(); }
+    // On Mac we can't change the language (except for English), so skip the test.
+    if (await gu.isMac() && locale !== 'en') { skipStatus.skipped = true; return this.skip(); }
     oldLanguage = process.env.LANGUAGE;
     // How to run chrome with a different language:
     // https://developer.chrome.com/docs/extensions/reference/i18n/#how-to-set-browsers-locale
@@ -238,12 +244,13 @@ function withLang(locale: string) {
     await gu.waitForDocMenuToLoad();
   });
   after(async function() {
-    if (await gu.isMac()) { return this.skip(); }
+    if (skipStatus.skipped) { return; }
     gu.setDriver();
     server.setDriver();
     await customDriver.quit();
     process.env.LANGUAGE = oldLanguage;
   });
+  return skipStatus;
 }
 
 function langButton() {
