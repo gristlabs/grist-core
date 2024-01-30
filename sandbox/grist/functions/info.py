@@ -257,7 +257,8 @@ _email_regexp = re.compile(
   ([A-Za-z0-9]                    # Each part of hostname must start with alphanumeric
     ([A-Za-z0-9-]*[A-Za-z0-9])?\. # May have dashes inside, but end in alphanumeric
   )+
-  [A-Za-z]{2,6}$                  # Restrict top-level domain to length {2,6}. Google seems
+  [A-Za-z]{2,24}$                 # Restrict top-level domain to length {2,24} (theoretically,
+                                  # the max length is 63 bytes as per RFC 1034). Google seems
                                   # to use a whitelist for TLDs longer than 2 characters.
   """, re.UNICODE | re.VERBOSE)
 
@@ -289,7 +290,8 @@ def ISEMAIL(value):
   >>> ISEMAIL("john@aol...com")
   False
 
-  More tests:
+  More tests:                                             Google Sheets   Grist
+                                                          -------------   -----
   >>> ISEMAIL("Abc@example.com")                              # True,     True
   True
   >>> ISEMAIL("Abc.123@example.com")                          # True,     True
@@ -314,6 +316,10 @@ def ISEMAIL(value):
   True
   >>> ISEMAIL("Bob_O'Reilly+tag@example.com")                 # False,    True
   True
+  >>> ISEMAIL("marie@isola.corsica")                          # False,    True
+  True
+  >>> ISEMAIL("fabio@disapproved.solutions")                  # False,    True
+  False
   >>> ISEMAIL(u"фыва@mail.ru")                                # False,    True
   True
   >>> ISEMAIL("my@baddash.-.com")                             # True,     False
@@ -323,8 +329,6 @@ def ISEMAIL(value):
   >>> ISEMAIL("my@baddash.b-.com")                            # True,     False
   False
   >>> ISEMAIL("john@-.com")                                   # True,     False
-  False
-  >>> ISEMAIL("fabio@disapproved.solutions")                  # False,    False
   False
   >>> ISEMAIL("!def!xyz%abc@example.com")                     # False,    False
   False
@@ -391,7 +395,7 @@ _url_regexp = re.compile(
   ([A-Za-z0-9]                    # Each part of hostname must start with alphanumeric
     ([A-Za-z0-9-]*[A-Za-z0-9])?\. # May have dashes inside, but end in alphanumeric
   )+
-  [A-Za-z]{2,6}                   # Restrict top-level domain to length {2,6}. Google seems
+  [A-Za-z]{2,24}                   # Restrict top-level domain to length {2,24}. Google seems
                                   # to use a whitelist for TLDs longer than 2 characters.
   ([/?][-\w!#$%&'()*+,./:;=?@~]*)?$ # Notably, this excludes <, >, and ".
   """, re.VERBOSE)
