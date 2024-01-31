@@ -247,6 +247,7 @@ describe('gutil', function() {
       assert.isTrue(gutil.isEmail('email@subdomain.do-main.com'));
       assert.isTrue(gutil.isEmail('firstname+lastname@domain.com'));
       assert.isTrue(gutil.isEmail('email@domain.co.jp'));
+      assert.isTrue(gutil.isEmail('marie@isola.corsica'));
 
       assert.isFalse(gutil.isEmail('plainaddress'));
       assert.isFalse(gutil.isEmail('@domain.com'));
