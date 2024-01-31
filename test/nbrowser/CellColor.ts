@@ -5,6 +5,7 @@ import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('CellColor', function() {
   this.timeout(20000);
+  gu.bigScreen();
   const cleanup = setupTestSuite();
   let doc: string;
 
