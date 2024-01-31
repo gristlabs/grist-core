@@ -924,6 +924,21 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }]
     });
+
+    const deltaOrg = {
+      users: {
+        [kiwiEmail]: "owners",
+      }
+    };
+    const respDeltaOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: deltaOrg}, chimpy);
+    assert.equal(respDeltaOrg.status, 200);
+
+    const resp3 = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
+    assert.include(resp3.data.users.find((user: any) => user.email === kiwiEmail), {
+      access: "editors",
+      parentAccess: "owners"
+    });
+
     // Reset the access settings
     const resetDelta = {
       maxInheritedRole: "owners",
@@ -933,6 +948,13 @@ describe('ApiServerAccess', function() {
     };
     const resetResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: resetDelta}, chimpy);
     assert.equal(resetResp.status, 200);
+    const resetOrgDelta = {
+      users: {
+        [kiwiEmail]: "members",
+      }
+    };
+    const resetOrgResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: resetOrgDelta}, chimpy);
+    assert.equal(resetOrgResp.status, 200);
 
     // Assert that ws guests are properly displayed.
     // Tests a minor bug that showed ws guests as having null access.
