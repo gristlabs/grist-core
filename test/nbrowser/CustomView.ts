@@ -22,6 +22,7 @@ async function setCustomWidget() {
 
 describe('CustomView', function() {
   this.timeout(20000);
+  gu.bigScreen();
   const cleanup = setupTestSuite();
 
   let serving: Serving;
