@@ -1036,6 +1036,9 @@ export class FlexServer implements GristServer {
         this._redirectToOrgMiddleware,
         welcomeNewUser
       ],
+      formMiddleware: [
+        forcedLoginMiddleware,
+      ],
       forceLogin: this._redirectToLoginUnconditionally,
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,

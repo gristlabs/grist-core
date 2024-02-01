@@ -25,10 +25,11 @@ import {addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/
 import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
 
 export interface AttachOptions {
-  app: express.Application;                // Express app to which to add endpoints
-  middleware: express.RequestHandler[];    // Middleware to apply for all endpoints except docs
-  docMiddleware: express.RequestHandler[]; // Middleware to apply for doc landing pages
-  forceLogin: express.RequestHandler|null; // Method to force user to login (if logins are possible)
+  app: express.Application;                 // Express app to which to add endpoints
+  middleware: express.RequestHandler[];     // Middleware to apply for all endpoints except docs and forms
+  docMiddleware: express.RequestHandler[];  // Middleware to apply for doc landing pages
+  formMiddleware: express.RequestHandler[]; // Middleware to apply for form landing pages
+  forceLogin: express.RequestHandler|null;  // Method to force user to login (if logins are possible)
   docWorkerMap: IDocWorkerMap|null;
   sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   dbManager: HomeDBManager;
@@ -37,8 +38,8 @@ export interface AttachOptions {
 }
 
 export function attachAppEndpoint(options: AttachOptions): void {
-  const {app, middleware, docMiddleware, docWorkerMap, forceLogin,
-         sendAppPage, dbManager, plugins, gristServer} = options;
+  const {app, middleware, docMiddleware, formMiddleware, docWorkerMap,
+         forceLogin, sendAppPage, dbManager, plugins, gristServer} = options;
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
@@ -226,7 +227,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
           ...docMiddleware, docHandler);
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
-  app.get('/forms/:urlId([^/]+)/:sectionId', ...middleware, expressWrap(async (req, res) => {
+  app.get('/forms/:urlId([^/]+)/:sectionId', ...formMiddleware, expressWrap(async (req, res) => {
     const formUrl = gristServer.getHomeUrl(req,
       `/api/s/${req.params.urlId}/forms/${req.params.sectionId}`);
     const response = await fetch(formUrl, {
