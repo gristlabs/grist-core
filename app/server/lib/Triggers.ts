@@ -206,10 +206,9 @@ export class DocTriggers {
       // ...if the monitored table was modified by the summarized actions,
       // fetch the modified/created records and note the work that needs to be done.
       if (tableDelta) {
-        console.log("---------------------------------------");
+        console.log("--------------------------------------- handle() triggers.ts");
         console.log(tableDelta);
         console.log(tableDelta.columnDeltas);
-        console.log(tableDelta.columnDeltas.Region);
         const recordDeltas = this._getRecordDeltas(tableDelta);
         const filters = {id: [...recordDeltas.keys()]};
 
@@ -228,6 +227,8 @@ export class DocTriggers {
     for (const task of tasks) {
       events.push(...this._handleTask(task, await task.tableDataAction));
     }
+    console.log("----------- events list");
+    console.log(events);
     if (!events.length) {
       return summary;
     }
@@ -509,7 +510,6 @@ export class DocTriggers {
           for (const action of webhookActions) {
             const colId = this._getColId(trigger.isReadyColRef); // no validation
             const tableId = this._getTableId(trigger.tableRef);
-            // TODO copy that for columns !!
             const error = `isReadyColumn is not valid: colId ${colId} does not belong to ${tableId}`;
             this._stats.logInvalid(action.id, error).catch(e => log.error("Webhook stats failed to log", e));
           }
@@ -517,8 +517,26 @@ export class DocTriggers {
         }
       }
 
+      if (trigger.columnRefList) {
+        for (const colRef of trigger.columnRefList.slice(1)) {
+          if (!this._validateColId(colRef as number, trigger.tableRef)) {
+            // column does not belong to table, let's ignore trigger and log stats
+            for (const action of webhookActions) {
+              const colId = this._getColId(colRef as number); // no validation
+              const tableId = this._getTableId(trigger.tableRef);
+              const error = `column is not valid: colId ${colId} does not belong to ${tableId}`;
+              this._stats.logInvalid(action.id, error).catch(e => log.error("Webhook stats failed to log", e));
+            }
+            continue;
+          }
+        }
+      }
+
       // TODO: would be worth checking that the trigger's fields are valid (ie: eventTypes, url,
       // ...) as there's no guarantee that they are.
+
+      console.log("bulkColValues");
+      console.log(bulkColValues);
 
       const rowIndexesToSend: number[] = _.range(bulkColValues.id.length).filter(rowIndex => {
           const rowId = bulkColValues.id[rowIndex];
@@ -552,7 +570,13 @@ export class DocTriggers {
     recordDelta: RecordDelta,
     tableDelta: TableDelta,
   ): boolean {
+    console.log("_shouldTriggerActions");
+    console.log(rowId);
+    console.log(recordDelta);
+    console.log(trigger);
     let readyBefore: boolean;
+    console.log("tableDelta.columnDeltas");
+    console.log(tableDelta.columnDeltas);
     if (!trigger.isReadyColRef) {
       // User hasn't configured a column, so all records are considered ready immediately
       readyBefore = recordDelta.existedBefore;
@@ -593,9 +617,21 @@ export class DocTriggers {
       }
     }
 
+    const colIdsToCheck: Array<string> = [];
+    if (trigger.columnRefList) {
+      for (const colRef of trigger.columnRefList.slice(1)) {
+        colIdsToCheck.push(this._getColId(colRef as number)!);
+      }
+    }
+
     let eventType: EventType;
     if (readyBefore) {
-      eventType = "update";
+      // check if any of the columns to check were changed to consider this an update
+      if (colIdsToCheck.length === 0 || colIdsToCheck.some(colId => tableDelta.columnDeltas[colId]?.[rowId])) {
+        eventType = "update";
+      } else {
+        return false;
+      }
       // If we allow subscribing to deletion in the future
       // if (recordDelta.existedAfter) {
       //   eventType = "update";

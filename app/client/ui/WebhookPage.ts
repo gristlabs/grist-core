@@ -163,6 +163,8 @@ class WebhookExternalTable implements IExternalTable {
       }
     }
     const delta = editor.delta;
+    console.log("---------------------------Before Edit");
+    console.log(delta);
     for (const recId of delta.removeRows) {
       const rec = editor.getRecord(recId);
       if (!rec) {
@@ -185,7 +187,7 @@ class WebhookExternalTable implements IExternalTable {
     const {delta} = editor;
     const updates = new Set(delta.updateRows);
     const addsAndUpdates = new Set([...delta.addRows, ...delta.updateRows]);
-// if table change :remove columnIds list
+    // TODO : if table change :remove columnIds list
     for (const recId of addsAndUpdates) {
       const rec = editor.getRecord(recId);
       if (!rec) {
@@ -235,6 +237,10 @@ class WebhookExternalTable implements IExternalTable {
     for (const webhook of webhooks) {
       const values = _mapWebhookValues(webhook);
       const rowId = rowMap.get(webhook.id);
+      console.log("sync");
+      console.log(values);
+      console.log(rowMap);
+
       if (rowId) {
         toRemove.delete(rowId);
         actions.push(

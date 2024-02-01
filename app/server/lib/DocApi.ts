@@ -416,10 +416,6 @@ export class DocWorkerApi {
         currentTableId = tableId;
       }
 
-      console.log("HERE 6666 DOC API SAVING TRIGGER");
-      console.log(columnIds);
-      console.log(tableId);
-
       if (columnIds !== undefined) {
         if (columnIds !== null && columnIds !== '') {
           if (!currentTableId) {
@@ -427,10 +423,10 @@ export class DocWorkerApi {
           }
           // columnIds have to be of shape "columnId; columnId; columnId"
           fields.columnRefList = [GristObjCode.List, ...columnIds.split(";").map(
-            columnId => { return colIdToReference(metaTables, currentTableId!, columnId.trim()); }
+            columnId => { return colIdToReference(metaTables, currentTableId!, columnId.trim().replace(/^\$/, '')); }
           )];
         } else {
-          fields.columnRefList = [GristObjCode.List, 0];
+          fields.columnRefList = [GristObjCode.List];
         }
       }
 
@@ -950,7 +946,7 @@ export class DocWorkerApi {
 
         await activeDoc.sendWebhookNotification();
 
-        res.json({success: false});
+        res.json({success: true});
       })
     );
 
