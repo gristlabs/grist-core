@@ -182,8 +182,6 @@ export class DocTriggers {
     for (const tableRef of Object.keys(triggersByTableRef).sort()) {
       const triggers = triggersByTableRef[tableRef];
       const tableId = getTableId(Number(tableRef))!;  // groupBy makes tableRef a string
-      console.log(triggersByTableId);
-      console.log(triggers);
       triggersByTableId.push([tableId, triggers]);
       for (const trigger of triggers) {
         if (trigger.isReadyColRef) {
@@ -206,9 +204,6 @@ export class DocTriggers {
       // ...if the monitored table was modified by the summarized actions,
       // fetch the modified/created records and note the work that needs to be done.
       if (tableDelta) {
-        console.log("--------------------------------------- handle() triggers.ts");
-        console.log(tableDelta);
-        console.log(tableDelta.columnDeltas);
         const recordDeltas = this._getRecordDeltas(tableDelta);
         const filters = {id: [...recordDeltas.keys()]};
 
@@ -227,8 +222,6 @@ export class DocTriggers {
     for (const task of tasks) {
       events.push(...this._handleTask(task, await task.tableDataAction));
     }
-    console.log("----------- events list");
-    console.log(events);
     if (!events.length) {
       return summary;
     }
@@ -535,9 +528,6 @@ export class DocTriggers {
       // TODO: would be worth checking that the trigger's fields are valid (ie: eventTypes, url,
       // ...) as there's no guarantee that they are.
 
-      console.log("bulkColValues");
-      console.log(bulkColValues);
-
       const rowIndexesToSend: number[] = _.range(bulkColValues.id.length).filter(rowIndex => {
           const rowId = bulkColValues.id[rowIndex];
           return this._shouldTriggerActions(
@@ -570,13 +560,7 @@ export class DocTriggers {
     recordDelta: RecordDelta,
     tableDelta: TableDelta,
   ): boolean {
-    console.log("_shouldTriggerActions");
-    console.log(rowId);
-    console.log(recordDelta);
-    console.log(trigger);
     let readyBefore: boolean;
-    console.log("tableDelta.columnDeltas");
-    console.log(tableDelta.columnDeltas);
     if (!trigger.isReadyColRef) {
       // User hasn't configured a column, so all records are considered ready immediately
       readyBefore = recordDelta.existedBefore;

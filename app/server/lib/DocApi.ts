@@ -336,7 +336,6 @@ export class DocWorkerApi {
       if (!fields.tableRef) {
         throw new ApiError(`tableId is required`, 400);
       }
-      console.log(" JE SUIS DANS LE REGISTER WEBHOOK DU FICHIER DOC API");
 
       const unsubscribeKey = uuidv4();
       const webhookSecret: WebHookSecret = {unsubscribeKey, url};
@@ -412,22 +411,24 @@ export class DocWorkerApi {
       }
 
       if (tableId !== undefined) {
-        fields.tableRef = tableIdToRef(metaTables, tableId);
-        currentTableId = tableId;
-      }
-
-      if (columnIds !== undefined) {
-        if (columnIds !== null && columnIds !== '') {
-          if (!currentTableId) {
-            throw new ApiError(`Cannot find columns "${columnIds}" because table is not known`, 404);
+        if (columnIds !== undefined && columnIds !== null && columnIds !== '') {
+          if (tableId !== currentTableId) {
+            // if the tableId changed, we need to reset the columnIds
+            fields.columnRefList = [GristObjCode.List];
+          } else {
+            if (!currentTableId) {
+              throw new ApiError(`Cannot find columns "${columnIds}" because table is not known`, 404);
+            }
+            // columnIds have to be of shape "columnId; columnId; columnId"
+            fields.columnRefList = [GristObjCode.List, ...columnIds.split(";").map(
+              columnId => { return colIdToReference(metaTables, currentTableId!, columnId.trim().replace(/^\$/, '')); }
+            )];
           }
-          // columnIds have to be of shape "columnId; columnId; columnId"
-          fields.columnRefList = [GristObjCode.List, ...columnIds.split(";").map(
-            columnId => { return colIdToReference(metaTables, currentTableId!, columnId.trim().replace(/^\$/, '')); }
-          )];
         } else {
           fields.columnRefList = [GristObjCode.List];
         }
+        fields.tableRef = tableIdToRef(metaTables, tableId);
+        currentTableId = tableId;
       }
 
       if (isReadyColumn !== undefined) {
@@ -918,13 +919,9 @@ export class DocWorkerApi {
       '/api/docs/:docId/webhooks/:webhookId', isOwner, validate(WebhookPatch),
       withDocTriggersLock(async (activeDoc, req, res) => {
 
-        console.log("----- INSIDE DOCAPI - api call update webhook");
-
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
         const {fields, url} = await getWebhookSettings(activeDoc, req, webhookId, req.body);
-        console.log(fields);
-        console.log(req.body);
         if (fields.enabled === false) {
           await activeDoc.triggers.clearSingleWebhookQueue(webhookId);
         }
