@@ -1308,11 +1308,11 @@ def migration41(tdset):
 
   return tdset.apply_doc_actions(doc_actions)
 
-@migration(schema_version=42)
-def migration42(tdset):
+@migration(schema_version=43)
+def migration43(tdset):
   """
   Adds columns for register witch table columns are triggered in webhooks.
   """
   return tdset.apply_doc_actions([
-    add_column('_grist_Triggers_column', 'columnRefList', 'RefList:_grist_Tables_column'),
+    add_column('_grist_Triggers', 'columnRefList', 'RefList:_grist_Tables_column'),
   ])

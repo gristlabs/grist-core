@@ -4427,6 +4427,7 @@ function testDocApi() {
               tableId: 'Table1',
               name: '',
               memo: '',
+              columnIds: '',
             }, usage : {
               status: 'idle',
               numWaiting: 0,
@@ -4444,6 +4445,7 @@ function testDocApi() {
               tableId: 'Table1',
               name: '',
               memo: '',
+              columnIds: '',
             }, usage : {
               status: 'idle',
               numWaiting: 0,
@@ -4801,6 +4803,7 @@ function testDocApi() {
               enabled: true,
               name: 'My Webhook',
               memo: 'Sync store',
+              columnIds: '',
             };
 
             let stats = await readStats(docId);

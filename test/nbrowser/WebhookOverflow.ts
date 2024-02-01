@@ -34,6 +34,7 @@ describe('WebhookOverflow', function () {
       enabled: true,
       name: 'test webhook',
       tableId: 'Table2',
+      columnIds: ''
     };
     await docApi.addWebhook(webhookDetails);
     await docApi.addWebhook(webhookDetails);

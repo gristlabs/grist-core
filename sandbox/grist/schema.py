@@ -15,7 +15,7 @@ import six
 
 import actions
 
-SCHEMA_VERSION = 42
+SCHEMA_VERSION = 43
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
