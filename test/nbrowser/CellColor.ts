@@ -535,6 +535,9 @@ describe('CellColor', function() {
     await gu.waitForServer();
     await gu.setType(/Toggle/);
 
+    // make sure the view pane is scrolled all the way left
+    await gu.sendKeys(Key.ARROW_LEFT);
+
     // enter 'true'
     await gu.getCell('E', 1).click();
     await gu.enterCell('true');

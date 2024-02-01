@@ -295,6 +295,15 @@ GridView.gridCommands = {
     }
     this.cursor.rowIndex(this.cursor.rowIndex() - 1);
   },
+  cursorLeft: function() {
+    // This conditional exists so that when users have the cursor in the leftmost column but
+    // are not scrolled to the left i.e. in the case of a wide column, pressing left again will
+    // scroll the pane to the left.
+    if (this.cursor.fieldIndex() === 0) {
+      this.scrollPane.scrollLeft = 0;
+    }
+    this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
+  },
   shiftDown: function() { this._shiftSelect({step: 1, direction: 'down'}); },
   shiftUp: function() { this._shiftSelect({step: 1, direction: 'up'}); },
   shiftRight: function() { this._shiftSelect({step: 1, direction: 'right'}); },
