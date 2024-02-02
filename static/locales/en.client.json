@@ -1125,7 +1125,19 @@
     },
     "WebhookPage": {
         "Clear Queue": "Clear Queue",
-        "Webhook Settings": "Webhook Settings"
+        "Webhook Settings": "Webhook Settings",
+        "Cleared webhook queue.": "Cleared webhook queue.",
+        "Columns to check when update (separated by ;)": "Columns to check when update (separated by ;)",
+        "Enabled": "Enabled",
+        "Event Types": "Event Types",
+        "Memo": "Memo",
+        "Name": "Name",
+        "Ready Column": "Ready Column",
+        "Removed webhook.": "Removed webhook.",
+        "Sorry, not all fields can be edited.": "Sorry, not all fields can be edited.",
+        "Status": "Status",
+        "URL": "URL",
+        "Webhook Id": "Webhook Id"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",

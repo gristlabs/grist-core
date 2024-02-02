@@ -45,13 +45,13 @@ const WEBHOOK_COLUMNS = [
     id: 'vt_webhook_fc2',
     colId: 'url',
     type: 'Text',
-    label: 'URL',
+    label: t('URL'),
   },
   {
     id: 'vt_webhook_fc3',
     colId: 'eventTypes',
     type: 'ChoiceList',
-    label: 'Event Types',
+    label: t('Event Types'),
     widgetOptions: JSON.stringify({
       widget: 'TextBox',
       alignment: 'left',
@@ -63,13 +63,13 @@ const WEBHOOK_COLUMNS = [
     id: 'vt_webhook_fc10',
     colId: 'columnIds',
     type: 'Text',
-    label: 'Columns (séparé par des ;)',
+    label: t('Columns to check when update (separated by ;)'),
   },
   {
     id: 'vt_webhook_fc4',
     colId: 'enabled',
     type: 'Bool',
-    label: 'Enabled',
+    label: t('Enabled'),
     widgetOptions: JSON.stringify({
       widget: 'Switch',
     }),
@@ -78,31 +78,31 @@ const WEBHOOK_COLUMNS = [
     id: 'vt_webhook_fc5',
     colId: 'isReadyColumn',
     type: 'Text',
-    label: 'Ready Column',
+    label: t('Ready Column'),
   },
   {
     id: 'vt_webhook_fc6',
     colId: 'webhookId',
     type: 'Text',
-    label: 'Webhook Id',
+    label: t('Webhook Id'),
   },
   {
     id: 'vt_webhook_fc7',
     colId: 'name',
     type: 'Text',
-    label: 'Name',
+    label: t('Name'),
   },
   {
     id: 'vt_webhook_fc8',
     colId: 'memo',
     type: 'Text',
-    label: 'Memo',
+    label: t('Memo'),
   },
   {
     id: 'vt_webhook_fc9',
     colId: 'status',
     type: 'Text',
-    label: 'Status',
+    label: t('Status'),
   },
 ] as const;
 
@@ -113,9 +113,8 @@ const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
   'name', 'memo',
   'eventTypes', 'url',
   'tableId', 'isReadyColumn',
-  'columnIds',
-  'webhookId', 'enabled',
-  'status'
+  'columnIds', 'webhookId',
+  'enabled', 'status'
 ];
 
 /**
@@ -158,7 +157,7 @@ class WebhookExternalTable implements IExternalTable {
         }
         const colIds = new Set(getColIdsFromDocAction(d) || []);
         if (colIds.has('webhookId') || colIds.has('status')) {
-          throw new Error(`Sorry, not all fields can be edited.`);
+          throw new Error(t(`Sorry, not all fields can be edited.`));
         }
       }
     }
@@ -169,7 +168,7 @@ class WebhookExternalTable implements IExternalTable {
         continue;
       }
       await this._removeWebhook(rec);
-      reportMessage(`Removed webhook.`);
+      reportMessage(t(`Removed webhook.`));
     }
     const updates = new Set(delta.updateRows);
     const t2 = editor;
@@ -185,7 +184,6 @@ class WebhookExternalTable implements IExternalTable {
     const {delta} = editor;
     const updates = new Set(delta.updateRows);
     const addsAndUpdates = new Set([...delta.addRows, ...delta.updateRows]);
-    // TODO : if table change :remove columnIds list
     for (const recId of addsAndUpdates) {
       const rec = editor.getRecord(recId);
       if (!rec) {
@@ -364,12 +362,12 @@ export class WebhookPage extends DisposableWithEvents {
 
   public async reset() {
     await this.docApi.flushWebhooks();
-    reportSuccess('Cleared webhook queue.');
+    reportSuccess(t('Cleared webhook queue.'));
   }
 
   public async resetSelected(id: string) {
     await this.docApi.flushWebhook(id);
-    reportSuccess(`Cleared webhook ${id} queue.`);
+    reportSuccess(t(`Cleared webhook ${id} queue.`));
   }
 }
 
