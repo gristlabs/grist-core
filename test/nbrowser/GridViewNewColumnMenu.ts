@@ -83,8 +83,9 @@ describe('GridViewNewColumnMenu', function () {
     it('should create a new column', async function () {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-add-new', 100).click();
+      await gu.waitForServer();
       //discard rename menu
-      await driver.findWait('.test-column-title-close', 100).click();
+      await driver.find('.test-column-title-close').click();
       //check if new column is present
       const columns = await gu.getColumnNames();
       assert.include(columns, 'D', 'new column is not present');
@@ -194,24 +195,24 @@ describe('GridViewNewColumnMenu', function () {
       "Attachment",
     ].map((option) => ({type:option, testClass: option.toLowerCase().replace(' ', '-')}));
     for (const option of optionsToBeDisplayed) {
-    it(`should allow to select column type ${option.type}`, async function () {
-      // open add new colum menu
-      await clickAddColumn();
-      // select "Add Column With type" option
-      await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
-      // wait for submenu to appear
-      await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
-      // check if it is present in the menu
-      const element = await driver.findWait(
-        `.test-new-columns-menu-add-${option.testClass}`.toLowerCase(),
-        100,
-        `${option.type} option is not present`);
-      // click on the option and check if column is added with a proper type
-      await element.click();
+      it(`should allow to select column type ${option.type}`, async function () {
+        // open add new colum menu
+        await clickAddColumn();
+        // select "Add Column With type" option
+        await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
+        // wait for submenu to appear
+        await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
+        // check if it is present in the menu
+        const element = await driver.findWait(
+          `.test-new-columns-menu-add-${option.testClass}`.toLowerCase(),
+          100,
+          `${option.type} option is not present`);
+        // click on the option and check if column is added with a proper type
+        await element.click();
+        await gu.waitForServer();
         //discard rename menu
         await driver.findWait('.test-column-title-close', 100).click();
         //check if new column is present
-        await gu.waitForServer();
         await gu.selectColumn('D');
         await gu.openColumnPanel();
         const type = await gu.getType();

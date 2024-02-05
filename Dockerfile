@@ -142,4 +142,4 @@ ENV \
 
 EXPOSE 8484
 
-CMD ./sandbox/run.sh
+CMD ["./sandbox/run.sh"]

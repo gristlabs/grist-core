@@ -650,7 +650,8 @@
         "Submit another response": "Submit another response",
         "Submit button label": "Submit button label",
         "Success text": "Success text",
-        "Table column name": "Table column name"
+        "Table column name": "Table column name",
+        "Enter redirect URL": "Enter redirect URL"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -869,7 +870,11 @@
         "You do not have access to this organization's documents.": "You do not have access to this organization's documents.",
         "Account deleted{{suffix}}": "Account deleted{{suffix}}",
         "Sign up": "Sign up",
-        "Your account has been deleted.": "Your account has been deleted."
+        "Your account has been deleted.": "Your account has been deleted.",
+        "An unknown error occurred.": "An unknown error occurred.",
+        "Build your own form": "Build your own form",
+        "Form not found": "Form not found",
+        "Powered by": "Powered by"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -901,7 +906,8 @@
         "Don't show again.": "Don't show again.",
         "Don't show tips": "Don't show tips",
         "Undo to restore": "Undo to restore",
-        "Got it": "Got it"
+        "Got it": "Got it",
+        "Don't show again": "Don't show again"
     },
     "pages": {
         "Duplicate Page": "Duplicate Page",
@@ -1318,7 +1324,8 @@
         "Paragraph": "Paragraph",
         "Paste": "Paste",
         "Separator": "Separator",
-        "Unmapped fields": "Unmapped fields"
+        "Unmapped fields": "Unmapped fields",
+        "Header": "Header"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Clear",

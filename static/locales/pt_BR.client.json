@@ -666,7 +666,8 @@
         "Columns_other": "Colunas",
         "Fields_one": "Campo",
         "Fields_other": "Campos",
-        "Add referenced columns": "Adicionar colunas referenciadas"
+        "Add referenced columns": "Adicionar colunas referenciadas",
+        "Reset form": "Restaurar formulário"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar o link de ancoragem",
@@ -743,7 +744,8 @@
         "TOOLS": "FERRAMENTAS",
         "Tour of this Document": "Tour desse Documento",
         "Validate Data": "Validar dados",
-        "Settings": "Configurações"
+        "Settings": "Configurações",
+        "API Console": "Consola API"
     },
     "TopBar": {
         "Manage Team": "Gerenciar Equipe"
@@ -1319,5 +1321,8 @@
         "Delete card": "Excluir cartão",
         "Copy anchor link": "Copiar link de ancoragem",
         "Insert card": "Inserir cartão"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Campos ocultos"
     }
 }
