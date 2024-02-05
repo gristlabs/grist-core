@@ -45,6 +45,7 @@ interface SpecActions {
 function applySpecActions(cb: (specActions: SpecActions, jsonSpec: JsonSpec) => void) {
   // Don't call actions directly within `wrapActions`, react/redux doesn't like it.
   setTimeout(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const system = (swaggerUI as any).getSystem();
     const jsonSpec = system.getState().getIn(["spec", "json"]);
     cb(system.specActions, jsonSpec);
@@ -253,6 +254,7 @@ function initialize(appModel: AppModel) {
     // showing it in cleartext makes it riskier to ask for help with screenshots and the like.
     // We set a fake key anyway to be clear that it's needed in the curl command.
     const key = 'XXXXXXXXXXX';
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     swaggerUI!.preauthorizeApiKey('ApiKey', key);
 
     // Set examples for orgs, workspaces, and docs.
