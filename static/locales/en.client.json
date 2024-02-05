@@ -297,7 +297,8 @@
         "Document ID copied to clipboard": "Document ID copied to clipboard",
         "Ok": "OK",
         "Manage Webhooks": "Manage Webhooks",
-        "Webhooks": "Webhooks"
+        "Webhooks": "Webhooks",
+        "API Console": "API Console"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
