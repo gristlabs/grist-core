@@ -358,6 +358,10 @@ class PositionColumn(NumericColumn):
     # This is a list of row_ids, ordered by the position.
     self._sorted_rows = SortedListWithKey(key=lambda x: SafeSortKey(self.raw_get(x)))
 
+  def clear(self):
+    super(PositionColumn, self).clear()
+    self._sorted_rows.clear()
+
   def set(self, row_id, value):
     self._sorted_rows.discard(row_id)
     super(PositionColumn, self).set(row_id, value)

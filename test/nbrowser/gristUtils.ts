@@ -2824,9 +2824,12 @@ export async function onNewTab(action: () => Promise<void>) {
   await driver.executeScript("window.open('about:blank', '_blank')");
   const tabs = await driver.getAllWindowHandles();
   await driver.switchTo().window(tabs[tabs.length - 1]);
-  await action();
-  await driver.close();
-  await driver.switchTo().window(tabs[tabs.length - 2]);
+  try {
+    await action();
+  } finally {
+    await driver.close();
+    await driver.switchTo().window(tabs[tabs.length - 2]);
+  }
 }
 
 /**
