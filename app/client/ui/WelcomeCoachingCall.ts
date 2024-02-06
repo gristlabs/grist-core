@@ -7,7 +7,6 @@ import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
 import {icon} from 'app/client/ui2018/icons';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, styled} from 'grainjs';
-import {getFreeCoachingCallUrl} from 'app/common/gristUrls';
 import { makeT } from '../lib/localization';
 
 const t = makeT('WelcomeCoachingCall');
@@ -104,7 +103,7 @@ We can show you the Grist basics, or start working with your data right away to 
             logTelemetryEvent('clickedScheduleCoachingCall');
           }),
           {
-            href: getFreeCoachingCallUrl(),
+            href: getGristConfig().freeCoachingCallUrl,
             target: '_blank',
           },
           testId('popup-primary-button'),
