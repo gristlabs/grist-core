@@ -86,7 +86,7 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
         cssBody(
           dom('div',
             t('Schedule your {{freeCoachingCall}} with a member of our team.',
-              {freeCoachingCall: cssBoldText('free coaching call')}
+              {freeCoachingCall: cssBoldText(t('free coaching call'))}
             )
           ),
           dom('div',
