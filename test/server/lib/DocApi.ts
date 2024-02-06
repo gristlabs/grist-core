@@ -4878,6 +4878,7 @@ function testDocApi() {
             let stats = await readStats(docId);
             assert.equal(stats.length, 1, 'stats=' + JSON.stringify(stats));
             assert.equal(stats[0].id, webhooks.webhooks[0].id);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {unsubscribeKey, ...fieldsWithoutUnsubscribeKey} = stats[0].fields;
             assert.deepEqual(fieldsWithoutUnsubscribeKey, expectedFields);
 
@@ -4895,6 +4896,7 @@ function testDocApi() {
               if (expectedFieldsCallback) {
                 expectedFieldsCallback(expectedFields);
               }
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const {unsubscribeKey, ...fieldsWithoutUnsubscribeKey} = stats[0].fields;
               assert.deepEqual(fieldsWithoutUnsubscribeKey, { ...expectedFields, ...fields });
             } else {
