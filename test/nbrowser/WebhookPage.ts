@@ -1,9 +1,9 @@
-import {DocCreationInfo} from 'app/common/DocListAPI';
-import {DocAPI} from 'app/common/UserAPI';
-import {assert, driver, Key} from 'mocha-webdriver';
+import { DocCreationInfo } from 'app/common/DocListAPI';
+import { DocAPI } from 'app/common/UserAPI';
+import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import {EnvironmentSnapshot} from 'test/server/testUtils';
+import { server, setupTestSuite } from 'test/nbrowser/testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 describe('WebhookPage', function () {
   this.timeout(60000);
@@ -26,10 +26,10 @@ describe('WebhookPage', function () {
     doc = await session.tempDoc(cleanup, 'Hello.grist');
     docApi = api.getDocAPI(doc.id);
     await api.applyUserActions(doc.id, [
-      ['AddTable', 'Table2', [{id: 'A'}, {id: 'B'}, {id: 'C'}, {id: 'D'}, {id: 'E'}]],
+      ['AddTable', 'Table2', [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }]],
     ]);
     await api.applyUserActions(doc.id, [
-      ['AddTable', 'Table3', [{id: 'A'}, {id: 'B'}, {id: 'C'}, {id: 'D'}, {id: 'E'}]],
+      ['AddTable', 'Table3', [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }]],
     ]);
     await api.updateDocPermissions(doc.id, {
       users: {
@@ -55,6 +55,7 @@ describe('WebhookPage', function () {
       'URL',
       'Table',
       'Ready Column',
+      'Columns to check when update (separated by ;)',
       'Webhook Id',
       'Enabled',
       'Status',
@@ -91,7 +92,7 @@ describe('WebhookPage', function () {
       assert.equal(await getField(1, 'Memo'), 'Test Memo');
     });
     // Make sure the webhook is actually working.
-    await docApi.addRows('Table1', {A: ['zig'], B: ['zag']});
+    await docApi.addRows('Table1', { A: ['zig'], B: ['zag'] });
     // Make sure the data gets delivered, and that the webhook status is updated.
     await gu.waitToPass(async () => {
       assert.lengthOf((await docApi.getRows('Table2')).A, 1);
@@ -100,7 +101,7 @@ describe('WebhookPage', function () {
     });
     // Remove the webhook and make sure it is no longer listed.
     assert.equal(await gu.getCardListCount(), 2);
-    await gu.getDetailCell({col: 'Name', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Name', rowNum: 1 }).click();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await gu.waitForServer();
@@ -122,14 +123,14 @@ describe('WebhookPage', function () {
     await setField(2, 'URL', `http://${host}/api/docs/${doc.id}/tables/Table3/records?flat=1`);
     await setField(2, 'Table', 'Table1');
     await gu.waitForServer();
-    await docApi.addRows('Table1', {A: ['zig2'], B: ['zag2']});
+    await docApi.addRows('Table1', { A: ['zig2'], B: ['zag2'] });
     await gu.waitToPass(async () => {
       assert.lengthOf((await docApi.getRows('Table2')).A, 1);
       assert.lengthOf((await docApi.getRows('Table3')).A, 1);
       assert.match(await getField(1, 'Status'), /status...success/);
       assert.match(await getField(2, 'Status'), /status...success/);
     });
-    await docApi.updateRows('Table1', {id: [1], A: ['zig3'], B: ['zag3']});
+    await docApi.updateRows('Table1', { id: [1], A: ['zig3'], B: ['zag3'] });
     await gu.waitToPass(async () => {
       assert.lengthOf((await docApi.getRows('Table2')).A, 2);
       assert.lengthOf((await docApi.getRows('Table3')).A, 1);
@@ -139,11 +140,11 @@ describe('WebhookPage', function () {
     // confirm that nothing shows up to Table3.
     assert.lengthOf((await docApi.getRows('Table3')).A, 1);
     // Break everything down.
-    await gu.getDetailCell({col: 'Name', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Name', rowNum: 1 }).click();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await gu.waitForServer();
-    await gu.getDetailCell({col: 'Memo', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Memo', rowNum: 1 }).click();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.waitForServer();
     assert.equal(await gu.getCardListCount(), 1);
@@ -162,7 +163,7 @@ describe('WebhookPage', function () {
     await setField(1, 'URL', `http://${host}/notathing`);
     await setField(1, 'Table', 'Table1');
     await gu.waitForServer();
-    await docApi.addRows('Table1', {A: ['dud1']});
+    await docApi.addRows('Table1', { A: ['dud1'] });
     await gu.waitToPass(async () => {
       assert.match(await getField(1, 'Status'), /status...failure/);
       assert.match(await getField(1, 'Status'), /numWaiting..1/);
@@ -174,14 +175,14 @@ describe('WebhookPage', function () {
       assert.match(await getField(1, 'Status'), /numWaiting..0/);
     });
     assert.lengthOf((await docApi.getRows('Table2')).A, 0);
-    await docApi.addRows('Table1', {A: ['dud2']});
+    await docApi.addRows('Table1', { A: ['dud2'] });
     await gu.waitToPass(async () => {
       assert.lengthOf((await docApi.getRows('Table2')).A, 1);
       assert.match(await getField(1, 'Status'), /status...success/);
     });
 
     // Break everything down.
-    await gu.getDetailCell({col: 'Name', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Name', rowNum: 1 }).click();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await gu.waitForServer();
@@ -237,7 +238,7 @@ describe('WebhookPage', function () {
       assert.match(await getField(1, 'Memo'), /multiple memo/);
     });
 
-    await gu.getDetailCell({col: 'Name', rowNum: 1}).click();
+    await gu.getDetailCell({ col: 'Name', rowNum: 1 }).click();
     await gu.sendKeys(Key.chord(await gu.modKey(), Key.DELETE));
     await gu.confirm(true, true);
     await driver.switchTo().window(ownerTab);
@@ -253,13 +254,13 @@ describe('WebhookPage', function () {
    * Checks that a particular route to modifying cells in a virtual table
    * is in place (previously it was not).
    */
-  it('can paste into a cell without clicking into it', async function() {
+  it('can paste into a cell without clicking into it', async function () {
     await openWebhookPage();
     await setField(1, 'Name', '1234');
     await gu.waitForServer();
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
-      await gu.getDetailCell({col: 'Memo', rowNum: 1}).click();
+      await gu.getDetailCell({ col: 'Memo', rowNum: 1 }).click();
       await cb.paste();
     });
     await gu.waitForServer();
@@ -268,12 +269,12 @@ describe('WebhookPage', function () {
 });
 
 async function setField(rowNum: number, col: string, text: string) {
-  await gu.getDetailCell({col, rowNum}).click();
+  await gu.getDetailCell({ col, rowNum }).click();
   await gu.enterCell(text);
 }
 
 async function getField(rowNum: number, col: string) {
-  const cell = await gu.getDetailCell({col, rowNum});
+  const cell = await gu.getDetailCell({ col, rowNum });
   return cell.getText();
 }
 
@@ -287,5 +288,5 @@ async function openWebhookPage() {
 async function waitForWebhookPage() {
   await driver.findContentWait('button', /Clear Queue/, 3000);
   // No section, so no easy utility for setting focus. Click on a random cell.
-  await gu.getDetailCell({col: 'Webhook Id', rowNum: 1}).click();
+  await gu.getDetailCell({ col: 'Webhook Id', rowNum: 1 }).click();
 }
