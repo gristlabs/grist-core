@@ -4445,6 +4445,7 @@ function testDocApi() {
           B: [true],
           C: ['c1']
         });
+        await delay(100);
         assert.isTrue(successCalled.called());
         await successCalled.waitAndReset();
 
