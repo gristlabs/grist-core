@@ -102,12 +102,14 @@ export interface BehavioralPromptPrefs {
  * List of all popups that user can see and dismiss
  */
 export const DismissedPopup = StringUnion(
-  'deleteRecords', // confirmation for deleting records keyboard shortcut,
-  'deleteFields',  // confirmation for deleting columns keyboard shortcut,
-  'tutorialFirstCard', // first card of the tutorial,
-  'formulaHelpInfo', // formula help info shown in the popup editor,
-  'formulaAssistantInfo', // formula assistant info shown in the popup editor,
-  'supportGrist', // nudge to opt in to telemetry,
+  'deleteRecords',        // confirmation for deleting records keyboard shortcut
+  'deleteFields',         // confirmation for deleting columns keyboard shortcut
+  'tutorialFirstCard',    // first card of the tutorial
+  'formulaHelpInfo',      // formula help info shown in the popup editor
+  'formulaAssistantInfo', // formula assistant info shown in the popup editor
+  'supportGrist',         // nudge to opt in to telemetry
+  'publishForm',          // confirmation for publishing a form
+  'unpublishForm',        // confirmation for unpublishing a form
 );
 export type DismissedPopup = typeof DismissedPopup.type;
 

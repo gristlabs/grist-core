@@ -1,10 +1,13 @@
+import {buildEditor} from 'app/client/components/Forms/Editor';
+import {buildMenu} from 'app/client/components/Forms/Menu';
+import {BoxModel} from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
-import {Box, BoxModel, RenderContext} from 'app/client/components/Forms/Model';
 import {makeTestId} from 'app/client/lib/domUtils';
 import {icon} from 'app/client/ui2018/icons';
 import * as menus from 'app/client/ui2018/menus';
+import {Box} from 'app/common/Forms';
 import {inlineStyle, not} from 'app/common/gutil';
-import {bundleChanges, Computed, dom, MultiHolder, Observable, styled} from 'grainjs';
+import {bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-forms-');
 
@@ -12,7 +15,7 @@ export class ColumnsModel extends BoxModel {
   private _columnCount = Computed.create(this, use => use(this.children).length);
 
   public removeChild(box: BoxModel) {
-    if (box.type.get() === 'Placeholder') {
+    if (box.type === 'Placeholder') {
       // Make sure we have at least one rendered.
       if (this.children.get().length <= 1) {
         return;
@@ -23,54 +26,72 @@ export class ColumnsModel extends BoxModel {
     this.replace(box, Placeholder());
   }
 
-  // Dropping a box on a column will replace it.
-  public drop(dropped: Box): BoxModel {
+  // Dropping a box on this component (Columns) directly will add it as a new column.
+  public accept(dropped: Box): BoxModel {
     if (!this.parent) { throw new Error('No parent'); }
 
     // We need to remove it from the parent, so find it first.
-    const droppedId = dropped.id;
-    const droppedRef = this.root().find(droppedId);
+    const droppedRef = dropped.id ? this.root().find(dropped.id) : null;
 
-    // Now we simply insert it after this box.
+    // If this is already my child, don't do anything.
+    if (droppedRef && droppedRef.parent === this) {
+      return droppedRef;
+    }
+
     droppedRef?.removeSelf();
 
-    return this.parent.replace(this, dropped);
+    return this.append(dropped);
   }
-  public render(context: RenderContext): HTMLElement {
-    context.overlay.set(false);
 
-    // Now render the dom.
-    const renderedDom = style.cssColumns(
+  public render(...args: IDomArgs<HTMLElement>): HTMLElement {
+    const dragHover = Observable.create(null, false);
+
+    const content: HTMLElement = style.cssColumns(
+      dom.autoDispose(dragHover),
+
       // Pass column count as a css variable (to style the grid).
       inlineStyle(`--css-columns-count`, this._columnCount),
 
       // Render placeholders as children.
       dom.forEach(this.children, (child) => {
-        return this.view.renderBox(
-          this.children,
-          child || BoxModel.new(Placeholder(), this),
-          testId('column')
-        );
+        const toRender = child ?? BoxModel.new(Placeholder(), this);
+        return toRender.render(testId('column'));
       }),
 
       // Append + button at the end.
-      dom('div',
+      cssPlaceholder(
         testId('add'),
         icon('Plus'),
         dom.on('click', () => this.placeAfterListChild()(Placeholder())),
-        style.cssColumn.cls('-add-button')
+        style.cssColumn.cls('-add-button'),
+        style.cssColumn.cls('-drag-over', dragHover),
+
+        dom.on('dragleave', (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          // Just remove the style and stop propagation.
+          dragHover.set(false);
+        }),
+        dom.on('dragover', (ev) => {
+          // As usual, prevent propagation.
+          ev.stopPropagation();
+          ev.preventDefault();
+          // Here we just change the style of the element.
+          ev.dataTransfer!.dropEffect = "move";
+          dragHover.set(true);
+        }),
       ),
+
+      ...args,
     );
-    return renderedDom;
+    return buildEditor({ box: this, content });
   }
 }
 
 export class PlaceholderModel extends BoxModel {
-
-  public render(context: RenderContext): HTMLElement {
-    const [box, view, overlay] = [this, this.view, context.overlay];
+  public render(...args: IDomArgs<HTMLElement>): HTMLElement {
+    const [box, view] = [this, this.view];
     const scope = new MultiHolder();
-    overlay.set(false);
 
     const liveIndex = Computed.create(scope, (use) => {
       if (!box.parent) { return -1; }
@@ -91,15 +112,19 @@ export class PlaceholderModel extends BoxModel {
     const dragHover = Observable.create(scope, false);
 
     return cssPlaceholder(
-      style.cssDrag(),
-      testId('placeholder'),
+      style.cssDrop(),
+      testId('Placeholder'),
+      testId('element'),
+      dom.attr('data-box-model', String(box.type)),
       dom.autoDispose(scope),
 
       style.cssColumn.cls('-drag-over', dragHover),
       style.cssColumn.cls('-empty', not(boxModelAt)),
       style.cssColumn.cls('-selected', use => use(view.selectedBox) === box),
 
-      view.buildAddMenu(insertBox, {
+      buildMenu({
+        box: this,
+        insertBox,
         customItems: [menus.menuItem(removeColumn, menus.menuIcon('Remove'), 'Remove Column')],
       }),
 
@@ -134,21 +159,31 @@ export class PlaceholderModel extends BoxModel {
         // We need to remove it from the parent, so find it first.
         const droppedId = dropped.id;
         const droppedRef = box.root().find(droppedId);
-        if (!droppedRef) { return; }
+
+        // Make sure that the dropped stuff is not our parent.
+        if (droppedRef) {
+          for(const child of droppedRef.traverse()) {
+            if (this === child) {
+              return;
+            }
+          }
+        }
 
         // Now we simply insert it after this box.
         bundleChanges(() => {
-          droppedRef.removeSelf();
+          droppedRef?.removeSelf();
           const parent = box.parent!;
           parent.replace(box, dropped);
           parent.save().catch(reportError);
         });
       }),
-
-      dom.maybeOwned(boxModelAt, (mscope, child) => view.renderBox(mscope, child)),
-      dom.maybe(use => !use(boxModelAt) && use(view.isEdit), () => {
-        return dom('span', `Column `, dom.text(use => String(use(liveIndex) + 1)));
-      }),
+      // If we an occupant, render it.
+      dom.maybe(boxModelAt, (child) => child.render()),
+      // If not, render a placeholder.
+      dom.maybe(not(boxModelAt), () =>
+        dom('span', `Column `, dom.text(use => String(use(liveIndex) + 1)))
+      ),
+      ...args,
     );
 
     function insertBox(childBox: Box) {
@@ -163,6 +198,10 @@ export class PlaceholderModel extends BoxModel {
   }
 }
 
+export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): Box {
+  return {type: 'Paragraph', text, alignment};
+}
+
 export function Placeholder(): Box {
   return {type: 'Placeholder'};
 }
@@ -173,4 +212,8 @@ export function Columns(): Box {
 
 const cssPlaceholder = styled('div', `
   position: relative;
+  & * {
+    /* Otherwise it will emit drag events that we want to ignore to avoid flickering */
+    pointer-events: none;
+  }
 `);

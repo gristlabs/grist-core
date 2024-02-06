@@ -1930,19 +1930,16 @@ class UserActions(object):
       )
 
     if record_card_section:
-      record_card_section = self.create_plain_view_section(
+      record_card_section = self._create_record_card_view_section(
         result["id"],
         table_id,
-        self._docmodel.view_sections,
-        "single",
-        ""
+        self._docmodel.view_sections
       )
 
-    if primary_view or raw_section or record_card_section:
+    if primary_view or raw_section:
       self.UpdateRecord('_grist_Tables', result["id"], {
         'primaryViewId': primary_view["id"] if primary_view else 0,
         'rawViewSectionRef': raw_section.id if raw_section else 0,
-        'recordCardViewSectionRef': record_card_section.id if record_card_section else 0,
       })
 
     return result
@@ -1994,10 +1991,10 @@ class UserActions(object):
     new_raw_section = new_table.rawViewSectionRef
     new_record_card_section = new_table.recordCardViewSectionRef
 
-    # Copy view section options to the new raw and record card view sections.
-    self._docmodel.update(
-      [new_raw_section, new_record_card_section],
-      options=[raw_section.options, record_card_section.options]
+    # Copy view section description and options to the new raw view section.
+    self._docmodel.update([new_raw_section],
+      description=raw_section.description,
+      options=raw_section.options,
     )
 
     old_to_new_col_refs = {}
@@ -2034,6 +2031,7 @@ class UserActions(object):
         recalcWhen=existing_column.recalcWhen,
         recalcDeps=new_recalc_deps,
         formula=formula_updates.get(new_column, existing_column.formula),
+        description=existing_column.description,
       )
       self.maybe_copy_display_formula(existing_column, new_column)
 
@@ -2048,6 +2046,8 @@ class UserActions(object):
         # Copy all column conditional styles to the new table.
         for rule in existing_column.rules:
           self.doAddRule(new_table_id, None, new_column.id, rule.formula)
+
+    self._copy_record_card_settings(record_card_section, new_record_card_section)
 
     # Copy all row conditional styles to the new table.
     for rule in raw_section.rules:
@@ -2064,6 +2064,55 @@ class UserActions(object):
       'raw_section_id': new_raw_section.id,
     }
 
+  def _copy_record_card_settings(self, src_record_card_section, dst_record_card_section):
+    """
+    Helper that copies settings from `src_record_card_section` to `dst_record_card_section`.
+    """
+    old_to_new_col_refs = {}
+    old_to_new_field_refs = {}
+    for existing_field, new_field in zip(src_record_card_section.fields,
+                                         dst_record_card_section.fields):
+      old_to_new_col_refs[existing_field.colRef.id] = new_field.colRef
+      old_to_new_field_refs[existing_field.id] = new_field.id
+
+    for existing_field, new_field in zip(src_record_card_section.fields,
+                                         dst_record_card_section.fields):
+      # Copy field settings to the new fields.
+      self._docmodel.update(
+        [new_field],
+        displayCol=old_to_new_col_refs.get(existing_field.displayCol.id, 0),
+        parentPos=existing_field.parentPos,
+        visibleCol=old_to_new_col_refs.get(existing_field.visibleCol.id, 0),
+        widgetOptions=existing_field.widgetOptions,
+      )
+
+      if existing_field.rules:
+        # Copy all field conditional styles to the new section.
+        for rule in existing_field.rules:
+          self.doAddRule(dst_record_card_section.tableRef.tableId, new_field.id, None, rule.formula)
+
+    def patch_layout_spec(layout_spec):
+      if isinstance(layout_spec, (dict, list)):
+        for k, v in (layout_spec.items()
+                     if isinstance(layout_spec, dict)
+                     else enumerate(layout_spec)):
+          if k == 'leaf' and v in old_to_new_field_refs:
+            layout_spec[k] = old_to_new_field_refs[v]
+          patch_layout_spec(v)
+
+    try:
+      new_layout_spec = json.loads(src_record_card_section.layoutSpec)
+      patch_layout_spec(new_layout_spec)
+      new_layout_spec = json.dumps(new_layout_spec)
+    except ValueError:
+      new_layout_spec = ''
+
+    # Copy options, theme, and layout to the new record card view section.
+    self._docmodel.update([dst_record_card_section],
+      options=src_record_card_section.options,
+      layoutSpec=new_layout_spec,
+      theme=src_record_card_section.theme,
+    )
 
   def _fetch_table_col_recs(self, table_ref, col_refs):
     """Helper that converts col_refs from table table_ref into column Records."""
@@ -2116,9 +2165,20 @@ class UserActions(object):
       title = ''
     section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
                                  title=title, borderWidth=1, defaultWidth=100)[0]
-    # TODO: We should address the automatic selection of fields for charts in a better way.
+    # TODO: We should address the automatic selection of fields for charts
+    # and forms in a better way.
+    limit = 2 if section_type == 'chart' else 9 if section_type == 'form' else None
     self._RebuildViewFields(tableId, section.id,
-                            limit=(2 if section_type == 'chart' else None))
+                            limit=limit)
+    return section
+
+  def _create_record_card_view_section(self, tableRef, tableId, view_sections):
+    section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey='single',
+                                 title='', borderWidth=1, defaultWidth=100)[0]
+    self.UpdateRecord('_grist_Tables', tableRef, {
+      'recordCardViewSectionRef': section.id,
+    })
+    self._RebuildViewFields(tableId, section.id)
     return section
 
   @useraction
@@ -2245,14 +2305,22 @@ class UserActions(object):
     if section_rec.fields:
       self._docmodel.remove(section_rec.fields)
 
-    # Include all table columns that are intended to be visible to the user.
-    cols = [c for c in table_rec.columns if column.is_visible_column(c.colId)
-            # TODO: hack to avoid auto-adding the 'group' column when detaching summary tables.
-            and c.colId != 'group']
-    cols.sort(key=lambda c: c.parentPos)
-    if limit is not None:
-      cols = cols[:limit]
-    self._docmodel.add(section_rec.fields, colRef=[c.id for c in cols])
+    is_card = section_rec.parentKey in ('single', 'detail')
+    is_record_card = section_rec == table_rec.recordCardViewSectionRef
+    if is_card and not is_record_card:
+      # Copy settings from the table's record card section to the new section.
+      record_card_section = table_rec.recordCardViewSectionRef
+      self._docmodel.add(section_rec.fields, colRef=[f.colRef for f in record_card_section.fields])
+      self._copy_record_card_settings(record_card_section, section_rec)
+    else :
+      # Include all table columns that are intended to be visible to the user.
+      cols = [c for c in table_rec.columns if column.is_visible_column(c.colId)
+              # TODO: hack to avoid auto-adding the 'group' column when detaching summary tables.
+              and c.colId != 'group']
+      cols.sort(key=lambda c: c.parentPos)
+      if limit is not None:
+        cols = cols[:limit]
+      self._docmodel.add(section_rec.fields, colRef=[c.id for c in cols])
 
 
   #----------------------------------------------------------------------

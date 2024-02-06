@@ -119,7 +119,7 @@ const cssOptions = styled('div', `
   position: absolute;
   right: 0;
   top: 48px;
-  z-index: 1;
+  z-index: ${vars.menuZIndex};
   padding: 2px 4px;
   overflow: hidden;
   white-space: nowrap;

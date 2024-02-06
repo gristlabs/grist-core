@@ -9,8 +9,9 @@ import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, select} from 'app/client/ui2018/menus';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
+import {WidgetType} from 'app/common/widgetTypes';
 import {UIRowId} from 'app/plugin/GristAPI';
-import {Computed, dom, styled} from 'grainjs';
+import {Computed, dom, styled, UseCB} from 'grainjs';
 
 
 const t = makeT('Reference');
@@ -48,10 +49,16 @@ export class Reference extends NTextBox {
   }
 
   public buildConfigDom() {
+    // If we are on forms, we don't want to show alignment options.
+    const notForm = (use: UseCB) => {
+      return use(use(this.field.viewSection).parentKey) !== WidgetType.Form;
+    };
     return [
       this.buildTransformConfigDom(),
-      cssLabel(t('CELL FORMAT')),
-      super.buildConfigDom()
+      dom.maybe(notForm, () => [
+        cssLabel(t('CELL FORMAT')),
+        super.buildConfigDom()
+      ])
     ];
   }
 

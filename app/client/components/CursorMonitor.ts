@@ -59,7 +59,12 @@ export class CursorMonitor extends Disposable {
       if (!this._restored) { return; }
       // store position only when we have valid rowId
       // for some views (like CustomView) cursor position might not reflect actual row
-      if (pos && pos.rowId !== undefined) { this._storePosition(pos); }
+      if (pos && pos.rowId !== undefined) {
+        if (pos.sectionId) {
+          pos = {...pos, linkingRowIds: doc.getLinkingRowIds(pos.sectionId)};
+        }
+        this._storePosition(pos);
+      }
     }));
   }
 

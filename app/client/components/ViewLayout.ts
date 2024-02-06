@@ -190,7 +190,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       prevSection: () => { this._otherSection(-1); },
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },
       sortFilterMenuOpen: (sectionId?: number) => { this._openSortFilterMenu(sectionId); },
-      maximizeActiveSection: () => { this._maximizeActiveSection(); },
+      expandSection: () => { this._expandSection(); },
       cancel: () => {
         if (this.maximized.get()) {
           this.maximized.set(null);
@@ -294,7 +294,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     oldTray.dispose();
   }
 
-  private _maximizeActiveSection() {
+  private _expandSection() {
     const activeSection = this.viewModel.activeSection();
     const activeSectionId = activeSection.getRowId();
     const activeSectionBox = this.layout.getLeafBox(activeSectionId);

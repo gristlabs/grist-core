@@ -501,7 +501,7 @@ export class LayoutEditor extends Disposable {
       handles: isWidth ? 'e' : 's',
       start: this.onResizeStart.bind(this, helperObj, isWidth),
       resize: this.onResizeMove.bind(this, helperObj, isWidth),
-      stop: this.triggerUserEditStop.bind(this)
+      stop: this.triggerUserEditStop.bind(this),
     });
   }
   public unmakeResizable(box: LayoutBox) {

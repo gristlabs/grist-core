@@ -11,6 +11,7 @@ export const CursorPos = t.iface([], {
   "rowIndex": t.opt("number"),
   "fieldIndex": t.opt("number"),
   "sectionId": t.opt("number"),
+  "linkingRowIds": t.opt(t.array("UIRowId")),
 });
 
 export const ComponentKind = t.union(t.lit("safeBrowser"), t.lit("safePython"), t.lit("unsafeNode"));

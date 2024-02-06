@@ -55,8 +55,6 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
-const {reportError} = require('app/client/models/AppModel');
-const {urlState} = require('app/client/models/gristUrlState');
 
 const t = makeT('GridView');
 
@@ -295,6 +293,15 @@ GridView.gridCommands = {
     }
     this.cursor.rowIndex(this.cursor.rowIndex() - 1);
   },
+  cursorLeft: function() {
+    // This conditional exists so that when users have the cursor in the leftmost column but
+    // are not scrolled to the left i.e. in the case of a wide column, pressing left again will
+    // scroll the pane to the left.
+    if (this.cursor.fieldIndex() === 0) {
+      this.scrollPane.scrollLeft = 0;
+    }
+    this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
+  },
   shiftDown: function() { this._shiftSelect({step: 1, direction: 'down'}); },
   shiftUp: function() { this._shiftSelect({step: 1, direction: 'up'}); },
   shiftRight: function() { this._shiftSelect({step: 1, direction: 'right'}); },
@@ -374,16 +381,10 @@ GridView.gridCommands = {
     this.viewSection.rawNumFrozen.setAndSave(action.numFrozen);
   },
   viewAsCard() {
-    if (this._isRecordCardDisabled()) { return; }
-
     const selectedRows = this.selectedRows();
     if (selectedRows.length !== 1) { return; }
 
-    const colRef = this.viewSection.viewFields().at(this.cursor.fieldIndex()).column().id();
-    const rowId = selectedRows[0];
-    const sectionId = this.viewSection.tableRecordCard().id();
-    const anchorUrlState = {hash: {colRef, rowId, sectionId, recordCard: true}};
-    urlState().pushUrl(anchorUrlState, {replace: true}).catch(reportError);
+    this.viewSelectedRecordAsCard();
   },
 };
 
@@ -1924,14 +1925,13 @@ GridView.prototype.rowContextMenu = function() {
 GridView.prototype._getRowContextMenuOptions = function() {
   return {
     ...this._getCellContextMenuOptions(),
-    disableShowRecordCard: this._isRecordCardDisabled(),
+    disableShowRecordCard: this.isRecordCardDisabled(),
   };
 };
 
-GridView.prototype._isRecordCardDisabled = function() {
-  return this.getSelection().onlyAddRowSelected() ||
-    this.viewSection.isTableRecordCardDisabled() ||
-    this.viewSection.table().summarySourceTable() !== 0;
+GridView.prototype.isRecordCardDisabled = function() {
+  return BaseView.prototype.isRecordCardDisabled.call(this) ||
+    this.getSelection().onlyAddRowSelected();
 }
 
 GridView.prototype.cellContextMenu = function() {

@@ -1,0 +1,539 @@
+html,
+body {
+  background-color: #f7f7f7;
+  padding: 0px;
+  margin: 0px;
+  line-height: 1.42857143;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.grist-form-container {
+  --icon-Tick: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTExLjYxODMwNjksNC42NzcwMjg0NyBDMTEuNzk2Njc4OSw0LjQ2NjIyNTE3IDEyLjExMjE2NzgsNC40Mzk5MzQ0MyAxMi4zMjI5NzExLDQuNjE4MzA2NDUgQzEyLjUzMzc3NDQsNC43OTY2Nzg0OCAxMi41NjAwNjUyLDUuMTEyMTY3NDEgMTIuMzgxNjkzMSw1LjMyMjk3MDcxIEw2LjUzMDY4ODI3LDEyLjIzNzc5NDYgTDMuNjQ2NDQ2NjEsOS4zNTM1NTI5OCBDMy40NTExODQ0Niw5LjE1ODI5MDg0IDMuNDUxMTg0NDYsOC44NDE3MDgzNSAzLjY0NjQ0NjYxLDguNjQ2NDQ2MiBDMy44NDE3MDg3Niw4LjQ1MTE4NDA2IDQuMTU4MjkxMjQsOC40NTExODQwNiA0LjM1MzU1MzM5LDguNjQ2NDQ2MiBMNi40NjkzMTE3MywxMC43NjIyMDQ1IEwxMS42MTgzMDY5LDQuNjc3MDI4NDcgWiIgZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9zdmc+);
+  --icon-Minus: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJub256ZXJvIiB4PSIyIiB5PSI3LjUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxIiByeD0iLjUiLz48L3N2Zz4=);
+  --icon-Expand: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTgsOS4xNzQ2MzA1MiBMMTAuOTIxODI3Myw2LjE4OTAyMzIgQzExLjE2ODQ3NDIsNS45MzY5OTIyNyAxMS41NjgzNjc5LDUuOTM2OTkyMjcgMTEuODE1MDE0OCw2LjE4OTAyMzIgQzEyLjA2MTY2MTcsNi40NDEwNTQxMyAxMi4wNjE2NjE3LDYuODQ5Njc3MDEgMTEuODE1MDE0OCw3LjEwMTcwNzk0IEw4LDExIEw0LjE4NDk4NTE5LDcuMTAxNzA3OTQgQzMuOTM4MzM4MjcsNi44NDk2NzcwMSAzLjkzODMzODI3LDYuNDQxMDU0MTMgNC4xODQ5ODUxOSw2LjE4OTAyMzIgQzQuNDMxNjMyMTEsNS45MzY5OTIyNyA0LjgzMTUyNTc4LDUuOTM2OTkyMjcgNS4wNzgxNzI3LDYuMTg5MDIzMiBMOCw5LjE3NDYzMDUyIFoiIGZpbGw9IiMwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIgdHJhbnNmb3JtPSJyb3RhdGUoLTkwIDggOC41KSIvPjwvc3ZnPg==');
+  --primary: #16b378;
+  --primary-dark: #009058;
+  --dark-gray: #D9D9D9;
+  --light-gray: #bfbfbf;
+  --light: white;
+
+  color: #262633;
+  background-color: #f7f7f7;
+  min-height: 100%;
+  width: 100%;
+  padding-top: 52px;
+  font-size: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Liberation Sans", Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.grist-form-container .grist-form-confirm {
+  background-color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--dark-gray);
+  border-radius: 3px;
+  max-width: 600px;
+  margin: 0px auto;
+}
+
+.grist-form {
+  margin: 0px auto;
+  background-color: white;
+  border: 1px solid var(--dark-gray);
+  width: 600px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100% - 32px);
+  margin-bottom: 16px;
+  padding-top: 20px;
+  --grist-form-padding: 48px;
+  padding-left: var(--grist-form-padding);
+  padding-right: var(--grist-form-padding);
+}
+
+@media screen and (max-width: 600px) {
+  .grist-form-container {
+    padding-top: 20px;
+  }
+
+  .grist-form {
+    --grist-form-padding: 20px;
+  }
+}
+
+.grist-form > div + div {
+  margin-top: 16px;
+}
+
+.grist-form .grist-section {
+  border-radius: 3px;
+  border: 1px solid var(--dark-gray);
+  padding: 16px 24px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.grist-form .grist-section > div + div {
+  margin-top: 16px;
+}
+
+.grist-form input[type="text"],
+.grist-form input[type="date"],
+.grist-form input[type="datetime-local"],
+.grist-form input[type="number"] {
+  padding: 4px 8px;
+  border: 1px solid var(--dark-gray);
+  border-radius: 3px;
+  outline: none;
+}
+
+.grist-form .grist-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.grist-form .grist-field .grist-field-description {
+  color: #222;
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 4px;
+  white-space: pre-wrap;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.grist-form .grist-field input[type="text"] {
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--dark-gray);
+  font-size: 13px;
+  outline-color: var(--primary);
+  outline-width: 1px;
+  line-height: inherit;
+  width: 100%;
+}
+
+.grist-form .grist-submit,  .grist-form-container button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grist-form input[type="submit"], .grist-form-container button {
+  background-color: var(--primary);
+  border: 1px solid var(--primary);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: inherit;
+}
+
+.grist-form input[type="datetime-local"] {
+  width: 100%;
+  line-height: inherit;
+}
+
+.grist-form input[type="date"] {
+  width: 100%;
+  line-height: inherit;
+}
+
+.grist-form .grist-columns {
+  display: grid;
+  grid-template-columns: repeat(var(--grist-columns-count), 1fr);
+  gap: 4px;
+}
+
+.grist-form select {
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--dark-gray);
+  font-size: 13px;
+  outline-color: var(--primary);
+  outline-width: 1px;
+  background: white;
+  line-height: inherit;
+  flex: auto;
+  width: 100%;
+}
+
+.grist-form .grist-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grist-form .grist-checkbox {
+  display: flex;
+}
+.grist-form .grist-checkbox:hover {
+  --color: var(--light-gray);
+}
+
+.grist-form input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 0;
+  flex-shrink: 0;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  --radius: 3px;
+  position: relative;
+  margin-right: 8px;
+  vertical-align: baseline;
+}
+
+.grist-form input[type="checkbox"]:checked:enabled, .grist-form input[type="checkbox"]:indeterminate:enabled {
+  --color: var(--primary);
+}
+
+.grist-form input[type="checkbox"]:disabled {
+  --color: var(--dark-gray);
+  cursor: not-allowed;
+}
+
+.grist-form input[type="checkbox"]::before, .grist-form input[type="checkbox"]::after {
+  content: '';
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  height: 16px;
+  width: 16px;
+
+  box-sizing: border-box;
+  border: 1px solid var(--color, var(--dark-gray));
+  border-radius: var(--radius);
+}
+
+.grist-form input[type="checkbox"]:checked::before, .grist-form input[type="checkbox"]:disabled::before, .grist-form input[type="checkbox"]:indeterminate::before {
+  background-color: var(--color);
+}
+
+.grist-form input[type="checkbox"]:not(:checked):indeterminate::after {
+  -webkit-mask-image: var(--icon-Minus);
+}
+
+.grist-form input[type="checkbox"]:not(:disabled)::after {
+  background-color: var(--light);
+}
+
+.grist-form input[type="checkbox"]:checked::after, .grist-form input[type="checkbox"]:indeterminate::after {
+  content: '';
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  -webkit-mask-image: var(--icon-Tick);
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  background-color: var(--light);
+}
+
+.grist-form .grist-submit input[type="submit"]:hover, .grist-form-container button:hover {
+  border-color: var(--primary-dark);
+  background-color: var(--primary-dark);
+}
+
+.grist-power-by {
+  margin-top: 24px;
+  color: #494949;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid var(--dark-gray);
+  padding: 10px;
+  margin-left: calc(-1 * var(--grist-form-padding));
+  margin-right: calc(-1 * var(--grist-form-padding));
+}
+
+.grist-power-by a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #494949;
+  text-decoration: none;
+}
+
+.grist-logo {
+  width: 58px;
+  height: 20.416px;
+  flex-shrink: 0;
+  background: url(logo.png);
+  background-position: 0 0;
+  background-size: contain;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  margin-top: 3px;
+}
+
+.grist-question > .grist-label {
+  color: var(--dark, #262633);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 16px; /* 145.455% */
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.grist-label-required::after {
+  content: "*";
+  color: var(--primary, #16b378);
+  margin-left: 4px;
+}
+
+/**
+ * When an empty value is selected, show the placeholder in italic gray.
+ * The css is: every select that has an empty option selected, and is not active (so not open).
+ */
+.grist-form select:has(option[value='']:checked):not(:active) {
+  font-style: italic;
+  color: var(--light-gray, #bfbfbf);
+}
+
+/* Markdown reset */
+
+.grist-form h1,
+.grist-form h2,
+.grist-form h3,
+.grist-form h4,
+.grist-form h5,
+.grist-form h6 {
+  margin: 4px 0px;
+  font-weight: normal;
+}
+.grist-form h1 {
+  font-size: 24px;
+}
+.grist-form h2 {
+  font-size: 22px;
+}
+.grist-form h3 {
+  font-size: 16px;
+}
+.grist-form  h4 {
+  font-size: 13px;
+}
+.grist-form h5 {
+  font-size: 11px;
+}
+.grist-form h6 {
+  font-size: 10px;
+}
+.grist-form p {
+  margin: 0px;
+}
+.grist-form strong {
+  font-weight: 600;
+}
+.grist-form hr {
+  border: 0px;
+  border-top: 1px solid var(--dark-gray);
+  margin: 4px 0px;
+}
+
+.grist-text-left {
+  text-align: left;
+}
+.grist-text-right {
+  text-align: right;
+}
+.grist-text-center {
+  text-align: center;
+}
+
+.grist-switch {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.grist-switch input[type='checkbox']::after {
+  content: none;
+}
+.grist-switch input[type='checkbox']::before {
+  content: none;
+}
+.grist-switch input[type='checkbox'] {
+  position: absolute;
+}
+.grist-switch > span {
+  margin-left: 8px;
+}
+
+/* Slider component */
+.grist-widget_switch {
+  position: relative;
+  width: 30px;
+  height: 17px;
+  display: inline-block;
+  flex: none;
+}
+
+.grist-switch_slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--grist-theme-switch-slider-fg, #ccc);
+  border-radius: 17px;
+}
+
+.grist-switch_slider:hover {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+.grist-switch_circle {
+  position: absolute;
+  cursor: pointer;
+  content: "";
+  height: 13px;
+  width: 13px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--grist-theme-switch-circle-fg, white);
+  border-radius: 17px;
+}
+
+input:checked + .grist-switch_transition > .grist-switch_slider {
+  background-color: var(--primary, #16b378);
+}
+
+input:checked + .grist-switch_transition > .grist-switch_circle {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+
+.grist-switch_on > .grist-switch_slider {
+  background-color: var(--grist-actual-cell-color, #2CB0AF);
+}
+
+.grist-switch_on > .grist-switch_circle {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+
+.grist-switch_transition > .grist-switch_slider, .grist-switch_transition > .grist-switch_circle {
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.grist-form-confirm-container {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.grist-form-confirm-body {
+  padding: 48px 16px 16px 16px;
+}
+
+.grist-form-confirm-image {
+  width: 250px;
+  height: 215px;
+}
+
+.grist-form-confirm-text {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  margin-top: 32px;
+  white-space: prewrap;
+}
+
+.grist-form-confirm-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.grist-form-confirm-new-response-button {
+  position: relative;
+  outline: none;
+  border-style: none;
+  line-height: normal;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 24px;
+  min-height: 40px;
+  background: var(--primary, #16B378);
+  border-radius: 3px;
+  color: #FFFFFF;
+}
+
+.grist-form-confirm-new-response-button:hover {
+  background: var(--primary-dark);
+  cursor: pointer;
+}
+
+.grist-form-confirm-footer {
+  border-top: 1px solid var(--dark-gray);
+  padding: 8px 16px;
+  width: 100%;
+}
+
+.grist-form-confirm-footer .grist-power-by {
+  margin-top: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  border-top: none;
+}
+
+.grist-form-confirm-build-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.grist-form-confirm-build-form-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 16px;
+  text-decoration-line: underline;
+  color: var(--primary-dark);
+}
+
+.grist-form-icon {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  width: 16px;
+  height: 16px;
+  background-color: black;
+}
+
+.grist-form-icon-expand {
+  -webkit-mask-image: var(--icon-Expand);
+  background-color: var(--primary-dark);
+}

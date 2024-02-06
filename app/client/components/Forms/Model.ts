@@ -1,22 +1,10 @@
-import {FormView} from 'app/client/components/Forms/FormView';
 import * as elements from 'app/client/components/Forms/elements';
-import {
-  bundleChanges, Computed, Disposable, dom, DomContents,
-  MultiHolder, MutableObsArray, obsArray, Observable
-} from 'grainjs';
+import {FormView} from 'app/client/components/Forms/FormView';
+import {Box, BoxType} from 'app/common/Forms';
+import {bundleChanges, Computed, Disposable, dom, IDomArgs, MutableObsArray, obsArray, Observable} from 'grainjs';
 import {v4 as uuidv4} from 'uuid';
 
-
-export type BoxType = 'Paragraph' | 'Section' | 'Columns' | 'Submit' | 'Placeholder' | 'Layout' | 'Field';
-
-/**
- * Box model is a JSON that represents a form element. Every element can be converted to this element and every
- * ViewModel should be able to read it and built itself from it.
- */
-export interface Box extends Record<string, any> {
-  type: BoxType,
-  children?: Array<Box>,
-}
+type Callback = () => Promise<void>;
 
 /**
  * A place where to insert a box.
@@ -35,6 +23,7 @@ export abstract class BoxModel extends Disposable {
     const subClassName = `${box.type.split(':')[0]}Model`;
     const factories = elements as any;
     const factory = factories[subClassName];
+    if (!parent && !view) { throw new Error('Cannot create detached box'); }
     // If we have a factory, use it.
     if (factory) {
       return new factory(box, parent, view || parent!.view);
@@ -53,15 +42,11 @@ export abstract class BoxModel extends Disposable {
    * Type of the box. As the type is bounded to the class that is used to render the box, it is possible
    * to change the type of the box just by changing this value. The box is then replaced in the parent.
    */
-  public type: Observable<string>;
+  public type: BoxType;
   /**
    * List of children boxes.
    */
   public children: MutableObsArray<BoxModel>;
-  /**
-   * Any other dynamically added properties (that are not concrete fields in the derived classes)
-   */
-  public props: Record<string, Observable<any>> = {};
   /**
    * Publicly exposed state if the element was just cut.
    * TODO: this should be moved to FormView, as this model doesn't care about that.
@@ -69,17 +54,34 @@ export abstract class BoxModel extends Disposable {
   public cut = Observable.create(this, false);
 
   /**
+   * Computed if this box is selected or not.
+   */
+  public selected: Computed<boolean>;
+
+  /**
+   * Any other dynamically added properties (that are not concrete fields in the derived classes)
+   */
+  private _props: Record<string, Observable<any>> = {};
+  /**
    * Don't use it directly, use the BoxModel.new factory method instead.
    */
   constructor(box: Box, public parent: BoxModel | null, public view: FormView) {
     super();
 
+    this.selected = Computed.create(this, (use) => use(view.selectedBox) === this && use(view.viewSection.hasFocus));
+
+    this.children = this.autoDispose(obsArray([]));
+
+    // We are owned by the parent children list.
+    if (parent) {
+      parent.children.autoDispose(this);
+    }
+
     // Store "pointer" to this element.
     this.id = uuidv4();
 
     // Create observables for all properties.
-    this.type = Observable.create(this, box.type);
-    this.children = this.autoDispose(obsArray([]));
+    this.type = box.type;
 
     // And now update this and all children based on the box JSON.
     bundleChanges(() => {
@@ -96,7 +98,7 @@ export abstract class BoxModel extends Disposable {
    * this method can send some actions to the server, or do some other work. In particular Field
    * will insert or reveal a column.
    */
-  public async onDrop() {
+  public async afterDrop() {
 
   }
 
@@ -104,7 +106,7 @@ export abstract class BoxModel extends Disposable {
    * The only method that derived classes need to implement. It should return a DOM element that
    * represents this box.
    */
-  public abstract render(context: RenderContext): HTMLElement;
+  public abstract render(...args: IDomArgs<HTMLElement>): HTMLElement;
 
 
   public removeChild(box: BoxModel) {
@@ -135,17 +137,36 @@ export abstract class BoxModel extends Disposable {
    * Cuts self and puts it into clipboard.
    */
   public async cutSelf() {
-    [...this.root().list()].forEach(box => box?.cut.set(false));
+    [...this.root().traverse()].forEach(box => box?.cut.set(false));
     // Add this box as a json to clipboard.
     await navigator.clipboard.writeText(JSON.stringify(this.toJSON()));
     this.cut.set(true);
   }
 
   /**
+   * The way this box will accept dropped content.
+   * - sibling: it will add it as a sibling
+   * - child: it will add it as a child.
+   * - swap: swaps with the box
+   */
+  public willAccept(box?: Box|BoxModel|null): 'sibling' | 'child' | 'swap' | null {
+    // If myself and the dropped element share the same parent, and the parent is a column
+    // element, just swap us.
+    if (this.parent && box instanceof BoxModel && this.parent === box?.parent && box.parent?.type === 'Columns') {
+      return 'swap';
+    }
+
+    // If we are in column, we won't accept anything.
+    if (this.parent?.type === 'Columns') { return null; }
+
+    return 'sibling';
+  }
+
+  /**
    * Accepts box from clipboard and inserts it before this box or if this is a container box, then
    * as a first child. Default implementation is to insert before self.
    */
-  public drop(dropped: Box) {
+  public accept(dropped: Box, hint: 'above'|'below' = 'above') {
     // Get the box that was dropped.
     if (!dropped) { return null; }
     if (dropped.id === this.id) {
@@ -153,23 +174,27 @@ export abstract class BoxModel extends Disposable {
     }
     // We need to remove it from the parent, so find it first.
     const droppedId = dropped.id;
-    const droppedRef = this.root().find(droppedId);
+    const droppedRef = droppedId ? this.root().find(droppedId) : null;
     if (droppedRef) {
       droppedRef.removeSelf();
     }
-    return this.placeBeforeMe()(dropped);
+    return hint === 'above' ? this.placeBeforeMe()(dropped) : this.placeAfterMe()(dropped);
   }
 
   public prop(name: string, defaultValue?: any) {
-    if (!this.props[name]) {
-      this.props[name] = Observable.create(this, defaultValue ?? null);
+    if (!this._props[name]) {
+      this._props[name] = Observable.create(this, defaultValue ?? null);
     }
-    return this.props[name];
+    return this._props[name];
   }
 
-  public async save(): Promise<void> {
+  public hasProp(name: string) {
+    return this._props.hasOwnProperty(name);
+  }
+
+  public async save(before?: () => Promise<void>): Promise<void> {
     if (!this.parent) { throw new Error('Cannot save detached box'); }
-    return this.parent.save();
+    return this.parent.save(before);
   }
 
   /**
@@ -179,6 +204,16 @@ export abstract class BoxModel extends Disposable {
     const newOne = BoxModel.new(box, this);
     this.children.splice(index, 1, newOne);
     return newOne;
+  }
+
+  public swap(box1: BoxModel, box2: BoxModel) {
+    const index1 = this.children.get().indexOf(box1);
+    const index2 = this.children.get().indexOf(box2);
+    if (index1 < 0 || index2 < 0) { throw new Error('Cannot swap boxes that are not in parent'); }
+    const box1JSON = box1.toJSON();
+    const box2JSON = box2.toJSON();
+    this.replace(box1, box2JSON);
+    this.replace(box2, box1JSON);
   }
 
   public append(box: Box) {
@@ -252,13 +287,28 @@ export abstract class BoxModel extends Disposable {
   /**
    * Finds a box with a given id in the tree.
    */
-  public find(droppedId: string): BoxModel | null {
+  public find(droppedId: string|undefined|null): BoxModel | null {
+    if (!droppedId) { return null; }
     for (const child of this.kids()) {
       if (child.id === droppedId) { return child; }
       const found = child.find(droppedId);
       if (found) { return found; }
     }
     return null;
+  }
+
+  public* filter(filter: (box: BoxModel) => boolean): Iterable<BoxModel> {
+    for (const child of this.kids()) {
+      if (filter(child)) { yield child; }
+      yield* child.filter(filter);
+    }
+  }
+
+  public includes(box: BoxModel) {
+    for (const child of this.kids()) {
+      if (child === box) { return true; }
+      if (child.includes(box)) { return true; }
+    }
   }
 
   public kids() {
@@ -271,15 +321,20 @@ export abstract class BoxModel extends Disposable {
    */
   public update(boxDef: Box) {
     // If we have a type and the type is changed, then we need to replace the box.
-    if (this.type.get() && boxDef.type !== this.type.get()) {
-      this.parent!.replace(this, BoxModel.new(boxDef, this.parent));
+    if (this.type && boxDef.type !== this.type) {
+      if (!this.parent) { throw new Error('Cannot replace detached box'); }
+      this.parent.replace(this, BoxModel.new(boxDef, this.parent));
       return;
     }
 
     // Update all properties of self.
-    for (const key in boxDef) {
+    for (const someKey in boxDef) {
+      const key = someKey as keyof Box;
+      // Skip some keys.
       if (key === 'id' || key === 'type' || key === 'children') { continue; }
+      // Skip any inherited properties.
       if (!boxDef.hasOwnProperty(key)) { continue; }
+      // Skip if the value is the same.
       if (this.prop(key).get() === boxDef[key]) { continue; }
       this.prop(key).set(boxDef[key]);
     }
@@ -296,11 +351,13 @@ export abstract class BoxModel extends Disposable {
       }
     }
 
+    if (!boxDef.children) { return; }
+
     // Update those that indices are the same.
     const min = Math.min(myLength, newLength);
     for (let i = 0; i < min; i++) {
       const atIndex = this.children.get()[i];
-      const atIndexDef = boxDef.children![i];
+      const atIndexDef = boxDef.children[i];
       atIndex.update(atIndexDef);
     }
   }
@@ -311,16 +368,16 @@ export abstract class BoxModel extends Disposable {
   public toJSON(): Box {
     return {
       id: this.id,
-      type: this.type.get() as BoxType,
+      type: this.type,
       children: this.children.get().map(child => child?.toJSON() || null),
-      ...(Object.fromEntries(Object.entries(this.props).map(([key, val]) => [key, val.get()]))),
+      ...(Object.fromEntries(Object.entries(this._props).map(([key, val]) => [key, val.get()]))),
     };
   }
 
-  public * list(): IterableIterator<BoxModel> {
+  public * traverse(): IterableIterator<BoxModel> {
     for (const child of this.kids()) {
       yield child;
-      yield* child.list();
+      yield* child.traverse();
     }
   }
 
@@ -330,34 +387,29 @@ export abstract class BoxModel extends Disposable {
 }
 
 export class LayoutModel extends BoxModel {
-  constructor(box: Box, public parent: BoxModel | null, public _save: () => Promise<void>, public view: FormView) {
+  constructor(
+    box: Box,
+    public parent: BoxModel | null,
+    public _save: (clb?: Callback) => Promise<void>,
+    public view: FormView
+  ) {
     super(box, parent, view);
   }
 
-  public async save() {
-    return await this._save();
+  public async save(clb?: Callback) {
+    return await this._save(clb);
   }
 
-  public render(): HTMLElement {
+  public override render(): HTMLElement {
     throw new Error('Method not implemented.');
   }
 }
 
 class DefaultBoxModel extends BoxModel {
   public render(): HTMLElement {
-    return dom('div', `Unknown box type ${this.type.get()}`);
+    return dom('div', `Unknown box type ${this.type}`);
   }
 }
-
-export interface RenderContext {
-  overlay: Observable<boolean>,
-}
-
-export type Builder = (owner: MultiHolder, options: {
-  box: BoxModel,
-  view: FormView,
-  overlay: Observable<boolean>,
-}) => DomContents;
 
 export const ignoreClick = dom.on('click', (ev) => {
   ev.stopPropagation();
@@ -368,7 +420,7 @@ export function unwrap<T>(val: T | Computed<T>): T {
   return val instanceof Computed ? val.get() : val;
 }
 
-export function parseBox(text: string) {
+export function parseBox(text: string): Box|null {
   try {
     const json = JSON.parse(text);
     return json && typeof json === 'object' && json.type ? json : null;

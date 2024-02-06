@@ -430,6 +430,7 @@ export class ActiveDocImport {
     const columnData: BulkColValues = {};
 
     const srcCols = await this._activeDoc.getTableCols(docSession, hiddenTableId);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const srcColIds = srcCols.map(c => c.id as string);
 
     // Only include destination columns that weren't skipped.

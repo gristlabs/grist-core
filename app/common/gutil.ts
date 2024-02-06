@@ -23,7 +23,7 @@ export const UP_TRIANGLE = '\u25B2';
 export const DOWN_TRIANGLE = '\u25BC';
 
 const EMAIL_RE = new RegExp("^\\w[\\w%+/='-]*(\\.[\\w%+/='-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z" +
-  "0-9])?\\.)+[A-Za-z]{2,6}$", "u");
+  "0-9])?\\.)+[A-Za-z]{2,24}$", "u");
 
 // Returns whether str starts with prefix. (Note that this implementation avoids creating a new
 // string, and only checks a single location.)
@@ -982,7 +982,7 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
 }
 
 /**
- * Use helper for simple boolean negation.
+ * Useful helper for simple boolean negation.
  */
 export const not = (obs: Observable<any>|IKnockoutReadObservable<any>) => (use: UseCBOwner) => !use(obs);
 

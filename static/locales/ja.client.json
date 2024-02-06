@@ -5,7 +5,9 @@
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "APIキーを削除しようとしています。これにより、今後このAPIキーを使用したリクエストはすべて拒否されます。それでも削除しますか？",
         "Create": "生成",
         "Remove": "削除",
-        "By generating an API key, you will be able to make API calls for your own account.": "APIキーを生成することで、自分のアカウントでAPIコールを行うことができるようになります。"
+        "By generating an API key, you will be able to make API calls for your own account.": "APIキーを生成することで、自分のアカウントでAPIコールを行うことができるようになります。",
+        "This API key can be used to access this account anonymously via the API.": "この API キーでAPI 経由でこのアカウントに匿名でアクセスできます。",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "この API キーはAPI 経由であなたのアカウントにアクセスするために使用できます。 API キーを誰とも共有しないでください。"
     },
     "breadcrumbs": {
         "override": "上書き",
@@ -371,7 +373,10 @@
         "Save": "保存する",
         "Rules for table ": "テーブルのルール ",
         "Checking...": "チェック中…",
-        "Special Rules": "特別ルール"
+        "Special Rules": "特別ルール",
+        "View As": "として表示",
+        "Seed rules": "シード・ルール",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "単純なデータ値を数式列に保存することは不可能なはずです",
@@ -788,7 +793,8 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "列 {{colId}} がアクション #{{action.actionNum}} で削除されました",
         "This row was subsequently removed in action {{action.actionNum}}": "この行はアクション #{{action.actionNum}} で削除されました",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "テーブル {{tableId}}がアクション #{{actionNum}}で削除されました",
-        "All tables": "すべてのテーブル"
+        "All tables": "すべてのテーブル",
+        "Action Log failed to load": "ログファイルの読み込みに失敗しました"
     },
     "errorPages": {
         "Account deleted{{suffix}}": "削除されたアカウント{{suffix}}",
@@ -948,7 +954,8 @@
     "App": {
         "Description": "説明",
         "Memory Error": "メモリーエラー",
-        "Key": "キー"
+        "Key": "キー",
+        "Translators: please translate this only when your language is ready to be offered to users": "翻訳者へ：あなたの言語がユーザーに提供できる準備が整った場合にのみ翻訳してください"
     },
     "OnBoardingPopups": {
         "Finish": "終了",
@@ -999,7 +1006,8 @@
     },
     "ViewAsDropdown": {
         "Example Users": "ユーザー例",
-        "Users from table": "テーブルからユーザー"
+        "Users from table": "テーブルからユーザー",
+        "View As": "として表示"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "テーブル構造に加えてすべてのデータをコピーします。",

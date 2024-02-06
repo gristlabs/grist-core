@@ -35,6 +35,7 @@ import moment from 'moment';
 import maxSize from 'popper-max-size-modifier';
 import flatMap = require('lodash/flatMap');
 import {autoGrow} from 'app/client/ui/forms';
+import {autoFocus} from 'app/client/lib/domUtils';
 
 const testId = makeTestId('test-discussion-');
 const t = makeT('DiscussionEditor');
@@ -919,9 +920,6 @@ function bindProp(text: Observable<string>) {
   ];
 }
 
-function autoFocus() {
-  return (el: HTMLElement) => void setTimeout(() => el.focus(), 10);
-}
 
 function buildPopup(
   owner: Disposable,

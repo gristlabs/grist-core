@@ -160,7 +160,7 @@ export function viewSectionMenu(
       cssExpandIconWrapper(
         cssSmallIcon('Grow'),
         testId('expandSection'),
-        dom.on('click', () =>  allCommands.maximizeActiveSection.run()),
+        dom.on('click', () =>  allCommands.expandSection.run()),
         hoverTooltip('Expand section', {key: 'expandSection'}),
       ),
     )

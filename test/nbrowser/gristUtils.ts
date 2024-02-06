@@ -1188,7 +1188,12 @@ export async function changeWidget(type: WidgetType) {
 /**
  * Rename the given page to a new name. The oldName can be a full string name or a RegExp.
  */
-export async function renamePage(oldName: string|RegExp, newName: string) {
+export async function renamePage(oldName: string|RegExp, newName?: string) {
+  if (!newName && typeof oldName === 'string') {
+    newName = oldName;
+    oldName = await getCurrentPageName();
+  }
+  if (newName === undefined) { throw new Error('newName must be specified'); }
   await openPageMenu(oldName);
   await driver.find('.test-docpage-rename').click();
   await driver.find('.test-docpage-editor').sendKeys(newName, Key.ENTER);
@@ -1568,6 +1573,15 @@ export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', secti
   const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
   await sectionElem.find(`.test-section-menu-${which}`).click();
   return await driver.findWait('.grist-floating-menu', 100);
+}
+
+/**
+ * Opens Raw data view for current section.
+ */
+export async function showRawData(section?: string|WebElement) {
+  await openSectionMenu('viewLayout', section);
+  await driver.find('.test-show-raw-data').click();
+  assert.isTrue(await driver.findWait('.test-raw-data-overlay', 100).isDisplayed());
 }
 
 // Mapping from column menu option name to dom element selector to wait for, or null if no need to wait.
@@ -3562,7 +3576,7 @@ export const choicesEditor = {
     return (await driver.find(".test-choice-list-entry-edit").getText()) === "Reset";
   },
   async reset() {
-    await driver.find(".test-choice-list-entry-edit").click();
+    await driver.findWait(".test-choice-list-entry-edit", 100).click();
   },
   async label() {
     return await driver.find(".test-choice-list-entry-row").getText();
@@ -3599,6 +3613,20 @@ export const choicesEditor = {
   }
 };
 
+export function findValue(selector: string, value: string|RegExp) {
+  const inner = async () => {
+    const all = await driver.findAll(selector);
+    const tested: string[] = [];
+    for(const el of all) {
+      const elValue = await el.value();
+      tested.push(elValue);
+      const found = typeof value === 'string' ? elValue === value : value.test(elValue);
+      if (found) { return el; }
+    }
+    throw new Error(`No element found matching ${selector}, tested ${tested.join(', ')}`);
+  };
+  return new WebElementPromise(driver, inner());
+}
 
 } // end of namespace gristUtils
 

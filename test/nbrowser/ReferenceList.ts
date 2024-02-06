@@ -582,6 +582,10 @@ describe('ReferenceList', function() {
       assert.equal(await driver.find('.cell_editor .test-tokenfield .test-tokenfield-input').value(), 'da');
       assert.equal(await driver.find('.test-ref-editor-item.selected').isPresent(), false);
 
+      // Clear the typed-in text temporarily. Something changed in a recent version of Chrome,
+      // causing the wrong item to be moused over below when the "Add New" option is visible.
+      await driver.sendKeys(Key.BACK_SPACE, Key.BACK_SPACE);
+
       // Mouse over an item.
       await driver.findContent('.test-ref-editor-item', /Dark Gray/).mouseMove();
       assert.equal(await driver.find('.cell_editor .test-tokenfield .test-tokenfield-input').value(), 'Dark Gray');
@@ -589,10 +593,12 @@ describe('ReferenceList', function() {
 
       // Mouse back out of the dropdown
       await driver.find('.cell_editor .test-tokenfield .test-tokenfield-input').mouseMove();
-      assert.equal(await driver.find('.cell_editor .test-tokenfield .test-tokenfield-input').value(), 'da');
+      assert.equal(await driver.find('.cell_editor .test-tokenfield .test-tokenfield-input').value(), '');
       assert.equal(await driver.find('.test-ref-editor-item.selected').isPresent(), false);
 
-      // Click away and check the cell is now empty since no reference items were added.
+      // Re-enter the typed-in text and click away. Check the cell is now empty since
+      // no reference items were added.
+      await driver.sendKeys('da', Key.UP);
       await gu.getCell({section: 'References', col: 'Colors', rowNum: 1}).doClick();
       await gu.waitForServer();
       assert.equal(await cell.getText(), "");

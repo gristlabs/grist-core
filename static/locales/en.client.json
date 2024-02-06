@@ -297,7 +297,8 @@
         "Document ID copied to clipboard": "Document ID copied to clipboard",
         "Ok": "OK",
         "Manage Webhooks": "Manage Webhooks",
-        "Webhooks": "Webhooks"
+        "Webhooks": "Webhooks",
+        "API Console": "API Console"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -433,7 +434,19 @@
         "Created by": "Created by",
         "Detect duplicates in...": "Detect duplicates in...",
         "Last updated at": "Last updated at",
-        "Last updated by": "Last updated by"
+        "Last updated by": "Last updated by",
+        "Any": "Any",
+        "Numeric": "Numeric",
+        "Text": "Text",
+        "Integer": "Integer",
+        "Toggle": "Toggle",
+        "Date": "Date",
+        "DateTime": "DateTime",
+        "Choice": "Choice",
+        "Choice List": "Choice List",
+        "Reference": "Reference",
+        "Reference List": "Reference List",
+        "Attachment": "Attachment"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Added new linked section to view {{viewName}}",
@@ -622,7 +635,24 @@
         "Widget": "Widget",
         "You do not have edit access to this document": "You do not have edit access to this document",
         "Add referenced columns": "Add referenced columns",
-        "Reset form": "Reset form"
+        "Reset form": "Reset form",
+        "Configuration": "Configuration",
+        "Default field value": "Default field value",
+        "Display button": "Display button",
+        "Enter text": "Enter text",
+        "Field rules": "Field rules",
+        "Field title": "Field title",
+        "Hidden field": "Hidden field",
+        "Layout": "Layout",
+        "Redirect automatically after submission": "Redirect automatically after submission",
+        "Redirection": "Redirection",
+        "Required field": "Required field",
+        "Submission": "Submission",
+        "Submit another response": "Submit another response",
+        "Submit button label": "Submit button label",
+        "Success text": "Success text",
+        "Table column name": "Table column name",
+        "Enter redirect URL": "Enter redirect URL"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -761,7 +791,8 @@
         "Show raw data": "Show raw data",
         "Widget options": "Widget options",
         "Add to page": "Add to page",
-        "Collapse widget": "Collapse widget"
+        "Collapse widget": "Collapse widget",
+        "Create a form": "Create a form"
     },
     "ViewSectionMenu": {
         "(customized)": "(customized)",
@@ -840,7 +871,11 @@
         "You do not have access to this organization's documents.": "You do not have access to this organization's documents.",
         "Account deleted{{suffix}}": "Account deleted{{suffix}}",
         "Sign up": "Sign up",
-        "Your account has been deleted.": "Your account has been deleted."
+        "Your account has been deleted.": "Your account has been deleted.",
+        "An unknown error occurred.": "An unknown error occurred.",
+        "Build your own form": "Build your own form",
+        "Form not found": "Form not found",
+        "Powered by": "Powered by"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -863,7 +898,17 @@
     "modals": {
         "Cancel": "Cancel",
         "Ok": "OK",
-        "Save": "Save"
+        "Save": "Save",
+        "Are you sure you want to delete these records?": "Are you sure you want to delete these records?",
+        "Are you sure you want to delete this record?": "Are you sure you want to delete this record?",
+        "Delete": "Delete",
+        "Dismiss": "Dismiss",
+        "Don't ask again.": "Don't ask again.",
+        "Don't show again.": "Don't show again.",
+        "Don't show tips": "Don't show tips",
+        "Undo to restore": "Undo to restore",
+        "Got it": "Got it",
+        "Don't show again": "Don't show again"
     },
     "pages": {
         "Duplicate Page": "Duplicate Page",
@@ -1267,5 +1312,35 @@
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.",
         "Schedule Call": "Schedule Call",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Schedule your {{freeCoachingCall}} with a member of our team."
+    },
+    "FormView": {
+        "Publish": "Publish",
+        "Publish your form?": "Publish your form?",
+        "Unpublish": "Unpublish",
+        "Unpublish your form?": "Unpublish your form?"
+    },
+    "Editor": {
+        "Delete": "Delete"
+    },
+    "Menu": {
+        "Building blocks": "Building blocks",
+        "Columns": "Columns",
+        "Copy": "Copy",
+        "Cut": "Cut",
+        "Insert question above": "Insert question above",
+        "Insert question below": "Insert question below",
+        "Paragraph": "Paragraph",
+        "Paste": "Paste",
+        "Separator": "Separator",
+        "Unmapped fields": "Unmapped fields",
+        "Header": "Header"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Clear",
+        "Map fields": "Map fields",
+        "Mapped": "Mapped",
+        "Select All": "Select All",
+        "Unmap fields": "Unmap fields",
+        "Unmapped": "Unmapped"
     }
 }

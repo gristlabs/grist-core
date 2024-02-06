@@ -70,6 +70,17 @@ export class CustomView extends Disposable {
         }
       }
     },
+    async viewAsCard(event: Event) {
+      if (event instanceof KeyboardEvent) {
+        // Ignore the keyboard shortcut if pressed; it's disabled at this time for custom widgets.
+        return;
+      }
+
+      (this as unknown as BaseView).viewSelectedRecordAsCard();
+
+      // Move focus back to the app, so that keyboard shortcuts work in the popup.
+      document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
+    },
   };
   /**
    * The HTMLElement embedding the content.

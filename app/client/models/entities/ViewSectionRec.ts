@@ -27,6 +27,7 @@ import {UserAction} from 'app/common/DocActions';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {arrayRepeat} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
+import {WidgetType} from 'app/common/widgetTypes';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {GristObjCode} from 'app/plugin/GristData';
@@ -71,6 +72,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   columns: ko.Computed<ColumnRec[]>;
 
   optionsObj: modelUtil.SaveableObjObservable<any>;
+  shareOptionsObj: modelUtil.SaveableObjObservable<any>;
 
   customDef: CustomViewSectionDef;
 
@@ -97,10 +99,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   /** True if this section is disabled. Currently only used by Record Card sections. */
   disabled: modelUtil.KoSaveableObservable<boolean>;
 
-  /**
-   * True if the Record Card section of this section's table is disabled. Shortcut for
-   * `this.tableRecordCard().disabled()`.
-   */
+  /** True if the Record Card section of this section's table is disabled. */
   isTableRecordCardDisabled: ko.Computed<boolean>;
 
   isVirtual: ko.Computed<boolean>;
@@ -258,6 +257,8 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Common type of selected columns or mixed.
   columnsType: ko.PureComputed<string|'mixed'>;
 
+  widgetType: modelUtil.KoSaveableObservable<WidgetType>;
+
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
 
@@ -275,9 +276,19 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewFieldInfo>;
 
+  /**
+   * Shows column (by adding a view field)
+   * @param col ColId or ColRef
+   * @param index Position to insert the column at
+   * @returns ViewField rowId
+   */
   showColumn(col: number|string, index?: number): Promise<number>
 
-  removeField(colRef: number): Promise<void>;
+  /**
+   * Removes one or multiple fields.
+   * @param colRef
+   */
+  removeField(colRef: number|Array<number>): Promise<void>;
 }
 
 export type WidgetMappedColumn = number|number[]|null;
@@ -360,6 +371,7 @@ export interface Filter {
 }
 
 export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): void {
+  this.widgetType = this.parentKey as any;
   this.viewFields = recordSet(this, docModel.viewFields, 'parentId', {sortBy: 'parentPos'});
   this.linkedSections = recordSet(this, docModel.viewSections, 'linkSrcSectionRef');
 
@@ -380,6 +392,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
     (obj: any) => defaults(obj || {}, defaultOptions));
+  this.shareOptionsObj = modelUtil.jsonObservable(this.shareOptions);
 
   const customViewDefaults = {
     mode: 'url',
@@ -469,7 +482,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.isRecordCard = this.autoDispose(ko.pureComputed(() =>
     this.table().recordCardViewSectionRef() === this.id()));
   this.disabled = modelUtil.fieldWithDefault(this.optionsObj.prop('disabled'), false);
-  this.isTableRecordCardDisabled = ko.pureComputed(() => this.tableRecordCard().disabled());
+  this.isTableRecordCardDisabled = this.autoDispose(ko.pureComputed(() => this.tableRecordCard().disabled() ||
+    this.table().summarySourceTable() !== 0));
 
   this.isVirtual = this.autoDispose(ko.pureComputed(() => typeof this.id() === 'string'));
 
@@ -870,8 +884,13 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
   };
 
-  this.removeField = async (fieldRef: number) => {
-    const action = ['RemoveRecord', fieldRef];
-    await docModel.viewFields.sendTableAction(action);
+  this.removeField = async (fieldRef: number|number[]) => {
+    if (Array.isArray(fieldRef)) {
+      const action = ['BulkRemoveRecord', fieldRef];
+      await docModel.viewFields.sendTableAction(action);
+    } else {
+      const action = ['RemoveRecord', fieldRef];
+      await docModel.viewFields.sendTableAction(action);
+    }
   };
 }

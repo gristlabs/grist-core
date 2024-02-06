@@ -7,6 +7,6 @@ Object.assign(window.exposedModules, {
   ko: require('knockout'),
   moment: require('moment-timezone'),
   Comm: require('app/client/components/Comm'),
-  _loadScript: require('./lib/loadScript'),
+  loadScript: require('./lib/loadScript'),
   ConnectState: require('./models/ConnectState'),
 });

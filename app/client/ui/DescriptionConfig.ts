@@ -52,18 +52,20 @@ export function buildDescriptionConfig(
 export function buildTextInput(
   owner: MultiHolder,
   options: {
-    value: KoSaveableObservable<any>,
-    cursor: ko.Computed<CursorPos>,
     label: string,
+    value: KoSaveableObservable<any>,
+    cursor?: ko.Computed<CursorPos>,
     placeholder?: ko.Computed<string>,
   },
   ...args: DomArg[]
 ) {
-  owner.autoDispose(
-    options.cursor.subscribe(() => {
-      options.value.save().catch(reportError);
-    })
-  );
+  if (options.cursor) {
+    owner.autoDispose(
+      options.cursor.subscribe(() => {
+        options.value.save().catch(reportError);
+      })
+    );
+  }
   return [
     cssLabel(options.label),
     cssRow(
@@ -84,7 +86,6 @@ const cssTextInput = styled(textInput, `
   border: 1px solid ${theme.inputBorder};
   width: 100%;
   outline: none;
-  border-radius: 3px;
   height: 28px;
   border-radius: 3px;
   padding: 0px 6px;

@@ -401,6 +401,30 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  ratedHelpCenterArticle: {
+    category: 'HelpCenter',
+    description: 'Sent by HelpCenter when user clicks thumbs-up or thumbs-down',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      url: {
+        description: 'The URL of the visited page.',
+        dataType: 'string',
+      },
+      rating: {
+        description: 'Feedback from user ("thumbsUp" or "thumbsDown")',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   documentCreated: {
     description: 'Triggered when a document is created.',
     minimumTelemetryLevel: Level.limited,
@@ -746,10 +770,14 @@ export const TelemetryContracts: TelemetryContracts = {
   },
   signupFirstVisit: {
     category: 'ProductVisits',
-    description: 'Triggered when a new user first opens the Grist app',
+    description: 'Triggered when a new user first opens the Grist app.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
+      loginMethod: {
+        description: 'The login method on getgrist.com. May be "Email + Password" or "Google".',
+        dataType: 'string',
+      },
       siteId: {
         description: 'The site id of first visit after signup.',
         dataType: 'number',
@@ -774,6 +802,10 @@ export const TelemetryContracts: TelemetryContracts = {
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
+      verificationMethod: {
+        description: 'The verification method. May be "code" or "link".',
+        dataType: 'string',
+      },
       isAnonymousTemplateSignup: {
         description: 'Whether the user viewed any templates before signing up.',
         dataType: 'boolean',
@@ -1414,6 +1446,7 @@ export const TelemetryEvents = StringUnion(
   'beaconArticleViewed',
   'beaconEmailSent',
   'beaconSearch',
+  'ratedHelpCenterArticle',
   'documentCreated',
   'documentForked',
   'documentOpened',

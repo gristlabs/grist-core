@@ -22,7 +22,6 @@ import { FieldSettingsMenu } from 'app/client/ui/FieldMenus';
 import { cssBlockedCursor, cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { textButton } from 'app/client/ui2018/buttons';
 import { buttonSelect, cssButtonSelect } from 'app/client/ui2018/buttonSelect';
-import { theme } from 'app/client/ui2018/cssVars';
 import { IOptionFull, menu, select } from 'app/client/ui2018/menus';
 import { DiffBox } from 'app/client/widgets/DiffBox';
 import { buildErrorDom } from 'app/client/widgets/ErrorDom';
@@ -473,7 +472,7 @@ export class FieldBuilder extends Disposable {
     // the dom created by the widgetImpl to get out of sync.
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
-        dom('div', widget.buildConfigDom(), cssSeparator())
+        dom('div', widget.buildConfigDom())
       )
     );
   }
@@ -904,10 +903,6 @@ const cssTypeSelectMenu = styled('div', `
   max-height: 500px;
 `);
 
-const cssSeparator = styled('div', `
-  border-bottom: 1px solid ${theme.pagePanelsBorder};
-  margin-top: 16px;
-`);
 
 // Simple helper that removes transparency from a HEX or rgba color.
 // User can set a transparent fill color using doc actions, but we don't want to show it well

@@ -98,12 +98,12 @@ export const sectionApi = rpc.getStub<CustomSectionAPI>('CustomSectionAPI', chec
 export const commandApi = rpc.getStub<any>('CommandAPI');
 
 /**
- * Shortcut for [[GristView.allowSelectBy]].
+ * Shortcut for {@link GristView.allowSelectBy}.
  */
 export const allowSelectBy = viewApi.allowSelectBy;
 
 /**
- * Shortcut for [[GristView.setSelectedRows]].
+ * Shortcut for {@link GristView.setSelectedRows}.
  */
 export const setSelectedRows = viewApi.setSelectedRows;
 
@@ -114,7 +114,8 @@ export const setCursorPos = viewApi.setCursorPos;
 
 
 /**
- * Same as [[GristView.fetchSelectedTable]], but the option `keepEncoded` is `false` by default.
+ * Same as {@link GristView.fetchSelectedTable | GristView.fetchSelectedTable},
+ * but the option `keepEncoded` is `false` by default.
  */
 export async function fetchSelectedTable(options: FetchSelectedOptions = {}) {
   options = {...options, keepEncoded: options.keepEncoded || false};
@@ -122,7 +123,8 @@ export async function fetchSelectedTable(options: FetchSelectedOptions = {}) {
 }
 
 /**
- * Same as [[GristView.fetchSelectedRecord]], but the option `keepEncoded` is `false` by default.
+ * Same as {@link GristView.fetchSelectedRecord | GristView.fetchSelectedRecord},
+ * but the option `keepEncoded` is `false` by default.
  */
 export async function fetchSelectedRecord(rowId: number, options: FetchSelectedOptions = {}) {
   options = {...options, keepEncoded: options.keepEncoded || false};
@@ -147,27 +149,27 @@ export const on = rpc.on.bind(rpc);
 // Exposing widgetApi methods in a module scope.
 
 /**
- * Shortcut for [[WidgetAPI.getOption]]
+ * Shortcut for {@link WidgetAPI.getOption}
  */
 export const getOption = widgetApi.getOption.bind(widgetApi);
 
 /**
- * Shortcut for [[WidgetAPI.setOption]]
+ * Shortcut for {@link WidgetAPI.setOption}
  */
 export const setOption = widgetApi.setOption.bind(widgetApi);
 
 /**
- * Shortcut for [[WidgetAPI.setOptions]]
+ * Shortcut for {@link WidgetAPI.setOptions}
  */
 export const setOptions = widgetApi.setOptions.bind(widgetApi);
 
 /**
- * Shortcut for [[WidgetAPI.getOptions]]
+ * Shortcut for {@link WidgetAPI.getOptions}
  */
 export const getOptions = widgetApi.getOptions.bind(widgetApi);
 
 /**
- * Shortcut for [[WidgetAPI.clearOptions]]
+ * Shortcut for {@link WidgetAPI.clearOptions}
  */
 export const clearOptions = widgetApi.clearOptions.bind(widgetApi);
 

@@ -144,7 +144,7 @@ describe('ApiServerAccess', function() {
     // We should send mail about this one, since Kiwi had no access previously.
     if (notificationsConfig) {
       const mail = await assertLastMail();
-      assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/$/);
+      assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/\?utm_id=invite-org$/);
       const env = mail.payload.personalizations[0].dynamic_template_data;
       assert.deepEqual(pick(env, ['resource.name', 'resource.kind', 'resource.kindUpperFirst',
                                   'resource.isTeamSite', 'resource.isWorkspace', 'resource.isDocument',
@@ -159,7 +159,7 @@ describe('ApiServerAccess', function() {
                                     user: {name: 'Kiwi', email: 'kiwi@getgrist.com'},
                                     access: {role: 'editors', canEdit: true, canView: true}
                                   } as any);
-      assert.match(env.resource.url, /^http.*\/o\/docs\/$/);
+      assert.match(env.resource.url, /^http.*\/o\/docs\/\?utm_id=invite-org$/);
       assert.deepEqual(mail.payload.personalizations[0].to[0], {email: 'kiwi@getgrist.com', name: 'Kiwi'});
       assert.deepEqual(mail.payload.from, {email: 'support@getgrist.com', name: 'Chimpy (via Grist)'});
       assert.deepEqual(mail.payload.reply_to, {email: 'chimpy@getgrist.com', name: 'Chimpy'});
@@ -207,7 +207,10 @@ describe('ApiServerAccess', function() {
     const resp4 = await axios.patch(`${homeUrl}/api/orgs/${nasaOrgId}/access`, {delta: delta4}, chimpy);
     assert.equal(resp4.status, 200);
     if (notificationsConfig) {
-      assert.match((await assertLastMail()).description, /^invite kiwi@getgrist.com to http.*\/o\/nasa\/$/);
+      assert.match(
+        (await assertLastMail()).description,
+        /^invite kiwi@getgrist.com to http.*\/o\/nasa\/\?utm_id=invite-org$/
+      );
     }
     // Assert that the number of users in the org has updated (Kiwi was added).
     assert.deepEqual(userCountUpdates[nasaOrgId as number], [2]);
@@ -349,9 +352,9 @@ describe('ApiServerAccess', function() {
     // Check we would sent an email to Kiwi about this
     if (notificationsConfig) {
       const mail = await assertLastMail();
-      assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/ws\/[0-9]+\/$/);
+      assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/ws\/[0-9]+\/\?utm_id=invite-ws$/);
       const env = mail.payload.personalizations[0].dynamic_template_data;
-      assert.match(env.resource.url, /^http.*\/o\/docs\/ws\/[0-9]+\/$/);
+      assert.match(env.resource.url, /^http.*\/o\/docs\/ws\/[0-9]+\/\?utm_id=invite-ws$/);
       assert.equal(env.resource.kind, 'workspace');
       assert.equal(env.resource.kindUpperFirst, 'Workspace');
       assert.equal(env.resource.isTeamSite, false);
@@ -921,6 +924,21 @@ describe('ApiServerAccess', function() {
         isMember: true,
       }]
     });
+
+    const deltaOrg = {
+      users: {
+        [kiwiEmail]: "owners",
+      }
+    };
+    const respDeltaOrg = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: deltaOrg}, chimpy);
+    assert.equal(respDeltaOrg.status, 200);
+
+    const resp3 = await axios.get(`${homeUrl}/api/workspaces/${wid}/access`, chimpy);
+    assert.include(resp3.data.users.find((user: any) => user.email === kiwiEmail), {
+      access: "editors",
+      parentAccess: "owners"
+    });
+
     // Reset the access settings
     const resetDelta = {
       maxInheritedRole: "owners",
@@ -930,6 +948,13 @@ describe('ApiServerAccess', function() {
     };
     const resetResp = await axios.patch(`${homeUrl}/api/workspaces/${wid}/access`, {delta: resetDelta}, chimpy);
     assert.equal(resetResp.status, 200);
+    const resetOrgDelta = {
+      users: {
+        [kiwiEmail]: "members",
+      }
+    };
+    const resetOrgResp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {delta: resetOrgDelta}, chimpy);
+    assert.equal(resetOrgResp.status, 200);
 
     // Assert that ws guests are properly displayed.
     // Tests a minor bug that showed ws guests as having null access.

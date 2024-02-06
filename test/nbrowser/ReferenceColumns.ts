@@ -294,6 +294,10 @@ describe('ReferenceColumns', function() {
       assert.equal(await driver.find('.celleditor_text_editor').value(), 'da');
       assert.equal(await driver.find('.test-ref-editor-item.selected').isPresent(), false);
 
+      // Clear the typed-in text temporarily. Something changed in a recent version of Chrome,
+      // causing the wrong item to be moused over below when the "Add New" option is visible.
+      await driver.sendKeys(Key.BACK_SPACE, Key.BACK_SPACE);
+
       // Mouse over an item.
       await driver.findContent('.test-ref-editor-item', /Dark Gray/).mouseMove();
       assert.equal(await driver.find('.celleditor_text_editor').value(), 'Dark Gray');
@@ -301,10 +305,11 @@ describe('ReferenceColumns', function() {
 
       // Mouse back out of the dropdown
       await driver.find('.celleditor_text_editor').mouseMove();
-      assert.equal(await driver.find('.celleditor_text_editor').value(), 'da');
+      assert.equal(await driver.find('.celleditor_text_editor').value(), '');
       assert.equal(await driver.find('.test-ref-editor-item.selected').isPresent(), false);
 
-      // Click away to save the typed-in text.
+      // Re-enter the typed-in text and click away to save it.
+      await driver.sendKeys('da', Key.UP);
       await gu.getCell({section: 'References', col: 'Color', rowNum: 1}).doClick();
       await gu.waitForServer();
       assert.equal(await cell.getText(), "da");

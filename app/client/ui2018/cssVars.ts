@@ -137,6 +137,7 @@ export const vars = {
 
   /* Z indexes */
   insertColumnLineZIndex: new CustomProp('insert-column-line-z-index', '20'),
+  popupSectionBackdropZIndex: new CustomProp('popup-section-backdrop-z-index', '100'),
   menuZIndex: new CustomProp('menu-z-index', '999'),
   modalZIndex: new CustomProp('modal-z-index', '999'),
   onboardingBackdropZIndex: new CustomProp('onboarding-backdrop-z-index', '999'),
@@ -167,6 +168,7 @@ export const theme = {
   /* Text */
   text: new CustomProp('theme-text', undefined, colors.dark),
   lightText: new CustomProp('theme-text-light', undefined, colors.slate),
+  mediumText: new CustomProp('theme-text-medium', undefined, colors.darkText),
   darkText: new CustomProp('theme-text-dark', undefined, 'black'),
   errorText: new CustomProp('theme-text-error', undefined, colors.error),
   errorTextHover: new CustomProp('theme-text-error-hover', undefined, '#BF0A31'),

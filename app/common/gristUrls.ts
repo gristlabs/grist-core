@@ -12,6 +12,7 @@ import {IAttachedCustomWidget} from "app/common/widgetTypes";
 import {UIRowId} from 'app/plugin/GristAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
+import slugify from 'slugify';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -145,6 +146,12 @@ export interface IGristUrlState {
                      // But this barely works, and is suitable only for documents. For decoding it
                      // indicates that the URL probably points to an API endpoint.
   viaShare?: boolean; // Accessing document via a special share.
+
+  // Form URLs can currently be encoded but not decoded.
+  form?: {
+    vsId: number;      // a view section id of a form.
+    shareKey?: string; // only one of shareKey or doc should be set.
+  },
 }
 
 // Subset of GristLoadConfig used by getOrgUrlInfo(), which affects the interpretation of the
@@ -280,6 +287,27 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`p/${state.homePage}`);
   }
 
+  /**
+   * Form URLS can take two forms. If a docId/urlId is set, rather than
+   * a share key, the returned form URL will only be accessible by users
+   * with access to the document. This is currently only used for the
+   * preview functionality in the widget, where document access is a
+   * pre-requisite.
+   *
+   * When a share key is set, the returned form URL will be accessible
+   * by anyone, so long as the form is published.
+   *
+   * Only one of `doc` (docId/urlId) or `shareKey` should be set.
+   */
+  if (state.form) {
+    if (state.doc) { parts.push('/'); }
+    parts.push('forms/');
+    if (state.form.shareKey) {
+      parts.push(state.form.shareKey + '/');
+    }
+    parts.push(String(state.form.vsId));
+  }
+
   if (state.account) {
     parts.push(state.account === 'account' ? 'account' : `account/${state.account}`);
   }
@@ -313,7 +341,11 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
       hashParts.push('a1');
     }
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
-      const partValue = hash[key];
+      let enhancedRowId: string|undefined;
+      if (key === 'rowId' && hash.linkingRowIds?.length) {
+        enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
+      }
+      const partValue = enhancedRowId ?? hash[key];
       if (partValue) {
         const partKey = key === 'rowId' && state.hash?.rickRow ? 'rr' : key[0];
         hashParts.push(`${partKey}${partValue}`);
@@ -512,7 +544,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         'sectionId',
         'rowId',
         'colRef',
-      ] as Array<Exclude<keyof HashLink, 'popup' | 'rickRow' | 'recordCard'>>;
+      ] as Array<'sectionId'|'rowId'|'colRef'>;
       for (const key of keys) {
         let ch: string;
         if (key === 'rowId' && hashMap.has('rr')) {
@@ -525,6 +557,10 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         const value = hashMap.get(ch);
         if (key === 'rowId' && value === 'new') {
           link[key] = 'new';
+        } else if (key === 'rowId' && value && value.includes("-")) {
+          const rowIdParts = value.split("-").map(p => (p === 'new' ? p : parseInt(p, 10)));
+          link[key] = rowIdParts[0];
+          link.linkingRowIds = rowIdParts.slice(1);
         } else {
           link[key] = parseInt(value!, 10);
         }
@@ -1018,6 +1054,7 @@ export interface HashLink {
   popup?: boolean;
   rickRow?: boolean;
   recordCard?: boolean;
+  linkingRowIds?: UIRowId[];
 }
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be
@@ -1027,13 +1064,11 @@ function shouldIncludeSlug(doc: {id: string, urlId: string|null}): boolean {
   return doc.id.startsWith(doc.urlId) || doc.urlId.startsWith(SHARE_KEY_PREFIX);
 }
 
-// Convert the name of a document into a slug.  Only alphanumerics are retained,
-// and spaces are replaced with hyphens.
-// TODO: investigate whether there's a better option with unicode than just
-// deleting it, seems unfair to languages using anything other than unaccented
-// Latin characters.
+// Convert the name of a document into a slug. The slugify library normalizes unicode characters,
+// replaces those with a reasonable ascii representation. Only alphanumerics are retained, and
+// spaces are replaced with hyphens.
 function nameToSlug(name: string): string {
-  return name.trim().replace(/ /g, '-').replace(/[^-a-zA-Z0-9]/g, '').replace(/---*/g, '-');
+  return slugify(name, {strict: true});
 }
 
 // Returns a slug for the given docId/urlId/name, or undefined if a slug should

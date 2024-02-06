@@ -19,6 +19,7 @@
   margin-left: -16px;   /* to include drag handle that shows up on hover */
   margin-bottom: 4px;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .viewsection_title, .viewsection_title_font {

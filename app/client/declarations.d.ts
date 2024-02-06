@@ -77,6 +77,8 @@ declare module "app/client/components/BaseView" {
     public moveEditRowToCursor(): DataRowModel;
     public scrollToCursor(sync: boolean): Promise<void>;
     public getAnchorLinkForSection(sectionId: number): IGristUrlState;
+    public viewSelectedRecordAsCard(): void;
+    public isRecordCardDisabled(): boolean;
   }
   export = BaseView;
 }

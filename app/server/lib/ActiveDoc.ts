@@ -45,7 +45,6 @@ import {
   getTableId,
   isSchemaAction,
   TableDataAction,
-  TableRecordValue,
   toTableDataAction,
   UserAction
 } from 'app/common/DocActions';
@@ -80,6 +79,8 @@ import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {Document} from 'app/gen-server/entity/Document';
+import {Share} from 'app/gen-server/entity/Share';
+import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -88,6 +89,7 @@ import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
+import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
@@ -121,6 +123,7 @@ import {
   DocSession,
   getDocSessionAccess,
   getDocSessionAltSessionId,
+  getDocSessionUsage,
   getDocSessionUser,
   getDocSessionUserId,
   makeExceptionalDocSession,
@@ -140,7 +143,6 @@ import remove = require('lodash/remove');
 import sum = require('lodash/sum');
 import without = require('lodash/without');
 import zipObject = require('lodash/zipObject');
-import { getMetaTables } from './DocApi';
 
 bluebird.promisifyAll(tmp);
 
@@ -1113,7 +1115,7 @@ export class ActiveDoc extends EventEmitter {
   public async getTableCols(
     docSession: OptDocSession,
     tableId: string,
-    includeHidden = false): Promise<TableRecordValue[]> {
+    includeHidden = false): Promise<RecordWithStringId[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
@@ -1121,7 +1123,7 @@ export class ActiveDoc extends EventEmitter {
     // colId is pulled out of fields and used as the root id
     const fieldNames = without(Object.keys(columnData), "colId");
 
-    const columns: TableRecordValue[] = [];
+    const columns: RecordWithStringId[] = [];
     (columnData.colId as string[]).forEach((id, index) => {
       const hasNoId = !id;
       const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
@@ -1130,7 +1132,7 @@ export class ActiveDoc extends EventEmitter {
       if (skip) {
         return;
       }
-      const column: TableRecordValue = { id, fields: { colRef: colRefs[index] } };
+      const column: RecordWithStringId = { id, fields: { colRef: colRefs[index] } };
       for (const key of fieldNames) {
         column.fields[key] = columnData[key][index];
       }
@@ -1367,11 +1369,7 @@ export class ActiveDoc extends EventEmitter {
    * TODO: reconcile the two ways there are now of preparing a fork.
    */
   public async fork(docSession: OptDocSession): Promise<ForkResult> {
-    const dbManager = this.getHomeDbManager();
-    if (!dbManager) {
-      throw new Error('HomeDbManager not available');
-    }
-
+    const dbManager = this._getHomeDbManagerOrFail();
     const user = getDocSessionUser(docSession);
     // For now, fork only if user can read everything (or is owner).
     // TODO: allow forks with partial content.
@@ -1386,7 +1384,7 @@ export class ActiveDoc extends EventEmitter {
     if (docSession.authorizer) {
       doc = await docSession.authorizer.getDoc();
     } else if (docSession.req) {
-      doc = await this.getHomeDbManager()?.getDoc(docSession.req);
+      doc = await dbManager.getDoc(docSession.req);
     }
     if (!doc) { throw new Error('Document not found'); }
 
@@ -1832,7 +1830,15 @@ export class ActiveDoc extends EventEmitter {
     ));
   }
 
-  public async syncShares(docSession: OptDocSession) {
+  /**
+   * Make sure the shares listed for the doc in the home db and the
+   * shares listed within the doc itself are in sync. If skipIfNoShares
+   * is set, we skip checking the home db if there are no shares listed
+   * within the doc, as a small optimization.
+   */
+  public async syncShares(docSession: OptDocSession, options: {
+    skipIfNoShares?: boolean,
+  } = {}) {
     const metaTables = await this.fetchMetaTables(docSession);
     const shares = metaTables['_grist_Shares'];
     const ids = shares[2];
@@ -1844,8 +1850,14 @@ export class ActiveDoc extends EventEmitter {
         options: String(vals['options'][idx]),
       };
     });
-    await this.getHomeDbManager()?.syncShares(this.docName, goodShares);
+    if (goodShares.length > 0 || !options.skipIfNoShares) {
+      await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
+    }
     return goodShares;
+  }
+
+  public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share|null> {
+    return await this._getHomeDbManagerOrFail().getShareByLinkId(this.docName, linkId);
   }
 
   /**
@@ -2368,7 +2380,18 @@ export class ActiveDoc extends EventEmitter {
       // took longer, scale it up proportionately.
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
-      this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
+      log.rawDebug('ActiveDoc load timing', {
+        ...this.getLogMeta(docSession),
+        loadMs,
+        closeTimeout,
+      });
+      const docUsage = getDocSessionUsage(docSession);
+      if (!docUsage) {
+        // This looks be the first time this installation of Grist is touching
+        // the document. If it has any shares, the home db needs to know.
+        // TODO: could offer a UI to control whether shares are activated.
+        await this.syncShares(docSession, { skipIfNoShares: true });
+      }
       void this._initializeDocUsage(docSession);
 
       // Start the periodic work, unless this doc has already started shutting down.
@@ -2787,6 +2810,16 @@ export class ActiveDoc extends EventEmitter {
       await this.shutdown();
     }
   }
+
+  private _getHomeDbManagerOrFail() {
+    const dbManager = this.getHomeDbManager();
+    if (!dbManager) {
+      throw new Error('HomeDbManager not available');
+    }
+
+    return dbManager;
+  }
+
 }
 
 // Helper to initialize a sandbox action bundle with no values.

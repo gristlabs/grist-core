@@ -233,7 +233,19 @@
         "Add column": "Dodaj stolpec",
         "Last updated by": "Nazadnje posodobil",
         "Detect duplicates in...": "Zaznaj dvojnike v ...",
-        "Last updated at": "Nazadnje posodobljeno ob"
+        "Last updated at": "Nazadnje posodobljeno ob",
+        "Choice": "Izbira",
+        "Choice List": "Izbirni seznam",
+        "Reference": "Referenca",
+        "Reference List": "Referenčni seznam",
+        "Attachment": "Priponka",
+        "Any": "Karkoli",
+        "Toggle": "Preklopi",
+        "Date": "Datum",
+        "Numeric": "Numeričen",
+        "Text": "Tekst",
+        "Integer": "celo število",
+        "DateTime": "Datum čas"
     },
     "HomeLeftPane": {
         "Trash": "Koš",
@@ -330,7 +342,8 @@
         "Add to page": "Dodaj na stran",
         "Show raw data": "Prikaži neobdelane podatke",
         "Copy anchor link": "Kopiraj sidrno povezavo",
-        "Collapse widget": "Strni gradnik"
+        "Collapse widget": "Strni gradnik",
+        "Create a form": "Ustvari obrazec"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Ni mogoče dokončati shranjevanja urejene celice",
@@ -580,7 +593,24 @@
         "SELECTOR FOR": "SELEKTOR ZA",
         "Sort & Filter": "Razvrščanje in filtriranje",
         "Widget": "Pripomoček",
-        "Reset form": "Ponastavi obrazec"
+        "Reset form": "Ponastavi obrazec",
+        "Default field value": "Privzeta vrednost polja",
+        "Display button": "Gumb za prikaz",
+        "Field rules": "Pravila polja",
+        "Field title": "Naziv polja",
+        "Hidden field": "Skrito polje",
+        "Layout": "Postavitev",
+        "Redirection": "Preusmeritev",
+        "Required field": "Obvezno polje",
+        "Submit another response": "Predložite drug odgovor",
+        "Submission": "Predložitev",
+        "Success text": "Uspešno besedilo",
+        "Table column name": "Ime stolpca tabele",
+        "Configuration": "Konfiguracija",
+        "Enter text": "Vnesi besedilo",
+        "Redirect automatically after submission": "Po oddaji samodejno preusmeri",
+        "Enter redirect URL": "Vnesi preusmeritveni URL",
+        "Submit button label": "Oznaka gumba za pošiljanje"
     },
     "FloatingPopup": {
         "Maximize": "Povečajte",
@@ -1060,7 +1090,11 @@
         "Contact support": "Obrnite se na podporo",
         "Account deleted{{suffix}}": "Račun je izbrisan{{suffix}}",
         "Your account has been deleted.": "Vaš račun je bil izbrisan.",
-        "Sign up": "Prijava"
+        "Sign up": "Prijava",
+        "Build your own form": "Ustvari svoj obrazec",
+        "Powered by": "Poganja ga",
+        "An unknown error occurred.": "Prišlo je do neznane napake.",
+        "Form not found": "Ne najdem obrazca"
     },
     "WidgetTitle": {
         "DATA TABLE NAME": "IME PODATKOVNE TABELE",
@@ -1245,7 +1279,17 @@
     "modals": {
         "Save": "Shrani",
         "Cancel": "Prekliči",
-        "Ok": "v redu"
+        "Ok": "v redu",
+        "Are you sure you want to delete this record?": "Ali si prepričan, da želiš izbrisati ta zapis?",
+        "Dismiss": "Opusti",
+        "Don't ask again.": "Ne sprašuj več.",
+        "Don't show again.": "Ne pokaži več.",
+        "Don't show tips": "Ne pokaži nasvetov",
+        "Undo to restore": "Razveljavi obnovitev",
+        "Got it": "Razumem",
+        "Don't show again": "Ne pokaži več",
+        "Are you sure you want to delete these records?": "Ali si prepričan, da želiš izbrisati te zapise?",
+        "Delete": "Briši"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Pošiljanje datoteke v Google Drive"
@@ -1260,5 +1304,35 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Skrita polja"
+    },
+    "FormView": {
+        "Publish": "Objavi",
+        "Unpublish your form?": "Želiš preklicati objavo obrazca?",
+        "Publish your form?": "Želiš objaviti obrazec?",
+        "Unpublish": "Prekliči objavo"
+    },
+    "Menu": {
+        "Building blocks": "Gradniki",
+        "Columns": "Stolpci",
+        "Copy": "Kopiraj",
+        "Cut": "Izreži",
+        "Insert question above": "Vstavi vprašanje zgoraj",
+        "Paste": "Prilepi",
+        "Separator": "Ločilo",
+        "Unmapped fields": "Nepreslikana polja",
+        "Header": "Glava",
+        "Insert question below": "Vstavi vprašanje spodaj",
+        "Paragraph": "Odstavek"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Očisti",
+        "Mapped": "Preslikano",
+        "Select All": "Izberi vse",
+        "Map fields": "Preslikaj polja",
+        "Unmap fields": "Odstrani preslikavo polj",
+        "Unmapped": "Nepreslikan"
+    },
+    "Editor": {
+        "Delete": "Briši"
     }
 }

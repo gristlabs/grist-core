@@ -1,4 +1,5 @@
 import {BrowserSettings} from 'app/common/BrowserSettings';
+import {DocumentUsage} from 'app/common/DocUsage';
 import {Role} from 'app/common/roles';
 import {FullUser} from 'app/common/UserAPI';
 import {Document} from 'app/gen-server/entity/Document';
@@ -167,11 +168,24 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
 }
 
 export function getDocSessionShare(docSession: OptDocSession): string|null {
+  return _getCachedDoc(docSession)?.linkId || null;
+}
+
+/**
+ * Get document usage seen in db when we were last checking document
+ * access. Not necessarily a live value when using a websocket
+ * (although we do recheck access periodically).
+ */
+export function getDocSessionUsage(docSession: OptDocSession): DocumentUsage|null {
+  return _getCachedDoc(docSession)?.usage || null;
+}
+
+export function _getCachedDoc(docSession: OptDocSession): Document|null {
   if (docSession.authorizer) {
-    return docSession.authorizer.getCachedAuth().cachedDoc?.linkId || null;
+    return docSession.authorizer.getCachedAuth().cachedDoc || null;
   }
   if (docSession.req) {
-    return docSession.req.docAuth?.cachedDoc?.linkId || null;
+    return docSession.req.docAuth?.cachedDoc || null;
   }
   return null;
 }

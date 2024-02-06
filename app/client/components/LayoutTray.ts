@@ -197,7 +197,7 @@ export class LayoutTray extends DisposableWithEvents {
         // And ask the viewLayout to save the specs.
         viewLayout.saveLayoutSpec();
       },
-      expandSection: () => {
+      restoreSection: () => {
         // Get the section that is collapsed and clicked (we are setting this value).
         const leafId = viewLayout.viewModel.activeCollapsedSectionId();
         if (!leafId) { return; }
@@ -1179,7 +1179,7 @@ const cssCollapsedTray = styled('div.collapsed_layout', `
   overflow: hidden;
   transition: height 0.2s;
   position: relative;
-  margin: calc(-1 * var(--view-content-page-margin, 12px));
+  margin: calc(-1 * var(--view-content-page-padding, 12px));
   margin-bottom: 0;
   user-select: none;
   background-color: ${theme.pageBg};

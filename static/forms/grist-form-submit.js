@@ -9,12 +9,13 @@ if (!window.gristFormSubmit) {
  *  - `formData` should be a [FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
  *    object, typically obtained as `new FormData(formElement)`. Inside the `submit` event handler, it
  *    can be convenient to use `new FormData(event.target)`.
+ *  - formElement is the form element that was submitted.
  *
  * This function sends values from `formData` to add a new record in the specified Grist table. It
  * returns a promise for the result of the add-record API call. In case of an error, the promise
  * will be rejected with an error message.
  */
-async function gristFormSubmit(docUrl, tableId, formData) {
+async function gristFormSubmit(docUrl, tableId, formData, formElement) {
   // Pick out the server and docId from the docUrl.
   const match = /^(https?:\/\/[^\/]+(?:\/o\/[^\/]+)?)\/(?:doc\/([^\/?#]+)|([^\/?#]{12,})\/)/.exec(docUrl);
   if (!match) { throw new Error("Invalid Grist doc URL " + docUrl); }
@@ -24,7 +25,7 @@ async function gristFormSubmit(docUrl, tableId, formData) {
   // Construct the URL to use for the add-record API endpoint.
   const destUrl = server + "/api/docs/" + docId + "/tables/" + tableId + "/records";
 
-  const payload = {records: [{fields: formDataToJson(formData)}]};
+  const payload = {records: [{fields: formDataToJson(formData, formElement)}]};
   const options = {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -58,6 +59,47 @@ function formDataToJson(f) {
     k.endsWith('[]') ? [k.slice(0, -2), ['L', ...f.getAll(k)]] : [k, f.get(k)]));
 }
 
+/**
+ * TypedFormData is a wrapper around FormData that provides type information for the fields.
+ */
+class TypedFormData {
+  constructor(formElement, formData) {
+    if (!(formElement instanceof HTMLFormElement)) throw new Error("formElement must be a form");
+    if (formData && !(formData instanceof FormData)) throw new Error("formData must be a FormData");
+    this._formData = formData ?? new FormData(formElement);
+    this._formElement = formElement;
+  }
+  keys() {
+    const keys = Array.from(this._formData.keys());
+
+    // Don't return keys for scalar values which just return empty string.
+    // Otherwise Grist won't fire trigger formulas.
+    return keys.filter(key => {
+      // If there are multiple values, return this key as it is.
+      if (this._formData.getAll(key).length !== 1) { return true; }
+      // If the value is empty string or null, don't return the key.
+      const value = this._formData.get(key);
+      return value !== '' && value !== null;
+    });
+  }
+  type(key) {
+    return this._formElement?.querySelector(`[name="${key}"]`)?.getAttribute('data-grist-type');
+  }
+  get(key) {
+    const value = this._formData.get(key);
+    if (value === null) { return null; }
+    const type = this.type(key);
+    return type === 'Ref' || type === 'RefList' ? Number(value) : value;
+  }
+  getAll(key) {
+    const values = Array.from(this._formData.getAll(key));
+    if (['Ref', 'RefList'].includes(this.type(key))) {
+      return values.map(v => Number(v));
+    }
+    return values;
+  }
+}
+
 
 // Handle submissions for plain forms that include special data-grist-* attributes.
 async function handleSubmitPlainForm(ev) {
@@ -76,7 +118,7 @@ async function handleSubmitPlainForm(ev) {
 
     const successUrl = ev.target.getAttribute('data-grist-success-url');
 
-    await gristFormSubmit(docUrl, tableId, new FormData(ev.target));
+    await gristFormSubmit(docUrl, tableId, new TypedFormData(ev.target));
 
     // On success, redirect to the requested URL.
     if (successUrl) {
@@ -111,7 +153,7 @@ async function handleSubmitWPCF7(ev) {
     if (!docUrl) { throw new Error("Missing attribute data-grist-doc='GRIST_DOC_URL'"); }
     if (!tableId) { throw new Error("Missing attribute data-grist-table='GRIST_TABLE_ID'"); }
 
-    await gristFormSubmit(docUrl, tableId, new FormData(ev.target));
+    await gristFormSubmit(docUrl, tableId, new TypedFormData(ev.target));
     console.log("grist-form-submit WPCF7 Form %s: Added record", formId);
 
   } catch (err) {
@@ -135,7 +177,7 @@ async function handleSubmitGravityForm(ev, options) {
     if (!docUrl) { throw new Error("setUpGravityForm: missing docUrl option"); }
     if (!tableId) { throw new Error("setUpGravityForm: missing tableId option"); }
 
-    const f = new FormData(ev.target);
+    const f = new TypedFormData(ev.target);
     for (const key of Array.from(f.keys())) {
       // Skip fields other than input fields.
       if (!key.startsWith("input_")) {

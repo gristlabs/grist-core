@@ -1,3 +1,4 @@
+import {ShareInfo} from 'app/common/ActiveDocAPI';
 import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
@@ -812,7 +813,7 @@ export class HomeDBManager extends EventEmitter {
         .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
       const result = await orgQuery.getRawAndEntities();
       if (result.entities.length === 0) {
-        // If the query for the doc failed, return the failure result.
+        // If the query for the org failed, return the failure result.
         throw new ApiError('org not found', 404);
       }
       org = result.entities[0];
@@ -1072,7 +1073,7 @@ export class HomeDBManager extends EventEmitter {
       needRealOrg: true
     });
     orgQuery = this._addFeatures(orgQuery);
-    const orgQueryResult = await verifyIsPermitted(orgQuery);
+    const orgQueryResult = await verifyEntity(orgQuery);
     const org: Organization = this.unwrapQueryResult(orgQueryResult);
     const productFeatures = org.billingAccount.product.features;
 
@@ -1221,7 +1222,7 @@ export class HomeDBManager extends EventEmitter {
         // to the regular path through this method.
         workspace: this.unwrapQueryResult<Workspace>(
           await this.getWorkspace({userId: this.getSupportUserId()},
-                                  this._exampleWorkspaceId)),
+                                   this._exampleWorkspaceId)),
         aliases: [],
         access: 'editors',  // a share may have view/edit access,
                             // need to check at granular level
@@ -1588,7 +1589,7 @@ export class HomeDBManager extends EventEmitter {
         markPermissions,
         needRealOrg: true
       });
-      const queryResult = await verifyIsPermitted(orgQuery);
+      const queryResult = await verifyEntity(orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
@@ -1656,7 +1657,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
       .leftJoinAndSelect('doc_acl_rules.group', 'doc_group')
       .leftJoinAndSelect('orgs.billingAccount', 'billing_accounts');
-      const queryResult = await verifyIsPermitted(orgQuery);
+      const queryResult = await verifyEntity(orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the org failed, return the failure result.
         return queryResult;
@@ -1709,7 +1710,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('acl_rules.group', 'org_group')
       .leftJoinAndSelect('orgs.workspaces', 'workspaces');  // we may want to count workspaces.
       orgQuery = this._addFeatures(orgQuery);  // add features to access optional workspace limit.
-      const queryResult = await verifyIsPermitted(orgQuery);
+      const queryResult = await verifyEntity(orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
@@ -1749,7 +1750,7 @@ export class HomeDBManager extends EventEmitter {
         manager,
         markPermissions: Permissions.UPDATE
       });
-      const queryResult = await verifyIsPermitted(wsQuery);
+      const queryResult = await verifyEntity(wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
@@ -1781,7 +1782,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
       .leftJoinAndSelect('doc_acl_rules.group', 'doc_groups')
       .leftJoinAndSelect('workspaces.org', 'orgs');
-      const queryResult = await verifyIsPermitted(wsQuery);
+      const queryResult = await verifyEntity(wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
@@ -1834,7 +1835,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'workspace_group');
       wsQuery = this._addFeatures(wsQuery);
-      const queryResult = await verifyIsPermitted(wsQuery);
+      const queryResult = await verifyEntity(wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
@@ -2008,7 +2009,7 @@ export class HomeDBManager extends EventEmitter {
           markPermissions,
         });
       }
-      const queryResult = await verifyIsPermitted(query);
+      const queryResult = await verifyEntity(query);
       if (queryResult.status !== 200) {
         // If the query for the doc or fork failed, return the failure result.
         return queryResult;
@@ -2061,7 +2062,7 @@ export class HomeDBManager extends EventEmitter {
           manager,
           allowSpecialPermit: true,
         });
-        const queryResult = await verifyIsPermitted(forkQuery);
+        const queryResult = await verifyEntity(forkQuery);
         if (queryResult.status !== 200) {
           // If the query for the fork failed, return the failure result.
           return queryResult;
@@ -2079,7 +2080,7 @@ export class HomeDBManager extends EventEmitter {
         // Join the workspace and org to get their ids.
         .leftJoinAndSelect('docs.aclRules', 'acl_rules')
         .leftJoinAndSelect('acl_rules.group', 'groups');
-        const queryResult = await verifyIsPermitted(docQuery);
+        const queryResult = await verifyEntity(docQuery);
         if (queryResult.status !== 200) {
           // If the query for the doc failed, return the failure result.
           return queryResult;
@@ -2217,7 +2218,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
       orgQuery = this._addFeatures(orgQuery);
       orgQuery = this._withAccess(orgQuery, userId, 'orgs');
-      const queryResult = await verifyIsPermitted(orgQuery);
+      const queryResult = await verifyEntity(orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return queryResult;
@@ -2278,7 +2279,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
       wsQuery = this._addFeatures(wsQuery, 'org');
       wsQuery = this._withAccess(wsQuery, userId, 'workspaces');
-      const queryResult = await verifyIsPermitted(wsQuery);
+      const queryResult = await verifyEntity(wsQuery);
       if (queryResult.status !== 200) {
         // If the query for the workspace failed, return the failure result.
         return queryResult;
@@ -2379,17 +2380,7 @@ export class HomeDBManager extends EventEmitter {
 
   // Returns UserAccessData for all users with any permissions on the org.
   public async getOrgAccess(scope: Scope, orgKey: string|number): Promise<QueryResult<PermissionData>> {
-    const orgQuery = this.org(scope, orgKey, {
-      markPermissions: Permissions.VIEW,
-      needRealOrg: true,
-      allowSpecialPermit: true
-    })
-    // Join the org's ACL rules (with 1st level groups/users listed).
-    .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-    .leftJoinAndSelect('acl_rules.group', 'org_groups')
-    .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users')
-    .leftJoinAndSelect('org_member_users.logins', 'user_logins');
-    const queryResult = await verifyIsPermitted(orgQuery);
+    const queryResult = await this._getOrgWithACLRules(scope, orgKey);
     if (queryResult.status !== 200) {
       // If the query for the doc failed, return the failure result.
       return queryResult;
@@ -2418,33 +2409,41 @@ export class HomeDBManager extends EventEmitter {
   // maxInheritedRole set on the workspace. Note that information for all users in the org
   // is given to indicate which users have access to the org but not to this particular workspace.
   public async getWorkspaceAccess(scope: Scope, wsId: number): Promise<QueryResult<PermissionData>> {
-    const wsQuery = this._workspace(scope, wsId, {
-      markPermissions: Permissions.VIEW
-    })
-    // Join the workspace's ACL rules (with 1st level groups/users listed).
-    .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
-    .leftJoinAndSelect('acl_rules.group', 'workspace_groups')
-    .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_group_users')
-    .leftJoinAndSelect('workspace_groups.memberGroups', 'workspace_group_groups')
-    .leftJoinAndSelect('workspace_group_users.logins', 'workspace_user_logins')
-    // Join the org and groups/users.
-    .leftJoinAndSelect('workspaces.org', 'org')
-    .leftJoinAndSelect('org.aclRules', 'org_acl_rules')
-    .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-    .leftJoinAndSelect('org_groups.memberUsers', 'org_group_users')
-    .leftJoinAndSelect('org_group_users.logins', 'org_user_logins');
-    const queryResult = await verifyIsPermitted(wsQuery);
-    if (queryResult.status !== 200) {
-      // If the query for the doc failed, return the failure result.
-      return queryResult;
+    // Run the query for the workspace and org in a transaction. This brings some isolation protection
+    // against changes to the workspace or org while we are querying.
+    const { workspace, org, queryFailure } = await this._connection.transaction(async manager => {
+      const wsQueryResult = await this._getWorkspaceWithACLRules(scope, wsId, { manager });
+      if (wsQueryResult.status !== 200) {
+        // If the query for the workspace failed, return the failure result.
+        return { queryFailure: wsQueryResult };
+      }
+
+      const orgQuery = this._buildOrgWithACLRulesQuery(scope, wsQueryResult.data.org.id, { manager });
+      const orgQueryResult = await verifyEntity(orgQuery, { skipPermissionCheck: true });
+      if (orgQueryResult.status !== 200) {
+        // If the query for the org failed, return the failure result.
+        return { queryFailure: orgQueryResult };
+      }
+
+      return {
+        workspace: wsQueryResult.data,
+        org: orgQueryResult.data
+      };
+    });
+    if (queryFailure) {
+      return queryFailure;
     }
-    const workspace: Workspace = queryResult.data;
+
     const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
+
+    // Also fetch the organization ACLs so we can determine inherited rights.
+
     // The orgMap gives the org access inherited by each user.
-    const orgMap = getMemberUserRoles(workspace.org, this.defaultBasicGroupNames);
-    const orgMapWithMembership = getMemberUserRoles(workspace.org, this.defaultGroupNames);
+    const orgMap = getMemberUserRoles(org, this.defaultBasicGroupNames);
+    const orgMapWithMembership = getMemberUserRoles(org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
-    const users: UserAccessData[] = getResourceUsers([workspace, workspace.org]).map(u => {
+
+    const users: UserAccessData[] = getResourceUsers([workspace, org]).map(u => {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
@@ -2575,7 +2574,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('orgs.aclRules', 'org_acl_rules')
       .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
       .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
-      const docQueryResult = await verifyIsPermitted(docQuery);
+      const docQueryResult = await verifyEntity(docQuery);
       if (docQueryResult.status !== 200) {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
@@ -2602,7 +2601,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
       .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
       wsQuery = this._addFeatures(wsQuery);
-      const wsQueryResult = await verifyIsPermitted(wsQuery);
+      const wsQueryResult = await verifyEntity(wsQuery);
       if (wsQueryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
         return wsQueryResult;
@@ -2680,7 +2679,7 @@ export class HomeDBManager extends EventEmitter {
         manager
       })
       .addSelect(this._markIsPermitted('orgs', scope.userId, 'open', permissions), 'is_permitted');
-      const docQueryResult = await verifyIsPermitted(docQuery);
+      const docQueryResult = await verifyEntity(docQuery);
       if (docQueryResult.status !== 200) {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
@@ -3087,6 +3086,22 @@ export class HomeDBManager extends EventEmitter {
           .execute();
       }
     });
+  }
+
+  public async getShareByKey(key: string) {
+    return this._connection.createQueryBuilder()
+      .select('shares')
+      .from(Share, 'shares')
+      .where('shares.key = :key', {key})
+      .getOne();
+  }
+
+  public async getShareByLinkId(docId: string, linkId: string) {
+    return this._connection.createQueryBuilder()
+      .select('shares')
+      .from(Share, 'shares')
+      .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
+      .getOne();
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -4652,7 +4667,7 @@ export class HomeDBManager extends EventEmitter {
       // SQL results are flattened, and multiplying the number of rows we have already
       // by the number of workspace users could get excessive.
       .leftJoinAndSelect('docs.workspace', 'workspace');
-      const queryResult = await verifyIsPermitted(docQuery);
+      const queryResult = await verifyEntity(docQuery);
       const doc: Document = this.unwrapQueryResult(queryResult);
 
       // Load the workspace's member groups/users.
@@ -4760,7 +4775,7 @@ export class HomeDBManager extends EventEmitter {
         manager,
         markPermissions: Permissions.REMOVE
       });
-      const workspace: Workspace = this.unwrapQueryResult(await verifyIsPermitted(wsQuery));
+      const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));
       await manager.createQueryBuilder()
         .update(Workspace).set({removedAt}).where({id: workspace.id})
         .execute();
@@ -4778,7 +4793,7 @@ export class HomeDBManager extends EventEmitter {
       if (!removedAt) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
       }
-      const doc: Document = this.unwrapQueryResult(await verifyIsPermitted(docQuery));
+      const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery));
       if (!removedAt) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
@@ -4812,16 +4827,59 @@ export class HomeDBManager extends EventEmitter {
     if (thisUser) { users.push(thisUser); }
     return { personal: true, public: !realAccess };
   }
+
+  private _getWorkspaceWithACLRules(scope: Scope, wsId: number, options: Partial<QueryOptions> = {}) {
+    const query = this._workspace(scope, wsId, {
+      markPermissions: Permissions.VIEW,
+      ...options
+    })
+    // Join the workspace's ACL rules (with 1st level groups/users listed).
+    .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
+    .leftJoinAndSelect('acl_rules.group', 'workspace_groups')
+    .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_group_users')
+    .leftJoinAndSelect('workspace_groups.memberGroups', 'workspace_group_groups')
+    .leftJoinAndSelect('workspace_group_users.logins', 'workspace_user_logins')
+    .leftJoinAndSelect('workspaces.org', 'org');
+    return verifyEntity(query);
+  }
+
+  private _buildOrgWithACLRulesQuery(scope: Scope, org: number|string, opts: Partial<QueryOptions> = {}) {
+    return this.org(scope, org, {
+      needRealOrg: true,
+      ...opts
+    })
+      // Join the org's ACL rules (with 1st level groups/users listed).
+      .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
+      .leftJoinAndSelect('acl_rules.group', 'org_groups')
+      .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users')
+      .leftJoinAndSelect('org_member_users.logins', 'user_logins');
+  }
+
+  private _getOrgWithACLRules(scope: Scope, org: number|string) {
+    const orgQuery = this._buildOrgWithACLRulesQuery(scope, org, {
+      markPermissions: Permissions.VIEW,
+      allowSpecialPermit: true,
+    });
+    return verifyEntity(orgQuery);
+  }
+
 }
 
 // Return a QueryResult reflecting the output of a query builder.
 // Checks on the "is_permitted" field which select queries set on resources to
 // indicate whether the user has access.
+//
 // If the output is empty, we signal that the desired resource does not exist.
-// If the "is_permitted" field is falsy, we signal that the resource is forbidden.
+//
+// If we retrieve more than 1 entity, we signal that the request is ambiguous.
+//
+// If the "is_permitted" field is falsy, we signal that the resource is forbidden,
+// unless skipPermissionCheck is set.
+//
 // Returns the resource fetched by the queryBuilder.
-async function verifyIsPermitted(
-  queryBuilder: SelectQueryBuilder<any>
+async function verifyEntity(
+  queryBuilder: SelectQueryBuilder<any>,
+  options: { skipPermissionCheck?: boolean } = {}
 ): Promise<QueryResult<any>> {
   const results = await queryBuilder.getRawAndEntities();
   if (results.entities.length === 0) {
@@ -4834,7 +4892,7 @@ async function verifyIsPermitted(
       status: 400,
       errMessage: `ambiguous ${getFrom(queryBuilder)} request`
     };
-  } else if (!results.raw[0].is_permitted) {
+  } else if (!options.skipPermissionCheck && !results.raw[0].is_permitted) {
     return {
       status: 403,
       errMessage: "access denied"
@@ -4932,9 +4990,4 @@ export function getDocAuthKeyFromScope(scope: Scope): DocAuthKey {
   const {urlId, userId, org} = scope;
   if (!urlId) { throw new Error('document required'); }
   return {urlId, userId, org};
-}
-
-interface ShareInfo {
-  linkId: string;
-  options: string;
 }

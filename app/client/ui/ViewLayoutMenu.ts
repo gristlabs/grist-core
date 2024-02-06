@@ -7,6 +7,7 @@ import {testId} from 'app/client/ui2018/cssVars';
 import {menuDivider, menuItemCmd, menuItemLink} from 'app/client/ui2018/menus';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {dom, UseCB} from 'grainjs';
+import {WidgetType} from 'app/common/widgetTypes';
 
 const t = makeT('ViewLayoutMenu');
 
@@ -63,16 +64,17 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
            ;
   };
 
+  const isCard = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Card;
+  const isTable = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Table;
+
   return [
-    dom.maybe((use) => ['single'].includes(use(viewSection.parentKey)), () => contextMenu),
+    dom.maybe(isCard, () => contextMenu),
     dom.maybe(showRawData,
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
-        dom.on('click', (ev) => {
+        dom.on('click', () => {
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
-          ev.stopImmediatePropagation();
-          ev.preventDefault();
           urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
         })
       )
@@ -91,6 +93,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId('widget-options')),
       menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter"), dom.hide(viewSection.isRecordCard)),
       menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection"), dom.hide(viewSection.isRecordCard)),
+      menuItemCmd(allCommands.createForm, t("Create a form"), dom.show(isTable)),
     ]),
 
     menuDivider(dom.hide(viewSection.isRecordCard)),
@@ -123,17 +126,15 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
     dom.maybe((use) => !use(viewSection.isRaw) && !isSinglePage && !use(gristDoc.maximizedSectionId),
       () => menuItemLink(
         { href: rawUrl}, t("Show raw data"), testId('show-raw-data'),
-        dom.on('click', (ev) => {
+        dom.on('click', () => {
           // Replace the current URL so that the back button works as expected (it navigates back from
           // the current page).
-          ev.stopImmediatePropagation();
-          ev.preventDefault();
           urlState().pushUrl(anchorUrlState, { replace: true }).catch(reportError);
         })
       )
     ),
     menuDivider(),
-    menuItemCmd(allCommands.expandSection, t("Add to page"),
+    menuItemCmd(allCommands.restoreSection, t("Add to page"),
       dom.cls('disabled', isReadonly),
       testId('section-expand')),
     menuItemCmd(allCommands.deleteCollapsedSection, t("Delete widget"),
