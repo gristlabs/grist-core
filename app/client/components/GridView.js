@@ -284,21 +284,35 @@ GridView.selectionCommands = {
 }
 
 GridView.gridCommands = {
+  cursorDown: function() {
+    if (this.cursor.rowIndex() === this.viewData.peekLength - 1) {
+      // When the cursor is in the bottom row, the view may not be scrolled all the way to
+      // the bottom (i.e. in the case of a tall row).
+      this.scrollPaneBottom();
+    }
+    this.cursor.rowIndex(this.cursor.rowIndex() + 1);
+  },
   cursorUp: function() {
-    // This conditional exists so that when users have the cursor in the top row but are not
-    // scrolled to the top i.e. in the case of a tall row, pressing up again will scroll the
-    // pane to the top.
     if (this.cursor.rowIndex() === 0) {
-      this.scrollPane.scrollTop = 0;
+      // When the cursor is in the top row, the view may not be scrolled all the way to
+      // the top (i.e. in the case of a tall row).
+      this.scrollPaneTop();
     }
     this.cursor.rowIndex(this.cursor.rowIndex() - 1);
   },
+  cursorRight: function() {
+    if (this.cursor.fieldIndex() === this.viewSection.viewFields().peekLength - 1) {
+      // When the cursor is in the rightmost column, the view may not be scrolled all the way to
+      // the right (i.e. in the case of a wide column).
+      this.scrollPaneRight();
+    }
+    this.cursor.fieldIndex(this.cursor.fieldIndex() + 1);
+  },
   cursorLeft: function() {
-    // This conditional exists so that when users have the cursor in the leftmost column but
-    // are not scrolled to the left i.e. in the case of a wide column, pressing left again will
-    // scroll the pane to the left.
     if (this.cursor.fieldIndex() === 0) {
-      this.scrollPane.scrollLeft = 0;
+      // When the cursor is in the leftmost column, the view may not be scrolled all the way to
+      // the left (i.e. in the case of a wide column).
+      this.scrollPaneLeft();
     }
     this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
   },
@@ -781,7 +795,7 @@ GridView.prototype._convertFormulasToData = function(selection) {
 };
 
 GridView.prototype.selectAll = function() {
-  this.cellSelector.selectArea(0, 0, this.getLastDataRowIndex(),
+  this.cellSelector.selectArea(0, 0, Math.max(0, this.getLastDataRowIndex()),
     this.viewSection.viewFields().peekLength - 1);
 };
 
@@ -884,12 +898,20 @@ GridView.prototype.renameColumn = function(index) {
   this.currentEditingColumnIndex(index);
 };
 
-GridView.prototype.scrollPaneLeft = function() {
-  this.scrollPane.scrollLeft = 0;
+GridView.prototype.scrollPaneBottom = function() {
+  this.scrollPane.scrollTop = this.scrollPane.scrollHeight;
+};
+
+GridView.prototype.scrollPaneTop = function() {
+  this.scrollPane.scrollTop = 0;
 };
 
 GridView.prototype.scrollPaneRight = function() {
   this.scrollPane.scrollLeft = this.scrollPane.scrollWidth;
+};
+
+GridView.prototype.scrollPaneLeft = function() {
+  this.scrollPane.scrollLeft = 0;
 };
 
 GridView.prototype.selectColumn = function(colIndex) {
@@ -997,7 +1019,7 @@ GridView.prototype.getMousePosRow = function (yCoord) {
  *  param{yCoord}: The mouse y-position on the screen.
  **/
 GridView.prototype.currentMouseRow = function(yCoord) {
-  return Math.min(this.getMousePosRow(this.scrollTop() + yCoord), this.getLastDataRowIndex());
+  return Math.min(this.getMousePosRow(this.scrollTop() + yCoord), Math.max(0, this.getLastDataRowIndex()));
 };
 
 /**
@@ -1715,19 +1737,10 @@ GridView.prototype.attachSelectorHandlers = function () {
 
   this.autoDispose(mouseDragMatchElem(this.scrollPane, '.field:not(.column_name)', (event, elem) => {
     if (!ignoreEvent(event, elem)) {
-      // TODO: should always enable
-      if (!this.cellSelector.isSelected(elem, selector.CELL)) {
-        this.cellMouseDown(elem, event);
-        return {
-          onMove: (ev) => this.cellMouseMove(ev),
-          onStop: (ev) => {},
-        }
-      } else { // TODO: if true above, this will never come into play.
-        this.scheduleAssignCursor(elem, selector.NONE);
-        return {
-          onMove: (ev) => {},
-          onStop: (ev) => { this.cellSelector.currentDragType(selector.NONE); },
-        };
+      this.cellMouseDown(elem, event);
+      return {
+        onMove: (ev) => this.cellMouseMove(ev),
+        onStop: (ev) => {},
       }
     }
   }));
