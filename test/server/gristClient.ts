@@ -4,7 +4,7 @@ import { SchemaTypes } from 'app/common/schema';
 import { FlexServer } from 'app/server/lib/FlexServer';
 import axios from 'axios';
 import pick = require('lodash/pick');
-import WebSocket from 'ws';
+import {GristClientSocket} from 'app/client/components/GristClientSocket';
 
 interface GristRequest {
   reqId: number;
@@ -34,9 +34,9 @@ export class GristClient {
   private _consumer: () => void;
   private _ignoreTrivialActions: boolean = false;
 
-  constructor(public ws: any) {
-    ws.onmessage = (data: any) => {
-      const msg = pick(JSON.parse(data.data),
+  constructor(public ws: GristClientSocket) {
+    ws.onmessage = (data: string) => {
+      const msg = pick(JSON.parse(data),
                        ['reqId', 'error', 'errorCode', 'data', 'type', 'docFD']);
       if (this._ignoreTrivialActions && msg.type === 'docUserAction' &&
           msg.data?.actionGroup?.internal === true &&
@@ -149,7 +149,6 @@ export class GristClient {
   }
 
   public async close() {
-    this.ws.terminate();
     this.ws.close();
   }
 
@@ -180,17 +179,19 @@ export async function openClient(server: FlexServer, email: string, org: string,
   } else {
     headers[emailHeader] = email;
   }
-  const ws = new WebSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {
+  const ws = new GristClientSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {
     headers
   });
   const client = new GristClient(ws);
   await new Promise(function(resolve, reject) {
-    ws.on('open', function() {
+    ws.onopen = function() {
+      ws.onerror = null;
       resolve(ws);
-    });
-    ws.on('error', function(err: any) {
+    };
+    ws.onerror = function(err: Error) {
+      ws.onopen = null;
       reject(err);
-    });
+    };
   });
   return client;
 }
