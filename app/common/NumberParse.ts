@@ -7,6 +7,7 @@
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {getDistinctValues} from 'app/common/gutil';
 import {getCurrency, NumberFormatOptions, NumMode, parseNumMode} from 'app/common/NumberFormat';
+import {buildNumberFormat} from 'app/common/NumberFormat';
 import escapeRegExp = require('lodash/escapeRegExp');
 import last = require('lodash/last');
 
@@ -72,7 +73,7 @@ export default class NumberParse {
   // with corresponding digits from 0123456789.
   private readonly _replaceDigits: (s: string) => string;
 
-  constructor(locale: string, currency: string) {
+  constructor(public readonly locale: string, public readonly currency: string) {
     const parts = new Map<NumMode, Intl.NumberFormatPart[]>();
     for (const numMode of NumMode.values) {
       const formatter = Intl.NumberFormat(locale, parseNumMode(numMode, currency));
@@ -314,6 +315,12 @@ export default class NumberParse {
     // Otherwise explicitly set it to 0 if needed to suppress the default for that currency.
     if (decimals > 0 || maxMode === "currency" && maxDecimals < this.defaultNumDecimalsCurrency) {
       result.decimals = decimals;
+    }
+
+    // We should only set maxDecimals if the default maxDecimals is too low.
+    const tmpNF = buildNumberFormat(result, {locale: this.locale, currency: this.currency}).resolvedOptions();
+    if (maxDecimals > tmpNF.maximumFractionDigits) {
+      result.maxDecimals = maxDecimals;
     }
 
     return result;

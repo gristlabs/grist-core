@@ -33,7 +33,3 @@ export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
   }
   return G.window.PERMITTED_CUSTOM_WIDGETS;
 }
-
-export function GRIST_FORMS_FEATURE() {
-  return Boolean(getGristConfig().experimentalPlugins);
-}

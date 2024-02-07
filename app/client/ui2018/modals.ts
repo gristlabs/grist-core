@@ -4,13 +4,14 @@ import {reportError} from 'app/client/models/errors';
 import {cssInput} from 'app/client/ui/cssInput';
 import {prepareForTransition, TransitionWatcher} from 'app/client/ui/transitions';
 import {bigBasicButton, bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {cssMenuElem} from 'app/client/ui2018/menus';
 import {waitGrainObs} from 'app/common/gutil';
-import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
-import {cssMenuElem} from 'app/client/ui2018/menus';
+import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
 
 const t = makeT('modals');
 
@@ -339,6 +340,8 @@ export function saveModal(
 export interface ConfirmModalOptions {
   explanation?: DomElementArg,
   hideCancel?: boolean;
+  /** Defaults to true. */
+  hideDontShowAgain?: boolean;
   extraButtons?: DomContents;
   modalOptions?: IModalOptions;
   saveDisabled?: Observable<boolean>;
@@ -353,21 +356,41 @@ export interface ConfirmModalOptions {
 export function confirmModal(
   title: DomElementArg,
   btnText: DomElementArg,
-  onConfirm: () => Promise<void>,
-  {explanation, hideCancel, extraButtons, modalOptions, saveDisabled, width}: ConfirmModalOptions = {},
+  onConfirm: (dontShowAgain?: boolean) => Promise<void>,
+  options: ConfirmModalOptions = {},
 ): void {
-  return saveModal((ctl, owner): ISaveModalOptions => ({
-    title,
-    body: explanation || null,
-    saveLabel: btnText,
-    saveFunc: onConfirm,
+  const {
+    explanation,
     hideCancel,
-    width: width ?? 'normal',
+    hideDontShowAgain = true,
     extraButtons,
+    modalOptions,
     saveDisabled,
-  }), modalOptions);
+    width
+  } = options;
+  return saveModal((_ctl, owner): ISaveModalOptions => {
+    const dontShowAgain = Observable.create(owner, false);
+    return {
+      title,
+      body: [
+        explanation || null,
+        hideDontShowAgain ? null : dom('div',
+          cssDontShowAgainCheckbox(
+            dontShowAgain,
+            cssDontShowAgainCheckboxLabel(t("Don't show again")),
+            testId('modal-dont-show-again'),
+          ),
+        ),
+      ],
+      saveLabel: btnText,
+      saveFunc: () => onConfirm(hideDontShowAgain ? undefined : dontShowAgain.get()),
+      hideCancel,
+      width: width ?? 'normal',
+      extraButtons,
+      saveDisabled,
+    };
+  }, modalOptions);
 }
-
 
 /**
  * Creates a simple prompt modal (replacement for the native one).
@@ -668,4 +691,12 @@ export const cssAnimatedModal = styled('div', `
   animation-name: ${cssFadeInFromTop};
   animation-duration: 0.4s;
   position: relative;
+`);
+
+const cssDontShowAgainCheckbox = styled(labeledSquareCheckbox, `
+  line-height: normal;
+`);
+
+const cssDontShowAgainCheckboxLabel = styled('span', `
+  color: ${theme.lightText};
 `);

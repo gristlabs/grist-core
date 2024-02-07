@@ -1179,7 +1179,7 @@ const cssCollapsedTray = styled('div.collapsed_layout', `
   overflow: hidden;
   transition: height 0.2s;
   position: relative;
-  margin: calc(-1 * var(--view-content-page-margin, 12px));
+  margin: calc(-1 * var(--view-content-page-padding, 12px));
   margin-bottom: 0;
   user-select: none;
   background-color: ${theme.pageBg};

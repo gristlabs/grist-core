@@ -1036,6 +1036,9 @@ export class FlexServer implements GristServer {
         this._redirectToOrgMiddleware,
         welcomeNewUser
       ],
+      formMiddleware: [
+        forcedLoginMiddleware,
+      ],
       forceLogin: this._redirectToLoginUnconditionally,
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,
@@ -1510,6 +1513,7 @@ export class FlexServer implements GristServer {
       if (resp.headersSent || !this._sendAppPage) { return next(err); }
       try {
         const errPage = (
+          err.details?.code === 'FormNotFound' ? 'form-not-found' :
           err.status === 403 ? 'access-denied' :
           err.status === 404 ? 'not-found' :
           'other-error'

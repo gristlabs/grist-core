@@ -8,6 +8,7 @@ import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
+import type {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
@@ -85,6 +86,10 @@ export class DocSettingsPage extends Disposable {
           await copyToClipboard(docPageModel.currentDocId.get()!);
         }),
       )),
+      cssDataRow(primaryButtonLink(t('API Console'), {
+        target: '_blank',
+        href: getApiConsoleLink(docPageModel),
+      })),
       cssHeader(t('Webhooks'), cssBeta('Beta')),
       cssDataRow(primaryButtonLink(t('Manage Webhooks'), urlState().setLinkUrl({docPage: 'webhook'}))),
     );
@@ -101,6 +106,16 @@ export class DocSettingsPage extends Disposable {
       await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
     }
   }
+}
+
+function getApiConsoleLink(docPageModel: DocPageModel) {
+  const url = new URL(location.href);
+  url.pathname = '/apiconsole';
+  url.searchParams.set('docId', docPageModel.currentDocId.get()!);
+  // Some extra question marks to placate a test fixture at test/fixtures/projects/DocumentSettings.ts
+  url.searchParams.set('workspaceId', String(docPageModel.currentWorkspace?.get()?.id || ''));
+  url.searchParams.set('orgId', String(docPageModel.appModel?.topAppModel.currentSubdomain.get()));
+  return url.href;
 }
 
 type LocaleItem = ACSelectItem & {locale?: string};

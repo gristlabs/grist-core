@@ -4,10 +4,12 @@ import {getLoginUrl, getMainOrgUrl, getSignupUrl, urlState} from 'app/client/mod
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
+import {setUpPage} from 'app/client/ui/setUpPage';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {theme, vars} from 'app/client/ui2018/cssVars';
-import {getPageTitleSuffix, GristLoadConfig} from 'app/common/gristUrls';
+import {colors, theme, vars} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 
@@ -15,14 +17,22 @@ const testId = makeTestId('test-');
 
 const t = makeT('errorPages');
 
+export function setUpErrPage() {
+  const {errPage} = getGristConfig();
+  const attachTheme = errPage !== 'form-not-found';
+  setUpPage((appModel) => {
+    return createErrPage(appModel);
+  }, {attachTheme});
+}
+
 export function createErrPage(appModel: AppModel) {
-  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
-  const message = gristConfig.errMessage;
-  return gristConfig.errPage === 'signed-out' ? createSignedOutPage(appModel) :
-    gristConfig.errPage === 'not-found' ? createNotFoundPage(appModel, message) :
-    gristConfig.errPage === 'access-denied' ? createForbiddenPage(appModel, message) :
-    gristConfig.errPage === 'account-deleted' ? createAccountDeletedPage(appModel) :
-        createOtherErrorPage(appModel, message);
+  const {errMessage, errPage} = getGristConfig();
+  return errPage === 'signed-out' ? createSignedOutPage(appModel) :
+    errPage === 'not-found' ? createNotFoundPage(appModel, errMessage) :
+    errPage === 'access-denied' ? createForbiddenPage(appModel, errMessage) :
+    errPage === 'account-deleted' ? createAccountDeletedPage(appModel) :
+    errPage === 'form-not-found' ? createFormNotFoundPage(errMessage) :
+    createOtherErrorPage(appModel, errMessage);
 }
 
 /**
@@ -97,6 +107,43 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
       urlState().setLinkUrl({}))),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: 'https://getgrist.com/contact'})),
   ]);
+}
+
+/**
+ * Creates a form-specific "Not Found" page.
+ */
+export function createFormNotFoundPage(message?: string) {
+  document.title = t("Form not found");
+
+  return cssFormErrorPage(
+    cssFormErrorContainer(
+      cssFormError(
+        cssFormErrorBody(
+          cssFormErrorImage({src: 'forms/form-not-found.svg'}),
+          cssFormErrorText(
+            message ?? t('An unknown error occurred.'),
+            testId('error-text'),
+          ),
+        ),
+        cssFormErrorFooter(
+          cssFormPoweredByGrist(
+            cssFormPoweredByGristLink(
+              {href: 'https://www.getgrist.com', target: '_blank'},
+              t('Powered by'),
+              cssGristLogo(),
+            )
+          ),
+          cssFormBuildForm(
+            cssFormBuildFormLink(
+              {href: 'https://www.getgrist.com', target: '_blank'},
+              t('Build your own form'),
+              icon('Expand'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /**
@@ -177,4 +224,103 @@ const cssErrorText = styled('div', `
 
 const cssButtonWrap = styled('div', `
   margin-bottom: 8px;
+`);
+
+const cssFormErrorPage = styled('div', `
+  --grist-form-padding: 48px;
+  min-height: 100%;
+  width: 100%;
+  padding-top: 52px;
+`);
+
+const cssFormErrorContainer = styled('div', `
+  padding-left: 16px;
+  padding-right: 16px;
+`);
+
+const cssFormError = styled('div', `
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid ${colors.darkGrey};
+  border-radius: 3px;
+  max-width: 600px;
+  margin: 0px auto;
+`);
+
+const cssFormErrorBody = styled('div', `
+  padding: 48px 16px 0px 16px;
+`);
+
+const cssFormErrorImage = styled('img', `
+  width: 250px;
+  height: 281px;
+`);
+
+const cssFormErrorText = styled('div', `
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  margin-top: 32px;
+  margin-bottom: 24px;
+`);
+
+const cssFormErrorFooter = styled('div', `
+  border-top: 1px solid ${colors.darkGrey};
+  padding: 8px 16px;
+  width: 100%;
+`);
+
+const cssFormPoweredByGrist = styled('div', `
+  color: ${colors.darkText};
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px 10px;
+  margin-left: calc(-1 * var(--grist-form-padding));
+  margin-right: calc(-1 * var(--grist-form-padding));
+`);
+
+const cssFormPoweredByGristLink = styled('a', `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: ${colors.darkText};
+  text-decoration: none;
+`);
+
+const cssFormBuildForm = styled('div', `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+`);
+
+const cssFormBuildFormLink = styled('a', `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 16px;
+  text-decoration-line: underline;
+  color: ${colors.darkGreen};
+  --icon-color: ${colors.darkGreen};
+`);
+
+const cssGristLogo = styled('div', `
+  width: 58px;
+  height: 20.416px;
+  flex-shrink: 0;
+  background: url(forms/logo.png);
+  background-position: 0 0;
+  background-size: contain;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  margin-top: 3px;
 `);

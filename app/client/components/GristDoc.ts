@@ -206,7 +206,7 @@ export class GristDoc extends DisposableWithEvents {
   private _showGristTour = getUserOrgPrefObs(this.userOrgPrefs, 'showGristTour');
   private _seenDocTours = getUserOrgPrefObs(this.userOrgPrefs, 'seenDocTours');
   private _popupSectionOptions: Observable<PopupSectionOptions | null> = Observable.create(this, null);
-  private _activeContent: Computed<IDocPage | PopupSectionOptions>;
+  private _activeContent: Computed<IDocPage>;
   private _docTutorialHolder = Holder.create<DocTutorial>(this);
   private _isRickRowing: Observable<boolean> = Observable.create(this, false);
   private _showBackgroundVideoPlayer: Observable<boolean> = Observable.create(this, false);
@@ -261,7 +261,7 @@ export class GristDoc extends DisposableWithEvents {
       const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
       return viewId || use(defaultViewId);
     });
-    this._activeContent = Computed.create(this, use => use(this._popupSectionOptions) ?? use(this.activeViewId));
+    this._activeContent = Computed.create(this, use => use(this.activeViewId));
     this.externalSectionId = Computed.create(this, use => {
       const externalContent = use(this._popupSectionOptions);
       return externalContent ? use(externalContent.viewSection.id) : null;
@@ -308,7 +308,7 @@ export class GristDoc extends DisposableWithEvents {
 
       try {
         if (state.hash.popup || state.hash.recordCard) {
-          await this.openPopup(state.hash);
+          await this._openPopup(state.hash);
         } else {
           // Navigate to an anchor if one is present in the url hash.
           const cursorPos = this._getCursorPosFromHash(state.hash);
@@ -343,7 +343,7 @@ export class GristDoc extends DisposableWithEvents {
               }
 
               this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
-                onDispose: () => this.playRickRollVideo(),
+                onDispose: () => this._playRickRollVideo(),
               });
             })
             .catch(reportError);
@@ -602,7 +602,7 @@ export class GristDoc extends DisposableWithEvents {
     const isPopup = Computed.create(this, use => {
       return ['data', 'settings'].includes(use(this.activeViewId) as any) // On Raw data or doc settings pages
         || use(isMaximized) // Layout has a maximized section visible
-        || typeof use(this._activeContent) === 'object'; // We are on show raw data popup
+        || Boolean(use(this._popupSectionOptions)); // Layout has a popup section visible
     });
     return cssViewContentPane(
       testId('gristdoc'),
@@ -623,43 +623,48 @@ export class GristDoc extends DisposableWithEvents {
           content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'webhook' ? dom.create(WebhookPage, this) :
           content === 'GristDocTour' ? null :
-          (typeof content === 'object') ? dom.create(owner => {
-            // In case user changes a page, close the popup.
-            owner.autoDispose(this.activeViewId.addListener(content.close));
-            // In case the section is removed, close the popup.
-            content.viewSection.autoDispose({dispose: content.close});
+          [
+            dom.create((owner) => {
+              this.viewLayout = ViewLayout.create(owner, this, content);
+              this.viewLayout.maximized.addListener(sectionId => {
+                this.maximizedSectionId.set(sectionId);
 
-            const {recordCard, rowId} = content.hash;
-            if (recordCard) {
-              if (!rowId || rowId === 'new') {
-                // Should be unreachable, but just to be sure (and to satisfy type checking)...
-                throw new Error('Unable to open Record Card: undefined row id');
-              }
-
-              return dom.create(RecordCardPopup, {
-                gristDoc: this,
-                rowId,
-                viewSection: content.viewSection,
-                onClose: content.close,
+                if (sectionId === null && !this._isShowingPopupSection) {
+                  // If we didn't navigate to another section in the popup, move focus
+                  // back to the previous section.
+                  this._focusPreviousSection();
+                }
               });
-            } else {
-              return dom.create(RawDataPopup, this, content.viewSection, content.close);
-            }
-          }) :
-          dom.create((owner) => {
-            this.viewLayout = ViewLayout.create(owner, this, content);
-            this.viewLayout.maximized.addListener(sectionId => {
-              this.maximizedSectionId.set(sectionId);
+              owner.onDispose(() => this.viewLayout = null);
+              return this.viewLayout;
+            }),
+            dom.maybe(this._popupSectionOptions, (popupOptions) => {
+              return dom.create((owner) => {
+                // In case user changes a page, close the popup.
+                owner.autoDispose(this.activeViewId.addListener(popupOptions.close));
 
-              if (sectionId === null && !this._isShowingPopupSection) {
-                // If we didn't navigate to another section in the popup, move focus
-                // back to the previous section.
-                this._focusPreviousSection();
-              }
-            });
-            owner.onDispose(() => this.viewLayout = null);
-            return this.viewLayout;
-          })
+                // In case the section is removed, close the popup.
+                popupOptions.viewSection.autoDispose({dispose: popupOptions.close});
+
+                const {recordCard, rowId} = popupOptions.hash;
+                if (recordCard) {
+                  if (!rowId || rowId === 'new') {
+                    // Should be unreachable, but just to be sure (and to satisfy type checking)...
+                    throw new Error('Unable to open Record Card: undefined row id');
+                  }
+
+                  return dom.create(RecordCardPopup, {
+                    gristDoc: this,
+                    rowId,
+                    viewSection: popupOptions.viewSection,
+                    onClose: popupOptions.close,
+                  });
+                } else {
+                  return dom.create(RawDataPopup, this, popupOptions.viewSection, popupOptions.close);
+                }
+              });
+            }),
+          ]
         );
       }),
       dom.maybe(this._showBackgroundVideoPlayer, () => [
@@ -1372,9 +1377,35 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   /**
+   * Creates computed with all the data for the given column.
+   */
+  public columnObserver(owner: IDisposableOwner, tableId: Observable<string>, columnId: Observable<string>) {
+    const tableModel = Computed.create(owner, (use) => this.docModel.dataTables[use(tableId)]);
+    const refreshed = Observable.create(owner, 0);
+    const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
+    const holder = Holder.create(owner);
+    const listener = (tab: TableModel) => {
+      // Now subscribe to any data change in that table.
+      const subs = MultiHolder.create(holder);
+      subs.autoDispose(tab.tableData.dataLoadedEmitter.addListener(toggle));
+      subs.autoDispose(tab.tableData.tableActionEmitter.addListener(toggle));
+      tab.fetch().catch(reportError);
+    };
+    owner.autoDispose(tableModel.addListener(listener));
+    listener(tableModel.get());
+    const values = Computed.create(owner, refreshed, (use) => {
+      const rows = use(tableModel).getAllRows();
+      const colValues = use(tableModel).tableData.getColValues(use(columnId));
+      if (!colValues) { return []; }
+      return rows.map((row, i) => [row, colValues[i]]);
+    });
+    return values;
+  }
+
+  /**
    * Opens popup with a section data (used by Raw Data view).
    */
-  public async openPopup(hash: HashLink) {
+  private async _openPopup(hash: HashLink) {
     // We can only open a popup for a section.
     if (!hash.sectionId) {
       return;
@@ -1386,13 +1417,17 @@ export class GristDoc extends DisposableWithEvents {
     if (this.viewModel.viewSections.peek().peek().some(s => s.id.peek() === hash.sectionId)) {
       this.viewModel.activeSectionId(hash.sectionId);
       // If the anchor link is valid, set the cursor.
-      if (hash.colRef && hash.rowId) {
+      if (hash.colRef || hash.rowId) {
         const activeSection = this.viewModel.activeSection.peek();
-        const fieldIndex = activeSection.viewFields.peek().all().findIndex(f => f.colRef.peek() === hash.colRef);
-        if (fieldIndex >= 0) {
-          const view = await this._waitForView(activeSection);
-          view?.setCursorPos({rowId: hash.rowId, fieldIndex});
+        const {rowId} = hash;
+        let fieldIndex = undefined;
+        if (hash.colRef) {
+          const maybeFieldIndex = activeSection.viewFields.peek().all()
+            .findIndex(f => f.colRef.peek() === hash.colRef);
+          if (maybeFieldIndex !== -1) { fieldIndex = maybeFieldIndex; }
         }
+        const view = await this._waitForView(activeSection);
+        view?.setCursorPos({rowId, fieldIndex});
       }
       this.viewLayout?.maximized.set(hash.sectionId);
       return;
@@ -1451,7 +1486,7 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * Starts playing the music video for Never Gonna Give You Up in the background.
    */
-  public async playRickRollVideo() {
+  private async _playRickRollVideo() {
     const backgroundVideoPlayer = this._backgroundVideoPlayerHolder.get();
     if (!backgroundVideoPlayer) {
       return;
@@ -1485,32 +1520,6 @@ export class GristDoc extends DisposableWithEvents {
 
     this._isRickRowing.set(false);
     this._showBackgroundVideoPlayer.set(false);
-  }
-
-  /**
-   * Creates computed with all the data for the given column.
-   */
-  public columnObserver(owner: IDisposableOwner, tableId: Observable<string>, columnId: Observable<string>) {
-    const tableModel = Computed.create(owner, (use) => this.docModel.dataTables[use(tableId)]);
-    const refreshed = Observable.create(owner, 0);
-    const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
-    const holder = Holder.create(owner);
-    const listener = (tab: TableModel) => {
-      // Now subscribe to any data change in that table.
-      const subs = MultiHolder.create(holder);
-      subs.autoDispose(tab.tableData.dataLoadedEmitter.addListener(toggle));
-      subs.autoDispose(tab.tableData.tableActionEmitter.addListener(toggle));
-      tab.fetch().catch(reportError);
-    };
-    owner.autoDispose(tableModel.addListener(listener));
-    listener(tableModel.get());
-    const values = Computed.create(owner, refreshed, (use) => {
-      const rows = use(tableModel).getAllRows();
-      const colValues = use(tableModel).tableData.getColValues(use(columnId));
-      if (!colValues) { return []; }
-      return rows.map((row, i) => [row, colValues[i]]);
-    });
-    return values;
   }
 
   private _focusPreviousSection() {
@@ -1890,26 +1899,25 @@ async function finalizeAnchor() {
 }
 
 const cssViewContentPane = styled('div', `
-  --view-content-page-margin: 12px;
+  --view-content-page-padding: 12px;
   flex: auto;
   display: flex;
   flex-direction: column;
   overflow: visible;
   position: relative;
   min-width: 240px;
-  margin: var(--view-content-page-margin, 12px);
+  padding: var(--view-content-page-padding, 12px);
   @media ${mediaSmall} {
     & {
-      margin: 4px;
+      padding: 4px;
     }
   }
   @media print {
     & {
-      margin: 0px;
+      padding: 0px;
     }
   }
   &-contents {
-    margin: 0px;
     overflow: hidden;
   }
 `);

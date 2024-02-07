@@ -45,7 +45,6 @@ import {
   getTableId,
   isSchemaAction,
   TableDataAction,
-  TableRecordValue,
   toTableDataAction,
   UserAction
 } from 'app/common/DocActions';
@@ -81,6 +80,7 @@ import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {Document} from 'app/gen-server/entity/Document';
 import {Share} from 'app/gen-server/entity/Share';
+import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
 import {compileAclFormula} from 'app/server/lib/ACLFormula';
@@ -123,6 +123,7 @@ import {
   DocSession,
   getDocSessionAccess,
   getDocSessionAltSessionId,
+  getDocSessionUsage,
   getDocSessionUser,
   getDocSessionUserId,
   makeExceptionalDocSession,
@@ -1114,7 +1115,7 @@ export class ActiveDoc extends EventEmitter {
   public async getTableCols(
     docSession: OptDocSession,
     tableId: string,
-    includeHidden = false): Promise<TableRecordValue[]> {
+    includeHidden = false): Promise<RecordWithStringId[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
@@ -1122,7 +1123,7 @@ export class ActiveDoc extends EventEmitter {
     // colId is pulled out of fields and used as the root id
     const fieldNames = without(Object.keys(columnData), "colId");
 
-    const columns: TableRecordValue[] = [];
+    const columns: RecordWithStringId[] = [];
     (columnData.colId as string[]).forEach((id, index) => {
       const hasNoId = !id;
       const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
@@ -1131,7 +1132,7 @@ export class ActiveDoc extends EventEmitter {
       if (skip) {
         return;
       }
-      const column: TableRecordValue = { id, fields: { colRef: colRefs[index] } };
+      const column: RecordWithStringId = { id, fields: { colRef: colRefs[index] } };
       for (const key of fieldNames) {
         column.fields[key] = columnData[key][index];
       }
@@ -1829,7 +1830,15 @@ export class ActiveDoc extends EventEmitter {
     ));
   }
 
-  public async syncShares(docSession: OptDocSession) {
+  /**
+   * Make sure the shares listed for the doc in the home db and the
+   * shares listed within the doc itself are in sync. If skipIfNoShares
+   * is set, we skip checking the home db if there are no shares listed
+   * within the doc, as a small optimization.
+   */
+  public async syncShares(docSession: OptDocSession, options: {
+    skipIfNoShares?: boolean,
+  } = {}) {
     const metaTables = await this.fetchMetaTables(docSession);
     const shares = metaTables['_grist_Shares'];
     const ids = shares[2];
@@ -1841,7 +1850,9 @@ export class ActiveDoc extends EventEmitter {
         options: String(vals['options'][idx]),
       };
     });
-    await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
+    if (goodShares.length > 0 || !options.skipIfNoShares) {
+      await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
+    }
     return goodShares;
   }
 
@@ -2369,7 +2380,18 @@ export class ActiveDoc extends EventEmitter {
       // took longer, scale it up proportionately.
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
-      this._log.debug(docSession, `loaded in ${loadMs} ms, InactivityTimer set to ${closeTimeout} ms`);
+      log.rawDebug('ActiveDoc load timing', {
+        ...this.getLogMeta(docSession),
+        loadMs,
+        closeTimeout,
+      });
+      const docUsage = getDocSessionUsage(docSession);
+      if (!docUsage) {
+        // This looks be the first time this installation of Grist is touching
+        // the document. If it has any shares, the home db needs to know.
+        // TODO: could offer a UI to control whether shares are activated.
+        await this.syncShares(docSession, { skipIfNoShares: true });
+      }
       void this._initializeDocUsage(docSession);
 
       // Start the periodic work, unless this doc has already started shutting down.

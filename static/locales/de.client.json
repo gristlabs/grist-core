@@ -666,7 +666,8 @@
         "Columns_other": "Spalten",
         "Fields_one": "Feld",
         "Fields_other": "Felder",
-        "Add referenced columns": "Referenzspalten hinzufügen"
+        "Add referenced columns": "Referenzspalten hinzufügen",
+        "Reset form": "Formular zurücksetzen"
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -743,7 +744,8 @@
         "TOOLS": "WERKZEUGE",
         "Tour of this Document": "Tour durch dieses Dokument",
         "Validate Data": "Daten validieren",
-        "Settings": "Einstellungen"
+        "Settings": "Einstellungen",
+        "API Console": "API-Konsole"
     },
     "TopBar": {
         "Manage Team": "Team verwalten"
@@ -1319,5 +1321,8 @@
         "Delete card": "Karte löschen",
         "Copy anchor link": "Ankerlink kopieren",
         "Insert card": "Karte einfügen"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Ausgeblendete Felder"
     }
 }

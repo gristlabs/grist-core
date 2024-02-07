@@ -198,8 +198,12 @@ export class TableMetadataLoader {
     for (const tableId of [...newPushes].sort()) {
       // Put a limit on the number of outstanding pushes permitted.
       if (this._pushes.size >= this._pushed.size + 3) { break; }
-      this._pushes.set(tableId, this._counted(this.opPush(tableId)));
-    }
+      const promise = this._counted(this.opPush(tableId));
+      this._pushes.set(tableId, promise);
+      // Mark the promise as handled to avoid "unhandledRejection", but without affecting other
+      // code (which will still see `promise`, not the new promise returned by `.catch()`).
+      promise.catch(() => {});
+   }
   }
 
   // Wrapper to keep track of pending promises.

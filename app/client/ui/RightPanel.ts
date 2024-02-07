@@ -31,7 +31,6 @@ import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
 import {buildDescriptionConfig} from 'app/client/ui/DescriptionConfig';
 import {BuildEditorOptions} from 'app/client/ui/FieldConfig';
-import {autoGrow} from 'app/client/ui/forms';
 import {GridOptions} from 'app/client/ui/GridOptions';
 import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
@@ -67,7 +66,8 @@ import {
   MultiHolder,
   Observable,
   styled,
-  subscribe
+  subscribe,
+  toKo
 } from 'grainjs';
 import * as ko from 'knockout';
 
@@ -122,6 +122,8 @@ export class RightPanel extends Disposable {
   private _isForm = Computed.create(this, (use) => {
     return use(this._pageWidgetType) === 'form';
   });
+
+  private _hasActiveWidget = Computed.create(this, (use) => Boolean(use(this._pageWidgetType)));
 
   // Returns the active section if it's valid, null otherwise.
   private _validSection = Computed.create(this, (use) => {
@@ -253,7 +255,7 @@ export class RightPanel extends Disposable {
             dom.create(this._buildPageFormHeader.bind(this)),
             dom.create(this._buildPageWidgetContent.bind(this)),
           ];
-        } else {
+        } else if (use(this._hasActiveWidget)) {
           return [
             dom.create(this._buildPageWidgetHeader.bind(this)),
             dom.create(this._buildPageWidgetContent.bind(this)),
@@ -926,11 +928,15 @@ export class RightPanel extends Disposable {
     return [
       cssLabel(t("Submit button label")),
       cssRow(
-        cssTextInput(submitButton, (val) => submitButton.set(val)),
+        cssTextInput(submitButton, (val) => submitButton.set(val), {placeholder: 'Submit'}),
       ),
       cssLabel(t("Success text")),
       cssRow(
-        cssTextArea(successText, {onInput: true}, autoGrow(successText)),
+        cssTextArea(
+          successText,
+          {autoGrow: true, save: (val) => successText.set(val)},
+          {placeholder: 'Thank you! Your response has been recorded.'}
+        ),
       ),
       cssLabel(t("Submit another response")),
       cssRow(
@@ -943,7 +949,7 @@ export class RightPanel extends Disposable {
         labeledSquareCheckbox(redirection, t('Redirect automatically after submission')),
       ),
       cssRow(
-        cssTextInput(successURL, (val) => successURL.set(val)),
+        cssTextInput(successURL, (val) => successURL.set(val), {placeholder: t('Enter redirect URL')}),
         dom.show(redirection),
       ),
     ];
@@ -955,12 +961,25 @@ export class RightPanel extends Disposable {
       return vsi && vsi.activeFieldBuilder();
     }));
 
-    const formView = owner.autoDispose(ko.computed(() => {
+    // Sorry for the acrobatics below, but grainjs are not reentred when the active section changes.
+    const viewInstance = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
-      return (vsi ?? null) as FormView|null;
+      if (!vsi || vsi.isDisposed() || !toKo(ko, this._isForm)) { return null; }
+      return vsi;
     }));
 
-    const selectedBox = Computed.create(owner, (use) => use(formView) && use(use(formView)!.selectedBox));
+    const formView = owner.autoDispose(ko.computed(() => {
+      const view = viewInstance() as unknown as FormView;
+      if (!view || !view.selectedBox) { return null; }
+      return view;
+    }));
+
+    const selectedBox = owner.autoDispose(ko.pureComputed(() => {
+      const view = formView();
+      if (!view) { return null; }
+      const box = toKo(ko, view.selectedBox)();
+      return box;
+    }));
     const selectedField = Computed.create(owner, (use) => {
       const box = use(selectedBox);
       if (!box) { return null; }
@@ -983,33 +1002,38 @@ export class RightPanel extends Disposable {
       }
     });
 
-    return cssSection(
+    return domAsync(imports.loadViewPane().then(() => buildConfigContainer(cssSection(
       // Field config.
-      dom.maybe(selectedField, (field) => {
+      dom.maybeOwned(selectedField, (scope, field) => {
         const requiredField = field.widgetOptionsJson.prop('formRequired');
         // V2 thing.
         // const hiddenField = field.widgetOptionsJson.prop('formHidden');
         const defaultField = field.widgetOptionsJson.prop('formDefault');
         const toComputed = (obs: typeof defaultField) => {
-          const result = Computed.create(null, (use) => use(obs));
+          const result = Computed.create(scope, (use) => use(obs));
           result.onWrite(val => obs.setAndSave(val));
           return result;
         };
+        const fieldTitle = field.widgetOptionsJson.prop('question');
+
         return [
           cssLabel(t("Field title")),
           cssRow(
             cssTextInput(
-              fromKo(field.label),
-              (val) => field.displayLabel.saveOnly(val),
+              fromKo(fieldTitle),
+              (val) => fieldTitle.saveOnly(val).catch(reportError),
               dom.prop('readonly', use => use(field.disableModify)),
+              dom.prop('placeholder', use => use(field.displayLabel) || use(field.colId)),
+              testId('field-title'),
             ),
           ),
           cssLabel(t("Table column name")),
           cssRow(
             cssTextInput(
-              fromKo(field.colId),
-              (val) => field.column().colId.saveOnly(val),
+              fromKo(field.displayLabel),
+              (val) => field.displayLabel.saveOnly(val).catch(reportError),
               dom.prop('readonly', use => use(field.disableModify)),
+              testId('field-label'),
             ),
           ),
           // TODO: this is for V1 as it requires full cell editor here.
@@ -1038,7 +1062,11 @@ export class RightPanel extends Disposable {
           ]),
           cssSeparator(),
           cssLabel(t("Field rules")),
-          cssRow(labeledSquareCheckbox(toComputed(requiredField), t("Required field")),),
+          cssRow(labeledSquareCheckbox(
+            toComputed(requiredField),
+            t("Required field"),
+            testId('field-required'),
+          )),
           // V2 thing
           // cssRow(labeledSquareCheckbox(toComputed(hiddenField), t("Hidden field")),),
         ];
@@ -1071,7 +1099,7 @@ export class RightPanel extends Disposable {
       dom.maybe(u => !u(selectedColumn) && !u(selectedBox), () => [
         cssLabel(t('Layout')),
       ])
-    );
+    ))));
   }
 }
 

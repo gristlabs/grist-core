@@ -9,7 +9,10 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssModalTooltip, modalTooltip} from 'app/client/ui2018/modals';
 import {dom, DomContents, keyframes, observable, styled, svg} from 'grainjs';
 import {IPopupOptions} from 'popweasel';
+import {makeT} from 'app/client/lib/localization';
 import merge = require('lodash/merge');
+
+const t = makeT('modals');
 
 /**
  * This is a file for all custom and pre-configured popups, modals, toasts and tooltips, used
@@ -35,19 +38,21 @@ export function buildConfirmDelete(
         Escape: () => ctl.close(),
         Enter: () => { onSave(remember.get()); ctl.close(); },
       }),
-      dom('div', `Are you sure you want to delete ${single ? 'this' : 'these'} record${single ? '' : 's'}?`,
+      dom('div', single ?
+        t(`Are you sure you want to delete this record?`)
+        : t(`Are you sure you want to delete these records?`),
         dom.style('margin-bottom', '10px'),
       ),
       dom('div',
-        labeledSquareCheckbox(remember, "Don't ask again.", testId('confirm-remember')),
+        labeledSquareCheckbox(remember, t("Don't ask again."), testId('confirm-remember')),
         dom.style('margin-bottom', '10px'),
       ),
       cssButtons(
-        primaryButton('Delete', testId('confirm-save'), dom.on('click', () => {
+        primaryButton(t('Delete'), testId('confirm-save'), dom.on('click', () => {
           onSave(remember.get());
           ctl.close();
         })),
-        basicButton('Cancel', testId('confirm-cancel'), dom.on('click', () => ctl.close()))
+        basicButton(t('Cancel'), testId('confirm-cancel'), dom.on('click', () => ctl.close()))
       )
     ), {}
   );
@@ -81,9 +86,9 @@ export function showDeprecatedWarning(
         dom.style('justify-content', 'space-between'),
         dom.style('align-items', 'center'),
         dom('div',
-          labeledSquareCheckbox(remember, "Don't show again.", testId('confirm-remember')),
+          labeledSquareCheckbox(remember, t("Don't show again."), testId('confirm-remember')),
         ),
-        basicButton('Dismiss', testId('confirm-save'),
+        basicButton(t('Dismiss'), testId('confirm-save'),
           dom.on('click', () => { ctl.close(); onClose(remember.get()); })
         )
       ),
@@ -105,7 +110,7 @@ export function showDeprecatedWarning(
 export function reportUndo(
   doc: GristDoc,
   messageLabel: string,
-  buttonLabel = 'Undo to restore'
+  buttonLabel = t('Undo to restore')
 ) {
   // First create a notification with a button to undo the delete.
   let notification = reportSuccess(messageLabel, {
@@ -179,12 +184,12 @@ export function showBehavioralPrompt(
             dom.style('align-items', 'center'),
             dom('div',
               cssSkipTipsCheckbox(dontShowTips,
-                cssSkipTipsCheckboxLabel("Don't show tips"),
+                cssSkipTipsCheckboxLabel(t("Don't show tips")),
                 testId('behavioral-prompt-dont-show-tips')
               ),
               dom.style('visibility', hideDontShowTips ? 'hidden' : ''),
             ),
-            cssDismissPromptButton('Got it', testId('behavioral-prompt-dismiss'),
+            cssDismissPromptButton(t('Got it'), testId('behavioral-prompt-dismiss'),
               dom.on('click', () => { onClose(dontShowTips.get()); ctl.close(); })
             ),
           ),

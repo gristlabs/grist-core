@@ -12,6 +12,7 @@ import {IAttachedCustomWidget} from "app/common/widgetTypes";
 import {UIRowId} from 'app/plugin/GristAPI';
 import clone = require('lodash/clone');
 import pickBy = require('lodash/pickBy');
+import slugify from 'slugify';
 
 export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook');
 type SpecialDocPage = typeof SpecialDocPage.type;
@@ -145,6 +146,12 @@ export interface IGristUrlState {
                      // But this barely works, and is suitable only for documents. For decoding it
                      // indicates that the URL probably points to an API endpoint.
   viaShare?: boolean; // Accessing document via a special share.
+
+  // Form URLs can currently be encoded but not decoded.
+  form?: {
+    vsId: number;      // a view section id of a form.
+    shareKey?: string; // only one of shareKey or doc should be set.
+  },
 }
 
 // Subset of GristLoadConfig used by getOrgUrlInfo(), which affects the interpretation of the
@@ -278,6 +285,27 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     }
   } else if (state.homePage === 'trash' || state.homePage === 'templates') {
     parts.push(`p/${state.homePage}`);
+  }
+
+  /**
+   * Form URLS can take two forms. If a docId/urlId is set, rather than
+   * a share key, the returned form URL will only be accessible by users
+   * with access to the document. This is currently only used for the
+   * preview functionality in the widget, where document access is a
+   * pre-requisite.
+   *
+   * When a share key is set, the returned form URL will be accessible
+   * by anyone, so long as the form is published.
+   *
+   * Only one of `doc` (docId/urlId) or `shareKey` should be set.
+   */
+  if (state.form) {
+    if (state.doc) { parts.push('/'); }
+    parts.push('forms/');
+    if (state.form.shareKey) {
+      parts.push(state.form.shareKey + '/');
+    }
+    parts.push(String(state.form.vsId));
   }
 
   if (state.account) {
@@ -1024,13 +1052,11 @@ function shouldIncludeSlug(doc: {id: string, urlId: string|null}): boolean {
   return doc.id.startsWith(doc.urlId) || doc.urlId.startsWith(SHARE_KEY_PREFIX);
 }
 
-// Convert the name of a document into a slug.  Only alphanumerics are retained,
-// and spaces are replaced with hyphens.
-// TODO: investigate whether there's a better option with unicode than just
-// deleting it, seems unfair to languages using anything other than unaccented
-// Latin characters.
+// Convert the name of a document into a slug. The slugify library normalizes unicode characters,
+// replaces those with a reasonable ascii representation. Only alphanumerics are retained, and
+// spaces are replaced with hyphens.
 function nameToSlug(name: string): string {
-  return name.trim().replace(/ /g, '-').replace(/[^-a-zA-Z0-9]/g, '').replace(/---*/g, '-');
+  return slugify(name, {strict: true});
 }
 
 // Returns a slug for the given docId/urlId/name, or undefined if a slug should

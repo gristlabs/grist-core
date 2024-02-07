@@ -352,7 +352,7 @@ export interface UserAPI {
   getOrgs(merged?: boolean): Promise<Organization[]>;
   getWorkspace(workspaceId: number): Promise<Workspace>;
   getOrg(orgId: number|string): Promise<Organization>;
-  getOrgWorkspaces(orgId: number|string): Promise<Workspace[]>;
+  getOrgWorkspaces(orgId: number|string, includeSupport?: boolean): Promise<Workspace[]>;
   getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary>;
   getTemplates(onlyFeatured?: boolean): Promise<Workspace[]>;
   getDoc(docId: string): Promise<Document>;
@@ -419,33 +419,6 @@ export interface UserAPI {
    * is specific to Grist installation, and might not be supported.
    */
   closeOrg(): Promise<void>;
-  /**
-   * Creates publicly shared URL for a rendered form.
-   */
-  formUrl(options: FormUrlOptions): string;
-}
-
-interface FormUrlOptions {
-  vsId: number;
-  /**
-   * The canonical URL or document ID.
-   *
-   * If set, the returned form URL will only be accessible by users with access to the
-   * document. This is currently only used for the preview functionality in the widget,
-   * where document access is a pre-requisite.
-   *
-   * Only one of `urlId` or `shareKey` should be set.
-   */
-  urlId?: string;
-  /**
-   * The key of the Share granting access to the form.
-   *
-   * If set, the returned form URL will be accessible by anyone, so long as the form
-   * is published.
-   *
-   * Only one of `urlId` or `shareKey` should be set.
-   */
-  shareKey?: string;
 }
 
 /**
@@ -537,19 +510,6 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     super(_options);
   }
 
-  public formUrl(options: FormUrlOptions): string {
-    const {urlId, shareKey, vsId} = options;
-    if (!urlId && !shareKey) {
-      throw new Error('Invalid form URL: missing urlId or shareKey');
-    }
-
-    if (urlId) {
-      return `${this._url}/api/docs/${urlId}/forms/${vsId}`;
-    } else {
-      return `${this._url}/forms/${shareKey}/${vsId}`;
-    }
-  }
-
   public forRemoved(): UserAPI {
     const extraParameters = new Map<string, string>([['showRemoved', '1']]);
     return new UserAPIImpl(this._homeUrl, {...this._options, extraParameters});
@@ -580,8 +540,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/orgs/${orgId}`, { method: 'GET' });
   }
 
-  public async getOrgWorkspaces(orgId: number|string): Promise<Workspace[]> {
-    return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=1`,
+  public async getOrgWorkspaces(orgId: number|string, includeSupport = true): Promise<Workspace[]> {
+    return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=${includeSupport ? 1 : 0}`,
       { method: 'GET' });
   }
 
@@ -946,6 +906,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     super(options);
     this._url = `${url}/api/docs/${docId}`;
   }
+
+  public getBaseUrl(): string { return this._url; }
 
   public async getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues> {
     return this._getRecords(tableId, 'data', options);

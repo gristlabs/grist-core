@@ -5,10 +5,19 @@
   {{#if BASE}}
   <base href="{{ BASE }}">
   {{/if}}
-  <style>
-  </style>
+  <title>{{ TITLE }}</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.png" />
   <script src="forms/grist-form-submit.js"></script>
   <script src="forms/purify.min.js"></script>
+  <script>
+    // Make all links open in a new tab.
+    DOMPurify.addHook('uponSanitizeAttribute', (node) => {
+      if (!('target' in node)) { return; }
+      node.setAttribute('target', '_blank');
+      // Make sure that this is set explicitly, as it's often set by the browser.
+      node.setAttribute('rel', 'noopener');
+    });
+  </script>
   <link rel="stylesheet" href="forms/form.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
@@ -29,13 +38,40 @@
           </a>
       </div>
     </form>
-    <div class='grist-form-confirm' style='display: none'>
-      <div>
-        {{ SUCCESS_TEXT }}
+
+    <div class="grist-form-confirm-container">
+      <div class='grist-form-confirm' style='display: none'>
+        <div class="grist-form-confirm-body">
+          <img class='grist-form-confirm-image' src="forms/form-submitted.svg">
+          <div class='grist-form-confirm-text'>
+            {{ SUCCESS_TEXT }}
+          </div>
+          {{#if ANOTHER_RESPONSE }}
+          <div class='grist-form-confirm-buttons'>
+            <button
+              class='grist-form-confirm-new-response-button'
+              onclick='window.location.reload()'
+            >
+              Submit new response
+            </button>
+          </div>
+          {{/if}}
+        </div>
+        <div class='grist-form-confirm-footer'>
+          <div class="grist-power-by">
+            <a href="https://www.getgrist.com" target="_blank">
+                <div>Powered by</div>
+                <div class="grist-logo"></div>
+              </a>
+          </div>
+          <div class='grist-form-confirm-build-form'>
+            <a class='grist-form-confirm-build-form-link' href="https://www.getgrist.com" target="_blank">
+              Build your own form
+              <div class="grist-form-icon grist-form-icon-expand"></div>
+            </a>
+          </div>
+        </div>
       </div>
-      {{#if ANOTHER_RESPONSE }}
-      <button onclick="window.location.reload()">Submit another response</button>
-      {{/if}}
     </div>
   </main>
   <script>
@@ -43,7 +79,7 @@
     document.querySelector('.grist-form input[type="submit"]').addEventListener('click', function(event) {
       // When submit is pressed make sure that all choice lists that are required
       // have at least one option selected
-      const choiceLists = document.querySelectorAll('.grist-choice-list.required:not(:has(input:checked))');
+      const choiceLists = document.querySelectorAll('.grist-checkbox-list.required:not(:has(input:checked))');
       Array.from(choiceLists).forEach(function(choiceList) {
         // If the form has at least one checkbox make it required
         const firstCheckbox = choiceList.querySelector('input[type="checkbox"]');
@@ -51,7 +87,7 @@
       });
 
       // All other required choice lists with at least one option selected are no longer required
-      const choiceListsRequired = document.querySelectorAll('.grist-choice-list.required:has(input:checked)');
+      const choiceListsRequired = document.querySelectorAll('.grist-checkbox-list.required:has(input:checked)');
       Array.from(choiceListsRequired).forEach(function(choiceList) {
         // If the form has at least one checkbox make it required
         const firstCheckbox = choiceList.querySelector('input[type="checkbox"]');

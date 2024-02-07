@@ -1,6 +1,6 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {setupLocale} from 'app/client/lib/localization';
-import {AppModel, TopAppModelImpl} from 'app/client/models/AppModel';
+import {AppModel, newUserAPIImpl, TopAppModelImpl} from 'app/client/models/AppModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
 import {addViewportTag} from 'app/client/ui/viewport';
@@ -10,13 +10,22 @@ import {dom, DomContents} from 'grainjs';
 
 const G = getBrowserGlobals('document', 'window');
 
+export interface SetUpPageOptions {
+  /** Defaults to true. */
+  attachTheme?: boolean;
+}
+
 /**
  * Sets up error handling and global styles, and replaces the DOM body with
  * the result of calling `buildPage`.
  */
-export function setupPage(buildPage: (appModel: AppModel) => DomContents) {
+export function setUpPage(
+  buildPage: (appModel: AppModel) => DomContents,
+  options: SetUpPageOptions = {}
+) {
+  const {attachTheme = true} = options;
   setUpErrorHandling();
-  const topAppModel = TopAppModelImpl.create(null, {});
+  const topAppModel = TopAppModelImpl.create(null, {}, newUserAPIImpl(), {attachTheme});
   attachCssRootVars(topAppModel.productFlavor);
   addViewportTag();
 

@@ -1,7 +1,7 @@
 import {textarea} from 'app/client/ui/inputs';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
-import {basicButton, basicButtonLink} from 'app/client/ui2018/buttons';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
+import {basicButton, bigBasicButton, bigBasicButtonLink} from 'app/client/ui2018/buttons';
+import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {BindableValue, dom, DomElementArg, IDomArgs, Observable, styled, subscribeBindable} from 'grainjs';
 import {marked} from 'marked';
@@ -37,8 +37,6 @@ export const cssFormContainer = styled('div', `
   gap: 8px;
 `);
 
-
-
 export const cssFieldEditor = styled('div.hover_border.field_editor', `
   position: relative;
   cursor: pointer;
@@ -51,18 +49,18 @@ export const cssFieldEditor = styled('div.hover_border.field_editor', `
   transition: transform 0.2s ease-in-out;
   &:hover:not(:has(.hover_border:hover),&-cut) {
     --hover-visible: visible;
-    outline: 1px solid ${colors.lightGreen};
+    outline: 1px solid ${theme.controlPrimaryBg};
   }
   &-selected:not(&-cut) {
-    background: #F7F7F7;
-    outline: 1px solid ${colors.lightGreen};
+    background: ${theme.lightHover};
+    outline: 1px solid ${theme.controlPrimaryBg};
     --selected-block: block;
   }
   &:active:not(:has(&:active)) {
-    outline: 1px solid ${colors.darkGreen};
+    outline: 1px solid ${theme.controlPrimaryHoverBg};
   }
   &-drag-hover {
-    outline: 2px dashed ${colors.lightGreen};
+    outline: 2px dashed ${theme.controlPrimaryBg};
     outline-offset: 2px;
   }
   &-cut {
@@ -100,14 +98,6 @@ export const cssSection = styled('div', `
   }
 `);
 
-export const cssLabel = styled('label', `
-  font-size: 15px;
-  font-weight: normal;
-  user-select: none;
-  display: block;
-  margin: 0px;
-`);
-
 export const cssCheckboxLabel = styled('label', `
   font-size: 15px;
   font-weight: normal;
@@ -127,6 +117,46 @@ export function textbox(obs: Observable<string|undefined>, ...args: DomElementAr
   );
 }
 
+export const cssQuestion = styled('div', `
+
+`);
+
+export const cssRequiredWrapper = styled('div', `
+  margin-bottom: 8px;
+  min-height: 16px;
+  &-required {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px;
+  }
+  &-required:after {
+    content: "*";
+    color: ${colors.lightGreen};
+    font-size: 11px;
+    font-weight: 700;
+  }
+`);
+
+export const cssRenderedLabel = styled('div', `
+  font-weight: normal;
+  padding: 0px;
+  border: 0px;
+  width: 100%;
+  margin: 0px;
+  background: transparent;
+  cursor: pointer;
+  min-height: 16px;
+
+  color: ${colors.darkText};
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: pre-wrap;
+  &-placeholder {
+    font-style: italic
+  }
+`);
+
 export const cssEditableLabel = styled(textarea, `
   font-weight: normal;
   outline: none;
@@ -139,7 +169,7 @@ export const cssEditableLabel = styled(textarea, `
   cursor: pointer;
   min-height: 1.5rem;
 
-  color: ${colors.darkText};
+  color: ${theme.mediumText};
   font-size: 12px;
   font-weight: 700;
 
@@ -149,11 +179,20 @@ export const cssEditableLabel = styled(textarea, `
   &-edit {
     cursor: auto;
     background: ${theme.inputBg};
-    outline: 2px solid black;
+    outline: 2px solid ${theme.accessRulesFormulaEditorFocus};
     outline-offset: 1px;
     border-radius: 2px;
   }
-  &-normal {
+`);
+
+export const cssLabelInline = styled('div', `
+  margin-bottom: 0px;
+  & .${cssRenderedLabel.className} {
+    color: ${theme.mediumText};
+    font-size: 15px;
+    font-weight: normal;
+  }
+  & .${cssEditableLabel.className} {
     color: ${colors.darkText};
     font-size: 15px;
     font-weight: normal;
@@ -172,15 +211,16 @@ export const cssDesc = styled('div', `
 `);
 
 export const cssInput = styled('input', `
+  background-color: ${theme.inputDisabledBg};
   font-size: inherit;
   padding: 4px 8px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
   outline: none;
-  cursor-events: none;
+  pointer-events: none;
 
   &-invalid {
-    color: red;
+    color: ${theme.inputInvalid};
   }
   &[type="number"], &[type="date"], &[type="datetime-local"], &[type="text"] {
     width: 100%;
@@ -190,18 +230,22 @@ export const cssInput = styled('input', `
 export const cssSelect = styled('select', `
   flex: auto;
   width: 100%;
+  background-color: ${theme.inputDisabledBg};
   font-size: inherit;
   padding: 4px 8px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
   outline: none;
-  cursor-events: none;
+  pointer-events: none;
 
   &-invalid {
-    color: red;
+    color: ${theme.inputInvalid};
+  }
+  &:has(option[value='']:checked) {
+    font-style: italic;
+    color: ${colors.slate};
   }
 `);
-
 
 export const cssFieldEditorContent = styled('div', `
 
@@ -221,14 +265,6 @@ export const cssSelectedOverlay = styled('div._cssSelectedOverlay', `
   }
 `);
 
-
-export const cssControlsLabel = styled('div', `
-  background: ${colors.lightGreen};
-  color: ${colors.light};
-  padding: 1px 2px;
-  min-width: 24px;
-`);
-
 export const cssPlusButton = styled('div', `
   position: relative;
   min-height: 32px;
@@ -242,43 +278,27 @@ export const cssCircle = styled('div', `
   border-radius: 50%;
   width: 24px;
   height: 24px;
-  background-color: ${colors.lightGreen};
-  color: ${colors.light};
+  background-color: ${theme.addNewCircleSmallBg};
+  color: ${theme.addNewCircleSmallFg};
   display: flex;
   justify-content: center;
   align-items: center;
   .${cssPlusButton.className}:hover & {
-    background: ${colors.darkGreen};
+    background: ${theme.addNewCircleSmallHoverBg};
   }
 `);
 
 export const cssPlusIcon = styled(icon, `
- --icon-color: ${colors.light};
+ --icon-color: ${theme.controlPrimaryFg};
 `);
 
-export const cssAddText = styled('div', `
-  color: ${colors.slate};
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 12px;
-  z-index: 1;
-  &:before {
-    content: "Add a field";
-  }
-  .${cssPlusButton.className}-hover &:before {
-    content: "Drop here";
-  }
-`);
-
-export const cssPadding = styled('div', `
-`);
 
 export const cssColumns = styled('div', `
   --css-columns-count: 2;
   display: grid;
   grid-template-columns: repeat(var(--css-columns-count), 1fr) 32px;
   gap: 8px;
-  padding: 12px 4px;
+  padding: 8px 4px;
 
   .${cssFormView.className}-preview & {
     background: transparent;
@@ -300,31 +320,30 @@ export const cssColumn = styled('div', `
     justify-content: center;
     align-items: center;
     padding-right: 8px;
-    --icon-color: ${colors.slate};
+    --icon-color: ${theme.lightText};
     align-self: stretch;
     transition: height 0.2s ease-in-out;
-    border: 2px dashed ${colors.darkGrey};
-    background: ${colors.lightGrey};
-    color: ${colors.slate};
+    border: 2px dashed ${theme.inputBorder};
+    background: ${theme.lightHover};
+    color: ${theme.lightText};
     border-radius: 4px;
     padding: 2px 4px;
     font-size: 12px;
   }
 
   &-selected {
-    border: 2px dashed ${colors.slate};
+    border: 2px dashed ${theme.lightText};
   }
 
   &-empty:hover, &-add-button:hover {
-    border: 2px dashed ${colors.slate};
+    border: 2px dashed ${theme.lightText};
   }
 
   &-drag-over {
-    outline: 2px dashed ${colors.lightGreen};
+    outline: 2px dashed ${theme.controlPrimaryBg};
   }
 
   &-add-button {
-    align-self: flex-end;
   }
 
   .${cssFormView.className}-preview &-add-button {
@@ -352,13 +371,10 @@ export const cssButtonGroup = styled('div', `
 `);
 
 
-export const cssIconLink = styled(basicButtonLink, `
-  padding: 3px 8px;
-  font-size: ${vars.smallFontSize};
+export const cssIconLink = styled(bigBasicButtonLink, `
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 24px;
 
   &-standard {
     background-color: ${theme.leftPanelBg};
@@ -379,13 +395,21 @@ export const cssIconLink = styled(basicButtonLink, `
   }
 `);
 
-export const cssIconButton = styled(basicButton, `
-  padding: 3px 8px;
-  font-size: ${vars.smallFontSize};
+export const cssSmallIconButton = styled(basicButton, `
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 24px;
+
+  &-frameless {
+    background-color: transparent;
+    border: none;
+  }
+`);
+
+export const cssIconButton = styled(bigBasicButton, `
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
   &-standard {
     background-color: ${theme.leftPanelBg};
@@ -412,6 +436,9 @@ export const cssMarkdownRendered = styled('div', `
   & textarea {
     font-size: 15px;
   }
+  &-edit textarea {
+    outline: 2px solid ${theme.accessRulesFormulaEditorFocus};
+  }
   & strong {
     font-weight: 600;
   }
@@ -425,7 +452,7 @@ export const cssMarkdownRendered = styled('div', `
     text-align: right;
   }
   & hr {
-    border-color: ${colors.darkGrey};
+    border-color: ${theme.inputBorder};
     margin: 8px 0px;
   }
   &-separator {
@@ -506,7 +533,7 @@ export const cssDrag = styled(icon, `
   top: calc(50% - 16px / 2);
   width: 16px;
   height: 16px;
-  --icon-color: ${colors.lightGreen};
+  --icon-color: ${theme.controlPrimaryBg};
   &-top {
     top: 16px;
   }
@@ -569,7 +596,7 @@ export const cssRemoveButton = styled('div', `
   right: 11px;
   top: 11px;
   border-radius: 3px;
-  background: ${colors.darkGrey};
+  background: ${theme.attachmentsEditorButtonHoverBg};
   display: none;
   height: 16px;
   width: 16px;
@@ -582,7 +609,7 @@ export const cssRemoveButton = styled('div', `
     width: 13px;
   }
   &:hover {
-    background: ${colors.mediumGreyOpaque};
+    background: ${theme.controlSecondaryHoverBg};
     cursor: pointer;
   }
   .${cssFieldEditor.className}-selected > &,

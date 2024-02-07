@@ -770,10 +770,14 @@ export const TelemetryContracts: TelemetryContracts = {
   },
   signupFirstVisit: {
     category: 'ProductVisits',
-    description: 'Triggered when a new user first opens the Grist app',
+    description: 'Triggered when a new user first opens the Grist app.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
+      loginMethod: {
+        description: 'The login method on getgrist.com. May be "Email + Password" or "Google".',
+        dataType: 'string',
+      },
       siteId: {
         description: 'The site id of first visit after signup.',
         dataType: 'number',
@@ -798,6 +802,10 @@ export const TelemetryContracts: TelemetryContracts = {
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
+      verificationMethod: {
+        description: 'The verification method. May be "code" or "link".',
+        dataType: 'string',
+      },
       isAnonymousTemplateSignup: {
         description: 'Whether the user viewed any templates before signing up.',
         dataType: 'boolean',

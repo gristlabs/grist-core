@@ -312,7 +312,11 @@ export class NSandbox implements ISandbox {
       throw new sandboxUtil.SandboxError(e.message);
     } finally {
       if (this._logTimes) {
-        log.rawDebug(`Sandbox pyCall[${funcName}] took ${Date.now() - startTime} ms`, this._logMeta);
+        log.rawDebug('NSandbox pyCall', {
+          ...this._logMeta,
+          funcName,
+          loadMs: Date.now() - startTime,
+        });
       }
     }
   }

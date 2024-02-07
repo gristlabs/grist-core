@@ -1,13 +1,14 @@
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {Box, BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
+import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
 import * as css from 'app/client/components/Forms/styles';
 import {stopEvent} from 'app/client/lib/domUtils';
 import {refRecord} from 'app/client/models/DocModel';
 import {autoGrow} from 'app/client/ui/forms';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors} from 'app/client/ui2018/cssVars';
-import {Constructor} from 'app/common/gutil';
+import {Box, CHOOSE_TEXT} from 'app/common/Forms';
+import {Constructor, not} from 'app/common/gutil';
 import {
   BindableValue,
   Computed,
@@ -40,6 +41,7 @@ export class FieldModel extends BoxModel {
   public field = refRecord(this.view.gristDoc.docModel.viewFields, this.fieldRef);
   public colId = Computed.create(this, (use) => use(use(this.field).colId));
   public column = Computed.create(this, (use) => use(use(this.field).column));
+  public required: Computed<boolean>;
   public question = Computed.create(this, (use) => {
     const field = use(this.field);
     if (field.isDisposed() || use(field.id) === 0) { return ''; }
@@ -63,7 +65,7 @@ export class FieldModel extends BoxModel {
    * Field row id.
    */
   public get leaf() {
-    return this.props['leaf'] as Observable<number>;
+    return this.prop('leaf') as Observable<number>;
   }
 
   /**
@@ -78,6 +80,14 @@ export class FieldModel extends BoxModel {
 
   constructor(box: Box, parent: BoxModel | null, view: FormView) {
     super(box, parent, view);
+
+    this.required = Computed.create(this, (use) => {
+      const field = use(this.field);
+      return Boolean(use(field.widgetOptionsJson.prop('formRequired')));
+    });
+    this.required.onWrite(value => {
+      this.field.peek().widgetOptionsJson.prop('formRequired').setAndSave(value).catch(reportError);
+    });
 
     this.question.onWrite(value => {
       this.field.peek().question.setAndSave(value).catch(reportError);
@@ -120,7 +130,7 @@ export class FieldModel extends BoxModel {
       edit: this.edit,
       overlay,
       onSave: save,
-    }, ...args));
+    }));
 
     return buildEditor({
         box: this,
@@ -131,6 +141,7 @@ export class FieldModel extends BoxModel {
         content,
       },
       dom.on('dblclick', () => this.selected.get() && this.edit.set(true)),
+      ...args
     );
   }
 
@@ -161,11 +172,12 @@ export abstract class Question extends Disposable {
     overlay: Observable<boolean>,
     onSave: (value: string) => void,
   }, ...args: IDomArgs<HTMLElement>) {
-    return css.cssPadding(
+    return css.cssQuestion(
       testId('question'),
       testType(this.model.colType),
       this.renderLabel(props, dom.style('margin-bottom', '5px')),
       this.renderInput(),
+      css.cssQuestion.cls('-required', this.model.required),
       ...args
     );
   }
@@ -219,19 +231,32 @@ export abstract class Question extends Disposable {
 
     return [
       dom.autoDispose(scope),
-      element = css.cssEditableLabel(
-        controller,
-        {onInput: true},
-        // Attach common Enter,Escape, blur handlers.
-        css.saveControls(edit, saveDraft),
-        // Autoselect whole text when mounted.
-        // Auto grow for textarea.
-        autoGrow(controller),
-        // Enable normal menu.
-        dom.on('contextmenu', stopEvent),
-        dom.style('resize', 'none'),
+      css.cssRequiredWrapper(
         testId('label'),
-        css.cssEditableLabel.cls('-edit', props.edit),
+        // When in edit - hide * and change display from grid to display
+        css.cssRequiredWrapper.cls('-required', use => Boolean(use(this.model.required) && !use(this.model.edit))),
+        dom.maybe(props.edit, () => [
+          element = css.cssEditableLabel(
+            controller,
+            {onInput: true},
+            // Attach common Enter,Escape, blur handlers.
+            css.saveControls(edit, saveDraft),
+            // Autoselect whole text when mounted.
+            // Auto grow for textarea.
+            autoGrow(controller),
+            // Enable normal menu.
+            dom.on('contextmenu', stopEvent),
+            dom.style('resize', 'none'),
+            css.cssEditableLabel.cls('-edit'),
+            testId('label-editor'),
+          ),
+        ]),
+        dom.maybe(not(props.edit), () => [
+          css.cssRenderedLabel(
+            dom.text(controller),
+            testId('label-rendered'),
+          ),
+        ]),
         // When selected, we want to be able to edit the label by clicking it
         // so we need to make it relative and z-indexed.
         dom.style('position', u => u(this.model.selected) ? 'relative' : 'static'),
@@ -260,41 +285,45 @@ class TextModel extends Question {
 }
 
 class ChoiceModel extends Question {
-  public renderInput() {
+  protected choices: Computed<string[]> = Computed.create(this, use => {
+    // Read choices from field.
+    const list = use(use(use(this.model.field).origCol).widgetOptionsJson.prop('choices')) || [];
+
+    // Make sure it is array of strings.
+    if (!Array.isArray(list) || list.some((v) => typeof v !== 'string')) {
+      return [];
+    }
+    return list;
+  });
+
+  protected choicesWithEmpty = Computed.create(this, use => {
+    const list: Array<string|null> = Array.from(use(this.choices));
+    // Add empty choice if not present.
+    list.unshift(null);
+    return list;
+  });
+
+  public renderInput(): HTMLElement {
     const field = this.model.field;
-    const choices: Computed<string[]> = Computed.create(this, use => {
-      return use(use(use(field).origCol).widgetOptionsJson.prop('choices')) || [];
-    });
-    const typedChoices = Computed.create(this, use => {
-      const value = use(choices);
-      // Make sure it is array of strings.
-      if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) {
-        return [];
-      }
-      return value;
-    });
     return css.cssSelect(
       {tabIndex: "-1"},
       ignoreClick,
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(typedChoices, (choice) => dom('option', choice, {value: choice})),
+      dom.forEach(this.choicesWithEmpty, (choice) => dom('option', choice ?? CHOOSE_TEXT, {value: choice ?? ''})),
     );
   }
 }
 
-class ChoiceListModel extends Question {
+class ChoiceListModel extends ChoiceModel {
   public renderInput() {
     const field = this.model.field;
-    const choices: Computed<string[]> = Computed.create(this, use => {
-      return use(use(use(field).origCol).widgetOptionsJson.prop('choices')) || [];
-    });
     return dom('div',
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(choices, (choice) => css.cssCheckboxLabel(
+      dom.forEach(this.choices, (choice) => css.cssCheckboxLabel(
         squareCheckbox(observable(false)),
         choice
       )),
-      dom.maybe(use => use(choices).length === 0, () => [
+      dom.maybe(use => use(this.choices).length === 0, () => [
         dom('div', 'No choices defined'),
       ]),
     );
@@ -308,12 +337,12 @@ class BoolModel extends Question {
     question: Observable<string>,
     onSave: () => void,
   }) {
-    return css.cssPadding(
+    return css.cssQuestion(
       testId('question'),
       testType(this.model.colType),
       cssToggle(
         this.renderInput(),
-        this.renderLabel(props, css.cssEditableLabel.cls('-normal')),
+        this.renderLabel(props, css.cssLabelInline.cls('')),
       ),
     );
   }
@@ -358,11 +387,8 @@ class RefListModel extends Question {
   public renderInput() {
     return dom('div',
       dom.prop('name', this.model.colId),
-      dom.forEach(this.choices, (choice) => css.cssLabel(
-        dom('input',
-          dom.prop('name', this.model.colId),
-          {type: 'checkbox', value: String(choice[0]), style: 'margin-right: 5px;'}
-        ),
+      dom.forEach(this.choices, (choice) => css.cssCheckboxLabel(
+        squareCheckbox(observable(false)),
         String(choice[1] ?? '')
       )),
       dom.maybe(use => use(this.choices).length === 0, () => [
@@ -393,12 +419,19 @@ class RefListModel extends Question {
 }
 
 class RefModel extends RefListModel {
+  protected withEmpty = Computed.create(this, use => {
+    const list = Array.from(use(this.choices));
+    // Add empty choice if not present.
+    list.unshift(['', CHOOSE_TEXT]);
+    return list;
+  });
+
   public renderInput() {
     return css.cssSelect(
       {tabIndex: "-1"},
       ignoreClick,
       dom.prop('name', this.model.colId),
-      dom.forEach(this.choices, (choice) => dom('option', String(choice[1] ?? ''), {value: String(choice[0])})),
+      dom.forEach(this.withEmpty, (choice) => dom('option', String(choice[1] ?? ''), {value: String(choice[0])})),
     );
   }
 }
@@ -435,8 +468,10 @@ function testType(value: BindableValue<string>) {
 }
 
 const cssToggle = styled('div', `
-  display: flex;
+  display: grid;
   align-items: center;
+  grid-template-columns: auto 1fr;
   gap: 8px;
+  padding: 4px 0px;
   --grist-actual-cell-color: ${colors.lightGreen};
 `);

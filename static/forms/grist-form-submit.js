@@ -69,7 +69,19 @@ class TypedFormData {
     this._formData = formData ?? new FormData(formElement);
     this._formElement = formElement;
   }
-  keys() { return this._formData.keys(); }
+  keys() {
+    const keys = Array.from(this._formData.keys());
+
+    // Don't return keys for scalar values which just return empty string.
+    // Otherwise Grist won't fire trigger formulas.
+    return keys.filter(key => {
+      // If there are multiple values, return this key as it is.
+      if (this._formData.getAll(key).length !== 1) { return true; }
+      // If the value is empty string or null, don't return the key.
+      const value = this._formData.get(key);
+      return value !== '' && value !== null;
+    });
+  }
   type(key) {
     return this._formElement?.querySelector(`[name="${key}"]`)?.getAttribute('data-grist-type');
   }

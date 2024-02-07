@@ -1599,6 +1599,14 @@ class TestUserActions(test_engine.EngineTestCase):
       'formula': '$A == "Foo"',
     }])
 
+    # Add a column and widget description.
+    self.apply_user_action(['UpdateRecord', '_grist_Tables_column', 23, {
+      'description': 'A column description.',
+    }])
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 2, {
+      'description': 'A widget description.',
+    }])
+
     # Duplicate Table1 as Foo without including any of its data.
     self.apply_user_action(['DuplicateTable', 'Table1', 'Foo', False])
 
@@ -1641,6 +1649,16 @@ class TestUserActions(test_engine.EngineTestCase):
     self.assertTableData('Foo', data=[
       ["id", "A", "B", "C", "D", "E", "F", "G", "H", "gristHelper_ConditionalRule",
         "gristHelper_RowConditionalRule", "manualSort"],
+    ])
+    self.assertTableData('_grist_Tables_column', rows='subset', cols='subset', data=[
+      ['id', 'description'],
+      [23, 'A column description.'],
+      [34, 'A column description.'],
+    ])
+    self.assertTableData('_grist_Views_section', rows='subset', cols='subset', data=[
+      ['id', 'description'],
+      [2, 'A widget description.'],
+      [4, 'A widget description.'],
     ])
 
     # Duplicate Table1 as FooData and include all of its data.
@@ -1686,7 +1704,7 @@ class TestUserActions(test_engine.EngineTestCase):
     duplicated_times = self.engine.fetch_table('FooData').columns['E']
     self.assertEqual(existing_times, duplicated_times)
 
-  def test_duplicate_table2(self):
+  def test_duplicate_table_untie_col_id_bug(self):
     # This test case verifies a bug fix: when a column doesn't match its label despite
     # untieColIdFromLabel being False (which is possible), ensure that duplicating still works.
 
@@ -1703,3 +1721,53 @@ class TestUserActions(test_engine.EngineTestCase):
     self.apply_user_action(['DuplicateTable', 'Table1', 'Foo', True])
     self.assertTableData('Table1', data=[["id", "State2", 'manualSort'], [1, 'NY', 1.0]])
     self.assertTableData('Foo', data=[["id", "State2", 'manualSort'], [1, 'NY', 1.0]])
+
+  def test_duplicate_table_record_card(self):
+    self.load_sample(self.sample)
+    self.apply_user_action(['AddEmptyTable', None])
+    self.apply_user_action(['AddColumn', 'Table1', None, {
+      'type': 'Ref:Table1',
+      'visibleCol': 23,
+    }])
+    self.apply_user_action(['AddColumn', 'Table1', None, {
+      'type': 'RefList:Table1',
+      'visibleCol': 24,
+    }])
+    self.apply_user_action(['BulkUpdateRecord', '_grist_Views_section_field', [11, 13], {
+      'visibleCol': [23, 24],
+    }])
+    self.apply_user_action(['UpdateRecord', '_grist_Views_section', 3, {
+      'layoutSpec': '{"children":[{"children":[{"leaf":7},{"leaf":8}]},{"leaf":9},{"leaf":11}]}',
+      'options': '{"verticalGridlines":true,"horizontalGridlines":true,"zebraStripes":false,' +
+        '"customView":"","numFrozen":0,"disabled":true}',
+      'theme': 'compact',
+    }])
+    self.apply_user_action(['DuplicateTable', 'Table1', 'Foo', False])
+
+    self.assertTableData('_grist_Views_section', rows="subset", cols="subset", data=[
+      ["id", "parentId", "tableRef", "layoutSpec", "options", "theme"],
+      # The original record card section.
+      [3, 0, 2, '{"children":[{"children":[{"leaf":7},{"leaf":8}]},{"leaf":9},{"leaf":11}]}',
+        '{"verticalGridlines":true,"horizontalGridlines":true,"zebraStripes":false,' +
+          '"customView":"","numFrozen":0,"disabled":true}', 'compact'],
+      # The duplicated record card section.
+      [5, 0, 3,
+        '{"children": [{"children": [{"leaf": 19}, {"leaf": 20}]}, {"leaf": 21}, ' +
+          '{"leaf": 22}]}',
+        '{"verticalGridlines":true,"horizontalGridlines":true,"zebraStripes":false,' +
+          '"customView":"","numFrozen":0,"disabled":true}', 'compact'],
+    ])
+    self.assertTableData('_grist_Views_section_field', rows="subset", cols="subset", data=[
+      ["id", "parentId", "parentPos", "visibleCol"],
+      # The original record card fields.
+      [7, 3, 7.0, 0],
+      [8, 3, 8.0, 0],
+      [9, 3, 9.0, 0],
+      [11, 3, 11.0, 23],
+      [13, 3, 13.0, 24],
+      [19, 5, 6.5, 0],
+      [20, 5, 7.5, 0],
+      [21, 5, 8.5, 0],
+      [22, 5, 10.5, 29],
+      [23, 5, 12.5, 30],
+    ])

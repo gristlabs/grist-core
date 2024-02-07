@@ -45,15 +45,8 @@ $(function() {
   window.exposeModulesForTests = function() {
     return (import('./exposeModulesForTests' /* webpackChunkName: "modulesForTests" */));
   };
-  window.exposedModules = {
-    // Several existing tests use window.exposedModules.loadScript has loaded
-    // a file for them.  We now load exposedModules asynchronously, so that it
-    // doesn't slow down application startup.  To avoid changing tests
-    // unnecessarily, we implement a loadScript wrapper.
-    loadScript(name) {
-      return window.exposeModulesForTests()
-        .then(() => window.exposedModules._loadScript(name));
-    }
-  };
-
+  window.exposedModules = {};
+  // Make it easy for tests to use loadScript() whether or not exposedModules has already loaded.
+  window.loadScript = (name) =>
+    window.exposeModulesForTests().then(() => window.exposedModules.loadScript.loadScript(name));
 });

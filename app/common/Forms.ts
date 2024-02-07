@@ -1,3 +1,4 @@
+import {isHiddenCol} from 'app/common/gristTypes';
 import {CellValue, GristType} from 'app/plugin/GristData';
 import {MaybePromise} from 'app/plugin/gutil';
 import _ from 'lodash';
@@ -12,19 +13,23 @@ import {marked} from 'marked';
 /**
  * All allowed boxes.
  */
-export type BoxType = 'Paragraph' | 'Section' | 'Columns' | 'Submit' | 'Placeholder' | 'Layout' | 'Field' |
- 'Label';
+export type BoxType =   'Paragraph' | 'Section' | 'Columns' | 'Submit'
+                      | 'Placeholder' | 'Layout' | 'Field' | 'Label'
+                      | 'Separator' | 'Header'
+                      ;
 
 /**
  * Number of fields to show in the form by default.
  */
 export const INITIAL_FIELDS_COUNT = 9;
 
+export const CHOOSE_TEXT = '— Choose —';
+
 /**
  * Box model is a JSON that represents a form element. Every element can be converted to this element and every
  * ViewModel should be able to read it and built itself from it.
  */
-export interface Box extends Record<string, any> {
+export interface Box {
   type: BoxType,
   children?: Array<Box>,
 
@@ -33,6 +38,18 @@ export interface Box extends Record<string, any> {
   successURL?: string,
   successText?: string,
   anotherResponse?: boolean,
+
+  // Unique ID of the field, used only in UI.
+  id?: string,
+
+  // Some properties used by fields and stored in the column/field.
+  formRequired?: boolean,
+  // Used by Label and Paragraph.
+  text?: string,
+  // Used by Paragraph.
+  alignment?: string,
+  // Used by Field.
+  leaf?: number,
 }
 
 /**
@@ -56,6 +73,7 @@ export interface FieldModel {
   description: string;
   colId: string;
   type: string;
+  isFormula: boolean;
   options: FieldOptions;
   values(): MaybePromise<[number, CellValue][]>;
 }
@@ -83,10 +101,9 @@ export class RenderBox {
 
 class Label extends RenderBox {
   public override async toHTML() {
-    const text = this.box['text'];
-    const cssClass = this.box['cssClass'] || '';
+    const text = this.box.text || '';
     return `
-      <div class="grist-label ${cssClass}">${text || ''}</div>
+      <div class="grist-label">${text || ''}</div>
     `;
   }
 }
@@ -160,7 +177,7 @@ class Field extends RenderBox {
   }
 
   public async toHTML() {
-    const field = this.ctx.field(this.box['leaf']);
+    const field = this.box.leaf ? this.ctx.field(this.box.leaf) : null;
     if (!field) {
       return `<div class="grist-field">Field not found</div>`;
     }
@@ -189,12 +206,22 @@ abstract class BaseQuestion implements Question {
     `;
   }
 
+  public name(field: FieldModel): string {
+    const excludeFromFormData = (
+      field.isFormula ||
+      field.type === 'Attachments' ||
+      isHiddenCol(field.colId)
+    );
+    return `${excludeFromFormData ? '_' : ''}${field.colId}`;
+  }
+
   public label(field: FieldModel): string {
     // This might be HTML.
     const label = field.question;
-    const name = field.colId;
+    const name = this.name(field);
+    const required = field.options.formRequired ? 'grist-label-required' : '';
     return `
-      <label class='grist-label' for='${name}'>${label}</label>
+      <label class='grist-label ${required}' for='${name}'>${label}</label>
     `;
   }
 
@@ -205,7 +232,7 @@ class Text extends BaseQuestion {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <input type='text' name='${field.colId}' ${required}/>
+      <input type='text' name='${this.name(field)}' ${required}/>
     `;
   }
 }
@@ -214,7 +241,7 @@ class Date extends BaseQuestion  {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <input type='date' name='${field.colId}' ${required}/>
+      <input type='date' name='${this.name(field)}' ${required}/>
     `;
   }
 }
@@ -223,7 +250,7 @@ class DateTime extends BaseQuestion {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
     return `
-      <input type='datetime-local' name='${field.colId}' ${required}/>
+      <input type='datetime-local' name='${this.name(field)}' ${required}/>
     `;
   }
 }
@@ -231,10 +258,12 @@ class DateTime extends BaseQuestion {
 class Choice extends BaseQuestion  {
   public input(field: FieldModel, context: RenderContext): string {
     const required = field.options.formRequired ? 'required' : '';
-    const choices: string[] = field.options.choices || [];
+    const choices: Array<string|null> = field.options.choices || [];
+    // Insert empty option.
+    choices.unshift(null);
     return `
-      <select name='${field.colId}' ${required} >
-        ${choices.map((choice) => `<option value='${choice}'>${choice}</option>`).join('')}
+      <select name='${this.name(field)}' ${required} >
+        ${choices.map((choice) => `<option value='${choice ?? ''}'>${choice ?? CHOOSE_TEXT}</option>`).join('')}
       </select>
     `;
   }
@@ -252,11 +281,12 @@ class Bool extends BaseQuestion {
   }
 
   public input(field: FieldModel, context: RenderContext): string {
+    const requiredLabel = field.options.formRequired ? 'grist-label-required' : '';
     const required = field.options.formRequired ? 'required' : '';
     const label = field.question ? field.question : field.colId;
     return `
-      <label class='grist-switch'>
-        <input type='checkbox' name='${field.colId}' value="1" ${required}  />
+      <label class='grist-switch ${requiredLabel}'>
+        <input type='checkbox' name='${this.name(field)}' value="1" ${required}  />
         <div class="grist-widget_switch grist-switch_transition">
           <div class="grist-switch_slider"></div>
           <div class="grist-switch_circle"></div>
@@ -272,10 +302,10 @@ class ChoiceList extends BaseQuestion  {
     const required = field.options.formRequired ? 'required' : '';
     const choices: string[] = field.options.choices || [];
     return `
-      <div name='${field.colId}' class='grist-choice-list ${required}'>
+      <div name='${this.name(field)}' class='grist-checkbox-list ${required}'>
         ${choices.map((choice) => `
-          <label>
-            <input type='checkbox' name='${field.colId}[]' value='${choice}' />
+          <label class='grist-checkbox'>
+            <input type='checkbox' name='${this.name(field)}[]' value='${choice}' />
             <span>
               ${choice}
             </span>
@@ -288,16 +318,20 @@ class ChoiceList extends BaseQuestion  {
 
 class RefList extends BaseQuestion {
   public async input(field: FieldModel, context: RenderContext) {
+    const required = field.options.formRequired ? 'required' : '';
     const choices: [number, CellValue][] = (await field.values()) ?? [];
     // Sort by the second value, which is the display value.
     choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-    // Support for 20 choices, TODO: make it dynamic.
-    choices.splice(20);
+    // Support for 30 choices, TODO: make it dynamic.
+    choices.splice(30);
     return `
-      <div name='${field.colId}' class='grist-ref-list'>
+      <div name='${this.name(field)}' class='grist-checkbox-list ${required}'>
         ${choices.map((choice) => `
           <label class='grist-checkbox'>
-            <input type='checkbox' name='${field.colId}[]' value='${String(choice[0])}' />
+            <input type='checkbox'
+                   data-grist-type='${field.type}'
+                   name='${this.name(field)}[]'
+                   value='${String(choice[0])}' />
             <span>
               ${String(choice[1] ?? '')}
             </span>
@@ -310,14 +344,17 @@ class RefList extends BaseQuestion {
 
 class Ref extends BaseQuestion {
   public async input(field: FieldModel) {
-    const choices: [number, CellValue][] = (await field.values()) ?? [];
+    const choices: [number|string, CellValue][] = (await field.values()) ?? [];
     // Sort by the second value, which is the display value.
     choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
     // Support for 1000 choices, TODO: make it dynamic.
     choices.splice(1000);
+    // Insert empty option.
+    choices.unshift(['', CHOOSE_TEXT]);
     // <option type='number' is not standard, we parse it ourselves.
+    const required = field.options.formRequired ? 'required' : '';
     return `
-      <select name='${field.colId}' class='grist-ref' data-grist-type='${field.type}'>
+      <select name='${this.name(field)}' class='grist-ref' data-grist-type='${field.type}' ${required}>
         ${choices.map((choice) => `<option value='${String(choice[0])}'>${String(choice[1] ?? '')}</option>`).join('')}
       </select>
     `;
@@ -351,4 +388,8 @@ const elements = {
   'Layout': Layout,
   'Field': Field,
   'Label': Label,
+
+  // Those are just aliases for Paragraph.
+  'Separator': Paragraph,
+  'Header': Paragraph,
 };

@@ -50,6 +50,7 @@ export class RecordCardPopup extends DisposableWithEvents {
           focusable: false,
           renamable: false,
         }),
+        testId('wrapper'),
       ),
       cssCloseButton('CrossBig',
         dom.on('click', () => this._handleClose()),

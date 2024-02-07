@@ -137,7 +137,13 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       ev.dataTransfer!.dropEffect = "move";
       dragHover.set(true);
 
-      if (dragging.get() || props.box.type === 'Section') { return; }
+      // If we are being dragged, don't animate anything.
+      if (dragging.get()) { return; }
+
+      // We only animate if the box will add dropped element as sibling.
+      if (box.willAccept() !== 'sibling') {
+        return;
+      }
 
       const myHeight = element.offsetHeight;
       const percentHeight = Math.round((ev.offsetY / myHeight) * 100);
@@ -180,14 +186,27 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       dragBelow.set(false);
 
       const dropped = parseBox(ev.dataTransfer!.getData('text/plain'));
+      if (!dropped) { return; }
       // We need to remove it from the parent, so find it first.
       const droppedId = dropped.id;
       if (droppedId === box.id) { return; }
-      const droppedModel = box.root().get(droppedId);
+      const droppedModel = box.root().find(droppedId);
       // It might happen that parent is dropped into child, so we need to check for that.
-      if (droppedModel?.get(box.id)) { return; }
+      if (droppedModel?.find(box.id)) { return; }
+
+      if (!box.willAccept(droppedModel)) {
+        return;
+      }
+
+      // TODO: accept should do the swapping.
+      if (box.willAccept(droppedModel) === 'swap') {
+        await box.save(async () => {
+          box.parent!.swap(box, droppedModel!);
+        });
+        return;
+      }
+
       await box.save(async () => {
-        droppedModel?.removeSelf();
         await box.accept(dropped, wasBelow ? 'below' : 'above')?.afterDrop();
       });
     }),
@@ -199,6 +218,7 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     ),
     testId(box.type),
     testId('element'),
+    dom.attr('data-box-model', String(box.type)),
     dom.maybe(overlay, () => style.cssSelectedOverlay()),
     // Custom icons for removing.
     props.removeIcon === null || props.removeButton ? null :

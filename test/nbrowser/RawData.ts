@@ -32,6 +32,12 @@ describe('RawData', function () {
     assert.deepEqual(uiTables, tables);
   });
 
+  it('shows blank creator panel', async function () {
+    await gu.toggleSidePanel('right', 'open');
+    assert.isEmpty(await driver.find('.test-right-panel').getText());
+    await gu.toggleSidePanel('right', 'close');
+  });
+
   it('shows row counts of all tables', async function () {
     assert.deepEqual(await getRawTableRows(), [
       '4,079',
@@ -508,15 +514,15 @@ describe('RawData', function () {
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
-    await showRawData();
+    await gu.showRawData();
     assert.equal(await gu.getActiveSectionTitle(), 'City');
     assert.deepEqual(await gu.getCursorPosition(), {rowNum: 20, col: 0}); // raw popup is not sorted
     await gu.sendKeys("abc");
     await gu.checkTextEditor("abc");
     await gu.sendKeys(Key.ESCAPE);
     // Click on another cell, check page hasn't changed (there was a bug about that)
-    await gu.getCell({rowNum: 10, col: 1}).click();
-    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 10, col: 1});
+    await gu.getCell({rowNum: 21, col: 1}).click();
+    assert.deepEqual(await gu.getCursorPosition(), {rowNum: 21, col: 1});
     assert.equal(await gu.getCurrentPageName(), 'City');
 
     // Close by hitting escape.
@@ -530,7 +536,7 @@ describe('RawData', function () {
     await gu.sendKeys(Key.ESCAPE);
 
     // Now open popup again, but close it by clicking on the close button.
-    await showRawData();
+    await gu.showRawData();
     await gu.closeRawTable();
     await assertNoPopup();
     assert.equal(await gu.getActiveSectionTitle(), 'CITY');
@@ -540,7 +546,7 @@ describe('RawData', function () {
     await gu.sendKeys(Key.ESCAPE);
 
     // Now do the same, but close by clicking on a diffrent page
-    await showRawData();
+    await gu.showRawData();
     await gu.getPageItem('Country').click();
     await assertNoPopup();
     assert.equal(await gu.getActiveSectionTitle(), 'COUNTRY');
@@ -552,7 +558,7 @@ describe('RawData', function () {
     // Now make sure that raw data is available for card view.
     await gu.selectSectionByTitle("COUNTRY Card List");
     assert.equal(await gu.getActiveSectionTitle(), 'COUNTRY Card List');
-    await showRawData();
+    await gu.showRawData();
     assert.equal(await gu.getActiveSectionTitle(), 'Country');
     assert.deepEqual(await gu.getCursorPosition(), {rowNum: 1, col: 1});
     await gu.sendKeys("abc");
@@ -623,7 +629,7 @@ describe('RawData', function () {
     // Now open plain raw data for City table.
     await gu.selectSectionByTitle("CITY");
     assert.equal(await gu.getActiveSectionTitle(), 'CITY'); // CITY is viewSection title
-    await showRawData();
+    await gu.showRawData();
     assert.equal(await gu.getActiveSectionTitle(), 'City'); // City is now a table title
     // Now remove the table.
     await api.applyUserActions(doc, [[
@@ -785,12 +791,6 @@ function replaceAnchor(link: string, values: {
 }) {
   const { a, s, r, c } = getAnchorParams(link);
   return link.replace(anchorRegex, `#a${values.a || a}.s${values.s || s}.r${values.r || r}.c${values.c || c}`);
-}
-
-async function showRawData() {
-  await gu.openSectionMenu('viewLayout');
-  await driver.find('.test-show-raw-data').click();
-  await waitForPopup();
 }
 
 async function openRawData() {

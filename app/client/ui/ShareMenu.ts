@@ -305,13 +305,19 @@ async function manageUsers(doc: DocInfo, docPageModel: DocPageModel) {
     resource: doc,
     docPageModel,
     appModel: docPageModel.appModel,
-    linkToCopy: urlState().makeUrl(docUrl(doc)),
+    linkToCopy: makeShareDocUrl(doc),
     // On save, re-fetch the document info, to toggle the "Public Access" icon if it changed.
     // Skip if personal, since personal cannot affect "Public Access", and the only
     // change possible is to remove the user (which would make refreshCurrentDoc fail)
     onSave: async (personal) => !personal && docPageModel.refreshCurrentDoc(doc),
     reload: () => api.getDocAccess(doc.id),
   });
+}
+
+export function makeShareDocUrl(doc: Document) {
+  const url = new URL(urlState().makeUrl(docUrl(doc)));
+  url.searchParams.set('utm_id', 'share-doc');
+  return url.href;
 }
 
 const cssShareButton = styled('div', `

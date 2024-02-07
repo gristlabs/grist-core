@@ -79,6 +79,7 @@ export type IconName = "ChartArea" |
   "FunctionResult" |
   "GreenArrow" |
   "Grow" |
+  "Headband" |
   "Heart" |
   "Help" |
   "Home" |
@@ -234,6 +235,7 @@ export const IconList: IconName[] = ["ChartArea",
   "FunctionResult",
   "GreenArrow",
   "Grow",
+  "Headband",
   "Heart",
   "Help",
   "Home",

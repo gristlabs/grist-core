@@ -1,12 +1,13 @@
 import {allCommands} from 'app/client/components/commands';
+import * as components from 'app/client/components/Forms/elements';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {BoxModel, BoxType, Place} from 'app/client/components/Forms/Model';
+import {BoxModel, Place} from 'app/client/components/Forms/Model';
 import {makeTestId, stopEvent} from 'app/client/lib/domUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
 import * as menus from 'app/client/ui2018/menus';
-import * as components from 'app/client/components/Forms/elements';
+import {BoxType} from 'app/common/Forms';
 import {Computed, dom, IDomArgs, MultiHolder} from 'grainjs';
 
 const t = makeT('FormView');
@@ -16,11 +17,26 @@ const testId = makeTestId('test-forms-menu-');
 export type NewBox = {add: string} | {show: string} | {structure: BoxType};
 
 interface Props {
+  /**
+   * If this menu was shown as a result of clicking on a box. This box will be selected.
+   */
   box?: BoxModel;
+  /**
+   * Parent view (to access GristDoc/selectedBox and others, TODO: this should be turned into events)
+   */
   view?: FormView;
+  /**
+   * Whether this is context menu, so move `Copy` etc in front, and nest new items in its own menu.
+   */
   context?: boolean;
+  /**
+   * Custom menu items to be added at the bottom (below additional separator).
+   */
   customItems?: Element[],
-  insertBox?: Place
+  /**
+   * Custom logic of finding right spot to insert the new box.
+   */
+  insertBox?: Place,
 }
 
 export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArgs<HTMLElement> {
@@ -51,6 +67,9 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
   const oneTo5 = Computed.create(owner, (use) => use(unmapped).length > 0 && use(unmapped).length <= 5);
   const moreThan5 = Computed.create(owner, (use) => use(unmapped).length > 5);
+
+  // If we are in a column, then we can't insert a new column.
+  const disableInsert = box?.parent?.type === 'Columns' && box.type !== 'Placeholder';
 
   return [
     dom.autoDispose(owner),
@@ -140,20 +159,26 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
           ]),
           menus.menuDivider(),
           menus.menuSubHeader(t('Building blocks')),
-          menus.menuItem(where(struct('Columns')), menus.menuIcon('Columns'), t("Columns")),
+          menus.menuItem(where(struct('Header')), menus.menuIcon('Headband'), t("Header")),
           menus.menuItem(where(struct('Paragraph')), menus.menuIcon('Paragraph'), t("Paragraph")),
+          menus.menuItem(where(struct('Columns')), menus.menuIcon('Columns'), t("Columns")),
           menus.menuItem(where(struct('Separator')), menus.menuIcon('Separator'), t("Separator")),
+
+          props.customItems ? menus.menuDivider() : null,
+          ...(props.customItems ?? []),
         ];
       };
 
-      if (!props.context) {
+      if (!props.context && !disableInsert) {
         return insertMenu(custom ?? atEnd)();
       }
 
       return [
-        menus.menuItemSubmenu(insertMenu(above), {action: above({add: 'Text'})}, t("Insert question above")),
-        menus.menuItemSubmenu(insertMenu(below), {action: below({add: 'Text'})}, t("Insert question below")),
-        menus.menuDivider(),
+        disableInsert ? null : [
+          menus.menuItemSubmenu(insertMenu(above), {action: above({add: 'Text'})}, t("Insert question above")),
+          menus.menuItemSubmenu(insertMenu(below), {action: below({add: 'Text'})}, t("Insert question below")),
+          menus.menuDivider(),
+        ],
         menus.menuItemCmd(allCommands.contextMenuCopy, t("Copy")),
         menus.menuItemCmd(allCommands.contextMenuCut, t("Cut")),
         menus.menuItemCmd(allCommands.contextMenuPaste, t("Paste")),

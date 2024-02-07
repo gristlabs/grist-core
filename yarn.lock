@@ -944,6 +944,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/swagger-ui@3.52.4":
+  version "3.52.4"
+  resolved "https://registry.yarnpkg.com/@types/swagger-ui/-/swagger-ui-3.52.4.tgz#96c4886e8f86ae392f8d940bf7029cf490a51c72"
+  integrity sha512-7NV7q8BfupqdQxr26OkM0g0YEPB9uXnKGzXadgcearvI9MoCHt3F72lPTX3fZZIlrr21DC0IK26wcDMZ37oFDA==
+
 "@types/tmp@0.0.33":
   version "0.0.33"
   resolved "https://registry.npmjs.org/@types/tmp/-/tmp-0.0.33.tgz"
@@ -7150,6 +7155,11 @@ slash@^3.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
+slugify@1.6.6:
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/slugify/-/slugify-1.6.6.tgz#2d4ac0eacb47add6af9e04d3be79319cbcc7924b"
+  integrity sha512-h+z7HKHYXj6wJU+AnS/+IH8Uh9fdcX1Lrhg1/VMdf9PwoBQXFcXiAdsy2tSK0P6gKwJLXp02r90ahUCqHk9rrw==
+
 smart-buffer@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
@@ -7429,6 +7439,11 @@ supports-preserve-symlinks-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
+
+swagger-ui-dist@5.11.0:
+  version "5.11.0"
+  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-5.11.0.tgz#9bcfd75278b1fa9c36fe52f206f8fc611470547c"
+  integrity sha512-j0PIATqQSEFGOLmiJOJZj1X1Jt6bFIur3JpY7+ghliUnfZs0fpWDdHEkn9q7QUlBtKbkn6TepvSxTqnE8l3s0A==
 
 symbol-tree@^3.2.4:
   version "3.2.4"
