@@ -1389,5 +1389,12 @@
         "Publish your form?": "¿Publicar su formulario?",
         "Unpublish your form?": "¿Anular la publicación de su formulario?",
         "Unpublish": "Anular la publicación"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "llamada gratuita de asesoramiento",
+        "Schedule Call": "Programar una llamada",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Programe su {{freeCoachingCall}} con un miembro de nuestro equipo.",
+        "Maybe Later": "Quizás más tarde",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "En la llamada, nos tomaremos el tiempo necesario para entender sus necesidades y adaptar la llamada a usted. Podemos mostrarle los conceptos básicos de Grist o empezar a trabajar con sus datos de inmediato para crear los cuadros de mando que necesita."
     }
 }
