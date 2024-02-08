@@ -331,6 +331,7 @@ GridView.gridCommands = {
       this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
     }
   },
+  makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection(), this.cursor.rowIndex() + 1)},
   renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
   deleteFields: function() {
@@ -878,6 +879,15 @@ GridView.prototype.insertColumn = async function(colId = null, options = {}) {
   this.selectColumn(index);
   if (!skipPopup) { this.currentEditingColumnIndex(index); }
   return newColInfo;
+};
+
+GridView.prototype.makeHeadersFromRow = async function(selection, rowIndex) {
+  for(const col of this.viewSection.columns.peek()) {
+    const colId = col.colId.peek();
+    const newColLabel = this.tableModel.tableData.getValue(rowIndex, colId);
+    const action = ['ModifyColumn', colId, {"label": newColLabel}];
+    this.tableModel.sendTableAction(action);
+  }
 };
 
 GridView.prototype.renameColumn = function(index) {
@@ -1952,6 +1962,10 @@ GridView.prototype._getCellContextMenuOptions = function() {
       this.gristDoc.isReadonly.get() ||
       this.viewSection.disableAddRemoveRows() ||
       this.getSelection().onlyAddRowSelected()
+    ),
+    // TODO check user as write
+    disableMakeHeadersFromRow: Boolean (
+      this.gristDoc.isReadonly.get()
     ),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
     numRows: this.getSelection().rowIds.length,

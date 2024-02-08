@@ -84,6 +84,7 @@ export type CommandName =
   | 'deleteRecords'
   | 'insertFieldBefore'
   | 'insertFieldAfter'
+  | 'makeHeadersFromRow'
   | 'renameField'
   | 'hideFields'
   | 'hideCardFields'
@@ -556,6 +557,10 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'insertFieldAfter',
       keys: ['Alt+='],
+      desc: 'Insert a new column, after the currently selected one'
+    }, {
+      name: 'makeHeadersFromRow',
+      keys: ['Mod+Shift+H'],
       desc: 'Insert a new column, after the currently selected one'
     }, {
       name: 'renameField',

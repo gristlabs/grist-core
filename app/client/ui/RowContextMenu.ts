@@ -8,6 +8,7 @@ const t = makeT('RowContextMenu');
 export interface IRowContextMenu {
   disableInsert: boolean;
   disableDelete: boolean;
+  disableMakeHeadersFromRow: boolean;
   disableShowRecordCard: boolean;
   isViewSorted: boolean;
   numRows: number;
@@ -16,6 +17,7 @@ export interface IRowContextMenu {
 export function RowContextMenu({
   disableInsert,
   disableDelete,
+  disableMakeHeadersFromRow,
   disableShowRecordCard,
   isViewSorted,
   numRows
@@ -50,6 +52,11 @@ export function RowContextMenu({
   result.push(
     menuItemCmd(allCommands.duplicateRows, t('Duplicate rows', { count: numRows }),
       dom.cls('disabled', disableInsert || numRows === 0)),
+  );
+  result.push(
+    menuDivider(),
+    menuItemCmd(allCommands.makeHeadersFromRow, t("Make headers from this line"),
+      dom.cls('disabled', disableMakeHeadersFromRow)),
   );
   result.push(
     menuDivider(),
