@@ -28,6 +28,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
+import {BootProbes} from 'app/server/lib/BootProbes';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
@@ -175,6 +176,7 @@ export class FlexServer implements GristServer {
   private _getLoginSystem?: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
+  private _probes: BootProbes;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -479,6 +481,34 @@ export class FlexServer implements GristServer {
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
     });
+  }
+
+  public addBootPage() {
+    if (this._check('boot')) { return; }
+    const bootKey = appSettings.section('boot').flag('key').readString({
+      envVar: 'GRIST_BOOT_KEY'
+    });
+    if (!bootKey) { return; }
+    const base = `/boot/${bootKey}`;
+    this._probes = new BootProbes(this.app, this, base);
+    this.app.get('/boot(/:bootKey/?)?$', async (req, res) => {
+      const goodKey = req.params.bootKey === bootKey;
+      return this._sendAppPage(req, res, {
+        path: 'boot.html', status: 200, config: goodKey ? {
+        } : {
+          errMessage: 'wo wo',
+        }, tag: 'boot',
+      });
+    });
+    this._probes.addProbes();
+    this._probes.addEndpoints();
+    //this.app.get(base, async (req, res) => {
+    //this._sendAppPage(req, res, {path: 'error.html', status: 200, config: {errPage: 'access-denied'}});
+  //});
+  }
+
+  public hasBoot(): boolean {
+    return Boolean(this._probes);
   }
 
   public denyRequestsIfNotReady() {
