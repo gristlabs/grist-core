@@ -54,6 +54,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     baseDomain,
     singleOrg: process.env.GRIST_SINGLE_ORG,
     helpCenterUrl: process.env.GRIST_HELP_CENTER || "https://support.getgrist.com",
+    freeCoachingCallUrl: process.env.FREE_COACHING_CALL_URL || "https://calendly.com/grist-team/grist-free-coaching-call",
     pathOnly,
     supportAnon: shouldSupportAnon(),
     enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
