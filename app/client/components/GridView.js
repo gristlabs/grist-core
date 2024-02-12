@@ -1964,7 +1964,6 @@ GridView.prototype._getCellContextMenuOptions = function() {
       this.getSelection().onlyAddRowSelected()
     ),
     disableMakeHeadersFromRow: Boolean (
-      // TODO check user as write
       this.gristDoc.isReadonly.get() || this.getSelection().rowIds.length !== 1
     ),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
