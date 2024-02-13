@@ -234,9 +234,9 @@ export class ChecksummedExternalStorage implements ExternalStorage {
             const message = `ext ${this.label} download: data for ${fromKey} has wrong checksum:` +
               ` ${checksum} (expected ${expectedChecksum})`;
 
-            // Only warn if GRIST_DISCARD_REDIS_CHECKSUM_MISMATCH is set. This flag is experimental
+            // Only warn if GRIST_SKIP_REDIS_CHECKSUM_MISMATCH is set. This flag is experimental
             // and should be removed once we are confident that the checksums verification is useless.
-            if (isAffirmative(process.env.GRIST_DISCARD_REDIS_CHECKSUM_MISMATCH)) {
+            if (isAffirmative(process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH)) {
               log.warn(message);
             } else {
               log.error(message);

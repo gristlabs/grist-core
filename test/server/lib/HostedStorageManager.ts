@@ -439,6 +439,7 @@ describe('HostedStorageManager', function() {
       });
 
       afterEach(async function() {
+        delete process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH;
         sandbox.restore();
         if (store) {
           await store.end();
@@ -475,9 +476,18 @@ describe('HostedStorageManager', function() {
         assert.notEqual(checksum, 'null');
         await store.end();
 
-        // Check if we nobble the expected checksum then fetch eventually errors.
+        // Check what happens when we nobble the expected checksum.
         await setRedisChecksum(docId, 'nobble');
         await store.removeAll();
+
+        // With GRIST_SKIP_REDIS_CHECKSUM_MISMATCH set, the fetch should work
+        process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH = 'true';
+        await store.begin();
+        await assert.isFulfilled(store.docManager.fetchDoc(docSession, docId));
+        await store.end();
+
+        // By default, the fetch should eventually errors.
+        delete process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH;
         await store.begin();
         await assert.isRejected(store.docManager.fetchDoc(docSession, docId),
                                 /operation failed to become consistent/);
