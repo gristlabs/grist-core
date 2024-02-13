@@ -273,6 +273,17 @@ class TestStore {
     private _externalStorageCreate: (purpose: 'doc'|'meta', extraPrefix: string) => ExternalStorage|undefined) {
   }
 
+  public async run<T>(fn: () => Promise<T>): Promise<T> {
+    await this.begin();
+    let result;
+    try {
+      result = await fn();
+    } finally {
+      await this.end();
+    }
+    return result;
+  }
+
   // Simulates doc worker startup.
   public async begin() {
     await this.end();
@@ -469,12 +480,13 @@ describe('HostedStorageManager', function() {
         assert.equal(await getRedisChecksum(docId), 'null');
 
         // Create an empty document when checksum in redis is 'null'.
-        await store.begin();
-        await store.docManager.fetchDoc(docSession, docId);
-        assert(await store.waitForUpdates());
-        const checksum = await getRedisChecksum(docId);
-        assert.notEqual(checksum, 'null');
-        await store.end();
+        const checksum = await store.run(async () => {
+          await store.docManager.fetchDoc(docSession, docId);
+          assert(await store.waitForUpdates());
+          const checksum = await getRedisChecksum(docId);
+          assert.notEqual(checksum, 'null');
+          return checksum;
+        });
 
         // Check what happens when we nobble the expected checksum.
         await setRedisChecksum(docId, 'nobble');
@@ -482,90 +494,91 @@ describe('HostedStorageManager', function() {
 
         // With GRIST_SKIP_REDIS_CHECKSUM_MISMATCH set, the fetch should work
         process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH = 'true';
-        await store.begin();
-        await assert.isFulfilled(store.docManager.fetchDoc(docSession, docId));
-        await store.end();
+        await store.run(async () => {
+          await assert.isFulfilled(store.docManager.fetchDoc(docSession, docId));
+        });
 
         // By default, the fetch should eventually errors.
         delete process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH;
-        await store.begin();
-        await assert.isRejected(store.docManager.fetchDoc(docSession, docId),
-                                /operation failed to become consistent/);
-        await store.end();
+        await store.run(async () => {
+          await assert.isRejected(store.docManager.fetchDoc(docSession, docId),
+                                  /operation failed to become consistent/);
+        });
 
         // Check we get the document back on fresh start if checksum is correct.
         await setRedisChecksum(docId, checksum);
         await store.removeAll();
-        await store.begin();
-        await store.docManager.fetchDoc(docSession, docId);
-        await store.end();
+        await store.run(async () => {
+          await store.docManager.fetchDoc(docSession, docId);
+        });
       });
 
       it('can save modifications', async function() {
-        await store.begin();
+        await store.run(async () => {
+          await workers.assignDocWorker('Hello');
+          await useFixtureDoc('Hello.grist', store.storageManager);
 
-        await workers.assignDocWorker('Hello');
-        await useFixtureDoc('Hello.grist', store.storageManager);
+          await workers.assignDocWorker('Hello2');
 
-        await workers.assignDocWorker('Hello2');
-
-        let doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        let doc2 = await store.docManager.fetchDoc(docSession, 'Hello2');
-        await doc.docStorage.exec("update Table1 set A = 'magic_word' where id = 1");
-        await doc2.docStorage.exec("insert into Table1(id) values(42)");
-        await store.end();
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          const doc2 = await store.docManager.fetchDoc(docSession, 'Hello2');
+          await doc.docStorage.exec("update Table1 set A = 'magic_word' where id = 1");
+          await doc2.docStorage.exec("insert into Table1(id) values(42)");
+          return { doc, doc2 };
+        });
 
         await store.removeAll();
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        let result = await doc.docStorage.get("select A from Table1 where id = 1");
-        assert.equal(result!.A, 'magic_word');
-        doc2 = await store.docManager.fetchDoc(docSession, 'Hello2');
-        result = await doc2.docStorage.get("select id from Table1");
-        assert.equal(result!.id, 42);
-        await store.end();
+
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          let result = await doc.docStorage.get("select A from Table1 where id = 1");
+          assert.equal(result!.A, 'magic_word');
+          const doc2 = await store.docManager.fetchDoc(docSession, 'Hello2');
+          result = await doc2.docStorage.get("select id from Table1");
+          assert.equal(result!.id, 42);
+        });
       });
 
       it('can save modifications with interfering backup file', async function() {
-        await store.begin();
+        await store.run(async () => {
+          // There was a bug where if a corrupt/truncated backup file was created, all future
+          // backups would fail.  This tickles the condition and makes sure backups now succeed.
+          await fse.writeFile(path.join(tmpDir, 'Hello.grist-backup'), 'not a sqlite file');
 
-        // There was a bug where if a corrupt/truncated backup file was created, all future
-        // backups would fail.  This tickles the condition and makes sure backups now succeed.
-        await fse.writeFile(path.join(tmpDir, 'Hello.grist-backup'), 'not a sqlite file');
+          await workers.assignDocWorker('Hello');
+          await useFixtureDoc('Hello.grist', store.storageManager);
 
-        await workers.assignDocWorker('Hello');
-        await useFixtureDoc('Hello.grist', store.storageManager);
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          await doc.docStorage.exec("update Table1 set A = 'magic_word2' where id = 1");
+        });
 
-        let doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        await doc.docStorage.exec("update Table1 set A = 'magic_word2' where id = 1");
-        await store.end();  // S3 push will happen prior to this returning.
+        // S3 should have happened after store.run()
 
         await store.removeAll();
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        const result = await doc.docStorage.get("select A from Table1 where id = 1");
-        assert.equal(result!.A, 'magic_word2');
-        await store.end();
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          const result = await doc.docStorage.get("select A from Table1 where id = 1");
+          assert.equal(result!.A, 'magic_word2');
+        });
       });
 
       it('survives if there is a doc marked dirty that turns out to be clean', async function() {
-        await store.begin();
+        await store.run(async () => {
+          await workers.assignDocWorker('Hello');
+          await useFixtureDoc('Hello.grist', store.storageManager);
 
-        await workers.assignDocWorker('Hello');
-        await useFixtureDoc('Hello.grist', store.storageManager);
-
-        let doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        await doc.docStorage.exec("update Table1 set A = 'magic_word' where id = 1");
-        await store.end();
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          await doc.docStorage.exec("update Table1 set A = 'magic_word' where id = 1");
+        });
 
         await store.removeAll();
 
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        const result = await doc.docStorage.get("select A from Table1 where id = 1");
-        assert.equal(result!.A, 'magic_word');
-        store.docManager.markAsChanged(doc);
-        await store.end();
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          const result = await doc.docStorage.get("select A from Table1 where id = 1");
+          assert.equal(result!.A, 'magic_word');
+          store.docManager.markAsChanged(doc);
+        });
 
         // The real test is whether this test manages to complete.
       });
@@ -574,39 +587,39 @@ describe('HostedStorageManager', function() {
         await workers.assignDocWorker('Hello');
 
         // put a doc in s3
-        await store.begin();
-        await useFixtureDoc('Hello.grist', store.storageManager);
-        let doc = await store.docManager.fetchDoc(docSession, 'Hello');
-        await doc.docStorage.exec("update Table1 set A = 'parallel' where id = 1");
-        await store.end();
+        await store.run(async () => {
+          await useFixtureDoc('Hello.grist', store.storageManager);
+          const doc = await store.docManager.fetchDoc(docSession, 'Hello');
+          await doc.docStorage.exec("update Table1 set A = 'parallel' where id = 1");
+        });
 
         // now open it many times in parallel
         await store.removeAll();
-        await store.begin();
-        const docs = Promise.all([
-          store.docManager.fetchDoc(docSession, 'Hello'),
-          store.docManager.fetchDoc(docSession, 'Hello'),
-          store.docManager.fetchDoc(docSession, 'Hello'),
-          store.docManager.fetchDoc(docSession, 'Hello'),
-        ]);
-        await assert.isFulfilled(docs);
-        doc = (await docs)[0];
-        const result = await doc.docStorage.get("select A from Table1 where id = 1");
-        assert.equal(result!.A, 'parallel');
-        await store.end();
+        await store.run(async () => {
+          const docs = Promise.all([
+            store.docManager.fetchDoc(docSession, 'Hello'),
+            store.docManager.fetchDoc(docSession, 'Hello'),
+            store.docManager.fetchDoc(docSession, 'Hello'),
+            store.docManager.fetchDoc(docSession, 'Hello'),
+          ]);
+          await assert.isFulfilled(docs);
+          const doc = (await docs)[0];
+          const result = await doc.docStorage.get("select A from Table1 where id = 1");
+          assert.equal(result!.A, 'parallel');
+        });
 
         // To be sure we are checking something, let's call prepareLocalDoc directly
         // on storage manager and make sure it fails.
         await store.removeAll();
-        await store.begin();
-        const preps = Promise.all([
-          store.storageManager.prepareLocalDoc('Hello'),
-          store.storageManager.prepareLocalDoc('Hello'),
-          store.storageManager.prepareLocalDoc('Hello'),
-          store.storageManager.prepareLocalDoc('Hello')
-        ]);
-        await assert.isRejected(preps, /in parallel/);
-        await store.end();
+        await store.run(async () => {
+          const preps = Promise.all([
+            store.storageManager.prepareLocalDoc('Hello'),
+            store.storageManager.prepareLocalDoc('Hello'),
+            store.storageManager.prepareLocalDoc('Hello'),
+            store.storageManager.prepareLocalDoc('Hello')
+          ]);
+          await assert.isRejected(preps, /in parallel/);
+        });
       });
 
       it ('can delete a document', async function() {
@@ -614,29 +627,29 @@ describe('HostedStorageManager', function() {
         await workers.assignDocWorker(docId);
 
         // Create a document
-        await store.begin();
-        let doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.docStorage.exec("insert into Table1(id) values(42)");
-        await store.end();
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id) values(42)");
+        });
 
         const docPath = store.getDocPath(docId);
         const ext = store.storageManager.testGetExternalStorage();
 
         // Check that the document exists on filesystem and in external store.
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        assert.equal(await fse.pathExists(docPath), true);
-        assert.equal(await fse.pathExists(docPath + '-hash-doc'), true);
-        await waitForIt(async () => assert.equal(await ext.exists(docId), true), 20000);
-        await doc.docStorage.exec("insert into Table1(id) values(43)");
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          assert.equal(await fse.pathExists(docPath), true);
+          assert.equal(await fse.pathExists(docPath + '-hash-doc'), true);
+          await waitForIt(async () => assert.equal(await ext.exists(docId), true), 20000);
+          await doc.docStorage.exec("insert into Table1(id) values(43)");
 
-        // Now delete the document, and check it no longer exists on filesystem or external store.
-        await store.docManager.deleteDoc(null, docId, true);
-        assert.equal(await fse.pathExists(docPath), false);
-        assert.equal(await fse.pathExists(docPath + '-hash-doc'), false);
-        assert.equal(await getRedisChecksum(docId), DELETED_TOKEN);
-        await waitForIt(async () => assert.equal(await ext.exists(docId), false), 20000);
-        await store.end();
+          // Now delete the document, and check it no longer exists on filesystem or external store.
+          await store.docManager.deleteDoc(null, docId, true);
+          assert.equal(await fse.pathExists(docPath), false);
+          assert.equal(await fse.pathExists(docPath + '-hash-doc'), false);
+          assert.equal(await getRedisChecksum(docId), DELETED_TOKEN);
+          await waitForIt(async () => assert.equal(await ext.exists(docId), false), 20000);
+        });
 
         // As far as the underlying storage is concerned it should be
         // possible to recreate a doc with the same id after deletion.
@@ -644,55 +657,53 @@ describe('HostedStorageManager', function() {
         // document it must exist in the db - however we'll need to watch
         // out for caching.
         // TODO: it could be worth tweaking fetchDoc so creation is explicit.
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.docStorage.exec("insert into Table1(id) values(42)");
-        await store.end();
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id) values(42)");
+        });
 
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        assert.equal(await fse.pathExists(docPath), true);
-        assert.equal(await fse.pathExists(docPath + '-hash-doc'), true);
-        await store.end();
+        await store.run(async () => {
+          await store.docManager.fetchDoc(docSession, docId);
+          assert.equal(await fse.pathExists(docPath), true);
+          assert.equal(await fse.pathExists(docPath + '-hash-doc'), true);
+        });
       });
 
       it('individual document close is orderly', async function() {
         const docId = `create-${uuidv4()}`;
         await workers.assignDocWorker(docId);
 
-        await store.begin();
+        await store.run(async () => {
+          let doc = await store.docManager.fetchDoc(docSession, docId);
+          await store.closeDoc(doc);
+          const checksum1 = await getRedisChecksum(docId);
+          assert.notEqual(checksum1, 'null');
 
-        let doc = await store.docManager.fetchDoc(docSession, docId);
-        await store.closeDoc(doc);
-        const checksum1 = await getRedisChecksum(docId);
-        assert.notEqual(checksum1, 'null');
+          doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id) values(42)");
 
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.docStorage.exec("insert into Table1(id) values(42)");
+          // Add an attachment file with no corresponding metadata. It should be deleted when shutting down.
+          await doc.docStorage.exec("insert into _gristsys_Files(id, ident) values(23, 'foo')");
+          let files = await doc.docStorage.all("select * from _gristsys_Files");
+          assert.isNotEmpty(files);
 
-        // Add an attachment file with no corresponding metadata. It should be deleted when shutting down.
-        await doc.docStorage.exec("insert into _gristsys_Files(id, ident) values(23, 'foo')");
-        let files = await doc.docStorage.all("select * from _gristsys_Files");
-        assert.isNotEmpty(files);
+          await store.closeDoc(doc);
+          const checksum2 = await getRedisChecksum(docId);
+          assert.notEqual(checksum1, checksum2);
 
-        await store.closeDoc(doc);
-        const checksum2 = await getRedisChecksum(docId);
-        assert.notEqual(checksum1, checksum2);
+          doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id) values(43)");
 
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.docStorage.exec("insert into Table1(id) values(43)");
+          // Attachment file should have been deleted on previous close.
+          files = await doc.docStorage.all("select * from _gristsys_Files");
+          assert.isEmpty(files);
 
-        // Attachment file should have been deleted on previous close.
-        files = await doc.docStorage.all("select * from _gristsys_Files");
-        assert.isEmpty(files);
-
-        const asyncClose = store.closeDoc(doc);  // this time, don't explicitly wait for closeDoc.
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        const checksum3 = await getRedisChecksum(docId);
-        assert.notEqual(checksum2, checksum3);
-        await asyncClose;
-
-        await store.end();
+          const asyncClose = store.closeDoc(doc);  // this time, don't explicitly wait for closeDoc.
+          doc = await store.docManager.fetchDoc(docSession, docId);
+          const checksum3 = await getRedisChecksum(docId);
+          assert.notEqual(checksum2, checksum3);
+          await asyncClose;
+        });
       });
 
       // Viewing a document should not mark it as changed (unless a document-level migration
@@ -701,24 +712,22 @@ describe('HostedStorageManager', function() {
         const docId = `create-${uuidv4()}`;
         await workers.assignDocWorker(docId);
 
-        await store.begin();
+        await store.run(async () => {
+          const markAsChanged: {callCount: number} = store.storageManager.markAsChanged as any;
 
-        const markAsChanged: {callCount: number} = store.storageManager.markAsChanged as any;
+          const changesInitial = markAsChanged.callCount;
+          let doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.waitForInitialization();
+          await store.closeDoc(doc);
+          const changesAfterCreation = markAsChanged.callCount;
+          assert.isAbove(changesAfterCreation, changesInitial);
 
-        const changesInitial = markAsChanged.callCount;
-        let doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.waitForInitialization();
-        await store.closeDoc(doc);
-        const changesAfterCreation = markAsChanged.callCount;
-        assert.isAbove(changesAfterCreation, changesInitial);
-
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.waitForInitialization();
-        await store.closeDoc(doc);
-        const changesAfterViewing = markAsChanged.callCount;
-        assert.equal(changesAfterViewing, changesAfterCreation);
-
-        await store.end();
+          doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.waitForInitialization();
+          await store.closeDoc(doc);
+          const changesAfterViewing = markAsChanged.callCount;
+          assert.equal(changesAfterViewing, changesAfterCreation);
+        });
       });
 
       it('can fork documents', async function() {
@@ -727,35 +736,35 @@ describe('HostedStorageManager', function() {
         await workers.assignDocWorker(docId);
         await workers.assignDocWorker(forkId);
 
-        await store.begin();
-        await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
-        let doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.docStorage.exec("update Table1 set A = 'trunk' where id = 1");
-        await store.end();
+        await store.run(async () => {
+          await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("update Table1 set A = 'trunk' where id = 1");
+        });
 
-        await store.begin();
-        await store.docManager.storageManager.prepareFork(docId, forkId);
-        doc = await store.docManager.fetchDoc(docSession, forkId);
-        assert.equal('trunk', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
-        await doc.docStorage.exec("update Table1 set A = 'fork' where id = 1");
-        await store.end();
+        await store.run(async () => {
+          await store.docManager.storageManager.prepareFork(docId, forkId);
+          const doc = await store.docManager.fetchDoc(docSession, forkId);
+          assert.equal('trunk', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
+          await doc.docStorage.exec("update Table1 set A = 'fork' where id = 1");
+        });
 
         await store.removeAll();
 
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        assert.equal('trunk', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
-        doc = await store.docManager.fetchDoc(docSession, forkId);
-        assert.equal('fork', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
-        await store.end();
+        await store.run(async () => {
+          let doc = await store.docManager.fetchDoc(docSession, docId);
+          assert.equal('trunk', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
+          doc = await store.docManager.fetchDoc(docSession, forkId);
+          assert.equal('fork', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
+        });
 
         // Check that the trunk can be replaced by a fork
         await store.removeAll();
-        await store.begin();
-        await store.storageManager.replace(docId, {sourceDocId: forkId});
-        doc = await store.docManager.fetchDoc(docSession, docId);
-        assert.equal('fork', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
-        await store.end();
+        await store.run(async () => {
+          await store.storageManager.replace(docId, {sourceDocId: forkId});
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          assert.equal('fork', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
+        });
       });
 
       it('can persist a fork with no modifications', async function() {
@@ -765,16 +774,16 @@ describe('HostedStorageManager', function() {
         await workers.assignDocWorker(forkId);
 
         // Create a document.
-        await store.begin();
-        await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
-        let doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.docStorage.exec("update Table1 set A = 'trunk' where id = 1");
-        await store.end();
+        await store.run(async () => {
+          await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("update Table1 set A = 'trunk' where id = 1");
+        });
 
         // Create a fork with no modifications.
-        await store.begin();
-        await store.docManager.storageManager.prepareFork(docId, forkId);
-        await store.end();
+        await store.run(async () => {
+          await store.docManager.storageManager.prepareFork(docId, forkId);
+        });
         await store.waitForUpdates();
         await store.removeAll();
 
@@ -782,10 +791,10 @@ describe('HostedStorageManager', function() {
         await fse.remove(store.getDocPath(docId));
 
         // Make sure opening the fork works as expected.
-        await store.begin();
-        doc = await store.docManager.fetchDoc(docSession, forkId);
-        assert.equal('trunk', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
-        await store.end();
+        await store.run(async () => {
+          const doc = await store.docManager.fetchDoc(docSession, forkId);
+          assert.equal('trunk', (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
+        });
         await store.removeAll();
       });
 
@@ -802,70 +811,72 @@ describe('HostedStorageManager', function() {
         await workers.assignDocWorker(forkId2);
         await workers.assignDocWorker(forkId3);
 
-        await store.begin();
-        await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
-        let doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.waitForInitialization();
-        for (let i = 0; i < forks; i++) {
-          await doc.docStorage.exec(`update Table1 set A = 'v${i}' where id = 1`);
-          await doc.testKeepOpen();
-          await store.waitForUpdates();
-        }
-        await store.end();
+        const doc = await store.run(async () => {
+          await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.waitForInitialization();
+          for (let i = 0; i < forks; i++) {
+            await doc.docStorage.exec(`update Table1 set A = 'v${i}' where id = 1`);
+            await doc.testKeepOpen();
+            await store.waitForUpdates();
+          }
+          return doc;
+        });
 
         const {snapshots} = await store.storageManager.getSnapshots(doc.docName);
         assert.isAtLeast(snapshots.length, forks + 1);  // May be 1 greater depending on how long
         // it takes to run initial migrations.
-        await store.begin();
-        for (let i = forks - 1; i >= 0; i--) {
-          const snapshot = snapshots.shift()!;
-          const forkId = snapshot.docId;
-          await workers.assignDocWorker(forkId);
-          doc = await store.docManager.fetchDoc(docSession, forkId);
-          assert.equal(`v${i}`, (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
-        }
-        await store.end();
+        await store.run(async () => {
+          for (let i = forks - 1; i >= 0; i--) {
+            const snapshot = snapshots.shift()!;
+            const forkId = snapshot.docId;
+            await workers.assignDocWorker(forkId);
+            const doc = await store.docManager.fetchDoc(docSession, forkId);
+            assert.equal(`v${i}`, (await doc.docStorage.get("select A from Table1 where id = 1"))!.A);
+          }
+        });
       });
 
       it('can access snapshots with old schema versions', async function() {
         const snapshotId = `World~v=1`;
         await workers.assignDocWorker(snapshotId);
-        await store.begin();
-        // Pretend we have a snapshot of World-v33.grist and fetch/load it.
-        await useFixtureDoc('World-v33.grist', store.storageManager, `${snapshotId}.grist`);
-        const doc = await store.docManager.fetchDoc(docSession, snapshotId);
+        await store.run(async () => {
+          // Pretend we have a snapshot of World-v33.grist and fetch/load it.
+          await useFixtureDoc('World-v33.grist', store.storageManager, `${snapshotId}.grist`);
+          const doc = await store.docManager.fetchDoc(docSession, snapshotId);
 
-        // Check that the snapshot isn't broken.
-        assert.doesNotThrow(async () => await doc.waitForInitialization());
+          // Check that the snapshot isn't broken.
+          assert.doesNotThrow(async () => await doc.waitForInitialization());
 
-        // Check that the snapshot was migrated to the latest schema version.
-        assert.equal(
-          SCHEMA_VERSION,
-          (await doc.docStorage.get("select schemaVersion from _grist_DocInfo where id = 1"))!.schemaVersion
-        );
+          // Check that the snapshot was migrated to the latest schema version.
+          assert.equal(
+            SCHEMA_VERSION,
+            (await doc.docStorage.get("select schemaVersion from _grist_DocInfo where id = 1"))!.schemaVersion
+          );
 
-        // Check that the document is actually a snapshot.
-        await assert.isRejected(doc.replace(docSession, {sourceDocId: 'docId'}),
-          /Snapshots cannot be replaced/);
-        await assert.isRejected(doc.applyUserActions(docSession, [['AddTable', 'NewTable', [{id: 'A'}]]]),
-          /pyCall is not available in snapshots/);
-        await store.end();
+          // Check that the document is actually a snapshot.
+          await assert.isRejected(doc.replace(docSession, {sourceDocId: 'docId'}),
+            /Snapshots cannot be replaced/);
+          await assert.isRejected(doc.applyUserActions(docSession, [['AddTable', 'NewTable', [{id: 'A'}]]]),
+            /pyCall is not available in snapshots/);
+        });
       });
 
       it('can prune snapshots', async function() {
         const versions = 8;
 
         const docId = `create-${uuidv4()}`;
-        await store.begin();
-        await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
-        const doc = await store.docManager.fetchDoc(docSession, docId);
-        for (let i = 0; i < versions; i++) {
-          await doc.docStorage.exec(`update Table1 set A = 'v${i}' where id = 1`);
-          await doc.testKeepOpen();
-          await store.waitForUpdates();
-        }
-        await store.storageManager.testWaitForPrunes();
-        await store.end();
+        const doc = await store.run(async () => {
+          await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          for (let i = 0; i < versions; i++) {
+            await doc.docStorage.exec(`update Table1 set A = 'v${i}' where id = 1`);
+            await doc.testKeepOpen();
+            await store.waitForUpdates();
+          }
+          await store.storageManager.testWaitForPrunes();
+          return doc;
+        });
         await waitForIt(async () => {
           const {snapshots} = await store.storageManager.getSnapshots(doc.docName);
           // Should be keeping at least five, and then maybe 1 more if the hour changed
@@ -888,20 +899,20 @@ describe('HostedStorageManager', function() {
 
           // Create a series of versions of a document, and fetch them sequentially
           // so that they are potentially available as stale values.
-          await store.begin();
-          await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
-          let doc = await store.docManager.fetchDoc(docSession, docId);
-          await store.end();
+          await store.run(async () => {
+            await useFixtureDoc('Hello.grist', store.storageManager, `${docId}.grist`);
+            await store.docManager.fetchDoc(docSession, docId);
+          });
           for (let i = 0; i < 3; i++) {
             await store.removeAll();
-            await store.begin();
-            doc = await store.docManager.fetchDoc(docSession, docId);
-            if (i > 0) {
-              const prev = await doc.docStorage.get("select A from Table1 where id = 1");
-              assert.equal(prev!.A, `magic_word${i - 1}`);
-            }
-            await doc.docStorage.exec(`update Table1 set A = 'magic_word${i}' where id = 1`);
-            await store.end();
+            await store.run(async () => {
+              const doc = await store.docManager.fetchDoc(docSession, docId);
+              if (i > 0) {
+                const prev = await doc.docStorage.get("select A from Table1 where id = 1");
+                assert.equal(prev!.A, `magic_word${i - 1}`);
+              }
+              await doc.docStorage.exec(`update Table1 set A = 'magic_word${i}' where id = 1`);
+            });
           }
 
           // Wipe all checksums and make sure (1) we don't get any errors and (2) the
@@ -913,10 +924,10 @@ describe('HostedStorageManager', function() {
               // Optionally wipe all local files.
               await store.removeAll();
             }
-            await store.begin();
-            doc = await store.docManager.fetchDoc(docSession, docId);
-            result = (await doc.docStorage.get("select A from Table1 where id = 1"))?.A;
-            await store.end();
+            await store.run(async () => {
+              const doc = await store.docManager.fetchDoc(docSession, docId);
+              result = (await doc.docStorage.get("select A from Table1 where id = 1"))?.A;
+            });
             if (result !== 'magic_word2') {
               throw new Error(`inconsistent result: ${result}`);
             }
@@ -927,16 +938,17 @@ describe('HostedStorageManager', function() {
 
       it('can access metadata', async function() {
         const docId = `create-${uuidv4()}`;
-        await store.begin();
-        // Use a doc that's up-to-date on storage migrations, but needs a python schema migration.
-        await useFixtureDoc('BlobMigrationV8.grist', store.storageManager, `${docId}.grist`);
-        const doc = await store.docManager.fetchDoc(docSession, docId);
-        await doc.waitForInitialization();
-        const rec = await doc.fetchTable(makeExceptionalDocSession('system'), '_grist_DocInfo');
-        const tz = rec.tableData[3].timezone[0];
-        const h = (await doc.getRecentStates(makeExceptionalDocSession('system')))[0].h;
-        await store.docManager.makeBackup(doc, 'hello');
-        await store.end();
+        const { tz, h, doc } = await store.run(async () => {
+          // Use a doc that's up-to-date on storage migrations, but needs a python schema migration.
+          await useFixtureDoc('BlobMigrationV8.grist', store.storageManager, `${docId}.grist`);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.waitForInitialization();
+          const rec = await doc.fetchTable(makeExceptionalDocSession('system'), '_grist_DocInfo');
+          const tz = rec.tableData[3].timezone[0];
+          const h = (await doc.getRecentStates(makeExceptionalDocSession('system')))[0].h;
+          await store.docManager.makeBackup(doc, 'hello');
+          return { tz, h, doc };
+        });
         const {snapshots} = await store.storageManager.getSnapshots(doc.docName);
         assert.equal(snapshots[0]?.metadata?.label, 'hello');
         // There can be extra snapshots, depending on timing.
