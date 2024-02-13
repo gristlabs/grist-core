@@ -13,7 +13,6 @@
  * All methods above return an object which may  be disposed to close and dispose that specific
  * tab from the outside (e.g. when GristDoc is disposed).
  */
-
 import * as commands from 'app/client/components/commands';
 import {FieldModel} from 'app/client/components/Forms/Field';
 import {FormView} from 'app/client/components/Forms/FormView';
@@ -147,7 +146,7 @@ export class RightPanel extends Disposable {
       viewTabOpen: () => this._openViewTab(),
       viewTabFocus: () => this._viewTabFocus(),
       sortFilterTabOpen: () => this._openSortFilter(),
-      dataSelectionTabOpen: () => this._openDataSelection()
+      dataSelectionTabOpen: () => this._openDataSelection(),
     }, this, true));
 
     // When a page widget is changed, subType might not be valid anymore, so reset it.

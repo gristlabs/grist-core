@@ -891,6 +891,14 @@ GridView.prototype.insertColumn = async function(colId = null, options = {}) {
   const newColInfo = await this.viewSection.insertColumn(colId, {colInfo, index});
   this.selectColumn(index);
   if (!skipPopup) { this.currentEditingColumnIndex(index); }
+  // we want to show creator panel in some cases, but only when "rename panel" is dismissed
+  const sub = this.currentEditingColumnIndex.subscribe(state=>{
+    // if no column is edited we can assume that rename panel is closed
+    if(state<0){
+      options.onPopupClose?.();
+      sub.dispose();
+    }
+  });
   return newColInfo;
 };
 

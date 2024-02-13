@@ -5,6 +5,7 @@ import {setupTestSuite} from "./testUtils";
 import {UserAPIImpl} from 'app/common/UserAPI';
 
 describe('GridViewNewColumnMenu', function () {
+  const STANDARD_WAITING_TIME = 1000;
   this.timeout('2m');
   const cleanup = setupTestSuite();
   gu.bigScreen();
@@ -75,17 +76,17 @@ describe('GridViewNewColumnMenu', function () {
 
     it('should show rename menu after a new column click', async function () {
       await clickAddColumn();
-      await driver.findWait('.test-new-columns-menu-add-new', 100).click();
-      await driver.findWait('.test-column-title-popup', 100, 'rename menu is not present');
+      await driver.findWait('.test-new-columns-menu-add-new', STANDARD_WAITING_TIME).click();
+      await driver.findWait('.test-column-title-popup', STANDARD_WAITING_TIME, 'rename menu is not present');
       await closeAddColumnMenu();
     });
 
     it('should create a new column', async function () {
       await clickAddColumn();
-      await driver.findWait('.test-new-columns-menu-add-new', 100).click();
+      await driver.findWait('.test-new-columns-menu-add-new', STANDARD_WAITING_TIME).click();
       await gu.waitForServer();
       //discard rename menu
-      await driver.find('.test-column-title-close').click();
+      await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
       //check if new column is present
       const columns = await gu.getColumnNames();
       assert.include(columns, 'D', 'new column is not present');
@@ -101,30 +102,30 @@ describe('GridViewNewColumnMenu', function () {
 
     it('should support inserting before selected column', async function () {
       await gu.openColumnMenu('A', 'Insert column to the left');
-      await driver.findWait(".test-new-columns-menu", 100);
+      await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
       await gu.sendKeys(Key.ENTER);
       await gu.waitForServer();
-      await driver.findWait('.test-column-title-close', 100).click();
+      await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
       const columns = await gu.getColumnNames();
       assert.deepEqual(columns, ['D', 'A', 'B', 'C']);
     });
 
     it('should support inserting after selected column', async function () {
       await gu.openColumnMenu('A', 'Insert column to the right');
-      await driver.findWait(".test-new-columns-menu", 100);
+      await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
       await gu.sendKeys(Key.ENTER);
       await gu.waitForServer();
-      await driver.findWait('.test-column-title-close', 100).click();
+      await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
       const columns = await gu.getColumnNames();
       assert.deepEqual(columns, ['A', 'D', 'B', 'C']);
     });
 
     it('should support inserting after the last visible column', async function () {
       await gu.openColumnMenu('C', 'Insert column to the right');
-      await driver.findWait(".test-new-columns-menu", 100);
+      await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
       await gu.sendKeys(Key.ENTER);
       await gu.waitForServer();
-      await driver.findWait('.test-column-title-close', 100).click();
+      await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
       const columns = await gu.getColumnNames();
       assert.deepEqual(columns, ['A', 'B', 'C', 'D']);
     });
@@ -147,39 +148,10 @@ describe('GridViewNewColumnMenu', function () {
 
   describe('create column with type', function () {
     revertThis();
-    it('should show "Add Column With type" option', async function () {
-      // open add new colum menu
-      await clickAddColumn();
-      // check if "Add Column With type" option is persent
-      const addWithType = await driver.findWait(
-        '.test-new-columns-menu-add-with-type',
-        100,
-        'Add Column With Type is not present');
-      assert.equal(await addWithType.getText(), 'Add column with type');
-    });
-
-    it('should display reference column popup when opened for the first time', async function(){
-      // open add new colum menu
-      await clickAddColumn();
-      // select "Add Column With type" option
-      await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
-      // wait for submenu to appear
-      await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
-      // check if popup is showed
-      await driver.findWait('.test-behavioral-prompt', 100, 'Reference column popup is not present');
-      // close popup
-      await gu.dismissBehavioralPrompts();
-      // close menu
-      await closeAddColumnMenu();
-      // open it again
-      await clickAddColumn();
-      await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
-      await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
-      // popup should not be showed
-      assert.isFalse(await driver.find('.test-behavioral-prompt').isPresent());
-      await gu.disableTips(session.email);
-      await closeAddColumnMenu();
-    });
+    const columsThatShouldTriggerSideMenu = [
+      "Reference",
+      "Reference List"
+    ];
 
     const optionsToBeDisplayed = [
       "Text",
@@ -194,14 +166,56 @@ describe('GridViewNewColumnMenu', function () {
       "Reference List",
       "Attachment",
     ].map((option) => ({type:option, testClass: option.toLowerCase().replace(' ', '-')}));
-    for (const option of optionsToBeDisplayed) {
+
+
+    describe('on desktop', function () {
+        gu.bigScreen();
+
+      it('should show "Add Column With type" option', async function () {
+        // open add new colum menu
+        await clickAddColumn();
+        // check if "Add Column With type" option is persent
+        const addWithType = await driver.findWait(
+          '.test-new-columns-menu-add-with-type',
+          100,
+          'Add Column With Type is not present');
+        assert.equal(await addWithType.getText(), 'Add column with type');
+      });
+
+      it('should display reference column popup when opened for the first time', async function(){
+        await gu.enableTips(session.email);
+        // open add new colum menu
+        await clickAddColumn();
+        // select "Add Column With type" option
+        await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
+        // wait for submenu to appear
+        await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
+        // check if popup is showed
+        await driver.findWait('.test-behavioral-prompt',
+          STANDARD_WAITING_TIME,
+          'Reference column popup is not present');
+        // close popup
+        await gu.dismissBehavioralPrompts();
+        // close menu
+        await closeAddColumnMenu();
+        // open it again
+        await clickAddColumn();
+        await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
+        await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
+        // popup should not be showed
+        assert.isFalse(await driver.find('.test-behavioral-prompt').isPresent());
+        await gu.disableTips(session.email);
+        await closeAddColumnMenu();
+      });
+
+      for (const option of optionsToBeDisplayed) {
       it(`should allow to select column type ${option.type}`, async function () {
         // open add new colum menu
         await clickAddColumn();
         // select "Add Column With type" option
-        await driver.findWait('.test-new-columns-menu-add-with-type', 100).click();
+        await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
         // wait for submenu to appear
-        await driver.findWait('.test-new-columns-menu-add-with-type-submenu', 100);
+        await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
         // check if it is present in the menu
         const element = await driver.findWait(
           `.test-new-columns-menu-add-${option.testClass}`.toLowerCase(),
@@ -209,18 +223,124 @@ describe('GridViewNewColumnMenu', function () {
           `${option.type} option is not present`);
         // click on the option and check if column is added with a proper type
         await element.click();
-        await gu.waitForServer();
-        //discard rename menu
-        await driver.findWait('.test-column-title-close', 100).click();
-        //check if new column is present
-        await gu.selectColumn('D');
-        await gu.openColumnPanel();
-        const type = await gu.getType();
-        assert.equal(type, option.type);
+          await gu.waitForServer();//discard rename menu
+          await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
+          //check if new column is present
 
-        await gu.undo(1);
-      });
-    }
+          await gu.selectColumn('D');
+          await gu.openColumnPanel();
+          const type = await gu.getType();
+          assert.equal(type, option.type);
+
+          await gu.undo(1);
+        });
+      }
+
+      for (const optionsTriggeringMenu of optionsToBeDisplayed.filter((option) =>
+        columsThatShouldTriggerSideMenu.includes(option.type))) {
+        it(`should open Right Menu on Column section after choosing ${optionsTriggeringMenu.type}`, async function(){
+          await gu.enableTips(session.email);
+          //close right panel just in case.
+          await gu.toggleSidePanel("right", "close");
+          // open add new colum menu
+          await clickAddColumn();
+          // select "Add Column With type" option
+          await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
+          // wait for submenu to appear
+          await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
+          // check if it is present in the menu
+          const element = await driver.findWait(
+            `.test-new-columns-menu-add-${optionsTriggeringMenu.testClass}`.toLowerCase(),
+            STANDARD_WAITING_TIME,
+            `${optionsTriggeringMenu.type} option is not present`);
+          // click on the option and check if column is added with a proper type
+          await element.click();
+          //discard rename menu
+          await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
+          await gu.waitForServer();
+          //check if left menu is opened on column section
+          assert.isTrue(await driver.findWait('.test-right-tab-field', 1000).isDisplayed());
+
+          await gu.disableTips(session.email);
+          await gu.dismissBehavioralPrompts();
+          await gu.toggleSidePanel("right", "close");
+          await gu.undo(1);
+        });
+
+        it(`should show referenceColumnsConfig in right Column section
+         when ${optionsTriggeringMenu.type} type is chosen`,
+          async function(){
+          //close right panel just in case.
+          await gu.toggleSidePanel("right", "close");
+          await gu.enableTips(session.email);
+          await driver.executeScript('resetDismissedPopups()');
+          // open add new colum menu
+          await clickAddColumn();
+          // select "Add Column With type" option
+          await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
+          // wait for submenu to appear
+          await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
+          // check if it is present in the menu
+          const element = await driver.findWait(
+            `.test-new-columns-menu-add-${optionsTriggeringMenu.testClass}`.toLowerCase(),
+            STANDARD_WAITING_TIME,
+            `${optionsTriggeringMenu.type} option is not present`);
+          // click on the option and check if column is added with a proper type
+          await element.click();
+          //discard rename menu
+          await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
+          await gu.waitForServer();
+          //check if referenceColumnsConfig is present
+          await gu.waitToPass(async ()=> assert.isTrue(
+            await driver.findContentWait(
+              '.test-behavioral-prompt-title',
+              'Reference Columns',
+               STANDARD_WAITING_TIME*2
+               ).isDisplayed()
+            ), 5000);
+          await gu.dismissBehavioralPrompts();
+            await gu.disableTips(session.email);
+
+          await gu.toggleSidePanel("right", "close");
+          await gu.undo(1);
+        });
+      }
+    });
+
+    describe('on mobile', function () {
+      gu.narrowScreen();
+      for (const optionsTriggeringMenu of optionsToBeDisplayed.filter((option) =>
+      columsThatShouldTriggerSideMenu.includes(option.type))) {
+        it('should not show Right Menu when user is on the mobile/narrow screen', async function() {
+          await gu.enableTips(session.email);
+          //close right panel just in case.
+          await gu.toggleSidePanel("right", "close");
+          // open add new colum menu
+          await clickAddColumn();
+          // select "Add Column With type" option
+          await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
+          // wait for submenu to appear
+          await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
+          // check if it is present in the menu
+          const element = await driver.findWait(
+            `.test-new-columns-menu-add-${optionsTriggeringMenu.testClass}`.toLowerCase(),
+            STANDARD_WAITING_TIME,
+            `${optionsTriggeringMenu.type} option is not present`);
+          // click on the option and check if column is added with a proper type
+          await element.click();
+          //discard rename menu
+          await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
+          await gu.waitForServer();
+          //check if left menu is opened on column section
+          assert.isFalse(await driver.find('.test-right-tab-field').isPresent());
+
+          await gu.disableTips(session.email);
+          await gu.dismissBehavioralPrompts();
+          await gu.toggleSidePanel("right", "close");
+          await gu.undo(1);
+        });
+      }
+    });
   });
 
   describe('create formula column', function(){
@@ -229,10 +349,10 @@ describe('GridViewNewColumnMenu', function () {
       // open add new colum menu
       await clickAddColumn();
       // check if "create formula column" option is present
-      const addWithType = await driver.findWait('.test-new-columns-menu-add-formula', 100,
+      const addWithType = await driver.findWait('.test-new-columns-menu-add-formula', STANDARD_WAITING_TIME,
         'Add formula column is not present');
       // check if it has a tooltip button
-      const tooltip = await addWithType.findWait('.test-info-tooltip', 100,
+      const tooltip = await addWithType.findWait('.test-info-tooltip', STANDARD_WAITING_TIME,
         'Tooltip button is not present');
       // check if tooltip is show after hovering
       await tooltip.mouseMove();
@@ -260,7 +380,7 @@ describe('GridViewNewColumnMenu', function () {
       // open add new colum menu
       await clickAddColumn();
       // select "create formula column" option
-      await driver.findWait('.test-new-columns-menu-add-formula', 100).click();
+      await driver.findWait('.test-new-columns-menu-add-formula', STANDARD_WAITING_TIME).click();
       // there should not be a rename poup
       assert.isFalse(await driver.find('test-column-title-popup').isPresent());
       //check if new column is present
@@ -301,7 +421,9 @@ describe('GridViewNewColumnMenu', function () {
         // Check that the hidden section is present and has the expected columns.
         const checkSection = async (...columns: string[]) => {
           await clickAddColumn();
-          await driver.findWait(".test-new-columns-menu-hidden-columns-header", 100, 'hidden section is not present');
+          await driver.findWait(".test-new-columns-menu-hidden-columns-header",
+            STANDARD_WAITING_TIME,
+            'hidden section is not present');
           for (const column of columns) {
             assert.isTrue(
               await driver.findContent('.test-new-columns-menu-hidden-column-inlined', column).isPresent(),
@@ -361,7 +483,9 @@ describe('GridViewNewColumnMenu', function () {
 
         // Now make sure we see all of them in the submenu.
         await clickAddColumn();
-        await driver.findWait(".test-new-columns-menu-hidden-columns-menu", 100, 'hidden section is not present');
+        await driver.findWait(".test-new-columns-menu-hidden-columns-menu",
+          STANDARD_WAITING_TIME,
+          'hidden section is not present');
         assert.isFalse(await driver.find(".test-new-columns-menu-hidden-columns-header").isPresent());
 
         // We don't see any hidden columns in the main menu.
@@ -373,7 +497,9 @@ describe('GridViewNewColumnMenu', function () {
         // And we should see all the hidden columns.
         for (const column of columns.slice(1)) {
           assert.isTrue(
-            await driver.findContentWait('.test-new-columns-menu-hidden-column-collapsed', column, 100).isDisplayed(),
+            await driver.findContentWait('.test-new-columns-menu-hidden-column-collapsed',
+              column,
+              STANDARD_WAITING_TIME).isDisplayed(),
             `column ${column} is not present`
           );
         }
@@ -393,7 +519,7 @@ describe('GridViewNewColumnMenu', function () {
       it('submenu should be searchable', async function () {
         await clickAddColumn();
         await driver.find(".test-new-columns-menu-hidden-columns-menu").click();
-        await driver.findWait('.test-searchable-menu-input', 100).click();
+        await driver.findWait('.test-searchable-menu-input', STANDARD_WAITING_TIME).click();
         await gu.sendKeys('New');
         await checkResult(['New1', 'New2', 'New3', 'New4']);
 
@@ -412,12 +538,16 @@ describe('GridViewNewColumnMenu', function () {
         // Show it once again and add B and C.
         await clickAddColumn();
         await driver.find(".test-new-columns-menu-hidden-columns-menu").click();
-        await driver.findContentWait('.test-new-columns-menu-hidden-column-collapsed', 'B', 100).click();
+        await driver.findContentWait('.test-new-columns-menu-hidden-column-collapsed',
+          'B',
+          STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         await clickAddColumn();
         // Now this column is inlined.
-        await driver.findContentWait(".test-new-columns-menu-hidden-column-inlined", 'C', 100).click();
+        await driver.findContentWait(".test-new-columns-menu-hidden-column-inlined",
+          'C',
+          STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         // Make sure they are added at the end.
@@ -430,7 +560,7 @@ describe('GridViewNewColumnMenu', function () {
               await collapsedHiddenColumns(),
               cols
             );
-          }, 250);
+          }, STANDARD_WAITING_TIME);
         }
       });
     });
@@ -487,7 +617,7 @@ describe('GridViewNewColumnMenu', function () {
 
     it('should suggest to add every column from a reference', async function () {
       await clickAddColumn();
-      await driver.findWait('.test-new-columns-menu-lookup-Person', 100).click();
+      await driver.findWait('.test-new-columns-menu-lookup-Person', STANDARD_WAITING_TIME).click();
       await gu.waitToPass(async () => {
         const allColumns = await driver.findAll('.test-new-columns-menu-lookup-column', (el) => el.getText());
         assert.deepEqual(allColumns, COLUMN_LABELS);
@@ -500,8 +630,8 @@ describe('GridViewNewColumnMenu', function () {
       it(`should insert ${column} with a proper name and type from a Ref column`, async function () {
         const revert = await gu.begin();
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-lookup-Person', 100).click();
-        await driver.findContentWait(`.test-new-columns-menu-lookup-column`, column, 100).click();
+        await driver.findWait('.test-new-columns-menu-lookup-Person', STANDARD_WAITING_TIME).click();
+        await driver.findContentWait(`.test-new-columns-menu-lookup-column`, column, STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         const columns = await gu.getColumnNames();
@@ -590,9 +720,9 @@ describe('GridViewNewColumnMenu', function () {
 
     it('should suggest aggregations for RefList column', async function () {
       await clickAddColumn();
-      await driver.findWait('.test-new-columns-menu-lookup-Employees', 100).click();
+      await driver.findWait('.test-new-columns-menu-lookup-Employees', STANDARD_WAITING_TIME).click();
       // Wait for the menu to appear.
-      await driver.findWait('.test-new-columns-menu-lookup-column', 100);
+      await driver.findWait('.test-new-columns-menu-lookup-column', STANDARD_WAITING_TIME);
       // First check items (so columns we can add which don't have menu)
       const items = await driver.findAll('.test-new-columns-menu-lookup-column', (el) => el.getText());
       assert.deepEqual(items, [
@@ -629,11 +759,11 @@ describe('GridViewNewColumnMenu', function () {
         const colId = column.replace(" ", "_");
 
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-lookup-Employees', 100).click();
-        await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, 100).mouseMove();
+        await driver.findWait('.test-new-columns-menu-lookup-Employees', STANDARD_WAITING_TIME).click();
+        await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, STANDARD_WAITING_TIME).mouseMove();
 
         // Wait for the menu to show up.
-        await driver.findWait('.test-new-columns-menu-lookup-submenu-function', 100);
+        await driver.findWait('.test-new-columns-menu-lookup-submenu-function', STANDARD_WAITING_TIME);
 
         // Make sure the list of function is accurate.
         const suggestedFunctions =
@@ -655,7 +785,7 @@ describe('GridViewNewColumnMenu', function () {
         }
 
         // Now pick the default function.
-        await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, 100).click();
+        await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         const columns = await gu.getColumnNames();
@@ -728,7 +858,7 @@ describe('GridViewNewColumnMenu', function () {
     it('should show reverse lookups in the menu', async function () {
       await clickAddColumn();
       // Wait for any menu to show up.
-      await driver.findWait('.test-new-columns-menu-revlookup', 100);
+      await driver.findWait('.test-new-columns-menu-revlookup', STANDARD_WAITING_TIME);
       // We should see two rev lookups.
       assert.deepEqual(await driver.findAll('.test-new-columns-menu-revlookup', (el) => el.getText()), [
         'Person [← Item]',
@@ -739,7 +869,7 @@ describe('GridViewNewColumnMenu', function () {
     it('should show same list from Ref and RefList', async function () {
       await driver.findContent('.test-new-columns-menu-revlookup', 'Person [← Item]').mouseMove();
       // Wait for any menu to show up.
-      await driver.findWait('.test-new-columns-menu-revlookup-column', 100);
+      await driver.findWait('.test-new-columns-menu-revlookup-column', STANDARD_WAITING_TIME);
 
       const columns = await driver.findAll('.test-new-columns-menu-revlookup-column', (el) => el.getText());
       const submenus = await driver.findAll('.test-new-columns-menu-revlookup-submenu', (el) => el.getText());
@@ -747,7 +877,7 @@ describe('GridViewNewColumnMenu', function () {
       // Now open the other submenu and make sure list is the same.
       await driver.findContent('.test-new-columns-menu-revlookup', 'Person [← Items]').mouseMove();
       // Wait for any menu to show up.
-      await driver.findWait('.test-new-columns-menu-revlookup-column', 100);
+      await driver.findWait('.test-new-columns-menu-revlookup-column', STANDARD_WAITING_TIME);
 
       const columns2 = await driver.findAll('.test-new-columns-menu-revlookup-column', (el) => el.getText());
       const submenus2 = await driver.findAll('.test-new-columns-menu-revlookup-submenu', (el) => el.getText());
@@ -791,14 +921,20 @@ describe('GridViewNewColumnMenu', function () {
       for(const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
         it(`should properly add reverse lookup for ${column}`, async function () {
           await clickAddColumn();
-          await driver.findContentWait('.test-new-columns-menu-revlookup', 'Person [← Item]', 100).mouseMove();
+          await driver.findContentWait('.test-new-columns-menu-revlookup',
+            'Person [← Item]',
+            STANDARD_WAITING_TIME
+          ).mouseMove();
 
           // This is submenu so expand it.
-          await driver.findContentWait('.test-new-columns-menu-revlookup-submenu', new RegExp("^" + column), 100)
-                      .mouseMove();
+          await driver.findContentWait('.test-new-columns-menu-revlookup-submenu',
+            new RegExp("^" + column),
+            STANDARD_WAITING_TIME*3
+          ).mouseMove();
 
           // Wait for any function to appear.
-          await driver.findWait('.test-new-columns-menu-revlookup-column-function', 100);
+          await driver.findWait('.test-new-columns-menu-revlookup-column-function',
+            STANDARD_WAITING_TIME);
 
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
@@ -876,10 +1012,21 @@ describe('GridViewNewColumnMenu', function () {
 
           async function addRevLookup(func: string) {
             await clickAddColumn();
-            await driver.findContentWait('.test-new-columns-menu-revlookup', 'Person [← Item]', 100).mouseMove();
-            await driver.findContentWait('.test-new-columns-menu-revlookup-submenu', new RegExp("^" + column), 100)
-                        .mouseMove();
-            await driver.findContentWait('.test-new-columns-menu-revlookup-column-function', func, 100).click();
+            await driver.findContentWait(
+              '.test-new-columns-menu-revlookup',
+              'Person [← Item]',
+              STANDARD_WAITING_TIME
+            ).mouseMove();
+            await driver.findContentWait(
+              '.test-new-columns-menu-revlookup-submenu',
+              new RegExp("^" + column),
+              STANDARD_WAITING_TIME
+            ).mouseMove();
+            await driver.findContentWait(
+              '.test-new-columns-menu-revlookup-column-function',
+              func,
+              STANDARD_WAITING_TIME
+            ).click();
             await gu.waitForServer();
           }
         });
@@ -890,14 +1037,24 @@ describe('GridViewNewColumnMenu', function () {
       for(const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
         it(`should properly add reverse lookup for ${column}`, async function () {
           await clickAddColumn();
-          await driver.findContentWait('.test-new-columns-menu-revlookup', 'Person [← Items]', 100).mouseMove();
+          await driver.findContentWait(
+            '.test-new-columns-menu-revlookup',
+            'Person [← Items]',
+            STANDARD_WAITING_TIME
+          ).mouseMove();
 
           // This is submenu so expand it.
-          await driver.findContentWait('.test-new-columns-menu-revlookup-submenu', new RegExp("^" + column), 100)
-                      .mouseMove();
+          await driver.findContentWait(
+            '.test-new-columns-menu-revlookup-submenu',
+            new RegExp("^" + column),
+            STANDARD_WAITING_TIME
+          ).mouseMove();
 
           // Wait for any function to appear.
-          await driver.findWait('.test-new-columns-menu-revlookup-column-function', 100);
+          await driver.findWait(
+            '.test-new-columns-menu-revlookup-column-function',
+            STANDARD_WAITING_TIME
+          );
 
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
@@ -968,10 +1125,21 @@ describe('GridViewNewColumnMenu', function () {
 
           async function addRevLookup(func: string) {
             await clickAddColumn();
-            await driver.findContentWait('.test-new-columns-menu-revlookup', 'Person [← Items]', 100).mouseMove();
-            await driver.findContentWait('.test-new-columns-menu-revlookup-submenu', new RegExp("^" + column), 100)
-                        .mouseMove();
-            await driver.findContentWait('.test-new-columns-menu-revlookup-column-function', func, 100).click();
+            await driver.findContentWait(
+              '.test-new-columns-menu-revlookup',
+              'Person [← Items]',
+              STANDARD_WAITING_TIME
+            ).mouseMove();
+            await driver.findContentWait(
+              '.test-new-columns-menu-revlookup-submenu',
+              new RegExp("^" + column),
+              STANDARD_WAITING_TIME
+            ).mouseMove();
+            await driver.findContentWait(
+              '.test-new-columns-menu-revlookup-column-function',
+              func,
+              STANDARD_WAITING_TIME
+            ).click();
             await gu.waitForServer();
           }
         });
@@ -987,8 +1155,8 @@ describe('GridViewNewColumnMenu', function () {
         await gu.openColumnPanel();
 
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp', 100).mouseMove();
-        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp-new', 100).click();
+        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp', STANDARD_WAITING_TIME).mouseMove();
+        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp-new', STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         // Make sure we have Created At column at the end.
@@ -1014,8 +1182,8 @@ describe('GridViewNewColumnMenu', function () {
 
       it('modified at - should create new column with date triggered on change', async function () {
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp', 100).mouseMove();
-        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp-change', 100).click();
+        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp', STANDARD_WAITING_TIME).mouseMove();
+        await driver.findWait('.test-new-columns-menu-shortcuts-timestamp-change', STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         // Make sure we have this column at the end.
@@ -1048,8 +1216,8 @@ describe('GridViewNewColumnMenu', function () {
         await gu.openColumnPanel();
 
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-author', 100).mouseMove();
-        await driver.findWait('.test-new-columns-menu-shortcuts-author-new', 100).click();
+        await driver.findWait('.test-new-columns-menu-shortcuts-author', STANDARD_WAITING_TIME).mouseMove();
+        await driver.findWait('.test-new-columns-menu-shortcuts-author-new', STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         // Make sure we have this column at the end.
@@ -1076,8 +1244,8 @@ describe('GridViewNewColumnMenu', function () {
         await gu.openColumnPanel();
 
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-author', 100).mouseMove();
-        await driver.findWait('.test-new-columns-menu-shortcuts-author-change', 100).click();
+        await driver.findWait('.test-new-columns-menu-shortcuts-author', STANDARD_WAITING_TIME).mouseMove();
+        await driver.findWait('.test-new-columns-menu-shortcuts-author-change', STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
 
         // Make sure we have this column at the end.
@@ -1105,7 +1273,7 @@ describe('GridViewNewColumnMenu', function () {
     describe('Detect Duplicates in...', function () {
       it('should show columns in a searchable sub-menu', async function () {
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
+        await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', STANDARD_WAITING_TIME).mouseMove();
         await gu.waitToPass(async () => {
           assert.deepEqual(
             await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
@@ -1119,7 +1287,7 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
             ['A']
           );
-        }, 250);
+        }, STANDARD_WAITING_TIME);
 
         await gu.sendKeys('BC');
         await gu.waitToPass(async () => {
@@ -1127,7 +1295,7 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
             []
           );
-        }, 250);
+        }, STANDARD_WAITING_TIME);
 
         await gu.clearInput();
         await gu.waitToPass(async () => {
@@ -1135,12 +1303,12 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findAll('.test-searchable-menu li', (el) => el.getText()),
             ['A', 'B', 'C']
           );
-        }, 250);
+        }, STANDARD_WAITING_TIME);
       });
 
       it('should create new column that checks for duplicates in the specified column', async function () {
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
+        await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', STANDARD_WAITING_TIME).mouseMove();
         await driver.findContentWait('.test-searchable-menu li', 'A', 500).click();
         await gu.waitForServer();
         await gu.sendKeys(Key.ENTER);
@@ -1159,7 +1327,7 @@ describe('GridViewNewColumnMenu', function () {
         for (const [label, type] of [['Choice', 'Choice List'], ['Ref', 'Reference List']]) {
           await gu.addColumn(label, type);
           await clickAddColumn();
-          await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', 100).mouseMove();
+          await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', STANDARD_WAITING_TIME).mouseMove();
           await driver.findContentWait('.test-searchable-menu li', label, 500).click();
           await gu.waitForServer();
           await gu.sendKeys(Key.ENTER);
@@ -1181,7 +1349,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.sendKeys('A', Key.ENTER);
         await gu.waitForServer();
         await clickAddColumn();
-        await driver.findWait('.test-new-columns-menu-shortcuts-uuid', 100).click();
+        await driver.findWait('.test-new-columns-menu-shortcuts-uuid', STANDARD_WAITING_TIME).click();
         await gu.waitForServer();
         const cells1 = await gu.getVisibleGridCells({col: 'UUID', rowNums: [1, 2]});
         assert.match(cells1[0], /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
@@ -1224,7 +1392,7 @@ describe('GridViewNewColumnMenu', function () {
     // Now on the main tab, make sure we don't see those references in lookup menu.
     await mainTab.open();
     await clickAddColumn();
-    await driver.findWait('.test-new-columns-menu-lookups-none', 100);
+    await driver.findWait('.test-new-columns-menu-lookups-none', STANDARD_WAITING_TIME);
 
     // Now test RefList columns.
     await transformTab.open();
@@ -1248,14 +1416,14 @@ describe('GridViewNewColumnMenu', function () {
     // Now on the main make sure we still don't see those references in lookup menu.
     await mainTab.open();
     await clickAddColumn();
-    await driver.findWait('.test-new-columns-menu-lookups-none', 100);
+    await driver.findWait('.test-new-columns-menu-lookups-none', STANDARD_WAITING_TIME);
 
     // Now test reverse lookups.
     await gu.openPage('Person');
     await clickAddColumn();
 
     // Wait for any menu to show up.
-    await driver.findWait('.test-new-columns-menu-lookup', 100);
+    await driver.findWait('.test-new-columns-menu-lookup', STANDARD_WAITING_TIME);
 
     // Now make sure we don't have helper columns
     assert.isEmpty(await driver.findAll('.test-new-columns-menu-revlookup', e => e.getText()));
@@ -1274,9 +1442,9 @@ describe('GridViewNewColumnMenu', function () {
   async function clickAddColumn() {
     const isMenuPresent = await driver.find(".test-new-columns-menu").isPresent();
     if (!isMenuPresent) {
-      await driver.findWait(".mod-add-column", 100).click();
+      await driver.findWait(".mod-add-column", STANDARD_WAITING_TIME).click();
     }
-    await driver.findWait(".test-new-columns-menu", 100);
+    await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
   }
 
   async function isMenuPresent() {
@@ -1293,7 +1461,7 @@ describe('GridViewNewColumnMenu', function () {
   }
 
   async function isDisplayed(selector: string, message: string) {
-    assert.isTrue(await driver.findWait(selector, 100, message).isDisplayed(), message);
+    assert.isTrue(await driver.findWait(selector, STANDARD_WAITING_TIME, message).isDisplayed(), message);
   }
 
   async function hasShortcuts() {
@@ -1342,9 +1510,9 @@ describe('GridViewNewColumnMenu', function () {
 
   async function addRefListLookup(refListId: string, colId: string, func: string) {
     await clickAddColumn();
-    await driver.findWait(`.test-new-columns-menu-lookup-${refListId}`, 100).click();
-    await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, 100).mouseMove();
-    await driver.findWait(`.test-new-columns-menu-lookup-submenu-function-${func}`, 100).click();
+    await driver.findWait(`.test-new-columns-menu-lookup-${refListId}`, STANDARD_WAITING_TIME).click();
+    await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, STANDARD_WAITING_TIME).mouseMove();
+    await driver.findWait(`.test-new-columns-menu-lookup-submenu-function-${func}`, STANDARD_WAITING_TIME).click();
     await gu.waitForServer();
   }
 
