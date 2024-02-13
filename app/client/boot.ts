@@ -56,7 +56,7 @@ export class Boot extends Disposable {
       fetch(url.href).then(async resp => {
         const _probes = await resp.json();
         this.probes.set(_probes.probes);
-      });
+      }).catch(e => console.error(e));
     }
 
     const rootNode = dom('div',
@@ -224,4 +224,4 @@ It is good practice not to run Grist as the root user.
 The main page of Grist should be available.
 `
   },
-}
+};
