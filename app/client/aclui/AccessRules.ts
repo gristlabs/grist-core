@@ -8,6 +8,7 @@ import {aclSelect} from 'app/client/aclui/ACLSelect';
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
 import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError, UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
@@ -307,6 +308,13 @@ export class AccessRules extends Disposable {
         userAttributes: rule.userAttributes,
       });
     }
+
+    logTelemetryEvent('changedAccessRules', {
+      full: {
+        docIdDigest: this.gristDoc.docId(),
+        ruleCount: newRules.length,
+      },
+    });
 
     // We need to fill in rulePos values. We'll add them in the order the rules are listed (since
     // this.getRules() returns them in a suitable order), keeping rulePos unchanged when possible.

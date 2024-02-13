@@ -14,8 +14,10 @@ import {LayoutTray} from 'app/client/components/LayoutTray';
 import {printViewSection} from 'app/client/components/Printing';
 import {Delay} from 'app/client/lib/Delay';
 import {createObsArray} from 'app/client/lib/koArrayWrap';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
+import {getTelemetryWidgetTypeFromVS} from 'app/client/ui/widgetTypesMap';
 import {isNarrowScreen, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -279,6 +281,14 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   // more than one viewsection in the view.
   public removeViewSection(viewSectionRowId: number) {
     this.maximized.set(null);
+    const viewSection = this.viewModel.viewSections().all().find(s => s.getRowId() === viewSectionRowId);
+    if (!viewSection) {
+      throw new Error(`Section not found: ${viewSectionRowId}`);
+    }
+
+    const widgetType = getTelemetryWidgetTypeFromVS(viewSection);
+    logTelemetryEvent('deletedWidget', {full: {docIdDigest: this.gristDoc.docId(), widgetType}});
+
     this.gristDoc.docData.sendAction(['RemoveViewSection', viewSectionRowId]).catch(reportError);
   }
 

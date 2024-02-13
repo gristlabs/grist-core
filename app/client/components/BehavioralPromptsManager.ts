@@ -1,4 +1,5 @@
 import {showBehavioralPrompt} from 'app/client/components/modals';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {AppModel} from 'app/client/models/AppModel';
 import {getUserPrefObs} from 'app/client/models/UserPrefs';
 import {GristBehavioralPrompts} from 'app/client/ui/GristTooltips';
@@ -159,6 +160,8 @@ export class BehavioralPromptsManager extends Disposable {
     });
     dom.onElem(refElement, 'click', () => close());
     dom.onDisposeElem(refElement, () => close());
+
+    logTelemetryEvent('viewedTip', {full: {tipName: prompt}});
   }
 
   private _showNextQueuedTip() {

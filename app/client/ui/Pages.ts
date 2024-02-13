@@ -2,6 +2,7 @@ import {createGroup} from 'app/client/components/commands';
 import {duplicatePage} from 'app/client/components/duplicatePage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {PageRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import MetaTableModel from 'app/client/models/MetaTableModel';
@@ -83,6 +84,8 @@ function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: Grist
 }
 
 function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
+  logTelemetryEvent('deletedPage', {full: {docIdDigest: activeDoc.docId()}});
+
   const docData = activeDoc.docData;
   // Create a set with tables on other pages (but not on this one).
   const tablesOnOtherViews = new Set(activeDoc.docModel.viewSections.rowModels

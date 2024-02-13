@@ -4,12 +4,14 @@ import {DocumentUsage} from 'app/client/components/DocumentUsage';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {printViewSection} from 'app/client/components/Printing';
 import {ViewSectionHelper} from 'app/client/components/ViewLayout';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import {reportError} from 'app/client/models/errors';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
+import {getTelemetryWidgetTypeFromVS} from 'app/client/ui/widgetTypesMap';
 
 const testId = makeTestId('test-raw-data-');
 
@@ -82,6 +84,10 @@ export class RawDataPopup extends Disposable {
         if (this._viewSection.isRaw.peek()) {
           throw new Error("Can't delete a raw section");
         }
+
+        const widgetType = getTelemetryWidgetTypeFromVS(this._viewSection);
+        logTelemetryEvent('deletedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+
         this._gristDoc.docData.sendAction(['RemoveViewSection', this._viewSection.id.peek()]).catch(reportError);
       },
     };

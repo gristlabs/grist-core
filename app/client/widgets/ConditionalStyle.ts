@@ -5,7 +5,6 @@ import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {RuleOwner} from 'app/client/models/RuleOwner';
 import {Style} from 'app/client/models/Styles';
 import {cssFieldFormula} from 'app/client/ui/FieldConfig';
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
@@ -78,10 +77,7 @@ export class ConditionalStyle extends Disposable {
             dom.on('click', () => this._ruleOwner.addEmptyRule()),
             dom.prop('disabled', this._disabled),
           ),
-          (this._label === t('Row Style')
-            ? GristTooltips.addRowConditionalStyle()
-            : GristTooltips.addColumnConditionalStyle()
-          ),
+          this._label === t('Row Style') ? 'addRowConditionalStyle' : 'addColumnConditionalStyle'
         ),
         dom.hide(use => use(this._ruleOwner.hasRules))
       ),

@@ -47,9 +47,10 @@ import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {isTourActive} from "app/client/ui/OnBoardingPopups";
 import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {linkFromId, selectBy} from 'app/client/ui/selectBy';
+import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
+import {getTelemetryWidgetTypeFromPageWidget} from 'app/client/ui/widgetTypesMap';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -882,6 +883,13 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
     }
+
+    const widgetType = getTelemetryWidgetTypeFromPageWidget(val);
+    logTelemetryEvent('addedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    if (val.link !== NoLink) {
+      logTelemetryEvent('linkedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    }
+
     const res: {sectionRef: number} = await docData.bundleActions(
       t("Added new linked section to view {{viewName}}", {viewName}),
       () => this.addWidgetToPageImpl(val, tableId ?? null)
@@ -932,6 +940,14 @@ export class GristDoc extends DisposableWithEvents {
    * Adds a new page (aka: view) with a single view section (aka: page widget) described by `val`.
    */
   public async addNewPage(val: IPageWidget) {
+    logTelemetryEvent('addedPage', {full: {docIdDigest: this.docId()}});
+    logTelemetryEvent('addedWidget', {
+      full: {
+        docIdDigest: this.docId(),
+        widgetType: getTelemetryWidgetTypeFromPageWidget(val),
+      },
+    });
+
     if (val.table === 'New Table') {
       const name = await this._promptForName();
       if (name === undefined) {

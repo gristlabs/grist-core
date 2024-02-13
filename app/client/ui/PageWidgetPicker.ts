@@ -4,7 +4,6 @@ import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {linkId, NoLink} from 'app/client/ui/selectBy';
 import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
@@ -394,7 +393,7 @@ export class PageWidgetSelect extends Disposable {
                 dom.update(cssSelect(this._value.link, this._selectByOptions!),
                           testId('selectby'))
               ),
-              GristTooltips.selectBy(),
+              'selectBy',
               {popupOptions: {attach: null}, domArgs: [
                 this._behavioralPromptsManager.attachTip('pageWidgetPickerSelectBy', {
                   popupOptions: {

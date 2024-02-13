@@ -4,7 +4,6 @@ import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {isNarrowScreen, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from "app/client/ui2018/IconList";
@@ -136,7 +135,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
       },
       withInfoTooltip(
         t('Add formula column'),
-        GristTooltips.formulaColumn(),
+        'formulaColumn',
         {variant: 'hover'}
       ),
       testId('new-columns-menu-add-formula'),
@@ -385,7 +384,7 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
     },
     withInfoTooltip(
       t('UUID'),
-      GristTooltips.uuid(),
+      'uuid',
       {variant: 'hover'}
     ),
     testId('new-columns-menu-shortcuts-uuid'),
@@ -680,7 +679,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     menuSubHeader(
       withInfoTooltip(
         t('Lookups'),
-        GristTooltips.lookups(),
+        'lookups',
         {variant: 'hover'}
       ),
       testId('new-columns-menu-lookups'),

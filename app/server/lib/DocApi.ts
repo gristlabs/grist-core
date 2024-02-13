@@ -1540,6 +1540,13 @@ export class DocWorkerApi {
           SUCCESS_URL: redirectUrl,
           TITLE: `${section.title || tableName || tableId || 'Form'} - Grist`
         });
+        this._grist.getTelemetry().logEvent(req, 'visitedForm', {
+          full: {
+            docIdDigest: activeDoc.docName,
+            userId: req.userId,
+            altSessionId: req.altSessionId,
+          },
+        });
         res.status(200).send(renderedHtml);
       })
     );
@@ -2026,6 +2033,7 @@ export class DocWorkerApi {
   }
 
   private async _removeDoc(req: Request, res: Response, permanent: boolean) {
+    const mreq = req as RequestWithLogin;
     const scope = getDocScope(req);
     const docId = getDocId(req);
     if (permanent) {
@@ -2045,6 +2053,13 @@ export class DocWorkerApi {
       // Permanently delete from database.
       const query = await this._dbManager.deleteDocument(scope);
       this._dbManager.checkQueryResult(query);
+      this._grist.getTelemetry().logEvent(mreq, 'deletedDoc', {
+        full: {
+          docIdDigest: docId,
+          userId: mreq.userId,
+          altSessionId: mreq.altSessionId,
+        },
+      });
       await sendReply(req, res, query);
     } else {
       await this._dbManager.softDeleteDocument(scope);

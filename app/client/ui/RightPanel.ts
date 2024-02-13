@@ -25,6 +25,7 @@ import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs, isBoolean, SessionObs} from 'app/client/lib/sessionObs';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
@@ -35,9 +36,9 @@ import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
-import {linkId, selectBy} from 'app/client/ui/selectBy';
+import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
-import {widgetTypesMap} from "app/client/ui/widgetTypesMap";
+import {getTelemetryWidgetTypeFromVS, widgetTypesMap} from "app/client/ui/widgetTypesMap";
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -792,7 +793,16 @@ export class RightPanel extends Disposable {
       );
     });
 
-    link.onWrite((val) => this._gristDoc.saveLink(val));
+    link.onWrite(async (val) => {
+      const widgetType = getTelemetryWidgetTypeFromVS(activeSection);
+      if (val !== NoLink) {
+        logTelemetryEvent('linkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+      } else {
+        logTelemetryEvent('unlinkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+      }
+
+      await this._gristDoc.saveLink(val);
+    });
     return [
       this._disableIfReadonly(),
       cssLabel(t("DATA TABLE")),

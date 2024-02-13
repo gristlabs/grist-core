@@ -38,7 +38,7 @@ export type Tooltip =
   | 'addColumnConditionalStyle'
   | 'uuid'
   | 'lookups'
-  | 'formulaColumn'
+  | 'formulaColumn';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 

@@ -11,6 +11,7 @@ import {Disposable} from 'app/client/lib/dispose';
 import {AsyncComputed, makeTestId, stopEvent} from 'app/client/lib/domUtils';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
@@ -514,6 +515,13 @@ export class FormView extends Disposable {
         throw ex;
       }
     }
+
+    logTelemetryEvent('publishedForm', {
+      full: {
+        docIdDigest: this.gristDoc.docId(),
+      },
+    });
+
     await this.gristDoc.docModel.docData.bundleActions('Publish form', async () => {
       if (!validShare) {
         const shareRef = await this.gristDoc.docModel.docData.sendAction([
@@ -573,6 +581,12 @@ export class FormView extends Disposable {
   }
 
   private async _unpublishForm() {
+    logTelemetryEvent('unpublishedForm', {
+      full: {
+        docIdDigest: this.gristDoc.docId(),
+      },
+    });
+
     await this.gristDoc.docModel.docData.bundleActions('Unpublish form', async () => {
       this.viewSection.shareOptionsObj.update({
         publish: false,

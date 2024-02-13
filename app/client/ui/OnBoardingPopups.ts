@@ -78,7 +78,7 @@ export interface IOnBoardingMsg {
 // starting a new one.
 const tourSingleton = Holder.create<OnBoardingPopupsCtl>(null);
 
-export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => void) {
+export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: (lastMessageIndex: number) => void) {
   const ctl = OnBoardingPopupsCtl.create(tourSingleton, messages, onFinishCB);
   ctl.start().catch(reportError);
 }
@@ -109,7 +109,7 @@ class OnBoardingPopupsCtl extends Disposable {
   private _overlay: HTMLElement;
   private _arrowEl = buildArrow();
 
-  constructor(private _messages: IOnBoardingMsg[], private _onFinishCB: () => void) {
+  constructor(private _messages: IOnBoardingMsg[], private _onFinishCB: (lastMessageIndex: number) => void) {
     super();
     if (this._messages.length === 0) {
       throw new OnBoardingError('messages should not be an empty list');
@@ -133,8 +133,8 @@ class OnBoardingPopupsCtl extends Disposable {
     });
   }
 
-  private _finish() {
-    this._onFinishCB();
+  private _finish(lastMessageIndex: number) {
+    this._onFinishCB(lastMessageIndex);
     this.dispose();
   }
 
@@ -143,9 +143,9 @@ class OnBoardingPopupsCtl extends Disposable {
     const entry = this._messages[newIndex];
     if (!entry) {
       if (maybeClose) {
+        this._finish(ctlIndex);
         // User finished the tour, close and restart from the beginning if they reopen
         ctlIndex = 0;
-        this._finish();
       }
       return;  // gone out of bounds, probably by keyboard shortcut
     }
@@ -266,7 +266,7 @@ class OnBoardingPopupsCtl extends Disposable {
       this._arrowEl,
       ContentWrapper(
         cssCloseButton(cssBigIcon('CrossBig'),
-          dom.on('click', () => this._finish()),
+          dom.on('click', () => this._finish(ctlIndex)),
           testId('close'),
         ),
         cssTitle(this._messages[ctlIndex].title),
@@ -275,7 +275,7 @@ class OnBoardingPopupsCtl extends Disposable {
         testId('popup'),
       ),
       dom.onKeyDown({
-        Escape:     () => this._finish(),
+        Escape:     () => this._finish(ctlIndex),
         ArrowLeft:  () => this._move(-1),
         ArrowRight: () => this._move(+1),
         Enter:      () => this._move(+1, true),
