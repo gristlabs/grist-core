@@ -337,7 +337,6 @@ export class DocWorkerApi {
       if (!fields.tableRef) {
         throw new ApiError(`tableId is required`, 400);
       }
-      console.log("In the subscribe function  of DOC ID app: ", fields);
 
       const unsubscribeKey = uuidv4();
       const webhookSecret: WebHookSecret = {unsubscribeKey, url};
@@ -413,8 +412,8 @@ export class DocWorkerApi {
       }
 
       if (tableId !== undefined) {
-        if (columnIds !== undefined && columnIds !== null && columnIds !== '') {
-          if (tableId !== currentTableId && currentTableId !== undefined && currentTableId !== null) {
+        if (columnIds) {
+          if (tableId !== currentTableId && currentTableId) {
             // if the tableId changed, we need to reset the columnIds
             fields.columnRefList = [GristObjCode.List];
           } else {
