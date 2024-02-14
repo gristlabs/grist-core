@@ -37,7 +37,7 @@ const WEBHOOK_COLUMNS = [
     id: 'vt_webhook_fc1',
     colId: 'tableId',
     type: 'Choice',
-    label: 'Table',
+    label: t('Table'),
     // widgetOptions are configured later, since the choices depend
     // on the user tables in the document.
   },

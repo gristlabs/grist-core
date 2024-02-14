@@ -1165,7 +1165,8 @@
         "Sorry, not all fields can be edited.": "Sorry, not all fields can be edited.",
         "Status": "Status",
         "URL": "URL",
-        "Webhook Id": "Webhook Id"
+        "Webhook Id": "Webhook Id",
+        "Table": "Table"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",
