@@ -13,7 +13,7 @@ import { SingleCell } from 'app/common/TableData';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {UploadResult} from 'app/common/uploads';
 import { GristObjCode } from 'app/plugin/GristData';
-import {Computed, dom, fromKo, input, onElem, styled} from 'grainjs';
+import {Computed, dom, DomContents, fromKo, input, onElem, styled} from 'grainjs';
 import {extname} from 'path';
 
 
@@ -69,7 +69,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     );
   }
 
-  public buildConfigDom(): Element {
+  public buildConfigDom(): DomContents {
     const options = this.field.config.options;
     const height = options.prop('height');
     const inputRange = input(

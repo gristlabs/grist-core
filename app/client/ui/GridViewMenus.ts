@@ -108,7 +108,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
             },
             menuIcon(colType.icon as IconName),
             colType.displayName === 'Reference'?
-                  gridView.gristDoc.behavioralPromptsManager.attachTip('referenceColumns', {
+                  gridView.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
                     popupOptions: {
                       attach: `.${menuCssClass}`,
                       placement: 'left-start',

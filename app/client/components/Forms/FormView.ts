@@ -644,28 +644,14 @@ export class FormView extends Disposable {
           dom.on('click', async (_event, element) => {
             try {
               this._copyingLink.set(true);
-              const share = this._pageShare.get();
-              if (!share) {
-                throw new Error('Unable to copy link: form is not published');
-              }
-
-              const remoteShare = await this.gristDoc.docComm.getShare(share.linkId());
-              if (!remoteShare) {
-                throw new Error('Unable to copy link: form is not published');
-              }
-
-              const url = urlState().makeUrl({
-                doc: undefined,
-                form: {
-                  shareKey: remoteShare.key,
-                  vsId: this.viewSection.id(),
-                },
+              const data = typeof ClipboardItem !== 'function' ? await this._getFormLink() : new ClipboardItem({
+                "text/plain": this._getFormLink().then(text => new Blob([text], {type: 'text/plain'})),
               });
-              await copyToClipboard(url);
+              await copyToClipboard(data);
               showTransientTooltip(element, 'Link copied to clipboard', {key: 'copy-form-link'});
-            } catch(ex) {
+            } catch (ex) {
               if (ex.code === 'AUTH_NO_OWNER') {
-                throw new Error('Publishing form is only available to owners');
+                throw new Error('Sharing a form is only available to owners');
               }
             } finally {
               this._copyingLink.set(false);
@@ -691,6 +677,26 @@ export class FormView extends Disposable {
         }),
       ),
     );
+  }
+
+  private async _getFormLink() {
+    const share = this._pageShare.get();
+    if (!share) {
+      throw new Error('Unable to get form link: form is not published');
+    }
+
+    const remoteShare = await this.gristDoc.docComm.getShare(share.linkId());
+    if (!remoteShare) {
+      throw new Error('Unable to get form link: form is not published');
+    }
+
+    return urlState().makeUrl({
+      doc: undefined,
+      form: {
+        shareKey: remoteShare.key,
+        vsId: this.viewSection.id(),
+      },
+    });
   }
 
   private _buildSwitcherMessage() {

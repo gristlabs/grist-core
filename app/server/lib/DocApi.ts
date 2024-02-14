@@ -14,7 +14,7 @@ import {
 import {DocData} from 'app/common/DocData';
 import {extractTypeFromColType, isRaisedException} from "app/common/gristTypes";
 import {Box, BoxType, FieldModel, INITIAL_FIELDS_COUNT, RenderBox, RenderContext} from "app/common/Forms";
-import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
+import {buildUrlId, commonUrls, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
 import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
@@ -1538,7 +1538,8 @@ export class DocWorkerApi {
           CONTENT: html,
           SUCCESS_TEXT: box.successText || 'Thank you! Your response has been recorded.',
           SUCCESS_URL: redirectUrl,
-          TITLE: `${section.title || tableName || tableId || 'Form'} - Grist`
+          TITLE: `${section.title || tableName || tableId || 'Form'} - Grist`,
+          FORMS_LANDING_PAGE_URL: commonUrls.forms,
         });
         this._grist.getTelemetry().logEvent(req, 'visitedForm', {
           full: {

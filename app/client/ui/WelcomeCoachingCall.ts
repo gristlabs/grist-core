@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {AppModel} from 'app/client/models/AppModel';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
@@ -7,7 +8,6 @@ import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
 import {icon} from 'app/client/ui2018/icons';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, styled} from 'grainjs';
-import { makeT } from '../lib/localization';
 
 const t = makeT('WelcomeCoachingCall');
 
@@ -17,7 +17,7 @@ export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
 
   // Defer showing coaching call until Add New tip is dismissed.
   const {behavioralPromptsManager, dismissedWelcomePopups} = appModel;
-  if (behavioralPromptsManager.shouldShowTip('addNew')) { return false; }
+  if (behavioralPromptsManager.shouldShowPopup('addNew')) { return false; }
 
   const popup = dismissedWelcomePopups.get().find(p => p.id === 'coachingCall');
   return (

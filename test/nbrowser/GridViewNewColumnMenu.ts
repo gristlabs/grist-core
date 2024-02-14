@@ -17,6 +17,7 @@ describe('GridViewNewColumnMenu', function () {
     session = await gu.session().login({showTips:true});
     api = session.createHomeApi();
     docId = await session.tempNewDoc(cleanup, 'ColumnMenu');
+    await gu.dismissBehavioralPrompts();
 
     // Add a table that will be used for lookups.
     await gu.sendActions([
@@ -77,6 +78,7 @@ describe('GridViewNewColumnMenu', function () {
     it('should show rename menu after a new column click', async function () {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-add-new', STANDARD_WAITING_TIME).click();
+      await gu.waitForServer();
       await driver.findWait('.test-column-title-popup', STANDARD_WAITING_TIME, 'rename menu is not present');
       await closeAddColumnMenu();
     });
@@ -204,29 +206,28 @@ describe('GridViewNewColumnMenu', function () {
         await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
         // popup should not be showed
         assert.isFalse(await driver.find('.test-behavioral-prompt').isPresent());
-        await gu.disableTips(session.email);
         await closeAddColumnMenu();
       });
 
       for (const option of optionsToBeDisplayed) {
-      it(`should allow to select column type ${option.type}`, async function () {
-        // open add new colum menu
-        await clickAddColumn();
-        // select "Add Column With type" option
-        await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
-        // wait for submenu to appear
-        await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
-        // check if it is present in the menu
-        const element = await driver.findWait(
-          `.test-new-columns-menu-add-${option.testClass}`.toLowerCase(),
-          100,
-          `${option.type} option is not present`);
-        // click on the option and check if column is added with a proper type
-        await element.click();
-          await gu.waitForServer();//discard rename menu
+        it(`should allow to select column type ${option.type}`, async function () {
+          // open add new colum menu
+          await clickAddColumn();
+          // select "Add Column With type" option
+          await driver.findWait('.test-new-columns-menu-add-with-type', STANDARD_WAITING_TIME).click();
+          // wait for submenu to appear
+          await driver.findWait('.test-new-columns-menu-add-with-type-submenu', STANDARD_WAITING_TIME);
+          // check if it is present in the menu
+          const element = await driver.findWait(
+            `.test-new-columns-menu-add-${option.testClass}`.toLowerCase(),
+            100,
+            `${option.type} option is not present`);
+          // click on the option and check if column is added with a proper type
+          await element.click();
+          await gu.waitForServer();
+          //discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
           //check if new column is present
-
           await gu.selectColumn('D');
           await gu.openColumnPanel();
           const type = await gu.getType();
@@ -255,14 +256,11 @@ describe('GridViewNewColumnMenu', function () {
             `${optionsTriggeringMenu.type} option is not present`);
           // click on the option and check if column is added with a proper type
           await element.click();
+          await gu.waitForServer();
           //discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-          await gu.waitForServer();
-          //check if left menu is opened on column section
+          //check if right menu is opened on column section
           assert.isTrue(await driver.findWait('.test-right-tab-field', 1000).isDisplayed());
-
-          await gu.disableTips(session.email);
-          await gu.dismissBehavioralPrompts();
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
         });
@@ -287,9 +285,9 @@ describe('GridViewNewColumnMenu', function () {
             `${optionsTriggeringMenu.type} option is not present`);
           // click on the option and check if column is added with a proper type
           await element.click();
+          await gu.waitForServer();
           //discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-          await gu.waitForServer();
           //check if referenceColumnsConfig is present
           await gu.waitToPass(async ()=> assert.isTrue(
             await driver.findContentWait(
@@ -299,8 +297,6 @@ describe('GridViewNewColumnMenu', function () {
                ).isDisplayed()
             ), 5000);
           await gu.dismissBehavioralPrompts();
-            await gu.disableTips(session.email);
-
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
         });
@@ -328,14 +324,11 @@ describe('GridViewNewColumnMenu', function () {
             `${optionsTriggeringMenu.type} option is not present`);
           // click on the option and check if column is added with a proper type
           await element.click();
+          await gu.waitForServer();
           //discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
-          await gu.waitForServer();
-          //check if left menu is opened on column section
+          //check if right menu is opened on column section
           assert.isFalse(await driver.find('.test-right-tab-field').isPresent());
-
-          await gu.disableTips(session.email);
-          await gu.dismissBehavioralPrompts();
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
         });
@@ -381,10 +374,10 @@ describe('GridViewNewColumnMenu', function () {
       await clickAddColumn();
       // select "create formula column" option
       await driver.findWait('.test-new-columns-menu-add-formula', STANDARD_WAITING_TIME).click();
-      // there should not be a rename poup
-      assert.isFalse(await driver.find('test-column-title-popup').isPresent());
       //check if new column is present
       await gu.waitForServer();
+      // there should not be a rename poup
+      assert.isFalse(await driver.find('test-column-title-popup').isPresent());
       // check if editor popup is opened
       await driver.findWait('.test-floating-editor-popup', 200, 'Editor popup is not present');
       // write some formula

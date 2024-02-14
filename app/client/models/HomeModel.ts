@@ -158,7 +158,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     wss.every((ws) => ws.isSupportWorkspace || ws.docs.length === 0)));
 
   public readonly shouldShowAddNewTip = Observable.create(this,
-    !this._app.behavioralPromptsManager.hasSeenTip('addNew'));
+    !this._app.behavioralPromptsManager.hasSeenPopup('addNew'));
 
   private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
 

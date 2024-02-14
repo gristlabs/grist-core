@@ -337,7 +337,7 @@ export class PageWidgetSelect extends Disposable {
             cssIcon('TypeTable'), 'New Table',
             // prevent the selection of 'New Table' if it is disabled
             dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
-            this._behavioralPromptsManager.attachTip('pageWidgetPicker', {
+            this._behavioralPromptsManager.attachPopup('pageWidgetPicker', {
               popupOptions: {
                 attach: null,
                 placement: 'right-start',
@@ -395,7 +395,7 @@ export class PageWidgetSelect extends Disposable {
               ),
               'selectBy',
               {popupOptions: {attach: null}, domArgs: [
-                this._behavioralPromptsManager.attachTip('pageWidgetPickerSelectBy', {
+                this._behavioralPromptsManager.attachPopup('pageWidgetPickerSelectBy', {
                   popupOptions: {
                     attach: null,
                     placement: 'bottom',

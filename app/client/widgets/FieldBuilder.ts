@@ -305,7 +305,7 @@ export class FieldBuilder extends Disposable {
             }
 
             if (op.label === 'Reference') {
-              return this.gristDoc.behavioralPromptsManager.attachTip('referenceColumns', {
+              return this.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
                 popupOptions: {
                   attach: `.${cssTypeSelectMenu.className}`,
                   placement: 'left-start',
@@ -412,7 +412,7 @@ export class FieldBuilder extends Disposable {
     return [
       cssLabel(t('DATA FROM TABLE'),
         kd.maybe(this._showRefConfigPopup, () => {
-            return dom('div', this.gristDoc.behavioralPromptsManager.attachTip(
+            return dom('div', this.gristDoc.behavioralPromptsManager.attachPopup(
               'referenceColumnsConfig',
               {
                 onDispose: () => this._showRefConfigPopup(false),
@@ -497,6 +497,14 @@ export class FieldBuilder extends Disposable {
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
         dom('div', widget.buildColorConfigDom(this.gristDoc))
+      )
+    );
+  }
+
+  public buildFormConfigDom() {
+    return dom('div',
+      kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
+        dom('div', widget.buildFormConfigDom())
       )
     );
   }

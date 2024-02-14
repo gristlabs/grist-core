@@ -1,4 +1,4 @@
-import {showBehavioralPrompt} from 'app/client/components/modals';
+import {showNewsPopup, showTipPopup} from 'app/client/components/modals';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {AppModel} from 'app/client/models/AppModel';
 import {getUserPrefObs} from 'app/client/models/UserPrefs';
@@ -7,40 +7,42 @@ import {isNarrowScreen} from 'app/client/ui2018/cssVars';
 import {BehavioralPrompt, BehavioralPromptPrefs} from 'app/common/Prefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
-import {IPopupOptions} from 'popweasel';
+import {IPopupOptions, PopupControl} from 'popweasel';
 
 /**
- * Options for showing a tip.
+ * Options for showing a popup.
  */
-export interface ShowTipOptions {
-  /** Defaults to `false`. */
+export interface ShowPopupOptions {
+  /** Defaults to `false`. Only applies to "tip" popups. */
   hideArrow?: boolean;
   popupOptions?: IPopupOptions;
   onDispose?(): void;
 }
 
 /**
- * Options for attaching a tip to a DOM element.
+ * Options for attaching a popup to a DOM element.
  */
-export interface AttachTipOptions extends ShowTipOptions {
+export interface AttachPopupOptions extends ShowPopupOptions {
   /**
-   * Optional callback that should return true if the tip should be disabled.
+   * Optional callback that should return true if the popup should be disabled.
    *
-   * If omitted, the tip is enabled.
+   * If omitted, the popup is enabled.
    */
   isDisabled?(): boolean;
 }
 
-interface QueuedTip {
+interface QueuedPopup {
   prompt: BehavioralPrompt;
   refElement: Element;
-  options: ShowTipOptions;
+  options: ShowPopupOptions;
 }
 
 /**
- * Manages tips that are shown the first time a user performs some action.
+ * Manages popups for product announcements and tips.
  *
- * Tips are shown in the order that they are attached.
+ * Popups are shown in the order that they are attached, with at most one popup
+ * visible at any point in time. Popups that aren't visible are queued until all
+ * preceding popups have been dismissed.
  */
 export class BehavioralPromptsManager extends Disposable {
   private _isDisabled: boolean = false;
@@ -48,37 +50,39 @@ export class BehavioralPromptsManager extends Disposable {
   private readonly _prefs = getUserPrefObs(this._appModel.userPrefsObs, 'behavioralPrompts',
     { defaultValue: { dontShowTips: false, dismissedTips: [] } }) as Observable<BehavioralPromptPrefs>;
 
-  private _dismissedTips: Computed<Set<BehavioralPrompt>> = Computed.create(this, use => {
+  private _dismissedPopups: Computed<Set<BehavioralPrompt>> = Computed.create(this, use => {
     const {dismissedTips} = use(this._prefs);
     return new Set(dismissedTips.filter(BehavioralPrompt.guard));
   });
 
-  private _queuedTips: QueuedTip[] = [];
+  private _queuedPopups: QueuedPopup[] = [];
+
+  private _activePopupCtl: PopupControl<IPopupOptions>;
 
   constructor(private _appModel: AppModel) {
     super();
   }
 
-  public showTip(refElement: Element, prompt: BehavioralPrompt, options: ShowTipOptions = {}) {
-    this._queueTip(refElement, prompt, options);
+  public showPopup(refElement: Element, prompt: BehavioralPrompt, options: ShowPopupOptions = {}) {
+    this._queuePopup(refElement, prompt, options);
   }
 
-  public attachTip(prompt: BehavioralPrompt, options: AttachTipOptions = {}) {
+  public attachPopup(prompt: BehavioralPrompt, options: AttachPopupOptions = {}) {
     return (element: Element) => {
       if (options.isDisabled?.()) { return; }
 
-      this._queueTip(element, prompt, options);
+      this._queuePopup(element, prompt, options);
     };
   }
 
-  public hasSeenTip(prompt: BehavioralPrompt) {
-    return this._dismissedTips.get().has(prompt);
+  public hasSeenPopup(prompt: BehavioralPrompt) {
+    return this._dismissedPopups.get().has(prompt);
   }
 
-  public shouldShowTip(prompt: BehavioralPrompt): boolean {
+  public shouldShowPopup(prompt: BehavioralPrompt): boolean {
     if (this._isDisabled) { return false; }
 
-    // For non-SaaS flavors of Grist, don't show tips if the Help Center is explicitly
+    // For non-SaaS flavors of Grist, don't show popups if the Help Center is explicitly
     // disabled. A separate opt-out feature could be added down the road for more granularity,
     // but will require communication in advance to avoid disrupting users.
     const {deploymentType, features} = getGristConfig();
@@ -91,22 +95,35 @@ export class BehavioralPromptsManager extends Disposable {
     }
 
     const {
-      showContext = 'desktop',
-      showDeploymentTypes,
+      popupType,
+      audience = 'everyone',
+      deviceType = 'desktop',
+      deploymentTypes,
       forceShow = false,
     } = GristBehavioralPrompts[prompt];
 
     if (
-      showDeploymentTypes !== '*' &&
-      (!deploymentType || !showDeploymentTypes.includes(deploymentType))
+      (audience === 'anonymous-users' && this._appModel.currentValidUser) ||
+      (audience === 'signed-in-users' && !this._appModel.currentValidUser)
     ) {
       return false;
     }
 
-    const context = isNarrowScreen() ? 'mobile' : 'desktop';
-    if (showContext !== '*' && showContext !== context) { return false; }
+    if (
+      deploymentTypes !== 'all' &&
+      (!deploymentType || !deploymentTypes.includes(deploymentType))
+    ) {
+      return false;
+    }
 
-    return forceShow || (!this._prefs.get().dontShowTips && !this.hasSeenTip(prompt));
+    const currentDeviceType = isNarrowScreen() ? 'mobile' : 'desktop';
+    if (deviceType !== 'all' && deviceType !== currentDeviceType) { return false; }
+
+    return (
+      forceShow ||
+      (popupType === 'news' && !this.hasSeenPopup(prompt)) ||
+      (!this._prefs.get().dontShowTips && !this.hasSeenPopup(prompt))
+    );
   }
 
   public enable() {
@@ -115,6 +132,12 @@ export class BehavioralPromptsManager extends Disposable {
 
   public disable() {
     this._isDisabled = true;
+    this._removeQueuedPopups();
+    this._removeActivePopup();
+  }
+
+  public isDisabled() {
+    return this._isDisabled;
   }
 
   public reset() {
@@ -122,58 +145,70 @@ export class BehavioralPromptsManager extends Disposable {
     this.enable();
   }
 
-  private _queueTip(refElement: Element, prompt: BehavioralPrompt, options: ShowTipOptions) {
-    if (!this.shouldShowTip(prompt)) { return; }
+  private _queuePopup(refElement: Element, prompt: BehavioralPrompt, options: ShowPopupOptions) {
+    if (!this.shouldShowPopup(prompt)) { return; }
 
-    this._queuedTips.push({prompt, refElement, options});
-    if (this._queuedTips.length > 1) {
-      // If we're already showing a tip, wait for that one to be dismissed, which will
+    this._queuedPopups.push({prompt, refElement, options});
+    if (this._queuedPopups.length > 1) {
+      // If we're already showing a popup, wait for that one to be dismissed, which will
       // cause the next one in the queue to be shown.
       return;
     }
 
-    this._showTip(refElement, prompt, options);
+    this._showPopup(refElement, prompt, options);
   }
 
-  private _showTip(refElement: Element, prompt: BehavioralPrompt, options: ShowTipOptions) {
+  private _showPopup(refElement: Element, prompt: BehavioralPrompt, options: ShowPopupOptions) {
+    const {hideArrow, onDispose, popupOptions} = options;
+    const {popupType, title, content, hideDontShowTips = false, markAsSeen = true} = GristBehavioralPrompts[prompt];
+    let ctl: PopupControl<IPopupOptions>;
+    if (popupType === 'news') {
+      ctl = showNewsPopup(refElement, title(), content(), {
+        popupOptions,
+      });
+      ctl.onDispose(() => { if (markAsSeen) { this._markAsSeen(prompt); } });
+    } else if (popupType === 'tip') {
+      ctl = showTipPopup(refElement, title(), content(), {
+        onClose: (dontShowTips) => {
+          if (dontShowTips) { this._dontShowTips(); }
+          if (markAsSeen) { this._markAsSeen(prompt); }
+        },
+        hideArrow,
+        popupOptions,
+        hideDontShowTips,
+      });
+    } else {
+      throw new Error(`BehavioralPromptsManager received unknown popup type: ${popupType}`);
+    }
+
+    this._activePopupCtl = ctl;
+    ctl.onDispose(() => {
+      onDispose?.();
+      this._showNextQueuedPopup();
+    });
     const close = () => {
       if (!ctl.isDisposed()) {
         ctl.close();
       }
     };
-
-    const {hideArrow, onDispose, popupOptions} = options;
-    const {title, content, hideDontShowTips = false, markAsSeen = true} = GristBehavioralPrompts[prompt];
-    const ctl = showBehavioralPrompt(refElement, title(), content(), {
-      onClose: (dontShowTips) => {
-        if (dontShowTips) { this._dontShowTips(); }
-        if (markAsSeen) { this._markAsSeen(prompt); }
-      },
-      hideArrow,
-      popupOptions,
-      hideDontShowTips,
-    });
-
-    ctl.onDispose(() => {
-      onDispose?.();
-      this._showNextQueuedTip();
-    });
     dom.onElem(refElement, 'click', () => close());
     dom.onDisposeElem(refElement, () => close());
 
     logTelemetryEvent('viewedTip', {full: {tipName: prompt}});
   }
 
-  private _showNextQueuedTip() {
-    this._queuedTips.shift();
-    if (this._queuedTips.length !== 0) {
-      const [nextTip] = this._queuedTips;
-      const {refElement, prompt, options} = nextTip;
-      this._showTip(refElement, prompt, options);
+  private _showNextQueuedPopup() {
+    this._queuedPopups.shift();
+    if (this._queuedPopups.length !== 0) {
+      const [nextPopup] = this._queuedPopups;
+      const {refElement, prompt, options} = nextPopup;
+      this._showPopup(refElement, prompt, options);
     }
   }
 
   private _markAsSeen(prompt: BehavioralPrompt) {
+    if (this._isDisabled) { return; }
+
     const {dismissedTips} = this._prefs.get();
     const newDismissedTips = new Set(dismissedTips);
     newDismissedTips.add(prompt);
@@ -181,7 +216,21 @@ export class BehavioralPromptsManager extends Disposable {
   }
 
   private _dontShowTips() {
+    if (this._isDisabled) { return; }
+
     this._prefs.set({...this._prefs.get(), dontShowTips: true});
-    this._queuedTips = [];
+    this._queuedPopups = this._queuedPopups.filter(({prompt}) => {
+      return GristBehavioralPrompts[prompt].popupType !== 'tip';
+    });
+  }
+
+  private _removeActivePopup() {
+    if (this._activePopupCtl && !this._activePopupCtl.isDisposed()) {
+      this._activePopupCtl.close();
+    }
+  }
+
+  private _removeQueuedPopups() {
+    this._queuedPopups = [];
   }
 }

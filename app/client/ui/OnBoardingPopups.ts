@@ -22,7 +22,7 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
-import { Disposable, dom, DomElementArg, Holder, makeTestId, styled, svg } from "grainjs";
+import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
 import { createPopper, Placement } from '@popperjs/core';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
@@ -74,18 +74,34 @@ export interface IOnBoardingMsg {
   urlState?: IGristUrlState;
 }
 
+let _isTourActiveObs: Observable<boolean>|undefined;
+
+// Returns a singleton observable for whether some tour is currently active.
+//
+// GristDoc subscribes to this observable in order to temporarily disable tips and other
+// in-product popups from being shown while a tour is active.
+export function isTourActiveObs(): Observable<boolean> {
+  if (!_isTourActiveObs) {
+    const obs = Observable.create<boolean>(null, false);
+    _isTourActiveObs = obs;
+  }
+  return _isTourActiveObs;
+}
+
 // There should only be one tour at a time. Use a holder to dispose the previous tour when
 // starting a new one.
 const tourSingleton = Holder.create<OnBoardingPopupsCtl>(null);
 
 export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: (lastMessageIndex: number) => void) {
   const ctl = OnBoardingPopupsCtl.create(tourSingleton, messages, onFinishCB);
+  ctl.onDispose(() => isTourActiveObs().set(false));
   ctl.start().catch(reportError);
+  isTourActiveObs().set(true);
 }
 
 // Returns whether some tour is currently active.
 export function isTourActive(): boolean {
-  return !tourSingleton.isEmpty();
+  return isTourActiveObs().get();
 }
 
 class OnBoardingError extends Error {

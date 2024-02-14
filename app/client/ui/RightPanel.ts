@@ -1013,16 +1013,7 @@ export class RightPanel extends Disposable {
 
     return domAsync(imports.loadViewPane().then(() => buildConfigContainer(cssSection(
       // Field config.
-      dom.maybeOwned(selectedField, (scope, field) => {
-        const requiredField = field.widgetOptionsJson.prop('formRequired');
-        // V2 thing.
-        // const hiddenField = field.widgetOptionsJson.prop('formHidden');
-        const defaultField = field.widgetOptionsJson.prop('formDefault');
-        const toComputed = (obs: typeof defaultField) => {
-          const result = Computed.create(scope, (use) => use(obs));
-          result.onWrite(val => obs.setAndSave(val));
-          return result;
-        };
+      dom.maybe(selectedField, (field) => {
         const fieldTitle = field.widgetOptionsJson.prop('question');
 
         return [
@@ -1063,21 +1054,10 @@ export class RightPanel extends Disposable {
             // cssSection(
             //   builder.buildSelectWidgetDom(),
             // ),
-            dom.maybe(use => ['Choice', 'ChoiceList', 'Ref', 'RefList'].includes(use(builder.field.pureType)), () => [
-              cssSection(
-                builder.buildConfigDom(),
-              ),
-            ]),
+            cssSection(
+              builder.buildFormConfigDom(),
+            ),
           ]),
-          cssSeparator(),
-          cssLabel(t("Field rules")),
-          cssRow(labeledSquareCheckbox(
-            toComputed(requiredField),
-            t("Required field"),
-            testId('field-required'),
-          )),
-          // V2 thing
-          // cssRow(labeledSquareCheckbox(toComputed(hiddenField), t("Hidden field")),),
         ];
       }),
 

@@ -139,7 +139,7 @@ export function reportUndo(
   }
 }
 
-export interface ShowBehavioralPromptOptions {
+export interface ShowTipPopupOptions {
   onClose: (dontShowTips: boolean) => void;
   /** Defaults to false. */
   hideArrow?: boolean;
@@ -148,11 +148,11 @@ export interface ShowBehavioralPromptOptions {
   popupOptions?: IPopupOptions;
 }
 
-export function showBehavioralPrompt(
+export function showTipPopup(
   refElement: Element,
   title: string,
   content: DomContents,
-  options: ShowBehavioralPromptOptions
+  options: ShowTipPopupOptions
 ) {
   const {onClose, hideArrow = false, hideDontShowTips = false, popupOptions} = options;
   const arrow = hideArrow ? null : buildArrow();
@@ -196,22 +196,7 @@ export function showBehavioralPrompt(
         ),
       ),
     ],
-    merge(popupOptions, {
-      modifiers: {
-        ...(arrow ? {arrow: {element: arrow}}: {}),
-        offset: {
-          offset: '0,12',
-        },
-        preventOverflow: {
-          boundariesElement: 'window',
-          padding: 32,
-        },
-        computeStyle: {
-          // GPU acceleration makes text look blurry.
-          gpuAcceleration: false,
-        },
-      }
-    })
+    merge({}, defaultPopupOptions, popupOptions),
   );
   dom.onDisposeElem(refElement, () => {
     if (!tooltip.isDisposed()) {
@@ -220,6 +205,64 @@ export function showBehavioralPrompt(
   });
   return tooltip;
 }
+
+export interface ShowNewsPopupOptions {
+  popupOptions?: IPopupOptions;
+}
+
+export function showNewsPopup(
+  refElement: Element,
+  title: string,
+  content: DomContents,
+  options: ShowNewsPopupOptions = {}
+) {
+  const {popupOptions} = options;
+  const popup = modalTooltip(refElement,
+    (ctl) => [
+      cssNewsPopupModal.cls(''),
+      cssNewsPopupContainer(
+        testId('behavioral-prompt'),
+        elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
+        dom.onKeyDown({
+          Escape: () => { ctl.close(); },
+          Enter: () => { ctl.close(); },
+        }),
+        cssNewsPopupCloseButton(
+          icon('CrossBig'),
+          dom.on('click', () => ctl.close()),
+          testId('behavioral-prompt-dismiss'),
+        ),
+        cssNewsPopupBody(
+          cssNewsPopupTitle(title, testId('behavioral-prompt-title')),
+          content,
+        ),
+      ),
+    ],
+    merge({}, defaultPopupOptions, popupOptions),
+  );
+  dom.onDisposeElem(refElement, () => {
+    if (!popup.isDisposed()) {
+      popup.close();
+    }
+  });
+  return popup;
+}
+
+const defaultPopupOptions = {
+  modifiers: {
+    offset: {
+      offset: '0,12',
+    },
+    preventOverflow: {
+      boundariesElement: 'window',
+      padding: 32,
+    },
+    computeStyle: {
+      // GPU acceleration makes text look blurry.
+      gpuAcceleration: false,
+    },
+  }
+};
 
 function buildArrow() {
   return cssArrowContainer(
@@ -365,8 +408,16 @@ const cssBehavioralPromptModal = styled('div', `
   }
 `);
 
+const cssNewsPopupModal = cssBehavioralPromptModal;
+
 const cssBehavioralPromptContainer = styled(cssTheme, `
   line-height: 18px;
+`);
+
+const cssNewsPopupContainer = styled('div', `
+  background: linear-gradient(to right, #29a3a3, #16a772);
+  color: white;
+  border-radius: 4px;
 `);
 
 const cssBehavioralPromptHeader = styled('div', `
@@ -380,6 +431,12 @@ const cssBehavioralPromptHeader = styled('div', `
 `);
 
 const cssBehavioralPromptBody = styled('div', `
+  padding: 16px;
+`);
+
+const cssNewsPopupBody = styled('div', `
+  font-size: 14px;
+  line-height: 23px;
   padding: 16px;
 `);
 
@@ -403,6 +460,27 @@ const cssBehavioralPromptTitle = styled('div', `
   color: ${theme.text};
   margin: 0 0 16px 0;
   line-height: 32px;
+`);
+
+const cssNewsPopupTitle = styled('div', `
+  font-size: ${vars.xxxlargeFontSize};
+  font-weight: ${vars.headerControlTextWeight};
+  margin: 0 0 16px 0;
+  line-height: 32px;
+`);
+
+const cssNewsPopupCloseButton = styled('div', `
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  --icon-color: white;
+
+  &:hover {
+    background-color: ${theme.hover};
+  }
 `);
 
 const cssSkipTipsCheckbox = styled(labeledSquareCheckbox, `

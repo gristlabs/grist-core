@@ -46,7 +46,7 @@ export class RawDataPage extends Disposable {
   public buildDom() {
     return cssContainer(
       cssPage(
-        dom('div', this._gristDoc.behavioralPromptsManager.attachTip('rawDataPage', {hideArrow: true})),
+        dom('div', this._gristDoc.behavioralPromptsManager.attachPopup('rawDataPage', {hideArrow: true})),
         dom('div',
           dom.create(DataTables, this._gristDoc),
           dom.create(DocumentUsage, this._gristDoc.docPageModel)

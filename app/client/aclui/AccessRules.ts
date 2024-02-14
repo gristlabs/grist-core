@@ -354,7 +354,7 @@ export class AccessRules extends Disposable {
 
   public buildDom() {
     return cssOuter(
-      dom('div', this.gristDoc.behavioralPromptsManager.attachTip('accessRules', {
+      dom('div', this.gristDoc.behavioralPromptsManager.attachPopup('accessRules', {
         hideArrow: true,
       })),
       cssAddTableRow(
