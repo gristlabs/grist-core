@@ -133,7 +133,7 @@ const cssConditionInputAce = styled('div', `
   & .ace-chrome, & .ace-dracula {
     background-color: ${theme.accessRulesFormulaEditorBg};
   }
-  & .ace-chrome .ace_print-margin, & .ace-dracula .ace_print-margin {
+  &:not(:focus-within) .ace_print-margin {
     width: 0px;
   }
   &-disabled .ace-chrome, &-disabled .ace-dracula {
