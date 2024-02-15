@@ -157,7 +157,7 @@ export function createOtherErrorPage(appModel: AppModel, message?: string) {
       t('There was an unknown error.')),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
-    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: 'https://getgrist.com/contact'})),
+    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: getGristConfig().contactSupportUrl})),
   ]);
 }
 
