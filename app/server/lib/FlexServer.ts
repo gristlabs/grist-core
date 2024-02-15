@@ -177,6 +177,7 @@ export class FlexServer implements GristServer {
   // Set once ready() is called
   private _isReady: boolean = false;
   private _probes: BootProbes;
+  private _unsubscribeWorkerUnavailableListener?: () => void;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -1928,7 +1929,7 @@ export class FlexServer implements GristServer {
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
       if (!process.env.GRIST_MANAGED_WORKERS) {
-        workers.onWorkerUnavailable(this.worker.id, async () => {
+        this._unsubscribeWorkerUnavailableListener = workers.onWorkerUnavailable(this.worker.id, async () => {
           await this._shutdown();
         });
       }
@@ -1964,6 +1965,7 @@ export class FlexServer implements GristServer {
 
     // We urgently want to disable any new assignments.
     await workers.setWorkerAvailability(this.worker.id, false);
+    this._unsubscribeWorkerUnavailableListener?.();
 
     // Enumerate the documents we are responsible for.
     let assignments = await workers.getAssignments(this.worker.id);
