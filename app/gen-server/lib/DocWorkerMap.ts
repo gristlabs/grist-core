@@ -62,7 +62,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     this._available = available;
   }
 
-  public onWorkerUnavailable(workerId: string, cb: () => void): () => void {
+  public onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void {
     return () => {};
   }
 
@@ -310,31 +310,34 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
-  public onWorkerUnavailable(workerId: string, cb: () => void, nbFailures = 0): () => void {
+  public onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void {
     let timeout: NodeJS.Timeout;
+    const group = workerInfo.group || 'default';
+    const workerId = workerInfo.id;
 
-    (function recursiveTimeout(self) {
+    (function recursiveTimeout(self, nbFailures = 0) {
       timeout = setTimeout(async () => {
         if (nbFailures >= 3) {
           log.error(
-            'DocWorkerMap: Presence checker failed 3 times, considering the worker %d is not available anymore',
+            'DocWorkerMap: Presence checker failed 3 times, considering the worker "%s" is not available anymore',
             workerId
           );
           return cb();
         }
         try {
-          if (!await self._client.sismemberAsync('workers-available', workerId)) {
-            log.error("DocWorkerMap: Worker %d has been marked as unavailable in Redis", workerId);
+          if (!await self._client.sismemberAsync(`workers-available-${group}`, workerId)) {
+            log.error('DocWorkerMap: Worker "%s" has been marked as unavailable in Redis', workerId);
             return cb();
           }
           return recursiveTimeout(self);
         } catch (err) {
-          log.error('DocWorkerMap: Presence checker failed for worker %d', workerId, err);
-          return recursiveTimeout(self);
+          log.error('DocWorkerMap: Presence checker failed for worker "%s"', workerId, err);
+          return recursiveTimeout(self, nbFailures + 1);
         }
       }, 30_000);
     })(this);
     return () => {
+      log.info('DocWorkerMap: Clearing presence checker for worker "%s"', workerId);
       clearTimeout(timeout);
     };
   }

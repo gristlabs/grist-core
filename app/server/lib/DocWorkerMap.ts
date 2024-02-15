@@ -6,7 +6,7 @@
 import { IChecksumStore } from 'app/server/lib/IChecksumStore';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import { IPermitStores } from 'app/server/lib/Permit';
-import {RedisClient} from 'redis';
+import { RedisClient } from 'redis';
 
 export interface DocWorkerInfo {
   id: string;
@@ -59,7 +59,7 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
 
   // Call cb when worker has been marked as unavailable in Redis.
   // This is used to shutdown doc workers gracefully.
-  onWorkerUnavailable(workerId: string, cb: () => void): () => void;
+  onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void;
 
   // Releases doc from worker, freeing it to be assigned elsewhere.
   // Assignments should only be released for workers that are now unavailable.
