@@ -9,11 +9,14 @@ import { Disposable, dom, Observable, styled, UseCBOwner } from 'grainjs';
 const cssBody = styled('div', `
   padding: 20px;
   overflow: auto;
-  max-width: 500px;
 `);
 
 const cssHeader = styled('div', `
   padding: 20px;
+`);
+
+const cssResult = styled('div', `
+  max-width: 500px;
 `);
 
 /**
@@ -98,7 +101,8 @@ export class Boot extends Disposable {
         ob2.start();
         const result = use(ob);
         const deets = probeDetails[id];
-        return this.buildResult(p0, result, deets);
+        return cssResult(
+          this.buildResult(p0, result, deets));
       }),
     ];
     return cssBody(main);
@@ -107,13 +111,17 @@ export class Boot extends Disposable {
   public buildError() {
     return dom(
       'div',
-      'A diagnostics page is available at:',
-      dom('blockquote', '/boot/GRIST_BOOT_KEY'),
-      'GRIST_BOOT_KEY is an environment variable ',
-      ' set before Grist starts. It should only',
-      ' contain characters that are valid in a URL.',
-      ' It should be a secret, since no authentication is needed',
-      ' To visit the diagnostics page.',
+      dom('p',
+          'A diagnostics page can be made available at:',
+          dom('blockquote', '/boot/GRIST_BOOT_KEY'),
+          'GRIST_BOOT_KEY is an environment variable ',
+          ' set before Grist starts. It should only',
+          ' contain characters that are valid in a URL.',
+          ' It should be a secret, since no authentication is needed',
+          ' To visit the diagnostics page.'),
+      dom('p',
+          'You are seeing this page because either the key is not set,',
+          ' or it is not in the URL.'),
     );
   }
 

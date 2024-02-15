@@ -488,15 +488,14 @@ export class FlexServer implements GristServer {
     const bootKey = appSettings.section('boot').flag('key').readString({
       envVar: 'GRIST_BOOT_KEY'
     });
-    if (!bootKey) { return; }
     const base = `/boot/${bootKey}`;
     this._probes = new BootProbes(this.app, this, base);
     this.app.get('/boot(/:bootKey/?)?$', async (req, res) => {
-      const goodKey = req.params.bootKey === bootKey;
+      const goodKey = bootKey && req.params.bootKey === bootKey;
       return this._sendAppPage(req, res, {
         path: 'boot.html', status: 200, config: goodKey ? {
         } : {
-          errMessage: 'wo wo',
+          errMessage: 'not-the-key',
         }, tag: 'boot',
       });
     });
