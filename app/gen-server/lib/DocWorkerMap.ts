@@ -62,8 +62,8 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     this._available = available;
   }
 
-  public onWorkerUnavailable(workerId: string, cb: () => void) {
-    // nothing to do
+  public onWorkerUnavailable(workerId: string, cb: () => void): () => void {
+    return () => {};
   }
 
   public async releaseAssignment(workerId: string, docId: string): Promise<void> {
@@ -310,26 +310,33 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
-  public onWorkerUnavailable(workerId: string, cb: () => void, nbFailures = 0) {
-    setTimeout(async () => {
-      if (nbFailures >= 3) {
-        log.error(
-          'DocWorkerMap: Presence checker failed 3 times, considering the worker %d is not available anymore',
-          workerId
-        );
-        return cb();
-      }
-      try {
-        if (!await this._client.sismemberAsync('workers-available', workerId)) {
-          log.error("DocWorkerMap: Worker %d has been marked as unavailable in Redis", workerId);
+  public onWorkerUnavailable(workerId: string, cb: () => void, nbFailures = 0): () => void {
+    let timeout: NodeJS.Timeout;
+
+    (function recursiveTimeout(self) {
+      timeout = setTimeout(async () => {
+        if (nbFailures >= 3) {
+          log.error(
+            'DocWorkerMap: Presence checker failed 3 times, considering the worker %d is not available anymore',
+            workerId
+          );
           return cb();
         }
-        return this.onWorkerUnavailable(workerId, cb);
-      } catch (err) {
-        log.error('DocWorkerMap: Presence checker failed', err);
-        return this.onWorkerUnavailable(workerId, cb, nbFailures + 1);
-      }
-    }, 30_000);
+        try {
+          if (!await self._client.sismemberAsync('workers-available', workerId)) {
+            log.error("DocWorkerMap: Worker %d has been marked as unavailable in Redis", workerId);
+            return cb();
+          }
+          return recursiveTimeout(self);
+        } catch (err) {
+          log.error('DocWorkerMap: Presence checker failed for worker %d', workerId, err);
+          return recursiveTimeout(self);
+        }
+      }, 30_000);
+    })(this);
+    return () => {
+      clearTimeout(timeout);
+    };
   }
 
   public async releaseAssignment(workerId: string, docId: string): Promise<void> {
