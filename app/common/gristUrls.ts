@@ -678,6 +678,9 @@ export interface GristLoadConfig {
   // Url for free coaching call scheduling for the browser client to use.
   freeCoachingCallUrl?: string;
 
+  // Url for "contact support" button on Grist's "not found" error page
+  contactSupportUrl?: string;
+
   // When set, this directs the client to encode org information in path, not in domain.
   pathOnly?: boolean;
 
@@ -888,6 +891,15 @@ export function getFreeCoachingCallUrl(): string|null {
     return gristConfig && gristConfig.freeCoachingCallUrl || null;
   } else {
     return process.env.FREE_COACHING_CALL_URL || null;
+  }
+}
+
+export function contactSupportUrl(): string|null {
+  if(isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.contactSupportUrl || null;
+  } else {
+    return process.env.CONTACT_SUPPORT_URL || null;
   }
 }
 

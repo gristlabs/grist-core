@@ -105,7 +105,7 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
     })),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
-    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: 'https://getgrist.com/contact'})),
+    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: getGristConfig().contactSupportUrl})),
   ]);
 }
 
