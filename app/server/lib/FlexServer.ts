@@ -483,6 +483,32 @@ export class FlexServer implements GristServer {
     });
   }
 
+  /**
+   *
+   * Adds a /boot/$GRIST_BOOT_KEY page that shows diagnostics.
+   * Accepts any /boot/... URL in order to let the front end
+   * give some guidance if the user is stumbling around trying
+   * to find the boot page, but won't actually provide diagnostics
+   * unless GRIST_BOOT_KEY is set in the environment, and is present
+   * in the URL.
+   *
+   * We take some steps to make the boot page available even when
+   * things are going wrong, and should take more in future.
+   *
+   * When rendering the page a hardcoded 'boot' tag is used, which
+   * is used to ensure that static assets are served locally and
+   * we aren't relying on APP_STATIC_URL being set correctly.
+   *
+   * We use a boot key so that it is more acceptable to have this
+   * boot page living outside of the authentication system, which
+   * could be broken.
+   *
+   * TODO: there are some configuration problems that currently
+   * result in Grist not running at all. ideally they would result in
+   * Grist running in a limited mode that is enough to bring up the boot
+   * page.
+   *
+   */
   public addBootPage() {
     if (this._check('boot')) { return; }
     const bootKey = appSettings.section('boot').flag('key').readString({
@@ -501,9 +527,6 @@ export class FlexServer implements GristServer {
     });
     this._probes.addProbes();
     this._probes.addEndpoints();
-    //this.app.get(base, async (req, res) => {
-    //this._sendAppPage(req, res, {path: 'error.html', status: 200, config: {errPage: 'access-denied'}});
-  //});
   }
 
   public hasBoot(): boolean {

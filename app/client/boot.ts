@@ -20,46 +20,53 @@ const cssResult = styled('div', `
 `);
 
 /**
- * A "boot" page for inspecting the state of the Grist installation.
- * The page should ideally be visible even if a lot is wrong with the,
- * installation, so avoid introducing dependenceis on middleware, or
- * authentication, or anything else that could break. TODO: there are some
- * configuration problems that currently result in Grist not running
- * at all, ideally they would result in Grist running in a limited
- * mode that is enough to bring up the boot page.
  *
- * TODO: deferring using any internationalization machinery so as not
- * to have to worry about its failure modes yet, but should be
- * straightforward really.
+ * A "boot" page for inspecting the state of the Grist installation.
+ *
+ * TODO: deferring using any localization machinery so as not
+ * to have to worry about its failure modes yet, but it should be
+ * fine as long as assets served locally are used.
+ *
  */
 export class Boot extends Disposable {
+
+  // The back end will offer a set of probes (diagnostics) we
+  // can use. Probes have unique IDs.
   public probes: Observable<BootProbeInfo[]>;
+
+  // Keep track of probe results we have received, by probe ID.
   public results: Map<string, Observable<BootProbeResult>>;
+
+  // Keep track of probe requests we are making, by probe ID.
   public requests: Map<string, BootProbe>;
 
   constructor(_appModel: AppModel) {
     super();
-    // Setting title in constructor seems to be how we are doing this?
+    // Setting title in constructor seems to be how we are doing this,
+    // based on other similar pages.
     document.title = 'Booting Grist';
     this.probes = Observable.create(this, []);
     this.results = new Map();
     this.requests = new Map();
   }
 
+  /**
+   * Set up the page. Uses the generic Grist layout with an empty
+   * side panel, just for convenience. Could be made a lot prettier.
+   */
   public buildDom() {
     const config = getGristConfig();
-
     const errMessage = config.errMessage;
-
     if (!errMessage) {
-      // Probe tool URLs are relative to current URL. Don't trust configuration.
+      // Probe tool URLs are relative to the current URL. Don't trust configuration,
+      // because it may be buggy if the user is here looking at the boot page
+      // to figure out some problem.
       const url = new URL(removeTrailingSlash(document.location.href));
-      url.pathname = url.pathname + '/probe';
-
+      url.pathname += '/probe';
       fetch(url.href).then(async resp => {
         const _probes = await resp.json();
         this.probes.set(_probes.probes);
-      }).catch(e => console.error(e));
+      }).catch(e => reportError(e));
     }
 
     const rootNode = dom('div',
@@ -76,38 +83,47 @@ export class Boot extends Disposable {
             headerMain: cssHeader(dom('h1', 'Grist Boot')),
             contentMain: this.buildBody(use, {errMessage}),
           });
-          // return main;
         }
       ),
       );
     return rootNode;
   }
 
+  /**
+   * The body of the page is very simple right now, basically a
+   * placeholder.  Make a section for each probe, and kick them off in
+   * parallel, showing results as they come in.
+   */
   public buildBody(use: UseCBOwner, options: {errMessage?: string}) {
-    const p = use(this.probes);
-    const main = options.errMessage ? this.buildError() : [
-      ...p.map(p0 => {
-        const {id} = p0;
-        let ob = this.results.get(id);
-        if (!ob) {
-          ob = Observable.create(this, {});
-          this.results.set(id, ob);
+    if (options.errMessage) {
+      return cssBody(this.buildError());
+    }
+    return cssBody([
+      ...use(this.probes).map(probe => {
+        const {id} = probe;
+        let result = this.results.get(id);
+        if (!result) {
+          result = Observable.create(this, {});
+          this.results.set(id, result);
         }
-        let ob2 = this.requests.get(id);
-        if (!ob2) {
-          ob2 = new BootProbe(id, this);
-          this.requests.set(id, ob2);
+        let request = this.requests.get(id);
+        if (!request) {
+          request = new BootProbe(id, this);
+          this.requests.set(id, request);
         }
-        ob2.start();
-        const result = use(ob);
-        const deets = probeDetails[id];
+        request.start();
         return cssResult(
-          this.buildResult(p0, result, deets));
+          this.buildResult(probe, use(result), probeDetails[id]));
       }),
-    ];
-    return cssBody(main);
+    ]);
   }
 
+  /**
+   * This is used when there is an attempt to access the boot page
+   * but something isn't right - either the page isn't enabled, or
+   * the key in the URL is wrong. Give the user some information about
+   * how to set things up.
+   */
   public buildError() {
     return dom(
       'div',
@@ -125,6 +141,9 @@ export class Boot extends Disposable {
     );
   }
 
+  /**
+   * An ugly rendering of information returned by the probe.
+   */
   public buildResult(info: BootProbeInfo, result: BootProbeResult,
                      details: ProbeDetails|undefined) {
     const out: (HTMLElement|string|null)[] = [];
@@ -170,17 +189,18 @@ export class BootProbe {
   }
 
   public start() {
-    let ob = this.boot.results.get(this.id);
-    if (!ob) {
-      ob = Observable.create(this.boot, {});
-      this.boot.results.set(this.id, ob);
+    let result = this.boot.results.get(this.id);
+    if (!result) {
+      result = Observable.create(this.boot, {});
+      this.boot.results.set(this.id, result);
     }
   }
 }
 
 /**
  * Create a stripped down page to show boot information.
- * Make sure the API isn't used since it may well be broken.
+ * Make sure the API isn't used since it may well be unreachable
+ * due to a misconfiguration, especially in multi-server setups.
  */
 createAppPage(appModel => {
   return dom.create(Boot, appModel);
@@ -193,10 +213,6 @@ createAppPage(appModel => {
  * but it can be useful to show extra details and tips in the
  * client.
  */
-interface ProbeDetails {
-  info: string;
-}
-
 const probeDetails: Record<string, ProbeDetails> = {
   'boot-page': {
     info: `
@@ -233,3 +249,11 @@ The main page of Grist should be available.
 `
   },
 };
+
+/**
+ * Information about the probe.
+ */
+interface ProbeDetails {
+  info: string;
+}
+
