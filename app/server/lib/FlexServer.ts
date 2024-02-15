@@ -1938,6 +1938,12 @@ export class FlexServer implements GristServer {
       }
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
+      if (!process.env.GRIST_MANAGED_WORKERS) {
+        workers.onWorkerUnavailable(this.worker.id, async () => {
+          await this._shutdown();
+        });
+      }
+
     } catch (err) {
       this._healthy = false;
       throw err;
