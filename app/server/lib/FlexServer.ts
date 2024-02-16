@@ -1939,7 +1939,7 @@ export class FlexServer implements GristServer {
       }
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
-      if (!isAffirmative(process.env.GRIST_MANAGED_WORKERS)) {
+      if (!isAffirmative(process.env.GRIST_MANAGED_WORKERS) && process.env.REDIS_URL) {
         this._unsubscribeWorkerUnavailableListener = workers.onWorkerUnavailable(this.worker, async () => {
           log.info("DocWorker became unavailable, shutting down");
           await this._shutdown();
