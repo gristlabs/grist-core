@@ -181,9 +181,15 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  * "default".
  */
 export class DocWorkerMap implements IDocWorkerMap {
+  public static get MONITOR_AVAILABILITY_INTERVAL() {
+    return 30_000;  // 30 seconds
+  }
+
   private _client: RedisClient;
   private _clients: RedisClient[];
   private _redlock: Redlock;
+  // Required for testing, so we can stub it.
+  private _log = log;
 
   // Optional deploymentKey argument supplies a key unique to the deployment (this is important
   // for maintaining groups across redeployments only)
@@ -310,34 +316,35 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
+  /**
+   * Monitor the availability of a worker.  If the worker is no longer available,
+   * call the callback.
+   *
+   * @param workerInfo The worker we are checking for presence.
+   * @param cb A callback to be called when the worker is no longer available.
+   * @returns A function to stop monitoring the worker.
+   */
   public onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void {
     let timeout: NodeJS.Timeout;
     const group = workerInfo.group || 'default';
     const workerId = workerInfo.id;
 
-    (function recursiveTimeout(self, nbFailures = 0) {
+    (function recursiveTimeout(this: DocWorkerMap) {
       timeout = setTimeout(async () => {
-        if (nbFailures >= 3) {
-          log.error(
-            'DocWorkerMap: Presence checker failed 3 times, considering the worker "%s" is not available anymore',
-            workerId
-          );
-          return cb();
-        }
         try {
-          if (!await self._client.sismemberAsync(`workers-available-${group}`, workerId)) {
-            log.error('DocWorkerMap: Worker "%s" has been marked as unavailable in Redis', workerId);
+          if (!await this._client.sismemberAsync(`workers-available-${group}`, workerId)) {
+            this._log.error('DocWorkerMap: Worker "%s" has been marked as unavailable in Redis', workerId);
             return cb();
           }
-          return recursiveTimeout(self);
         } catch (err) {
-          log.error('DocWorkerMap: Presence checker failed for worker "%s"', workerId, err);
-          return recursiveTimeout(self, nbFailures + 1);
+          this._log.error('DocWorkerMap: Presence checker failed for worker "%s"', workerId, err);
         }
-      }, 30_000);
-    })(this);
+        return recursiveTimeout.call(this);
+      }, DocWorkerMap.MONITOR_AVAILABILITY_INTERVAL);
+    }).call(this);
+
     return () => {
-      log.info('DocWorkerMap: Clearing presence checker for worker "%s"', workerId);
+      this._log.info('DocWorkerMap: Clearing presence checker for worker "%s"', workerId);
       clearTimeout(timeout);
     };
   }
