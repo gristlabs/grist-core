@@ -48,7 +48,7 @@ describe("MinIOExternalStorage", function () {
 
       s3.listObjects.returns(fakeStream);
 
-      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
       const result = await extStorage.versions(key);
 
       assert.deepEqual(result, []);
@@ -74,7 +74,7 @@ describe("MinIOExternalStorage", function () {
       ]);
 
       s3.listObjects.returns(fakeStream);
-      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
       // when
       const result = await extStorage.versions(key);
       // then
@@ -107,7 +107,7 @@ describe("MinIOExternalStorage", function () {
       let {fakeStream} = makeFakeStream(objectsFromS3);
 
       s3.listObjects.returns(fakeStream);
-      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
 
       // when
       const result = await extStorage.versions(key);
@@ -142,10 +142,10 @@ describe("MinIOExternalStorage", function () {
       const fakeStream = new stream.Readable({objectMode: true});
       const error = new Error("dummy-error");
       sandbox.stub(fakeStream, "_read")
-        .returns(fakeStream)
+        .returns(fakeStream as any)
         .callsFake(() => fakeStream.emit('error', error));
       s3.listObjects.returns(fakeStream);
-      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
 
       // when
       const result = extStorage.versions(key);

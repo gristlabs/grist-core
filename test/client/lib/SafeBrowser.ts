@@ -46,7 +46,7 @@ describe('SafeBrowser', function() {
 
     browserProcesses = [];
     sandbox.stub(SafeBrowser, 'createWorker').callsFake(createProcess);
-    sandbox.stub(SafeBrowser, 'createView').callsFake(createProcess);
+    sandbox.stub(SafeBrowser, 'createView').callsFake(createProcess as any);
     sandbox.stub(PluginInstance.prototype, 'getRenderTarget').returns(noop);
     disposeSpy = sandbox.spy(Disposable.prototype, 'dispose');
   });
