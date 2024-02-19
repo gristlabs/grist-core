@@ -1914,7 +1914,7 @@ const cssOuter = styled('div', `
   flex: auto;
   height: 100%;
   width: 100%;
-  max-width: 800px;
+  max-width: 1500px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;

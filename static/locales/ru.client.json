@@ -411,7 +411,8 @@
         "This document's ID (for API use):": "Идентификатор этого документа (для использования API):",
         "Document ID copied to clipboard": "Идентификатор документа скопирован в буфер обмена",
         "Manage Webhooks": "Управление вебхуками",
-        "Webhooks": "Вебхуки"
+        "Webhooks": "Вебхуки",
+        "API Console": "API-консоль"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -573,7 +574,19 @@
         "Created by": "Создано",
         "Detect duplicates in...": "Обнаружение дубликатов в...",
         "Last updated at": "Последнее обновление",
-        "Last updated by": "Последнее обновление"
+        "Last updated by": "Последнее обновление",
+        "Any": "Любые",
+        "Text": "Текст",
+        "Integer": "Целочисленное",
+        "Toggle": "Переключатель",
+        "Date": "Дата",
+        "Numeric": "Число",
+        "DateTime": "ДатаВремя",
+        "Choice": "Выбор",
+        "Choice List": "Выбор из списка",
+        "Reference": "Ссылка",
+        "Reference List": "Ссылки списком",
+        "Attachment": "Вложение"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -683,7 +696,24 @@
         "You do not have edit access to this document": "У вас нет прав на редактирование этого документа",
         "Widget": "Виджет",
         "Add referenced columns": "Добавить ссылочные столбцы",
-        "Reset form": "Сброс формы"
+        "Reset form": "Сброс формы",
+        "Field rules": "Правила полей",
+        "Field title": "Название поля",
+        "Display button": "Отобразить кнопку",
+        "Enter text": "Ввести текст",
+        "Layout": "Шаблон",
+        "Table column name": "Имя столбца таблицы",
+        "Enter redirect URL": "Введите URL перенаправления",
+        "Configuration": "Конфигурация",
+        "Default field value": "Значение поля по умолчанию",
+        "Hidden field": "Скрытое поле",
+        "Redirect automatically after submission": "Автоматическое перенаправление после отправки",
+        "Redirection": "Перенаправление",
+        "Required field": "Обязательное поле",
+        "Submission": "Отправка",
+        "Submit another response": "Отправить другой ответ",
+        "Submit button label": "Название кнопки отправки",
+        "Success text": "Текст успешной отправки"
     },
     "PermissionsWidget": {
         "Allow All": "Разрешить все",
@@ -773,7 +803,8 @@
         "Data selection": "Выбор данных",
         "Widget options": "Параметры виджета",
         "Add to page": "Добавить на страницу",
-        "Collapse widget": "Свернуть виджет"
+        "Collapse widget": "Свернуть виджет",
+        "Create a form": "Создать форму"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Должно быть невозможно сохранить значение простых данных в столбце формулы",
@@ -812,7 +843,11 @@
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Вы вошли как {{email}}. Вы можете войти с другой учетной записью или запросить доступ у администратора.",
         "Account deleted{{suffix}}": "Аккаунт удален{{suffix}}",
         "Your account has been deleted.": "Ваш аккаунт был удален.",
-        "Sign up": "Регистрация"
+        "Sign up": "Регистрация",
+        "An unknown error occurred.": "Произошла неизвестная ошибка.",
+        "Build your own form": "Создайте свою собственную форму",
+        "Form not found": "Форма не найдена",
+        "Powered by": "Разработано"
     },
     "CellStyle": {
         "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
@@ -946,7 +981,17 @@
     "modals": {
         "Cancel": "Отмена",
         "Ok": "OK",
-        "Save": "Сохранить"
+        "Save": "Сохранить",
+        "Are you sure you want to delete these records?": "Вы уверены, что хотите удалить эти записи?",
+        "Are you sure you want to delete this record?": "Вы уверены, что хотите удалить эту запись?",
+        "Delete": "Удалить",
+        "Dismiss": "Отклонить",
+        "Don't ask again.": "Не спрашивать больше.",
+        "Don't show again.": "Больше не показывать.",
+        "Don't show tips": "Не показывать советы",
+        "Undo to restore": "Отменить для восстановления",
+        "Got it": "Принято",
+        "Don't show again": "Больше не показывать"
     },
     "search": {
         "Find Next ": "Найти далее ",
@@ -1260,5 +1305,42 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Скрытые поля"
+    },
+    "Menu": {
+        "Cut": "Вырезать",
+        "Building blocks": "Строительные блоки",
+        "Columns": "Столбцы",
+        "Copy": "Копировать",
+        "Insert question above": "Вставить вопрос выше",
+        "Insert question below": "Вставить вопрос ниже",
+        "Paragraph": "Параграф",
+        "Paste": "Вставить",
+        "Separator": "Разделитель",
+        "Unmapped fields": "Несопоставленные поля",
+        "Header": "Заголовок"
+    },
+    "UnmappedFieldsConfig": {
+        "Unmapped": "Несопоставленные",
+        "Clear": "Очистить",
+        "Map fields": "Сопоставить поля",
+        "Mapped": "Сопоставленные",
+        "Select All": "Выбрать все",
+        "Unmap fields": "Снять сопоставление полей"
+    },
+    "FormView": {
+        "Publish": "Публиковать",
+        "Publish your form?": "Опубликовать форму?",
+        "Unpublish": "Отменить публикацию",
+        "Unpublish your form?": "Отменить публикацию формы?"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "бесплатный коуч-звонок",
+        "Maybe Later": "Возможно позже",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Во время звонка мы уделяем время тому, чтобы понять ваши потребности и адаптировать звонок под ваши нужды. Мы можем показать вам основы Grist или сразу начать работать с вашими данными, чтобы создать нужные вам информационные панели.",
+        "Schedule Call": "Запланировать звонок",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Запланируйте свой {{freeCoachingCall}} с членом нашей команды."
+    },
+    "Editor": {
+        "Delete": "Удалить"
     }
 }
