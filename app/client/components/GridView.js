@@ -905,14 +905,17 @@ GridView.prototype.insertColumn = async function(colId = null, options = {}) {
 };
 
 GridView.prototype.makeHeadersFromRow = async function(selection) {
-  const actions = this.viewSection.columns.peek().map(col => {
+  const actions = this.viewSection.columns.peek().reduce((acc, col) => {
     const colId = col.colId.peek();
-    const newColLabel = this.tableModel.tableData.getValue(selection.rowIds[0], colId);
+    let newColLabel = this.tableModel.tableData.getValue(selection.rowIds[0], colId);
     if (Array.isArray(newColLabel) && newColLabel[0] === GristObjCode.List) {
-      return ['ModifyColumn', colId, {"label": newColLabel[1]}];
+      newColLabel = newColLabel[1];
     }
-    return ['ModifyColumn', colId, {"label": newColLabel}];
-  });
+    if (newColLabel) {
+      return [...acc, ['ModifyColumn', colId, {"label": newColLabel}]];
+    }
+    return acc
+  }, []);
   this.tableModel.sendTableActions(actions, "Use as table headers");
 };
 
@@ -1989,7 +1992,7 @@ GridView.prototype._getCellContextMenuOptions = function() {
       this.getSelection().onlyAddRowSelected()
     ),
     disableMakeHeadersFromRow: Boolean (
-      this.gristDoc.isReadonly.get() || this.getSelection().rowIds.length !== 1
+      this.gristDoc.isReadonly.get() || this.getSelection().rowIds.length !== 1 || this.getSelection().onlyAddRowSelected()
     ),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
     numRows: this.getSelection().rowIds.length,
