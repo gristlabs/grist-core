@@ -9,7 +9,7 @@ import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {getContactSupportUrl, commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
+import {commonUrls, getContactSupportUrl, getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 

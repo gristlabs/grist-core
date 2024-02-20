@@ -8,7 +8,6 @@ import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
 import {icon} from 'app/client/ui2018/icons';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, styled} from 'grainjs';
-import { makeT } from '../lib/localization';
 import { getFreeCoachingCallUrl } from 'app/common/gristUrls';
 
 const t = makeT('WelcomeCoachingCall');
