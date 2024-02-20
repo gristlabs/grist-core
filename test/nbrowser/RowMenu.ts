@@ -75,7 +75,7 @@ describe('RowMenu', function() {
   it('can rename headers from the selected line', async function() {
     assert.notEqual(await gu.getColumnHeader({col: 0}).getText(), await gu.getCell(0, 1).getText());
     assert.notEqual(await gu.getColumnHeader({col: 1}).getText(), await gu.getCell(1, 1).getText());
-    await (await gu.openRowMenu(1)).findContent('li', /Make headers from this line/).click();
+    await (await gu.openRowMenu(1)).findContent('li', /Use as table headers/).click();
     await gu.waitForServer();
     assert.equal(await gu.getColumnHeader({col: 0}).getText(), await gu.getCell(0, 1).getText());
     assert.equal(await gu.getColumnHeader({col: 1}).getText(), await gu.getCell(1, 1).getText());

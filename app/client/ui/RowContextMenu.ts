@@ -55,7 +55,7 @@ export function RowContextMenu({
   );
   result.push(
     menuDivider(),
-    menuItemCmd(allCommands.makeHeadersFromRow, t("Make headers from this line"),
+    menuItemCmd(allCommands.makeHeadersFromRow, t("Use as table headers"),
       dom.cls('disabled', disableMakeHeadersFromRow)),
   );
   result.push(

@@ -663,7 +663,7 @@
         "Insert row above": "Insert row above",
         "Insert row below": "Insert row below",
         "View as card": "View as card",
-        "Make headers from this line": "Make headers from this line"
+        "Use as table headers": "Use as table headers"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copied to clipboard"
