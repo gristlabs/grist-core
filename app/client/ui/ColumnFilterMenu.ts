@@ -349,7 +349,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               icon('PinTilted'),
               cssPinButton.cls('-pinned', model.filterInfo.isPinned),
               dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
-              gristDoc.behavioralPromptsManager.attachTip('filterButtons', {
+              gristDoc.behavioralPromptsManager.attachPopup('filterButtons', {
                 popupOptions: {
                   attach: null,
                   placement: 'right',

@@ -6,11 +6,12 @@ var kd = require('../lib/koDom');
 var kf = require('../lib/koForm');
 var AbstractWidget = require('./AbstractWidget');
 
+const {FieldRulesConfig} = require('app/client/components/Forms/FormConfig');
 const {fromKoSave} = require('app/client/lib/fromKoSave');
 const {alignmentSelect, cssButtonSelect} = require('app/client/ui2018/buttonSelect');
-const {cssRow, cssLabel} = require('app/client/ui/RightPanelStyles');
+const {cssLabel, cssRow} = require('app/client/ui/RightPanelStyles');
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
-const {styled, fromKo} = require('grainjs');
+const {dom: gdom, styled, fromKo} = require('grainjs');
 const {select} = require('app/client/ui2018/menus');
 const {dateFormatOptions} = require('app/common/parseDate');
 
@@ -77,6 +78,12 @@ DateTextBox.prototype.buildConfigDom = function() {
 
 DateTextBox.prototype.buildTransformConfigDom = function() {
   return this.buildDateConfigDom();
+};
+
+DateTextBox.prototype.buildFormConfigDom = function() {
+  return [
+    gdom.create(FieldRulesConfig, this.field),
+  ];
 };
 
 DateTextBox.prototype.buildDom = function(row) {

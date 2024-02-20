@@ -1,5 +1,6 @@
 import * as style from './styles';
 import {buildEditor} from 'app/client/components/Forms/Editor';
+import {FieldModel} from 'app/client/components/Forms/Field';
 import {buildMenu} from 'app/client/components/Forms/Menu';
 import {BoxModel} from 'app/client/components/Forms/Model';
 import {makeTestId} from 'app/client/lib/domUtils';
@@ -71,6 +72,25 @@ export class SectionModel extends BoxModel {
     }
 
     return place(dropped);
+  }
+
+  public async deleteSelf(): Promise<void> {
+    // Prepare all the fields that are children of this section for removal.
+    const fieldsToRemove = Array.from(this.filter(b => b instanceof FieldModel)) as FieldModel[];
+    const fieldIdsToRemove = fieldsToRemove.map(f => f.leaf.get());
+
+    // Remove each child of this section from the layout.
+    this.children.get().forEach(child => { child.removeSelf(); });
+
+    // Remove this section from the layout.
+    this.removeSelf();
+
+    // Finally, remove the fields and save the changes to the layout.
+    await this.parent?.save(async () => {
+      if (fieldIdsToRemove.length > 0) {
+        await this.view.viewSection.removeField(fieldIdsToRemove);
+      }
+    });
   }
 }
 

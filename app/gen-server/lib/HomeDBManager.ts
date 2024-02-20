@@ -514,9 +514,14 @@ export class HomeDBManager extends EventEmitter {
     if (!user.logins?.[0]?.displayEmail) {
       throw new ApiError("unable to find mandatory user email", 400);
     }
+    const displayEmail = user.logins[0].displayEmail;
+    const loginEmail = user.loginEmail;
     const result: FullUser = {
       id: user.id,
-      email: user.logins[0].displayEmail,
+      email: displayEmail,
+      // Only include loginEmail when it's different, to avoid overhead when FullUser is sent
+      // around, and also to avoid updating too many tests.
+      loginEmail: loginEmail !== displayEmail ? loginEmail : undefined,
       name: user.name,
       picture: user.picture,
       ref: user.ref,
@@ -2391,6 +2396,7 @@ export class HomeDBManager extends EventEmitter {
       const access = userRoleMap[u.id];
       return {
         ...this.makeFullUser(u),
+        loginEmail: undefined,    // Not part of PermissionData.
         access,
         isMember: access !== 'guests',
       };
@@ -2447,6 +2453,7 @@ export class HomeDBManager extends EventEmitter {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
+        loginEmail: undefined,    // Not part of PermissionData.
         access: wsMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(orgMap[u.id] || null),
         isMember: orgAccess && orgAccess !== 'guests',
@@ -2509,6 +2516,7 @@ export class HomeDBManager extends EventEmitter {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
+        loginEmail: undefined,    // Not part of PermissionData.
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)

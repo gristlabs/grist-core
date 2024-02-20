@@ -493,7 +493,8 @@
         "This document's ID (for API use):": "ID tega dokumenta (za uporabo API):",
         "Manage Webhooks": "Upravljanje spletnih kljuk",
         "Webhooks": "Spletne kljuke",
-        "Engine (experimental {{span}} change at own risk):": "Pogon (eksperimentalno {{span}} spreminjanje na lastno odgovornost):"
+        "Engine (experimental {{span}} change at own risk):": "Pogon (eksperimentalno {{span}} spreminjanje na lastno odgovornost):",
+        "API Console": "API Konzola"
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",
@@ -1334,5 +1335,12 @@
     },
     "Editor": {
         "Delete": "Briši"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "brezplačen trenerski klic",
+        "Schedule Call": "Načrtuj klic",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Dogovori se za {{freeCoachingCall}} s članom naše ekipe.",
+        "Maybe Later": "Mogoče kasneje",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Med klicem si bomo vzeli čas, da bomo razumeli vaše potrebe in vam klic prilagodili. Lahko vam pokažemo osnove Grista ali pa takoj začnemo delati z vašimi podatki, da zgradimo nadzorne plošče, ki jih potrebujete."
     }
 }

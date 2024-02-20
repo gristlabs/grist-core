@@ -2,7 +2,7 @@ import {cssBannerLink} from 'app/client/components/Banner';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
-import {GristTooltips, TooltipContentFunc} from 'app/client/ui/GristTooltips';
+import {Tooltip} from 'app/client/ui/GristTooltips';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -81,7 +81,7 @@ export class DocumentUsage extends Disposable {
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
         unit: 'MB',
         shouldHideLimits: maxValue === undefined,
-        tooltipContentFunc: GristTooltips.dataSize,
+        tooltip: 'dataSize',
         formatValue: (val) => {
           // To display a nice, round number for `maximumValue`, we first convert
           // to KiBs (base-2), and then convert to MBs (base-10). Normally, we wouldn't
@@ -271,7 +271,7 @@ interface MetricOptions {
   // If true, limits will always be hidden, even if `maximumValue` is a positive number.
   shouldHideLimits?: boolean;
   // Shows an icon next to the metric name that displays a tooltip on hover.
-  tooltipContentFunc?: TooltipContentFunc;
+  tooltip?: Tooltip;
   formatValue?(value: number): string;
 }
 
@@ -281,14 +281,11 @@ interface MetricOptions {
  * close `currentValue` is to hitting `maximumValue`.
  */
 function buildUsageMetric(options: MetricOptions, ...domArgs: DomElementArg[]) {
-  const {name, tooltipContentFunc} = options;
+  const {name, tooltip} = options;
   return cssUsageMetric(
     cssMetricName(
-      tooltipContentFunc
-        ? withInfoTooltip(
-            cssOverflowableText(name, testId('name')),
-            tooltipContentFunc()
-          )
+      tooltip
+        ? withInfoTooltip(cssOverflowableText(name, testId('name')), tooltip)
         : cssOverflowableText(name, testId('name')),
     ),
     buildUsageProgressBar(options),

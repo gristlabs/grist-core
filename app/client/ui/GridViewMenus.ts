@@ -4,9 +4,8 @@ import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {isNarrowScreen, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from "app/client/ui2018/IconList";
 import {icon} from 'app/client/ui2018/icons';
 import {
@@ -24,7 +23,7 @@ import {
   SearchableMenuItem,
 } from 'app/client/ui2018/menus';
 import * as UserType from "app/client/widgets/UserType";
-import {isListType, RecalcWhen} from "app/common/gristTypes";
+import {isFullReferencingType, isListType, RecalcWhen} from "app/common/gristTypes";
 import {Sort} from 'app/common/SortSpec';
 import {dom, DomElementArg, styled} from 'grainjs';
 import * as weasel from 'popweasel';
@@ -59,12 +58,18 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
     `RefList:${tableId}`,
     "Attachments"];
   return typeNames.map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
-    .map((ct): { displayName: string, colType: string, testIdName: string, icon: IconName | undefined } => ({
-      displayName: t(ct.obj.label),
-      colType: ct.type,
-      testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
-      icon: ct.obj.icon
-  })).map(ct => {
+      .map((ct): {
+        displayName: string,
+        colType: string,
+        testIdName: string,
+        icon: IconName | undefined,
+      openCreatorPanel: boolean } => ({
+          displayName: t(ct.obj.label),
+          colType: ct.type,
+          testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
+          icon: ct.obj.icon,
+          openCreatorPanel: isFullReferencingType(ct.type)
+        })).map(ct => {
     if (!pure) { return ct; }
     else {
       return {
@@ -94,11 +99,16 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
         ...columnTypes.map((colType) =>
           menuItem(
             async () => {
-              await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}});
+              await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: ()=> {
+                if(!colType.openCreatorPanel || isNarrowScreen()) { return; }
+                  commands.allCommands.fieldTabOpen.run();
+                  commands.allCommands.rightPanelOpen.run();
+                  commands.allCommands.showPopup.run({popup: "referenceColumnsConfig"});
+              }});
             },
             menuIcon(colType.icon as IconName),
             colType.displayName === 'Reference'?
-                  gridView.gristDoc.behavioralPromptsManager.attachTip('referenceColumns', {
+                  gridView.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
                     popupOptions: {
                       attach: `.${menuCssClass}`,
                       placement: 'left-start',
@@ -125,7 +135,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
       },
       withInfoTooltip(
         t('Add formula column'),
-        GristTooltips.formulaColumn(),
+        'formulaColumn',
         {variant: 'hover'}
       ),
       testId('new-columns-menu-add-formula'),
@@ -374,7 +384,7 @@ function buildUUIDMenuItem(gridView: GridView, index?: number) {
     },
     withInfoTooltip(
       t('UUID'),
-      GristTooltips.uuid(),
+      'uuid',
       {variant: 'hover'}
     ),
     testId('new-columns-menu-shortcuts-uuid'),
@@ -669,7 +679,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     menuSubHeader(
       withInfoTooltip(
         t('Lookups'),
-        GristTooltips.lookups(),
+        'lookups',
         {variant: 'hover'}
       ),
       testId('new-columns-menu-lookups'),

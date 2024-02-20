@@ -247,7 +247,8 @@
         "Document ID copied to clipboard": "ID de documento copiado al portapapeles",
         "API": "API",
         "Webhooks": "Ganchos Web",
-        "Manage Webhooks": "Administrar los ganchos web"
+        "Manage Webhooks": "Administrar los ganchos web",
+        "API Console": "Consola de la API"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -386,7 +387,19 @@
         "Add column": "Añadir una columna",
         "Last updated by": "Última actualización",
         "Detect duplicates in...": "Detectar duplicados en...",
-        "Last updated at": "Última actualización en"
+        "Last updated at": "Última actualización en",
+        "Reference": "Referencia",
+        "Reference List": "Lista de referencias",
+        "Attachment": "Adjuntar",
+        "Numeric": "Numérico",
+        "Any": "Cualquiera",
+        "Text": "Texto",
+        "Choice": "Seleccione",
+        "Integer": "Entero",
+        "Date": "Fecha",
+        "Toggle": "Alternar",
+        "DateTime": "Fecha y hora",
+        "Choice List": "Lista de opciones"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", o encontrar un experto a través de nuestro",
@@ -541,7 +554,24 @@
         "Fields_one": "Campo",
         "Fields_other": "Campos",
         "Add referenced columns": "Añadir columnas referenciadas",
-        "Reset form": "Restablecer el formulario"
+        "Reset form": "Restablecer el formulario",
+        "Default field value": "Valor predeterminado del campo",
+        "Configuration": "Configuración",
+        "Display button": "Botón de visualización",
+        "Field rules": "Reglas del campo",
+        "Submission": "Presentación",
+        "Submit button label": "Etiqueta del botón de enviar",
+        "Success text": "Texto exitoso",
+        "Submit another response": "Enviar otra respuesta",
+        "Table column name": "Nombre de la columna de la tabla",
+        "Enter redirect URL": "Introduzca la URL de redirección",
+        "Enter text": "Introduzca el texto",
+        "Field title": "Título del campo",
+        "Layout": "Diseño",
+        "Redirection": "Redirección",
+        "Required field": "Campo requerido",
+        "Hidden field": "Campo oculto",
+        "Redirect automatically after submission": "Redirigir automáticamente después del envío"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar enlace de anclaje",
@@ -647,7 +677,8 @@
         "Show raw data": "Mostrar datos brutos",
         "Widget options": "Opciones de Widget",
         "Collapse widget": "Ocultar el widget",
-        "Add to page": "Añadir a la página"
+        "Add to page": "Añadir a la página",
+        "Create a form": "Crear un formulario"
     },
     "ViewSectionMenu": {
         "(customized)": "(personalizado)",
@@ -718,7 +749,11 @@
         "You do not have access to this organization's documents.": "No tiene acceso a los documentos de esta organización.",
         "Account deleted{{suffix}}": "Cuenta borrada{{suffix}}",
         "Your account has been deleted.": "Tu cuenta ha sido eliminada.",
-        "Sign up": "Inscribirse"
+        "Sign up": "Inscribirse",
+        "Form not found": "Formulario no encontrado",
+        "Powered by": "Desarrollado por",
+        "An unknown error occurred.": "Ha ocurrido un error desconocido.",
+        "Build your own form": "Cree su propio formulario"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Enviar archivo a Google Drive"
@@ -924,7 +959,17 @@
     "modals": {
         "Cancel": "Cancelar",
         "Ok": "OK",
-        "Save": "Guardar"
+        "Save": "Guardar",
+        "Are you sure you want to delete this record?": "¿Seguro que quieres borrar este registro?",
+        "Delete": "Borrar",
+        "Don't show tips": "No muestres consejos",
+        "Undo to restore": "Deshacer para restaurar",
+        "Got it": "Entendido",
+        "Dismiss": "Descartar",
+        "Don't ask again.": "No preguntes de nuevo.",
+        "Don't show again.": "No vuelvas a mostrarlo.",
+        "Don't show again": "No volver a mostrar",
+        "Are you sure you want to delete these records?": "¿Seguro que quieres borrar estos registros?"
     },
     "pages": {
         "Duplicate Page": "Duplicar página",
@@ -1314,5 +1359,42 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Campos ocultos"
+    },
+    "Menu": {
+        "Building blocks": "Partes",
+        "Columns": "Columnas",
+        "Copy": "Copiar",
+        "Cut": "Cortar",
+        "Insert question below": "Insertar la pregunta siguiente",
+        "Paragraph": "Párrafo",
+        "Insert question above": "Insertar la pregunta anterior",
+        "Header": "Encabezado",
+        "Paste": "Pegar",
+        "Separator": "Separador",
+        "Unmapped fields": "Campos sin asignar"
+    },
+    "Editor": {
+        "Delete": "Borrar"
+    },
+    "UnmappedFieldsConfig": {
+        "Unmap fields": "Anular asignación de campos",
+        "Mapped": "Asignado",
+        "Clear": "Limpiar",
+        "Map fields": "Campos del mapa",
+        "Select All": "Seleccionar todo",
+        "Unmapped": "Sin asignar"
+    },
+    "FormView": {
+        "Publish": "Publicar",
+        "Publish your form?": "¿Publicar su formulario?",
+        "Unpublish your form?": "¿Anular la publicación de su formulario?",
+        "Unpublish": "Anular la publicación"
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "llamada gratuita de asesoramiento",
+        "Schedule Call": "Programar una llamada",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Programe su {{freeCoachingCall}} con un miembro de nuestro equipo.",
+        "Maybe Later": "Quizás más tarde",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "En la llamada, nos tomaremos el tiempo necesario para entender sus necesidades y adaptar la llamada a usted. Podemos mostrarle los conceptos básicos de Grist o empezar a trabajar con sus datos de inmediato para crear los cuadros de mando que necesita."
     }
 }

@@ -1298,12 +1298,22 @@ export class ActiveDoc extends EventEmitter {
 
   // Callback to generate a prompt containing schema info for assistance.
   public async assistanceSchemaPromptV1(
-    docSession: OptDocSession, options: AssistanceSchemaPromptV1Context): Promise<string> {
+    docSession: OptDocSession,
+    context: AssistanceSchemaPromptV1Context
+  ): Promise<string> {
     // Making a prompt leaks names of tables and columns etc.
     if (!await this._granularAccess.canScanData(docSession)) {
       throw new Error("Permission denied");
     }
-    return await this._pyCall('get_formula_prompt', options.tableId, options.colId, options.docString);
+
+    return await this._pyCall(
+      'get_formula_prompt',
+      context.tableId,
+      context.colId,
+      context.docString,
+      context.includeAllTables ?? true,
+      context.includeLookups ?? true
+    );
   }
 
   // Callback to make a data-engine formula tweak for assistance.

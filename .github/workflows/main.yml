@@ -98,6 +98,7 @@ jobs:
           export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
           MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:server
         env:
+          TESTS: ${{ matrix.tests }}
           GRIST_DOCS_MINIO_ACCESS_KEY: administrator
           GRIST_DOCS_MINIO_SECRET_KEY: administrator
           TEST_REDIS_URL: "redis://localhost/11"

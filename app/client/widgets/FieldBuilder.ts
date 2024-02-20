@@ -40,6 +40,7 @@ import { bundleChanges, Computed, Disposable, fromKo,
 import isEqual from 'lodash/isEqual';
 import * as ko from 'knockout';
 import * as _ from 'underscore';
+import * as commands from "../components/commands";
 
 const testId = makeTestId('test-fbuilder-');
 const t = makeT('FieldBuilder');
@@ -109,6 +110,8 @@ export class FieldBuilder extends Disposable {
   private readonly _comments: ko.Computed<boolean>;
   private readonly _showRefConfigPopup: ko.Observable<boolean>;
   private readonly _isEditorActive = Observable.create(this, false);
+
+
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
@@ -205,6 +208,14 @@ export class FieldBuilder extends Disposable {
     this.diffImpl = this.autoDispose(DiffBox.create(this.field));
 
     this._showRefConfigPopup = ko.observable(false);
+
+    this.autoDispose(commands.createGroup({
+      showPopup: (args: any) => {
+        if(args.popup==='referenceColumnsConfig'){
+          this._showRefConfigPopup(true);
+        }
+      }
+    }, this, true));
   }
 
   public buildSelectWidgetDom() {
@@ -294,7 +305,7 @@ export class FieldBuilder extends Disposable {
             }
 
             if (op.label === 'Reference') {
-              return this.gristDoc.behavioralPromptsManager.attachTip('referenceColumns', {
+              return this.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
                 popupOptions: {
                   attach: `.${cssTypeSelectMenu.className}`,
                   placement: 'left-start',
@@ -400,14 +411,17 @@ export class FieldBuilder extends Disposable {
     });
     return [
       cssLabel(t('DATA FROM TABLE'),
-        !this._showRefConfigPopup.peek() ? null : this.gristDoc.behavioralPromptsManager.attachTip(
-          'referenceColumnsConfig',
-          {
-            onDispose: () => this._showRefConfigPopup(false),
-            popupOptions: {
-              placement: 'left-start',
-            },
-          }
+        kd.maybe(this._showRefConfigPopup, () => {
+            return dom('div', this.gristDoc.behavioralPromptsManager.attachPopup(
+              'referenceColumnsConfig',
+              {
+                onDispose: () => this._showRefConfigPopup(false),
+                popupOptions: {
+                  placement: 'left-start',
+                },
+              }
+            ));
+          },
         ),
       ),
       cssRow(
@@ -483,6 +497,14 @@ export class FieldBuilder extends Disposable {
     return dom('div',
       kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
         dom('div', widget.buildColorConfigDom(this.gristDoc))
+      )
+    );
+  }
+
+  public buildFormConfigDom() {
+    return dom('div',
+      kd.maybe(() => !this._isTransformingType() && this.widgetImpl(), (widget: NewAbstractWidget) =>
+        dom('div', widget.buildFormConfigDom())
       )
     );
   }

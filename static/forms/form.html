@@ -31,11 +31,19 @@
           data-grist-success-url="{{ SUCCESS_URL }}"
           >
       {{ dompurify CONTENT }}
-      <div class="grist-power-by">
-        <a href="https://getgrist.com" target="_blank">
-            <div>Powered by</div>
-            <div class="grist-logo"></div>
+      <div class='grist-form-footer'>
+        <div class="grist-power-by">
+          <a href="{{ FORMS_LANDING_PAGE_URL }}" target="_blank">
+              <div>Powered by</div>
+              <div class="grist-logo"></div>
+            </a>
+        </div>
+        <div class='grist-form-build-form-link-container'>
+          <a class='grist-form-build-form-link' href="{{ FORMS_LANDING_PAGE_URL }}" target="_blank">
+            Build your own form
+            <div class="grist-form-icon grist-form-icon-expand"></div>
           </a>
+        </div>
       </div>
     </form>
 
@@ -59,13 +67,13 @@
         </div>
         <div class='grist-form-confirm-footer'>
           <div class="grist-power-by">
-            <a href="https://www.getgrist.com" target="_blank">
+            <a href="https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer" target="_blank">
                 <div>Powered by</div>
                 <div class="grist-logo"></div>
               </a>
           </div>
-          <div class='grist-form-confirm-build-form'>
-            <a class='grist-form-confirm-build-form-link' href="https://www.getgrist.com" target="_blank">
+          <div class='grist-form-build-form-link-container'>
+            <a class='grist-form-build-form-link' href="https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer" target="_blank">
               Build your own form
               <div class="grist-form-icon grist-form-icon-expand"></div>
             </a>

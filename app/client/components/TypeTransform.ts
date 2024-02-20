@@ -18,6 +18,7 @@ import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {UserAction} from 'app/common/DocActions';
 import {Computed, dom, fromKo, Observable} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import {WidgetType} from 'app/common/widgetTypes';
 
 const t = makeT('TypeTransform');
 
@@ -30,6 +31,7 @@ const t = makeT('TypeTransform');
 export class TypeTransform extends ColumnTransform {
   private _reviseTypeChange = Observable.create(this, false);
   private _transformWidget: Computed<NewAbstractWidget|null>;
+  private _isFormWidget: Computed<boolean>;
   private _convertColumn: ColumnRec;                 // Set in prepare()
 
   constructor(gristDoc: GristDoc, fieldBuilder: FieldBuilder) {
@@ -41,6 +43,8 @@ export class TypeTransform extends ColumnTransform {
     this._transformWidget = Computed.create(this, fromKo(fieldBuilder.widgetImpl), (use, widget) => {
       return use(this.origColumn.isTransforming) ? widget : null;
     });
+
+    this._isFormWidget = Computed.create(this, use => use(use(this.field.viewSection).parentKey) === WidgetType.Form);
   }
 
   /**
@@ -52,7 +56,16 @@ export class TypeTransform extends ColumnTransform {
     this._reviseTypeChange.set(false);
     return dom('div',
       testId('type-transform-top'),
-      dom.maybe(this._transformWidget, transformWidget => transformWidget.buildTransformConfigDom()),
+      dom.domComputed(use => {
+        const transformWidget = use(this._transformWidget);
+        if (!transformWidget) { return null; }
+
+        if (use(this._isFormWidget)) {
+          return transformWidget.buildFormTransformConfigDom();
+        } else {
+          return transformWidget.buildTransformConfigDom();
+        }
+      }),
       dom.maybe(this._reviseTypeChange, () =>
         dom('div.transform_editor', this.buildEditorDom(),
           testId("type-transform-formula")

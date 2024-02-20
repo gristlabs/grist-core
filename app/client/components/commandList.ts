@@ -101,6 +101,7 @@ export type CommandName =
   | 'duplicateRows'
   | 'sortAsc'
   | 'sortDesc'
+  | 'showPopup'
   | 'addSortAsc'
   | 'addSortDesc'
   | 'filterByThisCellValue'
@@ -119,7 +120,6 @@ export type CommandName =
   | 'createForm'
   | 'insertField'
   ;
-
 
 export interface CommandDef {
   name: CommandName;
@@ -285,6 +285,11 @@ export const groups: CommendGroupDef[] = [{
       desc: 'Show the record card widget of the selected record',
     },
     {
+      name: 'showPopup',
+      keys:[],
+      desc: 'showing a behavioral popup'
+    },
+    {
       name: 'createForm',
       keys: [],
       desc: 'Creates form for active table',
@@ -293,7 +298,7 @@ export const groups: CommendGroupDef[] = [{
       name: 'insertField',
       keys: [],
       desc: 'Insert new column in default location',
-    },
+    }
   ]
 }, {
   group: 'Navigation',

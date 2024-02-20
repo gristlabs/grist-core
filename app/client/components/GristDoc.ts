@@ -45,11 +45,12 @@ import {DocHistory} from 'app/client/ui/DocHistory';
 import {startDocTour} from "app/client/ui/DocTour";
 import {DocTutorial} from 'app/client/ui/DocTutorial';
 import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
-import {isTourActive} from "app/client/ui/OnBoardingPopups";
+import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
 import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {linkFromId, selectBy} from 'app/client/ui/selectBy';
+import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
+import {getTelemetryWidgetTypeFromPageWidget} from 'app/client/ui/widgetTypesMap';
 import {PlayerState, YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
@@ -298,13 +299,11 @@ export class GristDoc extends DisposableWithEvents {
       }
     }));
 
-
     // Subscribe to URL state, and navigate to anchor or open a popup if necessary.
     this.autoDispose(subscribe(urlState().state, async (use, state) => {
       if (!state.hash) {
         return;
       }
-
 
       try {
         if (state.hash.popup || state.hash.recordCard) {
@@ -342,7 +341,7 @@ export class GristDoc extends DisposableWithEvents {
                 return;
               }
 
-              this.behavioralPromptsManager.showTip(cursor, 'rickRow', {
+              this.behavioralPromptsManager.showPopup(cursor, 'rickRow', {
                 onDispose: () => this._playRickRollVideo(),
               });
             })
@@ -355,9 +354,25 @@ export class GristDoc extends DisposableWithEvents {
       }
     }));
 
-    if (this.docModel.isTutorial()) {
-      this.behavioralPromptsManager.disable();
-    }
+    this.autoDispose(subscribe(
+      urlState().state,
+      isTourActiveObs(),
+      fromKo(this.docModel.isTutorial),
+      (_use, state, hasActiveTour, isTutorial) => {
+        // Tours and tutorials can interfere with in-product tips and announcements.
+        const hasPendingDocTour = state.docTour || this._shouldAutoStartDocTour();
+        const hasPendingWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
+        const isPopupManagerDisabled = this.behavioralPromptsManager.isDisabled();
+        if (
+          (hasPendingDocTour || hasPendingWelcomeTour || hasActiveTour || isTutorial) &&
+          !isPopupManagerDisabled
+        ) {
+          this.behavioralPromptsManager.disable();
+        } else if (isPopupManagerDisabled) {
+          this.behavioralPromptsManager.enable();
+        }
+      }
+    ));
 
     let isStartingTourOrTutorial = false;
     this.autoDispose(subscribe(urlState().state, async (_use, state) => {
@@ -882,6 +897,13 @@ export class GristDoc extends DisposableWithEvents {
         return;
       }
     }
+
+    const widgetType = getTelemetryWidgetTypeFromPageWidget(val);
+    logTelemetryEvent('addedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    if (val.link !== NoLink) {
+      logTelemetryEvent('linkedWidget', {full: {docIdDigest: this.docId(), widgetType}});
+    }
+
     const res: {sectionRef: number} = await docData.bundleActions(
       t("Added new linked section to view {{viewName}}", {viewName}),
       () => this.addWidgetToPageImpl(val, tableId ?? null)
@@ -932,6 +954,14 @@ export class GristDoc extends DisposableWithEvents {
    * Adds a new page (aka: view) with a single view section (aka: page widget) described by `val`.
    */
   public async addNewPage(val: IPageWidget) {
+    logTelemetryEvent('addedPage', {full: {docIdDigest: this.docId()}});
+    logTelemetryEvent('addedWidget', {
+      full: {
+        docIdDigest: this.docId(),
+        widgetType: getTelemetryWidgetTypeFromPageWidget(val),
+      },
+    });
+
     if (val.table === 'New Table') {
       const name = await this._promptForName();
       if (name === undefined) {
@@ -1595,7 +1625,7 @@ export class GristDoc extends DisposableWithEvents {
       // Don't show the tip if a non-card widget was selected.
       !['single', 'detail'].includes(selectedWidgetType) ||
       // Or if we shouldn't see the tip.
-      !this.behavioralPromptsManager.shouldShowTip('editCardLayout')
+      !this.behavioralPromptsManager.shouldShowPopup('editCardLayout')
     ) {
       return;
     }
@@ -1611,7 +1641,7 @@ export class GristDoc extends DisposableWithEvents {
       throw new Error('GristDoc failed to find edit card layout button');
     }
 
-    this.behavioralPromptsManager.showTip(editLayoutButton, 'editCardLayout', {
+    this.behavioralPromptsManager.showPopup(editLayoutButton, 'editCardLayout', {
       popupOptions: {
         placement: 'left-start',
       }
@@ -1621,7 +1651,7 @@ export class GristDoc extends DisposableWithEvents {
   private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
     switch (widget) {
       case 'custom.calendar': {
-        if (this.behavioralPromptsManager.shouldShowTip('calendarConfig')) {
+        if (this.behavioralPromptsManager.shouldShowPopup('calendarConfig')) {
           // Open the right panel to the calendar subtab.
           commands.allCommands.viewTabOpen.run();
 

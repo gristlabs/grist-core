@@ -14,7 +14,7 @@ import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
 import {docBreadcrumbs} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
-import {cssHideForNarrowScreen, testId, theme} from 'app/client/ui2018/cssVars';
+import {cssHideForNarrowScreen, isNarrowScreenObs, testId, theme} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {menuAnnotate} from 'app/client/ui2018/menus';
 import {COMMENTS} from 'app/client/models/features';
@@ -72,6 +72,10 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       return module.SearchModelImpl.create(use.owner, gristDoc);
     });
 
+  const isSearchOpen = Computed.create(owner, searchModelObs, (use, searchModel) => {
+    return Boolean(searchModel && use(searchModel.isOpen));
+  });
+
   const isUndoRedoAvailable = Computed.create(owner, use => {
     const gristDoc = use(pageModel.gristDoc);
     if (!gristDoc) { return false; }
@@ -102,7 +106,8 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
           isTemplate: pageModel.isTemplate,
           isAnonymous,
-        })
+        }),
+        dom.hide(use => use(isSearchOpen) && use(isNarrowScreenObs())),
       )
     ),
     cssFlexSpace(),
@@ -111,12 +116,14 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     dom.maybe(pageModel.undoState, (state) => [
       topBarUndoBtn('Undo',
         dom.on('click', () => state.isUndoDisabled.get() || allCommands.undo.run()),
+        dom.hide(use => use(isSearchOpen)),
         hoverTooltip('Undo', {key: 'topBarBtnTooltip'}),
         cssHoverCircle.cls('-disabled', use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
         testId('undo'),
       ),
       topBarUndoBtn('Redo',
         dom.on('click', () => state.isRedoDisabled.get() || allCommands.redo.run()),
+        dom.hide(use => use(isSearchOpen)),
         hoverTooltip('Redo', {key: 'topBarBtnTooltip'}),
         cssHoverCircle.cls('-disabled', use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
         testId('redo'),

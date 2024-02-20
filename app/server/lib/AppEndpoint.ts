@@ -233,7 +233,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     const response = await fetch(formUrl, {
       headers: getTransitiveHeaders(req),
     });
-    if (response.status === 200) {
+    if (response.ok) {
       const html = await response.text();
       res.send(html);
     } else {

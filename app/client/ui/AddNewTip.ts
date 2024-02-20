@@ -39,7 +39,7 @@ function showAddNewTip(home: HomeModel): void {
     return;
   }
 
-  home.app.behavioralPromptsManager.showTip(addNewButton, 'addNew', {
+  home.app.behavioralPromptsManager.showPopup(addNewButton, 'addNew', {
     popupOptions: {
       placement: 'right-start',
     },

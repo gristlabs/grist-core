@@ -146,9 +146,10 @@ export function getLogMetaFromDocSession(docSession: OptDocSession) {
   const client = docSession.client;
   const access = getDocSessionAccessOrNull(docSession);
   const user = getDocSessionUser(docSession);
+  const email = user?.loginEmail || user?.email;
   return {
     access,
-    ...(user ? {userId: user.id, email: user.email} : {}),
+    ...(user ? {userId: user.id, email} : {}),
     ...(client ? client.getLogMeta() : {}),   // Client if present will repeat and add to user info.
   };
 }

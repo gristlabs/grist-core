@@ -1,6 +1,7 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
+import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
@@ -28,6 +29,17 @@ const cssIcon = styled(icon, `
   width: 18px;
 `);
 
+const cssNewsPopupLearnMoreButton = styled(basicButtonLink, `
+  color: white;
+  border: 1px solid white;
+  padding: 3px;
+
+  &:hover, &:focus, &:visited {
+    color: white;
+    border-color: white;
+  }
+`);
+
 export type Tooltip =
   | 'dataSize'
   | 'setTriggerFormula'
@@ -38,7 +50,7 @@ export type Tooltip =
   | 'addColumnConditionalStyle'
   | 'uuid'
   | 'lookups'
-  | 'formulaColumn'
+  | 'formulaColumn';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -126,11 +138,14 @@ see or edit which parts of your document.')
 };
 
 export interface BehavioralPromptContent {
+  popupType: 'tip' | 'news';
   title: () => string;
   content: (...domArgs: DomElementArg[]) => DomContents;
-  showDeploymentTypes: GristDeploymentType[] | '*';
+  deploymentTypes: GristDeploymentType[] | 'all';
+  /** Defaults to `everyone`. */
+  audience?: 'signed-in-users' | 'anonymous-users' | 'everyone';
   /** Defaults to `desktop`. */
-  showContext?: 'mobile' | 'desktop' | '*';
+  deviceType?: 'mobile' | 'desktop' | 'all';
   /** Defaults to `false`. */
   hideDontShowTips?: boolean;
   /** Defaults to `false`. */
@@ -141,6 +156,7 @@ export interface BehavioralPromptContent {
 
 export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptContent> = {
   referenceColumns: {
+    popupType: 'tip',
     title: () => t('Reference Columns'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Reference columns are the key to {{relational}} data in Grist.', {
@@ -152,9 +168,10 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       ),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   referenceColumnsConfig: {
+    popupType: 'tip',
     title: () => t('Reference Columns'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Select the table to link to.')),
@@ -167,9 +184,10 @@ record in that table, but you may select which column from that record to show.'
       ),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   rawDataPage: {
+    popupType: 'tip',
     title: () => t('Raw Data page'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('The Raw Data page lists all data tables in your document, \
@@ -177,9 +195,10 @@ including summary tables and tables not included in page layouts.')),
       dom('div', cssLink({href: commonUrls.helpRawData, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   accessRules: {
+    popupType: 'tip',
     title: () => t('Access Rules'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Access rules give you the power to create nuanced rules \
@@ -187,9 +206,10 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   filterButtons: {
+    popupType: 'tip',
     title: () => t('Pinning Filters'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Pinned filters are displayed as buttons above the widget.')),
@@ -197,27 +217,30 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpFilterButtons, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   nestedFiltering: {
+    popupType: 'tip',
     title: () => t('Nested Filtering'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('You can filter by more than one column.')),
       dom('div', t('Only those rows will appear which match all of the filters.')),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   pageWidgetPicker: {
+    popupType: 'tip',
     title: () => t('Selecting Data'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Select the table containing the data to show.')),
       dom('div', t('Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.')),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   pageWidgetPickerSelectBy: {
+    popupType: 'tip',
     title: () => t('Linking Widgets'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Link your new widget to an existing widget on this page.')),
@@ -225,9 +248,10 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   editCardLayout: {
+    popupType: 'tip',
     title: () => t('Editing Card Layout'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Rearrange the fields in your card by dragging and resizing cells.')),
@@ -236,17 +260,19 @@ to determine who can see or edit which parts of your document.')),
       })),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   addNew: {
+    popupType: 'tip',
     title: () => t('Add New'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Click the Add New button to create new documents or workspaces, or import data.')),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   rickRow: {
+    popupType: 'tip',
     title: () => t('Anchor Links'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
@@ -258,13 +284,14 @@ to determine who can see or edit which parts of your document.')),
       ),
       ...args,
     ),
-    showDeploymentTypes: '*',
-    showContext: '*',
+    deploymentTypes: 'all',
+    deviceType: 'all',
     hideDontShowTips: true,
     forceShow: true,
     markAsSeen: false,
   },
   customURL: {
+    popupType: 'tip',
     title: () => t('Custom Widgets'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
@@ -275,9 +302,10 @@ to determine who can see or edit which parts of your document.')),
       dom('div', cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
   calendarConfig: {
+    popupType: 'tip',
     title: () => t('Calendar'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t("To configure your calendar, select columns for start/end dates and event titles. \
@@ -287,6 +315,21 @@ data.")),
       dom('div', cssLink({href: commonUrls.helpCalendarWidget, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
-    showDeploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
+  },
+  formsAreHere: {
+    popupType: 'news',
+    audience: 'signed-in-users',
+    title: () => t('Forms are here!'),
+    content: (...args: DomElementArg[]) => cssTooltipContent(
+      dom('div', t('Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}', {
+        learnMoreButton: cssNewsPopupLearnMoreButton(t('Learn more'), {
+          href: commonUrls.forms,
+          target: '_blank',
+        }),
+      })),
+      ...args,
+    ),
+    deploymentTypes: ['saas', 'core', 'enterprise'],
   },
 };
