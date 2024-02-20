@@ -876,30 +876,33 @@ export function getKnownOrg(): string|null {
   }
 }
 
-export function getHelpCenterUrl(): string|null {
+export function getHelpCenterUrl(): string {
+  const defaultUrl = "https://support.getgrist.com";
   if(isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.helpCenterUrl || null;
+    return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
-    return process.env.GRIST_HELP_CENTER || null;
+    return process.env.GRIST_HELP_CENTER || defaultUrl;
   }
 }
 
-export function getFreeCoachingCallUrl(): string|null {
+export function getFreeCoachingCallUrl(): string {
+  const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
   if(isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.freeCoachingCallUrl || null;
+    return gristConfig && gristConfig.freeCoachingCallUrl || defaultUrl;
   } else {
-    return process.env.FREE_COACHING_CALL_URL || null;
+    return process.env.FREE_COACHING_CALL_URL || defaultUrl;
   }
 }
 
-export function contactSupportUrl(): string|null {
+export function getContactSupportUrl(): string {
+  const defaultUrl = "https://www.getgrist.com/contact/";
   if(isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.contactSupportUrl || null;
+    return gristConfig && gristConfig.contactSupportUrl || defaultUrl;
   } else {
-    return process.env.CONTACT_SUPPORT_URL || null;
+    return process.env.GRIST_CONTACT_SUPPORT_URL || defaultUrl;
   }
 }
 
