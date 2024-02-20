@@ -905,6 +905,9 @@ GridView.prototype.insertColumn = async function(colId = null, options = {}) {
 };
 
 GridView.prototype.makeHeadersFromRow = async function(selection) {
+  if (this._getCellContextMenuOptions().disableMakeHeadersFromRow){
+    return;
+  }
   const actions = this.viewSection.columns.peek().reduce((acc, col) => {
     const colId = col.colId.peek();
     let newColLabel = this.tableModel.tableData.getValue(selection.rowIds[0], colId);
