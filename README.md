@@ -264,7 +264,7 @@ GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
 GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org
 GRIST_HELP_CENTER | set the help center link ref
 FREE_COACHING_CALL_URL | set the link to the human help (example: email adress or meeting scheduling tool)
-CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form)
+GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form)
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.
