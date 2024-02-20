@@ -1,15 +1,22 @@
 import * as commands from 'app/client/components/commands';
+import { FieldRulesConfig } from 'app/client/components/Forms/FormConfig';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { KoSaveableObservable } from 'app/client/models/modelUtil';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
 import { theme } from 'app/client/ui2018/cssVars';
-import { dom } from 'grainjs';
+import { dom, DomContents } from 'grainjs';
 
 /**
  * ToggleBase - The base class for toggle widgets, such as a checkbox or a switch.
  */
 abstract class ToggleBase extends NewAbstractWidget {
+  public buildFormConfigDom(): DomContents {
+    return [
+      dom.create(FieldRulesConfig, this.field),
+    ];
+  }
+
   protected _addClickEventHandlers(row: DataRowModel) {
     return [
       dom.on('click', (event) => {

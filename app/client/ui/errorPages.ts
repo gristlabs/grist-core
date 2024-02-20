@@ -7,9 +7,9 @@ import {pagePanels} from 'app/client/ui/PagePanels';
 import {setUpPage} from 'app/client/ui/setUpPage';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, theme, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {getContactSupportUrl, getPageTitleSuffix} from 'app/common/gristUrls';
+import {getContactSupportUrl, commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 
@@ -128,14 +128,14 @@ export function createFormNotFoundPage(message?: string) {
         cssFormErrorFooter(
           cssFormPoweredByGrist(
             cssFormPoweredByGristLink(
-              {href: 'https://www.getgrist.com', target: '_blank'},
+              {href: commonUrls.forms, target: '_blank'},
               t('Powered by'),
               cssGristLogo(),
             )
           ),
           cssFormBuildForm(
             cssFormBuildFormLink(
-              {href: 'https://www.getgrist.com', target: '_blank'},  // TODO: make configurable
+              {href: commonUrls.forms, target: '_blank'},
               t('Build your own form'),
               icon('Expand'),
             ),
@@ -227,10 +227,17 @@ const cssButtonWrap = styled('div', `
 `);
 
 const cssFormErrorPage = styled('div', `
-  --grist-form-padding: 48px;
-  min-height: 100%;
+  background-color: ${colors.lightGrey};
+  height: 100%;
   width: 100%;
-  padding-top: 52px;
+  padding: 52px 0px 52px 0px;
+  overflow: auto;
+
+  @media ${mediaSmall} {
+    & {
+      padding: 20px 0px 20px 0px;
+    }
+  }
 `);
 
 const cssFormErrorContainer = styled('div', `
@@ -243,6 +250,7 @@ const cssFormError = styled('div', `
   text-align: center;
   flex-direction: column;
   align-items: center;
+  background-color: white;
   border: 1px solid ${colors.darkGrey};
   border-radius: 3px;
   max-width: 600px;
@@ -254,8 +262,10 @@ const cssFormErrorBody = styled('div', `
 `);
 
 const cssFormErrorImage = styled('img', `
-  width: 250px;
-  height: 281px;
+  width: 100%;
+  height: 100%;
+  max-width: 250px;
+  max-height: 281px;
 `);
 
 const cssFormErrorText = styled('div', `
@@ -282,8 +292,6 @@ const cssFormPoweredByGrist = styled('div', `
   align-items: center;
   justify-content: center;
   padding: 0px 10px;
-  margin-left: calc(-1 * var(--grist-form-padding));
-  margin-right: calc(-1 * var(--grist-form-padding));
 `);
 
 const cssFormPoweredByGristLink = styled('a', `

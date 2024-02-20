@@ -1,4 +1,5 @@
 import { GristDoc } from 'app/client/components/GristDoc';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
 import { ViewFieldRec, ViewSectionRec } from 'app/client/models/DocModel';
 import { cssInput } from 'app/client/ui/cssInput';
 import { cssField, cssLabel } from 'app/client/ui/MakeCopyMenu';
@@ -43,6 +44,8 @@ async function makeDuplicate(gristDoc: GristDoc, pageId: number, pageName: strin
   await gristDoc.docData.bundleActions(
     t("Duplicate page {{pageName}}", {pageName}),
     async () => {
+      logTelemetryEvent('addedPage', {full: {docIdDigest: gristDoc.docId()}});
+
       // create new view and new sections
       const results = await createNewViewSections(gristDoc.docData, viewSections);
       viewRef = results[0].viewRef;

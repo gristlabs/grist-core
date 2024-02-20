@@ -2,7 +2,6 @@ import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
@@ -359,7 +358,7 @@ export function buildFormulaConfig(
             dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
             testId("field-set-trigger")
           ),
-          GristTooltips.setTriggerFormula(),
+          'setTriggerFormula',
         )),
         cssRow(textButton(
           t("Make into data column"),
@@ -412,7 +411,7 @@ export function buildFormulaConfig(
               dom.prop("disabled", disableOtherActions),
               testId("field-set-trigger")
             ),
-            GristTooltips.setTriggerFormula()
+            'setTriggerFormula'
           )),
         ])
       ])

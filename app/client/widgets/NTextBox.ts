@@ -1,3 +1,4 @@
+import { FieldRulesConfig } from 'app/client/components/Forms/FormConfig';
 import { fromKoSave } from 'app/client/lib/fromKoSave';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
@@ -51,10 +52,16 @@ export class NTextBox extends NewAbstractWidget {
             [{value: true, icon: 'Wrap'}],
             toggle,
             cssButtonSelect.cls('-disabled', wrapDisabled),
-            ),
-          testId('tb-wrap-text')
-        )
-      )
+          ),
+          testId('tb-wrap-text'),
+        ),
+      ),
+    ];
+  }
+
+  public buildFormConfigDom(): DomContents {
+    return [
+      dom.create(FieldRulesConfig, this.field),
     ];
   }
 

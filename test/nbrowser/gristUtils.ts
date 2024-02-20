@@ -889,7 +889,7 @@ export async function importFileDialog(filePath: string): Promise<void> {
     await driver.findContent('.test-dp-import-option', /Import from file/i).doClick();
   });
   await driver.findWait('.test-importer-dialog', 5000);
-  await waitForServer();
+  await waitForServer(10_000);
 }
 
 /**
@@ -2821,14 +2821,21 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
  * on whole test suite if needed.
  */
 export async function onNewTab(action: () => Promise<void>) {
+  const currentTab = await driver.getWindowHandle();
   await driver.executeScript("window.open('about:blank', '_blank')");
   const tabs = await driver.getAllWindowHandles();
-  await driver.switchTo().window(tabs[tabs.length - 1]);
+  const newTab = tabs[tabs.length - 1];
+  await driver.switchTo().window(newTab);
   try {
     await action();
   } finally {
-    await driver.close();
-    await driver.switchTo().window(tabs[tabs.length - 2]);
+    const newCurrentTab = await driver.getWindowHandle();
+    if (newCurrentTab === newTab) {
+      await driver.close();
+      await driver.switchTo().window(currentTab);
+    } else {
+      console.log("onNewTab not cleaning up because is not on expected tab");
+    }
   }
 }
 

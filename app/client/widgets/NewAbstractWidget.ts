@@ -76,6 +76,14 @@ export abstract class NewAbstractWidget extends Disposable {
     return dom.create(CellStyle, this.field, gristDoc, this.defaultTextColor);
   }
 
+  public buildFormConfigDom(): DomContents {
+    return null;
+  }
+
+  public buildFormTransformConfigDom(): DomContents {
+    return null;
+  }
+
   /**
    * Builds the data cell DOM.
    * @param {DataRowModel} row - The rowModel object.

@@ -3,7 +3,6 @@ import {loadUserManager} from 'app/client/lib/imports';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {downloadDocModal, makeCopy, replaceTrunkWithFork} from 'app/client/ui/MakeCopyMenu';
 import {sendToDrive} from 'app/client/ui/sendToDrive';
 import {hoverTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
@@ -255,7 +254,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
     menuText(
       withInfoTooltip(
         t("Edit without affecting the original"),
-        GristTooltips.workOnACopy(),
+        'workOnACopy',
         {popupOptions: {attach: null}}
       )
     ),

@@ -5,6 +5,8 @@
  * - to be shown briefly, as a transient notification next to some action element.
  */
 
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
+import {GristTooltips, Tooltip} from 'app/client/ui/GristTooltips';
 import {prepareForTransition} from 'app/client/ui/transitions';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -312,6 +314,8 @@ export interface InfoTooltipOptions {
   variant?: InfoTooltipVariant;
   /** Only applicable to the `click` variant. */
   popupOptions?: IPopupOptions;
+  /** Only applicable to the `click` variant. */
+  onOpen?: () => void;
 }
 
 export type InfoTooltipVariant = 'click' | 'hover';
@@ -320,33 +324,42 @@ export type InfoTooltipVariant = 'click' | 'hover';
  * Renders an info icon that shows a tooltip with the specified `content`.
  */
 export function infoTooltip(
-  content: DomContents,
+  tooltip: Tooltip,
   options: InfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
   const {variant = 'click'} = options;
+  const content = GristTooltips[tooltip]();
+  const onOpen = () => logTelemetryEvent('viewedTip', {full: {tipName: tooltip}});
   switch (variant) {
     case 'click': {
       const {popupOptions} = options;
-      return buildClickableInfoTooltip(content, popupOptions, domArgs);
+      return buildClickableInfoTooltip(content, {onOpen, popupOptions}, domArgs);
     }
     case 'hover': {
       return buildHoverableInfoTooltip(content, domArgs);
     }
   }
+}
 
+export interface ClickableInfoTooltipOptions {
+  popupOptions?: IPopupOptions;
+  onOpen?: () => void;
 }
 
 function buildClickableInfoTooltip(
   content: DomContents,
-  popupOptions?: IPopupOptions,
+  options: ClickableInfoTooltipOptions = {},
   ...domArgs: DomElementArg[]
 ) {
+  const {onOpen, popupOptions} = options;
   return cssInfoTooltipButton('?',
     (elem) => {
       setPopupToCreateDom(
         elem,
         (ctl) => {
+          onOpen?.();
+
           return cssInfoTooltipPopup(
             cssInfoTooltipPopupCloseButton(
               icon('CrossSmall'),
@@ -395,11 +408,13 @@ export interface WithInfoTooltipOptions {
   iconDomArgs?: DomElementArg[];
   /** Only applicable to the `click` variant. */
   popupOptions?: IPopupOptions;
+  onOpen?: () => void;
 }
 
 /**
- * Wraps `domContent` with a info tooltip icon that displays the provided
- * `tooltipContent` and returns the wrapped element.
+ * Wraps `domContent` with a info tooltip icon that displays the specified
+ * `tooltip` and returns the wrapped element. Tooltips are defined in
+ * `app/client/ui/GristTooltips.ts`.
  *
  * The tooltip button is displayed to the right of `domContents`, and displays
  * a popup on click by default. The popup can be dismissed by clicking away from
@@ -414,20 +429,17 @@ export interface WithInfoTooltipOptions {
  *
  * Usage:
  *
- *   withInfoTooltip(
- *     dom('div', 'Hello World!'),
- *     dom('p', 'This is some text to show inside the tooltip.'),
- *   )
+ *   withInfoTooltip(dom('div', 'Hello World!'), 'selectBy')
  */
 export function withInfoTooltip(
   domContents: DomContents,
-  tooltipContent: DomContents,
+  tooltip: Tooltip,
   options: WithInfoTooltipOptions = {},
 ) {
   const {variant = 'click', domArgs, iconDomArgs, popupOptions} = options;
   return cssDomWithTooltip(
     domContents,
-    infoTooltip(tooltipContent, {variant, popupOptions}, iconDomArgs),
+    infoTooltip(tooltip, {variant, popupOptions}, iconDomArgs),
     ...(domArgs ?? [])
   );
 }

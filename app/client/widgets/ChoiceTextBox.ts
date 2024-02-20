@@ -9,8 +9,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
 import {choiceToken, DEFAULT_BACKGROUND_COLOR, DEFAULT_COLOR} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
-import {WidgetType} from 'app/common/widgetTypes';
-import {Computed, dom, styled, UseCB} from 'grainjs';
+import {Computed, dom, styled} from 'grainjs';
 
 export type IChoiceOptions = Style
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
@@ -75,42 +74,27 @@ export class ChoiceTextBox extends NTextBox {
   }
 
   public buildConfigDom() {
-    const disabled = Computed.create(null,
-      use => use(this.field.disableModify)
-        || use(use(this.field.column).disableEditData)
-        || use(this.field.config.options.disabled('choices'))
-      );
-
-    const mixed = Computed.create(null,
-      use => !use(disabled)
-        && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions')))
-      );
-
-    // If we are on forms, we don't want to show alignment options.
-    const notForm = (use: UseCB) => {
-      return use(use(this.field.viewSection).parentKey) !== WidgetType.Form;
-    };
-
     return [
-      dom.maybe(notForm, () => super.buildConfigDom()),
-      cssLabel(t('CHOICES')),
-      cssRow(
-        dom.autoDispose(disabled),
-        dom.autoDispose(mixed),
-        dom.create(
-          ChoiceListEntry,
-          this._choiceValues,
-          this._choiceOptionsByName,
-          this.save.bind(this),
-          disabled,
-          mixed
-        )
-      )
+      super.buildConfigDom(),
+      this._buildChoicesConfigDom(),
     ];
   }
 
   public buildTransformConfigDom() {
     return this.buildConfigDom();
+  }
+
+  public buildFormConfigDom() {
+    return [
+      this._buildChoicesConfigDom(),
+      super.buildFormConfigDom(),
+    ];
+  }
+
+  public buildFormTransformConfigDom() {
+    return [
+      this._buildChoicesConfigDom(),
+    ];
   }
 
   protected getChoiceValuesSet(): Computed<Set<string>> {
@@ -127,6 +111,35 @@ export class ChoiceTextBox extends NTextBox {
       choiceOptions: toObject(choiceOptions)
     };
     return this.field.config.updateChoices(renames, options);
+  }
+
+  private _buildChoicesConfigDom() {
+    const disabled = Computed.create(null,
+      use => use(this.field.disableModify)
+        || use(use(this.field.column).disableEditData)
+        || use(this.field.config.options.disabled('choices'))
+      );
+
+    const mixed = Computed.create(null,
+      use => !use(disabled)
+        && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions')))
+      );
+
+    return [
+      cssLabel(t('CHOICES')),
+      cssRow(
+        dom.autoDispose(disabled),
+        dom.autoDispose(mixed),
+        dom.create(
+          ChoiceListEntry,
+          this._choiceValues,
+          this._choiceOptionsByName,
+          this.save.bind(this),
+          disabled,
+          mixed
+        )
+      )
+    ];
   }
 }
 

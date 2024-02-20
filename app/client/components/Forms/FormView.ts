@@ -11,6 +11,7 @@ import {Disposable} from 'app/client/lib/dispose';
 import {AsyncComputed, makeTestId, stopEvent} from 'app/client/lib/domUtils';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
@@ -514,6 +515,13 @@ export class FormView extends Disposable {
         throw ex;
       }
     }
+
+    logTelemetryEvent('publishedForm', {
+      full: {
+        docIdDigest: this.gristDoc.docId(),
+      },
+    });
+
     await this.gristDoc.docModel.docData.bundleActions('Publish form', async () => {
       if (!validShare) {
         const shareRef = await this.gristDoc.docModel.docData.sendAction([
@@ -573,6 +581,12 @@ export class FormView extends Disposable {
   }
 
   private async _unpublishForm() {
+    logTelemetryEvent('unpublishedForm', {
+      full: {
+        docIdDigest: this.gristDoc.docId(),
+      },
+    });
+
     await this.gristDoc.docModel.docData.bundleActions('Unpublish form', async () => {
       this.viewSection.shareOptionsObj.update({
         publish: false,
@@ -630,28 +644,14 @@ export class FormView extends Disposable {
           dom.on('click', async (_event, element) => {
             try {
               this._copyingLink.set(true);
-              const share = this._pageShare.get();
-              if (!share) {
-                throw new Error('Unable to copy link: form is not published');
-              }
-
-              const remoteShare = await this.gristDoc.docComm.getShare(share.linkId());
-              if (!remoteShare) {
-                throw new Error('Unable to copy link: form is not published');
-              }
-
-              const url = urlState().makeUrl({
-                doc: undefined,
-                form: {
-                  shareKey: remoteShare.key,
-                  vsId: this.viewSection.id(),
-                },
+              const data = typeof ClipboardItem !== 'function' ? await this._getFormLink() : new ClipboardItem({
+                "text/plain": this._getFormLink().then(text => new Blob([text], {type: 'text/plain'})),
               });
-              await copyToClipboard(url);
+              await copyToClipboard(data);
               showTransientTooltip(element, 'Link copied to clipboard', {key: 'copy-form-link'});
-            } catch(ex) {
+            } catch (ex) {
               if (ex.code === 'AUTH_NO_OWNER') {
-                throw new Error('Publishing form is only available to owners');
+                throw new Error('Sharing a form is only available to owners');
               }
             } finally {
               this._copyingLink.set(false);
@@ -677,6 +677,26 @@ export class FormView extends Disposable {
         }),
       ),
     );
+  }
+
+  private async _getFormLink() {
+    const share = this._pageShare.get();
+    if (!share) {
+      throw new Error('Unable to get form link: form is not published');
+    }
+
+    const remoteShare = await this.gristDoc.docComm.getShare(share.linkId());
+    if (!remoteShare) {
+      throw new Error('Unable to get form link: form is not published');
+    }
+
+    return urlState().makeUrl({
+      doc: undefined,
+      form: {
+        shareKey: remoteShare.key,
+        vsId: this.viewSection.id(),
+      },
+    });
   }
 
   private _buildSwitcherMessage() {

@@ -94,6 +94,7 @@ export const commonUrls = {
   functions: 'https://support.getgrist.com/functions',
   formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
   formulas: 'https://support.getgrist.com/formulas',
+  forms: 'https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer',
 
   basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
@@ -1052,7 +1053,7 @@ export function buildUrlId(parts: UrlIdParts): string {
     // may be in a docId (leaving just the hyphen, which is permitted).  The limits
     // could be loosened, but without much benefit.
     const codedSnapshotId = encodeURIComponent(parts.snapshotId)
-      .replace(/[_.!~*'()]/g, ch => `_${ch.charCodeAt(0).toString(16).toUpperCase()}`)
+      .replace(/[_.!~*'()-]/g, ch => `_${ch.charCodeAt(0).toString(16).toUpperCase()}`)
       .replace(/%/g, '_');
     token = `${token}~v=${codedSnapshotId}`;
   }

@@ -1,4 +1,5 @@
 import { makeT } from 'app/client/lib/localization';
+import { logTelemetryEvent } from 'app/client/lib/telemetry';
 import * as commands from 'app/client/components/commands';
 import { urlState } from 'app/client/models/gristUrlState';
 import { IOnBoardingMsg, startOnBoarding } from "app/client/ui/OnBoardingPopups";
@@ -100,7 +101,15 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
 
 export function startWelcomeTour(onFinishCB: () => void) {
   commands.allCommands.fieldTabOpen.run();
-  startOnBoarding(getOnBoardingMessages(), onFinishCB);
+  const messages = getOnBoardingMessages();
+  startOnBoarding(messages, (lastMessageIndex) => {
+    logTelemetryEvent('viewedWelcomeTour', {
+      full: {
+        percentComplete: Math.floor(((lastMessageIndex + 1) / messages.length) * 100),
+      },
+    });
+    onFinishCB();
+  });
 }
 
 const TopBarButtonIcon = styled(icon, `

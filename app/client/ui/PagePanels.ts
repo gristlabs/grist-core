@@ -109,6 +109,7 @@ export function pagePanels(page: PageContents) {
       const watcher = new TransitionWatcher(rightPaneDom);
       watcher.onDispose(() => resolve(undefined));
       right.panelOpen.set(true);
+
     }),
   }, null, true);
   let contentWrapper: HTMLElement;

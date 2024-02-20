@@ -27,7 +27,6 @@ import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
         Resource} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
-import {GristTooltips} from 'app/client/ui/GristTooltips';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {createUserImage} from 'app/client/ui/UserImage';
@@ -187,7 +186,7 @@ function buildUserManagerModal(
                   }),
                   testId('um-open-access-rules'),
                 ),
-                GristTooltips.openAccessRules(),
+                'openAccessRules',
                 {domArgs: [cssAccessLink.cls('')]},
             )
             : null

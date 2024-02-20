@@ -66,6 +66,7 @@ function setExamples(examplesArr: Example[], paramName: string) {
   examplesArr.sort((a, b) => String(a.summary || a.value).localeCompare(String(b.summary || b.value)));
 
   const paramValue = searchParams.get(paramName);
+  let haveCurrentValue = false;
   if (paramValue) {
     // If this value appears among examples, move it to the front and label it as "Current".
     const index = examplesArr.findIndex(v => (String(v.value) == String(paramValue)));
@@ -73,8 +74,10 @@ function setExamples(examplesArr: Example[], paramName: string) {
       const ex = examplesArr.splice(index, 1)[0];
       ex.summary += " (Current)";
       examplesArr.unshift(ex);
+      haveCurrentValue = true;
     }
-  } else {
+  }
+  if (!haveCurrentValue) {
     // When opening an endpoint, parameters with examples are immediately set to the first example.
     // For documents and tables, this would immediately call our custom code,
     // fetching lists of tables/columns. This is especially bad for documents,

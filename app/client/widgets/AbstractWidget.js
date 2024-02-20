@@ -45,4 +45,12 @@ AbstractWidget.prototype.buildColorConfigDom = function(gristDoc) {
   return dom.create(CellStyle, this.field, gristDoc, this.defaultTextColor);
 };
 
+AbstractWidget.prototype.buildFormConfigDom = function() {
+  return null;
+};
+
+AbstractWidget.prototype.buildFormTransformConfigDom = function() {
+  return null;
+};
+
 module.exports = AbstractWidget;

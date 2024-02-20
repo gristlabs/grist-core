@@ -286,7 +286,7 @@ class Bool extends BaseQuestion {
     const label = field.question ? field.question : field.colId;
     return `
       <label class='grist-switch ${requiredLabel}'>
-        <input type='checkbox' name='${this.name(field)}' value="1" ${required}  />
+        <input type='checkbox' name='${this.name(field)}' value="1" ${required} />
         <div class="grist-widget_switch grist-switch_transition">
           <div class="grist-switch_slider"></div>
           <div class="grist-switch_circle"></div>

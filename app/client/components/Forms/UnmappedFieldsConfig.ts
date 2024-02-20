@@ -150,7 +150,7 @@ export class UnmappedFieldsConfig extends Disposable {
             allCommands.showColumns.run([column.colId.peek()]);
           }),
         ),
-        squareCheckbox(props.selected),
+        cssSquareCheckbox(props.selected),
       ),
     );
   }
@@ -171,7 +171,7 @@ export class UnmappedFieldsConfig extends Disposable {
             allCommands.hideFields.run([column.colId.peek()]);
           }),
         ),
-        squareCheckbox(props.selected),
+        cssSquareCheckbox(props.selected),
       ),
     );
   }
@@ -271,4 +271,8 @@ const cssHeader = styled(cssRow, `
   & * {
     line-height: 1em;
   }
+`);
+
+const cssSquareCheckbox = styled(squareCheckbox, `
+  flex-shrink: 0;
 `);
