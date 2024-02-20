@@ -55,6 +55,7 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
+const { GristObjCode } = require('app/plugin/GristData');
 
 const t = makeT('GridView');
 
@@ -904,12 +905,15 @@ GridView.prototype.insertColumn = async function(colId = null, options = {}) {
 };
 
 GridView.prototype.makeHeadersFromRow = async function(selection) {
-  for(const col of this.viewSection.columns.peek()) {
+  const actions = this.viewSection.columns.peek().map(col => {
     const colId = col.colId.peek();
     const newColLabel = this.tableModel.tableData.getValue(selection.rowIds[0], colId);
-    const action = ['ModifyColumn', colId, {"label": newColLabel}];
-    this.tableModel.sendTableAction(action);
-  }
+    if (Array.isArray(newColLabel) && newColLabel[0] === GristObjCode.List) {
+      return ['ModifyColumn', colId, {"label": newColLabel[1]}];
+    }
+    return ['ModifyColumn', colId, {"label": newColLabel}];
+  });
+  this.tableModel.sendTableActions(actions, "Use as table headers");
 };
 
 GridView.prototype.renameColumn = function(index) {
