@@ -135,7 +135,7 @@ export function createFormNotFoundPage(message?: string) {
           ),
           cssFormBuildForm(
             cssFormBuildFormLink(
-              {href: 'https://www.getgrist.com', target: '_blank'},
+              {href: 'https://www.getgrist.com', target: '_blank'},  // TODO: make configurable
               t('Build your own form'),
               icon('Expand'),
             ),
