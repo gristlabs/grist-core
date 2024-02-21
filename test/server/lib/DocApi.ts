@@ -4425,7 +4425,7 @@ function testDocApi() {
         await webhook1();
       });
 
-      it("should not call to a webhook when columns updated are not in columnIds", async () => {  // eslint-disable-line max-len
+      it("should call to a webhook only when columns updated are in columnIds if not empty", async () => {  // eslint-disable-line max-len
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({ name: 'testdoc5' }, ws1);
@@ -4434,11 +4434,28 @@ function testDocApi() {
           ['ModifyColumn', 'Table1', 'B', { type: 'Bool' }],
         ], chimpy);
 
-        const webhook = await autoSubscribe('200', docId, {
+        const modifyColumnNotInColumnIds = async (newValues: { [key: string]: any; } ) => {
+          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+            ['UpdateRecord', 'Table1', newRowIds[0], newValues],
+          ], chimpy);
+          await delay(100);
+          assert.isFalse(successCalled.called());
+          successCalled.reset();
+        };
+        const modifyColumnInColumnIds = async (newValues: { [key: string]: any; }) => {
+          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+            ['UpdateRecord', 'Table1', newRowIds[0], newValues],
+          ], chimpy);
+          await delay(100);
+          assert.isTrue(successCalled.called());
+          await successCalled.waitAndReset();
+        };
+
+        // Webhook with only one columnId.
+        const webhook1 = await autoSubscribe('200', docId, {
           columnIds: 'A', eventTypes: ['add', 'update']
         });
         successCalled.reset();
-
         // Create record, that will call the webhook.
         const newRowIds = await doc.addRows("Table1", {
           A: [2],
@@ -4448,25 +4465,26 @@ function testDocApi() {
         await delay(100);
         assert.isTrue(successCalled.called());
         await successCalled.waitAndReset();
+        await modifyColumnNotInColumnIds({ C: 'c2' });
+        await modifyColumnInColumnIds({ A: 19 });
+        await webhook1(); // Unsubscribe.
 
-        // Modify the value of column that is not in columnIds.
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-          ['UpdateRecord', 'Table1', newRowIds[0], { C: 'c2' }],
-        ], chimpy);
-        await delay(100);
-        assert.isFalse(successCalled.called());
+        // Webhook with multiple columnIds (check the shape of the columnIds string)
+        const webhook2 = await autoSubscribe('200', docId, {
+          columnIds: 'A; B', eventTypes: ['update']
+        });
         successCalled.reset();
+        await modifyColumnNotInColumnIds({ C: 'c3' });
+        await modifyColumnInColumnIds({ A: 20 });
+        await webhook2();
 
-        // Modify the value of column that is in columnIds.
-        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-          ['UpdateRecord', 'Table1', newRowIds[0], { A: 19 }],
-        ], chimpy);
-        await delay(100);
-        assert.isTrue(successCalled.called());
-        await successCalled.waitAndReset();
-
-        // Unsubscribe.
-        await webhook();
+        // Check that string terminating with ";" not breaking the webhook
+        const webhook3 = await autoSubscribe('200', docId, {
+          columnIds: 'A;', eventTypes: ['update']
+        });
+        await modifyColumnNotInColumnIds({ C: 'c4' });
+        await modifyColumnInColumnIds({ A: 21 });
+        await webhook3();
       });
 
       it("should return statistics", async () => {

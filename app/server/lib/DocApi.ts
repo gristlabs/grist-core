@@ -421,9 +421,11 @@ export class DocWorkerApi {
               throw new ApiError(`Cannot find columns "${columnIds}" because table is not known`, 404);
             }
             // columnIds have to be of shape "columnId; columnId; columnId"
-            fields.columnRefList = [GristObjCode.List, ...columnIds.split(";").map(
-              columnId => { return colIdToReference(metaTables, tableId, columnId.trim().replace(/^\$/, '')); }
-            )];
+            fields.columnRefList = [GristObjCode.List, ...columnIds.split(";")
+              .filter(columnId => columnId.trim() !== "")
+              .map(
+                columnId => { return colIdToReference(metaTables, tableId, columnId.trim().replace(/^\$/, '')); }
+              )];
           }
         } else {
           fields.columnRefList = [GristObjCode.List];
