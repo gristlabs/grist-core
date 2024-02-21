@@ -1,10 +1,10 @@
-import * as style from './styles';
+import {FormLayoutNode} from 'app/client/components/FormRenderer';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FieldModel} from 'app/client/components/Forms/Field';
 import {buildMenu} from 'app/client/components/Forms/Menu';
 import {BoxModel} from 'app/client/components/Forms/Model';
+import * as style from 'app/client/components/Forms/styles';
 import {makeTestId} from 'app/client/lib/domUtils';
-import {Box} from 'app/common/Forms';
 import {dom, styled} from 'grainjs';
 
 const testId = makeTestId('test-forms-');
@@ -51,7 +51,7 @@ export class SectionModel extends BoxModel {
    * Accepts box from clipboard and inserts it before this box or if this is a container box, then
    * as a first child. Default implementation is to insert before self.
    */
-  public override accept(dropped: Box) {
+  public override accept(dropped: FormLayoutNode) {
     // Get the box that was dropped.
     if (!dropped) { return null; }
     if (dropped.id === this.id) {

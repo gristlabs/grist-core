@@ -1,6 +1,6 @@
+import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as elements from 'app/client/components/Forms/elements';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {Box, BoxType} from 'app/common/Forms';
 import {bundleChanges, Computed, Disposable, dom, IDomArgs, MutableObsArray, obsArray, Observable} from 'grainjs';
 import {v4 as uuidv4} from 'uuid';
 
@@ -9,7 +9,7 @@ type Callback = () => Promise<void>;
 /**
  * A place where to insert a box.
  */
-export type Place = (box: Box) => BoxModel;
+export type Place = (box: FormLayoutNode) => BoxModel;
 
 /**
  * View model constructed from a box JSON structure.
@@ -19,7 +19,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * A factory method that creates a new BoxModel from a Box JSON by picking the right class based on the type.
    */
-  public static new(box: Box, parent: BoxModel | null, view: FormView | null = null): BoxModel {
+  public static new(box: FormLayoutNode, parent: BoxModel | null, view: FormView | null = null): BoxModel {
     const subClassName = `${box.type.split(':')[0]}Model`;
     const factories = elements as any;
     const factory = factories[subClassName];
@@ -42,7 +42,7 @@ export abstract class BoxModel extends Disposable {
    * Type of the box. As the type is bounded to the class that is used to render the box, it is possible
    * to change the type of the box just by changing this value. The box is then replaced in the parent.
    */
-  public type: BoxType;
+  public type: FormLayoutNodeType;
   /**
    * List of children boxes.
    */
@@ -65,7 +65,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * Don't use it directly, use the BoxModel.new factory method instead.
    */
-  constructor(box: Box, public parent: BoxModel | null, public view: FormView) {
+  constructor(box: FormLayoutNode, public parent: BoxModel | null, public view: FormView) {
     super();
 
     this.selected = Computed.create(this, (use) => use(view.selectedBox) === this && use(view.viewSection.hasFocus));
@@ -149,7 +149,7 @@ export abstract class BoxModel extends Disposable {
    * - child: it will add it as a child.
    * - swap: swaps with the box
    */
-  public willAccept(box?: Box|BoxModel|null): 'sibling' | 'child' | 'swap' | null {
+  public willAccept(box?: FormLayoutNode|BoxModel|null): 'sibling' | 'child' | 'swap' | null {
     // If myself and the dropped element share the same parent, and the parent is a column
     // element, just swap us.
     if (this.parent && box instanceof BoxModel && this.parent === box?.parent && box.parent?.type === 'Columns') {
@@ -166,7 +166,7 @@ export abstract class BoxModel extends Disposable {
    * Accepts box from clipboard and inserts it before this box or if this is a container box, then
    * as a first child. Default implementation is to insert before self.
    */
-  public accept(dropped: Box, hint: 'above'|'below' = 'above') {
+  public accept(dropped: FormLayoutNode, hint: 'above'|'below' = 'above') {
     // Get the box that was dropped.
     if (!dropped) { return null; }
     if (dropped.id === this.id) {
@@ -200,7 +200,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * Replaces children at index.
    */
-  public replaceAtIndex(box: Box, index: number) {
+  public replaceAtIndex(box: FormLayoutNode, index: number) {
     const newOne = BoxModel.new(box, this);
     this.children.splice(index, 1, newOne);
     return newOne;
@@ -216,13 +216,13 @@ export abstract class BoxModel extends Disposable {
     this.replace(box2, box1JSON);
   }
 
-  public append(box: Box) {
+  public append(box: FormLayoutNode) {
     const newOne = BoxModel.new(box, this);
     this.children.push(newOne);
     return newOne;
   }
 
-  public insert(box: Box, index: number) {
+  public insert(box: FormLayoutNode, index: number) {
     const newOne = BoxModel.new(box, this);
     this.children.splice(index, 0, newOne);
     return newOne;
@@ -232,7 +232,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * Replaces existing box with a new one, whenever it is found.
    */
-  public replace(existing: BoxModel, newOne: Box|BoxModel) {
+  public replace(existing: BoxModel, newOne: FormLayoutNode|BoxModel) {
     const index = this.children.get().indexOf(existing);
     if (index < 0) { throw new Error('Cannot replace box that is not in parent'); }
     const model = newOne instanceof BoxModel ? newOne : BoxModel.new(newOne, this);
@@ -246,20 +246,20 @@ export abstract class BoxModel extends Disposable {
    * Creates a place to insert a box before this box.
    */
   public placeBeforeFirstChild() {
-    return (box: Box) => this.insert(box, 0);
+    return (box: FormLayoutNode) => this.insert(box, 0);
   }
 
   // Some other places.
   public placeAfterListChild() {
-    return (box: Box) => this.insert(box, this.children.get().length);
+    return (box: FormLayoutNode) => this.insert(box, this.children.get().length);
   }
 
   public placeAt(index: number) {
-    return (box: Box) => this.insert(box, index);
+    return (box: FormLayoutNode) => this.insert(box, index);
   }
 
   public placeAfterChild(child: BoxModel) {
-    return (box: Box) => this.insert(box, this.children.get().indexOf(child) + 1);
+    return (box: FormLayoutNode) => this.insert(box, this.children.get().indexOf(child) + 1);
   }
 
   public placeAfterMe() {
@@ -319,7 +319,7 @@ export abstract class BoxModel extends Disposable {
    * The core responsibility of this method is to update this box and all children based on the box JSON.
    * This is counterpart of the FloatingRowModel, that enables this instance to point to a different box.
    */
-  public update(boxDef: Box) {
+  public update(boxDef: FormLayoutNode) {
     // If we have a type and the type is changed, then we need to replace the box.
     if (this.type && boxDef.type !== this.type) {
       if (!this.parent) { throw new Error('Cannot replace detached box'); }
@@ -329,7 +329,7 @@ export abstract class BoxModel extends Disposable {
 
     // Update all properties of self.
     for (const someKey in boxDef) {
-      const key = someKey as keyof Box;
+      const key = someKey as keyof FormLayoutNode;
       // Skip some keys.
       if (key === 'id' || key === 'type' || key === 'children') { continue; }
       // Skip any inherited properties.
@@ -365,7 +365,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * Serialize this box to JSON.
    */
-  public toJSON(): Box {
+  public toJSON(): FormLayoutNode {
     return {
       id: this.id,
       type: this.type,
@@ -388,7 +388,7 @@ export abstract class BoxModel extends Disposable {
 
 export class LayoutModel extends BoxModel {
   constructor(
-    box: Box,
+    box: FormLayoutNode,
     public parent: BoxModel | null,
     public _save: (clb?: Callback) => Promise<void>,
     public view: FormView
@@ -420,7 +420,7 @@ export function unwrap<T>(val: T | Computed<T>): T {
   return val instanceof Computed ? val.get() : val;
 }
 
-export function parseBox(text: string): Box|null {
+export function parseBox(text: string): FormLayoutNode|null {
   try {
     const json = JSON.parse(text);
     return json && typeof json === 'object' && json.type ? json : null;

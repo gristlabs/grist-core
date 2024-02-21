@@ -38,7 +38,8 @@ export interface ApiErrorDetails {
 
 export type ApiErrorCode =
   | 'UserNotConfirmed'
-  | 'FormNotFound';
+  | 'FormNotFound'
+  | 'FormNotPublished';
 
 /**
  * An error with an http status code.

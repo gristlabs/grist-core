@@ -2165,11 +2165,7 @@ class UserActions(object):
       title = ''
     section = self._docmodel.add(view_sections, tableRef=tableRef, parentKey=section_type,
                                  title=title, borderWidth=1, defaultWidth=100)[0]
-    # TODO: We should address the automatic selection of fields for charts
-    # and forms in a better way.
-    limit = 2 if section_type == 'chart' else 9 if section_type == 'form' else None
-    self._RebuildViewFields(tableId, section.id,
-                            limit=limit)
+    self._RebuildViewFields(tableId, section.id)
     return section
 
   def _create_record_card_view_section(self, tableRef, tableId, view_sections):
@@ -2277,8 +2273,7 @@ class UserActions(object):
                                  parentKey=view_section_type, title=title,
                                  borderWidth=1, defaultWidth=100,
                                  sortColRefs='[]')[0]
-    self._RebuildViewFields(table_id, section.id,
-                            limit=(2 if view_section_type == 'chart' else None))
+    self._RebuildViewFields(table_id, section.id)
     return {"id": section.id}
 
   # TODO: Deprecated; should just use RemoveRecord('_grist_Views_section', view_id)
@@ -2294,7 +2289,7 @@ class UserActions(object):
   # Methods for creating and maintaining default views. This is a work-in-progress.
   #--------------------------------------------------------------------------------
 
-  def _RebuildViewFields(self, table_id, section_row_id, limit=None):
+  def _RebuildViewFields(self, table_id, section_row_id):
     """
     Does the actual work of rebuilding ViewFields to correspond to the table's columns.
     """
@@ -2305,7 +2300,8 @@ class UserActions(object):
     if section_rec.fields:
       self._docmodel.remove(section_rec.fields)
 
-    is_card = section_rec.parentKey in ('single', 'detail')
+    section_type = section_rec.parentKey
+    is_card = section_type in ('single', 'detail')
     is_record_card = section_rec == table_rec.recordCardViewSectionRef
     if is_card and not is_record_card:
       # Copy settings from the table's record card section to the new section.
@@ -2317,6 +2313,14 @@ class UserActions(object):
       cols = [c for c in table_rec.columns if column.is_visible_column(c.colId)
               # TODO: hack to avoid auto-adding the 'group' column when detaching summary tables.
               and c.colId != 'group']
+      limit = None
+      if section_type == 'chart':
+        # TODO: We should address the automatic selection of fields for charts in a better way.
+        limit = 2
+      elif section_type == 'form':
+        # Attachments and formulas are currently unsupported in forms.
+        cols = [c for c in cols if not (c.type == 'Attachments' or (c.isFormula and c.formula))]
+        limit = 9
       cols.sort(key=lambda c: c.parentPos)
       if limit is not None:
         cols = cols[:limit]

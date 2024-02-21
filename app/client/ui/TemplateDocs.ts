@@ -40,7 +40,7 @@ function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, 
   } else {
     return css.docRowWrapper(
       cssDocRowLink(
-        urlState().setLinkUrl(docUrl(doc, {org: workspace.orgDomain})),
+        urlState().setLinkUrl({...docUrl(doc), org: workspace.orgDomain}),
         cssDocName(doc.name, testId('template-doc-title')),
         doc.options?.description ? cssDocRowDetails(doc.options.description, testId('template-doc-description')) : null,
       ),

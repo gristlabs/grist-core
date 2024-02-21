@@ -1,3 +1,4 @@
+import {FormLayoutNode} from 'app/client/components/FormRenderer';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FieldModel} from 'app/client/components/Forms/Field';
 import {buildMenu} from 'app/client/components/Forms/Menu';
@@ -6,7 +7,6 @@ import * as style from 'app/client/components/Forms/styles';
 import {makeTestId} from 'app/client/lib/domUtils';
 import {icon} from 'app/client/ui2018/icons';
 import * as menus from 'app/client/ui2018/menus';
-import {Box} from 'app/common/Forms';
 import {inlineStyle, not} from 'app/common/gutil';
 import {bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled} from 'grainjs';
 
@@ -28,7 +28,7 @@ export class ColumnsModel extends BoxModel {
   }
 
   // Dropping a box on this component (Columns) directly will add it as a new column.
-  public accept(dropped: Box): BoxModel {
+  public accept(dropped: FormLayoutNode): BoxModel {
     if (!this.parent) { throw new Error('No parent'); }
 
     // We need to remove it from the parent, so find it first.
@@ -206,7 +206,7 @@ export class PlaceholderModel extends BoxModel {
       ...args,
     );
 
-    function insertBox(childBox: Box) {
+    function insertBox(childBox: FormLayoutNode) {
       // Make sure we have at least as many columns as the index we are inserting at.
       if (!box.parent) { throw new Error('No parent'); }
       return box.parent.replace(box, childBox);
@@ -218,15 +218,15 @@ export class PlaceholderModel extends BoxModel {
   }
 }
 
-export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): Box {
+export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): FormLayoutNode {
   return {type: 'Paragraph', text, alignment};
 }
 
-export function Placeholder(): Box {
+export function Placeholder(): FormLayoutNode {
   return {type: 'Placeholder'};
 }
 
-export function Columns(): Box {
+export function Columns(): FormLayoutNode {
   return {type: 'Columns', children: [Placeholder(), Placeholder()]};
 }
 
