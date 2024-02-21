@@ -317,7 +317,7 @@ export class GristWSConnection extends Disposable {
   private _sendHeartbeat() {
     this.send(JSON.stringify({
       beat: 'alive',
-      url: G.window.location.href,
+      url: this._settings.getPageUrl(),
       docId: this._assignmentId,
     }));
   }
