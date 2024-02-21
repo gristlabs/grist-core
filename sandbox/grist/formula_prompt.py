@@ -160,7 +160,7 @@ def get_formula_prompt(engine, table_id, col_id, _description,
   other_tables = (all_other_tables(engine, table_id)
     if include_all_tables else referenced_tables(engine, table_id))
   for other_table_id in sorted(other_tables):
-    result += class_schema(engine, other_table_id, lookups)
+    result += class_schema(engine, other_table_id, None, lookups)
 
   result += class_schema(engine, table_id, col_id, lookups)
 

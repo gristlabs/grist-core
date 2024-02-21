@@ -13,7 +13,6 @@
  * All methods above return an object which may  be disposed to close and dispose that specific
  * tab from the outside (e.g. when GristDoc is disposed).
  */
-
 import * as commands from 'app/client/components/commands';
 import {FieldModel} from 'app/client/components/Forms/Field';
 import {FormView} from 'app/client/components/Forms/FormView';
@@ -26,6 +25,7 @@ import {domAsync} from 'app/client/lib/domAsync';
 import * as imports from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs, isBoolean, SessionObs} from 'app/client/lib/sessionObs';
+import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError} from 'app/client/models/AppModel';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomSectionConfig} from 'app/client/ui/CustomSectionConfig';
@@ -36,9 +36,9 @@ import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
-import {linkId, selectBy} from 'app/client/ui/selectBy';
+import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
-import {widgetTypesMap} from "app/client/ui/widgetTypesMap";
+import {getTelemetryWidgetTypeFromVS, widgetTypesMap} from "app/client/ui/widgetTypesMap";
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -147,7 +147,7 @@ export class RightPanel extends Disposable {
       viewTabOpen: () => this._openViewTab(),
       viewTabFocus: () => this._viewTabFocus(),
       sortFilterTabOpen: () => this._openSortFilter(),
-      dataSelectionTabOpen: () => this._openDataSelection()
+      dataSelectionTabOpen: () => this._openDataSelection(),
     }, this, true));
 
     // When a page widget is changed, subType might not be valid anymore, so reset it.
@@ -793,7 +793,16 @@ export class RightPanel extends Disposable {
       );
     });
 
-    link.onWrite((val) => this._gristDoc.saveLink(val));
+    link.onWrite(async (val) => {
+      const widgetType = getTelemetryWidgetTypeFromVS(activeSection);
+      if (val !== NoLink) {
+        logTelemetryEvent('linkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+      } else {
+        logTelemetryEvent('unlinkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
+      }
+
+      await this._gristDoc.saveLink(val);
+    });
     return [
       this._disableIfReadonly(),
       cssLabel(t("DATA TABLE")),
@@ -1004,16 +1013,7 @@ export class RightPanel extends Disposable {
 
     return domAsync(imports.loadViewPane().then(() => buildConfigContainer(cssSection(
       // Field config.
-      dom.maybeOwned(selectedField, (scope, field) => {
-        const requiredField = field.widgetOptionsJson.prop('formRequired');
-        // V2 thing.
-        // const hiddenField = field.widgetOptionsJson.prop('formHidden');
-        const defaultField = field.widgetOptionsJson.prop('formDefault');
-        const toComputed = (obs: typeof defaultField) => {
-          const result = Computed.create(scope, (use) => use(obs));
-          result.onWrite(val => obs.setAndSave(val));
-          return result;
-        };
+      dom.maybe(selectedField, (field) => {
         const fieldTitle = field.widgetOptionsJson.prop('question');
 
         return [
@@ -1054,21 +1054,10 @@ export class RightPanel extends Disposable {
             // cssSection(
             //   builder.buildSelectWidgetDom(),
             // ),
-            dom.maybe(use => ['Choice', 'ChoiceList', 'Ref', 'RefList'].includes(use(builder.field.pureType)), () => [
-              cssSection(
-                builder.buildConfigDom(),
-              ),
-            ]),
+            cssSection(
+              builder.buildFormConfigDom(),
+            ),
           ]),
-          cssSeparator(),
-          cssLabel(t("Field rules")),
-          cssRow(labeledSquareCheckbox(
-            toComputed(requiredField),
-            t("Required field"),
-            testId('field-required'),
-          )),
-          // V2 thing
-          // cssRow(labeledSquareCheckbox(toComputed(hiddenField), t("Hidden field")),),
         ];
       }),
 

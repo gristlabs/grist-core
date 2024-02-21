@@ -94,6 +94,7 @@ export const commonUrls = {
   functions: 'https://support.getgrist.com/functions',
   formulaSheet: 'https://support.getgrist.com/formula-cheat-sheet',
   formulas: 'https://support.getgrist.com/formulas',
+  forms: 'https://www.getgrist.com/forms/?utm_source=grist-forms&utm_medium=grist-forms&utm_campaign=forms-footer',
 
   basicTutorial: 'https://templates.getgrist.com/woXtXUBmiN5T/Grist-Basics',
   basicTutorialImage: 'https://www.getgrist.com/wp-content/uploads/2021/08/lightweight-crm.png',
@@ -675,6 +676,9 @@ export interface GristLoadConfig {
   // Url for support for the browser client to use.
   helpCenterUrl?: string;
 
+  // Url for free coaching call scheduling for the browser client to use.
+  freeCoachingCallUrl?: string;
+
   // When set, this directs the client to encode org information in path, not in domain.
   pathOnly?: boolean;
 
@@ -876,6 +880,15 @@ export function getHelpCenterUrl(): string|null {
     return gristConfig && gristConfig.helpCenterUrl || null;
   } else {
     return process.env.GRIST_HELP_CENTER || null;
+  }
+}
+
+export function getFreeCoachingCallUrl(): string|null {
+  if(isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.freeCoachingCallUrl || null;
+  } else {
+    return process.env.FREE_COACHING_CALL_URL || null;
   }
 }
 

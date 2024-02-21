@@ -430,7 +430,8 @@
         "Add column": "Ajouter une colonne",
         "Last updated by": "Dernière mise à jour par",
         "Detect duplicates in...": "Détecter les duplicats dans...",
-        "Last updated at": "Dernière mise à jour"
+        "Last updated at": "Dernière mise à jour",
+        "Text": "Texte"
     },
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",

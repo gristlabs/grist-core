@@ -42,6 +42,9 @@ const searchWrapper = styled('div', `
       width: 32px;
       padding: 0px;
     }
+    &-expand {
+      margin-left: 12px;
+    }
   }
 `);
 

@@ -1119,7 +1119,10 @@
         "Lookups return data from related tables.": "Lookups return data from related tables.",
         "Use reference columns to relate data in different tables.": "Use reference columns to relate data in different tables.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}",
+        "Forms are here!": "Forms are here!",
+        "Learn more": "Learn more"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1319,6 +1322,13 @@
     "HiddenQuestionConfig": {
         "Hidden fields": "Hidden fields"
     },
+    "WelcomeCoachingCall": {
+        "free coaching call": "free coaching call",
+        "Maybe Later": "Maybe Later",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.",
+        "Schedule Call": "Schedule Call",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Schedule your {{freeCoachingCall}} with a member of our team."
+    },
     "FormView": {
         "Publish": "Publish",
         "Publish your form?": "Publish your form?",
@@ -1348,5 +1358,9 @@
         "Select All": "Select All",
         "Unmap fields": "Unmap fields",
         "Unmapped": "Unmapped"
+    },
+    "FormConfig": {
+        "Field rules": "Field rules",
+        "Required field": "Required field"
     }
 }

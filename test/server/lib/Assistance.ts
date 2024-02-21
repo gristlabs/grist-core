@@ -18,7 +18,8 @@ describe('Assistance', function () {
   this.timeout(10000);
 
   const docTools = createDocTools({persistAcrossCases: true});
-  const tableId = "Table1";
+  const table1Id = "Table1";
+  const table2Id = "Table2";
   let session: DocSession;
   let doc: ActiveDoc;
   before(async () => {
@@ -26,7 +27,8 @@ describe('Assistance', function () {
     session = docTools.createFakeSession();
     doc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
-      ["AddTable", tableId, [{id: "A"}, {id: "B"}, {id: "C"}]],
+      ["AddTable", table1Id, [{id: "A"}, {id: "B"}, {id: "C"}]],
+      ["AddTable", table2Id, [{id: "A"}, {id: "B"}, {id: "C"}]],
     ]);
   });
 
@@ -36,7 +38,7 @@ describe('Assistance', function () {
   function checkSendForCompletion(state?: AssistanceState) {
     return sendForCompletion(session, doc, {
       conversationId: 'conversationId',
-      context: {type: 'formula', tableId, colId},
+      context: {type: 'formula', tableId: table1Id, colId},
       state,
       text: userMessageContent,
     });
@@ -108,7 +110,7 @@ describe('Assistance', function () {
       + "\n\nLet me know if there's anything else I can help with.";
     assert.deepEqual(result, {
         suggestedActions: [
-          ["ModifyColumn", tableId, colId, {formula: suggestedFormula}]
+          ["ModifyColumn", table1Id, colId, {formula: suggestedFormula}]
         ],
         suggestedFormula,
         reply: replyWithSuggestedFormula,
@@ -203,7 +205,38 @@ describe('Assistance', function () {
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
       OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
+      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
     ]);
+  });
+
+  it('switches to a shorter prompt if the longer model exceeds its token limit', async function () {
+    fakeResponse = () => ({
+      error: {
+        code: "context_length_exceeded",
+      },
+      status: 400,
+    });
+    await assert.isRejected(
+      checkSendForCompletion(),
+      /You'll need to either shorten your message or delete some columns/
+    );
+    fakeFetch.getCalls().map((callInfo, i) => {
+      const [, request] = callInfo.args;
+      const {messages} = JSON.parse(request.body);
+      const systemMessageContent = messages[0].content;
+      const shortCallIndex = 2;
+      if (i === shortCallIndex) {
+        assert.match(systemMessageContent, /class Table1/);
+        assert.notMatch(systemMessageContent, /class Table2/);
+        assert.notMatch(systemMessageContent, /def lookupOne/);
+        assert.lengthOf(systemMessageContent, 1001);
+      } else {
+        assert.match(systemMessageContent, /class Table1/);
+        assert.match(systemMessageContent, /class Table2/);
+        assert.match(systemMessageContent, /def lookupOne/);
+        assert.lengthOf(systemMessageContent, 1982);
+      }
+    });
   });
 
   it('switches to a longer model with no retries if the model runs out of tokens while responding', async function () {
@@ -221,6 +254,7 @@ describe('Assistance', function () {
     );
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
+      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
       OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
     ]);
   });
@@ -244,6 +278,7 @@ describe('Assistance', function () {
     );
     checkModels([
       OpenAIAssistant.DEFAULT_MODEL,
+      OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
       OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
     ]);
   });
@@ -279,7 +314,7 @@ describe('Assistance', function () {
       OpenAIAssistant.DEFAULT_LONGER_CONTEXT_MODEL,
     ]);
     assert.deepEqual(result.suggestedActions, [
-      ["ModifyColumn", tableId, colId, {formula: "123"}]
+      ["ModifyColumn", table1Id, colId, {formula: "123"}]
     ]);
   });
 });

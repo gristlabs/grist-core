@@ -252,7 +252,7 @@ export class FormulaAssistant extends Disposable {
   private _logTelemetryEvent(event: TelemetryEvent, includeContext = false, metadata: TelemetryMetadata = {}) {
     logTelemetryEvent(event, {
       full: {
-        docIdDigest: this._gristDoc.docId,
+        docIdDigest: this._gristDoc.docId(),
         conversationId: this._chat.conversationId.get(),
         ...(!includeContext ? {} : {context: {
           type: 'formula',

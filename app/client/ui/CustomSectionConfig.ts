@@ -373,7 +373,7 @@ class CustomSectionConfigurationConfig extends Disposable{
     switch (widgetUrl) {
       // TODO: come up with a way to attach tips without hardcoding widget URLs.
       case 'https://gristlabs.github.io/grist-widget/calendar/index.html': {
-        return this._gristDoc.behavioralPromptsManager.attachTip('calendarConfig', {
+        return this._gristDoc.behavioralPromptsManager.attachPopup('calendarConfig', {
           popupOptions: {placement: 'left-start'},
         });
       }
@@ -600,7 +600,7 @@ export class CustomSectionConfig extends Disposable {
             dom.attr('placeholder', t("Enter Custom URL")),
             testId('url')
           ),
-          this._gristDoc.behavioralPromptsManager.attachTip('customURL', {
+          this._gristDoc.behavioralPromptsManager.attachPopup('customURL', {
             popupOptions: {
               placement: 'left-start',
             },

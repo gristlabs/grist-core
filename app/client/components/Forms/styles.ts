@@ -147,7 +147,7 @@ export const cssRenderedLabel = styled('div', `
   cursor: pointer;
   min-height: 16px;
 
-  color: ${colors.darkText};
+  color: ${theme.mediumText};
   font-size: 11px;
   line-height: 16px;
   font-weight: 700;
@@ -213,6 +213,7 @@ export const cssDesc = styled('div', `
 export const cssInput = styled('input', `
   background-color: ${theme.inputDisabledBg};
   font-size: inherit;
+  height: 27px;
   padding: 4px 8px;
   border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
@@ -232,6 +233,7 @@ export const cssSelect = styled('select', `
   width: 100%;
   background-color: ${theme.inputDisabledBg};
   font-size: inherit;
+  height: 27px;
   padding: 4px 8px;
   border: 1px solid ${theme.inputBorder};
   border-radius: 3px;

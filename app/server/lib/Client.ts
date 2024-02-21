@@ -3,9 +3,10 @@ import {BrowserSettings} from 'app/common/BrowserSettings';
 import {delay} from 'app/common/delay';
 import {CommClientConnect, CommMessage, CommResponse, CommResponseError} from 'app/common/CommTypes';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {UserProfile} from 'app/common/LoginSessionAPI';
+import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {TelemetryMetadata} from 'app/common/Telemetry';
 import {ANONYMOUS_USER_EMAIL} from 'app/common/UserAPI';
+import {normalizeEmail} from 'app/common/emails';
 import {User} from 'app/gen-server/entity/User';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
@@ -100,11 +101,8 @@ export class Client {
   private _websocketEventHandlers: Array<{event: string, handler: (...args: any[]) => void}> = [];
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
-  private _userId: number|null = null;
-  private _userName: string|null = null;
-  private _userRef: string|null = null;
+  private _user: FullUser|undefined = undefined;
   private _firstLoginAt: Date|null = null;
-  private _isAnonymous: boolean = false;
   private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
 
   // Identifier for the current GristWSConnection object connected to this client.
@@ -424,16 +422,13 @@ export class Client {
 
   public setProfile(profile: UserProfile|null): void {
     this._profile = profile;
-    // Unset userId, so that we look it up again on demand. (Not that userId could change in
-    // practice via a change to profile, but let's not make any assumptions here.)
-    this._userId = null;
-    this._userName = null;
+    // Unset user, so that we look it up again on demand.
+    this._user = undefined;
     this._firstLoginAt = null;
-    this._isAnonymous = !profile;
   }
 
   public getProfile(): UserProfile|null {
-    if (this._isAnonymous) {
+    if (!this._profile) {
       return {
         name: 'Anonymous',
         email: ANONYMOUS_USER_EMAIL,
@@ -446,34 +441,31 @@ export class Client {
     // in the database (important since user name is now exposed via
     // user.Name in granular access support). TODO: might want to
     // subscribe to changes in user name while the document is open.
-    return this._profile ? {
-      ...this._profile,
-      ...(this._userName && { name: this._userName }),
-    } : null;
+    return {...this._profile, ...this._user};
   }
 
   public getCachedUserId(): number|null {
-    return this._userId;
+    return this._user?.id ?? null;
   }
 
   public getCachedUserRef(): string|null {
-    return this._userRef;
+    return this._user?.ref ?? null;
   }
 
   // Returns the userId for profile.email, or null when profile is not set; with caching.
   public async getUserId(dbManager: HomeDBManager): Promise<number|null> {
-    if (!this._userId) {
+    if (!this._user) {
       await this._refreshUser(dbManager);
     }
-    return this._userId;
+    return this._user?.id ?? null;
   }
 
   // Returns the userRef for profile.email, or null when profile is not set; with caching.
   public async getUserRef(dbManager: HomeDBManager): Promise<string|null> {
-    if (!this._userRef) {
+    if (!this._user) {
       await this._refreshUser(dbManager);
     }
-    return this._userRef;
+    return this._user?.ref ?? null;
   }
 
   // Returns the userId for profile.email, or throws 403 error when profile is not set.
@@ -484,10 +476,10 @@ export class Client {
   }
 
   public getLogMeta(meta: {[key: string]: any} = {}) {
-    if (this._profile) { meta.email = this._profile.email; }
-    // We assume the _userId has already been cached, which will be true always (for all practical
+    if (this._profile) { meta.email = this._user?.loginEmail || normalizeEmail(this._profile.email); }
+    // We assume the _user has already been cached, which will be true always (for all practical
     // purposes) because it's set when the Authorizer checks this client.
-    if (this._userId) { meta.userId = this._userId; }
+    if (this._user) { meta.userId = this._user.id; }
     // Likewise for _firstLoginAt, which we learn along with _userId.
     if (this._firstLoginAt) {
       meta.age = Math.floor(moment.duration(moment().diff(this._firstLoginAt)).asDays());
@@ -504,26 +496,16 @@ export class Client {
     const meta: TelemetryMetadata = {};
     // We assume the _userId has already been cached, which will be true always (for all practical
     // purposes) because it's set when the Authorizer checks this client.
-    if (this._userId) { meta.userId = this._userId; }
+    if (this._user) { meta.userId = this._user.id; }
     const altSessionId = this.getAltSessionId();
     if (altSessionId) { meta.altSessionId = altSessionId; }
     return meta;
   }
 
   private async _refreshUser(dbManager: HomeDBManager) {
-    if (this._profile) {
-      const user = await this._fetchUser(dbManager);
-      this._userId = (user && user.id) || null;
-      this._userName = (user && user.name) || null;
-      this._isAnonymous = this._userId && dbManager.getAnonymousUserId() === this._userId || false;
-      this._firstLoginAt = (user && user.firstLoginAt) || null;
-      this._userRef = user?.ref ?? null;
-    } else {
-      this._userId = dbManager.getAnonymousUserId();
-      this._userName = 'Anonymous';
-      this._isAnonymous = true;
-      this._firstLoginAt = null;
-    }
+    const user = this._profile ? await this._fetchUser(dbManager) : dbManager.getAnonymousUser();
+    this._user = user ? dbManager.makeFullUser(user) : undefined;
+    this._firstLoginAt = user?.firstLoginAt || null;
   }
 
   private async _onMessage(message: string): Promise<void> {

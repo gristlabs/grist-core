@@ -24,7 +24,7 @@ body {
   background-color: #f7f7f7;
   min-height: 100%;
   width: 100%;
-  padding-top: 52px;
+  padding: 52px 0px 52px 0px;
   font-size: 15px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Liberation Sans", Helvetica, Arial, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -61,7 +61,7 @@ body {
 
 @media screen and (max-width: 600px) {
   .grist-form-container {
-    padding-top: 20px;
+    padding: 20px 0px 20px 0px;
   }
 
   .grist-form {
@@ -89,6 +89,7 @@ body {
 .grist-form input[type="date"],
 .grist-form input[type="datetime-local"],
 .grist-form input[type="number"] {
+  height: 27px;
   padding: 4px 8px;
   border: 1px solid var(--dark-gray);
   border-radius: 3px;
@@ -164,6 +165,7 @@ body {
   outline-width: 1px;
   background: white;
   line-height: inherit;
+  height: 27px;
   flex: auto;
   width: 100%;
 }
@@ -249,7 +251,6 @@ body {
 }
 
 .grist-power-by {
-  margin-top: 24px;
   color: #494949;
   font-size: 13px;
   font-style: normal;
@@ -258,10 +259,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-top: 1px solid var(--dark-gray);
-  padding: 10px;
-  margin-left: calc(-1 * var(--grist-form-padding));
-  margin-right: calc(-1 * var(--grist-form-padding));
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .grist-power-by a {
@@ -300,15 +299,6 @@ body {
   content: "*";
   color: var(--primary, #16b378);
   margin-left: 4px;
-}
-
-/**
- * When an empty value is selected, show the placeholder in italic gray.
- * The css is: every select that has an empty option selected, and is not active (so not open).
- */
-.grist-form select:has(option[value='']:checked):not(:active) {
-  font-style: italic;
-  color: var(--light-gray, #bfbfbf);
 }
 
 /* Markdown reset */
@@ -364,7 +354,7 @@ body {
 
 .grist-switch {
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
 }
 .grist-switch input[type='checkbox']::after {
@@ -451,8 +441,10 @@ input:checked + .grist-switch_transition > .grist-switch_circle {
 }
 
 .grist-form-confirm-image {
-  width: 250px;
-  height: 215px;
+  width: 100%;
+  height: 100%;
+  max-width: 250px;
+  max-height: 215px;
 }
 
 .grist-form-confirm-text {
@@ -491,27 +483,29 @@ input:checked + .grist-switch_transition > .grist-switch_circle {
   cursor: pointer;
 }
 
+.grist-form-footer,
 .grist-form-confirm-footer {
   border-top: 1px solid var(--dark-gray);
   padding: 8px 16px;
+}
+
+.grist-form-footer {
+  margin-left: calc(-1 * var(--grist-form-padding));
+  margin-right: calc(-1 * var(--grist-form-padding));
+}
+
+.grist-form-confirm-footer {
   width: 100%;
 }
 
-.grist-form-confirm-footer .grist-power-by {
-  margin-top: 0px;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  border-top: none;
-}
-
-.grist-form-confirm-build-form {
+.grist-form-build-form-link-container {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 8px;
 }
 
-.grist-form-confirm-build-form-link {
+.grist-form-build-form-link {
   display: flex;
   align-items: center;
   justify-content: center;

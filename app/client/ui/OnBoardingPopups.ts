@@ -22,7 +22,7 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
-import { Disposable, dom, DomElementArg, Holder, makeTestId, styled, svg } from "grainjs";
+import { Disposable, dom, DomElementArg, Holder, makeTestId, Observable, styled, svg } from "grainjs";
 import { createPopper, Placement } from '@popperjs/core';
 import { FocusLayer } from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
@@ -74,18 +74,34 @@ export interface IOnBoardingMsg {
   urlState?: IGristUrlState;
 }
 
+let _isTourActiveObs: Observable<boolean>|undefined;
+
+// Returns a singleton observable for whether some tour is currently active.
+//
+// GristDoc subscribes to this observable in order to temporarily disable tips and other
+// in-product popups from being shown while a tour is active.
+export function isTourActiveObs(): Observable<boolean> {
+  if (!_isTourActiveObs) {
+    const obs = Observable.create<boolean>(null, false);
+    _isTourActiveObs = obs;
+  }
+  return _isTourActiveObs;
+}
+
 // There should only be one tour at a time. Use a holder to dispose the previous tour when
 // starting a new one.
 const tourSingleton = Holder.create<OnBoardingPopupsCtl>(null);
 
-export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: () => void) {
+export function startOnBoarding(messages: IOnBoardingMsg[], onFinishCB: (lastMessageIndex: number) => void) {
   const ctl = OnBoardingPopupsCtl.create(tourSingleton, messages, onFinishCB);
+  ctl.onDispose(() => isTourActiveObs().set(false));
   ctl.start().catch(reportError);
+  isTourActiveObs().set(true);
 }
 
 // Returns whether some tour is currently active.
 export function isTourActive(): boolean {
-  return !tourSingleton.isEmpty();
+  return isTourActiveObs().get();
 }
 
 class OnBoardingError extends Error {
@@ -109,7 +125,7 @@ class OnBoardingPopupsCtl extends Disposable {
   private _overlay: HTMLElement;
   private _arrowEl = buildArrow();
 
-  constructor(private _messages: IOnBoardingMsg[], private _onFinishCB: () => void) {
+  constructor(private _messages: IOnBoardingMsg[], private _onFinishCB: (lastMessageIndex: number) => void) {
     super();
     if (this._messages.length === 0) {
       throw new OnBoardingError('messages should not be an empty list');
@@ -133,8 +149,8 @@ class OnBoardingPopupsCtl extends Disposable {
     });
   }
 
-  private _finish() {
-    this._onFinishCB();
+  private _finish(lastMessageIndex: number) {
+    this._onFinishCB(lastMessageIndex);
     this.dispose();
   }
 
@@ -143,9 +159,9 @@ class OnBoardingPopupsCtl extends Disposable {
     const entry = this._messages[newIndex];
     if (!entry) {
       if (maybeClose) {
+        this._finish(ctlIndex);
         // User finished the tour, close and restart from the beginning if they reopen
         ctlIndex = 0;
-        this._finish();
       }
       return;  // gone out of bounds, probably by keyboard shortcut
     }
@@ -266,7 +282,7 @@ class OnBoardingPopupsCtl extends Disposable {
       this._arrowEl,
       ContentWrapper(
         cssCloseButton(cssBigIcon('CrossBig'),
-          dom.on('click', () => this._finish()),
+          dom.on('click', () => this._finish(ctlIndex)),
           testId('close'),
         ),
         cssTitle(this._messages[ctlIndex].title),
@@ -275,7 +291,7 @@ class OnBoardingPopupsCtl extends Disposable {
         testId('popup'),
       ),
       dom.onKeyDown({
-        Escape:     () => this._finish(),
+        Escape:     () => this._finish(ctlIndex),
         ArrowLeft:  () => this._move(-1),
         ArrowRight: () => this._move(+1),
         Enter:      () => this._move(+1, true),

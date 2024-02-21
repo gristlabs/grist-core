@@ -63,6 +63,7 @@ declare module "app/client/components/BaseView" {
     public isTruncated: ko.Observable<boolean>;
     public tableModel: DataTableModel;
     public selectionSummary?: SelectionSummary;
+    public currentEditingColumnIndex: ko.Observable<number>;
 
     constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
     public setCursorPos(cursorPos: CursorPos): void;
@@ -92,6 +93,7 @@ declare module 'app/client/components/GridView' {
     colInfo?: ColInfo;
     index?: number;
     skipPopup?: boolean;
+    onPopupClose?: () => void;
   }
 
   namespace GridView {}
@@ -102,7 +104,10 @@ declare module 'app/client/components/GridView' {
     public gristDoc: GristDoc;
 
     constructor(gristDoc: GristDoc, viewSectionModel: any, isPreview?: boolean);
-    public insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewColInfo>;
+    public insertColumn(
+      colId?: string|null,
+      options?: InsertColOptions,
+    ): Promise<NewColInfo>;
     public showColumn(colRef: number, index?: number): Promise<void>;
   }
   export = GridView;

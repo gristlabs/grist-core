@@ -146,7 +146,24 @@
         "Series_other": "Serie",
         "Sort & Filter": "Ordina e filtra",
         "Add referenced columns": "Aggiungi colonne referenziate",
-        "Reset form": "Resetta modulo"
+        "Reset form": "Resetta modulo",
+        "Submit button label": "Etichetta del pulsante di invio",
+        "Submit another response": "Invia un'altra risposta",
+        "Display button": "Mostra pulsante",
+        "Enter text": "Inserisci testo",
+        "Field title": "Titolo del campo",
+        "Hidden field": "Campo nascosto",
+        "Layout": "Layout",
+        "Redirect automatically after submission": "Re-indirizza automaticamente dopo l'invio",
+        "Redirection": "Re-indirizzamento",
+        "Required field": "Campo richiesto",
+        "Submission": "Invio",
+        "Success text": "Messaggio di successo",
+        "Table column name": "Nome della colonna della tabella",
+        "Enter redirect URL": "Inserisci URL di re-indirizzamento",
+        "Configuration": "Configurazione",
+        "Default field value": "Valore di default del campo",
+        "Field rules": "Regole per il campo"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copia link",
@@ -195,7 +212,8 @@
         "Raw Data": "Dati grezzi",
         "Return to viewing as yourself": "Torna alla vista come te stesso",
         "TOOLS": "STRUMENTI",
-        "Tour of this Document": "Tour di questo documento"
+        "Tour of this Document": "Tour di questo documento",
+        "API Console": "Tavola delle API"
     },
     "ViewConfigTab": {
         "Form": "Modulo",
@@ -244,7 +262,11 @@
         "You do not have access to this organization's documents.": "Non hai accesso ai documenti di questa organizzazione.",
         "Account deleted{{suffix}}": "Account eliminato {{suffix}}",
         "Your account has been deleted.": "Il tuo account è stato cancellato.",
-        "Sign up": "Iscriviti"
+        "Sign up": "Iscriviti",
+        "Form not found": "Modulo non trovato",
+        "Build your own form": "Costruisci il tuo modulo",
+        "Powered by": "Creato con",
+        "An unknown error occurred.": "Ho incontrato un errore sconosciuto."
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Notare che questo non copia i dati ma crea un'altra vista dagli stessi dati.",
@@ -663,7 +685,8 @@
         "Document ID copied to clipboard": "ID del documento copiato",
         "Ok": "OK",
         "Manage Webhooks": "Gestisci web hook",
-        "Webhooks": "Web hook"
+        "Webhooks": "Web hook",
+        "API Console": "Tavola delle API"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -799,7 +822,19 @@
         "Add column": "Aggiungi colonna",
         "Last updated by": "Ultimo aggiornamento di",
         "Detect duplicates in...": "Rileva duplicati in...",
-        "Last updated at": "Ultimo aggiornamento alle"
+        "Last updated at": "Ultimo aggiornamento alle",
+        "Any": "Qualsiasi",
+        "Numeric": "Numerico",
+        "Text": "Testo",
+        "Integer": "Intero",
+        "Toggle": "Alterna",
+        "Date": "Data",
+        "DateTime": "Data e ora",
+        "Choice": "Scelta",
+        "Choice List": "Lista di scelte",
+        "Reference": "Riferimento",
+        "Reference List": "Lista di riferimenti",
+        "Attachment": "Allegato"
     },
     "GristDoc": {
         "Import from file": "Importa da file",
@@ -916,7 +951,8 @@
         "Show raw data": "Mostra dati grezzi",
         "Widget options": "Opzioni widget",
         "Add to page": "Aggiungi a pagina",
-        "Collapse widget": "Compatta widget"
+        "Collapse widget": "Compatta widget",
+        "Create a form": "Crea un modulo"
     },
     "ViewSectionMenu": {
         "(customized)": "(personalizzato)",
@@ -977,7 +1013,17 @@
     "modals": {
         "Cancel": "Annulla",
         "Ok": "OK",
-        "Save": "Salva"
+        "Save": "Salva",
+        "Don't show again": "Non mostrare più",
+        "Undo to restore": "Annulla per ripristinare",
+        "Got it": "Capito",
+        "Are you sure you want to delete this record?": "Sei sicuro di voler eliminare questo record?",
+        "Are you sure you want to delete these records?": "Sei sicuro di voler eliminare questi record?",
+        "Delete": "Elimina",
+        "Dismiss": "Ignora",
+        "Don't ask again.": "Non chiedere più.",
+        "Don't show again.": "Non mostrare più.",
+        "Don't show tips": "Non mostrare i suggerimenti"
     },
     "pages": {
         "Duplicate Page": "Duplica pagina",
@@ -1259,5 +1305,35 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Campi nascosti"
+    },
+    "Menu": {
+        "Insert question below": "Inserisci domanda sotto",
+        "Building blocks": "Componenti",
+        "Columns": "Colonne",
+        "Cut": "Taglia",
+        "Insert question above": "Inserisci domanda sopra",
+        "Paragraph": "Paragrafo",
+        "Paste": "Incolla",
+        "Separator": "Separatore",
+        "Unmapped fields": "Campi non mappati",
+        "Header": "Intestazione",
+        "Copy": "Copia"
+    },
+    "FormView": {
+        "Unpublish": "Non pubblicare",
+        "Publish": "Pubblica",
+        "Publish your form?": "Pubblicare il modulo?",
+        "Unpublish your form?": "Ritirare la pubblicazione del modulo?"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Pulisci",
+        "Map fields": "Mappa i campi",
+        "Mapped": "Mappato",
+        "Select All": "Seleziona tutto",
+        "Unmap fields": "Non mappare il campo",
+        "Unmapped": "Non mappato"
+    },
+    "Editor": {
+        "Delete": "Elimina"
     }
 }

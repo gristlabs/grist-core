@@ -26,15 +26,21 @@ export class GristWebDriverUtils {
    *
    * Simply call this after some request has been made, and when it resolves, you know that request
    * has been processed.
-   * @param optTimeout: Timeout in ms, defaults to 2000.
+   * @param optTimeout: Timeout in ms, defaults to 5000.
    */
-  public async waitForServer(optTimeout: number = 2000) {
+  public async waitForServer(optTimeout: number = 5000) {
     await this.driver.wait(() => this.driver.executeScript(
       "return window.gristApp && (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
-        + " && window.gristApp.testNumPendingApiRequests() === 0",
+        + " && window.gristApp.testNumPendingApiRequests() === 0"
+      )
+      // The catch is in case executeScript() fails. This is rare but happens occasionally when
+      // browser is busy (e.g. sorting) and doesn't respond quickly enough. The timeout selenium
+      // allows for a response is short (and I see no place to configure it); by catching, we'll
+      // let the call fail until our intended timeout expires.
+      .catch((e) => { console.log("Ignoring executeScript error", String(e)); }),
       optTimeout,
       "Timed out waiting for server requests to complete"
-    ));
+    );
   }
 
   public async waitForSidePanel() {

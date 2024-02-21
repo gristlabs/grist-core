@@ -898,6 +898,20 @@ describe('FormView', function() {
       assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
       assert.equal(await element('Section', 1).element('label', 4).getText(), 'D');
 
+      // Make sure that deleting the section also hides its fields and unmaps them.
+      await element('Section').element('Paragraph', 1).click();
+      await gu.sendKeys(Key.ESCAPE, Key.UP, Key.DELETE);
+      await gu.waitForServer();
+      assert.equal(await elementCount('Section'), 0);
+      assert.deepEqual(await readLabels(), []);
+      await gu.openWidgetPanel();
+      assert.deepEqual(await hiddenColumns(), ['A', 'B', 'C', 'Choice', 'D']);
+
+      await gu.undo();
+      assert.equal(await elementCount('Section'), 1);
+      assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
+      assert.deepEqual(await hiddenColumns(), ['Choice']);
+
       await revert();
       assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
     });
@@ -980,6 +994,31 @@ describe('FormView', function() {
       assert.equal(await element('column', 2).type(), 'Field');
       assert.equal(await element('column', 2).element('label').getText(), 'D');
       assert.equal(await element('column', 3).type(), 'Placeholder');
+
+      // Add a second question column.
+      await element('Columns').element(`Placeholder`, 1).click();
+      await clickMenu('Text');
+      await gu.waitForServer();
+
+      // Delete the column and make sure both questions get deleted.
+      await element('Columns').element('Field', 1).click();
+      await gu.sendKeys(Key.ESCAPE, Key.UP, Key.DELETE);
+      await gu.waitForServer();
+      assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
+      await gu.openWidgetPanel();
+      assert.deepEqual(await hiddenColumns(), ['Choice', 'D', 'E']);
+
+      // Undo and check everything reverted correctly.
+      await gu.undo();
+      assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'E', 'D']);
+      assert.equal(await elementCount('column'), 3);
+      assert.equal(await element('column', 1).type(), 'Field');
+      assert.equal(await element('column', 1).element('label').getText(), 'E');
+      assert.equal(await element('column', 2).type(), 'Field');
+      assert.equal(await element('column', 2).element('label').getText(), 'D');
+      assert.equal(await element('column', 3).type(), 'Placeholder');
+      assert.deepEqual(await hiddenColumns(), ['Choice']);
+      await gu.undo();
 
       // There was a bug with paragraph and columns.
       // Add a paragraph to first placeholder.

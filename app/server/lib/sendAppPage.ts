@@ -54,6 +54,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     baseDomain,
     singleOrg: process.env.GRIST_SINGLE_ORG,
     helpCenterUrl: process.env.GRIST_HELP_CENTER || "https://support.getgrist.com",
+    freeCoachingCallUrl: process.env.FREE_COACHING_CALL_URL || "https://calendly.com/grist-team/grist-free-coaching-call",
     pathOnly,
     supportAnon: shouldSupportAnon(),
     enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
@@ -116,6 +117,12 @@ export function makeSendAppPage(opts: {
   baseDomain?: string
 }) {
   const {server, staticDir, tag, testLogin} = opts;
+
+  // If env var GRIST_INCLUDE_CUSTOM_SCRIPT_URL is set, load it in a <script> tag on all app pages.
+  const customScriptUrl = process.env.GRIST_INCLUDE_CUSTOM_SCRIPT_URL;
+  const insertCustomScript: string = customScriptUrl ?
+    `<script src="${customScriptUrl}" crossorigin="anonymous"></script>` : '';
+
   return async (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => {
     const config = makeGristConfig({
       homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
@@ -153,6 +160,7 @@ export function makeSendAppPage(opts: {
       .replace("<!-- INSERT BASE -->", `<base href="${staticBaseUrl}">` + tagManagerSnippet)
       .replace("<!-- INSERT LOCALE -->", preloads)
       .replace("<!-- INSERT CUSTOM -->", customHeadHtmlSnippet)
+      .replace("<!-- INSERT CUSTOM SCRIPT -->", insertCustomScript)
       .replace(
         "<!-- INSERT CONFIG -->",
         `<script>window.gristConfig = ${jsesc(config, {isScriptContext: true, json: true})};</script>`
