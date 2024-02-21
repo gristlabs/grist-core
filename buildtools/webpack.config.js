@@ -56,6 +56,7 @@ module.exports = {
     ],
     fallback: {
       'path': require.resolve("path-browserify"),
+      'process': require.resolve("process/browser"),
     },
   },
   module: {
@@ -73,19 +74,13 @@ module.exports = {
       { test: /\.js$/,
         use: ["source-map-loader"],
         enforce: "pre"
-      },
-      {
-        test: /\.m?js/,
-        resolve: {
-          fullySpecified: false
-        }
       }
     ]
   },
   plugins: [
     // Some modules assume presence of Buffer and process.
     new ProvidePlugin({
-      process: 'process/browser',
+      process: 'process',
       Buffer: ['buffer', 'Buffer']
     }),
     // To strip all locales except “en”
