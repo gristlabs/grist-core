@@ -516,7 +516,9 @@ export class FlexServer implements GristServer {
     });
     const base = `/boot/${bootKey}`;
     this._probes = new BootProbes(this.app, this, base);
-    this.app.get('/boot(/:bootKey/?)?$', async (req, res) => {
+    // Respond to /boot, /boot/, /boot/KEY, /boot/KEY/ to give
+    // a helpful message even if user gets KEY wrong or omits it.
+    this.app.get('/boot(/(:bootKey/?)?)?$', async (req, res) => {
       const goodKey = bootKey && req.params.bootKey === bootKey;
       return this._sendAppPage(req, res, {
         path: 'boot.html', status: 200, config: goodKey ? {
@@ -525,7 +527,6 @@ export class FlexServer implements GristServer {
         }, tag: 'boot',
       });
     });
-    this._probes.addProbes();
     this._probes.addEndpoints();
   }
 

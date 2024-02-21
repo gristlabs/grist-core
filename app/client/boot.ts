@@ -96,7 +96,7 @@ export class Boot extends Disposable {
    */
   public buildBody(use: UseCBOwner, options: {errMessage?: string}) {
     if (options.errMessage) {
-      return cssBody(this.buildError());
+      return cssBody(cssResult(this.buildError()));
     }
     return cssBody([
       ...use(this.probes).map(probe => {
@@ -134,7 +134,7 @@ export class Boot extends Disposable {
           ' set before Grist starts. It should only',
           ' contain characters that are valid in a URL.',
           ' It should be a secret, since no authentication is needed',
-          ' To visit the diagnostics page.'),
+          ' to visit the diagnostics page.'),
       dom('p',
           'You are seeing this page because either the key is not set,',
           ' or it is not in the URL.'),

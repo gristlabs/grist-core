@@ -1,5 +1,7 @@
+import { ApiError } from 'app/common/ApiError';
 import { BootProbeIds, BootProbeResult } from 'app/common/BootProbe';
 import { removeTrailingSlash } from 'app/common/gutil';
+import { expressWrap, jsonErrorHandler } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import * as express from 'express';
 import fetch from 'node-fetch';
@@ -8,41 +10,56 @@ import fetch from 'node-fetch';
  * Self-diagnostics useful when installing Grist.
  */
 export class BootProbes {
-  public probes = new Array<Probe>();
+  // List of probes.
+  public _probes = new Array<Probe>();
 
-  public constructor(public app: express.Application,
-                     public server: GristServer,
-                     public base: string) {
+  // Probes indexed by id.
+  public _probeById = new Map<string, Probe>();
+
+  public constructor(private _app: express.Application,
+                     private _server: GristServer,
+                     private _base: string) {
+    this._addProbes();
   }
 
-  public addProbes() {
-
-    this.probes.push(_homeUrlReachableProbe);
-    this.probes.push(_statusCheckProbe);
-    this.probes.push(_userProbe);
-    this.probes.push(_bootProbe);
-    this.probes.push(_hostHeaderProbe);
-
-    this.app.use(`${this.base}/probe$`, async (_, res) => {
+  public addEndpoints() {
+    // Return a list of available probes.
+    this._app.use(`${this._base}/probe$`, expressWrap(async (_, res) => {
       res.json({
-        'probes': this.probes.map(probe => {
+        'probes': this._probes.map(probe => {
           return { id: probe.id, name: probe.name };
         }),
       });
-    });
+    }));
+
+    // Return result of running an individual probe.
+    this._app.use(`${this._base}/probe/:probeId`, expressWrap(async (req, res) => {
+      const probe = this._probeById.get(req.params.probeId);
+      if (!probe) {
+        throw new ApiError('unknown probe', 400);
+      }
+      const result = await probe.apply(this._server, req);
+      res.json(result);
+    }));
+
+    // Fall-back for errors.
+    this._app.use(`${this._base}/probe`, jsonErrorHandler);
   }
 
-  // NEED TO UPDATE WITH AUTH
-  public addEndpoints() {
-    for (const probe of this.probes) {
-      this.app.use(`${this.base}/probe/${probe.id}$`, async (req, res) => {
-        const result = await probe.apply(this.server, req);
-        res.json(result);
-      });
-    }
+  private _addProbes() {
+    this._probes.push(_homeUrlReachableProbe);
+    this._probes.push(_statusCheckProbe);
+    this._probes.push(_userProbe);
+    this._probes.push(_bootProbe);
+    this._probes.push(_hostHeaderProbe);
+    this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
 
+/**
+ * An individual probe has an id, a name, an optional description,
+ * and a method that returns a probe result.
+ */
 export interface Probe {
   id: BootProbeIds;
   name: string;
