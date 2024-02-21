@@ -14,6 +14,19 @@ The `grist-core`, `grist-electron`, and `grist-static` repositories are all open
 
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
+## 2024 - We're hiring a Systems Developer!
+
+We are looking for a friendly, capable engineer to join our small
+team. You will have broad responsibility for the ease of installation
+and maintenance of Grist as an application and service, by our
+clients, by self-hosters, and by ourselves. Interested? Formal job
+posting coming soon, but you can get a jump start on the puzzle
+that comes with it. Just run this:
+
+```
+docker run -it gristlabs/grist-twist
+```
+
 ## Features
 
 Grist is a hybrid database/spreadsheet, meaning that:
@@ -116,27 +129,6 @@ environments.
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
-
-## 2024: We're hiring!
-
-We are looking for a friendly, capable engineer to join our small
-team. You will have broad responsibility for the ease of installation
-and maintenance of Grist as an application and service, by our clients
-and ourselves. Specific responsibilities include:
-
-  * Becoming expert in installing Grist in a variety of platforms and with a variety of integrations.
-  * Simplifying Grist installation and integration through improvements to packaging, the core software, and documentation.
-  * Working with enterprise customers or trusted partners on installations, with the dual goal of helping them directly and learning how to improve the process in future.
-  * Lending a hand with the operation of the installation of Grist used for our SaaS offering, when needed.
-  * Developing and operating optional cloud services that integrate well with Grist to make complete installations easier, such as an end-to-end encrypted document snapshot offering.
-
-Interested? Formal job posting coming soon, with a puzzle.
-Get a jump start on the puzzle, bonus points for solving it
-before this PR lands:
-
-```
-docker run -it gristlabs/grist-twist
-```
 
 ## Building from source
 
