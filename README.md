@@ -14,6 +14,19 @@ The `grist-core`, `grist-electron`, and `grist-static` repositories are all open
 
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
+## 2024 - We're hiring a Systems Developer!
+
+We are looking for a friendly, capable engineer to join our small
+team. You will have broad responsibility for the ease of installation
+and maintenance of Grist as an application and service, by our
+clients, by self-hosters, and by ourselves. Interested? Formal job
+posting coming soon, but you can get a jump start on the puzzle
+that comes with it. Just run this:
+
+```
+docker run -it gristlabs/grist-twist
+```
+
 ## Features
 
 Grist is a hybrid database/spreadsheet, meaning that:
