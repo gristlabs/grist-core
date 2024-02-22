@@ -1,5 +1,6 @@
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {CellValue, ColValues} from 'app/common/DocActions';
+import {addCurrentOrgToPath} from 'app/common/urlUtils';
 
 /**
  * Form and associated field metadata from a Grist view section.
@@ -82,11 +83,8 @@ interface CreateRecordWithShareKeyOptions extends CreateRecordCommonOptions {
 type CreateRecordOptions = CreateRecordWithDocIdOptions | CreateRecordWithShareKeyOptions;
 
 export class FormAPIImpl extends BaseAPI implements FormAPI {
-  private _url: string;
-
-  constructor(url: string, options: IOptions = {}) {
+  constructor(private _homeUrl: string, options: IOptions = {}) {
     super(options);
-    this._url = url.replace(/\/$/, '');
   }
 
   public async getForm(options: GetFormOptions): Promise<Form> {
@@ -113,5 +111,9 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
         body: JSON.stringify({records: [{fields: colValues}]}),
       });
     }
+  }
+
+  private get _url(): string {
+    return addCurrentOrgToPath(this._homeUrl);
   }
 }
