@@ -222,6 +222,7 @@ ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in we
 APP_DOC_URL | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis)
 APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by the home server to reach the server using an internal domain name resolution (like in a docker environment). Defaults to `APP_DOC_URL`
 APP_HOME_URL | url prefix for home api (home and doc servers need this)
+APP_HOME_INTERNAL_URL | like `APP_HOME_URL` but used by the home server to reach any home workers using an internal domain name resolution (like in a docker environment). Defaults to `APP_HOME_URL`
 APP_STATIC_URL | url prefix for static resources
 APP_STATIC_INCLUDE_CUSTOM_CSS | set to "true" to include custom.css (from APP_STATIC_URL) in static pages
 APP_UNTRUSTED_URL   | URL at which to serve/expect plugin content.

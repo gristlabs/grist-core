@@ -228,7 +228,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
   app.get('/forms/:urlId([^/]+)/:sectionId', ...formMiddleware, expressWrap(async (req, res) => {
-    const formUrl = gristServer.getHomeUrl(req,
+    const formUrl = gristServer.getHomeInternalUrl(req,
       `/api/s/${req.params.urlId}/forms/${req.params.sectionId}`);
     const response = await fetch(formUrl, {
       headers: getTransitiveHeaders(req),

@@ -287,17 +287,31 @@ export class FlexServer implements GristServer {
   }
 
   /**
+   * Same as getDefaultHomeUrl, but for internal use.
+   */
+  public getDefaultHomeInternalUrl(): string {
+    return process.env.APP_HOME_INTERNAL_URL || this.getDefaultHomeUrl();
+  }
+
+  /**
    * Get a url for the home server api, adapting it to match the base domain in the
    * requested url.  This adaptation is important for cookie-based authentication.
    *
    * If relPath is given, returns that path relative to homeUrl. If omitted, note that
    * getHomeUrl() will still return a URL ending in "/".
    */
-  public getHomeUrl(req: express.Request, relPath: string = ''): string {
+  public getHomeUrl(req: express.Request, relPath: string = '', defaultHomeUrl = this.getDefaultHomeUrl()): string {
     // Get the default home url.
-    const homeUrl = new URL(relPath, this.getDefaultHomeUrl());
+    const homeUrl = new URL(relPath, defaultHomeUrl);
     adaptServerUrl(homeUrl, req as RequestWithOrg);
     return homeUrl.href;
+  }
+
+  /**
+   * Same as getHomeUrl, but for requesting internally.
+   */
+  public getHomeInternalUrl(req: express.Request, relPath?: string): string {
+    return this.getHomeUrl(req, relPath, this.getDefaultHomeInternalUrl());
   }
 
   /**
