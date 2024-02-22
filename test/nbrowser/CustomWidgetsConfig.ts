@@ -1,4 +1,4 @@
-import {assert, driver, Key} from 'mocha-webdriver';
+import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {addStatic, serveSomething} from 'test/server/customUtil';
@@ -15,6 +15,7 @@ const NORMAL_WIDGET = 'Normal';
 const READ_WIDGET = 'Read';
 const FULL_WIDGET = 'Full';
 const COLUMN_WIDGET = 'COLUMN_WIDGET';
+const REQUIRED_WIDGET = 'REQUIRED_WIDGET';
 // Custom URL label in selectbox.
 const CUSTOM_URL = 'Custom URL';
 // Holds url for sample widget server.
@@ -129,6 +130,9 @@ describe('CustomWidgetsConfig', function () {
   let mainSession: gu.Session;
   gu.bigScreen();
 
+
+  addToRepl('getOptions', getOptions);
+
   before(async function () {
     if (server.isExternalServer()) {
       this.skip();
@@ -164,8 +168,14 @@ describe('CustomWidgetsConfig', function () {
           {
             // Widget with column mapping
             name: COLUMN_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: ['Column']}),
+            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name:'Column', optional: true}]}),
             widgetId: 'tester5',
+          },
+          {
+            // Widget with required column mapping
+            name: REQUIRED_WIDGET,
+            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name:'Column', optional: false}]}),
+            widgetId: 'tester6',
           },
         ]);
       });
@@ -188,146 +198,6 @@ describe('CustomWidgetsConfig', function () {
     await server.testingHooks.setWidgetRepositoryUrl('');
   });
 
-  // Poor man widget rpc. Class that invokes various parts in the tester widget.
-  class Widget {
-    constructor() {}
-    // Wait for a frame.
-    public async waitForFrame() {
-      await driver.findWait(`iframe.test-custom-widget-ready`, 1000);
-      await driver.wait(async () => await driver.find('iframe').isDisplayed(), 1000);
-      await widget.waitForPendingRequests();
-    }
-    public async waitForPendingRequests() {
-      await this._inWidgetIframe(async () => {
-        await driver.executeScript('grist.testWaitForPendingRequests();');
-      });
-    }
-    public async content() {
-      return await this._read('body');
-    }
-    public async readonly() {
-      const text = await this._read('#readonly');
-      return text === 'true';
-    }
-    public async access() {
-      const text = await this._read('#access');
-      return text as AccessLevel;
-    }
-    public async onRecordMappings() {
-      const text = await this._read('#onRecordMappings');
-      return JSON.parse(text || 'null');
-    }
-    public async onRecords() {
-      const text = await this._read('#onRecords');
-      return JSON.parse(text || 'null');
-    }
-    public async onRecord() {
-      const text = await this._read('#onRecord');
-      return JSON.parse(text || 'null');
-    }
-    public async onRecordsMappings() {
-      const text = await this._read('#onRecordsMappings');
-      return JSON.parse(text || 'null');
-    }
-    public async log() {
-      const text = await this._read('#log');
-      return text || '';
-    }
-    // Wait for frame to close.
-    public async waitForClose() {
-      await driver.wait(async () => !(await driver.find('iframe').isPresent()), 3000);
-    }
-    // Wait for the onOptions event, and return its value.
-    public async onOptions() {
-      const text = await this._inWidgetIframe(async () => {
-        // Wait for options to get filled, initially this div is empty,
-        // as first message it should get at least null as an options.
-        await driver.wait(async () => await driver.find('#onOptions').getText(), 3000);
-        return await driver.find('#onOptions').getText();
-      });
-      return JSON.parse(text);
-    }
-    public async wasConfigureCalled() {
-      const text = await this._read('#configure');
-      return text === 'called';
-    }
-    public async setOptions(options: any) {
-      return await this.invokeOnWidget('setOptions', [options]);
-    }
-    public async setOption(key: string, value: any) {
-      return await this.invokeOnWidget('setOption', [key, value]);
-    }
-    public async getOption(key: string) {
-      return await this.invokeOnWidget('getOption', [key]);
-    }
-    public async clearOptions() {
-      return await this.invokeOnWidget('clearOptions');
-    }
-    public async getOptions() {
-      return await this.invokeOnWidget('getOptions');
-    }
-    public async mappings() {
-      return await this.invokeOnWidget('mappings');
-    }
-    public async clearLog() {
-      return await this.invokeOnWidget('clearLog');
-    }
-    // Invoke method on a Custom Widget.
-    // Each method is available as a button with content that is equal to the method name.
-    // It accepts single argument, that we pass by serializing it to #input textbox. Widget invokes
-    // the method and serializes its return value to #output div. When there is an error, it is also
-    // serialized to the #output div.
-    public async invokeOnWidget(name: string, input?: any[]) {
-      // Switch to frame.
-      const iframe = driver.find('iframe');
-      await driver.switchTo().frame(iframe);
-      // Clear input box that holds arguments.
-      await driver.find('#input').click();
-      await gu.clearInput();
-      // Serialize argument to the textbox (or leave empty).
-      if (input !== undefined) {
-        await driver.sendKeys(JSON.stringify(input));
-      }
-      // Find button that is responsible for invoking method.
-      await driver.findContent('button', gu.exactMatch(name)).click();
-      // Wait for the #output div to be filled with a result. Custom Widget will set it to
-      // "waiting..." before invoking the method.
-      await driver.wait(async () => (await driver.find('#output').value()) !== 'waiting...');
-      // Read the result.
-      const text = await driver.find('#output').getText();
-      // Switch back to main window.
-      await driver.switchTo().defaultContent();
-      // If the method was a void method, the output will be "undefined".
-      if (text === 'undefined') {
-        return; // Simulate void method.
-      }
-      // Result will always be parsed json.
-      const parsed = JSON.parse(text);
-      // All exceptions will be serialized to { error : <<Error.message>> }
-      if (parsed?.error) {
-        // Rethrow the error.
-        throw new Error(parsed.error);
-      } else {
-        // Or return result.
-        return parsed;
-      }
-    }
-
-    private async _read(selector: string) {
-      return this._inWidgetIframe(() => driver.find(selector).getText());
-    }
-
-    private async _inWidgetIframe<T>(callback: () => Promise<T>) {
-      const iframe = driver.find('iframe');
-      await driver.switchTo().frame(iframe);
-      const retVal = await callback();
-      await driver.switchTo().defaultContent();
-      return retVal;
-    }
-  }
-  // Rpc for main widget (Custom Widget).
-  const widget = new Widget();
-
   beforeEach(async () => {
     // Before each test, we will switch to Custom Url (to cleanup the widget)
     // and then back to the Tester widget.
@@ -337,6 +207,47 @@ describe('CustomWidgetsConfig', function () {
     }
     await toggleWidgetMenu();
     await clickOption(TESTER_WIDGET);
+    await widget.waitForFrame();
+  });
+
+  it('should hide widget when some columns are not mapped', async () => {
+    // Reset the widget to the one that has a column mapping requirements.
+    await widget.resetWidget();
+
+    // Since the widget was reset, we don't have .test-custom-widget-ready element.
+    assert.isFalse(await driver.find('.test-custom-widget-ready').isPresent());
+
+    // Now select the widget that requires a column.
+    await toggleWidgetMenu();
+    await clickOption(REQUIRED_WIDGET);
+    await gu.acceptAccessRequest();
+
+    // The widget iframe should be covered with a text explaining that the widget is not configured.
+    assert.isTrue(await driver.findWait('.test-custom-widget-not-mapped', 1000).isDisplayed());
+
+    // The content should at least have those words:
+    assert.include(await driver.find('.test-custom-widget-not-mapped').getText(),
+      "Some required columns aren't mapped");
+
+    // Make sure that the iframe is not displayed.
+    assert.isFalse(await driver.find('.test-custom-widget-ready').isPresent());
+
+    // Now map the column.
+    await toggleDrop(pickerDrop('Column'));
+
+    // Map it to A.
+    await clickOption('A');
+
+    // Make sure that the text is gone.
+    await gu.waitToPass(async () => {
+      assert.isFalse(await driver.find('.test-config-widget-not-mapped').isPresent());
+    });
+
+    // Make sure the widget is now visible.
+    assert.isTrue(await driver.find('.test-custom-widget-ready').isDisplayed());
+
+    // And we see widget with info about mapped columns, Column to A.
+    assert.deepEqual(await widget.onRecordsMappings(), {Column: 'A'});
   });
 
   it('should hide mappings when there is no good column', async () => {
@@ -346,7 +257,7 @@ describe('CustomWidgetsConfig', function () {
     }
     await gu.setWidgetUrl(
       createConfigUrl({
-        columns: [{name: 'M2', type: 'Date'}],
+        columns: [{name: 'M2', type: 'Date', optional: true}],
         requiredAccess: 'read table',
       })
     );
@@ -382,7 +293,7 @@ describe('CustomWidgetsConfig', function () {
 
     // Now expand the drop again and make sure we can't clear it.
     await toggleDrop(pickerDrop('M2'));
-    assert.deepEqual(await getOptions(), ['NewCol']);
+    assert.deepEqual(await getOptions(), ['NewCol', 'Clear selection']);
 
     // Now remove the column, and make sure that the drop is disabled again.
     await driver.sendKeys(Key.ESCAPE);
@@ -485,11 +396,8 @@ describe('CustomWidgetsConfig', function () {
         requiredAccess: 'read table',
       })
     );
-    await widget.waitForFrame();
     await gu.acceptAccessRequest();
-    await widget.waitForPendingRequests();
-    // Mappings should be empty
-    assert.isNull(await widget.onRecordsMappings());
+    await widget.waitForPlaceholder();
     // We should see 4 pickers
     assert.isTrue(await driver.find(pickerLabel('M1')).isPresent());
     assert.isTrue(await driver.find(pickerLabel('M2')).isPresent());
@@ -508,27 +416,20 @@ describe('CustomWidgetsConfig', function () {
     // Should be able to select column A for all options
     await toggleDrop(pickerDrop('M1'));
     await clickOption('A');
-    await widget.waitForPendingRequests();
-    const empty = {M1: null, M2: null, M3: null, M4: null};
-    assert.deepEqual(await widget.onRecordsMappings(), {... empty, M1: 'A'});
     await toggleDrop(pickerDrop('M2'));
     await clickOption('A');
-    await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {... empty, M1: 'A', M2: 'A'});
     await toggleDrop(pickerDrop('M3'));
     await clickOption('A');
-    await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {... empty, M1: 'A', M2: 'A', M3: 'A'});
     await toggleDrop(pickerDrop('M4'));
     await clickOption('A');
+    await widget.waitForFrame();
     await widget.waitForPendingRequests();
     assert.deepEqual(await widget.onRecordsMappings(), {M1: 'A', M2: 'A', M3: 'A', M4: 'A'});
     // Single record should also receive update.
     assert.deepEqual(await widget.onRecordMappings(), {M1: 'A', M2: 'A', M3: 'A', M4: 'A'});
     // Undo should revert mappings - there should be only 3 operations to revert to first mapping.
     await gu.undo(3);
-    await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {... empty, M1: 'A'});
+    await widget.waitForPlaceholder();
     // Add another columns, numeric B and any C.
     await gu.selectSectionByTitle('Table');
     await gu.addColumn('B');
@@ -541,10 +442,6 @@ describe('CustomWidgetsConfig', function () {
     assert.deepEqual(await getOptions(), ['A', 'B', 'C']);
     await toggleDrop(pickerDrop('M4'));
     assert.deepEqual(await getOptions(), ['A', 'C']);
-    await toggleDrop(pickerDrop('M1'));
-    await clickOption('B');
-    await widget.waitForPendingRequests();
-    assert.deepEqual(await widget.onRecordsMappings(), {...empty, M1: 'B'});
     await revert();
   });
 
@@ -602,8 +499,8 @@ describe('CustomWidgetsConfig', function () {
     await gu.setWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'M1', allowMultiple: true},
-          {name: 'M2', type: 'Text', allowMultiple: true},
+          {name: 'M1', allowMultiple: true, optional: true},
+          {name: 'M2', type: 'Text', allowMultiple: true, optional: true},
         ],
         requiredAccess: 'read table',
       })
@@ -686,8 +583,8 @@ describe('CustomWidgetsConfig', function () {
     await gu.setWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'M1', type: 'Date,DateTime'},
-          {name: 'M2', type: 'Date, DateTime ', allowMultiple: true},
+          {name: 'M1', type: 'Date,DateTime', optional: true},
+          {name: 'M2', type: 'Date, DateTime ', allowMultiple: true, optional: true},
         ],
         requiredAccess: 'read table',
       })
@@ -747,10 +644,10 @@ describe('CustomWidgetsConfig', function () {
     await gu.setWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'Any', type: 'Any', strictType: true},
-          {name: 'Date_Numeric', type: 'Date, Numeric', strictType: true},
-          {name: 'Date_Any', type: 'Date, Any', strictType: true},
-          {name: 'Date', type: 'Date', strictType: true},
+          {name: 'Any', type: 'Any', strictType: true, optional: true},
+          {name: 'Date_Numeric', type: 'Date, Numeric', strictType: true, optional: true},
+          {name: 'Date_Any', type: 'Date, Any', strictType: true, optional: true},
+          {name: 'Date', type: 'Date', strictType: true, optional: true},
         ],
         requiredAccess: 'read table',
       })
@@ -791,7 +688,7 @@ describe('CustomWidgetsConfig', function () {
     await gu.setWidgetUrl(
       createConfigUrl({
         columns: [
-          {name: 'Choice', type: 'Choice', strictType: true},
+          {name: 'Choice', type: 'Choice', strictType: true, optional: true},
         ],
         requiredAccess: 'read table',
       })
@@ -839,7 +736,7 @@ describe('CustomWidgetsConfig', function () {
     await clickOption(CUSTOM_URL);
     await gu.setWidgetUrl(
       createConfigUrl({
-        columns: [{name: 'M1'}, {name: 'M2', allowMultiple: true}],
+        columns: [{name: 'M1', optional: true}, {name: 'M2', allowMultiple: true, optional: true}],
         requiredAccess: 'read table',
       })
     );
@@ -905,7 +802,7 @@ describe('CustomWidgetsConfig', function () {
     // Add B column as a new one.
     await toggleDrop(pickerDrop('M1'));
     // Make sure it is there to select.
-    assert.deepEqual(await getOptions(), ['A', 'C', 'B']);
+    assert.deepEqual(await getOptions(), ['A', 'C', 'B', 'Clear selection']);
     await clickOption('B');
     await widget.waitForPendingRequests();
     await click(pickerAdd('M2'));
@@ -928,7 +825,10 @@ describe('CustomWidgetsConfig', function () {
     await clickOption(CUSTOM_URL);
     await gu.setWidgetUrl(
       createConfigUrl({
-        columns: [{name: 'M1', type: 'Text'}, {name: 'M2', type: 'Text', allowMultiple: true}],
+        columns: [
+          {name: 'M1', type: 'Text', optional: true},
+          {name: 'M2', type: 'Text', allowMultiple: true, optional: true}
+        ],
         requiredAccess: 'read table',
       })
     );
@@ -1220,3 +1120,152 @@ describe('CustomWidgetsConfig', function () {
     await refresh();
   });
 });
+
+// Poor man widget rpc. Class that invokes various parts in the tester widget.
+const widget = {
+  async waitForPlaceholder() {
+    assert.isTrue(await driver.findWait('.test-custom-widget-not-mapped', 1000).isDisplayed());
+  },
+  // Wait for a frame.
+  async waitForFrame() {
+    await driver.findWait(`iframe.test-custom-widget-ready`, 1000);
+    await driver.wait(async () => await driver.find('iframe').isDisplayed(), 1000);
+    await widget.waitForPendingRequests();
+  },
+  async waitForPendingRequests() {
+    await this._inWidgetIframe(async () => {
+      await driver.executeScript('grist.testWaitForPendingRequests();');
+    });
+  },
+  async content() {
+    return await this._read('body');
+  },
+  async readonly() {
+    const text = await this._read('#readonly');
+    return text === 'true';
+  },
+  async access() {
+    const text = await this._read('#access');
+    return text as AccessLevel;
+  },
+  async onRecordMappings() {
+    const text = await this._read('#onRecordMappings');
+    return JSON.parse(text || 'null');
+  },
+  async onRecords() {
+    const text = await this._read('#onRecords');
+    return JSON.parse(text || 'null');
+  },
+  async onRecord() {
+    const text = await this._read('#onRecord');
+    return JSON.parse(text || 'null');
+  },
+  /**
+   * Reads last mapping parameter received by the widget as part of onRecords call.
+   */
+  async onRecordsMappings() {
+    const text = await this._read('#onRecordsMappings');
+    return JSON.parse(text || 'null');
+  },
+  async log() {
+    const text = await this._read('#log');
+    return text || '';
+  },
+  // Wait for frame to close.
+  async waitForClose() {
+    await driver.wait(async () => !(await driver.find('iframe').isPresent()), 3000);
+  },
+  // Wait for the onOptions event, and return its value.
+  async onOptions() {
+    const text = await this._inWidgetIframe(async () => {
+      // Wait for options to get filled, initially this div is empty,
+      // as first message it should get at least null as an options.
+      await driver.wait(async () => await driver.find('#onOptions').getText(), 3000);
+      return await driver.find('#onOptions').getText();
+    });
+    return JSON.parse(text);
+  },
+  async wasConfigureCalled() {
+    const text = await this._read('#configure');
+    return text === 'called';
+  },
+  async setOptions(options: any) {
+    return await this.invokeOnWidget('setOptions', [options]);
+  },
+  async setOption(key: string, value: any) {
+    return await this.invokeOnWidget('setOption', [key, value]);
+  },
+  async getOption(key: string) {
+    return await this.invokeOnWidget('getOption', [key]);
+  },
+  async clearOptions() {
+    return await this.invokeOnWidget('clearOptions');
+  },
+  async getOptions() {
+    return await this.invokeOnWidget('getOptions');
+  },
+  async mappings() {
+    return await this.invokeOnWidget('mappings');
+  },
+  async clearLog() {
+    return await this.invokeOnWidget('clearLog');
+  },
+  // Invoke method on a Custom Widget.
+  // Each method is available as a button with content that is equal to the method name.
+  // It accepts single argument, that we pass by serializing it to #input textbox. Widget invokes
+  // the method and serializes its return value to #output div. When there is an error, it is also
+  // serialized to the #output div.
+  async invokeOnWidget(name: string, input?: any[]) {
+    // Switch to frame.
+    const iframe = driver.find('iframe');
+    await driver.switchTo().frame(iframe);
+    // Clear input box that holds arguments.
+    await driver.find('#input').click();
+    await gu.clearInput();
+    // Serialize argument to the textbox (or leave empty).
+    if (input !== undefined) {
+      await driver.sendKeys(JSON.stringify(input));
+    }
+    // Find button that is responsible for invoking method.
+    await driver.findContent('button', gu.exactMatch(name)).click();
+    // Wait for the #output div to be filled with a result. Custom Widget will set it to
+    // "waiting..." before invoking the method.
+    await driver.wait(async () => (await driver.find('#output').value()) !== 'waiting...');
+    // Read the result.
+    const text = await driver.find('#output').getText();
+    // Switch back to main window.
+    await driver.switchTo().defaultContent();
+    // If the method was a void method, the output will be "undefined".
+    if (text === 'undefined') {
+      return; // Simulate void method.
+    }
+    // Result will always be parsed json.
+    const parsed = JSON.parse(text);
+    // All exceptions will be serialized to { error : <<Error.message>> }
+    if (parsed?.error) {
+      // Rethrow the error.
+      throw new Error(parsed.error);
+    } else {
+      // Or return result.
+      return parsed;
+    }
+  },
+  async _read(selector: string) {
+    return this._inWidgetIframe(() => driver.find(selector).getText());
+  },
+  async _inWidgetIframe<T>(callback: () => Promise<T>) {
+    const iframe = driver.find('iframe');
+    await driver.switchTo().frame(iframe);
+    const retVal = await callback();
+    await driver.switchTo().defaultContent();
+    return retVal;
+  },
+  /**
+   * Resets the widget by first selecting Custom URL option from the menu, which clearOptions
+   * any existing widget state (even if the Custom URL was already selected).
+   */
+  async resetWidget() {
+    await toggleWidgetMenu();
+    await clickOption(CUSTOM_URL);
+  }
+};
