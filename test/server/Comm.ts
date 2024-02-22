@@ -493,14 +493,14 @@ describe('Comm', function() {
 });
 
 // Waits for condFunc() to return true, for up to timeoutMs milliseconds, sleeping for stepMs
-// between checks. Returns true if succeeded, false if failed.
-async function waitForCondition(condFunc: () => boolean, timeoutMs = 1000, stepMs = 10): Promise<boolean> {
+// between checks. Returns if succeeded, throws if failed.
+async function waitForCondition(condFunc: () => boolean, timeoutMs = 1000, stepMs = 10): Promise<void> {
   const end = Date.now() + timeoutMs;
   while (Date.now() < end) {
-    if (condFunc()) { return true; }
+    if (condFunc()) { return; }
     await delay(stepMs);
   }
-  return false;
+  throw new Error(`Condition not met after ${timeoutMs}ms: ${condFunc.toString()}`);
 }
 
 // Returns a range of count consecutive numbers starting with start.
