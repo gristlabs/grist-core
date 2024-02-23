@@ -79,6 +79,8 @@ describe('ActionLog', function() {
     await gu.undo(2);
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();
+    // Dismiss forms announcement popup, if present.
+    await gu.dismissBehavioralPrompts();
     // refreshing browser will restore position on last cell
     // switch active cell to the first cell in the first row
     await gu.getCell(0, 1).click();
