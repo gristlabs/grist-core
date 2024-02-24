@@ -37,7 +37,9 @@
         "Sign Up for Free": "Rekisteröidy veloituksetta",
         "Tips": "Vinkit",
         "AI Assistant": "AI-avustaja",
-        "Apply": "Toteuta"
+        "Apply": "Toteuta",
+        "Need help? Our AI assistant can help.": "Tarvitsetko apua? AI-avustajamme voi auttaa sinua.",
+        "What do you need help with?": "Minkä asian kanssa tarvitset apua?"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Tervetuloa takaisin",
@@ -418,7 +420,8 @@
         "Attachment": "Liite",
         "Toggle": "Kytkin",
         "Reference": "Viite",
-        "Reference List": "Viiteluettelo"
+        "Reference List": "Viiteluettelo",
+        "DateTime": "PäiväAika"
     },
     "HomeIntro": {
         "This workspace is empty.": "Tämä työtila on tyhjä.",
@@ -481,7 +484,8 @@
         "There was an error: {{message}}": "Tapahtui virhe: {{message}}",
         "You are now signed out.": "Olet nyt kirjautunut ulos.",
         "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Olet kirjautunut käyttäjänä {{email}}. Voit kirjautua sisään toisella tilillä, tai pyytää ylläpitäjältä pääsyä.",
-        "Account deleted{{suffix}}": "Tili poistettu{{suffix}}"
+        "Account deleted{{suffix}}": "Tili poistettu{{suffix}}",
+        "Access denied{{suffix}}": "Pääsy estetty{{suffix}}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Yhdistä rivit, jotka vastaavat näitä kenttiä:",
@@ -514,7 +518,8 @@
         "Workspace": "Työtila",
         "You do not have write access to the selected workspace": "Sinulla ei ole kirjoitusoikeutta valittuun työtilaan",
         "Remove all data but keep the structure to use as a template": "Poista kaikki data, mutta säilytä rakenne mallipohjakäyttöä varten",
-        "Remove document history (can significantly reduce file size)": "Poista dokumentin historia (voi pienentää tiedostokokoa merkittävästi)"
+        "Remove document history (can significantly reduce file size)": "Poista dokumentin historia (voi pienentää tiedostokokoa merkittävästi)",
+        "Replacing the original requires editing rights on the original document.": "Alkuperäisen korvaaminen vaatii muokkausoikeuksia alkuperäiseen dokumenttiin."
     },
     "RightPanel": {
         "Default field value": "Kentän oletusarvo",
@@ -547,14 +552,23 @@
         "TRANSFORM": "MUUNNA",
         "Sort & Filter": "Järjestä & suodata",
         "WIDGET TITLE": "WIDGETIN OTSIKKO",
-        "Configuration": "Määritys"
+        "Configuration": "Määritys",
+        "CHART TYPE": "KAAVIOTYYPPI",
+        "CUSTOM": "MUKAUTETTU",
+        "GROUPED BY": "RYHMITYSPERUSTE",
+        "ROW STYLE": "RIVITYYLI",
+        "Row Style": "Rivityyli",
+        "SOURCE DATA": "LÄHDEDATA",
+        "Redirect automatically after submission": "Uudelleenohjaa automaattisesti lähetyksen jälkeen",
+        "Reset form": "Nollaa lomake"
     },
     "RowContextMenu": {
         "Delete": "Poista",
         "Copy anchor link": "Kopioi ankkurilinkki",
         "Insert row": "Lisää rivi",
         "Insert row above": "Lisää rivi yläpuolelle",
-        "Insert row below": "Lisää rivi alapuolelle"
+        "Insert row below": "Lisää rivi alapuolelle",
+        "View as card": "Näytä korttina"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Kopioitu leikepöydälle"
@@ -592,7 +606,8 @@
     "PageWidgetPicker": {
         "Select Data": "Valitse data",
         "Select Widget": "Valitse widgetti",
-        "Add to Page": "Lisää sivulle"
+        "Add to Page": "Lisää sivulle",
+        "Group by": "Ryhmitysperuste"
     },
     "PermissionsWidget": {
         "Allow All": "Salli kaikki",
@@ -716,7 +731,8 @@
         "(modified)": "(muokattu)",
         "Save": "Tallenna",
         "SORT": "JÄRJESTÄ",
-        "Update Sort&Filter settings": "Päivitä järjestys- & suodatusasetukset"
+        "Update Sort&Filter settings": "Päivitä järjestys- & suodatusasetukset",
+        "FILTER": "SUODATA"
     },
     "WelcomeQuestions": {
         "What brings you to Grist? Please help us serve you better.": "Mikä tuo sinut Gristin pariin? Auta meitä palvelemaan sinua entistä paremmin.",
@@ -742,7 +758,9 @@
     },
     "ColumnInfo": {
         "Cancel": "Peruuta",
-        "Save": "Tallenna"
+        "Save": "Tallenna",
+        "COLUMN DESCRIPTION": "SARAKKEEN KUVAUS",
+        "COLUMN LABEL": "SARAKKEEN NIMIKE"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Lähetetään tiedostoa Google Driveen"
@@ -813,7 +831,9 @@
         "Welcome to Grist!": "Tervetuloa Gristiin!",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Kaksoisnapsauta tai paina {{enter}} solussa muokataksesi sitä. ",
         "Editing Data": "Muokataan dataa",
-        "Help Center": "Ohjekeskus"
+        "Help Center": "Ohjekeskus",
+        "Use the Share button ({{share}}) to share the document or export data.": "Käytä Jaa-painiketta ({{share}}) jakaaksesi dokumentin tai viedäksesi datan.",
+        "template library": "mallipohjakirjasto"
     },
     "GristTooltips": {
         "Updates every 5 minutes.": "Päivittyy 5 minuutin välein.",
@@ -825,7 +845,10 @@
         "Editing Card Layout": "Muokataan korttiasettelua",
         "Reference Columns": "Viitesarakkeet",
         "Selecting Data": "Datan valinta",
-        "Add New": "Lisää uusi"
+        "Add New": "Lisää uusi",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Napsauta \"Lisää uusi\"-painiketta luodaksesi uuden dokumentin tai työtilan, tai tuodaksesi dataa.",
+        "Linking Widgets": "Widgettien linkittäminen",
+        "You can filter by more than one column.": "Voit suodataa enemmän kuin yhden sarakkeen perusteella."
     },
     "ChartView": {
         "Pick a column": "Valitse sarake"
@@ -895,7 +918,8 @@
     },
     "breadcrumbs": {
         "snapshot": "tilannevedos",
-        "unsaved": "tallentamaton"
+        "unsaved": "tallentamaton",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Voit tehdä muokkauksia, mutta niistä muodostuu uusi kopio,\neivätkä muutokset vaikuta alkuperäiseen dokumenttiin."
     },
     "menus": {
         "Select fields": "Valitse kentät",
@@ -910,11 +934,13 @@
         "Search columns": "Hae sarakkeita",
         "Toggle": "Kytkin",
         "Reference": "Viite",
-        "Reference List": "Viiteluettelo"
+        "Reference List": "Viiteluettelo",
+        "DateTime": "PäiväAika"
     },
     "CellStyle": {
         "Cell Style": "Solun tyyli",
-        "Default cell style": "Solun oletustyyli"
+        "Default cell style": "Solun oletustyyli",
+        "CELL STYLE": "SOLUN TYYLI"
     },
     "EditorTooltip": {
         "Convert column to formula": "Muunna sarake kaavioksi"
@@ -963,5 +989,12 @@
     "FormConfig": {
         "Required field": "Pakollinen kenttä",
         "Field rules": "Kenttäsäännöt"
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "Päivitä kaava (Shift+Enter)"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "SARAKKEEN KUVAUS",
+        "COLUMN LABEL": "SARAKKEEN NIMIKE"
     }
 }
