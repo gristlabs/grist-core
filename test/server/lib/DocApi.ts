@@ -4434,19 +4434,17 @@ function testDocApi() {
           ['ModifyColumn', 'Table1', 'B', { type: 'Bool' }],
         ], chimpy);
 
-        const modifyColumnNotInColumnIds = async (newValues: { [key: string]: any; } ) => {
+        const modifyColumn = async (newValues: { [key: string]: any; } ) => {
           await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
             ['UpdateRecord', 'Table1', newRowIds[0], newValues],
           ], chimpy);
           await delay(100);
+        };
+        const assertSuccessNotCalled = async () => {
           assert.isFalse(successCalled.called());
           successCalled.reset();
         };
-        const modifyColumnInColumnIds = async (newValues: { [key: string]: any; }) => {
-          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-            ['UpdateRecord', 'Table1', newRowIds[0], newValues],
-          ], chimpy);
-          await delay(100);
+        const assertSuccessCalled = async () => {
           assert.isTrue(successCalled.called());
           await successCalled.waitAndReset();
         };
@@ -4465,8 +4463,10 @@ function testDocApi() {
         await delay(100);
         assert.isTrue(successCalled.called());
         await successCalled.waitAndReset();
-        await modifyColumnNotInColumnIds({ C: 'c2' });
-        await modifyColumnInColumnIds({ A: 19 });
+        await modifyColumn({ C: 'c2' });
+        await assertSuccessNotCalled();
+        await modifyColumn({ A: 19 });
+        await assertSuccessCalled();
         await webhook1(); // Unsubscribe.
 
         // Webhook with multiple columnIds (check the shape of the columnIds string)
@@ -4474,16 +4474,20 @@ function testDocApi() {
           columnIds: 'A; B', eventTypes: ['update']
         });
         successCalled.reset();
-        await modifyColumnNotInColumnIds({ C: 'c3' });
-        await modifyColumnInColumnIds({ A: 20 });
+        await modifyColumn({ C: 'c3' });
+        await assertSuccessNotCalled();
+        await modifyColumn({ A: 20 });
+        await assertSuccessCalled();
         await webhook2();
 
         // Check that string terminating with ";" not breaking the webhook
         const webhook3 = await autoSubscribe('200', docId, {
           columnIds: 'A;', eventTypes: ['update']
         });
-        await modifyColumnNotInColumnIds({ C: 'c4' });
-        await modifyColumnInColumnIds({ A: 21 });
+        await modifyColumn({ C: 'c4' });
+        await assertSuccessNotCalled();
+        await modifyColumn({ A: 21 });
+        await assertSuccessCalled();
         await webhook3();
       });
 
