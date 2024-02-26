@@ -1119,7 +1119,10 @@
         "Lookups return data from related tables.": "Lookups return data from related tables.",
         "Use reference columns to relate data in different tables.": "Use reference columns to relate data in different tables.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}",
+        "Forms are here!": "Forms are here!",
+        "Learn more": "Learn more"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1342,5 +1345,9 @@
         "Select All": "Select All",
         "Unmap fields": "Unmap fields",
         "Unmapped": "Unmapped"
+    },
+    "FormConfig": {
+        "Field rules": "Field rules",
+        "Required field": "Required field"
     }
 }

@@ -727,7 +727,10 @@
         "Lookups return data from related tables.": "Iskanje vrne podatke iz povezanih tabel.",
         "Use reference columns to relate data in different tables.": "Uporabite referenčne stolpce za povezavo podatkov v različnih tabelah.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Izbirate lahko med pripomočki, ki so vam na voljo v spustnem meniju, ali vdelate svojega tako, da navedete njegov polni URL.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formule podpirajo številne Excelove funkcije, polno Pythonovo sintakso in vključujejo koristnega AI pomočnika."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formule podpirajo številne Excelove funkcije, polno Pythonovo sintakso in vključujejo koristnega AI pomočnika.",
+        "Forms are here!": "Obrazci so tukaj!",
+        "Learn more": "Nauči se več",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}"
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -1342,5 +1345,9 @@
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Dogovori se za {{freeCoachingCall}} s članom naše ekipe.",
         "Maybe Later": "Mogoče kasneje",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Med klicem si bomo vzeli čas, da bomo razumeli vaše potrebe in vam klic prilagodili. Lahko vam pokažemo osnove Grista ali pa takoj začnemo delati z vašimi podatki, da zgradimo nadzorne plošče, ki jih potrebujete."
+    },
+    "FormConfig": {
+        "Required field": "Obvezno polje",
+        "Field rules": "Pravila polj"
     }
 }
