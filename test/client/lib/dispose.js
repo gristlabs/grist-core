@@ -153,9 +153,8 @@ describe('dispose', function() {
       assert.equal(baz.dispose.callCount, 1);
       assert(baz.dispose.calledBefore(bar.dispose));
 
-      const name = consoleErrors[0][1];  // may be Foo, or minified.
-      assert(name === 'Foo' || name === 'o');  // this may not be reliable,
-                                               // just what I happen to see.
+      const name = consoleErrors[0][1];
+      assert(name === Foo.name);
       assert.deepEqual(consoleErrors[0], ['Error constructing %s:', name, 'Error: test-error1']);
       assert.deepEqual(consoleErrors[1], ['Error constructing %s:', name, 'Error: test-error2']);
       assert.deepEqual(consoleErrors[2], ['Error constructing %s:', name, 'Error: test-error3']);
