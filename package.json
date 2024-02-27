@@ -18,7 +18,7 @@
     "test:client": "GRIST_SESSION_COOKIE=grist_test_cookie mocha ${DEBUG:+'-b'} '_build/test/client/**/*.js'",
     "test:common": "GRIST_SESSION_COOKIE=grist_test_cookie mocha ${DEBUG:+'-b'} '_build/test/common/**/*.js'",
     "test:server": "TEST_CLEAN_DATABASE=true TEST_SUITE=server TEST_SUITE_FOR_TIMINGS=server TIMINGS_FILE=test/timings/server.txt GRIST_SESSION_COOKIE=grist_test_cookie mocha ${DEBUG:+'-b'} -g \"${GREP_TESTS}\" -R test/xunit-file '_build/test/server/**/*.js' '_build/test/gen-server/**/*.js'",
-    "test:smoke": "mocha _build/test/nbrowser/Smoke.js",
+    "test:smoke": "LANGUAGE=en_US mocha _build/test/nbrowser/Smoke.js",
     "test:docker": "./test/test_under_docker.sh",
     "test:python": "sandbox_venv3/bin/python sandbox/grist/runtests.py ${GREP_TESTS:+discover -p \"test*${GREP_TESTS}*.py\"}",
     "cli": "NODE_PATH=_build:_build/stubs:_build/ext node _build/app/server/companion.js",
