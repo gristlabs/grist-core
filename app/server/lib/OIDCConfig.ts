@@ -55,13 +55,31 @@ import { GristLoginSystem, GristServer } from './GristServer';
 import { Client, generators, Issuer, UserinfoResponse } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
-import { appSettings } from './AppSettings';
+import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
+import _ from 'lodash';
+
+enum ENABLED_PROTECTIONS {
+  NONCE,
+  PKCE,
+  STATE,
+}
+
+type EnabledProtectionsString = keyof typeof ENABLED_PROTECTIONS;
 
 const CALLBACK_URL = '/oauth2/callback';
 
 export class OIDCConfig {
+  /**
+   * Handy alias to create an OIDCConfig instance and initialize it.
+   */
+  public static async build(): Promise<OIDCConfig> {
+    const config = new OIDCConfig();
+    await config.initOIDC();
+    return config;
+  }
+
   private _client: Client;
   private _redirectUrl: string;
   private _namePropertyKey?: string;
@@ -69,8 +87,9 @@ export class OIDCConfig {
   private _endSessionEndpoint: string;
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
+  private _enabledProtections: EnabledProtectionsString[] = [];
 
-  public constructor() {
+  private constructor() {
   }
 
   public async initOIDC(): Promise<void> {
@@ -113,6 +132,8 @@ export class OIDCConfig {
       defaultValue: false,
     })!;
 
+    this._enabledProtections = this._buildEnabledProtections(section);
+
     const issuer = await Issuer.discover(issuerUrl);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     this._client = new issuer.Client({
@@ -139,7 +160,7 @@ export class OIDCConfig {
     try {
       const params = this._client.callbackParams(req);
       const { state, targetUrl } = mreq.session?.oidc ?? {};
-      if (!state) {
+      if (!state && this._supportsProtection('STATE')) {
         throw new Error('Login or logout failed to complete');
       }
 
@@ -210,15 +231,39 @@ export class OIDCConfig {
   private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
-    const codeVerifier = generators.codeVerifier();
-    const state = generators.state();
-    mreq.session.oidc = {
-      codeVerifier,
-      state,
+    const oidcInfo: {[key: string]: string} = {
       targetUrl
     };
+    if (this._supportsProtection('PKCE')) {
+      oidcInfo.codeVerifier = generators.codeVerifier();
+    }
+    if (this._supportsProtection('STATE')) {
+      oidcInfo.state = generators.state();
+    }
+    if (this._supportsProtection('NONCE')) {
+      oidcInfo.nonce = generators.nonce();
+    }
 
-    return { codeVerifier, state };
+    mreq.session.oidc = oidcInfo;
+
+    return _.pick(oidcInfo, ['codeVerifier', 'state', 'nonce']);
+  }
+
+  private _supportsProtection(protection: EnabledProtectionsString) {
+    return this._enabledProtections.includes(protection);
+  }
+
+  private _buildEnabledProtections(section: AppSettings): EnabledProtectionsString[] {
+    const enabledProtections = section.flag('enabledProtections').readString({
+      envVar: 'GRIST_OIDC_ENABLED_PROTECTIONS',
+      defaultValue: 'PKCE,STATE',
+    })!.split(',');
+    for (const protection of enabledProtections) {
+      if (!ENABLED_PROTECTIONS[protection as EnabledProtectionsString]) {
+        throw new Error(`OIDC: Invalid protection in GRIST_OIDC_ENABLED_PROTECTIONS: ${protection}`);
+      }
+    }
+    return enabledProtections as EnabledProtectionsString[];
   }
 
   private async _retrieveCodeVerifierFromSession(req: express.Request) {
@@ -251,8 +296,7 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> 
   if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = new OIDCConfig();
-      await config.initOIDC();
+      const config = await OIDCConfig.build();
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),

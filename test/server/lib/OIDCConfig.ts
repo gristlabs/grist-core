@@ -41,6 +41,5 @@ describe('OIDCConfig', () => {
     }
   });
 
-  it('should throw when required env variables are empty', async () => {
 });
 
