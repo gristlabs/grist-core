@@ -255,6 +255,7 @@ GRIST_HOST          | hostname to use when listening on a port.
 GRIST_HTTPS_PROXY   | if set, use this proxy for webhook payload delivery.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
 GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication.
+GRIST_INCLUDE_CONTEXT_TO_DOWNLOAD_FILENAMES | if set to true the organization name and the worspace name will be added to downloaded filenames, by default is set to false.
 GRIST_INST_DIR      | path to Grist instance configuration files, for Grist server.
 GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false.
 GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone

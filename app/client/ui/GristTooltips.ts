@@ -85,7 +85,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
       t('Try out changes in a copy, then decide whether to replace the original with your edits.')
     ),
     dom('div',
-      cssLink({href: commonUrls.helpTryingOutChanges, target: '_blank'}, 'Learn more.'),
+      cssLink({href: commonUrls.helpTryingOutChanges, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
