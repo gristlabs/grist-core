@@ -1734,7 +1734,7 @@ export class DocWorkerApi {
   }
 
   private async _getDownloadFilename(req: Request, tableId?: string): Promise<string> {
-    const addContext = process.env.GRIST_INCLUDE_CONTEXT_TO_DOWNLOAD_FILENAMES || false;
+    const addContext = isAffirmative(process.env.GRIST_INCLUDE_CONTEXT_TO_DOWNLOAD_FILENAMES || false);
 
     // Query DB for doc metadata to get the doc data.
     const doc = await this._dbManager.getDoc(req);

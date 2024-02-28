@@ -276,7 +276,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
         menuItem(() => downloadDocModal(doc, pageModel),
-        menuIcon('Download'), t("Download"), "...", testId('tb-share-option'))
+        menuIcon('Download'), t("Download..."), testId('tb-share-option'))
     ),
     menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
       menuIcon('Download'), t("Export CSV"), testId('tb-share-option')),
