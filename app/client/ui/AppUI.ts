@@ -17,7 +17,7 @@ import {pagePanels} from 'app/client/ui/PagePanels';
 import {RightPanel} from 'app/client/ui/RightPanel';
 import {createTopBarDoc, createTopBarHome} from 'app/client/ui/TopBar';
 import {WelcomePage} from 'app/client/ui/WelcomePage';
-import {testId} from 'app/client/ui2018/cssVars';
+import {attachTheme, testId} from 'app/client/ui2018/cssVars';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent, subscribe} from 'grainjs';
@@ -27,10 +27,14 @@ import {Computed, dom, IDisposable, IDisposableOwner, Observable, replaceContent
 // TODO once #newui is gone, we don't need to worry about this being disposable.
 // appObj is the App object from app/client/ui/App.ts
 export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable {
-  const content = dom.maybe(topAppModel.appObs, (appModel) => [
-    createMainPage(appModel, appObj),
-    buildSnackbarDom(appModel.notifier, appModel),
-  ]);
+  const content = dom.maybeOwned(topAppModel.appObs, (owner, appModel) => {
+    owner.autoDispose(attachTheme(appModel.currentTheme));
+
+    return [
+      createMainPage(appModel, appObj),
+      buildSnackbarDom(appModel.notifier, appModel),
+    ];
+  });
   dom.update(document.body, content, {
     // Cancel out bootstrap's overrides.
     style: 'font-family: inherit; font-size: inherit; line-height: inherit;'

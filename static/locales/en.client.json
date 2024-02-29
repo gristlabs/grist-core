@@ -41,7 +41,8 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "When adding table rules, automatically add a rule to grant OWNER full access.",
         "Permission to edit document structure": "Permission to edit document structure",
         "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions."
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.",
+        "Add Table-wide Rule": "Add Table-wide Rule"
     },
     "AccountPage": {
         "API": "API",
@@ -1123,7 +1124,8 @@
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}",
         "Forms are here!": "Forms are here!",
-        "Learn more": "Learn more"
+        "Learn more": "Learn more",
+        "These rules are applied after all column rules have been processed, if applicable.": "These rules are applied after all column rules have been processed, if applicable."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1350,5 +1352,29 @@
     "FormConfig": {
         "Field rules": "Field rules",
         "Required field": "Required field"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Some required columns aren't mapped",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "To use this widget, please map all non-optional columns from the creator panel on the right."
+    },
+    "FormContainer": {
+        "Build your own form": "Build your own form",
+        "Powered by": "Powered by"
+    },
+    "FormErrorPage": {
+        "Error": "Error"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Oops! The form you're looking for doesn't exist.",
+        "Oops! This form is no longer published.": "Oops! This form is no longer published.",
+        "There was a problem loading the form.": "There was a problem loading the form.",
+        "You don't have access to this form.": "You don't have access to this form."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "There was an error submitting your form. Please try again."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Form Submitted",
+        "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded."
     }
 }

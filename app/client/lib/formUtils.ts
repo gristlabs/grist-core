@@ -70,3 +70,57 @@ export function handleFormError(err: unknown, errObs: Observable<string|null>) {
     reportError(err as Error|string);
   }
 }
+
+/**
+ * A wrapper around FormData that provides type information for fields.
+ */
+export class TypedFormData {
+  private _formData: FormData = new FormData(this._formElement);
+
+  constructor(private _formElement: HTMLFormElement) {
+
+  }
+
+  public keys() {
+    const keys = Array.from(this._formData.keys());
+    // Don't return keys for scalar values that just return empty strings.
+    // Otherwise, Grist won't fire trigger formulas.
+    return keys.filter(key => {
+      // If there are multiple values, return the key as is.
+      if (this._formData.getAll(key).length !== 1) { return true; }
+
+      // If the value is an empty string or null, don't return the key.
+      const value = this._formData.get(key);
+      return value !== '' && value !== null;
+    });
+  }
+
+  public type(key: string) {
+    return this._formElement.querySelector(`[name="${key}"]`)?.getAttribute('data-grist-type');
+  }
+
+  public get(key: string) {
+    const value = this._formData.get(key);
+    if (value === null) { return null; }
+
+    const type = this.type(key);
+    return type === 'Ref' || type === 'RefList' ? Number(value) : value;
+  }
+
+  public getAll(key: string) {
+    const values = Array.from(this._formData.getAll(key));
+    if (['Ref', 'RefList'].includes(String(this.type(key)))) {
+      return values.map(v => Number(v));
+    } else {
+      return values;
+    }
+  }
+}
+
+/**
+ * Converts TypedFormData into a JSON mapping of Grist fields.
+ */
+export function typedFormDataToJson(formData: TypedFormData) {
+  return Object.fromEntries(Array.from(formData.keys()).map(k =>
+    k.endsWith('[]') ? [k.slice(0, -2), ['L', ...formData.getAll(k)]] : [k, formData.get(k)]));
+}

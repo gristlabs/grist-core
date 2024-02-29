@@ -1284,7 +1284,7 @@ export class FlexServer implements GristServer {
     this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this, this.appRoot);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this);
     }
   }
 
@@ -1513,7 +1513,6 @@ export class FlexServer implements GristServer {
       if (resp.headersSent || !this._sendAppPage) { return next(err); }
       try {
         const errPage = (
-          err.details?.code === 'FormNotFound' ? 'form-not-found' :
           err.status === 403 ? 'access-denied' :
           err.status === 404 ? 'not-found' :
           'other-error'

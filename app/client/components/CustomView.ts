@@ -16,8 +16,10 @@ import {
   WidgetFrame
 } from 'app/client/components/WidgetFrame';
 import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
+import {makeT} from 'app/client/lib/localization';
 import {Disposable} from 'app/client/lib/dispose';
 import dom from 'app/client/lib/dom';
+import {makeTestId} from 'app/client/lib/domUtils';
 import * as kd from 'app/client/lib/koDom';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
@@ -28,11 +30,13 @@ import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 import {AccessLevel} from 'app/common/CustomWidget';
 import {defaultLocale} from 'app/common/gutil';
 import {PluginInstance} from 'app/common/PluginInstance';
-import {getGristConfig} from 'app/common/urlUtils';
 import {Events as BackboneEvents} from 'backbone';
 import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
+
+const t = makeT('CustomView');
+const testId = makeTestId('test-custom-widget-');
 
 /**
  *
@@ -104,6 +108,7 @@ export class CustomView extends Disposable {
   private _pluginInstance: PluginInstance|undefined;
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
+  private _hasUnmappedColumns: ko.Computed<boolean>;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
@@ -124,6 +129,15 @@ export class CustomView extends Disposable {
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
     this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
 
+    this._hasUnmappedColumns = this.autoDispose(ko.pureComputed(() => {
+      const columns = this.viewSection.columnsToMap();
+      if (!columns) { return false; }
+      const required = columns.filter(col => typeof col === 'string' || !(col.optional === true))
+                              .map(col => typeof col === 'string' ? col : col.name);
+      const mapped = this.viewSection.mappedColumns() || {};
+      return required.some(col => !mapped[col]) && this.customDef.mode() === "url";
+    }));
+
     this.viewPane = this.autoDispose(this._buildDom());
     this._updatePluginInstance();
   }
@@ -136,10 +150,6 @@ export class CustomView extends Disposable {
 
   protected getBuiltInSettings(): CustomViewSettings {
     return {};
-  }
-
-  protected getEmptyWidgetPage(): string {
-    return new URL("custom-widget.html", getGristConfig().homeUrl!).href;
   }
 
   /**
@@ -207,11 +217,21 @@ export class CustomView extends Disposable {
       dom.autoDispose(showPluginNotification),
       dom.autoDispose(showSectionNotification),
       dom.autoDispose(showPluginContent),
+
+      kd.maybe(this._hasUnmappedColumns, () => dom('div.custom_view_no_mapping',
+        testId('not-mapped'),
+        dom('img', {src: 'img/empty-widget.svg'}),
+        dom('h1', kd.text(t("Some required columns aren't mapped"))),
+        dom('p',
+          t('To use this widget, please map all non-optional columns from the creator panel on the right.')
+        ),
+      )),
       // todo: should display content in webview when running electron
       // prefer widgetId; spelunk in widgetDef for older docs
-      kd.scope(() => [mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()],
-               ([_mode, _url, _access, _widgetId, _pluginId]: string[]) =>
-        _mode === "url" ?
+      kd.scope(() => [
+        this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || '', pluginId()
+      ], ([_hide, _mode, _url, _access, _widgetId, _pluginId]: string[]) =>
+        _mode === "url" && !_hide ?
           this._buildIFrame({
             baseUrl: _url,
             access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
@@ -254,7 +274,7 @@ export class CustomView extends Disposable {
     const documentSettings = this.gristDoc.docData.docSettings();
     const readonly = this.gristDoc.isReadonly.get();
     const widgetFrame = WidgetFrame.create(null,  {
-      url: baseUrl || this.getEmptyWidgetPage(),
+      url: baseUrl,
       widgetId,
       pluginId,
       access,

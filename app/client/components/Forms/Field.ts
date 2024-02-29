@@ -1,3 +1,4 @@
+import {CHOOSE_TEXT, FormLayoutNode} from 'app/client/components/FormRenderer';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FormView} from 'app/client/components/Forms/FormView';
 import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
@@ -7,7 +8,6 @@ import {refRecord} from 'app/client/models/DocModel';
 import {autoGrow} from 'app/client/ui/forms';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors} from 'app/client/ui2018/cssVars';
-import {Box, CHOOSE_TEXT} from 'app/common/Forms';
 import {Constructor, not} from 'app/common/gutil';
 import {
   BindableValue,
@@ -78,7 +78,7 @@ export class FieldModel extends BoxModel {
     return instance;
   });
 
-  constructor(box: Box, parent: BoxModel | null, view: FormView) {
+  constructor(box: FormLayoutNode, parent: BoxModel | null, view: FormView) {
     super(box, parent, view);
 
     this.required = Computed.create(this, (use) => {

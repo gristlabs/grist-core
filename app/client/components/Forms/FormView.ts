@@ -1,6 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import {Cursor} from 'app/client/components/Cursor';
+import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
 import {NewBox} from 'app/client/components/Forms/Menu';
 import {BoxModel, LayoutModel, parseBox, Place} from 'app/client/components/Forms/Model';
@@ -16,13 +17,13 @@ import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
-import {urlState} from 'app/client/models/gristUrlState';
+import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {Box, BoxType, INITIAL_FIELDS_COUNT} from "app/common/Forms";
+import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import defaults from 'lodash/defaults';
@@ -47,7 +48,7 @@ export class FormView extends Disposable {
   protected menuHolder: Holder<any>;
   protected bundle: (clb: () => Promise<void>) => Promise<void>;
 
-  private _autoLayout: Computed<Box>;
+  private _autoLayout: Computed<FormLayoutNode>;
   private _root: BoxModel;
   private _savedLayout: any;
   private _saving: boolean = false;
@@ -290,14 +291,14 @@ export class FormView extends Disposable {
         // Sanity check that type is correct.
         if (!colIds.every(c => typeof c === 'string')) { throw new Error('Invalid column id'); }
         this._root.save(async () => {
-          const boxes: Box[] = [];
+          const boxes: FormLayoutNode[] = [];
           for (const colId of colIds) {
             const fieldRef = await this.viewSection.showColumn(colId);
             const field = this.viewSection.viewFields().all().find(f => f.getRowId() === fieldRef);
             if (!field) { continue; }
             const box = {
               leaf: fieldRef,
-              type: 'Field' as BoxType,
+              type: 'Field' as FormLayoutNodeType,
             };
             boxes.push(box);
           }
@@ -333,8 +334,7 @@ export class FormView extends Disposable {
       const doc = use(this.gristDoc.docPageModel.currentDoc);
       if (!doc) { return ''; }
       const url = urlState().makeUrl({
-        api: true,
-        doc: doc.id,
+        ...docUrl(doc),
         form: {
           vsId: use(this.viewSection.id),
         },
@@ -723,11 +723,11 @@ export class FormView extends Disposable {
    * Generates a form template based on the fields in the view section.
    */
   private _formTemplate(fields: ViewFieldRec[]) {
-    const boxes: Box[] = fields.map(f => {
+    const boxes: FormLayoutNode[] = fields.map(f => {
       return {
         type: 'Field',
         leaf: f.id()
-      } as Box;
+      } as FormLayoutNode;
     });
     const section = {
       type: 'Section',

@@ -1,5 +1,5 @@
+import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import {Columns, Paragraph, Placeholder} from 'app/client/components/Forms/Columns';
-import {Box, BoxType} from 'app/common/Forms';
 /**
  * Add any other element you whish to use in the form here.
  * FormView will look for any exported BoxModel derived class in format `type` + `Model`, and use It
@@ -12,7 +12,7 @@ export * from './Columns';
 export * from './Submit';
 export * from './Label';
 
-export function defaultElement(type: BoxType): Box {
+export function defaultElement(type: FormLayoutNodeType): FormLayoutNode {
   switch(type) {
     case 'Columns': return Columns();
     case 'Placeholder': return Placeholder();

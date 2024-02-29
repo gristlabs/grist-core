@@ -40,9 +40,9 @@ describe('AttachedCustomWidget', function () {
           .header('Content-Type', 'text/html')
           .send('<html><head><script src="/grist-plugin-api.js"></script></head><body>\n' +
             (req.query.name || req.query.access) + // send back widget name from query string or access level
-            '</body>'+
-            "<script>grist.ready({requiredAccess: 'full', columns: [{name: 'Content', type: 'Text'}],"+
-            " onEditOptions(){}})</script>"+
+            '</body>' +
+            "<script>grist.ready({requiredAccess: 'full', columns: [{name: 'Content', type: 'Text', optional: true}]," +
+            " onEditOptions(){}})</script>" +
             '</html>\n')
           .end()
       );

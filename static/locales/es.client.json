@@ -1173,7 +1173,10 @@
         "Lookups return data from related tables.": "Las búsquedas devuelven datos de tablas relacionadas.",
         "Use reference columns to relate data in different tables.": "Utilizar las columnas de referencia para relacionar los datos de distintas tablas.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puedes elegir entre los widgets disponibles en el menú desplegable, o incrustar el suyo propio proporcionando su dirección URL completa.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Las fórmulas admiten muchas funciones de Excel, sintaxis completa de Python e incluyen un útil asistente de inteligencia artificial."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Las fórmulas admiten muchas funciones de Excel, sintaxis completa de Python e incluyen un útil asistente de inteligencia artificial.",
+        "Forms are here!": "¡Los formularios están aquí!",
+        "Learn more": "Más información",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Cree formularios sencillos directamente en Grist y compártalos en un clic con nuestro nuevo widget. {{learnMoreButton}}"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1396,5 +1399,9 @@
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Programe su {{freeCoachingCall}} con un miembro de nuestro equipo.",
         "Maybe Later": "Quizás más tarde",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "En la llamada, nos tomaremos el tiempo necesario para entender sus necesidades y adaptar la llamada a usted. Podemos mostrarle los conceptos básicos de Grist o empezar a trabajar con sus datos de inmediato para crear los cuadros de mando que necesita."
+    },
+    "FormConfig": {
+        "Field rules": "Reglas del campo",
+        "Required field": "Campo obligatorio"
     }
 }

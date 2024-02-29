@@ -2,7 +2,7 @@ import {loadCssFile, loadScript} from 'app/client/lib/loadScript';
 import type {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {reportError} from 'app/client/models/errors';
-import {setUpPage} from 'app/client/ui/setUpPage';
+import {createAppPage} from 'app/client/ui/createAppPage';
 import {DocAPIImpl} from 'app/common/UserAPI';
 import type {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {dom, styled} from 'grainjs';
@@ -291,7 +291,7 @@ function requestInterceptor(request: SwaggerUI.Request) {
   return request;
 }
 
-setUpPage((appModel) => {
+createAppPage((appModel) => {
   // Default Grist page prevents scrolling unnecessarily.
   document.documentElement.style.overflow = 'initial';
 
