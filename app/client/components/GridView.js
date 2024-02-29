@@ -346,7 +346,7 @@ GridView.gridCommands = {
       this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
     }
   },
-  makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection())},
+  makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection()); },
   renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
   deleteFields: function() {
