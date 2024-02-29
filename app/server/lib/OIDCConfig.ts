@@ -35,6 +35,11 @@
  *    env GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
  *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
  *        Defaults to false.
+ *    env GRIST_OIDC_IDP_ENABLED_PROTECTIONS
+ *        A comma-separated list of protections to enable. Supported values are "PKCE", "STATE", "NONCE".
+ *        Defaults to "PKCE,STATE".
+ *    env GRIST_OIDC_IDP_ACR_VALUES
+ *        A space-separated list of ACR values to request from the IdP. Optional.
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -88,6 +93,7 @@ export class OIDCConfig {
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
   private _enabledProtections: EnabledProtectionsString[] = [];
+  private _acrValues?: string;
 
   protected constructor() {
   }
@@ -125,6 +131,10 @@ export class OIDCConfig {
     this._skipEndSessionEndpoint = section.flag('skipEndSessionEndpoint').readBool({
       envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
       defaultValue: false,
+    })!;
+
+    this._acrValues = section.flag('acrValues').readString({
+      envVar: 'GRIST_OIDC_IDP_ACR_VALUES',
     })!;
 
     this._ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
@@ -196,14 +206,12 @@ export class OIDCConfig {
   }
 
   public async getLoginRedirectUrl(req: express.Request, targetUrl: URL): Promise<string> {
-    const { codeVerifier, state } = await this._generateAndStoreConnectionInfo(req, targetUrl.href);
-    const codeChallenge = generators.codeChallenge(codeVerifier);
+    const protections = await this._generateAndStoreConnectionInfo(req, targetUrl.href);
 
     const authUrl = this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-      state,
+      acr_values: this._acrValues ?? undefined,
+      ...this._forgeProtectionParamsForAuthUrl(protections),
     });
     return authUrl;
   }
@@ -236,6 +244,17 @@ export class OIDCConfig {
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
     });
+  }
+
+  private _forgeProtectionParamsForAuthUrl(protections: {codeVerifier?: string, state?: string, nonce?: string}) {
+    return _.omitBy({
+      state: protections.state,
+      nonce: protections.nonce,
+      code_challenge: protections.codeVerifier ?
+        generators.codeChallenge(protections.codeVerifier) :
+        undefined,
+      code_challenge_method: protections.codeVerifier ? 'S256' : undefined,
+    }, _.isUndefined);
   }
 
   private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
