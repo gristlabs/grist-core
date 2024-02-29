@@ -80,7 +80,7 @@ export class OIDCConfig {
     return config;
   }
 
-  private _client: Client;
+  protected _client: Client;
   private _redirectUrl: string;
   private _namePropertyKey?: string;
   private _emailPropertyKey: string;
@@ -89,7 +89,7 @@ export class OIDCConfig {
   private _ignoreEmailVerified: boolean;
   private _enabledProtections: EnabledProtectionsString[] = [];
 
-  private constructor() {
+  protected constructor() {
   }
 
   public async initOIDC(): Promise<void> {
@@ -133,15 +133,9 @@ export class OIDCConfig {
     })!;
 
     this._enabledProtections = this._buildEnabledProtections(section);
-
-    const issuer = await Issuer.discover(issuerUrl);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    this._client = new issuer.Client({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uris: [ this._redirectUrl ],
-      response_types: [ 'code' ],
-    });
+    await this._initClient({issuerUrl, clientId, clientSecret});
+
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
         !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
@@ -160,7 +154,7 @@ export class OIDCConfig {
     try {
       const params = this._client.callbackParams(req);
       const { state, targetUrl } = mreq.session?.oidc ?? {};
-      if (!state && this._supportsProtection('STATE')) {
+      if (!state && this.supportsProtection('STATE')) {
         throw new Error('Login or logout failed to complete');
       }
 
@@ -228,19 +222,35 @@ export class OIDCConfig {
     });
   }
 
+  public supportsProtection(protection: EnabledProtectionsString) {
+    return this._enabledProtections.includes(protection);
+  }
+
+  protected async _initClient({issuerUrl, clientId, clientSecret}:
+    {issuerUrl: string, clientId: string, clientSecret: string}
+  ): Promise<void> {
+    const issuer = await Issuer.discover(issuerUrl);
+    this._client = new issuer.Client({
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uris: [ this._redirectUrl ],
+      response_types: [ 'code' ],
+    });
+  }
+
   private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
     const oidcInfo: {[key: string]: string} = {
       targetUrl
     };
-    if (this._supportsProtection('PKCE')) {
+    if (this.supportsProtection('PKCE')) {
       oidcInfo.codeVerifier = generators.codeVerifier();
     }
-    if (this._supportsProtection('STATE')) {
+    if (this.supportsProtection('STATE')) {
       oidcInfo.state = generators.state();
     }
-    if (this._supportsProtection('NONCE')) {
+    if (this.supportsProtection('NONCE')) {
       oidcInfo.nonce = generators.nonce();
     }
 
@@ -249,18 +259,14 @@ export class OIDCConfig {
     return _.pick(oidcInfo, ['codeVerifier', 'state', 'nonce']);
   }
 
-  private _supportsProtection(protection: EnabledProtectionsString) {
-    return this._enabledProtections.includes(protection);
-  }
-
   private _buildEnabledProtections(section: AppSettings): EnabledProtectionsString[] {
     const enabledProtections = section.flag('enabledProtections').readString({
-      envVar: 'GRIST_OIDC_ENABLED_PROTECTIONS',
+      envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
       defaultValue: 'PKCE,STATE',
     })!.split(',');
     for (const protection of enabledProtections) {
-      if (!ENABLED_PROTECTIONS[protection as EnabledProtectionsString]) {
-        throw new Error(`OIDC: Invalid protection in GRIST_OIDC_ENABLED_PROTECTIONS: ${protection}`);
+      if (!ENABLED_PROTECTIONS.hasOwnProperty(protection as EnabledProtectionsString)) {
+        throw new Error(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${protection}`);
       }
     }
     return enabledProtections as EnabledProtectionsString[];
