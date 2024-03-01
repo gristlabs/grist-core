@@ -82,7 +82,7 @@
     "@types/tmp": "0.0.33",
     "@types/uuid": "3.4.4",
     "@types/which": "2.0.1",
-    "@types/ws": "^6",
+    "@types/ws": "^8",
     "@typescript-eslint/eslint-plugin": "5.29.0",
     "@typescript-eslint/parser": "5.29.0",
     "app-module-path": "2.2.0",
