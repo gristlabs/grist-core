@@ -1,4 +1,7 @@
+import {makeT} from 'app/client/lib/localization';
 import { CURRENT_DATE, IRelativeDateSpec } from "app/common/RelativeDates";
+
+const t = makeT('DateRangeOptions');
 
 export interface IDateRangeOption {
   label: string;
