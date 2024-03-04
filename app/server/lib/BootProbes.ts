@@ -75,14 +75,7 @@ const _homeUrlReachableProbe: Probe = {
     try {
       const resp = await fetch(url);
       if (resp.status !== 200) {
-        return {
-          success: false,
-          severity: 'fault',
-          details: {
-            error: await resp.text(),
-            status: resp.status,
-          }
-        };
+        throw new ApiError(await resp.text(), resp.status);
       }
       return {
         success: true,
