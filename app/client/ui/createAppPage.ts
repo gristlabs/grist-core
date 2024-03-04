@@ -1,6 +1,6 @@
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {setupLocale} from 'app/client/lib/localization';
-import {AppModel, TopAppModelImpl} from 'app/client/models/AppModel';
+import {AppModel, TopAppModelImpl, TopAppModelOptions} from 'app/client/models/AppModel';
 import {reportError, setUpErrorHandling} from 'app/client/models/errors';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
 import {addViewportTag} from 'app/client/ui/viewport';
@@ -14,10 +14,12 @@ const G = getBrowserGlobals('document', 'window');
  * Sets up the application model, error handling, and global styles, and replaces
  * the DOM body with the result of calling `buildAppPage`.
  */
-export function createAppPage(buildAppPage: (appModel: AppModel) => DomContents) {
+export function createAppPage(
+  buildAppPage: (appModel: AppModel) => DomContents,
+  modelOptions: TopAppModelOptions = {}) {
   setUpErrorHandling();
 
-  const topAppModel = TopAppModelImpl.create(null, {});
+  const topAppModel = TopAppModelImpl.create(null, {}, undefined, modelOptions);
 
   addViewportTag();
   attachCssRootVars(topAppModel.productFlavor);
