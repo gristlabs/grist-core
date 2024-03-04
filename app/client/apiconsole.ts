@@ -16,7 +16,12 @@ import type SwaggerUI from 'swagger-ui';
  * We load dynamically only to avoid maintaining a separate html file ust for these tags.
  */
 function loadExternal() {
-  return Promise.all([loadScript('swagger-ui-bundle.js'), loadCssFile('swagger-ui.css')]);
+  return Promise.all([
+    loadScript('swagger-ui-bundle.js'),
+    loadCssFile('swagger-ui.css'),
+    // Stylesheet that's only applied when prefers-color-scheme is dark.
+    loadCssFile('swagger-ui-dark.css'),
+  ]);
 }
 
 // Start loading scripts early (before waiting for AppModel to get initialized).
