@@ -938,7 +938,7 @@ export function extractOrgParts(reqHost: string|undefined, reqPath: string): Org
     orgFromHost = getOrgFromHost(reqHost);
     if (orgFromHost) {
       // Some subdomains are shared, and do not reflect the name of an organization.
-      // See https://phab.getgrist.com/w/hosting/v1/urls/ for a list.
+      // See /documentation/urls.md for a list.
       if (/^(api|v1-.*|doc-worker-.*)$/.test(orgFromHost)) {
         orgFromHost = null;
       }
