@@ -6,7 +6,7 @@ import {aclFormulaEditor} from 'app/client/aclui/ACLFormulaEditor';
 import {aclMemoEditor} from 'app/client/aclui/ACLMemoEditor';
 import {aclSelect} from 'app/client/aclui/ACLSelect';
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
-import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
+import {permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError, UserError} from 'app/client/models/errors';
@@ -20,13 +20,17 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {menu, menuItemAsync} from 'app/client/ui2018/menus';
 import {
+  AVAILABLE_BITS_COLUMNS,
+  AVAILABLE_BITS_TABLES,
   emptyPermissionSet,
   MixedPermissionValue,
   parsePermissions,
   PartialPermissionSet,
+  PermissionKey,
   permissionSetToText,
   summarizePermissions,
-  summarizePermissionSet
+  summarizePermissionSet,
+  trimPermissions
 } from 'app/common/ACLPermissions';
 import {ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
 import {AclRuleProblem, AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
@@ -990,12 +994,19 @@ abstract class ObsRuleSet extends Disposable {
         // Should not happen.
         continue;
       }
+
+      // Include only the permissions for the bits that this RuleSet supports. E.g. this matters
+      // for seed rules, which may include create/delete bits which shouldn't apply to columns.
+      const origPermissions = parsePermissions(permissionsText);
+      const trimmedPermissions = trimPermissions(origPermissions, this.getAvailableBits());
+      const trimmedPermissionsText = permissionSetToText(trimmedPermissions);
+
       this.addRulePart(
         this.getFirst() || null,
         {
           aclFormula,
-          permissionsText,
-          permissions: parsePermissions(permissionsText),
+          permissionsText: trimmedPermissionsText,
+          permissions: trimmedPermissions,
           memo,
         },
         true,
@@ -1048,7 +1059,7 @@ abstract class ObsRuleSet extends Disposable {
    * Which permission bits to allow the user to set.
    */
   public getAvailableBits(): PermissionKey[] {
-    return ['read', 'update', 'create', 'delete'];
+    return AVAILABLE_BITS_TABLES;
   }
 
   /**
@@ -1117,8 +1128,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
   }
 
   public getAvailableBits(): PermissionKey[] {
-    // Create/Delete bits can't be set on a column-specific rule.
-    return ['read', 'update'];
+    return AVAILABLE_BITS_COLUMNS;
   }
 
   public hasColumns() {
