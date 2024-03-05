@@ -64,6 +64,7 @@ import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
 import _ from 'lodash';
+import {SessionObj} from './BrowserSession';
 
 enum ENABLED_PROTECTIONS {
   NONCE,
@@ -163,20 +164,12 @@ export class OIDCConfig {
     const mreq = req as RequestWithLogin;
     try {
       const params = this._client.callbackParams(req);
-      const { state, targetUrl } = mreq.session?.oidc ?? {};
-      if (!state && this.supportsProtection('STATE')) {
-        throw new Error('Login or logout failed to complete');
-      }
-
-      const codeVerifier = await this._retrieveCodeVerifierFromSession(req);
+      const { targetUrl } = mreq.session?.oidc ?? {};
+      const checks = await this._retrieveChecksFromSession(mreq);
 
       // The callback function will compare the state present in the params and the one we retrieved from the session.
       // If they don't match, it will throw an error.
-      const tokenSet = await this._client.callback(
-        this._redirectUrl,
-        params,
-        { state, code_verifier: codeVerifier }
-      );
+      const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
 
       const userInfo = await this._client.userinfo(tokenSet);
 
@@ -260,7 +253,7 @@ export class OIDCConfig {
   private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
-    const oidcInfo: {[key: string]: string} = {
+    const oidcInfo: SessionObj['oidc'] = {
       targetUrl
     };
     if (this.supportsProtection('PKCE')) {
@@ -294,12 +287,22 @@ export class OIDCConfig {
     return enabledProtections as EnabledProtectionsString[];
   }
 
-  private async _retrieveCodeVerifierFromSession(req: express.Request) {
-    const mreq = req as RequestWithLogin;
+  private async _retrieveChecksFromSession(mreq: RequestWithLogin):
+    Promise<{code_verifier?: string, state?: string, nonce?: string}> {
     if (!mreq.session) { throw new Error('no session available'); }
+
+    const state = mreq.session.oidc?.state;
+    if (!state && this.supportsProtection('STATE')) {
+      throw new Error('Login or logout failed to complete');
+    }
+
     const codeVerifier = mreq.session.oidc?.codeVerifier;
     if (!codeVerifier && this.supportsProtection('PKCE') ) { throw new Error('Login is stale'); }
-    return codeVerifier;
+
+    const nonce = mreq.session.oidc?.nonce;
+    if (!nonce && this.supportsProtection('NONCE')) { throw new Error('Login is stale'); }
+
+    return _.omitBy({ code_verifier: codeVerifier, state, nonce }, _.isUndefined);
   }
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {

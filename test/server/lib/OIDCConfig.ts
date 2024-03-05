@@ -6,6 +6,7 @@ import {Client, generators} from "openid-client";
 import express from "express";
 import log from "app/server/lib/log";
 import {Sessions} from "app/server/lib/Sessions";
+import _ from "lodash";
 
 class OIDCConfigStubbed extends OIDCConfig {
   public static async build(clientStub?: Client): Promise<OIDCConfigStubbed> {
@@ -71,8 +72,6 @@ describe('OIDCConfig', () => {
     process.env.GRIST_OIDC_IDP_CLIENT_ID = 'client id';
     process.env.GRIST_OIDC_IDP_CLIENT_SECRET = 'secret';
     process.env.GRIST_OIDC_IDP_ISSUER = 'http://localhost:8000';
-    process.env.GRIST_OIDC_SP_PROFILE_NAME_ATTR = ''; // use the default behavior
-    process.env.GRIST_OIDC_SP_PROFILE_EMAIL_ATTR = ''; // use the default behavior
   }
 
   describe('build', () => {
@@ -316,6 +315,7 @@ describe('OIDCConfig', () => {
 
   describe('handleCallback', () => {
     const FAKE_STATE = 'fake-state';
+    const FAKE_NONCE = 'fake-nonce';
     const FAKE_CODE_VERIFIER = 'fake-code-verifier';
     const FAKE_USER_INFO = {
       email: 'fake-email',
@@ -328,6 +328,10 @@ describe('OIDCConfig', () => {
         state: FAKE_STATE
       }
     };
+    const DEFAULT_EXPECTED_CHECKS = {
+      state: FAKE_STATE,
+      code_verifier: FAKE_CODE_VERIFIER
+    };
     let fakeRes: {
       status: Sinon.SinonStub;
       send: Sinon.SinonStub;
@@ -336,7 +340,9 @@ describe('OIDCConfig', () => {
     let fakeSessions: {
       getOrCreateSessionFromRequest: Sinon.SinonStub
     };
-    let fakeScopedSession;
+    let fakeScopedSession: {
+      operateOnScopedSession: Sinon.SinonStub
+    };
 
     beforeEach(() => {
       fakeRes = {
@@ -354,18 +360,156 @@ describe('OIDCConfig', () => {
 
     [
       {
+        itMsg: 'should resolve when the state and the code challenge are found in the session',
+        session: DEFAULT_SESSION,
+      },
+      {
         itMsg: 'should reject when the state is not found in the session',
         session: {},
         expectedErrorMsg: /Login or logout failed to complete/,
       },
       {
-        itMsg: 'should resolve when the state is not found in the session but ' +
-          'GRIST_OIDC_IDP_ENABLED_PROTECTIONS omits STATE',
+        itMsg: 'should resolve when the state is missing and its check has been disabled',
         session: DEFAULT_SESSION,
         env: {
           GRIST_OIDC_IDP_ENABLED_PROTECTIONS: '',
         },
-      }
+      },
+      {
+        itMsg: 'should reject when the codeVerifier is missing from the session',
+        session: {
+          oidc: {
+            state: FAKE_STATE
+          }
+        },
+        expectedErrorMsg: /Login is stale/,
+      },
+      {
+        itMsg: 'should resolve when the codeVerifier is missing and its check has been disabled',
+        session: {
+          oidc: {
+            state: FAKE_STATE,
+            nonce: FAKE_NONCE
+          }
+        },
+        env: {
+          GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,NONCE',
+        },
+        expectedChecks: {
+          state: FAKE_STATE,
+          nonce: FAKE_NONCE
+        },
+      },
+      {
+        itMsg: 'should reject when nonce is missing from the session despite its check being enabled',
+        session: DEFAULT_SESSION,
+        env: {
+          GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,NONCE,PKCE',
+        },
+        expectedErrorMsg: /Login is stale/,
+      }, {
+        itMsg: 'should resolve when nonce is present in the session and its check is enabled',
+        session: {
+          oidc: {
+            state: FAKE_STATE,
+            nonce: FAKE_NONCE,
+          },
+        },
+        env: {
+          GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,NONCE',
+        },
+        expectedChecks: {
+          state: FAKE_STATE,
+          nonce: FAKE_NONCE,
+        },
+      },
+      {
+        itMsg: 'should reject when the userinfo mail is not verified',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          email_verified: false,
+        },
+        expectedErrorMsg: /email not verified for/,
+      },
+      {
+        itMsg: 'should resolve when the userinfo mail is not verified but its check disabled',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          email_verified: false,
+        },
+        env: {
+          GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED: 'true',
+        }
+      },
+      {
+        itMsg: 'should resolve when the userinfo mail is not verified but its check disabled',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          email_verified: false,
+        },
+        env: {
+          GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED: 'true',
+        },
+      },
+      {
+        itMsg: 'should fill user profile with email and name',
+        session: DEFAULT_SESSION,
+        userInfo: FAKE_USER_INFO,
+        expectedUserProfile: {
+          email: FAKE_USER_INFO.email,
+          name: FAKE_USER_INFO.name,
+        }
+      },
+      {
+        itMsg: 'should fill user profile with name constructed using ' +
+          'given_name and family_name when GRIST_OIDC_SP_PROFILE_NAME_ATTR is not set',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          given_name: 'given_name',
+          family_name: 'family_name',
+        },
+        expectedUserProfile: {
+          email: 'fake-email',
+          name: 'given_name family_name',
+        }
+      },
+      {
+        itMsg: 'should fill user profile with email and name when ' +
+          'GRIST_OIDC_SP_PROFILE_NAME_ATTR and GRIST_OIDC_SP_PROFILE_EMAIL_ATTR are set',
+        session: DEFAULT_SESSION,
+        userInfo: {
+          ...FAKE_USER_INFO,
+          fooMail: 'fake-email2',
+          fooName: 'fake-name2',
+        },
+        env: {
+          GRIST_OIDC_SP_PROFILE_NAME_ATTR: 'fooName',
+          GRIST_OIDC_SP_PROFILE_EMAIL_ATTR: 'fooMail',
+        },
+        expectedUserProfile: {
+          email: 'fake-email2',
+          name: 'fake-name2',
+        }
+      },
+      {
+        itMsg: 'should redirect by default to the root page',
+        session: DEFAULT_SESSION,
+        expectedRedirection: '/',
+      },
+      {
+        itMsg: 'should redirect to the targetUrl when it is present in the session',
+        session: {
+          oidc: {
+            ...DEFAULT_SESSION.oidc,
+            targetUrl: 'http://localhost:8484/some/path'
+          }
+        },
+        expectedRedirection: 'http://localhost:8484/some/path',
+      },
     ].forEach(ctx => {
       it(ctx.itMsg, async () => {
         setEnvVars();
@@ -374,16 +518,19 @@ describe('OIDCConfig', () => {
         const fakeParams = {
           state: FAKE_STATE,
         };
-        clientStub.callbackParams.returns(fakeParams);
-        clientStub.userinfo.returns(FAKE_USER_INFO);
         const config = await OIDCConfigStubbed.build(clientStub.asClient());
+        const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
-          session: ctx.session,
+          session,
           query: {
             state: FAKE_STATE,
             codeVerifier: FAKE_CODE_VERIFIER,
           }
         } as unknown as express.Request;
+        clientStub.callbackParams.returns(fakeParams);
+        clientStub.userinfo.returns(_.clone(ctx.userInfo ?? FAKE_USER_INFO));
+        const user: { profile?: object } = {};
+        fakeScopedSession.operateOnScopedSession.yields(user);
 
         await config.handleCallback(
           fakeSessions as unknown as Sessions,
@@ -397,14 +544,23 @@ describe('OIDCConfig', () => {
           assert.isTrue(fakeRes.status.calledOnceWith(500));
           assert.isTrue(fakeRes.send.calledOnceWith('OIDC callback failed.'));
         } else {
-          assert.isFalse(logErrorStub.called, 'no error should be logged');
+          assert.isFalse(logErrorStub.called, 'no error should be logged. Got: ' + logErrorStub.firstCall?.args[0]);
           assert.isTrue(fakeRes.redirect.calledOnce, 'should redirect');
+          if (ctx.expectedRedirection) {
+            assert.deepEqual(fakeRes.redirect.firstCall.args, [ctx.expectedRedirection],
+              `should have redirected to ${ctx.expectedRedirection}`);
+          }
           assert.isTrue(clientStub.callback.calledOnce);
           assert.deepEqual(clientStub.callback.firstCall.args, [
             'http://localhost:8484/oauth2/callback',
             fakeParams,
-            { state: FAKE_STATE, code_verifier: FAKE_CODE_VERIFIER }
+            ctx.expectedChecks ?? DEFAULT_EXPECTED_CHECKS
           ]);
+          assert.isEmpty(session, 'oidc info should have been removed from the session');
+          if (ctx.expectedUserProfile) {
+            assert.deepEqual(user.profile, ctx.expectedUserProfile,
+              `user profile should have been populated with ${JSON.stringify(ctx.expectedUserProfile)}`);
+          }
         }
       });
     });
