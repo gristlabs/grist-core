@@ -1737,8 +1737,8 @@ export class DocWorkerApi {
     // Query DB for doc metadata to get the doc data.
     const doc = await this._dbManager.getDoc(req);
     const docTitle = doc.name;
-    const sufix = tableId ? (tableId === docTitle ? '' : `_${tableId}`) : '';
-    const filename = optStringParam(req.query.title, 'title') || (docTitle + sufix) || 'document';
+    const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
+    const filename = optStringParam(req.query.title, 'title') || (docTitle + suffix) || 'document';
     return filename;
   }
 
