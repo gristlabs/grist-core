@@ -909,6 +909,7 @@ GridView.prototype.makeHeadersFromRow = async function(selection) {
     return;
   }
   const record = this.tableModel.tableData.getRecord(selection.rowIds[0]);
+  const formatter = selection.fields[0].formatter();
   const actions = this.viewSection.columns.peek().reduce((acc, col) => {
     const colId = col.colId.peek();
     let newColLabel = record[colId];
@@ -922,7 +923,7 @@ GridView.prototype.makeHeadersFromRow = async function(selection) {
       newColLabel = newColLabel[1];
     }
     if (newColLabel) {
-      return [...acc, ['ModifyColumn', colId, {"label": newColLabel}]];
+      return [...acc, ['ModifyColumn', colId, {"label": formatter.formatAny(newColLabel)}]];
     }
     return acc
   }, []);
