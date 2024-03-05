@@ -909,21 +909,22 @@ GridView.prototype.makeHeadersFromRow = async function(selection) {
     return;
   }
   const record = this.tableModel.tableData.getRecord(selection.rowIds[0]);
-  const formatter = selection.fields[0].formatter();
   const actions = this.viewSection.columns.peek().reduce((acc, col) => {
     const colId = col.colId.peek();
+    let colFormatter = col.formatter();
     let newColLabel = record[colId];
     // Manage column that are references
     if (col.refTable()) {
       const refTableDisplayCol = this.gristDoc.docModel.columns.getRowModel(col.displayCol());
-      newColLabel = record[refTableDisplayCol.colId()];
+      newColLabel =  record[refTableDisplayCol.colId()];
+      colFormatter = colFormatter.visibleColFormatter;
     }
     // Manage column that are lists
     if (Array.isArray(newColLabel) && newColLabel[0] === GristObjCode.List) {
       newColLabel = newColLabel[1];
     }
     if (newColLabel) {
-      return [...acc, ['ModifyColumn', colId, {"label": formatter.formatAny(newColLabel)}]];
+      return [...acc, ['ModifyColumn', colId, {"label": colFormatter.formatAny(newColLabel)}]];
     }
     return acc
   }, []);
