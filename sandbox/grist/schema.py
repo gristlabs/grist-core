@@ -4,7 +4,7 @@ create tables, add and remove columns, etc, Grist stores various document metada
 users' tables, views, etc.) also in tables.
 
 Before changing this file, please review:
-  https://phab.getgrist.com/w/migrations/
+  /documentation/migrations.md
 
 """
 
