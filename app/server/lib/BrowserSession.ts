@@ -74,6 +74,7 @@ export interface SessionObj {
     codeVerifier?: string;
     state?: string;
     targetUrl?: string;
+    nonce?: string;
   }
 }
 
