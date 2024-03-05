@@ -201,7 +201,7 @@ export class OIDCConfig {
       //
       // Also session deletion must be done before sending the response.
       delete mreq.session.oidc;
-      res.status(500).send(`OIDC callback failed.`);
+      res.status(500).send('OIDC callback failed.');
     }
   }
 
@@ -283,6 +283,9 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
       defaultValue: 'PKCE,STATE',
     })!.split(',');
+    if (enabledProtections.length === 1 && enabledProtections[0] === '') {
+      return [];
+    }
     for (const protection of enabledProtections) {
       if (!ENABLED_PROTECTIONS.hasOwnProperty(protection as EnabledProtectionsString)) {
         throw new Error(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${protection}`);
@@ -295,7 +298,7 @@ export class OIDCConfig {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
     const codeVerifier = mreq.session.oidc?.codeVerifier;
-    if (!codeVerifier) { throw new Error('Login is stale'); }
+    if (!codeVerifier && this.supportsProtection('PKCE') ) { throw new Error('Login is stale'); }
     return codeVerifier;
   }
 

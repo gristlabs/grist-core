@@ -5,7 +5,7 @@ import Sinon from "sinon";
 import {Client, generators} from "openid-client";
 import express from "express";
 import log from "app/server/lib/log";
-import _ from "lodash";
+import {Sessions} from "app/server/lib/Sessions";
 
 class OIDCConfigStubbed extends OIDCConfig {
   public static async build(clientStub?: Client): Promise<OIDCConfigStubbed> {
@@ -25,6 +25,9 @@ class OIDCConfigStubbed extends OIDCConfig {
 class ClientStub {
   public static FAKE_REDIRECT_URL = 'FAKE_REDIRECT_URL';
   public authorizationUrl = Sinon.stub().returns(ClientStub.FAKE_REDIRECT_URL);
+  public callbackParams = Sinon.stub().returns(undefined);
+  public callback = Sinon.stub().returns(undefined);
+  public userinfo = Sinon.stub().returns(undefined);
   public issuer: {
     metadata: {
       end_session_endpoint: string | undefined;
@@ -46,6 +49,7 @@ describe('OIDCConfig', () => {
   let oldEnv: EnvironmentSnapshot;
   let sandbox: Sinon.SinonSandbox;
   let logInfoStub: Sinon.SinonStub;
+  let logErrorStub: Sinon.SinonStub;
 
   before(() => {
     oldEnv = new EnvironmentSnapshot();
@@ -54,6 +58,7 @@ describe('OIDCConfig', () => {
   beforeEach(() => {
     sandbox = Sinon.createSandbox();
     logInfoStub = sandbox.stub(log, 'info');
+    logErrorStub = sandbox.stub(log, 'error');
   });
 
   afterEach(() => {
@@ -179,6 +184,15 @@ describe('OIDCConfig', () => {
       assert.isFalse(config.supportsProtection("STATE"));
     });
 
+    it('should successfully accept an empty string', async function () {
+      setEnvVars();
+      process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = '';
+      const config = await OIDCConfigStubbed.build((new ClientStub()).asClient());
+      assert.isFalse(config.supportsProtection("NONCE"));
+      assert.isFalse(config.supportsProtection("PKCE"));
+      assert.isFalse(config.supportsProtection("STATE"));
+    });
+
     it('if omitted, should defaults to "STATE,PKCE"', async function () {
       setEnvVars();
       const config = await OIDCConfigStubbed.build((new ClientStub()).asClient());
@@ -300,44 +314,100 @@ describe('OIDCConfig', () => {
     });
   });
 
-  // describe('handleCallback', () => {
-  //   const FAKE_STATE = 'fake-state';
-  //   const FAKE_CODE_VERIFIER = 'fake-code-verifier';
-  //   const FAKE_CODE_CHALLENGE = 'fake-code-challenge';
-  //   const FAKE_NONCE = 'fake-nonce';
-  //   const FAKE_CODE = 'fake-code';
-  //   let fakeRes: express.Response;
+  describe('handleCallback', () => {
+    const FAKE_STATE = 'fake-state';
+    const FAKE_CODE_VERIFIER = 'fake-code-verifier';
+    const FAKE_USER_INFO = {
+      email: 'fake-email',
+      name: 'fake-name',
+      email_verified: true,
+    };
+    const DEFAULT_SESSION = {
+      oidc: {
+        codeVerifier: FAKE_CODE_VERIFIER,
+        state: FAKE_STATE
+      }
+    };
+    let fakeRes: {
+      status: Sinon.SinonStub;
+      send: Sinon.SinonStub;
+      redirect: Sinon.SinonStub;
+    };
+    let fakeSessions: {
+      getOrCreateSessionFromRequest: Sinon.SinonStub
+    };
+    let fakeScopedSession;
 
-  //   beforeEach(() => {
-  //     fakeRes = {
-  //       redirect: sandbox.stub(),
-  //       status: sandbox.stub().returnsThis(),
-  //       send: sandbox.stub().returnsThis(),
-  //     } as unknown as express.Response;
-  //   });
+    beforeEach(() => {
+      fakeRes = {
+        redirect: sandbox.stub(),
+        status: sandbox.stub().returnsThis(),
+        send: sandbox.stub().returnsThis(),
+      };
+      fakeScopedSession = {
+        operateOnScopedSession: sandbox.stub().resolves(),
+      };
+      fakeSessions = {
+        getOrCreateSessionFromRequest: sandbox.stub().returns(fakeScopedSession),
+      };
+    });
 
-  //   [
-  //     {
-  //       itMsg: 'should reject when the state is not found in the session',
-  //       session: {},
-  //       expectedErrorMsg: /Login or logout failed to complete/,
-  //     }
-  //   ].forEach(ctx => {
-  //     it(ctx.itMsg, async () => {
-  //       setEnvVars();
-  //       const clientStub = new ClientStub();
-  //       const config = await OIDCConfigStubbed.build(clientStub.asClient());
-  //       const req = {
-  //         session: ctx.session,
-  //         query: {
-  //           state: FAKE_STATE,
-  //           code: FAKE_CODE,
-  //         }
-  //       } as unknown as express.Request;
-  //       const promise = config.handleCallback(req, fakeRes);
-  //       await assert.isRejected(promise, ctx.expectedErrorMsg);
-  //     });
-  //   });
-  // });
+    [
+      {
+        itMsg: 'should reject when the state is not found in the session',
+        session: {},
+        expectedErrorMsg: /Login or logout failed to complete/,
+      },
+      {
+        itMsg: 'should resolve when the state is not found in the session but ' +
+          'GRIST_OIDC_IDP_ENABLED_PROTECTIONS omits STATE',
+        session: DEFAULT_SESSION,
+        env: {
+          GRIST_OIDC_IDP_ENABLED_PROTECTIONS: '',
+        },
+      }
+    ].forEach(ctx => {
+      it(ctx.itMsg, async () => {
+        setEnvVars();
+        Object.assign(process.env, ctx.env);
+        const clientStub = new ClientStub();
+        const fakeParams = {
+          state: FAKE_STATE,
+        };
+        clientStub.callbackParams.returns(fakeParams);
+        clientStub.userinfo.returns(FAKE_USER_INFO);
+        const config = await OIDCConfigStubbed.build(clientStub.asClient());
+        const req = {
+          session: ctx.session,
+          query: {
+            state: FAKE_STATE,
+            codeVerifier: FAKE_CODE_VERIFIER,
+          }
+        } as unknown as express.Request;
+
+        await config.handleCallback(
+          fakeSessions as unknown as Sessions,
+          req,
+          fakeRes as unknown as express.Response
+        );
+
+        if (ctx.expectedErrorMsg) {
+          assert.isTrue(logErrorStub.calledOnce);
+          assert.match(logErrorStub.firstCall.args[0], ctx.expectedErrorMsg);
+          assert.isTrue(fakeRes.status.calledOnceWith(500));
+          assert.isTrue(fakeRes.send.calledOnceWith('OIDC callback failed.'));
+        } else {
+          assert.isFalse(logErrorStub.called, 'no error should be logged');
+          assert.isTrue(fakeRes.redirect.calledOnce, 'should redirect');
+          assert.isTrue(clientStub.callback.calledOnce);
+          assert.deepEqual(clientStub.callback.firstCall.args, [
+            'http://localhost:8484/oauth2/callback',
+            fakeParams,
+            { state: FAKE_STATE, code_verifier: FAKE_CODE_VERIFIER }
+          ]);
+        }
+      });
+    });
+  });
 
 });
