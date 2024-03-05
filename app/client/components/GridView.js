@@ -908,9 +908,16 @@ GridView.prototype.makeHeadersFromRow = async function(selection) {
   if (this._getCellContextMenuOptions().disableMakeHeadersFromRow){
     return;
   }
+  const record = this.tableModel.tableData.getRecord(selection.rowIds[0]);
   const actions = this.viewSection.columns.peek().reduce((acc, col) => {
     const colId = col.colId.peek();
-    let newColLabel = this.tableModel.tableData.getValue(selection.rowIds[0], colId);
+    let newColLabel = record[colId];
+    // Manage column that are references
+    if (col.refTable()) {
+      const refTableDisplayCol = this.gristDoc.docModel.columns.getRowModel(col.displayCol());
+      newColLabel = record[refTableDisplayCol.colId()];
+    }
+    // Manage column that are lists
     if (Array.isArray(newColLabel) && newColLabel[0] === GristObjCode.List) {
       newColLabel = newColLabel[1];
     }
