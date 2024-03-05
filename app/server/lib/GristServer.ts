@@ -60,6 +60,7 @@ export interface GristServer {
   getPlugins(): LocalPlugin[];
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
+  hasBoot(): boolean;
 }
 
 export interface GristLoginSystem {
@@ -147,6 +148,7 @@ export function createDummyGristServer(): GristServer {
     servesPlugins() { return false; },
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
+    hasBoot() { return false; },
   };
 }
 

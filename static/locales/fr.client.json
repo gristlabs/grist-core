@@ -42,7 +42,8 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
         "Permission to edit document structure": "Droits d'édition de la structure",
         "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page...) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture."
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page...) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture.",
+        "Add Table-wide Rule": "Ajouter une règle pour l'ensemble du tableau"
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -414,11 +415,11 @@
         "Hidden Columns": "Colonnes cachées",
         "Lookups": "Champ rapporté",
         "No reference columns.": "Pas de colonne de référence.",
-        "Apply on record changes": "Appliquer lors de changements d'enregistrements",
+        "Apply on record changes": "Appliquer lors de modification de la ligne",
         "Duplicate in {{- label}}": "Duplica dans {{-label}}",
         "Created By": "Créé(e) par",
         "Last Updated At": "Dernière mise à jour le",
-        "Apply to new records": "Appliquer au nouveaux enregistrements",
+        "Apply to new records": "Appliquer aux nouvelles lignes",
         "Search columns": "Chercher des colonnes",
         "Timestamp": "Horodatage",
         "no reference column": "pas de colonne de référence",
@@ -730,7 +731,7 @@
     },
     "TriggerFormulas": {
         "Any field": "N'importe quel champ",
-        "Apply to new records": "Nouveaux enregistrements",
+        "Apply to new records": "Appliquer sur les nouvelles lignes uniquement",
         "Apply on changes to:": "Appliquer sur les modifications à :",
         "Apply on record changes": "Réappliquer en cas de modification de la ligne",
         "Current field ": "Champ actif ",
@@ -1124,7 +1125,8 @@
         "Use reference columns to relate data in different tables.": "Utilisez les colonnes de type Référence pour lier différentes tables entre elles.",
         "Learn more": "En savoir plus",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Créez des formulaires simples directement dans Grist et partagez-les en un clic avec notre nouveau widget. {{learnMoreButton}}",
-        "Forms are here!": "Les formulaires sont là !"
+        "Forms are here!": "Les formulaires sont là !",
+        "These rules are applied after all column rules have been processed, if applicable.": "Ces règles sont appliquées après le traitement de toutes les règles de la colonne, le cas échéant."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1351,5 +1353,29 @@
     },
     "Editor": {
         "Delete": "Supprimer"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Certaines colonnes obligatoires ne sont pas mappées",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Pour utiliser cette vue, mappez toutes les colonnes non optionnelles à partir du panneau du créateur sur la droite."
+    },
+    "FormContainer": {
+        "Build your own form": "Créez votre propre formulaire",
+        "Powered by": "Créé avec"
+    },
+    "FormErrorPage": {
+        "Error": "Erreur"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Oups ! Le formulaire que vous recherchez n'existe pas.",
+        "Oops! This form is no longer published.": "Oups ! Ce formulaire n'est plus publié.",
+        "There was a problem loading the form.": "Il y a eu un problème de chargement du formulaire.",
+        "You don't have access to this form.": "Vous n'avez pas accès à ce formulaire."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Une erreur s'est produite lors de l'envoi de votre formulaire. Veuillez réessayer."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Formulaire envoyé",
+        "Thank you! Your response has been recorded.": "Nous vous remercions. Votre réponse a été enregistrée."
     }
 }

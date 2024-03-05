@@ -139,8 +139,11 @@ export function makeSendAppPage(opts: {
     const needTagManager = (options.googleTagManager === 'anon' && isAnonymousUser(req)) ||
       options.googleTagManager === true;
     const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
-    const staticOrigin = process.env.APP_STATIC_URL || "";
-    const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
+    const staticTag = options.tag || tag;
+    // If boot tag is used, serve assets locally, otherwise respect
+    // APP_STATIC_URL.
+    const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || '');
+    const staticBaseUrl = `${staticOrigin}/v/${staticTag}/`;
     const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.
