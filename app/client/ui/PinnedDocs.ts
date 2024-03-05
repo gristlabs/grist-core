@@ -37,7 +37,7 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
       pinnedDoc(
         isRenaming || doc.removedAt ?
           null :
-          urlState().setLinkUrl(docUrl(doc, isExample ? {org: workspace.orgDomain} : undefined)),
+          urlState().setLinkUrl({...docUrl(doc), ...(isExample ? {org: workspace.orgDomain} : {})}),
         pinnedDoc.cls('-no-access', !roles.canView(doc.access)),
         pinnedDocPreview(
           (doc.options?.icon ?

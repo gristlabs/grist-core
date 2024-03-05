@@ -1,5 +1,5 @@
 import {BillingPage} from 'app/client/ui/BillingPage';
-import {setUpPage} from 'app/client/ui/setUpPage';
+import {createAppPage} from 'app/client/ui/createAppPage';
 import {dom} from 'grainjs';
 
-setUpPage((appModel) => dom.create(BillingPage, appModel));
+createAppPage((appModel) => dom.create(BillingPage, appModel));

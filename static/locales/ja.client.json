@@ -105,7 +105,27 @@
         "Freeze {{count}} more columns_other": "さらに {{count}} 列固定する",
         "Hide {{count}} columns_one": "列非表示",
         "Insert column to the left": "左側に列を挿入",
-        "Sorted (#{{count}})_other": "ソート (#{{count}})"
+        "Sorted (#{{count}})_other": "ソート (#{{count}})",
+        "Attachment": "添付ファイル",
+        "Add column": "列を追加",
+        "Adding UUID column": "UUID列を追加",
+        "Detect Duplicates in...": "重複を検出...",
+        "UUID": "UUID",
+        "Add column with type": "型を指定して列を追加",
+        "Add formula column": "数式列を追加",
+        "Apply to new records": "新しいレコードに適用",
+        "Apply on record changes": "レコードの変更に適用",
+        "Authorship": "作成者名",
+        "Timestamp": "タイムスタンプ",
+        "Detect duplicates in...": "重複を検出...",
+        "Numeric": "数値",
+        "Text": "テキスト",
+        "Integer": "整数",
+        "Toggle": "トグル",
+        "Date": "日付",
+        "DateTime": "日時",
+        "Choice": "選択",
+        "Choice List": "複数選択"
     },
     "DocMenu": {
         "This service is not available right now": "このサービスは現在ご利用いただけません",
@@ -899,7 +919,7 @@
         "Close": "閉じる",
         "Cancel": "キャンセル",
         "Apply on changes to:": "変更を適用する：",
-        "Apply to new records": "新しいレコードに適用する",
+        "Apply to new records": "新しいレコードに適用",
         "OK": "OK",
         "Current field ": "現在のフィールド ",
         "Any field": "任意のフィールド",
@@ -913,7 +933,11 @@
         "Click the Add New button to create new documents or workspaces, or import data.": "「新規追加」ボタンをクリックして、新しいドキュメントまたはワークスペースを作成するか、データをインポートします。",
         "Apply conditional formatting to rows based on formulas.": "数式に基づいて条件付き書式を行に適用します。",
         "Click on “Open row styles” to apply conditional formatting to rows.": "行に条件付き書式を適用するには、「行書式を開く」をクリックする。",
-        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "参照列のセルは常にそのテーブル内の {{entire}} レコードを識別しますが、そのレコードからどの列を表示するかを選択することもできます。"
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "参照列のセルは常にそのテーブル内の {{entire}} レコードを識別しますが、そのレコードからどの列を表示するかを選択することもできます。",
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "数式は多くの Excel 関数、完全な Python 構文をサポートし、便利な AI アシスタントが含まれています。",
+        "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUIDはランダムに生成される文字列で、一意の識別子やキーとして役立ちます。",
+        "The total size of all data in this document, excluding attachments.": "添付ファイルを除く、このドキュメント内のすべてのデータの合計サイズ。",
+        "Lookups return data from related tables.": "Lookupは関連テーブルからデータを返します。"
     },
     "AppHeader": {
         "Personal Site": "個人サイト",
@@ -928,7 +952,13 @@
         "You do not have edit access to this document": "このドキュメントへのアクセス権がありません",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "{{formattedTableName}} データを削除し、すべてのページから削除しますか?",
         "Click to copy": "クリックしてコピー",
-        "Table ID copied to clipboard": "クリップボードにテーブルIDをコピーしました"
+        "Table ID copied to clipboard": "クリップボードにテーブルIDをコピーしました",
+        "Edit Record Card": "レコードカードを編集",
+        "Record Card": "レコードカード",
+        "Record Card Disabled": "レコードカードを無効化",
+        "Remove Table": "テーブルを削除",
+        "Rename Table": "テーブル名を編集",
+        "{{action}} Record Card": "レコードカードを{{action}}"
     },
     "NTextBox": {
         "false": "false",

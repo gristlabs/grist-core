@@ -149,8 +149,6 @@ export interface IGristUrlState {
                      // But this barely works, and is suitable only for documents. For decoding it
                      // indicates that the URL probably points to an API endpoint.
   viaShare?: boolean; // Accessing document via a special share.
-
-  // Form URLs can currently be encoded but not decoded.
   form?: {
     vsId: number;      // a view section id of a form.
     shareKey?: string; // only one of shareKey or doc should be set.
@@ -286,29 +284,13 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     if (state.docPage) {
       parts.push(`/p/${state.docPage}`);
     }
+    if (state.form) {
+      parts.push(`/f/${state.form.vsId}`);
+    }
+  } else if (state.form?.shareKey) {
+    parts.push(`forms/${encodeURIComponent(state.form.shareKey)}/${encodeURIComponent(state.form.vsId)}`);
   } else if (state.homePage === 'trash' || state.homePage === 'templates') {
     parts.push(`p/${state.homePage}`);
-  }
-
-  /**
-   * Form URLS can take two forms. If a docId/urlId is set, rather than
-   * a share key, the returned form URL will only be accessible by users
-   * with access to the document. This is currently only used for the
-   * preview functionality in the widget, where document access is a
-   * pre-requisite.
-   *
-   * When a share key is set, the returned form URL will be accessible
-   * by anyone, so long as the form is published.
-   *
-   * Only one of `doc` (docId/urlId) or `shareKey` should be set.
-   */
-  if (state.form) {
-    if (state.doc) { parts.push('/'); }
-    parts.push('forms/');
-    if (state.form.shareKey) {
-      parts.push(state.form.shareKey + '/');
-    }
-    parts.push(String(state.form.vsId));
   }
 
   if (state.account) {
@@ -394,13 +376,21 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   const parts = location.pathname.slice(1).split('/');
   const state: IGristUrlState = {};
 
-  // Bare minimum we can do to detect API URLs.
-  if (parts[0] === 'api') { // When it starts with /api/...
-    parts.shift();
+  // Bare minimum we can do to detect API URLs: if it starts with /api/ or /o/{org}/api/...
+  if (parts[0] === 'api' || (parts[0] === 'o' && parts[2] === 'api')) {
     state.api = true;
-  } else if (parts[0] === 'o' && parts[2] === 'api') { // or with /o/{org}/api/...
-    parts.splice(2, 1);
-    state.api = true;
+    parts.splice(parts[0] === 'api' ? 0 : 2, 1);
+  }
+
+  // Bare minimum we can do to detect form URLs with share keys: if it starts with /forms/ or /o/{org}/forms/...
+  if (parts[0] === 'forms' || (parts[0] === 'o' && parts[2] === 'forms')) {
+    const startIndex = parts[0] === 'forms' ? 0 : 2;
+    // Form URLs have two parts to extract: the share key and the view section id.
+    state.form = {
+      shareKey: parts[startIndex + 1],
+      vsId: parseInt(parts[startIndex + 2], 10),
+    };
+    parts.splice(startIndex, 3);
   }
 
   const map = new Map<string, string>();
@@ -449,6 +439,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     if (fork.forkId) { state.fork = fork; }
     if (map.has('slug')) { state.slug = map.get('slug'); }
     if (map.has('p')) { state.docPage = parseDocPage(map.get('p')!); }
+    if (map.has('f')) { state.form = {vsId: parseInt(map.get('f')!, 10)}; }
   } else {
     if (map.has('p')) {
       const p = map.get('p')!;
@@ -964,7 +955,7 @@ export function extractOrgParts(reqHost: string|undefined, reqPath: string): Org
     orgFromHost = getOrgFromHost(reqHost);
     if (orgFromHost) {
       // Some subdomains are shared, and do not reflect the name of an organization.
-      // See https://phab.getgrist.com/w/hosting/v1/urls/ for a list.
+      // See /documentation/urls.md for a list.
       if (/^(api|v1-.*|doc-worker-.*)$/.test(orgFromHost)) {
         orgFromHost = null;
       }

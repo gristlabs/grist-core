@@ -12,6 +12,7 @@ import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
 import {Theme} from 'app/common/ThemePrefs';
+import {getGristConfig} from 'app/common/urlUtils';
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap
@@ -45,7 +46,7 @@ export interface WidgetFrameOptions {
   /**
    * Url of external page. Iframe is rebuild each time the URL changes.
    */
-  url: string;
+  url: string|null;
   /**
    * ID of widget, if known. When set, the url for the specified widget
    * in the WidgetRepository, if found, will take precedence.
@@ -102,6 +103,12 @@ export class WidgetFrame extends DisposableWithEvents {
   private _visible = Observable.create(this, !this._options.showAfterReady);
   private readonly _widget = Observable.create<ICustomWidget|null>(this, null);
 
+  private _url: Observable<string>;
+  /**
+   * If the widget URL is empty, it also means that we are showing the empty page.
+   */
+  private _isEmpty: Observable<boolean>;
+
   constructor(private _options: WidgetFrameOptions) {
     super();
     _options.access = _options.access || AccessLevel.none;
@@ -129,6 +136,22 @@ export class WidgetFrame extends DisposableWithEvents {
     _options.configure?.(this);
 
     this._checkWidgetRepository().catch(reportError);
+
+    // Url if set.
+    const maybeUrl = Computed.create(this, use => use(this._widget)?.url || this._options.url);
+
+    // Url to widget or empty page with access level and preferences.
+    this._url = Computed.create(this, use => this._urlWithAccess(use(maybeUrl) || this._getEmptyWidgetPage()));
+
+    // Iframe is empty when url is not set.
+    this._isEmpty = Computed.create(this, use => !use(maybeUrl));
+
+    // When isEmpty is switched to true, reset the ready state.
+    this.autoDispose(this._isEmpty.addListener(isEmpty => {
+      if (isEmpty) {
+        this._readyCalled.set(false);
+      }
+    }));
   }
 
   /**
@@ -190,30 +213,30 @@ export class WidgetFrame extends DisposableWithEvents {
       dom.style('visibility', use => use(this._visible) ? 'visible' : 'hidden'),
       dom.cls('clipboard_focus'),
       dom.cls('custom_view'),
-      dom.attr('src', use => this._getUrl(use(this._widget))),
+      dom.attr('src', this._url),
       hooks.iframeAttributes,
-      testId('ready', this._readyCalled),
+      testId('ready', use => use(this._readyCalled) && !use(this._isEmpty)),
       self => void onElem(self),
     );
     return this._iframe;
   }
 
-  private _getUrl(widget: ICustomWidget|null): string {
-    // Append access level to query string.
-    const urlWithAccess = (url: string) => {
-      if (!url) {
-        return url;
-      }
-      const urlObj = new URL(url);
-      urlObj.searchParams.append('access', this._options.access);
-      urlObj.searchParams.append('readonly', String(this._options.readonly));
-      // Append user and document preferences to query string.
-      const settingsParams = new URLSearchParams(this._options.preferences);
-      settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
-      return urlObj.href;
-    };
-    const url = widget?.url || this._options.url || 'about:blank';
-    return urlWithAccess(url);
+  // Appends access level to query string.
+  private _urlWithAccess(url: string) {
+    if (!url) {
+      return url;
+    }
+    const urlObj = new URL(url);
+    urlObj.searchParams.append('access', this._options.access);
+    urlObj.searchParams.append('readonly', String(this._options.readonly));
+    // Append user and document preferences to query string.
+    const settingsParams = new URLSearchParams(this._options.preferences);
+    settingsParams.forEach((value, key) => urlObj.searchParams.append(key, value));
+    return urlObj.href;
+  }
+
+  private _getEmptyWidgetPage(): string {
+    return new URL("custom-widget.html", getGristConfig().homeUrl!).href;
   }
 
   private _onMessage(event: MessageEvent) {

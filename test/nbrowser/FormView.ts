@@ -1,4 +1,3 @@
-import {CHOOSE_TEXT} from 'app/common/Forms';
 import {UserAPI} from 'app/common/UserAPI';
 import {escapeRegExp} from 'lodash';
 import {addToRepl, assert, driver, Key, WebElement, WebElementPromise} from 'mocha-webdriver';
@@ -99,8 +98,13 @@ describe('FormView', function() {
   }
 
   async function waitForConfirm() {
+    await gu.waitForServer();
     await gu.waitToPass(async () => {
-      assert.isTrue(await driver.findWait('.grist-form-confirm', 1000).isDisplayed());
+      assert.isTrue(await driver.findWait('.test-form-container', 2000).isDisplayed());
+      assert.equal(
+        await driver.find('.test-form-success-text').getText(),
+        'Thank you! Your response has been recorded.'
+      );
     });
   }
 
@@ -169,7 +173,7 @@ describe('FormView', function() {
       await gu.closeRawTable();
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.find('input[type="submit"]').click();
+        await driver.findWait('input[type="submit"]', 2000).click();
         await waitForConfirm();
       });
       await expectSingle('Hello from trigger');
@@ -181,7 +185,7 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).click();
+        await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('Hello World');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -196,7 +200,7 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).click();
+        await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('1984');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -211,7 +215,7 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).click();
+        await driver.findWait('input[name="D"]', 2000).click();
         await driver.executeScript(
           () => (document.querySelector('input[name="D"]') as HTMLInputElement).value = '2000-01-01'
         );
@@ -243,11 +247,12 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
+        const select = await driver.findWait('select[name="D"]', 2000);
         // Make sure options are there.
         assert.deepEqual(
-          await driver.findAll('select[name="D"] option', e => e.getText()), [CHOOSE_TEXT, 'Foo', 'Bar', 'Baz']
+          await driver.findAll('select[name="D"] option', e => e.getText()), ['— Choose —', 'Foo', 'Bar', 'Baz']
         );
-        await driver.findWait('select[name="D"]', 1000).click();
+        await select.click();
         await driver.find("option[value='Bar']").click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -261,7 +266,7 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).click();
+        await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('1984');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -276,14 +281,14 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).findClosest("label").click();
+        await driver.findWait('input[name="D"]', 2000).findClosest("label").click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
       await expectSingle(true);
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.find('input[type="submit"]').click();
+        await driver.findWait('input[type="submit"]', 2000).click();
         await waitForConfirm();
       });
       await expectInD([true, false]);
@@ -309,8 +314,8 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D[]"][value="Foo"]', 1000).click();
-        await driver.findWait('input[name="D[]"][value="Baz"]', 1000).click();
+        await driver.findWait('input[name="D[]"][value="Foo"]', 2000).click();
+        await driver.find('input[name="D[]"][value="Baz"]').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -334,15 +339,16 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
+        const select = await driver.findWait('select[name="D"]', 2000);
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()),
-          [CHOOSE_TEXT, ...['Bar', 'Baz', 'Foo']]
+          ['— Choose —', ...['Bar', 'Baz', 'Foo']]
         );
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.value()),
           ['', ...['2', '3', '1']]
         );
-        await driver.findWait('select[name="D"]', 1000).click();
+        await select.click();
         await driver.find('option[value="2"]').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -373,11 +379,11 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D[]"][value="1"]', 1000).click();
-        await driver.findWait('input[name="D[]"][value="2"]', 1000).click();
-        assert.equal(await driver.find('.grist-checkbox:has(input[name="D[]"][value="1"])').getText(), 'Foo');
-        assert.equal(await driver.find('.grist-checkbox:has(input[name="D[]"][value="2"])').getText(), 'Bar');
-        assert.equal(await driver.find('.grist-checkbox:has(input[name="D[]"][value="3"])').getText(), 'Baz');
+        await driver.findWait('input[name="D[]"][value="1"]', 2000).click();
+        await driver.find('input[name="D[]"][value="2"]').click();
+        assert.equal(await driver.find('label:has(input[name="D[]"][value="1"])').getText(), 'Foo');
+        assert.equal(await driver.find('label:has(input[name="D[]"][value="2"])').getText(), 'Bar');
+        assert.equal(await driver.find('label:has(input[name="D[]"][value="3"])').getText(), 'Baz');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -391,7 +397,7 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with a formula field', async function() {
+    it('excludes formula fields from forms', async function() {
       const formUrl = await createFormWith('Text');
 
       // Temporarily make A a formula column.
@@ -401,12 +407,12 @@ describe('FormView', function() {
       ]);
       assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), ['hello']);
 
+      // Check that A is excluded from the form, and we can still submit it.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).click();
+        await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('Hello World');
-        await driver.find('input[name="_A"]').click();
-        await gu.sendKeys('goodbye');
+        assert.isFalse(await driver.find('input[name="A"]').isPresent());
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -431,9 +437,10 @@ describe('FormView', function() {
       await gu.waitForServer();
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        assert.match(
-          await driver.findWait('.test-error-text', 2000).getText(),
-          /Oops! This form is no longer published\./
+        assert.isTrue(await driver.findWait('.test-form-container', 2000).isDisplayed());
+        assert.equal(
+          await driver.find('.test-form-error-text').getText(),
+          'Oops! This form is no longer published.'
         );
       });
 
@@ -443,7 +450,7 @@ describe('FormView', function() {
       await gu.waitForServer();
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000);
+        await driver.findWait('input[name="D"]', 2000);
       });
     });
 
@@ -1250,7 +1257,7 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D"]', 1000).click();
+        await driver.findWait('input[name="D"]', 2000).click();
         await gu.sendKeys('Hello World');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();

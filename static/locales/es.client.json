@@ -37,7 +37,8 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Al agregar reglas de tabla, agregue automáticamente una regla para otorgar acceso completo al PROPIETARIO.",
         "Permission to edit document structure": "Permiso para editar la estructura del documento",
         "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permitir a los editores editar la estructura (por ejemplo, modificar y eliminar tablas, columnas, diseños), y escribir fórmulas, que dan acceso a todos los datos independientemente de las restricciones de lectura.",
-        "This default should be changed if editors' access is to be limited. ": "Este valor predeterminado debe cambiarse si se quiere limitar el acceso de los editores. "
+        "This default should be changed if editors' access is to be limited. ": "Este valor predeterminado debe cambiarse si se quiere limitar el acceso de los editores. ",
+        "Add Table-wide Rule": "Añadir regla a toda la tabla"
     },
     "AccountPage": {
         "API": "API",
@@ -1173,7 +1174,11 @@
         "Lookups return data from related tables.": "Las búsquedas devuelven datos de tablas relacionadas.",
         "Use reference columns to relate data in different tables.": "Utilizar las columnas de referencia para relacionar los datos de distintas tablas.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puedes elegir entre los widgets disponibles en el menú desplegable, o incrustar el suyo propio proporcionando su dirección URL completa.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Las fórmulas admiten muchas funciones de Excel, sintaxis completa de Python e incluyen un útil asistente de inteligencia artificial."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Las fórmulas admiten muchas funciones de Excel, sintaxis completa de Python e incluyen un útil asistente de inteligencia artificial.",
+        "Forms are here!": "¡Los formularios están aquí!",
+        "Learn more": "Más información",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Cree formularios sencillos directamente en Grist y compártalos en un clic con nuestro nuevo widget. {{learnMoreButton}}",
+        "These rules are applied after all column rules have been processed, if applicable.": "Estas reglas se aplican después de que se hayan procesado todas las reglas de columna, si procede."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1396,5 +1401,33 @@
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Programe su {{freeCoachingCall}} con un miembro de nuestro equipo.",
         "Maybe Later": "Quizás más tarde",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "En la llamada, nos tomaremos el tiempo necesario para entender sus necesidades y adaptar la llamada a usted. Podemos mostrarle los conceptos básicos de Grist o empezar a trabajar con sus datos de inmediato para crear los cuadros de mando que necesita."
+    },
+    "FormConfig": {
+        "Field rules": "Reglas del campo",
+        "Required field": "Campo obligatorio"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Algunas columnas obligatorias no están asignadas",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Para utilizar este widget, asigne todas las columnas no opcionales desde el panel del creador de la derecha."
+    },
+    "FormContainer": {
+        "Build your own form": "Cree su propio formulario",
+        "Powered by": "Desarrollado por"
+    },
+    "FormErrorPage": {
+        "Error": "Error"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "¡Vaya! El formulario que busca no existe.",
+        "Oops! This form is no longer published.": "¡Vaya! Este formulario ya no se publica.",
+        "There was a problem loading the form.": "Hubo un problema al cargar el formulario.",
+        "You don't have access to this form.": "No tiene acceso a este formulario."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Se ha producido un error al enviar el formulario. Por favor, inténtelo de nuevo."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Formulario enviado",
+        "Thank you! Your response has been recorded.": "¡Muchas gracias! Su respuesta ha quedado registrada."
     }
 }

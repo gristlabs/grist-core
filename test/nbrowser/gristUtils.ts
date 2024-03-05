@@ -3393,7 +3393,7 @@ export async function hasAccessPrompt() {
  * Accepts new access level.
  */
 export async function acceptAccessRequest() {
-  await driver.find('.test-config-widget-access-accept').click();
+  await driver.findWait('.test-config-widget-access-accept', 1000).click();
 }
 
 /**
