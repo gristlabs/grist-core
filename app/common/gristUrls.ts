@@ -86,6 +86,8 @@ export const commonUrls = {
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
+  freeCoachingCall: getFreeCoachingCallUrl(),
+  contactSupport: getContactSupportUrl(),
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",

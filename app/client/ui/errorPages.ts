@@ -9,7 +9,7 @@ import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {commonUrls, getContactSupportUrl, getPageTitleSuffix} from 'app/common/gristUrls';
+import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 
@@ -105,7 +105,7 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
     })),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
-    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: getContactSupportUrl()})),
+    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
   ]);
 }
 
@@ -157,7 +157,7 @@ export function createOtherErrorPage(appModel: AppModel, message?: string) {
       t('There was an unknown error.')),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
-    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: getContactSupportUrl()})),
+    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
   ]);
 }
 
