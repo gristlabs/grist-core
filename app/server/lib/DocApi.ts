@@ -1738,7 +1738,7 @@ export class DocWorkerApi {
     const doc = await this._dbManager.getDoc(req);
     const docTitle = doc.name;
     const sufix = tableId ? (tableId === docTitle ? '' : `_${tableId}`) : '';
-    const filename = optStringParam(req.query.title, 'title') || docTitle + sufix || 'document';
+    const filename = optStringParam(req.query.title, 'title') || (docTitle + sufix) || 'document';
     return filename;
   }
 
