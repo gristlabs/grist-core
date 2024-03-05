@@ -1734,15 +1734,11 @@ export class DocWorkerApi {
   }
 
   private async _getDownloadFilename(req: Request, tableId?: string): Promise<string> {
-    const addContext = isAffirmative(process.env.GRIST_INCLUDE_CONTEXT_TO_DOWNLOAD_FILENAMES || false);
-
     // Query DB for doc metadata to get the doc data.
     const doc = await this._dbManager.getDoc(req);
     const docTitle = doc.name;
-    const prefix = addContext ? `${doc.workspace?.org?.name}_${doc.workspace?.name}_` : '';
-
     const sufix = tableId ? (tableId === docTitle ? '' : `_${tableId}`) : '';
-    const filename = prefix + (optStringParam(req.query.title, 'title') || docTitle || 'document') + sufix;
+    const filename = optStringParam(req.query.title, 'title') || docTitle + sufix || 'document';
     return filename;
   }
 
