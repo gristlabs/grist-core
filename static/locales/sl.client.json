@@ -36,7 +36,8 @@
         "Attribute to Look Up": "Atribut za iskanje",
         "Lookup Table": "Preglednica za iskanje",
         "This default should be changed if editors' access is to be limited. ": "To privzeto nastavitev je treba spremeniti, če je treba omejiti dostop urednikov. ",
-        "Seed rules": "Privzete pravice"
+        "Seed rules": "Privzete pravice",
+        "Add Table-wide Rule": "Dodaj pravilo za celotno tabelo"
     },
     "ACUserManager": {
         "We'll email an invite to {{email}}": "Vabilo bomo poslali po e-pošti {{email}}",
@@ -730,7 +731,8 @@
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Formule podpirajo številne Excelove funkcije, polno Pythonovo sintakso in vključujejo koristnega AI pomočnika.",
         "Forms are here!": "Obrazci so tukaj!",
         "Learn more": "Nauči se več",
-        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}"
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}",
+        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo."
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -1349,5 +1351,29 @@
     "FormConfig": {
         "Required field": "Obvezno polje",
         "Field rules": "Pravila polj"
+    },
+    "CustomView": {
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Če želite uporabiti ta pripomoček, preslikajte vse neobvezne stolpce na plošči za ustvarjanje na desni.",
+        "Some required columns aren't mapped": "Nekateri zahtevani stolpci niso preslikani"
+    },
+    "FormContainer": {
+        "Build your own form": "Ustvari svoj obrazec",
+        "Powered by": "Poganja ga"
+    },
+    "FormErrorPage": {
+        "Error": "Napaka"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Ups! Obrazec, ki ga iščeš, ne obstaja.",
+        "Oops! This form is no longer published.": "Ups! Ta obrazec ni več objavljen.",
+        "There was a problem loading the form.": "Pri nalaganju obrazca je prišlo do težave.",
+        "You don't have access to this form.": "Nimaš dostopa do tega obrazca."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Pri pošiljanju obrazca je prišlo do napake. Prosim poskusi ponovno."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Obrazec oddan",
+        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen."
     }
 }
