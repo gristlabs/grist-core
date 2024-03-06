@@ -227,8 +227,9 @@ export class ChecksummedExternalStorage implements ExternalStorage {
           const expectedChecksum = await this._options.sharedHash.load(fromKey);
           // Let null docMD5s pass.  Otherwise we get stuck if redis is cleared.
           // Otherwise, make sure what we've got matches what we expect to get.
-          // S3 is eventually consistent - if you overwrite an object in it, and then read from it,
-          // you may get an old version for some time.
+          // S3 is eventually consistent. However, times ago, if you overwrote an object in it,
+          // and then read from it, you may have got an old version for some time.
+          // We are confident this should not be the case anymore, though this has to be studied carefully.
           // If a snapshotId was specified, we can skip this check.
           if (expectedChecksum && expectedChecksum !== checksum) {
             const message = `ext ${this.label} download: data for ${fromKey} has wrong checksum:` +
