@@ -125,7 +125,10 @@
         "Date": "日付",
         "DateTime": "日時",
         "Choice": "選択",
-        "Choice List": "複数選択"
+        "Choice List": "複数選択",
+        "Lookups": "Lookups",
+        "Shortcuts": "ショートカット",
+        "Show hidden columns": "非表示列を表示"
     },
     "DocMenu": {
         "This service is not available right now": "このサービスは現在ご利用いただけません",
@@ -1120,5 +1123,12 @@
         "Insert card": "カードを挿入",
         "Duplicate card": "カードを複製",
         "Delete card": "カードを削除"
+    },
+    "FormView": {
+        "Publish your form?": "このフォームを公開しますか？",
+        "Publish": "公開"
+    },
+    "Menu": {
+        "Paragraph": "段落"
     }
 }
