@@ -93,6 +93,7 @@ import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import uuidv4 from "uuid/v4";
+import { Document } from "app/gen-server/entity/Document";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -1225,7 +1226,7 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
       const doc = await this._dbManager.getDoc(req);
-      const options = await this._getDownloadOptions(req);
+      const options = await this._getDownloadOptions(req, doc);
       const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
       const apiPath = await this._grist.getResourceUrl(doc, 'api');
       const query = new URLSearchParams(req.query as {[key: string]: string});
@@ -1735,20 +1736,23 @@ export class DocWorkerApi {
     return docAuth.docId!;
   }
 
-  private async _getDownloadFilename(req: Request, tableId?: string): Promise<string> {
-    // Query DB for doc metadata to get the doc data.
-    const doc = await this._dbManager.getDoc(req);
-    const docTitle = doc.name;
-    const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
-    const filename = optStringParam(req.query.title, 'title') || (docTitle + suffix) || 'document';
+  private async _getDownloadFilename(req: Request, tableId?: string, optDoc?: Document): Promise<string> {
+    let filename = optStringParam(req.query.title, 'title');
+    if (!filename) {
+      // Query DB for doc metadata to get the doc data.
+      const doc = optDoc || await this._dbManager.getDoc(req);
+      const docTitle = doc.name;
+      const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
+      filename = docTitle + suffix || 'document';
+    }
     return filename;
   }
 
-  private async _getDownloadOptions(req: Request): Promise<DownloadOptions> {
+  private async _getDownloadOptions(req: Request, doc?: Document): Promise<DownloadOptions> {
     const params = parseExportParameters(req);
     return {
       ...params,
-      filename: await this._getDownloadFilename(req, params.tableId),
+      filename: await this._getDownloadFilename(req, params.tableId, doc),
     };
   }
 
