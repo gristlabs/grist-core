@@ -37,6 +37,7 @@
  *        Defaults to false.
  *    env GRIST_OIDC_IDP_ENABLED_PROTECTIONS
  *        A comma-separated list of protections to enable. Supported values are "PKCE", "STATE", "NONCE".
+ *        It's highly recommended that you enable STATE, and at least either PKCE or NONCE.
  *        Defaults to "PKCE,STATE".
  *    env GRIST_OIDC_IDP_ACR_VALUES
  *        A space-separated list of ACR values to request from the IdP. Optional.
