@@ -132,7 +132,7 @@
         "Workspace not found": "ワークスペースが見つかりません",
         "Discover More Templates": "その他のテンプレート",
         "Current workspace": "現在のワークスペース",
-        "Edited {{at}}": "{{at}}による編集",
+        "Edited {{at}}": "{{at}}に更新",
         "Pin Document": "ドキュメントをピン留めする",
         "Remove": "削除",
         "By Date Modified": "変更日",
@@ -195,7 +195,14 @@
         "Add referenced columns": "参照列の追加",
         "TRANSFORM": "変換",
         "Sort & Filter": "ソート＆フィルター",
-        "Widget": "ウィジェット"
+        "Widget": "ウィジェット",
+        "Submit button label": "送信ボタンのラベル",
+        "Submit another response": "別の回答を送信",
+        "Display button": "ボタンを表示",
+        "Redirect automatically after submission": "送信後に自動的にリダイレクトする",
+        "Redirection": "リダイレクト",
+        "Required field": "必須フィールド",
+        "Enter redirect URL": "リダイレクト先URL"
     },
     "FloatingPopup": {
         "Maximize": "最大化",
@@ -394,7 +401,7 @@
         "Rules for table ": "テーブルのルール ",
         "Checking...": "チェック中…",
         "Special Rules": "特別ルール",
-        "View As": "として表示",
+        "View As": "役割で表示",
         "Seed rules": "シード・ルール",
         "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。"
     },
@@ -1108,5 +1115,10 @@
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Googleドライブにファイルを送信する"
+    },
+    "CardContextMenu": {
+        "Insert card": "カードを挿入",
+        "Duplicate card": "カードを複製",
+        "Delete card": "カードを削除"
     }
 }
