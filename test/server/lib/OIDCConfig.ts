@@ -347,15 +347,15 @@ describe('OIDCConfig', () => {
 
     beforeEach(() => {
       fakeRes = {
-        redirect: sandbox.stub(),
-        status: sandbox.stub().returnsThis(),
-        send: sandbox.stub().returnsThis(),
+        redirect: Sinon.stub(),
+        status: Sinon.stub().returnsThis(),
+        send: Sinon.stub().returnsThis(),
       };
       fakeScopedSession = {
-        operateOnScopedSession: sandbox.stub().resolves(),
+        operateOnScopedSession: Sinon.stub().resolves(),
       };
       fakeSessions = {
-        getOrCreateSessionFromRequest: sandbox.stub().returns(fakeScopedSession),
+        getOrCreateSessionFromRequest: Sinon.stub().returns(fakeScopedSession),
       };
     });
 
@@ -572,22 +572,24 @@ describe('OIDCConfig', () => {
     const URL_RETURNED_BY_CLIENT = 'http://localhost:8484/logout_url_from_issuer';
     const ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT = 'http://localhost:8484/logout';
 
-    [{
-      itMsg: 'should skip the end session endpoint when GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true',
-      env: {
-        GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true',
-      },
-      expectedUrl: REDIRECT_URL.href,
-    }, {
-      itMsg: 'should use the GRIST_OIDC_IDP_END_SESSION_ENDPOINT when it is set',
-      env: {
-        GRIST_OIDC_IDP_END_SESSION_ENDPOINT: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
-      },
-      expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
-    }, {
-      itMsg: 'should call the end session endpoint from the issuer metadata',
-      expectedUrl: URL_RETURNED_BY_CLIENT
-    }].forEach(ctx => {
+    [
+      {
+        itMsg: 'should skip the end session endpoint when GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true',
+        env: {
+          GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true',
+        },
+        expectedUrl: REDIRECT_URL.href,
+      }, {
+        itMsg: 'should use the GRIST_OIDC_IDP_END_SESSION_ENDPOINT when it is set',
+        env: {
+          GRIST_OIDC_IDP_END_SESSION_ENDPOINT: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+        },
+        expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+      }, {
+        itMsg: 'should call the end session endpoint from the issuer metadata',
+        expectedUrl: URL_RETURNED_BY_CLIENT
+      }
+    ].forEach(ctx => {
       it(ctx.itMsg, async () => {
         setEnvVars();
         Object.assign(process.env, ctx.env);
