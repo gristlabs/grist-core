@@ -86,6 +86,8 @@ export const commonUrls = {
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
+  freeCoachingCall: getFreeCoachingCallUrl(),
+  contactSupport: getContactSupportUrl(),
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
@@ -670,6 +672,9 @@ export interface GristLoadConfig {
   // Url for free coaching call scheduling for the browser client to use.
   freeCoachingCallUrl?: string;
 
+  // Url for "contact support" button on Grist's "not found" error page
+  contactSupportUrl?: string;
+
   // When set, this directs the client to encode org information in path, not in domain.
   pathOnly?: boolean;
 
@@ -865,21 +870,33 @@ export function getKnownOrg(): string|null {
   }
 }
 
-export function getHelpCenterUrl(): string|null {
+export function getHelpCenterUrl(): string {
+  const defaultUrl = "https://support.getgrist.com";
   if(isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.helpCenterUrl || null;
+    return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
-    return process.env.GRIST_HELP_CENTER || null;
+    return process.env.GRIST_HELP_CENTER || defaultUrl;
   }
 }
 
-export function getFreeCoachingCallUrl(): string|null {
+export function getFreeCoachingCallUrl(): string {
+  const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
   if(isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return gristConfig && gristConfig.freeCoachingCallUrl || null;
+    return gristConfig && gristConfig.freeCoachingCallUrl || defaultUrl;
   } else {
-    return process.env.FREE_COACHING_CALL_URL || null;
+    return process.env.FREE_COACHING_CALL_URL || defaultUrl;
+  }
+}
+
+export function getContactSupportUrl(): string {
+  const defaultUrl = "https://www.getgrist.com/contact/";
+  if(isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.contactSupportUrl || defaultUrl;
+  } else {
+    return process.env.GRIST_CONTACT_SUPPORT_URL || defaultUrl;
   }
 }
 
