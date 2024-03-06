@@ -29,6 +29,7 @@ class ClientStub {
   public callbackParams = Sinon.stub().returns(undefined);
   public callback = Sinon.stub().returns(undefined);
   public userinfo = Sinon.stub().returns(undefined);
+  public endSessionUrl = Sinon.stub().returns(undefined);
   public issuer: {
     metadata: {
       end_session_endpoint: string | undefined;
@@ -566,4 +567,37 @@ describe('OIDCConfig', () => {
     });
   });
 
+  describe('getLogoutRedirectUrl', () => {
+    const REDIRECT_URL = new URL('http://localhost:8484/docs/signed-out');
+    const URL_RETURNED_BY_CLIENT = 'http://localhost:8484/logout_url_from_issuer';
+    const ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT = 'http://localhost:8484/logout';
+
+    [{
+      itMsg: 'should skip the end session endpoint when GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true',
+      env: {
+        GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true',
+      },
+      expectedUrl: REDIRECT_URL.href,
+    }, {
+      itMsg: 'should use the GRIST_OIDC_IDP_END_SESSION_ENDPOINT when it is set',
+      env: {
+        GRIST_OIDC_IDP_END_SESSION_ENDPOINT: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+      },
+      expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+    }, {
+      itMsg: 'should call the end session endpoint from the issuer metadata',
+      expectedUrl: URL_RETURNED_BY_CLIENT
+    }].forEach(ctx => {
+      it(ctx.itMsg, async () => {
+        setEnvVars();
+        Object.assign(process.env, ctx.env);
+        const clientStub = new ClientStub();
+        clientStub.endSessionUrl.returns(URL_RETURNED_BY_CLIENT);
+        const config = await OIDCConfigStubbed.build(clientStub.asClient());
+        const req = {} as unknown as express.Request; // not used
+        const url = await config.getLogoutRedirectUrl(req, REDIRECT_URL);
+        assert.equal(url, ctx.expectedUrl);
+      });
+    });
+  });
 });
