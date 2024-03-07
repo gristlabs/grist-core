@@ -25,7 +25,7 @@ import {createClient, RedisClient} from 'redis';
 import * as sinon from 'sinon';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
-import {setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
+import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import uuidv4 from "uuid/v4";
 
@@ -377,6 +377,7 @@ describe('HostedStorageManager', function() {
     describe(storage, function() {
 
       const sandbox = sinon.createSandbox();
+      let oldEnv: EnvironmentSnapshot;
 
       const workerId = 'dw17';
       let cli: RedisClient;
@@ -387,6 +388,7 @@ describe('HostedStorageManager', function() {
       before(async function() {
         if (!process.env.TEST_REDIS_URL) { this.skip(); return; }
         cli = createClient(process.env.TEST_REDIS_URL);
+        oldEnv = new EnvironmentSnapshot();
         await cli.flushdbAsync();
         workers = new DocWorkerMap([cli]);
         await workers.addWorker({
@@ -450,7 +452,7 @@ describe('HostedStorageManager', function() {
       });
 
       afterEach(async function() {
-        delete process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH;
+        oldEnv.restore();
         sandbox.restore();
         if (store) {
           await store.end();

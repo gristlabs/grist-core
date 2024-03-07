@@ -1,10 +1,11 @@
-import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 import log from 'app/server/lib/log';
 import {createTmpDir} from 'app/server/lib/uploads';
+import {isAffirmative} from 'app/common/gutil';
+import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
+
 import {delay} from 'bluebird';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {isAffirmative} from 'app/common/gutil';
 
 // A special token representing a deleted document, used in places where a
 // checksum is expected otherwise.
@@ -227,7 +228,10 @@ export class ChecksummedExternalStorage implements ExternalStorage {
           const expectedChecksum = await this._options.sharedHash.load(fromKey);
           // Let null docMD5s pass.  Otherwise we get stuck if redis is cleared.
           // Otherwise, make sure what we've got matches what we expect to get.
-          // S3 is eventually consistent. However, times ago, if you overwrote an object in it,
+          // AWS S3 was eventually consistent, but now has stronger guarantees:
+          // https://aws.amazon.com/blogs/aws/amazon-s3-update-strong-read-after-write-consistency/
+          //
+          // Previous to this change, if you overwrote an object in it,
           // and then read from it, you may have got an old version for some time.
           // We are confident this should not be the case anymore, though this has to be studied carefully.
           // If a snapshotId was specified, we can skip this check.
