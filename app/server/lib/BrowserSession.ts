@@ -75,6 +75,7 @@ export interface SessionObj {
     state?: string;
     targetUrl?: string;
     nonce?: string;
+    idToken?: string;
   }
 }
 
