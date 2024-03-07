@@ -316,6 +316,11 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
+  public async isRegisteredWorker(workerInfo: DocWorkerInfo): Promise<boolean> {
+    const group = workerInfo.group || 'default';
+    return Boolean(await this._client.sismemberAsync(`workers-available-${group}`, workerInfo.id));
+  }
+
   /**
    * Monitor the availability of a worker.  If the worker is no longer available,
    * call the callback.
