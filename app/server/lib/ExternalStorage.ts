@@ -1,7 +1,7 @@
+import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
+import {isAffirmative} from 'app/common/gutil';
 import log from 'app/server/lib/log';
 import {createTmpDir} from 'app/server/lib/uploads';
-import {isAffirmative} from 'app/common/gutil';
-import {ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata} from 'app/common/DocSnapshot';
 
 import {delay} from 'bluebird';
 import * as fse from 'fs-extra';
@@ -239,8 +239,10 @@ export class ChecksummedExternalStorage implements ExternalStorage {
             const message = `ext ${this.label} download: data for ${fromKey} has wrong checksum:` +
               ` ${checksum} (expected ${expectedChecksum})`;
 
-            // Only warn if GRIST_SKIP_REDIS_CHECKSUM_MISMATCH is set. This flag is experimental
-            // and should be removed once we are confident that the checksums verification is useless.
+            // If GRIST_SKIP_REDIS_CHECKSUM_MISMATCH is set, issue a warning only and continue,
+            // rather than issuing an error and failing.
+            // This flag is experimental and should be removed once we are
+            // confident that the checksums verification is useless.
             if (isAffirmative(process.env.GRIST_SKIP_REDIS_CHECKSUM_MISMATCH)) {
               log.warn(message);
             } else {
