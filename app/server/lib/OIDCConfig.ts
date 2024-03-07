@@ -62,7 +62,7 @@
 
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
-import { Client, ClientMetadata, generators, Issuer, UserinfoResponse } from 'openid-client';
+import { Client, ClientMetadata, generators, Issuer, TokenSet, UserinfoResponse } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { AppSettings, appSettings } from './AppSettings';
@@ -80,6 +80,17 @@ enum ENABLED_PROTECTIONS {
 type EnabledProtectionsString = keyof typeof ENABLED_PROTECTIONS;
 
 const CALLBACK_URL = '/oauth2/callback';
+
+function formatTokenForLogs(token: TokenSet) {
+  return _.chain(token)
+    .omitBy(_.isFunction)
+    .mapValues((v, k) => {
+      if (!['token_type', 'expires_in', 'expires_at', 'scope'].includes(k)) {
+        return 'REDACTED';
+      }
+      return v;
+    }).value();
+}
 
 export class OIDCConfig {
   /**
@@ -180,6 +191,7 @@ export class OIDCConfig {
       // The callback function will compare the state present in the params and the one we retrieved from the session.
       // If they don't match, it will throw an error.
       const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
+      log.debug("Got tokenSet: %o", formatTokenForLogs(tokenSet));
 
       const userInfo = await this._client.userinfo(tokenSet);
       log.debug("Got userinfo: %o", userInfo);
@@ -196,7 +208,10 @@ export class OIDCConfig {
         profile,
       }));
 
-      delete mreq.session.oidc;
+      mreq.session.oidc = {
+        idToken: tokenSet.id_token, // keep idToken for logout
+        state: mreq.session.oidc?.state, // also keep state for logout
+      };
       res.redirect(targetUrl ?? '/');
     } catch (err) {
       log.error(`OIDC callback failed: ${err.stack}`);
@@ -224,6 +239,7 @@ export class OIDCConfig {
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
+    const mreq = req as RequestWithLogin;
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
@@ -233,7 +249,9 @@ export class OIDCConfig {
       return this._endSessionEndpoint;
     }
     return this._client.endSessionUrl({
-      post_logout_redirect_uri: redirectUrl.href
+      post_logout_redirect_uri: redirectUrl.href,
+      state: mreq.session.oidc?.state,
+      id_token_hint: mreq.session.oidc?.idToken,
     });
   }
 

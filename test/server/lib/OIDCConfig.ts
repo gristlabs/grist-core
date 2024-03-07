@@ -1,12 +1,14 @@
-import {OIDCConfig} from "app/server/lib/OIDCConfig";
-import {assert} from "chai";
 import {EnvironmentSnapshot} from "../testUtils";
+import {OIDCConfig} from "app/server/lib/OIDCConfig";
+import {SessionObj} from "app/server/lib/BrowserSession";
+import {Sessions} from "app/server/lib/Sessions";
+import log from "app/server/lib/log";
+import {assert} from "chai";
 import Sinon from "sinon";
 import {Client, generators} from "openid-client";
 import express from "express";
-import log from "app/server/lib/log";
-import {Sessions} from "app/server/lib/Sessions";
 import _ from "lodash";
+import {RequestWithLogin} from "app/server/lib/Authorizer";
 
 class OIDCConfigStubbed extends OIDCConfig {
   public static async build(clientStub?: Client): Promise<OIDCConfigStubbed> {
@@ -52,6 +54,7 @@ describe('OIDCConfig', () => {
   let sandbox: Sinon.SinonSandbox;
   let logInfoStub: Sinon.SinonStub;
   let logErrorStub: Sinon.SinonStub;
+  let logDebugStub: Sinon.SinonStub;
 
   before(() => {
     oldEnv = new EnvironmentSnapshot();
@@ -61,7 +64,7 @@ describe('OIDCConfig', () => {
     sandbox = Sinon.createSandbox();
     logInfoStub = sandbox.stub(log, 'info');
     logErrorStub = sandbox.stub(log, 'error');
-    sandbox.stub(log, 'debug');
+    logDebugStub = sandbox.stub(log, 'debug');
   });
 
   afterEach(() => {
@@ -353,8 +356,8 @@ describe('OIDCConfig', () => {
         codeVerifier: FAKE_CODE_VERIFIER,
         state: FAKE_STATE
       }
-    };
-    const DEFAULT_EXPECTED_CHECKS = {
+    } as SessionObj;
+    const DEFAULT_EXPECTED_CALLBACK_CHECKS = {
       state: FAKE_STATE,
       code_verifier: FAKE_CODE_VERIFIER
     };
@@ -383,6 +386,20 @@ describe('OIDCConfig', () => {
         getOrCreateSessionFromRequest: Sinon.stub().returns(fakeScopedSession),
       };
     });
+
+    function checkUserProfile(expectedUserProfile: object) {
+      return function ({user}: {user: any}) {
+        assert.deepEqual(user.profile, expectedUserProfile,
+          `user profile should have been populated with ${JSON.stringify(expectedUserProfile)}`);
+      };
+    }
+
+    function checkRedirect(expectedRedirection: string) {
+      return function ({fakeRes}: {fakeRes: any}) {
+        assert.deepEqual(fakeRes.redirect.firstCall.args, [expectedRedirection],
+          `should have redirected to ${expectedRedirection}`);
+      };
+    }
 
     [
       {
@@ -421,7 +438,7 @@ describe('OIDCConfig', () => {
         env: {
           GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,NONCE',
         },
-        expectedChecks: {
+        expectedCbChecks: {
           state: FAKE_STATE,
           nonce: FAKE_NONCE
         },
@@ -444,7 +461,7 @@ describe('OIDCConfig', () => {
         env: {
           GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,NONCE',
         },
-        expectedChecks: {
+        expectedCbChecks: {
           state: FAKE_STATE,
           nonce: FAKE_NONCE,
         },
@@ -484,10 +501,10 @@ describe('OIDCConfig', () => {
         itMsg: 'should fill user profile with email and name',
         session: DEFAULT_SESSION,
         userInfo: FAKE_USER_INFO,
-        expectedUserProfile: {
+        extraChecks: checkUserProfile({
           email: FAKE_USER_INFO.email,
           name: FAKE_USER_INFO.name,
-        }
+        })
       },
       {
         itMsg: 'should fill user profile with name constructed using ' +
@@ -498,10 +515,10 @@ describe('OIDCConfig', () => {
           given_name: 'given_name',
           family_name: 'family_name',
         },
-        expectedUserProfile: {
+        extrachecks: checkUserProfile({
           email: 'fake-email',
           name: 'given_name family_name',
-        }
+        })
       },
       {
         itMsg: 'should fill user profile with email and name when ' +
@@ -516,15 +533,15 @@ describe('OIDCConfig', () => {
           GRIST_OIDC_SP_PROFILE_NAME_ATTR: 'fooName',
           GRIST_OIDC_SP_PROFILE_EMAIL_ATTR: 'fooMail',
         },
-        expectedUserProfile: {
+        extraChecks: checkUserProfile({
           email: 'fake-email2',
           name: 'fake-name2',
-        }
+        }),
       },
       {
         itMsg: 'should redirect by default to the root page',
         session: DEFAULT_SESSION,
-        expectedRedirection: '/',
+        extraChecks: checkRedirect('/'),
       },
       {
         itMsg: 'should redirect to the targetUrl when it is present in the session',
@@ -534,7 +551,34 @@ describe('OIDCConfig', () => {
             targetUrl: 'http://localhost:8484/some/path'
           }
         },
-        expectedRedirection: 'http://localhost:8484/some/path',
+        extraChecks: checkRedirect('http://localhost:8484/some/path'),
+      },
+      {
+        itMsg: "should redact confidential information in the tokenSet in the logs",
+        session: DEFAULT_SESSION,
+        tokenSet: {
+          id_token: 'fake-id-token',
+          access_token: 'fake-access',
+          whatever: 'fake-whatever',
+          token_type: 'fake-token-type',
+          expires_at: 1234567890,
+          expires_in: 987654321,
+          scope: 'fake-scope',
+        },
+        extraChecks: function () {
+          assert.isTrue(logDebugStub.called);
+          assert.deepEqual(logDebugStub.firstCall.args, [
+            'Got tokenSet: %o', {
+              id_token: 'REDACTED',
+              access_token: 'REDACTED',
+              whatever: 'REDACTED',
+              token_type: this.tokenSet.token_type,
+              expires_at: this.tokenSet.expires_at,
+              expires_in: this.tokenSet.expires_in,
+              scope: this.tokenSet.scope,
+            }
+          ]);
+        }
       },
     ].forEach(ctx => {
       it(ctx.itMsg, async () => {
@@ -554,6 +598,8 @@ describe('OIDCConfig', () => {
           }
         } as unknown as express.Request;
         clientStub.callbackParams.returns(fakeParams);
+        const tokenSet = { id_token: 'id_token', ...ctx.tokenSet };
+        clientStub.callback.resolves(tokenSet);
         clientStub.userinfo.returns(_.clone(ctx.userInfo ?? FAKE_USER_INFO));
         const user: { profile?: object } = {};
         fakeScopedSession.operateOnScopedSession.yields(user);
@@ -572,21 +618,19 @@ describe('OIDCConfig', () => {
         } else {
           assert.isFalse(logErrorStub.called, 'no error should be logged. Got: ' + logErrorStub.firstCall?.args[0]);
           assert.isTrue(fakeRes.redirect.calledOnce, 'should redirect');
-          if (ctx.expectedRedirection) {
-            assert.deepEqual(fakeRes.redirect.firstCall.args, [ctx.expectedRedirection],
-              `should have redirected to ${ctx.expectedRedirection}`);
-          }
           assert.isTrue(clientStub.callback.calledOnce);
           assert.deepEqual(clientStub.callback.firstCall.args, [
             'http://localhost:8484/oauth2/callback',
             fakeParams,
-            ctx.expectedChecks ?? DEFAULT_EXPECTED_CHECKS
+            ctx.expectedCbChecks ?? DEFAULT_EXPECTED_CALLBACK_CHECKS
           ]);
-          assert.isEmpty(session, 'oidc info should have been removed from the session');
-          if (ctx.expectedUserProfile) {
-            assert.deepEqual(user.profile, ctx.expectedUserProfile,
-              `user profile should have been populated with ${JSON.stringify(ctx.expectedUserProfile)}`);
-          }
+          assert.deepEqual(session, {
+            oidc: {
+              state: FAKE_STATE,
+              idToken: tokenSet.id_token,
+            }
+          }, 'oidc info should only keep state and id_token in the session and for the logout');
+          ctx.extraChecks?.({fakeRes, user});
         }
       });
     });
@@ -626,6 +670,12 @@ describe('OIDCConfig', () => {
     const REDIRECT_URL = new URL('http://localhost:8484/docs/signed-out');
     const URL_RETURNED_BY_CLIENT = 'http://localhost:8484/logout_url_from_issuer';
     const ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT = 'http://localhost:8484/logout';
+    const FAKE_SESSION = {
+      oidc: {
+        idToken: 'id_token',
+        state: 'state',
+      }
+    } as SessionObj;
 
     [
       {
@@ -641,10 +691,12 @@ describe('OIDCConfig', () => {
         },
         expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
       }, {
-        itMsg: 'should call the end session endpoint from the issuer metadata',
+        itMsg: 'should call the end session endpoint with the expected parameters',
         expectedUrl: URL_RETURNED_BY_CLIENT,
         expectedLogoutParams: {
-          post_logout_redirect_uri: REDIRECT_URL.href
+          post_logout_redirect_uri: REDIRECT_URL.href,
+          id_token_hint: FAKE_SESSION.oidc!.idToken,
+          state: FAKE_SESSION.oidc!.state,
         }
       }
     ].forEach(ctx => {
@@ -654,7 +706,9 @@ describe('OIDCConfig', () => {
         const clientStub = new ClientStub();
         clientStub.endSessionUrl.returns(URL_RETURNED_BY_CLIENT);
         const config = await OIDCConfigStubbed.build(clientStub.asClient());
-        const req = {} as unknown as express.Request; // not used
+        const req = {
+          session: FAKE_SESSION
+        } as unknown as RequestWithLogin;
         const url = await config.getLogoutRedirectUrl(req, REDIRECT_URL);
         assert.equal(url, ctx.expectedUrl);
         if (ctx.expectedLogoutParams) {
