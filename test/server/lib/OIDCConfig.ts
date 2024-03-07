@@ -106,12 +106,30 @@ describe('OIDCConfig', () => {
         clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
         clientSecret: process.env.GRIST_OIDC_IDP_CLIENT_SECRET,
         issuerUrl: process.env.GRIST_OIDC_IDP_ISSUER,
+        extraMetadata: {},
       }]);
       assert.isTrue(logInfoStub.calledOnce);
       assert.deepEqual(
         logInfoStub.firstCall.args,
         [`OIDCConfig: initialized with issuer ${process.env.GRIST_OIDC_IDP_ISSUER}`]
       );
+    });
+
+    it('should create a client with passed information with extra configuration', async () => {
+      setEnvVars();
+      const extraMetadata = {
+        userinfo_signed_response_alg: 'RS256',
+      };
+      process.env.GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA = JSON.stringify(extraMetadata);
+      const client = new ClientStub();
+      const config = await OIDCConfigStubbed.build(client.asClient());
+      assert.isTrue(config._initClient.calledOnce);
+      assert.deepEqual(config._initClient.firstCall.args, [{
+        clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
+        clientSecret: process.env.GRIST_OIDC_IDP_CLIENT_SECRET,
+        issuerUrl: process.env.GRIST_OIDC_IDP_ISSUER,
+        extraMetadata,
+      }]);
     });
 
     describe('End Session Endpoint', () => {

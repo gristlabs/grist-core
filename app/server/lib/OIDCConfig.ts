@@ -41,6 +41,10 @@
  *        Defaults to "PKCE,STATE".
  *    env GRIST_OIDC_IDP_ACR_VALUES
  *        A space-separated list of ACR values to request from the IdP. Optional.
+ *    env GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA
+ *        A JSON object with extra client metadata to pass to openid-client. Optional.
+ *        More info: https://github.com/panva/node-openid-client/tree/main/docs#new-clientmetadata-jwks-options
+ *
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -58,7 +62,7 @@
 
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
-import { Client, generators, Issuer, UserinfoResponse } from 'openid-client';
+import { Client, ClientMetadata, generators, Issuer, UserinfoResponse } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { AppSettings, appSettings } from './AppSettings';
@@ -144,9 +148,14 @@ export class OIDCConfig {
       defaultValue: false,
     })!;
 
+    const extraMetadata: Partial<ClientMetadata> = JSON.parse(section.flag('extraClientMetadata').readString({
+      envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
+      defaultValue: '{}'
+    })!);
+
     this._enabledProtections = this._buildEnabledProtections(section);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    await this._initClient({issuerUrl, clientId, clientSecret});
+    await this._initClient({issuerUrl, clientId, clientSecret, extraMetadata});
 
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
         !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
@@ -231,8 +240,8 @@ export class OIDCConfig {
     return this._enabledProtections.includes(protection);
   }
 
-  protected async _initClient({issuerUrl, clientId, clientSecret}:
-    {issuerUrl: string, clientId: string, clientSecret: string}
+  protected async _initClient({issuerUrl, clientId, clientSecret, extraMetadata}:
+    {issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
   ): Promise<void> {
     const issuer = await Issuer.discover(issuerUrl);
     this._client = new issuer.Client({
@@ -240,6 +249,7 @@ export class OIDCConfig {
       client_secret: clientSecret,
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
+      ...extraMetadata,
     });
   }
 
