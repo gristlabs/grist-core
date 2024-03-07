@@ -3,6 +3,8 @@
 // import {setupTestSuite} from 'test/nbrowser/testUtils';
 // import express from 'express';
 
+export {};
+
 // describe('LoginWithOIDC', function () {
 //   this.timeout(60000);
 //   setupTestSuite();

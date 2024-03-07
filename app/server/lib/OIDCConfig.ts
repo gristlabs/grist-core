@@ -190,6 +190,9 @@ export class OIDCConfig {
       res.redirect(targetUrl ?? '/');
     } catch (err) {
       log.error(`OIDC callback failed: ${err.stack}`);
+      if (Object.prototype.hasOwnProperty.call(err, 'response')) {
+        log.error(`Response received: ${err.response?.body ?? err.response}`);
+      }
       // Delete the session data even if the login failed.
       // This way, we prevent several login attempts.
       //

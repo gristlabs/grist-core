@@ -565,6 +565,36 @@ describe('OIDCConfig', () => {
         }
       });
     });
+
+    it('should log err.response when userinfo fails to parse response body', async () => {
+      // See https://github.com/panva/node-openid-client/blob/47a549cb4e36ffe2ebfe2dc9d6b69a02643cc0a9/lib/client.js#L1293
+      setEnvVars();
+      const clientStub = new ClientStub();
+      const config = await OIDCConfigStubbed.build(clientStub.asClient());
+      const req = {
+        session: DEFAULT_SESSION,
+        query: {
+          state: FAKE_STATE,
+          codeVerifier: FAKE_CODE_VERIFIER,
+        }
+      } as unknown as express.Request;
+      clientStub.callbackParams.returns({state: FAKE_STATE});
+
+      const err: Error & {response?: {body: string }} = new Error('userinfo failed');
+      err.response = { body: 'response here' };
+      clientStub.userinfo.rejects(err);
+
+      await config.handleCallback(
+        fakeSessions as unknown as Sessions,
+        req,
+        fakeRes as unknown as express.Response
+      );
+
+      assert.isTrue(logErrorStub.calledTwice);
+      assert.include(logErrorStub.firstCall.args[0], err.message);
+      assert.include(logErrorStub.secondCall.args[0], err.response.body);
+      assert.isTrue(fakeRes.status.calledOnceWith(500));
+    });
   });
 
   describe('getLogoutRedirectUrl', () => {
