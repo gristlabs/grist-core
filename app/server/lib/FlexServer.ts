@@ -467,6 +467,9 @@ export class FlexServer implements GristServer {
       }
       if (isParameterOn(req.query.redis)) {
         checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
+        if (isParameterOn(req.query.docWorkerRegistered) && this.worker) {
+          checks.set('docWorkerRegistered', asyncCheck(this._docWorkerMap.isWorkerRegistered(this.worker.id)));
+        }
       }
       if (isParameterOn(req.query.ready)) {
         checks.set('ready', this._isReady);
