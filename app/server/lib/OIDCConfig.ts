@@ -182,6 +182,7 @@ export class OIDCConfig {
       const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
 
       const userInfo = await this._client.userinfo(tokenSet);
+      log.debug("Got userinfo: %o", userInfo);
 
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new Error(`OIDCConfig: email not verified for ${userInfo.email}`);
