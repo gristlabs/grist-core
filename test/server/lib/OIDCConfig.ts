@@ -61,6 +61,7 @@ describe('OIDCConfig', () => {
     sandbox = Sinon.createSandbox();
     logInfoStub = sandbox.stub(log, 'info');
     logErrorStub = sandbox.stub(log, 'error');
+    sandbox.stub(log, 'debug');
   });
 
   afterEach(() => {
@@ -69,6 +70,12 @@ describe('OIDCConfig', () => {
   });
 
   function setEnvVars() {
+    // Prevent any environment variable from leaking into the test:
+    for (const envVar in process.env) {
+      if (envVar.startsWith('GRIST_OIDC_')) {
+        delete process.env[envVar];
+      }
+    }
     process.env.GRIST_OIDC_SP_HOST = 'http://localhost:8484';
     process.env.GRIST_OIDC_IDP_CLIENT_ID = 'client id';
     process.env.GRIST_OIDC_IDP_CLIENT_SECRET = 'secret';
@@ -635,7 +642,10 @@ describe('OIDCConfig', () => {
         expectedUrl: ENV_VALUE_GRIST_OIDC_IDP_END_SESSION_ENDPOINT
       }, {
         itMsg: 'should call the end session endpoint from the issuer metadata',
-        expectedUrl: URL_RETURNED_BY_CLIENT
+        expectedUrl: URL_RETURNED_BY_CLIENT,
+        expectedLogoutParams: {
+          post_logout_redirect_uri: REDIRECT_URL.href
+        }
       }
     ].forEach(ctx => {
       it(ctx.itMsg, async () => {
@@ -647,6 +657,10 @@ describe('OIDCConfig', () => {
         const req = {} as unknown as express.Request; // not used
         const url = await config.getLogoutRedirectUrl(req, REDIRECT_URL);
         assert.equal(url, ctx.expectedUrl);
+        if (ctx.expectedLogoutParams) {
+          assert.isTrue(clientStub.endSessionUrl.calledOnce);
+          assert.deepEqual(clientStub.endSessionUrl.firstCall.args, [ctx.expectedLogoutParams]);
+        }
       });
     });
   });
