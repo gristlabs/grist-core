@@ -406,7 +406,8 @@
         "Special Rules": "特別ルール",
         "View As": "役割で表示",
         "Seed rules": "シード・ルール",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。"
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。",
+        "Add Table-wide Rule": "テーブル全体のルールを追加"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "単純なデータ値を数式列に保存することは不可能なはずです",
@@ -553,7 +554,7 @@
         "Code View": "コードビュー",
         "Return to viewing as yourself": "自分自身のビューに戻る",
         "Raw Data": "生データ",
-        "Document History": "ドキュメント履歴"
+        "Document History": "ドキュメントの履歴"
     },
     "menus": {
         "Reference List": "参照リスト",
@@ -947,7 +948,9 @@
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "数式は多くの Excel 関数、完全な Python 構文をサポートし、便利な AI アシスタントが含まれています。",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUIDはランダムに生成される文字列で、一意の識別子やキーとして役立ちます。",
         "The total size of all data in this document, excluding attachments.": "添付ファイルを除く、このドキュメント内のすべてのデータの合計サイズ。",
-        "Lookups return data from related tables.": "Lookupは関連テーブルからデータを返します。"
+        "Lookups return data from related tables.": "Lookupは関連テーブルからデータを返します。",
+        "Reference columns are the key to {{relational}} data in Grist.": "参照列は、Grist の {{relational}} データへのキーです。",
+        "These rules are applied after all column rules have been processed, if applicable.": "これらのルールは、列ルールの処理が終わった後に適用されます。"
     },
     "AppHeader": {
         "Personal Site": "個人サイト",
