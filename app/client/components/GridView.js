@@ -55,7 +55,7 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
-const { GristObjCode } = require('app/plugin/GristData');
+const { isList } = require('app/common/gristTypes');
 
 const t = makeT('GridView');
 
@@ -918,10 +918,10 @@ GridView.prototype.makeHeadersFromRow = async function(selection) {
     if (col.refTable()) {
       const refTableDisplayCol = this.gristDoc.docModel.columns.getRowModel(col.displayCol());
       newColLabel =  record[refTableDisplayCol.colId()];
-      formatter = formatter.visibleColFormatter;
+      formatter = field.visibleColFormatter();
     }
     // Manage column that are lists
-    if (Array.isArray(newColLabel) && newColLabel[0] === GristObjCode.List) {
+    if (isList(newColLabel)) {
       newColLabel = newColLabel[1];
     }
     if (newColLabel) {
