@@ -426,13 +426,17 @@ function buildLookupSection(gridView: GridView, index?: number){
     function formula() {
       switch(fun) {
         case 'list': return `${referenceToSource}.${col.colId()}`;
-        case 'average': return `AVERAGE(${referenceToSource}.${col.colId()})`;
-        case 'min': return `MIN(${referenceToSource}.${col.colId()})`;
-        case 'max': return `MAX(${referenceToSource}.${col.colId()})`;
+        case 'average': return `ref = ${referenceToSource}\n` +
+                               `AVERAGE(ref.${col.colId()}) if ref else None`;
+        case 'min': return `ref = ${referenceToSource}\n` +
+                           `MIN(ref.${col.colId()}) if ref else None`;
+        case 'max': return `ref = ${referenceToSource}\n` +
+                           `MAX(ref.${col.colId()}) if ref else None`;
         case 'count':
         case 'sum': return `SUM(${referenceToSource}.${col.colId()})`;
         case 'percent':
-          return `AVERAGE(map(int, ${referenceToSource}.${col.colId()})) if ${referenceToSource} else None`;
+          return  `ref = ${referenceToSource}\n` +
+                  `AVERAGE(map(int, ref.${col.colId()})) if ref else None`;
         default: return `${referenceToSource}`;
       }
     }
