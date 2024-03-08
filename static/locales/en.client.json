@@ -1377,5 +1377,15 @@
     "FormSuccessPage": {
         "Form Submitted": "Form Submitted",
         "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded."
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Last 30 days",
+        "Last 7 days": "Last 7 days",
+        "Last Week": "Last Week",
+        "Next 7 days": "Next 7 days",
+        "This month": "This month",
+        "This week": "This week",
+        "This year": "This year",
+        "Today": "Today"
     }
 }
