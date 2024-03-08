@@ -103,7 +103,7 @@
         "Reset {{count}} entire columns_one": "列全体をリセット",
         "Convert formula to data": "数式をデータに変換する",
         "Freeze {{count}} more columns_other": "さらに {{count}} 列固定する",
-        "Hide {{count}} columns_one": "列非表示",
+        "Hide {{count}} columns_one": "列を非表示",
         "Insert column to the left": "左側に列を挿入",
         "Sorted (#{{count}})_other": "ソート (#{{count}})",
         "Attachment": "添付ファイル",
@@ -128,7 +128,7 @@
         "Choice List": "複数選択",
         "Lookups": "Lookups",
         "Shortcuts": "ショートカット",
-        "Show hidden columns": "非表示列を表示"
+        "Show hidden columns": "非表示列を再表示"
     },
     "DocMenu": {
         "This service is not available right now": "このサービスは現在ご利用いただけません",
@@ -579,7 +579,7 @@
         "You do not have edit access to this document": "このドキュメントの編集権限がありません",
         "Add Widget to Page": "ページにウィジェットを追加する",
         "Add Page": "ページを追加",
-        "Document owners can attempt to recover the document. [{{error}}]": "ドキュメントの所有者は、ドキュメントの回復を試みることができます。[{{error}}]",
+        "Document owners can attempt to recover the document. [{{error}}]": "ドキュメントのオーナーは、ドキュメントの回復を試みることができます。[{{error}}]",
         "Reload": "再読み込み",
         "Error accessing document": "ドキュメントへのアクセスエラー",
         "Enter recovery mode": "回復モードに入る"
@@ -753,13 +753,13 @@
         "Save Copy": "コピーを保存"
     },
     "UserManagerModel": {
-        "View & Edit": "表示と編集",
+        "View & Edit": "閲覧と編集",
         "Owner": "オーナー",
         "None": "なし",
         "View Only": "閲覧のみ",
         "No Default Access": "デフォルトアクセスなし",
-        "Viewer": "ビューア",
-        "Editor": "エディター"
+        "Viewer": "閲覧者",
+        "Editor": "編集者"
     },
     "DocumentUsage": {
         "Data Size": "データサイズ",
