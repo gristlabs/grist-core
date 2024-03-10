@@ -475,7 +475,9 @@
         "You do not have write access to this site": "No tiene acceso de escritura a este sitio",
         "Download full document and history": "Descargar documento completo e historial",
         "Remove all data but keep the structure to use as a template": "Elimine todos los datos pero mantenga la estructura para usarla como plantilla",
-        "Remove document history (can significantly reduce file size)": "Eliminar el historial del documento (puede reducir significativamente el tamaño del archivo)"
+        "Remove document history (can significantly reduce file size)": "Eliminar el historial del documento (puede reducir significativamente el tamaño del archivo)",
+        "Download": "Descargar",
+        "Download document": "Descargar el documento"
     },
     "NTextBox": {
         "false": "falso",
