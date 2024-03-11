@@ -303,7 +303,7 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
     const selected = Observable.create<DownloadOption>(owner, 'full');
 
     return [
-      cssModalTitle(`Download document`),
+      cssModalTitle(t(`Download document`)),
       cssRadioCheckboxOptions(
           radioCheckboxOption(selected, 'full', t("Download full document and history")),
           radioCheckboxOption(selected, 'nohistory', t("Remove document history (can significantly reduce file size)")),
@@ -311,7 +311,7 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
       ),
       cssModalButtons(
         dom.domComputed(use =>
-          bigPrimaryButtonLink(`Download`, hooks.maybeModifyLinkAttrs({
+          bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
               href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadUrl({
                 template: use(selected) === "template",
                 removeHistory: use(selected) === "nohistory" || use(selected) === "template",
@@ -325,7 +325,7 @@ export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
             testId('download-button-link'),
           ),
         ),
-        bigBasicButton('Cancel', dom.on('click', () => {
+        bigBasicButton(t('Cancel'), dom.on('click', () => {
           ctl.close();
         }))
       )

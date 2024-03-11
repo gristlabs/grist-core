@@ -2,7 +2,7 @@
  * dispose.js provides tools to components that needs to dispose of resources, such as
  * destroy DOM, and unsubscribe from events. The motivation with examples is presented here:
  *
- *    https://phab.getgrist.com/w/disposal/
+ *    /documentation/disposal/disposal.md
  */
 
 
@@ -191,7 +191,7 @@ Object.assign(Disposable.prototype, {
     }
 
     // Finish by wiping out the object, since nothing should use it after dispose().
-    // See https://phab.getgrist.com/w/disposal/ for more motivation.
+    // See /documentation/disposal.md for more motivation.
     wipeOutObject(this);
   }
 });

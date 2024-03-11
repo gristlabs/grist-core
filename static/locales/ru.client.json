@@ -36,7 +36,8 @@
         "Permission to edit document structure": "Разрешение на редактирование структуры документа",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "При добавлении правил таблицы, автоматически добавить правило для предоставления ВЛАДЕЛЬЦУ полного доступа.",
         "This default should be changed if editors' access is to be limited. ": "Это значение по умолчанию следует изменить, если требуется ограничить доступ редакторов. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Позволяет редакторам редактировать структуру (например, изменять и удалять таблицы, столбцы, макеты) и писать формулы, которые предоставляют доступ ко всем данным независимо от ограничений на чтение."
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Позволяет редакторам редактировать структуру (например, изменять и удалять таблицы, столбцы, макеты) и писать формулы, которые предоставляют доступ ко всем данным независимо от ограничений на чтение.",
+        "Add Table-wide Rule": "Добавить обще-табличное правило"
     },
     "ACUserManager": {
         "Enter email address": "Введите адрес электронной почты",
@@ -1119,7 +1120,11 @@
         "Lookups return data from related tables.": "Lookups возвращают данные из связанных таблиц.",
         "Use reference columns to relate data in different tables.": "Используйте ссылочные столбцы для сопоставления данных в разных таблицах.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Вы можете выбрать виджеты, доступные вам в раскрывающемся списке, или встроить свой собственный, указав его полный URL-адрес.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Формулы поддерживают множество функций Excel, полный синтаксис Python и включает полезного помощника AI."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Формулы поддерживают множество функций Excel, полный синтаксис Python и включает полезного помощника AI.",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Создавайте простые формы прямо в Grist и делитесь ими одним щелчком мыши с помощью нашего нового виджета.. {{learnMoreButton}}",
+        "Forms are here!": "Формы уже здесь!",
+        "Learn more": "Узнать больше",
+        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1342,5 +1347,33 @@
     },
     "Editor": {
         "Delete": "Удалить"
+    },
+    "FormConfig": {
+        "Field rules": "Правила полей",
+        "Required field": "Обязательное поле"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Некоторые обязательные столбцы не сопоставлены",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Чтобы использовать этот виджет, сопоставьте все необязательные столбцы с панели создателя справа."
+    },
+    "FormContainer": {
+        "Build your own form": "Создайте свою собственную форму",
+        "Powered by": "Разработано"
+    },
+    "FormModel": {
+        "There was a problem loading the form.": "Возникла проблема с загрузкой формы.",
+        "You don't have access to this form.": "У вас нет доступа к этой форме.",
+        "Oops! The form you're looking for doesn't exist.": "Ой! Форма, которую вы ищете, не существует.",
+        "Oops! This form is no longer published.": "Ой! Эта форма больше не публикуется."
+    },
+    "FormErrorPage": {
+        "Error": "Ошибка"
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "При отправке формы произошла ошибка. Пожалуйста, попробуйте еще раз."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Форма отправлена",
+        "Thank you! Your response has been recorded.": "Спасибо! Ваш ответ учтен."
     }
 }

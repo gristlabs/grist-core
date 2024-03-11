@@ -130,6 +130,23 @@ You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
 
+## Activating the boot page for diagnosing problems
+
+You can turn on a special "boot page" to inspect the status of your
+installation. Just visit `/boot` on your Grist server for instructions.
+Since it is useful for the boot page to be available even when authentication
+isn't set up, you can give it a special access key by setting `GRIST_BOOT_KEY`.
+
+```
+docker run -p 8484:8484 -e GRIST_BOOT_KEY=secret -it gristlabs/grist
+```
+
+The boot page should then be available at `/boot/<GRIST_BOOT_KEY>`. We are
+starting to collect probes for common problems there. If you hit a problem that
+isn't covered, it would be great if you could add a probe for it in
+[BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts).
+Or file an issue so someone else can add it, we're just getting start with this.
+
 ## Building from source
 
 To build Grist from source, follow these steps:
@@ -242,6 +259,7 @@ GRIST_ADAPT_DOMAIN  | set to "true" to support multiple base domains (careful, h
 GRIST_ALLOWED_HOSTS | comma-separated list of permitted domains origin for requests (e.g. my.site,another.com)
 GRIST_APP_ROOT      | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories).
 GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup
+GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY
 GRIST_DATA_DIR      | directory in which to store document caches.
 GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented
 GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts.
@@ -276,7 +294,8 @@ GRIST_FORCE_LOGIN    | Much like GRIST_ANON_PLAYGROUND but don't support anonymo
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
 GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org
 GRIST_HELP_CENTER | set the help center link ref
-FREE_COACHING_CALL_URL | set the link to the human help (example: email or meeting scheduling tool)
+FREE_COACHING_CALL_URL | set the link to the human help (example: email adress or meeting scheduling tool)
+GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form)
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.
@@ -290,6 +309,7 @@ COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
 PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching
+GRIST_SKIP_REDIS_CHECKSUM_MISMATCH | Experimental. If set, only warn if the checksum in Redis differs with the one in your S3 backend storage. You may turn it on if your backend storage implements the [read-after-write consistency](https://aws.amazon.com/fr/blogs/aws/amazon-s3-update-strong-read-after-write-consistency/). Defaults to false.
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
 GRIST_PROMCLIENT_PORT         | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️.

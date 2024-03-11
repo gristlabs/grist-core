@@ -39,10 +39,10 @@
         "View As": "Voir en tant que",
         "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}",
         "Seed rules": "Règles par défaut",
-        "When adding table rules, automatically add a rule to grant OWNER full access.": "Ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
+        "When adding table rules, automatically add a rule to grant OWNER full access.": "Pour chaque ajout de règle pour une table, ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
         "Permission to edit document structure": "Droits d'édition de la structure",
         "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page...) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture.",
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page) et à écrire des formules, ce qui donne accès à l'ensemble des données sans prendre en compte d'éventuelles restrictions de droits de lecture.",
         "Add Table-wide Rule": "Ajouter une règle pour l'ensemble du tableau"
     },
     "AccountPage": {
@@ -52,15 +52,15 @@
         "Email": "E-mail",
         "Name": "Nom",
         "Save": "Enregistrer",
-        "Password & Security": "Mot de passe & Sécurité",
+        "Password & Security": "Mot de passe et sécurité",
         "Login Method": "Mode de connexion",
         "Change Password": "Modifier le mot de passe",
         "Allow signing in to this account with Google": "Autoriser la connexion à ce compte avec Google",
         "Two-factor authentication": "Authentification à deux facteurs",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "L'authentification à double facteur est une couche additionnelle de sécurité pour votre compte Grist qui permet de s'assurer que vous êtes la seule personne qui peut accéder à votre compte, même si quelqu'un d'autre connaît votre mot de passe.",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "L'authentification à double facteur est une couche supplémentaire de sécurité pour votre compte Grist qui permet de s'assurer que vous êtes la seule personne qui peut accéder à votre compte, même si quelqu'un d'autre connaît votre mot de passe.",
         "Theme": "Thème",
         "API Key": "Clé d’API",
-        "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateurs ne doivent contenir que des lettres, des chiffres, et certains caractères spéciaux",
+        "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateurs ne doivent contenir que des lettres, des chiffres et certains caractères spéciaux",
         "Language": "Langue"
     },
     "AccountWidget": {
@@ -415,7 +415,7 @@
         "Hidden Columns": "Colonnes cachées",
         "Lookups": "Champ rapporté",
         "No reference columns.": "Pas de colonne de référence.",
-        "Apply on record changes": "Appliquer lors de modification de la ligne",
+        "Apply on record changes": "Appliquer lors des modifications de l'enregistrement",
         "Duplicate in {{- label}}": "Duplica dans {{-label}}",
         "Created By": "Créé(e) par",
         "Last Updated At": "Dernière mise à jour le",
@@ -544,7 +544,9 @@
         "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier",
         "Remove all data but keep the structure to use as a template": "Supprimer toutes les données mais garder la structure comme modèle",
         "Remove document history (can significantly reduce file size)": "Supprimer l'historique du document (peut réduire sensiblement la taille du fichier)",
-        "Download full document and history": "Télécharger le document complet et l'historique"
+        "Download full document and history": "Télécharger le document complet et l'historique",
+        "Download": "Télécharger",
+        "Download document": "Télécharger le document"
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",
@@ -629,7 +631,7 @@
         "Detach": "Détacher",
         "SELECT BY": "SÉLECTIONNER PAR",
         "Select Widget": "Choisir la vue",
-        "SELECTOR FOR": "SÉLECTEUR",
+        "SELECTOR FOR": "SÉLECTEUR POUR",
         "Save": "Enregistrer",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
         "Add referenced columns": "Ajouter une colonne référencée",
@@ -644,11 +646,11 @@
         "Hidden field": "Champ caché",
         "Layout": "Mise en page",
         "Submission": "Soumission",
-        "Submit button label": "Libellé du bouton de soumission",
+        "Submit button label": "Libellé du bouton de validation",
         "Success text": "Message de succès",
         "Table column name": "Nom de la colonne",
         "Enter redirect URL": "Saisir l'URL de redirection",
-        "Reset form": "Restaurer le formulaire",
+        "Reset form": "Réinitialiser le formulaire",
         "Submit another response": "Soumettre une autre réponse",
         "Required field": "Champ obligatoire"
     },
@@ -894,7 +896,7 @@
         "Save": "Enregistrer",
         "Cancel": "Annuler",
         "Ok": "OK",
-        "Don't show tips": "Ne pas montrer les astuces",
+        "Don't show tips": "Masquer les astuces",
         "Undo to restore": "Annuler et rétablir",
         "Don't show again": "Ne plus montrer",
         "Delete": "Supprimer",
@@ -1314,7 +1316,7 @@
         "Maybe Later": "Peut-être plus tard",
         "free coaching call": "appel d'assistance gratuit",
         "Schedule Call": "Planifier l'appel",
-        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Lors de l'appel, nous prendrons le temps de comprendre vos besoins et d'adapter l'appel à vos besoins. Nous pouvons vous montrer les bases de Grist, ou commencer à travailler avec vos données immédiatement pour construire les tableaux de bord dont vous avez besoin.",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Lors de l'appel, nous prendrons le temps de comprendre vos besoins et d'adapter l'appel à ces derniers. Nous pouvons vous montrer les bases de Grist, ou commencer tout de suite à travailler avec vos données pour construire les tableaux de bord dont vous avez besoin.",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Planifiez votre {{freeCoachingCall}} avec un membre de notre équipe."
     },
     "FormView": {
@@ -1340,10 +1342,10 @@
         "Header": "Titre"
     },
     "UnmappedFieldsConfig": {
-        "Mapped": "Utilisés",
+        "Mapped": "Utilisé",
         "Select All": "Tout sélectionner",
         "Unmap fields": "Champs non utilisés",
-        "Unmapped": "Non utilisés",
+        "Unmapped": "Non utilisé",
         "Clear": "Effacer",
         "Map fields": "Champs utilisés"
     },
@@ -1355,8 +1357,8 @@
         "Delete": "Supprimer"
     },
     "CustomView": {
-        "Some required columns aren't mapped": "Certaines colonnes obligatoires ne sont pas mappées",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Pour utiliser cette vue, mappez toutes les colonnes non optionnelles à partir du panneau du créateur sur la droite."
+        "Some required columns aren't mapped": "Certaines colonnes obligatoires ne sont pas utilisées",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Pour utiliser cette vue, utilisez toutes les colonnes obligatoires à partir du panneau du créateur sur la droite."
     },
     "FormContainer": {
         "Build your own form": "Créez votre propre formulaire",
