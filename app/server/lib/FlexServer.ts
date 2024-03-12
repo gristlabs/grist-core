@@ -179,7 +179,6 @@ export class FlexServer implements GristServer {
   // Set once ready() is called
   private _isReady: boolean = false;
   private _probes: BootProbes;
-  private _unsubscribeWorkerUnavailableListener?: () => void;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -446,7 +445,8 @@ export class FlexServer implements GristServer {
     // /status/hooks allows the tests to wait for them to be ready.
     // If db=1 query parameter is included, status will include the status of DB connection.
     // If redis=1 query parameter is included, status will include the status of the Redis connection.
-    // If ready=1 query parameter is included, status will include whether the server is fully ready.
+    // If docWorkerRegistered=1 query parameter is included, status will include the status of the
+    // doc worker registration in Redis.
     this.app.get('/status(/hooks)?', async (req, res) => {
       const checks = new Map<string, Promise<boolean>|boolean>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
@@ -467,8 +467,14 @@ export class FlexServer implements GristServer {
       }
       if (isParameterOn(req.query.redis)) {
         checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
-        if (isParameterOn(req.query.docWorkerRegistered) && this.worker) {
-          checks.set('docWorkerRegistered', asyncCheck(this._docWorkerMap.isWorkerRegistered(this.worker.id)));
+      }
+      if (isParameterOn(req.query.docWorkerRegistered) && this.worker) {
+        // Only check whether the doc worker is registered if we have a worker.
+        // The Redis client may not be connected, but in this case this has to
+        // be checked with the 'redis' parameter (the user may want to avoid
+        // removing workers when connection is unstable).
+        if (this._docWorkerMap.getRedisClient()?.connected) {
+          checks.set('docWorkerRegistered', asyncCheck(this._docWorkerMap.isWorkerRegistered(this.worker)));
         }
       }
       if (isParameterOn(req.query.ready)) {
@@ -1942,13 +1948,6 @@ export class FlexServer implements GristServer {
       }
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
-      if (!isAffirmative(process.env.GRIST_MANAGED_WORKERS) && process.env.REDIS_URL) {
-        this._unsubscribeWorkerUnavailableListener = workers.onWorkerUnavailable(this.worker, async () => {
-          log.info("DocWorker became unavailable, shutting down");
-          await this._shutdown();
-        });
-      }
-
     } catch (err) {
       this._healthy = false;
       throw err;
@@ -1980,7 +1979,6 @@ export class FlexServer implements GristServer {
 
     // We urgently want to disable any new assignments.
     await workers.setWorkerAvailability(this.worker.id, false);
-    this._unsubscribeWorkerUnavailableListener?.();
 
     // Enumerate the documents we are responsible for.
     let assignments = await workers.getAssignments(this.worker.id);

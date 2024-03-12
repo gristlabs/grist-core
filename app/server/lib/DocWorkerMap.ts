@@ -57,11 +57,7 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   // release existing assignments.
   setWorkerAvailability(workerId: string, available: boolean): Promise<void>;
 
-  isWorkerRegistered(workerId: string): Promise<boolean>;
-
-  // Call cb when worker has been marked as unavailable in Redis.
-  // This is used to shutdown doc workers gracefully.
-  onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void;
+  isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean>;
 
   // Releases doc from worker, freeing it to be assigned elsewhere.
   // Assignments should only be released for workers that are now unavailable.
