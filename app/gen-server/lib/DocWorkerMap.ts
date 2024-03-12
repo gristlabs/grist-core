@@ -24,6 +24,9 @@ const CHECKSUM_TTL_MSEC = 24 * 60 * 60 * 1000;  // 24 hours
 // How long do permits stored in redis last, in milliseconds.
 const PERMIT_TTL_MSEC = 1 * 60 * 1000;  // 1 minute
 
+// Default doc worker group.
+const DEFAULT_GROUP = 'default';
+
 class DummyDocWorkerMap implements IDocWorkerMap {
   private _worker?: DocWorkerInfo;
   private _available: boolean = false;
@@ -62,8 +65,8 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     this._available = available;
   }
 
-  public onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void {
-    return () => {};
+  public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   public async releaseAssignment(workerId: string, docId: string): Promise<void> {
@@ -188,8 +191,6 @@ export class DocWorkerMap implements IDocWorkerMap {
   private _client: RedisClient;
   private _clients: RedisClient[];
   private _redlock: Redlock;
-  // Required for testing, so we can stub it.
-  private _log = log;
 
   // Optional deploymentKey argument supplies a key unique to the deployment (this is important
   // for maintaining groups across redeployments only)
@@ -251,7 +252,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     try {
       // Drop out of available set first.
       await this._client.sremAsync('workers-available', workerId);
-      const group = await this._client.getAsync(`worker-${workerId}-group`) || 'default';
+      const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
       await this._client.sremAsync(`workers-available-${group}`, workerId);
       // At this point, this worker should no longer be receiving new doc assignments, though
       // clients may still be directed to the worker.
@@ -300,7 +301,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
     log.info(`DocWorkerMap.setWorkerAvailability ${workerId} ${available}`);
-    const group = await this._client.getAsync(`worker-${workerId}-group`) || 'default';
+    const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
     if (available) {
       const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
@@ -316,42 +317,9 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
-  public async isRegisteredWorker(workerInfo: DocWorkerInfo): Promise<boolean> {
-    const group = workerInfo.group || 'default';
+  public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
+    const group = workerInfo.group || DEFAULT_GROUP;
     return Boolean(await this._client.sismemberAsync(`workers-available-${group}`, workerInfo.id));
-  }
-
-  /**
-   * Monitor the availability of a worker.  If the worker is no longer available,
-   * call the callback.
-   *
-   * @param workerInfo The worker we are checking for presence.
-   * @param cb A callback to be called when the worker is no longer available.
-   * @returns A function to stop monitoring the worker.
-   */
-  public onWorkerUnavailable(workerInfo: DocWorkerInfo, cb: () => void): () => void {
-    let timeout: NodeJS.Timeout;
-    const group = workerInfo.group || 'default';
-    const workerId = workerInfo.id;
-
-    (function recursiveTimeout(this: DocWorkerMap) {
-      timeout = setTimeout(async () => {
-        try {
-          if (!await this._client.sismemberAsync(`workers-available-${group}`, workerId)) {
-            this._log.error('DocWorkerMap: Worker "%s" has been marked as unavailable in Redis', workerId);
-            return cb();
-          }
-        } catch (err) {
-          this._log.error('DocWorkerMap: Presence checker failed for worker "%s"', workerId, err);
-        }
-        return recursiveTimeout.call(this);
-      }, DocWorkerMap.MONITOR_AVAILABILITY_INTERVAL);
-    }).call(this);
-
-    return () => {
-      this._log.info('DocWorkerMap: Clearing presence checker for worker "%s"', workerId);
-      clearTimeout(timeout);
-    };
   }
 
   public async releaseAssignment(workerId: string, docId: string): Promise<void> {
@@ -400,7 +368,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (docId === 'import') {
       const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
       try {
-        const _workerId = await this._client.srandmemberAsync(`workers-available-default`);
+        const _workerId = await this._client.srandmemberAsync(`workers-available-${DEFAULT_GROUP}`);
         if (!_workerId) { throw new Error('no doc worker available'); }
         const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
@@ -431,7 +399,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 
       if (!workerId) {
         // Check if document has a preferred worker group set.
-        const group = await this._client.getAsync(`doc-${docId}-group`) || 'default';
+        const group = await this._client.getAsync(`doc-${docId}-group`) || DEFAULT_GROUP;
 
         // Let's start off by assigning documents to available workers randomly.
         // TODO: use a smarter algorithm.

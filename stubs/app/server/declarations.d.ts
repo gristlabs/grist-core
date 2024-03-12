@@ -28,6 +28,7 @@ declare module "redis" {
   function createClient(url?: string): RedisClient;
 
   class RedisClient {
+    public readonly connected: boolean;
     public eval(args: any[], callback?: (err: Error | null, res: any) => void): any;
 
     public subscribe(channel: string): void;
