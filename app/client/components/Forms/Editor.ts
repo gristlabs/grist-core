@@ -123,6 +123,11 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     dom.on('dragstart', (ev) => {
       // Prevent propagation, as we might be in a nested editor.
       ev.stopPropagation();
+      if (props.editMode?.get()) {
+        ev.preventDefault();
+        return;
+      }
+
       ev.dataTransfer?.setData('text/plain', JSON.stringify(box.toJSON()));
       ev.dataTransfer!.dropEffect = "move";
       dragging.set(true);
