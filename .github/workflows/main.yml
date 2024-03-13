@@ -92,7 +92,16 @@ jobs:
         if: contains(matrix.tests, ':common:')
         run: yarn run test:common
 
-      - name: Run server tests with minio and redis
+      - name: Setup Keycloak realm and client
+        if: contains(matrix.tests, ':server-')
+        server: http://localhost:8080/auth
+        username: admin
+        password: admin
+        kcadm: |
+          create realms -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-realms.json
+          create users -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-users-0.json
+
+      - name: Run server tests with minio, keycloak and redis
         if: contains(matrix.tests, ':server-')
         run: |
           export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
@@ -161,6 +170,14 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      keycloak:
+        # image: fflorent/keycloak-with-import-realm:latest # Image with overridden entrypoint.
+        image: quay.io/keycloak/keycloak
+        port: 8080:8080
+        env:
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin
+        volume: ${{ github.workspace }}/.github/workflows/import_keycloak:/opt/keycloak/data/import
 
   candidate:
     needs: build_and_test

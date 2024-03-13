@@ -2370,7 +2370,7 @@ function configServer<T extends https.Server|http.Server>(server: T): T {
 
 // Returns true if environment is configured to allow unauthenticated test logins.
 function allowTestLogin() {
-  return Boolean(process.env.GRIST_TEST_LOGIN);
+  return isAffirmative(process.env.GRIST_TEST_LOGIN);
 }
 
 // Check OPTIONS requests for allowed origins, and return heads to allow the browser to proceed
