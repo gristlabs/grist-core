@@ -256,7 +256,7 @@ APP_STATIC_URL | url prefix for static resources
 APP_STATIC_INCLUDE_CUSTOM_CSS | set to "true" to include custom.css (from APP_STATIC_URL) in static pages
 APP_UNTRUSTED_URL   | URL at which to serve/expect plugin content.
 GRIST_ADAPT_DOMAIN  | set to "true" to support multiple base domains (careful, host header should be trustworthy)
-GRIST_ALLOWED_HOSTS | comma-separated list of permitted domains origin for requests (e.g. my.site,another.com)
+GRIST_ALLOWED_HOSTS | comma-separated list of permitted domains origin for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) requests (e.g. my.site,another.com) with authentication
 GRIST_APP_ROOT      | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories).
 GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup
 GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY
