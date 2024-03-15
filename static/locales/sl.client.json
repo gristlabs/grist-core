@@ -1377,5 +1377,15 @@
     "FormSuccessPage": {
         "Form Submitted": "Obrazec oddan",
         "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen."
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Zadnjih 30 dni",
+        "Last 7 days": "Zadnjih 7 dni",
+        "Last Week": "Zadnji teden",
+        "Next 7 days": "Naslednjih 7 dni",
+        "This month": "Ta mesec",
+        "This week": "Ta teden",
+        "This year": "To leto",
+        "Today": "Danes"
     }
 }
