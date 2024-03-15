@@ -18,7 +18,7 @@ import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
 import {AccessTokenInfo} from 'app/server/lib/AccessTokens';
-import {allowHost, getOriginUrl, isEnvironmentAllowedHost, optStringParam} from 'app/server/lib/requestUtils';
+import {allowHost, getOriginUrl, optStringParam} from 'app/server/lib/requestUtils';
 import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
@@ -271,7 +271,7 @@ export async function addRequestUser(
       // custom-domain owner could hijack such sessions.
       const allowedOrg = getAllowedOrgForSessionID(mreq.sessionID);
       if (allowedOrg) {
-        if (allowHost(req, allowedOrg.host) || isEnvironmentAllowedHost(allowedOrg.host)) {
+        if (allowHost(req, allowedOrg.host)) {
           customHostSession = ` custom-host-match ${allowedOrg.host}`;
         } else {
           // We need an exception for internal forwarding from home server to doc-workers. These use
