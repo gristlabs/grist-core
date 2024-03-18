@@ -3,15 +3,16 @@ import { ValidationGroup, Validator } from 'app/client/lib/Validator';
 import { AppModel, getHomeUrl } from 'app/client/models/AppModel';
 import { reportError, UserError } from 'app/client/models/errors';
 import { urlState } from 'app/client/models/gristUrlState';
+import { UpgradeButton } from 'app/client/ui/ProductUpgradesStub';
 import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
 import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { IModalControl, modal } from 'app/client/ui2018/modals';
-import { BillingAPIImpl } from 'app/common/BillingAPI';
-import { TEAM_FREE_PLAN } from 'app/common/Features';
+import { TEAM_PLAN } from 'app/common/Features';
 import { checkSubdomainValidity } from 'app/common/orgNameUtils';
+import { UserAPIImpl } from 'app/common/UserAPI';
 import {
-  Disposable, dom, DomContents, DomElementArg, DomMethod, input, makeTestId,
+  Disposable, dom, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
   Observable, styled
 } from 'grainjs';
 
@@ -33,8 +34,8 @@ const testId = makeTestId('test-productupgrade-');
  */
 
 export function buildNewSiteModal(context: Disposable, options: {
-  _planName: string,
-  _selectedPlan?: string,
+  planName: string,
+  selectedPlan?: string,
   onCreate?: () => void
 }) {
   const { onCreate } = options;
@@ -57,7 +58,6 @@ class NewSiteModalContent extends Disposable {
   }
 
   public buildDom() {
-    const page = this._page;
     const team = this._team;
     const domain = this._domain;
     return dom.domComputed(this._page, pageValue => {
@@ -66,21 +66,20 @@ class NewSiteModalContent extends Disposable {
         case 'createTeam': return buildTeamPage({
           team,
           domain,
-          create: () => this._createFree(),
-          cancel: () => page.set('plan'),
+          create: () => this._createTeam()
         });
         case 'teamSuccess': return buildConfirm({ domain: domain.get() });
       }
     });
   }
 
-  private async _createFree() {
-    const api = new BillingAPIImpl(getHomeUrl());
+  private async _createTeam() {
+    const api = new UserAPIImpl(getHomeUrl());
     try {
-      await api.createFreeTeam(this._team.get(), this._domain.get());
-      this._page.set('teamFreeSuccess');
+      await api.newOrg({name: this._team.get(), domain: this._domain.get()});
+      this._page.set('teamSuccess');
       if (this._onCreate) {
-        this._onCreate(TEAM_FREE_PLAN);
+        this._onCreate(TEAM_PLAN);
       }
     } catch (err) {
       reportError(err as Error);
@@ -90,6 +89,13 @@ class NewSiteModalContent extends Disposable {
 
 export function buildUpgradeModal(owner: Disposable, planName: string): void {
   throw new UserError(`There is no plan logical in this instance of Grist`);
+}
+
+export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): UpgradeButton {
+  return {
+    showUpgradeCard : () => null,
+    showUpgradeButton : () => null,
+  };
 }
 
 export function buildConfirm({
@@ -111,13 +117,11 @@ export function buildConfirm({
 function buildTeamPage({
   team,
   domain,
-  create,
-  cancel
+  create
 }: {
   team: Observable<string>;
   domain: Observable<string>;
   create: () => any;
-  cancel: () => any;
 }) {
   const disabled = Observable.create(null, false);
   const group = new ValidationGroup();
@@ -161,11 +165,12 @@ function buildTeamPage({
         ),
         dom.create(Validator, group, "Domain name is required", () => !!domain.get()),
         dom.create(Validator, group, "Domain name is invalid", () => checkSubdomainValidity(domain.get())),
-        dom.create(Validator, group, "Domain already in use", () => checkDomainAvailability(domain.get())),
         cssButtonsRow(
           bigBasicButton(
             'Cancel',
-            dom.on('click', cancel),
+            // close modal
+            dom.on('click', () => {}),
+            // dom.on('click', ctrl.close()),
             testId('cancel')),
           bigPrimaryButton("Create site",
             dom.on('click', click),
@@ -176,12 +181,6 @@ function buildTeamPage({
       )
     )
   );
-}
-
-async function checkDomainAvailability(domainToCheck: string) {
-  const api = new BillingAPIImpl(getHomeUrl());
-  const result = await api.isDomainAvailable(domainToCheck);
-  return result;
 }
 
 function showModal(
