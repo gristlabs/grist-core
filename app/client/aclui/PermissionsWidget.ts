@@ -6,14 +6,11 @@ import {colors, testId, theme} from 'app/client/ui2018/cssVars';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {menu, menuIcon, menuItem} from 'app/client/ui2018/menus';
 import {PartialPermissionSet, PartialPermissionValue} from 'app/common/ACLPermissions';
-import {ALL_PERMISSION_PROPS, emptyPermissionSet} from 'app/common/ACLPermissions';
+import {ALL_PERMISSION_PROPS, emptyPermissionSet, PermissionKey} from 'app/common/ACLPermissions';
 import {capitalize} from 'app/common/gutil';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
 import isEqual = require('lodash/isEqual');
 import {makeT} from 'app/client/lib/localization';
-
-// One of the strings 'read', 'update', etc.
-export type PermissionKey = keyof PartialPermissionSet;
 
 // Canonical order of permission bits when rendered in a permissionsWidget.
 const PERMISSION_BIT_ORDER = 'RUCDS';

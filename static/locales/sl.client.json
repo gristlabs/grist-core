@@ -644,7 +644,9 @@
         "However, it appears to be already identical.": "Vendar se zdi, da je že identična.",
         "Update Original": "Posodobitev izvirnika",
         "You do not have write access to this site": "Nimate dovoljenja za pisanje za to spletno mesto",
-        "Download full document and history": "Prenesite celoten dokument in zgodovino"
+        "Download full document and history": "Prenesite celoten dokument in zgodovino",
+        "Download": "Prenesi",
+        "Download document": "Prenesi dokument"
     },
     "SortConfig": {
         "Add Column": "Dodaj stolpec",
@@ -1375,5 +1377,15 @@
     "FormSuccessPage": {
         "Form Submitted": "Obrazec oddan",
         "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen."
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Zadnjih 30 dni",
+        "Last 7 days": "Zadnjih 7 dni",
+        "Last Week": "Zadnji teden",
+        "Next 7 days": "Naslednjih 7 dni",
+        "This month": "Ta mesec",
+        "This week": "Ta teden",
+        "This year": "To leto",
+        "Today": "Danes"
     }
 }

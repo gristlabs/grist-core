@@ -1,4 +1,5 @@
 import {parsePermissions, permissionSetToText, splitSchemaEditPermissionSet} from 'app/common/ACLPermissions';
+import {AVAILABLE_BITS_COLUMNS, AVAILABLE_BITS_TABLES, trimPermissions} from 'app/common/ACLPermissions';
 import {ACLShareRules, TableWithOverlay} from 'app/common/ACLShareRules';
 import {AclRuleProblem} from 'app/common/ActiveDocAPI';
 import {DocData} from 'app/common/DocData';
@@ -537,13 +538,18 @@ function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementat
         if (hasShares && rule.id >= 0) {
           aclFormulaParsed = shareRules.transformNonShareRules({rule, aclFormulaParsed});
         }
+        let permissions = parsePermissions(String(rule.permissionsText));
+        if (tableId !== '*' && tableId !== SPECIAL_RULES_TABLE_ID) {
+          const availableBits = (colIds === '*') ? AVAILABLE_BITS_TABLES : AVAILABLE_BITS_COLUMNS;
+          permissions = trimPermissions(permissions, availableBits);
+        }
         body.push({
           origRecord: rule,
           aclFormula: String(rule.aclFormula),
           matchFunc: rule.aclFormula ? compile?.(aclFormulaParsed) : defaultMatchFunc,
           memo: rule.memo,
-          permissions: parsePermissions(String(rule.permissionsText)),
-          permissionsText: String(rule.permissionsText),
+          permissions,
+          permissionsText: permissionSetToText(permissions)
         });
       }
     }
