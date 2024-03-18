@@ -579,7 +579,9 @@
         "You do not have write access to this site": "Sie haben keinen Schreibzugriff auf diese Seite",
         "Download full document and history": "Vollständiges Dokument und Geschichte herunterladen",
         "Remove all data but keep the structure to use as a template": "Entfernen Sie alle Daten, behalten Sie aber die Struktur als Vorlage bei",
-        "Remove document history (can significantly reduce file size)": "Dokumentverlauf entfernen (kann die Dateigröße deutlich reduzieren)"
+        "Remove document history (can significantly reduce file size)": "Dokumentverlauf entfernen (kann die Dateigröße deutlich reduzieren)",
+        "Download document": "Dokument herunterladen",
+        "Download": "Download"
     },
     "NTextBox": {
         "false": "falsch",
@@ -1439,5 +1441,15 @@
     },
     "FormPage": {
         "There was an error submitting your form. Please try again.": "Beim Absenden Ihres Formulars ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Letzte 30 Tage",
+        "Last 7 days": "Letzte 7 Tage",
+        "Last Week": "Letzte Woche",
+        "Next 7 days": "Nächste 7 Tage",
+        "This month": "Diesen Monat",
+        "This week": "Diese Woche",
+        "This year": "Dieses Jahr",
+        "Today": "Heute"
     }
 }

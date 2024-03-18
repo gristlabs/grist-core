@@ -17,7 +17,7 @@ import {TableData} from 'app/client/models/TableData';
 import {ColumnFilterCalendarView} from 'app/client/ui/ColumnFilterCalendarView';
 import {relativeDatesControl} from 'app/client/ui/ColumnFilterMenuUtils';
 import {cssInput} from 'app/client/ui/cssInput';
-import {DateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
+import {getDateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOptions';
 import {cssPinButton} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {cssLabel as cssCheckboxLabel, cssCheckboxSquare,
@@ -176,16 +176,16 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           cssLinkRow(
             testId('presets-links'),
             cssLink(
-              DateRangeOptions[0].label,
-              dom.on('click', () => action(DateRangeOptions[0]))
+              getDateRangeOptions()[0].label,
+              dom.on('click', () => action(getDateRangeOptions()[0]))
             ),
             cssLink(
-              DateRangeOptions[1].label,
-              dom.on('click', () => action(DateRangeOptions[1]))
+              getDateRangeOptions()[1].label,
+              dom.on('click', () => action(getDateRangeOptions()[1]))
             ),
             cssLink(
               'More ', icon('Dropdown'),
-              menu(() => DateRangeOptions.map(
+              menu(() => getDateRangeOptions().map(
                 (option) => menuItem(() => action(option), option.label)
               ), {attach: '.' + cssMenu.className})
             ),

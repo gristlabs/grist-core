@@ -544,7 +544,9 @@
         "You do not have write access to the selected workspace": "Vous n’avez pas accès en écriture à ce dossier",
         "Remove all data but keep the structure to use as a template": "Supprimer toutes les données mais garder la structure comme modèle",
         "Remove document history (can significantly reduce file size)": "Supprimer l'historique du document (peut réduire sensiblement la taille du fichier)",
-        "Download full document and history": "Télécharger le document complet et l'historique"
+        "Download full document and history": "Télécharger le document complet et l'historique",
+        "Download": "Télécharger",
+        "Download document": "Télécharger le document"
     },
     "NotifyUI": {
         "Upgrade Plan": "Améliorer votre abonnement",

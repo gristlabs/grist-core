@@ -93,6 +93,7 @@ import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import uuidv4 from "uuid/v4";
+import { Document } from "app/gen-server/entity/Document";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -646,6 +647,9 @@ export class DocWorkerApi {
       // full document.
       const dryRun = isAffirmative(req.query.dryrun || req.query.dryRun);
       const dryRunSuccess = () => res.status(200).json({dryRun: 'allowed'});
+
+      const filename = await this._getDownloadFilename(req);
+
       // We want to be have a way download broken docs that ActiveDoc may not be able
       // to load.  So, if the user owns the document, we unconditionally let them
       // download.
@@ -655,13 +659,13 @@ export class DocWorkerApi {
           // We carefully avoid creating an ActiveDoc for the document being downloaded,
           // in case it is broken in some way.  It is convenient to be able to download
           // broken files for diagnosis/recovery.
-          return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+          return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
         } catch (e) {
           if (e.message && e.message.match(/does not exist yet/)) {
             // The document has never been seen on file system / s3.  It may be new, so
             // we try again after having created an ActiveDoc for the document.
             await this._getActiveDoc(req);
-            return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+            return this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
           } else {
             throw e;
           }
@@ -674,7 +678,7 @@ export class DocWorkerApi {
           throw new ApiError('not authorized to download this document', 403);
         }
         if (dryRun) { dryRunSuccess(); return; }
-        return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+        return this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
       }
     }));
 
@@ -1222,7 +1226,7 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
       const doc = await this._dbManager.getDoc(req);
-      const options = this._getDownloadOptions(req, doc.name);
+      const options = await this._getDownloadOptions(req, doc);
       const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
       const apiPath = await this._grist.getResourceUrl(doc, 'api');
       const query = new URLSearchParams(req.query as {[key: string]: string});
@@ -1241,18 +1245,16 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
-      // Query DB for doc metadata to get the doc title.
-      const {name: docTitle} = await this._dbManager.getDoc(req);
-      const options = this._getDownloadOptions(req, docTitle);
+      const options = await this._getDownloadOptions(req);
 
       await downloadCSV(activeDoc, req, res, options);
     }));
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
-      // Query DB for doc metadata to get the doc title (to use as the filename).
-      const {name: docTitle} = await this._dbManager.getDoc(req);
-      const options: DownloadOptions = !_.isEmpty(req.query) ? this._getDownloadOptions(req, docTitle) : {
-        filename: docTitle,
+      const options: DownloadOptions = (!_.isEmpty(req.query) && !_.isEqual(Object.keys(req.query), ["title"]))
+        ? await this._getDownloadOptions(req)
+        : {
+        filename: await this._getDownloadFilename(req),
         tableId: '',
         viewSectionId: undefined,
         filters: [],
@@ -1734,11 +1736,23 @@ export class DocWorkerApi {
     return docAuth.docId!;
   }
 
-  private _getDownloadOptions(req: Request, name: string): DownloadOptions {
+  private async _getDownloadFilename(req: Request, tableId?: string, optDoc?: Document): Promise<string> {
+    let filename = optStringParam(req.query.title, 'title');
+    if (!filename) {
+      // Query DB for doc metadata to get the doc data.
+      const doc = optDoc || await this._dbManager.getDoc(req);
+      const docTitle = doc.name;
+      const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
+      filename = docTitle + suffix || 'document';
+    }
+    return filename;
+  }
+
+  private async _getDownloadOptions(req: Request, doc?: Document): Promise<DownloadOptions> {
     const params = parseExportParameters(req);
     return {
       ...params,
-      filename: name + (params.tableId === name ? '' : '-' + params.tableId),
+      filename: await this._getDownloadFilename(req, params.tableId, doc),
     };
   }
 

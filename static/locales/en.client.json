@@ -547,7 +547,9 @@
         "You do not have write access to this site": "You do not have write access to this site",
         "Download full document and history": "Download full document and history",
         "Remove all data but keep the structure to use as a template": "Remove all data but keep the structure to use as a template",
-        "Remove document history (can significantly reduce file size)": "Remove document history (can significantly reduce file size)"
+        "Remove document history (can significantly reduce file size)": "Remove document history (can significantly reduce file size)",
+        "Download": "Download",
+        "Download document": "Download document"
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
@@ -1376,5 +1378,15 @@
     "FormSuccessPage": {
         "Form Submitted": "Form Submitted",
         "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded."
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Last 30 days",
+        "Last 7 days": "Last 7 days",
+        "Last Week": "Last Week",
+        "Next 7 days": "Next 7 days",
+        "This month": "This month",
+        "This week": "This week",
+        "This year": "This year",
+        "Today": "Today"
     }
 }

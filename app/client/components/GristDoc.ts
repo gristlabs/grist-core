@@ -358,9 +358,9 @@ export class GristDoc extends DisposableWithEvents {
       urlState().state,
       isTourActiveObs(),
       fromKo(this.docModel.isTutorial),
-      (_use, state, hasActiveTour, isTutorial) => {
+      async (_use, state, hasActiveTour, isTutorial) => {
         // Tours and tutorials can interfere with in-product tips and announcements.
-        const hasPendingDocTour = state.docTour || this._shouldAutoStartDocTour();
+        const hasPendingDocTour = state.docTour || await this._shouldAutoStartDocTour();
         const hasPendingWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
         const isPopupManagerDisabled = this.behavioralPromptsManager.isDisabled();
         if (
@@ -401,7 +401,7 @@ export class GristDoc extends DisposableWithEvents {
       }
 
       const shouldStartTutorial = isTutorial;
-      const shouldStartDocTour = state.docTour || this._shouldAutoStartDocTour();
+      const shouldStartDocTour = state.docTour || await this._shouldAutoStartDocTour();
       const shouldStartWelcomeTour = state.welcomeTour || this._shouldAutoStartWelcomeTour();
       if (shouldStartTutorial || shouldStartDocTour || shouldStartWelcomeTour) {
         isStartingTourOrTutorial = true;
@@ -1823,15 +1823,22 @@ export class GristDoc extends DisposableWithEvents {
   /**
    * Returns whether a doc tour should automatically be started.
    *
-   * Currently, tours are started if a GristDocTour table exists and the user hasn't
-   * seen the tour before.
+   * Currently, tours are started if a non-empty GristDocTour table exists and the
+   * user hasn't seen the tour before.
    */
-  private _shouldAutoStartDocTour(): boolean {
-    if (this._disableAutoStartingTours || this.docModel.isTutorial()) {
+  private async _shouldAutoStartDocTour(): Promise<boolean> {
+    if (
+      this._disableAutoStartingTours ||
+      this.docModel.isTutorial() ||
+      !this.docModel.hasDocTour() ||
+      this._seenDocTours.get()?.includes(this.docId())
+    ) {
       return false;
     }
 
-    return this.docModel.hasDocTour() && !this._seenDocTours.get()?.includes(this.docId());
+    const tableData = this.docData.getTable('GristDocTour')!;
+    await this.docData.fetchTable('GristDocTour');
+    return tableData.numRecords() > 0;
   }
 
   /**

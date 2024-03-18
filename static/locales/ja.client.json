@@ -38,8 +38,8 @@
         "Insert row below": "下に行を挿入",
         "Delete": "削除",
         "Copy anchor link": "リンクをコピー",
-        "Duplicate rows_one": "重複行",
-        "Duplicate rows_other": "重複行",
+        "Duplicate rows_one": "行を複製",
+        "Duplicate rows_other": "行を複製",
         "Insert row above": "上に行を挿入"
     },
     "Drafts": {
@@ -103,7 +103,7 @@
         "Reset {{count}} entire columns_one": "列全体をリセット",
         "Convert formula to data": "数式をデータに変換する",
         "Freeze {{count}} more columns_other": "さらに {{count}} 列固定する",
-        "Hide {{count}} columns_one": "列非表示",
+        "Hide {{count}} columns_one": "列を非表示",
         "Insert column to the left": "左側に列を挿入",
         "Sorted (#{{count}})_other": "ソート (#{{count}})",
         "Attachment": "添付ファイル",
@@ -125,14 +125,17 @@
         "Date": "日付",
         "DateTime": "日時",
         "Choice": "選択",
-        "Choice List": "複数選択"
+        "Choice List": "複数選択",
+        "Lookups": "Lookups",
+        "Shortcuts": "ショートカット",
+        "Show hidden columns": "非表示列を再表示"
     },
     "DocMenu": {
         "This service is not available right now": "このサービスは現在ご利用いただけません",
         "Workspace not found": "ワークスペースが見つかりません",
         "Discover More Templates": "その他のテンプレート",
         "Current workspace": "現在のワークスペース",
-        "Edited {{at}}": "{{at}}による編集",
+        "Edited {{at}}": "{{at}}に更新",
         "Pin Document": "ドキュメントをピン留めする",
         "Remove": "削除",
         "By Date Modified": "変更日",
@@ -195,7 +198,14 @@
         "Add referenced columns": "参照列の追加",
         "TRANSFORM": "変換",
         "Sort & Filter": "ソート＆フィルター",
-        "Widget": "ウィジェット"
+        "Widget": "ウィジェット",
+        "Submit button label": "送信ボタンのラベル",
+        "Submit another response": "別の回答を送信",
+        "Display button": "ボタンを表示",
+        "Redirect automatically after submission": "送信後に自動的にリダイレクトする",
+        "Redirection": "リダイレクト",
+        "Required field": "必須フィールド",
+        "Enter redirect URL": "リダイレクト先URL"
     },
     "FloatingPopup": {
         "Maximize": "最大化",
@@ -306,27 +316,27 @@
         "team site": "チームサイト",
         "Create a team to share with more people": "より多くの人と共有するためにチームを作る",
         "guest": "ゲスト",
-        "Public access: ": "パブリックアクセス： ",
+        "Public access: ": "公開： ",
         "Team member": "チームメンバー",
         "Manage members of team site": "チームサイトのメンバーの管理",
         "Off": "Off",
         "Save & ": "保存 ",
         "Outside collaborator": "外部コラボレーター",
         "{{collaborator}} limit exceeded": "{{collaborator}} 制限超過",
-        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "ユーザは{{parent})}からパーミッションを継承します。削除するには、'Inherit access' オプションを 'None' に設定します。",
+        "User inherits permissions from {{parent})}. To remove,           set 'Inherit access' option to 'None'.": "ユーザは{{parent})}からパーミッションを継承します。削除するには、'アクセス権の継承' オプションを 'None' に設定します。",
         "Your role for this {{resourceType}}": "この{{resourceType}}のあなたの役割",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "一旦自分のアクセス権を削除してしまうと、{{resourceType}} に十分なアクセス権を持つ他の誰かの援助がない限り、元に戻すことはできません。",
         "Close": "閉じる",
         "Allow anyone with the link to open.": "誰でもリンクを開くことができるようにする。",
         "Invite people to {{resourceType}}": "{{resourceType}} に招待する",
-        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "パブリックアクセスは{{parent}} から継承されます。 削除するには、'Inherit access' オプションを 'None' に設定します。",
+        "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "公開設定は{{parent}} から継承されます。 削除するには、'アクセス権の継承' オプションを 'None' に設定します。",
         "Remove my access": "アクセスを削除",
-        "Public access": "パブリック・アクセス",
-        "Public Access": "パブリック・アクセス",
+        "Public access": "公開",
+        "Public Access": "公開",
         "Cancel": "キャンセル",
         "Grist support": "Gristサポート",
         "You are about to remove your own access to this {{resourceType}}": "この {{resourceType}} への自分のアクセス権を削除しようとしています",
-        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "ユーザは{{parent}} からパーミッションを継承します。 削除するには、'Inherit access' オプションを 'None' に設定します。",
+        "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "ユーザは{{parent}} からパーミッションを継承します。 削除するには、'アクセス権の継承' オプションを 'None' に設定します。",
         "Guest": "ゲスト",
         "Invite multiple": "複数招待",
         "Confirm": "確認",
@@ -394,9 +404,10 @@
         "Rules for table ": "テーブルのルール ",
         "Checking...": "チェック中…",
         "Special Rules": "特別ルール",
-        "View As": "として表示",
+        "View As": "役割で表示",
         "Seed rules": "シード・ルール",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。"
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "編集者による構造の編集（例：テーブル、列、レイアウトの変更や削除）、および数式の書き込みを許可し、読み取り制限に関係なくすべてのデータにアクセスできるようにする。",
+        "Add Table-wide Rule": "テーブル全体のルールを追加"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "単純なデータ値を数式列に保存することは不可能なはずです",
@@ -454,13 +465,13 @@
         "Copy": "コピー",
         "Delete {{count}} columns_one": "列の削除",
         "Delete {{count}} columns_other": "{{count}}列削除",
-        "Duplicate rows_one": "重複行",
+        "Duplicate rows_one": "行を複製",
         "Insert row above": "上に行を挿入",
         "Delete {{count}} rows_other": "{{count}}行削除",
         "Clear values": "値をクリア",
         "Clear cell": "セルをクリア",
         "Comment": "コメント",
-        "Duplicate rows_other": "重複行",
+        "Duplicate rows_other": "行を複製",
         "Reset {{count}} columns_one": "列をリセット",
         "Insert column to the right": "右側に列を挿入",
         "Filter by this value": "この値でフィルタ",
@@ -543,7 +554,7 @@
         "Code View": "コードビュー",
         "Return to viewing as yourself": "自分自身のビューに戻る",
         "Raw Data": "生データ",
-        "Document History": "ドキュメント履歴"
+        "Document History": "ドキュメントの履歴"
     },
     "menus": {
         "Reference List": "参照リスト",
@@ -568,7 +579,7 @@
         "You do not have edit access to this document": "このドキュメントの編集権限がありません",
         "Add Widget to Page": "ページにウィジェットを追加する",
         "Add Page": "ページを追加",
-        "Document owners can attempt to recover the document. [{{error}}]": "ドキュメントの所有者は、ドキュメントの回復を試みることができます。[{{error}}]",
+        "Document owners can attempt to recover the document. [{{error}}]": "ドキュメントのオーナーは、ドキュメントの回復を試みることができます。[{{error}}]",
         "Reload": "再読み込み",
         "Error accessing document": "ドキュメントへのアクセスエラー",
         "Enter recovery mode": "回復モードに入る"
@@ -742,13 +753,13 @@
         "Save Copy": "コピーを保存"
     },
     "UserManagerModel": {
-        "View & Edit": "表示と編集",
+        "View & Edit": "閲覧と編集",
         "Owner": "オーナー",
         "None": "なし",
         "View Only": "閲覧のみ",
         "No Default Access": "デフォルトアクセスなし",
-        "Viewer": "ビューア",
-        "Editor": "エディター"
+        "Viewer": "閲覧者",
+        "Editor": "編集者"
     },
     "DocumentUsage": {
         "Data Size": "データサイズ",
@@ -937,7 +948,9 @@
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "数式は多くの Excel 関数、完全な Python 構文をサポートし、便利な AI アシスタントが含まれています。",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUIDはランダムに生成される文字列で、一意の識別子やキーとして役立ちます。",
         "The total size of all data in this document, excluding attachments.": "添付ファイルを除く、このドキュメント内のすべてのデータの合計サイズ。",
-        "Lookups return data from related tables.": "Lookupは関連テーブルからデータを返します。"
+        "Lookups return data from related tables.": "Lookupは関連テーブルからデータを返します。",
+        "Reference columns are the key to {{relational}} data in Grist.": "参照列は、Grist の {{relational}} データへのキーです。",
+        "These rules are applied after all column rules have been processed, if applicable.": "これらのルールは、列ルールの処理が終わった後に適用されます。"
     },
     "AppHeader": {
         "Personal Site": "個人サイト",
@@ -1108,5 +1121,17 @@
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Googleドライブにファイルを送信する"
+    },
+    "CardContextMenu": {
+        "Insert card": "カードを挿入",
+        "Duplicate card": "カードを複製",
+        "Delete card": "カードを削除"
+    },
+    "FormView": {
+        "Publish your form?": "このフォームを公開しますか？",
+        "Publish": "公開"
+    },
+    "Menu": {
+        "Paragraph": "段落"
     }
 }

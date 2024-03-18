@@ -1,7 +1,7 @@
-import {emptyPermissionSet, PartialPermissionSet,
+import {emptyPermissionSet, PartialPermissionSet, PermissionKey,
         summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
 import {makePartialPermissions, parsePermissions, permissionSetToText} from 'app/common/ACLPermissions';
-import {mergePartialPermissions, mergePermissions} from 'app/common/ACLPermissions';
+import {mergePartialPermissions, mergePermissions, trimPermissions} from 'app/common/ACLPermissions';
 import {assert} from 'chai';
 
 describe("ACLPermissions", function() {
@@ -110,6 +110,17 @@ describe("ACLPermissions", function() {
     assert.deepEqual(merge(parsePermissions("+U-D"), makePartialPermissions(parsePermissions("all"))),
       {read: 'allowSome', create: 'allowSome', update: 'allow', delete: 'deny', schemaEdit: 'allowSome'}
     );
+  });
+
+  it('should support trimPermissions', function() {
+    const trim = (permissionsText: string, availableBits: PermissionKey[]) =>
+      permissionSetToText(trimPermissions(parsePermissions(permissionsText), availableBits));
+    assert.deepEqual(trim("+CRUD", ["read", "update"]), "+RU");
+    assert.deepEqual(trim("all", ["read", "update"]), "+RU");
+    assert.deepEqual(trim("-C+R-U+D-S", ["update", "read"]), "+R-U");
+    assert.deepEqual(trim("none", ["read", "update", "create", "delete", "schemaEdit"]), "none");
+    assert.deepEqual(trim("none", ["read", "update", "create", "delete"]), "-CRUD");
+    assert.deepEqual(trim("none", ["read"]), "-R");
   });
 
   it ('should allow summarization of permission sets', function() {
