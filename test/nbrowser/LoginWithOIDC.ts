@@ -4,14 +4,15 @@ import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
 describe('LoginWithOIDC', function() {
+  before(function() {
+    if (!process.env.GRIST_OIDC_SP_HOST) {
+      return this.skip();
+    }
+  });
   this.timeout(60000);
   setupTestSuite();
   gu.withEnvironmentSnapshot({
     get 'GRIST_OIDC_SP_HOST'() { return server.getHost(); },
-    'GRIST_OIDC_IDP_ISSUER': 'http://localhost:8081/realms/grist',
-    'GRIST_OIDC_IDP_CLIENT_ID': 'keycloak_clientid',
-    'GRIST_OIDC_IDP_CLIENT_SECRET': 'keycloak_secret',
-    'GRIST_OIDC_IDP_SCOPES': 'openid email profile',
     'GRIST_TEST_LOGIN': 0,
   });
 
