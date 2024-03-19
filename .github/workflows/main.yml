@@ -97,12 +97,12 @@ jobs:
         uses: carlosthe19916/keycloak-action@0.4
         if: contains(matrix.tests, ':keycloak:')
         with:
-          server: http://localhost:8080/auth
+          server: http://keycloak:8080/auth
           username: admin
           password: admin
           kcadm: |
-            create realms -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-realms.json
-            create users -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-users-0.json
+            create realms -f .github/workflows/import_keycloak/grist-realm.json
+            create users -f .github/workflows/import_keycloak/grist-users-0.json
 
       - name: Run server tests with minio and redis
         if: contains(matrix.tests, ':server-')
@@ -186,14 +186,17 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       keycloak:
-        # image: fflorent/keycloak-with-import-realm:latest # Image with overridden entrypoint.
         image: quay.io/keycloak/keycloak
         ports:
           - 8080:8080
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
-
+        options: >-
+          --health-cmd "curl --fail http://localhost:8080/auth || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
   candidate:
     needs: build_and_test
     if: ${{ success() && github.event_name == 'push' }}
