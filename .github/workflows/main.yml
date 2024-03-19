@@ -192,11 +192,6 @@ jobs:
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
-        options: >-
-          --health-cmd "curl --fail http://localhost:8080/auth || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
   candidate:
     needs: build_and_test
     if: ${{ success() && github.event_name == 'push' }}
