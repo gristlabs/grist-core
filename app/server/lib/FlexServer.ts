@@ -1849,7 +1849,7 @@ export class FlexServer implements GristServer {
   }
 
   public resolveLoginSystem() {
-    return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
+    return isAffirmative(process.env.GRIST_TEST_LOGIN) ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
   }
 
   // Adds endpoints that support imports and exports.

@@ -461,8 +461,6 @@
     "clientId": "keycloak_clientid",
     "name": "keycloak_clientid",
     "description": "",
-    "rootUrl": "http://localhost:8484",
-    "adminUrl": "http://localhost:8484",
     "baseUrl": "",
     "surrogateAuthRequired": false,
     "enabled": true,
@@ -470,7 +468,7 @@
     "clientAuthenticatorType": "client-secret",
     "secret": "xLn3SBOgrnsUvGn95AEOMWW7fNROuqMi",
     "redirectUris": [
-      "/oauth2/callback"
+      "*"
     ],
     "webOrigins": [],
     "notBefore": 0,
@@ -487,7 +485,7 @@
       "oidc.ciba.grant.enabled": false,
       "client.secret.creation.time": "1710262687",
       "backchannel.logout.session.required": "true",
-      "post.logout.redirect.uris": "/*",
+      "post.logout.redirect.uris": "*",
       "oauth2.device.authorization.grant.enabled": "false",
       "display.on.consent.screen": "false",
       "backchannel.logout.revoke.offline.tokens": "false",

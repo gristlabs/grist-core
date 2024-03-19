@@ -149,7 +149,10 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       delete env.DOC_WORKER_COUNT;
     }
     this._server = spawn('node', [cmd], {
-      env,
+      env: {
+        ...env,
+        ...(process.env.SERVER_NODE_OPTIONS ? {NODE_OPTIONS: process.env.SERVER_NODE_OPTIONS} : {})
+      },
       stdio: quiet ? 'ignore' : ['inherit', serverLog, serverLog],
     });
     this._exitPromise = exitPromise(this._server);
