@@ -93,13 +93,15 @@ jobs:
         run: yarn run test:common
 
       - name: Setup Keycloak realm and client
+        uses: carlosthe19916/keycloak-action@0.4
         if: contains(matrix.tests, ':server-')
-        server: http://localhost:8080/auth
-        username: admin
-        password: admin
-        kcadm: |
-          create realms -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-realms.json
-          create users -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-users-0.json
+        with:
+          server: http://localhost:8080/auth
+          username: admin
+          password: admin
+          kcadm: |
+            create realms -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-realms.json
+            create users -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-users-0.json
 
       - name: Run server tests with minio, keycloak and redis
         if: contains(matrix.tests, ':server-')
@@ -115,6 +117,10 @@ jobs:
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
+          GRIST_OIDC_IDP_ISSUER: "http://127.0.0.1:8080/realms/grist"
+          GRIST_OIDC_IDP_CLIENT_ID: "keycloak_clientid"
+          GRIST_OIDC_IDP_CLIENT_SECRET: "keycloak_secret"
+          GRIST_OIDC_IDP_SCOPES: "openid email profile"
 
       - name: Run main tests without minio and redis
         if: contains(matrix.tests, ':nbrowser-')
@@ -173,11 +179,11 @@ jobs:
       keycloak:
         # image: fflorent/keycloak-with-import-realm:latest # Image with overridden entrypoint.
         image: quay.io/keycloak/keycloak
-        port: 8080:8080
+        ports:
+          - 8080:8080
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
-        volume: ${{ github.workspace }}/.github/workflows/import_keycloak:/opt/keycloak/data/import
 
   candidate:
     needs: build_and_test
