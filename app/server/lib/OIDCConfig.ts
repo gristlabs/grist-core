@@ -69,7 +69,7 @@ import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
 import _ from 'lodash';
-import {SessionObj} from './BrowserSession';
+import { SessionObj } from './BrowserSession';
 
 enum ENABLED_PROTECTIONS {
   NONCE,
@@ -84,11 +84,9 @@ const CALLBACK_URL = '/oauth2/callback';
 function formatTokenForLogs(token: TokenSet) {
   return _.chain(token)
     .omitBy(_.isFunction)
-    .mapValues((v, k) => {
-      if (!['token_type', 'expires_in', 'expires_at', 'scope'].includes(k)) {
-        return 'REDACTED';
-      }
-      return v;
+    .mapValues((value, key) => {
+      const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'].includes(key);
+      return showValueInClear ? value : 'REDACTED';
     }).value();
 }
 
@@ -166,10 +164,10 @@ export class OIDCConfig {
 
     this._enabledProtections = this._buildEnabledProtections(section);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    await this._initClient({issuerUrl, clientId, clientSecret, extraMetadata});
+    await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
 
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
-        !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
+      !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
         'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
         'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
@@ -259,20 +257,20 @@ export class OIDCConfig {
     return this._enabledProtections.includes(protection);
   }
 
-  protected async _initClient({issuerUrl, clientId, clientSecret, extraMetadata}:
-    {issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
+  protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
+    { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
   ): Promise<void> {
     const issuer = await Issuer.discover(issuerUrl);
     this._client = new issuer.Client({
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uris: [ this._redirectUrl ],
-      response_types: [ 'code' ],
+      redirect_uris: [this._redirectUrl],
+      response_types: ['code'],
       ...extraMetadata,
     });
   }
 
-  private _forgeProtectionParamsForAuthUrl(protections: {codeVerifier?: string, state?: string, nonce?: string}) {
+  private _forgeProtectionParamsForAuthUrl(protections: { codeVerifier?: string, state?: string, nonce?: string }) {
     return _.omitBy({
       state: protections.state,
       nonce: protections.nonce,
@@ -321,7 +319,7 @@ export class OIDCConfig {
   }
 
   private async _retrieveChecksFromSession(mreq: RequestWithLogin):
-    Promise<{code_verifier?: string, state?: string, nonce?: string}> {
+    Promise<{ code_verifier?: string, state?: string, nonce?: string }> {
     if (!mreq.session) { throw new Error('no session available'); }
 
     const state = mreq.session.oidc?.state;
@@ -330,7 +328,7 @@ export class OIDCConfig {
     }
 
     const codeVerifier = mreq.session.oidc?.codeVerifier;
-    if (!codeVerifier && this.supportsProtection('PKCE') ) { throw new Error('Login is stale'); }
+    if (!codeVerifier && this.supportsProtection('PKCE')) { throw new Error('Login is stale'); }
 
     const nonce = mreq.session.oidc?.nonce;
     if (!nonce && this.supportsProtection('NONCE')) { throw new Error('Login is stale'); }
@@ -340,14 +338,14 @@ export class OIDCConfig {
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
     return {
-      email: String(userInfo[ this._emailPropertyKey ]),
+      email: String(userInfo[this._emailPropertyKey]),
       name: this._extractName(userInfo)
     };
   }
 
-  private _extractName(userInfo: UserinfoResponse): string|undefined {
+  private _extractName(userInfo: UserinfoResponse): string | undefined {
     if (this._namePropertyKey) {
-      return (userInfo[ this._namePropertyKey ] as any)?.toString();
+      return (userInfo[this._namePropertyKey] as any)?.toString();
     }
     const fname = userInfo.given_name ?? '';
     const lname = userInfo.family_name ?? '';
@@ -356,7 +354,7 @@ export class OIDCConfig {
   }
 }
 
-export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> {
+export async function getOIDCLoginSystem(): Promise<GristLoginSystem | undefined> {
   if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
@@ -371,6 +369,6 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> 
         },
       };
     },
-    async deleteUser() {},
+    async deleteUser() { },
   };
 }
