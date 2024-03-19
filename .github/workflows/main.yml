@@ -28,6 +28,7 @@ jobs:
           - ':nbrowser-^[M-O]:'
           - ':nbrowser-^[P-S]:'
           - ':nbrowser-^[^A-S]:'
+          - ':nbrowser:keycloak:'
         include:
           - tests: ':lint:python:client:common:smoke:'
             node-version: 18.x
@@ -73,7 +74,7 @@ jobs:
         run: yarn run build:prod
 
       - name: Install chromedriver
-        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:')
+        if: contains(matrix.tests, ':nbrowser') || contains(matrix.tests, ':smoke:')
         run: ./node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
 
       - name: Run smoke test
@@ -94,7 +95,7 @@ jobs:
 
       - name: Setup Keycloak realm and client
         uses: carlosthe19916/keycloak-action@0.4
-        if: contains(matrix.tests, ':server-')
+        if: contains(matrix.tests, ':keycloak:')
         with:
           server: http://localhost:8080/auth
           username: admin
@@ -103,7 +104,7 @@ jobs:
             create realms -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-realms.json
             create users -f ${{ github.workspace }}/.github/workflows/import_keycloak/grist-users-0.json
 
-      - name: Run server tests with minio, keycloak and redis
+      - name: Run server tests with minio and redis
         if: contains(matrix.tests, ':server-')
         run: |
           export TEST_SPLITS=$(echo $TESTS | sed "s/.*:server-\([^:]*\).*/\1/")
@@ -117,10 +118,6 @@ jobs:
           GRIST_DOCS_MINIO_ENDPOINT: localhost
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
-          GRIST_OIDC_IDP_ISSUER: "http://127.0.0.1:8080/realms/grist"
-          GRIST_OIDC_IDP_CLIENT_ID: "keycloak_clientid"
-          GRIST_OIDC_IDP_CLIENT_SECRET: "keycloak_secret"
-          GRIST_OIDC_IDP_SCOPES: "openid email profile"
 
       - name: Run main tests without minio and redis
         if: contains(matrix.tests, ':nbrowser-')
@@ -132,6 +129,18 @@ jobs:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
           TESTDIR: ${{ runner.temp }}/test-logs
+
+      - name: Run integration with Keycloak
+        if: contains(matrix.tests, ':nbrowser:keycloak:')
+        env:
+          GRIST_OIDC_IDP_ISSUER: "http://127.0.0.1:8080/realms/grist"
+          GRIST_OIDC_IDP_CLIENT_ID: "keycloak_clientid"
+          GRIST_OIDC_IDP_CLIENT_SECRET: "keycloak_secret"
+          GRIST_OIDC_IDP_SCOPES: "openid email profile"
+        run: |
+          mkdir -p $MOCHA_WEBDRIVER_LOGDIR
+          export GREP_TESTS="LoginWithOIDC"
+          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
 
       - name: Prepare for saving artifact
         if: failure()
