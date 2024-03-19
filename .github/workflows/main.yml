@@ -94,15 +94,17 @@ jobs:
         run: yarn run test:common
 
       - name: Setup Keycloak realm and client
-        uses: carlosthe19916/keycloak-action@0.4
+        uses: addnab/docker-run-action@v3
         if: contains(matrix.tests, ':keycloak:')
         with:
-          server: http://keycloak:8080/auth
-          username: admin
-          password: admin
-          kcadm: |
-            create realms -f .github/workflows/import_keycloak/grist-realm.json
-            create users -f .github/workflows/import_keycloak/grist-users-0.json
+          image: quay.io/keycloak/keycloak
+          options: -v ${{ github.workspace }}:/workspace
+          run: |
+            set -eu -o pipefail
+            cd /opt/keycloak/bin
+            ./kcadm.sh config credentials --server http://keycloak:8080/ --realm=master --user=admin --password=admin
+            ./kcadm.sh create realms -f /workspace/.github/workflows/import_keycloak/grist-realm.json
+            ./kcadm.sh create users -r grist -f /workspace/.github/workflows/import_keycloak/grist-users-0.json
 
       - name: Run server tests with minio and redis
         if: contains(matrix.tests, ':server-')
@@ -192,6 +194,15 @@ jobs:
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
+
+        # curl not being present in the keycloak container, use this trick:
+        # https://github.com/keycloak/keycloak/discussions/17319#discussioncomment-5192267
+        options: >-
+          --health-cmd "echo > /dev/tcp/localhost/8080"
+          --health-interval 20s
+          --health-timeout 5s
+          --health-retries 20
+
   candidate:
     needs: build_and_test
     if: ${{ success() && github.event_name == 'push' }}
