@@ -924,7 +924,11 @@ GridView.prototype.makeHeadersFromRow = async function(selection) {
     if (isList(newColLabel)) {
       newColLabel = newColLabel[1];
     }
-    if (newColLabel) {
+    if (typeof newColLabel === 'string') {
+      newColLabel = newColLabel.trim();
+    }
+    // Check value is not empty but accept 0 and false as valid values
+    if (newColLabel !== null && newColLabel !== undefined && newColLabel !== "") {
       return [...acc, ['ModifyColumn', colId, {"label": formatter.formatAny(newColLabel)}]];
     }
     return acc
