@@ -268,7 +268,9 @@
         "You do not have write access to this site": "У вас нет права записи для этого сайта",
         "Remove all data but keep the structure to use as a template": "Удалить все данные, но сохранить структуру для использования в качестве шаблона.",
         "Download full document and history": "Скачать полный документ и историю",
-        "Remove document history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)"
+        "Remove document history (can significantly reduce file size)": "Удалить историю документа (может значительно уменьшить размер файла)",
+        "Download": "Скачать",
+        "Download document": "Скачать документ"
     },
     "ShareMenu": {
         "Back to Current": "Вернуться к текущему",
@@ -1375,5 +1377,15 @@
     "FormSuccessPage": {
         "Form Submitted": "Форма отправлена",
         "Thank you! Your response has been recorded.": "Спасибо! Ваш ответ учтен."
+    },
+    "DateRangeOptions": {
+        "Today": "Сегодня",
+        "Last 30 days": "Последние 30 дней",
+        "Last 7 days": "Последние 7 дней",
+        "Last Week": "Последняя неделя",
+        "Next 7 days": "Следующие 7 дней",
+        "This month": "Этот месяц",
+        "This week": "Эта неделя",
+        "This year": "Текущий год"
     }
 }
