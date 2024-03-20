@@ -18,21 +18,6 @@ import {
 
 const testId = makeTestId('test-create-team-');
 
-/**
- * Product upgrade UI.
- *
- * Contains and exposes 4 elements:
- * - New site modal (modal shown after pressing new site button)
- * - Upgrade modal (modal shown after pressing upgrade button or link)
- * - FreeTeam upgrade nudge shown on the home screen on personal orgs
- * - Upgrade button that is shown in the doc list header
- *   NOTE: upgrade button for free personal site is called "Create site"
- *
- * For Free personal site - there is no upgrade logic yet, so all upgrades are actually routed to new
- * site creation modal. For example Upgrade button for free personal org is called Create site and will
- * display create site modal instead of an upgrade.
- */
-
 export function buildNewSiteModal(context: Disposable, options: {
   planName: string,
   selectedPlan?: string,
@@ -76,7 +61,7 @@ class NewSiteModalContent extends Disposable {
   private async _createTeam() {
     const api = new UserAPIImpl(getHomeUrl());
     try {
-      await api.newOrg({name: this._team.get(), domain: this._domain.get()});
+      await api.newOrg({ name: this._team.get(), domain: this._domain.get() });
       this._page.set('teamSuccess');
       if (this._onCreate) {
         this._onCreate(TEAM_PLAN);
@@ -93,8 +78,8 @@ export function buildUpgradeModal(owner: Disposable, planName: string): void {
 
 export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): UpgradeButton {
   return {
-    showUpgradeCard : () => null,
-    showUpgradeButton : () => null,
+    showUpgradeCard: () => null,
+    showUpgradeButton: () => null,
   };
 }
 
@@ -110,7 +95,7 @@ export function buildConfirm({
     hspace('40px'),
     bigPrimaryButtonLink(
       urlState().setLinkUrl({ org: domain || undefined }), 'Go to your site', testId("confirmation-link")
-      )
+    )
   );
 }
 
@@ -171,8 +156,8 @@ function buildTeamPage({
           bigBasicButton(
             'Cancel',
             // close modal
-            dom.on('click', () => {}),
-            // dom.on('click', ctrl.close()),
+            // dom.on('click', () => {}),
+            dom.on('click', () => close()),
             testId('cancel')),
           bigPrimaryButton("Create site",
             dom.on('click', click),
