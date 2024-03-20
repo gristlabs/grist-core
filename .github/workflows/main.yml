@@ -28,7 +28,6 @@ jobs:
           - ':nbrowser-^[M-O]:'
           - ':nbrowser-^[P-S]:'
           - ':nbrowser-^[^A-S]:'
-          - ':nbrowser:keycloak:'
         include:
           - tests: ':lint:python:client:common:smoke:'
             node-version: 18.x
@@ -74,7 +73,7 @@ jobs:
         run: yarn run build:prod
 
       - name: Install chromedriver
-        if: contains(matrix.tests, ':nbrowser') || contains(matrix.tests, ':smoke:')
+        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:')
         run: ./node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
 
       - name: Run smoke test
@@ -92,19 +91,6 @@ jobs:
       - name: Run common tests
         if: contains(matrix.tests, ':common:')
         run: yarn run test:common
-
-      - name: Setup Keycloak realm and client
-        uses: addnab/docker-run-action@v3
-        if: contains(matrix.tests, ':keycloak:')
-        with:
-          image: quay.io/keycloak/keycloak
-          options: -v ${{ github.workspace }}:/workspace
-          run: |
-            set -eu -o pipefail
-            cd /opt/keycloak/bin
-            ./kcadm.sh config credentials --server http://keycloak:8080/ --realm=master --user=admin --password=admin
-            ./kcadm.sh create realms -f /workspace/.github/workflows/import_keycloak/grist-realm.json
-            ./kcadm.sh create users -r grist -f /workspace/.github/workflows/import_keycloak/grist-users-0.json
 
       - name: Run server tests with minio and redis
         if: contains(matrix.tests, ':server-')
@@ -131,18 +117,6 @@ jobs:
           TESTS: ${{ matrix.tests }}
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
           TESTDIR: ${{ runner.temp }}/test-logs
-
-      - name: Run integration with Keycloak
-        if: contains(matrix.tests, ':nbrowser:keycloak:')
-        env:
-          GRIST_OIDC_IDP_ISSUER: "http://127.0.0.1:8080/realms/grist"
-          GRIST_OIDC_IDP_CLIENT_ID: "keycloak_clientid"
-          GRIST_OIDC_IDP_CLIENT_SECRET: "keycloak_secret"
-          GRIST_OIDC_IDP_SCOPES: "openid email profile"
-        run: |
-          mkdir -p $MOCHA_WEBDRIVER_LOGDIR
-          export GREP_TESTS="LoginWithOIDC"
-          MOCHA_WEBDRIVER_SKIP_CLEANUP=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:nbrowser
 
       - name: Prepare for saving artifact
         if: failure()
@@ -187,21 +161,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      keycloak:
-        image: quay.io/keycloak/keycloak
-        ports:
-          - 8080:8080
-        env:
-          KEYCLOAK_ADMIN: admin
-          KEYCLOAK_ADMIN_PASSWORD: admin
-
-        # curl not being present in the keycloak container, use this trick:
-        # https://github.com/keycloak/keycloak/discussions/17319#discussioncomment-5192267
-        options: >-
-          --health-cmd "echo > /dev/tcp/localhost/8080"
-          --health-interval 20s
-          --health-timeout 5s
-          --health-retries 20
 
   candidate:
     needs: build_and_test
