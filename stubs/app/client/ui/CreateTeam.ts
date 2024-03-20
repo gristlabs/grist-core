@@ -16,7 +16,7 @@ import {
   Observable, styled
 } from 'grainjs';
 
-const testId = makeTestId('test-productupgrade-');
+const testId = makeTestId('test-create-team-');
 
 /**
  * Product upgrade UI.
@@ -141,7 +141,7 @@ function buildTeamPage({
   });
   return cssWide(
     cssHeaderLine("Work as a Team"),
-    cssSubHeaderLine("Choose a name and subdomain for your team site"),
+    cssSubHeaderLine("Choose a name and url for your team site"),
     hspace('24px'),
     cssColumns(
       cssSetup(
@@ -155,13 +155,15 @@ function buildTeamPage({
           testId('name')))),
         dom.create(Validator, group, "Team name is required", () => !!team.get()),
         hspace('2em'),
-        cssPaymentLabel('Team subdomain'),
+        cssPaymentLabel('Team url'),
         cssPaymentRow(
           { style: 'align-items: baseline' },
+          cssPaymentField(
+            { style: 'flex: 0 1 0; min-width: auto; margin-right: 5px' },
+            dom.text(`${window.location.origin}/o/`)),
           cssPaymentField(cssBillingInput(
             domain, { onInput: true }, clickOnEnter, group.inputReset(), testId('domain')
           )),
-          cssPaymentField({ style: 'flex: 0 1 0; min-width: auto; margin-left: 5px' }, dom.text('.getgrist.com'))
         ),
         dom.create(Validator, group, "Domain name is required", () => !!domain.get()),
         dom.create(Validator, group, "Domain name is invalid", () => checkSubdomainValidity(domain.get())),
@@ -336,7 +338,7 @@ const cssModalIndex = styled('div', `
   z-index: ${vars.pricingModalZIndex}
 `);
 
-const inputStyle = `
+const cssBillingInput = styled(input, `
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
   font-size: ${vars.mediumFontSize};
@@ -364,6 +366,4 @@ const inputStyle = `
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
   }
-`;
-
-const cssBillingInput = styled(input, inputStyle);
+`);
