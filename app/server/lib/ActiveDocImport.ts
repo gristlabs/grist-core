@@ -345,8 +345,17 @@ export class ActiveDocImport {
       if (file.ext) {
         origName = path.basename(origName, path.extname(origName)) + file.ext;
       }
+      const fileParseOptions = {...parseOptions};
+      if (file.ext === '.dsv') {
+        if (!fileParseOptions.delimiter) {
+          fileParseOptions.delimiter = '💩';
+        }
+        if (!fileParseOptions.encoding) {
+          fileParseOptions.encoding = 'utf-8';
+        }
+      }
       const res = await this._importFileAsNewTable(docSession, file.absPath, {
-        parseOptions,
+        parseOptions: fileParseOptions,
         mergeOptionsMap: mergeOptionMaps[index] || {},
         isHidden,
         originalFilename: origName,

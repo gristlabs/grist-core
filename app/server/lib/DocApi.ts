@@ -53,7 +53,7 @@ import {docSessionFromRequest, getDocSessionShare, makeExceptionalDocSession,
 import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
-import {downloadCSV} from "app/server/lib/ExportCSV";
+import {downloadDSV} from "app/server/lib/ExportDSV";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {streamXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -1247,7 +1247,19 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
       const options = await this._getDownloadOptions(req);
 
-      await downloadCSV(activeDoc, req, res, options);
+      await downloadDSV(activeDoc, req, res, {...options, delimiter: ','});
+    }));
+
+    this._app.get('/api/docs/:docId/download/tsv', canView, withDoc(async (activeDoc, req, res) => {
+      const options = await this._getDownloadOptions(req);
+
+      await downloadDSV(activeDoc, req, res, {...options, delimiter: '\t'});
+    }));
+
+    this._app.get('/api/docs/:docId/download/dsv', canView, withDoc(async (activeDoc, req, res) => {
+      const options = await this._getDownloadOptions(req);
+
+      await downloadDSV(activeDoc, req, res, {...options, delimiter: '💩'});
     }));
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {

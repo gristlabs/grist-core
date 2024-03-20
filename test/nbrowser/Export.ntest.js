@@ -1,4 +1,4 @@
-import { assert } from 'mocha-webdriver';
+import { assert, driver } from 'mocha-webdriver';
 import { $, gu, test } from 'test/nbrowser/gristUtil-nbrowser';
 
 const fse = require('fs-extra');
@@ -35,7 +35,10 @@ describe('Export.ntest', function() {
     await $('.test-tb-share').click();
     // Once the menu opens, get the href of the link.
     await $('.grist-floating-menu').wait();
-    const href = await $('.grist-floating-menu a:contains(CSV)').wait().getAttribute('href');
+    const submenu = $('.test-tb-share-option:contains(Export as...)');
+    await driver.withActions(a => a.move({origin: submenu.elem()}));
+    const href = await $('.grist-floating-menu a:contains(Comma Separated Values)').wait()
+      .getAttribute('href');
     // Download the data at the link and compare to expected.
     const resp = await axios.get(href, {responseType: 'text', headers});
     assert.equal(resp.headers['content-disposition'],
@@ -50,7 +53,10 @@ describe('Export.ntest', function() {
     await $('.test-tb-share').click();
     // Once the menu opens, get the href of the link.
     await $('.grist-floating-menu').wait();
-    const href = await $('.grist-floating-menu a:contains(CSV)').wait().getAttribute('href');
+    const submenu = $('.test-tb-share-option:contains(Export as...)');
+    await driver.withActions(a => a.move({origin: submenu.elem()}));
+    const href = await $('.grist-floating-menu a:contains(Comma Separated Values)').wait()
+      .getAttribute('href');
     // Download the data at the link and compare to expected.
     const resp = await axios.get(href, {responseType: 'text', headers});
     assert.equal(resp.data, dataExpected.sorted);
