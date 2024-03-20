@@ -1016,6 +1016,13 @@ export async function sendActions(actions: UserAction[]) {
   await driver.manage().setTimeouts({
     script: 1000 * 2, /* 2 seconds, default is 0.5s */
   });
+
+  // Make quick test that we have a list of actions not just a single action, by checking
+  // if the first element is an array.
+  if (actions.length && !Array.isArray(actions[0])) {
+    throw new Error('actions argument should be a list of actions, not a single action');
+  }
+
   const result = await driver.executeAsyncScript(`
     const done = arguments[arguments.length - 1];
     const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
