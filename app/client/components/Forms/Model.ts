@@ -2,7 +2,6 @@ import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRend
 import * as elements from 'app/client/components/Forms/elements';
 import {FormView} from 'app/client/components/Forms/FormView';
 import {bundleChanges, Computed, Disposable, dom, IDomArgs, MutableObsArray, obsArray, Observable} from 'grainjs';
-import {v4 as uuidv4} from 'uuid';
 
 type Callback = () => Promise<void>;
 
@@ -33,9 +32,7 @@ export abstract class BoxModel extends Disposable {
   }
 
   /**
-   * The id of the created box. The value here is not important. It is only used as a plain old pointer to this
-   * element. Every new box will get a new id in constructor. Even if this is the same box as before. We just need
-   * it as box are serialized to JSON and put into clipboard, and we need to be able to find them back.
+   * The unique id of the box.
    */
   public id: string;
   /**
@@ -77,8 +74,7 @@ export abstract class BoxModel extends Disposable {
       parent.children.autoDispose(this);
     }
 
-    // Store "pointer" to this element.
-    this.id = uuidv4();
+    this.id = box.id;
 
     // Create observables for all properties.
     this.type = box.type;
@@ -91,15 +87,6 @@ export abstract class BoxModel extends Disposable {
     // Some boxes need to do some work after initialization, so we call this method.
     // Of course, they also can override the constructor, but this is a bit easier.
     this.onCreate();
-  }
-
-  /**
-   * Public method that should be called when this box is dropped somewhere. In derived classes
-   * this method can send some actions to the server, or do some other work. In particular Field
-   * will insert or reveal a column.
-   */
-  public async afterDrop() {
-
   }
 
   /**
@@ -134,12 +121,19 @@ export abstract class BoxModel extends Disposable {
   }
 
   /**
-   * Cuts self and puts it into clipboard.
+   * Copies self and puts it into clipboard.
    */
-  public async cutSelf() {
+  public async copySelf() {
     [...this.root().traverse()].forEach(box => box?.cut.set(false));
     // Add this box as a json to clipboard.
     await navigator.clipboard.writeText(JSON.stringify(this.toJSON()));
+  }
+
+  /**
+   * Cuts self and puts it into clipboard.
+   */
+  public async cutSelf() {
+    await this.copySelf();
     this.cut.set(true);
   }
 
@@ -339,27 +333,28 @@ export abstract class BoxModel extends Disposable {
       this.prop(key).set(boxDef[key]);
     }
 
-    // Add or delete any children that were removed or added.
-    const myLength = this.children.get().length;
-    const newLength = boxDef.children ? boxDef.children.length : 0;
-    if (myLength > newLength) {
-      this.children.splice(newLength, myLength - newLength);
-    } else if (myLength < newLength) {
-      for (let i = myLength; i < newLength; i++) {
-        const toPush = boxDef.children![i];
-        this.children.push(toPush && BoxModel.new(toPush, this));
+    // First remove any children from the model that aren't in `boxDef`.
+    const boxDefChildren = boxDef.children ?? [];
+    const boxDefChildrenIds = new Set(boxDefChildren.map(c => c.id));
+    for (const child of this.children.get()) {
+      if (!boxDefChildrenIds.has(child.id)) {
+        child.removeSelf();
       }
     }
 
-    if (!boxDef.children) { return; }
-
-    // Update those that indices are the same.
-    const min = Math.min(myLength, newLength);
-    for (let i = 0; i < min; i++) {
-      const atIndex = this.children.get()[i];
-      const atIndexDef = boxDef.children[i];
-      atIndex.update(atIndexDef);
+    // Then add or update the children from `boxDef` to the model.
+    const newChildren: BoxModel[] = [];
+    const modelChildrenById = new Map(this.children.get().map(c => [c.id, c]));
+    for (const boxDefChild of boxDefChildren) {
+      if (!boxDefChild.id || !modelChildrenById.has(boxDefChild.id)) {
+        newChildren.push(BoxModel.new(boxDefChild, this));
+      } else {
+        const existingChild = modelChildrenById.get(boxDefChild.id)!;
+        existingChild.update(boxDefChild);
+        newChildren.push(existingChild);
+      }
     }
+    this.children.set(newChildren);
   }
 
   /**
@@ -381,12 +376,18 @@ export abstract class BoxModel extends Disposable {
     }
   }
 
+  public canRemove() {
+    return true;
+  }
+
   protected onCreate() {
 
   }
 }
 
 export class LayoutModel extends BoxModel {
+  public disableDeleteSection: Computed<boolean>;
+
   constructor(
     box: FormLayoutNode,
     public parent: BoxModel | null,
@@ -394,6 +395,9 @@ export class LayoutModel extends BoxModel {
     public view: FormView
   ) {
     super(box, parent, view);
+    this.disableDeleteSection = Computed.create(this, use => {
+      return use(this.children).filter(c => c.type === 'Section').length === 1;
+    });
   }
 
   public async save(clb?: Callback) {

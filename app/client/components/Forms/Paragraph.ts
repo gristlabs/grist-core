@@ -1,10 +1,12 @@
-import * as css from './styles';
+import {FormLayoutNode} from 'app/client/components/FormRenderer';
+import {buildEditor} from 'app/client/components/Forms/Editor';
 import {BoxModel} from 'app/client/components/Forms/Model';
+import * as css from 'app/client/components/Forms/styles';
 import {textarea} from 'app/client/ui/inputs';
 import {theme} from 'app/client/ui2018/cssVars';
 import {not} from 'app/common/gutil';
 import {Computed, dom, Observable, styled} from 'grainjs';
-import {buildEditor} from 'app/client/components/Forms/Editor';
+import {v4 as uuidv4} from 'uuid';
 
 export class ParagraphModel extends BoxModel {
   public edit = Observable.create(this, false);
@@ -58,6 +60,10 @@ export class ParagraphModel extends BoxModel {
       )
     });
   }
+}
+
+export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): FormLayoutNode {
+  return {id: uuidv4(), type: 'Paragraph', text, alignment};
 }
 
 const cssTextArea = styled(textarea, `

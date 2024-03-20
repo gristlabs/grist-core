@@ -1,11 +1,19 @@
+import {allCommands} from 'app/client/components/commands';
 import {FormLayoutNode} from 'app/client/components/FormRenderer';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FieldModel} from 'app/client/components/Forms/Field';
+import {FormView} from 'app/client/components/Forms/FormView';
 import {buildMenu} from 'app/client/components/Forms/Menu';
-import {BoxModel} from 'app/client/components/Forms/Model';
+import {BoxModel, LayoutModel} from 'app/client/components/Forms/Model';
+import {Paragraph} from 'app/client/components/Forms/Paragraph';
 import * as style from 'app/client/components/Forms/styles';
 import {makeTestId} from 'app/client/lib/domUtils';
+import {makeT} from 'app/client/lib/localization';
+import * as menus from 'app/client/ui2018/menus';
 import {dom, styled} from 'grainjs';
+import {v4 as uuidv4} from 'uuid';
+
+const t = makeT('FormView');
 
 const testId = makeTestId('test-forms-');
 
@@ -13,14 +21,17 @@ const testId = makeTestId('test-forms-');
  * Component that renders a section of the form.
  */
 export class SectionModel extends BoxModel {
+  constructor(box: FormLayoutNode, parent: BoxModel | null, view: FormView) {
+    super(box, parent, view);
+  }
+
   public override render(): HTMLElement {
     const children = this.children;
     return buildEditor({
       box: this,
       // Custom drag element that is little bigger and at the top of the section.
       drag: style.cssDragWrapper(style.cssDrag('DragDrop', style.cssDrag.cls('-top'))),
-      // No way to remove section now.
-      removeIcon: null,
+      showRemoveButton: use => !use((this.root() as LayoutModel).disableDeleteSection),
       // Content is just a list of children.
       content: style.cssSection(
         // Wrap them in a div that mutes hover events.
@@ -35,6 +46,18 @@ export class SectionModel extends BoxModel {
             style.cssPlusIcon('Plus'),
             buildMenu({
               box: this,
+              customItems: [
+                menus.menuItem(
+                  () => allCommands.insertFieldBefore.run({structure: 'Section'}),
+                  menus.menuIcon('Section'),
+                  t('Insert section above'),
+                ),
+                menus.menuItem(
+                  () => allCommands.insertFieldAfter.run({structure: 'Section'}),
+                  menus.menuIcon('Section'),
+                  t('Insert section below'),
+                ),
+              ],
             })
           ),
         )
@@ -79,19 +102,35 @@ export class SectionModel extends BoxModel {
     const fieldsToRemove = Array.from(this.filter(b => b instanceof FieldModel)) as FieldModel[];
     const fieldIdsToRemove = fieldsToRemove.map(f => f.leaf.get());
 
-    // Remove each child of this section from the layout.
-    this.children.get().forEach(child => { child.removeSelf(); });
-
-    // Remove this section from the layout.
-    this.removeSelf();
-
-    // Finally, remove the fields and save the changes to the layout.
     await this.parent?.save(async () => {
+      // Remove the fields.
       if (fieldIdsToRemove.length > 0) {
         await this.view.viewSection.removeField(fieldIdsToRemove);
       }
+
+      // Remove each child of this section from the layout.
+      this.children.get().forEach(child => { child.removeSelf(); });
+
+      // Remove this section from the layout.
+      this.removeSelf();
     });
   }
+
+  public canRemove() {
+    return !((this.parent as LayoutModel).disableDeleteSection.get());
+  }
+}
+
+export function Section(...children: FormLayoutNode[]): FormLayoutNode {
+  return {
+    id: uuidv4(),
+    type: 'Section',
+    children: [
+      Paragraph('### **Header**'),
+      Paragraph('Description'),
+      ...children,
+    ],
+  };
 }
 
 const cssSectionItems = styled('div.hover_border', `

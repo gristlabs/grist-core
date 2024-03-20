@@ -983,6 +983,22 @@ export function isNarrowScreenObs(): Observable<boolean> {
   return _isNarrowScreenObs;
 }
 
+export function isXSmallScreen() {
+  return window.innerWidth < smallScreenWidth;
+}
+
+let _isXSmallScreenObs: Observable<boolean>|undefined;
+
+// Returns a singleton observable for whether the screen is an extra small one.
+export function isXSmallScreenObs(): Observable<boolean> {
+  if (!_isXSmallScreenObs) {
+    const obs = Observable.create<boolean>(null, isXSmallScreen());
+    window.addEventListener('resize', () => obs.set(isXSmallScreen()));
+    _isXSmallScreenObs = obs;
+  }
+  return _isXSmallScreenObs;
+}
+
 export const cssHideForNarrowScreen = styled('div', `
   @media ${mediaSmall} {
     & {

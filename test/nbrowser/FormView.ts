@@ -20,29 +20,6 @@ describe('FormView', function() {
 
   afterEach(() => gu.checkForErrors());
 
-  /**
-   * Adds a temporary textarea to the document for pasting the contents of
-   * the clipboard.
-   *
-   * Used to test copying of form URLs to the clipboard.
-   */
-  function createClipboardTextArea() {
-    const textArea = document.createElement('textarea');
-    textArea.style.position = 'absolute';
-    textArea.style.top = '0';
-    textArea.style.height = '2rem';
-    textArea.style.width = '16rem';
-    textArea.id = 'clipboardText';
-    window.document.body.appendChild(textArea);
-  }
-
-  function removeClipboardTextArea() {
-    const textArea = document.getElementById('clipboardText');
-    if (textArea) {
-      window.document.body.removeChild(textArea);
-    }
-  }
-
   async function createFormWith(type: string, more = false) {
     await gu.addNewSection('Form', 'Table1');
 
@@ -69,8 +46,11 @@ describe('FormView', function() {
 
     // Now open the form in external window.
     await clipboard.lockAndPerform(async (cb) => {
-      await driver.find(`.test-forms-link`).click();
+      const shareButton = await driver.find(`.test-forms-share`);
+      await gu.scrollIntoView(shareButton);
+      await shareButton.click();
       await gu.waitForServer();
+      await driver.findWait('.test-forms-link', 1000).click();
       await gu.waitToPass(async () => assert.match(
         await driver.find('.test-tooltip').getText(), /Link copied to clipboard/), 1000);
       await driver.find('#clipboardText').click();
@@ -121,12 +101,9 @@ describe('FormView', function() {
       const session = await gu.session().login();
       docId = await session.tempNewDoc(cleanup);
       api = session.createHomeApi();
-      await driver.executeScript(createClipboardTextArea);
     });
 
-    after(async function() {
-      await driver.executeScript(removeClipboardTextArea);
-    });
+    gu.withClipboardTextArea();
 
     it('updates creator panel when navigated away', async function() {
       // Add 2 new pages.
@@ -186,6 +163,12 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).click();
+        await gu.sendKeys('Hello');
+        assert.equal(await driver.find('input[name="D"]').value(), 'Hello');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '');
+        await driver.find('input[name="D"]').click();
         await gu.sendKeys('Hello World');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -201,6 +184,12 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).click();
+        await gu.sendKeys('1983');
+        assert.equal(await driver.find('input[name="D"]').value(), '1983');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '');
+        await driver.find('input[name="D"]').click();
         await gu.sendKeys('1984');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -216,9 +205,13 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).click();
-        await driver.executeScript(
-          () => (document.querySelector('input[name="D"]') as HTMLInputElement).value = '2000-01-01'
-        );
+        await gu.sendKeys('01011999');
+        assert.equal(await driver.find('input[name="D"]').getAttribute('value'), '1999-01-01');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').getAttribute('value'), '');
+        await driver.find('input[name="D"]').click();
+        await gu.sendKeys('01012000');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -239,21 +232,30 @@ describe('FormView', function() {
       await gu.choicesEditor.save();
       await gu.toggleSidePanel('right', 'close');
 
-      // We need to press preview, as form is not saved yet.
+      // We need to press view, as form is not saved yet.
       await gu.scrollActiveViewTop();
       await gu.waitToPass(async () => {
-        assert.isTrue(await driver.find('.test-forms-preview').isDisplayed());
+        assert.isTrue(await driver.find('.test-forms-view').isDisplayed());
       });
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        const select = await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('select[name="D"]', 2000);
         // Make sure options are there.
         assert.deepEqual(
-          await driver.findAll('select[name="D"] option', e => e.getText()), ['— Choose —', 'Foo', 'Bar', 'Baz']
+          await driver.findAll('select[name="D"] option', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
         );
-        await select.click();
-        await driver.find("option[value='Bar']").click();
+        await driver.find('.test-form-search-select').click();
+        assert.deepEqual(
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+        );
+        await gu.sendKeys('Baz', Key.ENTER);
+        assert.equal(await driver.find('select[name="D"]').value(), 'Baz');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('select[name="D"]').value(), '');
+        await driver.find('.test-form-search-select').click();
+        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -267,6 +269,12 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).click();
+        await gu.sendKeys('1983');
+        assert.equal(await driver.find('input[name="D"]').value(), '1983');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '');
+        await driver.find('input[name="D"]').click();
         await gu.sendKeys('1984');
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -282,6 +290,11 @@ describe('FormView', function() {
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).findClosest("label").click();
+        assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), 'true');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), null);
+        await driver.find('input[name="D"]').findClosest("label").click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -314,7 +327,12 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D[]"][value="Foo"]', 2000).click();
+        await driver.findWait('input[name="D[]"][value="Bar"]', 2000).click();
+        assert.equal(await driver.find('input[name="D[]"][value="Bar"]').getAttribute('checked'), 'true');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D[]"][value="Bar"]').getAttribute('checked'), null);
+        await driver.find('input[name="D[]"][value="Foo"]').click();
         await driver.find('input[name="D[]"][value="Baz"]').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
@@ -339,17 +357,26 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        const select = await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('select[name="D"]', 2000);
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()),
-          ['— Choose —', ...['Bar', 'Baz', 'Foo']]
+          ['Select...', ...['Bar', 'Baz', 'Foo']]
         );
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.value()),
           ['', ...['2', '3', '1']]
         );
-        await select.click();
-        await driver.find('option[value="2"]').click();
+        await driver.find('.test-form-search-select').click();
+        assert.deepEqual(
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Bar', 'Baz', 'Foo']
+        );
+        await gu.sendKeys('Baz', Key.ENTER);
+        assert.equal(await driver.find('select[name="D"]').value(), '3');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('select[name="D"]').value(), '');
+        await driver.find('.test-form-search-select').click();
+        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -379,11 +406,16 @@ describe('FormView', function() {
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        await driver.findWait('input[name="D[]"][value="1"]', 2000).click();
-        await driver.find('input[name="D[]"][value="2"]').click();
-        assert.equal(await driver.find('label:has(input[name="D[]"][value="1"])').getText(), 'Foo');
+        assert.equal(await driver.findWait('label:has(input[name="D[]"][value="1"])', 2000).getText(), 'Foo');
         assert.equal(await driver.find('label:has(input[name="D[]"][value="2"])').getText(), 'Bar');
         assert.equal(await driver.find('label:has(input[name="D[]"][value="3"])').getText(), 'Baz');
+        await driver.find('input[name="D[]"][value="1"]').click();
+        assert.equal(await driver.find('input[name="D[]"][value="1"]').getAttribute('checked'), 'true');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D[]"][value="1"]').getAttribute('checked'), null);
+        await driver.find('input[name="D[]"][value="1"]').click();
+        await driver.find('input[name="D[]"][value="2"]').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -402,12 +434,22 @@ describe('FormView', function() {
 
       // Temporarily make A a formula column.
       await gu.sendActions([
-        ['AddRecord', 'Table1', null, {A: 'Foo'}],
-        ['UpdateRecord', '_grist_Tables_column', 2, {formula: '"hello"', isFormula: true}],
+        ['ModifyColumn', 'Table1', 'A', {formula: '"hello"', isFormula: true}],
       ]);
-      assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), ['hello']);
 
-      // Check that A is excluded from the form, and we can still submit it.
+      // Check that A is hidden in the form editor.
+      await gu.waitToPass(async () => assert.deepEqual(await readLabels(), ['B', 'C', 'D']));
+      await gu.openWidgetPanel('widget');
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
+        ['B', 'C', 'D']
+      );
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
+        []
+      );
+
+      // Check that A is excluded from the published form.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('input[name="D"]', 2000).click();
@@ -418,15 +460,78 @@ describe('FormView', function() {
       });
 
       // Make sure we see the new record.
-      await expectInD(['', 'Hello World']);
+      await expectInD(['Hello World']);
 
       // And check that A was not modified.
-      assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), ['hello', 'hello']);
+      assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), ['hello']);
 
+      // Revert A and check that it's visible again in the editor.
       await gu.sendActions([
-        ['RemoveRecord', 'Table1', 1],
-        ['UpdateRecord', '_grist_Tables_column', 2, {formula: '', isFormula: false}],
+        ['ModifyColumn', 'Table1', 'A', {formula: '', isFormula: false}],
       ]);
+      await gu.waitToPass(async () => assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']));
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
+        ['A', 'B', 'C', 'D']
+      );
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
+        []
+      );
+
+      await removeForm();
+    });
+
+    it('excludes attachment fields from forms', async function() {
+      const formUrl = await createFormWith('Text');
+
+      // Temporarily make A an attachments column.
+      await gu.sendActions([
+        ['ModifyColumn', 'Table1', 'A', {type: 'Attachments'}],
+      ]);
+
+      // Check that A is hidden in the form editor.
+      await gu.waitToPass(async () => assert.deepEqual(await readLabels(), ['B', 'C', 'D']));
+      await gu.openWidgetPanel('widget');
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
+        ['B', 'C', 'D']
+      );
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
+        []
+      );
+
+      // Check that A is excluded from the published form.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D"]', 2000).click();
+        await gu.sendKeys('Hello World');
+        assert.isFalse(await driver.find('input[name="A"]').isPresent());
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+
+      // Make sure we see the new record.
+      await expectInD(['Hello World']);
+
+      // And check that A was not modified.
+      assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.A), [null]);
+
+      // Revert A and check that it's visible again in the editor.
+      await gu.sendActions([
+        ['ModifyColumn', 'Table1', 'A', {type: 'Text'}],
+      ]);
+      await gu.waitToPass(async () => assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']));
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-visible-field', (e) => e.getText()),
+        ['A', 'B', 'C', 'D']
+      );
+      assert.deepEqual(
+        await driver.findAll('.test-vfc-hidden-field', (e) => e.getText()),
+        []
+      );
+
       await removeForm();
     });
 
@@ -851,28 +956,33 @@ describe('FormView', function() {
     checkFieldInMore('Reference List');
 
     const testStruct = (type: string, existing = 0) => {
-      it(`can add structure ${type} element`, async function() {
+      async function doTestStruct(menuLabel?: string) {
         assert.equal(await elementCount(type), existing);
         await plusButton().click();
-        await clickMenu(type);
+        await clickMenu(menuLabel ?? type);
         await gu.waitForServer();
         assert.equal(await elementCount(type), existing + 1);
         await gu.undo();
         assert.equal(await elementCount(type), existing);
+      }
+
+      it(`can add structure ${type} element`, async function() {
+        if (type === 'Section') {
+          await doTestStruct('Insert section above');
+          await doTestStruct('Insert section below');
+        } else {
+          await doTestStruct();
+        }
       });
     };
 
-    // testStruct('Section'); // There is already a section
+    testStruct('Section', 1);
     testStruct('Columns');
     testStruct('Paragraph', 4);
 
     it('basic section', async function() {
       const revert = await gu.begin();
 
-      // Adding section is disabled for now, so this test is altered to use the existing section.
-      // await drop().click();
-      // await clickMenu('Section');
-      // await gu.waitForServer();
       assert.equal(await elementCount('Section'), 1);
 
       assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
@@ -898,25 +1008,39 @@ describe('FormView', function() {
       await gu.waitForServer();
       assert.deepEqual(await readLabels(), ['A', 'D', 'B', 'C']);
 
-      // Make sure that it is not inside the section anymore.
-      // assert.equal(await element('Section', 1).element('label').isPresent(), false);
-
       await gu.undo();
       assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
       assert.equal(await element('Section', 1).element('label', 4).getText(), 'D');
 
-      // Make sure that deleting the section also hides its fields and unmaps them.
+      // Check that we can't delete a section if it's the only one.
       await element('Section').element('Paragraph', 1).click();
       await gu.sendKeys(Key.ESCAPE, Key.UP, Key.DELETE);
       await gu.waitForServer();
-      assert.equal(await elementCount('Section'), 0);
-      assert.deepEqual(await readLabels(), []);
+      assert.equal(await elementCount('Section'), 1);
+
+      // Add a new section below it.
+      await plusButton().click();
+      await clickMenu('Insert section below');
+      await gu.waitForServer();
+      assert.equal(await elementCount('Section'), 2);
+      await plusButton(element('Section', 2)).click();
+      await clickMenu('Text');
+      await gu.waitForServer();
+
+      // Now check that we can delete the first section.
+      await element('Section', 1).element('Paragraph', 1).click();
+      await gu.sendKeys(Key.ESCAPE, Key.UP, Key.DELETE);
+      await gu.waitForServer();
+      assert.equal(await elementCount('Section'), 1);
+
+      // Make sure that deleting the section also hides its fields and unmaps them.
+      assert.deepEqual(await readLabels(), ['E']);
       await gu.openWidgetPanel();
       assert.deepEqual(await hiddenColumns(), ['A', 'B', 'C', 'Choice', 'D']);
 
       await gu.undo();
-      assert.equal(await elementCount('Section'), 1);
-      assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D']);
+      assert.equal(await elementCount('Section'), 2);
+      assert.deepEqual(await readLabels(), ['A', 'B', 'C', 'D', 'E']);
       assert.deepEqual(await hiddenColumns(), ['Choice']);
 
       await revert();
@@ -1243,12 +1367,9 @@ describe('FormView', function() {
       const session = await gu.session().teamSite.login();
       docId = await session.tempNewDoc(cleanup);
       api = session.createHomeApi();
-      await driver.executeScript(createClipboardTextArea);
     });
 
-    after(async function() {
-      await driver.executeScript(removeClipboardTextArea);
-    });
+    gu.withClipboardTextArea();
 
     it('can submit a form', async function() {
       // A bug was preventing this by forcing a login redirect from the public form URL.
@@ -1309,8 +1430,8 @@ function questionType(label: string) {
   return question(label).find('.test-forms-type').value();
 }
 
-function plusButton() {
-  return element('plus');
+function plusButton(parent?: WebElement) {
+  return element('plus', parent);
 }
 
 function drops() {

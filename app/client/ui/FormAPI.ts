@@ -106,7 +106,9 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
       });
     } else {
       const {shareKey, tableId, colValues} = options;
-      return this.requestJson(`${this._url}/api/s/${shareKey}/tables/${tableId}/records`, {
+      const url = new URL(`${this._url}/api/s/${shareKey}/tables/${tableId}/records`);
+      url.searchParams.set('utm_source', 'grist-forms');
+      return this.requestJson(url.href, {
         method: 'POST',
         body: JSON.stringify({records: [{fields: colValues}]}),
       });

@@ -1,6 +1,6 @@
 import {textarea} from 'app/client/ui/inputs';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
-import {basicButton, bigBasicButton, bigBasicButtonLink} from 'app/client/ui2018/buttons';
+import {basicButton, basicButtonLink, textButton} from 'app/client/ui2018/buttons';
 import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {BindableValue, dom, DomElementArg, IDomArgs, Observable, styled, subscribeBindable} from 'grainjs';
@@ -239,14 +239,6 @@ export const cssSelect = styled('select', `
   border-radius: 3px;
   outline: none;
   pointer-events: none;
-
-  &-invalid {
-    color: ${theme.inputInvalid};
-  }
-  &:has(option[value='']:checked) {
-    font-style: italic;
-    color: ${colors.slate};
-  }
 `);
 
 export const cssFieldEditorContent = styled('div', `
@@ -373,13 +365,22 @@ export const cssButtonGroup = styled('div', `
 `);
 
 
-export const cssIconLink = styled(bigBasicButtonLink, `
+export const cssSmallLinkButton = styled(basicButtonLink, `
   display: flex;
   align-items: center;
   gap: 4px;
+  min-height: 26px;
+`);
 
-  &-standard {
-    background-color: ${theme.leftPanelBg};
+export const cssSmallButton = styled(basicButton, `
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+
+  &-frameless {
+    background-color: transparent;
+    border: none;
   }
   &-warning {
     color: ${theme.controlPrimaryFg};
@@ -389,45 +390,6 @@ export const cssIconLink = styled(bigBasicButtonLink, `
   &-warning:hover {
     color: ${theme.controlPrimaryFg};
     background-color: #B8791B;
-    border: none;
-  }
-  &-frameless {
-    background-color: transparent;
-    border: none;
-  }
-`);
-
-export const cssSmallIconButton = styled(basicButton, `
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  &-frameless {
-    background-color: transparent;
-    border: none;
-  }
-`);
-
-export const cssIconButton = styled(bigBasicButton, `
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  &-standard {
-    background-color: ${theme.leftPanelBg};
-  }
-  &-warning {
-    color: ${theme.controlPrimaryFg};
-    background-color: ${theme.toastWarningBg};
-    border: none;
-  }
-  &-warning:hover {
-    color: ${theme.controlPrimaryFg};
-    background-color: #B8791B;
-    border: none;
-  }
-  &-frameless {
-    background-color: transparent;
     border: none;
   }
 `);
@@ -615,12 +577,130 @@ export const cssRemoveButton = styled('div', `
     cursor: pointer;
   }
   .${cssFieldEditor.className}-selected > &,
-  .${cssFieldEditor.className}:hover > & {
+  .${cssFieldEditor.className}:hover:not(:has(.hover_border:hover)) > & {
     display: flex;
   }
   &-right {
     right: -20px;
   }
+`);
+
+export const cssShareMenu = styled('div', `
+  color: ${theme.text};
+  background-color: ${theme.popupBg};
+  width: min(calc(100% - 16px), 400px);
+  border-radius: 3px;
+  padding: 8px;
+`);
+
+export const cssShareMenuHeader = styled('div', `
+  display: flex;
+  justify-content: flex-end;
+`);
+
+export const cssShareMenuBody = styled('div', `
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+  row-gap: 32px;
+  padding: 0px 16px 24px 16px;
+  min-height: 160px;
+`);
+
+export const cssShareMenuCloseButton = styled('div', `
+  flex-shrink: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 4px;
+  --icon-color: ${theme.popupCloseButtonFg};
+
+  &:hover {
+    background-color: ${theme.hover};
+  }
+`);
+
+export const cssShareMenuSectionHeading = styled('div', `
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 16px;
+`);
+
+export const cssShareMenuHintText = styled('div', `
+  color: ${theme.lightText};
+`);
+
+export const cssShareMenuSpinner = styled('div', `
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: inherit;
+`);
+
+export const cssShareMenuSectionButtons = styled('div', `
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+`);
+
+export const cssShareMenuUrlBlock = styled('div', `
+  display: flex;
+  background-color: ${theme.inputReadonlyBg};
+  padding: 8px;
+  border-radius: 3px;
+  width: 100%;
+  margin-top: 16px;
+`);
+
+export const cssShareMenuUrl = styled('input', `
+  background: transparent;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  outline: none;
+`);
+
+export const cssShareMenuCopyButton = styled(textButton, `
+  margin-left: 4px;
+  font-weight: 500;
+`);
+
+export const cssShareMenuEmbedFormButton = styled(textButton, `
+  font-weight: 500;
+`);
+
+export const cssShareMenuCodeBlock = styled('div', `
+  border-radius: 3px;
+  background-color: ${theme.inputReadonlyBg};
+  padding: 8px;
+`);
+
+export const cssShareMenuCodeBlockButtons = styled('div', `
+  display: flex;
+  justify-content: flex-end;
+`);
+
+export const cssShareMenuCode = styled('textarea', `
+  background-color: transparent;
+  border: none;
+  border-radius: 3px;
+  word-break: break-all;
+  width: 100%;
+  outline: none;
+  resize: none;
+`);
+
+export const cssFormDisabledOverlay = styled('div', `
+  background-color: ${theme.widgetBg};
+  opacity: 0.8;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
 `);
 
 export function saveControls(editMode: Observable<boolean>, save: (ok: boolean) => void) {

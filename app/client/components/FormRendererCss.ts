@@ -1,4 +1,5 @@
-import {colors, vars} from 'app/client/ui2018/cssVars';
+import {colors, mediaXSmall, vars} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {styled} from 'grainjs';
 
 export const label = styled('div', `
@@ -38,7 +39,36 @@ export const columns = styled('div', `
   gap: 4px;
 `);
 
-export const submit = styled('div', `
+export const submitButtons = styled('div', `
+  display: flex;
+  justify-content: center;
+  column-gap: 8px;
+`);
+
+export const resetButton = styled('button', `
+  line-height: inherit;
+  font-size: ${vars.mediumFontSize};
+  padding: 10px 24px;
+  cursor: pointer;
+  background-color: transparent;
+  color: ${vars.primaryBg};
+  border: 1px solid ${vars.primaryBg};
+  border-radius: 4px;
+  outline-color: ${vars.primaryBgHover};
+
+  &:hover {
+    color: ${vars.primaryBgHover};
+    border-color: ${vars.primaryBgHover};
+  }
+  &:disabled {
+    cursor: not-allowed;
+    color: ${colors.light};
+    background-color: ${colors.slate};
+    border-color: ${colors.slate};
+  }
+`);
+
+export const submitButton = styled('div', `
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,10 +82,17 @@ export const submit = styled('div', `
     font-size: 13px;
     cursor: pointer;
     line-height: inherit;
+    outline-color: ${vars.primaryBgHover};
   }
   & input[type="submit"]:hover {
     border-color: ${vars.primaryBgHover};
     background-color: ${vars.primaryBgHover};
+  }
+  & input[type="submit"]:disabled {
+    cursor: not-allowed;
+    color: ${colors.light};
+    background-color: ${colors.slate};
+    border-color: ${colors.slate};
   }
 `);
 
@@ -72,12 +109,10 @@ export const field = styled('div', `
     padding: 4px 8px;
     border: 1px solid ${colors.darkGrey};
     border-radius: 3px;
-    outline: none;
+    outline-color: ${vars.primaryBgHover};
   }
   & input[type="text"] {
     font-size: 13px;
-    outline-color: ${vars.primaryBg};
-    outline-width: 1px;
     line-height: inherit;
     width: 100%;
     color: ${colors.dark};
@@ -100,6 +135,9 @@ export const field = styled('div', `
     position: relative;
     margin-right: 8px;
     vertical-align: baseline;
+  }
+  & input[type="checkbox"]:focus {
+    outline-color: ${vars.primaryBgHover};
   }
   & input[type="checkbox"]:checked:enabled,
   & input[type="checkbox"]:indeterminate:enabled {
@@ -171,9 +209,17 @@ export const toggle = styled('label', `
   & input[type='checkbox'] {
     position: absolute;
   }
+  & input[type='checkbox']:focus {
+    outline: none;
+  }
   & > span {
     margin-left: 8px;
   }
+`);
+
+export const toggleLabel = styled('span', `
+  font-size: 13px;
+  font-weight: 700;
 `);
 
 export const gristSwitchSlider = styled('div', `
@@ -185,8 +231,8 @@ export const gristSwitchSlider = styled('div', `
   bottom: 0;
   background-color: #ccc;
   border-radius: 17px;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: background-color .4s;
+  transition: background-color .4s;
 
   &:hover {
     box-shadow: 0 0 1px #2196F3;
@@ -203,8 +249,8 @@ export const gristSwitchCircle = styled('div', `
   bottom: 2px;
   background-color: white;
   border-radius: 17px;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: transform .4s;
+  transition: transform .4s;
 `);
 
 export const gristSwitch = styled('div', `
@@ -213,6 +259,11 @@ export const gristSwitch = styled('div', `
   height: 17px;
   display: inline-block;
   flex: none;
+
+  input:focus + & > .${gristSwitchSlider.className} {
+    outline: 2px solid ${vars.primaryBgHover};
+    outline-offset: 1px;
+  }
 
   input:checked + & > .${gristSwitchSlider.className} {
     background-color: ${vars.primaryBg};
@@ -239,16 +290,52 @@ export const checkbox = styled('label', `
   }
 `);
 
+export const hybridSelect = styled('div', `
+  position: relative;
+`);
+
 export const select = styled('select', `
+  position: absolute;
   padding: 4px 8px;
   border-radius: 3px;
   border: 1px solid ${colors.darkGrey};
   font-size: 13px;
-  outline-color: ${vars.primaryBg};
-  outline-width: 1px;
+  outline: none;
   background: white;
   line-height: inherit;
   height: 27px;
   flex: auto;
   width: 100%;
+
+  @media ${mediaXSmall} {
+    & {
+      outline: revert;
+      outline-color: ${vars.primaryBgHover};
+      position: relative;
+    }
+  }
+`);
+
+export const searchSelect = styled('div', `
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid ${colors.darkGrey};
+  font-size: 13px;
+  background: white;
+  line-height: inherit;
+  height: 27px;
+  flex: auto;
+  width: 100%;
+
+  select:focus + & {
+    outline: 2px solid ${vars.primaryBgHover};
+  }
+`);
+
+export const searchSelectIcon = styled(icon, `
+  flex-shrink: 0;
 `);

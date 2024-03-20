@@ -12,7 +12,7 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {extractTypeFromColType, isFullReferencingType, isRaisedException} from "app/common/gristTypes";
+import {extractTypeFromColType, isBlankValue, isFullReferencingType, isRaisedException} from "app/common/gristTypes";
 import {INITIAL_FIELDS_COUNT} from "app/common/Forms";
 import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
@@ -573,6 +573,9 @@ export class DocWorkerApi {
         validateCore(RecordsPost, req, body);
         const ops = await getTableOperations(req, activeDoc);
         const records = await ops.create(body.records);
+        if (req.query.utm_source === 'grist-forms') {
+          activeDoc.logTelemetryEvent(docSessionFromRequest(req), 'submittedForm');
+        }
         res.json({records});
       })
     );
@@ -1422,7 +1425,7 @@ export class DocWorkerApi {
           .filter(f => {
             const col = Tables_column.getRecord(f.colRef);
             // Formulas and attachments are currently unsupported.
-            return col && !(col.isFormula && col.formula) && col.type !== 'Attachment';
+            return col && !(col.isFormula && col.formula) && col.type !== 'Attachments';
           });
 
         let {layoutSpec: formLayoutSpec} = section;
@@ -1474,7 +1477,8 @@ export class DocWorkerApi {
           if (!refTableId || !refColId) { return () => []; }
           if (typeof refTableId !== 'string' || typeof refColId !== 'string') { return []; }
 
-          return await getTableValues(refTableId, refColId);
+          const values = await getTableValues(refTableId, refColId);
+          return values.filter(([_id, value]) => !isBlankValue(value));
         };
 
         const formFields = await Promise.all(fields.map(async (field) => {

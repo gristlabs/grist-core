@@ -34,6 +34,7 @@ import * as UserType from 'app/client/widgets/UserType';
 import * as UserTypeImpl from 'app/client/widgets/UserTypeImpl';
 import * as gristTypes from 'app/common/gristTypes';
 import { getReferencedTableId, isFullReferencingType } from 'app/common/gristTypes';
+import { WidgetType } from 'app/common/widgetTypes';
 import { CellValue } from 'app/plugin/GristData';
 import { bundleChanges, Computed, Disposable, fromKo,
          dom as grainjsDom, makeTestId, MultiHolder, Observable, styled, toKo } from 'grainjs';
@@ -129,9 +130,15 @@ export class FieldBuilder extends Disposable {
 
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
+      const isForm = use(use(this.field.viewSection).widgetType) === WidgetType.Form;
       const isFormula = use(this.origColumn.isFormula);
       const types: Array<IOptionFull<string>> = [];
       _.each(UserType.typeDefs, (def: any, key: string|number) => {
+        if (isForm && key === 'Attachments') {
+          // Attachments in forms are currently unsupported.
+          return;
+        }
+
         const o: IOptionFull<string> = {
           value: key as string,
           label: def.label,

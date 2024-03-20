@@ -37,7 +37,7 @@ describe('ACIndex', function() {
   it('should find items with matching words', function() {
     const items: ACItem[] = ["blue", "dark red", "reddish", "red", "orange", "yellow", "radical green"].map(
       c => ({cleanText: c}));
-    const acIndex = new ACIndexImpl(items, 5);
+    const acIndex = new ACIndexImpl(items, {maxResults: 5});
     assert.deepEqual(acIndex.search("red").items.map((item) => item.cleanText),
       ["red", "reddish", "dark red", "radical green", "blue"]);
   });
@@ -48,7 +48,7 @@ describe('ACIndex', function() {
     assert.deepEqual(acResult.items, colors);
     assert.deepEqual(acResult.selectIndex, -1);
 
-    acResult = new ACIndexImpl(colors, 3).search("");
+    acResult = new ACIndexImpl(colors, {maxResults: 3}).search("");
     assert.deepEqual(acResult.items, colors.slice(0, 3));
     assert.deepEqual(acResult.selectIndex, -1);
 
@@ -161,7 +161,7 @@ describe('ACIndex', function() {
   });
 
   it('should limit results to maxResults', function() {
-    const acIndex = new ACIndexImpl(colors, 3);
+    const acIndex = new ACIndexImpl(colors, {maxResults: 3});
     let acResult: ACResults<TestACItem>;
 
     acResult = acIndex.search("red");
@@ -247,7 +247,7 @@ describe('ACIndex', function() {
   });
 
   it('should return a useful highlight function', function() {
-    const acIndex = new ACIndexImpl(colors, 3);
+    const acIndex = new ACIndexImpl(colors, {maxResults: 3});
     let acResult: ACResults<TestACItem>;
 
     // Here we split the items' (uncleaned) text with the returned highlightFunc. The values at
@@ -267,7 +267,7 @@ describe('ACIndex', function() {
       [["Blue"], ["Dark Red"], ["Reddish"]]);
 
     // Try some messier cases.
-    const acIndex2 = new ACIndexImpl(messy, 6);
+    const acIndex2 = new ACIndexImpl(messy, {maxResults: 6});
     acResult = acIndex2.search("#r");
     assert.deepEqual(acResult.items.map(i => acResult.highlightFunc(i.text)),
       [["#", "r", "ed"], ["  ", "R", "ED  "], ["", "r", "ed"], ["", "r", "ead "],
@@ -280,7 +280,9 @@ describe('ACIndex', function() {
   });
 
   it('should highlight multi-byte unicode', function() {
-    const acIndex = new ACIndexImpl(['Lorem ipsum 𝌆 dolor sit ameͨ͆t.', "mañana", "Москва"].map(makeItem), 3);
+    const acIndex = new ACIndexImpl(['Lorem ipsum 𝌆 dolor sit ameͨ͆t.', "mañana", "Москва"].map(makeItem), {
+      maxResults: 3,
+    });
     let acResult: ACResults<TestACItem> = acIndex.search("mañ моск am");
     assert.deepEqual(acResult.items.map(i => acResult.highlightFunc(i.text)),
       [["", "Моск", "ва"], ["", "mañ", "ana"], ["Lorem ipsum 𝌆 dolor sit ", "am", "eͨ͆t."]]);
@@ -345,7 +347,7 @@ describe('ACIndex', function() {
       // tslint:disable:no-console
 
       it('main algorithm', function() {
-        const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, 100));
+        const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, {maxResults: 100}));
         console.log(`Time to build index (${items.length} items): ${buildTime} ms`);
 
         const [searchTime, result] = repeat(10, () => acIndex.search("YORK"));

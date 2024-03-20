@@ -3469,6 +3469,52 @@ export async function switchToWindow(target: string) {
   }
 }
 
+/**
+ * Creates a temporary textarea to the document for pasting the contents of
+ * the clipboard.
+ */
+export async function createClipboardTextArea() {
+  function createTextArea() {
+    const textArea = window.document.createElement('textarea');
+    textArea.style.position = 'absolute';
+    textArea.style.top = '0';
+    textArea.style.height = '2rem';
+    textArea.style.width = '16rem';
+    textArea.id = 'clipboardText';
+    window.document.body.appendChild(textArea);
+  }
+
+  await driver.executeScript(createTextArea);
+}
+
+/**
+ * Removes the temporary textarea added by `createClipboardTextArea`.
+ */
+export async function removeClipboardTextArea() {
+  function removeTextArea() {
+    const textArea = window.document.getElementById('clipboardText');
+    if (textArea) {
+      window.document.body.removeChild(textArea);
+    }
+  }
+
+  await driver.executeScript(removeTextArea);
+}
+
+/**
+ * Sets up a temporary textarea for pasting the contents of the clipboard,
+ * removing it after all tests have run.
+ */
+export function withClipboardTextArea() {
+  before(async function() {
+    await createClipboardTextArea();
+  });
+
+  after(async function() {
+    await removeClipboardTextArea();
+  });
+}
+
 /*
  * Returns an instance of `LockableClipboard`, making sure to unlock it after
  * each test.
