@@ -31,7 +31,8 @@ import { GristWebDriverUtils, PageWidgetPickerOptions,
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
-import { Cleanup } from 'test/nbrowser/testUtils';
+import type { Cleanup } from 'test/nbrowser/testUtils';
+import { fetchScreenshotAndLogs } from 'test/nbrowser/webdriverUtils';
 import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
 import axios from 'axios';
@@ -1065,6 +1066,14 @@ export async function hideBanners() {
   await driver.executeScript(`const style = document.createElement('style');
     style.innerHTML = ${JSON.stringify(style)};
     document.head.appendChild(style);`);
+}
+
+export async function assertBannerText(text: string | null) {
+  if (text === null) {
+    assert.isFalse(await driver.find('.test-banner').isPresent());
+  } else {
+    assert.equal(await driver.findWait('.test-doc-usage-banner-text', 2000).getText(), text);
+  }
 }
 
 /**
@@ -2826,23 +2835,34 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
  * Runs action in a separate tab, closing the tab after.
  * In case of an error tab is not closed, consider using cleanupExtraWindows
  * on whole test suite if needed.
+ *
+ * If {test: this.test} is given in options, we will additionally record a screenshot and driver
+ * logs, named using the test name, before opening the new tab, and before and after closing it.
  */
-export async function onNewTab(action: () => Promise<void>) {
+export async function onNewTab(action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
   const currentTab = await driver.getWindowHandle();
   await driver.executeScript("window.open('about:blank', '_blank')");
   const tabs = await driver.getAllWindowHandles();
   const newTab = tabs[tabs.length - 1];
+  const test = options?.test;
+  if (test) { await fetchScreenshotAndLogs(test); }
   await driver.switchTo().window(newTab);
   try {
     await action();
+  } catch (e) {
+    console.warn("onNewTab cleaning up tab after error", e);
+    throw e;
   } finally {
+    if (test) { await fetchScreenshotAndLogs(test); }
     const newCurrentTab = await driver.getWindowHandle();
     if (newCurrentTab === newTab) {
       await driver.close();
       await driver.switchTo().window(currentTab);
+      console.log("onNewTab returned to original tab");
     } else {
       console.log("onNewTab not cleaning up because is not on expected tab");
     }
+    if (test) { await fetchScreenshotAndLogs(test); }
   }
 }
 
