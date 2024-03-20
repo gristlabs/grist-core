@@ -145,8 +145,8 @@ function buildTeamPage({
     hspace('24px'),
     cssColumns(
       cssSetup(
-        cssPaymentLabel('Team name'),
-        cssPaymentRow(cssPaymentField(cssBillingInput(
+        cssLabel('Team name'),
+        cssRow(cssField(cssInput(
           team,
           { onInput: true },
           autoFocus(),
@@ -155,13 +155,13 @@ function buildTeamPage({
           testId('name')))),
         dom.create(Validator, group, "Team name is required", () => !!team.get()),
         hspace('2em'),
-        cssPaymentLabel('Team url'),
-        cssPaymentRow(
+        cssLabel('Team url'),
+        cssRow(
           { style: 'align-items: baseline' },
-          cssPaymentField(
+          cssField(
             { style: 'flex: 0 1 0; min-width: auto; margin-right: 5px' },
             dom.text(`${window.location.origin}/o/`)),
-          cssPaymentField(cssBillingInput(
+          cssField(cssInput(
             domain, { onInput: true }, clickOnEnter, group.inputReset(), testId('domain')
           )),
         ),
@@ -203,7 +203,7 @@ function showModal(
       ctrl.close();
     });
     return [
-      cssUpgradeModal.cls(''),
+      cssCreateTeamModal.cls(''),
       cssCloseButton(testId("close-modal"), cssBigIcon('CrossBig'), dom.on('click', () => ctrl.close())),
       content(modalScope, ctrl)
     ];
@@ -215,7 +215,7 @@ function hspace(height: string) {
   return dom('div', { style: `height: ${height}` });
 }
 
-export const cssUpgradeModal = styled('div', `
+export const cssCreateTeamModal = styled('div', `
   position: relative;
   @media ${mediaSmall} {
     & {
@@ -267,14 +267,11 @@ const cssSubHeaderLine = styled('div', `
   margin-bottom: 7px;
 `);
 
-const cssPaymentLabel2 = styled('label', `
+const cssLabel = styled('label', `
   font-weight: ${vars.headerControlTextWeight};
   font-size: ${vars.mediumFontSize};
   color: ${theme.text};
   line-height: 38px;
-`);
-
-const cssPaymentLabel = styled(cssPaymentLabel2, `
   line-height: 1.5em;
   margin: 0px;
   margin-bottom: 0.3em;
@@ -290,11 +287,11 @@ const cssWide = styled('div', `
   }
 `);
 
-const cssPaymentRow = styled('div', `
+const cssRow = styled('div', `
   display: flex;
 `);
 
-const cssPaymentField = styled('div', `
+const cssField = styled('div', `
   display: block;
   flex: 1 1 0;
   margin: 4px 0;
@@ -305,7 +302,7 @@ const cssPaymentField = styled('div', `
 const cssButtonsRow = styled('div', `
   display: flex;
   justify-content: flex-end;
-  margin-top: auto;
+  margin-top: 20px;
   min-width: 250px;
   gap: 10px;
   flex-wrap: wrap;
@@ -316,7 +313,7 @@ const cssButtonsRow = styled('div', `
   }
 `);
 
-export const cssCloseButton = styled('div', `
+const cssCloseButton = styled('div', `
   position: absolute;
   top: 8px;
   right: 8px;
@@ -338,7 +335,7 @@ const cssModalIndex = styled('div', `
   z-index: ${vars.pricingModalZIndex}
 `);
 
-const cssBillingInput = styled(input, `
+const cssInput = styled(input, `
   color: ${theme.inputFg};
   background-color: ${theme.inputBg};
   font-size: ${vars.mediumFontSize};
