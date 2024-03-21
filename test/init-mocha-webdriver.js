@@ -45,13 +45,6 @@ if (process.env.MOCHA_WEBDRIVER_NO_CONTROL_BANNER === undefined) {
   process.env.MOCHA_WEBDRIVER_NO_CONTROL_BANNER = "1";
 }
 
-// Force the language for displayed pages in Chrome to be in English
-// Therefore tests relying on text contents pass even in environments configured
-// to display other languages.
-if (process.env.MOCHA_WEBDRIVER_ARGS === undefined) {
-  process.env.MOCHA_WEBDRIVER_ARGS = '--accept-lang=en-US'
-}
-
 // Detect whether there is an nbrowser test. If so,
 // set an environment variable that will be available
 // in individual processes if --parallel is enabled.
