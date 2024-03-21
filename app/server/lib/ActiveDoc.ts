@@ -1715,7 +1715,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async getSnapshots(docSession: OptDocSession, skipMetadataCache?: boolean): Promise<DocSnapshots> {
     if (await this._granularAccess.hasNuancedAccess(docSession)) {
-      throw new Error('cannot confirm access to snapshots');
+      throw new Error('cannot confirm access to snapshots because of access rules');
     }
     return this._docManager.storageManager.getSnapshots(this.docName, skipMetadataCache);
   }

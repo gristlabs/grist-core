@@ -74,12 +74,24 @@ export class DocHistory extends Disposable implements IDomComponent {
     docApi.getSnapshots().then(result =>
       snapshots.isDisposed() || snapshots.set(result.snapshots)).catch(err => {
         snapshotsDenied.set(true);
-        reportError(err);
+        // "cannot confirm access" is what we expect if snapshots
+        // are denied because of access rules.
+        if (!String(err).match(/cannot confirm access/)) {
+          reportError(err);
+        }
       });
     return dom(
       'div',
+      {tabIndex: '-1'},  // Voodoo needed to allow copying text.
       dom.maybe(snapshotsDenied, () => cssSnapshotDenied(
-        t("Snapshots are unavailable."),
+        dom(
+          'p',
+          t("Snapshots are unavailable."),
+        ),
+        dom(
+          'p',
+          t("Only owners have access to snapshots for documents with access rules."),
+        ),
         testId('doc-history-error'))),
       // Note that most recent snapshots are first.
       dom.domComputed(snapshots, (snapshotList) => snapshotList.map((snapshot, index) => {
@@ -128,6 +140,8 @@ const cssSnapshot = styled('div', `
 
 const cssSnapshotDenied = styled('div', `
   margin: 8px 16px;
+  text-align: center;
+  color: ${theme.text};
 `);
 
 const cssSnapshotTime = styled('div', `
