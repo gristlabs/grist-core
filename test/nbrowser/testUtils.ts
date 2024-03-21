@@ -16,9 +16,12 @@
  * first-failure for debugging and quick reruns.
  */
 import log from 'app/server/lib/log';
-import {addToRepl, assert, driver, enableDebugCapture, Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
+import {addToRepl, assert, driver, enableDebugCapture, ITimeouts,
+  Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.
@@ -72,6 +75,10 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
     }),
     "download.default_directory": server.testDir,
     "savefile.default_directory": server.testDir,
+    "autofill": {
+      profile_enabled: false,
+      credit_card_enabled: false,
+    },
   });
 });
 
@@ -82,6 +89,10 @@ interface TestSuiteOptions {
   // If set, clear user preferences for all test users at the end of the suite. It should be used
   // for suites that modify preferences. Not that it only works in dev, not in deployment tests.
   clearUserPrefs?: boolean;
+
+  // Max milliseconds to wait for a page to finish loading. E.g. affects clicks that cause
+  // navigation, which wait for that. A navigation that takes longer will throw an exception.
+  pageLoadTimeout?: number;
 }
 
 // Sets up the test suite to use the Grist server, and also to record logs and screenshots after
@@ -121,6 +132,10 @@ export function setupTestSuite(options?: TestSuiteOptions) {
   // Close database until next test explicitly needs it, to avoid conflicts
   // with tests that don't use the same server.
   after(async () => server.closeDatabase());
+
+  if (options?.pageLoadTimeout) {
+    setDriverTimeoutsForSuite({pageLoad: options.pageLoadTimeout});
+  }
 
   return setupRequirement({team: true, ...options});
 }
@@ -173,6 +188,21 @@ async function clearTestUserPreferences() {
   let emails = Object.keys(gu.TestUserEnum).map(user => gu.translateUser(user as any).email);
   emails = [...new Set(emails)];    // Remove duplicates.
   await dbManager.testClearUserPrefs(emails);
+}
+
+export function setDriverTimeoutsForSuite(newTimeouts: ITimeouts) {
+  let prevTimeouts: ITimeouts|null = null;
+
+  before(async () => {
+    prevTimeouts = await driver.manage().getTimeouts();
+    await driver.manage().setTimeouts(newTimeouts);
+  });
+
+  after(async () => {
+    if (prevTimeouts) {
+      await driver.manage().setTimeouts(prevTimeouts);
+    }
+  });
 }
 
 export type CleanupFunc = (() => void|Promise<void>);
@@ -286,4 +316,40 @@ export function setupRequirement(options: TestSuiteOptions) {
     }
   });
   return cleanup;
+}
+
+export async function withDriverLogging(
+  test: Mocha.Runnable|undefined, periodMs: number, timeoutMs: number,
+  callback: () => Promise<void>
+) {
+  const dir = process.env.MOCHA_WEBDRIVER_LOGDIR!;
+  assert.isOk(dir, "driverLogging: MOCHA_WEBDRIVER_LOGDIR not set");
+  const testName = test?.file ? path.basename(test.file, path.extname(test.file)) : "unnamed";
+  const logPath = path.resolve(dir, `${testName}-driverLogging.log`);
+  await fs.mkdir(dir, {recursive: true});
+
+  let running = false;
+  async function repeat() {
+    if (running) {
+      console.log("driverLogging: skipping because previous repeat still running");
+      return;
+    }
+    running = true;
+    try {
+      await driver.saveScreenshot(`${testName}-driverLoggingScreenshot-{N}.png`);
+      const messages = await driver.fetchLogs('driver');
+      await fs.appendFile(logPath, messages.join("\n") + "\n");
+    } finally {
+      running = false;
+    }
+  }
+
+  const periodic = setInterval(repeat, periodMs);
+  const timeout = setTimeout(() => clearInterval(periodic), timeoutMs);
+  try {
+    return await callback();
+  } finally {
+    clearInterval(periodic);
+    clearTimeout(timeout);
+  }
 }

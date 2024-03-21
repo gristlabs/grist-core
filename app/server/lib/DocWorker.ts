@@ -68,13 +68,9 @@ export class DocWorker {
   }
 
   public async downloadDoc(req: express.Request, res: express.Response,
-                           storageManager: IDocStorageManager): Promise<void> {
+                           storageManager: IDocStorageManager, filename: string): Promise<void> {
     const mreq = req as RequestWithLogin;
     const docId = getDocId(mreq);
-
-    // Query DB for doc metadata to get the doc title.
-    const doc = await this._dbManager.getDoc(req);
-    const docTitle = doc.name;
 
     // Get a copy of document for downloading.
     const tmpPath = await storageManager.getCopy(docId);
@@ -90,7 +86,7 @@ export class DocWorker {
     return res.type('application/x-sqlite3')
       .download(
         tmpPath,
-        (optStringParam(req.query.title, 'title') || docTitle || 'document') + ".grist",
+        filename + ".grist",
         async (err: any) => {
           if (err) {
             if (err.message && /Request aborted/.test(err.message)) {

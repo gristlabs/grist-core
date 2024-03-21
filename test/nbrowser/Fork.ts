@@ -246,6 +246,8 @@ describe("Fork", function() {
           await userSession.loadDoc(`/doc/${doc.id}/m/fork`);
           assert.equal(await gu.getEmail(), userSession.email);
           assert.equal(await driver.find('.test-unsaved-tag').isPresent(), false);
+          // Dismiss forms announcement popup, if present.
+          await gu.dismissBehavioralPrompts();
           await gu.getCell({rowNum: 1, col: 0}).click();
           await gu.enterCell('123');
           await gu.waitForServer();

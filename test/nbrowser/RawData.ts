@@ -735,6 +735,7 @@ describe('RawData', function () {
     await gu.openPage('CountryLanguage');
     await gu.getCell(0, 1).find('.test-ref-link-icon').click();
     assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
+    await gu.wipeToasts();  // notification build-up can cover setType button.
     await gu.setType('Reference List', {apply: true});
     await gu.getCell(0, 1).find('.test-ref-list-link-icon').click();
     assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());

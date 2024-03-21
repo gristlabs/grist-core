@@ -68,7 +68,6 @@ async function switchToPersonalUrl(ev: MouseEvent, appModel: AppModel, org: stri
 }
 
 const cssPageContainer = styled(css.pageContainer, `
-  overflow: auto;
   padding-bottom: 40px;
 `);
 

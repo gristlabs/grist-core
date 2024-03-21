@@ -1,4 +1,12 @@
-import {Features, getPageTitleSuffix, GristLoadConfig, IFeature} from 'app/common/gristUrls';
+import {
+  Features,
+  getContactSupportUrl,
+  getFreeCoachingCallUrl,
+  getHelpCenterUrl,
+  getPageTitleSuffix,
+  GristLoadConfig,
+  IFeature
+} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
@@ -53,8 +61,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
     singleOrg: process.env.GRIST_SINGLE_ORG,
-    helpCenterUrl: process.env.GRIST_HELP_CENTER || "https://support.getgrist.com",
-    freeCoachingCallUrl: process.env.FREE_COACHING_CALL_URL || "https://calendly.com/grist-team/grist-free-coaching-call",
+    helpCenterUrl: getHelpCenterUrl(),
+    freeCoachingCallUrl: getFreeCoachingCallUrl(),
+    contactSupportUrl: getContactSupportUrl(),
     pathOnly,
     supportAnon: shouldSupportAnon(),
     enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
@@ -139,8 +148,11 @@ export function makeSendAppPage(opts: {
     const needTagManager = (options.googleTagManager === 'anon' && isAnonymousUser(req)) ||
       options.googleTagManager === true;
     const tagManagerSnippet = needTagManager ? getTagManagerSnippet(process.env.GOOGLE_TAG_MANAGER_ID) : '';
-    const staticOrigin = process.env.APP_STATIC_URL || "";
-    const staticBaseUrl = `${staticOrigin}/v/${options.tag || tag}/`;
+    const staticTag = options.tag || tag;
+    // If boot tag is used, serve assets locally, otherwise respect
+    // APP_STATIC_URL.
+    const staticOrigin = staticTag === 'boot' ? '' : (process.env.APP_STATIC_URL || '');
+    const staticBaseUrl = `${staticOrigin}/v/${staticTag}/`;
     const customHeadHtmlSnippet = server.create.getExtraHeadHtml?.() ?? "";
     const warning = testLogin ? "<div class=\"dev_warning\">Authentication is not enforced</div>" : "";
     // Preload all languages that will be used or are requested by client.

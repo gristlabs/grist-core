@@ -41,7 +41,10 @@ export type PartialPermissionSet = PermissionSet<PartialPermissionValue>;
 export type MixedPermissionSet = PermissionSet<MixedPermissionValue>;
 export type TablePermissionSet = PermissionSet<TablePermissionValue>;
 
-const PERMISSION_BITS: {[letter: string]: keyof PermissionSet} = {
+// One of the strings 'read', 'update', etc.
+export type PermissionKey = keyof PermissionSet;
+
+const PERMISSION_BITS: {[letter: string]: PermissionKey} = {
   R: 'read',
   C: 'create',
   U: 'update',
@@ -59,6 +62,9 @@ const ALIASES: {[key: string]: string} = {
   none: '-CRUDS',
 };
 const REVERSE_ALIASES = fromPairs(Object.entries(ALIASES).map(([alias, value]) => [value, alias]));
+
+export const AVAILABLE_BITS_TABLES: PermissionKey[] = ['read', 'update', 'create', 'delete'];
+export const AVAILABLE_BITS_COLUMNS: PermissionKey[] = ['read', 'update'];
 
 // Comes in useful for initializing unset PermissionSets.
 export function emptyPermissionSet(): PartialPermissionSet {
@@ -140,6 +146,20 @@ function combinePartialPermission(a: PartialPermissionValue, b: PartialPermissio
 export function mergePartialPermissions(a: PartialPermissionSet, b: PartialPermissionSet): PartialPermissionSet {
   return mergePermissions([a, b], ([_a, _b]) => combinePartialPermission(_a, _b));
 }
+
+/**
+ * Returns permissions trimmed to include only the available bits, and empty for any other bits.
+ */
+export function trimPermissions(
+  permissions: PartialPermissionSet, availableBits: PermissionKey[]
+): PartialPermissionSet {
+  const trimmed = emptyPermissionSet();
+  for (const bit of availableBits) {
+    trimmed[bit] = permissions[bit];
+  }
+  return trimmed;
+}
+
 
 /**
  * Merge a list of PermissionSets by combining individual bits.

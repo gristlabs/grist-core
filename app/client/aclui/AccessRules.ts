@@ -6,11 +6,12 @@ import {aclFormulaEditor} from 'app/client/aclui/ACLFormulaEditor';
 import {aclMemoEditor} from 'app/client/aclui/ACLMemoEditor';
 import {aclSelect} from 'app/client/aclui/ACLSelect';
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
-import {PermissionKey, permissionsWidget} from 'app/client/aclui/PermissionsWidget';
+import {permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError, UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
@@ -19,13 +20,17 @@ import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
 import {menu, menuItemAsync} from 'app/client/ui2018/menus';
 import {
+  AVAILABLE_BITS_COLUMNS,
+  AVAILABLE_BITS_TABLES,
   emptyPermissionSet,
   MixedPermissionValue,
   parsePermissions,
   PartialPermissionSet,
+  PermissionKey,
   permissionSetToText,
   summarizePermissions,
-  summarizePermissionSet
+  summarizePermissionSet,
+  trimPermissions
 } from 'app/common/ACLPermissions';
 import {ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
 import {AclRuleProblem, AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
@@ -690,8 +695,7 @@ class TableRules extends Disposable {
         cssIconButton(icon('Dots'), {style: 'margin-left: auto'},
           menu(() => [
             menuItemAsync(() => this._addColumnRuleSet(), t("Add Column Rule")),
-            menuItemAsync(() => this._addDefaultRuleSet(), t("Add Default Rule"),
-              dom.cls('disabled', use => Boolean(use(this._defaultRuleSet)))),
+            menuItemAsync(() => this._addDefaultRuleSet(), t("Add Table-wide Rule")),
             menuItemAsync(() => this._accessRules.removeTableRules(this), t("Delete Table Rules")),
           ]),
           testId('rule-table-menu-btn'),
@@ -813,9 +817,13 @@ class TableRules extends Disposable {
   }
 
   private _addDefaultRuleSet() {
-    if (!this._defaultRuleSet.get()) {
+    const ruleSet = this._defaultRuleSet.get();
+    if (!ruleSet) {
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
       this.addDefaultRules(this._accessRules.getSeedRules());
+    } else {
+      const part = ruleSet.addRulePart(ruleSet.getDefaultCondition());
+      setTimeout(() => part.focusEditor?.(), 0);
     }
   }
 }
@@ -986,12 +994,19 @@ abstract class ObsRuleSet extends Disposable {
         // Should not happen.
         continue;
       }
+
+      // Include only the permissions for the bits that this RuleSet supports. E.g. this matters
+      // for seed rules, which may include create/delete bits which shouldn't apply to columns.
+      const origPermissions = parsePermissions(permissionsText);
+      const trimmedPermissions = trimPermissions(origPermissions, this.getAvailableBits());
+      const trimmedPermissionsText = permissionSetToText(trimmedPermissions);
+
       this.addRulePart(
         this.getFirst() || null,
         {
           aclFormula,
-          permissionsText,
-          permissions: parsePermissions(permissionsText),
+          permissionsText: trimmedPermissionsText,
+          permissions: trimmedPermissions,
           memo,
         },
         true,
@@ -1034,11 +1049,17 @@ abstract class ObsRuleSet extends Disposable {
     return body.length > 0 && body[body.length - 1].hasEmptyCondition(use);
   }
 
+  public getDefaultCondition(): ObsRulePart|null {
+    const body = this._body.get();
+    const last = body.length > 0 ? body[body.length - 1] : null;
+    return last?.hasEmptyCondition(unwrap) ? last : null;
+  }
+
   /**
    * Which permission bits to allow the user to set.
    */
   public getAvailableBits(): PermissionKey[] {
-    return ['read', 'update', 'create', 'delete'];
+    return AVAILABLE_BITS_TABLES;
   }
 
   /**
@@ -1107,8 +1128,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
   }
 
   public getAvailableBits(): PermissionKey[] {
-    // Create/Delete bits can't be set on a column-specific rule.
-    return ['read', 'update'];
+    return AVAILABLE_BITS_COLUMNS;
   }
 
   public hasColumns() {
@@ -1129,8 +1149,9 @@ class DefaultObsRuleSet extends ObsRuleSet {
     return [
       cssCenterContent.cls(''),
       cssDefaultLabel(
-        dom.text(use => this._haveColumnRules && use(this._haveColumnRules) ? 'All Other' : 'All'),
-      )
+        dom.domComputed(use => this._haveColumnRules && use(this._haveColumnRules), (haveColRules) =>
+          haveColRules ? withInfoTooltip('All', 'accessRulesTableWide') : 'All')
+      ),
     ];
   }
 }
@@ -1544,6 +1565,8 @@ class ObsRulePart extends Disposable {
   // Whether the rule part, and if it's valid or being checked.
   public ruleStatus: Computed<RuleStatus>;
 
+  public focusEditor: (() => void)|undefined;
+
   // Formula to show in the formula editor.
   private _aclFormula = Observable.create<string>(this, this._rulePart?.aclFormula || "");
 
@@ -1679,6 +1702,7 @@ class ObsRulePart extends Disposable {
               );
             }),
             getSuggestions: (prefix) => this._completions.get(),
+            customiseEditor: (editor) => { this.focusEditor = () => editor.focus(); },
           }),
           testId('rule-acl-formula'),
         ),

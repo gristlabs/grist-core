@@ -1,4 +1,5 @@
 import {allCommands} from 'app/client/components/commands';
+import {FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
 import {FormView} from 'app/client/components/Forms/FormView';
 import {BoxModel, Place} from 'app/client/components/Forms/Model';
@@ -7,14 +8,13 @@ import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {getColumnTypes as getNewColumnTypes} from 'app/client/ui/GridViewMenus';
 import * as menus from 'app/client/ui2018/menus';
-import {BoxType} from 'app/common/Forms';
 import {Computed, dom, IDomArgs, MultiHolder} from 'grainjs';
 
 const t = makeT('FormView');
 const testId = makeTestId('test-forms-menu-');
 
 // New box to add, either a new column of type, an existing column (by column id), or a structure.
-export type NewBox = {add: string} | {show: string} | {structure: BoxType};
+export type NewBox = {add: string} | {show: string} | {structure: FormLayoutNodeType};
 
 interface Props {
   /**
@@ -77,7 +77,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       box?.view.selectedBox.set(box);
 
       // Same for structure.
-      const struct = (structure: BoxType) => ({structure});
+      const struct = (structure: FormLayoutNodeType) => ({structure});
 
       // Actions:
 

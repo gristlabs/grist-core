@@ -11,8 +11,11 @@ import {getStorage} from 'app/client/lib/storage';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {Theme, ThemeAppearance} from 'app/common/ThemePrefs';
-import {dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
+import {getThemeColors} from 'app/common/Themes';
+import {getGristConfig} from 'app/common/urlUtils';
+import {Computed, dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
 import debounce = require('lodash/debounce');
+import isEqual = require('lodash/isEqual');
 import values = require('lodash/values');
 
 const VAR_PREFIX = 'grist';
@@ -1021,6 +1024,32 @@ export function prefersDarkModeObs(): PausableObservable<boolean> {
   return _prefersDarkModeObs;
 }
 
+let _prefersColorSchemeThemeObs: Computed<Theme>|undefined;
+
+/**
+ * Returns a singleton observable for the Grist theme matching the current
+ * user agent color scheme preference ("light" or "dark").
+ */
+export function prefersColorSchemeThemeObs(): Computed<Theme> {
+  if (!_prefersColorSchemeThemeObs) {
+    const obs = Computed.create(null, prefersDarkModeObs(), (_use, prefersDarkTheme) => {
+      if (prefersDarkTheme) {
+        return {
+          appearance: 'dark',
+          colors: getThemeColors('GristDark'),
+        } as const;
+      } else {
+        return {
+          appearance: 'light',
+          colors: getThemeColors('GristLight'),
+        } as const;
+      }
+    });
+    _prefersColorSchemeThemeObs = obs;
+  }
+  return _prefersColorSchemeThemeObs;
+}
+
 /**
  * Attaches the global css properties to the document's root to make them available in the page.
  */
@@ -1036,10 +1065,25 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   document.body.classList.add(`interface-${interfaceStyle}`);
 }
 
+export function attachTheme(themeObs: Observable<Theme>) {
+  // Attach the current theme to the DOM.
+  attachCssThemeVars(themeObs.get());
+
+  // Whenever the theme changes, re-attach it to the DOM.
+  return themeObs.addListener((newTheme, oldTheme) => {
+    if (isEqual(newTheme, oldTheme)) { return; }
+
+    attachCssThemeVars(newTheme);
+  });
+}
+
 /**
  * Attaches theme-related css properties to the theme style element.
  */
-export function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
+function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
+  // Custom CSS is incompatible with custom themes.
+  if (getGristConfig().enableCustomCss) { return; }
+
   // Prepare the custom properties needed for applying the theme.
   const properties = Object.entries(themeColors)
     .map(([name, value]) => `--grist-theme-${name}: ${value};`);

@@ -50,7 +50,8 @@ export type Tooltip =
   | 'addColumnConditionalStyle'
   | 'uuid'
   | 'lookups'
-  | 'formulaColumn';
+  | 'formulaColumn'
+  | 'accessRulesTableWide';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -84,7 +85,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
       t('Try out changes in a copy, then decide whether to replace the original with your edits.')
     ),
     dom('div',
-      cssLink({href: commonUrls.helpTryingOutChanges, target: '_blank'}, 'Learn more.'),
+      cssLink({href: commonUrls.helpTryingOutChanges, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -134,6 +135,9 @@ see or edit which parts of your document.')
       cssLink({href: commonUrls.formulas, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
+  ),
+  accessRulesTableWide: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div', t('These rules are applied after all column rules have been processed, if applicable.'))
   ),
 };
 

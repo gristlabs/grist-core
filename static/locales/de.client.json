@@ -42,7 +42,8 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Beim Hinzufügen von Tabellenregeln wird automatisch eine Regel hinzugefügt, um BESITZER vollen Zugriff zu gewähren.",
         "Permission to edit document structure": "Berechtigung zur Bearbeitung der Dokumentenstruktur",
         "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Erlauben Sie Editoren, Struktur zu bearbeiten (z.B. Tabellen, Spalten, Layouts zu ändern und zu löschen) und Formeln zu schreiben, die unabhängig von Leseeinschränkungen Zugriff auf alle Daten geben.",
-        "This default should be changed if editors' access is to be limited. ": "Diese Standardeinstellung sollte geändert werden, wenn der Zugriff von Editoren eingeschränkt werden soll. "
+        "This default should be changed if editors' access is to be limited. ": "Diese Standardeinstellung sollte geändert werden, wenn der Zugriff von Editoren eingeschränkt werden soll. ",
+        "Add Table-wide Rule": "Tabellenweite Regel hinzufügen"
     },
     "AccountPage": {
         "API": "API",
@@ -305,7 +306,8 @@
         "Document ID copied to clipboard": "Dokument-ID in die Zwischenablage kopiert",
         "Ok": "OK",
         "Webhooks": "Webhaken",
-        "Manage Webhooks": "Webhaken verwalten"
+        "Manage Webhooks": "Webhaken verwalten",
+        "API Console": "API-Konsole"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -464,7 +466,19 @@
         "Add column": "Spalte hinzufügen",
         "Last updated by": "Zuletzt aktualisiert von",
         "Detect duplicates in...": "Erkennen Sie Duplikate in...",
-        "Last updated at": "Zuletzt aktualisiert am"
+        "Last updated at": "Zuletzt aktualisiert am",
+        "Reference List": "Referenzliste",
+        "Text": "Text",
+        "Date": "Datum",
+        "DateTime": "DatumUhrzeit",
+        "Choice": "Auswahl",
+        "Choice List": "Auswahlliste",
+        "Reference": "Referenz",
+        "Attachment": "Anhang",
+        "Any": "Jegliche",
+        "Numeric": "Numerisch",
+        "Integer": "Ganze Zahl",
+        "Toggle": "Umschalten"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
@@ -565,7 +579,9 @@
         "You do not have write access to this site": "Sie haben keinen Schreibzugriff auf diese Seite",
         "Download full document and history": "Vollständiges Dokument und Geschichte herunterladen",
         "Remove all data but keep the structure to use as a template": "Entfernen Sie alle Daten, behalten Sie aber die Struktur als Vorlage bei",
-        "Remove document history (can significantly reduce file size)": "Dokumentverlauf entfernen (kann die Dateigröße deutlich reduzieren)"
+        "Remove document history (can significantly reduce file size)": "Dokumentverlauf entfernen (kann die Dateigröße deutlich reduzieren)",
+        "Download document": "Dokument herunterladen",
+        "Download": "Download"
     },
     "NTextBox": {
         "false": "falsch",
@@ -667,7 +683,24 @@
         "Fields_one": "Feld",
         "Fields_other": "Felder",
         "Add referenced columns": "Referenzspalten hinzufügen",
-        "Reset form": "Formular zurücksetzen"
+        "Reset form": "Formular zurücksetzen",
+        "Enter text": "Text eingeben",
+        "Layout": "Layout",
+        "Submission": "Einreichung",
+        "Redirect automatically after submission": "Nach Eingabe automatisch umleiten",
+        "Redirection": "Umleitung",
+        "Submit another response": "Eine weitere Antwort einreichen",
+        "Required field": "Erforderliches Feld",
+        "Table column name": "Name der Spalte in der Tabelle",
+        "Enter redirect URL": "Weiterleitungs-URL eingeben",
+        "Display button": "Anzeigetaste",
+        "Field rules": "Feldregeln",
+        "Success text": "Erfolgstext",
+        "Configuration": "Konfiguration",
+        "Default field value": "Standard-Feldwert",
+        "Field title": "Feldtitel",
+        "Hidden field": "Verborgenes Feld",
+        "Submit button label": "Beschriftung der Schaltfläche Senden"
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -813,7 +846,8 @@
         "Show raw data": "Rohdaten anzeigen",
         "Widget options": "Widget Optionen",
         "Add to page": "Zur Seite hinzufügen",
-        "Collapse widget": "Widget einklappen"
+        "Collapse widget": "Widget einklappen",
+        "Create a form": "Formular erstellen"
     },
     "ViewSectionMenu": {
         "(customized)": "(angepasst)",
@@ -896,7 +930,11 @@
         "You do not have access to this organization's documents.": "Sie haben keinen Zugriff auf die Dokumente dieser Organisation.",
         "Account deleted{{suffix}}": "Konto gelöscht{{suffix}}",
         "Your account has been deleted.": "Ihr Konto wurde gelöscht.",
-        "Sign up": "Anmelden"
+        "Sign up": "Anmelden",
+        "An unknown error occurred.": "Ein unbekannter Fehler ist aufgetreten.",
+        "Powered by": "Angetrieben durch",
+        "Build your own form": "Erstellen Sie Ihr eigenes Formular",
+        "Form not found": "Formular nicht gefunden"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
@@ -919,7 +957,17 @@
     "modals": {
         "Cancel": "Abbrechen",
         "Ok": "OK",
-        "Save": "Speichern"
+        "Save": "Speichern",
+        "Delete": "Löschen",
+        "Are you sure you want to delete these records?": "Sind Sie sicher, dass Sie diese Datensätze löschen wollen?",
+        "Are you sure you want to delete this record?": "Sind Sie sicher, dass Sie diesen Datensatz löschen wollen?",
+        "Undo to restore": "Rückgängig machen zum Wiederherstellen",
+        "Don't show again": "Nicht mehr anzeigen",
+        "Got it": "Verstanden",
+        "Dismiss": "Ablehnen",
+        "Don't ask again.": "Frag nicht mehr.",
+        "Don't show again.": "Zeig nicht mehr.",
+        "Don't show tips": "Keine Tipps anzeigen"
     },
     "pages": {
         "Duplicate Page": "Seite duplizieren",
@@ -1138,7 +1186,11 @@
         "Lookups return data from related tables.": "Lookups geben Daten aus Bezugstabellen zurück.",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Sie können aus Widgets wählen, die Ihnen im Dropdown zur Verfügung stehen, oder Sie selbst einbetten, indem Sie seine volle URL angeben.",
         "Use reference columns to relate data in different tables.": "Verwenden Sie Referenzspalten, um Daten in verschiedenen Tabellen zu beziehen.",
-        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Die Formeln unterstützen viele Excel-Funktionen, die vollständige Python-Syntax und enthalten einen hilfreichen KI-Assistenten."
+        "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Die Formeln unterstützen viele Excel-Funktionen, die vollständige Python-Syntax und enthalten einen hilfreichen KI-Assistenten.",
+        "Learn more": "Mehr erfahren",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Erstellen Sie einfache Formulare direkt in Grist und teilen Sie sie mit einem Klick mit unserem neuen Widget. {{learnMoreButton}}",
+        "Forms are here!": "Die Formulare sind da!",
+        "These rules are applied after all column rules have been processed, if applicable.": "Diese Regeln werden angewendet, nachdem alle Spaltenregeln abgearbeitet wurden, falls zutreffend."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1324,5 +1376,80 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Ausgeblendete Felder"
+    },
+    "FormView": {
+        "Publish your form?": "Ihr Formular veröffentlichen?",
+        "Unpublish": "Unveröffentlichen",
+        "Unpublish your form?": "Ihr Formular unveröffentlichen?",
+        "Publish": "Veröffentlichen"
+    },
+    "Editor": {
+        "Delete": "Löschen"
+    },
+    "Menu": {
+        "Building blocks": "Bausteine",
+        "Unmapped fields": "Nicht zugeordnete Felder",
+        "Separator": "Abscheider",
+        "Header": "Kopfzeile",
+        "Cut": "Schneiden",
+        "Insert question above": "Frage oben einfügen",
+        "Insert question below": "Frage unten einfügen",
+        "Paragraph": "Absatz",
+        "Paste": "Einfügen",
+        "Columns": "Spalten",
+        "Copy": "Kopieren"
+    },
+    "FormContainer": {
+        "Build your own form": "Erstellen Sie Ihr eigenes Formular",
+        "Powered by": "Angetrieben durch"
+    },
+    "FormErrorPage": {
+        "Error": "Fehler"
+    },
+    "FormModel": {
+        "Oops! This form is no longer published.": "Huch! Dieses Formular wird nicht mehr veröffentlicht.",
+        "Oops! The form you're looking for doesn't exist.": "Huch! Das Formular, das Sie suchen, existiert nicht.",
+        "You don't have access to this form.": "Sie haben keinen Zugang zu diesem Formular.",
+        "There was a problem loading the form.": "Beim Laden des Formulars ist ein Problem aufgetreten."
+    },
+    "WelcomeCoachingCall": {
+        "free coaching call": "kostenloser Coaching-Anruf",
+        "Schedule Call": "Anruf planen",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Planen Sie Ihre {{freeCoachingCall}} mit einem Mitglied unseres Teams.",
+        "Maybe Later": "Vielleicht später",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Während des Gesprächs nehmen wir uns die Zeit, Ihre Bedürfnisse zu verstehen und das Gespräch auf Sie zuzuschneiden. Wir können Ihnen die Grundlagen von Grist zeigen oder sofort mit Ihren Daten arbeiten, um die von Ihnen benötigten Dashboards zu erstellen."
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Leeren",
+        "Map fields": "Felder zuordnen",
+        "Unmap fields": "Felder freigeben",
+        "Unmapped": "Nicht zugeordnet",
+        "Mapped": "Zugeordnet",
+        "Select All": "Alle auswählen"
+    },
+    "FormConfig": {
+        "Field rules": "Feldregeln",
+        "Required field": "Erforderliches Feld"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Einige erforderliche Spalten sind nicht zugeordnet",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Um dieses Widget zu verwenden, ordnen Sie bitte alle nicht-optionalen Spalten im Ersteller-Panel auf der rechten Seite zu."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Formular eingereicht",
+        "Thank you! Your response has been recorded.": "Danke! Ihre Antwort wurde aufgezeichnet."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Beim Absenden Ihres Formulars ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Letzte 30 Tage",
+        "Last 7 days": "Letzte 7 Tage",
+        "Last Week": "Letzte Woche",
+        "Next 7 days": "Nächste 7 Tage",
+        "This month": "Diesen Monat",
+        "This week": "Diese Woche",
+        "This year": "Dieses Jahr",
+        "Today": "Heute"
     }
 }

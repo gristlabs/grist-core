@@ -31,7 +31,7 @@ const BLACKLISTED_SUBDOMAINS = new Set([
 /**
  *
  * Checks whether the subdomain is on the list of forbidden subdomains.
- * See https://phab.getgrist.com/w/hosting/v1/urls/#organization-subdomains
+ * See /documentation/urls.md#organization-subdomains
  *
  * Also enforces various sanity checks.
  *

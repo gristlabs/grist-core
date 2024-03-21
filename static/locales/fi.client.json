@@ -1,0 +1,1000 @@
+{
+    "ColumnTitle": {
+        "Add description": "Lisää kuvaus",
+        "Cancel": "Peruuta",
+        "Column ID copied to clipboard": "Sarakkeen ID-tunniste kopioitu leikepöydälle",
+        "Column description": "Sarakkeen kuvaus",
+        "Save": "Tallenna",
+        "Close": "Sulje"
+    },
+    "Clipboard": {
+        "Got it": "Selvä"
+    },
+    "FieldContextMenu": {
+        "Clear field": "Tyhjennä kenttä",
+        "Copy": "Kopioi",
+        "Copy anchor link": "Kopioi ankkurilinkki",
+        "Cut": "Leikkaa",
+        "Hide field": "Piilota kenttä",
+        "Paste": "Liitä"
+    },
+    "WebhookPage": {
+        "Clear Queue": "Tyhjennä jono",
+        "Webhook Settings": "Webhook-asetukset"
+    },
+    "FormulaAssistant": {
+        "Capabilities": "Kyvykkyydet",
+        "Community": "Yhteisö",
+        "Data": "Data",
+        "Function List": "Funktioluettelo",
+        "New Chat": "Uusi keskustelu",
+        "Preview": "Esikatselu",
+        "Save": "Tallenna",
+        "Cancel": "Peruuta",
+        "Clear Conversation": "Tyhjennä keskustelu",
+        "Code View": "Koodinäkymä",
+        "Learn more": "Lue lisää",
+        "Sign Up for Free": "Rekisteröidy veloituksetta",
+        "Tips": "Vinkit",
+        "AI Assistant": "AI-avustaja",
+        "Apply": "Toteuta",
+        "Need help? Our AI assistant can help.": "Tarvitsetko apua? AI-avustajamme voi auttaa sinua.",
+        "What do you need help with?": "Minkä asian kanssa tarvitset apua?"
+    },
+    "WelcomeSitePicker": {
+        "Welcome back": "Tervetuloa takaisin",
+        "You can always switch sites using the account menu.": "Voit vaihtaa sivustoja tilivalikon kautta.",
+        "You have access to the following Grist sites.": "Sinulla on pääsy seuraaviin Grist-sivustoihin."
+    },
+    "UserManager": {
+        "Add {{member}} to your team": "Lisää {{member}} tiimiisi",
+        "Allow anyone with the link to open.": "Salli kenen tahansa, jolla on linkki, avata.",
+        "Cancel": "Peruuta",
+        "Close": "Sulje",
+        "Collaborator": "Avustaja",
+        "Confirm": "Vahvista",
+        "Copy Link": "Kopioi linkki",
+        "Grist support": "Grist-tuki",
+        "Link copied to clipboard": "Linkki kopioitu leikepöydälle",
+        "Manage members of team site": "Hallitse tiimisivuston jäseniä",
+        "Off": "Pois",
+        "On": "Päällä",
+        "Public Access": "Julkinen pääsy",
+        "Public access": "Julkinen pääsy",
+        "Public access: ": "Julkinen pääsy: ",
+        "Remove my access": "Poista oma pääsy",
+        "Save & ": "Tallenna & ",
+        "Team member": "Tiimijäsen",
+        "Your role for this team site": "Roolisi tälle tiimisivustolle",
+        "guest": "vieras",
+        "member": "jäsen",
+        "Guest": "Vieras",
+        "Create a team to share with more people": "Luo tiimi jakaaksesi muiden ihmisten kanssa",
+        "Invite multiple": "Kutsu useita",
+        "team site": "tiimisivusto"
+    },
+    "searchDropdown": {
+        "Search": "Hae"
+    },
+    "SupportGristNudge": {
+        "Opt in to Telemetry": "Suostu telemetriaan",
+        "Support Grist": "Tue Gristiä",
+        "Close": "Sulje",
+        "Opted In": "Annettu suostumus",
+        "Help Center": "Ohjekeskus"
+    },
+    "SupportGristPage": {
+        "GitHub": "GitHub",
+        "Help Center": "Ohjekeskus",
+        "Home": "Etusivu",
+        "Opt in to Telemetry": "Suostu telemetriaan",
+        "Sponsor Grist Labs on GitHub": "Sponsoroi Grist Labsia GitHubissa",
+        "You have opted in to telemetry. Thank you!": "Olet antanut suostumuksen telemetriaan. Kiitos!",
+        "Opt out of Telemetry": "Poista telemetriasuostumus",
+        "Support Grist": "Tue Gristiä",
+        "Telemetry": "Telemetria",
+        "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Tällä instanssilla on suostumus telemetriaan. Vain sivuston ylläpitäjällä on oikeus muutaa tätä asetusta."
+    },
+    "CardContextMenu": {
+        "Delete card": "Poista kortti",
+        "Insert card": "Lisää kortti",
+        "Insert card above": "Lisää kortti yläpuolelle",
+        "Insert card below": "Lisää kortti alapuolelle",
+        "Copy anchor link": "Kopioi ankkurilinkki"
+    },
+    "HiddenQuestionConfig": {
+        "Hidden fields": "Piilotetut kentät"
+    },
+    "WelcomeCoachingCall": {
+        "Maybe Later": "Ehkä myöhemmin"
+    },
+    "Menu": {
+        "Separator": "Erotin",
+        "Building blocks": "Rakennuspalikat",
+        "Columns": "Sarakkeet",
+        "Copy": "Kopioi",
+        "Cut": "Leikkaa",
+        "Insert question above": "Lisää kysymys yläpuolelle",
+        "Paragraph": "Kappale",
+        "Insert question below": "Lisää kysymys alapuolelle",
+        "Paste": "Liitä"
+    },
+    "ACUserManager": {
+        "Enter email address": "Kirjoita sähköpostiosoite",
+        "Invite new member": "Kutsu uusi jäsen",
+        "We'll email an invite to {{email}}": "Lähetämme kutsun sähköpostitse osoitteeseen {{email}}"
+    },
+    "AccessRules": {
+        "Add Default Rule": "Lisää oletussääntö",
+        "Add Table Rules": "Lisää taulusäännöt",
+        "Everyone": "Kaikki",
+        "Add Column Rule": "Lisää sarakesääntö",
+        "Add User Attributes": "Lisää käyttäjäominaisuudet",
+        "Attribute name": "Ominaisuuden nimi",
+        "Checking...": "Tarkistetaan…",
+        "Condition": "Ehto",
+        "Default Rules": "Oletussäännöt",
+        "Delete Table Rules": "Poista taulusäännöt",
+        "Enter Condition": "Kirjoita ehto",
+        "Everyone Else": "Kaikki muut",
+        "Invalid": "Virheellinen",
+        "Permissions": "Oikeudet",
+        "Rules for table ": "Säännöt taululle ",
+        "Save": "Tallenna",
+        "Saved": "Tallennettu",
+        "Special Rules": "Erikoissäännöt",
+        "Type a message...": "Kirjoita viesti…",
+        "User Attributes": "Käyttäjäominaisuudet",
+        "Allow everyone to view Access Rules.": "Salli kenen tahansa nähdä pääsysäännöt.",
+        "Permission to view Access Rules": "Oikeus nähdä pääsysäännöt",
+        "Permission to edit document structure": "Oikeus muokata dokumentin rakennetta"
+    },
+    "AccountPage": {
+        "Account settings": "Tilin asetukset",
+        "Allow signing in to this account with Google": "Salli kirjautumien tälle tilille Googlea käyttäen",
+        "Name": "Nimi",
+        "API Key": "API-avain",
+        "Change Password": "Vaihda salasana",
+        "Edit": "Muokkaa",
+        "Email": "Sähköpostiosoite",
+        "Login Method": "Kirjautumistapa",
+        "Password & Security": "Salasana ja tietoturva",
+        "Save": "Tallenna",
+        "Theme": "Teema",
+        "Two-factor authentication": "Kaksivaiheinen todennus",
+        "Language": "Kieli",
+        "Names only allow letters, numbers and certain special characters": "Nimessä on mahdollista käyttää vain kirjaimia, numeroita ja joitain erikoismerkkejä"
+    },
+    "AccountWidget": {
+        "Pricing": "Hinnoittelu",
+        "Profile Settings": "Profiiliasetukset",
+        "Sign in": "Kirjaudu sisään",
+        "Switch Accounts": "Vaihda tiliä",
+        "Toggle Mobile Mode": "Mobiilitila päällä/pois",
+        "Activation": "Aktivointi",
+        "Billing Account": "Laskutustili",
+        "Support Grist": "Tue Gristiä",
+        "Sign Out": "Kirjaudu ulos",
+        "Upgrade Plan": "Päivitä tilaus",
+        "Sign In": "Kirjaudu sisään",
+        "Sign Up": "Rekisteröidy",
+        "Use This Template": "Käytä tätä mallipohjaa",
+        "Add Account": "Lisää tili",
+        "Manage Team": "Hallitse tiimiä",
+        "Accounts": "Tilit",
+        "Document Settings": "Dokumentin asetukset"
+    },
+    "ViewAsDropdown": {
+        "Example Users": "Esimerkkikäyttäjät",
+        "Users from table": "Käyttäjät taulusta"
+    },
+    "ActionLog": {
+        "All tables": "Kaikki taulut"
+    },
+    "ApiKey": {
+        "Click to show": "Napsauta näyttääksesi",
+        "Remove": "Poista",
+        "Remove API Key": "Poista API-avain",
+        "Create": "Luo",
+        "By generating an API key, you will be able to make API calls for your own account.": "Luomalla API-avaimen voit tehdä API-kutsuja omalle tilillesi."
+    },
+    "AddNewButton": {
+        "Add New": "Lisää uusi"
+    },
+    "App": {
+        "Description": "Kuvaus",
+        "Key": "Avain",
+        "Memory Error": "Muistivirhe",
+        "Translators: please translate this only when your language is ready to be offered to users": "Valmis testattavaksi"
+    },
+    "AppHeader": {
+        "Team Site": "Tiimin sivu",
+        "Home Page": "Kotisivu",
+        "Personal Site": "Henkilökohtainen sivu",
+        "Grist Templates": "Grist-mallipohjat"
+    },
+    "CellContextMenu": {
+        "Clear cell": "Tyhjennä solu",
+        "Clear values": "Tyhjennä arvot",
+        "Copy anchor link": "Kopioi ankkurilinkki",
+        "Reset {{count}} entire columns_one": "Nollaa koko sarake",
+        "Reset {{count}} entire columns_other": "Nollaa {{count}} saraketta kokonaan",
+        "Comment": "Kommentti",
+        "Copy": "Kopioi",
+        "Cut": "Leikkaa",
+        "Delete {{count}} columns_one": "Poista sarake",
+        "Delete {{count}} columns_other": "Poista {{count}} saraketta",
+        "Delete {{count}} rows_one": "Poista rivi",
+        "Delete {{count}} rows_other": "Poista {{count}} riviä",
+        "Duplicate rows_one": "Monista rivi",
+        "Duplicate rows_other": "Monista rivit",
+        "Filter by this value": "Suodata tämän arvon perusteella",
+        "Insert column to the left": "Lisää sarake vasemmalle",
+        "Insert column to the right": "Lisää sarake oikealle",
+        "Insert row": "Lisää rivi",
+        "Insert row above": "Lisää rivi yläpuolelle",
+        "Insert row below": "Lisää rivi alapuolelle",
+        "Reset {{count}} columns_one": "Nollaa sarake",
+        "Reset {{count}} columns_other": "Nollaa {{count}} saraketta",
+        "Paste": "Liitä"
+    },
+    "ColumnFilterMenu": {
+        "All": "Kaikki",
+        "All Except": "Kaikki paitsi",
+        "All Shown": "Kaikki näytetyt",
+        "No matching values": "Ei vastaavia arvoja",
+        "None": "Ei mitään",
+        "End": "Loppu",
+        "Other Values": "Muut arvot",
+        "Search values": "Hae arvoja",
+        "Others": "Muut",
+        "Search": "Hae",
+        "Start": "Alku"
+    },
+    "CustomSectionConfig": {
+        "Select Custom Widget": "Valitse mukautettu widgetti",
+        "Enter Custom URL": "Kirjoita mukautettu URL-osoite",
+        " (optional)": " (valinnainen)",
+        "Add": "Lisää",
+        "Open configuration": "Avaa määritys",
+        "Pick a column": "Valitse sarake",
+        "Read selected table": "Lue valittu taulu",
+        "Widget does not require any permissions.": "Widgetti ei vaadi mitään oikeuksia.",
+        "Clear selection": "Tyhjennä valinta",
+        "Full document access": "Täysi pääsy dokumenttiin",
+        "Learn more about custom widgets": "Lue lisää mukautetuista widgeteistä"
+    },
+    "DocMenu": {
+        "Delete Forever": "Poista pysyvästi",
+        "Delete {{name}}": "Poista {{name}}",
+        "All Documents": "Kaikki dokumentit",
+        "Pin Document": "Kiinnitä dokumentti",
+        "Pinned Documents": "Kiinnitetyt dokumentit",
+        "Rename": "Nimeä uudelleen",
+        "Restore": "Palauta",
+        "To restore this document, restore the workspace first.": "Palauttaaksesi tämän dokumetin, palauta ensin työtila.",
+        "(The organization needs a paid plan)": "(Organisaatio tarvitsee maksullisen tilauksen)",
+        "By Date Modified": "Muokkauspäivän mukaan",
+        "By Name": "Nimen mukaan",
+        "You are on your personal site. You also have access to the following sites:": "Olet henkilökohtaisella sivustolla. Sinulla on pääsy myös seuraaviin sivustoihin:",
+        "Current workspace": "Nykyinen työtila",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Olet sivustolla {{siteName}}. Sinulla on pääsy myös seuraaviin sivustoihin:",
+        "Delete": "Poista",
+        "Deleted {{at}}": "Poistettu {{at}}",
+        "Discover More Templates": "Löydä lisää mallipohjia",
+        "Document will be moved to Trash.": "Dokumentti siirretään roskakoriin.",
+        "Document will be permanently deleted.": "Dokumentti poistetaan pysyvästi.",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Dokumentit pysyvät roskakorissa 30 päivän ajan, ja sen jälkeen ne poistetaan pysyvästi.",
+        "Edited {{at}}": "Muokattu {{at}}",
+        "Examples & Templates": "Esimerkit & mallipohjat",
+        "Examples and Templates": "Esimerkit ja mallipohjat",
+        "Manage Users": "Hallitse käyttäjiä",
+        "More Examples and Templates": "Lisää esimerkkejä ja mallipohjia",
+        "Move": "Siirrä",
+        "Move {{name}} to workspace": "Siirrä {{name}} työtilaan",
+        "Other Sites": "Muut sivustot",
+        "Permanently Delete \"{{name}}\"?": "Poistetaanko \"{{name}}\" pysyvästi?",
+        "Remove": "Poista",
+        "Requires edit permissions": "Vaatii muokkausoikeudet",
+        "This service is not available right now": "Tämä palvelu ei ole juuri nyt saatavilla",
+        "Trash": "Roskakori",
+        "Trash is empty.": "Roskakori on tyhjä.",
+        "Unpin Document": "Poista dokumentin kiinnitys",
+        "Workspace not found": "Työtilaa ei löydy",
+        "You may delete a workspace forever once it has no documents in it.": "Voit poistaa työtilan pysyvästi, kun se ei enää sisällä dokumentteja."
+    },
+    "DocHistory": {
+        "Open Snapshot": "Avaa tilannevedos",
+        "Snapshots": "Tilannevedokset",
+        "Snapshots are unavailable.": "Tilannevedokset eivät ole saatavilla.",
+        "Activity": "Aktiviteetti",
+        "Compare to Current": "Vertaa nykyiseen",
+        "Compare to Previous": "Vertaa edelliseen"
+    },
+    "DocumentSettings": {
+        "API Console": "API-konsoli",
+        "Document Settings": "Dokumentin asetukset",
+        "Engine (experimental {{span}} change at own risk):": "Moottori (kokeellinen {{span}} vaihda omalla vastuulla):",
+        "Local currency ({{currency}})": "Paikallinen valuutta ({{currency}})",
+        "Locale:": "Maa-asetusto:",
+        "Save": "Tallenna",
+        "Save and Reload": "Tallenna ja lataa uudelleen",
+        "This document's ID (for API use):": "Tämän dokumentin ID-tunniste (API-käyttöä varten):",
+        "Time Zone:": "Aikavyöhyke:",
+        "Document ID copied to clipboard": "Dokumentin ID-tunniste kopioitiin leikepöydälle",
+        "Ok": "OK",
+        "Manage Webhooks": "Hallitse webhookeja",
+        "Webhooks": "Webhookit",
+        "Currency:": "Valuutta:"
+    },
+    "DocumentUsage": {
+        "Usage": "Käyttö",
+        "Attachments Size": "Liitteiden koko",
+        "Rows": "Rivit",
+        "Data Size": "Datan koko"
+    },
+    "Drafts": {
+        "Undo discard": "Kumoa hylkäys",
+        "Restore last edit": "Palauta viimeisin muokkaus"
+    },
+    "DuplicateTable": {
+        "Copy all data in addition to the table structure.": "Kopioi kaikki data taulun rakenteen lisäksi.",
+        "Name for new table": "Uuden taulun nimi"
+    },
+    "ExampleInfo": {
+        "Tutorial: Manage Business Data": "Opas: hallitse liiketoimintadataa",
+        "Tutorial: Analyze & Visualize": "Opas: analysoi ja visualisoi",
+        "Tutorial: Create a CRM": "Opas: luo CRM"
+    },
+    "FieldConfig": {
+        "Empty Columns_other": "Tyhjät sarakkeet",
+        "Enter formula": "Kirjoita kaava",
+        "Formula Columns_one": "Kaavasarake",
+        "Formula Columns_other": "Kaavasarakkeet",
+        "Set formula": "Aseta kaava",
+        "DESCRIPTION": "KUVAUS",
+        "Data Columns_one": "Datasarake",
+        "Data Columns_other": "Datasarakkeet",
+        "Empty Columns_one": "Tyhjä sarake",
+        "COLUMN BEHAVIOR": "SARAKKEEN TOIMINTA"
+    },
+    "FieldMenus": {
+        "Using separate settings": "Käytetään erillisiä asetuksia",
+        "Use separate settings": "Käytä erillisiä asetuksia",
+        "Using common settings": "Käytetään yleisiä asetuksia"
+    },
+    "GridOptions": {
+        "Vertical Gridlines": "Pystysuuntaiset ruutuviivat",
+        "Grid Options": "Ruudukkovalinnat",
+        "Horizontal Gridlines": "Vaakasuuntaiset ruutuviivat",
+        "Zebra Stripes": "Seepraraidat"
+    },
+    "GridViewMenus": {
+        "Freeze {{count}} columns_other": "Jäädytä {{count}} saraketta",
+        "Hide {{count}} columns_other": "Piilota {{count}} saraketta",
+        "Show column {{- label}}": "Näytä sarake {{- label}}",
+        "Add Column": "Lisää sarake",
+        "Clear values": "Tyhjennä arvot",
+        "Column Options": "Sarakevalinnat",
+        "Convert formula to data": "Muunna kaava dataksi",
+        "Delete {{count}} columns_other": "Poista {{count}} saraketta",
+        "Insert column to the left": "Lisää sarake vasemmalle",
+        "Insert column to the right": "Lisää sarake oikealle",
+        "Search columns": "Hae sarakkeita",
+        "UUID": "UUID",
+        "Created by": "Luonut",
+        "Numeric": "Numeerinen",
+        "Text": "Teksti",
+        "Integer": "Kokonaisluku",
+        "Delete {{count}} columns_one": "Poista sarake",
+        "Filter Data": "Suodata data",
+        "Freeze {{count}} columns_one": "Jäädytä tämä sarake",
+        "Hide {{count}} columns_one": "Piilota sarake",
+        "Rename column": "Nimeä sarake uudelleen",
+        "Reset {{count}} columns_one": "Nollaa sarake",
+        "Reset {{count}} columns_other": "Nollaa {{count}} saraketta",
+        "Reset {{count}} entire columns_one": "Nollaa koko sarake",
+        "Reset {{count}} entire columns_other": "Nollaa {{count}} kokonaista saraketta",
+        "Apply on record changes": "Toteuta tietueiden muuttuessa",
+        "Apply to new records": "Toteuta uusiin tietueisiin",
+        "Created At": "Luotu",
+        "Created By": "Luonut",
+        "Hidden Columns": "Piilotetut sarakkeet",
+        "Last Updated At": "Viimeksi päivitetty",
+        "Last Updated By": "Viimeksi päivittänyt",
+        "Show hidden columns": "Näytä piilotetut sarakkeet",
+        "Timestamp": "Aikaleima",
+        "Adding UUID column": "Lisätään UUID-saake",
+        "No reference columns.": "Ei viitesarakkeita.",
+        "Sort": "Järjestä",
+        "Sorted (#{{count}})_one": "Järjestetty (#{{count}})",
+        "Sorted (#{{count}})_other": "Järjestetty (#{{count}})",
+        "Add formula column": "Lisää kaavasarake",
+        "Add column": "Lisää sarake",
+        "Created at": "Luotu",
+        "Last updated at": "Viimeksi päivitetty",
+        "Last updated by": "Viimeksi päivittänyt",
+        "Date": "Päivä",
+        "Choice": "Valinta",
+        "Choice List": "Valintaluettelo",
+        "Attachment": "Liite",
+        "Toggle": "Kytkin",
+        "Reference": "Viite",
+        "Reference List": "Viiteluettelo",
+        "DateTime": "PäiväAika"
+    },
+    "HomeIntro": {
+        "This workspace is empty.": "Tämä työtila on tyhjä.",
+        "You have read-only access to this site. Currently there are no documents.": "Sinulla on pelkkä lukuoikeus tälle sivustolle. Tällä hetkellä sivustolla ei ole dokumentteja.",
+        "Welcome to Grist!": "Tervetuloa Gristiin!",
+        "Any documents created in this site will appear here.": "Tällä sivustolla luodut dokumentit ilmestyvät tänne.",
+        "Browse Templates": "Selaa mallipohjia",
+        "Create Empty Document": "Luo tyhjä dokumentti",
+        "Get started by creating your first Grist document.": "Aloita luomalla ensimmäinen Grist-dokumentti.",
+        "Get started by exploring templates, or creating your first Grist document.": "Aloita selaamalla mallipohjia tai luomalla ensimmäinen Grist-dokumentti.",
+        "Get started by inviting your team and creating your first Grist document.": "Aloita kutsumalla tiimisi ja luomalla ensimmäinen Grist-dokumentti.",
+        "Help Center": "Ohjekeskus",
+        "Import Document": "Tuo dokumentti",
+        "Invite Team Members": "Kutsu tiimijäseniä",
+        "Sign up": "Rekisteröidy",
+        "Welcome to Grist, {{name}}!": "Tervetuloa Gristiin, {{name}}!",
+        "Welcome to {{orgName}}": "Tervetuloa, tämä on {{orgName}}",
+        "personal site": "henkilökohtainen sivusto",
+        "{{signUp}} to save your work. ": "{{signUp}} tallentaaksesi työsi. ",
+        "Welcome to Grist, {{- name}}!": "Tervetuloa Gristiin, {{- name}}!",
+        "Welcome to {{- orgName}}": "Tervetuloa, tämä on {{- orgName}}",
+        "Sign in": "Kirjaudu sisään",
+        "To use Grist, please either sign up or sign in.": "Käytä Gristiä rekisteröitymällä tai kirjautumalla sisään."
+    },
+    "HomeLeftPane": {
+        "Delete {{workspace}} and all included documents?": "Poistetaanko työtila {{workspace}} ja kaikki siihen sisältyvät dokumentit?",
+        "Tutorial": "Opas",
+        "Trash": "Roskakori",
+        "Workspace will be moved to Trash.": "Työtila siirretään roskakoriin.",
+        "Workspaces": "Työtilat",
+        "All Documents": "Kaikki dokumentit",
+        "Create Empty Document": "Luo tyhjä dokumentti",
+        "Create Workspace": "Luo työtila",
+        "Delete": "Poista",
+        "Examples & Templates": "Mallipohjat",
+        "Import Document": "Tuo dokumentti",
+        "Manage Users": "Hallitse käyttäjiä",
+        "Rename": "Nimeä uudelleen"
+    },
+    "errorPages": {
+        "Error{{suffix}}": "Virhe{{suffix}}",
+        "Add account": "Lisää tili",
+        "Contact support": "Ota yhteys tukeen",
+        "Go to main page": "Siirry etusivulle",
+        "Page not found{{suffix}}": "Sivua ei löytynyt{{suffix}}",
+        "Sign in": "Kirjaudu sisään",
+        "Sign in again": "Kirjaudu sisään uudelleen",
+        "Sign in to access this organization's documents.": "Kirjaudu sisään käyttääksesi tämän organisaation dokumentteja.",
+        "Signed out{{suffix}}": "Kirjauduttu ulos{{suffix}}",
+        "There was an unknown error.": "Tuntematon virhe.",
+        "You do not have access to this organization's documents.": "Sinulla ei ole pääsyoikeutta tämän organisaation dokumentteihin.",
+        "Build your own form": "Rakenna oma lomakkeesi",
+        "Sign up": "Rekisteröidy",
+        "Your account has been deleted.": "Tilisi on poistettu.",
+        "An unknown error occurred.": "Tapahtui tuntematon virhe.",
+        "Form not found": "Lomaketta ei löytynyt",
+        "Powered by": "Taustavoimana",
+        "Something went wrong": "Jokin meni pieleen",
+        "The requested page could not be found.{{separator}}Please check the URL and try again.": "Pyydettyä sivua ei löydy.{{separator}}Tarkista URL-osoite ja yritä uudelleen.",
+        "There was an error: {{message}}": "Tapahtui virhe: {{message}}",
+        "You are now signed out.": "Olet nyt kirjautunut ulos.",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Olet kirjautunut käyttäjänä {{email}}. Voit kirjautua sisään toisella tilillä, tai pyytää ylläpitäjältä pääsyä.",
+        "Account deleted{{suffix}}": "Tili poistettu{{suffix}}",
+        "Access denied{{suffix}}": "Pääsy estetty{{suffix}}"
+    },
+    "Importer": {
+        "Merge rows that match these fields:": "Yhdistä rivit, jotka vastaavat näitä kenttiä:",
+        "Update existing records": "Päivitä olemassa olevat tietueet",
+        "Destination table": "Kohdetaulu",
+        "Grist column": "Grist-sarake",
+        "Import from file": "Tuo tiedostosta",
+        "New Table": "Uusi taulu",
+        "Skip": "Ohita",
+        "Skip Import": "Ohita tuonti",
+        "Source column": "Lähdesarake"
+    },
+    "MakeCopyMenu": {
+        "Enter document name": "Kirjoita dokumentin nimi",
+        "Name": "Nimi",
+        "Include the structure without any of the data.": "Sisällytä rakenne ilman mitään dataa.",
+        "No destination workspace": "Ei kohdetyötilaa",
+        "Organization": "Organisaatio",
+        "Original Has Modifications": "Alkuperäisessä on muutoksia",
+        "Original Looks Identical": "Alkuperäinen vaikuttaa identtiseltä",
+        "Overwrite": "Ylikirjoita",
+        "Sign up": "Rekisteröidy",
+        "The original version of this document will be updated.": "Tämän dokumetin alkuperäinen versio päivitetään.",
+        "To save your changes, please sign up, then reload this page.": "Tallenna muutokset rekisteröitymällä ja sitten lataamalla tämä sivu uudelleen.",
+        "You do not have write access to this site": "Sinulla ei ole kirjoitusoikeutta tähän sivustoon",
+        "Download full document and history": "Lataa koko dokumentti ja historia",
+        "Cancel": "Peruuta",
+        "Update": "Päivitä",
+        "Update Original": "Päivitä alkuperäinen",
+        "Workspace": "Työtila",
+        "You do not have write access to the selected workspace": "Sinulla ei ole kirjoitusoikeutta valittuun työtilaan",
+        "Remove all data but keep the structure to use as a template": "Poista kaikki data, mutta säilytä rakenne mallipohjakäyttöä varten",
+        "Remove document history (can significantly reduce file size)": "Poista dokumentin historia (voi pienentää tiedostokokoa merkittävästi)",
+        "Replacing the original requires editing rights on the original document.": "Alkuperäisen korvaaminen vaatii muokkausoikeuksia alkuperäiseen dokumenttiin."
+    },
+    "RightPanel": {
+        "Default field value": "Kentän oletusarvo",
+        "Submit another response": "Lähetä toinen vastaus",
+        "Field title": "Kentän nimi",
+        "Enter text": "Kirjoita teksti",
+        "Hidden field": "Piilotettu kenttä",
+        "Redirection": "Uudelleenohjaus",
+        "Field rules": "Kenttäsäännöt",
+        "Layout": "Asettelu",
+        "Required field": "Pakollinen kenttä",
+        "Submission": "Lähettäminen",
+        "Submit button label": "Lähetyspainikkeen nimi",
+        "Success text": "Onnistumisteksti",
+        "Enter redirect URL": "Kirjoita uudelleenohjauksen URL-osoite",
+        "Change Widget": "Vaihda widgetti",
+        "DATA TABLE NAME": "DATATAULUN NIMI",
+        "Fields_one": "Kenttä",
+        "Fields_other": "Kentät",
+        "Save": "Tallenna",
+        "Select Widget": "Valitse widgetti",
+        "Theme": "Teema",
+        "Widget": "Widgetti",
+        "You do not have edit access to this document": "Sinulla ei ole muokkausoikeutta tähän dokumenttiin",
+        "Columns_one": "Sarake",
+        "Columns_other": "Sarakkeet",
+        "DATA TABLE": "DATATAULU",
+        "COLUMN TYPE": "SARAKETYYPPI",
+        "Data": "Data",
+        "TRANSFORM": "MUUNNA",
+        "Sort & Filter": "Järjestä & suodata",
+        "WIDGET TITLE": "WIDGETIN OTSIKKO",
+        "Configuration": "Määritys",
+        "CHART TYPE": "KAAVIOTYYPPI",
+        "CUSTOM": "MUKAUTETTU",
+        "GROUPED BY": "RYHMITYSPERUSTE",
+        "ROW STYLE": "RIVITYYLI",
+        "Row Style": "Rivityyli",
+        "SOURCE DATA": "LÄHDEDATA",
+        "Redirect automatically after submission": "Uudelleenohjaa automaattisesti lähetyksen jälkeen",
+        "Reset form": "Nollaa lomake"
+    },
+    "RowContextMenu": {
+        "Delete": "Poista",
+        "Copy anchor link": "Kopioi ankkurilinkki",
+        "Insert row": "Lisää rivi",
+        "Insert row above": "Lisää rivi yläpuolelle",
+        "Insert row below": "Lisää rivi alapuolelle",
+        "View as card": "Näytä korttina"
+    },
+    "SelectionSummary": {
+        "Copied to clipboard": "Kopioitu leikepöydälle"
+    },
+    "ShareMenu": {
+        "Current Version": "Nykyinen versio",
+        "Back to Current": "Takaisin nykyiseen",
+        "Download": "Lataa",
+        "Edit without affecting the original": "Muokkaa vaikuttamatta alkuperäiseen",
+        "Manage Users": "Hallitse käyttäjiä",
+        "Original": "Alkuperäinen",
+        "Export CSV": "Vie CSV",
+        "Export XLSX": "Vie XLSX",
+        "Replace {{termToUse}}...": "Korvaa {{termToUse}}…",
+        "Send to Google Drive": "Lähetä Google Driveen",
+        "Save Copy": "Tallenna kopio",
+        "Save Document": "Tallenna dokumentti",
+        "Show in folder": "Näytä kansiossa",
+        "Share": "Jaa",
+        "Download...": "Lataa...",
+        "Unsaved": "Tallentamaton"
+    },
+    "NotifyUI": {
+        "No notifications": "Ei ilmoituksia",
+        "Ask for help": "Pyydä apua",
+        "Cannot find personal site, sorry!": "Pahoittelut, henkilökohtaista sivustoa ei löydy!",
+        "Give feedback": "Anna palautetta",
+        "Go to your free personal site": "Siirry henkilökohtaiselle sivustollesi",
+        "Notifications": "Ilmoitukset",
+        "Renew": "Uudista",
+        "Report a problem": "Ilmoita ongelmasta",
+        "Upgrade Plan": "Päivitä tilaus",
+        "Manage billing": "Hallitse laskutusta"
+    },
+    "PageWidgetPicker": {
+        "Select Data": "Valitse data",
+        "Select Widget": "Valitse widgetti",
+        "Add to Page": "Lisää sivulle",
+        "Group by": "Ryhmitysperuste"
+    },
+    "PermissionsWidget": {
+        "Allow All": "Salli kaikki",
+        "Deny All": "Estä kaikki",
+        "Read Only": "Vain luku"
+    },
+    "PluginScreen": {
+        "Import failed: ": "Tuonti epäonnistui: "
+    },
+    "RecordLayout": {
+        "Updating record layout.": "Päivitetään tietueasettelua."
+    },
+    "RecordLayoutEditor": {
+        "Show field {{- label}}": "Näytä kenttä {{- label}}",
+        "Save Layout": "Tallenna asettelu",
+        "Add Field": "Lisää kenttä",
+        "Cancel": "Peruuta",
+        "Create New Field": "Luo uusi kenttä"
+    },
+    "modals": {
+        "Don't show again": "Älä näytä uudelleen",
+        "Cancel": "Peruuta",
+        "Ok": "OK",
+        "Save": "Tallenna",
+        "Are you sure you want to delete these records?": "Haluatko varmasti poistaa nämä tietueet?",
+        "Are you sure you want to delete this record?": "Haluatko varmasti poistaa tämän tietueen?",
+        "Delete": "Poista",
+        "Dismiss": "Hylkää",
+        "Don't ask again.": "Älä kysy uudelleen.",
+        "Don't show again.": "Älä näytä uudelleen.",
+        "Don't show tips": "Älä näytä vinkkejä",
+        "Got it": "Selvä"
+    },
+    "pages": {
+        "Remove": "Poista",
+        "You do not have edit access to this document": "Sinulla ei ole muokkausoikeutta tähän dokumenttiin",
+        "Rename": "Nimeä uudelleen"
+    },
+    "RefSelect": {
+        "Add Column": "Lisää sarake",
+        "No columns to add": "Ei sarakkeita lisättäväksi"
+    },
+    "SiteSwitcher": {
+        "Switch Sites": "Vaihda sivustoja",
+        "Create new team site": "Luo uusi tiimisivusto"
+    },
+    "search": {
+        "No results": "Ei tuloksia",
+        "Search in document": "Hae dokumentista",
+        "Search": "Hae",
+        "Find Next ": "Löydä seuraava ",
+        "Find Previous ": "Löydä edellinen "
+    },
+    "SortConfig": {
+        "Add Column": "Lisää sarake",
+        "Search Columns": "Hae sarakkeita",
+        "Natural sort": "Luonnollinen järjestys",
+        "Update Data": "Päivitä data"
+    },
+    "SortFilterConfig": {
+        "Save": "Tallenna",
+        "Filter": "SUODATA",
+        "Sort": "JÄRJESTÄ",
+        "Update Sort & Filter settings": "Päivitä järjestys- & suodatusasetukset"
+    },
+    "ThemeConfig": {
+        "Appearance ": "Ulkoasu "
+    },
+    "Tools": {
+        "Delete": "Poista",
+        "Validate Data": "Validoi data",
+        "Settings": "Asetukset",
+        "API Console": "API-konsoli",
+        "Code View": "Koodinäkymä",
+        "Access Rules": "Pääsysäännöt",
+        "Document History": "Dokumentin historia",
+        "Raw Data": "Raakadata",
+        "TOOLS": "TYÖKALUT"
+    },
+    "TriggerFormulas": {
+        "OK": "OK",
+        "Any field": "Mikä tahansa kenttä",
+        "Cancel": "Peruuta",
+        "Close": "Sulje",
+        "Current field ": "Nykyinen kenttä "
+    },
+    "TopBar": {
+        "Manage Team": "Hallitse tiimiä"
+    },
+    "TypeTransformation": {
+        "Apply": "Toteuta",
+        "Cancel": "Peruuta",
+        "Preview": "Esikatselu",
+        "Update formula (Shift+Enter)": "Päivitä kaava (Shift+Enter)"
+    },
+    "UserManagerModel": {
+        "Editor": "Muokkain",
+        "Owner": "Omistaja",
+        "View & Edit": "Näytä & muokkaa",
+        "View Only": "Näytä ainoastaan"
+    },
+    "ViewLayoutMenu": {
+        "Edit Card Layout": "Muokkaa korttiasettelua",
+        "Open configuration": "Avaa määritys",
+        "Add to page": "Lisää sivulle",
+        "Show raw data": "Näytä raakadata",
+        "Widget options": "Widgettivalinnat",
+        "Copy anchor link": "Kopioi ankkurilinkki",
+        "Delete record": "Poista tietue",
+        "Delete widget": "Poista widgetti",
+        "Download as CSV": "Lataa CSV-muodossa",
+        "Download as XLSX": "Lataa XLSX-muodossa",
+        "Collapse widget": "Supista widgetti",
+        "Create a form": "Luo lomake",
+        "Advanced Sort & Filter": "Edistynyt järjestys & suodatus"
+    },
+    "ViewSectionMenu": {
+        "Custom options": "Mukautetut valinnat",
+        "(customized)": "(mukautettu)",
+        "(empty)": "(tyhjä)",
+        "(modified)": "(muokattu)",
+        "Save": "Tallenna",
+        "SORT": "JÄRJESTÄ",
+        "Update Sort&Filter settings": "Päivitä järjestys- & suodatusasetukset",
+        "FILTER": "SUODATA"
+    },
+    "WelcomeQuestions": {
+        "What brings you to Grist? Please help us serve you better.": "Mikä tuo sinut Gristin pariin? Auta meitä palvelemaan sinua entistä paremmin.",
+        "Education": "Koulutus",
+        "Finance & Accounting": "Talous ja kirjanpito",
+        "HR & Management": "Henkilöstöhallinto",
+        "IT & Technology": "IT ja teknologia",
+        "Marketing": "Markkinointi",
+        "Media Production": "Mediatuotanto",
+        "Other": "Muu",
+        "Product Development": "Tuotekehitys",
+        "Research": "Tutkimus",
+        "Sales": "Myynti",
+        "Type here": "Kirjoita tähän",
+        "Welcome to Grist!": "Tervetuloa Gristiin!"
+    },
+    "VisibleFieldsConfig": {
+        "Clear": "Tyhjennä",
+        "Show {{label}}": "Näytä {{label}}",
+        "Select All": "Valitse kaikki",
+        "Hide {{label}}": "Piilota {{label}}",
+        "Hidden {{label}}": "Piilotettu {{label}}"
+    },
+    "ColumnInfo": {
+        "Cancel": "Peruuta",
+        "Save": "Tallenna",
+        "COLUMN DESCRIPTION": "SARAKKEEN KUVAUS",
+        "COLUMN LABEL": "SARAKKEEN NIMIKE"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Lähetetään tiedostoa Google Driveen"
+    },
+    "ACLUsers": {
+        "Example Users": "Esimerkkikäyttäjät",
+        "Users from table": "Käyttäjät taulusta"
+    },
+    "TypeTransform": {
+        "Cancel": "Peruuta",
+        "Preview": "Esikatselu",
+        "Apply": "Toteuta"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Lisää toinen sääntö",
+        "Add conditional style": "Lisää ehdollinen tyyli",
+        "Error in style rule": "Vihe tyylisäännössä",
+        "Row Style": "Rivin tyyli",
+        "Rule must return True or False": "Säännön tulee palauttaa True tai False"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Virheellinen valuutta"
+    },
+    "DiscussionEditor": {
+        "Comment": "Kommetti",
+        "Edit": "Muokkaa",
+        "Open": "Avaa",
+        "Marked as resolved": "Merkitty selvitetyksi",
+        "Remove": "Poista",
+        "Reply": "Vastaa",
+        "Cancel": "Peruuta",
+        "Reply to a comment": "Vastaa kommenttiin",
+        "Resolve": "Selvitä",
+        "Save": "Tallenna",
+        "Show resolved comments": "Näytä selvitetyt kommentit",
+        "Showing last {{nb}} comments": "Näytetään viimeisimmät {{nb}} kommenttia",
+        "Started discussion": "Keskustelu aloitettu",
+        "Write a comment": "Kirjoita kommentti"
+    },
+    "WidgetTitle": {
+        "Cancel": "Peruuta",
+        "Provide a table name": "Anna taululle nimi",
+        "Save": "Tallenna",
+        "DATA TABLE NAME": "DATATAULUN NIMI",
+        "WIDGET TITLE": "WIDGETIN OTSIKKO",
+        "WIDGET DESCRIPTION": "WIDGETIN KUVAUS"
+    },
+    "FormulaEditor": {
+        "Expand Editor": "Laajenna muokkain",
+        "Column or field is required": "Sarake tai kenttä on pakollinen",
+        "Error in the cell": "Virhe solussa",
+        "Errors in all {{numErrors}} cells": "Virheitä kaikissa {{numErrors}} solussa"
+    },
+    "NumericTextBox": {
+        "Currency": "Valuutta",
+        "Decimals": "Desimaalit",
+        "Number Format": "Numeromuoto",
+        "Default currency ({{defaultCurrency}})": "OIetusvaluutta ({{defaultCurrency}})"
+    },
+    "WelcomeTour": {
+        "Add New": "Lisää uusi",
+        "Configuring your document": "Määritetään dokumenttia",
+        "Customizing columns": "Mukautetaan sarakkeita",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Tee siitä relationaalista! Käytä {{ref}}-tyyppiä linkittääksesi tauluja. ",
+        "Reference": "Viite",
+        "Share": "Jaa",
+        "Sharing": "Jakaminen",
+        "Welcome to Grist!": "Tervetuloa Gristiin!",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Kaksoisnapsauta tai paina {{enter}} solussa muokataksesi sitä. ",
+        "Editing Data": "Muokataan dataa",
+        "Help Center": "Ohjekeskus",
+        "Use the Share button ({{share}}) to share the document or export data.": "Käytä Jaa-painiketta ({{share}}) jakaaksesi dokumentin tai viedäksesi datan.",
+        "template library": "mallipohjakirjasto"
+    },
+    "GristTooltips": {
+        "Updates every 5 minutes.": "Päivittyy 5 minuutin välein.",
+        "Anchor Links": "Ankkurilinkit",
+        "Custom Widgets": "Mukautetut widgetit",
+        "Calendar": "Kalenteri",
+        "Forms are here!": "Lomakkeet ovat täällä!",
+        "Learn more": "Lue lisää",
+        "Editing Card Layout": "Muokataan korttiasettelua",
+        "Reference Columns": "Viitesarakkeet",
+        "Selecting Data": "Datan valinta",
+        "Add New": "Lisää uusi",
+        "Click the Add New button to create new documents or workspaces, or import data.": "Napsauta \"Lisää uusi\"-painiketta luodaksesi uuden dokumentin tai työtilan, tai tuodaksesi dataa.",
+        "Linking Widgets": "Widgettien linkittäminen",
+        "You can filter by more than one column.": "Voit suodataa enemmän kuin yhden sarakkeen perusteella."
+    },
+    "ChartView": {
+        "Pick a column": "Valitse sarake"
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Käyttö estetty",
+        "Code View is available only when you have full document access.": "Koodinäkymä on käytettävissä vain silloin, kun sinulla täysi pääsy dokumenttiin."
+    },
+    "ColorSelect": {
+        "Apply": "Toteuta",
+        "Cancel": "Peruuta",
+        "Default cell style": "Solun oletustyyli"
+    },
+    "DataTables": {
+        "Click to copy": "Napsauta kopioidaksesi",
+        "Table ID copied to clipboard": "Taulun ID-tunniste kopioitu leikepöydälle",
+        "Remove Table": "Poista taulu",
+        "Rename Table": "Nimeä taulu uudelleen",
+        "Raw Data Tables": "Raakadatataulut",
+        "You do not have edit access to this document": "Sinulla ei ole muokkausoikeutta tähän dokumenttiin"
+    },
+    "DocPageModel": {
+        "Add Empty Table": "Lisää tyhjä taulu",
+        "Add Page": "Lisää sivu",
+        "Add Widget to Page": "Lisää widgetti sivulle",
+        "Document owners can attempt to recover the document. [{{error}}]": "Dokumentin omistajat voivat yrittää palauttaa dokumentin. [{{error}}]",
+        "Reload": "Lataa uudelleen",
+        "You do not have edit access to this document": "Sinulla ei ole muokkausoikeutta tähän dokumenttiin",
+        "Sorry, access to this document has been denied. [{{error}}]": "Valitettavasti pääsy tähän dokumenttiin on estetty. [{{error}}]"
+    },
+    "FilterConfig": {
+        "Add Column": "Lisää sarake"
+    },
+    "FilterBar": {
+        "SearchColumns": "Hae sarakkeita",
+        "Search Columns": "Hae sarakkeita"
+    },
+    "GristDoc": {
+        "Import from file": "Tuo tiedostosta"
+    },
+    "LeftPanelCommon": {
+        "Help Center": "Ohjekeskus"
+    },
+    "OnBoardingPopups": {
+        "Finish": "Valmis",
+        "Next": "Seuraava"
+    },
+    "OpenVideoTour": {
+        "Grist Video Tour": "Gristin videoesittely",
+        "Video Tour": "Videoesittely",
+        "YouTube video player": "YouTube-videosoitin"
+    },
+    "Pages": {
+        "Delete": "Poista",
+        "Delete data and this page.": "Poista data ja tämä sivu.",
+        "The following tables will no longer be visible_one": "Seuraava taulu ei ole enää näkyvissä",
+        "The following tables will no longer be visible_other": "Seuraavat taulut eivät enää ole näkyvissä"
+    },
+    "ViewAsBanner": {
+        "UnknownUser": "Tuntematon käyttäjä"
+    },
+    "ViewConfigTab": {
+        "Advanced settings": "Lisäasetukset",
+        "Edit Card Layout": "Muokkaa korttiasettelua",
+        "Form": "Lomake",
+        "Plugin: ": "Liitännäinen: "
+    },
+    "breadcrumbs": {
+        "snapshot": "tilannevedos",
+        "unsaved": "tallentamaton",
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Voit tehdä muokkauksia, mutta niistä muodostuu uusi kopio,\neivätkä muutokset vaikuta alkuperäiseen dokumenttiin."
+    },
+    "menus": {
+        "Select fields": "Valitse kentät",
+        "Upgrade now": "Päivitä nyt",
+        "Numeric": "Numeerinen",
+        "Text": "Teksti",
+        "Integer": "Kokonaisluku",
+        "Date": "Päivä",
+        "Choice": "Valinta",
+        "Choice List": "Valintaluettelo",
+        "Attachment": "Liite",
+        "Search columns": "Hae sarakkeita",
+        "Toggle": "Kytkin",
+        "Reference": "Viite",
+        "Reference List": "Viiteluettelo",
+        "DateTime": "PäiväAika"
+    },
+    "CellStyle": {
+        "Cell Style": "Solun tyyli",
+        "Default cell style": "Solun oletustyyli",
+        "CELL STYLE": "SOLUN TYYLI"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Muunna sarake kaavioksi"
+    },
+    "FieldBuilder": {
+        "DATA FROM TABLE": "DATA TAULUSTA",
+        "CELL FORMAT": "SOLUN MUOTOILU"
+    },
+    "Reference": {
+        "SHOW COLUMN": "NÄYTÄ SARAKE",
+        "CELL FORMAT": "SOLUN MUOTOILU"
+    },
+    "LanguageMenu": {
+        "Language": "Kieli"
+    },
+    "DescriptionConfig": {
+        "DESCRIPTION": "KUVAUS"
+    },
+    "DescriptionTextArea": {
+        "DESCRIPTION": "KUVAUS"
+    },
+    "buildViewSectionDom": {
+        "No data": "Ei dataa",
+        "Not all data is shown": "Kaikkea dataa ei näytetä"
+    },
+    "FloatingEditor": {
+        "Collapse Editor": "Supista muokkain"
+    },
+    "FloatingPopup": {
+        "Maximize": "Suurenna",
+        "Minimize": "Pienennä"
+    },
+    "FormView": {
+        "Unpublish": "Lopeta julkaisu",
+        "Unpublish your form?": "Lopetetaanko lomakkeen julkaisu?",
+        "Publish": "Julkaise",
+        "Publish your form?": "Julkaistaanko lomake?"
+    },
+    "Editor": {
+        "Delete": "Poista"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Tyhjennä",
+        "Select All": "Valitse kaikki"
+    },
+    "FormConfig": {
+        "Required field": "Pakollinen kenttä",
+        "Field rules": "Kenttäsäännöt"
+    },
+    "ValidationPanel": {
+        "Update formula (Shift+Enter)": "Päivitä kaava (Shift+Enter)"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "SARAKKEEN KUVAUS",
+        "COLUMN LABEL": "SARAKKEEN NIMIKE"
+    }
+}

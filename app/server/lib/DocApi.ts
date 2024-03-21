@@ -12,9 +12,9 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {extractTypeFromColType, isRaisedException} from "app/common/gristTypes";
-import {Box, BoxType, FieldModel, INITIAL_FIELDS_COUNT, RenderBox, RenderContext} from "app/common/Forms";
-import {buildUrlId, commonUrls, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
+import {extractTypeFromColType, isFullReferencingType, isRaisedException} from "app/common/gristTypes";
+import {INITIAL_FIELDS_COUNT} from "app/common/Forms";
+import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
 import {SchemaTypes} from "app/common/schema";
 import {SortFunc} from 'app/common/SortFunc';
@@ -64,7 +64,6 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {HashUtil} from 'app/server/lib/HashUtil';
 import {makeForkIds} from "app/server/lib/idUtils";
 import log from 'app/server/lib/log';
-import {getAppPathTo} from 'app/server/lib/places';
 import {
   getDocId,
   getDocScope,
@@ -86,8 +85,6 @@ import {fetchDoc, globalUploadSet, handleOptionalUpload, handleUpload,
 import * as assert from 'assert';
 import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
-import * as fse from 'fs-extra';
-import * as handlebars from 'handlebars';
 import * as _ from "lodash";
 import LRUCache from 'lru-cache';
 import * as moment from 'moment';
@@ -96,6 +93,7 @@ import * as path from 'path';
 import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import uuidv4 from "uuid/v4";
+import { Document } from "app/gen-server/entity/Document";
 
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
@@ -159,18 +157,6 @@ function validateCore(checker: Checker, req: Request, body: any) {
     }
 }
 
-/**
- * Helper used in forms rendering for purifying html.
- */
-handlebars.registerHelper('dompurify', (html: string) => {
-  return new handlebars.SafeString(`
-    <script data-html="${handlebars.escapeExpression(html)}">
-      document.write(DOMPurify.sanitize(document.currentScript.getAttribute('data-html')));
-      document.currentScript.remove(); // remove the script tag so it is easier to inspect the DOM
-    </script>
-  `);
-});
-
 export class DocWorkerApi {
   // Map from docId to number of requests currently being handled for that doc
   private _currentUsage = new Map<string, number>();
@@ -182,8 +168,7 @@ export class DocWorkerApi {
 
   constructor(private _app: Application, private _docWorker: DocWorker,
               private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
-              private _dbManager: HomeDBManager, private _grist: GristServer,
-              private _staticPath: string) {}
+              private _dbManager: HomeDBManager, private _grist: GristServer) {}
 
   /**
    * Adds endpoints for the doc api.
@@ -680,6 +665,9 @@ export class DocWorkerApi {
       // full document.
       const dryRun = isAffirmative(req.query.dryrun || req.query.dryRun);
       const dryRunSuccess = () => res.status(200).json({dryRun: 'allowed'});
+
+      const filename = await this._getDownloadFilename(req);
+
       // We want to be have a way download broken docs that ActiveDoc may not be able
       // to load.  So, if the user owns the document, we unconditionally let them
       // download.
@@ -689,13 +677,13 @@ export class DocWorkerApi {
           // We carefully avoid creating an ActiveDoc for the document being downloaded,
           // in case it is broken in some way.  It is convenient to be able to download
           // broken files for diagnosis/recovery.
-          return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+          return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
         } catch (e) {
           if (e.message && e.message.match(/does not exist yet/)) {
             // The document has never been seen on file system / s3.  It may be new, so
             // we try again after having created an ActiveDoc for the document.
             await this._getActiveDoc(req);
-            return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+            return this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
           } else {
             throw e;
           }
@@ -708,7 +696,7 @@ export class DocWorkerApi {
           throw new ApiError('not authorized to download this document', 403);
         }
         if (dryRun) { dryRunSuccess(); return; }
-        return this._docWorker.downloadDoc(req, res, this._docManager.storageManager);
+        return this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
       }
     }));
 
@@ -1255,7 +1243,7 @@ export class DocWorkerApi {
 
     this._app.get('/api/docs/:docId/download/table-schema', canView, withDoc(async (activeDoc, req, res) => {
       const doc = await this._dbManager.getDoc(req);
-      const options = this._getDownloadOptions(req, doc.name);
+      const options = await this._getDownloadOptions(req, doc);
       const tableSchema = await collectTableSchemaInFrictionlessFormat(activeDoc, req, options);
       const apiPath = await this._grist.getResourceUrl(doc, 'api');
       const query = new URLSearchParams(req.query as {[key: string]: string});
@@ -1274,18 +1262,16 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
-      // Query DB for doc metadata to get the doc title.
-      const {name: docTitle} = await this._dbManager.getDoc(req);
-      const options = this._getDownloadOptions(req, docTitle);
+      const options = await this._getDownloadOptions(req);
 
       await downloadCSV(activeDoc, req, res, options);
     }));
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
-      // Query DB for doc metadata to get the doc title (to use as the filename).
-      const {name: docTitle} = await this._dbManager.getDoc(req);
-      const options: DownloadOptions = !_.isEmpty(req.query) ? this._getDownloadOptions(req, docTitle) : {
-        filename: docTitle,
+      const options: DownloadOptions = (!_.isEmpty(req.query) && !_.isEqual(Object.keys(req.query), ["title"]))
+        ? await this._getDownloadOptions(req)
+        : {
+        filename: await this._getDownloadFilename(req),
         tableId: '',
         viewSectionId: undefined,
         filters: [],
@@ -1405,49 +1391,48 @@ export class DocWorkerApi {
     }));
 
     /**
-     * Get the specified section's form as HTML.
-     *
-     * Forms are typically accessed via shares, with URLs like: https://docs.getgrist.com/forms/${shareKey}/${id}.
-     *
-     * AppEndpoint.ts handles forwarding of such URLs to this endpoint.
+     * Get the specified view section's form data.
      */
-    this._app.get('/api/docs/:docId/forms/:id', canView,
+    this._app.get('/api/docs/:docId/forms/:vsId', canView,
       withDoc(async (activeDoc, req, res) => {
+        if (!activeDoc.docData) {
+          throw new ApiError('DocData not available', 500);
+        }
+
+        const sectionId = integerParam(req.params.vsId, 'vsId');
         const docSession = docSessionFromRequest(req);
         const linkId = getDocSessionShare(docSession);
-        const sectionId = integerParam(req.params.id, 'id');
         if (linkId) {
           /* If accessed via a share, the share's `linkId` will be present and
            * we'll need to check that the form is in fact published, and that the
            * share key is associated with the form, before granting access to the
            * form. */
-          this._assertFormIsPublished({
+          this._assertIsPublishedForm({
             docData: activeDoc.docData,
             linkId,
             sectionId,
           });
         }
-        const Views_section = activeDoc.docData!.getMetaTable('_grist_Views_section');
+
+        const Views_section = activeDoc.docData.getMetaTable('_grist_Views_section');
         const section = Views_section.getRecord(sectionId);
         if (!section) {
-          throw new ApiError('Form not found', 404);
+          throw new ApiError('Form not found', 404, {code: 'FormNotFound'});
         }
-        const Tables = activeDoc.docData!.getMetaTable('_grist_Tables');
-        const tableRecord = Tables.getRecord(section.tableRef);
-        const Views_section_field = activeDoc.docData!.getMetaTable('_grist_Views_section_field');
-        const fields = Views_section_field.filterRecords({parentId: sectionId});
-        const Tables_column = activeDoc.docData!.getMetaTable('_grist_Tables_column');
 
-        // Read the box specs
-        const spec = section.layoutSpec;
-        let box: Box = safeJsonParse(spec ? String(spec) : '', null);
-        if (!box) {
-          const editable = fields.filter(f => {
+        const Views_section_field = activeDoc.docData.getMetaTable('_grist_Views_section_field');
+        const Tables_column = activeDoc.docData.getMetaTable('_grist_Tables_column');
+        const fields = Views_section_field
+          .filterRecords({parentId: sectionId})
+          .filter(f => {
             const col = Tables_column.getRecord(f.colRef);
-            // Can't do attachments and formulas.
+            // Formulas and attachments are currently unsupported.
             return col && !(col.isFormula && col.formula) && col.type !== 'Attachment';
           });
-          box = {
+
+        let {layoutSpec: formLayoutSpec} = section;
+        if (!formLayoutSpec) {
+          formLayoutSpec = JSON.stringify({
             type: 'Layout',
             children: [
               {type: 'Label'},
@@ -1457,107 +1442,80 @@ export class DocWorkerApi {
                 children: [
                   {type: 'Label'},
                   {type: 'Label'},
-                  ...editable.slice(0, INITIAL_FIELDS_COUNT).map(f => ({
-                    type: 'Field' as BoxType,
-                    leaf: f.id
-                  }))
-                ]
-              }
+                  ...fields.slice(0, INITIAL_FIELDS_COUNT).map(f => ({
+                    type: 'Field',
+                    leaf: f.id,
+                  })),
+                ],
+              },
             ],
-          };
+          });
         }
 
-        // Cache the table reads based on tableId. We are caching only the promise, not the result,
+        // Cache the table reads based on tableId. We are caching only the promise, not the result.
         const table = _.memoize(
-          (tableId: string) => readTable(req, activeDoc, tableId, {  }, {  }).then(r => asRecords(r))
+          (tableId: string) => readTable(req, activeDoc, tableId, {}, {}).then(r => asRecords(r))
         );
 
-        const readValues = async (tId: string, colId: string) => {
-          const records = await table(tId);
-          return records.map(r => [r.id as number, r.fields[colId]]);
+        const getTableValues = async (tableId: string, colId: string) => {
+          const records = await table(tableId);
+          return records.map(r => [r.id as number, r.fields[colId]] as const);
         };
 
-        const refValues = (col: MetaRowRecord<'_grist_Tables_column'>) => {
-          return async () => {
-            const refId = col.visibleCol;
-            if (!refId) { return [] as any; }
-            const refCol = Tables_column.getRecord(refId);
-            if (!refCol) { return []; }
-            const refTable = Tables.getRecord(refCol.parentId);
-            if (!refTable) { return []; }
-            const refTableId = refTable.tableId as string;
-            const refColId = refCol.colId as string;
-            if (!refTableId || !refColId) { return () => []; }
-            if (typeof refTableId !== 'string' || typeof refColId !== 'string') { return []; }
-            return await readValues(refTableId, refColId);
-          };
+        const Tables = activeDoc.docData.getMetaTable('_grist_Tables');
+
+        const getRefTableValues = async (col: MetaRowRecord<'_grist_Tables_column'>) => {
+          const refId = col.visibleCol;
+          if (!refId) { return [] as any; }
+
+          const refCol = Tables_column.getRecord(refId);
+          if (!refCol) { return []; }
+
+          const refTable = Tables.getRecord(refCol.parentId);
+          if (!refTable) { return []; }
+
+          const refTableId = refTable.tableId as string;
+          const refColId = refCol.colId as string;
+          if (!refTableId || !refColId) { return () => []; }
+          if (typeof refTableId !== 'string' || typeof refColId !== 'string') { return []; }
+
+          return await getTableValues(refTableId, refColId);
         };
 
-        const context: RenderContext = {
-          field(fieldRef: number): FieldModel {
-            const field = Views_section_field.getRecord(fieldRef);
-            if (!field) { throw new Error(`Field ${fieldRef} not found`); }
-            const col = Tables_column.getRecord(field.colRef);
-            if (!col) { throw new Error(`Column ${field.colRef} not found`); }
-            const fieldOptions = safeJsonParse(field.widgetOptions as string, {});
-            const colOptions = safeJsonParse(col.widgetOptions as string, {});
-            const options = {...colOptions, ...fieldOptions};
-            const type = extractTypeFromColType(col.type as string);
-            const colId = col.colId as string;
+        const formFields = await Promise.all(fields.map(async (field) => {
+          const col = Tables_column.getRecord(field.colRef);
+          if (!col) { throw new Error(`Column ${field.colRef} not found`); }
 
-            return {
-              colId,
-              description: fieldOptions.description || col.description,
-              question: options.question || col.label || colId,
-              options,
-              type,
-              isFormula: Boolean(col.isFormula && col.formula),
-              // If this is reference field, we will need to fetch the referenced table.
-              values: refValues(col)
-            };
-          },
-          root: box
+          const fieldOptions = safeJsonParse(field.widgetOptions as string, {});
+          const colOptions = safeJsonParse(col.widgetOptions as string, {});
+          const options = {...colOptions, ...fieldOptions};
+          const type = extractTypeFromColType(col.type as string);
+          const colId = col.colId as string;
+
+          return [field.id, {
+            colId,
+            description: fieldOptions.description || col.description,
+            question: options.question || col.label || colId,
+            options,
+            type,
+            refValues: isFullReferencingType(col.type) ? await getRefTableValues(col) : null,
+          }] as const;
+        }));
+        const formFieldsById = Object.fromEntries(formFields);
+
+        const getTableName = () => {
+          const rawSectionRef = Tables.getRecord(section.tableRef)?.rawViewSectionRef;
+          if (!rawSectionRef) { return null; }
+
+          const rawSection = activeDoc.docData!
+            .getMetaTable('_grist_Views_section')
+            .getRecord(rawSectionRef);
+          return rawSection?.title ?? null;
         };
 
-        // Now render the box to HTML.
+        const formTableId = await getRealTableId(String(section.tableRef), {activeDoc, req});
+        const formTitle = section.title || getTableName() || formTableId;
 
-        let redirectUrl = !box.successURL ? '' : box.successURL;
-        // Make sure it is a valid URL.
-        try {
-          new URL(redirectUrl);
-        } catch (e) {
-          redirectUrl = '';
-        }
-
-        const html = await RenderBox.new(box, context).toHTML();
-        // And wrap it with the form template.
-        const form = await fse.readFile(path.join(getAppPathTo(this._staticPath, 'static'),
-                                              'forms/form.html'), 'utf8');
-        const staticOrigin = process.env.APP_STATIC_URL || "";
-        const staticBaseUrl = `${staticOrigin}/v/${this._grist.getTag()}/`;
-        // Fill out the blanks and send the result.
-        const doc = await this._dbManager.getDoc(req);
-        const tableId = await getRealTableId(String(section.tableRef), {activeDoc, req});
-
-        const rawSectionRef = tableRecord?.rawViewSectionRef;
-        const rawSection = !rawSectionRef ? null :
-                           activeDoc.docData!.getMetaTable('_grist_Views_section').getRecord(rawSectionRef);
-        const tableName = rawSection?.title;
-
-        const template = handlebars.compile(form);
-        const renderedHtml = template({
-          // Trusted content generated by us.
-          BASE: staticBaseUrl,
-          DOC_URL: await this._grist.getResourceUrl(doc, 'html'),
-          TABLE_ID: tableId,
-          ANOTHER_RESPONSE: Boolean(box.anotherResponse),
-          // Not trusted content entered by user.
-          CONTENT: html,
-          SUCCESS_TEXT: box.successText || 'Thank you! Your response has been recorded.',
-          SUCCESS_URL: redirectUrl,
-          TITLE: `${section.title || tableName || tableId || 'Form'} - Grist`,
-          FORMS_LANDING_PAGE_URL: commonUrls.forms,
-        });
         this._grist.getTelemetry().logEvent(req, 'visitedForm', {
           full: {
             docIdDigest: activeDoc.docName,
@@ -1565,55 +1523,52 @@ export class DocWorkerApi {
             altSessionId: req.altSessionId,
           },
         });
-        res.status(200).send(renderedHtml);
+
+        res.status(200).json({
+          formFieldsById,
+          formLayoutSpec,
+          formTableId,
+          formTitle,
+        });
       })
     );
   }
 
   /**
-   * Throws if the specified section is not of a published form.
+   * Throws if the specified section is not a published form.
    */
-  private _assertFormIsPublished(params: {
-    docData: DocData | null,
+  private _assertIsPublishedForm(params: {
+    docData: DocData,
     linkId: string,
     sectionId: number,
   }) {
     const {docData, linkId, sectionId} = params;
-    if (!docData) {
-      throw new ApiError('DocData not available', 500);
-    }
-
-    const notFoundError = () => {
-      throw new ApiError("Oops! The form you're looking for doesn't exist.", 404, {
-        code: 'FormNotFound',
-      });
-    };
 
     // Check that the request is for a valid section in the document.
     const sections = docData.getMetaTable('_grist_Views_section');
     const section = sections.getRecord(sectionId);
-    if (!section) { return notFoundError(); }
+    if (!section) { throw new ApiError('Form not found', 404, {code: 'FormNotFound'}); }
 
     // Check that the section is for a form.
     const sectionShareOptions = safeJsonParse(section.shareOptions, {});
-    if (!sectionShareOptions.form) { return notFoundError(); }
+    if (!sectionShareOptions.form) { throw new ApiError('Form not found', 404, {code: 'FormNotFound'}); }
 
     // Check that the form is associated with a share.
     const viewId = section.parentId;
     const pages = docData.getMetaTable('_grist_Pages');
     const page = pages.getRecords().find(p => p.viewRef === viewId);
-    if (!page) { return notFoundError(); }
+    if (!page) { throw new ApiError('Form not found', 404, {code: 'FormNotFound'}); }
 
     const shares = docData.getMetaTable('_grist_Shares');
     const share = shares.getRecord(page.shareRef);
-    if (!share) { return notFoundError(); }
+    if (!share) { throw new ApiError('Form not found', 404, {code: 'FormNotFound'}); }
 
     // Check that the share's link id matches the expected link id.
-    if (share.linkId !== linkId) { return notFoundError(); }
+    if (share.linkId !== linkId) { throw new ApiError('Form not found', 404, {code: 'FormNotFound'}); }
 
     // Finally, check that both the section and share are published.
     if (!sectionShareOptions.publish || !safeJsonParse(share.options, {})?.publish) {
-      throw new ApiError('Oops! This form is no longer published.', 404, {code: 'FormNotFound'});
+      throw new ApiError('Form not published', 404, {code: 'FormNotPublished'});
     }
   }
 
@@ -1798,11 +1753,23 @@ export class DocWorkerApi {
     return docAuth.docId!;
   }
 
-  private _getDownloadOptions(req: Request, name: string): DownloadOptions {
+  private async _getDownloadFilename(req: Request, tableId?: string, optDoc?: Document): Promise<string> {
+    let filename = optStringParam(req.query.title, 'title');
+    if (!filename) {
+      // Query DB for doc metadata to get the doc data.
+      const doc = optDoc || await this._dbManager.getDoc(req);
+      const docTitle = doc.name;
+      const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
+      filename = docTitle + suffix || 'document';
+    }
+    return filename;
+  }
+
+  private async _getDownloadOptions(req: Request, doc?: Document): Promise<DownloadOptions> {
     const params = parseExportParameters(req);
     return {
       ...params,
-      filename: name + (params.tableId === name ? '' : '-' + params.tableId),
+      filename: await this._getDownloadFilename(req, params.tableId, doc),
     };
   }
 
@@ -2157,9 +2124,9 @@ export class DocWorkerApi {
 
 export function addDocApiRoutes(
   app: Application, docWorker: DocWorker, docWorkerMap: IDocWorkerMap, docManager: DocManager, dbManager: HomeDBManager,
-  grist: GristServer, staticPath: string
+  grist: GristServer
 ) {
-  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, grist, staticPath);
+  const api = new DocWorkerApi(app, docWorker, docWorkerMap, docManager, dbManager, grist);
   api.addEndpoints();
 }
 

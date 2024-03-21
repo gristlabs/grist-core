@@ -14,6 +14,19 @@ The `grist-core`, `grist-electron`, and `grist-static` repositories are all open
 
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
+## 2024 - We're hiring a Systems Engineer!
+
+We are looking for a friendly, capable engineer to join our small
+team. You will have broad responsibility for the ease of installation
+and maintenance of Grist as an application and service, by our
+clients, by self-hosters, and by ourselves.
+Read the [full job posting](https://www.getgrist.com/job-systems-engineer/)
+or jump into the puzzle that comes with it by just running this:
+
+```
+docker run -it gristlabs/grist-twist
+```
+
 ## Features
 
 Grist is a hybrid database/spreadsheet, meaning that:
@@ -116,6 +129,23 @@ environments.
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
+
+## Activating the boot page for diagnosing problems
+
+You can turn on a special "boot page" to inspect the status of your
+installation. Just visit `/boot` on your Grist server for instructions.
+Since it is useful for the boot page to be available even when authentication
+isn't set up, you can give it a special access key by setting `GRIST_BOOT_KEY`.
+
+```
+docker run -p 8484:8484 -e GRIST_BOOT_KEY=secret -it gristlabs/grist
+```
+
+The boot page should then be available at `/boot/<GRIST_BOOT_KEY>`. We are
+starting to collect probes for common problems there. If you hit a problem that
+isn't covered, it would be great if you could add a probe for it in
+[BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts).
+Or file an issue so someone else can add it, we're just getting start with this.
 
 ## Building from source
 
@@ -226,9 +256,9 @@ APP_STATIC_URL | url prefix for static resources
 APP_STATIC_INCLUDE_CUSTOM_CSS | set to "true" to include custom.css (from APP_STATIC_URL) in static pages
 APP_UNTRUSTED_URL   | URL at which to serve/expect plugin content.
 GRIST_ADAPT_DOMAIN  | set to "true" to support multiple base domains (careful, host header should be trustworthy)
-GRIST_ALLOWED_HOSTS | comma-separated list of permitted domains origin for requests (e.g. my.site,another.com)
 GRIST_APP_ROOT      | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories).
 GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup
+GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY
 GRIST_DATA_DIR      | directory in which to store document caches.
 GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented
 GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts.
@@ -237,11 +267,11 @@ GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this d
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
 GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default.
 GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,createSite,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
-GRIST_HOME_INCLUDE_STATIC | if set, home server also serves static resources
 GRIST_HOST          | hostname to use when listening on a port.
 GRIST_HTTPS_PROXY   | if set, use this proxy for webhook payload delivery.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
 GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication.
+GRIST_INCLUDE_CUSTOM_SCRIPT_URL | if set, will load the referenced URL in a `<script>` tag on all app pages.
 GRIST_INST_DIR      | path to Grist instance configuration files, for Grist server.
 GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false.
 GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone
@@ -263,7 +293,8 @@ GRIST_FORCE_LOGIN    | Much like GRIST_ANON_PLAYGROUND but don't support anonymo
 GRIST_SINGLE_ORG | set to an org "domain" to pin client to that org
 GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org
 GRIST_HELP_CENTER | set the help center link ref
-FREE_COACHING_CALL_URL | set the link to the human help (example: email or meeting scheduling tool)
+FREE_COACHING_CALL_URL | set the link to the human help (example: email adress or meeting scheduling tool)
+GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form)
 GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default)
 GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way.
 GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `limited`, or `full`.
@@ -277,6 +308,7 @@ COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to
 HOME_PORT           | port number to listen on for REST API server; if set to "share", add API endpoints to regular grist port.
 PORT                | port number to listen on for Grist server
 REDIS_URL           | optional redis server for browser sessions and db query caching
+GRIST_SKIP_REDIS_CHECKSUM_MISMATCH | Experimental. If set, only warn if the checksum in Redis differs with the one in your S3 backend storage. You may turn it on if your backend storage implements the [read-after-write consistency](https://aws.amazon.com/fr/blogs/aws/amazon-s3-update-strong-read-after-write-consistency/). Defaults to false.
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
 GRIST_PROMCLIENT_PORT         | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️.

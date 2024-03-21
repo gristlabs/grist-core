@@ -150,7 +150,7 @@ describe('GridViewNewColumnMenu', function () {
 
   describe('create column with type', function () {
     revertThis();
-    const columsThatShouldTriggerSideMenu = [
+    const columnsThatShouldTriggerSideMenu = [
       "Reference",
       "Reference List"
     ];
@@ -176,7 +176,7 @@ describe('GridViewNewColumnMenu', function () {
       it('should show "Add Column With type" option', async function () {
         // open add new colum menu
         await clickAddColumn();
-        // check if "Add Column With type" option is persent
+        // check if "Add Column With type" option is present
         const addWithType = await driver.findWait(
           '.test-new-columns-menu-add-with-type',
           100,
@@ -238,7 +238,7 @@ describe('GridViewNewColumnMenu', function () {
       }
 
       for (const optionsTriggeringMenu of optionsToBeDisplayed.filter((option) =>
-        columsThatShouldTriggerSideMenu.includes(option.type))) {
+        columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it(`should open Right Menu on Column section after choosing ${optionsTriggeringMenu.type}`, async function(){
           await gu.enableTips(session.email);
           //close right panel just in case.
@@ -259,6 +259,8 @@ describe('GridViewNewColumnMenu', function () {
           await gu.waitForServer();
           //discard rename menu
           await driver.findWait('.test-column-title-close', STANDARD_WAITING_TIME).click();
+          // Wait for the side panel animation.
+          await gu.waitForSidePanel();
           //check if right menu is opened on column section
           assert.isTrue(await driver.findWait('.test-right-tab-field', 1000).isDisplayed());
           await gu.toggleSidePanel("right", "close");
@@ -306,7 +308,7 @@ describe('GridViewNewColumnMenu', function () {
     describe('on mobile', function () {
       gu.narrowScreen();
       for (const optionsTriggeringMenu of optionsToBeDisplayed.filter((option) =>
-      columsThatShouldTriggerSideMenu.includes(option.type))) {
+      columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it('should not show Right Menu when user is on the mobile/narrow screen', async function() {
           await gu.enableTips(session.email);
           //close right panel just in case.
@@ -376,7 +378,7 @@ describe('GridViewNewColumnMenu', function () {
       await driver.findWait('.test-new-columns-menu-add-formula', STANDARD_WAITING_TIME).click();
       //check if new column is present
       await gu.waitForServer();
-      // there should not be a rename poup
+      // there should not be a rename popup
       assert.isFalse(await driver.find('test-column-title-popup').isPresent());
       // check if editor popup is opened
       await driver.findWait('.test-floating-editor-popup', 200, 'Editor popup is not present');
@@ -795,15 +797,15 @@ describe('GridViewNewColumnMenu', function () {
             // For this column test other aggregations as well.
             await gu.undo();
             await addRefListLookup('Employees', column, 'average');
-            await checkTypeAndFormula('Numeric', `AVERAGE($Employees.${colId})`);
+            await checkTypeAndFormula('Numeric', AVERAGE('$Employees', colId));
 
             await gu.undo();
             await addRefListLookup('Employees', column, 'min');
-            await checkTypeAndFormula('Numeric', `MIN($Employees.${colId})`);
+            await checkTypeAndFormula('Numeric', MIN('$Employees', colId));
 
             await gu.undo();
             await addRefListLookup('Employees', column, 'max');
-            await checkTypeAndFormula('Numeric', `MAX($Employees.${colId})`);
+            await checkTypeAndFormula('Numeric', MAX('$Employees', colId));
 
             break;
           case "Member":
@@ -811,7 +813,7 @@ describe('GridViewNewColumnMenu', function () {
             // Here we also test that the formula is correct for percent.
             await gu.undo();
             await addRefListLookup('Employees', column, 'percent');
-            await checkTypeAndFormula('Numeric', `AVERAGE(map(int, $Employees.Member)) if $Employees else None`);
+            await checkTypeAndFormula('Numeric', PERCENT('$Employees', colId));
             assert.isTrue(
               await driver.findContent('.test-numeric-mode .test-select-button', /%/).matches('[class*=-selected]'));
             break;
@@ -819,12 +821,12 @@ describe('GridViewNewColumnMenu', function () {
             await checkTypeAndFormula('Any', `$Employees.${colId}`);
             await gu.undo();
             await addRefListLookup('Employees', column, 'min');
-            await checkTypeAndFormula('DateTime', `MIN($Employees.${colId})`);
+            await checkTypeAndFormula('DateTime', MIN('$Employees', colId));
             assert.equal(await driver.find(".test-tz-autocomplete input").value(), 'UTC');
 
             await gu.undo();
             await addRefListLookup('Employees', column, 'max');
-            await checkTypeAndFormula('DateTime', `MAX($Employees.${colId})`);
+            await checkTypeAndFormula('DateTime', MAX('$Employees', colId));
             assert.equal(await driver.find(".test-tz-autocomplete input").value(), 'UTC');
             break;
           default:
@@ -957,15 +959,15 @@ describe('GridViewNewColumnMenu', function () {
 
               await gu.undo();
               await addRevLookup('average');
-              await checkTypeAndFormula('Numeric', `AVERAGE(Person.lookupRecords(Item=$id).Age)`);
+              await checkTypeAndFormula('Numeric', AVERAGE(`Person.lookupRecords(Item=$id)`, 'Age'));
 
               await gu.undo();
               await addRevLookup('min');
-              await checkTypeAndFormula('Numeric', `MIN(Person.lookupRecords(Item=$id).Age)`);
+              await checkTypeAndFormula('Numeric', MIN(`Person.lookupRecords(Item=$id)`, 'Age'));
 
               await gu.undo();
               await addRevLookup('max');
-              await checkTypeAndFormula('Numeric', `MAX(Person.lookupRecords(Item=$id).Age)`);
+              await checkTypeAndFormula('Numeric', MAX(`Person.lookupRecords(Item=$id)`, 'Age'));
               break;
             case "Member":
               await addRevLookup('count');
@@ -973,9 +975,7 @@ describe('GridViewNewColumnMenu', function () {
 
               await gu.undo();
               await addRevLookup('percent');
-              await checkTypeAndFormula('Numeric',
-                `AVERAGE(map(int, Person.lookupRecords(Item=$id).Member))` +
-                ` if Person.lookupRecords(Item=$id) else None`);
+              await checkTypeAndFormula('Numeric', PERCENT(`Person.lookupRecords(Item=$id)`, column));
               break;
             case "Birthday date":
               await addRevLookup('list');
@@ -983,11 +983,11 @@ describe('GridViewNewColumnMenu', function () {
 
               await gu.undo();
               await addRevLookup('min');
-              await checkTypeAndFormula('Date', `MIN(Person.lookupRecords(Item=$id).Birthday_date)`);
+              await checkTypeAndFormula('Date', MIN('Person.lookupRecords(Item=$id)', 'Birthday_date'));
 
               await gu.undo();
               await addRevLookup('max');
-              await checkTypeAndFormula('Date', `MAX(Person.lookupRecords(Item=$id).Birthday_date)`);
+              await checkTypeAndFormula('Date', MAX('Person.lookupRecords(Item=$id)', 'Birthday_date'));
 
               assert.deepEqual(await gu.getColumnNames(),
                 ['A', 'B', 'C', 'Person_Birthday date']);
@@ -995,7 +995,7 @@ describe('GridViewNewColumnMenu', function () {
               break;
             case "SeenAt":
               await addRevLookup('max');
-              await checkTypeAndFormula('DateTime', `MAX(Person.lookupRecords(Item=$id).SeenAt)`);
+              await checkTypeAndFormula('DateTime', MAX('Person.lookupRecords(Item=$id)', 'SeenAt'));
               // Here check the timezone.
               assert.equal(await driver.find(".test-tz-autocomplete input").value(), 'UTC');
               break;
@@ -1074,15 +1074,15 @@ describe('GridViewNewColumnMenu', function () {
 
               await gu.undo();
               await addRevLookup('average');
-              await checkTypeAndFormula('Numeric', `AVERAGE(Person.lookupRecords(Items=CONTAINS($id)).Age)`);
+              await checkTypeAndFormula('Numeric', AVERAGE(`Person.lookupRecords(Items=CONTAINS($id))`, 'Age'));
 
               await gu.undo();
               await addRevLookup('min');
-              await checkTypeAndFormula('Numeric', `MIN(Person.lookupRecords(Items=CONTAINS($id)).Age)`);
+              await checkTypeAndFormula('Numeric', MIN(`Person.lookupRecords(Items=CONTAINS($id))`, 'Age'));
 
               await gu.undo();
               await addRevLookup('max');
-              await checkTypeAndFormula('Numeric', `MAX(Person.lookupRecords(Items=CONTAINS($id)).Age)`);
+              await checkTypeAndFormula('Numeric', MAX(`Person.lookupRecords(Items=CONTAINS($id))`, 'Age'));
               break;
             case "Member":
               await addRevLookup('count');
@@ -1090,9 +1090,7 @@ describe('GridViewNewColumnMenu', function () {
 
               await gu.undo();
               await addRevLookup('percent');
-              await checkTypeAndFormula('Numeric',
-                `AVERAGE(map(int, Person.lookupRecords(Items=CONTAINS($id)).Member))` +
-                ` if Person.lookupRecords(Items=CONTAINS($id)) else None`);
+              await checkTypeAndFormula('Numeric', PERCENT(`Person.lookupRecords(Items=CONTAINS($id))`, column));
               break;
             case "Birthday date":
               await addRevLookup('list');
@@ -1100,15 +1098,15 @@ describe('GridViewNewColumnMenu', function () {
 
               await gu.undo();
               await addRevLookup('min');
-              await checkTypeAndFormula('Date', `MIN(Person.lookupRecords(Items=CONTAINS($id)).Birthday_date)`);
+              await checkTypeAndFormula('Date', MIN('Person.lookupRecords(Items=CONTAINS($id))', 'Birthday_date'));
 
               await gu.undo();
               await addRevLookup('max');
-              await checkTypeAndFormula('Date', `MAX(Person.lookupRecords(Items=CONTAINS($id)).Birthday_date)`);
+              await checkTypeAndFormula('Date', MAX('Person.lookupRecords(Items=CONTAINS($id))', 'Birthday_date'));
               break;
             case "SeenAt":
               await addRevLookup('max');
-              await checkTypeAndFormula('DateTime', `MAX(Person.lookupRecords(Items=CONTAINS($id)).SeenAt)`);
+              await checkTypeAndFormula('DateTime', MAX('Person.lookupRecords(Items=CONTAINS($id))', 'SeenAt'));
               // Here check the timezone.
               assert.equal(await driver.find(".test-tz-autocomplete input").value(), 'UTC');
               break;
@@ -1516,3 +1514,8 @@ describe('GridViewNewColumnMenu', function () {
     await gu.sendKeys(Key.ESCAPE);
   }
 });
+
+const PERCENT = (ref: string, col: string) => `ref = ${ref}\nAVERAGE(map(int, ref.${col})) if ref else None`;
+const AVERAGE = (ref: string, col: string) => `ref = ${ref}\nAVERAGE(ref.${col}) if ref else None`;
+const MIN = (ref: string, col: string) => `ref = ${ref}\nMIN(ref.${col}) if ref else None`;
+const MAX = (ref: string, col: string) => `ref = ${ref}\nMAX(ref.${col}) if ref else None`;

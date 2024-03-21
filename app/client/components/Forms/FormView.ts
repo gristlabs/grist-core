@@ -1,6 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import {Cursor} from 'app/client/components/Cursor';
+import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
 import {NewBox} from 'app/client/components/Forms/Menu';
 import {BoxModel, LayoutModel, parseBox, Place} from 'app/client/components/Forms/Model';
@@ -16,13 +17,14 @@ import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
-import {urlState} from 'app/client/models/gristUrlState';
+import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {SortedRowSet} from 'app/client/models/rowset';
 import {showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
-import {Box, BoxType, INITIAL_FIELDS_COUNT} from "app/common/Forms";
+import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
+import {isOwner} from 'app/common/roles';
 import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import defaults from 'lodash/defaults';
@@ -47,7 +49,7 @@ export class FormView extends Disposable {
   protected menuHolder: Holder<any>;
   protected bundle: (clb: () => Promise<void>) => Promise<void>;
 
-  private _autoLayout: Computed<Box>;
+  private _autoLayout: Computed<FormLayoutNode>;
   private _root: BoxModel;
   private _savedLayout: any;
   private _saving: boolean = false;
@@ -57,6 +59,7 @@ export class FormView extends Disposable {
   private _remoteShare: AsyncComputed<{key: string}|null>;
   private _published: Computed<boolean>;
   private _showPublishedMessage: Observable<boolean>;
+  private _isOwner: boolean;
 
   public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     BaseView.call(this as any, gristDoc, viewSectionModel, {'addNewRow': false});
@@ -290,14 +293,14 @@ export class FormView extends Disposable {
         // Sanity check that type is correct.
         if (!colIds.every(c => typeof c === 'string')) { throw new Error('Invalid column id'); }
         this._root.save(async () => {
-          const boxes: Box[] = [];
+          const boxes: FormLayoutNode[] = [];
           for (const colId of colIds) {
             const fieldRef = await this.viewSection.showColumn(colId);
             const field = this.viewSection.viewFields().all().find(f => f.getRowId() === fieldRef);
             if (!field) { continue; }
             const box = {
               leaf: fieldRef,
-              type: 'Field' as BoxType,
+              type: 'Field' as FormLayoutNodeType,
             };
             boxes.push(box);
           }
@@ -333,8 +336,7 @@ export class FormView extends Disposable {
       const doc = use(this.gristDoc.docPageModel.currentDoc);
       if (!doc) { return ''; }
       const url = urlState().makeUrl({
-        api: true,
-        doc: doc.id,
+        ...docUrl(doc),
         form: {
           vsId: use(this.viewSection.id),
         },
@@ -379,6 +381,8 @@ export class FormView extends Disposable {
       `u:${userId};d:${this.gristDoc.docId()};vs:${this.viewSection.id()};formShowPublishedMessage`,
       true
     ));
+
+    this._isOwner = isOwner(this.gristDoc.docPageModel.currentDoc.get());
 
     // Last line, build the dom.
     this.viewPane = this.autoDispose(this.buildDom());
@@ -640,7 +644,7 @@ export class FormView extends Disposable {
           testId('link'),
           dom('div', 'Copy Link'),
           dom.prop('disabled', this._copyingLink),
-          dom.show(use => this.gristDoc.appModel.isOwner() && use(this._published)),
+          dom.show(use => this._isOwner && use(this._published)),
           dom.on('click', async (_event, element) => {
             try {
               this._copyingLink.set(true);
@@ -662,14 +666,14 @@ export class FormView extends Disposable {
           return published
             ? style.cssIconButton(
               dom('div', 'Unpublish'),
-              dom.show(this.gristDoc.appModel.isOwner()),
+              dom.show(this._isOwner),
               style.cssIconButton.cls('-warning'),
               dom.on('click', () => this._handleClickUnpublish()),
               testId('unpublish'),
             )
             : style.cssIconButton(
               dom('div', 'Publish'),
-              dom.show(this.gristDoc.appModel.isOwner()),
+              dom.show(this._isOwner),
               cssButton.cls('-primary'),
               dom.on('click', () => this._handleClickPublish()),
               testId('publish'),
@@ -714,7 +718,7 @@ export class FormView extends Disposable {
             this._showPublishedMessage.set(false);
           }),
         ),
-        dom.show(this.gristDoc.appModel.isOwner()),
+        dom.show(this._isOwner),
       );
     });
   }
@@ -723,11 +727,11 @@ export class FormView extends Disposable {
    * Generates a form template based on the fields in the view section.
    */
   private _formTemplate(fields: ViewFieldRec[]) {
-    const boxes: Box[] = fields.map(f => {
+    const boxes: FormLayoutNode[] = fields.map(f => {
       return {
         type: 'Field',
         leaf: f.id()
-      } as Box;
+      } as FormLayoutNode;
     });
     const section = {
       type: 'Section',

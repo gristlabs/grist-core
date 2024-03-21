@@ -28,6 +28,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
+import {BootProbes} from 'app/server/lib/BootProbes';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
 import {create} from 'app/server/lib/create';
@@ -175,6 +176,7 @@ export class FlexServer implements GristServer {
   private _getLoginSystem?: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
+  private _probes: BootProbes;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -479,6 +481,57 @@ export class FlexServer implements GristServer {
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
     });
+  }
+
+  /**
+   *
+   * Adds a /boot/$GRIST_BOOT_KEY page that shows diagnostics.
+   * Accepts any /boot/... URL in order to let the front end
+   * give some guidance if the user is stumbling around trying
+   * to find the boot page, but won't actually provide diagnostics
+   * unless GRIST_BOOT_KEY is set in the environment, and is present
+   * in the URL.
+   *
+   * We take some steps to make the boot page available even when
+   * things are going wrong, and should take more in future.
+   *
+   * When rendering the page a hardcoded 'boot' tag is used, which
+   * is used to ensure that static assets are served locally and
+   * we aren't relying on APP_STATIC_URL being set correctly.
+   *
+   * We use a boot key so that it is more acceptable to have this
+   * boot page living outside of the authentication system, which
+   * could be broken.
+   *
+   * TODO: there are some configuration problems that currently
+   * result in Grist not running at all. ideally they would result in
+   * Grist running in a limited mode that is enough to bring up the boot
+   * page.
+   *
+   */
+  public addBootPage() {
+    if (this._check('boot')) { return; }
+    const bootKey = appSettings.section('boot').flag('key').readString({
+      envVar: 'GRIST_BOOT_KEY'
+    });
+    const base = `/boot/${bootKey}`;
+    this._probes = new BootProbes(this.app, this, base);
+    // Respond to /boot, /boot/, /boot/KEY, /boot/KEY/ to give
+    // a helpful message even if user gets KEY wrong or omits it.
+    this.app.get('/boot(/(:bootKey/?)?)?$', async (req, res) => {
+      const goodKey = bootKey && req.params.bootKey === bootKey;
+      return this._sendAppPage(req, res, {
+        path: 'boot.html', status: 200, config: goodKey ? {
+        } : {
+          errMessage: 'not-the-key',
+        }, tag: 'boot',
+      });
+    });
+    this._probes.addEndpoints();
+  }
+
+  public hasBoot(): boolean {
+    return Boolean(this._probes);
   }
 
   public denyRequestsIfNotReady() {
@@ -1284,7 +1337,7 @@ export class FlexServer implements GristServer {
     this._addSupportPaths(docAccessMiddleware);
 
     if (!isSingleUserMode()) {
-      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this, this.appRoot);
+      addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager, this);
     }
   }
 
@@ -1513,7 +1566,6 @@ export class FlexServer implements GristServer {
       if (resp.headersSent || !this._sendAppPage) { return next(err); }
       try {
         const errPage = (
-          err.details?.code === 'FormNotFound' ? 'form-not-found' :
           err.status === 403 ? 'access-denied' :
           err.status === 404 ? 'not-found' :
           'other-error'

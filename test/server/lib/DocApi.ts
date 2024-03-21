@@ -4965,23 +4965,6 @@ function testDocApi() {
   });
 
   describe("Allowed Origin", () => {
-    it('should allow only example.com', async () => {
-      async function checkOrigin(origin: string, allowed: boolean) {
-        const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`,
-          {...chimpy, headers: {...chimpy.headers, "Origin": origin}}
-        );
-        assert.equal(resp.headers['access-control-allow-credentials'], allowed ? 'true' : undefined);
-        assert.equal(resp.status, allowed ? 200 : 403);
-      }
-
-      await checkOrigin("https://www.toto.com", false);
-      await checkOrigin("https://badexample.com", false);
-      await checkOrigin("https://bad.com/example.com/toto", false);
-      await checkOrigin("https://example.com/path", true);
-      await checkOrigin("https://example.com:3000/path", true);
-      await checkOrigin("https://good.example.com/toto", true);
-    });
-
     it("should respond with correct CORS headers", async function () {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'CorsTestDoc'}, wid);

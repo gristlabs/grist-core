@@ -214,6 +214,17 @@ export function attachAppEndpoint(options: AttachOptions): void {
       plugins
     }});
   });
+  // Handlers for form preview URLs: one with a slug and one without.
+  app.get('/doc/:urlId([^/]+)/f/:vsId', ...docMiddleware, expressWrap(async (req, res) => {
+    return sendAppPage(req, res, {path: 'form.html', status: 200, config: {}, googleTagManager: 'anon'});
+  }));
+  app.get('/:urlId([^-/]{12,})/:slug([^/]+)/f/:vsId', ...docMiddleware, expressWrap(async (req, res) => {
+    return sendAppPage(req, res, {path: 'form.html', status: 200, config: {}, googleTagManager: 'anon'});
+  }));
+  // Handler for form URLs that include a share key.
+  app.get('/forms/:shareKey([^/]+)/:vsId', ...formMiddleware, expressWrap(async (req, res) => {
+    return sendAppPage(req, res, {path: 'form.html', status: 200, config: {}, googleTagManager: 'anon'});
+  }));
   // The * is a wildcard in express 4, rather than a regex symbol.
   // See https://expressjs.com/en/guide/routing.html
   app.get('/doc/:urlId([^/]+):remainder(*)', ...docMiddleware, docHandler);
@@ -227,18 +238,4 @@ export function attachAppEndpoint(options: AttachOptions): void {
           ...docMiddleware, docHandler);
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
           ...docMiddleware, docHandler);
-  app.get('/forms/:urlId([^/]+)/:sectionId', ...formMiddleware, expressWrap(async (req, res) => {
-    const formUrl = gristServer.getHomeUrl(req,
-      `/api/s/${req.params.urlId}/forms/${req.params.sectionId}`);
-    const response = await fetch(formUrl, {
-      headers: getTransitiveHeaders(req),
-    });
-    if (response.ok) {
-      const html = await response.text();
-      res.send(html);
-    } else {
-      const error = await response.json();
-      throw new ApiError(error?.error ?? 'An unknown error occurred.', response.status, error?.details);
-    }
-  }));
 }

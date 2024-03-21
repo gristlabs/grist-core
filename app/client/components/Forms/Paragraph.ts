@@ -27,6 +27,7 @@ export class ParagraphModel extends BoxModel {
     return buildEditor({
       box: this,
       overlay: this._overlay,
+      editMode,
       content: css.cssMarkdownRendered(
         css.markdown(use => use(text) || '', dom.hide(editMode)),
         dom.maybe(use => !use(text) && !use(editMode), () => cssEmpty('(empty)')),

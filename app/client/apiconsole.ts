@@ -2,7 +2,7 @@ import {loadCssFile, loadScript} from 'app/client/lib/loadScript';
 import type {AppModel} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {reportError} from 'app/client/models/errors';
-import {setUpPage} from 'app/client/ui/setUpPage';
+import {createAppPage} from 'app/client/ui/createAppPage';
 import {DocAPIImpl} from 'app/common/UserAPI';
 import type {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {dom, styled} from 'grainjs';
@@ -16,7 +16,12 @@ import type SwaggerUI from 'swagger-ui';
  * We load dynamically only to avoid maintaining a separate html file ust for these tags.
  */
 function loadExternal() {
-  return Promise.all([loadScript('swagger-ui-bundle.js'), loadCssFile('swagger-ui.css')]);
+  return Promise.all([
+    loadScript('swagger-ui-bundle.js'),
+    loadCssFile('swagger-ui.css'),
+    // Stylesheet that's only applied when prefers-color-scheme is dark.
+    loadCssFile('swagger-ui-dark.css'),
+  ]);
 }
 
 // Start loading scripts early (before waiting for AppModel to get initialized).
@@ -291,7 +296,7 @@ function requestInterceptor(request: SwaggerUI.Request) {
   return request;
 }
 
-setUpPage((appModel) => {
+createAppPage((appModel) => {
   // Default Grist page prevents scrolling unnecessarily.
   document.documentElement.style.overflow = 'initial';
 
