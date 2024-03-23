@@ -496,7 +496,7 @@ export class FormView extends Disposable {
         async (dontShowAgain) => {
           await this._publishForm();
           if (dontShowAgain) {
-            this.gristDoc.appModel.dismissedPopup('publishForm').set(true);
+            this.gristDoc.appModel.dismissPopup('publishForm', true);
           }
         },
         {
@@ -588,7 +588,7 @@ export class FormView extends Disposable {
         async (dontShowAgain) => {
           await this._unpublishForm();
           if (dontShowAgain) {
-            this.gristDoc.appModel.dismissedPopup('unpublishForm').set(true);
+            this.gristDoc.appModel.dismissPopup('unpublishForm', true);
           }
         },
         {

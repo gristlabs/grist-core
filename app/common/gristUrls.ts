@@ -44,8 +44,8 @@ export type ActivationPage = typeof ActivationPage.type;
 export const LoginPage = StringUnion('signup', 'login', 'verified', 'forgot-password');
 export type LoginPage = typeof LoginPage.type;
 
-export const SupportGristPage = StringUnion('support');
-export type SupportGristPage = typeof SupportGristPage.type;
+export const AdminPanelPage = StringUnion('admin');
+export type AdminPanelPage = typeof AdminPanelPage.type;
 
 // Overall UI style.  "full" is normal, "singlePage" is a single page focused, panels hidden experience.
 export const InterfaceStyle = StringUnion('singlePage', 'full');
@@ -124,7 +124,7 @@ export interface IGristUrlState {
   activation?: ActivationPage;
   login?: LoginPage;
   welcome?: WelcomePage;
-  supportGrist?: SupportGristPage;
+  adminPanel?: AdminPanelPage;
   welcomeTour?: boolean;
   docTour?: boolean;
   manageUsers?: boolean;
@@ -309,7 +309,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     parts.push(`welcome/${state.welcome}`);
   }
 
-  if (state.supportGrist) { parts.push(state.supportGrist); }
+  if (state.adminPanel) { parts.push(state.adminPanel); }
 
   const queryParams = pickBy(state.params, (v, k) => k !== 'linkParameters') as {[key: string]: string};
   for (const [k, v] of Object.entries(state.params?.linkParameters || {})) {
@@ -415,7 +415,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   // the minimum length of a urlId prefix is longer than the maximum length
   // of any of the valid keys in the url.
   for (const key of map.keys()) {
-    if (key.length >= MIN_URLID_PREFIX_LENGTH && !LoginPage.guard(key) && !SupportGristPage.guard(key)) {
+    if (key.length >= MIN_URLID_PREFIX_LENGTH && !LoginPage.guard(key)) {
       map.set('doc', key);
       map.set('slug', map.get(key)!);
       map.delete(key);
@@ -453,9 +453,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.activation = ActivationPage.parse(map.get('activation')) || 'activation';
   }
   if (map.has('welcome')) { state.welcome = WelcomePage.parse(map.get('welcome')); }
-  if (map.has('support')) {
-    state.supportGrist = SupportGristPage.parse(map.get('support')) || 'support';
-  }
+  if (map.has('admin')) { state.adminPanel = AdminPanelPage.parse(map.get('admin')) || 'admin'; }
   if (sp.has('planType')) { state.params!.planType = sp.get('planType')!; }
   if (sp.has('billingPlan')) { state.params!.billingPlan = sp.get('billingPlan')!; }
   if (sp.has('billingTask')) {
@@ -740,7 +738,7 @@ export interface GristLoadConfig {
   // Google Tag Manager id. Currently only used to load tag manager for reporting new sign-ups.
   tagManagerId?: string;
 
-  activation?: Activation;
+  activation?: ActivationState;
 
   // List of enabled features.
   features?: IFeature[];
@@ -799,6 +797,7 @@ export const Features = StringUnion(
   "multiAccounts",
   "sendToDrive",
   "tutorials",
+  "supportGrist",
 );
 export type IFeature = typeof Features.type;
 
@@ -832,10 +831,6 @@ export interface ActivationState {
     expirationDate?: string; // ISO8601 date that Grist will need reactivation.
     daysLeft?: number;       // Number of days until Grist will need reactivation.
   }
-}
-
-export interface Activation extends ActivationState {
-  isManager: boolean;
 }
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of

@@ -58,7 +58,6 @@ export interface ITelemetry {
   ): Promise<void>;
   shouldLogEvent(name: TelemetryEvent): boolean;
   addEndpoints(app: express.Express): void;
-  addPages(app: express.Express, middleware: express.RequestHandler[]): void;
   getTelemetryConfig(requestOrSession?: RequestOrSession): TelemetryConfig | undefined;
   fetchTelemetryPrefs(): Promise<void>;
 }
@@ -194,15 +193,6 @@ export class Telemetry implements ITelemetry {
       }
       return resp.status(200).send();
     }));
-  }
-
-  public addPages(app: express.Application, middleware: express.RequestHandler[]) {
-    if (this._deploymentType === 'core') {
-      app.get('/support', ...middleware, expressWrap(async (req, resp) => {
-        return this._gristServer.sendAppPage(req, resp,
-          {path: 'app.html', status: 200, config: {}});
-      }));
-    }
   }
 
   public getTelemetryConfig(requestOrSession?: RequestOrSession): TelemetryConfig | undefined {

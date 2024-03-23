@@ -5,6 +5,7 @@ import {reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
+import {getAdminPanelName} from 'app/client/ui/AdminPanel';
 import {addNewButton, cssAddNewButton} from 'app/client/ui/AddNewButton';
 import {docImport, importFromPlugin} from 'app/client/ui/HomeImports';
 import {
@@ -136,6 +137,14 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ),
         ),
         createVideoTourToolsButton(),
+        (home.app.isInstallAdmin() ?
+          cssPageEntry(
+            cssPageLink(cssPageIcon('Settings'), cssLinkText(getAdminPanelName()),
+              urlState().setLinkUrl({adminPanel: "admin"}),
+              testId('dm-admin-panel'),
+            ),
+          ) : null
+        ),
         createHelpTools(home.app),
       )
     )

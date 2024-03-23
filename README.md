@@ -266,7 +266,7 @@ GRIST_DEFAULT_LOCALE  | Locale to use as fallback when Grist cannot honour the b
 GRIST_DOMAIN        | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com".
 GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins
 GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default.
-GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,createSite,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
+GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter,billing,templates,createSite,multiSite,multiAccounts,sendToDrive,tutorials,supportGrist`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled.
 GRIST_HOST          | hostname to use when listening on a port.
 GRIST_HTTPS_PROXY   | if set, use this proxy for webhook payload delivery.
 GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*.
@@ -301,7 +301,7 @@ GRIST_TELEMETRY_LEVEL | the telemetry level. Can be set to: `off` (default), `li
 GRIST_THROTTLE_CPU | if set, CPU throttling is enabled
 GRIST_TRUST_PLUGINS | if set, plugins are expect to be served from the same host as the rest of the Grist app, rather than from a distinct host. Ordinarily, plugins are served from a distinct host so that the cookies used by the Grist app are not automatically available to them. Enable this only if you understand the security implications.
 GRIST_USER_ROOT     | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`.
-GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,createSite,multiSite,multiAccounts,sendToDrive,tutorials`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.
+GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter,billing,templates,createSite,multiSite,multiAccounts,sendToDrive,tutorials,supportGrist`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled.
 GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL.
 GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default `https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json` is used
 COOKIE_MAX_AGE      | session cookie max age, defaults to 90 days; can be set to "none" to make it a session cookie

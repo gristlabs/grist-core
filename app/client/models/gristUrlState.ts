@@ -171,7 +171,7 @@ export class UrlStateImpl {
   public updateState(prevState: IGristUrlState, newState: IGristUrlState): IGristUrlState {
     const keepState = (newState.org || newState.ws || newState.homePage || newState.doc || isEmpty(newState) ||
                        newState.account || newState.billing  || newState.activation || newState.welcome ||
-                       newState.supportGrist) ?
+                       newState.adminPanel) ?
       (prevState.org ? {org: prevState.org} : {}) :
       prevState;
     return {...keepState, ...newState};
@@ -205,10 +205,10 @@ export class UrlStateImpl {
     const signupReload = [prevState.login, newState.login].includes('signup')
       && prevState.login !== newState.login;
     // Reload when moving to/from the support Grist page.
-    const supportGristReload = Boolean(prevState.supportGrist) !== Boolean(newState.supportGrist);
+    const adminPanelReload = Boolean(prevState.adminPanel) !== Boolean(newState.adminPanel);
     return Boolean(orgReload || accountReload || billingReload || activationReload ||
       gristConfig.errPage || docReload || welcomeReload || linkKeysReload || signupReload ||
-      supportGristReload);
+      adminPanelReload);
   }
 
   /**

@@ -527,7 +527,10 @@ export class ApiServer {
       )) : null;
       const orgError = (org && org.errMessage) ? {error: org.errMessage, status: org.status} : undefined;
       return sendOkReply(req, res, {
-        user: {...fullUser, helpScoutSignature: helpScoutSign(fullUser.email)},
+        user: {...fullUser,
+          helpScoutSignature: helpScoutSign(fullUser.email),
+          isInstallAdmin: await this._gristServer.getInstallAdmin().isAdminReq(req) || undefined,
+        },
         org: (org && org.data) || null,
         orgError
       });

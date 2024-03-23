@@ -16,6 +16,7 @@ import { Hosts } from 'app/server/lib/extractOrg';
 import { ICreate } from 'app/server/lib/ICreate';
 import { IDocStorageManager } from 'app/server/lib/IDocStorageManager';
 import { INotifier } from 'app/server/lib/INotifier';
+import { InstallAdmin } from 'app/server/lib/InstallAdmin';
 import { IPermitStore } from 'app/server/lib/Permit';
 import { ISendAppPageOptions } from 'app/server/lib/sendAppPage';
 import { fromCallback } from 'app/server/lib/serverUtils';
@@ -47,6 +48,7 @@ export interface GristServer {
   getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
   getActivations(): Activations;
+  getInstallAdmin(): InstallAdmin;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
   getTelemetry(): ITelemetry;
@@ -135,6 +137,7 @@ export function createDummyGristServer(): GristServer {
     getDeploymentType() { return 'core'; },
     getHosts() { throw new Error('no hosts'); },
     getActivations() { throw new Error('no activations'); },
+    getInstallAdmin() { throw new Error('no install admin'); },
     getHomeDBManager() { throw new Error('no db'); },
     getStorageManager() { throw new Error('no storage manager'); },
     getTelemetry() { return createDummyTelemetry(); },
@@ -155,7 +158,6 @@ export function createDummyGristServer(): GristServer {
 export function createDummyTelemetry(): ITelemetry {
   return {
     addEndpoints() { /* do nothing */ },
-    addPages() { /* do nothing */ },
     start() { return Promise.resolve(); },
     logEvent() { /* do nothing */ },
     logEventAsync() { return Promise.resolve(); },

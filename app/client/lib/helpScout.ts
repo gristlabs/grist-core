@@ -21,7 +21,6 @@ import {reportWarning} from 'app/client/models/errors';
 import {IAppError} from 'app/client/models/NotifyModel';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {timeFormat} from 'app/common/timeFormat';
-import {ActiveSessionInfo} from 'app/common/UserAPI';
 import * as version from 'app/common/version';
 import {dom} from 'grainjs';
 import identity = require('lodash/identity');
@@ -249,7 +248,7 @@ function getBeaconUserObj(appModel: AppModel|null): IUserObj|null {
   if (!appModel) { return null; }
 
   // ActiveSessionInfo["user"] includes optional helpScoutSignature too.
-  const user = appModel.currentValidUser as ActiveSessionInfo["user"]|null;
+  const user = appModel.currentValidUser;
 
   // For anon user, don't attempt to identify anything. Even the "company" field (when anon on a
   // team doc) isn't useful, because the user may be external to the company.

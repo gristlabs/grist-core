@@ -167,8 +167,8 @@ export class AppHeader extends Disposable {
   }
 
   private _maybeBuildActivationPageMenuItem() {
-    const {activation, deploymentType} = getGristConfig();
-    if (deploymentType !== 'enterprise' || !activation?.isManager) {
+    const {deploymentType} = getGristConfig();
+    if (deploymentType !== 'enterprise' || !this._appModel.isInstallAdmin()) {
       return null;
     }
 

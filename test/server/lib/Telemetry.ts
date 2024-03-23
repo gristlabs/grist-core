@@ -393,17 +393,9 @@ describe('Telemetry', function() {
       sandbox.restore();
     });
 
-    it('GET /install/prefs returns 200 for non-default users', async function() {
+    it('GET /install/prefs returns 403 for non-default users', async function() {
       const resp = await axios.get(`${homeUrl}/api/install/prefs`, kiwi);
-      assert.equal(resp.status, 200);
-      assert.deepEqual(resp.data, {
-        telemetry: {
-          telemetryLevel: {
-            value: 'off',
-            source: 'preferences',
-          },
-        },
-      });
+      assert.equal(resp.status, 403);
     });
 
     it('GET /install/prefs returns 200 for the default user', async function() {
