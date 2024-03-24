@@ -496,7 +496,7 @@
         "Welcome to {{orgName}}": "Добро пожаловать в {{orgName}}",
         "personal site": "личный сайт",
         "You have read-only access to this site. Currently there are no documents.": "Вы имеете доступ к этому сайту только для просмотра. В настоящее время документов нет.",
-        "{{signUp}} to save your work. ": "{{signUp}} сохранить свою работу. ",
+        "{{signUp}} to save your work. ": "{{signUp}} для сохранения своих данных. ",
         "Welcome to Grist, {{- name}}!": "Добро пожаловать в Grist, {{- name}}!",
         "Welcome to {{- orgName}}": "Добро пожаловать в {{- orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Посетите наш {{link}} чтобы узнать больше о Grist.",
