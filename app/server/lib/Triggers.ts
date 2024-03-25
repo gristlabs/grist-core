@@ -288,7 +288,7 @@ export class DocTriggers {
             // Other fields used to register this webhook.
             eventTypes: decodeObject(t.eventTypes) as string[],
             isReadyColumn: getColId(t.isReadyColRef) ?? null,
-            columnIds: t.columnRefList?.slice(1).map(columnRef => getColId(columnRef as number)).join("; ") || "",
+            columnIds: t.watchedColRefList?.slice(1).map(columnRef => getColId(columnRef as number)).join("; ") || "",
             tableId: getTableId(t.tableRef) ?? null,
             // For future use - for now every webhook is enabled.
             enabled: t.enabled,
@@ -510,8 +510,8 @@ export class DocTriggers {
         }
       }
 
-      if (trigger.columnRefList) {
-        for (const colRef of trigger.columnRefList.slice(1)) {
+      if (trigger.watchedColRefList) {
+        for (const colRef of trigger.watchedColRefList.slice(1)) {
           if (!this._validateColId(colRef as number, trigger.tableRef)) {
             // column does not belong to table, let's ignore trigger and log stats
             for (const action of webhookActions) {
@@ -602,8 +602,8 @@ export class DocTriggers {
     }
 
     const colIdsToCheck: Array<string> = [];
-    if (trigger.columnRefList) {
-      for (const colRef of trigger.columnRefList.slice(1)) {
+    if (trigger.watchedColRefList) {
+      for (const colRef of trigger.watchedColRefList.slice(1)) {
         colIdsToCheck.push(this._getColId(colRef as number)!);
       }
     }

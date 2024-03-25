@@ -400,20 +400,20 @@ export class DocWorkerApi {
         if (columnIds) {
           if (tableId !== currentTableId && currentTableId) {
             // if the tableId changed, we need to reset the columnIds
-            fields.columnRefList = [GristObjCode.List];
+            fields.watchedColRefList = [GristObjCode.List];
           } else {
             if (!tableId) {
               throw new ApiError(`Cannot find columns "${columnIds}" because table is not known`, 404);
             }
             // columnIds have to be of shape "columnId; columnId; columnId"
-            fields.columnRefList = [GristObjCode.List, ...columnIds.split(";")
+            fields.watchedColRefList = [GristObjCode.List, ...columnIds.split(";")
               .filter(columnId => columnId.trim() !== "")
               .map(
                 columnId => { return colIdToReference(metaTables, tableId, columnId.trim().replace(/^\$/, '')); }
               )];
           }
         } else {
-          fields.columnRefList = [GristObjCode.List];
+          fields.watchedColRefList = [GristObjCode.List];
         }
         fields.tableRef = tableIdToRef(metaTables, tableId);
         currentTableId = tableId;
