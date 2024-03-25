@@ -11,7 +11,7 @@ import {Request, Response} from 'express';
 import {Writable} from 'stream';
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
-const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
+const shouldLogApiDetails = gutil.isAffirmative(process.env.GRIST_HOSTED_VERSION);
 
 // Offset to https ports in dev/testing environment.
 export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
