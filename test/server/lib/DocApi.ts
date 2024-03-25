@@ -3347,21 +3347,21 @@ function testDocApi() {
   });
 
   describe('webhooks related endpoints', async function () {
-      /*
-        Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
-      */
-      const serving: Serving = await serveSomething(app => {
-          app.use(express.json());
-          app.post('/200', ({body}, res) => {
-            res.sendStatus(200);
-            res.end();
-          });
-        }, webhooksTestPort);
+    const serving: Serving = await serveSomething(app => {
+      app.use(express.json());
+      app.post('/200', ({body}, res) => {
+        res.sendStatus(200);
+        res.end();
+      });
+    }, webhooksTestPort);
 
-      async function oldSubscribeCheck(requestBody: any, status: number, ...errors: RegExp[]) {
-        const resp = await axios.post(
-          `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
-          requestBody, chimpy
+    /*
+      Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
+    */
+    async function oldSubscribeCheck(requestBody: any, status: number, ...errors: RegExp[]) {
+      const resp = await axios.post(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
+        requestBody, chimpy
         );
         assert.equal(resp.status, status);
         for (const error of errors) {
@@ -4874,7 +4874,7 @@ function testDocApi() {
             };
 
             // subscribe
-            const { data } = await axios.post(
+            const {data} = await axios.post(
               `${serverUrl}/api/docs/${docId}/webhooks`,
               {
                 webhooks: [{
