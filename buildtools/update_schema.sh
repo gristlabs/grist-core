@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Regenerates typescript files with schema and sql for grist documents.
 # This needs to run whenever the document schema is changed in the data
