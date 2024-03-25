@@ -655,7 +655,9 @@
         "Submit button label": "Submit button label",
         "Success text": "Success text",
         "Table column name": "Table column name",
-        "Enter redirect URL": "Enter redirect URL"
+        "Enter redirect URL": "Enter redirect URL",
+        "No field selected": "No field selected",
+        "Select a field in the form widget to configure.": "Select a field in the form widget to configure."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -692,7 +694,12 @@
         "Unsaved": "Unsaved",
         "Work on a Copy": "Work on a Copy",
         "Share": "Share",
-        "Download...": "Download..."
+        "Download...": "Download...",
+        "Comma Separated Values (.csv)": "Comma Separated Values (.csv)",
+        "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
+        "Export as...": "Export as...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -1325,7 +1332,21 @@
         "Publish": "Publish",
         "Publish your form?": "Publish your form?",
         "Unpublish": "Unpublish",
-        "Unpublish your form?": "Unpublish your form?"
+        "Unpublish your form?": "Unpublish your form?",
+        "Anyone with the link below can see the empty form and submit a response.": "Anyone with the link below can see the empty form and submit a response.",
+        "Are you sure you want to reset your form?": "Are you sure you want to reset your form?",
+        "Code copied to clipboard": "Code copied to clipboard",
+        "Copy code": "Copy code",
+        "Copy link": "Copy link",
+        "Embed this form": "Embed this form",
+        "Link copied to clipboard": "Link copied to clipboard",
+        "Preview": "Preview",
+        "Reset": "Reset",
+        "Reset form": "Reset form",
+        "Save your document to publish this form.": "Save your document to publish this form.",
+        "Share": "Share",
+        "Share this form": "Share this form",
+        "View": "View"
     },
     "Editor": {
         "Delete": "Delete"
@@ -1388,5 +1409,17 @@
         "This week": "This week",
         "This year": "This year",
         "Today": "Today"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Clear",
+        "Map fields": "Map fields",
+        "Mapped": "Mapped",
+        "Select All": "Select All",
+        "Unmap fields": "Unmap fields",
+        "Unmapped": "Unmapped"
+    },
+    "Section": {
+        "Insert section above": "Insert section above",
+        "Insert section below": "Insert section below"
     }
 }
