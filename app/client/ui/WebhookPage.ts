@@ -135,7 +135,7 @@ class WebhookExternalTable implements IExternalTable {
   public saveableFields = [
     'tableId', 'watchedColIdsText', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
-  public webhooks: ObservableArray<WebhookPageSummary> = observableArray<WebhookPageSummary>([]);
+  public webhooks: ObservableArray<UIWebhookSummary> = observableArray<UIWebhookSummary>([]);
 
   public constructor(private _docApi: DocAPI) {
   }
@@ -278,7 +278,7 @@ class WebhookExternalTable implements IExternalTable {
     this.webhooks.removeAll();
     this.webhooks.push(
       ...webhooks.map(webhook => {
-        const uiWebhook: WebhookPageSummary = {...webhook};
+        const uiWebhook: UIWebhookSummary = {...webhook};
         uiWebhook.fields.watchedColIdsText = webhook.fields.watchedColIds ? webhook.fields.watchedColIds.join(";") : "";
         return uiWebhook;
       }));
@@ -458,7 +458,7 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
  * `status` is converted to a string,
  * and `watchedColIdsText` is converted to list in a cell format.
  */
-function _mapWebhookValues(webhookSummary: WebhookPageSummary): Partial<WebhookSchemaType> {
+function _mapWebhookValues(webhookSummary: UIWebhookSummary): Partial<WebhookSchemaType> {
   const fields = webhookSummary.fields;
   const {eventTypes, watchedColIdsText} = fields;
   const watchedColIds = watchedColIdsText
@@ -482,6 +482,6 @@ type WebhookSchemaType = {
   webhookId: string;
 }
 
-type WebhookPageSummary = WebhookSummary & {
+type UIWebhookSummary = WebhookSummary & {
   fields: {watchedColIdsText?: string;}
 }

@@ -254,7 +254,7 @@ describe('WebhookPage', function () {
    * Checks that a particular route to modifying cells in a virtual table
    * is in place (previously it was not).
    */
-  it('can paste into a cell without clicking into it', async function () {
+  it('can paste into a cell without clicking into it', async function() {
     await openWebhookPage();
     await setField(1, 'Name', '1234');
     await gu.waitForServer();
