@@ -81,15 +81,17 @@ describe('WebhookPage', function () {
     await gu.waitToPass(async () => {
       assert.equal(await getField(1, 'Webhook Id'), id);
     });
-    // Now other fields like name and memo are persisted.
+    // Now other fields like name, memo and watchColIds are persisted.
     await setField(1, 'Name', 'Test Webhook');
     await setField(1, 'Memo', 'Test Memo');
+    await setField(1, 'Filter for changes in these columns (semicolon-separated ids)', 'A; B');
     await gu.waitForServer();
     await driver.navigate().refresh();
     await waitForWebhookPage();
     await gu.waitToPass(async () => {
       assert.equal(await getField(1, 'Name'), 'Test Webhook');
       assert.equal(await getField(1, 'Memo'), 'Test Memo');
+      assert.equal(await getField(1, 'Filter for changes in these columns (semicolon-separated ids)'), 'A;B');
     });
     // Make sure the webhook is actually working.
     await docApi.addRows('Table1', {A: ['zig'], B: ['zag']});
