@@ -277,6 +277,7 @@ export class DocTriggers {
           // Webhook might have been deleted in the mean time.
           continue;
         }
+        const decodedWatchedColRefList = decodeObject(t.watchedColRefList) as number[] || [];
         // Report some basic info and usage stats.
         const entry: WebhookSummary = {
           // Id of the webhook
@@ -288,7 +289,7 @@ export class DocTriggers {
             // Other fields used to register this webhook.
             eventTypes: decodeObject(t.eventTypes) as string[],
             isReadyColumn: getColId(t.isReadyColRef) ?? null,
-            columnIds: t.watchedColRefList?.slice(1).map(columnRef => getColId(columnRef as number)).join("; ") || "",
+            watchedColIds: decodedWatchedColRefList.map((columnRef) => getColId(columnRef)),
             tableId: getTableId(t.tableRef) ?? null,
             // For future use - for now every webhook is enabled.
             enabled: t.enabled,

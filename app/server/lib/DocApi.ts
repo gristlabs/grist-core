@@ -380,7 +380,7 @@ export class DocWorkerApi {
       const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
       let currentTableId = trigger ? tablesTable.getValue(trigger.tableRef, 'tableId')! : undefined;
-      const {url, eventTypes, columnIds, isReadyColumn, name} = webhook;
+      const {url, eventTypes, watchedColIds, isReadyColumn, name} = webhook;
       const tableId = await getRealTableId(req.params.tableId || webhook.tableId, {metaTables});
 
       const fields: Partial<SchemaTypes['_grist_Triggers']> = {};
@@ -397,19 +397,18 @@ export class DocWorkerApi {
       }
 
       if (tableId !== undefined) {
-        if (columnIds) {
+        if (watchedColIds) {
           if (tableId !== currentTableId && currentTableId) {
-            // if the tableId changed, we need to reset the columnIds
+            // if the tableId changed, we need to reset the watchedColIds
             fields.watchedColRefList = [GristObjCode.List];
           } else {
             if (!tableId) {
-              throw new ApiError(`Cannot find columns "${columnIds}" because table is not known`, 404);
+              throw new ApiError(`Cannot find columns "${watchedColIds}" because table is not known`, 404);
             }
-            // columnIds have to be of shape "columnId; columnId; columnId"
-            fields.watchedColRefList = [GristObjCode.List, ...columnIds.split(";")
-              .filter(columnId => columnId.trim() !== "")
+            fields.watchedColRefList = [GristObjCode.List, ...watchedColIds
+              .filter(colId => colId.trim() !== "")
               .map(
-                columnId => { return colIdToReference(metaTables, tableId, columnId.trim().replace(/^\$/, '')); }
+                colId => { return colIdToReference(metaTables, tableId, colId.trim().replace(/^\$/, '')); }
               )];
           }
         } else {

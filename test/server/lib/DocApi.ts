@@ -1226,8 +1226,8 @@ function testDocApi() {
         const listColResp = await axios.get(url, { ...chimpy, params: { hidden: true } });
         assert.equal(listColResp.status, 200, "Should succeed in listing columns");
 
-        const columnIds = listColResp.data.columns.map(({id}: {id: string}) => id).sort();
-        assert.deepEqual(columnIds, ["B", "C", "manualSort"]);
+        const watchedColIds = listColResp.data.columns.map(({id}: {id: string}) => id).sort();
+        assert.deepEqual(watchedColIds, ["B", "C", "manualSort"]);
       });
 
       it('should return 404 if table not found', async function() {
@@ -3441,7 +3441,7 @@ function testDocApi() {
       await postWebhookCheck({
         webhooks: [{
           fields: {
-            tableId: "Table1", eventTypes: ["update"], columnIds: "notExisting",
+            tableId: "Table1", eventTypes: ["update"], watchedColIds: ["notExisting"],
             url: `${serving.url}/200`
           }
         }]
@@ -3871,7 +3871,7 @@ function testDocApi() {
         tableId?: string,
         isReadyColumn?: string | null,
         eventTypes?: string[]
-        columnIds?: string,
+        watchedColIds?: string[],
       }) {
       // Subscribe helper that returns a method to unsubscribe.
       const data = await subscribe(endpoint, docId, options);
@@ -3889,7 +3889,7 @@ function testDocApi() {
       tableId?: string,
       isReadyColumn?: string|null,
       eventTypes?: string[],
-      columnIds?: string,
+      watchedColIds?: string[],
       name?: string,
       memo?: string,
       enabled?: boolean,
@@ -3901,7 +3901,7 @@ function testDocApi() {
           eventTypes: options?.eventTypes ?? ['add', 'update'],
           url: `${serving.url}/${endpoint}`,
           isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
-          ...pick(options, 'name', 'memo', 'enabled', 'columnIds'),
+          ...pick(options, 'name', 'memo', 'enabled', 'watchedColIds'),
         }, chimpy
       );
       assert.equal(status, 200);
@@ -4425,7 +4425,7 @@ function testDocApi() {
         await webhook1();
       });
 
-      it("should call to a webhook only when columns updated are in columnIds if not empty", async () => {  // eslint-disable-line max-len
+      it("should call to a webhook only when columns updated are in watchedColIds if not empty", async () => {  // eslint-disable-line max-len
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({ name: 'testdoc5' }, ws1);
@@ -4449,9 +4449,9 @@ function testDocApi() {
           await successCalled.waitAndReset();
         };
 
-        // Webhook with only one columnId.
+        // Webhook with only one watchedColId.
         const webhook1 = await autoSubscribe('200', docId, {
-          columnIds: 'A', eventTypes: ['add', 'update']
+          watchedColIds: ['A'], eventTypes: ['add', 'update']
         });
         successCalled.reset();
         // Create record, that will call the webhook.
@@ -4469,9 +4469,9 @@ function testDocApi() {
         await assertSuccessCalled();
         await webhook1(); // Unsubscribe.
 
-        // Webhook with multiple columnIds (check the shape of the columnIds string)
+        // Webhook with multiple watchedColIds
         const webhook2 = await autoSubscribe('200', docId, {
-          columnIds: 'A; B', eventTypes: ['update']
+          watchedColIds: ['A', 'B'], eventTypes: ['update']
         });
         successCalled.reset();
         await modifyColumn({ C: 'c3' });
@@ -4480,9 +4480,9 @@ function testDocApi() {
         await assertSuccessCalled();
         await webhook2();
 
-        // Check that string terminating with ";" not breaking the webhook
+        // Check that empty string in watchedColIds are ignored
         const webhook3 = await autoSubscribe('200', docId, {
-          columnIds: 'A;', eventTypes: ['update']
+          watchedColIds: ['A', ""], eventTypes: ['update']
         });
         await modifyColumn({ C: 'c4' });
         await assertSuccessNotCalled();
@@ -4511,7 +4511,7 @@ function testDocApi() {
               tableId: 'Table1',
               name: '',
               memo: '',
-              columnIds: '',
+              watchedColIds: [],
             }, usage : {
               status: 'idle',
               numWaiting: 0,
@@ -4529,7 +4529,7 @@ function testDocApi() {
               tableId: 'Table1',
               name: '',
               memo: '',
-              columnIds: '',
+              watchedColIds: [],
             }, usage : {
               status: 'idle',
               numWaiting: 0,
@@ -4870,7 +4870,7 @@ function testDocApi() {
               isReadyColumn: 'B',
               name: 'My Webhook',
               memo: 'Sync store',
-              columnIds: 'A'
+              watchedColIds: ['A']
             };
 
             // subscribe
@@ -4895,7 +4895,7 @@ function testDocApi() {
               enabled: true,
               name: 'My Webhook',
               memo: 'Sync store',
-              columnIds: 'A',
+              watchedColIds: ['A'],
             };
 
             let stats = await readStats(docId);
@@ -4946,11 +4946,11 @@ function testDocApi() {
           // changing table without changing the ready column should reset the latter
           await check({tableId: 'Table2'}, 200, '', expectedFields => {
             expectedFields.isReadyColumn = null;
-            expectedFields.columnIds = "";
+            expectedFields.watchedColIds = [];
           });
 
           await check({tableId: 'Santa'}, 404, `Table not found "Santa"`);
-          await check({tableId: 'Table2', isReadyColumn: 'Foo', columnIds: ""}, 200);
+          await check({tableId: 'Table2', isReadyColumn: 'Foo', watchedColIds: [""]}, 200);
 
           await check({eventTypes: ['add', 'update']}, 200);
           await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");

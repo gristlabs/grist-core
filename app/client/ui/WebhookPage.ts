@@ -61,7 +61,7 @@ const WEBHOOK_COLUMNS = [
   },
   {
     id: 'vt_webhook_fc10',
-    colId: 'columnIds',
+    colId: 'watchedColIdsText',
     type: 'Text',
     label: t('Filter for changes in these columns (semicolon-separated ids)'),
   },
@@ -113,7 +113,7 @@ const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
   'name', 'memo',
   'eventTypes', 'url',
   'tableId', 'isReadyColumn',
-  'columnIds', 'webhookId',
+  'watchedColIdsText', 'webhookId',
   'enabled', 'status'
 ];
 
@@ -133,9 +133,9 @@ class WebhookExternalTable implements IExternalTable {
   public name = 'GristHidden_WebhookTable';
   public initialActions = _prepareWebhookInitialActions(this.name);
   public saveableFields = [
-    'tableId', 'columnIds', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
+    'tableId', 'watchedColIdsText', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
-  public webhooks: ObservableArray<WebhookSummary> =  observableArray<WebhookSummary>([]);
+  public webhooks: ObservableArray<WebhookPageSummary> = observableArray<WebhookPageSummary>([]);
 
   public constructor(private _docApi: DocAPI) {
   }
@@ -276,7 +276,12 @@ class WebhookExternalTable implements IExternalTable {
   private _initalizeWebhookList(webhooks: WebhookSummary[]){
 
     this.webhooks.removeAll();
-    this.webhooks.push(...webhooks);
+    this.webhooks.push(
+      ...webhooks.map(webhook => {
+        const uiWebhook: WebhookPageSummary = {...webhook};
+        uiWebhook.fields.watchedColIdsText = webhook.fields.watchedColIds ? webhook.fields.watchedColIds.join(";") : "";
+        return uiWebhook;
+      }));
   }
 
   private _getErrorString(e: ApiError): string {
@@ -315,6 +320,9 @@ class WebhookExternalTable implements IExternalTable {
     if (fields.eventTypes) {
       fields.eventTypes = without(fields.eventTypes, 'L');
     }
+    fields.watchedColIds = fields.watchedColIdsText
+      ? fields.watchedColIdsText.split(";").filter((colId: string) => colId.trim() !== "")
+      : [];
     return fields;
   }
 }
@@ -447,16 +455,21 @@ function _prepareWebhookInitialActions(tableId: string): DocAction[] {
 /**
  * Map a webhook summary to a webhook table raw record.  The main
  * difference is that `eventTypes` is tweaked to be in a cell format,
- * and `status` is converted to a string.
+ * `status` is converted to a string,
+ * and `watchedColIdsText` is converted to list in a cell format.
  */
-function _mapWebhookValues(webhookSummary: WebhookSummary): Partial<WebhookSchemaType> {
+function _mapWebhookValues(webhookSummary: WebhookPageSummary): Partial<WebhookSchemaType> {
   const fields = webhookSummary.fields;
-  const {eventTypes} = fields;
+  const {eventTypes, watchedColIdsText} = fields;
+  const watchedColIds = watchedColIdsText
+    ? watchedColIdsText.split(";").filter(colId => colId.trim() !== "")
+    : [];
   return {
     ...fields,
     webhookId: webhookSummary.id,
     status: JSON.stringify(webhookSummary.usage),
     eventTypes: [GristObjCode.List, ...eventTypes],
+    watchedColIds: [GristObjCode.List, ...watchedColIds],
   };
 }
 
@@ -464,6 +477,11 @@ type WebhookSchemaType = {
   [prop in keyof WebhookSummary['fields']]: WebhookSummary['fields'][prop]
 } & {
   eventTypes: [GristObjCode, ...unknown[]];
+  watchedColIds: [GristObjCode, ...unknown[]];
   status: string;
   webhookId: string;
+}
+
+type WebhookPageSummary = WebhookSummary & {
+  fields: {watchedColIdsText?: string;}
 }
