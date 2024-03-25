@@ -9,6 +9,7 @@ import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {cssMenuElem} from 'app/client/ui2018/menus';
 import {waitGrainObs} from 'app/common/gutil';
+import {MaybePromise} from 'app/plugin/gutil';
 import {Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
   MultiHolder, Observable, styled} from 'grainjs';
 import {IOpenController, IPopupOptions, PopupControl, popupOpen} from 'popweasel';
@@ -356,7 +357,7 @@ export interface ConfirmModalOptions {
 export function confirmModal(
   title: DomElementArg,
   btnText: DomElementArg,
-  onConfirm: (dontShowAgain?: boolean) => Promise<void>,
+  onConfirm: (dontShowAgain?: boolean) => MaybePromise<void>,
   options: ConfirmModalOptions = {},
 ): void {
   const {
@@ -383,7 +384,7 @@ export function confirmModal(
         ),
       ],
       saveLabel: btnText,
-      saveFunc: () => onConfirm(hideDontShowAgain ? undefined : dontShowAgain.get()),
+      saveFunc: async () => onConfirm(hideDontShowAgain ? undefined : dontShowAgain.get()),
       hideCancel,
       width: width ?? 'normal',
       extraButtons,

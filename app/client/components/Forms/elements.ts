@@ -1,5 +1,8 @@
 import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
-import {Columns, Paragraph, Placeholder} from 'app/client/components/Forms/Columns';
+import {Columns, Placeholder} from 'app/client/components/Forms/Columns';
+import {Paragraph} from 'app/client/components/Forms/Paragraph';
+import {Section} from 'app/client/components/Forms/Section';
+import {v4 as uuidv4} from 'uuid';
 /**
  * Add any other element you whish to use in the form here.
  * FormView will look for any exported BoxModel derived class in format `type` + `Model`, and use It
@@ -18,6 +21,7 @@ export function defaultElement(type: FormLayoutNodeType): FormLayoutNode {
     case 'Placeholder': return Placeholder();
     case 'Separator': return Paragraph('---');
     case 'Header': return Paragraph('## **Header**', 'center');
-    default: return {type};
+    case 'Section': return Section();
+    default: return {id: uuidv4(), type};
   }
 }

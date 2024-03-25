@@ -1178,7 +1178,7 @@ class UserActions(object):
         # to strings containing comma-separated row IDs.
         # We need to get the values before changing the column type.
         table = self._engine.tables[table_id]
-        new_values = [",".join(map(str, row)) for row in self._get_column_values(col)]
+        new_values = [",".join(map(str, row or [])) for row in self._get_column_values(col)]
         self.ModifyColumn(table_id, col_id, dict(type="Text"))
         self.BulkUpdateRecord(table_id, list(table.row_ids), {col_id: new_values})
       return

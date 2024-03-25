@@ -11,26 +11,38 @@ import * as express from 'express';
 // promisify csv
 bluebird.promisifyAll(csv);
 
+export interface DownloadDsvOptions extends DownloadOptions {
+  delimiter: Delimiter;
+}
+
+type Delimiter = ',' | '\t' | '💩';
+
 /**
- * Converts `activeDoc` to a CSV and sends the converted data through `res`.
+ * Converts `activeDoc` to delimiter-separated values (e.g. CSV) and sends
+ * the converted data through `res`.
  */
-export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
-                                  res: express.Response, options: DownloadOptions) {
-  log.info('Generating .csv file...');
-  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, header} = options;
+export async function downloadDSV(
+  activeDoc: ActiveDoc,
+  req: express.Request,
+  res: express.Response,
+  options: DownloadDsvOptions
+) {
+  const {filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header} = options;
+  const extension = getDSVFileExtension(delimiter);
+  log.info(`Generating ${extension} file...`);
   const data = viewSectionId ?
-    await makeCSVFromViewSection({
+    await makeDSVFromViewSection({
       activeDoc, viewSectionId, sortOrder: sortOrder || null, filters: filters || null,
-      linkingFilter: linkingFilter || null, header, req
+      linkingFilter: linkingFilter || null, header, delimiter, req
     }) :
-    await makeCSVFromTable({activeDoc, tableId, header, req});
-  res.set('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', contentDisposition(filename + '.csv'));
+    await makeDSVFromTable({activeDoc, tableId, header, delimiter, req});
+  res.set('Content-Type', getDSVMimeType(delimiter));
+  res.setHeader('Content-Disposition', contentDisposition(filename + extension));
   res.send(data);
 }
 
 /**
- * Returns a csv stream of a view section that can be transformed or parsed.
+ * Returns a DSV stream of a view section that can be transformed or parsed.
  *
  * See https://github.com/wdavidw/node-csv for API details.
  *
@@ -40,13 +52,21 @@ export async function downloadCSV(activeDoc: ActiveDoc, req: express.Request,
  * @param {Integer[]} options.activeSortOrder (optional) - overriding sort order.
  * @param {Filter[]} options.filters (optional) - filters defined from ui.
  * @param {FilterColValues} options.linkingFilter (optional) - linking filter defined from ui.
+ * @param {Delimiter} options.delimiter - delimiter to separate fields with
  * @param {string} options.header (optional) - which field of the column to use as header
  * @param {express.Request} options.req - the request object.
  *
- * @return {Promise<string>} Promise for the resulting CSV.
+ * @return {Promise<string>} Promise for the resulting DSV.
  */
-export async function makeCSVFromViewSection({
-  activeDoc, viewSectionId, sortOrder = null, filters = null, linkingFilter = null, header, req
+export async function makeDSVFromViewSection({
+  activeDoc,
+  viewSectionId,
+  sortOrder = null,
+  filters = null,
+  linkingFilter = null,
+  delimiter,
+  header,
+  req
 }: {
   activeDoc: ActiveDoc,
   viewSectionId: number,
@@ -54,28 +74,31 @@ export async function makeCSVFromViewSection({
   filters: Filter[] | null,
   linkingFilter: FilterColValues | null,
   header?: ExportHeader,
+  delimiter: Delimiter,
   req: express.Request
 }) {
 
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, linkingFilter, req);
-  const file = convertToCsv(data, { header });
+  const file = convertToDsv(data, { header, delimiter });
   return file;
 }
 
 /**
- * Returns a csv stream of a table that can be transformed or parsed.
+ * Returns a DSV stream of a table that can be transformed or parsed.
  *
  * @param {Object} options - options for the export.
  * @param {Object} options.activeDoc - the activeDoc that the table being converted belongs to.
  * @param {Integer} options.tableId - id of the table to export.
+ * @param {Delimiter} options.delimiter  - delimiter to separate fields with
  * @param {string} options.header (optional) - which field of the column to use as header
  * @param {express.Request} options.req - the request object.
  *
- * @return {Promise<string>} Promise for the resulting CSV.
+ * @return {Promise<string>} Promise for the resulting DSV.
  */
-export async function makeCSVFromTable({ activeDoc, tableId, header, req }: {
+export async function makeDSVFromTable({ activeDoc, tableId, delimiter, header, req }: {
   activeDoc: ActiveDoc,
   tableId: string,
+  delimiter: Delimiter,
   header?: ExportHeader,
   req: express.Request
 }) {
@@ -93,24 +116,63 @@ export async function makeCSVFromTable({ activeDoc, tableId, header, req }: {
   }
 
   const data = await exportTable(activeDoc, tableRef, req);
-  const file = convertToCsv(data, { header });
+  const file = convertToDsv(data, { header, delimiter });
   return file;
 }
 
-function convertToCsv({
-  rowIds,
-  access,
-  columns: viewColumns,
-}: ExportData, options: { header?: ExportHeader }) {
+interface ConvertToDsvOptions {
+  delimiter: Delimiter;
+  header?: ExportHeader;
+}
 
+function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
+  const {rowIds, access, columns: viewColumns} = data;
+  const {delimiter, header} = options;
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
-  const colPropertyAsHeader = options.header ?? 'label';
+  const colPropertyAsHeader = header ?? 'label';
   const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
   rowIds.forEach(row => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
   });
-  return csv.stringifyAsync(csvMatrix);
+  return csv.stringifyAsync(csvMatrix, {delimiter});
+}
+
+type DSVFileExtension = '.csv' | '.tsv' | '.dsv';
+
+function getDSVFileExtension(delimiter: Delimiter): DSVFileExtension {
+  switch (delimiter) {
+    case ',': {
+      return '.csv';
+    }
+    case '\t': {
+      return '.tsv';
+    }
+    case '💩': {
+      return '.dsv';
+    }
+  }
+}
+
+type DSVMimeType =
+  | 'text/csv'
+  // Reference: https://www.iana.org/assignments/media-types/text/tab-separated-values
+  | 'text/tab-separated-values'
+  // Note: not a registered MIME type, hence the "x-" prefix.
+  | 'text/x-doo-separated-values';
+
+function getDSVMimeType(delimiter: Delimiter): DSVMimeType {
+  switch (delimiter) {
+    case ',': {
+      return 'text/csv';
+    }
+    case '\t': {
+      return 'text/tab-separated-values';
+    }
+    case '💩': {
+      return 'text/x-doo-separated-values';
+    }
+  }
 }

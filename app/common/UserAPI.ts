@@ -470,6 +470,8 @@ export interface DocAPI {
   getDownloadUrl(options: {template: boolean, removeHistory: boolean}): string;
   getDownloadXlsxUrl(params?: DownloadDocParams): string;
   getDownloadCsvUrl(params: DownloadDocParams): string;
+  getDownloadTsvUrl(params: DownloadDocParams): string;
+  getDownloadDsvUrl(params: DownloadDocParams): string;
   getDownloadTableSchemaUrl(params: DownloadDocParams): string;
   /**
    * Exports current document to the Google Drive as a spreadsheet file. To invoke this method, first
@@ -1055,6 +1057,14 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public getDownloadCsvUrl(params: DownloadDocParams) {
     // We spread `params` to work around TypeScript being overly cautious.
     return this._url + '/download/csv?' + encodeQueryParams({...params});
+  }
+
+  public getDownloadTsvUrl(params: DownloadDocParams) {
+    return this._url + '/download/tsv?' + encodeQueryParams({...params});
+  }
+
+  public getDownloadDsvUrl(params: DownloadDocParams) {
+    return this._url + '/download/dsv?' + encodeQueryParams({...params});
   }
 
   public getDownloadTableSchemaUrl(params: DownloadDocParams) {

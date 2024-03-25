@@ -1222,6 +1222,16 @@ export class GristDoc extends DisposableWithEvents {
     return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
   }
 
+  public getTsvLink() {
+    const params = this._getDocApiDownloadParams();
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadTsvUrl(params);
+  }
+
+  public getDsvLink() {
+    const params = this._getDocApiDownloadParams();
+    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadDsvUrl(params);
+  }
+
   public getXlsxActiveViewLink() {
     const params = this._getDocApiDownloadParams();
     return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);

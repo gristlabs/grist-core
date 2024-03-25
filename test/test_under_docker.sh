@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This runs browser tests with the server started using docker, to
 # catch any configuration problems.

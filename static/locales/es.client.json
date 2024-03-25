@@ -586,7 +586,8 @@
         "Insert row below": "Insertar fila debajo",
         "Duplicate rows_one": "Duplicar fila",
         "Duplicate rows_other": "Duplicar filas",
-        "View as card": "Ver como tarjeta"
+        "View as card": "Ver como tarjeta",
+        "Use as table headers": "Usar como encabezados de la tabla"
     },
     "ShareMenu": {
         "Access Details": "Detalles de Acceso",

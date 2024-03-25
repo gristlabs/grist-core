@@ -10,7 +10,8 @@ import {cssHoverCircle, cssTopBarBtn} from 'app/client/ui/TopBarCss';
 import {primaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuText} from 'app/client/ui2018/menus';
+import {menu, menuAnnotate, menuDivider, menuIcon, menuItem, menuItemLink, menuItemSubmenu,
+        menuText} from 'app/client/ui2018/menus';
 import {buildUrlId, isFeatureEnabled, parseUrlId} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {Document} from 'app/common/UserAPI';
@@ -262,7 +263,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
 }
 
 /**
- * The part of the menu with "Download" and "Export CSV" items.
+ * The part of the menu with "Download" and "Export as..." items.
  */
 function menuExports(doc: Document, pageModel: DocPageModel) {
   const isElectron = (window as any).isRunningUnderElectron;
@@ -278,12 +279,24 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
         menuItem(() => downloadDocModal(doc, pageModel),
         menuIcon('Download'), t("Download..."), testId('tb-share-option'))
     ),
-    menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
-      menuIcon('Download'), t("Export CSV"), testId('tb-share-option')),
-    menuItemLink(hooks.maybeModifyLinkAttrs({
-      href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
-      target: '_blank', download: ''
-    }), menuIcon('Download'), t("Export XLSX"), testId('tb-share-option')),
+    menuItemSubmenu(
+      () => [
+        menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getCsvLink(), target: '_blank', download: ''}),
+          t("Comma Separated Values (.csv)"), testId('tb-share-option')),
+        menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getTsvLink(), target: '_blank', download: ''}),
+          t("Tab Separated Values (.tsv)"), testId('tb-share-option')),
+        menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getDsvLink(), target: '_blank', download: ''}),
+          t("DOO Separated Values (.dsv)"), testId('tb-share-option')),
+        menuItemLink(hooks.maybeModifyLinkAttrs({
+          href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
+          target: '_blank', download: ''
+        }), t("Microsoft Excel (.xlsx)"), testId('tb-share-option')),
+      ],
+      {},
+      menuIcon('Download'),
+      t("Export as..."),
+      testId('tb-share-option'),
+    ),
     (!isFeatureEnabled("sendToDrive") ? null : menuItem(() => sendToDrive(doc, pageModel),
       menuIcon('Download'), t("Send to Google Drive"), testId('tb-share-option'))),
   ];

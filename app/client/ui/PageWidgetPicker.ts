@@ -398,7 +398,7 @@ export class PageWidgetSelect extends Disposable {
                 this._behavioralPromptsManager.attachPopup('pageWidgetPickerSelectBy', {
                   popupOptions: {
                     attach: null,
-                    placement: 'bottom',
+                    placement: 'bottom-start',
                   }
                 }),
               ]},

@@ -7,7 +7,7 @@ import {makeT} from 'app/client/lib/localization';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
-import {dom, DomContents, IDomArgs, MultiHolder, Observable} from 'grainjs';
+import {BindableValue, dom, DomContents, IDomArgs, MultiHolder, Observable} from 'grainjs';
 
 const testId = makeTestId('test-forms-');
 const t = makeT('FormView.Editor');
@@ -27,9 +27,13 @@ interface Props {
    */
   click?: (ev: MouseEvent, box: BoxModel) => void,
   /**
-   * Custom remove icon. If null, then no drop icon is shown.
+   * Whether to show the remove button. Defaults to true.
    */
-  removeIcon?: IconName|null,
+  showRemoveButton?: BindableValue<boolean>,
+  /**
+   * Custom remove icon.
+   */
+  removeIcon?: IconName,
   /**
    * Custom remove button rendered atop overlay.
    */
@@ -212,7 +216,12 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       }
 
       await box.save(async () => {
-        await box.accept(dropped, wasBelow ? 'below' : 'above')?.afterDrop();
+        // When a field is dragged from the creator panel, it has a colId instead of a fieldRef (as there is no
+        // field yet). In this case, we need to create a field first.
+        if (dropped.type === 'Field' && typeof dropped.leaf === 'string') {
+          dropped.leaf = await view.showColumn(dropped.leaf);
+        }
+        box.accept(dropped, wasBelow ? 'below' : 'above');
       });
     }),
 
@@ -225,10 +234,9 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
     testId('element'),
     dom.attr('data-box-model', String(box.type)),
     dom.maybe(overlay, () => style.cssSelectedOverlay()),
-    // Custom icons for removing.
-    props.removeIcon === null || props.removeButton ? null :
-      dom.maybe(use => !props.editMode || !use(props.editMode), defaultRemoveButton),
-    props.removeButton ?? null,
+    dom.maybe(props.showRemoveButton ?? true, () => [
+      props.removeButton ?? dom.maybe(use => !props.editMode || !use(props.editMode), defaultRemoveButton),
+    ]),
     ...args,
   );
 }

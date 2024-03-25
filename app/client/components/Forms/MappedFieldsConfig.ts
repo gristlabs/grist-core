@@ -16,7 +16,7 @@ const t = makeT('VisibleFieldsConfig');
  * This is a component used in the RightPanel. It replaces hidden fields section on other views, and adds
  * the ability to drag and drop fields onto the form.
  */
-export class UnmappedFieldsConfig extends Disposable {
+export class MappedFieldsConfig extends Disposable {
 
   constructor(private _section: ViewSectionRec) {
     super();
@@ -28,7 +28,8 @@ export class UnmappedFieldsConfig extends Disposable {
         return [];
       }
       const fields = new Set(this._section.viewFields().map(f => f.colId()).all());
-      const cols = this._section.table().visibleColumns().filter(c => !fields.has(c.colId()));
+      const cols = this._section.table().visibleColumns()
+        .filter(c => c.isFormCol() && !fields.has(c.colId()));
       return cols.map(col => ({
         col,
         selected: Observable.create(null, false),
@@ -38,11 +39,12 @@ export class UnmappedFieldsConfig extends Disposable {
       if (this._section.isDisposed()) {
         return [];
       }
-      const cols = this._section.viewFields().map(f => f.column());
+      const cols = this._section.viewFields().map(f => f.column()).all()
+        .filter(c => c.isFormCol());
       return cols.map(col => ({
         col,
         selected: Observable.create(null, false),
-      })).all();
+      }));
     })));
 
     const anyUnmappedSelected = Computed.create(this, use => {
@@ -64,36 +66,6 @@ export class UnmappedFieldsConfig extends Disposable {
     };
 
     return [
-      cssHeader(
-        cssFieldListHeader(t("Unmapped")),
-        selectAllLabel(
-          dom.on('click', () => {
-            unmappedColumns.get().forEach((col) => col.selected.set(true));
-          }),
-          dom.show(/* any unmapped columns */ use => use(unmappedColumns).length > 0),
-        ),
-      ),
-      dom('div',
-        testId('hidden-fields'),
-        dom.forEach(unmappedColumns, (field) => {
-          return this._buildUnmappedField(field);
-        })
-      ),
-      dom.maybe(anyUnmappedSelected, () =>
-        cssRow(
-          primaryButton(
-            dom.text(t("Map fields")),
-            dom.on('click', mapSelected),
-            testId('visible-hide')
-          ),
-          basicButton(
-            t("Clear"),
-            dom.on('click', () => unmappedColumns.get().forEach((col) => col.selected.set(false))),
-            testId('visible-clear')
-          ),
-          testId('visible-batch-buttons')
-        ),
-      ),
       cssHeader(
         cssFieldListHeader(dom.text(t("Mapped"))),
         selectAllLabel(
@@ -119,6 +91,36 @@ export class UnmappedFieldsConfig extends Disposable {
           basicButton(
             t("Clear"),
             dom.on('click', () => mappedColumns.get().forEach((col) => col.selected.set(false))),
+            testId('visible-clear')
+          ),
+          testId('visible-batch-buttons')
+        ),
+      ),
+      cssHeader(
+        cssFieldListHeader(t("Unmapped")),
+        selectAllLabel(
+          dom.on('click', () => {
+            unmappedColumns.get().forEach((col) => col.selected.set(true));
+          }),
+          dom.show(/* any unmapped columns */ use => use(unmappedColumns).length > 0),
+        ),
+      ),
+      dom('div',
+        testId('hidden-fields'),
+        dom.forEach(unmappedColumns, (field) => {
+          return this._buildUnmappedField(field);
+        })
+      ),
+      dom.maybe(anyUnmappedSelected, () =>
+        cssRow(
+          primaryButton(
+            dom.text(t("Map fields")),
+            dom.on('click', mapSelected),
+            testId('visible-hide')
+          ),
+          basicButton(
+            t("Clear"),
+            dom.on('click', () => unmappedColumns.get().forEach((col) => col.selected.set(false))),
             testId('visible-clear')
           ),
           testId('visible-batch-buttons')

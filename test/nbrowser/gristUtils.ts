@@ -31,7 +31,8 @@ import { GristWebDriverUtils, PageWidgetPickerOptions,
          WindowDimensions as WindowDimensionsBase } from 'test/nbrowser/gristWebDriverUtils';
 import { HomeUtil } from 'test/nbrowser/homeUtil';
 import { server } from 'test/nbrowser/testServer';
-import { Cleanup } from 'test/nbrowser/testUtils';
+import type { Cleanup } from 'test/nbrowser/testUtils';
+import { fetchScreenshotAndLogs } from 'test/nbrowser/webdriverUtils';
 import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
 import axios from 'axios';
@@ -1016,6 +1017,13 @@ export async function sendActions(actions: UserAction[]) {
   await driver.manage().setTimeouts({
     script: 1000 * 2, /* 2 seconds, default is 0.5s */
   });
+
+  // Make quick test that we have a list of actions not just a single action, by checking
+  // if the first element is an array.
+  if (actions.length && !Array.isArray(actions[0])) {
+    throw new Error('actions argument should be a list of actions, not a single action');
+  }
+
   const result = await driver.executeAsyncScript(`
     const done = arguments[arguments.length - 1];
     const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
@@ -1058,6 +1066,14 @@ export async function hideBanners() {
   await driver.executeScript(`const style = document.createElement('style');
     style.innerHTML = ${JSON.stringify(style)};
     document.head.appendChild(style);`);
+}
+
+export async function assertBannerText(text: string | null) {
+  if (text === null) {
+    assert.isFalse(await driver.find('.test-banner').isPresent());
+  } else {
+    assert.equal(await driver.findWait('.test-doc-usage-banner-text', 2000).getText(), text);
+  }
 }
 
 /**
@@ -2819,23 +2835,34 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
  * Runs action in a separate tab, closing the tab after.
  * In case of an error tab is not closed, consider using cleanupExtraWindows
  * on whole test suite if needed.
+ *
+ * If {test: this.test} is given in options, we will additionally record a screenshot and driver
+ * logs, named using the test name, before opening the new tab, and before and after closing it.
  */
-export async function onNewTab(action: () => Promise<void>) {
+export async function onNewTab(action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
   const currentTab = await driver.getWindowHandle();
   await driver.executeScript("window.open('about:blank', '_blank')");
   const tabs = await driver.getAllWindowHandles();
   const newTab = tabs[tabs.length - 1];
+  const test = options?.test;
+  if (test) { await fetchScreenshotAndLogs(test); }
   await driver.switchTo().window(newTab);
   try {
     await action();
+  } catch (e) {
+    console.warn("onNewTab cleaning up tab after error", e);
+    throw e;
   } finally {
+    if (test) { await fetchScreenshotAndLogs(test); }
     const newCurrentTab = await driver.getWindowHandle();
     if (newCurrentTab === newTab) {
       await driver.close();
       await driver.switchTo().window(currentTab);
+      console.log("onNewTab returned to original tab");
     } else {
       console.log("onNewTab not cleaning up because is not on expected tab");
     }
+    if (test) { await fetchScreenshotAndLogs(test); }
   }
 }
 
@@ -3440,6 +3467,52 @@ export async function switchToWindow(target: string) {
       await driver.sleep(250);
     }
   }
+}
+
+/**
+ * Creates a temporary textarea to the document for pasting the contents of
+ * the clipboard.
+ */
+export async function createClipboardTextArea() {
+  function createTextArea() {
+    const textArea = window.document.createElement('textarea');
+    textArea.style.position = 'absolute';
+    textArea.style.top = '0';
+    textArea.style.height = '2rem';
+    textArea.style.width = '16rem';
+    textArea.id = 'clipboardText';
+    window.document.body.appendChild(textArea);
+  }
+
+  await driver.executeScript(createTextArea);
+}
+
+/**
+ * Removes the temporary textarea added by `createClipboardTextArea`.
+ */
+export async function removeClipboardTextArea() {
+  function removeTextArea() {
+    const textArea = window.document.getElementById('clipboardText');
+    if (textArea) {
+      window.document.body.removeChild(textArea);
+    }
+  }
+
+  await driver.executeScript(removeTextArea);
+}
+
+/**
+ * Sets up a temporary textarea for pasting the contents of the clipboard,
+ * removing it after all tests have run.
+ */
+export function withClipboardTextArea() {
+  before(async function() {
+    await createClipboardTextArea();
+  });
+
+  after(async function() {
+    await removeClipboardTextArea();
+  });
 }
 
 /*

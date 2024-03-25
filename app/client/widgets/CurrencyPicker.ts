@@ -35,7 +35,7 @@ export function buildCurrencyPicker(
   // Create a computed that will display 'Local currency' as a value and label
   // when `currency` is undefined.
   const valueObs = Computed.create(owner, (use) => use(currency) || defaultCurrencyLabel);
-  const acIndex = new ACIndexImpl<ACSelectItem>(currencyItems, 200, true);
+  const acIndex = new ACIndexImpl<ACSelectItem>(currencyItems, {maxResults: 200, keepOrder: true});
   return buildACSelect(owner,
     {
       acIndex, valueObs,

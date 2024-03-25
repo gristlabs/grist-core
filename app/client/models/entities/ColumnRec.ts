@@ -68,6 +68,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   disableEditData: ko.Computed<boolean>;      // True to disable editing of the data in this column.
 
   isHiddenCol: ko.Computed<boolean>;
+  isFormCol: ko.Computed<boolean>;
 
   // Returns the rowModel for the referenced table, or null, if is not a reference column.
   refTable: ko.Computed<TableRec|null>;
@@ -144,6 +145,11 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol()));
 
   this.isHiddenCol = ko.pureComputed(() => gristTypes.isHiddenCol(this.colId()));
+  this.isFormCol = ko.pureComputed(() => (
+    !this.isHiddenCol() &&
+    this.pureType() !== 'Attachments' &&
+    !this.isRealFormula()
+  ));
 
   // Returns the rowModel for the referenced table, or null, if this is not a reference column.
   this.refTable = ko.pureComputed(() => {

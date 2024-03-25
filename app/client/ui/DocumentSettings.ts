@@ -130,7 +130,7 @@ function buildLocaleSelect(
     locale: l.code,
     cleanText: l.name.trim().toLowerCase(),
   })).sort(propertyCompare("label"));
-  const acIndex = new ACIndexImpl<LocaleItem>(localeList, 200, true);
+  const acIndex = new ACIndexImpl<LocaleItem>(localeList, {maxResults: 200, keepOrder: true});
   // AC select will show the value (in this case locale) not a label when something is selected.
   // To show the label - create another observable that will be in sync with the value, but
   // will contain text.

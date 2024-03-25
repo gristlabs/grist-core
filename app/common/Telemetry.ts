@@ -1684,6 +1684,38 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  submittedForm: {
+    category: 'WidgetUsage',
+    description: 'Triggered when a published form is submitted.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      siteId: {
+        description: 'The site id.',
+        dataType: 'number',
+      },
+      siteType: {
+        description: 'The site type.',
+        dataType: 'string',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+      access: {
+        description: 'The document access level of the user that triggered this event.',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+    },
+  },
   changedAccessRules: {
     category: 'AccessRules',
     description: 'Triggered when a change to access rules is saved.',
@@ -1776,6 +1808,7 @@ export const TelemetryEvents = StringUnion(
   'publishedForm',
   'unpublishedForm',
   'visitedForm',
+  'submittedForm',
   'changedAccessRules',
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
