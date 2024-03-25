@@ -6,6 +6,8 @@
 var log = require('app/server/lib/log');
 var Promise = require('bluebird');
 
+var os = require('os');
+
 var cleanupHandlers = [];
 
 var signalsHandled = {};
@@ -65,8 +67,8 @@ function runCleanupHandlers() {
 }
 
 /**
- * Internal helper to exit on a signal. It runs the cleanup handlers, and then re-sends the same
- * signal, which will no longer get caught.
+ * Internal helper to exit on a signal. It runs the cleanup handlers, and then
+ * exits propagating the same signal code than the one caught.
  */
 function signalExit(signal) {
   var prog = 'grist[' + process.pid + ']';
@@ -81,7 +83,12 @@ function signalExit(signal) {
     log.info("Server %s exiting on %s", prog, signal);
     process.removeListener(signal, dup);
     delete signalsHandled[signal];
-    process.kill(process.pid, signal);
+    // Exit with the expected exit code for being killed by this signal.
+    // Unlike re-sending the same signal, the explicit exit works even
+    // in a situation when Grist is the init (pid 1) process in a container
+    // See https://github.com/gristlabs/grist-core/pull/830 (and #892)
+    const signalNumber = os.constants.signals[signal];
+    process.exit(process.pid, 128 + signalNumber);
   });
 }
 
