@@ -1226,8 +1226,8 @@ function testDocApi() {
         const listColResp = await axios.get(url, { ...chimpy, params: { hidden: true } });
         assert.equal(listColResp.status, 200, "Should succeed in listing columns");
 
-        const watchedColIds = listColResp.data.columns.map(({id}: {id: string}) => id).sort();
-        assert.deepEqual(watchedColIds, ["B", "C", "manualSort"]);
+        const columnIds = listColResp.data.columns.map(({id}: {id: string}) => id).sort();
+        assert.deepEqual(columnIds, ["B", "C", "manualSort"]);
       });
 
       it('should return 404 if table not found', async function() {
@@ -4926,7 +4926,7 @@ function testDocApi() {
               if (error instanceof RegExp) {
                 assert.match(resp.data.details?.userError || resp.data.error, error);
               } else {
-                assert.deepEqual(resp.data, { error });
+                assert.deepEqual(resp.data, {error});
               }
             }
 
