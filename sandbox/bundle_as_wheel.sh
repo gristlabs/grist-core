@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Package up Grist code as a stand-alone wheel.
 # This is useful for grist-static.
