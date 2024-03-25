@@ -63,7 +63,7 @@ const WEBHOOK_COLUMNS = [
     id: 'vt_webhook_fc10',
     colId: 'columnIds',
     type: 'Text',
-    label: t('Columns to check when update (separated by ;)'),
+    label: t('Filter for changes in these columns (semicolon-separated ids)'),
   },
   {
     id: 'vt_webhook_fc4',

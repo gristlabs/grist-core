@@ -3352,7 +3352,7 @@ function testDocApi() {
       */
       const serving: Serving = await serveSomething(app => {
           app.use(express.json());
-          app.post('/200', ({ body }, res) => {
+          app.post('/200', ({body}, res) => {
             res.sendStatus(200);
             res.end();
           });
