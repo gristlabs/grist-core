@@ -185,10 +185,18 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
-function isDocInternalUrl(host: string) {
-  if (!process.env.APP_DOC_INTERNAL_URL) { return false; }
-  const internalUrl = new URL('/', process.env.APP_DOC_INTERNAL_URL);
+function isInternalUrl(host: string, envValue?: string) {
+  if (!envValue) { return false; }
+  const internalUrl = new URL('/', envValue);
   return internalUrl.host === host;
+}
+
+function isDocInternalUrl(host: string) {
+  return isInternalUrl(host, process.env.APP_DOC_INTERNAL_URL);
+}
+
+function isHomeInternalUrl(host: string) {
+  return isInternalUrl(host, process.env.APP_HOME_INTERNAL_URL);
 }
 
 /**
@@ -208,7 +216,12 @@ export function getHostType(host: string, options: {
 
   const hostname = host.split(":")[0];
   if (!options.baseDomain) { return 'native'; }
-  if (hostname === 'localhost' || isDocInternalUrl(host) || hostname.endsWith(options.baseDomain)) {
+  if (
+    hostname === 'localhost' ||
+    isDocInternalUrl(host) ||
+    hostname.endsWith(options.baseDomain) ||
+    isHomeInternalUrl(host)
+  ) {
     return 'native';
   }
   return 'custom';

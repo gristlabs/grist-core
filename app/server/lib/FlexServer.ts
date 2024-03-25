@@ -330,7 +330,7 @@ export class FlexServer implements GristServer {
    * based on domain).
    */
   public async getHomeUrlByDocId(docId: string, relPath: string = ''): Promise<string> {
-    return new URL(relPath, this.getDefaultHomeUrl()).href;
+    return new URL(relPath, this.getDefaultHomeInternalUrl()).href;
   }
 
   // Get the port number the server listens on.  This may be different from the port
@@ -1448,7 +1448,7 @@ export class FlexServer implements GristServer {
       const permitStore = this.getPermitStore();
       const notifier = this.getNotifier();
       const loginSystem = await this.resolveLoginSystem();
-      const homeUrl = this.getHomeUrl(req).replace(/\/$/, '');
+      const homeUrl = this.getHomeInternalUrl(req).replace(/\/$/, '');
       return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
     };
 
@@ -2432,7 +2432,7 @@ export class FlexServer implements GristServer {
     const workspace = workspaces.find(w => w.name === 'Home');
     if (!workspace) { throw new Error('Home workspace not found'); }
 
-    const copyDocUrl = this.getHomeUrl(req, '/api/docs');
+    const copyDocUrl = this.getHomeInternalUrl(req, '/api/docs');
     const response = await fetch(copyDocUrl, {
       headers: {
         ...getTransitiveHeaders(req),

@@ -77,7 +77,7 @@ const _homeUrlReachableProbe: Probe = {
   id: 'reachable',
   name: 'Grist is reachable',
   apply: async (server, req) => {
-    const url = server.getHomeUrl(req);
+    const url = server.getHomeInternalUrl(req);
     try {
       const resp = await fetch(url);
       if (resp.status !== 200) {
@@ -102,7 +102,7 @@ const _statusCheckProbe: Probe = {
   id: 'health-check',
   name: 'Built-in Health check',
   apply: async (server, req) => {
-    const baseUrl = server.getHomeUrl(req);
+    const baseUrl = server.getHomeInternalUrl(req);
     const url = new URL(baseUrl);
     url.pathname = removeTrailingSlash(url.pathname) + '/status';
     try {

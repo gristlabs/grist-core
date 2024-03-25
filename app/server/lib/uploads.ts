@@ -417,7 +417,7 @@ export async function fetchDoc(server: GristServer, docId: string, req: Request,
 
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.
-  const homeUrl = server.getHomeUrl(req);
+  const homeUrl = server.getHomeInternalUrl(req);
   const fetchUrl = new URL(`/api/worker/${docId}`, homeUrl);
   const response: FetchResponse = await Deps.fetch(fetchUrl.href, {headers});
   await _checkForError(response);
