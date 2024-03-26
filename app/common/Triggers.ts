@@ -10,7 +10,7 @@ export interface WebhookFields {
   url: string;
   eventTypes: Array<"add"|"update">;
   tableId: string;
-  watchedColIds: string[];
+  watchedColIds?: string[];
   enabled?: boolean;
   isReadyColumn?: string|null;
   name?: string;
@@ -27,7 +27,7 @@ export type WebhookStatus = 'idle'|'sending'|'retrying'|'postponed'|'error'|'inv
 export interface WebhookSubscribe {
   url: string;
   eventTypes: Array<"add"|"update">;
-  watchedColIds: string[];
+  watchedColIds?: string[];
   enabled?: boolean;
   isReadyColumn?: string|null;
   name?: string;
@@ -46,7 +46,7 @@ export interface WebhookSummary {
     eventTypes: string[];
     isReadyColumn: string|null;
     tableId: string;
-    watchedColIds: string[];
+    watchedColIds?: string[];
     enabled: boolean;
     name: string;
     memo: string;
@@ -66,7 +66,7 @@ export interface WebhookPatch {
   url?: string;
   eventTypes?: Array<"add"|"update">;
   tableId?: string;
-  watchedColIds: string[];
+  watchedColIds?: string[];
   enabled?: boolean;
   isReadyColumn?: string|null;
   name?: string;

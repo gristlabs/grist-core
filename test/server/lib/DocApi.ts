@@ -4950,7 +4950,7 @@ function testDocApi() {
           });
 
           await check({tableId: 'Santa'}, 404, `Table not found "Santa"`);
-          await check({tableId: 'Table2', isReadyColumn: 'Foo', watchedColIds: [""]}, 200);
+          await check({tableId: 'Table2', isReadyColumn: 'Foo', watchedColIds: []}, 200);
 
           await check({eventTypes: ['add', 'update']}, 200);
           await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");
