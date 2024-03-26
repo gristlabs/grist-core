@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
-import {getDocWorkerUrl} from 'app/common/UserAPI';
+import {getInternalDocWorkerUrl} from 'app/common/UserAPI';
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -421,7 +421,7 @@ export async function fetchDoc(server: GristServer, docId: string, req: Request,
   const fetchUrl = new URL(`/api/worker/${docId}`, homeUrl);
   const response: FetchResponse = await Deps.fetch(fetchUrl.href, {headers});
   await _checkForError(response);
-  const docWorkerUrl = getDocWorkerUrl(server.getOwnUrl(), await response.json());
+  const docWorkerUrl = getInternalDocWorkerUrl(server.getOwnUrl(), await response.json());
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`,
                       docWorkerUrl.replace(/\/*$/, '/'));
