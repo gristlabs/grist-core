@@ -59,7 +59,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       // Alternatives could be: have the client to send their base URL
       // in the request; or use headers commonly added by reverse proxies.
       const selfPrefix =  "/dw/self/v/" + gristServer.getTag();
-      res.json({docWorkerUrl: null, selfPrefix});
+      res.json({docWorkerUrl: null, internalDocWorkerUrl: null, selfPrefix});
       return;
     }
     if (!trustOrigin(req, res)) { throw new Error('Unrecognized origin'); }
@@ -73,7 +73,10 @@ export function attachAppEndpoint(options: AttachOptions): void {
     if (!docStatus) {
       return res.status(500).json({error: 'no worker'});
     }
-    res.json({docWorkerUrl: customizeDocWorkerUrl(docStatus.docWorker.publicUrl, req)});
+    res.json({
+      docWorkerUrl: customizeDocWorkerUrl(docStatus.docWorker.publicUrl, req),
+      internalDocWorkerUrl: docStatus.docWorker.internalUrl
+    });
   }));
 
   // Handler for serving the document landing pages.  Expects the following parameters:

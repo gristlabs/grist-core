@@ -1167,6 +1167,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
  */
 export function getDocWorkerUrl(homeUrl: string, docWorkerInfo: {
   docWorkerUrl: string|null,
+  internalDocWorkerUrl: string|null,
   selfPrefix?: string,
 }): string {
   if (!docWorkerInfo.docWorkerUrl) {
@@ -1178,5 +1179,5 @@ export function getDocWorkerUrl(homeUrl: string, docWorkerInfo: {
     url.pathname = docWorkerInfo.selfPrefix + url.pathname;
     return url.href;
   }
-  return docWorkerInfo.docWorkerUrl;
+  return docWorkerInfo.internalDocWorkerUrl || docWorkerInfo.docWorkerUrl;
 }

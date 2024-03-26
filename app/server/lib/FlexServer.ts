@@ -319,8 +319,9 @@ export class FlexServer implements GristServer {
   /**
    * Same as getHomeUrl, but for requesting internally.
    */
-  public getHomeInternalUrl(req: express.Request, relPath?: string): string {
-    return this.getHomeUrl(req, relPath, this.getDefaultHomeInternalUrl());
+  public getHomeInternalUrl(req: express.Request, relPath: string = ''): string {
+    const homeUrl = new URL(relPath, this.getDefaultHomeInternalUrl());
+    return homeUrl.href;
   }
 
   /**
