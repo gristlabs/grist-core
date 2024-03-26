@@ -21,6 +21,7 @@ export function createErrPage(appModel: AppModel) {
     errPage === 'not-found' ? createNotFoundPage(appModel, errMessage) :
     errPage === 'access-denied' ? createForbiddenPage(appModel, errMessage) :
     errPage === 'account-deleted' ? createAccountDeletedPage(appModel) :
+    errPage === 'signin-failed' ? createSigninFailedPage(appModel, errMessage) :
     createOtherErrorPage(appModel, errMessage);
 }
 
@@ -94,6 +95,19 @@ export function createNotFoundPage(appModel: AppModel, message?: string) {
     })),
     cssButtonWrap(bigPrimaryButtonLink(t("Go to main page"), testId('error-primary-btn'),
       urlState().setLinkUrl({}))),
+    cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
+  ]);
+}
+
+export function createSigninFailedPage(appModel: AppModel, message?: string) {
+  document.title = t("Signin failed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+  return pagePanelsError(appModel, t("Signin failed{{suffix}}", {suffix: ''}), [
+    cssErrorText(message ??
+      t("Failed to login.{{separator}}Please try again or contact the support.", {
+        separator: dom('br')
+    })),
+    cssButtonWrap(bigPrimaryButtonLink(t("Login again"), testId('error-primary-btn'),
+      urlState().setLinkUrl({login: 'login', params: {}}))),
     cssButtonWrap(bigBasicButtonLink(t("Contact support"), {href: commonUrls.contactSupport})),
   ]);
 }

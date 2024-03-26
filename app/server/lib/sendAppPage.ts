@@ -121,15 +121,15 @@ export function makeMessagePage(staticDir: string) {
   };
 }
 
+export type SendAppPage = (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
+
 /**
  * Send a simple template page, read from file at pagePath (relative to static/), with certain
  * placeholders replaced.
  */
-export function makeSendAppPage(opts: {
-  server: GristServer, staticDir: string, tag: string, testLogin?: boolean,
-  baseDomain?: string
-}) {
-  const {server, staticDir, tag, testLogin} = opts;
+export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain }: {
+  server: GristServer, staticDir: string, tag: string, testLogin?: boolean, baseDomain?: string
+}): SendAppPage {
 
   // If env var GRIST_INCLUDE_CUSTOM_SCRIPT_URL is set, load it in a <script> tag on all app pages.
   const customScriptUrl = process.env.GRIST_INCLUDE_CUSTOM_SCRIPT_URL;
@@ -140,7 +140,7 @@ export function makeSendAppPage(opts: {
     const config = makeGristConfig({
       homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
       extra: options.config,
-      baseDomain: opts.baseDomain,
+      baseDomain: baseDomain,
       req,
       server,
     });

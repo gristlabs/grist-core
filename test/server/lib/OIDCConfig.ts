@@ -9,10 +9,16 @@ import {Client, generators} from "openid-client";
 import express from "express";
 import _ from "lodash";
 import {RequestWithLogin} from "app/server/lib/Authorizer";
+import { SendAppPage } from "app/server/lib/sendAppPage";
+
+const NOOPED_SEND_APP_PAGE: SendAppPage = () => Promise.resolve();
 
 class OIDCConfigStubbed extends OIDCConfig {
-  public static async build(clientStub?: Client): Promise<OIDCConfigStubbed> {
-    const result = new OIDCConfigStubbed();
+  public static async buildWithStub(client: Client = new ClientStub().asClient()) {
+    return this.build(NOOPED_SEND_APP_PAGE, client);
+  }
+  public static async build(sendAppPage: SendAppPage, clientStub?: Client): Promise<OIDCConfigStubbed> {
+    const result = new OIDCConfigStubbed(sendAppPage);
     if (clientStub) {
       result._initClient = Sinon.spy(() => {
         result._client = clientStub!;
@@ -95,7 +101,7 @@ describe('OIDCConfig', () => {
       ]) {
         setEnvVars();
         delete process.env[envVar];
-        const promise = OIDCConfig.build();
+        const promise = OIDCConfig.build(NOOPED_SEND_APP_PAGE);
         await assert.isRejected(promise, `missing environment variable: ${envVar}`);
       }
     });
@@ -103,14 +109,14 @@ describe('OIDCConfig', () => {
     it('should reject when the client initialization fails', async () => {
       setEnvVars();
       sandbox.stub(OIDCConfigStubbed.prototype, '_initClient').rejects(new Error('client init failed'));
-      const promise = OIDCConfigStubbed.build();
+      const promise = OIDCConfigStubbed.build(NOOPED_SEND_APP_PAGE);
       await assert.isRejected(promise, 'client init failed');
     });
 
     it('should create a client with passed information', async () => {
       setEnvVars();
       const client = new ClientStub();
-      const config = await OIDCConfigStubbed.build(client.asClient());
+        const config = await OIDCConfigStubbed.buildWithStub(client.asClient());
       assert.isTrue(config._initClient.calledOnce);
       assert.deepEqual(config._initClient.firstCall.args, [{
         clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
@@ -132,7 +138,7 @@ describe('OIDCConfig', () => {
       };
       process.env.GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA = JSON.stringify(extraMetadata);
       const client = new ClientStub();
-      const config = await OIDCConfigStubbed.build(client.asClient());
+      const config = await OIDCConfigStubbed.buildWithStub(client.asClient());
       assert.isTrue(config._initClient.calledOnce);
       assert.deepEqual(config._initClient.firstCall.args, [{
         clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
@@ -182,7 +188,7 @@ describe('OIDCConfig', () => {
           Object.assign(process.env, ctx.env);
           const client = new ClientStub();
           client.issuer.metadata.end_session_endpoint = ctx.end_session_endpoint;
-          const promise = OIDCConfigStubbed.build(client.asClient());
+          const promise = OIDCConfigStubbed.buildWithStub(client.asClient());
           if (ctx.errorMsg) {
             await assert.isRejected(promise, ctx.errorMsg);
             assert.isFalse(logInfoStub.calledOnce);
@@ -199,14 +205,14 @@ describe('OIDCConfig', () => {
     it('should throw when GRIST_OIDC_IDP_ENABLED_PROTECTIONS contains unsupported values', async () => {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'STATE,NONCE,PKCE,invalid';
-      const promise = OIDCConfig.build();
+      const promise = OIDCConfig.build(NOOPED_SEND_APP_PAGE);
       await assert.isRejected(promise, 'OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: invalid');
     });
 
     it('should successfully change the supported protections', async function () {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'NONCE';
-      const config = await OIDCConfigStubbed.build((new ClientStub()).asClient());
+      const config = await OIDCConfigStubbed.buildWithStub();
       assert.isTrue(config.supportsProtection("NONCE"));
       assert.isFalse(config.supportsProtection("PKCE"));
       assert.isFalse(config.supportsProtection("STATE"));
@@ -215,7 +221,7 @@ describe('OIDCConfig', () => {
     it('should successfully accept an empty string', async function () {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = '';
-      const config = await OIDCConfigStubbed.build((new ClientStub()).asClient());
+      const config = await OIDCConfigStubbed.buildWithStub();
       assert.isFalse(config.supportsProtection("NONCE"));
       assert.isFalse(config.supportsProtection("PKCE"));
       assert.isFalse(config.supportsProtection("STATE"));
@@ -223,7 +229,7 @@ describe('OIDCConfig', () => {
 
     it('if omitted, should defaults to "STATE,PKCE"', async function () {
       setEnvVars();
-      const config = await OIDCConfigStubbed.build((new ClientStub()).asClient());
+      const config = await OIDCConfigStubbed.buildWithStub();
       assert.isFalse(config.supportsProtection("NONCE"));
       assert.isTrue(config.supportsProtection("PKCE"));
       assert.isTrue(config.supportsProtection("STATE"));
@@ -328,7 +334,7 @@ describe('OIDCConfig', () => {
         setEnvVars();
         Object.assign(process.env, ctx.env);
         const clientStub = new ClientStub();
-        const config = await OIDCConfigStubbed.build(clientStub.asClient());
+        const config = await OIDCConfigStubbed.buildWithStub(clientStub.asClient());
         const session = {};
         const req = {
           session
@@ -474,6 +480,9 @@ describe('OIDCConfig', () => {
           email_verified: false,
         },
         expectedErrorMsg: /email not verified for/,
+        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+          assert.match(sendAppPageStub.firstCall.args[2].config.errMessage, /Your email is not verified/);
+        }
       },
       {
         itMsg: 'should resolve when the userinfo mail is not verified but its check disabled',
@@ -585,10 +594,11 @@ describe('OIDCConfig', () => {
         setEnvVars();
         Object.assign(process.env, ctx.env);
         const clientStub = new ClientStub();
+        const sendAppPageStub = Sinon.stub().resolves();
         const fakeParams = {
           state: FAKE_STATE,
         };
-        const config = await OIDCConfigStubbed.build(clientStub.asClient());
+        const config = await OIDCConfigStubbed.build(sendAppPageStub as SendAppPage, clientStub.asClient());
         const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
           session,
@@ -613,8 +623,11 @@ describe('OIDCConfig', () => {
         if (ctx.expectedErrorMsg) {
           assert.isTrue(logErrorStub.calledOnce);
           assert.match(logErrorStub.firstCall.args[0], ctx.expectedErrorMsg);
-          assert.isTrue(fakeRes.status.calledOnceWith(500));
-          assert.isTrue(fakeRes.send.calledOnceWith('OIDC callback failed.'));
+          assert.isTrue(sendAppPageStub.calledOnceWith(req, fakeRes));
+          assert.include(sendAppPageStub.firstCall.args[2], {
+            path: 'error.html',
+            status: 500,
+          });
         } else {
           assert.isFalse(logErrorStub.called, 'no error should be logged. Got: ' + logErrorStub.firstCall?.args[0]);
           assert.isTrue(fakeRes.redirect.calledOnce, 'should redirect');
@@ -630,8 +643,8 @@ describe('OIDCConfig', () => {
               idToken: tokenSet.id_token,
             }
           }, 'oidc info should only keep state and id_token in the session and for the logout');
-          ctx.extraChecks?.({fakeRes, user});
         }
+        ctx.extraChecks?.({ fakeRes, user, sendAppPageStub });
       });
     });
 
@@ -639,7 +652,8 @@ describe('OIDCConfig', () => {
       // See https://github.com/panva/node-openid-client/blob/47a549cb4e36ffe2ebfe2dc9d6b69a02643cc0a9/lib/client.js#L1293
       setEnvVars();
       const clientStub = new ClientStub();
-      const config = await OIDCConfigStubbed.build(clientStub.asClient());
+      const sendAppPageStub = Sinon.stub().resolves();
+      const config = await OIDCConfigStubbed.build(sendAppPageStub, clientStub.asClient());
       const req = {
         session: DEFAULT_SESSION,
         query: {
@@ -662,7 +676,7 @@ describe('OIDCConfig', () => {
       assert.isTrue(logErrorStub.calledTwice);
       assert.include(logErrorStub.firstCall.args[0], err.message);
       assert.include(logErrorStub.secondCall.args[0], err.response.body);
-      assert.isTrue(fakeRes.status.calledOnceWith(500));
+      assert.isTrue(sendAppPageStub.calledOnce, "An error should have been sent");
     });
   });
 
@@ -705,7 +719,7 @@ describe('OIDCConfig', () => {
         Object.assign(process.env, ctx.env);
         const clientStub = new ClientStub();
         clientStub.endSessionUrl.returns(URL_RETURNED_BY_CLIENT);
-        const config = await OIDCConfigStubbed.build(clientStub.asClient());
+        const config = await OIDCConfigStubbed.buildWithStub(clientStub.asClient());
         const req = {
           session: FAKE_SESSION
         } as unknown as RequestWithLogin;

@@ -70,6 +70,7 @@ import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
 import _ from 'lodash';
 import { SessionObj } from './BrowserSession';
+import { SendAppPage } from './sendAppPage';
 
 enum ENABLED_PROTECTIONS {
   NONCE,
@@ -90,12 +91,21 @@ function formatTokenForLogs(token: TokenSet) {
     }).value();
 }
 
+const DEFAULT_USER_FRIENDLY_MESSAGE =
+  "Something went wrong while logging, please try again or contact your administrator if the problem persists";
+
+class ErrorWithUserFriendlyMessage extends Error {
+  constructor(errMessage: string, public readonly userFriendlyMessage: string = DEFAULT_USER_FRIENDLY_MESSAGE) {
+    super(errMessage);
+  }
+}
+
 export class OIDCConfig {
   /**
    * Handy alias to create an OIDCConfig instance and initialize it.
    */
-  public static async build(): Promise<OIDCConfig> {
-    const config = new OIDCConfig();
+  public static async build(sendAppPage: SendAppPage): Promise<OIDCConfig> {
+    const config = new OIDCConfig(sendAppPage);
     await config.initOIDC();
     return config;
   }
@@ -110,8 +120,9 @@ export class OIDCConfig {
   private _enabledProtections: EnabledProtectionsString[] = [];
   private _acrValues?: string;
 
-  protected constructor() {
-  }
+  protected constructor(
+    private _sendAppPage: SendAppPage
+  ) {}
 
   public async initOIDC(): Promise<void> {
     const section = appSettings.section('login').section('system').section('oidc');
@@ -195,7 +206,11 @@ export class OIDCConfig {
       log.debug("Got userinfo: %o", userInfo);
 
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
-        throw new Error(`OIDCConfig: email not verified for ${userInfo.email}`);
+        throw new ErrorWithUserFriendlyMessage(
+          `OIDCConfig: email not verified for ${userInfo.email}`,
+          "Your email is not verified according to the identity provider, please take the neccessary steps for that " +
+            "and log in again."
+        );
       }
 
       const profile = this._makeUserProfileFromUserInfo(userInfo);
@@ -221,7 +236,14 @@ export class OIDCConfig {
       //
       // Also session deletion must be done before sending the response.
       delete mreq.session.oidc;
-      res.status(500).send('OIDC callback failed.');
+      await this._sendAppPage(req, res, {
+        path: 'error.html',
+        status: 500,
+        config: {
+          errPage: 'signin-failed',
+          errMessage: err.userFriendlyMessage
+        },
+      });
     }
   }
 
@@ -358,7 +380,7 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem | undefined
   if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = await OIDCConfig.build();
+      const config = await OIDCConfig.build(gristServer.sendAppPage.bind(gristServer));
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),
