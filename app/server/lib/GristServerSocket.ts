@@ -83,6 +83,7 @@ export class GristServerSocketEIO extends GristServerSocket {
     }
     this._socket.send(data, {}, () => {
       if (cb && this._messageCallbacks.delete(msgNum)) {
+        // send was successful: pass no Error to callback
         cb();
       }
     });
