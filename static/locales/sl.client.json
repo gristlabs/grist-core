@@ -282,7 +282,8 @@
         "Duplicate rows_one": "Podvoji vrstico",
         "Duplicate rows_other": "Podvoji vrstice",
         "Insert row above": "Vstavi vrstico zgoraj",
-        "View as card": "Kartični pogled"
+        "View as card": "Kartični pogled",
+        "Use as table headers": "Uporabi kot glave tabel"
     },
     "Tools": {
         "Delete": "Izbriši",
