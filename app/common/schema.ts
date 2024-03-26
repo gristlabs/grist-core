@@ -168,6 +168,7 @@ export const schema = {
     memo                : "Text",
     enabled             : "Bool",
     watchedColRefList   : "RefList:_grist_Tables_column",
+    options             : "Text",
   },
 
   "_grist_ACLRules": {
@@ -390,6 +391,7 @@ export interface SchemaTypes {
     memo: string;
     enabled: boolean;
     watchedColRefList: [GristObjCode.List, ...number[]]|null;
+    options: string;
   };
 
   "_grist_ACLRules": {
