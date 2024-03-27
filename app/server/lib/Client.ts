@@ -184,7 +184,7 @@ export class Client {
 
   public interruptConnection() {
     if (this._websocket) {
-      this._websocket?.removeAllListeners();
+      this._websocket.removeAllListeners();
       this._websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
       this._websocket = null;
     }
