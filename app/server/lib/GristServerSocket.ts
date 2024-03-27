@@ -106,8 +106,9 @@ export class GristServerSocketWS extends GristServerSocket {
   }
 
   public set onmessage(handler: (data: string) => void) {
-    this._ws.on('message', (msg: Buffer) => handler(msg.toString()));
-    this._eventHandlers.push({ event: 'message', handler });
+    const wrappedHandler = (msg: Buffer) => handler(msg.toString());
+    this._ws.on('message', wrappedHandler);
+    this._eventHandlers.push({ event: 'message', handler: wrappedHandler });
   }
 
   public removeAllListeners() {
