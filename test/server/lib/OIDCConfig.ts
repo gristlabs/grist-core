@@ -116,7 +116,7 @@ describe('OIDCConfig', () => {
     it('should create a client with passed information', async () => {
       setEnvVars();
       const client = new ClientStub();
-        const config = await OIDCConfigStubbed.buildWithStub(client.asClient());
+      const config = await OIDCConfigStubbed.buildWithStub(client.asClient());
       assert.isTrue(config._initClient.calledOnce);
       assert.deepEqual(config._initClient.firstCall.args, [{
         clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
