@@ -115,8 +115,7 @@ describe('OIDCConfig', () => {
 
     it('should create a client with passed information', async () => {
       setEnvVars();
-      const client = new ClientStub();
-      const config = await OIDCConfigStubbed.buildWithStub(client.asClient());
+      const config = await OIDCConfigStubbed.buildWithStub();
       assert.isTrue(config._initClient.calledOnce);
       assert.deepEqual(config._initClient.firstCall.args, [{
         clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
@@ -137,8 +136,7 @@ describe('OIDCConfig', () => {
         userinfo_signed_response_alg: 'RS256',
       };
       process.env.GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA = JSON.stringify(extraMetadata);
-      const client = new ClientStub();
-      const config = await OIDCConfigStubbed.buildWithStub(client.asClient());
+      const config = await OIDCConfigStubbed.buildWithStub();
       assert.isTrue(config._initClient.calledOnce);
       assert.deepEqual(config._initClient.firstCall.args, [{
         clientId: process.env.GRIST_OIDC_IDP_CLIENT_ID,
