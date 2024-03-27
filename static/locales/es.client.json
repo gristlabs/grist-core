@@ -574,7 +574,9 @@
         "Redirection": "Redirección",
         "Required field": "Campo requerido",
         "Hidden field": "Campo oculto",
-        "Redirect automatically after submission": "Redirigir automáticamente después del envío"
+        "Redirect automatically after submission": "Redirigir automáticamente después del envío",
+        "No field selected": "Ningún campo seleccionado",
+        "Select a field in the form widget to configure.": "Seleccione un campo del widget del formulario para configurarlo."
     },
     "RowContextMenu": {
         "Copy anchor link": "Copiar enlace de anclaje",
@@ -610,7 +612,12 @@
         "Unsaved": "No guardado",
         "Work on a Copy": "Trabajar en una copia",
         "Share": "Compartir",
-        "Download...": "Descargar..."
+        "Download...": "Descargar...",
+        "Comma Separated Values (.csv)": "Valores separados por comas (.csv)",
+        "DOO Separated Values (.dsv)": "Valores separados DOO (.dsv)",
+        "Tab Separated Values (.tsv)": "Valores separados por tabulaciones (.tsv)",
+        "Export as...": "Exportar como...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)"
     },
     "SiteSwitcher": {
         "Create new team site": "Crear nuevo sitio de equipo",
@@ -1396,7 +1403,21 @@
         "Publish": "Publicar",
         "Publish your form?": "¿Publicar su formulario?",
         "Unpublish your form?": "¿Anular la publicación de su formulario?",
-        "Unpublish": "Anular la publicación"
+        "Unpublish": "Anular la publicación",
+        "Are you sure you want to reset your form?": "¿Estás seguro de que quieres restablecer tu formulario?",
+        "Copy code": "Copiar mi código",
+        "Embed this form": "Insertar este formulario",
+        "Reset": "Restablecer",
+        "Share": "Compartir",
+        "Copy link": "Copiar enlace",
+        "Anyone with the link below can see the empty form and submit a response.": "Cualquiera que acceda al siguiente enlace puede ver el formulario vacío y enviar una respuesta.",
+        "Code copied to clipboard": "Código copiado al portapapeles",
+        "Link copied to clipboard": "Enlace copiado al portapapeles",
+        "Preview": "Vista previa",
+        "Reset form": "Restablecer el formulario",
+        "Save your document to publish this form.": "Guarde el documento para publicar este formulario.",
+        "Share this form": "Compartir este formulario",
+        "View": "Ver"
     },
     "WelcomeCoachingCall": {
         "free coaching call": "llamada gratuita de asesoramiento",
@@ -1442,5 +1463,17 @@
         "This week": "Esta semana",
         "This year": "Este año",
         "Today": "Hoy"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Limpiar",
+        "Mapped": "Mapeado",
+        "Select All": "Seleccionar todo",
+        "Map fields": "Campos del mapa",
+        "Unmap fields": "Anular asignación de campos",
+        "Unmapped": "Sin mapear"
+    },
+    "Section": {
+        "Insert section above": "Insertar la sección anterior",
+        "Insert section below": "Insertar la sección siguiente"
     }
 }
