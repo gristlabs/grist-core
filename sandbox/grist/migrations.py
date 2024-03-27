@@ -1315,5 +1315,13 @@ def migration42(tdset):
   """
   return tdset.apply_doc_actions([
     add_column('_grist_Triggers', 'watchedColRefList', 'RefList:_grist_Tables_column'),
+  ])
+
+@migration(schema_version=43)
+def migration43(tdset):
+  """
+  Adds column to register which table columns are triggered in webhooks.
+  """
+  return tdset.apply_doc_actions([
     add_column('_grist_Triggers', 'options', 'Text'),
   ])
