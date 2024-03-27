@@ -7,7 +7,7 @@ import * as net from 'net';
 const MAX_PAYLOAD = 100e6;
 
 export interface GristSocketServerOptions {
-  verifyClient?: (request: http.IncomingMessage) => boolean;
+  verifyClient?: (request: http.IncomingMessage) => Promise<boolean>;
 }
 
 export class GristSocketServer {
@@ -64,8 +64,8 @@ export class GristSocketServer {
 
   private _attach(server: http.Server) {
     // Forward all WebSocket upgrade requests to WS
-    server.on('upgrade', (request, socket, head) => {
-      if (this._options?.verifyClient && !this._options.verifyClient(request)) {
+    server.on('upgrade', async (request, socket, head) => {
+      if (this._options?.verifyClient && !await this._options.verifyClient(request)) {
         // Because we are handling an "upgrade" event, we don't have access to
         // a "response" object, just the raw socket. We can still construct
         // a well-formed HTTP error response.
@@ -83,10 +83,10 @@ export class GristSocketServer {
     // requests that are meant for the Engine.IO polling implementation.
     const listeners = [...server.listeners("request")];
     server.removeAllListeners("request");
-    server.on("request", (req, res) => {
+    server.on("request", async (req, res) => {
       // Intercept requests that have transport=polling in their querystring
       if (/[&?]transport=polling(&|$)/.test(req.url ?? '')) {
-        if (this._options?.verifyClient && !this._options.verifyClient(req)) {
+        if (this._options?.verifyClient && !await this._options.verifyClient(req)) {
           res.writeHead(403).end();
           return;
         }

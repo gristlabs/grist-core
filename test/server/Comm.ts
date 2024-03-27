@@ -21,9 +21,27 @@ import {Sessions} from 'app/server/lib/Sessions';
 import {TcpForwarder} from 'test/server/tcpForwarder';
 import * as testUtils from 'test/server/testUtils';
 import * as session from '@gristlabs/express-session';
+import { Hosts, RequestOrgInfo } from 'app/server/lib/extractOrg';
 
 const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
 promisifyAll(SQLiteStore.prototype);
+
+
+// Just enough implementation of Hosts to be able to fake using a custom host.
+class FakeHosts {
+
+  public isCustomHost = false;
+
+  public get asHosts() { return this as unknown as Hosts; }
+
+  public async addOrgInfo<T extends http.IncomingMessage>(req: T): Promise<T & RequestOrgInfo> {
+    return Object.assign(req, {
+      isCustomHost: this.isCustomHost,
+      org: "example",
+      url: req.url!
+    });
+  }
+}
 
 describe('Comm', function() {
 
@@ -34,6 +52,7 @@ describe('Comm', function() {
 
   let server: http.Server;
   let sessions: Sessions;
+  let fakeHosts: FakeHosts;
   let comm: Comm|null = null;
   const sandbox = sinon.createSandbox();
 
@@ -51,7 +70,8 @@ describe('Comm', function() {
 
   function startComm(methods: {[name: string]: ClientMethod}) {
     server = http.createServer();
-    comm = new Comm(server, {sessions});
+    fakeHosts = new FakeHosts();
+    comm = new Comm(server, {sessions, hosts: fakeHosts.asHosts});
     comm.registerMethods(methods);
     return listenPromise(server.listen(0, 'localhost'));
   }
@@ -517,22 +537,31 @@ describe('Comm', function() {
       await stopComm();
     });
 
-    it('should allow only example.com', async () => {
-      async function checkOrigin(headers: { origin: string, host: string }, allowed: boolean) {
-        const promise = connect({ headers });
-        if (allowed) {
-          await assert.isFulfilled(promise, `${headers.host} should allow ${headers.origin}`);
-        } else {
-          await assert.isRejected(promise, /.*/, `${headers.host} should reject ${headers.origin}`);
-        }
+    async function checkOrigin(headers: { origin: string, host: string }, allowed: boolean) {
+      const promise = connect({ headers });
+      if (allowed) {
+        await assert.isFulfilled(promise, `${headers.host} should allow ${headers.origin}`);
+      } else {
+        await assert.isRejected(promise, /.*/, `${headers.host} should reject ${headers.origin}`);
       }
+    }
 
+    it('origin should match base domain of host', async () => {
       await checkOrigin({origin: "https://www.toto.com", host: "worker.example.com"}, false);
       await checkOrigin({origin: "https://badexample.com", host: "worker.example.com"}, false);
       await checkOrigin({origin: "https://bad.com/example.com", host: "worker.example.com"}, false);
       await checkOrigin({origin: "https://front.example.com", host: "worker.example.com"}, true);
       await checkOrigin({origin: "https://front.example.com:3000", host: "worker.example.com"}, true);
       await checkOrigin({origin: "https://example.com", host: "example.com"}, true);
+    });
+
+    it('with custom domains, origin should match the full hostname', async () => {
+      fakeHosts.isCustomHost = true;
+
+      // For a request to a custom domain, the full hostname must match.
+      await checkOrigin({origin: "https://front.example.com", host: "worker.example.com"}, false);
+      await checkOrigin({origin: "https://front.example.com", host: "front.example.com"}, true);
+      await checkOrigin({origin: "https://front.example.com:3000", host: "front.example.com"}, true);
     });
   });
 });

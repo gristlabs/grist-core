@@ -202,13 +202,6 @@ export class Comm extends EventEmitter {
    * Processes a new websocket connection, and associates the websocket and a Client object.
    */
   private async _onWebSocketConnection(websocket: GristServerSocket, req: http.IncomingMessage) {
-    if (this._options.hosts) {
-      // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
-      // needed. addOrgInfo assumes req.url starts with /o/ if present.
-      req.url = parseFirstUrlPart('dw', req.url!).path;
-      req.url = parseFirstUrlPart('v', req.url).path;
-      await this._options.hosts.addOrgInfo(req);
-    }
 
     // Parse the cookie in the request to get the sessionId.
     const sessionId = this.sessions.getSessionIdFromRequest(req);
@@ -253,7 +246,17 @@ export class Comm extends EventEmitter {
     const wss = [];
     for (const server of servers) {
       const wssi = new GristSocketServer(server, {
-        verifyClient: (req) => trustOrigin(req)
+        verifyClient: async (req: http.IncomingMessage) => {
+          if (this._options.hosts) {
+            // DocWorker ID (/dw/) and version tag (/v/) may be present in this request but are not
+            // needed. addOrgInfo assumes req.url starts with /o/ if present.
+            req.url = parseFirstUrlPart('dw', req.url!).path;
+            req.url = parseFirstUrlPart('v', req.url).path;
+            await this._options.hosts.addOrgInfo(req);
+          }
+
+          return trustOrigin(req);
+        }
       });
 
       wssi.onconnection = async (websocket: GristServerSocket, req) => {

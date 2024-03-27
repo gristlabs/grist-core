@@ -100,11 +100,10 @@ export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
 // Returns whether req satisfies the given allowedHost. Unless req is to a custom domain, it is
 // enough if only the base domains match. Differing ports are allowed, which helps in dev/testing.
 export function allowHost(req: IncomingMessage, allowedHost: string|URL) {
-  const mreq = req as RequestWithOrg;
   const proto = getEndUserProtocol(req);
   const actualUrl = new URL(getOriginUrl(req));
   const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
-  if (mreq.isCustomHost) {
+  if ((req as RequestWithOrg).isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
     return actualUrl.hostname === allowedUrl.hostname;
   } else {
@@ -349,6 +348,8 @@ export function getEndUserProtocol(req: IncomingMessage) {
   if (process.env.APP_HOME_URL) {
     return new URL(process.env.APP_HOME_URL).protocol.replace(':', '');
   }
+  // TODO we shouldn't blindly trust X-Forwarded-Proto. See the Express approach:
+  // https://expressjs.com/en/5x/api.html#trust.proxy.options.table
   return req.headers["x-forwarded-proto"] || ((req.socket as TLSSocket).encrypted ? 'https' : 'http');
 }
 
