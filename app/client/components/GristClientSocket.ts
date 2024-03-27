@@ -1,18 +1,19 @@
 import WS from 'ws';
-import {Socket as EIOSocket} from 'engine.io-client';
+import { Socket as EIOSocket } from 'engine.io-client';
 
 export interface GristClientSocketOptions {
   headers?: Record<string, string>;
 }
 
 export class GristClientSocket {
+  // Exactly one of _wsSocket and _eioSocket will be set at any one time.
   private _wsSocket: WS.WebSocket | WebSocket | undefined;
   private _eioSocket: EIOSocket | undefined;
 
-  // Set to true when the connection process is complete, either succesfully or
-  // after the WebSocket and polling transports have both failed.  Events from
-  // the underlying socket are not forwarded to the client until that point.
-  private _openDone: boolean = false;
+  // Set to true if a WebSocket connection (in _wsSocket) was succesfully
+  // established. Errors from the underlying WebSocket are not forwarded to
+  // the client until that point, in case we end up downgrading to Engine.IO.
+  private _wsConnected: boolean = false;
 
   private _messageHandler: null | ((data: string) => void);
   private _openHandler: null | (() => void);
@@ -65,7 +66,7 @@ export class GristClientSocket {
   }
 
   private _createWSSocket() {
-    if(typeof WebSocket !== 'undefined') {
+    if (typeof WebSocket !== 'undefined') {
       this._wsSocket = new WebSocket(this._url);
     } else {
       this._wsSocket = new WS(this._url, undefined, this._options);
@@ -87,30 +88,34 @@ export class GristClientSocket {
   }
 
   private _onWSMessage(event: WS.MessageEvent | MessageEvent<any>) {
-    if (this._openDone) {
-      // event.data is guaranteed to be a string here because we only send text frames.
-      // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/message_event#event_properties
-      this._messageHandler?.(event.data);
-    }
+    // event.data is guaranteed to be a string here because we only send text frames.
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/message_event#event_properties
+    this._messageHandler?.(event.data);
   }
 
   private _onWSOpen() {
     // The connection was established successfully. Any future events can now
     // be forwarded to the client.
-    this._openDone = true;
+    this._wsConnected = true;
     this._openHandler?.();
   }
 
   private _onWSError(ev: Event) {
-    // The first connection attempt failed. Trigger an attempt with another transport.
-    this._destroyWSSocket();
-    this._createEIOSocket();
+    if (!this._wsConnected) {
+      // The WebSocket connection attempt failed. Switch to Engine.IO.
+      this._destroyWSSocket();
+      this._createEIOSocket();
+      return;
+    }
+
+    // WebSocket error events are deliberately void of information,
+    // see https://websockets.spec.whatwg.org/#eventdef-websocket-error,
+    // so we ignore the incoming event.
+    this._errorHandler?.(new Error("WebSocket error"));
   }
 
   private _onWSClose() {
-    if (this._openDone) {
-      this._closeHandler?.();
-    }
+    this._closeHandler?.();
   }
 
   private _createEIOSocket() {
@@ -137,11 +142,8 @@ export class GristClientSocket {
     this._openHandler?.();
   }
 
-  private _onEIOError(ev: any) {
-    // We will make no further attempt to connect. Any future events can now
-    // be forwarded to the client.
-    this._openDone = true;
-    this._errorHandler?.(ev);
+  private _onEIOError(err: string | Error) {
+    this._errorHandler?.(typeof err === "string" ? new Error(err) : err);
   }
 
   private _onEIOClose() {

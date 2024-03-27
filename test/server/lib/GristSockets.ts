@@ -8,151 +8,163 @@ import httpProxy from 'http-proxy';
 
 describe(`GristSockets`, function () {
 
-  beforeEach(async function () {
-    await startSocketServer();
-  });
+  for (const webSocketsSupported of [true, false]) {
+    describe(`when the networks ${webSocketsSupported ? "supports" : "does not support"} WebSockets`, function () {
 
-  afterEach(async function () {
-    await stopSocketServer();
-  });
+      let server: http.Server | null;
+      let serverPort: number;
+      let socketServer: GristSocketServer | null;
+      let proxy: httpProxy | null;
+      let proxyServer: http.Server | null;
+      let proxyPort: number;
+      let wsAddress: string;
 
-  let server: http.Server | null;
-  let serverPort: number;
-  let wsAddress: string;
-  let socketServer: GristSocketServer | null;
+      beforeEach(async function () {
+        await startSocketServer();
+        await startProxyServer();
+      });
 
-  async function startSocketServer() {
-    server = http.createServer((req, res) => res.writeHead(404).end());
-    socketServer = new GristSocketServer(server);
-    await listenPromise(server.listen(0, 'localhost'));
-    serverPort = (server.address() as AddressInfo).port;
-    wsAddress = 'ws://localhost:' + serverPort;
-  }
+      afterEach(async function () {
+        await stopProxyServer();
+        await stopSocketServer();
+      });
 
-  async function stopSocketServer() {
-    //await delay(90_000);
-    await fromCallback(cb => socketServer?.close(cb));
-    await fromCallback(cb => { server?.close(); server?.closeAllConnections(); server?.on("close", cb); });
-    socketServer = server = null;
-  }
+      async function startSocketServer() {
+        server = http.createServer((req, res) => res.writeHead(404).end());
+        socketServer = new GristSocketServer(server);
+        await listenPromise(server.listen(0, 'localhost'));
+        serverPort = (server.address() as AddressInfo).port;
+      }
 
-  function getMessages(ws: GristClientSocket, count: number): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      const messages: string[] = [];
-      ws.onerror = (err) => {
-        ws.onerror = ws.onmessage = null;
-        reject(err);
-      };
-      ws.onmessage = (data: string) => {
-        messages.push(data);
-        if (messages.length >= count) {
-          ws.onerror = ws.onmessage = null;
-          resolve(messages);
+      async function stopSocketServer() {
+        await fromCallback(cb => socketServer?.close(cb));
+        await fromCallback(cb => { server?.close(); server?.closeAllConnections(); server?.on("close", cb); });
+        socketServer = server = null;
+      }
+
+      // Start an HTTP proxy that supports WebSockets or not
+      async function startProxyServer() {
+        proxy = httpProxy.createProxy({
+          target: `http://localhost:${serverPort}`,
+          ws: webSocketsSupported,
+          timeout: 1000,
+        });
+        proxy.on('error', () => { });
+        proxyServer = http.createServer();
+
+        if (webSocketsSupported) {
+          // prevent non-WebSocket requests
+          proxyServer.on('request', (req, res) => res.writeHead(404).end());
+          // proxy WebSocket requests
+          proxyServer.on('upgrade', (req, socket, head) => proxy!.ws(req, socket, head));
+        } else {
+          // proxy non-WebSocket requests
+          proxyServer.on('request', (req, res) => proxy!.web(req, res));
+          // don't leave WebSocket connection attempts hanging
+          proxyServer.on('upgrade', (req, socket, head) => socket.destroy());
         }
-      };
-    });
-  }
 
-  /**
-   * Returns a promise for the connected websocket.
-   */
-  function connectClient(url: string): Promise<GristClientSocket> {
-    const ws = new GristClientSocket(url);
-    return new Promise<GristClientSocket>((resolve, reject) => {
-      ws.onopen = () => {
-        ws.onerror = null;
-        resolve(ws);
-      };
-      ws.onerror = (err) => {
-        ws.onopen = null;
-        reject(err);
-      };
-    });
-  }
+        await listenPromise(proxyServer.listen(0, 'localhost'));
+        proxyPort = (proxyServer.address() as AddressInfo).port;
+        wsAddress = `ws://localhost:${proxyPort}`;
+      }
 
-  it("should expose initial request", async function () {
-    const connectionPromise = new Promise<http.IncomingMessage>((resolve) => {
-      socketServer!.onconnection = (socket, req) => {
-        resolve(req);
-      };
-    });
-    new GristClientSocket(wsAddress + "/path?query=value", {
-      headers: { "cookie": "session=1234" }
-    });
-    const req = await connectionPromise;
+      async function stopProxyServer() {
+        if (proxy) {
+          proxy.close();
+          proxy = null;
+        }
+        if (proxyServer) {
+          const server = proxyServer;
+          await fromCallback(cb => { server.close(cb); server.closeAllConnections(); });
+        }
+        proxyServer = null;
+      }
 
-    // Engine.IO may append extra query parameters, so we check only the start of the URL
-    assert.match(req.url!, /^\/path\?query=value/);
+      function getMessages(ws: GristClientSocket, count: number): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+          const messages: string[] = [];
+          ws.onerror = (err) => {
+            ws.onerror = ws.onmessage = null;
+            reject(err);
+          };
+          ws.onmessage = (data: string) => {
+            messages.push(data);
+            if (messages.length >= count) {
+              ws.onerror = ws.onmessage = null;
+              resolve(messages);
+            }
+          };
+        });
+      }
 
-    assert.equal(req.headers.cookie, "session=1234");
-  });
+      /**
+       * Returns a promise for the connected websocket.
+       */
+      function connectClient(url: string): Promise<GristClientSocket> {
+        const socket = new GristClientSocket(url);
+        return new Promise<GristClientSocket>((resolve, reject) => {
+          socket.onopen = () => {
+            socket.onerror = null;
+            resolve(socket);
+          };
+          socket.onerror = (err) => {
+            socket.onopen = null;
+            reject(err);
+          };
+        });
+      }
 
-  it("should receive and send messages", async function () {
-    socketServer!.onconnection = (socket, req) => {
-      socket.onmessage = (data) => {
-        socket.send("hello, " + data);
-        socket.close();
-      };
-    };
-    const clientWs = await connectClient(wsAddress);
-    clientWs.send("world");
-    assert.deepEqual(await getMessages(clientWs, 1), ["hello, world"]);
-  });
+      it("should expose initial request", async function () {
+        const connectionPromise = new Promise<http.IncomingMessage>((resolve) => {
+          socketServer!.onconnection = (socket, req) => {
+            resolve(req);
+          };
+        });
+        const clientWs = new GristClientSocket(wsAddress + "/path?query=value", {
+          headers: { "cookie": "session=1234" }
+        });
+        const req = await connectionPromise;
+        clientWs.close();
 
-  it("should invoke send callbacks", async function () {
-    const connectionPromise = new Promise<void>((resolve) => {
-      socketServer!.onconnection = (socket, req) => {
-        socket.send("hello", () => resolve());
-      };
-    });
-    await connectClient(wsAddress);
-    await connectionPromise;
-  });
+        // Engine.IO may append extra query parameters, so we check only the start of the URL
+        assert.match(req.url!, /^\/path\?query=value/);
 
-  let proxy: httpProxy | null;
-  let proxyServer: http.Server | null;
-  let proxyPort: number;
+        assert.equal(req.headers.cookie, "session=1234");
+      });
 
-  // Start an HTTP proxy that does not support WebSockets
-  async function startProxyServer() {
-    proxy = httpProxy.createProxy({
-      target: `http://localhost:${serverPort}`,
-      ws: false,
-      timeout: 1000,
-    });
-    proxy.on('error', () => { });
-    proxyServer = http.createServer(proxy.web.bind(proxy));
-    proxyServer.on('upgrade', (req, socket) => socket.destroy());
-
-    await listenPromise(proxyServer.listen(0, 'localhost'));
-    proxyPort = (proxyServer.address() as AddressInfo).port;
-  }
-
-  async function stopProxyServer() {
-    proxy?.close();
-    await fromCallback(cb => { proxyServer?.close(cb); proxyServer?.closeAllConnections(); });
-    proxyServer = proxy = null;
-  }
-
-  beforeEach(async function () {
-    await startProxyServer();
-  });
-
-  afterEach(async function () {
-    await stopProxyServer();
-  });
-
-  describe("GristClientSocket", function () {
-    it("can fall back to polling", async function () {
-      socketServer!.onconnection = (socket, req) => {
-        socket.onmessage = (data) => {
-          socket.send("hello, " + data);
+      it("should receive and send messages", async function () {
+        socketServer!.onconnection = (socket, req) => {
+          socket.onmessage = (data) => {
+            socket.send("hello, " + data);
+          };
         };
-      };
-      const clientWs = await connectClient(`ws://localhost:${proxyPort}`);
-      clientWs.send("world");
-      assert.deepEqual(await getMessages(clientWs, 1), ["hello, world"]);
-      clientWs.close();
+        const clientWs = await connectClient(wsAddress);
+        clientWs.send("world");
+        assert.deepEqual(await getMessages(clientWs, 1), ["hello, world"]);
+        clientWs.close();
+      });
+
+      it("should invoke send callbacks", async function () {
+        const connectionPromise = new Promise<void>((resolve) => {
+          socketServer!.onconnection = (socket, req) => {
+            socket.send("hello", () => resolve());
+          };
+        });
+        const clientWs = await connectClient(wsAddress);
+        await connectionPromise;
+        clientWs.close();
+      });
+
+      it("should emit close event for client", async function () {
+        const clientWs = await connectClient(wsAddress);
+        const closePromise = new Promise<void>(resolve => {
+          clientWs.onclose = resolve;
+        });
+        clientWs.close();
+        await closePromise;
+      });
+
     });
-  });
+  }
 });
