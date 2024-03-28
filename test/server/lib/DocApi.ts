@@ -3347,13 +3347,21 @@ function testDocApi() {
   });
 
   describe('webhooks related endpoints', async function () {
-      /*
-        Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
-      */
-      async function oldSubscribeCheck(requestBody: any, status: number, ...errors: RegExp[]) {
-        const resp = await axios.post(
-          `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
-          requestBody, chimpy
+    const serving: Serving = await serveSomething(app => {
+      app.use(express.json());
+      app.post('/200', ({body}, res) => {
+        res.sendStatus(200);
+        res.end();
+      });
+    }, webhooksTestPort);
+
+    /*
+      Regression test for old _subscribe endpoint. /docs/{did}/webhooks should be used instead to subscribe
+    */
+    async function oldSubscribeCheck(requestBody: any, status: number, ...errors: RegExp[]) {
+      const resp = await axios.post(
+        `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
+        requestBody, chimpy
         );
         assert.equal(resp.status, status);
         for (const error of errors) {
@@ -3430,7 +3438,15 @@ function testDocApi() {
       await postWebhookCheck({webhooks:[{fields: {eventTypes: ["add"], url: "https://example.com"}}]},
         400, /tableId is missing/);
       await postWebhookCheck({}, 400, /webhooks is missing/);
-
+      await postWebhookCheck({
+        webhooks: [{
+          fields: {
+            tableId: "Table1", eventTypes: ["update"], watchedColIds: ["notExisting"],
+            url: `${serving.url}/200`
+          }
+        }]
+      },
+        403, /Column not found notExisting/);
 
     });
 
@@ -3855,6 +3871,7 @@ function testDocApi() {
         tableId?: string,
         isReadyColumn?: string | null,
         eventTypes?: string[]
+        watchedColIds?: string[],
       }) {
       // Subscribe helper that returns a method to unsubscribe.
       const data = await subscribe(endpoint, docId, options);
@@ -3872,6 +3889,7 @@ function testDocApi() {
       tableId?: string,
       isReadyColumn?: string|null,
       eventTypes?: string[],
+      watchedColIds?: string[],
       name?: string,
       memo?: string,
       enabled?: boolean,
@@ -3883,7 +3901,7 @@ function testDocApi() {
           eventTypes: options?.eventTypes ?? ['add', 'update'],
           url: `${serving.url}/${endpoint}`,
           isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
-          ...pick(options, 'name', 'memo', 'enabled'),
+          ...pick(options, 'name', 'memo', 'enabled', 'watchedColIds'),
         }, chimpy
       );
       assert.equal(status, 200);
@@ -4407,6 +4425,72 @@ function testDocApi() {
         await webhook1();
       });
 
+      it("should call to a webhook only when columns updated are in watchedColIds if not empty", async () => {  // eslint-disable-line max-len
+        // Create a test document.
+        const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+        const docId = await userApi.newDoc({ name: 'testdoc5' }, ws1);
+        const doc = userApi.getDocAPI(docId);
+        await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+          ['ModifyColumn', 'Table1', 'B', { type: 'Bool' }],
+        ], chimpy);
+
+        const modifyColumn = async (newValues: { [key: string]: any; } ) => {
+          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+            ['UpdateRecord', 'Table1', newRowIds[0], newValues],
+          ], chimpy);
+          await delay(100);
+        };
+        const assertSuccessNotCalled = async () => {
+          assert.isFalse(successCalled.called());
+          successCalled.reset();
+        };
+        const assertSuccessCalled = async () => {
+          assert.isTrue(successCalled.called());
+          await successCalled.waitAndReset();
+        };
+
+        // Webhook with only one watchedColId.
+        const webhook1 = await autoSubscribe('200', docId, {
+          watchedColIds: ['A'], eventTypes: ['add', 'update']
+        });
+        successCalled.reset();
+        // Create record, that will call the webhook.
+        const newRowIds = await doc.addRows("Table1", {
+          A: [2],
+          B: [true],
+          C: ['c1']
+        });
+        await delay(100);
+        assert.isTrue(successCalled.called());
+        await successCalled.waitAndReset();
+        await modifyColumn({ C: 'c2' });
+        await assertSuccessNotCalled();
+        await modifyColumn({ A: 19 });
+        await assertSuccessCalled();
+        await webhook1(); // Unsubscribe.
+
+        // Webhook with multiple watchedColIds
+        const webhook2 = await autoSubscribe('200', docId, {
+          watchedColIds: ['A', 'B'], eventTypes: ['update']
+        });
+        successCalled.reset();
+        await modifyColumn({ C: 'c3' });
+        await assertSuccessNotCalled();
+        await modifyColumn({ A: 20 });
+        await assertSuccessCalled();
+        await webhook2();
+
+        // Check that empty string in watchedColIds are ignored
+        const webhook3 = await autoSubscribe('200', docId, {
+          watchedColIds: ['A', ""], eventTypes: ['update']
+        });
+        await modifyColumn({ C: 'c4' });
+        await assertSuccessNotCalled();
+        await modifyColumn({ A: 21 });
+        await assertSuccessCalled();
+        await webhook3();
+      });
+
       it("should return statistics", async () => {
         await clearQueue(docId);
         // Read stats, it should be empty.
@@ -4427,6 +4511,7 @@ function testDocApi() {
               tableId: 'Table1',
               name: '',
               memo: '',
+              watchedColIds: [],
             }, usage : {
               status: 'idle',
               numWaiting: 0,
@@ -4444,6 +4529,7 @@ function testDocApi() {
               tableId: 'Table1',
               name: '',
               memo: '',
+              watchedColIds: [],
             }, usage : {
               status: 'idle',
               numWaiting: 0,
@@ -4775,42 +4861,53 @@ function testDocApi() {
       describe('webhook update', function () {
 
         it('should work correctly', async function () {
-
-
           async function check(fields: any, status: number, error?: RegExp | string,
                                expectedFieldsCallback?: (fields: any) => any) {
 
-            let savedTableId = 'Table1';
             const origFields = {
               tableId: 'Table1',
               eventTypes: ['add'],
               isReadyColumn: 'B',
               name: 'My Webhook',
               memo: 'Sync store',
+              watchedColIds: ['A']
             };
 
             // subscribe
-            const webhook = await subscribe('foo', docId, origFields);
+            const {data} = await axios.post(
+              `${serverUrl}/api/docs/${docId}/webhooks`,
+              {
+                webhooks: [{
+                  fields: {
+                    ...origFields,
+                    url: `${serving.url}/foo`
+                  }
+                }]
+              }, chimpy
+            );
+            const webhooks = data;
 
             const expectedFields = {
               url: `${serving.url}/foo`,
-              unsubscribeKey: webhook.unsubscribeKey,
               eventTypes: ['add'],
               isReadyColumn: 'B',
               tableId: 'Table1',
               enabled: true,
               name: 'My Webhook',
               memo: 'Sync store',
+              watchedColIds: ['A'],
             };
 
             let stats = await readStats(docId);
             assert.equal(stats.length, 1, 'stats=' + JSON.stringify(stats));
-            assert.equal(stats[0].id, webhook.webhookId);
-            assert.deepEqual(stats[0].fields, expectedFields);
+            assert.equal(stats[0].id, webhooks.webhooks[0].id);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {unsubscribeKey, ...fieldsWithoutUnsubscribeKey} = stats[0].fields;
+            assert.deepEqual(fieldsWithoutUnsubscribeKey, expectedFields);
 
             // update
             const resp = await axios.patch(
-              `${serverUrl}/api/docs/${docId}/webhooks/${webhook.webhookId}`, fields, chimpy
+              `${serverUrl}/api/docs/${docId}/webhooks/${webhooks.webhooks[0].id}`, fields, chimpy
             );
 
             // check resp
@@ -4818,14 +4915,13 @@ function testDocApi() {
             if (resp.status === 200) {
               stats = await readStats(docId);
               assert.equal(stats.length, 1);
-              assert.equal(stats[0].id, webhook.webhookId);
+              assert.equal(stats[0].id, webhooks.webhooks[0].id);
               if (expectedFieldsCallback) {
                 expectedFieldsCallback(expectedFields);
               }
-              assert.deepEqual(stats[0].fields, {...expectedFields, ...fields});
-              if (fields.tableId) {
-                savedTableId = fields.tableId;
-              }
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const {unsubscribeKey, ...fieldsWithoutUnsubscribeKey} = stats[0].fields;
+              assert.deepEqual(fieldsWithoutUnsubscribeKey, { ...expectedFields, ...fields });
             } else {
               if (error instanceof RegExp) {
                 assert.match(resp.data.details?.userError || resp.data.error, error);
@@ -4835,7 +4931,9 @@ function testDocApi() {
             }
 
             // finally  unsubscribe
-            const unsubscribeResp = await unsubscribe(docId, webhook, savedTableId);
+            const unsubscribeResp = await axios.delete(
+              `${serverUrl}/api/docs/${docId}/webhooks/${webhooks.webhooks[0].id}`, chimpy
+            );
             assert.equal(unsubscribeResp.status, 200, JSON.stringify(pick(unsubscribeResp, ['data', 'status'])));
             stats = await readStats(docId);
             assert.equal(stats.length, 0, 'stats=' + JSON.stringify(stats));
@@ -4846,11 +4944,13 @@ function testDocApi() {
           await check({url: "http://example.com"}, 403, "Provided url is forbidden");  // not https
 
           // changing table without changing the ready column should reset the latter
-          await check({tableId: 'Table2'}, 200, '', expectedFields => expectedFields.isReadyColumn = null);
-
+          await check({tableId: 'Table2'}, 200, '', expectedFields => {
+            expectedFields.isReadyColumn = null;
+            expectedFields.watchedColIds = [];
+          });
 
           await check({tableId: 'Santa'}, 404, `Table not found "Santa"`);
-          await check({tableId: 'Table2', isReadyColumn: 'Foo'}, 200);
+          await check({tableId: 'Table2', isReadyColumn: 'Foo', watchedColIds: []}, 200);
 
           await check({eventTypes: ['add', 'update']}, 200);
           await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");

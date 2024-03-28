@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 41;
+export const SCHEMA_VERSION = 42;
 
 export const schema = {
 
@@ -167,6 +167,8 @@ export const schema = {
     label               : "Text",
     memo                : "Text",
     enabled             : "Bool",
+    watchedColRefList   : "RefList:_grist_Tables_column",
+    options             : "Text",
   },
 
   "_grist_ACLRules": {
@@ -388,6 +390,8 @@ export interface SchemaTypes {
     label: string;
     memo: string;
     enabled: boolean;
+    watchedColRefList: [GristObjCode.List, ...number[]]|null;
+    options: string;
   };
 
   "_grist_ACLRules": {
