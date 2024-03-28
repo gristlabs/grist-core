@@ -1,1 +1,1 @@
-export * from 'app/client/ui/CreateTeam';
+export * from 'app/client/ui/CreateTeamModal';
