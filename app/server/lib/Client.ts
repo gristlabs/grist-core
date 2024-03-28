@@ -22,7 +22,7 @@ import {fromCallback} from 'app/server/lib/serverUtils';
 import {i18n} from 'i18next';
 import * as crypto from 'crypto';
 import moment from 'moment';
-import * as WebSocket from 'ws';
+import {GristServerSocket} from 'app/server/lib/GristServerSocket';
 
 // How many messages and bytes to accumulate for a disconnected client before booting it.
 // The benefit is that a client who temporarily disconnects and reconnects without missing much,
@@ -97,8 +97,7 @@ export class Client {
   private _missedMessagesTotalLength: number = 0;
   private _destroyTimer: NodeJS.Timer|null = null;
   private _destroyed: boolean = false;
-  private _websocket: WebSocket|null;
-  private _websocketEventHandlers: Array<{event: string, handler: (...args: any[]) => void}> = [];
+  private _websocket: GristServerSocket|null;
   private _org: string|null = null;
   private _profile: UserProfile|null = null;
   private _user: FullUser|undefined = undefined;
@@ -131,18 +130,14 @@ export class Client {
     return this._locale;
   }
 
-  public setConnection(websocket: WebSocket, counter: string|null, browserSettings: BrowserSettings) {
+  public setConnection(websocket: GristServerSocket, counter: string|null, browserSettings: BrowserSettings) {
     this._websocket = websocket;
     this._counter = counter;
     this.browserSettings = browserSettings;
 
-    const addHandler = (event: string, handler: (...args: any[]) => void) => {
-      websocket.on(event, handler);
-      this._websocketEventHandlers.push({event, handler});
-    };
-    addHandler('error', (err: unknown) => this._onError(err));
-    addHandler('close', () => this._onClose());
-    addHandler('message', (msg: string) => this._onMessage(msg));
+    websocket.onerror = (err: Error) => this._onError(err);
+    websocket.onclose = () => this._onClose();
+    websocket.onmessage = (msg: string) => this._onMessage(msg);
   }
 
   /**
@@ -189,7 +184,7 @@ export class Client {
 
   public interruptConnection() {
     if (this._websocket) {
-      this._removeWebsocketListeners();
+      this._websocket.removeAllListeners();
       this._websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
       this._websocket = null;
     }
@@ -359,7 +354,7 @@ export class Client {
       // See also my report at https://stackoverflow.com/a/48411315/328565
       await delay(250);
 
-      if (!this._destroyed && this._websocket?.readyState === WebSocket.OPEN) {
+      if (!this._destroyed && this._websocket?.isOpen) {
         await this._sendToWebsocket(JSON.stringify({...clientConnectMsg, dup: true}));
       }
     } catch (err) {
@@ -604,7 +599,7 @@ export class Client {
   /**
    * Processes an error on the websocket.
    */
-  private _onError(err: unknown) {
+  private _onError(err: Error) {
     this._log.warn(null, "onError", err);
     // TODO Make sure that this is followed by onClose when the connection is lost.
   }
@@ -613,7 +608,7 @@ export class Client {
    * Processes the closing of a websocket.
    */
   private _onClose() {
-    this._removeWebsocketListeners();
+    this._websocket?.removeAllListeners();
 
     // Remove all references to the websocket.
     this._websocket = null;
@@ -627,17 +622,6 @@ export class Client {
       }
       this._log.info(null, "websocket closed; will discard client in %s sec", Deps.clientRemovalTimeoutMs / 1000);
       this._destroyTimer = setTimeout(() => this.destroy(), Deps.clientRemovalTimeoutMs);
-    }
-  }
-
-  private _removeWebsocketListeners() {
-    if (this._websocket) {
-      // Avoiding websocket.removeAllListeners() because WebSocket.Server registers listeners
-      // internally for websockets it keeps track of, and we should not accidentally remove those.
-      for (const {event, handler} of this._websocketEventHandlers) {
-        this._websocket.off(event, handler);
-      }
-      this._websocketEventHandlers = [];
     }
   }
 }
