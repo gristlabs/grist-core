@@ -309,9 +309,9 @@ export class FlexServer implements GristServer {
    * If relPath is given, returns that path relative to homeUrl. If omitted, note that
    * getHomeUrl() will still return a URL ending in "/".
    */
-  public getHomeUrl(req: express.Request, relPath: string = '', defaultHomeUrl = this.getDefaultHomeUrl()): string {
+  public getHomeUrl(req: express.Request, relPath: string = ''): string {
     // Get the default home url.
-    const homeUrl = new URL(relPath, defaultHomeUrl);
+    const homeUrl = new URL(relPath, this.getDefaultHomeUrl());
     adaptServerUrl(homeUrl, req as RequestWithOrg);
     return homeUrl.href;
   }
@@ -319,7 +319,7 @@ export class FlexServer implements GristServer {
   /**
    * Same as getHomeUrl, but for requesting internally.
    */
-  public getHomeInternalUrl(req: express.Request, relPath: string = ''): string {
+  public getHomeInternalUrl(relPath: string = ''): string {
     const homeUrl = new URL(relPath, this.getDefaultHomeInternalUrl());
     return homeUrl.href;
   }
@@ -1444,12 +1444,12 @@ export class FlexServer implements GristServer {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
 
-    const createDoom = async (req: express.Request) => {
+    const createDoom = async () => {
       const dbManager = this.getHomeDBManager();
       const permitStore = this.getPermitStore();
       const notifier = this.getNotifier();
       const loginSystem = await this.resolveLoginSystem();
-      const homeUrl = this.getHomeInternalUrl(req).replace(/\/$/, '');
+      const homeUrl = this.getHomeInternalUrl().replace(/\/$/, '');
       return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
     };
 
@@ -1473,7 +1473,7 @@ export class FlexServer implements GristServer {
 
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
-        const doom = await createDoom(req);
+        const doom = await createDoom();
         await doom.deleteUser(userId);
         this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedAccount');
         return resp.status(200).json(true);
@@ -1506,7 +1506,7 @@ export class FlexServer implements GristServer {
         }
 
         // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
-        const doom = await createDoom(req);
+        const doom = await createDoom();
         await doom.deleteOrg(org.id);
 
         this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedSite', {
@@ -2433,7 +2433,7 @@ export class FlexServer implements GristServer {
     const workspace = workspaces.find(w => w.name === 'Home');
     if (!workspace) { throw new Error('Home workspace not found'); }
 
-    const copyDocUrl = this.getHomeInternalUrl(req, '/api/docs');
+    const copyDocUrl = this.getHomeInternalUrl('/api/docs');
     const response = await fetch(copyDocUrl, {
       headers: {
         ...getTransitiveHeaders(req),

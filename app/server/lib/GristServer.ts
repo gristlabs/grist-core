@@ -35,7 +35,7 @@ export interface GristServer {
   settings?: Readonly<Record<string, unknown>>;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
-  getHomeInternalUrl(req: express.Request, relPath?: string): string;
+  getHomeInternalUrl(relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
   getOwnUrl(): string;
   getOrgUrl(orgKey: string|number): Promise<string>;
