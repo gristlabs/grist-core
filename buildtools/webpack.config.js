@@ -56,6 +56,7 @@ module.exports = {
     ],
     fallback: {
       'path': require.resolve("path-browserify"),
+      'process': require.resolve("process/browser"),
     },
   },
   module: {
@@ -79,7 +80,7 @@ module.exports = {
   plugins: [
     // Some modules assume presence of Buffer and process.
     new ProvidePlugin({
-      process: 'process/browser',
+      process: 'process',
       Buffer: ['buffer', 'Buffer']
     }),
     // To strip all locales except “en”

@@ -6,7 +6,7 @@
 import { IChecksumStore } from 'app/server/lib/IChecksumStore';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import { IPermitStores } from 'app/server/lib/Permit';
-import {RedisClient} from 'redis';
+import { RedisClient } from 'redis';
 
 export interface DocWorkerInfo {
   id: string;
@@ -56,6 +56,8 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   // Set whether worker is accepting new assignments.  This does not automatically
   // release existing assignments.
   setWorkerAvailability(workerId: string, available: boolean): Promise<void>;
+
+  isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean>;
 
   // Releases doc from worker, freeing it to be assigned elsewhere.
   // Assignments should only be released for workers that are now unavailable.
