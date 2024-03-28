@@ -14,7 +14,9 @@ import {
   Disposable, dom, DomArg, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
   Observable, styled
 } from 'grainjs';
+import { makeT } from '../lib/localization';
 
+const t = makeT('createTeamModal');
 const testId = makeTestId('test-create-team-');
 
 export function buildNewSiteModal(context: Disposable, options: {
@@ -72,7 +74,7 @@ class NewSiteModalContent extends Disposable {
 }
 
 export function buildUpgradeModal(owner: Disposable, planName: string): void {
-  throw new UserError(`There is no plan logical in this instance of Grist`);
+  throw new UserError(t(`There is no plan logical in this instance of Grist`));
 }
 
 export interface UpgradeButton  {
@@ -95,10 +97,10 @@ export function buildConfirm({
   return cssConfirmWrapper(
     cssSparks(),
     hspace('22px'),
-    cssHeaderLine('Team site created', testId("confirmation")),
+    cssHeaderLine(t('Team site created'), testId("confirmation")),
     hspace('40px'),
     bigPrimaryButtonLink(
-      urlState().setLinkUrl({org: domain || undefined}), 'Go to your site', testId("confirmation-link")
+      urlState().setLinkUrl({org: domain || undefined}), t('Go to your site'), testId("confirmation-link")
     )
   );
 }
@@ -129,12 +131,12 @@ function buildTeamPage({
     Enter: () => click(),
   });
   return cssWide(
-    cssHeaderLine("Work as a Team"),
-    cssSubHeaderLine("Choose a name and url for your team site"),
+    cssHeaderLine(t("Work as a Team")),
+    cssSubHeaderLine(t("Choose a name and url for your team site")),
     hspace('24px'),
     cssColumns(
       cssSetup(
-        cssLabel('Team name'),
+        cssLabel(t('Team name')),
         cssRow(cssField(cssInput(
           team,
           {onInput: true},
@@ -142,9 +144,9 @@ function buildTeamPage({
           group.inputReset(),
           clickOnEnter,
           testId('name')))),
-        dom.create(Validator, group, "Team name is required", () => !!team.get()),
+        dom.create(Validator, group, t("Team name is required"), () => !!team.get()),
         hspace('2em'),
-        cssLabel('Team url'),
+        cssLabel(t('Team url')),
         cssRow(
           {style: 'align-items: baseline'},
           cssField(
@@ -154,16 +156,16 @@ function buildTeamPage({
             domain, {onInput: true}, clickOnEnter, group.inputReset(), testId('domain')
           )),
         ),
-        dom.create(Validator, group, "Domain name is required", () => !!domain.get()),
-        dom.create(Validator, group, "Domain name is invalid", () => checkSubdomainValidity(domain.get())),
+        dom.create(Validator, group, t("Domain name is required"), () => !!domain.get()),
+        dom.create(Validator, group, t("Domain name is invalid"), () => checkSubdomainValidity(domain.get())),
         cssButtonsRow(
           bigBasicButton(
-            'Cancel',
+            t('Cancel'),
             // close modal
             // dom.on('click', () => {}),
             dom.on('click', () => close()),
             testId('cancel')),
-          bigPrimaryButton("Create site",
+          bigPrimaryButton(t("Create site"),
             dom.on('click', click),
             dom.prop('disabled', disabled),
             testId('confirm')

@@ -1421,5 +1421,19 @@
     "Section": {
         "Insert section above": "Insert section above",
         "Insert section below": "Insert section below"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Cancel",
+        "Choose a name and url for your team site": "Choose a name and url for your team site",
+        "Create site": "Create site",
+        "Domain name is invalid": "Domain name is invalid",
+        "Domain name is required": "Domain name is required",
+        "Go to your site": "Go to your site",
+        "Team name": "Team name",
+        "Team name is required": "Team name is required",
+        "Team site created": "Team site created",
+        "Team url": "Team url",
+        "There is no plan logical in this instance of Grist": "There is no plan logical in this instance of Grist",
+        "Work as a Team": "Work as a Team"
     }
 }
