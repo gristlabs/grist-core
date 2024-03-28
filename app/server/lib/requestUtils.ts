@@ -1,5 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
-import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
+import {
+  DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, isOwnInternalUrlHost, parseSubdomain, sanitizePathTail
+} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -88,12 +90,7 @@ export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   const origin = req.headers.origin;
   if (!origin) { return true; } // Not a CORS request.
 
-  if (
-    (process.env.APP_HOME_INTERNAL_URL && req.hostname === new URL(process.env.APP_HOME_INTERNAL_URL).hostname) ||
-    (process.env.APP_DOC_INTERNAL_URL && req.hostname === new URL(process.env.APP_DOC_INTERNAL_URL).hostname)
-  ) {
-    return true;
-  }
+  if (isOwnInternalUrlHost(req.get('Host'))) { return true; }
 
   if (!allowHost(req, new URL(origin))) { return false; }
 

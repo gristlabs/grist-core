@@ -185,18 +185,24 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
-function isInternalUrl(host: string, envValue?: string) {
-  if (!envValue) { return false; }
-  const internalUrl = new URL('/', envValue);
-  return internalUrl.host === host;
+export function hostMatchesUrl(host?: string, url?: string) {
+  return host !== undefined && url !== undefined && new URL(url).host === host;
 }
 
-function isDocInternalUrl(host: string) {
-  return isInternalUrl(host, process.env.APP_DOC_INTERNAL_URL);
-}
-
-function isHomeInternalUrl(host: string) {
-  return isInternalUrl(host, process.env.APP_HOME_INTERNAL_URL);
+/**
+ * Returns true if:
+ *  - the server is a home worker and the host matches APP_HOME_INTERNAL_URL;
+ *  - or the server is a doc worker and the host matches APP_DOC_INTERNAL_URL;
+ *
+ * @param {string?} host The host to check
+ */
+export function isOwnInternalUrlHost(host?: string) {
+  if (process.env.APP_HOME_INTERNAL_URL) {
+    return hostMatchesUrl(host, process.env.APP_HOME_INTERNAL_URL);
+  } else if (process.env.APP_DOC_INTERNAL_URL) {
+    return hostMatchesUrl(host, process.env.APP_DOC_INTERNAL_URL);
+  }
+  return false;
 }
 
 /**
@@ -218,9 +224,8 @@ export function getHostType(host: string, options: {
   if (!options.baseDomain) { return 'native'; }
   if (
     hostname === 'localhost' ||
-    isDocInternalUrl(host) ||
-    hostname.endsWith(options.baseDomain) ||
-    isHomeInternalUrl(host)
+    isOwnInternalUrlHost(host) ||
+    hostname.endsWith(options.baseDomain)
   ) {
     return 'native';
   }
