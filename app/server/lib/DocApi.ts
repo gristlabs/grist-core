@@ -98,7 +98,7 @@ import { Document } from "app/gen-server/entity/Document";
 // Cap on the number of requests that can be outstanding on a single document via the
 // rest doc api.  When this limit is exceeded, incoming requests receive an immediate
 // reply with status 429.
-const MAX_PARALLEL_REQUESTS_PER_DOC = 10;
+const MAX_PARALLEL_REQUESTS_PER_DOC = process.env.MAX_PARALLEL_REQUESTS_PER_DOC || 10;
 
 // This is NOT the number of docs that can be handled at a time.
 // It's a very generous upper bound of what that number might be.
