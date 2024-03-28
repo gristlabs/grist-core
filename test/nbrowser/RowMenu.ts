@@ -72,11 +72,22 @@ describe('RowMenu', function() {
     assert.isFalse(await driver.find('.grist-floating-menu').isPresent());
   });
 
+  it('can rename headers from the selected line', async function() {
+    assert.notEqual(await gu.getColumnHeader({col: 0}).getText(), await gu.getCell(0, 1).getText());
+    assert.notEqual(await gu.getColumnHeader({col: 1}).getText(), await gu.getCell(1, 1).getText());
+    await (await gu.openRowMenu(1)).findContent('li', /Use as table headers/).click();
+    await gu.waitForServer();
+    assert.equal(await gu.getColumnHeader({col: 0}).getText(), await gu.getCell(0, 1).getText());
+    assert.equal(await gu.getColumnHeader({col: 1}).getText(), await gu.getCell(1, 1).getText());
+  });
+
   it('should work even when no columns are visible', async function() {
     // Previously, a bug would cause an error to be thrown instead.
-    await gu.openColumnMenu('A', 'Hide column');
-    await gu.openColumnMenu('B', 'Hide column');
+    await gu.openColumnMenu({col: 0}, 'Hide column');
+    // After hiding the first column, the second one will be the new first column.
+    await gu.openColumnMenu({col: 0}, 'Hide column');
     await assertRowMenuOpensAndCloses();
     await assertRowMenuOpensWithRightClick();
   });
+
 });

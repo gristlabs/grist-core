@@ -1,4 +1,4 @@
-import {FormLayoutNode} from 'app/client/components/FormRenderer';
+import {FormLayoutNode, patchLayoutSpec} from 'app/client/components/FormRenderer';
 import {TypedFormData, typedFormDataToJson} from 'app/client/lib/formUtils';
 import {makeT} from 'app/client/lib/localization';
 import {getHomeUrl} from 'app/client/models/AppModel';
@@ -25,7 +25,13 @@ export class FormModelImpl extends Disposable implements FormModel {
   public readonly formLayout = Computed.create(this, this.form, (_use, form) => {
     if (!form) { return null; }
 
-    return safeJsonParse(form.formLayoutSpec, null) as FormLayoutNode;
+    const layout = safeJsonParse(form.formLayoutSpec, null) as FormLayoutNode | null;
+    if (!layout) { throw new Error('invalid formLayoutSpec'); }
+
+    const patchedLayout = patchLayoutSpec(layout, new Set(Object.keys(form.formFieldsById).map(Number)));
+    if (!patchedLayout) { throw new Error('invalid formLayoutSpec'); }
+
+    return patchedLayout;
   });
   public readonly submitting = Observable.create<boolean>(this, false);
   public readonly submitted = Observable.create<boolean>(this, false);

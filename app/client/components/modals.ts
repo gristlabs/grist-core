@@ -321,10 +321,12 @@ const cssArrowContainer = styled('div', `
 
   ${sideSelectorChunk('top')} > & {
     bottom: -17px;
+    margin: 0px 16px;
   }
 
   ${sideSelectorChunk('bottom')} > & {
     top: -14px;
+    margin: 0px 16px;
   }
 
   ${sideSelectorChunk('right')} > & {

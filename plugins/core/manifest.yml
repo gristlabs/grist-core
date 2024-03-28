@@ -5,7 +5,7 @@ components:
   safePython: sandbox/main.py
 contributions:
   fileParsers:
-    - fileExtensions: ["csv", "tsv", "txt"]
+    - fileExtensions: ["csv", "tsv", "dsv", "txt"]
       parseFile:
         component: safePython
         name: csv_parser

@@ -16,7 +16,7 @@
 import * as commands from 'app/client/components/commands';
 import {FieldModel} from 'app/client/components/Forms/Field';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {UnmappedFieldsConfig} from 'app/client/components/Forms/UnmappedFieldsConfig';
+import {MappedFieldsConfig} from 'app/client/components/Forms/MappedFieldsConfig';
 import {GristDoc, IExtraTool, TabContent} from 'app/client/components/GristDoc';
 import {EmptyFilterState} from "app/client/components/LinkingState";
 import {RefSelect} from 'app/client/components/RefSelect';
@@ -559,7 +559,7 @@ export class RightPanel extends Disposable {
 
       dom.maybe(this._isForm, () => [
         cssSeparator(),
-        dom.create(UnmappedFieldsConfig, activeSection),
+        dom.create(MappedFieldsConfig, activeSection),
       ]),
     ]);
   }
@@ -996,19 +996,11 @@ export class RightPanel extends Disposable {
       const fieldBox = box as FieldModel;
       return use(fieldBox.field);
     });
-    const selectedColumn = Computed.create(owner, (use) => use(selectedField) && use(use(selectedField)!.origCol));
-
-    const hasText = Computed.create(owner, (use) => {
+    const selectedBoxWithOptions = Computed.create(owner, (use) => {
       const box = use(selectedBox);
-      if (!box) { return false; }
-      switch (box.type) {
-        case 'Submit':
-        case 'Paragraph':
-        case 'Label':
-          return true;
-        default:
-          return false;
-      }
+      if (!box || !['Paragraph', 'Label'].includes(box.type)) { return null; }
+
+      return box;
     });
 
     return domAsync(imports.loadViewPane().then(() => buildConfigContainer(cssSection(
@@ -1036,24 +1028,12 @@ export class RightPanel extends Disposable {
               testId('field-label'),
             ),
           ),
-          // TODO: this is for V1 as it requires full cell editor here.
-          // cssLabel(t("Default field value")),
-          // cssRow(
-          //   cssTextInput(
-          //     fromKo(defaultField),
-          //     (val) => defaultField.setAndSave(val),
-          //   ),
-          // ),
           dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
             cssSeparator(),
             cssLabel(t("COLUMN TYPE")),
             cssSection(
               builder.buildSelectTypeDom(),
             ),
-            // V2 thing
-            // cssSection(
-            //   builder.buildSelectWidgetDom(),
-            // ),
             cssSection(
               builder.buildFormConfigDom(),
             ),
@@ -1062,34 +1042,42 @@ export class RightPanel extends Disposable {
       }),
 
       // Box config
-      dom.maybe(use => use(selectedColumn) ? null : use(selectedBox), (box) => [
+      dom.maybe(selectedBoxWithOptions, (box) => [
         cssLabel(dom.text(box.type)),
-        dom.maybe(hasText, () => [
-          cssRow(
-            cssTextArea(
-              box.prop('text'),
-              {onInput: true, autoGrow: true},
-              dom.on('blur', () => box.save().catch(reportError)),
-              {placeholder: t('Enter text')},
-            ),
+        cssRow(
+          cssTextArea(
+            box.prop('text'),
+            {onInput: true, autoGrow: true},
+            dom.on('blur', () => box.save().catch(reportError)),
+            {placeholder: t('Enter text')},
           ),
-          cssRow(
-            buttonSelect(box.prop('alignment'), [
-              {value: 'left',   icon: 'LeftAlign'},
-              {value: 'center', icon: 'CenterAlign'},
-              {value: 'right',  icon: 'RightAlign'}
-            ]),
-            dom.autoDispose(box.prop('alignment').addListener(() => box.save().catch(reportError))),
-          )
-        ]),
+        ),
+        cssRow(
+          buttonSelect(box.prop('alignment'), [
+            {value: 'left',   icon: 'LeftAlign'},
+            {value: 'center', icon: 'CenterAlign'},
+            {value: 'right',  icon: 'RightAlign'}
+          ]),
+          dom.autoDispose(box.prop('alignment').addListener(() => box.save().catch(reportError))),
+        )
       ]),
 
       // Default.
-      dom.maybe(u => !u(selectedColumn) && !u(selectedBox), () => [
-        cssLabel(t('Layout')),
+      dom.maybe(u => !u(selectedField) && !u(selectedBoxWithOptions), () => [
+        buildFormConfigPlaceholder(),
       ])
     ))));
   }
+}
+
+function buildFormConfigPlaceholder() {
+  return cssFormConfigPlaceholder(
+    cssFormConfigImg(),
+    cssFormConfigMessage(
+      cssFormConfigMessageTitle(t('No field selected')),
+      dom('div', t('Select a field in the form widget to configure.')),
+    )
+  );
 }
 
 function disabledSection() {
@@ -1428,4 +1416,34 @@ const cssLinkInfoPre = styled("pre", `
   padding: 6px;
   font-size: ${vars.smallFontSize};
   line-height: 1.2;
+`);
+
+const cssFormConfigPlaceholder = styled('div', `
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  margin-top: 32px;
+  padding: 8px;
+`);
+
+const cssFormConfigImg = styled('div', `
+  height: 140px;
+  width: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: var(--icon-FormConfig);
+`);
+
+const cssFormConfigMessage = styled('div', `
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+  color: ${theme.text};
+  text-align: center;
+`);
+
+const cssFormConfigMessageTitle = styled('div', `
+  font-size: ${vars.largeFontSize};
+  font-weight: 600;
 `);

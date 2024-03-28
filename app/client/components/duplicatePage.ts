@@ -129,6 +129,7 @@ async function updateViewSections(gristDoc: GristDoc, destViewSections: ViewSect
       ...record,
       layoutSpec: JSON.stringify(viewSectionLayoutSpec),
       linkSrcSectionRef: viewSectionMap[srcViewSection.linkSrcSectionRef.peek()],
+      shareOptions: '',
     });
   }
 
@@ -201,7 +202,7 @@ function newViewSectionAction(widget: IPageWidget, viewId: number) {
  */
 export function patchLayoutSpec(layoutSpec: any, mapIds: {[id: number]: number}) {
   return cloneDeepWith(layoutSpec, (val) => {
-    if (typeof val === 'object') {
+    if (typeof val === 'object' && val !== null) {
       if (mapIds[val.leaf]) {
         return {...val, leaf: mapIds[val.leaf]};
       }

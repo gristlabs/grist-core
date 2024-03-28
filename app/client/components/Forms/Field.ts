@@ -1,4 +1,4 @@
-import {CHOOSE_TEXT, FormLayoutNode} from 'app/client/components/FormRenderer';
+import {FormLayoutNode, SELECT_PLACEHOLDER} from 'app/client/components/FormRenderer';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FormView} from 'app/client/components/Forms/FormView';
 import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
@@ -8,6 +8,7 @@ import {refRecord} from 'app/client/models/DocModel';
 import {autoGrow} from 'app/client/ui/forms';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {colors} from 'app/client/ui2018/cssVars';
+import {isBlankValue} from 'app/common/gristTypes';
 import {Constructor, not} from 'app/common/gutil';
 import {
   BindableValue,
@@ -100,18 +101,6 @@ export class FieldModel extends BoxModel {
         }
       })
     );
-  }
-
-  public async afterDrop() {
-    // Base class does good job of handling drop.
-    await super.afterDrop();
-    if (this.isDisposed()) { return; }
-
-    // Except when a field is dragged from the creator panel, which stores colId instead of fieldRef (as there is no
-    // field yet). In this case, we need to create a field.
-    if (typeof this.leaf.get() === 'string') {
-      this.leaf.set(await this.view.showColumn(this.leaf.get()));
-    }
   }
 
   public override render(...args: IDomArgs<HTMLElement>): HTMLElement {
@@ -287,20 +276,14 @@ class TextModel extends Question {
 class ChoiceModel extends Question {
   protected choices: Computed<string[]> = Computed.create(this, use => {
     // Read choices from field.
-    const list = use(use(use(this.model.field).origCol).widgetOptionsJson.prop('choices')) || [];
+    const choices = use(use(this.model.field).widgetOptionsJson.prop('choices'));
 
-    // Make sure it is array of strings.
-    if (!Array.isArray(list) || list.some((v) => typeof v !== 'string')) {
+    // Make sure it is an array of strings.
+    if (!Array.isArray(choices) || choices.some((choice) => typeof choice !== 'string')) {
       return [];
+    } else {
+      return choices;
     }
-    return list;
-  });
-
-  protected choicesWithEmpty = Computed.create(this, use => {
-    const list: Array<string|null> = Array.from(use(this.choices));
-    // Add empty choice if not present.
-    list.unshift(null);
-    return list;
   });
 
   public renderInput(): HTMLElement {
@@ -309,21 +292,27 @@ class ChoiceModel extends Question {
       {tabIndex: "-1"},
       ignoreClick,
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(this.choicesWithEmpty, (choice) => dom('option', choice ?? CHOOSE_TEXT, {value: choice ?? ''})),
+      dom('option', SELECT_PLACEHOLDER, {value: ''}),
+      dom.forEach(this.choices, (choice) => dom('option', choice, {value: choice})),
     );
   }
 }
 
 class ChoiceListModel extends ChoiceModel {
+  private _choices = Computed.create(this, use => {
+    // Support for 30 choices. TODO: make limit dynamic.
+    return use(this.choices).slice(0, 30);
+  });
+
   public renderInput() {
     const field = this.model.field;
     return dom('div',
       dom.prop('name', use => use(use(field).colId)),
-      dom.forEach(this.choices, (choice) => css.cssCheckboxLabel(
+      dom.forEach(this._choices, (choice) => css.cssCheckboxLabel(
         squareCheckbox(observable(false)),
         choice
       )),
-      dom.maybe(use => use(this.choices).length === 0, () => [
+      dom.maybe(use => use(this._choices).length === 0, () => [
         dom('div', 'No choices defined'),
       ]),
     );
@@ -382,22 +371,22 @@ class DateTimeModel extends Question {
 }
 
 class RefListModel extends Question {
-  protected choices = this._subscribeForChoices();
+  protected options = this._getOptions();
 
   public renderInput() {
     return dom('div',
       dom.prop('name', this.model.colId),
-      dom.forEach(this.choices, (choice) => css.cssCheckboxLabel(
+      dom.forEach(this.options, (option) => css.cssCheckboxLabel(
         squareCheckbox(observable(false)),
-        String(choice[1] ?? '')
+        option.label,
       )),
-      dom.maybe(use => use(this.choices).length === 0, () => [
-        dom('div', 'No choices defined'),
+      dom.maybe(use => use(this.options).length === 0, () => [
+        dom('div', 'No values in show column of referenced table'),
       ]),
     ) as HTMLElement;
   }
 
-  private _subscribeForChoices() {
+  private _getOptions() {
     const tableId = Computed.create(this, use => {
       const refTable = use(use(this.model.column).refTable);
       return refTable ? use(refTable.tableId) : '';
@@ -411,27 +400,23 @@ class RefListModel extends Question {
     const observer = this.model.view.gristDoc.columnObserver(this, tableId, colId);
 
     return Computed.create(this, use => {
-      const unsorted = use(observer);
-      unsorted.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-      return unsorted.slice(0, 50); // TODO: pagination or a waning
+      return use(observer)
+        .filter(([_id, value]) => !isBlankValue(value))
+        .map(([id, value]) => ({label: String(value), value: String(id)}))
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .slice(0, 30); // TODO: make limit dynamic.
     });
   }
 }
 
 class RefModel extends RefListModel {
-  protected withEmpty = Computed.create(this, use => {
-    const list = Array.from(use(this.choices));
-    // Add empty choice if not present.
-    list.unshift(['', CHOOSE_TEXT]);
-    return list;
-  });
-
   public renderInput() {
     return css.cssSelect(
       {tabIndex: "-1"},
       ignoreClick,
       dom.prop('name', this.model.colId),
-      dom.forEach(this.withEmpty, (choice) => dom('option', String(choice[1] ?? ''), {value: String(choice[0])})),
+      dom('option', SELECT_PLACEHOLDER, {value: ''}),
+      dom.forEach(this.options, ({label, value}) => dom('option', label, {value})),
     );
   }
 }

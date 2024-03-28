@@ -20,8 +20,6 @@ import {addToRepl, assert, driver, enableDebugCapture, ITimeouts,
   Key, setOptionsModifyFunc, useServer} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';
-import * as path from 'path';
-import * as fs from 'fs/promises';
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.
@@ -316,40 +314,4 @@ export function setupRequirement(options: TestSuiteOptions) {
     }
   });
   return cleanup;
-}
-
-export async function withDriverLogging(
-  test: Mocha.Runnable|undefined, periodMs: number, timeoutMs: number,
-  callback: () => Promise<void>
-) {
-  const dir = process.env.MOCHA_WEBDRIVER_LOGDIR!;
-  assert.isOk(dir, "driverLogging: MOCHA_WEBDRIVER_LOGDIR not set");
-  const testName = test?.file ? path.basename(test.file, path.extname(test.file)) : "unnamed";
-  const logPath = path.resolve(dir, `${testName}-driverLogging.log`);
-  await fs.mkdir(dir, {recursive: true});
-
-  let running = false;
-  async function repeat() {
-    if (running) {
-      console.log("driverLogging: skipping because previous repeat still running");
-      return;
-    }
-    running = true;
-    try {
-      await driver.saveScreenshot(`${testName}-driverLoggingScreenshot-{N}.png`);
-      const messages = await driver.fetchLogs('driver');
-      await fs.appendFile(logPath, messages.join("\n") + "\n");
-    } finally {
-      running = false;
-    }
-  }
-
-  const periodic = setInterval(repeat, periodMs);
-  const timeout = setTimeout(() => clearInterval(periodic), timeoutMs);
-  try {
-    return await callback();
-  } finally {
-    clearInterval(periodic);
-    clearTimeout(timeout);
-  }
 }

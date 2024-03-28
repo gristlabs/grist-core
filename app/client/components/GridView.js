@@ -55,6 +55,7 @@ const {NEW_FILTER_JSON} = require('app/client/models/ColumnFilter');
 const {CombinedStyle} = require("app/client/models/Styles");
 const {buildRenameColumn} = require('app/client/ui/ColumnTitle');
 const {makeT} = require('app/client/lib/localization');
+const { isList } = require('app/common/gristTypes');
 
 const t = makeT('GridView');
 
@@ -345,6 +346,7 @@ GridView.gridCommands = {
       this.insertColumn(null, {index: this.cursor.fieldIndex() + 1});
     }
   },
+  makeHeadersFromRow: function() { this.makeHeadersFromRow(this.getSelection()); },
   renameField: function() { this.renameColumn(this.cursor.fieldIndex()); },
   hideFields: function() { this.hideFields(this.getSelection()); },
   deleteFields: function() {
@@ -900,6 +902,38 @@ GridView.prototype.insertColumn = async function(colId = null, options = {}) {
     }
   });
   return newColInfo;
+};
+
+GridView.prototype.makeHeadersFromRow = async function(selection) {
+  if (this._getCellContextMenuOptions().disableMakeHeadersFromRow){
+    return;
+  }
+  const record = this.tableModel.tableData.getRecord(selection.rowIds[0]);
+  const actions = this.viewSection.viewFields().peek().reduce((acc, field) => {
+    const col = field.column();
+    const colId = col.colId.peek();
+    let formatter = field.formatter();
+    let newColLabel = record[colId];
+    // Manage column that are references
+    if (col.refTable()) {
+      const refTableDisplayCol = this.gristDoc.docModel.columns.getRowModel(col.displayCol());
+      newColLabel =  record[refTableDisplayCol.colId()];
+      formatter = field.visibleColFormatter();
+    }
+    // Manage column that are lists
+    if (isList(newColLabel)) {
+      newColLabel = newColLabel[1];
+    }
+    if (typeof newColLabel === 'string') {
+      newColLabel = newColLabel.trim();
+    }
+    // Check value is not empty but accept 0 and false as valid values
+    if (newColLabel !== null && newColLabel !== undefined && newColLabel !== "") {
+      return [...acc, ['ModifyColumn', colId, {"label": formatter.formatAny(newColLabel)}]];
+    }
+    return acc
+  }, []);
+  this.tableModel.sendTableActions(actions, "Use as table headers");
 };
 
 GridView.prototype.renameColumn = function(index) {
@@ -1973,6 +2007,9 @@ GridView.prototype._getCellContextMenuOptions = function() {
       this.gristDoc.isReadonly.get() ||
       this.viewSection.disableAddRemoveRows() ||
       this.getSelection().onlyAddRowSelected()
+    ),
+    disableMakeHeadersFromRow: Boolean (
+      this.gristDoc.isReadonly.get() || this.getSelection().rowIds.length !== 1 || this.getSelection().onlyAddRowSelected()
     ),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
     numRows: this.getSelection().rowIds.length,

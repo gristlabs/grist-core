@@ -12,7 +12,7 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {extractTypeFromColType, isFullReferencingType, isRaisedException} from "app/common/gristTypes";
+import {extractTypeFromColType, isBlankValue, isFullReferencingType, isRaisedException} from "app/common/gristTypes";
 import {INITIAL_FIELDS_COUNT} from "app/common/Forms";
 import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
@@ -53,7 +53,7 @@ import {docSessionFromRequest, getDocSessionShare, makeExceptionalDocSession,
 import {DocWorker} from "app/server/lib/DocWorker";
 import {IDocWorkerMap} from "app/server/lib/DocWorkerMap";
 import {DownloadOptions, parseExportParameters} from "app/server/lib/Export";
-import {downloadCSV} from "app/server/lib/ExportCSV";
+import {downloadDSV} from "app/server/lib/ExportDSV";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {streamXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -573,6 +573,9 @@ export class DocWorkerApi {
         validateCore(RecordsPost, req, body);
         const ops = await getTableOperations(req, activeDoc);
         const records = await ops.create(body.records);
+        if (req.query.utm_source === 'grist-forms') {
+          activeDoc.logTelemetryEvent(docSessionFromRequest(req), 'submittedForm');
+        }
         res.json({records});
       })
     );
@@ -1247,7 +1250,19 @@ export class DocWorkerApi {
     this._app.get('/api/docs/:docId/download/csv', canView, withDoc(async (activeDoc, req, res) => {
       const options = await this._getDownloadOptions(req);
 
-      await downloadCSV(activeDoc, req, res, options);
+      await downloadDSV(activeDoc, req, res, {...options, delimiter: ','});
+    }));
+
+    this._app.get('/api/docs/:docId/download/tsv', canView, withDoc(async (activeDoc, req, res) => {
+      const options = await this._getDownloadOptions(req);
+
+      await downloadDSV(activeDoc, req, res, {...options, delimiter: '\t'});
+    }));
+
+    this._app.get('/api/docs/:docId/download/dsv', canView, withDoc(async (activeDoc, req, res) => {
+      const options = await this._getDownloadOptions(req);
+
+      await downloadDSV(activeDoc, req, res, {...options, delimiter: '💩'});
     }));
 
     this._app.get('/api/docs/:docId/download/xlsx', canView, withDoc(async (activeDoc, req, res) => {
@@ -1410,7 +1425,7 @@ export class DocWorkerApi {
           .filter(f => {
             const col = Tables_column.getRecord(f.colRef);
             // Formulas and attachments are currently unsupported.
-            return col && !(col.isFormula && col.formula) && col.type !== 'Attachment';
+            return col && !(col.isFormula && col.formula) && col.type !== 'Attachments';
           });
 
         let {layoutSpec: formLayoutSpec} = section;
@@ -1462,7 +1477,8 @@ export class DocWorkerApi {
           if (!refTableId || !refColId) { return () => []; }
           if (typeof refTableId !== 'string' || typeof refColId !== 'string') { return []; }
 
-          return await getTableValues(refTableId, refColId);
+          const values = await getTableValues(refTableId, refColId);
+          return values.filter(([_id, value]) => !isBlankValue(value));
         };
 
         const formFields = await Promise.all(fields.map(async (field) => {

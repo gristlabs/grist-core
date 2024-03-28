@@ -15,7 +15,6 @@ import split = require("lodash/split");
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.
-  // Note that items with empty cleanText are never suggested.
   cleanText: string;
 }
 
@@ -65,6 +64,19 @@ interface Word {
   pos: number;      // Position of the word within the item where it occurred.
 }
 
+export interface ACIndexOptions {
+  /** The max number of items to suggest. Defaults to 50. */
+  maxResults?: number;
+  /**
+   * Suggested matches in the same relative order as items, rather than by score.
+   *
+   * Defaults to false.
+   */
+  keepOrder?: boolean;
+  /** Show items with an empty `cleanText`. Defaults to false. */
+  showEmptyItems?: boolean;
+}
+
 /**
  * Implements a search index. It doesn't currently support updates; when any values change, the
  * index needs to be rebuilt from scratch.
@@ -75,11 +87,12 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   // All words from _allItems, sorted.
   private _words: Word[];
 
+  private _maxResults = this._options.maxResults ?? 50;
+  private _keepOrder = this._options.keepOrder ?? false;
+  private _showEmptyItems = this._options.showEmptyItems ?? false;
+
   // Creates an index for the given list of items.
-  // The max number of items to suggest may be set using _maxResults (default is 50).
-  // If _keepOrder is true, best matches will be suggested in the order they occur in items,
-  // rather than order by best score.
-  constructor(items: Item[], private _maxResults: number = 50, private _keepOrder = false) {
+  constructor(items: Item[], private _options: ACIndexOptions = {}) {
     this._allItems = items.slice(0);
 
     // Collects [word, occurrence, position] tuples for all words in _allItems.
@@ -132,7 +145,9 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     // Append enough non-matching indices to reach maxResults.
     for (let i = 0; i < this._allItems.length && itemIndices.length < this._maxResults; i++) {
-      if (this._allItems[i].cleanText && !myMatches.has(i)) {
+      if (myMatches.has(i)) { continue; }
+
+      if (this._allItems[i].cleanText || this._showEmptyItems) {
         itemIndices.push(i);
       }
     }

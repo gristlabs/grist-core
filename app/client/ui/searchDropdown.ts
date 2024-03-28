@@ -4,7 +4,8 @@
 
 import { Disposable, dom, DomElementMethod, IOptionFull, makeTestId, Observable, styled } from "grainjs";
 import { theme, vars } from 'app/client/ui2018/cssVars';
-import { ACIndexImpl, ACItem, buildHighlightedDom, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
+import { ACIndexImpl, ACIndexOptions, ACItem, buildHighlightedDom, HighlightFunc,
+         normalizeText } from "app/client/lib/ACIndex";
 import { menuDivider } from "app/client/ui2018/menus";
 import { icon } from "app/client/ui2018/icons";
 import { cssMenuItem, defaultMenuOptions, IOpenController, IPopupOptions, setPopupToFunc } from "popweasel";
@@ -28,20 +29,54 @@ export interface IDropdownWithSearchOptions<T> {
   // list of options
   options: () => Array<IOption<T>>,
 
+  /** Called when the dropdown menu is disposed. */
+  onClose?: () => void;
+
   // place holder for the search input. Default to 'Search'
   placeholder?: string;
 
   // popup options
   popupOptions?: IPopupOptions;
+
+  /** ACIndexOptions to use for indexing and searching items. */
+  acOptions?: ACIndexOptions;
+
+  /**
+   * If set, the width of the dropdown menu will be equal to that of
+   * the trigger element.
+   */
+  matchTriggerElemWidth?: boolean;
+}
+
+export interface OptionItemParams<T> {
+  /** Item label. Normalized and used by ACIndex for indexing and searching. */
+  label: string;
+  /** Item value. */
+  value: T;
+  /** Defaults to false. */
+  disabled?: boolean;
+  /**
+   * If true, marks this item as the "placeholder" item.
+   *
+   * The placeholder item is excluded from indexing, so it's label doesn't
+   * match search inputs. However, it's still shown when the search input is
+   * empty.
+   *
+   * Defaults to false.
+   */
+  placeholder?: boolean;
 }
 
 export class OptionItem<T> implements ACItem, IOptionFull<T> {
-  public cleanText: string = normalizeText(this.label);
-  constructor(
-    public label: string,
-    public value: T,
-    public disabled?: boolean
-  ) {}
+  public label = this._params.label;
+  public value = this._params.value;
+  public disabled = this._params.disabled;
+  public placeholder = this._params.placeholder;
+  public cleanText = this.placeholder ? '' : normalizeText(this.label);
+
+  constructor(private _params: OptionItemParams<T>) {
+
+  }
 }
 
 export function dropdownWithSearch<T>(options: IDropdownWithSearchOptions<T>): DomElementMethod {
@@ -52,7 +87,7 @@ export function dropdownWithSearch<T>(options: IDropdownWithSearchOptions<T>): D
     );
     setPopupToFunc(
       elem,
-      (ctl) => DropdownWithSearch<T>.create(null, ctl, options),
+      (ctl) => (DropdownWithSearch<T>).create(null, ctl, options),
       popupOptions
     );
   };
@@ -68,8 +103,8 @@ class DropdownWithSearch<T> extends Disposable {
 
   constructor(private _ctl: IOpenController, private _options: IDropdownWithSearchOptions<T>) {
     super();
-    const acItems = _options.options().map(getOptionFull).map(o => new OptionItem(o.label, o.value, o.disabled));
-    this._acIndex = new ACIndexImpl<OptionItem<T>>(acItems);
+    const acItems = _options.options().map(getOptionFull).map((params) => new OptionItem(params));
+    this._acIndex = new ACIndexImpl<OptionItem<T>>(acItems, this._options.acOptions);
     this._items = Observable.create<OptionItem<T>[]>(this, acItems);
     this._highlightFunc = () => [];
     this._simpleList = this._buildSimpleList();
@@ -77,6 +112,7 @@ class DropdownWithSearch<T> extends Disposable {
     this._update();
     // auto-focus the search input
     setTimeout(() => this._inputElem.focus(), 1);
+    this._ctl.onDispose(() => _options.onClose?.());
   }
 
   public get content(): HTMLElement {
@@ -87,7 +123,11 @@ class DropdownWithSearch<T> extends Disposable {
     const action = this._action.bind(this);
     const headerDom = this._buildHeader.bind(this);
     const renderItem = this._buildItem.bind(this);
-    return SimpleList<T>.create(this, this._ctl, this._items, action, {headerDom, renderItem});
+    return (SimpleList<T>).create(this, this._ctl, this._items, action, {
+      matchTriggerElemWidth: this._options.matchTriggerElemWidth,
+      headerDom,
+      renderItem,
+    });
   }
 
   private _buildHeader() {
@@ -110,7 +150,9 @@ class DropdownWithSearch<T> extends Disposable {
 
   private _buildItem(item: OptionItem<T>) {
     return [
-      buildHighlightedDom(item.label, this._highlightFunc, cssMatchText),
+      item.placeholder
+        ? cssPlaceholderItem(item.label)
+        : buildHighlightedDom(item.label, this._highlightFunc, cssMatchText),
       testId('searchable-list-item'),
     ];
   }
@@ -125,7 +167,7 @@ class DropdownWithSearch<T> extends Disposable {
   private _action(value: T | null) {
     // If value is null, simply close the menu. This happens when pressing enter with no element
     // selected.
-    if (value) {
+    if (value !== null) {
       this._options.action(value);
     }
     this._ctl.close();
@@ -170,4 +212,11 @@ const cssSearch = styled('input', `
 const cssMenuDivider = styled(menuDivider, `
   flex-shrink: 0;
   margin: 0;
+`);
+const cssPlaceholderItem = styled('div', `
+  color: ${theme.inputPlaceholderFg};
+
+  .${cssMenuItem.className}-sel > & {
+    color: ${theme.menuItemSelectedFg};
+  }
 `);

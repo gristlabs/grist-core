@@ -22,6 +22,7 @@ export type { IOption, IOptionFull } from 'popweasel';
 export { getOptionFull } from 'popweasel';
 
 export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
+  matchTriggerElemWidth?: boolean;
   headerDom?(): DomArg<HTMLElement>;
   renderItem?(item: U): DomArg<HTMLElement>;
 }
@@ -42,6 +43,14 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     const renderItem = opt.renderItem || ((item: U) => getOptionFull(item).label);
     this.content = cssMenuWrap(
       dom('div',
+        elem => {
+          if (opt.matchTriggerElemWidth) {
+            const style = elem.style;
+            style.minWidth = _ctl.getTriggerElem().getBoundingClientRect().width + 'px';
+            style.marginLeft = '0px';
+            style.marginRight = '0px';
+          }
+        },
         {class: menuCssClass + ' grist-floating-menu'},
         cssMenu.cls(''),
         cssMenuExt.cls(''),
@@ -113,7 +122,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
   private _doAction(value: T | null) {
     // If value is null, simply close the menu. This happens when pressing enter with no element
     // selected.
-    if (value) { this._action(value); }
+    if (value !== null) { this._action(value); }
     this._ctl.close();
   }
 

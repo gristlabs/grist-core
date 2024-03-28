@@ -10,14 +10,40 @@ describe('ReferenceList', function() {
 
   before(async function() {
     session = await gu.session().teamSite.login();
-    await session.tempDoc(cleanup, 'Favorite_Films.grist');
+  });
 
-    await gu.toggleSidePanel('right');
-    await driver.find(".test-right-tab-pagewidget").click();
-    await driver.find('.test-config-data').click();
+  describe('other', function() {
+    it('allows to delete document with self reference', async function() {
+      const docId = await session.tempNewDoc(cleanup);
+      await gu.sendActions([
+        ['AddEmptyTable', 'Table2'],
+        ['ModifyColumn', 'Table1', 'B', {type: 'RefList:Table1'}],
+        ['AddRecord', 'Table1', null, {A: 'a'}],
+        ['AddRecord', 'Table1', null, {A: 'b', B: ["L", 1]}],
+        ['AddRecord', 'Table1', null, {A: 'c', B: ["L", 2]}],
+      ]);
+
+      // Now try to delete the table.
+      await gu.removeTable('Table1');
+      await gu.checkForErrors();
+
+      // Make sure table is deleted. Previously it ended with an engine error
+      // in the 'a' row which has NULL instead of a list of ids.
+      const api = session.createHomeApi().getDocAPI(docId);
+      const tables = await api.getRows('_grist_Tables');
+      assert.deepEqual(tables.tableId, ['Table2']);
+    });
   });
 
   describe('transforms', function() {
+
+    before(async function() {
+      await session.tempDoc(cleanup, 'Favorite_Films.grist');
+      await gu.toggleSidePanel('right');
+      await driver.find(".test-right-tab-pagewidget").click();
+      await driver.find('.test-config-data').click();
+    });
+
     afterEach(() => gu.checkForErrors());
 
     it('should correctly transform references to reference lists', async function() {

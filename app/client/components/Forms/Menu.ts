@@ -49,12 +49,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
   const unmapped = Computed.create(owner, (use) => {
     const types = getNewColumnTypes(gristDoc, use(viewSection.tableId));
-    const normalCols = use(viewSection.hiddenColumns).filter(col => {
-      if (use(col.isHiddenCol)) { return false; }
-      if (use(col.isFormula) && use(col.formula)) { return false; }
-      if (use(col.pureType) === 'Attachments') { return false; }
-      return true;
-    });
+    const normalCols = use(viewSection.hiddenColumns).filter(col => use(col.isFormCol));
     const list = normalCols.map(col => {
       return {
         label: use(col.label),

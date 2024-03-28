@@ -1,0 +1,4 @@
+Foo	Bar	Id is Baz Label is this	Link	Formula
+1	a	hello	grist https://www.getgrist.com/	a --- grist https://www.getgrist.com/
+2	b ,d	world	https://www.getgrist.com/	b ,d --- https://www.getgrist.com/
+3	"the ""quote marks"" ?"			"the ""quote marks"" ? --- "

@@ -92,8 +92,13 @@ export interface TransformColumn {
   widgetOptions: string;
 }
 
+export interface ImportParseOptions extends ParseOptions {
+  delimiter?: string;
+  encoding?: string;
+}
+
 export interface ImportResult {
-  options: ParseOptions;
+  options: ImportParseOptions;
   tables: ImportTableResult[];
 }
 
@@ -106,7 +111,7 @@ export interface ImportTableResult {
 }
 
 export interface ImportOptions {
-  parseOptions?: ParseOptions;         // Options for parsing the source file.
+  parseOptions?: ImportParseOptions;   // Options for parsing the source file.
   mergeOptionMaps?: MergeOptionsMap[]; // Options for merging fields, indexed by uploadFileIndex.
 }
 
@@ -328,7 +333,7 @@ export interface ActiveDocAPI {
    * Imports files, removes previously created temporary hidden tables and creates the new ones.
    */
   importFiles(dataSource: DataSourceTransformed,
-              parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult>;
+              parseOptions: ImportParseOptions, prevTableIds: string[]): Promise<ImportResult>;
 
   /**
    * Finishes import files, creates the new tables, and cleans up temporary hidden tables and uploads.

@@ -52,7 +52,10 @@ export function buildTZAutocomplete(
 ) {
   // Set a large maxResults, since it's sometimes nice to see all supported timezones (there are
   // fewer than 1000 in practice).
-  const acIndex = new ACIndexImpl<ACSelectItem>(timezoneOptions(moment), 1000, true);
+  const acIndex = new ACIndexImpl<ACSelectItem>(timezoneOptions(moment), {
+    maxResults: 1000,
+    keepOrder: true,
+  });
 
   // Only save valid time zones. If there is no selected item, we'll auto-select and save only
   // when there is a good match.
