@@ -35,6 +35,16 @@
  *    env GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
  *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
  *        Defaults to false.
+ *    env GRIST_OIDC_IDP_ENABLED_PROTECTIONS
+ *        A comma-separated list of protections to enable. Supported values are "PKCE", "STATE", "NONCE".
+ *        It's highly recommended that you enable STATE, and at least either PKCE or NONCE.
+ *        Defaults to "PKCE,STATE".
+ *    env GRIST_OIDC_IDP_ACR_VALUES
+ *        A space-separated list of ACR values to request from the IdP. Optional.
+ *    env GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA
+ *        A JSON object with extra client metadata to pass to openid-client. Optional.
+ *        More info: https://github.com/panva/node-openid-client/tree/main/docs#new-clientmetadata-jwks-options
+ *
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -52,26 +62,67 @@
 
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
-import { Client, generators, Issuer, UserinfoResponse } from 'openid-client';
+import { Client, ClientMetadata, generators, Issuer, TokenSet, UserinfoResponse } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
-import { appSettings } from './AppSettings';
+import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
+import _ from 'lodash';
+import { SessionObj } from './BrowserSession';
+import { SendAppPage } from './sendAppPage';
+
+enum ENABLED_PROTECTIONS {
+  NONCE,
+  PKCE,
+  STATE,
+}
+
+type EnabledProtectionsString = keyof typeof ENABLED_PROTECTIONS;
 
 const CALLBACK_URL = '/oauth2/callback';
 
+function formatTokenForLogs(token: TokenSet) {
+  return _.chain(token)
+    .omitBy(_.isFunction)
+    .mapValues((value, key) => {
+      const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'].includes(key);
+      return showValueInClear ? value : 'REDACTED';
+    }).value();
+}
+
+const DEFAULT_USER_FRIENDLY_MESSAGE =
+  "Something went wrong while logging, please try again or contact your administrator if the problem persists";
+
+class ErrorWithUserFriendlyMessage extends Error {
+  constructor(errMessage: string, public readonly userFriendlyMessage: string = DEFAULT_USER_FRIENDLY_MESSAGE) {
+    super(errMessage);
+  }
+}
+
 export class OIDCConfig {
-  private _client: Client;
+  /**
+   * Handy alias to create an OIDCConfig instance and initialize it.
+   */
+  public static async build(sendAppPage: SendAppPage): Promise<OIDCConfig> {
+    const config = new OIDCConfig(sendAppPage);
+    await config.initOIDC();
+    return config;
+  }
+
+  protected _client: Client;
   private _redirectUrl: string;
   private _namePropertyKey?: string;
   private _emailPropertyKey: string;
   private _endSessionEndpoint: string;
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
+  private _enabledProtections: EnabledProtectionsString[] = [];
+  private _acrValues?: string;
 
-  public constructor() {
-  }
+  protected constructor(
+    private _sendAppPage: SendAppPage
+  ) {}
 
   public async initOIDC(): Promise<void> {
     const section = appSettings.section('login').section('system').section('oidc');
@@ -108,21 +159,26 @@ export class OIDCConfig {
       defaultValue: false,
     })!;
 
+    this._acrValues = section.flag('acrValues').readString({
+      envVar: 'GRIST_OIDC_IDP_ACR_VALUES',
+    })!;
+
     this._ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
       envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
       defaultValue: false,
     })!;
 
-    const issuer = await Issuer.discover(issuerUrl);
+    const extraMetadata: Partial<ClientMetadata> = JSON.parse(section.flag('extraClientMetadata').readString({
+      envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
+      defaultValue: '{}'
+    })!);
+
+    this._enabledProtections = this._buildEnabledProtections(section);
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
-    this._client = new issuer.Client({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uris: [ this._redirectUrl ],
-      response_types: [ 'code' ],
-    });
+    await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
+
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
-        !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
+      !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
         'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
         'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
@@ -138,25 +194,23 @@ export class OIDCConfig {
     const mreq = req as RequestWithLogin;
     try {
       const params = this._client.callbackParams(req);
-      const { state, targetUrl } = mreq.session?.oidc ?? {};
-      if (!state) {
-        throw new Error('Login or logout failed to complete');
-      }
-
-      const codeVerifier = await this._retrieveCodeVerifierFromSession(req);
+      const { targetUrl } = mreq.session?.oidc ?? {};
+      const checks = await this._retrieveChecksFromSession(mreq);
 
       // The callback function will compare the state present in the params and the one we retrieved from the session.
       // If they don't match, it will throw an error.
-      const tokenSet = await this._client.callback(
-        this._redirectUrl,
-        params,
-        { state, code_verifier: codeVerifier }
-      );
+      const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
+      log.debug("Got tokenSet: %o", formatTokenForLogs(tokenSet));
 
       const userInfo = await this._client.userinfo(tokenSet);
+      log.debug("Got userinfo: %o", userInfo);
 
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
-        throw new Error(`OIDCConfig: email not verified for ${userInfo.email}`);
+        throw new ErrorWithUserFriendlyMessage(
+          `OIDCConfig: email not verified for ${userInfo.email}`,
+          "Your email is not verified according to the identity provider, please take the neccessary steps for that " +
+            "and log in again."
+        );
       }
 
       const profile = this._makeUserProfileFromUserInfo(userInfo);
@@ -167,33 +221,45 @@ export class OIDCConfig {
         profile,
       }));
 
-      delete mreq.session.oidc;
+      mreq.session.oidc = {
+        idToken: tokenSet.id_token, // keep idToken for logout
+        state: mreq.session.oidc?.state, // also keep state for logout
+      };
       res.redirect(targetUrl ?? '/');
     } catch (err) {
       log.error(`OIDC callback failed: ${err.stack}`);
+      if (Object.prototype.hasOwnProperty.call(err, 'response')) {
+        log.error(`Response received: ${err.response?.body ?? err.response}`);
+      }
       // Delete the session data even if the login failed.
       // This way, we prevent several login attempts.
       //
       // Also session deletion must be done before sending the response.
       delete mreq.session.oidc;
-      res.status(500).send(`OIDC callback failed.`);
+      await this._sendAppPage(req, res, {
+        path: 'error.html',
+        status: 500,
+        config: {
+          errPage: 'signin-failed',
+          errMessage: err.userFriendlyMessage
+        },
+      });
     }
   }
 
   public async getLoginRedirectUrl(req: express.Request, targetUrl: URL): Promise<string> {
-    const { codeVerifier, state } = await this._generateAndStoreConnectionInfo(req, targetUrl.href);
-    const codeChallenge = generators.codeChallenge(codeVerifier);
+    const protections = await this._generateAndStoreConnectionInfo(req, targetUrl.href);
 
     const authUrl = this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-      state,
+      acr_values: this._acrValues ?? undefined,
+      ...this._forgeProtectionParamsForAuthUrl(protections),
     });
     return authUrl;
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
+    const mreq = req as RequestWithLogin;
     // For IdPs that don't have end_session_endpoint, we just redirect to the logout page.
     if (this._skipEndSessionEndpoint) {
       return redirectUrl.href;
@@ -203,42 +269,105 @@ export class OIDCConfig {
       return this._endSessionEndpoint;
     }
     return this._client.endSessionUrl({
-      post_logout_redirect_uri: redirectUrl.href
+      post_logout_redirect_uri: redirectUrl.href,
+      state: mreq.session.oidc?.state,
+      id_token_hint: mreq.session.oidc?.idToken,
     });
+  }
+
+  public supportsProtection(protection: EnabledProtectionsString) {
+    return this._enabledProtections.includes(protection);
+  }
+
+  protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
+    { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
+  ): Promise<void> {
+    const issuer = await Issuer.discover(issuerUrl);
+    this._client = new issuer.Client({
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uris: [this._redirectUrl],
+      response_types: ['code'],
+      ...extraMetadata,
+    });
+  }
+
+  private _forgeProtectionParamsForAuthUrl(protections: { codeVerifier?: string, state?: string, nonce?: string }) {
+    return _.omitBy({
+      state: protections.state,
+      nonce: protections.nonce,
+      code_challenge: protections.codeVerifier ?
+        generators.codeChallenge(protections.codeVerifier) :
+        undefined,
+      code_challenge_method: protections.codeVerifier ? 'S256' : undefined,
+    }, _.isUndefined);
   }
 
   private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
-    const codeVerifier = generators.codeVerifier();
-    const state = generators.state();
-    mreq.session.oidc = {
-      codeVerifier,
-      state,
+    const oidcInfo: SessionObj['oidc'] = {
       targetUrl
     };
+    if (this.supportsProtection('PKCE')) {
+      oidcInfo.codeVerifier = generators.codeVerifier();
+    }
+    if (this.supportsProtection('STATE')) {
+      oidcInfo.state = generators.state();
+    }
+    if (this.supportsProtection('NONCE')) {
+      oidcInfo.nonce = generators.nonce();
+    }
 
-    return { codeVerifier, state };
+    mreq.session.oidc = oidcInfo;
+
+    return _.pick(oidcInfo, ['codeVerifier', 'state', 'nonce']);
   }
 
-  private async _retrieveCodeVerifierFromSession(req: express.Request) {
-    const mreq = req as RequestWithLogin;
+  private _buildEnabledProtections(section: AppSettings): EnabledProtectionsString[] {
+    const enabledProtections = section.flag('enabledProtections').readString({
+      envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
+      defaultValue: 'PKCE,STATE',
+    })!.split(',');
+    if (enabledProtections.length === 1 && enabledProtections[0] === '') {
+      return [];
+    }
+    for (const protection of enabledProtections) {
+      if (!ENABLED_PROTECTIONS.hasOwnProperty(protection as EnabledProtectionsString)) {
+        throw new Error(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${protection}`);
+      }
+    }
+    return enabledProtections as EnabledProtectionsString[];
+  }
+
+  private async _retrieveChecksFromSession(mreq: RequestWithLogin):
+    Promise<{ code_verifier?: string, state?: string, nonce?: string }> {
     if (!mreq.session) { throw new Error('no session available'); }
+
+    const state = mreq.session.oidc?.state;
+    if (!state && this.supportsProtection('STATE')) {
+      throw new Error('Login or logout failed to complete');
+    }
+
     const codeVerifier = mreq.session.oidc?.codeVerifier;
-    if (!codeVerifier) { throw new Error('Login is stale'); }
-    return codeVerifier;
+    if (!codeVerifier && this.supportsProtection('PKCE')) { throw new Error('Login is stale'); }
+
+    const nonce = mreq.session.oidc?.nonce;
+    if (!nonce && this.supportsProtection('NONCE')) { throw new Error('Login is stale'); }
+
+    return _.omitBy({ code_verifier: codeVerifier, state, nonce }, _.isUndefined);
   }
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
     return {
-      email: String(userInfo[ this._emailPropertyKey ]),
+      email: String(userInfo[this._emailPropertyKey]),
       name: this._extractName(userInfo)
     };
   }
 
-  private _extractName(userInfo: UserinfoResponse): string|undefined {
+  private _extractName(userInfo: UserinfoResponse): string | undefined {
     if (this._namePropertyKey) {
-      return (userInfo[ this._namePropertyKey ] as any)?.toString();
+      return (userInfo[this._namePropertyKey] as any)?.toString();
     }
     const fname = userInfo.given_name ?? '';
     const lname = userInfo.family_name ?? '';
@@ -247,12 +376,11 @@ export class OIDCConfig {
   }
 }
 
-export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> {
+export async function getOIDCLoginSystem(): Promise<GristLoginSystem | undefined> {
   if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = new OIDCConfig();
-      await config.initOIDC();
+      const config = await OIDCConfig.build(gristServer.sendAppPage.bind(gristServer));
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),
@@ -263,6 +391,6 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem|undefined> 
         },
       };
     },
-    async deleteUser() {},
+    async deleteUser() { },
   };
 }

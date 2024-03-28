@@ -376,7 +376,7 @@ export class HomeUtil {
   /**
    * Waits for browser to navigate to a Grist login page.
    */
-   public async checkGristLoginPage(waitMs: number = 2000) {
+  public async checkGristLoginPage(waitMs: number = 2000) {
     await this.driver.wait(this.isOnGristLoginPage.bind(this), waitMs);
   }
 
