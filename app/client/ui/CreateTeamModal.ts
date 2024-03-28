@@ -131,7 +131,7 @@ function buildTeamPage({
     Enter: () => click(),
   });
   return cssWide(
-    cssHeaderLine(t("Work as a Team")),
+    cssHeaderLine(t("Work as a Team"), testId("creation-title")),
     cssSubHeaderLine(t("Choose a name and url for your team site")),
     hspace('1.5em'),
     cssColumns(
