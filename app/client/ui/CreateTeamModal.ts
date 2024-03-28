@@ -28,7 +28,7 @@ export function buildNewSiteModal(context: Disposable, options: {
 
   return showModal(
     context,
-    () => dom.create(NewSiteModalContent, onCreate),
+    (_owner: Disposable, ctrl: IModalControl) => dom.create(NewSiteModalContent, ctrl, onCreate),
     dom.cls(cssModalIndex.className),
   );
 }
@@ -37,22 +37,27 @@ class NewSiteModalContent extends Disposable {
   private _page = Observable.create(this, 'createTeam');
   private _team = Observable.create(this, '');
   private _domain = Observable.create(this, '');
+  private _ctrl: IModalControl;
 
   constructor(
+    ctrl: IModalControl,
     private _onCreate?: (planName: string) => void) {
     super();
+    this._ctrl = ctrl;
   }
 
   public buildDom() {
     const team = this._team;
     const domain = this._domain;
+    const ctrl = this._ctrl;
     return dom.domComputed(this._page, pageValue => {
 
       switch (pageValue) {
         case 'createTeam': return buildTeamPage({
           team,
           domain,
-          create: () => this._createTeam()
+          create: () => this._createTeam(),
+          ctrl
         });
         case 'teamSuccess': return buildConfirm({domain: domain.get()});
       }
@@ -108,11 +113,13 @@ export function buildConfirm({
 function buildTeamPage({
   team,
   domain,
-  create
+  create,
+  ctrl
 }: {
   team: Observable<string>;
   domain: Observable<string>;
   create: () => any;
+  ctrl: IModalControl;
 }) {
   const disabled = Observable.create(null, false);
   const group = new ValidationGroup();
@@ -161,9 +168,7 @@ function buildTeamPage({
         cssButtonsRow(
           bigBasicButton(
             t('Cancel'),
-            // close modal
-            // dom.on('click', () => {}),
-            dom.on('click', () => close()),
+            dom.on('click', () => ctrl.close()),
             testId('cancel')),
           bigPrimaryButton(t("Create site"),
             dom.on('click', click),
