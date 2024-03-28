@@ -86,6 +86,14 @@ export function trustOrigin(req: Request, resp: Response): boolean {
   const origin = req.get('origin');
   if (!origin) { return true; } // Not a CORS request.
   if (process.env.GRIST_HOST && req.hostname === process.env.GRIST_HOST) { return true; }
+
+  if (
+    (process.env.APP_HOME_INTERNAL_URL && req.hostname === new URL(process.env.APP_HOME_INTERNAL_URL).hostname) ||
+    (process.env.APP_DOC_INTERNAL_URL && req.hostname === new URL(process.env.APP_DOC_INTERNAL_URL).hostname)
+  ) {
+    return true;
+  }
+
   if (!allowHost(req, new URL(origin))) { return false; }
 
   // For a request to a custom domain, the full hostname must match.
