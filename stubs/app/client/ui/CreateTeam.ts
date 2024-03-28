@@ -3,7 +3,6 @@ import { ValidationGroup, Validator } from 'app/client/lib/Validator';
 import { AppModel, getHomeUrl } from 'app/client/models/AppModel';
 import { reportError, UserError } from 'app/client/models/errors';
 import { urlState } from 'app/client/models/gristUrlState';
-import { UpgradeButton } from 'app/client/ui/ProductUpgradesStub';
 import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
 import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
@@ -12,7 +11,7 @@ import { TEAM_PLAN } from 'app/common/Features';
 import { checkSubdomainValidity } from 'app/common/orgNameUtils';
 import { UserAPIImpl } from 'app/common/UserAPI';
 import {
-  Disposable, dom, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
+  Disposable, dom, DomArg, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
   Observable, styled
 } from 'grainjs';
 
@@ -74,6 +73,11 @@ class NewSiteModalContent extends Disposable {
 
 export function buildUpgradeModal(owner: Disposable, planName: string): void {
   throw new UserError(`There is no plan logical in this instance of Grist`);
+}
+
+export interface UpgradeButton  {
+  showUpgradeCard(...args: DomArg<HTMLElement>[]): DomContents;
+  showUpgradeButton(...args: DomArg<HTMLElement>[]): DomContents;
 }
 
 export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): UpgradeButton {
