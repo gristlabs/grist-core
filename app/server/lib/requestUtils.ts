@@ -13,7 +13,7 @@ import {Writable} from 'stream';
 import { TLSSocket } from 'tls';
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
-const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
+const shouldLogApiDetails = gutil.isAffirmative(process.env.GRIST_HOSTED_VERSION);
 
 // Offset to https ports in dev/testing environment.
 export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
