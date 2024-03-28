@@ -16,10 +16,13 @@ import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
 import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {docListHeader} from 'app/client/ui/DocMenuCss';
+import {DocApiKey} from 'app/client/ui/DocApiKey';
+import {primaryButtonLink} from 'app/client/ui2018/buttons';
+import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'app/client/ui2018/modals';
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
@@ -38,6 +41,7 @@ const testId = makeTestId('test-settings-');
 export class DocSettingsPage extends Disposable {
   private _docInfo = this._gristDoc.docInfo;
 
+  private _docApiKey = Observable.create<string>(this, '');
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
@@ -186,7 +190,12 @@ export class DocSettingsPage extends Disposable {
             href: getApiConsoleLink(docPageModel),
           }),
         }),
-
+        dom.create(DocApiKey, {
+          docApiKey: this._docApiKey,
+          onCreate: () => this._createDocApiKey(),
+          onDelete: () => this._deleteDocApiKey(),
+          inputArgs: [{size: '5'}], // Lower size so that input can shrink below ~152px.
+        }),
         dom.create(AdminSectionItem, {
           id: 'webhooks',
           name: t('Webhooks'),
@@ -296,6 +305,15 @@ export class DocSettingsPage extends Disposable {
       await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
     }
   }
+
+  private async _createDocApiKey() {
+    // this._docApiKey.set(await this._appModel.api.createApiKey());
+  }
+
+  private async _deleteDocApiKey() {
+    // await this._appModel.api.deleteApiKey();
+    this._docApiKey.set('');
+  }
 }
 
 
@@ -344,64 +362,64 @@ function buildLocaleSelect(
 }
 
 const cssContainer = styled('div', `
-  overflow-y: auto;
-  position: relative;
-  height: 100%;
-  padding: 32px 64px 24px 64px;
-  color: ${theme.text};
-  @media ${mediaSmall} {
-    & {
-      padding: 32px 24px 24px 24px;
-    }
-  }
+overflow-y: auto;
+position: relative;
+height: 100%;
+padding: 32px 64px 24px 64px;
+color: ${theme.text};
+@media ${mediaSmall} {
+& {
+padding: 32px 24px 24px 24px;
+}
+}
 `);
 
 const cssCopyButton = styled('div', `
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 24px;
-  right: 0;
-  top: 0;
-  --icon-color: ${theme.lightText};
-  &:hover {
-    --icon-color: ${colors.lightGreen};
-  }
+position: absolute;
+display: flex;
+align-items: center;
+justify-content: center;
+height: 100%;
+width: 24px;
+right: 0;
+top: 0;
+--icon-color: ${theme.lightText};
+&:hover {
+--icon-color: ${colors.lightGreen};
+}
 `);
 
 const cssIcon = styled(icon, `
 `);
 
 const cssInput = styled('div', `
-  border: none;
-  outline: none;
-  background: transparent;
-  width: 100%;
-  min-width: 180px;
-  height: 100%;
-  padding: 5px;
-  padding-right: 20px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+border: none;
+outline: none;
+background: transparent;
+width: 100%;
+min-width: 180px;
+height: 100%;
+padding: 5px;
+padding-right: 20px;
+overflow: hidden;
+text-overflow: ellipsis;
 `);
 
 const cssHoverWrapper = styled('div', `
-  max-width: 280px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  text-wrap: nowrap;
-  display: inline-block;
-  cursor: pointer;
-  transition: all 0.05s;
-  border-radius: 4px;
-  border-color: ${theme.inputBorder};
-  border-style: solid;
-  border-width: 1px;
-  height: 30px;
-  align-items: center;
-  position: relative;
+max-width: 280px;
+text-overflow: ellipsis;
+overflow: hidden;
+text-wrap: nowrap;
+display: inline-block;
+cursor: pointer;
+transition: all 0.05s;
+border-radius: 4px;
+border-color: ${theme.inputBorder};
+border-style: solid;
+border-width: 1px;
+height: 30px;
+align-items: center;
+position: relative;
 `);
 
 // This matches the style used in showProfileModal in app/client/ui/AccountWidget.
@@ -414,7 +432,7 @@ export function getSupportedEngineChoices(): EngineCode[] {
 }
 
 const cssSelect = styled(select, `
-  min-width: 170px; /* to match the width of the timezone picker */
+min-width: 170px; /* to match the width of the timezone picker */
 `);
 
 const TOOLTIP_KEY = 'copy-on-settings';
@@ -476,23 +494,23 @@ enum Option {
 
 // A version that is not underlined, and on hover mouse pointer indicates that copy is available
 const cssCopyLink = styled(cssLink, `
-  word-wrap: break-word;
-  &:hover {
-    border-radius: 4px;
-    text-decoration: none;
-    background: ${theme.lightHover};
-    outline-color: ${theme.linkHover};
-    outline-offset: 1px;
-  }
+word-wrap: break-word;
+&:hover {
+border-radius: 4px;
+text-decoration: none;
+background: ${theme.lightHover};
+outline-color: ${theme.linkHover};
+outline-offset: 1px;
+}
 `);
 
 const cssAutoComplete = `
-  width: 172px;
-  cursor: pointer;
-  & input {
-    text-overflow: ellipsis;
-    padding-right: 24px;
-  }
+width: 172px;
+cursor: pointer;
+& input {
+text-overflow: ellipsis;
+padding-right: 24px;
+}
 `;
 
 const cssTZAutoComplete = styled(buildTZAutocomplete, cssAutoComplete);
@@ -500,12 +518,12 @@ const cssCurrencyPicker = styled(buildCurrencyPicker, cssAutoComplete);
 const cssLocalePicker = styled(buildLocaleSelect, cssAutoComplete);
 
 const cssWrap = styled('p', `
-  overflow-wrap: anywhere;
-  & * {
-    word-break: break-all;
-  }
+overflow-wrap: anywhere;
+& * {
+word-break: break-all;
+}
 `);
 
 const cssRedText = styled('span', `
-  color: ${theme.errorText};
+color: ${theme.errorText};
 `);
