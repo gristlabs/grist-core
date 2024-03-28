@@ -1,15 +1,15 @@
-import { autoFocus } from 'app/client/lib/domUtils';
-import { ValidationGroup, Validator } from 'app/client/lib/Validator';
-import { AppModel, getHomeUrl } from 'app/client/models/AppModel';
-import { reportError, UserError } from 'app/client/models/errors';
-import { urlState } from 'app/client/models/gristUrlState';
-import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from 'app/client/ui2018/buttons';
-import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { IModalControl, modal } from 'app/client/ui2018/modals';
-import { TEAM_PLAN } from 'app/common/Features';
-import { checkSubdomainValidity } from 'app/common/orgNameUtils';
-import { UserAPIImpl } from 'app/common/UserAPI';
+import {autoFocus} from 'app/client/lib/domUtils';
+import {ValidationGroup, Validator} from 'app/client/lib/Validator';
+import {AppModel, getHomeUrl} from 'app/client/models/AppModel';
+import {reportError, UserError} from 'app/client/models/errors';
+import {urlState} from 'app/client/models/gristUrlState';
+import {bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
+import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {IModalControl, modal} from 'app/client/ui2018/modals';
+import {TEAM_PLAN} from 'app/common/Features';
+import {checkSubdomainValidity} from 'app/common/orgNameUtils';
+import {UserAPIImpl} from 'app/common/UserAPI';
 import {
   Disposable, dom, DomArg, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
   Observable, styled
@@ -52,7 +52,7 @@ class NewSiteModalContent extends Disposable {
           domain,
           create: () => this._createTeam()
         });
-        case 'teamSuccess': return buildConfirm({ domain: domain.get() });
+        case 'teamSuccess': return buildConfirm({domain: domain.get()});
       }
     });
   }
@@ -60,7 +60,7 @@ class NewSiteModalContent extends Disposable {
   private async _createTeam() {
     const api = new UserAPIImpl(getHomeUrl());
     try {
-      await api.newOrg({ name: this._team.get(), domain: this._domain.get() });
+      await api.newOrg({name: this._team.get(), domain: this._domain.get()});
       this._page.set('teamSuccess');
       if (this._onCreate) {
         this._onCreate(TEAM_PLAN);
@@ -98,7 +98,7 @@ export function buildConfirm({
     cssHeaderLine('Team site created', testId("confirmation")),
     hspace('40px'),
     bigPrimaryButtonLink(
-      urlState().setLinkUrl({ org: domain || undefined }), 'Go to your site', testId("confirmation-link")
+      urlState().setLinkUrl({org: domain || undefined}), 'Go to your site', testId("confirmation-link")
     )
   );
 }
@@ -137,7 +137,7 @@ function buildTeamPage({
         cssLabel('Team name'),
         cssRow(cssField(cssInput(
           team,
-          { onInput: true },
+          {onInput: true},
           autoFocus(),
           group.inputReset(),
           clickOnEnter,
@@ -146,12 +146,12 @@ function buildTeamPage({
         hspace('2em'),
         cssLabel('Team url'),
         cssRow(
-          { style: 'align-items: baseline' },
+          {style: 'align-items: baseline'},
           cssField(
-            { style: 'flex: 0 1 0; min-width: auto; margin-right: 5px' },
+            {style: 'flex: 0 1 0; min-width: auto; margin-right: 5px'},
             dom.text(`${window.location.origin}/o/`)),
           cssField(cssInput(
-            domain, { onInput: true }, clickOnEnter, group.inputReset(), testId('domain')
+            domain, {onInput: true}, clickOnEnter, group.inputReset(), testId('domain')
           )),
         ),
         dom.create(Validator, group, "Domain name is required", () => !!domain.get()),
@@ -196,12 +196,12 @@ function showModal(
       cssCloseButton(testId("close-modal"), cssBigIcon('CrossBig'), dom.on('click', () => ctrl.close())),
       content(modalScope, ctrl)
     ];
-  }, { backerDomArgs: args });
+  }, {backerDomArgs: args});
   return control;
 }
 
 function hspace(height: string) {
-  return dom('div', { style: `height: ${height}` });
+  return dom('div', {style: `height: ${height}`});
 }
 
 export const cssCreateTeamModal = styled('div', `
