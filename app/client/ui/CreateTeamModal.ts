@@ -74,7 +74,7 @@ class NewSiteModalContent extends Disposable {
 }
 
 export function buildUpgradeModal(owner: Disposable, planName: string): void {
-  throw new UserError(t(`There is no plan logical in this instance of Grist`));
+  throw new UserError(t(`Billing is not supported in grist-core`));
 }
 
 export interface UpgradeButton  {
@@ -96,9 +96,9 @@ export function buildConfirm({
 }) {
   return cssConfirmWrapper(
     cssSparks(),
-    hspace('22px'),
+    hspace('1.5em'),
     cssHeaderLine(t('Team site created'), testId("confirmation")),
-    hspace('40px'),
+    hspace('2em'),
     bigPrimaryButtonLink(
       urlState().setLinkUrl({org: domain || undefined}), t('Go to your site'), testId("confirmation-link")
     )
@@ -133,7 +133,7 @@ function buildTeamPage({
   return cssWide(
     cssHeaderLine(t("Work as a Team")),
     cssSubHeaderLine(t("Choose a name and url for your team site")),
-    hspace('24px'),
+    hspace('1.5em'),
     cssColumns(
       cssSetup(
         cssLabel(t('Team name')),
@@ -262,7 +262,6 @@ const cssLabel = styled('label', `
   font-weight: ${vars.headerControlTextWeight};
   font-size: ${vars.mediumFontSize};
   color: ${theme.text};
-  line-height: 38px;
   line-height: 1.5em;
   margin: 0px;
   margin-bottom: 0.3em;

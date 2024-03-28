@@ -1278,7 +1278,8 @@
         "Opt in to Telemetry": "Opt in to Telemetry",
         "Opted In": "Opted In",
         "Support Grist": "Support Grist",
-        "Support Grist page": "Support Grist page"
+        "Support Grist page": "Support Grist page",
+        "Thank you! Your trust and support is greatly appreciated.Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated.Opt out any time from the {{link}} in the user menu."
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1433,7 +1434,7 @@
         "Team name is required": "Team name is required",
         "Team site created": "Team site created",
         "Team url": "Team url",
-        "There is no plan logical in this instance of Grist": "There is no plan logical in this instance of Grist",
-        "Work as a Team": "Work as a Team"
+        "Work as a Team": "Work as a Team",
+        "Billing is not supported in grist-core": "Billing is not supported in grist-core"
     }
 }
