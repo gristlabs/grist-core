@@ -293,7 +293,12 @@
         "Save Document": "Сохранить документ",
         "Work on a Copy": "Работа над копией",
         "Share": "Поделиться",
-        "Download...": "Скачать..."
+        "Download...": "Скачать...",
+        "Comma Separated Values (.csv)": "Значения, разделенные запятыми (.csv)",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Значения, разделенные табуляцией (.tsv)",
+        "DOO Separated Values (.dsv)": "DOO Разделенные значения (.dsv)",
+        "Export as...": "Экспортировать как..."
     },
     "SortConfig": {
         "Search Columns": "Поиск по столбцам",
@@ -635,7 +640,8 @@
         "Insert row": "Вставить строку",
         "Insert row above": "Вставить строку выше",
         "Delete": "Удалить",
-        "View as card": "Посмотреть как карточку"
+        "View as card": "Посмотреть как карточку",
+        "Use as table headers": "Использовать в качестве заголовков таблицы"
     },
     "RecordLayout": {
         "Updating record layout.": "Обновление макета записи."
@@ -716,7 +722,9 @@
         "Submission": "Отправка",
         "Submit another response": "Отправить другой ответ",
         "Submit button label": "Название кнопки отправки",
-        "Success text": "Текст успешной отправки"
+        "Success text": "Текст успешной отправки",
+        "No field selected": "Нет выбранных полей",
+        "Select a field in the form widget to configure.": "Выберите поле в виджете формы для настройки."
     },
     "PermissionsWidget": {
         "Allow All": "Разрешить все",
@@ -1338,7 +1346,21 @@
         "Publish": "Публиковать",
         "Publish your form?": "Опубликовать форму?",
         "Unpublish": "Отменить публикацию",
-        "Unpublish your form?": "Отменить публикацию формы?"
+        "Unpublish your form?": "Отменить публикацию формы?",
+        "Code copied to clipboard": "Код скопирован в буфер обмена",
+        "Copy code": "Скопировать код",
+        "Embed this form": "Встроить эту форму",
+        "Link copied to clipboard": "Ссылка скопирована в буфер обмена",
+        "Preview": "Предпросмотр",
+        "Save your document to publish this form.": "Сохраните документ, для публикации этой формы.",
+        "Share": "Поделиться",
+        "Share this form": "Поделиться этой формой",
+        "View": "Просмотр",
+        "Anyone with the link below can see the empty form and submit a response.": "Любой, у кого есть ссылка ниже, может увидеть пустую форму и отправить ответ.",
+        "Are you sure you want to reset your form?": "Вы уверены, что хотите сбросить форму?",
+        "Copy link": "Копировать ссылку",
+        "Reset": "Сброс",
+        "Reset form": "Сброс формы"
     },
     "WelcomeCoachingCall": {
         "free coaching call": "бесплатный коуч-звонок",
@@ -1387,5 +1409,17 @@
         "This month": "Этот месяц",
         "This week": "Эта неделя",
         "This year": "Текущий год"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Очистить",
+        "Map fields": "Сопоставить поля",
+        "Mapped": "Сопоставлено",
+        "Select All": "Выбрать все",
+        "Unmap fields": "Отменить сопоставление полей",
+        "Unmapped": "Несопоставленные"
+    },
+    "Section": {
+        "Insert section above": "Вставить секцию выше",
+        "Insert section below": "Вставить секцию ниже"
     }
 }
