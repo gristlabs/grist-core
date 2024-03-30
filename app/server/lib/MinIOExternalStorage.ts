@@ -7,7 +7,7 @@ import * as minio from 'minio';
 
 // The minio typings appear to be quite stale. Extend them here to avoid
 // lots of casts to any.
-type MinIOClient = minio.Client & {
+export type MinIOClient = minio.Client & {
   statObject(bucket: string, key: string, options: {versionId?: string}): Promise<MinIOBucketItemStat>;
   getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
   listObjects(bucket: string, key: string, recursive: boolean,
@@ -132,7 +132,7 @@ export class MinIOExternalStorage implements ExternalStorage {
         v.lastModified && (v as any).versionId &&
         (options?.includeDeleteMarkers || !(v as any).isDeleteMarker))
       .map(v => ({
-        lastModified: v.lastModified.toISOString(),
+        lastModified: v.lastModified!.toISOString(),
         // Circumvent inconsistency of MinIO API with versionId by casting it to string
         // PR to MinIO so we don't have to do that anymore:
         // https://github.com/minio/minio-js/pull/1193
