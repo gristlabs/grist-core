@@ -21,6 +21,7 @@ import {
   WebhookUpdate
 } from 'app/common/Triggers';
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
+import { AxiosProgressEvent } from 'axios';
 import omitBy from 'lodash/omitBy';
 
 
@@ -404,7 +405,7 @@ export interface UserAPI {
   importUnsavedDoc(material: UploadType, options?: {
     filename?: string,
     timezone?: string,
-    onUploadProgress?: (ev: ProgressEvent) => void,
+    onUploadProgress?: (ev: AxiosProgressEvent) => void,
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
@@ -810,7 +811,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async importUnsavedDoc(material: UploadType, options?: {
     filename?: string,
     timezone?: string,
-    onUploadProgress?: (ev: ProgressEvent) => void,
+    onUploadProgress?: (ev: AxiosProgressEvent) => void,
   }): Promise<string> {
     options = options || {};
     const formData = this.newFormData();
