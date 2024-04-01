@@ -1,7 +1,11 @@
 const fs = require('fs');
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
+const MergeIntoSingleFilePlugin = require('webpack-merge-and-include-globally');
 const { ProvidePlugin } = require('webpack');
 const path = require('path');
+const glob = require('glob');
+
+const cssFiles = glob.sync('app/client/**/*.css');
 
 // Get path to top-level node_modules if in a yarn workspace.
 // Otherwise node_modules one level up won't get resolved.
@@ -17,6 +21,7 @@ module.exports = {
     boot: "app/client/boot",
     billing: "app/client/billingMain",
     form: "app/client/formMain",
+    css: cssFiles,
     // Include client test harness if it is present (it won't be in
     // docker image).
     ...(fs.existsSync("test/client-harness/client.js") ? {
@@ -74,6 +79,10 @@ module.exports = {
       { test: /\.js$/,
         use: ["source-map-loader"],
         enforce: "pre"
+      },
+      {
+        test: /\.css$/,
+        type: 'asset/resource'
       }
     ]
   },
@@ -82,6 +91,12 @@ module.exports = {
     new ProvidePlugin({
       process: 'process',
       Buffer: ['buffer', 'Buffer']
+    }),
+    new MergeIntoSingleFilePlugin({
+      files: {
+        "bundle.css": cssFiles
+      },
+      chunks: "css"
     }),
     // To strip all locales except “en”
     new MomentLocalesPlugin()
