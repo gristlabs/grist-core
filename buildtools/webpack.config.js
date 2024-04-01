@@ -21,7 +21,7 @@ module.exports = {
     boot: "app/client/boot",
     billing: "app/client/billingMain",
     form: "app/client/formMain",
-    css: cssFiles,
+    css: new Set(cssFiles),
     // Include client test harness if it is present (it won't be in
     // docker image).
     ...(fs.existsSync("test/client-harness/client.js") ? {
