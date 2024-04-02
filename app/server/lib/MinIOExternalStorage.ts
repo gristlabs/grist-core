@@ -7,7 +7,7 @@ import * as minio from 'minio';
 
 // The minio typings appear to be quite stale. Extend them here to avoid
 // lots of casts to any.
-export type MinIOClient = minio.Client & {
+type MinIOClient = minio.Client & {
   statObject(bucket: string, key: string, options: {versionId?: string}): Promise<MinIOBucketItemStat>;
   getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
   listObjects(bucket: string, key: string, recursive: boolean,
