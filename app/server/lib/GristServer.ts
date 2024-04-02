@@ -52,6 +52,7 @@ export interface GristServer {
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
   getTelemetry(): ITelemetry;
+  hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -142,6 +143,7 @@ export function createDummyGristServer(): GristServer {
     getStorageManager() { throw new Error('no storage manager'); },
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
+    hasNotifier() { return false; },
     getDocTemplate() { throw new Error('no doc template'); },
     getTag() { return 'tag'; },
     sendAppPage() { return Promise.resolve(); },

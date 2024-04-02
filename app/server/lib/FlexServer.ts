@@ -47,7 +47,7 @@ import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {INotifier} from 'app/server/lib/INotifier';
+import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
 import {getLoginSystem} from 'app/server/lib/logins';
@@ -384,7 +384,7 @@ export class FlexServer implements GristServer {
   }
 
   public hasNotifier(): boolean {
-    return Boolean(this._notifier);
+    return Boolean(this._notifier) && this._notifier !== EmptyNotifier;
   }
 
   public getNotifier(): INotifier {

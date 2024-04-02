@@ -786,6 +786,9 @@ export interface GristLoadConfig {
   canCloseAccount?: boolean;
 
   experimentalPlugins?: boolean;
+
+  // If backend has an email service for sending notifications.
+  notifierEnabled?: boolean;
 }
 
 export const Features = StringUnion(
