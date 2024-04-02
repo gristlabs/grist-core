@@ -196,13 +196,12 @@ export function hostMatchesUrl(host?: string, url?: string) {
  *
  * @param {string?} host The host to check
  */
-export function isOwnInternalUrlHost(host?: string) {
-  if (process.env.APP_HOME_INTERNAL_URL) {
-    return hostMatchesUrl(host, process.env.APP_HOME_INTERNAL_URL);
-  } else if (process.env.APP_DOC_INTERNAL_URL) {
-    return hostMatchesUrl(host, process.env.APP_DOC_INTERNAL_URL);
+function isOwnInternalUrlHost(host?: string) {
+  // Note: APP_HOME_INTERNAL_URL may also defined in doc worker as well as in Home worker
+  if (process.env.APP_HOME_INTERNAL_URL && hostMatchesUrl(host, process.env.APP_HOME_INTERNAL_URL)) {
+    return true;
   }
-  return false;
+  return Boolean(process.env.APP_DOC_INTERNAL_URL) && hostMatchesUrl(host, process.env.APP_DOC_INTERNAL_URL);
 }
 
 /**
