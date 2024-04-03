@@ -184,10 +184,6 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  * "default".
  */
 export class DocWorkerMap implements IDocWorkerMap {
-  public static get MONITOR_AVAILABILITY_INTERVAL() {
-    return 30_000;  // 30 seconds
-  }
-
   private _client: RedisClient;
   private _clients: RedisClient[];
   private _redlock: Redlock;
