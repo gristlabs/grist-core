@@ -654,7 +654,8 @@
         "Reset form": "Réinitialiser le formulaire",
         "Submit another response": "Soumettre une autre réponse",
         "Required field": "Champ obligatoire",
-        "No field selected": "Aucun champ sélectionné"
+        "No field selected": "Aucun champ sélectionné",
+        "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer."
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -690,7 +691,9 @@
         "Export XLSX": "Exporter en XLSX",
         "Send to Google Drive": "Envoyer vers Google Drive",
         "Share": "Partager",
-        "Download...": "Télécharger..."
+        "Download...": "Télécharger...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Export as...": "Exporter en tant que..."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -1211,7 +1214,8 @@
         "Support Grist": "Support Grist",
         "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opted In": "Accepté",
-        "Support Grist page": "Soutenir Grist"
+        "Support Grist page": "Soutenir Grist",
+        "Admin Panel": "Panneau d'administration"
     },
     "GridView": {
         "Click to insert": "Cliquer pour insérer"
@@ -1232,7 +1236,8 @@
         "You have opted out of telemetry.": "Vous avez choisi de ne pas envoyer de données de télémétrie.",
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Nous ne collectons que des statistiques d'usage, comme détaillé dans notre {{link}}, jamais le contenu des documents.",
         "You can opt out of telemetry at any time from this page.": "Vous pouvez vous désinscrire de la télémétrie à tout moment depuis cette page.",
-        "You have opted in to telemetry. Thank you!": "Merci de vous être inscrit à la télémétrie !"
+        "You have opted in to telemetry. Thank you!": "Merci de vous être inscrit à la télémétrie !",
+        "Sponsor": "Parrainage"
     },
     "buildViewSectionDom": {
         "No data": "Aucune donnée",
@@ -1325,7 +1330,11 @@
         "Publish": "Publier",
         "Publish your form?": "Publier votre formulaire ?",
         "Unpublish": "Dépublier",
-        "Unpublish your form?": "Dépublier votre formulaire ?"
+        "Unpublish your form?": "Dépublier votre formulaire ?",
+        "Are you sure you want to reset your form?": "Êtes-vous sûr de vouloir réinitialiser votre formulaire ?",
+        "Anyone with the link below can see the empty form and submit a response.": "Toute personne ayant accès au lien ci-dessous peut voir le formulaire vide et soumettre une réponse.",
+        "Code copied to clipboard": "Code copié dans le presse-papiers",
+        "Copy code": "Copier le code"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
