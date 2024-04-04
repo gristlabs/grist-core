@@ -402,20 +402,19 @@ describe('Comm', function() {
 
       // Intercept the call to _onClose to know when it occurs, since we are trying to hit a
       // situation where 'close' and 'failedSend' events happen in either order.
-      const stubOnClose = sandbox.stub(Client.prototype as any, '_onClose')
-        .callsFake(async function(this: Client) {
-          if (!options.closeHappensFirst) { await delay(10); }
+      const stubOnClose: any = sandbox.stub(Client.prototype as any, '_onClose')
+        .callsFake(function(this: Client) {
           eventsSeen.push('close');
-          return (stubOnClose as any).wrappedMethod.apply(this, arguments);
+          return stubOnClose.wrappedMethod.apply(this, arguments);
         });
 
       // Intercept calls to client.sendMessage(), to know when it fails, and possibly to delay the
       // failures to hit a particular order in which 'close' and 'failedSend' events are seen by
       // Client.ts. This is the only reliable way I found to reproduce this order of events.
-      const stubSendToWebsocket = sandbox.stub(Client.prototype as any, '_sendToWebsocket')
+      const stubSendToWebsocket: any = sandbox.stub(Client.prototype as any, '_sendToWebsocket')
         .callsFake(async function(this: Client) {
           try {
-            return await (stubSendToWebsocket as any).wrappedMethod.apply(this, arguments);
+            return await stubSendToWebsocket.wrappedMethod.apply(this, arguments);
           } catch (err) {
             if (options.closeHappensFirst) { await delay(100); }
             eventsSeen.push('failedSend');

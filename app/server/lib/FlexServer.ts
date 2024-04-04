@@ -445,7 +445,8 @@ export class FlexServer implements GristServer {
     // /status/hooks allows the tests to wait for them to be ready.
     // If db=1 query parameter is included, status will include the status of DB connection.
     // If redis=1 query parameter is included, status will include the status of the Redis connection.
-    // If ready=1 query parameter is included, status will include whether the server is fully ready.
+    // If docWorkerRegistered=1 query parameter is included, status will include the status of the
+    // doc worker registration in Redis.
     this.app.get('/status(/hooks)?', async (req, res) => {
       const checks = new Map<string, Promise<boolean>|boolean>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
@@ -466,6 +467,15 @@ export class FlexServer implements GristServer {
       }
       if (isParameterOn(req.query.redis)) {
         checks.set('redis', asyncCheck(this._docWorkerMap.getRedisClient()?.pingAsync()));
+      }
+      if (isParameterOn(req.query.docWorkerRegistered) && this.worker) {
+        // Only check whether the doc worker is registered if we have a worker.
+        // The Redis client may not be connected, but in this case this has to
+        // be checked with the 'redis' parameter (the user may want to avoid
+        // removing workers when connection is unstable).
+        if (this._docWorkerMap.getRedisClient()?.connected) {
+          checks.set('docWorkerRegistered', asyncCheck(this._docWorkerMap.isWorkerRegistered(this.worker)));
+        }
       }
       if (isParameterOn(req.query.ready)) {
         checks.set('ready', this._isReady);
