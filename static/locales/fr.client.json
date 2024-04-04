@@ -665,7 +665,8 @@
         "Duplicate rows_other": "Dupliquer les lignes",
         "Delete": "Supprimer",
         "Copy anchor link": "Copier l'ancre",
-        "View as card": "Voir en carte"
+        "View as card": "Voir en carte",
+        "Use as table headers": "Utiliser en tant qu'en-têtes de table"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copié dans le presse-papier"
