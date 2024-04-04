@@ -1,6 +1,7 @@
 import {AppModel} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {getAdminPanelName} from 'app/client/ui/AdminPanel';
 import {manageTeamUsers} from 'app/client/ui/OpenUserManager';
 import {createUserImage} from 'app/client/ui/UserImage';
 import * as viewport from 'app/client/ui/viewport';
@@ -146,8 +147,8 @@ export class AccountWidget extends Disposable {
 
       this._maybeBuildBillingPageMenuItem(),
       this._maybeBuildActivationPageMenuItem(),
-      this._maybeBuildSupportGristPageMenuItem(),
-
+      this._maybeBuildAdminPanelMenuItem(),
+      this._maybeBuildSupportGristButton(),
       mobileModeToggle,
 
       // TODO Add section ("Here right now") listing icons of other users currently on this doc.
@@ -209,26 +210,34 @@ export class AccountWidget extends Disposable {
   }
 
   private _maybeBuildActivationPageMenuItem() {
-    const {activation, deploymentType} = getGristConfig();
-    if (deploymentType !== 'enterprise' || !activation?.isManager) {
+    const {deploymentType} = getGristConfig();
+    if (deploymentType !== 'enterprise' || !this._appModel.isInstallAdmin()) {
       return null;
     }
 
     return menuItemLink(t('Activation'), urlState().setLinkUrl({activation: 'activation'}));
   }
 
-  private _maybeBuildSupportGristPageMenuItem() {
-    const {deploymentType} = getGristConfig();
-    if (deploymentType !== 'core') {
-      return null;
+  private _maybeBuildAdminPanelMenuItem() {
+    // Only show Admin Panel item to the installation admins.
+    if (this._appModel.currentUser?.isInstallAdmin) {
+      return menuItemLink(
+        getAdminPanelName(),
+        urlState().setLinkUrl({adminPanel: 'admin'}),
+        testId('usermenu-admin-panel'),
+      );
     }
+  }
 
-    return menuItemLink(
-      t('Support Grist'),
-      cssHeartIcon('💛'),
-      urlState().setLinkUrl({supportGrist: 'support'}),
-      testId('usermenu-support-grist'),
-    );
+  private _maybeBuildSupportGristButton() {
+    const {deploymentType} = getGristConfig();
+    const isEnabled = (deploymentType === 'core') && isFeatureEnabled("supportGrist");
+    if (isEnabled) {
+      return menuItemLink(t('Support Grist'), ' 💛',
+        {href: commonUrls.githubSponsorGristLabs, target: '_blank'},
+        testId('usermenu-support-grist'),
+      );
+    }
   }
 }
 
@@ -243,10 +252,6 @@ export const cssUserIcon = styled('div', `
   width: 48px;
   padding: 8px;
   cursor: pointer;
-`);
-
-const cssHeartIcon = styled('span', `
-  margin-left: 8px;
 `);
 
 const cssUserInfo = styled('div', `

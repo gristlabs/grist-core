@@ -6,6 +6,7 @@ import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
 import {INotifier} from 'app/server/lib/INotifier';
+import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
@@ -27,6 +28,9 @@ export interface ICreate {
   ExternalStorage(purpose: 'doc' | 'meta', testExtraPrefix: string): ExternalStorage | undefined;
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
+
+  // Create the logic to determine which users are authorized to manage this Grist installation.
+  createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin>;
 
   deploymentType(): GristDeploymentType;
   sessionSecret(): string;
@@ -80,6 +84,7 @@ export function makeSimpleCreator(opts: {
   getExtraHeadHtml?: () => string,
   getSqliteVariant?: () => SqliteVariant,
   getSandboxVariants?: () => Record<string, SpawnFn>,
+  createInstallAdmin?: (dbManager: HomeDBManager) => Promise<InstallAdmin>,
 }): ICreate {
   const {deploymentType, sessionSecret, storage, notifier, billing, telemetry} = opts;
   return {
@@ -157,5 +162,6 @@ export function makeSimpleCreator(opts: {
     },
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
+    createInstallAdmin: opts.createInstallAdmin || (async () => new SimpleInstallAdmin()),
   };
 }

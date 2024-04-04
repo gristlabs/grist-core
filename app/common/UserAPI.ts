@@ -243,8 +243,13 @@ export function getUserRoleText(user: UserAccessData) {
   return roleNames[user.access!] || user.access || 'no access';
 }
 
+export interface ExtendedUser extends FullUser {
+  helpScoutSignature?: string;
+  isInstallAdmin?: boolean;     // Set if user is allowed to manage this installation.
+}
+
 export interface ActiveSessionInfo {
-  user: FullUser & {helpScoutSignature?: string};
+  user: ExtendedUser;
   org: Organization|null;
   orgError?: OrgError;
 }

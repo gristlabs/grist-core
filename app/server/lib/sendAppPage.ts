@@ -82,7 +82,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
         ((server?.getBundledWidgets().length || 0) > 0),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
-    activation: getActivation(req as RequestWithLogin | undefined),
+    activation: (req as RequestWithLogin|undefined)?.activation,
     enableCustomCss: isAffirmative(process.env.APP_STATIC_INCLUDE_CUSTOM_CSS),
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
@@ -305,12 +305,4 @@ function getDocFromConfig(config: GristLoadConfig): Document | null {
   if (!config.getDoc || !config.assignmentId) { return null; }
 
   return config.getDoc[config.assignmentId] ?? null;
-}
-
-function getActivation(mreq: RequestWithLogin|undefined) {
-  const defaultEmail = process.env.GRIST_DEFAULT_EMAIL;
-  return {
-    ...mreq?.activation,
-    isManager: Boolean(defaultEmail && defaultEmail === mreq?.user?.loginEmail),
-  };
 }

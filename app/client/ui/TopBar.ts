@@ -28,7 +28,6 @@ export function createTopBarHome(appModel: AppModel) {
 
   return [
     cssFlexSpace(),
-    appModel.supportGristNudge.showButton(),
     (appModel.isTeamSite && roles.canEditAccess(appModel.currentOrg?.access || null) ?
       [
         basicButton(
@@ -40,6 +39,8 @@ export function createTopBarHome(appModel: AppModel) {
       ] :
       null
     ),
+
+    appModel.supportGristNudge.buildTopBarButton(),
 
     buildLanguageMenu(appModel),
     isAnonymous ? null : buildNotifyMenuButton(appModel.notifier, appModel),

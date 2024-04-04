@@ -613,7 +613,9 @@
         "Enter text": "Vnesi besedilo",
         "Redirect automatically after submission": "Po oddaji samodejno preusmeri",
         "Enter redirect URL": "Vnesi preusmeritveni URL",
-        "Submit button label": "Oznaka gumba za pošiljanje"
+        "Submit button label": "Oznaka gumba za pošiljanje",
+        "Select a field in the form widget to configure.": "Izberi polje v gradniku obrazca, ki ga želiš konfigurirati.",
+        "No field selected": "Nobeno polje ni izbrano"
     },
     "FloatingPopup": {
         "Maximize": "Povečajte",
@@ -898,7 +900,12 @@
         "Unsaved": "Neshranjeno",
         "Save Document": "Shrani dokument",
         "Save Copy": "Shrani kopijo",
-        "Return to {{termToUse}}": "Vrnitev na {{termToUse}}"
+        "Return to {{termToUse}}": "Vrnitev na {{termToUse}}",
+        "Export as...": "Izvozi kot ...",
+        "Comma Separated Values (.csv)": "Vrednosti, ločene z vejicami (.csv)",
+        "DOO Separated Values (.dsv)": "DOO ločene vrednosti (.dsv)",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Vrednosti, ločene s tabulatorji (.tsv)"
     },
     "NotifyUI": {
         "Go to your free personal site": "Pojdite na brezplačno osebno spletno mesto",
@@ -1318,7 +1325,21 @@
         "Publish": "Objavi",
         "Unpublish your form?": "Želiš preklicati objavo obrazca?",
         "Publish your form?": "Želiš objaviti obrazec?",
-        "Unpublish": "Prekliči objavo"
+        "Unpublish": "Prekliči objavo",
+        "Link copied to clipboard": "Povezava je bila kopirana v odložišče",
+        "Preview": "Predogled",
+        "Reset": "Ponastaviti",
+        "Save your document to publish this form.": "Shrani dokument, da objaviš ta obrazec.",
+        "Share this form": "Deli ta dokument",
+        "View": "Pogled",
+        "Anyone with the link below can see the empty form and submit a response.": "Vsakdo s spodnjo povezavo si lahko ogleda prazen obrazec in odda odgovor.",
+        "Are you sure you want to reset your form?": "Ali si prepričan, da želiš ponastaviti obrazec?",
+        "Code copied to clipboard": "Koda je bila kopirana v odložišče",
+        "Copy code": "Kopiraj kodo",
+        "Copy link": "Kopiraj povezavo",
+        "Embed this form": "Vdelaj ta obrazec",
+        "Reset form": "Ponastavi obrazec",
+        "Share": "Deli"
     },
     "Menu": {
         "Building blocks": "Gradniki",
@@ -1388,5 +1409,17 @@
         "This week": "Ta teden",
         "This year": "To leto",
         "Today": "Danes"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Počisti",
+        "Unmapped": "Nepreslikan",
+        "Map fields": "Preslikaj polja",
+        "Mapped": "Preslikan",
+        "Select All": "Izberi vse",
+        "Unmap fields": "Nepreslikana polja"
+    },
+    "Section": {
+        "Insert section above": "Vstavi razdelek zgoraj",
+        "Insert section below": "Vstavite razdelek spodaj"
     }
 }

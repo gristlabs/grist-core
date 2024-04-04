@@ -31,7 +31,8 @@ if (!process.env.GRIST_SINGLE_ORG) {
   setDefaultEnv('GRIST_ORG_IN_PATH', 'true');
 }
 
-setDefaultEnv('GRIST_UI_FEATURES', 'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite');
+setDefaultEnv('GRIST_UI_FEATURES',
+  'helpCenter,billing,templates,multiSite,multiAccounts,sendToDrive,createSite,supportGrist');
 setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
 import {main as mergedServerMain, parseServerTypes} from 'app/server/mergedServerMain';

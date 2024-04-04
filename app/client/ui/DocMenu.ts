@@ -180,7 +180,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
         // manage card popups will be needed if more are added later.
         return [
           upgradeButton.showUpgradeCard(css.upgradeCard.cls('')),
-          home.app.supportGristNudge.showCard(),
+          home.app.supportGristNudge.buildNudgeCard(),
         ];
       }),
   ));

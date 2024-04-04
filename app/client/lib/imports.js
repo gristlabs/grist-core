@@ -9,7 +9,7 @@
 exports.loadAccountPage = () => import('app/client/ui/AccountPage' /* webpackChunkName: "AccountPage" */);
 exports.loadActivationPage = () => import('app/client/ui/ActivationPage' /* webpackChunkName: "ActivationPage" */);
 exports.loadBillingPage = () => import('app/client/ui/BillingPage' /* webpackChunkName: "BillingModule" */);
-exports.loadSupportGristPage = () => import('app/client/ui/SupportGristPage' /* webpackChunkName: "SupportGristPage" */);
+exports.loadAdminPanel = () => import('app/client/ui/AdminPanel' /* webpackChunkName: "AdminPanel" */);
 exports.loadGristDoc = () => import('app/client/components/GristDoc' /* webpackChunkName: "GristDoc" */);
 // When importing this way, the module is under the "default" member, not sure why (maybe
 // esbuild-loader's doing).

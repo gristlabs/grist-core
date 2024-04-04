@@ -25,8 +25,9 @@ import {getDefaultThemePrefs, Theme, ThemeColors, ThemePrefs,
         ThemePrefsChecker} from 'app/common/ThemePrefs';
 import {getThemeColors} from 'app/common/Themes';
 import {getGristConfig} from 'app/common/urlUtils';
+import {ExtendedUser} from 'app/common/UserAPI';
 import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
-import {getUserPrefObs, getUserPrefsObs, markAsSeen, markAsUnSeen} from 'app/client/models/UserPrefs';
+import {getUserPrefObs, getUserPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
 
 const t = makeT('AppModel');
@@ -40,7 +41,7 @@ export type PageType =
   | "billing"
   | "welcome"
   | "account"
-  | "support"
+  | "admin"
   | "activation";
 
 const G = getBrowserGlobals('document', 'window');
@@ -99,8 +100,8 @@ export interface AppModel {
   topAppModel: TopAppModel;
   api: UserAPI;
 
-  currentUser: FullUser|null;
-  currentValidUser: FullUser|null;      // Like currentUser, but null when anonymous
+  currentUser: ExtendedUser|null;
+  currentValidUser: ExtendedUser|null;      // Like currentUser, but null when anonymous
 
   currentOrg: Organization|null;        // null if no access to currentSubdomain
   currentOrgName: string;               // Our best guess for human-friendly name.
@@ -141,8 +142,8 @@ export interface AppModel {
   isSupport(): boolean;                 // If user is a Support user
   isOwner(): boolean;                   // If user is an owner of this org
   isOwnerOrEditor(): boolean;           // If user is an owner or editor of this org
-  /** Creates an computed observable to dismiss a popup or check if it was dismissed */
-  dismissedPopup(name: DismissedPopup): Observable<boolean>;
+  isInstallAdmin(): boolean;            // Is user an admin of this installation
+  dismissPopup(name: DismissedPopup, isSeen: boolean): void;  // Mark popup as dismissed or not.
   switchUser(user: FullUser, org?: string): Promise<void>;
 }
 
@@ -283,7 +284,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly api: UserAPI = this.topAppModel.api;
 
   // Compute currentValidUser, turning anonymous into null.
-  public readonly currentValidUser: FullUser|null =
+  public readonly currentValidUser: ExtendedUser|null =
     this.currentUser && !this.currentUser.anonymous ? this.currentUser : null;
 
   // Figure out the org name, or blank if details are unavailable.
@@ -324,8 +325,8 @@ export class AppModelImpl extends Disposable implements AppModel {
         return 'welcome';
       } else if (state.account) {
         return 'account';
-      } else if (state.supportGrist) {
-        return 'support';
+      } else if (state.adminPanel) {
+        return 'admin';
       } else if (state.activation) {
         return 'activation';
       } else {
@@ -340,7 +341,7 @@ export class AppModelImpl extends Disposable implements AppModel {
         state.billing === 'scheduled' ||
         Boolean(state.account) ||
         Boolean(state.activation) ||
-        Boolean(state.supportGrist)
+        Boolean(state.adminPanel)
       );
     });
 
@@ -353,7 +354,7 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   constructor(
     public readonly topAppModel: TopAppModel,
-    public readonly currentUser: FullUser|null,
+    public readonly currentUser: ExtendedUser|null,
     public readonly currentOrg: Organization|null,
     public readonly orgError?: OrgError,
   ) {
@@ -419,6 +420,10 @@ export class AppModelImpl extends Disposable implements AppModel {
     return Boolean(this.currentOrg && isOwnerOrEditor(this.currentOrg));
   }
 
+  public isInstallAdmin(): boolean {
+    return Boolean(this.currentUser?.isInstallAdmin);
+  }
+
   /**
    * Fetch and update the current org's usage.
    */
@@ -435,16 +440,8 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
   }
 
-  public dismissedPopup(name: DismissedPopup): Computed<boolean> {
-    const computed = Computed.create(null, use => use(this.dismissedPopups).includes(name));
-    computed.onWrite(value => {
-      if (value) {
-        markAsSeen(this.dismissedPopups, name);
-      } else {
-        markAsUnSeen(this.dismissedPopups, name);
-      }
-    });
-    return computed;
+  public dismissPopup(name: DismissedPopup, isSeen: boolean): void {
+    markAsSeen(this.dismissedPopups, name, isSeen);
   }
 
   public async switchUser(user: FullUser, org?: string) {

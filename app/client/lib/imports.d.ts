@@ -1,7 +1,7 @@
 import * as AccountPageModule from 'app/client/ui/AccountPage';
 import * as ActivationPageModule from 'app/client/ui/ActivationPage';
 import * as BillingPageModule from 'app/client/ui/BillingPage';
-import * as SupportGristPageModule from 'app/client/ui/SupportGristPage';
+import * as AdminPanelModule from 'app/client/ui/AdminPanel';
 import * as GristDocModule from 'app/client/components/GristDoc';
 import * as ViewPane from 'app/client/components/ViewPane';
 import * as UserManagerModule from 'app/client/ui/UserManager';
@@ -15,7 +15,7 @@ export type MomentTimezone = typeof momentTimezone;
 export function loadAccountPage(): Promise<typeof AccountPageModule>;
 export function loadActivationPage(): Promise<typeof ActivationPageModule>;
 export function loadBillingPage(): Promise<typeof BillingPageModule>;
-export function loadSupportGristPage(): Promise<typeof SupportGristPageModule>;
+export function loadAdminPanel(): Promise<typeof AdminPanelModule>;
 export function loadGristDoc(): Promise<typeof GristDocModule>;
 export function loadMomentTimezone(): Promise<MomentTimezone>;
 export function loadPlotly(): Promise<PlotlyType>;

@@ -15,13 +15,11 @@ export function buildTutorialCard(owner: IDisposableOwner, options: Options) {
   if (!isFeatureEnabled('tutorials')) { return null; }
 
   const {app} = options;
-  const dismissed = app.dismissedPopup('tutorialFirstCard');
-  owner.autoDispose(dismissed);
   function onClose() {
-    dismissed.set(true);
+    app.dismissPopup('tutorialFirstCard', true);
   }
   const visible = Computed.create(owner, (use) =>
-       !use(dismissed)
+       !use(app.dismissedPopups).includes('tutorialFirstCard')
     && !use(isNarrowScreenObs())
   );
   return dom.maybe(visible, () => {

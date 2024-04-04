@@ -4,11 +4,11 @@ import {assert} from 'chai';
 import * as http from 'http';
 import {AddressInfo} from 'net';
 import * as sinon from 'sinon';
-import WebSocket from 'ws';
 import * as path from 'path';
 import * as tmp from 'tmp';
 
 import {GristWSConnection, GristWSSettings} from 'app/client/components/GristWSConnection';
+import {GristClientSocket, GristClientSocketOptions} from 'app/client/components/GristClientSocket';
 import {Comm as ClientComm} from 'app/client/components/Comm';
 import * as log from 'app/client/lib/log';
 import {Comm} from 'app/server/lib/Comm';
@@ -21,9 +21,27 @@ import {Sessions} from 'app/server/lib/Sessions';
 import {TcpForwarder} from 'test/server/tcpForwarder';
 import * as testUtils from 'test/server/testUtils';
 import * as session from '@gristlabs/express-session';
+import { Hosts, RequestOrgInfo } from 'app/server/lib/extractOrg';
 
 const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
 promisifyAll(SQLiteStore.prototype);
+
+
+// Just enough implementation of Hosts to be able to fake using a custom host.
+class FakeHosts {
+
+  public isCustomHost = false;
+
+  public get asHosts() { return this as unknown as Hosts; }
+
+  public async addOrgInfo<T extends http.IncomingMessage>(req: T): Promise<T & RequestOrgInfo> {
+    return Object.assign(req, {
+      isCustomHost: this.isCustomHost,
+      org: "example",
+      url: req.url!
+    });
+  }
+}
 
 describe('Comm', function() {
 
@@ -34,6 +52,7 @@ describe('Comm', function() {
 
   let server: http.Server;
   let sessions: Sessions;
+  let fakeHosts: FakeHosts;
   let comm: Comm|null = null;
   const sandbox = sinon.createSandbox();
 
@@ -51,14 +70,19 @@ describe('Comm', function() {
 
   function startComm(methods: {[name: string]: ClientMethod}) {
     server = http.createServer();
-    comm = new Comm(server, {sessions});
+    fakeHosts = new FakeHosts();
+    comm = new Comm(server, {sessions, hosts: fakeHosts.asHosts});
     comm.registerMethods(methods);
     return listenPromise(server.listen(0, 'localhost'));
   }
 
   async function stopComm() {
     comm?.destroyAllClients();
-    return fromCallback(cb => server.close(cb));
+    await comm?.testServerShutdown();
+    await fromCallback(cb => {
+      server.close(cb);
+      server.closeAllConnections();
+    });
   }
 
   const assortedMethods: {[name: string]: ClientMethod} = {
@@ -95,34 +119,43 @@ describe('Comm', function() {
     sandbox.restore();
   });
 
-  function getMessages(ws: WebSocket, count: number): Promise<any[]> {
+  function getMessages(ws: GristClientSocket, count: number): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const messages: object[] = [];
-      ws.on('error', reject);
-      ws.on('message', (msg: string) => {
-        messages.push(JSON.parse(msg));
+      ws.onerror = (err) => {
+        ws.onmessage = null;
+        reject(err);
+      };
+      ws.onmessage = (data: string) => {
+        messages.push(JSON.parse(data));
         if (messages.length >= count) {
+          ws.onerror = null;
+          ws.onmessage = null;
           resolve(messages);
-          ws.removeListener('error', reject);
-          ws.removeAllListeners('message');
         }
-      });
+      };
     });
   }
 
   /**
    * Returns a promise for the connected websocket.
    */
-  function connect() {
-    const ws = new WebSocket('ws://localhost:' + (server.address() as AddressInfo).port);
-    return new Promise<WebSocket>((resolve, reject) => {
-      ws.on('open', () => resolve(ws));
-      ws.on('error', reject);
+  function connect(options?: GristClientSocketOptions): Promise<GristClientSocket> {
+    const ws = new GristClientSocket('ws://localhost:' + (server.address() as AddressInfo).port, options);
+    return new Promise<GristClientSocket>((resolve, reject) => {
+      ws.onopen = () => {
+        ws.onerror = null;
+        resolve(ws);
+      };
+      ws.onerror = (err) => {
+        ws.onopen = null;
+        reject(err);
+      };
     });
   }
 
   describe("server methods", function() {
-    let ws: WebSocket;
+    let ws: GristClientSocket;
     beforeEach(async function() {
       await startComm(assortedMethods);
       ws = await connect();
@@ -370,7 +403,8 @@ describe('Comm', function() {
       // Intercept the call to _onClose to know when it occurs, since we are trying to hit a
       // situation where 'close' and 'failedSend' events happen in either order.
       const stubOnClose = sandbox.stub(Client.prototype as any, '_onClose')
-        .callsFake(function(this: Client) {
+        .callsFake(async function(this: Client) {
+          if (!options.closeHappensFirst) { await delay(10); }
           eventsSeen.push('close');
           return (stubOnClose as any).wrappedMethod.apply(this, arguments);
         });
@@ -462,6 +496,9 @@ describe('Comm', function() {
         if (options.useSmallMsgs) {
           assert.deepEqual(eventsSeen, ['close']);
         } else {
+          // Make sure to have waited long enough for the 'close' event we may have delayed
+          await delay(20);
+
           // Large messages now cause a send to fail, after filling up buffer, and close the socket.
           assert.deepEqual(eventsSeen, ['close', 'close']);
         }
@@ -490,17 +527,54 @@ describe('Comm', function() {
       assert.deepEqual(eventSpy.getCalls().map(call => call.args[0].n), [n - 1]);
     }
   });
+
+  describe("Allowed Origin", function() {
+    beforeEach(async function () {
+      await startComm(assortedMethods);
+    });
+
+    afterEach(async function() {
+      await stopComm();
+    });
+
+    async function checkOrigin(headers: { origin: string, host: string }, allowed: boolean) {
+      const promise = connect({ headers });
+      if (allowed) {
+        await assert.isFulfilled(promise, `${headers.host} should allow ${headers.origin}`);
+      } else {
+        await assert.isRejected(promise, /.*/, `${headers.host} should reject ${headers.origin}`);
+      }
+    }
+
+    it('origin should match base domain of host', async () => {
+      await checkOrigin({origin: "https://www.toto.com", host: "worker.example.com"}, false);
+      await checkOrigin({origin: "https://badexample.com", host: "worker.example.com"}, false);
+      await checkOrigin({origin: "https://bad.com/example.com", host: "worker.example.com"}, false);
+      await checkOrigin({origin: "https://front.example.com", host: "worker.example.com"}, true);
+      await checkOrigin({origin: "https://front.example.com:3000", host: "worker.example.com"}, true);
+      await checkOrigin({origin: "https://example.com", host: "example.com"}, true);
+    });
+
+    it('with custom domains, origin should match the full hostname', async () => {
+      fakeHosts.isCustomHost = true;
+
+      // For a request to a custom domain, the full hostname must match.
+      await checkOrigin({origin: "https://front.example.com", host: "worker.example.com"}, false);
+      await checkOrigin({origin: "https://front.example.com", host: "front.example.com"}, true);
+      await checkOrigin({origin: "https://front.example.com:3000", host: "front.example.com"}, true);
+    });
+  });
 });
 
 // Waits for condFunc() to return true, for up to timeoutMs milliseconds, sleeping for stepMs
-// between checks. Returns true if succeeded, false if failed.
-async function waitForCondition(condFunc: () => boolean, timeoutMs = 1000, stepMs = 10): Promise<boolean> {
+// between checks. Returns if succeeded, throws if failed.
+async function waitForCondition(condFunc: () => boolean, timeoutMs = 1000, stepMs = 10): Promise<void> {
   const end = Date.now() + timeoutMs;
   while (Date.now() < end) {
-    if (condFunc()) { return true; }
+    if (condFunc()) { return; }
     await delay(stepMs);
   }
-  return false;
+  throw new Error(`Condition not met after ${timeoutMs}ms: ${condFunc.toString()}`);
 }
 
 // Returns a range of count consecutive numbers starting with start.
@@ -513,7 +587,7 @@ function getWSSettings(docWorkerUrl: string): GristWSSettings {
   let clientId: string = 'clientid-abc';
   let counter: number = 0;
   return {
-    makeWebSocket(url: string): any { return new WebSocket(url, undefined, {}); },
+    makeWebSocket(url: string): any { return new GristClientSocket(url); },
     async getTimezone()         { return 'UTC'; },
     getPageUrl()                { return "http://localhost"; },
     async getDocWorkerUrl()     { return docWorkerUrl; },

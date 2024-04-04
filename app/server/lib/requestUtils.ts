@@ -2,13 +2,15 @@ import {ApiError} from 'app/common/ApiError';
 import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
-import {getUser, getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
+import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {RequestWithGrist} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
+import { IncomingMessage } from 'http';
 import {Writable} from 'stream';
+import { TLSSocket } from 'tls';
 
 // log api details outside of dev environment (when GRIST_HOSTED_VERSION is set)
 const shouldLogApiDetails = Boolean(process.env.GRIST_HOSTED_VERSION);
@@ -75,33 +77,33 @@ export function getOrgUrl(req: Request, path: string = '/') {
 }
 
 /**
- * Returns true for requests from permitted origins.  For such requests, an
- * "Access-Control-Allow-Origin" header is added to the response.  Vary: Origin
- * is also set to reflect the fact that the headers are a function of the origin,
- * to prevent inappropriate caching on the browser's side.
+ * Returns true for requests from permitted origins.  For such requests, if
+ * a Response object is provided, an "Access-Control-Allow-Origin" header is added
+ * to the response.  Vary: Origin is also set to reflect the fact that the headers
+ * are a function of the origin, to prevent inappropriate caching on the browser's side.
  */
-export function trustOrigin(req: Request, resp: Response): boolean {
+export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   // TODO: We may want to consider changing allowed origin values in the future.
   // Note that the request origin is undefined for non-CORS requests.
-  const origin = req.get('origin');
+  const origin = req.headers.origin;
   if (!origin) { return true; } // Not a CORS request.
-  if (process.env.GRIST_HOST && req.hostname === process.env.GRIST_HOST) { return true; }
   if (!allowHost(req, new URL(origin))) { return false; }
 
-  // For a request to a custom domain, the full hostname must match.
-  resp.header("Access-Control-Allow-Origin", origin);
-  resp.header("Vary", "Origin");
+  if (resp) {
+    // For a request to a custom domain, the full hostname must match.
+    resp.header("Access-Control-Allow-Origin", origin);
+    resp.header("Vary", "Origin");
+  }
   return true;
 }
 
 // Returns whether req satisfies the given allowedHost. Unless req is to a custom domain, it is
 // enough if only the base domains match. Differing ports are allowed, which helps in dev/testing.
-export function allowHost(req: Request, allowedHost: string|URL) {
-  const mreq = req as RequestWithOrg;
+export function allowHost(req: IncomingMessage, allowedHost: string|URL) {
   const proto = getEndUserProtocol(req);
   const actualUrl = new URL(getOriginUrl(req));
   const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
-  if (mreq.isCustomHost) {
+  if ((req as RequestWithOrg).isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
     return actualUrl.hostname === allowedUrl.hostname;
   } else {
@@ -330,8 +332,8 @@ export interface RequestWithGristInfo extends Request {
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
  * https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
  */
-export function getOriginUrl(req: Request) {
-  const host = req.get('host')!;
+export function getOriginUrl(req: IncomingMessage) {
+  const host = req.headers.host;
   const protocol = getEndUserProtocol(req);
   return `${protocol}://${host}`;
 }
@@ -342,11 +344,13 @@ export function getOriginUrl(req: Request) {
  * otherwise X-Forwarded-Proto is set on the provided request, otherwise
  * the protocol of the request itself.
  */
-export function getEndUserProtocol(req: Request) {
+export function getEndUserProtocol(req: IncomingMessage) {
   if (process.env.APP_HOME_URL) {
     return new URL(process.env.APP_HOME_URL).protocol.replace(':', '');
   }
-  return req.get("X-Forwarded-Proto") || req.protocol;
+  // TODO we shouldn't blindly trust X-Forwarded-Proto. See the Express approach:
+  // https://expressjs.com/en/5x/api.html#trust.proxy.options.table
+  return req.headers["x-forwarded-proto"] || ((req.socket as TLSSocket).encrypted ? 'https' : 'http');
 }
 
 /**
@@ -376,10 +380,4 @@ export function addAbortHandler(req: Request, res: Writable, op: () => void) {
       op();
     }
   });
-}
-
-export function isDefaultUser(req: Request) {
-  const defaultEmail = process.env.GRIST_DEFAULT_EMAIL;
-  const {loginEmail} = getUser(req);
-  return defaultEmail && defaultEmail === loginEmail;
 }

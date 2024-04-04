@@ -48,6 +48,7 @@ import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {INotifier} from 'app/server/lib/INotifier';
+import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
 import {getLoginSystem} from 'app/server/lib/logins';
 import {IPermitStore} from 'app/server/lib/Permit';
@@ -55,7 +56,7 @@ import {getAppPathTo, getAppRoot, getUnpackedAppRoot} from 'app/server/lib/place
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
-import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isDefaultUser, isParameterOn, optIntegerParam,
+import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, sendOkReply, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
         trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions, makeGristConfig, makeMessagePage, makeSendAppPage} from 'app/server/lib/sendAppPage';
@@ -133,6 +134,7 @@ export class FlexServer implements GristServer {
   private _servesPlugins?: boolean;
   private _bundledWidgets?: ICustomWidget[];
   private _billing: IBilling;
+  private _installAdmin: InstallAdmin;
   private _instanceRoot: string;
   private _docManager: DocManager;
   private _docWorker: DocWorker;
@@ -388,6 +390,11 @@ export class FlexServer implements GristServer {
   public getNotifier(): INotifier {
     if (!this._notifier) { throw new Error('no notifier available'); }
     return this._notifier;
+  }
+
+  public getInstallAdmin(): InstallAdmin {
+    if (!this._installAdmin) { throw new Error('no InstallAdmin available'); }
+    return this._installAdmin;
   }
 
   public getAccessTokens() {
@@ -725,6 +732,7 @@ export class FlexServer implements GristServer {
     // If the installation appears to be new, give it an id and a creation date.
     this._activations = new Activations(this._dbManager);
     await this._activations.current();
+    this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
 
   public addDocWorkerMap() {
@@ -864,11 +872,6 @@ export class FlexServer implements GristServer {
 
     this._telemetry = this.create.Telemetry(this._dbManager, this);
     this._telemetry.addEndpoints(this.app);
-    this._telemetry.addPages(this.app, [
-      this._redirectToHostMiddleware,
-      this._userIdMiddleware,
-      this._redirectToLoginWithoutExceptionsMiddleware,
-    ]);
     await this._telemetry.start();
 
     // Start up a monitor for memory and cpu usage.
@@ -1787,15 +1790,23 @@ export class FlexServer implements GristServer {
   public addInstallEndpoints() {
     if (this._check('install')) { return; }
 
-    const isManager = expressWrap(
-      (req: express.Request, _res: express.Response, next: express.NextFunction) => {
-        if (!isDefaultUser(req)) { throw new ApiError('Access denied', 403); }
+    const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-        next();
-      }
-    );
+    const adminPageMiddleware = [
+      this._redirectToHostMiddleware,
+      this._userIdMiddleware,
+      this._redirectToLoginWithoutExceptionsMiddleware,
+      // In principle, it may be safe to show the Admin Panel to non-admins but let's protect it
+      // since it's intended for admins, and it's easier not to have to worry how it should behave
+      // for others.
+      requireInstallAdmin,
+    ];
+    this.app.get('/admin', ...adminPageMiddleware, expressWrap(async (req, resp) => {
+      return this.sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
+    }));
 
-    this.app.get('/api/install/prefs', expressWrap(async (_req, resp) => {
+    // Restrict this endpoint to install admins too, for the same reason as the /admin page.
+    this.app.get('/api/install/prefs', requireInstallAdmin, expressWrap(async (_req, resp) => {
       const activation = await this._activations.current();
 
       return sendOkReply(null, resp, {
@@ -1803,7 +1814,7 @@ export class FlexServer implements GristServer {
       });
     }));
 
-    this.app.patch('/api/install/prefs', isManager, expressWrap(async (req, resp) => {
+    this.app.patch('/api/install/prefs', requireInstallAdmin, expressWrap(async (req, resp) => {
       const props = {prefs: req.body};
       const activation = await this._activations.current();
       activation.checkProperties(props);

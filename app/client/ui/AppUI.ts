@@ -1,7 +1,7 @@
 import {buildDocumentBanners, buildHomeBanners} from 'app/client/components/Banners';
 import {ViewAsBanner} from 'app/client/components/ViewAsBanner';
 import {domAsync} from 'app/client/lib/domAsync';
-import {loadAccountPage, loadActivationPage, loadBillingPage, loadSupportGristPage} from 'app/client/lib/imports';
+import {loadAccountPage, loadActivationPage, loadAdminPanel, loadBillingPage} from 'app/client/lib/imports';
 import {createSessionObs, isBoolean, isNumber} from 'app/client/lib/sessionObs';
 import {AppModel, TopAppModel} from 'app/client/models/AppModel';
 import {DocPageModelImpl} from 'app/client/models/DocPageModel';
@@ -81,8 +81,8 @@ function createMainPage(appModel: AppModel, appObj: App) {
       return dom.create(WelcomePage, appModel);
     } else if (pageType === 'account') {
       return domAsync(loadAccountPage().then(ap => dom.create(ap.AccountPage, appModel)));
-    } else if (pageType === 'support') {
-      return domAsync(loadSupportGristPage().then(sgp => dom.create(sgp.SupportGristPage, appModel)));
+    } else if (pageType === 'admin') {
+      return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel)));
     } else if (pageType === 'activation') {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.ActivationPage, appModel)));
     } else {

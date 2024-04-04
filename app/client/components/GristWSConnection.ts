@@ -9,6 +9,7 @@ import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
 import {UserAPI} from 'app/common/UserAPI';
 import {Events as BackboneEvents} from 'backbone';
 import {Disposable} from 'grainjs';
+import {GristClientSocket} from './GristClientSocket';
 
 const G = getBrowserGlobals('window');
 const reconnectInterval = [1000, 1000, 2000, 5000, 10000];
@@ -37,7 +38,7 @@ async function getDocWorkerUrl(assignmentId: string|null): Promise<string|null> 
 export interface GristWSSettings {
   // A factory function for creating the WebSocket so that we can use from node
   // or browser.
-  makeWebSocket(url: string): WebSocket;
+  makeWebSocket(url: string): GristClientSocket;
 
   // A function for getting the timezone, so the code can be used outside webpack -
   // currently a timezone library is lazy loaded in a way that doesn't quite work
@@ -74,7 +75,7 @@ export interface GristWSSettings {
 export class GristWSSettingsBrowser implements GristWSSettings {
   private _sessionStorage = getSessionStorage();
 
-  public makeWebSocket(url: string) { return new WebSocket(url); }
+  public makeWebSocket(url: string) { return new GristClientSocket(url); }
   public getTimezone()              { return guessTimezone(); }
   public getPageUrl()               { return G.window.location.href; }
   public async getDocWorkerUrl(assignmentId: string|null) {
@@ -125,7 +126,7 @@ export class GristWSConnection extends Disposable {
   private _reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private _reconnectAttempts: number = 0;
   private _wantReconnect: boolean = true;
-  private _ws: WebSocket|null = null;
+  private _ws: GristClientSocket|null = null;
 
   // The server sends incremental seqId numbers with each message on the connection, starting with
   // 0. We keep track of them to allow for seamless reconnects.
@@ -211,17 +212,16 @@ export class GristWSConnection extends Disposable {
   }
 
   /**
-   * @event serverMessage Triggered when a message arrives from the server. Callbacks receive
-   *    the raw message data as an additional argument.
+   * Triggered when a message arrives from the server.
    */
-  public onmessage(ev: MessageEvent) {
+  public onmessage(data: string) {
     if (!this._ws) {
       // It's possible to receive a message after we disconnect, at least in tests (where
       // WebSocket is a node library). Ignoring is easier than unsubscribing properly.
       return;
     }
     this._scheduleHeartbeat();
-    this._processReceivedMessage(ev.data, true);
+    this._processReceivedMessage(data, true);
   }
 
   public send(message: any) {
@@ -317,7 +317,7 @@ export class GristWSConnection extends Disposable {
   private _sendHeartbeat() {
     this.send(JSON.stringify({
       beat: 'alive',
-      url: G.window.location.href,
+      url: this._settings.getPageUrl(),
       docId: this._assignmentId,
     }));
   }
@@ -352,8 +352,8 @@ export class GristWSConnection extends Disposable {
 
     this._ws.onmessage = this.onmessage.bind(this);
 
-    this._ws.onerror = (ev: Event|ErrorEvent) => {
-      this._log('GristWSConnection: onerror', 'error' in ev ? String(ev.error) : ev);
+    this._ws.onerror = (err: Error) => {
+      this._log('GristWSConnection: onerror', String(err));
     };
 
     this._ws.onclose = () => {
