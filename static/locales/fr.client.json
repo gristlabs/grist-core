@@ -221,7 +221,8 @@
         "Compare to Current": "Comparer au document en cours",
         "Compare to Previous": "Comparer au précédent",
         "Beta": "Bêta",
-        "Snapshots are unavailable.": "Les sauvegardes ne sont pas disponibles."
+        "Snapshots are unavailable.": "Les sauvegardes ne sont pas disponibles.",
+        "Only owners have access to snapshots for documents with access rules.": "Seuls les propriétaires ont accès aux instantanés des documents soumis à des règles d'accès."
     },
     "DocMenu": {
         "Other Sites": "Autres espaces",
@@ -652,7 +653,8 @@
         "Enter redirect URL": "Saisir l'URL de redirection",
         "Reset form": "Réinitialiser le formulaire",
         "Submit another response": "Soumettre une autre réponse",
-        "Required field": "Champ obligatoire"
+        "Required field": "Champ obligatoire",
+        "No field selected": "Aucun champ sélectionné"
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
