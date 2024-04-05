@@ -67,6 +67,7 @@ import {TagChecker} from 'app/server/lib/TagChecker';
 import {getTelemetryPrefs, ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
+import {UpdateManager} from 'app/server/lib/UpdateManager';
 import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
@@ -179,6 +180,7 @@ export class FlexServer implements GristServer {
   // Set once ready() is called
   private _isReady: boolean = false;
   private _probes: BootProbes;
+  private _updateManager: UpdateManager;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -403,6 +405,11 @@ export class FlexServer implements GristServer {
     const cli = this._docWorkerMap.getRedisClient();
     this._accessTokens = new AccessTokens(cli);
     return this._accessTokens;
+  }
+
+  public getUpdateManager() {
+    if (!this._updateManager) { throw new Error('no UpdateManager available'); }
+    return this._updateManager;
   }
 
   public sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void> {
@@ -880,6 +887,7 @@ export class FlexServer implements GristServer {
 
   public async close() {
     this._processMonitorStop?.();
+    await this._updateManager?.clear();
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
     if (this._dbManager) {
@@ -1861,6 +1869,16 @@ export class FlexServer implements GristServer {
 
   public resolveLoginSystem() {
     return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
+  }
+
+  public addUpdatesCheck() {
+    if (this._check('update')) { return; }
+
+    // For now we only are active for sass deployments.
+    if (this._deploymentType !== 'saas') { return; }
+
+    this._updateManager = new UpdateManager(this.app, this);
+    this._updateManager.addEndpoints();
   }
 
   // Adds endpoints that support imports and exports.

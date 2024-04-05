@@ -1740,6 +1740,22 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  checkedUpdateAPI: {
+    category: "SelfHosted",
+    description: 'Triggered when the app checks for updates.',
+    minimumTelemetryLevel: Level.limited,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      installationId: {
+        description: 'The installation id of the client.',
+        dataType: 'string',
+      },
+      deploymentType: {
+        description: 'The deployment type of the client.',
+        dataType: 'string',
+      },
+    },
+  }
 };
 
 type TelemetryContracts = Record<TelemetryEvent, TelemetryEventContract>;
@@ -1810,6 +1826,7 @@ export const TelemetryEvents = StringUnion(
   'visitedForm',
   'submittedForm',
   'changedAccessRules',
+  'checkedUpdateAPI'
 );
 export type TelemetryEvent = typeof TelemetryEvents.type;
 
@@ -1824,7 +1841,8 @@ type TelemetryEventCategory =
   | 'TeamSite'
   | 'ProductVisits'
   | 'AccessRules'
-  | 'WidgetUsage';
+  | 'WidgetUsage'
+  | 'SelfHosted';
 
 interface TelemetryEventContract {
   description: string;
