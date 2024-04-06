@@ -19,3 +19,4 @@ buildtools/update_type_info.sh app
 webpack --config $WEBPACK_CONFIG --mode production
 webpack --config buildtools/webpack.check.js --mode production
 webpack --config buildtools/webpack.api.config.js --mode production
+cat app/client/*.css app/client/*/*.css > static/bundle.css
