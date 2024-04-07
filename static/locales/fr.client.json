@@ -1225,8 +1225,8 @@
         "GitHub": "GitHub",
         "Help Center": "Centre d'aide",
         "Home": "Accueil",
-        "Sponsor Grist Labs on GitHub": "Sponsoriser Grist Labs sur GitHub",
-        "GitHub Sponsors page": "Page de sponsors GitHub",
+        "Sponsor Grist Labs on GitHub": "Parrainer Grist Labs sur GitHub",
+        "GitHub Sponsors page": "Page de parrainage GitHub",
         "Manage Sponsorship": "Gérer le parrainage",
         "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opt out of Telemetry": "Se désinscrire de l'envoi de données de télémétrie",
@@ -1335,7 +1335,8 @@
         "Are you sure you want to reset your form?": "Êtes-vous sûr de vouloir réinitialiser votre formulaire ?",
         "Anyone with the link below can see the empty form and submit a response.": "Toute personne ayant accès au lien ci-dessous peut voir le formulaire vide et soumettre une réponse.",
         "Code copied to clipboard": "Code copié dans le presse-papiers",
-        "Copy code": "Copier le code"
+        "Copy code": "Copier le code",
+        "View": "Vue"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
@@ -1401,5 +1402,29 @@
         "This week": "Cette semaine",
         "This year": "Cette année",
         "Today": "Aujourd'hui"
+    },
+    "MappedFieldsConfig": {
+        "Mapped": "Utilisé",
+        "Select All": "Sélectionner tout",
+        "Unmap fields": "Champs non utilisés",
+        "Map fields": "Champs utilisés",
+        "Clear": "Effacer",
+        "Unmapped": "Non utilisé"
+    },
+    "Section": {
+        "Insert section above": "Ajouter une section ci-dessus",
+        "Insert section below": "Ajouter une section ci-dessous"
+    },
+    "AdminPanel": {
+        "Current": "Actuelle",
+        "Current version of Grist": "Version actuelle de Grist",
+        "Help us make Grist better": "Aidez-nous à améliorer Grist",
+        "Home": "Accueil",
+        "Telemetry": "Télémétrie",
+        "Support Grist Labs on GitHub": "Soutenir Grist Labs sur GitHub",
+        "Admin Panel": "Panneau d'administration",
+        "Sponsor": "Parrainage",
+        "Support Grist": "Soutenir Grist",
+        "Version": "Version"
     }
 }
