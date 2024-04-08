@@ -9,6 +9,7 @@ import fetch from 'node-fetch';
 import {authenticator} from 'otplib';
 import * as path from 'path';
 
+import {normalizeEmail} from 'app/common/emails';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
 import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
@@ -105,7 +106,11 @@ export class HomeUtil {
       const testingHooks = await this.server.getTestingHooks();
       const sid = await this.getGristSid();
       if (!sid) { throw new Error('no session available'); }
-      await testingHooks.setLoginSessionProfile(sid, {name, email, loginMethod}, org);
+      await testingHooks.setLoginSessionProfile(
+        sid,
+        {name, email, loginEmail: normalizeEmail(email), loginMethod},
+        org
+      );
     } else {
       if (loginMethod && loginMethod !== 'Email + Password') {
         throw new Error('only Email + Password logins supported for external server tests');
