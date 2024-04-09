@@ -449,12 +449,14 @@ export class FlexServer implements GristServer {
     morganLogger.token('gristInfo', (req: RequestWithGristInfo) =>
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
-    morganLogger.token('body', (req: express.Request) => JSON.stringify(req.body));
+    morganLogger.token('body', (req: express.Request) =>
+      req.is('application/json') ? JSON.stringify(req.body) : undefined
+    );
 
     // For debugging, be careful not to enable logging in production (may log sensitive data)
     const shouldLogBody = isAffirmative(process.env.GRIST_LOG_HTTP_BODY);
 
-    const msg = `:logTime :host :method :gristInfo ${shouldLogBody ? ':body' : ''} ` +
+    const msg = `:logTime :host :method :gristInfo ${shouldLogBody ? ':body ' : ''}` +
       ":status :response-time ms - :res[content-length]";
     // In hosted Grist, render json so logs retain more organization.
     function outputJson(tokens: any, req: any, res: any) {
