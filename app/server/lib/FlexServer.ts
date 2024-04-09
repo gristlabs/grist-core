@@ -472,7 +472,7 @@ export class FlexServer implements GristServer {
         altSessionId: req.altSessionId,
       });
     }
-    this.app.use(morganLogger(process.env.GRIST_HOSTED_VERSION ? outputJson : msg, {
+    this.app.use(morganLogger(isAffirmative(process.env.GRIST_HOSTED_VERSION) ? outputJson : msg, {
       skip: this._shouldSkipRequestLogging.bind(this)
     }));
   }
