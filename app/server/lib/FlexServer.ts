@@ -412,28 +412,37 @@ export class FlexServer implements GristServer {
 
   public addLogging() {
     if (this._check('logging')) { return; }
-    if (process.env.GRIST_LOG_SKIP_HTTP) { return; }
+    if (isAffirmative(process.env.GRIST_LOG_SKIP_HTTP)) { return; }
     // Add a timestamp token that matches exactly the formatting of non-morgan logs.
     morganLogger.token('logTime', (req: Request) => log.timestamp());
     // Add an optional gristInfo token that can replace the url, if the url is sensitive.
     morganLogger.token('gristInfo', (req: RequestWithGristInfo) =>
                        req.gristInfo || req.originalUrl || req.url);
     morganLogger.token('host', (req: express.Request) => req.get('host'));
-    const msg = ':logTime :host :method :gristInfo :status :response-time ms - :res[content-length]';
+    morganLogger.token('body', (req: express.Request) =>
+      req.is('application/json') ? JSON.stringify(req.body) : undefined
+    );
+
+    // For debugging, be careful not to enable logging in production (may log sensitive data)
+    const shouldLogBody = isAffirmative(process.env.GRIST_LOG_HTTP_BODY);
+
+    const msg = `:logTime :host :method :gristInfo ${shouldLogBody ? ':body ' : ''}` +
+      ":status :response-time ms - :res[content-length]";
     // In hosted Grist, render json so logs retain more organization.
     function outputJson(tokens: any, req: any, res: any) {
       return JSON.stringify({
         timestamp: tokens.logTime(req, res),
+        host: tokens.host(req, res),
         method: tokens.method(req, res),
         path: tokens.gristInfo(req, res),
+        ...(shouldLogBody ? { body: tokens.body(req, res) } : {}),
         status: tokens.status(req, res),
         timeMs: parseFloat(tokens['response-time'](req, res)) || undefined,
         contentLength: parseInt(tokens.res(req, res, 'content-length'), 10) || undefined,
-        host: tokens.host(req, res),
         altSessionId: req.altSessionId,
       });
     }
-    this.app.use(morganLogger(process.env.GRIST_HOSTED_VERSION ? outputJson : msg, {
+    this.app.use(morganLogger(isAffirmative(process.env.GRIST_HOSTED_VERSION) ? outputJson : msg, {
       skip: this._shouldSkipRequestLogging.bind(this)
     }));
   }
