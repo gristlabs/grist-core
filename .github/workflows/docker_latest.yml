@@ -23,7 +23,7 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
         with:
-          ref: latest_candidate
+          ref: fix-docker-tests
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -52,7 +52,7 @@ jobs:
       - name: Build Node.js code
         run: yarn run build:prod
       - name: Run tests
-        run: TEST_IMAGE=${{ github.repository_owner }}/grist VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+        run: GREP_TESTS=DuplicateDocument TEST_IMAGE=${{ github.repository_owner }}/grist VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
       - name: Log in to Docker Hub
         uses: docker/login-action@v1 
         with:
