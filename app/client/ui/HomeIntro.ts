@@ -95,7 +95,7 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
       cssIntroLine(
         t(
           'Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.',
-          {helpCenterLink: helpCenterLink(), sproutsProgram: sproutsProgram}
+          {helpCenterLink: helpCenterLink(), sproutsProgram}
         ),
         testId('welcome-text')
       )
