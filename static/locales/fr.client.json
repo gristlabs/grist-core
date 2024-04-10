@@ -1336,7 +1336,16 @@
         "Anyone with the link below can see the empty form and submit a response.": "Toute personne ayant accès au lien ci-dessous peut voir le formulaire vide et soumettre une réponse.",
         "Code copied to clipboard": "Code copié dans le presse-papiers",
         "Copy code": "Copier le code",
-        "View": "Vue"
+        "View": "Vue",
+        "Copy link": "Copier le lien",
+        "Embed this form": "Intégrer ce formulaire",
+        "Link copied to clipboard": "Lien copié dans le presse-papiers",
+        "Preview": "Aperçu",
+        "Reset form": "Réinitialiser le formulaire",
+        "Save your document to publish this form.": "Enregistrez votre document pour publier ce formulaire.",
+        "Share this form": "Partager ce formulaire",
+        "Reset": "Réinitialiser",
+        "Share": "Partager"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
