@@ -150,7 +150,7 @@ export class SupportGristNudge extends Disposable {
       cssParagraph(
         t(
           'Thank you! Your trust and support is greatly appreciated.\
-Opt out any time from the {{link}} in the user menu.',
+ Opt out any time from the {{link}} in the user menu.',
           {link: adminPanelLink()},
         ),
       ),
