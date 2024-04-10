@@ -1186,6 +1186,27 @@ export async function addNewPage(
   await driver.wait(async () => (await driver.getCurrentUrl()) !== url, 2000);
 }
 
+export async function duplicatePage(name: string|RegExp, newName?: string) {
+  await openPageMenu(name);
+  await driver.find('.test-docpage-duplicate').click();
+
+  if (newName) {
+    // Input will select text on focus, which can alter the text we enter,
+    // so make sure we type correct value.
+    await waitToPass(async () => {
+      const input = driver.find('.test-modal-dialog input');
+      await input.click();
+      await selectAll();
+      await driver.sendKeys(newName);
+      assert.equal(await input.value(), newName);
+    });
+  }
+
+  await driver.find('.test-modal-confirm').click();
+  await driver.findContentWait('.test-docpage-label', newName ?? /copy/, 6000);
+  await waitForServer();
+}
+
 export async function openAddWidgetToPage() {
   await driver.findWait('.test-dp-add-new', 2000).doClick();
   await driver.findWait('.test-dp-add-widget-to-page', 2000).doClick();

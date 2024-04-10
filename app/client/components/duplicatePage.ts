@@ -199,13 +199,20 @@ function newViewSectionAction(widget: IPageWidget, viewId: number) {
 /**
  * Replaces each `leaf` id in layoutSpec by its corresponding id in mapIds. Leave unchanged if id is
  * missing from mapIds.
+ * LayoutSpec is a tree structure with leaves (that have `leaf` property) or containers of leaves. The root
+ * container (or leaf) also includes a list of collapsed leaves in `collapsed` property.
+ *
+ * Example use:
+ *   patchLayoutSpec({
+ *     leaf: 1,
+*      collapsed: [{leaf: 2}]
+ *   }, {1: 10, 2: 20})
  */
 export function patchLayoutSpec(layoutSpec: any, mapIds: {[id: number]: number}) {
-  return cloneDeepWith(layoutSpec, (val) => {
-    if (typeof val === 'object' && val !== null) {
-      if (mapIds[val.leaf]) {
-        return {...val, leaf: mapIds[val.leaf]};
-      }
+  const cloned = cloneDeepWith(layoutSpec, (val, key) => {
+    if (key === 'leaf' && mapIds[val]) {
+      return mapIds[val];
     }
   });
+  return cloned;
 }

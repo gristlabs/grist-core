@@ -334,7 +334,12 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     function addToSpec(leafId: number) {
       const newBox = tmpLayout.buildLayoutBox({ leaf: leafId });
-      const rows = tmpLayout.rootBox()!.childBoxes.peek();
+      const root = tmpLayout.rootBox();
+      if (!root || root.isDisposed()) {
+        tmpLayout.setRoot(newBox);
+        return newBox;
+      }
+      const rows = root.childBoxes.peek();
       const lastRow = rows[rows.length - 1];
       if (rows.length >= 1 && lastRow.isLeaf()) {
         // Add a new child to the last row.
