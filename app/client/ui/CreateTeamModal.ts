@@ -16,7 +16,7 @@ import {
 } from 'grainjs';
 import { makeT } from '../lib/localization';
 
-const t = makeT('createTeamModal');
+const t = makeT('CreateTeamModal');
 const testId = makeTestId('test-create-team-');
 
 export function buildNewSiteModal(context: Disposable, options: {
