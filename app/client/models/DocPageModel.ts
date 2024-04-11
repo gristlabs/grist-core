@@ -221,11 +221,6 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
             // "Add New" menu should have the same width as the "Add New" button that opens it.
             stretchToSelector: `.${cssAddNewButton.className}`
           }),
-          activeDoc.behavioralPromptsManager.attachPopup('formsAreHere', {
-            popupOptions: {
-              placement: 'right',
-            },
-          }),
           testId('dp-add-new'),
           dom.cls('tour-add-new'),
         ),

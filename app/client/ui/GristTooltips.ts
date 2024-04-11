@@ -1,7 +1,6 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
-import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
@@ -27,17 +26,6 @@ const cssItalicizedText = styled('span', `
 const cssIcon = styled(icon, `
   height: 18px;
   width: 18px;
-`);
-
-const cssNewsPopupLearnMoreButton = styled(basicButtonLink, `
-  color: white;
-  border: 1px solid white;
-  padding: 3px;
-
-  &:hover, &:focus, &:visited {
-    color: white;
-    border-color: white;
-  }
 `);
 
 export type Tooltip =
@@ -320,20 +308,5 @@ data.")),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
-  },
-  formsAreHere: {
-    popupType: 'news',
-    audience: 'signed-in-users',
-    title: () => t('Forms are here!'),
-    content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}', {
-        learnMoreButton: cssNewsPopupLearnMoreButton(t('Learn more'), {
-          href: commonUrls.forms,
-          target: '_blank',
-        }),
-      })),
-      ...args,
-    ),
-    deploymentTypes: ['saas', 'core', 'enterprise'],
   },
 };

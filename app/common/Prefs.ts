@@ -88,7 +88,9 @@ export const BehavioralPrompt = StringUnion(
   'rickRow',
   'customURL',
   'calendarConfig',
-  'formsAreHere',
+
+  // The following were used in the past and should not be re-used.
+  // 'formsAreHere',
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;
 
