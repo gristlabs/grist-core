@@ -1,5 +1,6 @@
 import {colors, mediaXSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {numericSpinner} from 'app/client/widgets/NumericSpinner';
 import {styled} from 'grainjs';
 
 export const label = styled('div', `
@@ -26,20 +27,23 @@ export const section = styled('div', `
   border-radius: 3px;
   border: 1px solid ${colors.darkGrey};
   padding: 24px;
-  margin-top: 24px;
+  margin-top: 12px;
+  margin-bottom: 24px;
 
   & > div + div {
-    margin-top: 16px;
+    margin-top: 8px;
+    margin-bottom: 12px;
   }
 `);
 
 export const columns = styled('div', `
   display: grid;
   grid-template-columns: repeat(var(--grist-columns-count), 1fr);
-  gap: 4px;
+  gap: 16px;
 `);
 
 export const submitButtons = styled('div', `
+  margin-top: 16px;
   display: flex;
   justify-content: center;
   column-gap: 8px;
@@ -100,32 +104,13 @@ export const submitButton = styled('div', `
 export const field = styled('div', `
   display: flex;
   flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
 
-  & input[type="text"],
-  & input[type="date"],
-  & input[type="datetime-local"],
-  & input[type="number"] {
-    height: 27px;
-    padding: 4px 8px;
-    border: 1px solid ${colors.darkGrey};
-    border-radius: 3px;
-    outline-color: ${vars.primaryBgHover};
-  }
-  & input[type="text"] {
-    font-size: 13px;
-    line-height: inherit;
-    width: 100%;
-    color: ${colors.dark};
-    background-color: ${colors.light};
-  }
-  & input[type="datetime-local"],
-  & input[type="date"] {
-    width: 100%;
-    line-height: inherit;
-  }
   & input[type="checkbox"] {
     -webkit-appearance: none;
     -moz-appearance: none;
+    margin: 0;
     padding: 0;
     flex-shrink: 0;
     display: inline-block;
@@ -195,19 +180,80 @@ export const field = styled('div', `
 `);
 
 export const error = styled('div', `
+  margin-top: 16px;
   text-align: center;
   color: ${colors.error};
   min-height: 22px;
 `);
 
+export const textInput = styled('input', `
+  color: ${colors.dark};
+  background-color: ${colors.light};
+  height: 29px;
+  width: 100%;
+  font-size: 13px;
+  line-height: inherit;
+  padding: 4px 8px;
+  border: 1px solid ${colors.darkGrey};
+  border-radius: 3px;
+  outline-color: ${vars.primaryBgHover};
+`);
+
+export const textarea = styled('textarea', `
+  display: block;
+  color: ${colors.dark};
+  background-color: ${colors.light};
+  min-height: 29px;
+  width: 100%;
+  font-size: 13px;
+  line-height: inherit;
+  padding: 4px 8px;
+  border: 1px solid ${colors.darkGrey};
+  border-radius: 3px;
+  outline-color: ${vars.primaryBgHover};
+  resize: none;
+`);
+
+export const spinner = styled(numericSpinner, `
+  & input {
+    height: 29px;
+    border: none;
+    font-size: 13px;
+    line-height: inherit;
+  }
+
+  &:focus-within {
+    outline: 2px solid ${vars.primaryBgHover};
+  }
+`);
+
 export const toggle = styled('label', `
   position: relative;
-  cursor: pointer;
   display: inline-flex;
-  align-items: center;
+  margin-top: 8px;
+
+  &:hover {
+    --color: ${colors.hover};
+  }
+`);
+
+export const toggleSwitch = styled(toggle, `
+  cursor: pointer;
 
   & input[type='checkbox'] {
+    margin: 0;
     position: absolute;
+    top: 1px;
+    left: 4px;
+  }
+  & input[type='checkbox'],
+  & input[type='checkbox']::before,
+  & input[type='checkbox']::after {
+    height: 1px;
+    width: 1px;
+  }
+  & input[type='checkbox']:focus {
+    outline: none;
   }
   & input[type='checkbox']:focus {
     outline: none;
@@ -220,6 +266,8 @@ export const toggle = styled('label', `
 export const toggleLabel = styled('span', `
   font-size: 13px;
   font-weight: 700;
+  line-height: 16px;
+  overflow-wrap: anywhere;
 `);
 
 export const gristSwitchSlider = styled('div', `
@@ -233,10 +281,6 @@ export const gristSwitchSlider = styled('div', `
   border-radius: 17px;
   -webkit-transition: background-color .4s;
   transition: background-color .4s;
-
-  &:hover {
-    box-shadow: 0 0 1px #2196F3;
-  }
 `);
 
 export const gristSwitchCircle = styled('div', `
@@ -277,16 +321,64 @@ export const gristSwitch = styled('div', `
 `);
 
 export const checkboxList = styled('div', `
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+
+  &-horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 16px;
+  }
 `);
 
 export const checkbox = styled('label', `
   display: flex;
+  font-size: 13px;
+  line-height: 16px;
+  gap: 8px;
+  overflow-wrap: anywhere;
 
+  & input {
+    margin: 0px !important;
+  }
   &:hover {
     --color: ${colors.hover};
+  }
+`);
+
+export const radioList = checkboxList;
+
+export const radio = styled('label', `
+  position: relative;
+  display: inline-flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: normal;
+  min-width: 0px;
+  outline-color: ${vars.primaryBgHover};
+  overflow-wrap: anywhere;
+
+  & input {
+    flex-shrink: 0;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0px;
+    border-radius: 50%;
+    background-clip: content-box;
+    border: 1px solid ${colors.darkGrey};
+    background-color: transparent;
+    outline-color: ${vars.primaryBgHover};
+  }
+  & input:hover {
+    border: 1px solid ${colors.hover};
+  }
+  & input:checked {
+    padding: 2px;
+    background-color: ${vars.primaryBg};
+    border: 1px solid ${vars.primaryBg};
   }
 `);
 
@@ -303,7 +395,7 @@ export const select = styled('select', `
   outline: none;
   background: white;
   line-height: inherit;
-  height: 27px;
+  height: 29px;
   flex: auto;
   width: 100%;
 
@@ -323,11 +415,11 @@ export const searchSelect = styled('div', `
   position: relative;
   padding: 4px 8px;
   border-radius: 3px;
-  border: 1px solid ${colors.darkGrey};
+  outline: 1px solid ${colors.darkGrey};
   font-size: 13px;
   background: white;
   line-height: inherit;
-  height: 27px;
+  height: 29px;
   flex: auto;
   width: 100%;
 

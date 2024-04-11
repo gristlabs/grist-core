@@ -5,7 +5,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('FormView', function() {
-  this.timeout('90s');
+  this.timeout('2m');
   gu.bigScreen();
 
   let api: UserAPI;
@@ -80,9 +80,9 @@ describe('FormView', function() {
   async function waitForConfirm() {
     await gu.waitForServer();
     await gu.waitToPass(async () => {
-      assert.isTrue(await driver.findWait('.test-form-container', 2000).isDisplayed());
+      assert.isTrue(await driver.findWait('.test-form-success-page', 2000).isDisplayed());
       assert.equal(
-        await driver.find('.test-form-success-text').getText(),
+        await driver.find('.test-form-success-page-text').getText(),
         'Thank you! Your response has been recorded.'
       );
     });
@@ -94,6 +94,12 @@ describe('FormView', function() {
 
   async function expectInD(values: any[]) {
     assert.deepEqual(await api.getTable(docId, 'Table1').then(t => t.D), values);
+  }
+
+  async function assertSubmitOnEnterIsDisabled() {
+    await gu.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+    assert.isFalse(await driver.find('.test-form-success-page').isPresent());
   }
 
   describe('on personal site', async function() {
@@ -157,7 +163,7 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with Text field', async function() {
+    it('can submit a form with single-line Text field', async function() {
       const formUrl = await createFormWith('Text');
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -170,6 +176,7 @@ describe('FormView', function() {
         assert.equal(await driver.find('input[name="D"]').value(), '');
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('Hello World');
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -178,7 +185,32 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with Numeric field', async function() {
+    it('can submit a form with multi-line Text field', async function() {
+      const formUrl = await createFormWith('Text');
+      await gu.openColumnPanel();
+      await gu.waitForSidePanel();
+      await driver.findContent('.test-tb-form-field-format .test-select-button', /Multi line/).click();
+      await gu.waitForServer();
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('textarea[name="D"]', 2000).click();
+        await gu.sendKeys('Hello');
+        assert.equal(await driver.find('textarea[name="D"]').value(), 'Hello');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('textarea[name="D"]').value(), '');
+        await driver.find('textarea[name="D"]').click();
+        await gu.sendKeys('Hello,', Key.ENTER, 'World');
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+      // Make sure we see the new record.
+      await expectSingle('Hello,\nWorld');
+      await removeForm();
+    });
+
+    it('can submit a form with text Numeric field', async function() {
       const formUrl = await createFormWith('Numeric');
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -191,6 +223,38 @@ describe('FormView', function() {
         assert.equal(await driver.find('input[name="D"]').value(), '');
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('1984');
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+      // Make sure we see the new record.
+      await expectSingle(1984);
+      await removeForm();
+    });
+
+    it('can submit a form with spinner Numeric field', async function() {
+      const formUrl = await createFormWith('Numeric');
+      await driver.findContent('.test-numeric-form-field-format .test-select-button', /Spinner/).click();
+      await gu.waitForServer();
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D"]', 2000).click();
+        await gu.sendKeys('1983');
+        assert.equal(await driver.find('input[name="D"]').value(), '1983');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '');
+        await driver.find('input[name="D"]').click();
+        await gu.sendKeys('1984', Key.ARROW_UP);
+        assert.equal(await driver.find('input[name="D"]').value(), '1985');
+        await gu.sendKeys(Key.ARROW_DOWN);
+        assert.equal(await driver.find('input[name="D"]').value(), '1984');
+        await driver.find('.test-numeric-spinner-increment').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '1985');
+        await driver.find('.test-numeric-spinner-decrement').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '1984');
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -212,6 +276,7 @@ describe('FormView', function() {
         assert.equal(await driver.find('input[name="D"]').getAttribute('value'), '');
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('01012000');
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -220,17 +285,14 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with Choice field', async function() {
+    it('can submit a form with select Choice field', async function() {
       const formUrl = await createFormWith('Choice');
       // Add some options.
-      await gu.openColumnPanel();
-
       await gu.choicesEditor.edit();
       await gu.choicesEditor.add('Foo');
       await gu.choicesEditor.add('Bar');
       await gu.choicesEditor.add('Baz');
       await gu.choicesEditor.save();
-      await gu.toggleSidePanel('right', 'close');
 
       // We need to press view, as form is not saved yet.
       await gu.scrollActiveViewTop();
@@ -256,6 +318,12 @@ describe('FormView', function() {
         assert.equal(await driver.find('select[name="D"]').value(), '');
         await driver.find('.test-form-search-select').click();
         await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        // Check keyboard shortcuts work.
+        assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
+        await gu.sendKeys(Key.BACK_SPACE);
+        assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
+        await gu.sendKeys(Key.ENTER);
+        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -263,7 +331,41 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with Integer field', async function() {
+    it('can submit a form with radio Choice field', async function() {
+      const formUrl = await createFormWith('Choice');
+      await driver.findContent('.test-form-field-format .test-select-button', /Radio/).click();
+      await gu.waitForServer();
+      await gu.choicesEditor.edit();
+      await gu.choicesEditor.add('Foo');
+      await gu.choicesEditor.add('Bar');
+      await gu.choicesEditor.add('Baz');
+      await gu.choicesEditor.save();
+      await gu.scrollActiveViewTop();
+      await gu.waitToPass(async () => {
+        assert.isTrue(await driver.find('.test-forms-view').isDisplayed());
+      });
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D"]', 2000);
+        assert.deepEqual(
+          await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
+        );
+        await driver.find('input[name="D"][value="Baz"]').click();
+        assert.equal(await driver.find('input[name="D"][value="Baz"]').getAttribute('checked'), 'true');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"][value="Baz"]').getAttribute('checked'), null);
+        await driver.find('input[name="D"][value="Bar"]').click();
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+      await expectSingle('Bar');
+      await removeForm();
+    });
+
+    it('can submit a form with text Integer field', async function() {
       const formUrl = await createFormWith('Integer', true);
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -276,6 +378,7 @@ describe('FormView', function() {
         assert.equal(await driver.find('input[name="D"]').value(), '');
         await driver.find('input[name="D"]').click();
         await gu.sendKeys('1984');
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -284,7 +387,38 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with Toggle field', async function() {
+    it('can submit a form with spinner Integer field', async function() {
+      const formUrl = await createFormWith('Integer', true);
+      await driver.findContent('.test-numeric-form-field-format .test-select-button', /Spinner/).click();
+      await gu.waitForServer();
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D"]', 2000).click();
+        await gu.sendKeys('1983');
+        assert.equal(await driver.find('input[name="D"]').value(), '1983');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '');
+        await driver.find('input[name="D"]').click();
+        await gu.sendKeys('1984', Key.ARROW_UP);
+        assert.equal(await driver.find('input[name="D"]').value(), '1985');
+        await gu.sendKeys(Key.ARROW_DOWN);
+        assert.equal(await driver.find('input[name="D"]').value(), '1984');
+        await driver.find('.test-numeric-spinner-increment').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '1985');
+        await driver.find('.test-numeric-spinner-decrement').click();
+        assert.equal(await driver.find('input[name="D"]').value(), '1984');
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+      // Make sure we see the new record.
+      await expectSingle(1984);
+      await removeForm();
+    });
+
+    it('can submit a form with switch Toggle field', async function() {
       const formUrl = await createFormWith('Toggle', true);
       // We are in a new window.
       await gu.onNewTab(async () => {
@@ -295,6 +429,39 @@ describe('FormView', function() {
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), null);
         await driver.find('input[name="D"]').findClosest("label").click();
+        await assertSubmitOnEnterIsDisabled();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+      await expectSingle(true);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[type="submit"]', 2000).click();
+        await waitForConfirm();
+      });
+      await expectInD([true, false]);
+
+      // Remove the additional record added just now.
+      await gu.sendActions([
+        ['RemoveRecord', 'Table1', 2],
+      ]);
+      await removeForm();
+    });
+
+    it('can submit a form with checkbox Toggle field', async function() {
+      const formUrl = await createFormWith('Toggle', true);
+      await driver.findContent('.test-toggle-form-field-format .test-select-button', /Checkbox/).click();
+      await gu.waitForServer();
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D"]', 2000).findClosest("label").click();
+        assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), 'true');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"]').getAttribute('checked'), null);
+        await driver.find('input[name="D"]').findClosest("label").click();
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -334,6 +501,7 @@ describe('FormView', function() {
         assert.equal(await driver.find('input[name="D[]"][value="Bar"]').getAttribute('checked'), null);
         await driver.find('input[name="D[]"][value="Foo"]').click();
         await driver.find('input[name="D[]"][value="Baz"]').click();
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -342,7 +510,7 @@ describe('FormView', function() {
       await removeForm();
     });
 
-    it('can submit a form with Ref field', async function() {
+    it('can submit a form with select Ref field', async function() {
       const formUrl = await createFormWith('Reference', true);
       // Add some options.
       await gu.openColumnPanel();
@@ -353,22 +521,21 @@ describe('FormView', function() {
         ['AddRecord', 'Table1', null, {A: 'Bar'}], // id 2
         ['AddRecord', 'Table1', null, {A: 'Baz'}], // id 3
       ]);
-      await gu.toggleSidePanel('right', 'close');
       // We are in a new window.
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
         await driver.findWait('select[name="D"]', 2000);
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.getText()),
-          ['Select...', ...['Bar', 'Baz', 'Foo']]
+          ['Select...', 'Foo', 'Bar', 'Baz']
         );
         assert.deepEqual(
           await driver.findAll('select[name="D"] option', e => e.value()),
-          ['', ...['2', '3', '1']]
+          ['', '1', '2', '3']
         );
         await driver.find('.test-form-search-select').click();
         assert.deepEqual(
-          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Bar', 'Baz', 'Foo']
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
         );
         await gu.sendKeys('Baz', Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), '3');
@@ -377,6 +544,51 @@ describe('FormView', function() {
         assert.equal(await driver.find('select[name="D"]').value(), '');
         await driver.find('.test-form-search-select').click();
         await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        // Check keyboard shortcuts work.
+        assert.equal(await driver.find('.test-form-search-select').getText(), 'Bar');
+        await gu.sendKeys(Key.BACK_SPACE);
+        assert.equal(await driver.find('.test-form-search-select').getText(), 'Select...');
+        await gu.sendKeys(Key.ENTER);
+        await driver.findContent('.test-sd-searchable-list-item', 'Bar').click();
+        await driver.find('input[type="submit"]').click();
+        await waitForConfirm();
+      });
+      await expectInD([0, 0, 0, 2]);
+
+      // Remove 3 records.
+      await gu.sendActions([
+        ['BulkRemoveRecord', 'Table1', [1, 2, 3, 4]],
+      ]);
+
+      await removeForm();
+    });
+
+    it('can submit a form with radio Ref field', async function() {
+      const formUrl = await createFormWith('Reference', true);
+      await driver.findContent('.test-form-field-format .test-select-button', /Radio/).click();
+      await gu.waitForServer();
+      await gu.setRefShowColumn('A');
+      await gu.sendActions([
+        ['AddRecord', 'Table1', null, {A: 'Foo'}],
+        ['AddRecord', 'Table1', null, {A: 'Bar'}],
+        ['AddRecord', 'Table1', null, {A: 'Baz'}],
+      ]);
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('input[name="D"]', 2000);
+        assert.deepEqual(
+          await driver.findAll('label:has(input[name="D"])', e => e.getText()), ['Foo', 'Bar', 'Baz']
+        );
+        assert.equal(await driver.find('label:has(input[name="D"][value="3"])').getText(), 'Baz');
+        await driver.find('input[name="D"][value="3"]').click();
+        assert.equal(await driver.find('input[name="D"][value="3"]').getAttribute('checked'), 'true');
+        await driver.find('.test-form-reset').click();
+        await driver.find('.test-modal-confirm').click();
+        assert.equal(await driver.find('input[name="D"][value="3"]').getAttribute('checked'), null);
+        assert.equal(await driver.find('label:has(input[name="D"][value="2"])').getText(), 'Bar');
+        await driver.find('input[name="D"][value="2"]').click();
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -393,8 +605,6 @@ describe('FormView', function() {
     it('can submit a form with RefList field', async function() {
       const formUrl = await createFormWith('Reference List', true);
       // Add some options.
-      await gu.openColumnPanel();
-
       await gu.setRefShowColumn('A');
       // Add 3 records to this table (it is now empty).
       await gu.sendActions([
@@ -416,6 +626,7 @@ describe('FormView', function() {
         assert.equal(await driver.find('input[name="D[]"][value="1"]').getAttribute('checked'), null);
         await driver.find('input[name="D[]"][value="1"]').click();
         await driver.find('input[name="D[]"][value="2"]').click();
+        await assertSubmitOnEnterIsDisabled();
         await driver.find('input[type="submit"]').click();
         await waitForConfirm();
       });
@@ -542,9 +753,9 @@ describe('FormView', function() {
       await gu.waitForServer();
       await gu.onNewTab(async () => {
         await driver.get(formUrl);
-        assert.isTrue(await driver.findWait('.test-form-container', 2000).isDisplayed());
+        assert.isTrue(await driver.findWait('.test-form-error-page', 2000).isDisplayed());
         assert.equal(
-          await driver.find('.test-form-error-text').getText(),
+          await driver.find('.test-form-error-page-text').getText(),
           'Oops! This form is no longer published.'
         );
       });
@@ -739,8 +950,8 @@ describe('FormView', function() {
       // Now B is selected.
       assert.equal(await selectedLabel(), 'B');
 
-      // Click on the edit button.
-      await driver.find('.test-forms-submit').click();
+      // Click the blank space above the submit button.
+      await driver.find('.test-forms-error').click();
 
       // Now nothing is selected.
       assert.isFalse(await isSelected(), 'Something is selected');
@@ -825,7 +1036,6 @@ describe('FormView', function() {
       assert.deepEqual(await hiddenColumns(), []);
 
       // Now hide it using Delete key.
-      await driver.find('.test-forms-submit').click();
       await question('Choice').click();
       await gu.sendKeys(Key.DELETE);
       await gu.waitForServer();
@@ -833,8 +1043,20 @@ describe('FormView', function() {
       // It should be hidden again.
       assert.deepEqual(await hiddenColumns(), ['Choice']);
       assert.deepEqual(await readLabels(), ['A', 'B', 'C']);
+    });
 
-
+    it('changing field types works', async function() {
+      await gu.openColumnPanel();
+      assert.equal(await questionType('A'), 'Any');
+      await question('A').click();
+      await gu.setType('Text');
+      assert.equal(await questionType('A'), 'Text');
+      await gu.sendActions([['AddRecord', 'Form', null, {A: 'Foo'}]]);
+      await question('A').click();
+      await gu.setType('Numeric', {apply: true});
+      assert.equal(await questionType('A'), 'Numeric');
+      await gu.sendActions([['RemoveRecord', 'Form', 1]]);
+      await gu.undo(2);
       await gu.toggleSidePanel('right', 'close');
     });
 

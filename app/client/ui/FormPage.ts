@@ -2,17 +2,18 @@ import {FormRenderer} from 'app/client/components/FormRenderer';
 import {handleSubmit, TypedFormData} from 'app/client/lib/formUtils';
 import {makeT} from 'app/client/lib/localization';
 import {FormModel, FormModelImpl} from 'app/client/models/FormModel';
-import {buildFormContainer} from 'app/client/ui/FormContainer';
+import {buildFormFooter} from 'app/client/ui/FormContainer';
 import {FormErrorPage} from 'app/client/ui/FormErrorPage';
-import * as css from 'app/client/ui/FormPagesCss';
 import {FormSuccessPage} from 'app/client/ui/FormSuccessPage';
 import {colors} from 'app/client/ui2018/cssVars';
 import {ApiError} from 'app/common/ApiError';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Disposable, dom, Observable, styled, subscribe} from 'grainjs';
+import {Disposable, dom, makeTestId, Observable, styled, subscribe} from 'grainjs';
 
 const t = makeT('FormPage');
+
+const testId = makeTestId('test-form-');
 
 export class FormPage extends Disposable {
   private readonly _model: FormModel = new FormModelImpl();
@@ -30,7 +31,7 @@ export class FormPage extends Disposable {
   }
 
   public buildDom() {
-    return css.pageContainer(
+    return cssPageContainer(
       dom.domComputed(use => {
         const error = use(this._model.error);
         if (error) { return dom.create(FormErrorPage, error); }
@@ -38,12 +39,12 @@ export class FormPage extends Disposable {
         const submitted = use(this._model.submitted);
         if (submitted) { return dom.create(FormSuccessPage, this._model); }
 
-        return this._buildFormDom();
+        return this._buildFormPageDom();
       }),
     );
   }
 
-  private _buildFormDom() {
+  private _buildFormPageDom() {
     return dom.domComputed(use => {
       const form = use(this._model.form);
       const rootLayoutNode = use(this._model.formLayout);
@@ -56,16 +57,24 @@ export class FormPage extends Disposable {
         error: this._error,
       });
 
-      return buildFormContainer(() =>
+      return dom('div',
         cssForm(
-          dom.autoDispose(formRenderer),
-          formRenderer.render(),
-          handleSubmit(this._model.submitting,
-            (_formData, formElement) => this._handleFormSubmit(formElement),
-            () => this._handleFormSubmitSuccess(),
-            (e) => this._handleFormError(e),
+          cssFormBody(
+            cssFormContent(
+              dom.autoDispose(formRenderer),
+              formRenderer.render(),
+              handleSubmit(this._model.submitting,
+                (_formData, formElement) => this._handleFormSubmit(formElement),
+                () => this._handleFormSubmitSuccess(),
+                (e) => this._handleFormError(e),
+              ),
+            ),
+          ),
+          cssFormFooter(
+            buildFormFooter(),
           ),
         ),
+        testId('page'),
       );
     });
   }
@@ -101,22 +110,40 @@ export class FormPage extends Disposable {
   }
 }
 
-// TODO: see if we can move the rest of this to `FormRenderer.ts`.
-const cssForm = styled('form', `
+const cssPageContainer = styled('div', `
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+  overflow: auto;
+`);
+
+const cssForm = styled('div', `
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 3px;
+  max-width: 600px;
+  margin: 0px auto;
+`);
+
+const cssFormBody = styled('div', `
+  width: 100%;
+`);
+
+// TODO: break up and move to `FormRendererCss.ts`.
+const cssFormContent = styled('form', `
   color: ${colors.dark};
   font-size: 15px;
   line-height: 1.42857143;
 
-  & > div + div {
-    margin-top: 16px;
-  }
   & h1,
   & h2,
   & h3,
   & h4,
   & h5,
   & h6 {
-    margin: 4px 0px;
+    margin: 8px 0px 12px 0px;
     font-weight: normal;
   }
   & h1 {
@@ -148,4 +175,9 @@ const cssForm = styled('form', `
     border-top: 1px solid ${colors.darkGrey};
     margin: 4px 0px;
   }
+`);
+
+const cssFormFooter = styled('div', `
+  padding: 8px 16px;
+  width: 100%;
 `);

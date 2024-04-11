@@ -1,7 +1,11 @@
 import {makeT} from 'app/client/lib/localization';
-import {FormModel } from 'app/client/models/FormModel';
-import {buildFormContainer} from 'app/client/ui/FormContainer';
-import * as css from 'app/client/ui/FormPagesCss';
+import {FormModel} from 'app/client/models/FormModel';
+import {
+  buildFormMessagePage,
+  cssFormMessageImage,
+  cssFormMessageImageContainer,
+  cssFormMessageText,
+} from 'app/client/ui/FormContainer';
 import {vars} from 'app/client/ui2018/cssVars';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -28,26 +32,35 @@ export class FormSuccessPage extends Disposable {
   }
 
   public buildDom() {
-    return buildFormContainer(() => [
-      css.formSuccessMessageImageContainer(css.formSuccessMessageImage({
-        src: 'img/form-success.svg',
-      })),
-      css.formMessageText(dom.text(this._successText), testId('success-text')),
+    return buildFormMessagePage(() => [
+      cssFormSuccessMessageImageContainer(
+        cssFormSuccessMessageImage({src: 'img/form-success.svg'}),
+      ),
+      cssFormMessageText(dom.text(this._successText), testId('success-page-text')),
       dom.maybe(this._showNewResponseButton, () =>
         cssFormButtons(
           cssFormNewResponseButton(
-            'Submit new response',
+            t('Submit new response'),
             dom.on('click', () => this._handleClickNewResponseButton()),
           ),
         )
       ),
-    ]);
+    ], testId('success-page'));
   }
 
   private async _handleClickNewResponseButton() {
     await this._model.fetchForm();
   }
 }
+
+const cssFormSuccessMessageImageContainer = styled(cssFormMessageImageContainer, `
+  height: 215px;
+`);
+
+const cssFormSuccessMessageImage = styled(cssFormMessageImage, `
+  max-height: 215px;
+  max-width: 250px;
+`);
 
 const cssFormButtons = styled('div', `
   display: flex;

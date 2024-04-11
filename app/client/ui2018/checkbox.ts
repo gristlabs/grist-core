@@ -23,6 +23,7 @@ export const cssLabel = styled('label', `
   display: inline-flex;
   min-width: 0px;
   margin-bottom: 0px;
+  flex-shrink: 0;
 
   outline: none;
   user-select: none;

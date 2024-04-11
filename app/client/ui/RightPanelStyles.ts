@@ -1,5 +1,6 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {numericSpinner} from 'app/client/widgets/NumericSpinner';
 import {styled} from 'grainjs';
 
 export const cssIcon = styled(icon, `
@@ -88,4 +89,8 @@ export const cssPinButton = styled('div', `
   &:not(&-pinned):hover {
     background-color: ${theme.hover};
   }
+`);
+
+export const cssNumericSpinner = styled(numericSpinner, `
+  height: 28px;
 `);

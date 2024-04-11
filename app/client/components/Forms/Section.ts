@@ -62,7 +62,6 @@ export class SectionModel extends BoxModel {
           ),
         )
       )},
-      style.cssSectionEditor.cls(''),
     );
   }
 

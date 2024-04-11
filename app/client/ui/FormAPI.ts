@@ -41,12 +41,51 @@ export interface FormField {
   refValues: [number, CellValue][] | null;
 }
 
-interface FormFieldOptions {
-  /** True if the field is required to submit the form. */
-  formRequired?: boolean;
-  /** Populated with a list of options. Only set if the field `type` is a Choice/Reference Liste. */
+export interface FormFieldOptions {
+  /** Choices for a Choice or Choice List field. */
   choices?: string[];
+  /** Text or Any field format. Defaults to `"singleline"`. */
+  formTextFormat?: FormTextFormat;
+  /** Number of lines/rows for the `"multiline"` option of `formTextFormat`. Defaults to `3`. */
+  formTextLineCount?: number;
+  /** Numeric or Int field format. Defaults to `"text"`. */
+  formNumberFormat?: FormNumberFormat;
+  /** Toggle field format. Defaults to `"switch"`. */
+  formToggleFormat?: FormToggleFormat;
+  /** Choice or Reference field format. Defaults to `"select"`. */
+  formSelectFormat?: FormSelectFormat;
+  /**
+   * Field options alignment.
+   *
+   * Only applicable to Choice List and Reference List fields, and Choice and Reference fields
+   * when `formSelectFormat` is `"radio"`.
+   *
+   * Defaults to `"vertical"`.
+   */
+  formOptionsAlignment?: FormOptionsAlignment;
+  /**
+   * Field options sort order.
+   *
+   * Only applicable to Choice, Choice List, Reference, and Reference List fields.
+   *
+   * Defaults to `"default"`.
+   */
+  formOptionsSortOrder?: FormOptionsSortOrder;
+  /** True if the field is required. Defaults to `false`. */
+  formRequired?: boolean;
 }
+
+export type FormTextFormat = 'singleline' | 'multiline';
+
+export type FormNumberFormat = 'text' | 'spinner';
+
+export type FormToggleFormat = 'switch' | 'checkbox';
+
+export type FormSelectFormat = 'select' | 'radio';
+
+export type FormOptionsAlignment = 'vertical' | 'horizontal';
+
+export type FormOptionsSortOrder = 'default' | 'ascending' | 'descending';
 
 export interface FormAPI {
   getForm(options: GetFormOptions): Promise<Form>;

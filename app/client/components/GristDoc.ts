@@ -14,6 +14,7 @@ import {DocComm} from 'app/client/components/DocComm';
 import * as DocConfigTab from 'app/client/components/DocConfigTab';
 import {Drafts} from "app/client/components/Drafts";
 import {EditorMonitor} from "app/client/components/EditorMonitor";
+import {buildDefaultFormLayout} from 'app/client/components/Forms/FormView';
 import GridView from 'app/client/components/GridView';
 import {importFromFile, selectAndImport} from 'app/client/components/Importer';
 import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
@@ -946,6 +947,9 @@ export class GristDoc extends DisposableWithEvents {
     if (val.type === 'chart') {
       await this._ensureOneNumericSeries(result.sectionRef);
     }
+    if (val.type === 'form') {
+      await this._setDefaultFormLayoutSpec(result.sectionRef);
+    }
     await this.saveLink(val.link, result.sectionRef);
     return result;
   }
@@ -962,42 +966,48 @@ export class GristDoc extends DisposableWithEvents {
       },
     });
 
-    if (val.table === 'New Table') {
-      const name = await this._promptForName();
-      if (name === undefined) {
-        return;
-      }
-      let newViewId: IDocPage;
-      if (val.type === WidgetType.Table) {
-        const result = await this.docData.sendAction(['AddEmptyTable', name]);
-        newViewId = result.views[0].id;
+    let viewRef: IDocPage;
+    let sectionRef: number | undefined;
+    await this.docData.bundleActions('Add new page', async () => {
+      if (val.table === 'New Table') {
+        const name = await this._promptForName();
+        if (name === undefined) {
+          return;
+        }
+        if (val.type === WidgetType.Table) {
+          const result = await this.docData.sendAction(['AddEmptyTable', name]);
+          viewRef = result.views[0].id;
+        } else {
+          // This will create a new table and page.
+          const result = await this.docData.sendAction(
+            ['CreateViewSection', /* new table */0, 0, val.type, null, name]
+          );
+          [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
+        }
       } else {
-        // This will create a new table and page.
         const result = await this.docData.sendAction(
-          ['CreateViewSection', /* new table */0, 0, val.type, null, name]
-        );
-        newViewId = result.viewRef;
-      }
-      await this.openDocPage(newViewId);
-    } else {
-      let result: any;
-      await this.docData.bundleActions(`Add new page`, async () => {
-        result = await this.docData.sendAction(
           ['CreateViewSection', val.table, 0, val.type, val.summarize ? val.columns : null, null]
         );
+        [viewRef, sectionRef] = [result.viewRef, result.sectionRef];
         if (val.type === 'chart') {
-          await this._ensureOneNumericSeries(result.sectionRef);
+          await this._ensureOneNumericSeries(sectionRef!);
         }
-      });
-      await this.openDocPage(result.viewRef);
-      // The newly-added section should be given focus.
-      this.viewModel.activeSectionId(result.sectionRef);
-
-      this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
-
-      if (AttachedCustomWidgets.guard(val.type)) {
-        this._handleNewAttachedCustomWidget(val.type).catch(reportError);
       }
+      if (val.type === 'form') {
+        await this._setDefaultFormLayoutSpec(sectionRef!);
+      }
+    });
+
+    await this.openDocPage(viewRef!);
+    if (sectionRef) {
+      // The newly-added section should be given focus.
+      this.viewModel.activeSectionId(sectionRef);
+    }
+
+    this._maybeShowEditCardLayoutTip(val.type).catch(reportError);
+
+    if (AttachedCustomWidgets.guard(val.type)) {
+      this._handleNewAttachedCustomWidget(val.type).catch(reportError);
     }
   }
 
@@ -1425,6 +1435,8 @@ export class GristDoc extends DisposableWithEvents {
     const toggle = () => !refreshed.isDisposed() && refreshed.set(refreshed.get() + 1);
     const holder = Holder.create(owner);
     const listener = (tab: TableModel) => {
+      if (tab.tableData.tableId === '') { return; }
+
       // Now subscribe to any data change in that table.
       const subs = MultiHolder.create(holder);
       subs.autoDispose(tab.tableData.dataLoadedEmitter.addListener(toggle));
@@ -1919,6 +1931,12 @@ export class GristDoc extends DisposableWithEvents {
       // send actions
       await this.docModel.viewFields.sendTableActions(actions);
     }
+  }
+
+  private async _setDefaultFormLayoutSpec(viewSectionId: number) {
+    const viewSection = this.docModel.viewSections.getRowModel(viewSectionId);
+    const viewFields = viewSection.viewFields.peek().peek();
+    await viewSection.layoutSpecObj.setAndSave(buildDefaultFormLayout(viewFields));
   }
 
   private _handleTriggerQueueOverflowMessage() {

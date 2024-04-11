@@ -108,11 +108,10 @@ export class FieldBuilder extends Disposable {
   private readonly _widgetCons: ko.Computed<{create: (...args: any[]) => NewAbstractWidget}>;
   private readonly _docModel: DocModel;
   private readonly _readonly: Computed<boolean>;
+  private readonly _isForm: ko.Computed<boolean>;
   private readonly _comments: ko.Computed<boolean>;
   private readonly _showRefConfigPopup: ko.Observable<boolean>;
   private readonly _isEditorActive = Observable.create(this, false);
-
-
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
                      private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
@@ -128,9 +127,13 @@ export class FieldBuilder extends Disposable {
     this._readonly = Computed.create(this, (use) =>
       use(gristDoc.isReadonly) || use(field.disableEditData) || Boolean(this._options.isPreview));
 
+    this._isForm = this.autoDispose(ko.computed(() => {
+      return this.field.viewSection().widgetType() === WidgetType.Form;
+    }));
+
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
-      const isForm = use(use(this.field.viewSection).widgetType) === WidgetType.Form;
+      const isForm = use(this._isForm);
       const isFormula = use(this.origColumn.isFormula);
       const types: Array<IOptionFull<string>> = [];
       _.each(UserType.typeDefs, (def: any, key: string|number) => {
@@ -201,8 +204,11 @@ export class FieldBuilder extends Disposable {
 
     // Returns the constructor for the widget, and only notifies subscribers on changes.
     this._widgetCons = this.autoDispose(koUtil.withKoUtils(ko.computed(() => {
-      return UserTypeImpl.getWidgetConstructor(this.options().widget,
-                                               this._readOnlyPureType());
+      if (this._isForm()) {
+        return UserTypeImpl.getFormWidgetConstructor(this.options().widget, this._readOnlyPureType());
+      } else {
+        return UserTypeImpl.getWidgetConstructor(this.options().widget, this._readOnlyPureType());
+      }
     })).onlyNotifyUnequal());
 
     // Computed builder for the widget.

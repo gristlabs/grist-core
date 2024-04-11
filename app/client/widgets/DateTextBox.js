@@ -6,7 +6,7 @@ var kd = require('../lib/koDom');
 var kf = require('../lib/koForm');
 var AbstractWidget = require('./AbstractWidget');
 
-const {FieldRulesConfig} = require('app/client/components/Forms/FormConfig');
+const {FormFieldRulesConfig} = require('app/client/components/Forms/FormConfig');
 const {fromKoSave} = require('app/client/lib/fromKoSave');
 const {alignmentSelect, cssButtonSelect} = require('app/client/ui2018/buttonSelect');
 const {cssLabel, cssRow} = require('app/client/ui/RightPanelStyles');
@@ -82,7 +82,7 @@ DateTextBox.prototype.buildTransformConfigDom = function() {
 
 DateTextBox.prototype.buildFormConfigDom = function() {
   return [
-    gdom.create(FieldRulesConfig, this.field),
+    gdom.create(FormFieldRulesConfig, this.field),
   ];
 };
 
