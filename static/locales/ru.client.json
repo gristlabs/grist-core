@@ -358,7 +358,8 @@
         "Beta": "Beta",
         "Compare to Current": "Сравните с текущим",
         "Snapshots are unavailable.": "Снимки недоступны.",
-        "Open Snapshot": "Открыть Снимок"
+        "Open Snapshot": "Открыть Снимок",
+        "Only owners have access to snapshots for documents with access rules.": "Только владельцы имеют доступ к снимкам документов с правилами доступа."
     },
     "DocMenu": {
         "By Name": "По имени",
@@ -1268,7 +1269,8 @@
         "Support Grist": "Поддержка Grist",
         "Support Grist page": "Страница поддержки Grist",
         "Contribute": "Участвовать",
-        "Opted In": "Подключено"
+        "Opted In": "Подключено",
+        "Admin Panel": "Панель администратора"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1286,7 +1288,8 @@
         "Opt out of Telemetry": "Отказаться от телеметрии",
         "Sponsor Grist Labs on GitHub": "Спонсор Grist Labs на GitHub",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "В этом экземпляре включена телеметрия. Только администратор сайта может изменить это.",
-        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в нашей {{link}}, никогда содержимое документов."
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в нашей {{link}}, никогда содержимое документов.",
+        "Sponsor": "Спонсор"
     },
     "buildViewSectionDom": {
         "No data": "Нет данных",
@@ -1421,5 +1424,17 @@
     "Section": {
         "Insert section above": "Вставить секцию выше",
         "Insert section below": "Вставить секцию ниже"
+    },
+    "AdminPanel": {
+        "Current": "Текущий",
+        "Current version of Grist": "Текущая версия Grist",
+        "Help us make Grist better": "Помогите нам сделать Grist лучше",
+        "Home": "Домой",
+        "Sponsor": "Спонсор",
+        "Support Grist": "Поддержать Grist",
+        "Support Grist Labs on GitHub": "Поддержите Grist Labs на GitHub",
+        "Version": "Версия",
+        "Admin Panel": "Панель администратора",
+        "Telemetry": "Телеметрия"
     }
 }
