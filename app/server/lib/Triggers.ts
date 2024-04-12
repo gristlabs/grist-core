@@ -277,6 +277,7 @@ export class DocTriggers {
           // Webhook might have been deleted in the mean time.
           continue;
         }
+        const decodedWatchedColRefList = decodeObject(t.watchedColRefList) as number[] || [];
         // Report some basic info and usage stats.
         const entry: WebhookSummary = {
           // Id of the webhook
@@ -288,6 +289,7 @@ export class DocTriggers {
             // Other fields used to register this webhook.
             eventTypes: decodeObject(t.eventTypes) as string[],
             isReadyColumn: getColId(t.isReadyColRef) ?? null,
+            watchedColIds: decodedWatchedColRefList.map((columnRef) => getColId(columnRef)),
             tableId: getTableId(t.tableRef) ?? null,
             // For future use - for now every webhook is enabled.
             enabled: t.enabled,
@@ -509,6 +511,21 @@ export class DocTriggers {
         }
       }
 
+      if (trigger.watchedColRefList) {
+        for (const colRef of trigger.watchedColRefList.slice(1)) {
+          if (!this._validateColId(colRef as number, trigger.tableRef)) {
+            // column does not belong to table, let's ignore trigger and log stats
+            for (const action of webhookActions) {
+              const colId = this._getColId(colRef as number); // no validation
+              const tableId = this._getTableId(trigger.tableRef);
+              const error = `column is not valid: colId ${colId} does not belong to ${tableId}`;
+              this._stats.logInvalid(action.id, error).catch(e => log.error("Webhook stats failed to log", e));
+            }
+            continue;
+          }
+        }
+      }
+
       // TODO: would be worth checking that the trigger's fields are valid (ie: eventTypes, url,
       // ...) as there's no guarantee that they are.
 
@@ -585,9 +602,21 @@ export class DocTriggers {
       }
     }
 
+    const colIdsToCheck: Array<string> = [];
+    if (trigger.watchedColRefList) {
+      for (const colRef of trigger.watchedColRefList.slice(1)) {
+        colIdsToCheck.push(this._getColId(colRef as number)!);
+      }
+    }
+
     let eventType: EventType;
     if (readyBefore) {
-      eventType = "update";
+      // check if any of the columns to check were changed to consider this an update
+      if (colIdsToCheck.length === 0 || colIdsToCheck.some(colId => tableDelta.columnDeltas[colId]?.[rowId])) {
+        eventType = "update";
+      } else {
+        return false;
+      }
       // If we allow subscribing to deletion in the future
       // if (recordDelta.existedAfter) {
       //   eventType = "update";
