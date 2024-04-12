@@ -133,6 +133,8 @@ export const cssQuestion = styled('div', `
 export const cssRequiredWrapper = styled('div', `
   margin: 8px 0px;
   min-height: 16px;
+  overflow-wrap: break-word;
+
   &-required {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -426,6 +428,8 @@ export const cssSmallButton = styled(basicButton, `
 export const cssMarkdownRendered = styled('div', `
   min-height: 1.5rem;
   font-size: 15px;
+  overflow-wrap: break-word;
+
   & textarea {
     font-size: 15px;
   }

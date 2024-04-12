@@ -12,6 +12,8 @@ export const label = styled('div', `
 `);
 
 export const paragraph = styled('div', `
+  overflow-wrap: break-word;
+
   &-alignment-left {
     text-align: left;
   }
@@ -176,6 +178,7 @@ export const field = styled('div', `
     margin-top: 8px;
     margin-bottom: 8px;
     display: block;
+    overflow-wrap: break-word;
   }
 `);
 

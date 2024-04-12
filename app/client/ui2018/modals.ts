@@ -618,6 +618,7 @@ export const cssModalTitle = styled('div', `
 export const cssModalBody = styled('div', `
   color: ${theme.text};
   margin: 16px 0;
+  overflow-wrap: break-word;
 `);
 
 export const cssModalButtons = styled('div', `
