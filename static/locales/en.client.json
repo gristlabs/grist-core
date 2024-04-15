@@ -481,7 +481,8 @@
         "Welcome to {{- orgName}}": "Welcome to {{- orgName}}",
         "Sign in": "Sign in",
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
-        "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist."
+        "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -1294,6 +1295,7 @@
         "Opted In": "Opted In",
         "Support Grist": "Support Grist",
         "Support Grist page": "Support Grist page",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.",
         "Admin Panel": "Admin Panel"
     },
     "SupportGristPage": {
@@ -1438,6 +1440,20 @@
     "Section": {
         "Insert section above": "Insert section above",
         "Insert section below": "Insert section below"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Cancel",
+        "Choose a name and url for your team site": "Choose a name and url for your team site",
+        "Create site": "Create site",
+        "Domain name is invalid": "Domain name is invalid",
+        "Domain name is required": "Domain name is required",
+        "Go to your site": "Go to your site",
+        "Team name": "Team name",
+        "Team name is required": "Team name is required",
+        "Team site created": "Team site created",
+        "Team url": "Team url",
+        "Work as a Team": "Work as a Team",
+        "Billing is not supported in grist-core": "Billing is not supported in grist-core"
     },
     "AdminPanel": {
         "Admin Panel": "Admin Panel",

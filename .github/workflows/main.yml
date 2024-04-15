@@ -20,7 +20,7 @@ jobs:
         python-version: [3.9]
         node-version: [18.x]
         tests:
-          - ':lint:python:client:common:smoke:'
+          - ':lint:python:client:common:smoke:stubs:'
           - ':server-1-of-2:'
           - ':server-2-of-2:'
           - ':nbrowser-^[A-G]:'
@@ -73,7 +73,7 @@ jobs:
         run: yarn run build:prod
 
       - name: Install chromedriver
-        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:')
+        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')
         run: ./node_modules/selenium-webdriver/bin/linux/selenium-manager --driver chromedriver
 
       - name: Run smoke test
@@ -91,6 +91,10 @@ jobs:
       - name: Run common tests
         if: contains(matrix.tests, ':common:')
         run: yarn run test:common
+
+      - name: Run stubs tests
+        if: contains(matrix.tests, ':stubs:')
+        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:stubs
 
       - name: Run server tests with minio and redis
         if: contains(matrix.tests, ':server-')
