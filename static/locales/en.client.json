@@ -941,7 +941,11 @@
     },
     "NTextBox": {
         "false": "false",
-        "true": "true"
+        "true": "true",
+        "Field Format": "Field Format",
+        "Lines": "Lines",
+        "Multi line": "Multi line",
+        "Single line": "Single line"
     },
     "ACLUsers": {
         "Example Users": "Example Users",
@@ -1044,7 +1048,12 @@
         "Currency": "Currency",
         "Decimals": "Decimals",
         "Default currency ({{defaultCurrency}})": "Default currency ({{defaultCurrency}})",
-        "Number Format": "Number Format"
+        "Number Format": "Number Format",
+        "Field Format": "Field Format",
+        "Spinner": "Spinner",
+        "Text": "Text",
+        "max": "max",
+        "min": "min"
     },
     "Reference": {
         "CELL FORMAT": "CELL FORMAT",
@@ -1393,7 +1402,18 @@
     },
     "FormConfig": {
         "Field rules": "Field rules",
-        "Required field": "Required field"
+        "Required field": "Required field",
+        "Ascending": "Ascending",
+        "Default": "Default",
+        "Descending": "Descending",
+        "Field Format": "Field Format",
+        "Field Rules": "Field Rules",
+        "Horizontal": "Horizontal",
+        "Options Alignment": "Options Alignment",
+        "Options Sort Order": "Options Sort Order",
+        "Radio": "Radio",
+        "Select": "Select",
+        "Vertical": "Vertical"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Some required columns aren't mapped",
@@ -1417,7 +1437,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Form Submitted",
-        "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded."
+        "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded.",
+        "Submit new response": "Submit new response"
     },
     "DateRangeOptions": {
         "Last 30 days": "Last 30 days",
@@ -1466,5 +1487,17 @@
         "Support Grist Labs on GitHub": "Support Grist Labs on GitHub",
         "Telemetry": "Telemetry",
         "Version": "Version"
+    },
+    "Columns": {
+        "Remove Column": "Remove Column"
+    },
+    "Field": {
+        "No choices configured": "No choices configured",
+        "No values in show column of referenced table": "No values in show column of referenced table"
+    },
+    "Toggle": {
+        "Checkbox": "Checkbox",
+        "Field Format": "Field Format",
+        "Switch": "Switch"
     }
 }
