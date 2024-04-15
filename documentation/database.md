@@ -146,10 +146,16 @@ Permissions for to access either a document, workspace or an organisation.
 
 The permissions are stored as an integer which is read in its binary form which allows to make bitwise operations:
 
-| VIEW | UPDATE | ADD | REMOVE | SCHEMA_EDIT | ACL_EDIT | (reserved) | PUBLIC |
-| --------------- | --------------- | --------------- | --------------- | --------------- | ---------- | --------- | ---- |
-| can view | can update | can add | can remove | can change schema of tables | can edit the ACL (docs) or manage the teams (orgs and workspaces) of the resource | (reserved bit for the future) | virtual bit meaning that the resource is shared publicly |
-| +0b00000001 | +0b00000010 | +0b00000100 | +0b00001000 | +0b00010000 | +0b00100000 | +0b01000000 | +0b10000000 |
+| Name | Value (binary) | Description |
+| --------------- | --------------- | --------------- |
+| VIEW | +0b00000001 | can view |
+| UPDATE | +0b00000010 | can update |
+| ADD | +0b00000100 | can add |
+| REMOVE | +0b00001000 | can remove |
+| SCHEMA_EDIT | +0b00010000 | can change schema of tables |
+| ACL_EDIT | +0b00100000 | can edit the ACL (docs) or manage the teams (orgs and workspaces) of the resource |
+| (reserved) | +0b01000000 | (reserved bit for the future) |
+| PUBLIC | +0b10000000 | virtual bit meaning that the resource is shared publicly  |
 
 You notice that the permissions can be then composed:
  - EDITOR permissions = `VIEW | UPDATE | ADD | REMOVE` = `0b00000001+0b00000010+0b00000100+0b00001000` = `0b00001111` = `15`
@@ -157,7 +163,6 @@ You notice that the permissions can be then composed:
  - ...
 
 For more details about that part, please refer [to the code](https://github.com/gristlabs/grist-core/blob/192e2f36ba77ec67069c58035d35205978b9215e/app/gen-server/lib/Permissions.ts).
-
 
 ### `prefs` table
 
