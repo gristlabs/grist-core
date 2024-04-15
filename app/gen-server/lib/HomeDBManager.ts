@@ -213,6 +213,7 @@ function isNonGuestGroup(group: Group): group is NonGuestGroup {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
+  newConnection?: boolean;
 }
 
 // Identifies a request to access a document. This combination of values is also used for caching
@@ -614,6 +615,14 @@ export class HomeDBManager extends EventEmitter {
         // any automation for first logins
         if (!props.isFirstTimeUser) { isWelcomed = true; }
       }
+      if (props.newConnection === true) {
+        // set last connection time to now (remove milliseconds for compatibility with other
+        // timestamps in db set by typeorm, and since second level precision is fine)
+        const nowish = new Date();
+        nowish.setMilliseconds(0);
+        user.lastConnectionAt = nowish;
+        needsSave = true;
+      }
       if (needsSave) {
         await user.save();
       }
@@ -701,12 +710,15 @@ export class HomeDBManager extends EventEmitter {
         user.name = (profile && (profile.name || email.split('@')[0])) || '';
         needUpdate = true;
       }
-      if (profile && !user.firstLoginAt) {
-        // set first login time to now (remove milliseconds for compatibility with other
+      if (profile) {
+        // set first login time and last connection time to now (remove milliseconds for compatibility with other
         // timestamps in db set by typeorm, and since second level precision is fine)
         const nowish = new Date();
         nowish.setMilliseconds(0);
-        user.firstLoginAt = nowish;
+        user.lastConnectionAt = nowish;
+        if (!user.firstLoginAt) {
+          user.firstLoginAt = nowish;
+        }
         needUpdate = true;
       }
       if (!user.picture && profile && profile.picture) {
