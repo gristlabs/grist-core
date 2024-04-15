@@ -155,16 +155,86 @@ The permissions are stored as an integer which is read in its binary form which 
 | SCHEMA_EDIT | +0b00010000 | can change schema of tables |
 | ACL_EDIT | +0b00100000 | can edit the ACL (docs) or manage the teams (orgs and workspaces) of the resource |
 | (reserved) | +0b01000000 | (reserved bit for the future) |
-| PUBLIC | +0b10000000 | virtual bit meaning that the resource is shared publicly  |
+| PUBLIC | +0b10000000 | virtual bit meaning that the resource is shared publicly (not currently used) |
 
 You notice that the permissions can be then composed:
  - EDITOR permissions = `VIEW | UPDATE | ADD | REMOVE` = `0b00000001+0b00000010+0b00000100+0b00001000` = `0b00001111` = `15`
  - ADMIN permissions = `EDITOR | SCHEMA_EDIT` = `0b00001111+0b00010000` = `0b00011111` = `31`
- - ...
+ - OWNER permissions = `ADMIN | ACL_EDIT` = `0b00011111+0b00100000` = `0b0011111` = `63`
 
 For more details about that part, please refer [to the code](https://github.com/gristlabs/grist-core/blob/192e2f36ba77ec67069c58035d35205978b9215e/app/gen-server/lib/Permissions.ts).
 
+### `secrets` table
+
+Stores secret informations related to documents, so the document may not store them (otherwise someone who downloads a doc may access them). Used to store the unsubscribe key and the target url of Webhooks.
+
+| Column name | Description |
+| ------------- | -------------- |
+| id | The primary key |
+| value | The value of the secret (despite the table name, its stored unencrypted) |
+| doc_id | The document id |
+
 ### `prefs` table
+
+Stores special grants for documents for anyone having the key.
+
+| Column name | Description |
+| ------------- | -------------- |
+| id | The primary key |
+| key | A long string secret to identify the share. Suitable for URLs. Unique across the database / installation. |
+| link_id | A string to identify the share. This identifier is common to the home database and the document specified by docId. It need only be unique within that document, and is not a secret. | doc_id | The document to which the share belongs |
+| options | Any overall qualifiers on the share |
+
+For more information, please refer [to the comments in the code](https://github.com/gristlabs/grist-core/blob/192e2f36ba77ec67069c58035d35205978b9215e/app/gen-server/entity/Share.ts).
+
+### `groups` table
+
+The groups are entities that may contain either other groups and/or users.
+
+| Column name   | Description    |
+|--------------- | --------------- |
+| id | The primary key   |
+| name   | The name (see the 5 types of groups below) |
+
+As of 2024-04-15, only 5 types of groups exist, which corresponds actually to Roles (for the permission, please refer to the section detailing the `acl_rules` tables):
+ - `owners` (see the `OWNERS` permissions)
+ - `editors` (see the `EDITORS` permissions)
+ - `viewers` (see the `VIEWS` permissions)
+ - `members`
+ - `guests`
+
+`viewers`, `members` and `guests` have basically the same rights (like viewers), the only difference between them is that:
+ - `viewers` are explicitly allowed to view the resource and its descendants;
+ - `members` are specific to the organisations and are meant to allow access to be granted to individual documents or workspaces, rather than the full team site.
+ - `guests` are (FIXME: help please on this one :))
+
+Each time a resource is created, the groups corresponding to the roles above are created (except the `members` which are specific to organisations).
+
+### `group_groups` table 
+
+The table which allows groups to contain other groups. It also holds the inheritances (see below).
+
+| Column name   | Description    |
+|--------------- | --------------- |
+| group_id | The id of the group containing the subgroup |
+| subgroup_id   | The id of the subgroup |
+
+### `user_groups` table 
+
+The table which assigns users to groups.
+
+| Column name   | Description    |
+|--------------- | --------------- |
+| group_id | The id of the group containing the user |
+| user_id   | The id of the user |
+
+### `groups`, `group_groups`, `user_groups` and inheritances
+
+We mentioned earlier that the groups currently holds the roles with the associated permissions.
+
+> [!WARNING]
+> 
+
 
 ### The migrations
 
