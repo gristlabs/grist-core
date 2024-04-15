@@ -8,6 +8,18 @@ import fs from "fs";
 import os from "os";
 import path from 'path';
 
+
+// We only support those formats for now:
+// en.client.json
+// en_US.client.json
+// en_US.server.json
+// zh_Hant.client.json
+// {lang code (+ maybe with underscore and country code}.{namespace}.json
+//
+// Only this format was tested and is known to work.
+
+const VALID_LOCALE_FORMAT = /^[a-z]{2,}(_\w+)?\.(\w+)\.json$/;
+
 describe("Localization", function() {
   this.timeout(60000);
   setupTestSuite();
@@ -40,20 +52,20 @@ describe("Localization", function() {
     const langs: Set<string> = new Set();
     const namespaces: Set<string> = new Set();
     for (const file of fs.readdirSync(localeDirectory)) {
-      if (file.endsWith(".json")) {
-        const langRaw = file.split('.')[0];
-        const lang = langRaw?.replace(/_/g, '-');
-        const ns = file.split('.')[1];
-        const clientFile = path.join(localeDirectory,
-                                     `${langRaw}.client.json`);
-        const clientText = fs.readFileSync(clientFile, { encoding: 'utf8' });
-        if (!clientText.includes('Translators: please translate this only when')) {
-          // Translation not ready if this key is not present.
-          continue;
-        }
-        langs.add(lang);
-        namespaces.add(ns);
+      // Make sure we see only valid files.
+      assert.match(file, VALID_LOCALE_FORMAT);
+      const langRaw = file.split('.')[0];
+      const lang = langRaw?.replace(/_/g, '-');
+      const ns = file.split('.')[1];
+      const clientFile = path.join(localeDirectory,
+                                    `${langRaw}.client.json`);
+      const clientText = fs.readFileSync(clientFile, { encoding: 'utf8' });
+      if (!clientText.includes('Translators: please translate this only when')) {
+        // Translation not ready if this key is not present.
+        continue;
       }
+      langs.add(lang);
+      namespaces.add(ns);
     }
     assert.deepEqual(gristConfig.supportedLngs.sort(), [...langs].sort());
     assert.deepEqual(gristConfig.namespaces.sort(), [...namespaces].sort());
@@ -90,6 +102,8 @@ describe("Localization", function() {
       const enResponse = await (await fetch(homeUrl)).text();
       const uzResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "uz-UZ,uz;q=1"}})).text();
       const ptResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "pt-PR,pt;q=1"}})).text();
+      // We have file with nb_NO code, but still this should be preloaded.
+      const noResponse = await (await fetch(homeUrl, {headers: {"Accept-Language": "nb-NO,nb;q=1"}})).text();
 
       function present(response: string, ...langs: string[]) {
         for (const lang of langs) {
@@ -107,6 +121,7 @@ describe("Localization", function() {
       present(enResponse, "en");
       present(uzResponse, "en");
       present(ptResponse, "en");
+      present(noResponse, "en");
 
       // Other locales are not preloaded for English.
       notPresent(enResponse, "uz", "un-UZ", "en-US");
@@ -117,6 +132,9 @@ describe("Localization", function() {
       notPresent(uzResponse, "uz-UZ");
 
       notPresent(ptResponse, "pt-PR", "uz", "en-US");
+
+      // For no-NO we have nb_NO file.
+      present(noResponse, "nb_NO");
     });
 
     it("loads correct languages from file system", async function() {

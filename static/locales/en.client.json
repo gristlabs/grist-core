@@ -225,7 +225,8 @@
         "Compare to Previous": "Compare to Previous",
         "Open Snapshot": "Open Snapshot",
         "Snapshots": "Snapshots",
-        "Snapshots are unavailable.": "Snapshots are unavailable."
+        "Snapshots are unavailable.": "Snapshots are unavailable.",
+        "Only owners have access to snapshots for documents with access rules.": "Only owners have access to snapshots for documents with access rules."
     },
     "DocMenu": {
         "(The organization needs a paid plan)": "(The organization needs a paid plan)",
@@ -480,7 +481,8 @@
         "Welcome to {{- orgName}}": "Welcome to {{- orgName}}",
         "Sign in": "Sign in",
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
-        "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist."
+        "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -1168,7 +1170,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Clear Queue",
-        "Webhook Settings": "Webhook Settings"
+        "Webhook Settings": "Webhook Settings",
+        "Cleared webhook queue.": "Cleared webhook queue.",
+        "Columns to check when update (separated by ;)": "Columns to check when update (separated by ;)",
+        "Enabled": "Enabled",
+        "Event Types": "Event Types",
+        "Memo": "Memo",
+        "Name": "Name",
+        "Ready Column": "Ready Column",
+        "Removed webhook.": "Removed webhook.",
+        "Sorry, not all fields can be edited.": "Sorry, not all fields can be edited.",
+        "Status": "Status",
+        "URL": "URL",
+        "Webhook Id": "Webhook Id",
+        "Table": "Table",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",
@@ -1278,7 +1294,9 @@
         "Opt in to Telemetry": "Opt in to Telemetry",
         "Opted In": "Opted In",
         "Support Grist": "Support Grist",
-        "Support Grist page": "Support Grist page"
+        "Support Grist page": "Support Grist page",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.",
+        "Admin Panel": "Admin Panel"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1296,7 +1314,8 @@
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "We only collect usage statistics, as detailed in our {{link}}, never document contents.",
         "You can opt out of telemetry at any time from this page.": "You can opt out of telemetry at any time from this page.",
         "You have opted in to telemetry. Thank you!": "You have opted in to telemetry. Thank you!",
-        "You have opted out of telemetry.": "You have opted out of telemetry."
+        "You have opted out of telemetry.": "You have opted out of telemetry.",
+        "Sponsor": "Sponsor"
     },
     "buildViewSectionDom": {
         "No data": "No data",
@@ -1421,5 +1440,31 @@
     "Section": {
         "Insert section above": "Insert section above",
         "Insert section below": "Insert section below"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Cancel",
+        "Choose a name and url for your team site": "Choose a name and url for your team site",
+        "Create site": "Create site",
+        "Domain name is invalid": "Domain name is invalid",
+        "Domain name is required": "Domain name is required",
+        "Go to your site": "Go to your site",
+        "Team name": "Team name",
+        "Team name is required": "Team name is required",
+        "Team site created": "Team site created",
+        "Team url": "Team url",
+        "Work as a Team": "Work as a Team",
+        "Billing is not supported in grist-core": "Billing is not supported in grist-core"
+    },
+    "AdminPanel": {
+        "Admin Panel": "Admin Panel",
+        "Current": "Current",
+        "Current version of Grist": "Current version of Grist",
+        "Help us make Grist better": "Help us make Grist better",
+        "Home": "Home",
+        "Sponsor": "Sponsor",
+        "Support Grist": "Support Grist",
+        "Support Grist Labs on GitHub": "Support Grist Labs on GitHub",
+        "Telemetry": "Telemetry",
+        "Version": "Version"
     }
 }

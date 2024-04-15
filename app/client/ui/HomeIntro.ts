@@ -93,7 +93,10 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
     cssIntroLine(t("Get started by inviting your team and creating your first Grist document.")),
     (!isFeatureEnabled('helpCenter') ? null :
       cssIntroLine(
-        'Learn more in our ', helpCenterLink(), ', or find an expert via our ', sproutsProgram, '.',  // TODO i18n
+        t(
+          'Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.',
+          {helpCenterLink: helpCenterLink(), sproutsProgram}
+        ),
         testId('welcome-text')
       )
     ),

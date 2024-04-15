@@ -67,6 +67,9 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     this._starts++;
     const workerIdText = process.env.MOCHA_WORKER_ID || '0';
     if (reset) {
+      // Make sure this test server doesn't keep using the DB that's about to disappear.
+      await this.closeDatabase();
+
       if (process.env.TESTDIR) {
         this.testDir = path.join(process.env.TESTDIR, workerIdText);
       } else {

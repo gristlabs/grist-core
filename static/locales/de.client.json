@@ -233,7 +233,8 @@
         "Compare to Previous": "Mit vorherigem vergleichen",
         "Open Snapshot": "Schnappschuss öffnen",
         "Snapshots": "Schnappschüsse",
-        "Snapshots are unavailable.": "Schnappschüsse sind nicht verfügbar."
+        "Snapshots are unavailable.": "Schnappschüsse sind nicht verfügbar.",
+        "Only owners have access to snapshots for documents with access rules.": "Nur Eigentümer haben Zugriff auf Snapshots für Dokumente mit Zugriffsregeln."
     },
     "DocMenu": {
         "(The organization needs a paid plan)": "(Die Organisation benötigt einen bezahlten Plan)",
@@ -700,7 +701,9 @@
         "Default field value": "Standard-Feldwert",
         "Field title": "Feldtitel",
         "Hidden field": "Verborgenes Feld",
-        "Submit button label": "Beschriftung der Schaltfläche Senden"
+        "Submit button label": "Beschriftung der Schaltfläche Senden",
+        "No field selected": "Kein Feld ausgewählt",
+        "Select a field in the form widget to configure.": "Wählen Sie ein Feld im Formular Widget aus, um es zu konfigurieren."
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -712,7 +715,8 @@
         "Insert row below": "Zeile unten einfügen",
         "Duplicate rows_one": "Zeile duplizieren",
         "Duplicate rows_other": "Zeilen duplizieren",
-        "View as card": "Ansicht als Karte"
+        "View as card": "Ansicht als Karte",
+        "Use as table headers": "Verwendung als Tabellenüberschriften"
     },
     "SelectionSummary": {
         "Copied to clipboard": "In die Zwischenablage kopiert"
@@ -738,7 +742,12 @@
         "Unsaved": "Ungespeichert",
         "Work on a Copy": "Arbeiten an einer Kopie",
         "Share": "Teilen",
-        "Download...": "Herunterladen..."
+        "Download...": "Herunterladen...",
+        "Export as...": "Exportieren als...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Tabulatorgetrennte Werte (.tsv)",
+        "Comma Separated Values (.csv)": "Kommagetrennte Werte (.csv)",
+        "DOO Separated Values (.dsv)": "DOO-getrennte Werte (.dsv)"
     },
     "SiteSwitcher": {
         "Create new team site": "Neue Teamseite erstellen",
@@ -1279,7 +1288,8 @@
         "Help Center": "Hilfe-Center",
         "Opt in to Telemetry": "Melden Sie sich für Telemetrie an",
         "Opted In": "Angemeldet",
-        "Support Grist page": "Support Grist-Seite"
+        "Support Grist page": "Support Grist-Seite",
+        "Admin Panel": "Verwaltungsbereich"
     },
     "SupportGristPage": {
         "GitHub Sponsors page": "GitHub-Sponsorenseite",
@@ -1297,7 +1307,8 @@
         "Support Grist": "Grist Support",
         "Telemetry": "Telemetrie",
         "You have opted in to telemetry. Thank you!": "Sie haben sich für die Telemetrie entschieden. Vielen Dank!",
-        "You have opted out of telemetry.": "Sie haben sich von der Telemetrie abgemeldet."
+        "You have opted out of telemetry.": "Sie haben sich von der Telemetrie abgemeldet.",
+        "Sponsor": "Sponsor"
     },
     "buildViewSectionDom": {
         "No row selected in {{title}}": "Keine Zeile in {{title}} ausgewählt",
@@ -1381,7 +1392,21 @@
         "Publish your form?": "Ihr Formular veröffentlichen?",
         "Unpublish": "Unveröffentlichen",
         "Unpublish your form?": "Ihr Formular unveröffentlichen?",
-        "Publish": "Veröffentlichen"
+        "Publish": "Veröffentlichen",
+        "Preview": "Vorschau",
+        "Reset": "Zurücksetzen",
+        "Share": "Teilen",
+        "Are you sure you want to reset your form?": "Sind Sie sicher, dass Sie Ihr Formular zurücksetzen möchten?",
+        "Reset form": "Formular zurücksetzen",
+        "Save your document to publish this form.": "Speichern Sie Ihr Dokument, um dieses Formular zu veröffentlichen.",
+        "Anyone with the link below can see the empty form and submit a response.": "Jeder, der den unten stehenden Link anklickt, kann das leere Formular sehen und eine Antwort einreichen.",
+        "Code copied to clipboard": "Code in die Zwischenablage kopiert",
+        "Copy code": "Code kopieren",
+        "Embed this form": "Dieses Formular einbetten",
+        "Copy link": "Link kopieren",
+        "Link copied to clipboard": "Link in die Zwischenablage kopiert",
+        "Share this form": "Dieses Formular teilen",
+        "View": "Ansicht"
     },
     "Editor": {
         "Delete": "Löschen"
@@ -1451,5 +1476,29 @@
         "This week": "Diese Woche",
         "This year": "Dieses Jahr",
         "Today": "Heute"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Löschen",
+        "Map fields": "Felder zuordnen",
+        "Mapped": "Zugeordnet",
+        "Unmap fields": "Felder freigeben",
+        "Unmapped": "Nicht zugeordnet",
+        "Select All": "Alle auswählen"
+    },
+    "AdminPanel": {
+        "Admin Panel": "Verwaltungsbereich",
+        "Current": "Aktuell",
+        "Support Grist": "Unterstützen Sie Grist",
+        "Telemetry": "Telemetrie",
+        "Current version of Grist": "Aktuelle Version von Grist",
+        "Help us make Grist better": "Helfen Sie uns, Grist besser zu machen",
+        "Home": "Home",
+        "Sponsor": "Sponsor",
+        "Support Grist Labs on GitHub": "Unterstützen Sie Grist Labs auf GitHub",
+        "Version": "Version"
+    },
+    "Section": {
+        "Insert section above": "Abschnitt oben einfügen",
+        "Insert section below": "Abschnitt unten einfügen"
     }
 }

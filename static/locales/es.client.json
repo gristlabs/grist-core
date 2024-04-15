@@ -155,7 +155,7 @@
         "Others": "Otros",
         "Search": "Buscar",
         "Search values": "Buscar valores",
-        "Start": "Inicio",
+        "Start": "Iniciar",
         "Filter by Range": "Filtrar por rango"
     },
     "CustomSectionConfig": {
@@ -187,7 +187,8 @@
         "Compare to Previous": "Comparar con el anterior",
         "Open Snapshot": "Abrir instantánea",
         "Snapshots": "Instantáneas",
-        "Snapshots are unavailable.": "Las instantáneas no están disponibles."
+        "Snapshots are unavailable.": "Las instantáneas no están disponibles.",
+        "Only owners have access to snapshots for documents with access rules.": "Solo los dueños tienen acceso a las instantáneas de los documentos con unas reglas de acceso."
     },
     "DocMenu": {
         "(The organization needs a paid plan)": "(La organización necesita un plan de pago)",
@@ -1277,7 +1278,8 @@
         "Opt in to Telemetry": "Participar en Telemetría",
         "Support Grist page": "Página de soporte de Grist",
         "Close": "Cerrar",
-        "Contribute": "Contribuir"
+        "Contribute": "Contribuir",
+        "Admin Panel": "Panel de control"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1295,7 +1297,8 @@
         "You can opt out of telemetry at any time from this page.": "Puede cancelar la telemetría en cualquier momento desde esta página.",
         "You have opted in to telemetry. Thank you!": "Ha optado por la telemetría. ¡Gracias!",
         "You have opted out of telemetry.": "Ha optado por no participar en la telemetría.",
-        "Home": "Inicio"
+        "Home": "Inicio",
+        "Sponsor": "Patrocinador"
     },
     "buildViewSectionDom": {
         "No data": "Sin datos",
@@ -1475,5 +1478,17 @@
     "Section": {
         "Insert section above": "Insertar la sección anterior",
         "Insert section below": "Insertar la sección siguiente"
+    },
+    "AdminPanel": {
+        "Current": "Actual",
+        "Help us make Grist better": "Ayúdanos a mejorar Grist",
+        "Home": "Inicio",
+        "Sponsor": "Patrocinador",
+        "Support Grist": "Soporte Grist",
+        "Telemetry": "Telemetría",
+        "Version": "Versión",
+        "Current version of Grist": "Versión actual de Grist",
+        "Admin Panel": "Panel de control",
+        "Support Grist Labs on GitHub": "Apoya a Grist Labs en GitHub"
     }
 }

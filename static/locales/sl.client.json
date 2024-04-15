@@ -412,7 +412,8 @@
         "Compare to Previous": "Primerjava s prejšnjimi",
         "Snapshots": "Posnetki",
         "Snapshots are unavailable.": "Posnetki niso na voljo.",
-        "Open Snapshot": "Odpri posnetek stanja"
+        "Open Snapshot": "Odpri posnetek stanja",
+        "Only owners have access to snapshots for documents with access rules.": "Samo lastniki imajo dostop do posnetkov za dokumente s pravili dostopa."
     },
     "ExampleInfo": {
         "Check out our related tutorial for how to link data, and create high-productivity layouts.": "Oglejte si sorodno navodilo za povezovanje podatkov in ustvarjanje visokoproduktivnih postavitev.",
@@ -679,7 +680,8 @@
         "Opt in to Telemetry": "Prijava na telemetrijo",
         "You have opted in to telemetry. Thank you!": "Prijavili ste se za telemetrijo. Zahvaljujemo se vam!",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "Ta primerek je prijavljen v telemetrijo. To lahko spremeni le skrbnik spletnega mesta.",
-        "GitHub": "GitHub"
+        "GitHub": "GitHub",
+        "Sponsor": "Sponzor"
     },
     "GristTooltips": {
         "Updates every 5 minutes.": "Posodablja se vsakih 5 minut.",
@@ -845,7 +847,8 @@
         "Help Center": "Center za pomoč",
         "Contribute": "Prispevajte",
         "Support Grist page": "Grist podpora",
-        "Opted In": "Prijavljeno"
+        "Opted In": "Prijavljeno",
+        "Admin Panel": "Skrbniški panel"
     },
     "HomeIntro": {
         "personal site": "osebna stran",
@@ -995,7 +998,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Počisti čakalno vrsto",
-        "Webhook Settings": "Nastavitve Webhook"
+        "Webhook Settings": "Nastavitve Webhook",
+        "Enabled": "Omogočeno",
+        "Memo": "Beležka",
+        "Name": "Ime",
+        "Ready Column": "Pripravljen stolpec",
+        "Removed webhook.": "Odstranjen webhook.",
+        "Sorry, not all fields can be edited.": "Žal vseh polj ni mogoče urejati.",
+        "Status": "Status",
+        "Table": "Tabela",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filter za spremembe v teh stolpcih (id-ji, ločeni s podpičjem)",
+        "Cleared webhook queue.": "Čakalna vrsta webhook je počiščena.",
+        "URL": "URL",
+        "Webhook Id": "Webhook ID",
+        "Columns to check when update (separated by ;)": "Stolpci za preverjanje ob posodobitvi (ločeni z ;)",
+        "Event Types": "Vrste dogodkov"
     },
     "RecordLayout": {
         "Updating record layout.": "Posodobitev postavitve zapisa."
@@ -1421,5 +1438,17 @@
     "Section": {
         "Insert section above": "Vstavi razdelek zgoraj",
         "Insert section below": "Vstavite razdelek spodaj"
+    },
+    "AdminPanel": {
+        "Help us make Grist better": "Pomagaj nam izboljšati Grist",
+        "Home": "Domov",
+        "Admin Panel": "Skrbniški panel",
+        "Current": "Trenutno",
+        "Current version of Grist": "Trenutna različica Grista",
+        "Sponsor": "Sponzor",
+        "Support Grist": "Podpora Gristu",
+        "Telemetry": "Telemetrija",
+        "Support Grist Labs on GitHub": "Podpri Grist Labs na GitHubu",
+        "Version": "Verzija"
     }
 }

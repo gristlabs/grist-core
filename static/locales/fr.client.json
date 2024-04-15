@@ -221,7 +221,8 @@
         "Compare to Current": "Comparer au document en cours",
         "Compare to Previous": "Comparer au précédent",
         "Beta": "Bêta",
-        "Snapshots are unavailable.": "Les sauvegardes ne sont pas disponibles."
+        "Snapshots are unavailable.": "Les sauvegardes ne sont pas disponibles.",
+        "Only owners have access to snapshots for documents with access rules.": "Seuls les propriétaires ont accès aux instantanés des documents soumis à des règles d'accès."
     },
     "DocMenu": {
         "Other Sites": "Autres espaces",
@@ -652,7 +653,9 @@
         "Enter redirect URL": "Saisir l'URL de redirection",
         "Reset form": "Réinitialiser le formulaire",
         "Submit another response": "Soumettre une autre réponse",
-        "Required field": "Champ obligatoire"
+        "Required field": "Champ obligatoire",
+        "No field selected": "Aucun champ sélectionné",
+        "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer."
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -662,7 +665,8 @@
         "Duplicate rows_other": "Dupliquer les lignes",
         "Delete": "Supprimer",
         "Copy anchor link": "Copier l'ancre",
-        "View as card": "Voir en carte"
+        "View as card": "Voir en carte",
+        "Use as table headers": "Utiliser en tant qu'en-têtes de table"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Copié dans le presse-papier"
@@ -688,7 +692,9 @@
         "Export XLSX": "Exporter en XLSX",
         "Send to Google Drive": "Envoyer vers Google Drive",
         "Share": "Partager",
-        "Download...": "Télécharger..."
+        "Download...": "Télécharger...",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Export as...": "Exporter en tant que..."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -1209,7 +1215,8 @@
         "Support Grist": "Support Grist",
         "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opted In": "Accepté",
-        "Support Grist page": "Soutenir Grist"
+        "Support Grist page": "Soutenir Grist",
+        "Admin Panel": "Panneau d'administration"
     },
     "GridView": {
         "Click to insert": "Cliquer pour insérer"
@@ -1218,8 +1225,8 @@
         "GitHub": "GitHub",
         "Help Center": "Centre d'aide",
         "Home": "Accueil",
-        "Sponsor Grist Labs on GitHub": "Sponsoriser Grist Labs sur GitHub",
-        "GitHub Sponsors page": "Page de sponsors GitHub",
+        "Sponsor Grist Labs on GitHub": "Parrainer Grist Labs sur GitHub",
+        "GitHub Sponsors page": "Page de parrainage GitHub",
         "Manage Sponsorship": "Gérer le parrainage",
         "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opt out of Telemetry": "Se désinscrire de l'envoi de données de télémétrie",
@@ -1230,7 +1237,8 @@
         "You have opted out of telemetry.": "Vous avez choisi de ne pas envoyer de données de télémétrie.",
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Nous ne collectons que des statistiques d'usage, comme détaillé dans notre {{link}}, jamais le contenu des documents.",
         "You can opt out of telemetry at any time from this page.": "Vous pouvez vous désinscrire de la télémétrie à tout moment depuis cette page.",
-        "You have opted in to telemetry. Thank you!": "Merci de vous être inscrit à la télémétrie !"
+        "You have opted in to telemetry. Thank you!": "Merci de vous être inscrit à la télémétrie !",
+        "Sponsor": "Parrainage"
     },
     "buildViewSectionDom": {
         "No data": "Aucune donnée",
@@ -1323,7 +1331,21 @@
         "Publish": "Publier",
         "Publish your form?": "Publier votre formulaire ?",
         "Unpublish": "Dépublier",
-        "Unpublish your form?": "Dépublier votre formulaire ?"
+        "Unpublish your form?": "Dépublier votre formulaire ?",
+        "Are you sure you want to reset your form?": "Êtes-vous sûr de vouloir réinitialiser votre formulaire ?",
+        "Anyone with the link below can see the empty form and submit a response.": "Toute personne ayant accès au lien ci-dessous peut voir le formulaire vide et soumettre une réponse.",
+        "Code copied to clipboard": "Code copié dans le presse-papiers",
+        "Copy code": "Copier le code",
+        "View": "Vue",
+        "Copy link": "Copier le lien",
+        "Embed this form": "Intégrer ce formulaire",
+        "Link copied to clipboard": "Lien copié dans le presse-papiers",
+        "Preview": "Aperçu",
+        "Reset form": "Réinitialiser le formulaire",
+        "Save your document to publish this form.": "Enregistrez votre document pour publier ce formulaire.",
+        "Share this form": "Partager ce formulaire",
+        "Reset": "Réinitialiser",
+        "Share": "Partager"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
@@ -1389,5 +1411,29 @@
         "This week": "Cette semaine",
         "This year": "Cette année",
         "Today": "Aujourd'hui"
+    },
+    "MappedFieldsConfig": {
+        "Mapped": "Utilisé",
+        "Select All": "Sélectionner tout",
+        "Unmap fields": "Champs non utilisés",
+        "Map fields": "Champs utilisés",
+        "Clear": "Effacer",
+        "Unmapped": "Non utilisé"
+    },
+    "Section": {
+        "Insert section above": "Ajouter une section ci-dessus",
+        "Insert section below": "Ajouter une section ci-dessous"
+    },
+    "AdminPanel": {
+        "Current": "Actuelle",
+        "Current version of Grist": "Version actuelle de Grist",
+        "Help us make Grist better": "Aidez-nous à améliorer Grist",
+        "Home": "Accueil",
+        "Telemetry": "Télémétrie",
+        "Support Grist Labs on GitHub": "Soutenir Grist Labs sur GitHub",
+        "Admin Panel": "Panneau d'administration",
+        "Sponsor": "Parrainage",
+        "Support Grist": "Soutenir Grist",
+        "Version": "Version"
     }
 }

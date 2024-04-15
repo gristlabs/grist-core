@@ -103,6 +103,12 @@ export function allowHost(req: IncomingMessage, allowedHost: string|URL) {
   const proto = getEndUserProtocol(req);
   const actualUrl = new URL(getOriginUrl(req));
   const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
+  log.rawDebug('allowHost: ', {
+    req: (new URL(req.url!, `http://${req.headers.host}`).href),
+    origin: req.headers.origin,
+    actualUrl: actualUrl.hostname,
+    allowedUrl: allowedUrl.hostname,
+  });
   if ((req as RequestWithOrg).isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
     return actualUrl.hostname === allowedUrl.hostname;

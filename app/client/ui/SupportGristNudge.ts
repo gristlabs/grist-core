@@ -149,8 +149,8 @@ export class SupportGristNudge extends Disposable {
       cssCenterAlignedHeader(t('Opted In')),
       cssParagraph(
         t(
-          'Thank you! Your trust and support is greatly appreciated. ' +
-          'Opt out any time from the {{link}} in the user menu.',
+          'Thank you! Your trust and support is greatly appreciated.\
+ Opt out any time from the {{link}} in the user menu.',
           {link: adminPanelLink()},
         ),
       ),
