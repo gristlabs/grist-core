@@ -616,12 +616,15 @@ export class HomeDBManager extends EventEmitter {
         if (!props.isFirstTimeUser) { isWelcomed = true; }
       }
       if (props.newConnection === true) {
-        // set last connection time to now (remove milliseconds for compatibility with other
-        // timestamps in db set by typeorm, and since second level precision is fine)
-        const nowish = new Date();
-        nowish.setMilliseconds(0);
-        user.lastConnectionAt = nowish;
-        needsSave = true;
+        // set last connection to today (keep date, remove time)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (today.getFullYear() !== user.lastConnectionAt?.getFullYear() ||
+            today.getMonth() !== user.lastConnectionAt?.getMonth() ||
+            today.getDate() !== user.lastConnectionAt?.getDate()){
+          user.lastConnectionAt = today;
+          needsSave = true;
+        }
       }
       if (needsSave) {
         await user.save();
@@ -710,15 +713,12 @@ export class HomeDBManager extends EventEmitter {
         user.name = (profile && (profile.name || email.split('@')[0])) || '';
         needUpdate = true;
       }
-      if (profile) {
-        // set first login time and last connection time to now (remove milliseconds for compatibility with other
+      if (profile && !user.firstLoginAt) {
+        // set first login time to now (remove milliseconds for compatibility with other
         // timestamps in db set by typeorm, and since second level precision is fine)
         const nowish = new Date();
         nowish.setMilliseconds(0);
-        user.lastConnectionAt = nowish;
-        if (!user.firstLoginAt) {
-          user.firstLoginAt = nowish;
-        }
+        user.firstLoginAt = nowish;
         needUpdate = true;
       }
       if (!user.picture && profile && profile.picture) {
