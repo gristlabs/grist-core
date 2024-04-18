@@ -773,10 +773,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async getWorker(key: string): Promise<string> {
-    const json = await this.requestJson(`${this._url}/api/worker/${key}`, {
+    const json: PublicDocWorkerUrlInfo = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
       credentials: 'include'
-    });
+    })) as PublicDocWorkerUrlInfo;
     return getPublicDocWorkerUrl(this._homeUrl, json);
   }
 
@@ -1168,7 +1168,7 @@ export type PublicDocWorkerUrlInfo = {
   docWorkerUrl: null;
 } | {
   selfPrefix: null;
-  docWorkerUrl: string|null;
+  docWorkerUrl: string;
 }
 
 export function getUrlFromPrefix(homeUrl: string, prefix: string) {
@@ -1191,6 +1191,7 @@ export function getUrlFromPrefix(homeUrl: string, prefix: string) {
  *                               (result of the call to /api/worker/:docId)
  */
 export function getPublicDocWorkerUrl(homeUrl: string, docWorkerInfo: PublicDocWorkerUrlInfo) {
-  const publicUrl = docWorkerInfo.docWorkerUrl;
-  return publicUrl || getUrlFromPrefix(homeUrl, docWorkerInfo?.selfPrefix);
+  return docWorkerInfo.selfPrefix ?
+    getUrlFromPrefix(homeUrl, docWorkerInfo.selfPrefix) :
+    docWorkerInfo.docWorkerUrl!;
 }

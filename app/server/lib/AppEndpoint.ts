@@ -195,10 +195,16 @@ export function attachAppEndpoint(options: AttachOptions): void {
       });
     }
 
+    // When no doc worker seed, we're in single server mode.
+    // Return null, to signify that the URL prefix serving the
+    // current endpoint is the only one available.
+    const publicUrl = docStatus?.docWorker?.publicUrl;
+    const workerPublicUrl = publicUrl !== undefined ? customizeDocWorkerUrl(publicUrl, req) : null;
+
     await sendAppPage(req, res, {path: "", content: body.page, tag: body.tag, status: 200,
                                  googleTagManager: 'anon', config: {
       assignmentId: docId,
-      getWorker: {[docId]: customizeDocWorkerUrl(docStatus?.docWorker?.publicUrl, req)},
+      getWorker: {[docId]: workerPublicUrl },
       getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
       plugins
     }});
