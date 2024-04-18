@@ -1171,11 +1171,7 @@ export type PublicDocWorkerUrlInfo = {
   docWorkerUrl: string|null;
 }
 
-export function getUrlFromPrefix(homeUrl: string, prefix: string|null) {
-  if (!prefix) {
-    // This should never happen.
-    throw new Error('missing selfPrefix for docWorkerUrl');
-  }
+export function getUrlFromPrefix(homeUrl: string, prefix: string) {
   const url = new URL(homeUrl);
   url.pathname = prefix + url.pathname;
   return url.href;
