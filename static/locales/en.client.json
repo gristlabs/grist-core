@@ -1193,7 +1193,8 @@
         "URL": "URL",
         "Webhook Id": "Webhook Id",
         "Table": "Table",
-        "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)"
+        "Filter for changes in these columns (semicolon-separated ids)": "Filter for changes in these columns (semicolon-separated ids)",
+        "Header Authorization": "Header Authorization"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Ask the bot.",
