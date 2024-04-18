@@ -703,7 +703,8 @@ export class DocTriggers {
         this._activeDoc.logTelemetryEvent(null, 'sendingWebhooks', {
           limited: {numEvents: meta.numEvents},
         });
-        success = await this._sendWebhookWithRetries(id, url, authorization, body, batch.length, this._loopAbort.signal);
+        success = await this._sendWebhookWithRetries(
+          id, url, authorization, body, batch.length, this._loopAbort.signal);
         if (this._loopAbort.signal.aborted) {
           continue;
         }
