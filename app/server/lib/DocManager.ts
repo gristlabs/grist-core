@@ -43,7 +43,10 @@ export const DEFAULT_CACHE_TTL = 10000;
 
 // How long to remember that a document has been explicitly set in a
 // recovery mode.
-export const RECOVERY_CACHE_TTL = 30000;
+export const RECOVERY_CACHE_TTL = 30000; // 30 seconds
+
+// How long to remember the timing mode of a document.
+export const TIMING_ON_CACHE_TTL = 30000; // 30 seconds
 
 /**
  * DocManager keeps track of "active" Grist documents, i.e. those loaded
@@ -56,6 +59,9 @@ export class DocManager extends EventEmitter {
   // Remember recovery mode of documents.
   private _inRecovery = new MapWithTTL<string, boolean>(RECOVERY_CACHE_TTL);
 
+  // Remember timing mode of documents, when document is recreated it is put in the same mode.
+  private _inTimingOn = new MapWithTTL<string, boolean>(TIMING_ON_CACHE_TTL);
+
   constructor(
     public readonly storageManager: IDocStorageManager,
     public readonly pluginManager: PluginManager|null,
@@ -67,6 +73,13 @@ export class DocManager extends EventEmitter {
 
   public setRecovery(docId: string, recovery: boolean) {
     this._inRecovery.set(docId, recovery);
+  }
+
+  /**
+   * Will restore timing on a document when it is reloaded.
+   */
+  public restoreTimingOn(docId: string, timingOn: boolean) {
+    this._inTimingOn.set(docId, timingOn);
   }
 
   // attach a home database to the DocManager.  During some tests, it
@@ -437,6 +450,10 @@ export class DocManager extends EventEmitter {
       log.error('DocManager had problem shutting down storage: %s', err.message);
     }
 
+    // Clear any timeouts we might have.
+    this._inRecovery.clear();
+    this._inTimingOn.clear();
+
     // Clear the setInterval that the pidusage module sets up internally.
     pidusage.clear();
   }
@@ -601,7 +618,10 @@ export class DocManager extends EventEmitter {
     const doc = await this._getDoc(docSession, docName);
     // Get URL for document for use with SELF_HYPERLINK().
     const docUrls = doc && await this._getDocUrls(doc);
-    return new ActiveDoc(this, docName, {...docUrls, safeMode, doc});
+    const activeDoc = new ActiveDoc(this, docName, {...docUrls, safeMode, doc});
+    // Restore the timing mode of the document.
+    activeDoc.isTimingOn = this._inTimingOn.get(docName) || false;
+    return activeDoc;
   }
 
   /**

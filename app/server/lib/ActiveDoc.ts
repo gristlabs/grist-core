@@ -22,6 +22,7 @@ import {
   ApplyUAResult,
   DataSourceTransformed,
   ForkResult,
+  FormulaTimingInfo,
   ImportOptions,
   ImportResult,
   ISuggestionWithValue,
@@ -220,6 +221,7 @@ export class ActiveDoc extends EventEmitter {
   public docData: DocData|null = null;
   // Used by DocApi to only allow one webhook-related endpoint to run at a time.
   public readonly triggersLock: Mutex = new Mutex();
+  public isTimingOn = false;
 
   protected _actionHistory: ActionHistory;
   protected _docManager: DocManager;
@@ -1366,6 +1368,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async reloadDoc(docSession?: DocSession) {
     this._log.debug(docSession || null, 'ActiveDoc.reloadDoc starting shutdown');
+    this._docManager.restoreTimingOn(this.docName, this.isTimingOn);
     return this.shutdown();
   }
 
@@ -1868,6 +1871,40 @@ export class ActiveDoc extends EventEmitter {
 
   public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share|null> {
     return await this._getHomeDbManagerOrFail().getShareByLinkId(this.docName, linkId);
+  }
+
+  public async startTiming(): Promise<void> {
+    // Set the flag to indicate that timing is on.
+    this.isTimingOn = true;
+
+    try {
+      // Call the data engine to start timing.
+      await this._doStartTiming();
+    } catch (e) {
+      this.isTimingOn = false;
+      throw e;
+    }
+
+    // Mark self as in timing mode, in case we get reloaded.
+    this._docManager.restoreTimingOn(this.docName, true);
+  }
+
+  public async stopTiming(): Promise<FormulaTimingInfo[]> {
+    // First call the data engine to stop timing, and gather results.
+    const timingResults = await this._pyCall('stop_timing');
+
+    // Toggle the flag and clear the reminder.
+    this.isTimingOn = false;
+    this._docManager.restoreTimingOn(this.docName, false);
+
+    return timingResults;
+  }
+
+  public async getTimings(): Promise<FormulaTimingInfo[]|void>  {
+    if (this._modificationLock.isLocked()) {
+      return;
+    }
+    return await this._pyCall('get_timings');
   }
 
   /**
@@ -2377,6 +2414,10 @@ export class ActiveDoc extends EventEmitter {
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
+        if (this.isTimingOn) {
+          await this._doStartTiming();
+        }
+
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
         await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
@@ -2686,7 +2727,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _getEngine(): Promise<ISandbox> {
-    if (this._shuttingDown) { throw new Error('shutting down, data engine unavailable'); }
+    if (this._shuttingDown) {
+      throw new Error('shutting down, data engine unavailable');
+    }
     if (this._dataEngine) { return this._dataEngine; }
 
     this._dataEngine = this._isSnapshot ? this._makeNullEngine() : this._makeEngine();
@@ -2828,6 +2871,10 @@ export class ActiveDoc extends EventEmitter {
     }
 
     return dbManager;
+  }
+
+  private _doStartTiming() {
+    return  this._pyCall('start_timing');
   }
 
 }

@@ -507,6 +507,16 @@ export interface DocAPI {
   flushWebhook(webhookId: string): Promise<void>;
 
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
+  /**
+   * Check if the document is currently in timing mode.
+   */
+  timing(): Promise<{status: boolean}>;
+  /**
+   * Starts recording timing information for the document. Throws exception if timing is already
+   * in progress or you don't have permission to start timing.
+   */
+  startTiming(): Promise<void>;
+  stopTiming(): Promise<void>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1119,6 +1129,18 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       method: 'POST',
       body: JSON.stringify(params),
     });
+  }
+
+  public async timing(): Promise<{status: boolean}> {
+    return this.requestJson(`${this._url}/timing`);
+  }
+
+  public async startTiming(): Promise<void> {
+    await this.request(`${this._url}/timing/start`, {method: 'POST'});
+  }
+
+  public async stopTiming(): Promise<void> {
+    await this.request(`${this._url}/timing/stop`, {method: 'POST'});
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {

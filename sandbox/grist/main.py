@@ -5,6 +5,8 @@ and starts the grist sandbox. See engine.py for the API documentation.
 import os
 import random
 import sys
+
+from timing import DummyTiming, Timing
 sys.path.append('thirdparty')
 # pylint: disable=wrong-import-position
 
@@ -157,6 +159,20 @@ def run(sandbox):
   @export
   def evaluate_formula(table_id, col_id, row_id):
     return formula_prompt.evaluate_formula(eng, table_id, col_id, row_id)
+
+  @export
+  def start_timing():
+    eng._timing = Timing()
+
+  @export
+  def stop_timing():
+    stats = eng._timing.get()
+    eng._timing = DummyTiming()
+    return stats
+
+  @export
+  def get_timings():
+    return eng._timing.get()
 
   export(parse_acl_formula)
   export(eng.load_empty)

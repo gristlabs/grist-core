@@ -288,6 +288,48 @@ export interface RemoteShareInfo {
   key: string;
 }
 
+/**
+ * Metrics gathered during formula calculations.
+ */
+export interface TimingInfo {
+  /**
+   * Total time spend evaluating a formula.
+   */
+  total: number;
+  /**
+   * Number of times the formula was evaluated (for all rows).
+   */
+  count: number;
+  average: number;
+  max: number;
+}
+
+/**
+ * Metrics attached to a particular column in a table. Contains also marks if they were gathered.
+ * Currently we only mark the `OrderError` exception (so when formula calculation was restarted due to
+ * order dependency).
+ */
+export interface FormulaTimingInfo extends TimingInfo {
+  tableId: string;
+  colId: string;
+  marks?: Array<TimingInfo & {name: string}>;
+}
+
+/*
+ * Status of timing info collection. Contains intermediate results if engine is not busy at the moment.
+ */
+export interface TimingStatus {
+  /**
+   * If true, timing info is being collected.
+   */
+  status: boolean;
+  /**
+   * Will be undefined if we can't get the timing info (e.g. if the document is locked by other call).
+   * Otherwise, contains the intermediate results gathered so far.
+   */
+  timing?: FormulaTimingInfo[];
+}
+
 export interface ActiveDocAPI {
   /**
    * Closes a document, and unsubscribes from its userAction events.
@@ -449,5 +491,18 @@ export interface ActiveDocAPI {
    */
   getUsersForViewAs(): Promise<PermissionDataWithExtraUsers>;
 
-  getShare(linkId: string): Promise<RemoteShareInfo>;
+  /**
+   * Get a share info associated with the document.
+   */
+  getShare(linkId: string): Promise<RemoteShareInfo|null>;
+
+  /**
+   * Starts collecting timing information from formula evaluations.
+   */
+  startTiming(): Promise<void>;
+
+  /**
+   * Stops collecting timing information and returns the collected data.
+   */
+  stopTiming(): Promise<TimingInfo[]>;
 }

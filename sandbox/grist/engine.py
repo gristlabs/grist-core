@@ -36,6 +36,7 @@ import sandbox
 import schema
 from schema import RecalcWhen
 import table as table_module
+from timing import DummyTiming
 from user import User # pylint:disable=wrong-import-order
 import useractions
 import column
@@ -262,6 +263,8 @@ class Engine(object):
     # be fetched synchronously via the exported JS method. This allows a single formula to
     # make multiple different requests without needing to keep all the responses in memory.
     self._cached_request_keys = set()
+
+    self._timing = DummyTiming()
 
   @property
   def autocomplete_context(self):
@@ -969,51 +972,53 @@ class Engine(object):
       assert not cycle
       record = AttributeRecorder(record, "rec", record_attributes)
     value = None
-    try:
-      if cycle:
-        raise depend.CircularRefError("Circular Reference")
-      if not col.is_formula():
-        value = col.get_cell_value(int(record), restore=True)
-        with FakeStdStreams():
-          result = col.method(record, table.user_table, value, self._user)
-      else:
-        with FakeStdStreams():
-          result = col.method(record, table.user_table)
-      if self._cell_required_error:
-        raise self._cell_required_error  # pylint: disable=raising-bad-type
-      self.formula_tracer(col, record)
-      return result
-    except MemoryError:
-      # Don't try to wrap memory errors.
-      raise
-    except:  # pylint: disable=bare-except
-      # Since col.method runs untrusted user code, we use a bare except to catch all
-      # exceptions (even those not derived from BaseException).
+    with self._timing.measure(col.node):
+      try:
+        if cycle:
+          raise depend.CircularRefError("Circular Reference")
+        if not col.is_formula():
+          value = col.get_cell_value(int(record), restore=True)
+          with FakeStdStreams():
+            result = col.method(record, table.user_table, value, self._user)
+        else:
+          with FakeStdStreams():
+            result = col.method(record, table.user_table)
+        if self._cell_required_error:
+          raise self._cell_required_error  # pylint: disable=raising-bad-type
+        self.formula_tracer(col, record)
+        return result
+      except MemoryError:
+        # Don't try to wrap memory errors.
+        raise
+      except:  # pylint: disable=bare-except
+        # Since col.method runs untrusted user code, we use a bare except to catch all
+        # exceptions (even those not derived from BaseException).
 
-      # Before storing the exception value, make sure there isn't an OrderError pending.
-      # If there is, we will raise it after undoing any side effects.
-      order_error = self._cell_required_error
+        # Before storing the exception value, make sure there isn't an OrderError pending.
+        # If there is, we will raise it after undoing any side effects.
+        order_error = self._cell_required_error
 
-      # Otherwise, we use sys.exc_info to recover the raised exception object.
-      regular_error = sys.exc_info()[1] if not order_error else None
+        # Otherwise, we use sys.exc_info to recover the raised exception object.
+        regular_error = sys.exc_info()[1] if not order_error else None
 
-      # It is possible for formula evaluation to have side-effects that produce DocActions (e.g.
-      # lookupOrAddDerived() creates those). If there is an error, undo any such side-effects.
-      self._undo_to_checkpoint(checkpoint)
+        # It is possible for formula evaluation to have side-effects that produce DocActions (e.g.
+        # lookupOrAddDerived() creates those). If there is an error, undo any such side-effects.
+        self._undo_to_checkpoint(checkpoint)
 
-      # Now we can raise the order error, if there was one.  Cell evaluation will be reordered
-      # in response.
-      if order_error:
-        self._cell_required_error = None
-        raise order_error  # pylint: disable=raising-bad-type
+        # Now we can raise the order error, if there was one.  Cell evaluation will be reordered
+        # in response.
+        if order_error:
+          self._timing.mark("order_error")
+          self._cell_required_error = None
+          raise order_error  # pylint: disable=raising-bad-type
 
-      self.formula_tracer(col, record)
+        self.formula_tracer(col, record)
 
-      include_details = (node not in self._is_node_exception_reported) if node else True
-      if not col.is_formula():
-        return objtypes.RaisedException(regular_error, include_details, user_input=value)
-      else:
-        return objtypes.RaisedException(regular_error, include_details)
+        include_details = (node not in self._is_node_exception_reported) if node else True
+        if not col.is_formula():
+          return objtypes.RaisedException(regular_error, include_details, user_input=value)
+        else:
+          return objtypes.RaisedException(regular_error, include_details)
 
   def convert_action_values(self, action):
     """
