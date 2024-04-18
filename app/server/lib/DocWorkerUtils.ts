@@ -1,11 +1,12 @@
 import {ApiError} from 'app/common/ApiError';
 import {parseSubdomainStrictly} from 'app/common/gristUrls';
 import {removeTrailingSlash} from 'app/common/gutil';
-import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import log from 'app/server/lib/log';
 import {adaptServerUrl} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
+import { getAssignmentId } from './idUtils';
 
 /**
  * This method transforms a doc worker's public url as needed based on the request.
@@ -150,6 +151,43 @@ export async function getWorker(
     await docWorkerMap.removeWorker(docStatus.docWorker.id);
     docStatus = undefined;
   }
+}
+
+export type DocWorkerInfoOrSelfPrefix = {
+  docWorker: DocWorkerInfo,
+  selfPrefix?: never,
+} | {
+  docWorker?: never,
+  selfPrefix: string
+};
+
+export async function getDocWorkerInfoOrSelfPrefix(
+  docId: string,
+  docWorkerMap?: IDocWorkerMap | null,
+  tag?: string
+): Promise<DocWorkerInfoOrSelfPrefix> {
+  if (!useWorkerPool()) {
+    // Let the client know there is not a separate pool of workers,
+    // so they should continue to use the same base URL for accessing
+    // documents. For consistency, return a prefix to add into that
+    // URL, as there would be for a pool of workers. It would be nice
+    // to go ahead and provide the full URL, but that requires making
+    // more assumptions about how Grist is configured.
+    // Alternatives could be: have the client to send their base URL
+    // in the request; or use headers commonly added by reverse proxies.
+    const selfPrefix = "/dw/self/v/" + tag;
+    return { selfPrefix };
+  }
+
+  if (!docWorkerMap) {
+    throw new Error('no worker map');
+  }
+  const assignmentId = getAssignmentId(docWorkerMap, docId);
+  const { docStatus } = await getWorker(docWorkerMap, assignmentId, '/status');
+  if (!docStatus) {
+    throw new Error('no worker');
+  }
+  return { docWorker: docStatus.docWorker };
 }
 
 // Return true if document related endpoints are served by separate workers.

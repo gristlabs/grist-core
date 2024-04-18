@@ -1645,7 +1645,7 @@ export class DocWorkerApi {
     let uploadResult;
     try {
       const accessId = makeAccessId(req, getAuthorizedUserId(req));
-      uploadResult = await fetchDoc(this._grist, sourceDocumentId, req, accessId, asTemplate);
+      uploadResult = await fetchDoc(this._grist, this._docWorkerMap, sourceDocumentId, req, accessId, asTemplate);
       globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName}.grist`);
     } catch (err) {
       if ((err as ApiError).status === 403) {

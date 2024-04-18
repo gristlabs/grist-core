@@ -1156,13 +1156,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 }
 
-interface DocWorkerInfo {
+/**
+ * Reprensents information to build public doc worker url.
+ *
+ * Structure that may contain either **exlusively**:
+ *  - a selfPrefix when no pool of doc worker exist.
+ *  - a public doc worker url otherwise.
+ */
+export type PublicDocWorkerUrlInfo = {
+  selfPrefix: string;
+  docWorkerUrl: null;
+} | {
+  selfPrefix: null;
   docWorkerUrl: string|null;
-  internalDocWorkerUrl: string|null;
-  selfPrefix?: string;
 }
 
-function getUrlFromPrefix(homeUrl: string, prefix?: string) {
+export function getUrlFromPrefix(homeUrl: string, prefix: string|null) {
   if (!prefix) {
     // This should never happen.
     throw new Error('missing selfPrefix for docWorkerUrl');
@@ -1182,30 +1191,10 @@ function getUrlFromPrefix(homeUrl: string, prefix?: string) {
  * doc-worker id, and a tag for the codebase (used in consistency checks).
  *
  * @param {string} homeUrl
- * @param {object} docWorkerInfo
- * @param {string} docWorkerInfo.docWorkerUrl The public doc Worker URL
- * @param {string} docWorkerInfo.internalDocWorkerUrl The internal doc Worker URL
- * @param {string|undefined} docWorkerInfo.selfPrefix
- * @param {string} urlType The type of doc worker url to extract from the docWorkerInfo
+ * @param {string} docWorkerInfo The information to build the public doc worker url
+ *                               (result of the call to /api/worker/:docId)
  */
-export function getPublicDocWorkerUrl(homeUrl: string, docWorkerInfo: DocWorkerInfo) {
+export function getPublicDocWorkerUrl(homeUrl: string, docWorkerInfo: PublicDocWorkerUrlInfo) {
   const publicUrl = docWorkerInfo.docWorkerUrl;
-  return publicUrl || getUrlFromPrefix(homeUrl, docWorkerInfo.selfPrefix);
-}
-
-/**
- * @see getPublicDocWorkerUrl
- * Like getPublicDocWorkerUrl but returns the URL resolvable internally (behind a Reverse Proxy).
- * Especially useful when and where the public url cannot be resolved.
- *
- * @param {string} homeUrl
- * @param {object} docWorkerInfo
- * @param {string} docWorkerInfo.docWorkerUrl The public doc Worker URL
- * @param {string} docWorkerInfo.internalDocWorkerUrl The internal doc Worker URL
- * @param {string|undefined} docWorkerInfo.selfPrefix
- * @param {string} urlType The type of doc worker url to extract from the docWorkerInfo
- */
-export function getInternalDocWorkerUrl(homeUrl: string, docWorkerInfo: DocWorkerInfo) {
-  const internalUrl = docWorkerInfo.internalDocWorkerUrl;
-  return internalUrl || getUrlFromPrefix(homeUrl, docWorkerInfo.selfPrefix);
+  return publicUrl || getUrlFromPrefix(homeUrl, docWorkerInfo?.selfPrefix);
 }

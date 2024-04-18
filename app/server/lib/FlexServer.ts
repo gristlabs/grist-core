@@ -1995,7 +1995,7 @@ export class FlexServer implements GristServer {
     // Add the handling for the /upload route. Most uploads are meant for a DocWorker: they are put
     // in temporary files, and the DocWorker needs to be on the same machine to have access to them.
     // This doesn't check for doc access permissions because the request isn't tied to a document.
-    addUploadRoute(this, this.app, this._trustOriginsMiddleware, ...basicMiddleware);
+    addUploadRoute(this, this.app, this._docWorkerMap, this._trustOriginsMiddleware, ...basicMiddleware);
 
     this.app.get('/attachment', ...docAccessMiddleware,
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
