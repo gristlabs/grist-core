@@ -104,6 +104,12 @@ const WEBHOOK_COLUMNS = [
     type: 'Text',
     label: t('Status'),
   },
+  {
+    id: 'vt_webhook_fc11',
+    colId: 'authorization',
+    type: 'Text',
+    label: t('Header Authorization'),
+  },
 ] as const;
 
 /**
@@ -111,10 +117,11 @@ const WEBHOOK_COLUMNS = [
  */
 const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
   'name', 'memo',
-  'eventTypes', 'url',
-  'tableId', 'isReadyColumn',
-  'watchedColIdsText', 'webhookId',
-  'enabled', 'status'
+  'eventTypes', 'tableId',
+  'watchedColIdsText', 'isReadyColumn',
+  'url', 'authorization',
+  'webhookId', 'enabled',
+  'status'
 ];
 
 /**
@@ -133,7 +140,7 @@ class WebhookExternalTable implements IExternalTable {
   public name = 'GristHidden_WebhookTable';
   public initialActions = _prepareWebhookInitialActions(this.name);
   public saveableFields = [
-    'tableId', 'watchedColIdsText', 'url', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
+    'tableId', 'watchedColIdsText', 'url', 'authorization', 'eventTypes', 'enabled', 'name', 'memo', 'isReadyColumn',
   ];
   public webhooks: ObservableArray<UIWebhookSummary> = observableArray<UIWebhookSummary>([]);
 
