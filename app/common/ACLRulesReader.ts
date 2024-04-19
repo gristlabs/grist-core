@@ -109,6 +109,12 @@ export interface ACLRulesReaderOptions {
   addShareRules?: boolean;
 }
 
+interface ShareContext {
+  shareRef: number;
+  sections: MetaRowRecord<"_grist_Views_section">[];
+  columns: MetaRowRecord<"_grist_Tables_column">[];
+}
+
 /**
  * Helper class for reading ACL rules from DocData.
  */
@@ -204,6 +210,19 @@ export class ACLRulesReader {
       }
     );
 
+    const sectionIds = new Set(sections.map(section => section.id));
+    const fields = this.docData.getMetaTable('_grist_Views_section_field').getRecords().filter(
+      field => {
+        return sectionIds.has(field.parentId);
+      }
+    );
+    const columnIds = new Set(fields.map(field => field.colRef));
+    const columns = this.docData.getMetaTable('_grist_Tables_column').getRecords().filter(
+      column => {
+        return columnIds.has(column.id);
+      }
+    );
+
     const tableRefs = new Set(sections.map(section => section.tableRef));
     const tables = this.docData.getMetaTable('_grist_Tables').getRecords().filter(
       table => tableRefs.has(table.id)
@@ -211,13 +230,12 @@ export class ACLRulesReader {
 
     // For tables associated with forms, allow creation of records,
     // and reading of referenced columns.
-    // TODO: should probably be limiting to a set of columns associated
-    // with section - but for form widget that could potentially be very
-    // confusing since it may not be easy to see that certain columns
-    // haven't been made visible for it? For now, just working at table
-    // level.
+    // TODO: tighten access control on creation since it may be broader
+    // than users expect - hidden columns could be written.
     for (const table of tables) {
-      this._shareTableForForm(table, share.id);
+      this._shareTableForForm(table, {
+        shareRef: share.id, sections, columns,
+      });
     }
   }
 
@@ -248,10 +266,12 @@ export class ACLRulesReader {
    * Allow creating records in a table.
    */
   private _shareTableForForm(table: MetaRowRecord<'_grist_Tables'>,
-                             shareRef: number) {
+                             shareContext: ShareContext) {
+    const { shareRef } = shareContext;
     const resource = this._findOrAddResource({
       tableId: table.tableId,
-      colIds: '*',
+      colIds: '*',  // At creation, allow all columns to be
+                    // initialized.
     });
     let aclFormula = `user.ShareRef == ${shareRef}`;
     let aclFormulaParsed = JSON.stringify([
@@ -277,19 +297,21 @@ export class ACLRulesReader {
       resource, aclFormula, aclFormulaParsed, permissionsText: '+R',
     }));
 
-    this._shareTableReferencesForForm(table, shareRef);
+    this._shareTableReferencesForForm(table, shareContext);
   }
 
   /**
    * Give read access to referenced columns.
    */
   private _shareTableReferencesForForm(table: MetaRowRecord<'_grist_Tables'>,
-                                       shareRef: number) {
+                                       shareContext: ShareContext) {
+    const { shareRef } = shareContext;
+
     const tables = this.docData.getMetaTable('_grist_Tables');
     const columns = this.docData.getMetaTable('_grist_Tables_column');
-    const tableColumns = columns.filterRecords({
-      parentId: table.id,
-    }).filter(c => c.type.startsWith('Ref:') || c.type.startsWith('RefList:'));
+    const tableColumns = shareContext.columns.filter(c =>
+        c.parentId === table.id &&
+        (c.type.startsWith('Ref:') || c.type.startsWith('RefList:')));
     for (const column of tableColumns) {
       const visibleColRef = column.visibleCol;
       // This could be blank in tests, not sure about real life.
