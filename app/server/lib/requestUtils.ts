@@ -9,6 +9,7 @@ import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {Request, Response} from 'express';
 import { IncomingMessage } from 'http';
+import _ from 'lodash';
 import {Writable} from 'stream';
 import { TLSSocket } from 'tls';
 
@@ -87,7 +88,7 @@ export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   // Note that the request origin is undefined for non-CORS requests.
   const origin = req.headers.origin;
   if (!origin) { return true; } // Not a CORS request.
-  if (!allowHost(req, new URL(origin))) { return false; }
+  if (!allowHost(req, new URL(origin)) && !isEnvironmentAllowedHost(new URL(origin))) { return false; }
 
   if (resp) {
     // For a request to a custom domain, the full hostname must match.
@@ -111,19 +112,26 @@ export function allowHost(req: IncomingMessage, allowedHost: string|URL) {
   });
   if ((req as RequestWithOrg).isCustomHost) {
     // For a request to a custom domain, the full hostname must match.
-    return actualUrl.hostname === allowedUrl.hostname;
+  return actualUrl.hostname === allowedUrl.hostname;
   } else {
     // For requests to a native subdomains, only the base domain needs to match.
     const allowedDomain = parseSubdomain(allowedUrl.hostname);
     const actualDomain = parseSubdomain(actualUrl.hostname);
-    return actualDomain.base ?
+    return (!_.isEmpty(actualDomain) ?
       actualDomain.base === allowedDomain.base :
-      actualUrl.hostname === allowedUrl.hostname;
+      allowedUrl.hostname === actualUrl.hostname);
   }
 }
 
 export function matchesBaseDomain(domain: string, baseDomain: string) {
   return domain === baseDomain || domain.endsWith("." + baseDomain);
+}
+
+export function isEnvironmentAllowedHost(url: string|URL) {
+  const urlHost = (typeof url === 'string') ? url : url.hostname;
+  return (process.env.GRIST_ALLOWED_HOSTS || "").split(",").some(domain =>
+    domain && matchesBaseDomain(urlHost, domain)
+  );
 }
 
 export function isParameterOn(parameter: any): boolean {

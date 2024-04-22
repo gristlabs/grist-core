@@ -49,6 +49,7 @@ export class TestServer {
       GRIST_PORT: '0',
       GRIST_DISABLE_S3: 'true',
       REDIS_URL: process.env.TEST_REDIS_URL,
+      GRIST_ALLOWED_HOSTS: `example.com,localhost`,
       GRIST_TRIGGER_WAIT_DELAY: '100',
       // this is calculated value, some tests expect 4 attempts and some will try 3 times
       GRIST_TRIGGER_MAX_ATTEMPTS: '4',
