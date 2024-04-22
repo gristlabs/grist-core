@@ -507,7 +507,8 @@
         "Welcome to {{- orgName}}": "Добро пожаловать в {{- orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Посетите наш {{link}} чтобы узнать больше о Grist.",
         "Sign in": "Вход",
-        "To use Grist, please either sign up or sign in.": "Для использования Grist, зарегистрируйтесь или войдите в систему."
+        "To use Grist, please either sign up or sign in.": "Для использования Grist, зарегистрируйтесь или войдите в систему.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Узнайте больше в {{helpCenterLink}}, или найдите специалиста с {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Import Document": "Импорт документа",
@@ -900,7 +901,12 @@
         "Number Format": "Числовой формат",
         "Currency": "Валюта",
         "Default currency ({{defaultCurrency}})": "Валюта по умолчанию ({{defaultCurrency}})",
-        "Decimals": "Десятичные"
+        "Decimals": "Десятичные",
+        "Text": "Текст",
+        "max": "максимум",
+        "min": "минимум",
+        "Spinner": "Спиннер",
+        "Field Format": "Формат поля"
     },
     "WelcomeTour": {
         "convert to card view, select data, and more.": "преобразовать в представление карточки, выбрать данные, и более.",
@@ -1017,7 +1023,11 @@
     },
     "NTextBox": {
         "false": "ложь",
-        "true": "истина"
+        "true": "истина",
+        "Field Format": "Формат поля",
+        "Lines": "Линейность",
+        "Multi line": "Многострочный",
+        "Single line": "Однострочный"
     },
     "pages": {
         "Duplicate Page": "Дублировать страницу",
@@ -1169,7 +1179,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Очистить очередь",
-        "Webhook Settings": "Настройки вебхука"
+        "Webhook Settings": "Настройки вебхука",
+        "Cleared webhook queue.": "Очистка очереди вебхуков.",
+        "Enabled": "Активировано",
+        "Columns to check when update (separated by ;)": "Столбцы для проверки при обновлении (разделитель ;)",
+        "Event Types": "Типы событий",
+        "Ready Column": "Триггерный столбец",
+        "Memo": "Заметка",
+        "Name": "Название",
+        "Filter for changes in these columns (semicolon-separated ids)": "Фильтрация изменений в этих столбцах (идентификаторы, разделенные точкой с запятой)",
+        "Removed webhook.": "Удаленный вебхук.",
+        "Sorry, not all fields can be edited.": "К сожалению, не все поля можно редактировать.",
+        "Status": "Статус",
+        "URL": "URL",
+        "Webhook Id": "Вебхук Id",
+        "Table": "Таблица"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Спроси у бота.",
@@ -1270,7 +1294,8 @@
         "Support Grist page": "Страница поддержки Grist",
         "Contribute": "Участвовать",
         "Opted In": "Подключено",
-        "Admin Panel": "Панель администратора"
+        "Admin Panel": "Панель администратора",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Спасибо! Ваше доверие и поддержка очень ценны. Откажитесь в любой момент с помощью {{link}} в меню пользователя."
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1377,7 +1402,18 @@
     },
     "FormConfig": {
         "Field rules": "Правила полей",
-        "Required field": "Обязательное поле"
+        "Required field": "Обязательное поле",
+        "Ascending": "Восходящий",
+        "Default": "По умолчанию",
+        "Descending": "Нисходящий",
+        "Field Format": "Формат поля",
+        "Field Rules": "Правила поля",
+        "Horizontal": "Горизонтальный",
+        "Options Alignment": "Выравнивание параметров",
+        "Options Sort Order": "Параметры Порядка Сортировки",
+        "Radio": "Радио",
+        "Select": "Выбрать",
+        "Vertical": "Вертикальный"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Некоторые обязательные столбцы не сопоставлены",
@@ -1401,7 +1437,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Форма отправлена",
-        "Thank you! Your response has been recorded.": "Спасибо! Ваш ответ учтен."
+        "Thank you! Your response has been recorded.": "Спасибо! Ваш ответ учтен.",
+        "Submit new response": "Отправить новый ответ"
     },
     "DateRangeOptions": {
         "Today": "Сегодня",
@@ -1436,5 +1473,31 @@
         "Version": "Версия",
         "Admin Panel": "Панель администратора",
         "Telemetry": "Телеметрия"
+    },
+    "CreateTeamModal": {
+        "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
+        "Cancel": "Отменить",
+        "Choose a name and url for your team site": "Выберите название и URL-адрес для сайта вашей команды",
+        "Create site": "Создать сайт",
+        "Domain name is invalid": "Доменное имя недействительно",
+        "Domain name is required": "Требуется доменное имя",
+        "Go to your site": "Перейдите на ваш сайт",
+        "Team name": "Название команды",
+        "Team name is required": "Требуется указать название команды",
+        "Team site created": "Создан сайт команды",
+        "Team url": "URL-адрес команды",
+        "Work as a Team": "Работайте в команде"
+    },
+    "Field": {
+        "No choices configured": "Опции отсутствуют",
+        "No values in show column of referenced table": "No values in show column of referenced table"
+    },
+    "Columns": {
+        "Remove Column": "Удалить столбец"
+    },
+    "Toggle": {
+        "Checkbox": "Флажок",
+        "Field Format": "Формат поля",
+        "Switch": "Тумблер"
     }
 }

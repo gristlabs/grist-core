@@ -1168,7 +1168,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Effacer la file d'attente",
-        "Webhook Settings": "Paramètres des points d’ancrage Web"
+        "Webhook Settings": "Paramètres des points d’ancrage Web",
+        "Cleared webhook queue.": "Effacement de la file d'attente du point d'ancrage Web.",
+        "Columns to check when update (separated by ;)": "Colonnes à vérifier lors de la mise à jour (séparées par des ;)",
+        "Event Types": "Types d'événements",
+        "Memo": "Mémo",
+        "Ready Column": "Colonne de déclenchement",
+        "Removed webhook.": "Suppression du webhook.",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filtrer les changements dans ces colonnes (identifiants séparés par des points-virgules)",
+        "Status": "Statut",
+        "URL": "URL",
+        "Webhook Id": "Id du point d'ancrage Web",
+        "Table": "Table",
+        "Enabled": "Activé",
+        "Name": "Nom",
+        "Sorry, not all fields can be edited.": "Désolé, tous les champs ne peuvent pas être modifiés."
     },
     "FormulaAssistant": {
         "Grist's AI Formula Assistance. ": "Assistance des formules de l'IA de Grist ",
