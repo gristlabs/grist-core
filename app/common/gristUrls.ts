@@ -185,7 +185,7 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
-export function hostMatchesUrl(host?: string, url?: string) {
+function hostMatchesUrl(host?: string, url?: string) {
   return host !== undefined && url !== undefined && new URL(url).host === host;
 }
 

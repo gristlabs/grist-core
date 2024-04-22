@@ -420,7 +420,7 @@ export async function fetchDoc(
   template: boolean
 ): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
-  const headers = getTransitiveHeaders(req);
+  const headers = getTransitiveHeaders(req, { includeOrigin: false });
 
   // Passing the Origin header would serve no purpose here, as we are
   // constructing an internal request to fetch from our own doc worker

@@ -149,7 +149,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       // TODO docWorkerMain needs to serve app.html, perhaps with correct base-href already set.
       const headers = {
         Accept: 'application/json',
-        ...getTransitiveHeaders(req),
+        ...getTransitiveHeaders(req, { includeOrigin: true }),
       };
       const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, {headers});
       docStatus = workerInfo.docStatus;

@@ -1102,7 +1102,7 @@ export class DocWorkerApi {
         const result = await fetch(homeUrl, {
           method: 'GET',
           headers: {
-            ...getTransitiveHeaders(req),
+            ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
           }
         });
@@ -1115,7 +1115,7 @@ export class DocWorkerApi {
         await fetch(this._grist.getHomeInternalUrl(`/api/docs/${options.sourceDocId}/flush`), {
           method: 'POST',
           headers: {
-            ...getTransitiveHeaders(req),
+            ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
           }
         });
@@ -1173,7 +1173,7 @@ export class DocWorkerApi {
       const {states} = await this._getStates(docSession, activeDoc);
       const ref = await fetch(this._grist.getHomeInternalUrl(`/api/docs/${req.params.docId2}/states`), {
         headers: {
-          ...getTransitiveHeaders(req),
+          ...getTransitiveHeaders(req, { includeOrigin: false }),
           'Content-Type': 'application/json',
         }
       });
@@ -1202,7 +1202,7 @@ export class DocWorkerApi {
         const url = `/api/docs/${req.params.docId2}/compare?left=${parent.h}`;
         const rightChangesReq = await fetch(this._grist.getHomeInternalUrl(url), {
           headers: {
-            ...getTransitiveHeaders(req),
+            ...getTransitiveHeaders(req, { includeOrigin: false }),
             'Content-Type': 'application/json',
           }
         });

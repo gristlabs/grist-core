@@ -2436,7 +2436,7 @@ export class FlexServer implements GristServer {
     const copyDocUrl = this.getHomeInternalUrl('/api/docs');
     const response = await fetch(copyDocUrl, {
       headers: {
-        ...getTransitiveHeaders(req),
+        ...getTransitiveHeaders(req, { includeOrigin: false }),
         'Content-Type': 'application/json',
       },
       method: 'POST',
