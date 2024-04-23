@@ -478,7 +478,8 @@
         "Welcome to {{- orgName}}": "Bienvenue sur {{- orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Visitez notre {{link}} pour en savoir plus sur Grist.",
         "Sign in": "Connexion",
-        "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte."
+        "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Pour en savoir plus, consultez notre {{helpCenterLink}}, ou trouvez un expert via notre {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",
@@ -694,7 +695,10 @@
         "Share": "Partager",
         "Download...": "Télécharger...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
-        "Export as...": "Exporter en tant que..."
+        "Export as...": "Exporter en tant que...",
+        "Comma Separated Values (.csv)": "Comma Separated Values (.csv)",
+        "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
+        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -931,7 +935,10 @@
     },
     "NTextBox": {
         "false": "faux",
-        "true": "vrai"
+        "true": "vrai",
+        "Single line": "Ligne unique",
+        "Multi line": "Multi-lignes",
+        "Lines": "Lignes"
     },
     "ViewAsDropdown": {
         "View As": "Voir en tant que",
@@ -1065,7 +1072,10 @@
         "Decimals": "Décimales",
         "Currency": "Devise",
         "Default currency ({{defaultCurrency}})": "Devise par défaut ({{defaultCurrency}})",
-        "Number Format": "Format de nombre"
+        "Number Format": "Format de nombre",
+        "min": "min",
+        "Text": "Texte",
+        "max": "max"
     },
     "LanguageMenu": {
         "Language": "Langue"
@@ -1230,7 +1240,8 @@
         "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opted In": "Accepté",
         "Support Grist page": "Soutenir Grist",
-        "Admin Panel": "Panneau d'administration"
+        "Admin Panel": "Panneau d'administration",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Nous vous remercions ! Votre confiance et votre soutien sont très appréciés. Vous pouvez vous désinscrire à tout moment en cliquant sur le {{link}} dans le menu utilisateur."
     },
     "GridView": {
         "Click to insert": "Cliquer pour insérer"
@@ -1387,7 +1398,14 @@
     },
     "FormConfig": {
         "Field rules": "Règles du champ",
-        "Required field": "Champ obligatoire"
+        "Required field": "Champ obligatoire",
+        "Ascending": "Croissant",
+        "Default": "Par défaut",
+        "Descending": "Décroissant",
+        "Field Format": "Format du champ",
+        "Field Rules": "Règles du champ",
+        "Horizontal": "Horizontale",
+        "Options Alignment": "Option d'alignement"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1449,5 +1467,8 @@
         "Sponsor": "Parrainage",
         "Support Grist": "Soutenir Grist",
         "Version": "Version"
+    },
+    "Field": {
+        "No choices configured": "Aucun choix configuré"
     }
 }
