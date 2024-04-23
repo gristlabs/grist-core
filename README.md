@@ -246,7 +246,6 @@ GRIST_ADAPT_DOMAIN  | set to "true" to support multiple base domains (careful, h
 GRIST_APP_ROOT      | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories).
 GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup
 GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY
-GRIST_DATA_DIR      | directory in which to store document caches.
 GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented
 GRIST_DEFAULT_PRODUCT  | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts.
 GRIST_DEFAULT_LOCALE  | Locale to use as fallback when Grist cannot honour the browser locale.
@@ -299,6 +298,7 @@ GRIST_SKIP_REDIS_CHECKSUM_MISMATCH | Experimental. If set, only warn if the chec
 GRIST_SNAPSHOT_TIME_CAP       | optional. Define the caps for tracking buckets. Usage: {"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}
 GRIST_SNAPSHOT_KEEP           | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made
 GRIST_PROMCLIENT_PORT         | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️.
+| GRIST_DATA_DIR                     | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume.                                                                                                                                      |
 
 #### AI Formula Assistant related variables (all optional):
 
