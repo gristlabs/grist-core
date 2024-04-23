@@ -104,7 +104,7 @@ export class DocApiForwarder {
     url.pathname = removeTrailingSlash(docWorkerUrl.pathname) + url.pathname;
 
     const headers: {[key: string]: string} = {
-      ...getTransitiveHeaders(req, { includeOrigin: true }),
+      ...getTransitiveHeaders(req, { includeOrigin: false }),
       'Content-Type': req.get('Content-Type') || 'application/json',
     };
     for (const key of ['X-Sort', 'X-Limit']) {
