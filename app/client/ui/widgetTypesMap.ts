@@ -28,8 +28,8 @@ export function getWidgetTypes(sectionType: IWidgetType | null): IWidgetTypeInfo
   return widgetTypesMap.get(sectionType || 'record') || widgetTypesMap.get('record')!;
 }
 
-export function getWidgetTypesLabelTranslation(sectionType: IWidgetType | null) {
-  return t(getWidgetTypes(sectionType).label);
+export function getWidgetTypesLabelTranslation(widgetType: IWidgetTypeInfo) {
+  return t(widgetType.label);
 }
 
 export interface GetTelemetryWidgetTypeOptions {

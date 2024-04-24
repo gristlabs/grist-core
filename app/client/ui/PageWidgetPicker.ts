@@ -205,7 +205,8 @@ export function buildPageWidgetPicker(
       // If savePromise throws an error, before or after timeout, we let the error propagate as it
       // should be handle by the caller.
       if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
-        const label = getWidgetTypesLabelTranslation(type);
+        const widget = getWidgetTypes(type);
+        const label = getWidgetTypesLabelTranslation(widget);
         await spinnerModal(t("Building {{- label}} widget", { label }), savePromise);
       }
     }
@@ -317,12 +318,12 @@ export class PageWidgetSelect extends Disposable {
         cssPanel(
           header(t("Select Widget")),
           sectionTypes.map((value) => {
-            const {icon: iconName} = getWidgetTypes(value);
-            const tLabel = getWidgetTypesLabelTranslation(value);
+            const widget = getWidgetTypes(value);
+            const tLabel = getWidgetTypesLabelTranslation(widget);
             const disabled = computed(this._value.table, (use, tid) => this._isTypeDisabled(value, tid));
             return cssEntry(
               dom.autoDispose(disabled),
-              cssTypeIcon(iconName),
+              cssTypeIcon(widget.icon),
               tLabel,
               dom.on('click', () => !disabled.get() && this._selectType(value)),
               cssEntry.cls('-selected', (use) => use(this._value.type) === value),
