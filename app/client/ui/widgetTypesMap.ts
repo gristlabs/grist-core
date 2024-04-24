@@ -3,7 +3,7 @@ import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
 import {IPageWidget} from "app/client/ui/PageWidgetPicker";
 import {IconName} from "app/client/ui2018/IconList";
 import {IWidgetType} from "app/common/widgetTypes";
-import {makeT} from "../lib/localization";
+import {makeT} from 'app/client/lib/localization';
 
 const t = makeT('WidgetTypesMap');
 
