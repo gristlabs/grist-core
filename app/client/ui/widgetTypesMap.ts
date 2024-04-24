@@ -5,16 +5,16 @@ import {IconName} from "app/client/ui2018/IconList";
 import {IWidgetType} from "app/common/widgetTypes";
 import {makeT} from 'app/client/lib/localization';
 
-const t = makeT('WidgetTypesMap');
+const t = makeT('widgetTypesMap');
 
 export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
-  ['record', {label: t('Table'), icon: 'TypeTable'}],
-  ['single', {label: t('Card'), icon: 'TypeCard'}],
-  ['detail', {label: t('Card List'), icon: 'TypeCardList'}],
-  ['chart', {label: t('Chart'), icon: 'TypeChart'}],
-  ['form', {label: t('Form'), icon: 'Board'}],
-  ['custom', {label: t('Custom'), icon: 'TypeCustom'}],
-  ['custom.calendar', {label: t('Calendar'), icon: 'TypeCalendar'}],
+  ['record', {label: 'Table', icon: 'TypeTable'}],
+  ['single', {label: 'Card', icon: 'TypeCard'}],
+  ['detail', {label: 'Card List', icon: 'TypeCardList'}],
+  ['chart', {label: 'Chart', icon: 'TypeChart'}],
+  ['form', {label: 'Form', icon: 'Board'}],
+  ['custom', {label: 'Custom', icon: 'TypeCustom'}],
+  ['custom.calendar', {label: 'Calendar', icon: 'TypeCalendar'}],
 ]);
 
 // Widget type info.
@@ -26,6 +26,10 @@ export interface IWidgetTypeInfo {
 // Returns the widget type info for sectionType, or the one for 'record' if sectionType is null.
 export function getWidgetTypes(sectionType: IWidgetType | null): IWidgetTypeInfo {
   return widgetTypesMap.get(sectionType || 'record') || widgetTypesMap.get('record')!;
+}
+
+export function getWidgetTypesLabelTranslation(sectionType: IWidgetType | null) {
+  return t(getWidgetTypes(sectionType).label);
 }
 
 export interface GetTelemetryWidgetTypeOptions {

@@ -20,7 +20,7 @@ import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {LinkConfig} from 'app/client/ui/selectBy';
-import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
+import {getWidgetTypesLabelTranslation} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
@@ -460,7 +460,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== 'record' ? `${getWidgetTypes(this.parentKey.peek() as any).label}` : '';
+    const widgetTypeDesc = this.parentKey() !== 'record'
+      ? `${getWidgetTypesLabelTranslation(this.parentKey.peek() as any)}`
+      : '';
     const table = this.table();
     return [
       table.tableNameDef()?.toUpperCase(), // Due to ACL this can be null.
