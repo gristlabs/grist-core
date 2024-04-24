@@ -3,15 +3,18 @@ import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
 import {IPageWidget} from "app/client/ui/PageWidgetPicker";
 import {IconName} from "app/client/ui2018/IconList";
 import {IWidgetType} from "app/common/widgetTypes";
+import {makeT} from "../lib/localization";
+
+const t = makeT('WidgetTypesMap');
 
 export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
-  ['record', {label: 'Table', icon: 'TypeTable'}],
-  ['single', {label: 'Card', icon: 'TypeCard'}],
-  ['detail', {label: 'Card List', icon: 'TypeCardList'}],
-  ['chart', {label: 'Chart', icon: 'TypeChart'}],
-  ['form', {label: 'Form', icon: 'Board'}],
-  ['custom', {label: 'Custom', icon: 'TypeCustom'}],
-  ['custom.calendar', {label: 'Calendar', icon: 'TypeCalendar'}],
+  ['record', {label: t('Table'), icon: 'TypeTable'}],
+  ['single', {label: t('Card'), icon: 'TypeCard'}],
+  ['detail', {label: t('Card List'), icon: 'TypeCardList'}],
+  ['chart', {label: t('Chart'), icon: 'TypeChart'}],
+  ['form', {label: t('Form'), icon: 'Board'}],
+  ['custom', {label: t('Custom'), icon: 'TypeCustom'}],
+  ['custom.calendar', {label: t('Calendar'), icon: 'TypeCalendar'}],
 ]);
 
 // Widget type info.

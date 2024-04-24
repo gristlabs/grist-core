@@ -1499,5 +1499,14 @@
         "Checkbox": "Checkbox",
         "Field Format": "Field Format",
         "Switch": "Switch"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Calendar",
+        "Card": "Card",
+        "Card List": "Card List",
+        "Chart": "Chart",
+        "Custom": "Custom",
+        "Form": "Form",
+        "Table": "Table"
     }
 }
