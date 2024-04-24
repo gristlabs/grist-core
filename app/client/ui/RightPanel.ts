@@ -38,7 +38,11 @@ import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSecti
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
-import {getTelemetryWidgetTypeFromVS, getWidgetTypesLabelTranslation, widgetTypesMap} from "app/client/ui/widgetTypesMap";
+import {
+  getTelemetryWidgetTypeFromVS,
+  getWidgetTypesLabelTranslation,
+  widgetTypesMap
+} from "app/client/ui/widgetTypesMap";
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
