@@ -2,12 +2,15 @@ import {ColumnRec, DocModel, IRowModel, refListRecords, refRecord, ViewSectionRe
 import {formatterForRec} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import { HeaderStyle, Style } from 'app/client/models/Styles';
+import {HeaderStyle, Style} from 'app/client/models/Styles';
 import {ViewFieldConfig} from 'app/client/models/ViewFieldConfig';
 import * as UserType from 'app/client/widgets/UserType';
 import {DocumentSettings} from 'app/common/DocumentSettings';
+import {DropdownCondition, DropdownConditionCompilationResult} from 'app/common/DropdownCondition';
+import {compilePredicateFormula} from 'app/common/PredicateFormula';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {createParser} from 'app/common/ValueParser';
+import {Computed} from 'grainjs';
 import * as ko from 'knockout';
 
 // Represents a page entry in the tree of pages.
@@ -105,6 +108,9 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
 
   /** Label in FormView. By default FormView uses label, use this to override it. */
   question: modelUtil.KoSaveableObservable<string|undefined>;
+
+  dropdownCondition: modelUtil.KoSaveableObservable<DropdownCondition|undefined>;
+  dropdownConditionCompiled: Computed<DropdownConditionCompilationResult|null>;
 
   createValueParser(): (value: string) => any;
 
@@ -316,4 +322,21 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
 
   this.disableModify = this.autoDispose(ko.pureComputed(() => this.column().disableModify()));
   this.disableEditData = this.autoDispose(ko.pureComputed(() => this.column().disableEditData()));
+
+  this.dropdownCondition = this.widgetOptionsJson.prop('dropdownCondition');
+  this.dropdownConditionCompiled = Computed.create(this, use => {
+    const dropdownCondition = use(this.dropdownCondition);
+    if (!dropdownCondition?.parsed) { return null; }
+
+    try {
+      return {
+        kind: 'success',
+        result: compilePredicateFormula(JSON.parse(dropdownCondition.parsed), {
+          variant: 'dropdown-condition',
+        }),
+      };
+    } catch (e) {
+      return {kind: 'failure', error: e.message};
+    }
+  });
 }

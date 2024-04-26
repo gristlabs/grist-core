@@ -1,4 +1,5 @@
 import {detectCurrentLang, makeT} from 'app/client/lib/localization';
+import {checkName} from 'app/client/lib/nameUtils';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import * as css from 'app/client/ui/AccountPageCss';
@@ -248,23 +249,6 @@ designed to ensure that you're the only person who can access your account, even
     }));
   }
 }
-
-/**
- * We allow alphanumeric characters and certain common whitelisted characters (except at the start),
- * plus everything non-ASCII (for non-English alphabets, which we want to allow but it's hard to be
- * more precise about what exactly to allow).
- */
-// eslint-disable-next-line no-control-regex
-const VALID_NAME_REGEXP = /^(\w|[^\u0000-\u007F])(\w|[- ./'"()]|[^\u0000-\u007F])*$/;
-
-/**
- * Test name against various rules to check if it is a valid username.
- */
-export function checkName(name: string): boolean {
-  return VALID_NAME_REGEXP.test(name);
-}
-
-
 
 const cssWarnings = styled(css.warning, `
   margin: -8px 0 0 110px;

@@ -10,8 +10,8 @@ import {dom, styled} from 'grainjs';
 export function createMobileButtons(commands: IEditorCommandGroup) {
   // TODO A better check may be to detect a physical keyboard or touch support.
   return isDesktop() ? null : [
-    cssCancelBtn(cssIconWrap(cssFinishIcon('CrossSmall')), dom.on('click', commands.fieldEditCancel)),
-    cssSaveBtn(cssIconWrap(cssFinishIcon('Tick')), dom.on('click', commands.fieldEditSaveHere)),
+    cssCancelBtn(cssIconWrap(cssFinishIcon('CrossSmall')), dom.on('mousedown', commands.fieldEditCancel)),
+    cssSaveBtn(cssIconWrap(cssFinishIcon('Tick')), dom.on('mousedown', commands.fieldEditSaveHere)),
   ];
 }
 

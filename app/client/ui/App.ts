@@ -14,6 +14,7 @@ import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
 import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
+import {attachTheme} from 'app/client/ui2018/theme';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {CommDocError} from 'app/common/CommTypes';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -183,6 +184,7 @@ export class App extends DisposableWithEvents {
 
     // Add the cssRootVars class to enable the variables in cssVars.
     attachCssRootVars(this.topAppModel.productFlavor);
+    attachTheme();
     addViewportTag();
     this.autoDispose(createAppUI(this.topAppModel, this));
   }

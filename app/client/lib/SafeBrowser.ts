@@ -33,6 +33,7 @@ import { ClientScope } from 'app/client/components/ClientScope';
 import { get as getBrowserGlobals } from 'app/client/lib/browserGlobals';
 import dom from 'app/client/lib/dom';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
+import { gristThemeObs } from 'app/client/ui2018/theme';
 import { ActionRouter } from 'app/common/ActionRouter';
 import { BaseComponent, BaseLogger, createRpcLogger, PluginInstance, warnIfNotReady } from 'app/common/PluginInstance';
 import { tbind } from 'app/common/tbind';
@@ -41,7 +42,7 @@ import { getOriginUrl } from 'app/common/urlUtils';
 import { GristAPI, RPC_GRISTAPI_INTERFACE } from 'app/plugin/GristAPI';
 import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
 import { checkers } from 'app/plugin/TypeCheckers';
-import { Computed, dom as grainjsDom, Observable } from 'grainjs';
+import { dom as grainjsDom, Observable } from 'grainjs';
 import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from 'grain-rpc';
 import { Disposable } from './dispose';
 import isEqual from 'lodash/isEqual';
@@ -73,8 +74,6 @@ export class SafeBrowser extends BaseComponent {
       new IframeProcess(safeBrowser, rpc, src);
   }
 
-  public theme = this._options.theme;
-
   // All view processes. This is not used anymore to dispose all processes on deactivation (this is
   // now achieved using `this._mainProcess.autoDispose(...)`) but rather to be able to dispatch
   // events to all processes (such as doc actions which will need soon).
@@ -94,7 +93,6 @@ export class SafeBrowser extends BaseComponent {
     pluginInstance: PluginInstance,
     clientScope: ClientScope,
     untrustedContentOrigin: string,
-    theme: Computed<Theme>,
     mainPath?: string,
     baseLogger?: BaseLogger,
     rpcLogger?: IRpcLogger,
@@ -312,7 +310,7 @@ class IframeProcess extends ViewProcess {
     const listener = async (event: MessageEvent) => {
       if (event.source === iframe.contentWindow) {
         if (event.data.mtype === MsgType.Ready) {
-          await this._sendTheme({theme: safeBrowser.theme.get(), fromReady: true});
+          await this._sendTheme({theme: gristThemeObs().get(), fromReady: true});
         }
 
         if (event.data.data?.message === 'themeInitialized') {
@@ -328,15 +326,11 @@ class IframeProcess extends ViewProcess {
     });
     this.rpc.setSendMessage(msg => iframe.contentWindow!.postMessage(msg, '*'));
 
-    if (safeBrowser.theme) {
-      this.autoDispose(
-        safeBrowser.theme.addListener(async (newTheme, oldTheme) => {
-          if (isEqual(newTheme, oldTheme)) { return; }
+    this.autoDispose(gristThemeObs().addListener(async (newTheme, oldTheme) => {
+      if (isEqual(newTheme, oldTheme)) { return; }
 
-          await this._sendTheme({theme: newTheme});
-        })
-      );
-    }
+      await this._sendTheme({theme: newTheme});
+    }));
   }
 
   private async _sendTheme({theme, fromReady = false}: {theme: Theme, fromReady?: boolean}) {

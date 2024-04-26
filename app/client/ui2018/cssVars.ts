@@ -6,16 +6,10 @@
  *  https://css-tricks.com/snippets/css/system-font-stack/
  *
  */
-import {createPausableObs, PausableObservable} from 'app/client/lib/pausableObs';
-import {getStorage} from 'app/client/lib/storage';
 import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
-import {Theme, ThemeAppearance} from 'app/common/ThemePrefs';
-import {getThemeColors} from 'app/common/Themes';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
+import {dom, DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
 import debounce = require('lodash/debounce');
-import isEqual = require('lodash/isEqual');
 import values = require('lodash/values');
 
 const VAR_PREFIX = 'grist';
@@ -1021,51 +1015,6 @@ export function isScreenResizing(): Observable<boolean> {
   return _isScreenResizingObs;
 }
 
-export function prefersDarkMode(): boolean {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-let _prefersDarkModeObs: PausableObservable<boolean>|undefined;
-
-/**
- * Returns a singleton observable for whether the user agent prefers dark mode.
- */
-export function prefersDarkModeObs(): PausableObservable<boolean> {
-  if (!_prefersDarkModeObs) {
-    const query = window.matchMedia('(prefers-color-scheme: dark)');
-    const obs = createPausableObs<boolean>(null, query.matches);
-    query.addEventListener('change', event => obs.set(event.matches));
-    _prefersDarkModeObs = obs;
-  }
-  return _prefersDarkModeObs;
-}
-
-let _prefersColorSchemeThemeObs: Computed<Theme>|undefined;
-
-/**
- * Returns a singleton observable for the Grist theme matching the current
- * user agent color scheme preference ("light" or "dark").
- */
-export function prefersColorSchemeThemeObs(): Computed<Theme> {
-  if (!_prefersColorSchemeThemeObs) {
-    const obs = Computed.create(null, prefersDarkModeObs(), (_use, prefersDarkTheme) => {
-      if (prefersDarkTheme) {
-        return {
-          appearance: 'dark',
-          colors: getThemeColors('GristDark'),
-        } as const;
-      } else {
-        return {
-          appearance: 'light',
-          colors: getThemeColors('GristLight'),
-        } as const;
-      }
-    });
-    _prefersColorSchemeThemeObs = obs;
-  }
-  return _prefersColorSchemeThemeObs;
-}
-
 /**
  * Attaches the global css properties to the document's root to make them available in the page.
  */
@@ -1079,96 +1028,6 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   }
   const interfaceStyle = urlState().state.get().params?.style || 'full';
   document.body.classList.add(`interface-${interfaceStyle}`);
-}
-
-export function attachTheme(themeObs: Observable<Theme>) {
-  // Attach the current theme to the DOM.
-  attachCssThemeVars(themeObs.get());
-
-  // Whenever the theme changes, re-attach it to the DOM.
-  return themeObs.addListener((newTheme, oldTheme) => {
-    if (isEqual(newTheme, oldTheme)) { return; }
-
-    attachCssThemeVars(newTheme);
-  });
-}
-
-/**
- * Attaches theme-related css properties to the theme style element.
- */
-function attachCssThemeVars({appearance, colors: themeColors}: Theme) {
-  // Custom CSS is incompatible with custom themes.
-  if (getGristConfig().enableCustomCss) { return; }
-
-  // Prepare the custom properties needed for applying the theme.
-  const properties = Object.entries(themeColors)
-    .map(([name, value]) => `--grist-theme-${name}: ${value};`);
-
-  // Include properties for styling the scrollbar.
-  properties.push(...getCssScrollbarProperties(appearance));
-
-  // Include properties for picking an appropriate background image.
-  properties.push(...getCssThemeBackgroundProperties(appearance));
-
-  // Apply the properties to the theme style element.
-  getOrCreateStyleElement('grist-theme').textContent = `:root {
-${properties.join('\n')}
-  }`;
-
-  // Make the browser aware of the color scheme.
-  document.documentElement.style.setProperty(`color-scheme`, appearance);
-
-  // Cache the appearance in local storage; this is currently used to apply a suitable
-  // background image that's shown while the application is loading.
-  getStorage().setItem('appearance', appearance);
-}
-
-/**
- * Gets scrollbar-related css properties that are appropriate for the given `appearance`.
- *
- * Note: Browser support for customizing scrollbars is still a mixed bag; the bulk of customization
- * is non-standard and unsupported by Firefox. If support matures, we could expose some of these in
- * custom themes, but for now we'll just go with reasonable presets.
- */
-function getCssScrollbarProperties(appearance: ThemeAppearance) {
-  return [
-    '--scroll-bar-fg: ' +
-      (appearance === 'dark' ? '#6B6B6B;' : '#A8A8A8;'),
-    '--scroll-bar-hover-fg: ' +
-      (appearance === 'dark' ? '#7B7B7B;' : '#8F8F8F;'),
-    '--scroll-bar-active-fg: ' +
-      (appearance === 'dark' ? '#8B8B8B;' : '#7C7C7C;'),
-    '--scroll-bar-bg: ' +
-      (appearance === 'dark' ? '#2B2B2B;' : '#F0F0F0;'),
-  ];
-}
-
-/**
- * Gets background-related css properties that are appropriate for the given `appearance`.
- *
- * Currently, this sets a property for showing a background image that's visible while a page
- * is loading.
- */
-function getCssThemeBackgroundProperties(appearance: ThemeAppearance) {
-  const value = appearance === 'dark'
-    ? 'url("img/prismpattern.png")'
-    : 'url("img/gplaypattern.png")';
-  return [`--grist-theme-bg: ${value};`];
-}
-
-/**
- * Gets or creates a style element in the head of the document with the given `id`.
- *
- * Useful for grouping CSS values such as theme custom properties without needing to
- * pollute the document with in-line styles.
- */
-function getOrCreateStyleElement(id: string) {
-  let style = document.head.querySelector(`#${id}`);
-  if (style) { return style; }
-  style = document.createElement('style');
-  style.setAttribute('id', id);
-  document.head.append(style);
-  return style;
 }
 
 // A dom method to hide element in print view

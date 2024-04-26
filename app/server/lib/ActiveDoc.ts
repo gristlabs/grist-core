@@ -64,12 +64,16 @@ import {
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {Product} from 'app/common/Features';
-import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
+import {
+  compilePredicateFormula,
+  getPredicateFormulaProperties,
+  PredicateFormulaProperties,
+} from 'app/common/PredicateFormula';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
@@ -84,7 +88,6 @@ import {Share} from 'app/gen-server/entity/Share';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
-import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -1289,7 +1292,11 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async autocomplete(
-    docSession: DocSession, txt: string, tableId: string, columnId: string, rowId: UIRowId
+    docSession: DocSession,
+    txt: string,
+    tableId: string,
+    columnId: string,
+    rowId: UIRowId | null
   ): Promise<ISuggestionWithValue[]> {
     // Autocompletion can leak names of tables and columns.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
@@ -1479,16 +1486,16 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
-  public async checkAclFormula(docSession: DocSession, text: string): Promise<FormulaProperties> {
+  public async checkAclFormula(docSession: DocSession, text: string): Promise<PredicateFormulaProperties> {
     // Checks can leak names of tables and columns.
     if (await this._granularAccess.hasNuancedAccess(docSession)) { return {}; }
     await this.waitForInitialization();
     try {
-      const parsedAclFormula = await this._pyCall('parse_acl_formula', text);
-      compileAclFormula(parsedAclFormula);
+      const parsedAclFormula = await this._pyCall('parse_predicate_formula', text);
+      compilePredicateFormula(parsedAclFormula);
       // TODO We also need to check the validity of attributes, and of tables and columns
       // mentioned in resources and userAttribute rules.
-      return getFormulaProperties(parsedAclFormula);
+      return getPredicateFormulaProperties(parsedAclFormula);
     } catch (e) {
       e.message = e.message?.replace('[Sandbox] ', '');
       throw e;

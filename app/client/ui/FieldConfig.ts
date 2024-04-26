@@ -2,7 +2,7 @@ import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {BEHAVIOR, ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {buildHighlightedCode, cssCodeBlock} from 'app/client/ui/CodeHighlight';
-import {cssBlockedCursor, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
+import {cssBlockedCursor, cssFieldFormula, cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {buildFormulaTriggers} from 'app/client/ui/TriggerFormulas';
 import {textButton} from 'app/client/ui2018/buttons';
@@ -13,7 +13,6 @@ import {IconName} from 'app/client/ui2018/IconList';
 import {selectMenu, selectOption, selectTitle} from 'app/client/ui2018/menus';
 import {createFormulaErrorObs, cssError} from 'app/client/widgets/FormulaEditor';
 import {sanitizeIdent} from 'app/common/gutil';
-import {Theme} from 'app/common/ThemePrefs';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
@@ -139,6 +138,8 @@ export function buildFormulaConfig(
   // And close it dispose it when user opens up behavior menu.
   let formulaField: HTMLElement|null = null;
 
+  const focusFormulaField = () => setTimeout(() => formulaField?.focus(), 0);
+
   // Helper function to clear temporary state (will be called when column changes or formula editor closes)
   const clearState = () => bundleChanges(() => {
     // For a detached editor, we may have already been disposed when user switched page.
@@ -242,7 +243,7 @@ export function buildFormulaConfig(
 
   // Converts data column to formula column.
   const convertDataColumnToFormulaOption = () => selectOption(
-    () => (maybeFormula.set(true), formulaField?.focus()),
+    () => (maybeFormula.set(true), focusFormulaField()),
     t("Clear and make into formula"), 'Script');
 
   // Converts to empty column and opens up the editor. (label is the same, but this is used when we have no formula)
@@ -270,15 +271,15 @@ export function buildFormulaConfig(
   const convertDataColumnToTriggerColumn = () => {
     maybeTrigger.set(true);
     // Open the formula editor.
-    formulaField?.focus();
+    focusFormulaField();
   };
 
   // Converts formula column to trigger formula column.
   const convertFormulaToTrigger = () =>
     gristDoc.convertIsFormula([origColumn.id.peek()], {toFormula: false, noRecalc: false});
 
-  const setFormula = () => (maybeFormula.set(true), formulaField?.focus());
-  const setTrigger = () => (maybeTrigger.set(true), formulaField?.focus());
+  const setFormula = () => { maybeFormula.set(true); focusFormulaField(); };
+  const setTrigger = () => { maybeTrigger.set(true); focusFormulaField(); };
 
   // Actions on save formula. Those actions are using column that comes from FormulaEditor.
   // Formula editor scope is broader then RightPanel, it can be disposed after RightPanel is closed,
@@ -325,16 +326,19 @@ export function buildFormulaConfig(
   const errorMessage = createFormulaErrorObs(owner, gristDoc, origColumn);
   // Helper that will create different flavors for formula builder.
   const formulaBuilder = (onSave: SaveHandler, canDetach?: boolean) => [
-    cssRow(formulaField = buildFormula(
-      origColumn,
-      buildEditor,
-      {
-        gristTheme: gristDoc.currentTheme,
-        disabled: disableOtherActions,
-        canDetach,
-        onSave,
-        onCancel: clearState,
-      })),
+    cssRow(
+      buildFormula(
+        origColumn,
+        buildEditor,
+        {
+          disabled: disableOtherActions,
+          canDetach,
+          onSave,
+          onCancel: clearState,
+        },
+        (el) => { formulaField = el; },
+      )
+    ),
     dom.maybe(errorMessage, errMsg => cssRow(cssError(errMsg), testId('field-error-count'))),
   ];
 
@@ -419,7 +423,6 @@ export function buildFormulaConfig(
 }
 
 interface BuildFormulaOptions {
-  gristTheme: Computed<Theme>;
   disabled: Observable<boolean>;
   canDetach?: boolean;
   onSave?: SaveHandler;
@@ -429,10 +432,12 @@ interface BuildFormulaOptions {
 function buildFormula(
   column: ColumnRec,
   buildEditor: BuildEditor,
-  options: BuildFormulaOptions
+  options: BuildFormulaOptions,
+  ...args: DomElementArg[]
 ) {
-  const {gristTheme, disabled, canDetach = true, onSave, onCancel} = options;
-  return cssFieldFormula(column.formula, {gristTheme, maxLines: 2},
+  const {disabled, canDetach = true, onSave, onCancel} = options;
+  return dom.create(buildHighlightedCode, column.formula, {maxLines: 2},
+    dom.cls(cssFieldFormula.className),
     dom.cls('formula_field_sidepane'),
     cssFieldFormula.cls('-disabled', disabled),
     cssFieldFormula.cls('-disabled-icon', use => !use(column.formula)),
@@ -447,23 +452,9 @@ function buildFormula(
       onSave,
       onCancel,
     })),
+    ...args,
   );
 }
-
-export const cssFieldFormula = styled(buildHighlightedCode, `
-  flex: auto;
-  cursor: pointer;
-  margin-top: 4px;
-  padding-left: 24px;
-  --icon-color: ${theme.accentIcon};
-
-  &-disabled-icon.formula_field_sidepane::before {
-    --icon-color: ${theme.lightText};
-  }
-  &-disabled {
-    pointer-events: none;
-  }
-`);
 
 const cssToggleButton = styled(cssIconButton, `
   margin-left: 8px;

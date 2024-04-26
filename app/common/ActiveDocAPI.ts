@@ -1,6 +1,6 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
-import {FormulaProperties} from 'app/common/GranularAccessClause';
+import {PredicateFormulaProperties} from 'app/common/PredicateFormula';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
@@ -421,7 +421,7 @@ export interface ActiveDocAPI {
    * Find and return a list of auto-complete suggestions that start with `txt`, when editing a
    * formula in table `tableId` and column `columnId`.
    */
-  autocomplete(txt: string, tableId: string, columnId: string, rowId: UIRowId): Promise<ISuggestionWithValue[]>;
+  autocomplete(txt: string, tableId: string, columnId: string, rowId: UIRowId | null): Promise<ISuggestionWithValue[]>;
 
   /**
    * Removes the current instance from the doc.
@@ -467,7 +467,7 @@ export interface ActiveDocAPI {
   /**
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
-  checkAclFormula(text: string): Promise<FormulaProperties>;
+  checkAclFormula(text: string): Promise<PredicateFormulaProperties>;
 
   /**
    * Get a token for out-of-band access to the document.

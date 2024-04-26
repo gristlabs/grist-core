@@ -4,9 +4,10 @@
  * Orgs, workspaces and docs are fetched asynchronously on build via the passed in API.
  */
 import {loadUserManager} from 'app/client/lib/imports';
+import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {reportError} from 'app/client/models/AppModel';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {getTimeFromNow, HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
+import {HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {attachAddNewTip} from 'app/client/ui/AddNewTip';
 import * as css from 'app/client/ui/DocMenuCss';

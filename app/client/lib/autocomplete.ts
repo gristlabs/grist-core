@@ -4,7 +4,8 @@
 import {createPopper, Modifier, Instance as Popper, Options as PopperOptions} from '@popperjs/core';
 import {ACItem, ACResults, HighlightFunc} from 'app/client/lib/ACIndex';
 import {reportError} from 'app/client/models/errors';
-import {Disposable, dom, EventCB, IDisposable} from 'grainjs';
+import {testId, theme} from 'app/client/ui2018/cssVars';
+import {Disposable, dom, DomContents, EventCB, IDisposable} from 'grainjs';
 import {obsArray, onKeyElem, styled} from 'grainjs';
 import merge = require('lodash/merge');
 import maxSize from 'popper-max-size-modifier';
@@ -26,6 +27,9 @@ export interface IAutocompleteOptions<Item extends ACItem> {
   // Defaults to the document body.
   attach?: Element|string|null;
 
+  // If provided, builds and shows the message when there are no items (excluding any extra items).
+  buildNoItemsMessage?: () => DomContents;
+
   // Given a search term, return the list of Items to render.
   search(searchText: string): Promise<ACResults<Item>>;
 
@@ -46,7 +50,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   // The UL element containing the actual menu items.
   protected _menuContent: HTMLElement;
 
-  // Index into _items as well as into _menuContent, -1 if nothing selected.
+  // Index into _menuContent, -1 if nothing selected.
   protected _selectedIndex: number = -1;
 
   // Currently selected element.
@@ -56,6 +60,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   private _mouseOver: {reset(): void};
   private _lastAsTyped: string;
   private _items = this.autoDispose(obsArray<Item>([]));
+  private _extraItems = this.autoDispose(obsArray<Item>([]));
   private _highlightFunc: HighlightFunc;
 
   constructor(
@@ -65,14 +70,19 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     super();
 
     const content = cssMenuWrap(
-      this._menuContent = cssMenu({class: _options.menuCssClass || ''},
-        dom.forEach(this._items, (item) => _options.renderItem(item, this._highlightFunc)),
+      cssMenu(
+        {class: _options.menuCssClass || ''},
         dom.style('min-width', _triggerElem.getBoundingClientRect().width + 'px'),
-        dom.on('mouseleave', (ev) => this._setSelected(-1, true)),
-        dom.on('click', (ev) => {
-          this._setSelected(this._findTargetItem(ev.target), true);
-          if (_options.onClick) { _options.onClick(); }
-        })
+        this._maybeShowNoItemsMessage(),
+        this._menuContent = dom('div',
+          dom.forEach(this._items, (item) => _options.renderItem(item, this._highlightFunc)),
+          dom.forEach(this._extraItems, (item) => _options.renderItem(item, this._highlightFunc)),
+          dom.on('mouseleave', (ev) => this._setSelected(-1, true)),
+          dom.on('click', (ev) => {
+            this._setSelected(this._findTargetItem(ev.target), true);
+            if (_options.onClick) { _options.onClick(); }
+          }),
+        ),
       ),
       // Prevent trigger element from being blurred on click.
       dom.on('mousedown', (ev) => ev.preventDefault()),
@@ -104,7 +114,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   }
 
   public getSelectedItem(): Item|undefined {
-    return this._items.get()[this._selectedIndex];
+    return this._allItems[this._selectedIndex];
   }
 
   public search(findMatch?: (items: Item[]) => number) {
@@ -145,7 +155,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
   private _getNext(step: 1 | -1): number {
     // Pretend there is an extra element at the end to mean "nothing selected".
-    const xsize = this._items.get().length + 1;
+    const xsize = this._allItems.length + 1;
     const next = (this._selectedIndex + step + xsize) % xsize;
     return (next === xsize - 1) ? -1 : next;
   }
@@ -157,6 +167,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     const acResults = await this._options.search(inputVal);
     this._highlightFunc = acResults.highlightFunc;
     this._items.set(acResults.items);
+    this._extraItems.set(acResults.extraItems);
 
     // Plain update() (which is deferred) may be better, but if _setSelected() causes scrolling
     // before the positions are updated, it causes the entire page to scroll horizontally.
@@ -166,11 +177,23 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
     let index: number;
     if (findMatch) {
-      index = findMatch(this._items.get());
+      index = findMatch(this._allItems);
     } else {
       index = inputVal ? acResults.selectIndex : -1;
     }
     this._setSelected(index, false);
+  }
+
+  private get _allItems() {
+    return [...this._items.get(), ...this._extraItems.get()];
+  }
+
+  private _maybeShowNoItemsMessage() {
+    const {buildNoItemsMessage} = this._options;
+    if (!buildNoItemsMessage) { return null; }
+
+    return dom.maybe(use => use(this._items).length === 0, () =>
+      cssNoItemsMessage(buildNoItemsMessage(), testId('autocomplete-no-items-message')));
   }
 }
 
@@ -252,4 +275,11 @@ const cssMenuWrap = styled('div', `
   display: flex;
   flex-direction: column;
   outline: none;
+`);
+
+const cssNoItemsMessage = styled('div', `
+  color: ${theme.lightText};
+  padding: var(--weaseljs-menu-item-padding, 8px 24px);
+  text-align: center;
+  user-select: none;
 `);

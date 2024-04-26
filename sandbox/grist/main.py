@@ -23,7 +23,7 @@ import migrations
 import schema
 import useractions
 import objtypes
-from acl_formula import parse_acl_formula
+from predicate_formula import parse_predicate_formula
 from sandbox import get_default_sandbox
 from imports.register import register_import_parsers
 
@@ -174,7 +174,7 @@ def run(sandbox):
   def get_timings():
     return eng._timing.get()
 
-  export(parse_acl_formula)
+  export(parse_predicate_formula)
   export(eng.load_empty)
   export(eng.load_done)
 

@@ -11,7 +11,6 @@ import { nocaseEqual, ReferenceUtils } from 'app/client/lib/ReferenceUtils';
 import { undef } from 'app/common/gutil';
 import { styled } from 'grainjs';
 
-
 /**
  * A ReferenceEditor offers an autocomplete of choices from the referenced table.
  */
@@ -28,7 +27,12 @@ export class ReferenceEditor extends NTextEditor {
     this._utils = new ReferenceUtils(options.field, docData);
 
     const vcol = this._utils.visibleColModel;
-    this._enableAddNew = vcol && !vcol.isRealFormula() && !!vcol.colId();
+    this._enableAddNew = (
+      vcol &&
+      !vcol.isRealFormula() &&
+      !!vcol.colId() &&
+      !this._utils.hasDropdownCondition
+    );
 
     // Decorate the editor to look like a reference column value (with a "link" icon).
     // But not on readonly mode - here we will reuse default decoration
@@ -65,7 +69,8 @@ export class ReferenceEditor extends NTextEditor {
     // don't create autocomplete for readonly mode
     if (this.options.readonly) { return; }
     this._autocomplete = this.autoDispose(new Autocomplete<ICellItem>(this.textInput, {
-      menuCssClass: menuCssClass + ' ' + cssRefList.className,
+      menuCssClass: `${menuCssClass} ${cssRefList.className} test-autocomplete`,
+      buildNoItemsMessage: () => this._utils.buildNoItemsMessage(),
       search: this._doSearch.bind(this),
       renderItem: this._renderItem.bind(this),
       getItemText: (item) => item.text,
@@ -110,7 +115,7 @@ export class ReferenceEditor extends NTextEditor {
    * Also see: prepForSave.
    */
   private async _doSearch(text: string): Promise<ACResults<ICellItem>> {
-    const result = this._utils.autocompleteSearch(text);
+    const result = this._utils.autocompleteSearch(text, this.options.rowId);
 
     this._showAddNew = false;
     if (!this._enableAddNew || !text) { return result; }
@@ -120,7 +125,7 @@ export class ReferenceEditor extends NTextEditor {
       return result;
     }
 
-    result.items.push({rowId: 'new', text, cleanText});
+    result.extraItems.push({rowId: 'new', text, cleanText});
     this._showAddNew = true;
 
     return result;

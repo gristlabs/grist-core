@@ -4,13 +4,22 @@ var TextEditor = require('app/client/widgets/TextEditor');
 
 const {Autocomplete} = require('app/client/lib/autocomplete');
 const {ACIndexImpl, buildHighlightedDom} = require('app/client/lib/ACIndex');
-const {ChoiceItem, cssChoiceList, cssMatchText, cssPlusButton,
-       cssPlusIcon} = require('app/client/widgets/ChoiceListEditor');
+const {makeT} = require('app/client/lib/localization');
+const {
+  buildDropdownConditionFilter,
+  ChoiceItem,
+  cssChoiceList,
+  cssMatchText,
+  cssPlusButton,
+  cssPlusIcon,
+} = require('app/client/widgets/ChoiceListEditor');
+const {icon} = require('app/client/ui2018/icons');
 const {menuCssClass} = require('app/client/ui2018/menus');
 const {testId, theme} = require('app/client/ui2018/cssVars');
 const {choiceToken, cssChoiceACItem} = require('app/client/widgets/ChoiceToken');
 const {dom, styled} = require('grainjs');
-const {icon} = require('../ui2018/icons');
+
+const t = makeT('ChoiceEditor');
 
 /**
  * ChoiceEditor - TextEditor with a dropdown for possible choices.
@@ -18,15 +27,46 @@ const {icon} = require('../ui2018/icons');
 function ChoiceEditor(options) {
   TextEditor.call(this, options);
 
-  this.choices = options.field.widgetOptionsJson.peek().choices || [];
-  this.choiceOptions = options.field.widgetOptionsJson.peek().choiceOptions || {};
+  this.widgetOptionsJson = options.field.widgetOptionsJson;
+  this.choices = this.widgetOptionsJson.peek().choices || [];
+  this.choicesSet = new Set(this.choices);
+  this.choiceOptions = this.widgetOptionsJson.peek().choiceOptions || {};
+
+  this.hasDropdownCondition = Boolean(options.field.dropdownCondition.peek()?.text);
+  this.dropdownConditionError;
+
+  let acItems = this.choices.map(c => new ChoiceItem(c, false, false));
+  if (this.hasDropdownCondition) {
+    try {
+      const dropdownConditionFilter = this.buildDropdownConditionFilter();
+      acItems = acItems.filter((item) => dropdownConditionFilter(item));
+    } catch (e) {
+      acItems = [];
+      this.dropdownConditionError = e.message;
+    }
+  }
+
+  const acIndex = new ACIndexImpl(acItems);
+  this._acOptions = {
+    popperOptions: {
+      placement: 'bottom'
+    },
+    menuCssClass: `${menuCssClass} ${cssChoiceList.className} test-autocomplete`,
+    buildNoItemsMessage: this.buildNoItemsMessage.bind(this),
+    search: (term) => this.maybeShowAddNew(acIndex.search(term), term),
+    renderItem: (item, highlightFunc) => this.renderACItem(item, highlightFunc),
+    getItemText: (item) => item.label,
+    onClick: () => this.options.commands.fieldEditSave(),
+  };
+
   if (!options.readonly && options.field.viewSection().parentKey() === "single") {
     this.cellEditorDiv.classList.add(cssChoiceEditor.className);
     this.cellEditorDiv.appendChild(cssChoiceEditIcon('Dropdown'));
   }
+
   // Whether to include a button to show a new choice.
   // TODO: Disable when the user cannot change column configuration.
-  this.enableAddNew = true;
+  this.enableAddNew = !this.hasDropdownCondition;
 }
 
 dispose.makeDisposable(ChoiceEditor);
@@ -66,20 +106,7 @@ ChoiceEditor.prototype.attach = function(cellElem) {
   // Don't create autocomplete if readonly.
   if (this.options.readonly) { return; }
 
-  const acItems = this.choices.map(c => new ChoiceItem(c, false, false));
-  const acIndex = new ACIndexImpl(acItems);
-  const acOptions = {
-    popperOptions: {
-      placement: 'bottom'
-    },
-    menuCssClass: `${menuCssClass} ${cssChoiceList.className} test-autocomplete`,
-    search: (term) => this.maybeShowAddNew(acIndex.search(term), term),
-    renderItem: (item, highlightFunc) => this.renderACItem(item, highlightFunc),
-    getItemText: (item) => item.label,
-    onClick: () => this.options.commands.fieldEditSave(),
-  };
-
-  this.autocomplete = Autocomplete.create(this, this.textInput, acOptions);
+  this.autocomplete = Autocomplete.create(this, this.textInput, this._acOptions);
 }
 
 /**
@@ -89,8 +116,32 @@ ChoiceEditor.prototype.attach = function(cellElem) {
 ChoiceEditor.prototype.prepForSave = async function() {
   const selectedItem = this.autocomplete && this.autocomplete.getSelectedItem();
   if (selectedItem && selectedItem.isNew) {
-    const choices = this.options.field.widgetOptionsJson.prop('choices');
+    const choices = this.widgetOptionsJson.prop('choices');
     await choices.saveOnly([...(choices.peek() || []), selectedItem.label]);
+  }
+}
+
+ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
+  const dropdownConditionCompiled = this.options.field.dropdownConditionCompiled.get();
+  if (dropdownConditionCompiled?.kind !== 'success') {
+    throw new Error('Dropdown condition is not compiled');
+  }
+
+  return buildDropdownConditionFilter({
+    dropdownConditionCompiled: dropdownConditionCompiled.result,
+    docData: this.options.gristDoc.docData,
+    tableId: this.options.field.tableId(),
+    rowId: this.options.rowId,
+  });
+}
+
+ChoiceEditor.prototype.buildNoItemsMessage = function() {
+  if (this.dropdownConditionError) {
+    return t('Error in dropdown condition');
+  } else if (this.hasDropdownCondition) {
+    return t('No choices matching condition');
+  } else {
+    return t('No choices to select');
   }
 }
 
@@ -103,15 +154,21 @@ ChoiceEditor.prototype.maybeShowAddNew = function(result, text) {
   // TODO: This logic is also mostly duplicated in ChoiceListEditor and ReferenceEditor.
   // See if there's anything common we can factor out and re-use.
   this.showAddNew = false;
+  if (!this.enableAddNew) {
+    return result;
+  }
+
   const trimmedText = text.trim();
-  if (!this.enableAddNew || !trimmedText) { return result; }
+  if (!trimmedText || this.choicesSet.has(trimmedText)) {
+    return result;
+  }
 
   const addNewItem = new ChoiceItem(trimmedText, false, false, true);
   if (result.items.find((item) => item.cleanText === addNewItem.cleanText)) {
     return result;
   }
 
-  result.items.push(addNewItem);
+  result.extraItems.push(addNewItem);
   this.showAddNew = true;
 
   return result;

@@ -2,7 +2,7 @@ import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
 import * as css from 'app/client/ui/AccountPageCss';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
-import {prefersDarkModeObs} from 'app/client/ui2018/cssVars';
+import {prefersColorSchemeDarkObs} from 'app/client/ui2018/theme';
 import {select} from 'app/client/ui2018/menus';
 import {ThemeAppearance} from 'app/common/ThemePrefs';
 import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
@@ -20,10 +20,10 @@ export class ThemeConfig extends Disposable {
   private _appearance = Computed.create(this,
     this._themePrefs,
     this._syncWithOS,
-    prefersDarkModeObs(),
-    (_use, prefs, syncWithOS, prefersDarkMode) => {
+    prefersColorSchemeDarkObs(),
+    (_use, prefs, syncWithOS, prefersColorSchemeDark) => {
       if (syncWithOS) {
-        return prefersDarkMode ? 'dark' : 'light';
+        return prefersColorSchemeDark ? 'dark' : 'light';
       } else {
         return prefs.appearance;
       }
