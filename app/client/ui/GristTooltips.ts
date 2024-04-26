@@ -147,6 +147,9 @@ see or edit which parts of your document.')
     dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
       example: dom.create(buildHighlightedCode, 'choice.Role == "Manager"', {}, {style: 'margin-top: 8px;'}),
     })),
+    dom('div',
+      cssLink({href: commonUrls.helpFilteringReferenceChoices, target: '_blank'}, t('Learn more.')),
+    ),
     ...args,
   ),
 };
