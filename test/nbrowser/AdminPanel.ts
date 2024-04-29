@@ -2,14 +2,17 @@ import {TelemetryLevel} from 'app/common/Telemetry';
 import {assert, driver, Key, WebElement} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {Defer, serveSomething, Serving} from 'test/server/customUtil';
 import * as testUtils from 'test/server/testUtils';
+import express from 'express';
 
 describe('AdminPanel', function() {
-  this.timeout(30000);
+  this.timeout(300000);
   setupTestSuite();
 
   let oldEnv: testUtils.EnvironmentSnapshot;
   let session: gu.Session;
+  let fakeServer: FakeUpdateServer;
 
   afterEach(() => gu.checkForErrors());
 
@@ -17,10 +20,13 @@ describe('AdminPanel', function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = 'core';
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
+    fakeServer = await startFakeServer();
+    process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;
     await server.restart(true);
   });
 
   after(async function() {
+    await fakeServer.close();
     oldEnv.restore();
     await server.restart(true);
   });
@@ -170,6 +176,128 @@ describe('AdminPanel', function() {
     assert.equal(await driver.find('.test-admin-panel-item-version').isDisplayed(), true);
     assert.match(await driver.find('.test-admin-panel-item-value-version').getText(), /^Version \d+\./);
   });
+
+  const upperCheckNow = () => driver.find('.test-admin-panel-updates-upper-check-now');
+  const lowerCheckNow = () => driver.find('.test-admin-panel-updates-lower-check-now');
+  const autoCheckToggle = () => driver.find('.test-admin-panel-updates-auto-check');
+  const updateMessage = () => driver.find('.test-admin-panel-updates-message');
+  const versionBox = () => driver.find('.test-admin-panel-updates-version');
+  function waitForStatus(message: RegExp) {
+    return gu.waitToPass(async () => {
+      assert.match(await updateMessage().getText(), message);
+    });
+  }
+
+  it('should check for updates', async function() {
+    // Clear any cached settings.
+    await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
+    await driver.navigate().refresh();
+    await waitForAdminPanel();
+
+    // By default don't have any info.
+    await waitForStatus(/No information available/);
+
+    // We see upper check-now button.
+    assert.isTrue(await upperCheckNow().isDisplayed());
+
+    // We can expand.
+    await toggleItem('updates');
+
+    // We see a toggle to update automatically.
+    assert.isTrue(await autoCheckToggle().isDisplayed());
+    assert.isFalse(await isSwitchOn(autoCheckToggle()));
+
+    // We can click it, Grist will turn on auto checks and do it right away.
+    fakeServer.pause();
+    await autoCheckToggle().click();
+    assert.isTrue(await isSwitchOn(autoCheckToggle()));
+
+    // It will first show "Checking for updates" message.
+    // (Request is blocked by fake server, so it will not complete until we resume it.)
+    await waitForStatus(/Checking for updates/);
+
+    // Upper check now button is removed.
+    assert.isFalse(await upperCheckNow().isPresent());
+
+    // Resume server and respond.
+    fakeServer.resume();
+
+    // It will show "New version available" message.
+    await waitForStatus(/Newer version available/);
+    // And a version number.
+    assert.isTrue(await versionBox().isDisplayed());
+    assert.match(await versionBox().getText(), /Version 9\.9\.9/);
+
+    // When we reload, we will auto check for updates.
+    fakeServer.pause();
+    fakeServer.latestVersion = await currentVersion();
+    await driver.navigate().refresh();
+    await waitForAdminPanel();
+    await waitForStatus(/Checking for updates/);
+    fakeServer.resume();
+    await waitForStatus(/Grist is up to date/);
+
+    // Disable auto-checks.
+    await toggleItem('updates');
+    assert.isTrue(await isSwitchOn(autoCheckToggle()));
+    await autoCheckToggle().click();
+    assert.isFalse(await isSwitchOn(autoCheckToggle()));
+    // Nothing should happen.
+    await waitForStatus(/Grist is up to date/);
+    assert.isTrue(await versionBox().isDisplayed());
+    assert.equal(await versionBox().getText(), `Version ${await currentVersion()}`);
+
+    // Refresh to see if we are disabled.
+    fakeServer.pause();
+    await driver.navigate().refresh();
+    await waitForAdminPanel();
+    await waitForStatus(/Last checked .+ ago/);
+    fakeServer.resume();
+    // Expand and see if the toggle is off.
+    await toggleItem('updates');
+    assert.isFalse(await isSwitchOn(autoCheckToggle()));
+  });
+
+  it('shows up-to-date message', async function() {
+    fakeServer.latestVersion = await currentVersion();
+    // Click upper check now.
+    await waitForStatus(/Last checked .+ ago/);
+    await upperCheckNow().click();
+    await waitForStatus(/Grist is up to date/);
+
+    // Update version once again.
+    fakeServer.latestVersion = '9.9.10';
+    // Click lower check now.
+    fakeServer.pause();
+    await lowerCheckNow().click();
+    await waitForStatus(/Checking for updates/);
+    fakeServer.resume();
+    await waitForStatus(/Newer version available/);
+
+    // Make sure we see the new version.
+    assert.isTrue(await versionBox().isDisplayed());
+    assert.match(await versionBox().getText(), /Version 9\.9\.10/);
+  });
+
+  it('shows error message', async function() {
+    fakeServer.failNext = true;
+    fakeServer.pause();
+    await lowerCheckNow().click();
+    await waitForStatus(/Checking for updates/);
+    fakeServer.resume();
+    await waitForStatus(/Error checking for updates/);
+    assert.match((await gu.getToasts())[0], /some error/);
+    await gu.wipeToasts();
+  });
+
+  it('should send telemetry data', async function() {
+    assert.deepEqual({...fakeServer.payload, installationId: 'test'}, {
+      installationId: 'test',
+      deploymentType: 'core',
+      currentVersion: await currentVersion(),
+    });
+    assert.isNotEmpty(fakeServer.payload.installationId);
+  });
 });
 
 async function assertTelemetryLevel(level: TelemetryLevel) {
@@ -193,3 +321,64 @@ async function withExpandedItem(itemId: string, callback: () => Promise<void>) {
 
 const isSwitchOn = (switchElem: WebElement) => switchElem.matches('[class*=switch_on]');
 const waitForAdminPanel = () => driver.findWait('.test-admin-panel', 2000);
+
+interface FakeUpdateServer {
+  latestVersion: string;
+  failNext: boolean;
+  payload: any;
+  close: () => Promise<void>;
+  pause: () => void;
+  resume: () => void;
+  url: () => string;
+}
+
+async function startFakeServer() {
+  let mutex: Defer|null = null;
+  const API: FakeUpdateServer = {
+    latestVersion: '9.9.9',
+    failNext: false,
+    payload: null,
+    close: async () => {
+      mutex?.resolve();
+      mutex = null;
+      await server?.shutdown();
+      server = null;
+    },
+    pause: () => {
+      mutex = new Defer();
+    },
+    resume: () => {
+      mutex?.resolve();
+      mutex = null;
+    },
+    url: () => {
+      return server!.url;
+    }
+  };
+
+  let server: Serving|null = await serveSomething((app) => {
+    app.use(express.json());
+    app.post('/version', async (req, res, next) => {
+      API.payload = req.body;
+      try {
+        await mutex;
+        if (API.failNext) {
+          res.status(500).json({error: 'some error'});
+          API.failNext = false;
+          return;
+        }
+        res.json({latestVersion: API.latestVersion});
+      } catch(ex) {
+        next(ex);
+      }
+    });
+  });
+
+  return API;
+}
+
+async function currentVersion() {
+  const currentVersionText = await driver.find(".test-admin-panel-item-value-version").getText();
+  const currentVersion = currentVersionText.match(/Version (.+)/)![1];
+  return currentVersion;
+}

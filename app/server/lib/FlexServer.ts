@@ -2,7 +2,7 @@ import {ApiError} from 'app/common/ApiError';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
-import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
+import {commonUrls, encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
@@ -1852,6 +1852,35 @@ export class FlexServer implements GristServer {
       }
 
       return resp.status(200).send();
+    }));
+
+    // GET api/checkUpdates
+    // Retrieves the latest version of the client from Grist SAAS endpoint.
+    this.app.get('/api/install/updates', adminPageMiddleware, expressWrap(async (req, res) => {
+      // Prepare data for the telemetry that endpoint might expect.
+      const installationId = (await this.getActivations().current()).id;
+      const deploymentType = this.getDeploymentType();
+      const currentVersion = version.version;
+      const response = await fetch(process.env.GRIST_TEST_VERSION_CHECK_URL || commonUrls.versionCheck, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          installationId,
+          deploymentType,
+          currentVersion,
+        }),
+      });
+      if (!response.ok) {
+        res.status(response.status);
+        if (response.headers.get('content-type')?.includes('application/json')) {
+          const data = await response.json();
+          res.json(data);
+        } else {
+          res.send(await response.text());
+        }
+      } else {
+        res.json(await response.json());
+      }
     }));
   }
 

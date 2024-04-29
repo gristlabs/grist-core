@@ -105,6 +105,8 @@ export const commonUrls = {
   gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
   githubGristCore: 'https://github.com/gristlabs/grist-core',
   githubSponsorGristLabs: 'https://github.com/sponsors/gristlabs',
+
+  versionCheck: 'https://api.getgrist.com/api/version',
 };
 
 /**
