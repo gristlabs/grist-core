@@ -1,5 +1,10 @@
 # Database
 
+> [!WARNING]
+> This documentation is meant to describe the state of the database. The reader should be aware that some undocumented changes may have been done after its last updates, and for this purpose should check the git history of this file.
+>
+> Also contributions are welcome! :heart:
+
 First of all, let's explicit two databases that Grist manages:
 1. The Home Database;
 2. The Document Database (aka the grist document);
@@ -62,7 +67,7 @@ The schema below is the same (except minor differences in the column types) what
 
 ### The Schema
 
-As of 2024-04-15, the database schema is the following (it may have changed in the meantime):
+The database schema is the following:
 
 ![Schema of the home database](./images/homedb-schema.svg)
 
@@ -115,7 +120,7 @@ Tables whose rows represent documents
 | options | Serialized options as described in [DocumentOptions](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L125-L135) |
 | grace_period_start | Specific to getgrist.com (TODO describe it) |
 | usage | stats about the document (see [DocumentUsage](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/DocUsage.ts)) |
-| trunk_id | If set, the current document is a fork (as of 2024-04-15, only from a tutorial), and this column references the original document |
+| trunk_id | If set, the current document is a fork (only from a tutorial), and this column references the original document |
 | type | If set, the current document is a special one (as specified in [DocumentType](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L123)) |
 
 ### `aliases` table
@@ -196,7 +201,7 @@ The groups are entities that may contain either other groups and/or users.
 | id | The primary key   |
 | name   | The name (see the 5 types of groups below) |
 
-As of 2024-04-15, only 5 types of groups exist, which corresponds actually to Roles (for the permission, please refer to the section detailing the `acl_rules` tables):
+Only 5 types of groups exist, which corresponds actually to Roles (for the permission, please refer to the section detailing the `acl_rules` tables):
  - `owners` (see the `OWNERS` permissions)
  - `editors` (see the `EDITORS` permissions)
  - `viewers` (see the `VIEWS` permissions)
@@ -210,7 +215,7 @@ As of 2024-04-15, only 5 types of groups exist, which corresponds actually to Ro
 
 Each time a resource is created, the groups corresponding to the roles above are created (except the `members` which are specific to organisations).
 
-### `group_groups` table 
+### `group_groups` table
 
 The table which allows groups to contain other groups. It also holds the inheritances (see below).
 
@@ -219,7 +224,7 @@ The table which allows groups to contain other groups. It also holds the inherit
 | group_id | The id of the group containing the subgroup |
 | subgroup_id   | The id of the subgroup |
 
-### `user_groups` table 
+### `group_users` table
 
 The table which assigns users to groups.
 
@@ -228,13 +233,55 @@ The table which assigns users to groups.
 | group_id | The id of the group containing the user |
 | user_id   | The id of the user |
 
-### `groups`, `group_groups`, `user_groups` and inheritances
+### `groups`, `group_groups`, `group_users` and inheritances
 
 We mentioned earlier that the groups currently holds the roles with the associated permissions.
 
-> [!WARNING]
-> 
+The database stores the inheritances of rights as described below.
 
+Let's imagine that a user is granted the role of *Owner* for the "Org1" organisation, s/he therefore belongs to the group "Org1 Owners" (aka `id_org1_owner_grp`) which also belongs to the "WS1 Owners" (aka `id_ws1_owner_grp`) by default. In other words, this user is by default owner of boththe Org1 organization and of the WS1 workspace.
+
+The below schema illustrates both the inheritance of between the groups and the state of the database:
+
+![BDD state by default](./images/BDD-doc-inheritance-default.png)
+
+This inheritance by default can be changed through the Users management popup in the Contextual Menu for the Workspaces:
+
+![The drop-down list after "Inherit access:" in the workspaces Users Management popup](./images/ws-users-management-popup.png)
+If you change the inherit access to "View Only", here is what happens:
+
+![BDD state after inherit access has changed, the `group_groups.group_id` value has changed](./images/BDD-doc-inheritance-after-change.png)
+
+The Org1 owners now belongs to the "WS1 Viewers" group, and the user despite being Owner of *Org1* can only view the workspace *WS1* and its documents because s/he only gets the Viewer role for this workspace. Regarding the database, `group_groups` which holds the group inheritance has been updated, so the parent group for `id_org1_owner_grp` is now `id_ws1_viewers_grp`.
+
+### `users` table
+
+Stores `users` information.
+
+| Column name | Description |
+|--------------- | --------------- |
+| id | The user's id |
+| name | The user's name |
+| api_key | If generated, the [HTTP API Key](https://support.getgrist.com/rest-api/) used to authenticate the user |
+| picture | The user's picture (should be provided by the SSO Identity Provider) |
+| first_login_at | The date of the first login |
+| is_first_time_user | whether the user discovers Grist (used to trigger the Welcome Tour) |
+| options | various global options related to the user, like the locale |
+| connect_id | used by [GristConnect](https://github.com/gristlabs/grist-ee/blob/5ae19a7dfb436c8a3d67470b993076e51cf83f21/ext/app/server/lib/GristConnect.ts) in Enterprise Edition to identify user in external provider |
+| ref | Used to identify a user in the automated tests |
+
+### `logins` table
+
+> [!WARNING]
+> At the contrary of the `users`, this table should store information related to the users authentication
+
+
+| Column name | Description |
+|--------------- | --------------- |
+| id | The login id |
+| user_id | The user's id |
+| email | The normalized email address used for equality and indexing |
+| display_email | The user's email address should be displayed |
 
 ### The migrations
 
