@@ -61,7 +61,7 @@ For more information, please consult [the documentation for migrations](./migrat
 
 The home database may either be a sqlite or a postgresql database depending on how the Grist instance has been installed. You may check the `TYPEORM_*` env variables in the [README](https://github.com/gristlabs/grist-core/blob/main/README.md).
 
-Unless otherwise configured, the home database is a sqlite file. In docker, it is stored in `/persist/home.sqlite3`.
+Unless otherwise configured, the home database is a sqlite file. In docker, it is stored at this location: `/persist/home.sqlite3`.
 
 The schema below is the same (except minor differences in the column types) whatever the database type is.
 
@@ -72,18 +72,22 @@ The database schema is the following:
 ![Schema of the home database](./images/homedb-schema.svg)
 
 > [!NOTE]
-> For simplicity's sake, we have removed tables related to the billing, nor to the migrations.
+> For simplicity's sake, we have removed tables related to the billing and to the migrations.
 
 If you want to generate the above schema by yourself, you may run the following command using [SchemaCrawler](https://www.schemacrawler.com/) ([a docker image is available for a quick run](https://www.schemacrawler.com/docker-image.html)):
 ````bash
 # You may adapt the --database argument to fit with the actual file name
 # You may also remove the `--grep-tables` option and all that follows to get the full schema.
-$ schemacrawler --server=sqlite --database=landing.db --info-level=standard --portable-names --command=schema --output-format=svg --output-file=/tmp/graph.svg --grep-tables="products|billing_accounts|limits|billing_account_managers|activations|migrations" --invert-match
+$ schemacrawler --server=sqlite --database=landing.db --info-level=standard \
+  --portable-names --command=schema --output-format=svg \
+  --output-file=/tmp/graph.svg \
+  --grep-tables="products|billing_accounts|limits|billing_account_managers|activations|migrations" \
+  --invert-match
 ````
 
 ### `orgs` table
 
-Tables whose rows represent organisations (also called "Team sites").
+Stores organisations (also called "Team sites") information.
 
 | Column name | Description |
 | ------------- | -------------- |
@@ -95,7 +99,7 @@ Tables whose rows represent organisations (also called "Team sites").
 
 ### `workspaces` table
 
-Tables whose rows represent workspaces
+Stores workspaces information.
 
 | Column name | Description |
 | ------------- | -------------- |
@@ -107,17 +111,17 @@ Tables whose rows represent workspaces
 
 ### `docs` table
 
-Tables whose rows represent documents
+Stores document information that is not portable, which means that it does not store the document data nor the ACL rules (see the "Document Database" section).
 
 | Column name | Description |
 | ------------- | -------------- |
 | id | The primary key |
 | name | The name as displayed in the UI |
-| workspace_id | The workspace to which the document belongs |
+| workspace_id | The workspace the document belongs to |
 | is_pinned | Whether the document has been pinned or not |
 | url_id | Short version of the `id`, as displayed in the URL |
 | removed_at | If not null, stores the date when the workspaces has been placed in the trash (it will be hard deleted after 30 days) |
-| options | Serialized options as described in [DocumentOptions](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L125-L135) |
+| options | Serialized options as described in the [DocumentOptions](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/UserAPI.ts#L125-L135) interface |
 | grace_period_start | Specific to getgrist.com (TODO describe it) |
 | usage | stats about the document (see [DocumentUsage](https://github.com/gristlabs/grist-core/blob/4567fad94787c20f65db68e744c47d5f44b932e4/app/common/DocUsage.ts)) |
 | trunk_id | If set, the current document is a fork (only from a tutorial), and this column references the original document |
@@ -132,17 +136,17 @@ FIXME: What's the difference between `docs.url_id` and `alias.url_id`?
 | Column name | Description |
 | ------------- | -------------- |
 | url_id | The URL alias for the doc_id |
-| org_id | The organisation to which the document belong to |
+| org_id | The organisation the document belongs to |
 | doc_id | The document id |
 
 ### `acl_rules` table
 
-Permissions for to access either a document, workspace or an organisation.
+Permissions to access either a document, workspace or an organisation.
 
 | Column name | Description |
 | ------------- | -------------- |
 | id | The primary key |
-| permissions | The permissions granted to the group. see below. |
+| permissions | The permissions granted to the group. See below. |
 | type | Either equals to `ACLRuleOrg`, `ACLRuleWs` or `ACLRuleDoc` |
 | org_id | The org id associated to this ACL (if set, workspace_id and doc_id are null) |
 | workspace_id | The workspace id associated to this ACL (if set, doc_id and org_id are null) |
@@ -266,7 +270,7 @@ Stores `users` information.
 | picture | The user's picture (should be provided by the SSO Identity Provider) |
 | first_login_at | The date of the first login |
 | is_first_time_user | whether the user discovers Grist (used to trigger the Welcome Tour) |
-| options | various global options related to the user, like the locale |
+| options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/513e13e6ab57c918c0e396b1d56686e45644ee1a/app/common/UserAPI.ts#L169-L179) interface |
 | connect_id | used by [GristConnect](https://github.com/gristlabs/grist-ee/blob/5ae19a7dfb436c8a3d67470b993076e51cf83f21/ext/app/server/lib/GristConnect.ts) in Enterprise Edition to identify user in external provider |
 | ref | Used to identify a user in the automated tests |
 
