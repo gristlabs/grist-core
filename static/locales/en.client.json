@@ -1145,7 +1145,9 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}",
         "Forms are here!": "Forms are here!",
         "Learn more": "Learn more",
-        "These rules are applied after all column rules have been processed, if applicable.": "These rules are applied after all column rules have been processed, if applicable."
+        "These rules are applied after all column rules have been processed, if applicable.": "These rules are applied after all column rules have been processed, if applicable.",
+        "Example: {{example}}": "Example: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Filter displayed dropdown values with a condition."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1499,5 +1501,28 @@
         "Checkbox": "Checkbox",
         "Field Format": "Field Format",
         "Switch": "Switch"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Error in dropdown condition",
+        "No choices matching condition": "No choices matching condition",
+        "No choices to select": "No choices to select"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Error in dropdown condition",
+        "No choices matching condition": "No choices matching condition",
+        "No choices to select": "No choices to select"
+    },
+    "DropdownConditionConfig": {
+        "Dropdown Condition": "Dropdown Condition",
+        "Invalid columns: {{colIds}}": "Invalid columns: {{colIds}}",
+        "Set dropdown condition": "Set dropdown condition"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Enter condition."
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Error in dropdown condition",
+        "No choices matching condition": "No choices matching condition",
+        "No choices to select": "No choices to select"
     }
 }
