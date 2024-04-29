@@ -207,12 +207,12 @@
         "Duplicate Table": "Dupliquer la table",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Supprimer les données de {{formattedTableName}} et les supprimer de toutes les pages ?",
-        "Edit Record Card": "Modifier la vue carte",
+        "Edit Record Card": "Modifier la vue fiche",
         "Rename Table": "Renommer la table",
-        "{{action}} Record Card": "{{action}} la vue carte",
-        "Record Card": "Vue carte",
+        "{{action}} Record Card": "{{action}} la vue fiche",
+        "Record Card": "Vue fiche",
         "Remove Table": "Supprimer la table",
-        "Record Card Disabled": "Vue carte désactivée"
+        "Record Card Disabled": "Vue fiche désactivée"
     },
     "DocHistory": {
         "Activity": "Activité",
@@ -478,7 +478,8 @@
         "Welcome to {{- orgName}}": "Bienvenue sur {{- orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Visitez notre {{link}} pour en savoir plus sur Grist.",
         "Sign in": "Connexion",
-        "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte."
+        "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Pour en savoir plus, consultez notre {{helpCenterLink}}, ou trouvez un expert via notre {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",
@@ -665,7 +666,7 @@
         "Duplicate rows_other": "Dupliquer les lignes",
         "Delete": "Supprimer",
         "Copy anchor link": "Copier l'ancre",
-        "View as card": "Voir en carte",
+        "View as card": "Voir en fiche",
         "Use as table headers": "Utiliser en tant qu'en-têtes de table"
     },
     "SelectionSummary": {
@@ -694,7 +695,10 @@
         "Share": "Partager",
         "Download...": "Télécharger...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
-        "Export as...": "Exporter en tant que..."
+        "Export as...": "Exporter en tant que...",
+        "Comma Separated Values (.csv)": "Comma Separated Values (.csv)",
+        "DOO Separated Values (.dsv)": "DOO Separated Values (.dsv)",
+        "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -776,7 +780,7 @@
         "Form": "Formulaire",
         "Compact": "Compact",
         "Blocks": "Blocs",
-        "Edit Card Layout": "Disposition de la carte",
+        "Edit Card Layout": "Disposition de la fiche",
         "Plugin: ": "Plugin : ",
         "Section: ": "Section : "
     },
@@ -787,7 +791,7 @@
         "Print widget": "Imprimer la vue",
         "Download as CSV": "Télécharger en CSV",
         "Download as XLSX": "Télécharger en XLSX",
-        "Edit Card Layout": "Disposition de la carte",
+        "Edit Card Layout": "Disposition de la fiche",
         "Widget options": "Options de la vue",
         "Advanced Sort & Filter": "Tri et filtre avancés",
         "Data selection": "Sélection des données",
@@ -931,7 +935,11 @@
     },
     "NTextBox": {
         "false": "faux",
-        "true": "vrai"
+        "true": "vrai",
+        "Single line": "Ligne unique",
+        "Multi line": "Multi-lignes",
+        "Lines": "Lignes",
+        "Field Format": "Format du champ"
     },
     "ViewAsDropdown": {
         "View As": "Voir en tant que",
@@ -1002,7 +1010,7 @@
         "Make it relational! Use the {{ref}} type to link tables. ": "Rendez-le relationnel ! Utilisez le type {{ref}} pour lier les tableaux. ",
         "Toggle the {{creatorPanel}} to format columns, ": "Ouvrez le {{creatorPanel}} pour formater les colonnes ",
         "Use {{addNew}} to add widgets, pages, or import more data. ": "Cliquez sur {{addNew}} pour ajouter des vues, des pages ou importer plus de données. ",
-        "convert to card view, select data, and more.": "convertir en vue carte, sélectionner des données et plus.",
+        "convert to card view, select data, and more.": "convertir en vue fiche, sélectionner des données et plus.",
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Définissez des options de formatage de la colonne, des formules ou bien les types de la colonne (dates, liste à choix unique, pièce jointe etc.) ",
         "Use {{helpCenter}} for documentation or questions.": "Cliquez sur {{helpCenter}} pour voir la documentation et poser vos questions.",
         "creator panel": "menu latéral"
@@ -1065,7 +1073,11 @@
         "Decimals": "Décimales",
         "Currency": "Devise",
         "Default currency ({{defaultCurrency}})": "Devise par défaut ({{defaultCurrency}})",
-        "Number Format": "Format de nombre"
+        "Number Format": "Format de nombre",
+        "min": "min",
+        "Text": "Texte",
+        "max": "max",
+        "Field Format": "Format du champ"
     },
     "LanguageMenu": {
         "Language": "Langue"
@@ -1092,12 +1104,12 @@
         "Only those rows will appear which match all of the filters.": "Seules les lignes qui correspondent à tous les filtres apparaîtront.",
         "Select the table to link to.": "Sélectionnez la table vers laquelle vous souhaitez établir un lien.",
         "Selecting Data": "Sélection de données",
-        "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue carte en faisant glisser et en redimensionnant les cellules.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue fiche en faisant glisser et en redimensionnant les cellules.",
         "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des données sources liste toutes les tables de votre document, y compris les tables récapitulatives et les tables non-inclues dans les mises en page.",
         "The total size of all data in this document, excluding attachments.": "La taille totale de toutes les données de ce document, à l'exclusion des pièces jointes.",
         "Click the Add New button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents dans votre espace de travail ou importer des données.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "En cliquant sur {{EyeHideIcon}} dans chaque cellule, vous masquez le champ de cette vue sans le supprimer.",
-        "Editing Card Layout": "Modification de la mise en page de la carte",
+        "Editing Card Layout": "Modification de la mise en page de la fiche",
         "Linking Widgets": "Lier les vues",
         "Nested Filtering": "Filtrage imbriqué",
         "Pinned filters are displayed as buttons above the widget.": "Les filtres épinglés sont affichés sous forme de boutons au-dessus de la vue.",
@@ -1230,7 +1242,8 @@
         "Opt in to Telemetry": "S'inscrire à l'envoi de données de télémétrie",
         "Opted In": "Accepté",
         "Support Grist page": "Soutenir Grist",
-        "Admin Panel": "Panneau d'administration"
+        "Admin Panel": "Panneau d'administration",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Nous vous remercions ! Votre confiance et votre soutien sont très appréciés. Vous pouvez vous désinscrire à tout moment en cliquant sur le {{link}} dans le menu utilisateur."
     },
     "GridView": {
         "Click to insert": "Cliquer pour insérer"
@@ -1327,12 +1340,12 @@
         "You have access to the following Grist sites.": "Vous avez accès aux espaces Grist suivants."
     },
     "CardContextMenu": {
-        "Insert card above": "Insérer une carte au dessus",
-        "Duplicate card": "Dupliquer la carte",
-        "Insert card below": "Insérer une carte en dessous",
-        "Delete card": "Supprimer la carte",
+        "Insert card above": "Insérer une fiche au dessus",
+        "Duplicate card": "Dupliquer la fiche",
+        "Insert card below": "Insérer une fiche en dessous",
+        "Delete card": "Supprimer la fiche",
         "Copy anchor link": "Copier le lien d'ancrage",
-        "Insert card": "Insérer une carte"
+        "Insert card": "Insérer une fiche"
     },
     "WelcomeCoachingCall": {
         "Maybe Later": "Peut-être plus tard",
@@ -1387,7 +1400,17 @@
     },
     "FormConfig": {
         "Field rules": "Règles du champ",
-        "Required field": "Champ obligatoire"
+        "Required field": "Champ obligatoire",
+        "Ascending": "Croissant",
+        "Default": "Par défaut",
+        "Descending": "Décroissant",
+        "Field Format": "Format du champ",
+        "Field Rules": "Règles du champ",
+        "Horizontal": "Horizontale",
+        "Options Alignment": "Option d'alignement",
+        "Options Sort Order": "Option d'ordonnancement",
+        "Vertical": "Verticale",
+        "Radio": "Radio"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1414,7 +1437,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Formulaire envoyé",
-        "Thank you! Your response has been recorded.": "Nous vous remercions. Votre réponse a été enregistrée."
+        "Thank you! Your response has been recorded.": "Nous vous remercions. Votre réponse a été enregistrée.",
+        "Submit new response": "Soumettre une nouvelle réponse"
     },
     "DateRangeOptions": {
         "Last 30 days": "30 derniers jours",
@@ -1449,5 +1473,29 @@
         "Sponsor": "Parrainage",
         "Support Grist": "Soutenir Grist",
         "Version": "Version"
+    },
+    "Field": {
+        "No choices configured": "Aucun choix configuré",
+        "No values in show column of referenced table": "Pas de valeurs dans la colonne montrée de la table de référence"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Annuler",
+        "Choose a name and url for your team site": "Choisissez un nom et une adresse URL pour votre espace d'équipe",
+        "Create site": "Créer",
+        "Domain name is invalid": "Le nom de domaine n'est pas valide",
+        "Domain name is required": "Le nom de domaine est requis",
+        "Go to your site": "Aller vers votre espace d'équipe",
+        "Team name": "Nom de l'espace d'équipe",
+        "Team site created": "L'espace d'équipe a été créé",
+        "Team url": "Url de l'espace d'équipe",
+        "Work as a Team": "Travailler en équipe",
+        "Billing is not supported in grist-core": "La facturation n'est pas prise en charge dans un Grist auto hébergé",
+        "Team name is required": "Le nom de l'espace d'équipe est requis"
+    },
+    "Toggle": {
+        "Field Format": "Format du champ"
+    },
+    "Columns": {
+        "Remove Column": "Supprimer la colonne"
     }
 }

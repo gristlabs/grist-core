@@ -21,7 +21,7 @@ export function configForUser(username: string): AxiosRequestConfig {
     }
   };
   if (username !== 'Anonymous') {
-    config.headers.Authorization = 'Bearer api_key_for_' + username.toLowerCase();
+    config.headers!.Authorization = 'Bearer api_key_for_' + username.toLowerCase();
   }
   return config;
 }

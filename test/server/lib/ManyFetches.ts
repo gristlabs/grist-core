@@ -28,6 +28,12 @@ describe('ManyFetches', function() {
   let docs: TestServer;
   let userApi: UserAPIImpl;
 
+  before(function () {
+    if (!process.env.TEST_REDIS_URL) {
+      return this.skip();
+    }
+  });
+
   beforeEach(async function() {
     oldEnv = new EnvironmentSnapshot();   // Needed for prepareDatabase, which changes process.env
     log.info("Starting servers");

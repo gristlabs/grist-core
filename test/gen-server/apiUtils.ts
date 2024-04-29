@@ -254,7 +254,7 @@ export class TestSession {
   ) {
     const resp = await axios.get(`${this.home.getOwnUrl()}/test/session`,
                                  {validateStatus: (s => s < 400), headers: this.headers});
-    const cookie = this.headers.Cookie || resp.headers['set-cookie'][0];
+    const cookie = this.headers.Cookie || resp.headers['set-cookie']![0];
     const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
     const sessionId = this.home.getSessions().getSessionIdFromCookie(cid);
     const scopedSession = this.home.getSessions().getOrCreateSession(sessionId as string, org, '');

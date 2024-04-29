@@ -1274,7 +1274,7 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Пользователь наследует разрешения от {{parent}}. Чтобы удалить, установите для параметра 'Наследовать доступ' значение 'None'.",
         "Allow anyone with the link to open.": "Разрешить открывать всем, у кого есть ссылка.",
         "Grist support": "Grist поддержка",
-        "Invite people to {{resourceType}}": "Пригласите людей в {{resourceType}}",
+        "Invite people to {{resourceType}}": "Пригласите людей к {{resourceType}}",
         "Create a team to share with more people": "Создайте команду, чтобы поделиться с большим количеством людей",
         "Link copied to clipboard": "Ссылка скопирована в буфер обмена",
         "No default access allows access to be         granted to individual documents or workspaces, rather than the full team site.": "Отсутствие доступа по умолчанию позволяет         предоставлять доступ к отдельным документам или рабочим областям, а не ко всему групповому сайту.",
