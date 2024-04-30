@@ -191,7 +191,7 @@
     "swagger-ui-dist": "5.11.0",
     "tmp": "0.0.33",
     "ts-interface-checker": "1.0.2",
-    "typeorm": "0.3.20",
+    "typeorm": "0.3.17",
     "underscore": "1.12.1",
     "uuid": "3.3.2",
     "winston": "2.4.5",
