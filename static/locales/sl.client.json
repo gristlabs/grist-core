@@ -875,7 +875,8 @@
         "Welcome to Grist!": "Dobrodošli v Gristu!",
         "Visit our {{link}} to learn more about Grist.": "Obiščite našo spletno stran {{link}} da izveste več o Grisstu.",
         "Sign in": "Prijavi se",
-        "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi."
+        "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Izvedi več v našem {{helpCenterLink}} ali poišči strokovnjaka prek našega {{sproutsProgram}}."
     },
     "WelcomeSitePicker": {
         "You have access to the following Grist sites.": "Imate dostop do naslednjih Grist spletnih mest .",
@@ -1264,7 +1265,9 @@
     },
     "NTextBox": {
         "false": "napačno",
-        "true": "pravilno"
+        "true": "pravilno",
+        "Lines": "Ćrte",
+        "Field Format": "Oblika polja"
     },
     "NumericTextBox": {
         "Decimals": "Decimalke",
