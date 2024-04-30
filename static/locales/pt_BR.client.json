@@ -513,7 +513,8 @@
         "Welcome to {{- orgName}}": "Bem-vindo a {{-orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Visite nosso site {{link}} para saber mais sobre o Grist.",
         "Sign in": "Entrar",
-        "To use Grist, please either sign up or sign in.": "Para usar o Grist, inscreva-se ou faça login."
+        "To use Grist, please either sign up or sign in.": "Para usar o Grist, inscreva-se ou faça login.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Saiba mais em nosso {{helpCenterLink}}, ou encontre um especialista através do nosso {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Access Details": "Detalhes de Acesso",
@@ -586,7 +587,11 @@
     },
     "NTextBox": {
         "false": "falso",
-        "true": "verdadeiro"
+        "true": "verdadeiro",
+        "Field Format": "Formato do campo",
+        "Lines": "Linhas",
+        "Multi line": "Multilinha",
+        "Single line": "Linha única"
     },
     "NotifyUI": {
         "Ask for help": "Peça ajuda",
@@ -1102,7 +1107,12 @@
         "Currency": "Moeda",
         "Decimals": "Decimais",
         "Default currency ({{defaultCurrency}})": "Moeda padrão ({{defaultCurrency}})",
-        "Number Format": "Formato de número"
+        "Number Format": "Formato de número",
+        "Field Format": "Formato do campo",
+        "Spinner": "Girador",
+        "Text": "Texto",
+        "max": "máximo",
+        "min": "mínimo"
     },
     "TypeTransformation": {
         "Preview": "Prévisualizar",
@@ -1225,7 +1235,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Limpar fila",
-        "Webhook Settings": "Configurações do gancho web"
+        "Webhook Settings": "Configurações do gancho web",
+        "Enabled": "Ativado",
+        "Cleared webhook queue.": "Fila de webhooks limpa.",
+        "Columns to check when update (separated by ;)": "Colunas a serem verificadas na atualização (separadas por ;)",
+        "Event Types": "Tipos de eventos",
+        "Status": "Estado",
+        "Sorry, not all fields can be edited.": "Desculpe, nem todos os campos podem ser editados.",
+        "URL": "URL",
+        "Memo": "Memorando",
+        "Name": "Nome",
+        "Ready Column": "Coluna pronta",
+        "Removed webhook.": "Webhook removido.",
+        "Webhook Id": "Id do webhook",
+        "Table": "Tabela",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filtrar as alterações nessas Colunas (ids separados por ponto e vírgula)"
     },
     "FieldContextMenu": {
         "Copy anchor link": "Copiar link de âncora",
@@ -1289,7 +1313,8 @@
         "Contribute": "Contribuir",
         "Opted In": "Optou por participar",
         "Support Grist page": "Página de Suporte Grist",
-        "Admin Panel": "Painel do administrador"
+        "Admin Panel": "Painel do administrador",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Obrigado! Sua confiança e seu apoio são muito apreciados. Cancele a qualquer momento no {{link}} no menu do usuário."
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1441,7 +1466,9 @@
     },
     "FormConfig": {
         "Field rules": "Regras de campo",
-        "Required field": "Campo obrigatório"
+        "Required field": "Campo obrigatório",
+        "Ascending": "Ascendente",
+        "Default": "Padrão"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algumas colunas obrigatórias não estão mapeadas",
