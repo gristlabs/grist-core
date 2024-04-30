@@ -192,8 +192,6 @@ export class GristDoc extends DisposableWithEvents {
   // Holder for the popped up formula editor.
   public readonly formulaPopup = Holder.create(this);
 
-  public readonly currentTheme = this.docPageModel.appModel.currentTheme;
-
   public get docApi() {
     return this.docPageModel.appModel.api.getDocAPI(this.docPageModel.currentDocId.get()!);
   }
@@ -238,7 +236,6 @@ export class GristDoc extends DisposableWithEvents {
       untrustedContentOrigin: app.topAppModel.getUntrustedContentOrigin(),
       docComm: this.docComm,
       clientScope: app.clientScope,
-      theme: this.currentTheme,
     });
 
     // Maintain the MetaRowModel for the global document info, including docId and peers.

@@ -10,7 +10,7 @@ import {Notifier} from 'app/client/models/NotifyModel';
 import {getFlavor, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {buildNewSiteModal, buildUpgradeModal} from 'app/client/ui/ProductUpgrades';
 import {SupportGristNudge} from 'app/client/ui/SupportGristNudge';
-import {prefersDarkModeObs} from 'app/client/ui2018/cssVars';
+import {gristThemePrefs} from 'app/client/ui2018/theme';
 import {AsyncCreate} from 'app/common/AsyncCreate';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {OrgUsageSummary} from 'app/common/DocUsage';
@@ -21,9 +21,7 @@ import {LocalPlugin} from 'app/common/plugin';
 import {DismissedPopup, DismissedReminder, UserPrefs} from 'app/common/Prefs';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {getTagManagerScript} from 'app/common/tagManager';
-import {getDefaultThemePrefs, Theme, ThemeColors, ThemePrefs,
-        ThemePrefsChecker} from 'app/common/ThemePrefs';
-import {getThemeColors} from 'app/common/Themes';
+import {getDefaultThemePrefs, ThemePrefs, ThemePrefsChecker} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {ExtendedUser} from 'app/common/UserAPI';
 import {getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
@@ -118,7 +116,6 @@ export interface AppModel {
 
   userPrefsObs: Observable<UserPrefs>;
   themePrefs: Observable<ThemePrefs>;
-  currentTheme: Computed<Theme>;
   /**
    * Popups that user has seen.
    */
@@ -170,8 +167,9 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   private readonly _widgets: AsyncCreate<ICustomWidget[]>;
 
   constructor(window: {gristConfig?: GristLoadConfig},
-              public readonly api: UserAPI = newUserAPIImpl(),
-              public readonly options: TopAppModelOptions = {}) {
+    public readonly api: UserAPI = newUserAPIImpl(),
+    public readonly options: TopAppModelOptions = {}
+  ) {
     super();
     setErrorNotifier(this.notifier);
     this.isSingleOrg = Boolean(window.gristConfig && window.gristConfig.singleOrg);
@@ -307,7 +305,6 @@ export class AppModelImpl extends Disposable implements AppModel {
     defaultValue: getDefaultThemePrefs(),
     checker: ThemePrefsChecker,
   }) as Observable<ThemePrefs>;
-  public readonly currentTheme = this._getCurrentThemeObs();
 
   public readonly dismissedPopups = getUserPrefObs(this.userPrefsObs, 'dismissedPopups',
     { defaultValue: [] }) as Observable<DismissedPopup[]>;
@@ -359,6 +356,11 @@ export class AppModelImpl extends Disposable implements AppModel {
     public readonly orgError?: OrgError,
   ) {
     super();
+
+    // Whenever theme preferences change, update the global `gristThemePrefs` observable; this triggers
+    // an automatic update to the global `gristThemeObs` computed observable.
+    this.autoDispose(subscribe(this.themePrefs, (_use, themePrefs) => gristThemePrefs.set(themePrefs)));
+
     this._recordSignUpIfIsNewUser();
 
     const state = urlState().state.get();
@@ -493,41 +495,14 @@ export class AppModelImpl extends Disposable implements AppModel {
     dataLayer.push({event: 'new-sign-up'});
     getUserPrefObs(this.userPrefsObs, 'recordSignUpEvent').set(undefined);
   }
+}
 
-  private _getCurrentThemeObs() {
-    return Computed.create(this, this.themePrefs, prefersDarkModeObs(),
-      (_use, themePrefs, prefersDarkMode) => {
-        let {appearance, syncWithOS} = themePrefs;
-
-        const urlParams = urlState().state.get().params;
-        if (urlParams?.themeAppearance) {
-          appearance = urlParams?.themeAppearance;
-        }
-
-        if (urlParams?.themeSyncWithOs !== undefined) {
-          syncWithOS = urlParams?.themeSyncWithOs;
-        }
-
-        if (syncWithOS) {
-          appearance = prefersDarkMode ? 'dark' : 'light';
-        }
-
-        let nameOrColors = themePrefs.colors[appearance];
-        if (urlParams?.themeName) {
-          nameOrColors = urlParams?.themeName;
-        }
-
-        let colors: ThemeColors;
-        if (typeof nameOrColors === 'string') {
-          colors = getThemeColors(nameOrColors);
-        } else {
-          colors = nameOrColors;
-        }
-
-        return {appearance, colors};
-      },
-    );
+export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {
+  if (!org) { return ''; }
+  if (user && user.anonymous && org.owner && org.owner.id === user.id) {
+    return "@Guest";
   }
+  return getOrgName(org);
 }
 
 export function getHomeUrl(): string {
@@ -540,12 +515,4 @@ export function newUserAPIImpl(): UserAPIImpl {
   return new UserAPIImpl(getHomeUrl(), {
     fetch: hooks.fetch,
   });
-}
-
-export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {
-  if (!org) { return ''; }
-  if (user && user.anonymous && org.owner && org.owner.id === user.id) {
-    return "@Guest";
-  }
-  return getOrgName(org);
 }

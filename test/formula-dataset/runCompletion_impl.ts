@@ -31,7 +31,7 @@ import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
 import { DEPS, sendForCompletion } from "app/server/lib/Assistance";
 import log from 'app/server/lib/log';
 import crypto from 'crypto';
-import parse from 'csv-parse/lib/sync';
+import { parse } from 'csv-parse/sync';
 import fetch, {RequestInfo, RequestInit, Response} from 'node-fetch';
 import * as fs from "fs";
 import JSZip from "jszip";

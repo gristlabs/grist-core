@@ -513,7 +513,8 @@
         "Welcome to {{- orgName}}": "Willkommen bei {{-orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Besuchen Sie unsere {{link}}, um mehr über Grist zu erfahren.",
         "Sign in": "Anmelden",
-        "To use Grist, please either sign up or sign in.": "Um Grist zu nutzen, melden Sie sich bitte an oder registrieren Sie sich."
+        "To use Grist, please either sign up or sign in.": "Um Grist zu nutzen, melden Sie sich bitte an oder registrieren Sie sich.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Erfahren Sie mehr in unserem {{helpCenterLink}}, oder finden Sie einen Experten über unser {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -586,7 +587,11 @@
     },
     "NTextBox": {
         "false": "falsch",
-        "true": "wahr"
+        "true": "wahr",
+        "Lines": "Linien",
+        "Field Format": "Feldformat",
+        "Multi line": "Mehrere Linien",
+        "Single line": "Einzelne Linie"
     },
     "NotifyUI": {
         "Ask for help": "Bitte um Hilfe",
@@ -1134,7 +1139,11 @@
         "Currency": "Währung",
         "Decimals": "Dezimalstellen",
         "Default currency ({{defaultCurrency}})": "Standardwährung ({{defaultCurrency}})",
-        "Number Format": "Zahlenformat"
+        "Number Format": "Zahlenformat",
+        "min": "min.",
+        "Text": "Text",
+        "max": "max.",
+        "Field Format": "Feldformat"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Es sollte unmöglich sein, einen einfachen Datenwert in eine Formelspalte zu speichern",
@@ -1233,7 +1242,15 @@
     },
     "WebhookPage": {
         "Clear Queue": "Warteschlange löschen",
-        "Webhook Settings": "Webhaken Einstellungen"
+        "Webhook Settings": "Webhaken Einstellungen",
+        "Enabled": "Aktiviert",
+        "Event Types": "Ereignisarten",
+        "Memo": "Memo",
+        "Name": "Name",
+        "Sorry, not all fields can be edited.": "Leider können nicht alle Felder bearbeitet werden.",
+        "Status": "Status",
+        "URL": "URL",
+        "Table": "Tabelle"
     },
     "FormulaAssistant": {
         "Ask the bot.": "Fragen Sie den Bot.",
@@ -1454,7 +1471,17 @@
     },
     "FormConfig": {
         "Field rules": "Feldregeln",
-        "Required field": "Erforderliches Feld"
+        "Required field": "Erforderliches Feld",
+        "Options Sort Order": "Sortierreihenfolge der Optionen",
+        "Options Alignment": "Ausrichtung der Optionen",
+        "Select": "Auswählen",
+        "Vertical": "Vertikal",
+        "Ascending": "Aufsteigend",
+        "Default": "Standard",
+        "Descending": "Absteigend",
+        "Field Format": "Feldformat",
+        "Field Rules": "Feldregeln",
+        "Horizontal": "Horizontal"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Einige erforderliche Spalten sind nicht zugeordnet",
@@ -1462,7 +1489,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Formular eingereicht",
-        "Thank you! Your response has been recorded.": "Danke! Ihre Antwort wurde aufgezeichnet."
+        "Thank you! Your response has been recorded.": "Danke! Ihre Antwort wurde aufgezeichnet.",
+        "Submit new response": "Neue Antwort absenden"
     },
     "FormPage": {
         "There was an error submitting your form. Please try again.": "Beim Absenden Ihres Formulars ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
@@ -1500,5 +1528,23 @@
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
         "Insert section below": "Abschnitt unten einfügen"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Abbrechen",
+        "Create site": "Seite erstellen",
+        "Domain name is required": "Domainname ist erforderlich",
+        "Domain name is invalid": "Domainname ist ungültig",
+        "Work as a Team": "Als Team arbeiten"
+    },
+    "Columns": {
+        "Remove Column": "Spalte entfernen"
+    },
+    "Field": {
+        "No choices configured": "Keine Auswahlmöglichkeiten konfiguriert"
+    },
+    "Toggle": {
+        "Checkbox": "Kontrollkästchen",
+        "Field Format": "Feldformat",
+        "Switch": "Schalter"
     }
 }

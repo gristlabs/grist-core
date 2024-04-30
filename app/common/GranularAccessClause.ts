@@ -1,7 +1,8 @@
 import {PartialPermissionSet} from 'app/common/ACLPermissions';
 import {CellValue, RowRecord} from 'app/common/DocActions';
+import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
+import {Role} from 'app/common/roles';
 import {MetaRowRecord} from 'app/common/TableData';
-import {Role} from './roles';
 
 export interface RuleSet {
   tableId: '*' | string;
@@ -18,7 +19,7 @@ export interface RulePart {
   permissionsText: string;        // The text version of PermissionSet, as stored.
 
   // Compiled version of aclFormula.
-  matchFunc?: AclMatchFunc;
+  matchFunc?: CompiledPredicateFormula;
 
   // Optional memo, currently extracted from comment in formula.
   memo?: string;
@@ -53,81 +54,10 @@ export interface UserInfo {
   toJSON(): {[key: string]: any};
 }
 
-/**
- * Input into the AclMatchFunc. Compiled formulas evaluate AclMatchInput to produce a boolean.
- */
-export interface AclMatchInput {
-  user: UserInfo;
-  rec?: InfoView;
-  newRec?: InfoView;
-  docId?: string;
-}
-
-/**
- * The actual boolean function that can evaluate a request. The result of compiling ParsedAclFormula.
- */
-export type AclMatchFunc = (input: AclMatchInput) => boolean;
-
-/**
- * Representation of a parsed ACL formula.
- */
-type PrimitiveCellValue = number|string|boolean|null;
-export type ParsedAclFormula = [string, ...(ParsedAclFormula|PrimitiveCellValue)[]];
-
-/**
- * Observations about a formula.
- */
-export interface FormulaProperties {
-  hasRecOrNewRec?: boolean;
-  usedColIds?: string[];
-}
-
 export interface UserAttributeRule {
   origRecord?: RowRecord;         // Original record used to create this UserAttributeRule.
   name: string;       // Should be unique among UserAttributeRules.
   tableId: string;    // Table in which to look up an existing attribute.
   lookupColId: string;  // Column in tableId in which to do the lookup.
   charId: string;     // Attribute to look up, possibly a path. E.g. 'Email' or 'office.city'.
-}
-
-/**
- * Check some key facts about the formula.
- */
-export function getFormulaProperties(formula: ParsedAclFormula) {
-  const result: FormulaProperties = {};
-  if (usesRec(formula)) { result.hasRecOrNewRec = true; }
-  const colIds = new Set<string>();
-  collectRecColIds(formula, colIds);
-  result.usedColIds = Array.from(colIds);
-  return result;
-}
-
-/**
- * Check whether a formula mentions `rec` or `newRec`.
- */
-export function usesRec(formula: ParsedAclFormula): boolean {
-  if (!Array.isArray(formula)) { throw new Error('expected a list'); }
-  if (isRecOrNewRec(formula)) {
-    return true;
-  }
-  return formula.some(el => {
-    if (!Array.isArray(el)) { return false; }
-    return usesRec(el);
-  });
-}
-
-function isRecOrNewRec(formula: ParsedAclFormula|PrimitiveCellValue): boolean {
-  return Array.isArray(formula) &&
-    formula[0] === 'Name' &&
-    (formula[1] === 'rec' || formula[1] === 'newRec');
-}
-
-function collectRecColIds(formula: ParsedAclFormula, colIds: Set<string>): void {
-  if (!Array.isArray(formula)) { throw new Error('expected a list'); }
-  if (formula[0] === 'Attr' && isRecOrNewRec(formula[1])) {
-    const colId = formula[2];
-    colIds.add(String(colId));
-    return;
-  }
-  formula.forEach(el => Array.isArray(el) && collectRecColIds(el, colIds));
 }

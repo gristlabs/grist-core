@@ -98,7 +98,7 @@ export function buildACMemberEmail(
         label: text,
         id: 0,
       };
-      results.items.push(newObject);
+      results.extraItems.push(newObject);
     }
     return results;
   };

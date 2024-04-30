@@ -69,7 +69,7 @@
         "Sign Out": "Cerrar Sesión",
         "Sign in": "Iniciar Sesión",
         "Switch Accounts": "Cambiar de Cuenta",
-        "Toggle Mobile Mode": "Alternar Modo Móvil",
+        "Toggle Mobile Mode": "Alternar con el modo móvil",
         "Activation": "Activación",
         "Billing Account": "Cuenta de facturación",
         "Support Grist": "Soporte Grist",
@@ -429,7 +429,8 @@
         "Welcome to {{- orgName}}": "Bienvenido a {{- orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Visita nuestra {{link}} para obtener más información sobre Grist.",
         "Sign in": "Iniciar sesión",
-        "To use Grist, please either sign up or sign in.": "Para utilizar Grist, regístrate o inicia sesión."
+        "To use Grist, please either sign up or sign in.": "Para utilizar Grist, regístrate o inicia sesión.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Obtenga más información en nuestro {{helpCenterLink}}, o busque un experto a través de nuestro {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Access Details": "Detalles de Acceso",
@@ -482,7 +483,11 @@
     },
     "NTextBox": {
         "false": "falso",
-        "true": "verdadero"
+        "true": "verdadero",
+        "Field Format": "Formato del campo",
+        "Lines": "Líneas",
+        "Multi line": "Línea múltiple",
+        "Single line": "Una sola línea"
     },
     "NotifyUI": {
         "Ask for help": "Solicitar ayuda",
@@ -965,7 +970,7 @@
         "Reference List": "Lista de referencia",
         "Attachment": "Adjunto",
         "Any": "Cualquiera",
-        "Toggle": "Cambiar",
+        "Toggle": "Alternar",
         "Search columns": "Búsqueda por columnas"
     },
     "modals": {
@@ -1079,7 +1084,7 @@
         "Flying higher": "Volando más alto",
         "Reference": "Referencia",
         "Start with {{equal}} to enter a formula.": "Comience con {{equal}} para introducir una fórmula.",
-        "Toggle the {{creatorPanel}} to format columns, ": "Active {{creatorPanel}} para dar formato a las columnas, ",
+        "Toggle the {{creatorPanel}} to format columns, ": "Alternar el {{creatorPanel}} para dar formato a las columnas, ",
         "Welcome to Grist!": "¡Bienvenido a Grist!",
         "template library": "biblioteca de plantillas",
         "creator panel": "panel creador",
@@ -1105,7 +1110,12 @@
         "Currency": "Moneda",
         "Default currency ({{defaultCurrency}})": "Moneda predeterminada ({{defaultCurrency}})",
         "Number Format": "Formato de número",
-        "Decimals": "Decimales"
+        "Decimals": "Decimales",
+        "Field Format": "Formato del campo",
+        "Spinner": "Spinner",
+        "Text": "Texto",
+        "min": "mín.",
+        "max": "Máx."
     },
     "ChoiceTextBox": {
         "CHOICES": "OPCIONES"
@@ -1223,7 +1233,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Borrar la cola",
-        "Webhook Settings": "Ajustes del gancho web"
+        "Webhook Settings": "Ajustes del gancho web",
+        "Cleared webhook queue.": "Cola de webhooks vacía.",
+        "Columns to check when update (separated by ;)": "Columnas a comprobar al actualizar (separadas por ;)",
+        "Removed webhook.": "Webhook eliminado.",
+        "Sorry, not all fields can be edited.": "Lo sentimos, no se pueden editar todos los campos.",
+        "Status": "Situación",
+        "URL": "URL",
+        "Webhook Id": "Id. del webhook",
+        "Ready Column": "Columna lista",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filtrar los cambios en estas columnas (identificadores separados por punto y coma)",
+        "Table": "Tabla",
+        "Enabled": "Activado",
+        "Event Types": "Tipos de eventos",
+        "Memo": "Memorándum",
+        "Name": "Nombre"
     },
     "FormulaAssistant": {
         "Regenerate": "Regenerar",
@@ -1279,7 +1303,8 @@
         "Support Grist page": "Página de soporte de Grist",
         "Close": "Cerrar",
         "Contribute": "Contribuir",
-        "Admin Panel": "Panel de control"
+        "Admin Panel": "Panel de control",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "¡Muchas gracias!. Su confianza y apoyo son muy apreciados. Puedes darte de baja en cualquier momento desde el {{link}} del menú de usuario."
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1431,7 +1456,18 @@
     },
     "FormConfig": {
         "Field rules": "Reglas del campo",
-        "Required field": "Campo obligatorio"
+        "Required field": "Campo obligatorio",
+        "Ascending": "Ascendente",
+        "Default": "Por defecto",
+        "Descending": "Descendente",
+        "Field Format": "Formato del campo",
+        "Field Rules": "Reglas del campo",
+        "Horizontal": "Horizontal",
+        "Options Alignment": "Alineación de las opciones",
+        "Options Sort Order": "Orden de clasificación de las opciones",
+        "Radio": "Radio",
+        "Select": "Seleccionar",
+        "Vertical": "Vertical"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algunas columnas obligatorias no están asignadas",
@@ -1455,7 +1491,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Formulario enviado",
-        "Thank you! Your response has been recorded.": "¡Muchas gracias! Su respuesta ha quedado registrada."
+        "Thank you! Your response has been recorded.": "¡Muchas gracias! Su respuesta ha quedado registrada.",
+        "Submit new response": "Enviar una nueva respuesta"
     },
     "DateRangeOptions": {
         "Last 30 days": "Últimos 30 días",
@@ -1490,5 +1527,31 @@
         "Current version of Grist": "Versión actual de Grist",
         "Admin Panel": "Panel de control",
         "Support Grist Labs on GitHub": "Apoya a Grist Labs en GitHub"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Cancelar",
+        "Choose a name and url for your team site": "Elija un nombre y una url para la página web de su equipo",
+        "Create site": "Crear página web",
+        "Domain name is invalid": "El dominio no es válido",
+        "Domain name is required": "Nombre del dominio obligatorio",
+        "Go to your site": "Ir a su página web",
+        "Team name": "Nombre del equipo",
+        "Team name is required": "Nombre del equipo obligatorio",
+        "Team site created": "Creada una página web para el equipo",
+        "Team url": "URL del equipo",
+        "Work as a Team": "Trabajar en equipo",
+        "Billing is not supported in grist-core": "La facturación no es compatible con grist-core"
+    },
+    "Columns": {
+        "Remove Column": "Quitar columna"
+    },
+    "Field": {
+        "No choices configured": "Sin opciones configuradas",
+        "No values in show column of referenced table": "No hay valores en la columna Mostrar de la tabla referenciada"
+    },
+    "Toggle": {
+        "Checkbox": "Casilla de verificación",
+        "Field Format": "Formato del campo",
+        "Switch": "Cambiar"
     }
 }

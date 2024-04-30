@@ -18,13 +18,16 @@ export class BootProbes {
 
   public constructor(private _app: express.Application,
                      private _server: GristServer,
-                     private _base: string) {
+                     private _base: string,
+                     private _middleware: express.Handler[] = []) {
     this._addProbes();
   }
 
   public addEndpoints() {
     // Return a list of available probes.
-    this._app.use(`${this._base}/probe$`, expressWrap(async (_, res) => {
+    this._app.use(`${this._base}/probe$`,
+                  ...this._middleware,
+                  expressWrap(async (_, res) => {
       res.json({
         'probes': this._probes.map(probe => {
           return { id: probe.id, name: probe.name };
@@ -33,7 +36,9 @@ export class BootProbes {
     }));
 
     // Return result of running an individual probe.
-    this._app.use(`${this._base}/probe/:probeId`, expressWrap(async (req, res) => {
+    this._app.use(`${this._base}/probe/:probeId`,
+                  ...this._middleware,
+                  expressWrap(async (req, res) => {
       const probe = this._probeById.get(req.params.probeId);
       if (!probe) {
         throw new ApiError('unknown probe', 400);
@@ -52,6 +57,7 @@ export class BootProbes {
     this._probes.push(_userProbe);
     this._probes.push(_bootProbe);
     this._probes.push(_hostHeaderProbe);
+    this._probes.push(_sandboxingProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -180,6 +186,19 @@ const _hostHeaderProbe: Probe = {
     }
     return {
       done: true,
+    };
+  },
+};
+
+
+const _sandboxingProbe: Probe = {
+  id: 'sandboxing',
+  name: 'Sandboxing is working',
+  apply: async (server, req) => {
+    const details = server.getSandboxInfo();
+    return {
+      success: details?.configured && details?.functional,
+      details,
     };
   },
 };

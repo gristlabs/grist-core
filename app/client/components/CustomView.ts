@@ -321,7 +321,7 @@ export class CustomView extends Disposable {
           }),
           new MinimumLevel(AccessLevel.none)); // none access is enough
         frame.useEvents(
-          ThemeNotifier.create(frame, this.gristDoc.currentTheme),
+          ThemeNotifier.create(frame),
           new MinimumLevel(AccessLevel.none));
       },
       onElem: (iframe) => onFrameFocus(iframe, () => {

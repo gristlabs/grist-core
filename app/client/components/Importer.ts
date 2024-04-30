@@ -1345,8 +1345,9 @@ export class Importer extends DisposableWithEvents {
       const column = use(field.column);
       return use(column.formula);
     });
-    const codeOptions = {gristTheme: this._gristDoc.currentTheme, placeholder: 'Skip', maxLines: 1};
-    return cssFieldFormula(formula, codeOptions,
+    const codeOptions = {placeholder: 'Skip', maxLines: 1};
+    return dom.create(buildHighlightedCode, formula, codeOptions,
+      dom.cls(cssFieldFormula.className),
       dom.cls('disabled'),
       dom.cls('formula_field_sidepane'),
       {tabIndex: '-1'},
@@ -1701,7 +1702,7 @@ const cssColumnMatchRow = styled('div', `
   }
 `);
 
-const cssFieldFormula = styled(buildHighlightedCode, `
+const cssFieldFormula = styled('div', `
   flex: auto;
   cursor: pointer;
   margin-top: 1px;

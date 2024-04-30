@@ -6,6 +6,7 @@ import {AppModel, reportError} from 'app/client/models/AppModel';
 import {IProgress} from 'app/client/models/NotifyModel';
 import {openFilePicker} from 'app/client/ui/FileDialog';
 import {byteString} from 'app/common/gutil';
+import { AxiosProgressEvent } from 'axios';
 import {Disposable} from 'grainjs';
 
 /**
@@ -39,9 +40,9 @@ export async function fileImport(
     const timezone = await guessTimezone();
 
     if (workspaceId === "unsaved") {
-      function onUploadProgress(ev: ProgressEvent) {
-        if (ev.lengthComputable) {
-          progress.setUploadProgress(ev.loaded / ev.total * 100);   // percentage complete
+      function onUploadProgress(ev: AxiosProgressEvent) {
+        if (ev.event.lengthComputable) {
+          progress.setUploadProgress(ev.event.loaded / ev.event.total * 100);   // percentage complete
         }
       }
       return await app.api.importUnsavedDoc(files[0], {timezone, onUploadProgress});

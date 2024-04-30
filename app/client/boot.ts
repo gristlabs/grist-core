@@ -1,8 +1,8 @@
 import { AppModel } from 'app/client/models/AppModel';
+import { AdminChecks, ProbeDetails } from 'app/client/models/AdminChecks';
 import { createAppPage } from 'app/client/ui/createAppPage';
 import { pagePanels } from 'app/client/ui/PagePanels';
 import { BootProbeInfo, BootProbeResult } from 'app/common/BootProbe';
-import { removeTrailingSlash } from 'app/common/gutil';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Disposable, dom, Observable, styled, UseCBOwner } from 'grainjs';
 
@@ -30,24 +30,14 @@ const cssResult = styled('div', `
  */
 export class Boot extends Disposable {
 
-  // The back end will offer a set of probes (diagnostics) we
-  // can use. Probes have unique IDs.
-  public probes: Observable<BootProbeInfo[]>;
-
-  // Keep track of probe results we have received, by probe ID.
-  public results: Map<string, Observable<BootProbeResult>>;
-
-  // Keep track of probe requests we are making, by probe ID.
-  public requests: Map<string, BootProbe>;
+  private _checks: AdminChecks;
 
   constructor(_appModel: AppModel) {
     super();
     // Setting title in constructor seems to be how we are doing this,
     // based on other similar pages.
     document.title = 'Booting Grist';
-    this.probes = Observable.create(this, []);
-    this.results = new Map();
-    this.requests = new Map();
+    this._checks = new AdminChecks(this);
   }
 
   /**
@@ -55,20 +45,10 @@ export class Boot extends Disposable {
    * side panel, just for convenience. Could be made a lot prettier.
    */
   public buildDom() {
+    this._checks.fetchAvailableChecks().catch(e => reportError(e));
+
     const config = getGristConfig();
     const errMessage = config.errMessage;
-    if (!errMessage) {
-      // Probe tool URLs are relative to the current URL. Don't trust configuration,
-      // because it may be buggy if the user is here looking at the boot page
-      // to figure out some problem.
-      const url = new URL(removeTrailingSlash(document.location.href));
-      url.pathname += '/probe';
-      fetch(url.href).then(async resp => {
-        const _probes = await resp.json();
-        this.probes.set(_probes.probes);
-      }).catch(e => reportError(e));
-    }
-
     const rootNode = dom('div',
       dom.domComputed(
         use => {
@@ -99,21 +79,10 @@ export class Boot extends Disposable {
       return cssBody(cssResult(this.buildError()));
     }
     return cssBody([
-      ...use(this.probes).map(probe => {
-        const {id} = probe;
-        let result = this.results.get(id);
-        if (!result) {
-          result = Observable.create(this, {});
-          this.results.set(id, result);
-        }
-        let request = this.requests.get(id);
-        if (!request) {
-          request = new BootProbe(id, this);
-          this.requests.set(id, request);
-        }
-        request.start();
+      ...use(this._checks.probes).map(probe => {
+        const req = this._checks.requestCheck(probe);
         return cssResult(
-          this.buildResult(probe, use(result), probeDetails[id]));
+          this.buildResult(req.probe, use(req.result), req.details));
       }),
     ]);
   }
@@ -164,36 +133,11 @@ export class Boot extends Disposable {
       for (const [key, val] of Object.entries(result.details)) {
         out.push(dom(
           'div',
-          key,
+          cssLabel(key),
           dom('input', dom.prop('value', JSON.stringify(val)))));
       }
     }
     return out;
-  }
-}
-
-/**
- * Represents a single diagnostic.
- */
-export class BootProbe {
-  constructor(public id: string, public boot: Boot) {
-    const url = new URL(removeTrailingSlash(document.location.href));
-    url.pathname = url.pathname + '/probe/' + id;
-    fetch(url.href).then(async resp => {
-      const _probes: BootProbeResult = await resp.json();
-      const ob = boot.results.get(id);
-      if (ob) {
-        ob.set(_probes);
-      }
-    }).catch(e => console.error(e));
-  }
-
-  public start() {
-    let result = this.boot.results.get(this.id);
-    if (!result) {
-      result = Observable.create(this.boot, {});
-      this.boot.results.set(this.id, result);
-    }
   }
 }
 
@@ -208,52 +152,9 @@ createAppPage(appModel => {
   useApi: false,
 });
 
-/**
- * Basic information about diagnostics is kept on the server,
- * but it can be useful to show extra details and tips in the
- * client.
- */
-const probeDetails: Record<string, ProbeDetails> = {
-  'boot-page': {
-    info: `
-This boot page should not be too easy to access. Either turn
-it off when configuration is ok (by unsetting GRIST_BOOT_KEY)
-or make GRIST_BOOT_KEY long and cryptographically secure.
-`,
-  },
-
-  'health-check': {
-    info: `
-Grist has a small built-in health check often used when running
-it as a container.
-`,
-  },
-
-  'host-header': {
-    info: `
-Requests arriving to Grist should have an accurate Host
-header. This is essential when GRIST_SERVE_SAME_ORIGIN
-is set.
-`,
-  },
-
-  'system-user': {
-    info: `
-It is good practice not to run Grist as the root user.
-`,
-  },
-
-  'reachable': {
-    info: `
-The main page of Grist should be available.
-`
-  },
-};
-
-/**
- * Information about the probe.
- */
-interface ProbeDetails {
-  info: string;
-}
-
+export const cssLabel = styled('div', `
+  display: inline-block;
+  min-width: 100px;
+  text-align: right;
+  padding-right: 5px;
+`);

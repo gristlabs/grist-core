@@ -5,7 +5,8 @@ import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {ICustomWidget} from 'app/common/CustomWidget';
-import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues, UserAction} from 'app/common/DocActions';
+import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
+        TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
@@ -21,6 +22,7 @@ import {
   WebhookUpdate
 } from 'app/common/Triggers';
 import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
+import { AxiosProgressEvent } from 'axios';
 import omitBy from 'lodash/omitBy';
 
 
@@ -404,7 +406,7 @@ export interface UserAPI {
   importUnsavedDoc(material: UploadType, options?: {
     filename?: string,
     timezone?: string,
-    onUploadProgress?: (ev: ProgressEvent) => void,
+    onUploadProgress?: (ev: AxiosProgressEvent) => void,
   }): Promise<string>;
   deleteUser(userId: number, name: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
@@ -441,6 +443,10 @@ interface GetRowsParams {
   immediate?: boolean;
 }
 
+interface SqlResult extends TableRecordValuesWithoutIds {
+  statement: string;
+}
+
 /**
  * Collect endpoints related to the content of a single document that we've been thinking
  * of as the (restful) "Doc API".  A few endpoints that could be here are not, for historical
@@ -452,6 +458,7 @@ export interface DocAPI {
   // opening a document are irrelevant.
   getRows(tableId: string, options?: GetRowsParams): Promise<TableColValues>;
   getRecords(tableId: string, options?: GetRowsParams): Promise<TableRecordValue[]>;
+  sql(sql: string, args?: any[]): Promise<SqlResult>;
   updateRows(tableId: string, changes: TableColValues): Promise<number[]>;
   addRows(tableId: string, additions: BulkColValues): Promise<number[]>;
   removeRows(tableId: string, removals: number[]): Promise<number[]>;
@@ -501,6 +508,16 @@ export interface DocAPI {
   flushWebhook(webhookId: string): Promise<void>;
 
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
+  /**
+   * Check if the document is currently in timing mode.
+   */
+  timing(): Promise<{status: boolean}>;
+  /**
+   * Starts recording timing information for the document. Throws exception if timing is already
+   * in progress or you don't have permission to start timing.
+   */
+  startTiming(): Promise<void>;
+  stopTiming(): Promise<void>;
 }
 
 // Operations that are supported by a doc worker.
@@ -810,7 +827,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public async importUnsavedDoc(material: UploadType, options?: {
     filename?: string,
     timezone?: string,
-    onUploadProgress?: (ev: ProgressEvent) => void,
+    onUploadProgress?: (ev: AxiosProgressEvent) => void,
   }): Promise<string> {
     options = options || {};
     const formData = this.newFormData();
@@ -923,6 +940,16 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async getRecords(tableId: string, options?: GetRowsParams): Promise<TableRecordValue[]> {
     const response: TableRecordValues = await this._getRecords(tableId, 'records', options);
     return response.records;
+  }
+
+  public async sql(sql: string, args?: any[]): Promise<SqlResult> {
+    return this.requestJson(`${this._url}/sql`, {
+      body: JSON.stringify({
+        sql,
+        ...(args ? { args } : {}),
+      }),
+      method: 'POST',
+    });
   }
 
   public async updateRows(tableId: string, changes: TableColValues): Promise<number[]> {
@@ -1103,6 +1130,18 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       method: 'POST',
       body: JSON.stringify(params),
     });
+  }
+
+  public async timing(): Promise<{status: boolean}> {
+    return this.requestJson(`${this._url}/timing`);
+  }
+
+  public async startTiming(): Promise<void> {
+    await this.request(`${this._url}/timing/start`, {method: 'POST'});
+  }
+
+  public async stopTiming(): Promise<void> {
+    await this.request(`${this._url}/timing/stop`, {method: 'POST'});
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {

@@ -378,7 +378,12 @@ class BruteForceACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   public search(searchText: string): ACResults<Item> {
     const cleanedSearchText = searchText.trim().toLowerCase();
     if (!cleanedSearchText) {
-      return {items: this._allItems.slice(0, this._maxResults), highlightFunc: highlightNone, selectIndex: -1};
+      return {
+        items: this._allItems.slice(0, this._maxResults),
+        extraItems: [],
+        highlightFunc: highlightNone,
+        selectIndex: -1,
+      };
     }
 
     const searchWords = cleanedSearchText.split(/\s+/);
@@ -397,7 +402,7 @@ class BruteForceACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     matches.sort((a, b) => nativeCompare(b[0], a[0]) || nativeCompare(a[1], b[1]));
     const items = matches.slice(0, this._maxResults).map((m) => m[2]);
 
-    return {items, highlightFunc: highlightNone, selectIndex: -1};
+    return {items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1};
   }
 }
 

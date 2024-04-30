@@ -94,3 +94,18 @@ export const cssPinButton = styled('div', `
 export const cssNumericSpinner = styled(numericSpinner, `
   height: 28px;
 `);
+
+export const cssFieldFormula = styled('div', `
+  flex: auto;
+  cursor: pointer;
+  margin-top: 4px;
+  padding-left: 24px;
+  --icon-color: ${theme.accentIcon};
+
+  &-disabled-icon.formula_field_sidepane::before {
+    --icon-color: ${theme.iconDisabled};
+  }
+  &-disabled {
+    pointer-events: none;
+  }
+`);

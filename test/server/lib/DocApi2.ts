@@ -9,11 +9,12 @@ import {openClient} from 'test/server/gristClient';
 import * as testUtils from 'test/server/testUtils';
 
 const chimpy = configForUser('Chimpy');
+const kiwi = configForUser('Kiwi');
 
 describe('DocApi2', function() {
   this.timeout(40000);
   let server: TestServer;
-  let serverUrl: string;
+  let homeUrl: string;
   let owner: UserAPI;
   let wsId: number;
   testUtils.setTmpLogLevel('error');
@@ -30,7 +31,7 @@ describe('DocApi2', function() {
     }
 
     server = new TestServer(this);
-    serverUrl = await server.start(['home', 'docs']);
+    homeUrl = await server.start(['home', 'docs']);
     const api = await server.createHomeApi('chimpy', 'docs', true);
     await api.newOrg({name: 'testy', domain: 'testy'});
     owner = await server.createHomeApi('chimpy', 'testy', true);
@@ -63,13 +64,175 @@ describe('DocApi2', function() {
       assert.equal(await fse.pathExists(forkPath2), true);
 
       // Delete the trunk via API.
-      const deleteDocResponse = await axios.delete(`${serverUrl}/api/docs/${docId}`, chimpy);
+      const deleteDocResponse = await axios.delete(`${homeUrl}/api/docs/${docId}`, chimpy);
       assert.equal(deleteDocResponse.status, 200);
 
       // Check that files for the trunk and forks were deleted.
       assert.equal(await fse.pathExists(docPath), false);
       assert.equal(await fse.pathExists(forkPath1), false);
       assert.equal(await fse.pathExists(forkPath2), false);
+    });
+  });
+
+  describe('/docs/{did}/timing', async () => {
+    let docId: string;
+    before(async function() {
+      docId = await owner.newDoc({name: 'doc2'}, wsId);
+    });
+
+    after(async function() {
+      await owner.deleteDoc(docId);
+    });
+
+    // There are two endpoints here /timing/start and /timing/stop.
+    // Here we just test that it is operational, available only for owners
+    // and that it returns sane results. Exact tests are done in python.
+
+    // Smoke test.
+    it('POST /docs/{did}/timing smoke tests', async function() {
+      // We are disabled.
+      let resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, {status: 'disabled'});
+
+      // Start it.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Stop it.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, []);
+    });
+
+    it('POST /docs/{did}/timing/start', async function() {
+      // Start timing as non owner, should fail.
+      let resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, kiwi);
+      assert.equal(resp.status, 403);
+
+      // Query status as non owner, should fail.
+      resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, kiwi);
+      assert.equal(resp.status, 403);
+
+      // Check as owner.
+      resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, {status: 'disabled'});
+
+      // Start timing as owner.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Check we are started.
+      resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, {status: 'active', timing: []});
+
+      // Starting timing again works as expected, returns 400 as this is already.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      assert.equal(resp.status, 400);
+
+      // As non owner
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, kiwi);
+      assert.equal(resp.status, 403);
+    });
+
+    it('POST /docs/{did}/timing/stop', async function() {
+      // Timings are turned on, so we can stop them.
+      // First as non owner, we should fail.
+      let resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, kiwi);
+      assert.equal(resp.status, 403);
+
+      // Next as owner.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Now do it once again, we should got 400, as we are not timing.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
+      assert.equal(resp.status, 400);
+    });
+
+    it('GET /docs/{did}/timing', async function() {
+      // Now we can check the results. Start timing and check that we got [] in response.
+      let resp =  await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, []);
+
+      // Now create a table with a formula column and make sure we see it in the results.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
+        ['AddTable', 'Timings', [
+          {id: 'A', formula: '$id' }
+        ]],
+      ], chimpy);
+      assert.equal(resp.status, 200);
+
+      // Now start it again,
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Make sure we see that it is active and we have some intermediate results
+      resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, {status: 'active', timing: []});
+
+      // And trigger some formula calculations.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
+        ['BulkAddRecord', 'Timings', [null, null], {}],
+      ], chimpy);
+      assert.equal(resp.status, 200, JSON.stringify(resp.data));
+
+      // Make sure we can't stop it as non owner.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, kiwi);
+      assert.equal(resp.status, 403);
+
+      // Now stop it as owner and make sure the result is sane.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
+      assert.equal(resp.status, 200, JSON.stringify(resp.data));
+      const data = resp.data as Array<{
+        tableId: string;
+        colId: string;
+        sum: number;
+        count: number;
+        average: number;
+        max: number;
+        markers?: Array<{
+          name: string;
+          sum: number;
+          count: number;
+          average: number;
+          max: number;
+        }>
+      }>;
+
+      assert.isAbove(data.length, 0);
+      assert.equal(data[0].tableId, 'Timings');
+      assert.isTrue(typeof data[0].sum === 'number');
+      assert.isTrue(typeof data[0].count === 'number');
+      assert.isTrue(typeof data[0].average === 'number');
+      assert.isTrue(typeof data[0].max === 'number');
+    });
+
+    it('POST /docs/{did}/timing/start remembers state after reload', async function() {
+      // Make sure we are off.
+      let resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, {status: 'disabled'});
+
+      // Now start it.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Now reload document.
+      resp = await axios.post(`${homeUrl}/api/docs/${docId}/force-reload`, {}, chimpy);
+      assert.equal(resp.status, 200);
+
+      // And check that we are still on.
+      resp = await axios.get(`${homeUrl}/api/docs/${docId}/timing`, chimpy);
+      assert.equal(resp.status, 200, JSON.stringify(resp.data));
+      assert.deepEqual(resp.data, {status: 'active', timing: []});
     });
   });
 });

@@ -133,8 +133,15 @@ export interface TableRecordValues {
   records: TableRecordValue[];
 }
 
-export interface TableRecordValue {
+export interface TableRecordValuesWithoutIds {
+  records: TableRecordValueWithoutId[];
+}
+
+export interface TableRecordValue extends TableRecordValueWithoutId {
   id: number | string;
+}
+
+export interface TableRecordValueWithoutId {
   fields: {
     [colId: string]: CellValue
   };

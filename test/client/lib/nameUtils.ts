@@ -1,11 +1,9 @@
-import {checkName} from 'app/client/ui/AccountPage';
+import {checkName} from 'app/client/lib/nameUtils';
 import {assert} from 'chai';
 
-
-describe("AccountPage", function() {
+describe("nameUtils", function() {
   describe("isValidName", function() {
     it("should detect invalid name", function() {
-
       assert.equal(checkName('santa'), true);
       assert.equal(checkName('_santa'), true);
       assert.equal(checkName("O'Neil"), true);

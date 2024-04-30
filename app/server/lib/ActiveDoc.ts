@@ -22,6 +22,7 @@ import {
   ApplyUAResult,
   DataSourceTransformed,
   ForkResult,
+  FormulaTimingInfo,
   ImportOptions,
   ImportResult,
   ISuggestionWithValue,
@@ -63,12 +64,16 @@ import {
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {Product} from 'app/common/Features';
-import {FormulaProperties, getFormulaProperties} from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
+import {
+  compilePredicateFormula,
+  getPredicateFormulaProperties,
+  PredicateFormulaProperties,
+} from 'app/common/PredicateFormula';
 import * as roles from 'app/common/roles';
 import {schema, SCHEMA_VERSION} from 'app/common/schema';
 import {MetaRowRecord, SingleCell} from 'app/common/TableData';
@@ -83,7 +88,6 @@ import {Share} from 'app/gen-server/entity/Share';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
-import {compileAclFormula} from 'app/server/lib/ACLFormula';
 import {AssistanceSchemaPromptV1Context} from 'app/server/lib/Assistance';
 import {AssistanceContext} from 'app/common/AssistancePrompts';
 import {Authorizer, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -91,12 +95,14 @@ import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
+import {GristServer} from 'app/server/lib/GristServer';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {shortDesc} from 'app/server/lib/shortDesc';
@@ -220,6 +226,7 @@ export class ActiveDoc extends EventEmitter {
   public docData: DocData|null = null;
   // Used by DocApi to only allow one webhook-related endpoint to run at a time.
   public readonly triggersLock: Mutex = new Mutex();
+  public isTimingOn = false;
 
   protected _actionHistory: ActionHistory;
   protected _docManager: DocManager;
@@ -1287,7 +1294,11 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async autocomplete(
-    docSession: DocSession, txt: string, tableId: string, columnId: string, rowId: UIRowId
+    docSession: DocSession,
+    txt: string,
+    tableId: string,
+    columnId: string,
+    rowId: UIRowId | null
   ): Promise<ISuggestionWithValue[]> {
     // Autocompletion can leak names of tables and columns.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
@@ -1366,6 +1377,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async reloadDoc(docSession?: DocSession) {
     this._log.debug(docSession || null, 'ActiveDoc.reloadDoc starting shutdown');
+    this._docManager.restoreTimingOn(this.docName, this.isTimingOn);
     return this.shutdown();
   }
 
@@ -1476,16 +1488,16 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
-  public async checkAclFormula(docSession: DocSession, text: string): Promise<FormulaProperties> {
+  public async checkAclFormula(docSession: DocSession, text: string): Promise<PredicateFormulaProperties> {
     // Checks can leak names of tables and columns.
     if (await this._granularAccess.hasNuancedAccess(docSession)) { return {}; }
     await this.waitForInitialization();
     try {
-      const parsedAclFormula = await this._pyCall('parse_acl_formula', text);
-      compileAclFormula(parsedAclFormula);
+      const parsedAclFormula = await this._pyCall('parse_predicate_formula', text);
+      compilePredicateFormula(parsedAclFormula);
       // TODO We also need to check the validity of attributes, and of tables and columns
       // mentioned in resources and userAttribute rules.
-      return getFormulaProperties(parsedAclFormula);
+      return getPredicateFormulaProperties(parsedAclFormula);
     } catch (e) {
       e.message = e.message?.replace('[Sandbox] ', '');
       throw e;
@@ -1868,6 +1880,40 @@ export class ActiveDoc extends EventEmitter {
 
   public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share|null> {
     return await this._getHomeDbManagerOrFail().getShareByLinkId(this.docName, linkId);
+  }
+
+  public async startTiming(): Promise<void> {
+    // Set the flag to indicate that timing is on.
+    this.isTimingOn = true;
+
+    try {
+      // Call the data engine to start timing.
+      await this._doStartTiming();
+    } catch (e) {
+      this.isTimingOn = false;
+      throw e;
+    }
+
+    // Mark self as in timing mode, in case we get reloaded.
+    this._docManager.restoreTimingOn(this.docName, true);
+  }
+
+  public async stopTiming(): Promise<FormulaTimingInfo[]> {
+    // First call the data engine to stop timing, and gather results.
+    const timingResults = await this._pyCall('stop_timing');
+
+    // Toggle the flag and clear the reminder.
+    this.isTimingOn = false;
+    this._docManager.restoreTimingOn(this.docName, false);
+
+    return timingResults;
+  }
+
+  public async getTimings(): Promise<FormulaTimingInfo[]|void>  {
+    if (this._modificationLock.isLocked()) {
+      return;
+    }
+    return await this._pyCall('get_timings');
   }
 
   /**
@@ -2377,6 +2423,10 @@ export class ActiveDoc extends EventEmitter {
         });
         await this._pyCall('initialize', this._options?.docUrl);
 
+        if (this.isTimingOn) {
+          await this._doStartTiming();
+        }
+
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
         await this._applyUserActions(makeExceptionalDocSession('system'), [['Calculate']]);
@@ -2686,7 +2736,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private async _getEngine(): Promise<ISandbox> {
-    if (this._shuttingDown) { throw new Error('shutting down, data engine unavailable'); }
+    if (this._shuttingDown) {
+      throw new Error('shutting down, data engine unavailable');
+    }
     if (this._dataEngine) { return this._dataEngine; }
 
     this._dataEngine = this._isSnapshot ? this._makeNullEngine() : this._makeEngine();
@@ -2714,11 +2766,9 @@ export class ActiveDoc extends EventEmitter {
         }
       }
     }
-    return this._docManager.gristServer.create.NSandbox({
-      comment: this._docName,
-      logCalls: false,
-      logTimes: true,
-      logMeta: {docId: this._docName},
+    return createSandbox({
+      server: this._docManager.gristServer,
+      docId: this._docName,
       preferredPythonVersion,
       sandboxOptions: {
         exports: {
@@ -2830,6 +2880,10 @@ export class ActiveDoc extends EventEmitter {
     return dbManager;
   }
 
+  private _doStartTiming() {
+    return  this._pyCall('start_timing');
+  }
+
 }
 
 // Helper to initialize a sandbox action bundle with no values.
@@ -2896,4 +2950,24 @@ export async function getRealTableId(
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {
   return pick(options||{}, ['desc', 'otherId', 'linkId', 'parseStrings']);
+}
+
+/**
+ * Create a sandbox in its default initial state and with default logging.
+ */
+export function createSandbox(options: {
+  server: GristServer,
+  docId: string,
+  preferredPythonVersion: '2' | '3' | undefined,
+  sandboxOptions?: Partial<ISandboxOptions>,
+}) {
+  const {docId, preferredPythonVersion, sandboxOptions, server} = options;
+  return server.create.NSandbox({
+    comment: docId,
+    logCalls: false,
+    logTimes: true,
+    logMeta: {docId},
+    preferredPythonVersion,
+    sandboxOptions,
+  });
 }

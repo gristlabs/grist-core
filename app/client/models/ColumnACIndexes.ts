@@ -21,7 +21,6 @@ export interface ICellItem {
   cleanText: string;      // Trimmed lowercase text for searching.
 }
 
-
 export class ColumnACIndexes {
   private _columnCache = new ColumnCache<ACIndex<ICellItem>>(this._tableData);
 
@@ -33,22 +32,28 @@ export class ColumnACIndexes {
    * getColACIndex() is called for the same column with the the same formatter.
    */
   public getColACIndex(colId: string, formatter: BaseFormatter): ACIndex<ICellItem> {
-    return this._columnCache.getValue(colId, () => this._buildColACIndex(colId, formatter));
+    return this._columnCache.getValue(colId, () => this.buildColACIndex(colId, formatter));
   }
 
-  private _buildColACIndex(colId: string, formatter: BaseFormatter): ACIndex<ICellItem> {
+  public buildColACIndex(
+    colId: string,
+    formatter: BaseFormatter,
+    filter?: (item: ICellItem) => boolean
+  ): ACIndex<ICellItem> {
     const rowIds = this._tableData.getRowIds();
     const valColumn = this._tableData.getColValues(colId);
     if (!valColumn) {
       throw new UserError(`Invalid column ${this._tableData.tableId}.${colId}`);
     }
-    const items: ICellItem[] = valColumn.map((val, i) => {
-      const rowId = rowIds[i];
-      const text = formatter.formatAny(val);
-      const cleanText = normalizeText(text);
-      return {rowId, text, cleanText};
-    });
-    items.sort(itemCompare);
+    const items: ICellItem[] = valColumn
+      .map((val, i) => {
+        const rowId = rowIds[i];
+        const text = formatter.formatAny(val);
+        const cleanText = normalizeText(text);
+        return {rowId, text, cleanText};
+      })
+      .filter((item) => filter?.(item) ?? true)
+      .sort(itemCompare);
     return new ACIndexImpl(items);
   }
 }
