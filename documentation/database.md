@@ -221,7 +221,7 @@ Each time a resource is created, the groups corresponding to the roles above are
 
 ### `group_groups` table
 
-The table which allows groups to contain other groups. It also holds the inheritances (see below).
+The table which allows groups to contain other groups. It is also used for the inheritance mechanism (see below).
 
 | Column name   | Description    |
 |--------------- | --------------- |
@@ -243,20 +243,21 @@ We mentioned earlier that the groups currently holds the roles with the associat
 
 The database stores the inheritances of rights as described below.
 
-Let's imagine that a user is granted the role of *Owner* for the "Org1" organisation, s/he therefore belongs to the group "Org1 Owners" (aka `id_org1_owner_grp`) which also belongs to the "WS1 Owners" (aka `id_ws1_owner_grp`) by default. In other words, this user is by default owner of boththe Org1 organization and of the WS1 workspace.
+Let's imagine that a user is granted the role of *Owner* for the "Org1" organisation, s/he therefore belongs to the group "Org1 Owners" (aka `id_org1_owner_grp`) which also belongs to the "WS1 Owners" (aka `id_ws1_owner_grp`) by default. In other words, this user is by default owner of both the Org1 organization and of the WS1 workspace.
 
 The below schema illustrates both the inheritance of between the groups and the state of the database:
 
 ![BDD state by default](./images/BDD-doc-inheritance-default.png)
 
-This inheritance by default can be changed through the Users management popup in the Contextual Menu for the Workspaces:
+This inheritance can be changed through the Users management popup in the Contextual Menu for the Workspaces:
 
 ![The drop-down list after "Inherit access:" in the workspaces Users Management popup](./images/ws-users-management-popup.png)
+
 If you change the inherit access to "View Only", here is what happens:
 
 ![BDD state after inherit access has changed, the `group_groups.group_id` value has changed](./images/BDD-doc-inheritance-after-change.png)
 
-The Org1 owners now belongs to the "WS1 Viewers" group, and the user despite being Owner of *Org1* can only view the workspace *WS1* and its documents because s/he only gets the Viewer role for this workspace. Regarding the database, `group_groups` which holds the group inheritance has been updated, so the parent group for `id_org1_owner_grp` is now `id_ws1_viewers_grp`.
+The Org1 owners now belongs to the "WS1 Viewers" group, and the user despite being *Owner* of "Org1" can only view the workspace WS1 and its documents because s/he only gets the Viewer role for this workspace. Regarding the database, `group_groups` which holds the group inheritance has been updated, so the parent group for `id_org1_owner_grp` is now `id_ws1_viewers_grp`.
 
 ### `users` table
 
@@ -264,28 +265,30 @@ Stores `users` information.
 
 | Column name | Description |
 |--------------- | --------------- |
-| id | The user's id |
+| id | The primary key |
 | name | The user's name |
 | api_key | If generated, the [HTTP API Key](https://support.getgrist.com/rest-api/) used to authenticate the user |
-| picture | The user's picture (should be provided by the SSO Identity Provider) |
+| picture | The URL to the user's picture (must be provided by the SSO Identity Provider) |
 | first_login_at | The date of the first login |
-| is_first_time_user | whether the user discovers Grist (used to trigger the Welcome Tour) |
+| is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
 | options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/513e13e6ab57c918c0e396b1d56686e45644ee1a/app/common/UserAPI.ts#L169-L179) interface |
-| connect_id | used by [GristConnect](https://github.com/gristlabs/grist-ee/blob/5ae19a7dfb436c8a3d67470b993076e51cf83f21/ext/app/server/lib/GristConnect.ts) in Enterprise Edition to identify user in external provider |
+| connect_id | Used by [GristConnect](https://github.com/gristlabs/grist-ee/blob/5ae19a7dfb436c8a3d67470b993076e51cf83f21/ext/app/server/lib/GristConnect.ts) in Enterprise Edition to identify user in external provider |
 | ref | Used to identify a user in the automated tests |
 
 ### `logins` table
 
-> [!WARNING]
-> At the contrary of the `users`, this table should store information related to the users authentication
+Stores information related to the identification.
+
+> [!NOTE]
+> A user may have many `logins` records associated to him/her, like several emails used for identification.
 
 
 | Column name | Description |
 |--------------- | --------------- |
-| id | The login id |
+| id | The primary key |
 | user_id | The user's id |
-| email | The normalized email address used for equality and indexing |
-| display_email | The user's email address should be displayed |
+| email | The normalized email address used for equality and indexing (specifically converted to lower case) |
+| display_email | The user's email address as displayed in the UI |
 
 ### The migrations
 
