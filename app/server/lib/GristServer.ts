@@ -1,6 +1,7 @@
 import { ICustomWidget } from 'app/common/CustomWidget';
 import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
 import { LocalPlugin } from 'app/common/plugin';
+import { SandboxInfo } from 'app/common/SandboxInfo';
 import { UserProfile } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
@@ -64,6 +65,7 @@ export interface GristServer {
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
   hasBoot(): boolean;
+  getSandboxInfo(): SandboxInfo|undefined;
 }
 
 export interface GristLoginSystem {
@@ -154,6 +156,7 @@ export function createDummyGristServer(): GristServer {
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
     hasBoot() { return false; },
+    getSandboxInfo() { return undefined; },
   };
 }
 

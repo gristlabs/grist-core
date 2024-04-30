@@ -95,12 +95,14 @@ import {checksumFile} from 'app/server/lib/checksumFile';
 import {Client} from 'app/server/lib/Client';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
+import {GristServer} from 'app/server/lib/GristServer';
 import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {ISandboxOptions} from 'app/server/lib/NSandbox';
 import {NullSandbox, UnavailableSandboxMethodError} from 'app/server/lib/NullSandbox';
 import {DocRequests} from 'app/server/lib/Requests';
 import {shortDesc} from 'app/server/lib/shortDesc';
@@ -2764,11 +2766,9 @@ export class ActiveDoc extends EventEmitter {
         }
       }
     }
-    return this._docManager.gristServer.create.NSandbox({
-      comment: this._docName,
-      logCalls: false,
-      logTimes: true,
-      logMeta: {docId: this._docName},
+    return createSandbox({
+      server: this._docManager.gristServer,
+      docId: this._docName,
       preferredPythonVersion,
       sandboxOptions: {
         exports: {
@@ -2950,4 +2950,24 @@ export async function getRealTableId(
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {
   return pick(options||{}, ['desc', 'otherId', 'linkId', 'parseStrings']);
+}
+
+/**
+ * Create a sandbox in its default initial state and with default logging.
+ */
+export function createSandbox(options: {
+  server: GristServer,
+  docId: string,
+  preferredPythonVersion: '2' | '3' | undefined,
+  sandboxOptions?: Partial<ISandboxOptions>,
+}) {
+  const {docId, preferredPythonVersion, sandboxOptions, server} = options;
+  return server.create.NSandbox({
+    comment: docId,
+    logCalls: false,
+    logTimes: true,
+    logMeta: {docId},
+    preferredPythonVersion,
+    sandboxOptions,
+  });
 }

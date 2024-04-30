@@ -177,6 +177,19 @@ describe('AdminPanel', function() {
     assert.match(await driver.find('.test-admin-panel-item-value-version').getText(), /^Version \d+\./);
   });
 
+  it('should show sandbox', async function() {
+    await driver.get(`${server.getHost()}/admin`);
+    await waitForAdminPanel();
+    assert.equal(await driver.find('.test-admin-panel-item-sandboxing').isDisplayed(), true);
+    await gu.waitToPass(
+      async () => assert.match(await driver.find('.test-admin-panel-item-value-sandboxing').getText(), /^unknown/),
+      3000,
+    );
+    // It would be good to test other scenarios, but we are using
+    // a multi-server setup and the sandbox test isn't useful there
+    // yet.
+  });
+
   const upperCheckNow = () => driver.find('.test-admin-panel-updates-upper-check-now');
   const lowerCheckNow = () => driver.find('.test-admin-panel-updates-lower-check-now');
   const autoCheckToggle = () => driver.find('.test-admin-panel-updates-auto-check');

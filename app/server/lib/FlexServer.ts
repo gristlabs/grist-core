@@ -9,6 +9,7 @@ import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {isAffirmative, safeJsonParse} from 'app/common/gutil';
 import {InstallProperties} from 'app/common/InstallAPI';
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {SandboxInfo} from 'app/common/SandboxInfo';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
@@ -23,6 +24,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
+import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
@@ -42,7 +44,7 @@ import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
-        RequestWithGrist} from 'app/server/lib/GristServer';
+  RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
@@ -181,6 +183,7 @@ export class FlexServer implements GristServer {
   private _isReady: boolean = false;
   private _probes: BootProbes;
   private _updateManager: UpdateManager;
+  private _sandboxInfo: SandboxInfo;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -1367,6 +1370,47 @@ export class FlexServer implements GristServer {
     }
   }
 
+  public async checkSandbox() {
+    if (this._check('sandbox', 'doc')) { return; }
+    const flavor = process.env.GRIST_SANDBOX_FLAVOR || 'unknown';
+    const info = this._sandboxInfo = {
+      flavor,
+      configured: flavor !== 'unsandboxed',
+      functional: false,
+      effective: false,
+      sandboxed: false,
+      lastSuccessfulStep: 'none',
+    } as SandboxInfo;
+    try {
+      const sandbox = createSandbox({
+        server: this,
+        docId: 'test',  // The id is just used in logging - no
+                        // document is created or read at this level.
+        // In olden times, and in SaaS, Python 2 is supported. In modern
+        // times Python 2 is long since deprecated and defunct.
+        preferredPythonVersion: '3',
+      });
+      info.flavor = sandbox.getFlavor();
+      info.configured = info.flavor !== 'unsandboxed';
+      info.lastSuccessfulStep = 'create';
+      const result = await sandbox.pyCall('get_version');
+      if (typeof result !== 'number') {
+        throw new Error(`Expected a number: ${result}`);
+      }
+      info.lastSuccessfulStep = 'use';
+      await sandbox.shutdown();
+      info.lastSuccessfulStep = 'all';
+      info.functional = true;
+      info.effective = ![ 'skip', 'unsandboxed' ].includes(info.flavor);
+    } catch (e) {
+      info.error = String(e);
+    }
+  }
+
+  public getSandboxInfo(): SandboxInfo|undefined {
+    return this._sandboxInfo;
+  }
+
   public disableExternalStorage() {
     if (this.deps.has('doc')) {
       throw new Error('disableExternalStorage called too late');
@@ -1827,6 +1871,8 @@ export class FlexServer implements GristServer {
     this.app.get('/admin', ...adminPageMiddleware, expressWrap(async (req, resp) => {
       return this.sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
+    const probes = new BootProbes(this.app, this, '/admin', adminPageMiddleware);
+    probes.addEndpoints();
 
     // Restrict this endpoint to install admins too, for the same reason as the /admin page.
     this.app.get('/api/install/prefs', requireInstallAdmin, expressWrap(async (_req, resp) => {

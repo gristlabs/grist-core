@@ -2,7 +2,8 @@ import {buildHomeBanners} from 'app/client/components/Banners';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {AppModel, getHomeUrl} from 'app/client/models/AppModel';
+import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
+import {AdminChecks} from 'app/client/models/AdminChecks';
 import {urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
@@ -16,7 +17,8 @@ import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
-import {getPageTitleSuffix} from 'app/common/gristUrls';
+import {SandboxingBootProbeDetails} from 'app/common/BootProbe';
+import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
 import {naturalCompare} from 'app/common/SortFunc';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -35,13 +37,18 @@ export function getAdminPanelName() {
 export class AdminPanel extends Disposable {
   private _supportGrist = SupportGristPage.create(this, this._appModel);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
+  private _checks: AdminChecks;
 
   constructor(private _appModel: AppModel) {
     super();
     document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
+    this._checks = new AdminChecks(this);
   }
 
   public buildDom() {
+    this._checks.fetchAvailableChecks().catch(err => {
+      reportError(err);
+    });
     const panelOpen = Observable.create(this, false);
     return pagePanels({
       leftPanel: {
@@ -93,6 +100,16 @@ export class AdminPanel extends Disposable {
         }),
       ),
       cssSection(
+        cssSectionTitle(t('Security Settings')),
+        this._buildItem(owner, {
+          id: 'sandboxing',
+          name: t('Sandboxing'),
+          description: t('Sandbox settings for data engine'),
+          value: this._buildSandboxingDisplay(owner),
+          expandedContent: this._buildSandboxingNotice(),
+        }),
+      ),
+      cssSection(
         cssSectionTitle(t('Version')),
         this._buildItem(owner, {
           id: 'version',
@@ -104,6 +121,42 @@ export class AdminPanel extends Disposable {
       ),
       testId('admin-panel'),
     );
+  }
+
+  private _buildSandboxingDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'sandboxing');
+        const result = req ? use(req.result) : undefined;
+        const success = result?.success;
+        const details = result?.details as SandboxingBootProbeDetails|undefined;
+        if (!details) {
+          return cssValueLabel(t('unknown'));
+        }
+        const flavor = details.flavor;
+        const configured = details.configured;
+        return cssValueLabel(
+          configured ?
+              (success ? cssHappy(t('OK') + `: ${flavor}`) :
+                  cssError(t('Error') + `: ${flavor}`)) :
+              cssError(t('unconfigured')));
+      }
+    );
+  }
+
+  private _buildSandboxingNotice() {
+    return [
+      t('Grist allows for very powerful formulas, using Python. \
+We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor \
+if your hardware supports it (most will), \
+to run formulas in each document within a sandbox \
+isolated from other documents and isolated from the network.'),
+      dom(
+        'div',
+        {style: 'margin-top: 8px'},
+        cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.'))
+      ),
+    ];
   }
 
   private _buildItem(owner: IDisposableOwner, options: {
@@ -536,4 +589,12 @@ const cssCheckNowButton = styled(basicButton, `
 
 const cssGrayed = styled('span', `
   color: ${theme.lightText};
+`);
+
+export const cssError = styled('div', `
+  color: ${theme.errorText};
+`);
+
+export const cssHappy = styled('div', `
+  color: ${theme.controlFg};
 `);
