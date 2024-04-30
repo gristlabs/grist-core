@@ -1,5 +1,6 @@
 import {connectTestingHooks, TestingHooksClient} from "app/server/lib/TestingHooks";
 import {ChildProcess, execFileSync, spawn} from "child_process";
+import * as http from "http";
 import FormData from 'form-data';
 import path from "path";
 import * as fse from "fs-extra";
@@ -10,6 +11,8 @@ import log from "app/server/lib/log";
 import {delay} from "bluebird";
 import fetch from "node-fetch";
 import {Writable} from "stream";
+import express from "express";
+import { AddressInfo } from "net";
 
 /**
  * This starts a server in a separate process.
@@ -24,18 +27,26 @@ export class TestServer {
     options: {output?: Writable} = {},      // Pipe server output to the given stream
   ): Promise<TestServer> {
 
-    const server = new TestServer(serverTypes, tempDirectory, suitename);
+    const server = new this(serverTypes, tempDirectory, suitename);
     await server.start(_homeUrl, customEnv, options);
     return server;
   }
 
   public testingSocket: string;
   public testingHooks: TestingHooksClient;
-  public serverUrl: string;
   public stopped = false;
+  public get serverUrl() {
+    if (this._proxiedServer) {
+      throw new Error('Direct access to this test server is disallowed');
+    }
+    return this._serverUrl;
+  }
+  public get proxiedServer() { return this._proxiedServer; }
 
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
+  private _serverUrl: string;
+  private _proxiedServer: boolean = false;
 
   private readonly _defaultEnv;
 
@@ -70,6 +81,7 @@ export class TestServer {
     }
     const env = {
       APP_HOME_URL: _homeUrl,
+      APP_HOME_INTERNAL_URL: _homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
       ...this._defaultEnv,
       ...customEnv
@@ -98,7 +110,7 @@ export class TestServer {
       .catch(() => undefined);
 
     await this._waitServerReady();
-    log.info(`server ${this._serverTypes} up and listening on ${this.serverUrl}`);
+    log.info(`server ${this._serverTypes} up and listening on ${this._serverUrl}`);
   }
 
   public async stop() {
@@ -126,10 +138,10 @@ export class TestServer {
       // create testing hooks and get own port
       this.testingHooks = await connectTestingHooks(this.testingSocket);
       const port: number = await this.testingHooks.getOwnPort();
-      this.serverUrl = `http://localhost:${port}`;
+      this._serverUrl = `http://localhost:${port}`;
 
       // wait for check
-      return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
+      return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
     } catch (err) {
       log.warn("Failed to initialize server", err);
       return false;
@@ -142,12 +154,26 @@ export class TestServer {
   // Returns the promise for the ChildProcess's signal or exit code.
   public getExitPromise(): Promise<string|number> { return this._exitPromise; }
 
-  public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
-    return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {
-      headers: {Authorization: `Bearer api_key_for_${user}`},
+  public makeUserApi(
+    org: string,
+    user: string = 'chimpy',
+    {
+      headers = {Authorization: `Bearer api_key_for_${user}`},
+      serverUrl = this._serverUrl,
+    }: {
+      headers?: Record<string, string>
+      serverUrl?: string,
+    } = { headers: undefined, serverUrl: undefined },
+  ): UserAPIImpl {
+    return new UserAPIImpl(`${serverUrl}/o/${org}`, {
+      headers,
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
     });
+  }
+
+  public disallowDirectAccess() {
+    this._proxiedServer = true;
   }
 
   private async _waitServerReady() {
@@ -168,5 +194,107 @@ export class TestServer {
     } finally {
       clearTimeout(timeout);
     }
+  }
+}
+
+// FIXME: found that TestProxyServer exist, what should I do? :'(
+export class TestServerProxy {
+  public static readonly HOSTNAME: string = 'grist-test-proxy.localhost';
+
+  private _stopped: boolean = false;
+  private _app = express();
+  private _server: http.Server;
+  private _address: Promise<AddressInfo>;
+
+  public get stopped() { return this._stopped; }
+
+  public constructor() {
+    this._address = new Promise(resolve => {
+      this._server = this._app.listen(0, TestServerProxy.HOSTNAME, () => {
+        resolve(this._server.address() as AddressInfo);
+      });
+    });
+  }
+
+  public start(homeServer: TestServer, docServer: TestServer) {
+    this._app.all(['/dw/dw1', '/dw/dw1/*'], (oreq, ores) => this._getRequestHandlerFor(docServer));
+    this._app.all('/*', this._getRequestHandlerFor(homeServer));
+    // Forbid now the use of serverUrl property
+    homeServer.disallowDirectAccess();
+    docServer.disallowDirectAccess();
+  }
+
+  public async getAddress() {
+    return this._address;
+  }
+
+  public async getServerUrl() {
+    const address = await this.getAddress();
+    return `http://${TestServerProxy.HOSTNAME}:${address.port}`;
+  }
+
+  public stop() {
+    if (this._stopped) {
+      return;
+    }
+    log.info("Stopping node TestServerProxy");
+    this._stopped = true;
+    this._server.close();
+  }
+
+  private _getRequestHandlerFor(server: TestServer) {
+    const serverUrl = new URL(server.serverUrl);
+
+    return (oreq: express.Request, ores: express.Response) => {
+      const options = {
+        host: serverUrl.hostname,
+        port: serverUrl.port,
+        path: oreq.url,
+        method: oreq.method,
+        headers: oreq.headers,
+      };
+
+      log.debug('[proxy] Requesting: ' + oreq.url);
+
+      const creq = http
+      .request(options, pres => {
+        log.debug('[proxy] Received response for ' + pres.url);
+
+        // set encoding, required?
+        pres.setEncoding('utf8');
+
+        // set http status code based on proxied response
+        ores.writeHead(pres.statusCode ?? 200, pres.statusMessage, pres.headers);
+
+        // wait for data
+        pres.on('data', chunk => {
+          ores.write(chunk);
+        });
+
+        pres.on('close', () => {
+          // closed, let's end client request as well
+          ores.end();
+        });
+
+        pres.on('end', () => {
+          // finished, let's finish client request as well
+          ores.end();
+        });
+      })
+      .on('error', e => {
+        // we got an error
+        console.log(e.message);
+        try {
+          // attempt to set error message and http status
+          ores.writeHead(500);
+          ores.write(e.message);
+        } catch (e) {
+          // ignore
+        }
+        ores.end();
+      });
+
+      oreq.pipe(creq).on('end', () => creq.end());
+    };
   }
 }

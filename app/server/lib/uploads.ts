@@ -420,13 +420,7 @@ export async function fetchDoc(
   template: boolean
 ): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
-  const headers = getTransitiveHeaders(req, { includeOrigin: false });
-
-  // Passing the Origin header would serve no purpose here, as we are
-  // constructing an internal request to fetch from our own doc worker
-  // URL. Indeed, it may interfere, as it could incur a CORS check in
-  // `trustOrigin`, which we do not need.
-  delete headers.Origin;
+  const headers = getTransitiveHeaders(req, { includeOrigin: false }); // NO EFFECT
 
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.

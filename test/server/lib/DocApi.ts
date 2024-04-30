@@ -35,7 +35,7 @@ import {serveSomething, Serving} from 'test/server/customUtil';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
 import {prepareFilesystemDirectoryForTests} from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
 import {signal} from 'test/server/lib/helpers/Signal';
-import {TestServer} from 'test/server/lib/helpers/TestServer';
+import {TestServer, TestServerProxy} from 'test/server/lib/helpers/TestServer';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
@@ -47,6 +47,8 @@ const kiwi = configForUser('Kiwi');
 const charon = configForUser('Charon');
 const nobody = configForUser('Anonymous');
 const support = configForUser('support');
+
+const accounts = {chimpy, kiwi, charon, nobody, support};
 
 // some doc ids
 const docIds: { [name: string]: string } = {
@@ -155,6 +157,51 @@ describe('DocApi', function () {
         homeUrl = serverUrl = home.serverUrl;
         hasHomeApi = true;
       });
+      testDocApi();
+    });
+
+    describe("should work behind a proxy", async () => {
+      let proxy: TestServerProxy;
+
+      const originalHeaders = new WeakMap<AxiosRequestConfig, AxiosRequestConfig<any>["headers"]>();
+      function iterateOverAccountHeaders (
+        cb: (account: AxiosRequestConfig) => AxiosRequestConfig<any>["headers"]
+      ) {
+        for (const account of Object.values(accounts)) {
+          if (account.headers) {
+            account.headers = cb(account);
+          }
+        }
+      }
+      setup('separated', async () => {
+        proxy = new TestServerProxy();
+        const additionalEnvConfiguration = {
+          ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
+          GRIST_DATA_DIR: dataDir,
+          APP_HOME_URL: await proxy.getServerUrl()
+        };
+        home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
+
+        proxy.start(home, docs);
+
+        homeUrl = serverUrl = await proxy.getServerUrl();
+        iterateOverAccountHeaders(account => {
+          originalHeaders.set(account, account.headers);
+          const newHeaders = _.clone(account.headers)!;
+          newHeaders.Origin = serverUrl;
+          return newHeaders;
+        });
+        hasHomeApi = true;
+      });
+
+      after(() => {
+        proxy.stop();
+        iterateOverAccountHeaders((account) => {
+          return originalHeaders.get(account)!;
+        });
+      });
+
       testDocApi();
     });
 
@@ -2615,6 +2662,18 @@ function testDocApi() {
     await worker1.copyDoc(docId, undefined, 'copy');
   });
 
+  it("POST /docs/{did} with sourceDocId copies a document", async function () {
+    const chimpyWs = await userApi.newWorkspace({name: "Chimpy's Workspace"}, ORG_NAME);
+    const resp = await axios.post(`${serverUrl}/api/docs`, {
+      sourceDocumentId: docIds.TestDoc,
+      documentName: 'copy of TestDoc',
+      asTemplate: false,
+      workspaceId: chimpyWs
+    }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.isString(resp.data);
+  });
+
   it("GET /docs/{did}/download/csv serves CSV-encoded document", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/csv?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
@@ -2859,7 +2918,7 @@ function testDocApi() {
       this.skip();
     }
     // Prepare an API for a different user.
-    const kiwiApi = new UserAPIImpl(`${home.serverUrl}/o/Fish`, {
+    const kiwiApi = new UserAPIImpl(`${homeUrl}/o/Fish`, {
       headers: {Authorization: 'Bearer api_key_for_kiwi'},
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
@@ -2966,7 +3025,7 @@ function testDocApi() {
     // Make two documents with same urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1', urlId: 'urlid'}, ws1);
-    const nasaApi = new UserAPIImpl(`${home.serverUrl}/o/nasa`, {
+    const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
@@ -2997,7 +3056,7 @@ function testDocApi() {
     // Make two documents
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
-    const nasaApi = new UserAPIImpl(`${home.serverUrl}/o/nasa`, {
+    const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
       fetch: fetch as any,
       newFormData: () => new FormData() as any,
@@ -3125,11 +3184,16 @@ function testDocApi() {
   });
 
   it("GET /docs/{did1}/compare/{did2} tracks changes between docs", async function () {
-    const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
-    const docId1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
-    const docId2 = await userApi.newDoc({name: 'testdoc2'}, ws1);
-    const doc1 = userApi.getDocAPI(docId1);
-    const doc2 = userApi.getDocAPI(docId2);
+    // Pass kiwi's headers as it contains both Authorization and Origin headers
+    // if run behind a proxy, so we can ensure that the Origin header check is not made.
+    const chimpyApi = home.makeUserApi(
+      ORG_NAME, 'chimpy', { serverUrl, headers: chimpy.headers as Record<string, string> }
+    );
+    const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
+    const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);
+    const docId2 = await chimpyApi.newDoc({name: 'testdoc2'}, ws1);
+    const doc1 = chimpyApi.getDocAPI(docId1);
+    const doc2 = chimpyApi.getDocAPI(docId2);
 
     // Stick some content in column A so it has a defined type
     // so diffs are smaller and simpler.
@@ -3327,6 +3391,9 @@ function testDocApi() {
   });
 
   it('doc worker endpoints ignore any /dw/.../ prefix', async function () {
+    if (docs.proxiedServer) {
+      this.skip();
+    }
     const docWorkerUrl = docs.serverUrl;
     let resp = await axios.get(`${docWorkerUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 200);
