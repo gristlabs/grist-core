@@ -72,6 +72,7 @@ import {
 import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
+import moment = require('moment-timezone');
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -616,13 +617,10 @@ export class HomeDBManager extends EventEmitter {
         if (!props.isFirstTimeUser) { isWelcomed = true; }
       }
       if (props.newConnection === true) {
-        // set last connection to today (keep date, remove time)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (today.getFullYear() !== user.lastConnectionAt?.getFullYear() ||
-            today.getMonth() !== user.lastConnectionAt?.getMonth() ||
-            today.getDate() !== user.lastConnectionAt?.getDate()){
-          user.lastConnectionAt = today;
+        // set last connection to today (need date only, no time)
+        const today = moment().startOf('day');
+        if (today !== moment(user.lastConnectionAt).startOf('day')) {
+          user.lastConnectionAt = today.toDate();
           needsSave = true;
         }
       }
