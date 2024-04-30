@@ -40,8 +40,8 @@ import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {
   getTelemetryWidgetTypeFromVS,
+  getWidgetTypes,
   getWidgetTypesLabelTranslation,
-  widgetTypesMap
 } from "app/client/ui/widgetTypesMap";
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
@@ -224,12 +224,11 @@ export class RightPanel extends Disposable {
 
   private _buildStandardHeader() {
     return dom.maybe(this._pageWidgetType, (type) => {
-      const widgetInfo = widgetTypesMap.get(type) || {label: 'Table', icon: 'TypeTable'};
-      const widgetIcon = widgetInfo.icon || 'TypeTable';
+      const widgetInfo = getWidgetTypes(type);
       const widgetLabel = getWidgetTypesLabelTranslation(widgetInfo);
       const fieldInfo = getFieldType(type);
       return [
-        cssTopBarItem(cssTopBarIcon(widgetIcon), widgetLabel,
+        cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetLabel,
           cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'pageWidget'),
           dom.on('click', () => this._topTab.set("pageWidget")),
           testId('right-tab-pagewidget')),
