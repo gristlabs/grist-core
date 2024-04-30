@@ -793,7 +793,7 @@ export class DocTriggers {
           body,
           headers: {
             'Content-Type': 'application/json',
-            'authorization': authorization,
+            ...(authorization ? {'Authorization': authorization} : {}),
           },
           signal,
           agent: proxyAgent(new URL(url)),
