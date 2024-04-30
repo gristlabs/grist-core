@@ -166,7 +166,7 @@ export async function openClient(server: FlexServer, email: string, org: string,
   const headers: Record<string, string> = {};
   if (!emailHeader) {
     const resp = await axios.get(`${server.getOwnUrl()}/test/session`);
-    const cookie = resp.headers['set-cookie'][0];
+    const cookie = resp.headers['set-cookie']![0];
     if (email !== 'anon@getgrist.com') {
       const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
       const comm = server.getComm();

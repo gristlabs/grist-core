@@ -106,6 +106,7 @@ export async function main(port: number, serverTypes: ServerType[],
   server.addHealthCheck();
   if (includeHome || includeApp) {
     server.addBootPage();
+    server.addUpdatesCheck();
   }
   server.denyRequestsIfNotReady();
 
@@ -178,6 +179,12 @@ export async function main(port: number, serverTypes: ServerType[],
     server.checkOptionCombinations();
     server.summary();
     server.ready();
+
+    // Some tests have their timing perturbed by having this earlier
+    // TODO: update those tests.
+    if (includeDocs) {
+      await server.checkSandbox();
+    }
     return server;
   } catch(e) {
     await server.close();

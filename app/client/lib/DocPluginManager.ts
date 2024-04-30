@@ -4,8 +4,6 @@ import {SafeBrowser} from 'app/client/lib/SafeBrowser';
 import {ActiveDocAPI} from 'app/common/ActiveDocAPI';
 import {LocalPlugin} from 'app/common/plugin';
 import {createRpcLogger, PluginInstance} from 'app/common/PluginInstance';
-import {Theme} from 'app/common/ThemePrefs';
-import {Computed} from 'grainjs';
 import {Rpc} from 'grain-rpc';
 
 /**
@@ -18,7 +16,6 @@ export class DocPluginManager {
   private _clientScope = this._options.clientScope;
   private _docComm = this._options.docComm;
   private _localPlugins = this._options.plugins;
-  private _theme = this._options.theme;
   private _untrustedContentOrigin = this._options.untrustedContentOrigin;
 
   constructor(private _options: {
@@ -26,7 +23,6 @@ export class DocPluginManager {
     untrustedContentOrigin: string,
     docComm: ActiveDocAPI,
     clientScope: ClientScope,
-    theme: Computed<Theme>,
   }) {
     this.pluginsList = [];
     for (const plugin of this._localPlugins) {
@@ -38,7 +34,6 @@ export class DocPluginManager {
           clientScope: this._clientScope,
           untrustedContentOrigin: this._untrustedContentOrigin,
           mainPath: components.safeBrowser,
-          theme: this._theme,
         });
         if (components.safeBrowser) {
           pluginInstance.rpc.registerForwarder(components.safeBrowser, safeBrowser);

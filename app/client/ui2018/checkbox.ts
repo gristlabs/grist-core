@@ -16,13 +16,14 @@
  */
 
 import {testId, theme} from 'app/client/ui2018/cssVars';
-import {Computed, dom, DomArg, DomContents, Observable, styled} from 'grainjs';
+import {Computed, dom, DomArg, DomContents, DomElementArg, Observable, styled} from 'grainjs';
 
 export const cssLabel = styled('label', `
   position: relative;
   display: inline-flex;
   min-width: 0px;
   margin-bottom: 0px;
+  flex-shrink: 0;
 
   outline: none;
   user-select: none;
@@ -192,6 +193,19 @@ export const cssRadioCheckboxOptions = styled('div', `
   flex-direction: column;
   gap: 10px;
 `);
+
+export function toggle(value: Observable<boolean|null>, ...domArgs: DomElementArg[]): DomContents {
+  return dom('div.widget_switch',
+    (elem) => elem.style.setProperty('--grist-actual-cell-color', theme.controlFg.toString()),
+    dom.hide((use) => use(value) === null),
+    dom.cls('switch_on', (use) => use(value) || false),
+    dom.cls('switch_transition', true),
+    dom.on('click', () => value.set(!value.get())),
+    dom('div.switch_slider'),
+    dom('div.switch_circle'),
+    ...domArgs
+  );
+}
 
 // We need to reset top and left of ::before element, as it is wrongly set
 // on the inline checkbox.

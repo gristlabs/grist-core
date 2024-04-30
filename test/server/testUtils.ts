@@ -302,11 +302,26 @@ export async function readFixtureDoc(docName: string) {
 // a class to store a snapshot of environment variables, can be reverted to by
 // calling .restore()
 export class EnvironmentSnapshot {
+
+  public static push() {
+    this._stack.push(new EnvironmentSnapshot());
+  }
+
+  public static pop() {
+    const snapshot = this._stack.pop();
+    if (!snapshot) {
+      throw new Error("EnvironmentSnapshot stack is empty");
+    }
+    snapshot.restore();
+  }
+
+  private static _stack: EnvironmentSnapshot[] = [];
+
   private _oldEnv: NodeJS.ProcessEnv;
+
   public constructor() {
     this._oldEnv = clone(process.env);
   }
-
   // Reset environment variables.
   public restore() {
     Object.assign(process.env, this._oldEnv);

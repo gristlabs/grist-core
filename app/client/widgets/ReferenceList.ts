@@ -1,3 +1,8 @@
+import {
+  FormFieldRulesConfig,
+  FormOptionsAlignmentConfig,
+  FormOptionsSortConfig,
+} from 'app/client/components/Forms/FormConfig';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {testId, theme} from 'app/client/ui2018/cssVars';
@@ -102,6 +107,15 @@ export class ReferenceList extends Reference {
         });
       }),
     );
+  }
+
+  public buildFormConfigDom() {
+    return [
+      this.buildTransformConfigDom(),
+      dom.create(FormOptionsAlignmentConfig, this.field),
+      dom.create(FormOptionsSortConfig, this.field),
+      dom.create(FormFieldRulesConfig, this.field),
+    ];
   }
 }
 

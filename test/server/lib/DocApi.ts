@@ -1351,10 +1351,10 @@ function testDocApi() {
           }
         } else {
           if (sort) {
-            config.headers['x-sort'] = sort.join(',');
+            config.headers!['x-sort'] = sort.join(',');
           }
           if (limit) {
-            config.headers['x-limit'] = String(limit);
+            config.headers!['x-limit'] = String(limit);
           }
         }
         return axios.get(url.href, config);
@@ -4976,11 +4976,11 @@ function testDocApi() {
 
       const chimpyConfig = configForUser("Chimpy");
       const anonConfig = configForUser("Anonymous");
-      delete chimpyConfig.headers["X-Requested-With"];
-      delete anonConfig.headers["X-Requested-With"];
+      delete chimpyConfig.headers!["X-Requested-With"];
+      delete anonConfig.headers!["X-Requested-With"];
 
       // Target a more realistic Host than "localhost:port"
-      anonConfig.headers.Host = chimpyConfig.headers.Host = 'api.example.com';
+      anonConfig.headers!.Host = chimpyConfig.headers!.Host = 'api.example.com';
 
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       const data = { records: [{ fields: {} }] };
@@ -4989,7 +4989,7 @@ function testDocApi() {
       const forbiddenOrigin = 'http://evil.com';
 
       // Normal same origin requests
-      anonConfig.headers.Origin = allowedOrigin;
+      anonConfig.headers!.Origin = allowedOrigin;
       let response: AxiosResponse;
       for (response of [
         await axios.post(url, data, anonConfig),
@@ -5005,7 +5005,7 @@ function testDocApi() {
 
       // Cross origin requests from untrusted origin.
       for (const config of [anonConfig, chimpyConfig]) {
-        config.headers.Origin = forbiddenOrigin;
+        config.headers!.Origin = forbiddenOrigin;
         for (response of [
           await axios.post(url, data, config),
           await axios.get(url, config),

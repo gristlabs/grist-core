@@ -154,6 +154,7 @@ export const typeDefs: any = {
     widgets: {
       TextBox: {
         cons: 'TextBox',
+        formCons: 'Switch',
         editCons: 'TextEditor',
         icon: 'FieldTextbox',
         options: {

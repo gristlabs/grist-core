@@ -26,6 +26,7 @@ export interface ISandbox {
   shutdown(): Promise<unknown>;  // TODO: tighten up this type.
   pyCall(funcName: string, ...varArgs: unknown[]): Promise<any>;
   reportMemoryUsage(): Promise<void>;
+  getFlavor(): string;
 }
 
 export interface ISandboxCreator {

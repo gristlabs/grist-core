@@ -24,7 +24,8 @@
         "Welcome to {{- orgName}}": "Benvenuto, {{- orgName}}",
         "Visit our {{link}} to learn more about Grist.": "Vai a {{link}} per saperne di più su Grist.",
         "Sign in": "Accedi",
-        "To use Grist, please either sign up or sign in.": "Per usare Grist, iscriviti o accedi."
+        "To use Grist, please either sign up or sign in.": "Per usare Grist, iscriviti o accedi.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Approfondisci nel nostro {{helpCenterLink}}, o trova un esperto con il nostro {{sproutsProgram}}."
     },
     "HomeLeftPane": {
         "Manage Users": "Gestisci gli utenti",
@@ -68,7 +69,9 @@
         "You do not have write access to this site": "Non hai accesso in scrittura a questo sito",
         "Remove all data but keep the structure to use as a template": "Rimuovi tutti i dati, mantieni la struttura per usarla come template",
         "Remove document history (can significantly reduce file size)": "Rimuovi la storia del documento (può ridurre molto le dimensioni del file)",
-        "Download full document and history": "Scarica tutto il documento e la storia"
+        "Download full document and history": "Scarica tutto il documento e la storia",
+        "Download": "Scarica",
+        "Download document": "Scarica documento"
     },
     "Importer": {
         "Update existing records": "Aggiorna i record esistenti",
@@ -163,7 +166,9 @@
         "Enter redirect URL": "Inserisci URL di re-indirizzamento",
         "Configuration": "Configurazione",
         "Default field value": "Valore di default del campo",
-        "Field rules": "Regole per il campo"
+        "Field rules": "Regole per il campo",
+        "Select a field in the form widget to configure.": "Seleziona un campo nel widget del modulo per configurarlo.",
+        "No field selected": "Nessun campo selezionato"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copia link",
@@ -173,7 +178,8 @@
         "Insert row": "Inserisci riga",
         "Insert row above": "Inserisci riga sopra",
         "Insert row below": "Inserisci riga sotto",
-        "View as card": "Vedi come scheda"
+        "View as card": "Vedi come scheda",
+        "Use as table headers": "Usa come intestazioni di tabella"
     },
     "SortFilterConfig": {
         "Save": "Salva",
@@ -360,7 +366,12 @@
         "Decimals": "Decimali",
         "Default currency ({{defaultCurrency}})": "Valuta di default ({{defaultCurrency}})",
         "Currency": "Valuta",
-        "Number Format": "Formato numerico"
+        "Number Format": "Formato numerico",
+        "Field Format": "Formato del campo",
+        "Text": "Testo",
+        "min": "min",
+        "Spinner": "Spinner",
+        "max": "max"
     },
     "HyperLinkEditor": {
         "[link label] url": "[testo link] URL"
@@ -507,7 +518,8 @@
         "Seed rules": "Regole pre-inserite",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Quando si mettono regole per la tabella, inserire sempre una che dà pieno accesso a OWNER.",
         "This default should be changed if editors' access is to be limited. ": "Questo valore di default può essere cambiato se si vuole limitare l'accesso agli editor. ",
-        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permette agli editor di modificare la struttura (es., modificare ed eliminare tabelle, colonne, viste) e scrivere formule, cosa che permette l'accesso ai dati indipendentemente dalle restrizioni in lettura."
+        "Allow editors to edit structure (e.g. modify and delete tables, columns, layouts), and to write formulas, which give access to all data regardless of read restrictions.": "Permette agli editor di modificare la struttura (es., modificare ed eliminare tabelle, colonne, viste) e scrivere formule, cosa che permette l'accesso ai dati indipendentemente dalle restrizioni in lettura.",
+        "Add Table-wide Rule": "Aggiungi regola per tutta la tabella"
     },
     "ACUserManager": {
         "Enter email address": "Inserisci indirizzo e-mail",
@@ -612,7 +624,8 @@
         "Snapshots": "Snapshot",
         "Snapshots are unavailable.": "Le snapshot non sono disponibili.",
         "Activity": "Attvità",
-        "Beta": "Beta"
+        "Beta": "Beta",
+        "Only owners have access to snapshots for documents with access rules.": "Solo i proprietari hanno accesso agli snapshot per i documenti con regole di accesso."
     },
     "DocMenu": {
         "(The organization needs a paid plan)": "(L'organizzazione deve avere un piano a pagamento)",
@@ -900,7 +913,12 @@
         "Unsaved": "Non salvato",
         "Work on a Copy": "Lavora su una copia",
         "Share": "Condividi",
-        "Download...": "Scarica..."
+        "Download...": "Scarica...",
+        "DOO Separated Values (.dsv)": "Valori separati da delimitatore (.dsv)",
+        "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
+        "Tab Separated Values (.tsv)": "Valori separati da tabulazione (.tsv)",
+        "Comma Separated Values (.csv)": "Valori separati da virgola (.csv)",
+        "Export as...": "Esporta come..."
     },
     "SiteSwitcher": {
         "Create new team site": "Crea un nuovo sito per il team",
@@ -1043,7 +1061,11 @@
     },
     "NTextBox": {
         "false": "falso",
-        "true": "vero"
+        "true": "vero",
+        "Field Format": "Formato del campo",
+        "Lines": "Righe",
+        "Multi line": "Multiriga",
+        "Single line": "Riga singola"
     },
     "ACLUsers": {
         "Example Users": "Utenti di esempio",
@@ -1119,7 +1141,11 @@
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Non trovi la colonna giusta? Fai clic su \"Cambia widget\" per selezionare la tabella con i dati degli eventi.",
         "Use reference columns to relate data in different tables.": "Usa colonne di riferimenti per collegare dati da altre tabelle.",
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Le formule supportano molte funzioni di Excel, la sintassi completa di Python, e includono un utile assistente AI.",
-        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puoi scegliere tra i widget disponibili nella lista, o incorporare il tuo fornendo la sua URL completa."
+        "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Puoi scegliere tra i widget disponibili nella lista, o incorporare il tuo fornendo la sua URL completa.",
+        "These rules are applied after all column rules have been processed, if applicable.": "Queste regole sono applicate dopo che tutte le regole delle colonne sono state applicate, se possibile.",
+        "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Costruisci del semplici moduli e condividili rapidamente con il nostro nuovo widget. {{learnMoreButton}}",
+        "Forms are here!": "Sono arrivati i moduli!",
+        "Learn more": "Approfondisci"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -1149,7 +1175,21 @@
     },
     "WebhookPage": {
         "Clear Queue": "Pulisci la coda",
-        "Webhook Settings": "Impostazioni web hook"
+        "Webhook Settings": "Impostazioni web hook",
+        "Ready Column": "Colonna Ready",
+        "Removed webhook.": "Webhook rimosso.",
+        "Cleared webhook queue.": "Svuotata la coda dei webhook.",
+        "Enabled": "Abilitato",
+        "Columns to check when update (separated by ;)": "Colonne da controllare quando si aggiorna (separate da ;)",
+        "Event Types": "Tipi di evento",
+        "Memo": "Memo",
+        "Name": "Nome",
+        "Webhook Id": "Id Webhook",
+        "Table": "Tabella",
+        "Sorry, not all fields can be edited.": "Spiacente, non tutti i campi possono essere modificati.",
+        "Status": "Status",
+        "URL": "URL",
+        "Filter for changes in these columns (semicolon-separated ids)": "FIltrare i cambiamenti in queste colonne (id separati da ;)"
     },
     "Clipboard": {
         "Unavailable Command": "Comando non disponibile",
@@ -1208,7 +1248,9 @@
         "Help Center": "Centro Aiuto",
         "Opt in to Telemetry": "Accetta la telemetria",
         "Opted In": "Accettato",
-        "Support Grist": "Sostieni Grist"
+        "Support Grist": "Sostieni Grist",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Grazie! Apprezziamo molto la tua fiducia e il tuo supporto. Puoi disdire in qualsiasi momento con {{link}} nel menu utente.",
+        "Admin Panel": "Pannello di amministrazione"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1226,7 +1268,8 @@
         "You have opted out of telemetry.": "Hai disattivato la telemetria.",
         "GitHub Sponsors page": "Pagina Sponsor GitHub",
         "Opt in to Telemetry": "Accetta la telemetria",
-        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Raccogliamo solo statistiche di utilizzo, mai contenuti dei documenti, come spiegato in {{link}}."
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Raccogliamo solo statistiche di utilizzo, mai contenuti dei documenti, come spiegato in {{link}}.",
+        "Sponsor": "Sponsor"
     },
     "buildViewSectionDom": {
         "No row selected in {{title}}": "Nessuna riga selezionata in {{title}}",
@@ -1323,7 +1366,21 @@
         "Unpublish": "Non pubblicare",
         "Publish": "Pubblica",
         "Publish your form?": "Pubblicare il modulo?",
-        "Unpublish your form?": "Ritirare la pubblicazione del modulo?"
+        "Unpublish your form?": "Ritirare la pubblicazione del modulo?",
+        "Anyone with the link below can see the empty form and submit a response.": "Tutti quelli che hanno il link sottostante possono vedere il modulo vuoto e inviare una risposta.",
+        "Preview": "Anteprima",
+        "Embed this form": "Incorpora questo modulo",
+        "Copy code": "Copia codice",
+        "Copy link": "Copia link",
+        "Reset form": "Resetta il modulo",
+        "Reset": "Reset",
+        "Save your document to publish this form.": "Salva il tuo documento per pubblicare questo modulo.",
+        "Share": "Condividi",
+        "Share this form": "Condividi questo modulo",
+        "Are you sure you want to reset your form?": "Sei sicuro di voler resettare il tuo modulo?",
+        "Code copied to clipboard": "Codice copiato negli Appunti",
+        "Link copied to clipboard": "Link copiato negli Appunti",
+        "View": "Vedi"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Pulisci",
@@ -1335,5 +1392,112 @@
     },
     "Editor": {
         "Delete": "Elimina"
+    },
+    "FormContainer": {
+        "Build your own form": "Costruisci il tuo modulo",
+        "Powered by": "Fatto con"
+    },
+    "FormModel": {
+        "There was a problem loading the form.": "C'è stato un problema nel caricamento del modulo.",
+        "Oops! The form you're looking for doesn't exist.": "Ops! Il modulo che cerchi non esiste.",
+        "You don't have access to this form.": "Non hai accesso a questo modulo.",
+        "Oops! This form is no longer published.": "Ops! Questo modulo non è più pubblico."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "C'è stato un errore nell'invio del modulo. Per favore prova di nuovo."
+    },
+    "AdminPanel": {
+        "Admin Panel": "Pannello di amministrazione",
+        "Current version of Grist": "Versione attuale di Grist",
+        "Home": "Inizio",
+        "Help us make Grist better": "Aiutaci a migliorare Grist",
+        "Support Grist": "Supporta Grist",
+        "Support Grist Labs on GitHub": "Supporta Grist Labs su GitHub",
+        "Sponsor": "Sponsor",
+        "Current": "Attuale",
+        "Telemetry": "Telemetria",
+        "Version": "Versione"
+    },
+    "WelcomeCoachingCall": {
+        "Maybe Later": "Forse più tardi",
+        "free coaching call": "chiamata di assistenza gratuita",
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Durante la chiamata, ci prendiamo del tempo per capire i tuoi bisogni e adattarci a quelli. Possiamo spiegarti i fondamenti di Grist, o iniziare a lavorare subito con i tuoi dati e creare le dashboard che ti servono.",
+        "Schedule Call": "Prenota una chiamata",
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Prenota la tua {{freeCoachingCall}} con un membro del nostro team."
+    },
+    "FormConfig": {
+        "Field rules": "Regole del campo",
+        "Ascending": "Ascendente",
+        "Field Format": "Formato campo",
+        "Default": "Default",
+        "Field Rules": "Regole campo",
+        "Descending": "Discendente",
+        "Horizontal": "Orizzontale",
+        "Options Sort Order": "Opzioni ordinamento",
+        "Select": "Seleziona",
+        "Options Alignment": "Opzioni allineamento",
+        "Radio": "Radio",
+        "Vertical": "Verticale",
+        "Required field": "Campo obbligatorio"
+    },
+    "CustomView": {
+        "Some required columns aren't mapped": "Alcune colonne necessarie non sono mappate",
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "Per usare questo widget, mappare tutte le colonne non opzionali dal pannello di creazione a destra."
+    },
+    "CreateTeamModal": {
+        "Domain name is required": "Il nome di dominio è obbligatorio",
+        "Go to your site": "Vai al tuo sito",
+        "Team name": "Nome del team",
+        "Team name is required": "Il nome del team è obbligatorio",
+        "Team site created": "Il sito del team è stato creato",
+        "Team url": "Url del team",
+        "Work as a Team": "Lavora come un team",
+        "Cancel": "Annulla",
+        "Choose a name and url for your team site": "Scegli un nome e una url per il sito del tuo team",
+        "Create site": "Crea un sito",
+        "Domain name is invalid": "Il nome di dominio non è valido",
+        "Billing is not supported in grist-core": "La fatturazione non è supportata in grist-core"
+    },
+    "Toggle": {
+        "Checkbox": "Checkbox",
+        "Switch": "Cambia",
+        "Field Format": "Formato campo"
+    },
+    "FormSuccessPage": {
+        "Thank you! Your response has been recorded.": "Grazie! La tua risposta è stata registrata.",
+        "Form Submitted": "Modulo inviato",
+        "Submit new response": "Invia una nuova risposta"
+    },
+    "DateRangeOptions": {
+        "Next 7 days": "Prossimi 7 giorni",
+        "This month": "Questo mese",
+        "This week": "Questa settimana",
+        "This year": "Quest'anno",
+        "Today": "Oggi",
+        "Last 30 days": "Ultimi 30 giorni",
+        "Last 7 days": "Ultimi 7 giorni",
+        "Last Week": "Ultima settimana"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Svuota",
+        "Unmap fields": "Rimuovi mappatura campi",
+        "Unmapped": "Mappatura rimossa",
+        "Map fields": "Mappa i campi",
+        "Mapped": "Mappato",
+        "Select All": "Seleziona tutto"
+    },
+    "Section": {
+        "Insert section above": "Inserisci una sezione sopra",
+        "Insert section below": "Inserisci una sezione sotto"
+    },
+    "Columns": {
+        "Remove Column": "Rimuovi colonna"
+    },
+    "Field": {
+        "No choices configured": "Nessuna scelta configurata",
+        "No values in show column of referenced table": "Nessun valore nella colonna da mostrare nella tabella collegata"
+    },
+    "FormErrorPage": {
+        "Error": "Errore"
     }
 }

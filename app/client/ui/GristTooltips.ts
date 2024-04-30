@@ -1,7 +1,7 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
+import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
-import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
@@ -29,17 +29,6 @@ const cssIcon = styled(icon, `
   width: 18px;
 `);
 
-const cssNewsPopupLearnMoreButton = styled(basicButtonLink, `
-  color: white;
-  border: 1px solid white;
-  padding: 3px;
-
-  &:hover, &:focus, &:visited {
-    color: white;
-    border-color: white;
-  }
-`);
-
 export type Tooltip =
   | 'dataSize'
   | 'setTriggerFormula'
@@ -51,7 +40,9 @@ export type Tooltip =
   | 'uuid'
   | 'lookups'
   | 'formulaColumn'
-  | 'accessRulesTableWide';
+  | 'accessRulesTableWide'
+  | 'setChoiceDropdownCondition'
+  | 'setRefDropdownCondition';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -137,7 +128,29 @@ see or edit which parts of your document.')
     ...args,
   ),
   accessRulesTableWide: (...args: DomElementArg[]) => cssTooltipContent(
-    dom('div', t('These rules are applied after all column rules have been processed, if applicable.'))
+    dom('div', t('These rules are applied after all column rules have been processed, if applicable.')),
+    ...args,
+  ),
+  setChoiceDropdownCondition: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Filter displayed dropdown values with a condition.')
+    ),
+    dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
+      example: dom.create(buildHighlightedCode, 'choice not in $Categories', {}, {style: 'margin-top: 8px;'}),
+    })),
+    ...args,
+  ),
+  setRefDropdownCondition: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Filter displayed dropdown values with a condition.')
+    ),
+    dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
+      example: dom.create(buildHighlightedCode, 'choice.Role == "Manager"', {}, {style: 'margin-top: 8px;'}),
+    })),
+    dom('div',
+      cssLink({href: commonUrls.helpFilteringReferenceChoices, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
   ),
 };
 
@@ -320,20 +333,5 @@ data.")),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
-  },
-  formsAreHere: {
-    popupType: 'news',
-    audience: 'signed-in-users',
-    title: () => t('Forms are here!'),
-    content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}', {
-        learnMoreButton: cssNewsPopupLearnMoreButton(t('Learn more'), {
-          href: commonUrls.forms,
-          target: '_blank',
-        }),
-      })),
-      ...args,
-    ),
-    deploymentTypes: ['saas', 'core', 'enterprise'],
   },
 };

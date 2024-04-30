@@ -12,7 +12,13 @@ import {
   UserAction
 } from 'app/common/DocActions';
 import {DocData} from 'app/common/DocData';
-import {extractTypeFromColType, isBlankValue, isFullReferencingType, isRaisedException} from "app/common/gristTypes";
+import {
+  extractTypeFromColType,
+  getReferencedTableId,
+  isBlankValue,
+  isFullReferencingType,
+  isRaisedException,
+} from "app/common/gristTypes";
 import {INITIAL_FIELDS_COUNT} from "app/common/Forms";
 import {buildUrlId, parseUrlId, SHARE_KEY_PREFIX} from "app/common/gristUrls";
 import {isAffirmative, safeJsonParse, timeoutReached} from "app/common/gutil";
@@ -260,9 +266,15 @@ export class DocWorkerApi {
     }
 
     function asRecords(
-      columnData: TableColValues, opts?: { optTableId?: string; includeHidden?: boolean }): TableRecordValue[] {
+      columnData: TableColValues,
+      opts?: {
+        optTableId?: string;
+        includeHidden?: boolean;
+        includeId?: boolean;
+      }
+    ): TableRecordValue[] {
       const fieldNames = Object.keys(columnData).filter((k) => {
-        if (k === "id") {
+        if (!opts?.includeId && k === "id") {
           return false;
         }
         if (
@@ -1467,9 +1479,8 @@ export class DocWorkerApi {
         }
 
         // Cache the table reads based on tableId. We are caching only the promise, not the result.
-        const table = _.memoize(
-          (tableId: string) => readTable(req, activeDoc, tableId, {}, {}).then(r => asRecords(r))
-        );
+        const table = _.memoize((tableId: string) =>
+          readTable(req, activeDoc, tableId, {}, {}).then(r => asRecords(r, {includeId: true})));
 
         const getTableValues = async (tableId: string, colId: string) => {
           const records = await table(tableId);
@@ -1479,19 +1490,17 @@ export class DocWorkerApi {
         const Tables = activeDoc.docData.getMetaTable('_grist_Tables');
 
         const getRefTableValues = async (col: MetaRowRecord<'_grist_Tables_column'>) => {
-          const refId = col.visibleCol;
-          if (!refId) { return [] as any; }
+          const refTableId = getReferencedTableId(col.type);
+          let refColId: string;
+          if (col.visibleCol) {
+            const refCol = Tables_column.getRecord(col.visibleCol);
+            if (!refCol) { return []; }
 
-          const refCol = Tables_column.getRecord(refId);
-          if (!refCol) { return []; }
-
-          const refTable = Tables.getRecord(refCol.parentId);
-          if (!refTable) { return []; }
-
-          const refTableId = refTable.tableId as string;
-          const refColId = refCol.colId as string;
-          if (!refTableId || !refColId) { return () => []; }
-          if (typeof refTableId !== 'string' || typeof refColId !== 'string') { return []; }
+            refColId = refCol.colId as string;
+          } else {
+            refColId = 'id';
+          }
+          if (!refTableId || typeof refTableId !== 'string' || !refColId) { return []; }
 
           const values = await getTableValues(refTableId, refColId);
           return values.filter(([_id, value]) => !isBlankValue(value));
@@ -1547,6 +1556,40 @@ export class DocWorkerApi {
         });
       })
     );
+
+    // GET /api/docs/:docId/timings
+    // Checks if timing is on for the document.
+    this._app.get('/api/docs/:docId/timing', isOwner, withDoc(async (activeDoc, req, res) => {
+      if (!activeDoc.isTimingOn) {
+        res.json({status: 'disabled'});
+      } else {
+        const timing =  await activeDoc.getTimings();
+        const status = timing ? 'active' : 'pending';
+        res.json({status, timing});
+      }
+    }));
+
+    // POST /api/docs/:docId/timings/start
+    // Start a timing for the document.
+    this._app.post('/api/docs/:docId/timing/start', isOwner, withDoc(async (activeDoc, req, res) => {
+      if (activeDoc.isTimingOn) {
+        res.status(400).json({error:`Timing already started for ${activeDoc.docName}`});
+        return;
+      }
+      // isTimingOn flag is switched synchronously.
+      await activeDoc.startTiming();
+      res.sendStatus(200);
+    }));
+
+    // POST /api/docs/:docId/timings/stop
+    // Stop a timing for the document.
+    this._app.post('/api/docs/:docId/timing/stop', isOwner, withDoc(async (activeDoc, req, res) => {
+      if (!activeDoc.isTimingOn) {
+        res.status(400).json({error:`Timing not started for ${activeDoc.docName}`});
+        return;
+      }
+      res.json(await activeDoc.stopTiming());
+    }));
   }
 
   /**

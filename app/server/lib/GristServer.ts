@@ -1,6 +1,7 @@
 import { ICustomWidget } from 'app/common/CustomWidget';
 import { GristDeploymentType, GristLoadConfig } from 'app/common/gristUrls';
 import { LocalPlugin } from 'app/common/plugin';
+import { SandboxInfo } from 'app/common/SandboxInfo';
 import { UserProfile } from 'app/common/UserAPI';
 import { Document } from 'app/gen-server/entity/Document';
 import { Organization } from 'app/gen-server/entity/Organization';
@@ -52,6 +53,7 @@ export interface GristServer {
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
   getTelemetry(): ITelemetry;
+  hasNotifier(): boolean;
   getNotifier(): INotifier;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
@@ -63,6 +65,7 @@ export interface GristServer {
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
   hasBoot(): boolean;
+  getSandboxInfo(): SandboxInfo|undefined;
 }
 
 export interface GristLoginSystem {
@@ -142,6 +145,7 @@ export function createDummyGristServer(): GristServer {
     getStorageManager() { throw new Error('no storage manager'); },
     getTelemetry() { return createDummyTelemetry(); },
     getNotifier() { throw new Error('no notifier'); },
+    hasNotifier() { return false; },
     getDocTemplate() { throw new Error('no doc template'); },
     getTag() { return 'tag'; },
     sendAppPage() { return Promise.resolve(); },
@@ -152,6 +156,7 @@ export function createDummyGristServer(): GristServer {
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
     hasBoot() { return false; },
+    getSandboxInfo() { return undefined; },
   };
 }
 

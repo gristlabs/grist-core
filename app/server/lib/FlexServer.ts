@@ -2,13 +2,14 @@ import {ApiError} from 'app/common/ApiError';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo} from 'app/common/DocListAPI';
-import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
+import {commonUrls, encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
 import {isAffirmative, safeJsonParse} from 'app/common/gutil';
 import {InstallProperties} from 'app/common/InstallAPI';
 import {UserProfile} from 'app/common/LoginSessionAPI';
+import {SandboxInfo} from 'app/common/SandboxInfo';
 import {tbind} from 'app/common/tbind';
 import * as version from 'app/common/version';
 import {ApiServer, getOrgFromRequest} from 'app/gen-server/ApiServer';
@@ -23,6 +24,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
+import {createSandbox} from 'app/server/lib/ActiveDoc';
 import {attachAppEndpoint} from 'app/server/lib/AppEndpoint';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
@@ -42,12 +44,12 @@ import {expressWrap, jsonErrorHandler, secureJsonErrorHandler} from 'app/server/
 import {Hosts, RequestWithOrg} from 'app/server/lib/extractOrg';
 import {addGoogleAuthEndpoint} from "app/server/lib/GoogleAuth";
 import {DocTemplate, GristLoginMiddleware, GristLoginSystem, GristServer,
-        RequestWithGrist} from 'app/server/lib/GristServer';
+  RequestWithGrist} from 'app/server/lib/GristServer';
 import {initGristSessions, SessionStore} from 'app/server/lib/gristSessions';
 import {HostedStorageManager} from 'app/server/lib/HostedStorageManager';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {INotifier} from 'app/server/lib/INotifier';
+import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log from 'app/server/lib/log';
 import {getLoginSystem} from 'app/server/lib/logins';
@@ -67,6 +69,7 @@ import {TagChecker} from 'app/server/lib/TagChecker';
 import {getTelemetryPrefs, ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
+import {UpdateManager} from 'app/server/lib/UpdateManager';
 import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
@@ -179,6 +182,8 @@ export class FlexServer implements GristServer {
   // Set once ready() is called
   private _isReady: boolean = false;
   private _probes: BootProbes;
+  private _updateManager: UpdateManager;
+  private _sandboxInfo: SandboxInfo;
 
   constructor(public port: number, public name: string = 'flexServer',
               public readonly options: FlexServerOptions = {}) {
@@ -384,7 +389,7 @@ export class FlexServer implements GristServer {
   }
 
   public hasNotifier(): boolean {
-    return Boolean(this._notifier);
+    return Boolean(this._notifier) && this._notifier !== EmptyNotifier;
   }
 
   public getNotifier(): INotifier {
@@ -403,6 +408,11 @@ export class FlexServer implements GristServer {
     const cli = this._docWorkerMap.getRedisClient();
     this._accessTokens = new AccessTokens(cli);
     return this._accessTokens;
+  }
+
+  public getUpdateManager() {
+    if (!this._updateManager) { throw new Error('no UpdateManager available'); }
+    return this._updateManager;
   }
 
   public sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void> {
@@ -895,6 +905,7 @@ export class FlexServer implements GristServer {
 
   public async close() {
     this._processMonitorStop?.();
+    await this._updateManager?.clear();
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
     if (this._dbManager) {
@@ -1359,6 +1370,47 @@ export class FlexServer implements GristServer {
     }
   }
 
+  public async checkSandbox() {
+    if (this._check('sandbox', 'doc')) { return; }
+    const flavor = process.env.GRIST_SANDBOX_FLAVOR || 'unknown';
+    const info = this._sandboxInfo = {
+      flavor,
+      configured: flavor !== 'unsandboxed',
+      functional: false,
+      effective: false,
+      sandboxed: false,
+      lastSuccessfulStep: 'none',
+    } as SandboxInfo;
+    try {
+      const sandbox = createSandbox({
+        server: this,
+        docId: 'test',  // The id is just used in logging - no
+                        // document is created or read at this level.
+        // In olden times, and in SaaS, Python 2 is supported. In modern
+        // times Python 2 is long since deprecated and defunct.
+        preferredPythonVersion: '3',
+      });
+      info.flavor = sandbox.getFlavor();
+      info.configured = info.flavor !== 'unsandboxed';
+      info.lastSuccessfulStep = 'create';
+      const result = await sandbox.pyCall('get_version');
+      if (typeof result !== 'number') {
+        throw new Error(`Expected a number: ${result}`);
+      }
+      info.lastSuccessfulStep = 'use';
+      await sandbox.shutdown();
+      info.lastSuccessfulStep = 'all';
+      info.functional = true;
+      info.effective = ![ 'skip', 'unsandboxed' ].includes(info.flavor);
+    } catch (e) {
+      info.error = String(e);
+    }
+  }
+
+  public getSandboxInfo(): SandboxInfo|undefined {
+    return this._sandboxInfo;
+  }
+
   public disableExternalStorage() {
     if (this.deps.has('doc')) {
       throw new Error('disableExternalStorage called too late');
@@ -1819,6 +1871,8 @@ export class FlexServer implements GristServer {
     this.app.get('/admin', ...adminPageMiddleware, expressWrap(async (req, resp) => {
       return this.sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
+    const probes = new BootProbes(this.app, this, '/admin', adminPageMiddleware);
+    probes.addEndpoints();
 
     // Restrict this endpoint to install admins too, for the same reason as the /admin page.
     this.app.get('/api/install/prefs', requireInstallAdmin, expressWrap(async (_req, resp) => {
@@ -1844,6 +1898,35 @@ export class FlexServer implements GristServer {
       }
 
       return resp.status(200).send();
+    }));
+
+    // GET api/checkUpdates
+    // Retrieves the latest version of the client from Grist SAAS endpoint.
+    this.app.get('/api/install/updates', adminPageMiddleware, expressWrap(async (req, res) => {
+      // Prepare data for the telemetry that endpoint might expect.
+      const installationId = (await this.getActivations().current()).id;
+      const deploymentType = this.getDeploymentType();
+      const currentVersion = version.version;
+      const response = await fetch(process.env.GRIST_TEST_VERSION_CHECK_URL || commonUrls.versionCheck, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          installationId,
+          deploymentType,
+          currentVersion,
+        }),
+      });
+      if (!response.ok) {
+        res.status(response.status);
+        if (response.headers.get('content-type')?.includes('application/json')) {
+          const data = await response.json();
+          res.json(data);
+        } else {
+          res.send(await response.text());
+        }
+      } else {
+        res.json(await response.json());
+      }
     }));
   }
 
@@ -1876,6 +1959,16 @@ export class FlexServer implements GristServer {
 
   public resolveLoginSystem() {
     return process.env.GRIST_TEST_LOGIN ? getTestLoginSystem() : (this._getLoginSystem?.() || getLoginSystem());
+  }
+
+  public addUpdatesCheck() {
+    if (this._check('update')) { return; }
+
+    // For now we only are active for sass deployments.
+    if (this._deploymentType !== 'saas') { return; }
+
+    this._updateManager = new UpdateManager(this.app, this);
+    this._updateManager.addEndpoints();
   }
 
   // Adds endpoints that support imports and exports.

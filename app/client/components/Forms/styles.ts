@@ -1,8 +1,10 @@
 import {textarea} from 'app/client/ui/inputs';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {basicButton, basicButtonLink, textButton} from 'app/client/ui2018/buttons';
+import {cssLabel} from 'app/client/ui2018/checkbox';
 import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {numericSpinner} from 'app/client/widgets/NumericSpinner';
 import {BindableValue, dom, DomElementArg, IDomArgs, Observable, styled, subscribeBindable} from 'grainjs';
 import {marked} from 'marked';
 
@@ -14,7 +16,6 @@ export const cssFormView = styled('div.flexauto.flexvbox', `
   align-items: center;
   justify-content: space-between;
   position: relative;
-  background-color: ${theme.leftPanelBg};
   overflow: auto;
   min-height: 100%;
   width: 100%;
@@ -22,7 +23,6 @@ export const cssFormView = styled('div.flexauto.flexvbox', `
 
 export const cssFormContainer = styled('div', `
   background-color: ${theme.mainPanelBg};
-  border: 1px solid ${theme.modalBorderDark};
   color: ${theme.text};
   width: 600px;
   align-self: center;
@@ -31,10 +31,8 @@ export const cssFormContainer = styled('div', `
   display: flex;
   flex-direction: column;
   max-width: calc(100% - 32px);
-  padding-top: 20px;
-  padding-left: 48px;
-  padding-right: 48px;
   gap: 8px;
+  line-height: 1.42857143;
 `);
 
 export const cssFieldEditor = styled('div.hover_border.field_editor', `
@@ -47,6 +45,11 @@ export const cssFieldEditor = styled('div.hover_border.field_editor', `
   margin-bottom: 4px;
   --hover-visible: hidden;
   transition: transform 0.2s ease-in-out;
+  &-Section {
+    outline: 1px solid ${theme.modalBorderDark};
+    margin-bottom: 24px;
+    padding: 16px;
+  }
   &:hover:not(:has(.hover_border:hover),&-cut) {
     --hover-visible: visible;
     outline: 1px solid ${theme.controlPrimaryBg};
@@ -78,36 +81,39 @@ export const cssFieldEditor = styled('div.hover_border.field_editor', `
   }
 `);
 
-export const cssSectionEditor = styled('div', `
-  border-radius: 3px;
-  padding: 16px;
-  border: 1px solid ${theme.modalBorderDark};
-`);
-
-
 export const cssSection = styled('div', `
   position: relative;
   color: ${theme.text};
   margin: 0px auto;
   min-height: 50px;
-  .${cssFormView.className}-preview & {
-    background: transparent;
-    border-radius: unset;
-    padding: 0px;
-    min-height: auto;
+`);
+
+export const cssCheckboxList = styled('div', `
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &-horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 16px;
   }
 `);
 
-export const cssCheckboxLabel = styled('label', `
-  font-size: 15px;
+export const cssCheckboxLabel = styled(cssLabel, `
+  font-size: 13px;
+  line-height: 16px;
   font-weight: normal;
   user-select: none;
   display: flex;
-  align-items: center;
   gap: 8px;
   margin: 0px;
-  margin-bottom: 8px;
+  overflow-wrap: anywhere;
 `);
+
+export const cssRadioList = cssCheckboxList;
+
+export const cssRadioLabel = cssCheckboxLabel;
 
 export function textbox(obs: Observable<string|undefined>, ...args: DomElementArg[]): HTMLInputElement {
   return dom('input',
@@ -118,12 +124,17 @@ export function textbox(obs: Observable<string|undefined>, ...args: DomElementAr
 }
 
 export const cssQuestion = styled('div', `
-
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `);
 
 export const cssRequiredWrapper = styled('div', `
-  margin-bottom: 8px;
+  margin: 8px 0px;
   min-height: 16px;
+  overflow-wrap: break-word;
+
   &-required {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -148,7 +159,7 @@ export const cssRenderedLabel = styled('div', `
   min-height: 16px;
 
   color: ${theme.mediumText};
-  font-size: 11px;
+  font-size: 13px;
   line-height: 16px;
   font-weight: 700;
   white-space: pre-wrap;
@@ -186,17 +197,9 @@ export const cssEditableLabel = styled(textarea, `
 `);
 
 export const cssLabelInline = styled('div', `
-  margin-bottom: 0px;
-  & .${cssRenderedLabel.className} {
-    color: ${theme.mediumText};
-    font-size: 15px;
-    font-weight: normal;
-  }
-  & .${cssEditableLabel.className} {
-    color: ${colors.darkText};
-    font-size: 15px;
-    font-weight: normal;
-  }
+  line-height: 16px;
+  margin: 0px;
+  overflow-wrap: anywhere;
 `);
 
 export const cssDesc = styled('div', `
@@ -211,15 +214,19 @@ export const cssDesc = styled('div', `
 `);
 
 export const cssInput = styled('input', `
-  background-color: ${theme.inputDisabledBg};
+  background-color: ${theme.inputBg};
   font-size: inherit;
-  height: 27px;
+  height: 29px;
   padding: 4px 8px;
   border: 1px solid ${theme.inputBorder};
   border-radius: 3px;
   outline: none;
   pointer-events: none;
 
+  &:disabled {
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
+  }
   &-invalid {
     color: ${theme.inputInvalid};
   }
@@ -228,10 +235,37 @@ export const cssInput = styled('input', `
   }
 `);
 
+export const cssTextArea = styled('textarea', `
+  background-color: ${theme.inputBg};
+  font-size: inherit;
+  min-height: 29px;
+  padding: 4px 8px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 3px;
+  outline: none;
+  pointer-events: none;
+  resize: none;
+  width: 100%;
+
+  &:disabled {
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
+  }
+`);
+
+export const cssSpinner = styled(numericSpinner, `
+  height: 29px;
+
+  &-hidden {
+    color: ${theme.inputDisabledFg};
+    background-color: ${theme.inputDisabledBg};
+  }
+`);
+
 export const cssSelect = styled('select', `
   flex: auto;
   width: 100%;
-  background-color: ${theme.inputDisabledBg};
+  background-color: ${theme.inputBg};
   font-size: inherit;
   height: 27px;
   padding: 4px 8px;
@@ -241,8 +275,34 @@ export const cssSelect = styled('select', `
   pointer-events: none;
 `);
 
-export const cssFieldEditorContent = styled('div', `
+export const cssToggle = styled('div', `
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin-top: 12px;
+  gap: 8px;
+  --grist-actual-cell-color: ${colors.lightGreen};
+`);
 
+export const cssWidgetSwitch = styled('div.widget_switch', `
+  &-hidden {
+    opacity: 0.6;
+  }
+`);
+
+export const cssWarningMessage = styled('div', `
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+`);
+
+export const cssWarningIcon = styled(icon, `
+  --icon-color: ${colors.warning};
+  flex-shrink: 0;
+`);
+
+export const cssFieldEditorContent = styled('div', `
+  height: 100%;
 `);
 
 export const cssSelectedOverlay = styled('div._cssSelectedOverlay', `
@@ -252,10 +312,6 @@ export const cssSelectedOverlay = styled('div._cssSelectedOverlay', `
   outline: none;
   .${cssFieldEditor.className}-selected > & {
     opacity: 1;
-  }
-
-  .${cssFormView.className}-preview & {
-    display: none;
   }
 `);
 
@@ -288,21 +344,11 @@ export const cssPlusIcon = styled(icon, `
 
 
 export const cssColumns = styled('div', `
-  --css-columns-count: 2;
   display: grid;
   grid-template-columns: repeat(var(--css-columns-count), 1fr) 32px;
   gap: 8px;
   padding: 8px 4px;
-
-  .${cssFormView.className}-preview & {
-    background: transparent;
-    border-radius: unset;
-    padding: 0px;
-    grid-template-columns: repeat(var(--css-columns-count), 1fr);
-    min-height: auto;
-  }
 `);
-
 
 export const cssColumn = styled('div', `
   position: relative;
@@ -335,21 +381,6 @@ export const cssColumn = styled('div', `
 
   &-drag-over {
     outline: 2px dashed ${theme.controlPrimaryBg};
-  }
-
-  &-add-button {
-  }
-
-  .${cssFormView.className}-preview &-add-button {
-    display: none;
-  }
-
-  .${cssFormView.className}-preview &-empty {
-    background: transparent;
-    border-radius: unset;
-    padding: 0px;
-    min-height: auto;
-    border: 0px;
   }
 `);
 
@@ -397,6 +428,8 @@ export const cssSmallButton = styled(basicButton, `
 export const cssMarkdownRendered = styled('div', `
   min-height: 1.5rem;
   font-size: 15px;
+  overflow-wrap: break-word;
+
   & textarea {
     font-size: 15px;
   }
@@ -511,16 +544,13 @@ export const cssPreview = styled('iframe', `
 `);
 
 export const cssSwitcher = styled('div', `
-  flex-shrink: 0;
-  margin-top: 24px;
-  border-top: 1px solid ${theme.modalBorder};
-  margin-left: -48px;
-  margin-right: -48px;
+  border-top: 1px solid ${theme.menuBorder};
+  width: 100%;
 `);
 
 export const cssSwitcherMessage = styled('div', `
   display: flex;
-  padding: 0px 16px 0px 16px;
+  padding: 8px 16px;
 `);
 
 export const cssSwitcherMessageBody = styled('div', `
@@ -528,7 +558,7 @@ export const cssSwitcherMessageBody = styled('div', `
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 32px;
+  padding: 8px 16px;
 `);
 
 export const cssSwitcherMessageDismissButton = styled('div', `
@@ -551,8 +581,7 @@ export const cssParagraph = styled('div', `
 export const cssFormEditBody = styled('div', `
   width: 100%;
   overflow: auto;
-  padding-top: 52px;
-  padding-bottom: 24px;
+  padding: 20px;
 `);
 
 export const cssRemoveButton = styled('div', `

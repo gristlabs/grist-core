@@ -582,7 +582,7 @@ const cssInfoTooltipPopup = styled('div', `
   display: flex;
   flex-direction: column;
   background-color: ${theme.popupBg};
-  max-width: 200px;
+  max-width: 240px;
   margin: 4px;
   padding: 0px;
 `);

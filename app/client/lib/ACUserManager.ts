@@ -16,6 +16,7 @@ import {
   cssMemberText,
 } from "app/client/ui/UserItem";
 import {createUserImage, cssUserImage} from "app/client/ui/UserImage";
+import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled} from "grainjs";
 import {cssMenuItem} from "popweasel";
 
@@ -97,7 +98,7 @@ export function buildACMemberEmail(
         label: text,
         id: 0,
       };
-      results.items.push(newObject);
+      results.extraItems.push(newObject);
     }
     return results;
   };
@@ -111,10 +112,9 @@ export function buildACMemberEmail(
         )),
       cssMemberText(
         cssMemberPrimaryPlus(t("Invite new member")),
-        cssMemberSecondaryPlus(
-          // dom.text(use => `We'll email an invite to ${use(emailObs)}`)
-          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)})) // TODO i18next
-        )
+        getGristConfig().notifierEnabled ? cssMemberSecondaryPlus(
+          dom.text(use => t("We'll email an invite to {{email}}", {email: use(emailObs)}))
+        ) : null,
       ),
       testId("um-add-email")
     )

@@ -26,16 +26,15 @@ import { UserOverride } from 'app/common/DocListAPI';
 import { DocUsageSummary, FilteredDocUsageSummary } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { AclMatchInput, InfoEditor, InfoView } from 'app/common/GranularAccessClause';
-import { UserInfo } from 'app/common/GranularAccessClause';
+import { InfoEditor, InfoView, UserInfo } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
+import { compilePredicateFormula, EmptyRecordView, PredicateFormulaInput } from 'app/common/PredicateFormula';
 import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { canEdit, canView, isValidRole, Role } from 'app/common/roles';
 import { FullUser, UserAccessData } from 'app/common/UserAPI';
 import { HomeDBManager } from 'app/gen-server/lib/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
-import { compileAclFormula } from 'app/server/lib/ACLFormula';
 import { DocClients } from 'app/server/lib/DocClients';
 import { getDocSessionAccess, getDocSessionAltSessionId, getDocSessionShare,
          getDocSessionUser, OptDocSession } from 'app/server/lib/DocSession';
@@ -344,7 +343,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Represent fields from the session in an input object for ACL rules.
    * Just one field currently, "user".
    */
-  public async inputs(docSession: OptDocSession): Promise<AclMatchInput> {
+  public async inputs(docSession: OptDocSession): Promise<PredicateFormulaInput> {
     return {
       user: await this._getUser(docSession),
       docId: this._docId
@@ -401,7 +400,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const rec = new RecordView(rows, 0);
     if (!hasExceptionalAccess) {
-      const input: AclMatchInput = {...await this.inputs(docSession), rec, newRec: rec};
+      const input: PredicateFormulaInput = {...await this.inputs(docSession), rec, newRec: rec};
       const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
       const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
       if (rowAccess === 'deny') { fail(); }
@@ -560,7 +559,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
       // Use the post-actions data to process the rules collection, and throw error if that fails.
       const ruleCollection = new ACLRuleCollection();
-      await ruleCollection.update(tmpDocData, {log, compile: compileAclFormula});
+      await ruleCollection.update(tmpDocData, {log, compile: compilePredicateFormula});
       if (ruleCollection.ruleError) {
         throw new ApiError(ruleCollection.ruleError.message, 400);
       }
@@ -1664,7 +1663,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     const rec = new RecordView(rowsRec, undefined);
     const newRec = new RecordView(rowsNewRec, undefined);
-    const input: AclMatchInput = {...await this.inputs(docSession), rec, newRec};
+    const input: PredicateFormulaInput = {...await this.inputs(docSession), rec, newRec};
 
     const [, tableId, , colValues] = action;
     let filteredColValues: ColValues | BulkColValues | undefined | null = null;
@@ -1746,7 +1745,7 @@ export class GranularAccess implements GranularAccessForBundle {
                                   colId?: string): Promise<number[]> {
     const ruler = await this._getRuler(cursor);
     const rec = new RecordView(data, undefined);
-    const input: AclMatchInput = {...await this.inputs(cursor.docSession), rec};
+    const input: PredicateFormulaInput = {...await this.inputs(cursor.docSession), rec};
 
     const [, tableId, rowIds] = data;
     const toRemove: number[] = [];
@@ -2561,7 +2560,7 @@ export class GranularAccess implements GranularAccessForBundle {
         }
       }
       const rec = rows ? new RecordView(rows, 0) : undefined;
-      const input: AclMatchInput = {...inputs, rec, newRec: rec};
+      const input: PredicateFormulaInput = {...inputs, rec, newRec: rec};
       const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
       const rowAccess = rowPermInfo.getTableAccess(cell.tableId).perms.read;
       if (rowAccess === 'deny') { return false; }
@@ -2635,7 +2634,11 @@ export class Ruler {
    * Update granular access from DocData.
    */
   public async update(docData: DocData) {
-    await this.ruleCollection.update(docData, {log, compile: compileAclFormula, enrichRulesForImplementation: true});
+    await this.ruleCollection.update(docData, {
+      log,
+      compile: compilePredicateFormula,
+      enrichRulesForImplementation: true,
+    });
 
     // Also clear the per-docSession cache of rule evaluations.
     this.clearCache();
@@ -2652,7 +2655,7 @@ export class Ruler {
 
 export interface RulerOwner {
   getUser(docSession: OptDocSession): Promise<UserInfo>;
-  inputs(docSession: OptDocSession): Promise<AclMatchInput>;
+  inputs(docSession: OptDocSession): Promise<PredicateFormulaInput>;
 }
 
 /**
@@ -2762,11 +2765,6 @@ class RecordEditor implements InfoEditor {
   }
 }
 
-class EmptyRecordView implements InfoView {
-  public get(colId: string): CellValue { return null; }
-  public toJSON() { return {}; }
-}
-
 /**
  * Cache information about user attributes.
  */
@@ -2840,7 +2838,7 @@ class CellAccessHelper {
   private _tableAccess: Map<string, boolean> = new Map();
   private _rowPermInfo: Map<string, Map<number, PermissionInfo>> = new Map();
   private _rows: Map<string, TableDataAction> = new Map();
-  private _inputs!: AclMatchInput;
+  private _inputs!: PredicateFormulaInput;
 
   constructor(
     private _granular: GranularAccess,
@@ -2864,7 +2862,7 @@ class CellAccessHelper {
         for(const [idx, rowId] of rows[2].entries()) {
           if (rowIds.has(rowId) === false) { continue; }
           const rec = new RecordView(rows, idx);
-          const input: AclMatchInput = {...this._inputs, rec, newRec: rec};
+          const input: PredicateFormulaInput = {...this._inputs, rec, newRec: rec};
           const rowPermInfo = new PermissionInfo(this._ruler.ruleCollection, input);
           if (!this._rowPermInfo.has(tableId)) {
             this._rowPermInfo.set(tableId, new Map());

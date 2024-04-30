@@ -56,13 +56,18 @@ export class GristClientSocket {
     }
   }
 
-  // pause() and resume() are used for tests and assume a WS.WebSocket transport
+  // pause(), resume(), and isOpen() are only used by tests and assume
+  // a WS.WebSocket transport.
   public pause() {
     (this._wsSocket as WS.WebSocket)?.pause();
   }
 
   public resume() {
     (this._wsSocket as WS.WebSocket)?.resume();
+  }
+
+  public isOpen() {
+    return (this._wsSocket as WS.WebSocket)?.readyState === WS.OPEN;
   }
 
   private _createWSSocket() {

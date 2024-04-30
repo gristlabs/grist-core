@@ -4,7 +4,7 @@ import {decodeObject} from "app/plugin/objtypes";
 import moment, { Moment } from "moment-timezone";
 import {extractInfoFromColType, isDateLikeType, isList, isListType, isNumberType} from "app/common/gristTypes";
 import {isRelativeBound, relativeDateToUnixTimestamp} from "app/common/RelativeDates";
-import {noop} from "lodash";
+import noop from "lodash/noop";
 
 export type ColumnFilterFunc = (value: CellValue) => boolean;
 

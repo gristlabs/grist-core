@@ -41,7 +41,7 @@ export const waitForDiffPreviewToLoad = stackWrapFunc(async (): Promise<void> =>
 // Helper that gets the list of visible column matching rows to the left of the preview.
 export const getColumnMatchingRows = stackWrapFunc(async (): Promise<{source: string, destination: string}[]> => {
   return await driver.findAll('.test-importer-column-match-source-destination', async (el) => {
-    const source = await el.find('.test-importer-column-match-formula').getText();
+    const source = await el.find('.test-importer-column-match-formula').getAttribute('textContent');
     const destination = await el.find('.test-importer-column-match-destination').getText();
     return {source, destination};
   });

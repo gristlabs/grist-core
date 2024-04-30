@@ -1,19 +1,44 @@
 import * as commands from 'app/client/components/commands';
-import { FieldRulesConfig } from 'app/client/components/Forms/FormConfig';
+import { FormFieldRulesConfig } from 'app/client/components/Forms/FormConfig';
+import { fromKoSave } from 'app/client/lib/fromKoSave';
+import { makeT } from 'app/client/lib/localization';
 import { DataRowModel } from 'app/client/models/DataRowModel';
 import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
-import { KoSaveableObservable } from 'app/client/models/modelUtil';
-import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
+import { fieldWithDefault, KoSaveableObservable } from 'app/client/models/modelUtil';
+import { FormToggleFormat } from 'app/client/ui/FormAPI';
+import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
+import { buttonSelect } from 'app/client/ui2018/buttonSelect';
 import { theme } from 'app/client/ui2018/cssVars';
-import { dom, DomContents } from 'grainjs';
+import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
+import { dom, DomContents, makeTestId } from 'grainjs';
+
+const t = makeT('Toggle');
+
+const testId = makeTestId('test-toggle-');
 
 /**
  * ToggleBase - The base class for toggle widgets, such as a checkbox or a switch.
  */
 abstract class ToggleBase extends NewAbstractWidget {
   public buildFormConfigDom(): DomContents {
+    const format = fieldWithDefault<FormToggleFormat>(
+      this.field.widgetOptionsJson.prop('formToggleFormat'),
+      'switch'
+    );
+
     return [
-      dom.create(FieldRulesConfig, this.field),
+      cssLabel(t('Field Format')),
+      cssRow(
+        buttonSelect(
+          fromKoSave(format),
+          [
+            {value: 'switch', label: t('Switch')},
+            {value: 'checkbox', label: t('Checkbox')},
+          ],
+          testId('form-field-format'),
+        ),
+      ),
+      dom.create(FormFieldRulesConfig, this.field),
     ];
   }
 

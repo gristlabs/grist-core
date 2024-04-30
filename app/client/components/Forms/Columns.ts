@@ -5,6 +5,7 @@ import {buildMenu} from 'app/client/components/Forms/Menu';
 import {BoxModel} from 'app/client/components/Forms/Model';
 import * as style from 'app/client/components/Forms/styles';
 import {makeTestId} from 'app/client/lib/domUtils';
+import {makeT} from 'app/client/lib/localization';
 import {icon} from 'app/client/ui2018/icons';
 import * as menus from 'app/client/ui2018/menus';
 import {inlineStyle, not} from 'app/common/gutil';
@@ -12,6 +13,8 @@ import {bundleChanges, Computed, dom, IDomArgs, MultiHolder, Observable, styled}
 import {v4 as uuidv4} from 'uuid';
 
 const testId = makeTestId('test-forms-');
+
+const t = makeT('FormView');
 
 export class ColumnsModel extends BoxModel {
   private _columnCount = Computed.create(this, use => use(this.children).length);
@@ -64,7 +67,11 @@ export class ColumnsModel extends BoxModel {
       cssPlaceholder(
         testId('add'),
         icon('Plus'),
-        dom.on('click', () => this.placeAfterListChild()(Placeholder())),
+        dom.on('click', async () => {
+          await this.save(() => {
+            this.placeAfterListChild()(Placeholder());
+          });
+        }),
         style.cssColumn.cls('-add-button'),
         style.cssColumn.cls('-drag-over', dragHover),
 
@@ -152,7 +159,7 @@ export class PlaceholderModel extends BoxModel {
       buildMenu({
         box: this,
         insertBox,
-        customItems: [menus.menuItem(removeColumn, menus.menuIcon('Remove'), 'Remove Column')],
+        customItems: [menus.menuItem(removeColumn, menus.menuIcon('Remove'), t('Remove Column'))],
       }),
 
       dom.on('contextmenu', (ev) => {
@@ -219,8 +226,8 @@ export class PlaceholderModel extends BoxModel {
       return box.parent.replace(box, childBox);
     }
 
-    function removeColumn() {
-      box.removeSelf();
+    async function removeColumn() {
+      await box.deleteSelf();
     }
   }
 }

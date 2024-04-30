@@ -2,7 +2,7 @@ import {CustomView} from 'app/client/components/CustomView';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
-import {prefersDarkMode, prefersDarkModeObs} from 'app/client/ui2018/cssVars';
+import {prefersColorSchemeDark, prefersColorSchemeDarkObs} from 'app/client/ui2018/theme';
 import {dom} from 'grainjs';
 
 type RowId = number|'new';
@@ -45,7 +45,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     // is Grist temporarily reverting to the light theme until the print dialog is dismissed.
     // As a workaround, we'll temporarily pause our listener, and unpause after the print dialog
     // is dismissed.
-    prefersDarkModeObs().pause();
+    prefersColorSchemeDarkObs().pause();
 
     // Hide all layout boxes that do NOT contain the section to be printed.
     layout?.forEachBox((box: any) => {
@@ -87,10 +87,10 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
       prepareToPrint(false);
     }
     delete (window as any).afterPrintCallback;
-    prefersDarkModeObs().pause(false);
+    prefersColorSchemeDarkObs().pause(false);
 
     // This may have changed while window.print() was blocking.
-    prefersDarkModeObs().set(prefersDarkMode());
+    prefersColorSchemeDarkObs().set(prefersColorSchemeDark());
   });
 
   // Running print on a timeout makes it possible to test printing using selenium, and doesn't

@@ -1,9 +1,13 @@
 import {makeT} from 'app/client/lib/localization';
-import {buildFormContainer} from 'app/client/ui/FormContainer';
-import * as css from 'app/client/ui/FormPagesCss';
+import {
+  buildFormMessagePage,
+  cssFormMessageImage,
+  cssFormMessageImageContainer,
+  cssFormMessageText,
+} from 'app/client/ui/FormContainer';
 import {getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Disposable, makeTestId} from 'grainjs';
+import {Disposable, makeTestId, styled} from 'grainjs';
 
 const testId = makeTestId('test-form-');
 
@@ -16,11 +20,20 @@ export class FormErrorPage extends Disposable {
   }
 
   public buildDom() {
-    return buildFormContainer(() => [
-      css.formErrorMessageImageContainer(css.formErrorMessageImage({
-        src: 'img/form-error.svg',
-      })),
-      css.formMessageText(this._message, testId('error-text')),
-    ]);
+    return buildFormMessagePage(() => [
+      cssFormErrorMessageImageContainer(
+        cssFormErrorMessageImage({src: 'img/form-error.svg'}),
+      ),
+      cssFormMessageText(this._message, testId('error-page-text')),
+    ], testId('error-page'));
   }
 }
+
+const cssFormErrorMessageImageContainer = styled(cssFormMessageImageContainer, `
+  height: 281px;
+`);
+
+const cssFormErrorMessageImage = styled(cssFormMessageImage, `
+  max-height: 281px;
+  max-width: 250px;
+`);

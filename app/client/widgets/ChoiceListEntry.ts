@@ -605,7 +605,6 @@ const cssButtonRow = styled('div', `
   gap: 8px;
   display: flex;
   margin-top: 8px;
-  margin-bottom: 16px;
 `);
 
 const cssDeleteButton = styled('div', `

@@ -1,3 +1,4 @@
+import * as css from "app/client/components/FormRendererCss";
 import { BoxModel } from "app/client/components/Forms/Model";
 import { makeTestId } from "app/client/lib/domUtils";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -9,8 +10,14 @@ export class SubmitModel extends BoxModel {
     const text = this.view.viewSection.layoutSpecObj.prop('submitText');
     return dom(
       "div",
-      { style: "text-align: center; margin-top: 20px;" },
-      bigPrimaryButton(dom.text(use => use(text) || 'Submit'), testId("submit"))
+      css.error(testId("error")),
+      css.submitButtons(
+        bigPrimaryButton(
+          dom.text(use => use(text) || 'Submit'),
+          { disabled: true },
+          testId("submit"),
+        ),
+      ),
     );
   }
 }

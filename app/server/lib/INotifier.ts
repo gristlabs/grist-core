@@ -10,3 +10,12 @@ export interface INotifier {
   // Return undefined if no notification system is available.
   testSetSendMessageCallback(op: (body: SendGridMail, description: string) => Promise<void>): SendGridConfig|undefined;
 }
+
+/**
+ * A notifier that does nothing. Used when no email notifications are configured.
+ */
+export const EmptyNotifier: INotifier = {
+  get testPending() { return false; },
+  async deleteUser()      { /* do nothing */ },
+  testSetSendMessageCallback() { return undefined; },
+} as const;

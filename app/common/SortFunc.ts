@@ -28,7 +28,7 @@ type Comparator = (val1: any, val2: any) => number;
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
  */
 const collator = new Intl.Collator(undefined, {numeric: true});
-function naturalCompare(val1: any, val2: any) {
+export function naturalCompare(val1: any, val2: any) {
   if (typeof val1 === 'string' && typeof val2 === 'string') {
     return collator.compare(val1, val2);
   }

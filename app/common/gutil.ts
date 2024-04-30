@@ -176,6 +176,21 @@ export async function firstDefined<T>(...list: Array<() => Promise<T>>): Promise
 }
 
 /**
+ * Returns the number repesentation of `value`, or `defaultVal` if it cannot
+ * be represented as a valid number.
+ */
+export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
+  if (typeof value === 'number') {
+    return !Number.isNaN(value) ? value : defaultVal;
+  } else if (typeof value === 'string') {
+    const maybeNumber = Number.parseFloat(value);
+    return !Number.isNaN(maybeNumber) ? maybeNumber : defaultVal;
+  } else {
+    return defaultVal;
+  }
+}
+
+/**
  * Parses json and returns the result, or returns defaultVal if parsing fails.
  */
 export function safeJsonParse(json: string, defaultVal: any): any {

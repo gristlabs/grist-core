@@ -2,9 +2,12 @@
 // time defined as a series of periods. Hence, starting from the current date, each one of the
 // periods gets applied successively which eventually yields to the final date. Typical relative
 
-import { isEqual, isNumber, isUndefined, omitBy } from "lodash";
-import moment from "moment-timezone";
 import getCurrentTime from "app/common/getCurrentTime";
+import isEqual from "lodash/isEqual";
+import isNumber from "lodash/isNumber";
+import isUndefined from "lodash/isUndefined";
+import omitBy from "lodash/omitBy";
+import moment from "moment-timezone";
 
 // Relative date uses one or two periods. When relative dates are defined by two periods, they are
 // applied successively to the start date to resolve the target date. In practice in grist, as of

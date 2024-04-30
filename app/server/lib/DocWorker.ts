@@ -132,6 +132,8 @@ export class DocWorker {
       getUsersForViewAs:        activeDocMethod.bind(null, 'viewers', 'getUsersForViewAs'),
       getAccessToken:           activeDocMethod.bind(null, 'viewers', 'getAccessToken'),
       getShare:                 activeDocMethod.bind(null, 'owners', 'getShare'),
+      startTiming:              activeDocMethod.bind(null, 'owners', 'startTiming'),
+      stopTiming:               activeDocMethod.bind(null, 'owners', 'stopTiming'),
     });
   }
 

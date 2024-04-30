@@ -17,6 +17,7 @@ import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/cl
 import {IconName} from 'app/client/ui2018/IconList';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
+import {gristThemeObs} from 'app/client/ui2018/theme';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
@@ -229,7 +230,7 @@ export class ChartView extends Disposable {
     this.listenTo(this.sortedRows, 'rowNotify', this._update);
     this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
     this.autoDispose(this._formatterComp.subscribe(this._update));
-    this.autoDispose(this.gristDoc.currentTheme.addListener(() => this._update()));
+    this.autoDispose(gristThemeObs().addListener(() => this._update()));
   }
 
   public prepareToPrint(onOff: boolean) {
@@ -387,8 +388,7 @@ export class ChartView extends Disposable {
   }
 
   private _getPlotlyTheme(): Partial<Layout> {
-    const appModel = this.gristDoc.docPageModel.appModel;
-    const {colors} = appModel.currentTheme.get();
+    const {colors} = gristThemeObs().get();
     return {
       paper_bgcolor: colors['chart-bg'],
       plot_bgcolor: colors['chart-bg'],

@@ -2008,8 +2008,11 @@ GridView.prototype._getCellContextMenuOptions = function() {
       this.viewSection.disableAddRemoveRows() ||
       this.getSelection().onlyAddRowSelected()
     ),
-    disableMakeHeadersFromRow: Boolean (
-      this.gristDoc.isReadonly.get() || this.getSelection().rowIds.length !== 1 || this.getSelection().onlyAddRowSelected()
+    disableMakeHeadersFromRow: Boolean(
+      this.gristDoc.isReadonly.get() ||
+      this.getSelection().rowIds.length !== 1 ||
+      this.getSelection().onlyAddRowSelected() ||
+      this.viewSection.table().summarySourceTable() !== 0
     ),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
     numRows: this.getSelection().rowIds.length,

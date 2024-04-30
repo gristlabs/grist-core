@@ -356,7 +356,7 @@ export function getEndUserProtocol(req: IncomingMessage) {
   }
   // TODO we shouldn't blindly trust X-Forwarded-Proto. See the Express approach:
   // https://expressjs.com/en/5x/api.html#trust.proxy.options.table
-  return req.headers["x-forwarded-proto"] || ((req.socket as TLSSocket).encrypted ? 'https' : 'http');
+  return req.headers["x-forwarded-proto"] || ((req.socket as TLSSocket)?.encrypted ? 'https' : 'http');
 }
 
 /**

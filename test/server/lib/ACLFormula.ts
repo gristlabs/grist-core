@@ -1,7 +1,7 @@
 import {CellValue} from 'app/common/DocActions';
-import {AclMatchFunc, InfoView} from 'app/common/GranularAccessClause';
+import {InfoView} from 'app/common/GranularAccessClause';
 import {GristObjCode} from 'app/plugin/GristData';
-import {compileAclFormula} from 'app/server/lib/ACLFormula';
+import {CompiledPredicateFormula, compilePredicateFormula} from 'app/common/PredicateFormula';
 import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {User} from 'app/server/lib/GranularAccess';
 import {assert} from 'chai';
@@ -26,7 +26,7 @@ describe('ACLFormula', function() {
 
   const V = getInfoView;    // A shortcut.
 
-  type SetAndCompile = (aclFormula: string) => Promise<AclMatchFunc>;
+  type SetAndCompile = (aclFormula: string) => Promise<CompiledPredicateFormula>;
   let setAndCompile: SetAndCompile;
 
   before(async function () {
@@ -44,7 +44,7 @@ describe('ACLFormula', function() {
         fakeSession, {tableId: '_grist_ACLRules', filters: {id: [ruleRef]}});
       assert(tableData[3].aclFormulaParsed, "Expected aclFormulaParsed to be populated");
       const parsedFormula = String(tableData[3].aclFormulaParsed[0]);
-      return compileAclFormula(JSON.parse(parsedFormula));
+      return compilePredicateFormula(JSON.parse(parsedFormula));
     };
   });
 

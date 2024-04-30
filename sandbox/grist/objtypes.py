@@ -362,6 +362,20 @@ class CellError(Exception):
 
 class RecordList(list):
   """
+  A static method to recreate a RecordList from the output of __repr__.
+  It only restores the row_ids. The group_by and sort_by attributes are not restored.
+  """
+  @staticmethod
+  def from_repr(repr_str):
+    if not repr_str.startswith('RecordList(['):
+      raise ValueError("Invalid RecordList representation")
+    # This is a string representation of a RecordList, which we can parse.
+    # > RecordList([1,2,3], group_by=%r, sort_by=%r)
+    # Match only rows, as group_by and sort_by are not used and can be stale.
+    numbers = repr_str.split('[')[1].split(']')[0].split(',')
+    return RecordList([int(v) for v in numbers])
+
+  """
   Just like list but allows setting custom attributes, which we use for remembering _group_by and
   _sort_by attributes when storing RecordSet as usertypes.ReferenceList type.
   """
@@ -373,7 +387,6 @@ class RecordList(list):
   def __repr__(self):
     return "RecordList(%s, group_by=%r, sort_by=%r)" % (
       list.__repr__(self), self._group_by, self._sort_by)
-
 
 
 # We don't currently have a good way to convert an incoming marshalled record to a proper Record

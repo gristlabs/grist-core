@@ -1,9 +1,11 @@
+import { SandboxInfo } from 'app/common/SandboxInfo';
 
 export type BootProbeIds =
     'boot-page' |
     'health-check' |
     'reachable' |
     'host-header' |
+    'sandboxing' |
     'system-user'
 ;
 
@@ -20,3 +22,4 @@ export interface BootProbeInfo {
   name: string;
 }
 
+export type SandboxingBootProbeDetails = SandboxInfo;

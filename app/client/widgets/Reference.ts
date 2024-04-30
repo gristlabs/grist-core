@@ -1,3 +1,9 @@
+import {
+  FormFieldRulesConfig,
+  FormOptionsSortConfig,
+  FormSelectConfig
+} from 'app/client/components/Forms/FormConfig';
+import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
 import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {TableRec} from 'app/client/models/DocModel';
@@ -50,6 +56,7 @@ export class Reference extends NTextBox {
   public buildConfigDom() {
     return [
       this.buildTransformConfigDom(),
+      dom.create(DropdownConditionConfig, this.field),
       cssLabel(t('CELL FORMAT')),
       super.buildConfigDom(),
     ];
@@ -72,7 +79,9 @@ export class Reference extends NTextBox {
   public buildFormConfigDom() {
     return [
       this.buildTransformConfigDom(),
-      super.buildFormConfigDom(),
+      dom.create(FormSelectConfig, this.field),
+      dom.create(FormOptionsSortConfig, this.field),
+      dom.create(FormFieldRulesConfig, this.field),
     ];
   }
 

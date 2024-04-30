@@ -16,11 +16,86 @@ describe("ViewLayoutCollapse", function() {
 
   before(async () => {
     session = await gu.session().login();
-    await session.tempDoc(cleanup, 'Investment Research.grist');
-    await gu.openPage("Overview");
+    await session.tempNewDoc(cleanup);
+  });
+
+  it('fix:copies collapsed sections properly', async function() {
+    // When one of 2 widget was collapsed, the resulting widget can become a root section. Then,
+    // when a page was duplicated, the layout was duplicated incorrectly (with wrong collapsed
+    // section). This resulted in a bug, when the root section was deleted, as it was the last
+    // section in the saved layout, but not the last section on the visible layout.
+
+    // Add new page with new table.
+    await gu.addNewPage('Table', 'New Table', {
+      tableName: 'Broken'
+    });
+
+    await gu.renameActiveSection('Collapsed');
+
+    // Add section here (with the same table).
+    await gu.addNewSection('Table', 'Broken');
+
+    // Rename it so that it is easier to find.
+    await gu.renameActiveSection('NotCollapsed');
+
+    // Now store the layout, by amending it (so move the collapsed widget below).
+    const {height} = await gu.getSection('NotCollapsed').getRect();
+    await dragMain('Collapsed');
+    await move(gu.getSection('NotCollapsed'), { x: 50, y: height / 2 });
+    await driver.sleep(300);
+    await move(gu.getSection('NotCollapsed'), { x: 100, y: height / 2 });
+    await driver.sleep(300);
+    await driver.withActions(actions => actions.release());
+    // Wait for the debounced save.
+    await driver.sleep(1500);
+    await gu.waitForServer();
+
+    // Now collapse it.
+    await collapseByMenu('Collapsed');
+
+    // Now duplicate the page.
+    await gu.duplicatePage('Broken', 'Broken2');
+
+    // Now on this page we saw two uncollapsed sections (make sure this is not the case).
+    assert.deepEqual(await gu.getSectionTitles(), ['NotCollapsed']);
+  });
+
+  it('fix:can delete root section', async function() {
+    // But even if the layout spec was corrupted, we still should be able to delete the root section
+    // when replacing it with new one.
+
+    // Break the spec.
+    const specJson: string = await driver.executeScript(
+      'return gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec()'
+    );
+
+    // To break the spec, we will replace id of the collapsed section, then viewLayout will try to fix it,
+    // by rendering the missing section without patching the layout spec (which is good, because this could
+    // happen on readonly doc or a snapshot).
+    const spec = JSON.parse(specJson);
+    spec.collapsed[0].leaf = -10;
+
+    await driver.executeScript(
+      `gristDocPageModel.gristDoc.get().docModel.views.rowModels[3].layoutSpec.setAndSave('${JSON.stringify(spec)}')`
+    );
+
+    await gu.waitForServer();
+
+    // We now should see two sections.
+    assert.deepEqual(await gu.getSectionTitles(), ['NotCollapsed', 'Collapsed']);
+
+    // And we should be able to delete the top one (NotCollapsed).
+    await gu.openSectionMenu('viewLayout', 'NotCollapsed');
+    await driver.findContent('.test-cmd-name', 'Delete widget').click();
+    await gu.waitForServer();
+
+    await gu.checkForErrors();
   });
 
   it('fix: custom widget should restart when added back after collapsing', async function() {
+    await session.tempDoc(cleanup, 'Investment Research.grist');
+    await gu.openPage("Overview");
+
     const revert = await gu.begin();
 
     // Add custom section.

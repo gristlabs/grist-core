@@ -1,44 +1,111 @@
-import * as ace from 'ace-builds';
+import {Ace, loadAce} from 'app/client/lib/imports';
 import {theme, vars} from 'app/client/ui2018/cssVars';
-import {Theme} from 'app/common/ThemePrefs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {BindableValue, Computed, dom, DomElementArg, Observable, styled, subscribeElem} from 'grainjs';
+import {gristThemeObs} from 'app/client/ui2018/theme';
+import {
+  BindableValue,
+  Disposable,
+  DomElementArg,
+  Observable,
+  styled,
+  subscribeElem,
+} from 'grainjs';
 
-// ace-builds also has a minified build (src-min-noconflict), but we don't
-// use it since webpack already handles minification.
-require('ace-builds/src-noconflict/ext-static_highlight');
-require('ace-builds/src-noconflict/mode-python');
-require('ace-builds/src-noconflict/theme-chrome');
-require('ace-builds/src-noconflict/theme-dracula');
-
-export interface ICodeOptions {
-  gristTheme: Computed<Theme>;
-  placeholder?: string;
+interface BuildCodeHighlighterOptions {
   maxLines?: number;
 }
 
+let _ace: Ace;
+let _highlighter: any;
+let _PythonMode: any;
+let _aceDom: any;
+let _chrome: any;
+let _dracula: any;
+let _mode: any;
+
+async function fetchAceModules() {
+  return {
+    ace: _ace || (_ace = await loadAce()),
+    highlighter: _highlighter || (_highlighter = _ace.require('ace/ext/static_highlight')),
+    PythonMode: _PythonMode || (_PythonMode = _ace.require('ace/mode/python').Mode),
+    aceDom: _aceDom || (_aceDom = _ace.require('ace/lib/dom')),
+    chrome: _chrome || (_chrome = _ace.require('ace/theme/chrome')),
+    dracula: _dracula || (_dracula = _ace.require('ace/theme/dracula')),
+    mode: _mode || (_mode = new _PythonMode()),
+  };
+}
+
+/**
+ * Returns a function that accepts a string of text representing code and returns
+ * a highlighted version of it as an HTML string.
+ *
+ * This is useful for scenarios where highlighted code needs to be displayed outside of
+ * grainjs. For example, when using `marked`'s `highlight` option to highlight code
+ * blocks in a Markdown string.
+ */
+export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions = {}) {
+  const {maxLines} = options;
+  const {highlighter, aceDom, chrome, dracula, mode} = await fetchAceModules();
+
+  return (code: string) => {
+    if (maxLines) {
+      // If requested, trim to maxLines, and add an ellipsis at the end.
+      // (Long lines are also truncated with an ellpsis via text-overflow style.)
+      const lines = code.split(/\n/);
+      if (lines.length > maxLines) {
+        code = lines.slice(0, maxLines).join("\n") + " \u2026";  // Ellipsis
+      }
+    }
+
+    let aceThemeName: 'chrome' | 'dracula';
+    let aceTheme: any;
+    if (gristThemeObs().get().appearance === 'dark') {
+      aceThemeName = 'dracula';
+      aceTheme = dracula;
+    } else {
+      aceThemeName = 'chrome';
+      aceTheme = chrome;
+    }
+
+    // Rendering highlighted code gives you back the HTML to insert into the DOM, as well
+    // as the CSS styles needed to apply the theme. The latter typically isn't included in
+    // the document until an Ace editor is opened, so we explicitly import it here to avoid
+    // leaving highlighted code blocks without a theme applied.
+    const {html, css} = highlighter.render(code, mode, aceTheme, 1, true);
+    aceDom.importCssString(css, `${aceThemeName}-highlighted-code`);
+    return html;
+  };
+}
+
+interface BuildHighlightedCodeOptions extends BuildCodeHighlighterOptions {
+  placeholder?: string;
+}
+
+/**
+ * Builds a block of highlighted `code`.
+ *
+ * Highlighting applies an appropriate Ace theme (Chrome or Dracula) based on
+ * the current Grist theme, and automatically re-applies it whenever the Grist
+ * theme changes.
+ */
 export function buildHighlightedCode(
-  code: BindableValue<string>, options: ICodeOptions, ...args: DomElementArg[]
+  owner: Disposable,
+  code: BindableValue<string>,
+  options: BuildHighlightedCodeOptions,
+  ...args: DomElementArg[]
 ): HTMLElement {
-  const {gristTheme, placeholder, maxLines} = options;
-  const {enableCustomCss} = getGristConfig();
+  const {placeholder, maxLines} = options;
+  const codeText = Observable.create(owner, '');
+  const codeTheme = Observable.create(owner, gristThemeObs().get());
 
-  const highlighter = ace.require('ace/ext/static_highlight');
-  const PythonMode = ace.require('ace/mode/python').Mode;
-  const aceDom = ace.require('ace/lib/dom');
-  const chrome = ace.require('ace/theme/chrome');
-  const dracula = ace.require('ace/theme/dracula');
-  const mode = new PythonMode();
-
-  const codeText = Observable.create(null, '');
-  const codeTheme = Observable.create(null, gristTheme.get());
-
-  function updateHighlightedCode(elem: HTMLElement) {
+  async function updateHighlightedCode(elem: HTMLElement) {
     let text = codeText.get();
     if (!text) {
       elem.textContent = placeholder || '';
       return;
     }
+
+    const {highlighter, aceDom, chrome, dracula, mode} = await fetchAceModules();
+    if (owner.isDisposed()) { return; }
 
     if (maxLines) {
       // If requested, trim to maxLines, and add an ellipsis at the end.
@@ -51,7 +118,7 @@ export function buildHighlightedCode(
 
     let aceThemeName: 'chrome' | 'dracula';
     let aceTheme: any;
-    if (codeTheme.get().appearance === 'dark' && !enableCustomCss) {
+    if (codeTheme.get().appearance === 'dark') {
       aceThemeName = 'dracula';
       aceTheme = dracula;
     } else {
@@ -69,15 +136,13 @@ export function buildHighlightedCode(
   }
 
   return cssHighlightedCode(
-    dom.autoDispose(codeText),
-    dom.autoDispose(codeTheme),
-    elem => subscribeElem(elem, code, (newCodeText) => {
+    elem => subscribeElem(elem, code, async (newCodeText) => {
       codeText.set(newCodeText);
-      updateHighlightedCode(elem);
+      await updateHighlightedCode(elem);
       }),
-    elem => subscribeElem(elem, gristTheme, (newCodeTheme) => {
+    elem => subscribeElem(elem, gristThemeObs(), async (newCodeTheme) => {
       codeTheme.set(newCodeTheme);
-      updateHighlightedCode(elem);
+      await updateHighlightedCode(elem);
     }),
     ...args,
   );
@@ -95,9 +160,7 @@ export const cssCodeBlock = styled('div', `
 
 const cssHighlightedCode = styled(cssCodeBlock, `
   position: relative;
-  white-space: pre;
   overflow: hidden;
-  text-overflow: ellipsis;
   border: 1px solid ${theme.highlightedCodeBorder};
   border-radius: 3px;
   min-height: 28px;
@@ -110,20 +173,6 @@ const cssHighlightedCode = styled(cssCodeBlock, `
   & .ace_line {
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-`);
-
-export const cssFieldFormula = styled(buildHighlightedCode, `
-  flex: auto;
-  cursor: pointer;
-  margin-top: 4px;
-  padding-left: 24px;
-  --icon-color: ${theme.accentIcon};
-
-  &-disabled-icon.formula_field_sidepane::before {
-    --icon-color: ${theme.iconDisabled};
-  }
-  &-disabled {
-    pointer-events: none;
+    white-space: nowrap;
   }
 `);

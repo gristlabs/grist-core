@@ -12,7 +12,8 @@ from six.moves import xrange
 import acl
 import depend
 import gencode
-from acl_formula import parse_acl_formula_json
+from acl_formula import parse_acl_formulas
+from dropdown_condition import parse_dropdown_conditions
 import actions
 import column
 import sort_specs
@@ -437,9 +438,7 @@ class UserActions(object):
 
   @override_action('BulkAddRecord', '_grist_ACLRules')
   def _addACLRules(self, table_id, row_ids, col_values):
-    # Automatically populate aclFormulaParsed value by parsing aclFormula.
-    if 'aclFormula' in col_values:
-      col_values['aclFormulaParsed'] = [parse_acl_formula_json(v) for v in col_values['aclFormula']]
+    parse_acl_formulas(col_values)
     return self.doBulkAddOrReplace(table_id, row_ids, col_values)
 
   #----------------------------------------
@@ -672,6 +671,7 @@ class UserActions(object):
     #     columns for all summary tables of the same source table).
     # (4) Updates to the source columns of summary group-by columns (including renaming and type
     #     changes) should be copied to those group-by columns.
+    parse_dropdown_conditions(col_values)
 
     # A list of individual (col_rec, values) updates, where values is a per-column dict.
     col_updates = OrderedDict()
@@ -781,11 +781,14 @@ class UserActions(object):
 
     self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
+  @override_action('BulkUpdateRecord', '_grist_Views_section_field')
+  def _updateViewSectionFields(self, table_id, row_ids, col_values):
+    parse_dropdown_conditions(col_values)
+    return self.doBulkUpdateRecord(table_id, row_ids, col_values)
+
   @override_action('BulkUpdateRecord', '_grist_ACLRules')
   def _updateACLRules(self, table_id, row_ids, col_values):
-    # Automatically populate aclFormulaParsed value by parsing aclFormula.
-    if 'aclFormula' in col_values:
-      col_values['aclFormulaParsed'] = [parse_acl_formula_json(v) for v in col_values['aclFormula']]
+    parse_acl_formulas(col_values)
     return self.doBulkUpdateRecord(table_id, row_ids, col_values)
 
   def _prepare_formula_renames(self, renames):

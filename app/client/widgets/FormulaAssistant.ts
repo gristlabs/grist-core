@@ -9,12 +9,13 @@ import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {ChatMessage} from 'app/client/models/entities/ColumnRec';
 import {HAS_FORMULA_ASSISTANT, WHICH_FORMULA_ASSISTANT} from 'app/client/models/features';
 import {getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
-import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
+import {buildCodeHighlighter, buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {autoGrow} from 'app/client/ui/forms';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {basicButton, bigPrimaryButtonLink, primaryButton} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
+import {gristThemeObs} from 'app/client/ui2018/theme';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingDots} from 'app/client/ui2018/loaders';
@@ -1009,26 +1010,19 @@ class ChatHistory extends Disposable {
    * Renders the message as markdown if possible, otherwise as a code block.
    */
   private _render(message: string, ...args: DomElementArg[]) {
-    const doc = this._options.gristDoc;
     if (this.supportsMarkdown()) {
       return dom('div',
-        (el) => subscribeElem(el, doc.currentTheme, () => {
+        (el) => subscribeElem(el, gristThemeObs(), async () => {
+          const highlightCode = await buildCodeHighlighter({maxLines: 60});
           const content = sanitizeHTML(marked(message, {
-            highlight: (code) => {
-              const codeBlock = buildHighlightedCode(code, {
-                gristTheme: doc.currentTheme,
-                maxLines: 60,
-              });
-              return codeBlock.innerHTML;
-            },
+            highlight: (code) => highlightCode(code)
           }));
           el.innerHTML = content;
         }),
         ...args
       );
     } else {
-      return buildHighlightedCode(message, {
-        gristTheme: doc.currentTheme,
+      return dom.create(buildHighlightedCode, message, {
         maxLines: 100,
       });
     }

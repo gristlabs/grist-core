@@ -5,7 +5,7 @@ import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {ExternalStorage} from 'app/server/lib/ExternalStorage';
 import {createDummyTelemetry, GristServer} from 'app/server/lib/GristServer';
 import {IBilling} from 'app/server/lib/IBilling';
-import {INotifier} from 'app/server/lib/INotifier';
+import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {IShell} from 'app/server/lib/IShell';
@@ -99,11 +99,7 @@ export function makeSimpleCreator(opts: {
       };
     },
     Notifier(dbManager, gristConfig) {
-      return notifier?.create(dbManager, gristConfig) ?? {
-        get testPending() { return false; },
-        async deleteUser()      { /* do nothing */ },
-        testSetSendMessageCallback() { return undefined; },
-      };
+      return notifier?.create(dbManager, gristConfig) ?? EmptyNotifier;
     },
     ExternalStorage(purpose, extraPrefix) {
       for (const s of storage || []) {

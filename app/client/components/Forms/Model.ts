@@ -1,7 +1,17 @@
 import {FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as elements from 'app/client/components/Forms/elements';
 import {FormView} from 'app/client/components/Forms/FormView';
-import {bundleChanges, Computed, Disposable, dom, IDomArgs, MutableObsArray, obsArray, Observable} from 'grainjs';
+import {MaybePromise} from 'app/plugin/gutil';
+import {
+  bundleChanges,
+  Computed,
+  Disposable,
+  dom,
+  IDomArgs,
+  MutableObsArray,
+  obsArray,
+  Observable,
+} from 'grainjs';
 
 type Callback = () => Promise<void>;
 
@@ -186,7 +196,7 @@ export abstract class BoxModel extends Disposable {
     return this._props.hasOwnProperty(name);
   }
 
-  public async save(before?: () => Promise<void>): Promise<void> {
+  public async save(before?: () => MaybePromise<void>): Promise<void> {
     if (!this.parent) { throw new Error('Cannot save detached box'); }
     return this.parent.save(before);
   }

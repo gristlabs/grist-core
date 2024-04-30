@@ -330,6 +330,15 @@ export class GristWSConnection extends Disposable {
       this._reconnectAttempts++;
     }
 
+    let url: string;
+    try {
+      url = this._buildWebsocketUrl(isReconnecting, timezone);
+    } catch (e) {
+      this._warn('Failed to get the URL for the worker serving the document');
+      this._scheduleReconnect(isReconnecting);
+      return;
+    }
+
     // Note that if a WebSocket can't establish a connection it will trigger onclose()
     // As per http://dev.w3.org/html5/websockets/
     // "If the establish a WebSocket connection algorithm fails,
@@ -337,7 +346,6 @@ export class GristWSConnection extends Disposable {
     // which then invokes the close the WebSocket connection algorithm,
     // which then establishes that the WebSocket connection is closed,
     // which fires the close event."
-    const url = this._buildWebsocketUrl(isReconnecting, timezone);
     this._log("GristWSConnection connecting to: " + url);
     this._ws = this._settings.makeWebSocket(url);
 
@@ -367,16 +375,20 @@ export class GristWSConnection extends Disposable {
       this.trigger('connectState', false);
 
       if (!this._wantReconnect) { return; }
-      const reconnectTimeout = gutil.getReconnectTimeout(this._reconnectAttempts, reconnectInterval);
-      this._log("Trying to reconnect in", reconnectTimeout, "ms");
-      this.trigger('connectionStatus', 'Trying to reconnect...', 'WARNING');
-      this._reconnectTimeout = setTimeout(async () => {
-        this._reconnectTimeout = null;
-        // Make sure we've gotten through all lazy-loading.
-        await this._initialConnection;
-        await this.connect(true);
-      }, reconnectTimeout);
+      this._scheduleReconnect(true);
     };
+  }
+
+  private _scheduleReconnect(isReconnecting: boolean) {
+    const reconnectTimeout = gutil.getReconnectTimeout(this._reconnectAttempts, reconnectInterval);
+    this._log('Trying to reconnect in', reconnectTimeout, 'ms');
+    this.trigger('connectionStatus', 'Trying to reconnect...', 'WARNING');
+    this._reconnectTimeout = setTimeout(async () => {
+      this._reconnectTimeout = null;
+      // Make sure we've gotten through all lazy-loading.
+      await this._initialConnection;
+      await this.connect(isReconnecting);
+    }, reconnectTimeout);
   }
 
   private _buildWebsocketUrl(isReconnecting: boolean, timezone: any): string {

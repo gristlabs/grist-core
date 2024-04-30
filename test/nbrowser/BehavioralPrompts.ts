@@ -39,11 +39,6 @@ describe('BehavioralPrompts', function() {
     });
   });
 
-  it('should show an announcement for forms', async function() {
-    await assertPromptTitle('Forms are here!');
-    await gu.dismissBehavioralPrompts();
-  });
-
   describe('when anonymous', function() {
     before(async () => {
       const anonymousSession = await gu.session().anon.login({

@@ -4,7 +4,8 @@ import {AppModel, TopAppModelImpl, TopAppModelOptions} from 'app/client/models/A
 import {reportError, setUpErrorHandling} from 'app/client/models/errors';
 import {buildSnackbarDom} from 'app/client/ui/NotifyUI';
 import {addViewportTag} from 'app/client/ui/viewport';
-import {attachCssRootVars, attachTheme} from 'app/client/ui2018/cssVars';
+import {attachCssRootVars} from 'app/client/ui2018/cssVars';
+import {attachTheme} from 'app/client/ui2018/theme';
 import {BaseAPI} from 'app/common/BaseAPI';
 import {dom, DomContents} from 'grainjs';
 
@@ -16,22 +17,22 @@ const G = getBrowserGlobals('document', 'window');
  */
 export function createAppPage(
   buildAppPage: (appModel: AppModel) => DomContents,
-  modelOptions: TopAppModelOptions = {}) {
+  modelOptions: TopAppModelOptions = {}
+) {
   setUpErrorHandling();
 
   const topAppModel = TopAppModelImpl.create(null, {}, undefined, modelOptions);
 
   addViewportTag();
   attachCssRootVars(topAppModel.productFlavor);
+  attachTheme();
   setupLocale().catch(reportError);
 
   // Add globals needed by test utils.
   G.window.gristApp = {
     testNumPendingApiRequests: () => BaseAPI.numPendingRequests(),
   };
-  dom.update(document.body, dom.maybeOwned(topAppModel.appObs, (owner, appModel) => {
-    owner.autoDispose(attachTheme(appModel.currentTheme));
-
+  dom.update(document.body, dom.maybe(topAppModel.appObs, (appModel) => {
     return [
       buildAppPage(appModel),
       buildSnackbarDom(appModel.notifier, appModel),

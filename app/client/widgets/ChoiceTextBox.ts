@@ -1,3 +1,9 @@
+import {
+  FormFieldRulesConfig,
+  FormOptionsSortConfig,
+  FormSelectConfig,
+} from 'app/client/components/Forms/FormConfig';
+import {DropdownConditionConfig} from 'app/client/components/DropdownConditionConfig';
 import {makeT} from 'app/client/lib/localization';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -76,24 +82,30 @@ export class ChoiceTextBox extends NTextBox {
   public buildConfigDom() {
     return [
       super.buildConfigDom(),
-      this._buildChoicesConfigDom(),
+      this.buildChoicesConfigDom(),
+      dom.create(DropdownConditionConfig, this.field),
     ];
   }
 
   public buildTransformConfigDom() {
-    return this.buildConfigDom();
+    return [
+      super.buildConfigDom(),
+      this.buildChoicesConfigDom(),
+    ];
   }
 
   public buildFormConfigDom() {
     return [
-      this._buildChoicesConfigDom(),
-      super.buildFormConfigDom(),
+      this.buildChoicesConfigDom(),
+      dom.create(FormSelectConfig, this.field),
+      dom.create(FormOptionsSortConfig, this.field),
+      dom.create(FormFieldRulesConfig, this.field),
     ];
   }
 
   public buildFormTransformConfigDom() {
     return [
-      this._buildChoicesConfigDom(),
+      this.buildChoicesConfigDom(),
     ];
   }
 
@@ -113,7 +125,7 @@ export class ChoiceTextBox extends NTextBox {
     return this.field.config.updateChoices(renames, options);
   }
 
-  private _buildChoicesConfigDom() {
+  protected buildChoicesConfigDom() {
     const disabled = Computed.create(null,
       use => use(this.field.disableModify)
         || use(use(this.field.column).disableEditData)

@@ -65,6 +65,12 @@ export function getWidgetConstructor(widget: string, type: string): WidgetConstr
   return nameToWidget[config.cons as keyof typeof nameToWidget] as any;
 }
 
+/** return a good class to instantiate for viewing a form widget/type combination */
+export function getFormWidgetConstructor(widget: string, type: string): WidgetConstructor {
+  const {config} = getWidgetConfiguration(widget, type as GristType);
+  return nameToWidget[(config.formCons || config.cons) as keyof typeof nameToWidget] as any;
+}
+
 /** return a good class to instantiate for editing a widget/type combination */
 export function getEditorConstructor(widget: string, type: string): typeof NewBaseEditor {
   const {config} = getWidgetConfiguration(widget, type as GristType);

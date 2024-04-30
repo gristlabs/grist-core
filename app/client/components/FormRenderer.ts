@@ -149,9 +149,13 @@ class SectionRenderer extends FormRenderer {
 class ColumnsRenderer extends FormRenderer {
   public render() {
     return css.columns(
-      {style: `--grist-columns-count: ${this.children.length || 1}`},
+      {style: `--grist-columns-count: ${this._getColumnsCount()}`},
       this.children.map((child) => child.render()),
     );
+  }
+
+  private _getColumnsCount() {
+    return this.children.length || 1;
   }
 }
 
@@ -180,22 +184,7 @@ class SubmitRenderer extends FormRenderer {
               type: 'submit',
               value: this.context.rootLayoutNode.submitText || 'Submit',
             },
-            dom.on('click', () => {
-              // Make sure that all choice or reference lists that are required have at least one option selected.
-              const lists = document.querySelectorAll('.grist-checkbox-list.required:not(:has(input:checked))');
-              Array.from(lists).forEach(function(list) {
-                // If the form has at least one checkbox, make it required.
-                const firstCheckbox = list.querySelector('input[type="checkbox"]');
-                firstCheckbox?.setAttribute('required', 'required');
-              });
-
-              // All other required choice or reference lists with at least one option selected are no longer required.
-              const checkedLists = document.querySelectorAll('.grist-checkbox-list.required:has(input:checked)');
-              Array.from(checkedLists).forEach(function(list) {
-                const firstCheckbox = list.querySelector('input[type="checkbox"]');
-                firstCheckbox?.removeAttribute('required');
-              });
-            }),
+            dom.on('click', () => validateRequiredLists()),
           )
         ),
       ),
@@ -228,7 +217,7 @@ class FieldRenderer extends FormRenderer {
   }
 
   public render() {
-    return css.field(this.renderer.render());
+    return this.renderer.render();
   }
 
   public reset() {
@@ -267,41 +256,120 @@ abstract class BaseFieldRenderer extends Disposable {
 }
 
 class TextRenderer extends BaseFieldRenderer {
-  protected type = 'text';
-  private _value = Observable.create(this, '');
+  protected inputType = 'text';
+
+  private _format = this.field.options.formTextFormat ?? 'singleline';
+  private _lineCount = String(this.field.options.formTextLineCount || 3);
+  private _value = Observable.create<string>(this, '');
 
   public input() {
-    return dom('input',
+    if (this._format === 'singleline') {
+      return this._renderSingleLineInput();
+    } else {
+      return this._renderMultiLineInput();
+    }
+  }
+
+  public resetInput(): void {
+    this._value.setAndTrigger('');
+  }
+
+  private _renderSingleLineInput() {
+    return css.textInput(
       {
-        type: this.type,
+        type: this.inputType,
         name: this.name(),
         required: this.field.options.formRequired,
+      },
+      dom.prop('value', this._value),
+      preventSubmitOnEnter(),
+    );
+  }
+
+  private _renderMultiLineInput() {
+    return css.textarea(
+      {
+        name: this.name(),
+        required: this.field.options.formRequired,
+        rows: this._lineCount,
       },
       dom.prop('value', this._value),
       dom.on('input', (_e, elem) => this._value.set(elem.value)),
     );
   }
+}
+
+class NumericRenderer extends BaseFieldRenderer {
+  protected inputType = 'text';
+
+  private _format = this.field.options.formNumberFormat ?? 'text';
+  private _value = Observable.create<string>(this, '');
+  private _spinnerValue = Observable.create<number|''>(this, '');
+
+  public input() {
+    if (this._format === 'text') {
+      return this._renderTextInput();
+    } else {
+      return this._renderSpinnerInput();
+    }
+  }
 
   public resetInput(): void {
-    this._value.set('');
+    this._value.setAndTrigger('');
+    this._spinnerValue.setAndTrigger('');
+  }
+
+  private _renderTextInput() {
+    return css.textInput(
+      {
+        type: this.inputType,
+        name: this.name(),
+        required: this.field.options.formRequired,
+      },
+      dom.prop('value', this._value),
+      preventSubmitOnEnter(),
+    );
+  }
+
+  private _renderSpinnerInput() {
+    return css.spinner(
+      this._spinnerValue,
+      {
+        setValueOnInput: true,
+        inputArgs: [
+          {
+            name: this.name(),
+            required: this.field.options.formRequired,
+          },
+          preventSubmitOnEnter(),
+        ],
+      }
+    );
   }
 }
 
 class DateRenderer extends TextRenderer {
-  protected type = 'date';
+  protected inputType = 'date';
 }
 
 class DateTimeRenderer extends TextRenderer {
-  protected type = 'datetime-local';
+  protected inputType = 'datetime-local';
 }
 
 export const SELECT_PLACEHOLDER = 'Select...';
 
 class ChoiceRenderer extends BaseFieldRenderer  {
-  protected value = Observable.create<string>(this, '');
+  protected value: Observable<string>;
+
   private _choices: string[];
   private _selectElement: HTMLElement;
   private _ctl?: PopupControl<IPopupOptions>;
+  private _format = this.field.options.formSelectFormat ?? 'select';
+  private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
+  private _radioButtons: MutableObsArray<{
+    label: string;
+    checked: Observable<string|null>
+  }> = this.autoDispose(obsArray());
 
   public constructor(field: FormField, context: FormRendererContext) {
     super(field, context);
@@ -310,24 +378,59 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     if (!Array.isArray(choices) || choices.some((choice) => typeof choice !== 'string')) {
       this._choices = [];
     } else {
+      const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
+      if (sortOrder !== 'default') {
+        choices.sort((a, b) => String(a).localeCompare(String(b)));
+        if (sortOrder === 'descending') {
+          choices.reverse();
+        }
+      }
       // Support for 1000 choices. TODO: make limit dynamic.
       this._choices = choices.slice(0, 1000);
     }
+
+    this.value = Observable.create<string>(this, '');
+
+    this._radioButtons.set(this._choices.map(choice => ({
+      label: String(choice),
+      checked: Observable.create(this, null),
+    })));
   }
 
   public input() {
+    if (this._format === 'select') {
+      return this._renderSelectInput();
+    } else {
+      return this._renderRadioInput();
+    }
+  }
+
+  public resetInput() {
+    this.value.set('');
+    this._radioButtons.get().forEach(radioButton => {
+      radioButton.checked.set(null);
+    });
+  }
+
+  private _renderSelectInput() {
     return css.hybridSelect(
       this._selectElement = css.select(
         {name: this.name(), required: this.field.options.formRequired},
-        dom.prop('value', this.value),
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
         dom('option', {value: ''}, SELECT_PLACEHOLDER),
-        this._choices.map((choice) => dom('option', {value: choice}, choice)),
+        this._choices.map((choice) => dom('option',
+          {value: choice},
+          dom.prop('selected', use => use(this.value) === choice),
+          choice
+        )),
         dom.onKeyDown({
+          Enter$: (ev) => this._maybeOpenSearchSelect(ev),
           ' $': (ev) => this._maybeOpenSearchSelect(ev),
           ArrowUp$: (ev) => this._maybeOpenSearchSelect(ev),
           ArrowDown$: (ev) => this._maybeOpenSearchSelect(ev),
+          Backspace$: () => this.value.set(''),
         }),
+        preventSubmitOnEnter(),
       ),
       dom.maybe(use => !use(isXSmallScreenObs()), () =>
         css.searchSelect(
@@ -359,8 +462,29 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     );
   }
 
-  public resetInput(): void {
-    this.value.set('');
+  private _renderRadioInput() {
+    const required = this.field.options.formRequired;
+    return css.radioList(
+      css.radioList.cls('-horizontal', this._alignment === 'horizontal'),
+      dom.cls('grist-radio-list'),
+      dom.cls('required', Boolean(required)),
+      {name: this.name(), required},
+      dom.forEach(this._radioButtons, (radioButton) =>
+        css.radio(
+          dom('input',
+            dom.prop('checked', radioButton.checked),
+            dom.on('change', (_e, elem) => radioButton.checked.set(elem.value)),
+            {
+              type: 'radio',
+              name: `${this.name()}`,
+              value: radioButton.label,
+            },
+            preventSubmitOnEnter(),
+          ),
+          dom('span', radioButton.label),
+        )
+      ),
+    );
   }
 
   private _maybeOpenSearchSelect(ev: KeyboardEvent) {
@@ -375,7 +499,10 @@ class ChoiceRenderer extends BaseFieldRenderer  {
 }
 
 class BoolRenderer extends BaseFieldRenderer {
+  protected inputType = 'checkbox';
   protected checked = Observable.create<boolean>(this, false);
+
+  private _format = this.field.options.formToggleFormat ?? 'switch';
 
   public render() {
     return css.field(
@@ -384,16 +511,29 @@ class BoolRenderer extends BaseFieldRenderer {
   }
 
   public input() {
-    return css.toggle(
+    if (this._format === 'switch') {
+      return this._renderSwitchInput();
+    } else {
+      return this._renderCheckboxInput();
+    }
+  }
+
+  public resetInput(): void {
+    this.checked.set(false);
+  }
+
+  private _renderSwitchInput() {
+    return css.toggleSwitch(
       dom('input',
         dom.prop('checked', this.checked),
+        dom.prop('value', use => use(this.checked) ? '1' : '0'),
         dom.on('change', (_e, elem) => this.checked.set(elem.checked)),
         {
-          type: 'checkbox',
+          type: this.inputType,
           name: this.name(),
-          value: '1',
           required: this.field.options.formRequired,
         },
+        preventSubmitOnEnter(),
       ),
       css.gristSwitch(
         css.gristSwitchSlider(),
@@ -406,8 +546,24 @@ class BoolRenderer extends BaseFieldRenderer {
     );
   }
 
-  public resetInput(): void {
-    this.checked.set(false);
+  private _renderCheckboxInput() {
+    return css.toggle(
+      dom('input',
+        dom.prop('checked', this.checked),
+        dom.prop('value', use => use(this.checked) ? '1' : '0'),
+        dom.on('change', (_e, elem) => this.checked.set(elem.checked)),
+        {
+          type: this.inputType,
+          name: this.name(),
+          required: this.field.options.formRequired,
+        },
+        preventSubmitOnEnter(),
+      ),
+      css.toggleLabel(
+        css.label.cls('-required', Boolean(this.field.options.formRequired)),
+        this.field.question,
+      ),
+    );
   }
 }
 
@@ -417,6 +573,8 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
     checked: Observable<string|null>
   }> = this.autoDispose(obsArray());
 
+  private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
+
   public constructor(field: FormField, context: FormRendererContext) {
     super(field, context);
 
@@ -424,6 +582,13 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
     if (!Array.isArray(choices) || choices.some((choice) => typeof choice !== 'string')) {
       choices = [];
     } else {
+      const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
+      if (sortOrder !== 'default') {
+        choices.sort((a, b) => String(a).localeCompare(String(b)));
+        if (sortOrder === 'descending') {
+          choices.reverse();
+        }
+      }
       // Support for 30 choices. TODO: make limit dynamic.
       choices = choices.slice(0, 30);
     }
@@ -437,6 +602,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
   public input() {
     const required = this.field.options.formRequired;
     return css.checkboxList(
+      css.checkboxList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-checkbox-list'),
       dom.cls('required', Boolean(required)),
       {name: this.name(), required},
@@ -449,7 +615,8 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
               type: 'checkbox',
               name: `${this.name()}[]`,
               value: checkbox.label,
-            }
+            },
+            preventSubmitOnEnter(),
           ),
           dom('span', checkbox.label),
         )
@@ -471,12 +638,20 @@ class RefListRenderer extends BaseFieldRenderer {
     checked: Observable<string|null>
   }> = this.autoDispose(obsArray());
 
+  private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
+
   public constructor(field: FormField, context: FormRendererContext) {
     super(field, context);
 
     const references = this.field.refValues ?? [];
-    // Sort by the second value, which is the display value.
-    references.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+    const sortOrder = this.field.options.formOptionsSortOrder;
+    if (sortOrder !== 'default') {
+      // Sort by the second value, which is the display value.
+      references.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+      if (sortOrder === 'descending') {
+        references.reverse();
+      }
+    }
     // Support for 30 choices. TODO: make limit dynamic.
     references.splice(30);
     this.checkboxes.set(references.map(reference => ({
@@ -488,6 +663,7 @@ class RefListRenderer extends BaseFieldRenderer {
   public input() {
     const required = this.field.options.formRequired;
     return css.checkboxList(
+      css.checkboxList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-checkbox-list'),
       dom.cls('required', Boolean(required)),
       {name: this.name(), required},
@@ -501,7 +677,8 @@ class RefListRenderer extends BaseFieldRenderer {
               'data-grist-type': this.field.type,
               name: `${this.name()}[]`,
               value: checkbox.value,
-            }
+            },
+            preventSubmitOnEnter(),
           ),
           dom('span', checkbox.label),
         )
@@ -518,15 +695,58 @@ class RefListRenderer extends BaseFieldRenderer {
 
 class RefRenderer extends BaseFieldRenderer {
   protected value = Observable.create(this, '');
+
+  private _format = this.field.options.formSelectFormat ?? 'select';
+  private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
+  private _choices: [number|string, CellValue][];
   private _selectElement: HTMLElement;
   private _ctl?: PopupControl<IPopupOptions>;
+  private _radioButtons: MutableObsArray<{
+    label: string;
+    value: string;
+    checked: Observable<string|null>
+  }> = this.autoDispose(obsArray());
+
+  public constructor(field: FormField, context: FormRendererContext) {
+    super(field, context);
+
+    const choices: [number|string, CellValue][] = this.field.refValues ?? [];
+    const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
+    if (sortOrder !== 'default') {
+      // Sort by the second value, which is the display value.
+      choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+      if (sortOrder === 'descending') {
+        choices.reverse();
+      }
+    }
+    // Support for 1000 choices. TODO: make limit dynamic.
+    this._choices = choices.slice(0, 1000);
+
+    this.value = Observable.create<string>(this, '');
+
+    this._radioButtons.set(this._choices.map(reference => ({
+      label: String(reference[1]),
+      value: String(reference[0]),
+      checked: Observable.create(this, null),
+    })));
+  }
 
   public input() {
-    const choices: [number|string, CellValue][] = this.field.refValues ?? [];
-    // Sort by the second value, which is the display value.
-    choices.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-    // Support for 1000 choices. TODO: make limit dynamic.
-    choices.splice(1000);
+    if (this._format === 'select') {
+      return this._renderSelectInput();
+    } else {
+      return this._renderRadioInput();
+    }
+  }
+
+  public resetInput(): void {
+    this.value.set('');
+    this._radioButtons.get().forEach(radioButton => {
+      radioButton.checked.set(null);
+    });
+  }
+
+  private _renderSelectInput() {
     return css.hybridSelect(
       this._selectElement = css.select(
         {
@@ -534,27 +754,37 @@ class RefRenderer extends BaseFieldRenderer {
           'data-grist-type': this.field.type,
           required: this.field.options.formRequired,
         },
-        dom.prop('value', this.value),
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
-        dom('option', {value: ''}, SELECT_PLACEHOLDER),
-        choices.map((choice) => dom('option', {value: String(choice[0])}, String(choice[1]))),
+        dom('option',
+          {value: ''},
+          SELECT_PLACEHOLDER,
+          dom.prop('selected', use => use(this.value) === ''),
+        ),
+        this._choices.map((choice) => dom('option',
+          {value: String(choice[0])},
+          String(choice[1]),
+          dom.prop('selected', use => use(this.value) === String(choice[0])),
+        )),
         dom.onKeyDown({
+          Enter$: (ev) => this._maybeOpenSearchSelect(ev),
           ' $': (ev) => this._maybeOpenSearchSelect(ev),
           ArrowUp$: (ev) => this._maybeOpenSearchSelect(ev),
           ArrowDown$: (ev) => this._maybeOpenSearchSelect(ev),
+          Backspace$: () => this.value.set(''),
         }),
+        preventSubmitOnEnter(),
       ),
       dom.maybe(use => !use(isXSmallScreenObs()), () =>
         css.searchSelect(
           dom('div', dom.text(use => {
-            const choice = choices.find((c) => String(c[0]) === use(this.value));
+            const choice = this._choices.find((c) => String(c[0]) === use(this.value));
             return String(choice?.[1] || SELECT_PLACEHOLDER);
           })),
           dropdownWithSearch<string>({
             action: (value) => this.value.set(value),
             options: () => [
               {label: SELECT_PLACEHOLDER, value: '', placeholder: true},
-              ...choices.map((choice) => ({
+              ...this._choices.map((choice) => ({
                 label: String(choice[1]),
                 value: String(choice[0]),
               }),
@@ -577,8 +807,29 @@ class RefRenderer extends BaseFieldRenderer {
     );
   }
 
-  public resetInput(): void {
-    this.value.set('');
+  private _renderRadioInput() {
+    const required = this.field.options.formRequired;
+    return css.radioList(
+      css.radioList.cls('-horizontal', this._alignment === 'horizontal'),
+      dom.cls('grist-radio-list'),
+      dom.cls('required', Boolean(required)),
+      {name: this.name(), required, 'data-grist-type': this.field.type},
+      dom.forEach(this._radioButtons, (radioButton) =>
+        css.radio(
+          dom('input',
+            dom.prop('checked', radioButton.checked),
+            dom.on('change', (_e, elem) => radioButton.checked.set(elem.value)),
+            {
+              type: 'radio',
+              name: `${this.name()}`,
+              value: radioButton.value,
+            },
+            preventSubmitOnEnter(),
+          ),
+          dom('span', radioButton.label),
+        )
+      ),
+    );
   }
 
   private _maybeOpenSearchSelect(ev: KeyboardEvent) {
@@ -594,6 +845,8 @@ class RefRenderer extends BaseFieldRenderer {
 
 const FieldRenderers = {
   'Text': TextRenderer,
+  'Numeric': NumericRenderer,
+  'Int': NumericRenderer,
   'Choice': ChoiceRenderer,
   'Bool': BoolRenderer,
   'ChoiceList': ChoiceListRenderer,
@@ -616,3 +869,36 @@ const FormRenderers = {
   'Separator': ParagraphRenderer,
   'Header': ParagraphRenderer,
 };
+
+function preventSubmitOnEnter() {
+  return dom.onKeyDown({Enter$: (ev) => ev.preventDefault()});
+}
+
+/**
+ * Validates the required attribute of checkbox and radio lists, such as those
+ * used by Choice, Choice List, Reference, and Reference List fields.
+ *
+ * Since lists of checkboxes and radios don't natively support a required attribute, we
+ * simulate it by marking the first checkbox/radio of each required list as being a
+ * required input. Then, we make another pass and unmark all required checkbox/radio
+ * inputs if they belong to a list where at least one checkbox/radio is checked. If any
+ * inputs in a required are left as required, HTML validations that are triggered when
+ * submitting a form will catch them and prevent the submission.
+ */
+function validateRequiredLists() {
+  for (const type of ['checkbox', 'radio']) {
+    const requiredLists = document
+      .querySelectorAll(`.grist-${type}-list.required:not(:has(input:checked))`);
+    Array.from(requiredLists).forEach(function(list) {
+      const firstOption = list.querySelector(`input[type="${type}"]`);
+      firstOption?.setAttribute('required', 'required');
+    });
+
+    const requiredListsWithCheckedOption = document
+      .querySelectorAll(`.grist-${type}-list.required:has(input:checked`);
+    Array.from(requiredListsWithCheckedOption).forEach(function(list) {
+      const firstOption = list.querySelector(`input[type="${type}"]`);
+      firstOption?.removeAttribute('required');
+    });
+  }
+}

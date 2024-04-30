@@ -86,6 +86,8 @@ export const commonUrls = {
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
+  helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
+  helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   plans: "https://www.getgrist.com/pricing",
@@ -104,6 +106,8 @@ export const commonUrls = {
   gristLabsWidgetRepository: 'https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json',
   githubGristCore: 'https://github.com/gristlabs/grist-core',
   githubSponsorGristLabs: 'https://github.com/sponsors/gristlabs',
+
+  versionCheck: 'https://api.getgrist.com/api/version',
 };
 
 /**
@@ -786,6 +790,9 @@ export interface GristLoadConfig {
   canCloseAccount?: boolean;
 
   experimentalPlugins?: boolean;
+
+  // If backend has an email service for sending notifications.
+  notifierEnabled?: boolean;
 }
 
 export const Features = StringUnion(
