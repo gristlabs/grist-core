@@ -1953,7 +1953,7 @@ export class HomeDBManager extends EventEmitter {
   // Update the webhook url in the webhook's corresponding secret (note: the webhook identifier is
   // its secret identifier).
   public async updateWebhookUrlAndAuth(
-    id: string, docId: string, url: string, auth: string, outerManager?: EntityManager) {
+    id: string, docId: string, url: string, auth: string | undefined, outerManager?: EntityManager) {
     return await this._runInTransaction(outerManager, async manager => {
       const value = await this.getSecret(id, docId, manager);
       if (!value) {

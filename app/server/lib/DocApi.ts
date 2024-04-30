@@ -935,8 +935,8 @@ export class DocWorkerApi {
         const triggerRowId = activeDoc.triggers.getWebhookTriggerRecord(webhookId).id;
 
         // update url and authorization header in homedb
-        if (url) {
-          await this._dbManager.updateWebhookUrlAndAuth(webhookId, docId, url, authorization || "");
+        if (url || authorization) {
+          await this._dbManager.updateWebhookUrlAndAuth(webhookId, docId, url, authorization || undefined);
           activeDoc.triggers.webhookDeleted(webhookId); // clear cache
         }
 
