@@ -431,12 +431,22 @@ class ReferenceList(BaseColumnType):
 
   def do_convert(self, value):
     if isinstance(value, six.string_types):
-      # If it's a string that looks like JSON, try to parse it as such.
-      if value.startswith('['):
-        try:
+      # This is second part of a "hack" we have to do when we rename tables. During
+      # the rename, we briefly change all Ref columns to Int columns (to lose the table
+      # part), and then back to Ref columns. The values during this change are stored
+      # as serialized strings, which we expect to understand when the column is back to
+      # being a Ref column. We can either end up with a list of ints, or a RecordList
+      # serialized as a string.
+      # TODO: explain why we need to do this and why we have chosen the Int column
+      try:
+        # If it's a string that looks like JSON, try to parse it as such.
+        if value.startswith('['):
           value = json.loads(value)
-        except Exception:
-          pass
+        else:
+        # Else try to parse it as a RecordList
+          value = objtypes.RecordList.from_repr(value)
+      except Exception:
+        pass
 
     if isinstance(value, RecordSet):
       assert value._table.table_id == self.table_id

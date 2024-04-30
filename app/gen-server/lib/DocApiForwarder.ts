@@ -70,6 +70,9 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/webhooks', withDoc);
     app.use('/api/docs/:docId/assistant', withDoc);
     app.use('/api/docs/:docId/sql', withDoc);
+    app.use('/api/docs/:docId/timing', withDoc);
+    app.use('/api/docs/:docId/timing/start', withDoc);
+    app.use('/api/docs/:docId/timing/stop', withDoc);
     app.use('/api/docs/:docId/forms/:vsId', withDoc);
     app.use('^/api/docs$', withoutDoc);
   }

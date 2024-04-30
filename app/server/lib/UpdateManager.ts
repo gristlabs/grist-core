@@ -1,14 +1,16 @@
 import { ApiError } from "app/common/ApiError";
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { GristDeploymentType } from "app/common/gristUrls";
+import { LatestVersion } from 'app/common/InstallAPI';
 import { naturalCompare } from "app/common/SortFunc";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { expressWrap } from 'app/server/lib/expressWrap';
 import { GristServer } from "app/server/lib/GristServer";
 import { optIntegerParam, optStringParam } from "app/server/lib/requestUtils";
+import { rateLimit } from 'express-rate-limit';
 import { AbortController, AbortSignal } from 'node-abort-controller';
 import type * as express from "express";
 import fetch from "node-fetch";
-import {expressWrap} from 'app/server/lib/expressWrap';
 
 
 // URL to show to the client where the new version for docker based deployments can be found.
@@ -67,8 +69,18 @@ export class UpdateManager {
       }
     }
 
+    // Rate limit the requests to the version API, so that we don't get spammed.
+    // 30 requests per second, per IP. The requests are cached so, we should be fine, but make
+    // sure it doesn't get out of hand. On dev laptop I could go up to 600 requests per second.
+    // (30 was picked by hand, to not hit the limit during tests).
+    const limiter = rateLimit({
+      windowMs: 1000,
+      limit: 30,
+      legacyHeaders: true,
+    });
+
     // Support both POST and GET requests.
-    this._app.use("/api/version", expressWrap(async (req, res) => {
+    this._app.use("/api/version", limiter, expressWrap(async (req, res) => {
       // Get some telemetry from the body request.
       const payload = (name: string) => req.body?.[name] ?? req.query[name];
 
@@ -132,29 +144,6 @@ export class UpdateManager {
   }
 }
 
-/**
- * JSON returned to the client (exported for tests).
- */
-export interface LatestVersion {
-  /**
-   * Latest version of core component of the client.
-   */
-  latestVersion: string;
-  /**
-   * If there were any critical updates after client's version. Undefined if
-   * we don't know client version or couldn't figure this out for some other reason.
-   */
-  isCritical?: boolean;
-  /**
-   * Url where the client can download the latest version (if applicable)
-   */
-  updateURL?: string;
-
-  /**
-   * When the latest version was updated (in ISO format).
-   */
-  updatedAt?: string;
-}
 
 type VersionChecker = (signal: AbortSignal) => Promise<LatestVersion>;
 

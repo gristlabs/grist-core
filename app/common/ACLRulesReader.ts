@@ -3,7 +3,8 @@ import { getSetMapValue } from 'app/common/gutil';
 import { SchemaTypes } from 'app/common/schema';
 import { ShareOptions } from 'app/common/ShareOptions';
 import { MetaRowRecord, MetaTableData } from 'app/common/TableData';
-import { isEqual, sortBy } from 'lodash';
+import isEqual from 'lodash/isEqual';
+import sortBy from 'lodash/sortBy';
 
 /**
  * For special shares, we need to refer to resources that may not

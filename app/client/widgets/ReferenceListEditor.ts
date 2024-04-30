@@ -59,10 +59,16 @@ export class ReferenceListEditor extends NewBaseEditor {
     this._utils = new ReferenceUtils(options.field, docData);
 
     const vcol = this._utils.visibleColModel;
-    this._enableAddNew = vcol && !vcol.isRealFormula() && !!vcol.colId();
+    this._enableAddNew = (
+      vcol &&
+      !vcol.isRealFormula() &&
+      !!vcol.colId() &&
+      !this._utils.hasDropdownCondition
+    );
 
     const acOptions: IAutocompleteOptions<ReferenceItem> = {
-      menuCssClass: `${menuCssClass} ${cssRefList.className}`,
+      menuCssClass: `${menuCssClass} ${cssRefList.className} test-autocomplete`,
+      buildNoItemsMessage: () => this._utils.buildNoItemsMessage(),
       search: this._doSearch.bind(this),
       renderItem: this._renderItem.bind(this),
       getItemText: (item) => item.text,
@@ -166,12 +172,14 @@ export class ReferenceListEditor extends NewBaseEditor {
   }
 
   public getCellValue(): CellValue {
-    const rowIds = this._tokenField.tokensObs.get().map(t => typeof t.rowId === 'number' ? t.rowId : t.text);
+    const rowIds = this._tokenField.tokensObs.get()
+      .map(token => typeof token.rowId === 'number' ? token.rowId : token.text);
     return encodeObject(rowIds);
   }
 
   public getTextValue(): string {
-    const rowIds = this._tokenField.tokensObs.get().map(t => typeof t.rowId === 'number' ? String(t.rowId) : t.text);
+    const rowIds = this._tokenField.tokensObs.get()
+      .map(token => typeof token.rowId === 'number' ? String(token.rowId) : token.text);
     return csvEncodeRow(rowIds, {prettier: true});
   }
 
@@ -184,19 +192,19 @@ export class ReferenceListEditor extends NewBaseEditor {
    */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
-    const newValues = tokens.filter(t => t.rowId === 'new');
+    const newValues = tokens.filter(({rowId})=> rowId === 'new');
     if (newValues.length === 0) { return; }
 
     // Add the new items to the referenced table.
-    const colInfo = {[this._utils.visibleColId]: newValues.map(t => t.text)};
+    const colInfo = {[this._utils.visibleColId]: newValues.map(({text}) => text)};
     const rowIds = await this._utils.tableData.sendTableAction(
       ["BulkAddRecord", new Array(newValues.length).fill(null), colInfo]
     );
 
     // Update the TokenField tokens with the returned row ids.
     let i = 0;
-    const newTokens = tokens.map(t => {
-      return t.rowId === 'new' ? new ReferenceItem(t.text, rowIds[i++]) : t;
+    const newTokens = tokens.map(token => {
+      return token.rowId === 'new' ? new ReferenceItem(token.text, rowIds[i++]) : token;
     });
     this._tokenField.setTokens(newTokens);
   }
@@ -254,11 +262,12 @@ export class ReferenceListEditor extends NewBaseEditor {
    * Also see: prepForSave.
    */
    private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
-    const {items, selectIndex, highlightFunc} = this._utils.autocompleteSearch(text);
+    const {items, selectIndex, highlightFunc} = this._utils.autocompleteSearch(text, this.options.rowId);
     const result: ACResults<ReferenceItem> = {
       selectIndex,
       highlightFunc,
-      items: items.map(i => new ReferenceItem(i.text, i.rowId))
+      items: items.map(i => new ReferenceItem(i.text, i.rowId)),
+      extraItems: [],
     };
 
     this._showAddNew = false;
@@ -269,7 +278,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       return result;
     }
 
-    result.items.push(new ReferenceItem(text, 'new'));
+    result.extraItems.push(new ReferenceItem(text, 'new'));
     this._showAddNew = true;
 
     return result;

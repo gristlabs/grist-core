@@ -1,5 +1,6 @@
+import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
-import {getTimeFromNow, HomeModel} from 'app/client/models/HomeModel';
+import {HomeModel} from 'app/client/models/HomeModel';
 import {makeDocOptionsMenu, makeRemovedDocOptionsMenu} from 'app/client/ui/DocMenu';
 import {transientInput} from 'app/client/ui/transientInput';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';

@@ -7,11 +7,11 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeTestId} from 'app/client/lib/domUtils';
 import {ColumnRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
+import {gristThemeObs} from 'app/client/ui2018/theme';
 import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, fromTableDataAction, RowRecord} from 'app/common/DocActions';
 import {extractInfoFromColType, reencodeAsAny} from 'app/common/gristTypes';
-import {Theme} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
@@ -696,10 +696,10 @@ export class ConfigNotifier extends BaseEventSource {
  * Notifies about theme changes. Exposed in the API as `onThemeChange`.
  */
 export class ThemeNotifier extends BaseEventSource {
-  constructor(private _theme: Computed<Theme>) {
+  constructor() {
     super();
     this.autoDispose(
-      this._theme.addListener((newTheme, oldTheme) => {
+      gristThemeObs().addListener((newTheme, oldTheme) => {
         if (isEqual(newTheme, oldTheme)) { return; }
 
         this._update();
@@ -715,7 +715,7 @@ export class ThemeNotifier extends BaseEventSource {
     if (this.isDisposed()) { return; }
 
     this._notify({
-      theme: this._theme.get(),
+      theme: gristThemeObs().get(),
       fromReady,
     });
   }

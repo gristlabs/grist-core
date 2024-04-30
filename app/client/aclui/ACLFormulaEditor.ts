@@ -1,13 +1,12 @@
 import ace, {Ace} from 'ace-builds';
 import {setupAceEditorCompletions} from 'app/client/components/AceEditorCompletions';
 import {theme} from 'app/client/ui2018/cssVars';
+import {gristThemeObs} from 'app/client/ui2018/theme';
 import {Theme} from 'app/common/ThemePrefs';
-import {getGristConfig} from 'app/common/urlUtils';
-import {Computed, dom, DomArg, Listener, Observable, styled} from 'grainjs';
+import {dom, DomArg, Observable, styled} from 'grainjs';
 import debounce from 'lodash/debounce';
 
 export interface ACLFormulaOptions {
-  gristTheme: Computed<Theme>;
   initialValue: string;
   readOnly: boolean;
   placeholder: DomArg;
@@ -22,19 +21,15 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
   const editor: Ace.Editor = ace.edit(editorElem);
 
   // Set various editor options.
-  function setAceTheme(gristTheme: Theme) {
-    const {enableCustomCss} = getGristConfig();
-    const gristAppearance = gristTheme.appearance;
-    const aceTheme = gristAppearance === 'dark' && !enableCustomCss ? 'dracula' : 'chrome';
+  function setAceTheme(newTheme: Theme) {
+    const {appearance} = newTheme;
+    const aceTheme = appearance === 'dark' ? 'dracula' : 'chrome';
     editor.setTheme(`ace/theme/${aceTheme}`);
   }
-  setAceTheme(options.gristTheme.get());
-  let themeListener: Listener | undefined;
-  if (!getGristConfig().enableCustomCss) {
-    themeListener = options.gristTheme.addListener((gristTheme) => {
-      setAceTheme(gristTheme);
-    });
-  }
+  setAceTheme(gristThemeObs().get());
+  const themeListener = gristThemeObs().addListener((newTheme) => {
+    setAceTheme(newTheme);
+  });
   // ACE editor resizes automatically when maxLines is set.
   editor.setOptions({enableLiveAutocompletion: true, maxLines: 10});
   editor.renderer.setShowGutter(false);       // Default line numbers to hidden

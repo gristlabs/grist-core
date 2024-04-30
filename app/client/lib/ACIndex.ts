@@ -51,6 +51,9 @@ export interface ACResults<Item extends ACItem> {
   // Matching items in order from best match to worst.
   items: Item[];
 
+  // Additional items to show (e.g. the "Add New" item, for Choice and Reference fields).
+  extraItems: Item[];
+
   // May be used to highlight matches using buildHighlightedDom().
   highlightFunc: HighlightFunc;
 
@@ -159,7 +162,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
 
     if (!cleanedSearchText) {
       // In this case we are just returning the first few items.
-      return {items, highlightFunc: highlightNone, selectIndex: -1};
+      return {items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1};
     }
 
     const highlightFunc = highlightMatches.bind(null, searchWords);
@@ -170,7 +173,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     if (selectIndex >= 0 && !startsWithText(items[selectIndex], cleanedSearchText, searchWords)) {
       selectIndex = -1;
     }
-    return {items, highlightFunc, selectIndex};
+    return {items, extraItems: [], highlightFunc, selectIndex};
   }
 
   /**

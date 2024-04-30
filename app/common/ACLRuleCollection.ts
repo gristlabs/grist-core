@@ -3,14 +3,15 @@ import {AVAILABLE_BITS_COLUMNS, AVAILABLE_BITS_TABLES, trimPermissions} from 'ap
 import {ACLRulesReader} from 'app/common/ACLRulesReader';
 import {AclRuleProblem} from 'app/common/ActiveDocAPI';
 import {DocData} from 'app/common/DocData';
-import {AclMatchFunc, ParsedAclFormula, RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
+import {RulePart, RuleSet, UserAttributeRule} from 'app/common/GranularAccessClause';
 import {getSetMapValue, isNonNullish} from 'app/common/gutil';
+import {CompiledPredicateFormula, ParsedPredicateFormula} from 'app/common/PredicateFormula';
 import {MetaRowRecord} from 'app/common/TableData';
 import {decodeObject} from 'app/plugin/objtypes';
 
 export type ILogger = Pick<Console, 'log'|'debug'|'info'|'warn'|'error'>;
 
-const defaultMatchFunc: AclMatchFunc = () => true;
+const defaultMatchFunc: CompiledPredicateFormula = () => true;
 
 export const SPECIAL_RULES_TABLE_ID = '*SPECIAL';
 
@@ -20,12 +21,12 @@ const DEFAULT_RULE_SET: RuleSet = {
   colIds: '*',
   body: [{
     aclFormula: "user.Access in [EDITOR, OWNER]",
-    matchFunc:  (input) => ['editors', 'owners'].includes(String(input.user.Access)),
+    matchFunc: (input) => ['editors', 'owners'].includes(String(input.user!.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
   }, {
     aclFormula: "user.Access in [VIEWER]",
-    matchFunc:  (input) => ['viewers'].includes(String(input.user.Access)),
+    matchFunc: (input) => ['viewers'].includes(String(input.user!.Access)),
     permissions: parsePermissions('+R-CUDS'),
     permissionsText: '+R',
   }, {
@@ -48,7 +49,7 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
     colIds: ['SchemaEdit'],
     body: [{
       aclFormula: "user.Access in [EDITOR, OWNER]",
-      matchFunc:  (input) => ['editors', 'owners'].includes(String(input.user.Access)),
+      matchFunc: (input) => ['editors', 'owners'].includes(String(input.user!.Access)),
       permissions: parsePermissions('+S'),
       permissionsText: '+S',
     }, {
@@ -63,7 +64,7 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
     colIds: ['AccessRules'],
     body: [{
       aclFormula: "user.Access in [OWNER]",
-      matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
+      matchFunc: (input) => ['owners'].includes(String(input.user!.Access)),
       permissions: parsePermissions('+R'),
       permissionsText: '+R',
     }, {
@@ -78,7 +79,7 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
     colIds: ['FullCopies'],
     body: [{
       aclFormula: "user.Access in [OWNER]",
-      matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
+      matchFunc: (input) => ['owners'].includes(String(input.user!.Access)),
       permissions: parsePermissions('+R'),
       permissionsText: '+R',
     }, {
@@ -102,7 +103,7 @@ const EMERGENCY_RULE_SET: RuleSet = {
   colIds: '*',
   body: [{
     aclFormula: "user.Access in [OWNER]",
-    matchFunc:  (input) => ['owners'].includes(String(input.user.Access)),
+    matchFunc:  (input) => ['owners'].includes(String(input.user!.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
   }, {
@@ -381,7 +382,7 @@ export class ACLRuleCollection {
 
 export interface ReadAclOptions {
   log: ILogger;     // For logging warnings during rule processing.
-  compile?: (parsed: ParsedAclFormula) => AclMatchFunc;
+  compile?: (parsed: ParsedPredicateFormula) => CompiledPredicateFormula;
   // If true, add and modify access rules in some special ways.
   // Specifically, call addHelperCols to add helper columns of restricted columns to rule sets,
   // and use ACLShareRules to implement any special shares as access rules.

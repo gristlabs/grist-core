@@ -14,29 +14,10 @@ import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document, Organization, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
-import moment from 'moment';
 import flatten = require('lodash/flatten');
 import sortBy = require('lodash/sortBy');
 
 const DELAY_BEFORE_SPINNER_MS = 500;
-
-// Given a UTC Date ISO 8601 string (the doc updatedAt string), gives a reader-friendly
-// relative time to now - e.g. 'yesterday', '2 days ago'.
-export function getTimeFromNow(utcDateISO: string): string {
-  const time = moment.utc(utcDateISO);
-  const now = moment();
-  const diff = now.diff(time, 's');
-  if (diff < 0 && diff > -60) {
-    // If the time appears to be in the future, but less than a minute
-    // in the future, chalk it up to a difference in time
-    // synchronization and don't claim the resource will be changed in
-    // the future.  For larger differences, just report them
-    // literally, there's a more serious problem or lack of
-    // synchronization.
-    return now.fromNow();
-  }
-  return time.fromNow();
-}
 
 export interface HomeModel {
   // PageType value, one of the discriminated union values used by AppModel.
@@ -190,7 +171,6 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       localPlugins: _app.topAppModel.plugins,
       untrustedContentOrigin: _app.topAppModel.getUntrustedContentOrigin()!,
       clientScope,
-      theme: _app.currentTheme,
     });
     const importSources = ImportSourceElement.fromArray(pluginManager.pluginsList);
     this.importSources.set(importSources);

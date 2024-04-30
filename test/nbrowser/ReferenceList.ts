@@ -13,7 +13,40 @@ describe('ReferenceList', function() {
   });
 
   describe('other', function() {
-    it('allows to delete document with self reference', async function() {
+    it('fix: doesnt break when table is renamed', async function() {
+      // There was a bug in this scenario:
+      // 1. Create a Ref column that targets itself
+      // 2. Fill it up
+      // 3. Change it to RefList
+      // 4. Rename the table
+      // Previously, this would cause an error, cells were displaying Errors instead of values.
+
+      // Create a table with a Ref column that targets itself.
+      await session.tempNewDoc(cleanup);
+      await gu.sendActions([
+        ['ModifyColumn', 'Table1', 'B', {type: 'Ref:Table1'}],
+        ['AddRecord', 'Table1', null, {A: 'a', B: 1}],
+        ['AddRecord', 'Table1', null, {A: 'b', B: 2}],
+        ['AddRecord', 'Table1', null, {A: 'c', B: 3}],
+      ]);
+      await gu.openColumnPanel();
+      await gu.getCell('B', 1).doClick();
+      await gu.setRefShowColumn('A');
+
+      // Now convert it to RefList.
+      await gu.setType('Reference List', {apply: true});
+
+      // Make sure we see the values.
+      assert.deepEqual(await gu.getVisibleGridCells('B', [1, 2, 3]), ['a', 'b', 'c']);
+
+      // Rename the table using widget in the section.
+      await gu.renameTable('Table1', 'Table2');
+
+      // Make sure we still see the values.
+      assert.deepEqual(await gu.getVisibleGridCells('B', [1, 2, 3]), ['a', 'b', 'c']);
+    });
+
+    it('fix: allows to delete document with self reference', async function() {
       const docId = await session.tempNewDoc(cleanup);
       await gu.sendActions([
         ['AddEmptyTable', 'Table2'],
@@ -39,7 +72,7 @@ describe('ReferenceList', function() {
 
     before(async function() {
       await session.tempDoc(cleanup, 'Favorite_Films.grist');
-      await gu.toggleSidePanel('right');
+      await gu.toggleSidePanel('right', 'open');
       await driver.find(".test-right-tab-pagewidget").click();
       await driver.find('.test-config-data').click();
     });

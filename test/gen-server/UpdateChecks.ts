@@ -4,10 +4,11 @@ import * as sinon from 'sinon';
 
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
-import { serveSomething, Serving } from "test/server/customUtil";
-import { Deps, LatestVersion } from "app/server/lib/UpdateManager";
+import { Defer, serveSomething, Serving } from "test/server/customUtil";
+import { Deps } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { delay } from "app/common/delay";
+import { LatestVersion } from 'app/common/InstallAPI';
 
 const assert = chai.assert;
 
@@ -249,7 +250,7 @@ async function dummyDockerHub() {
 
   return Object.assign(tempServer, {
     signal() {
-      const p = defer();
+      const p = new Defer();
       signals.push(p);
       return p;
     },
@@ -326,22 +327,3 @@ const FIRST_PAGE = (tempServer: Serving) => ({
   next: tempServer.url + "/next",
 });
 
-interface Defer {
-  then: Promise<void>["then"];
-  resolve: () => void;
-  reject: () => void;
-}
-
-const defer = () => {
-  let resolve: () => void;
-  let reject: () => void;
-  const promise = new Promise<void>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  }).catch(() => {});
-  return {
-    then: promise.then.bind(promise),
-    resolve: resolve!,
-    reject: reject!,
-  };
-};

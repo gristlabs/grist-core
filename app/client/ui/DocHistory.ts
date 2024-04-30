@@ -1,9 +1,9 @@
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
+import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
-import {getTimeFromNow} from 'app/client/models/HomeModel';
 import {buildConfigContainer} from 'app/client/ui/RightPanel';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';

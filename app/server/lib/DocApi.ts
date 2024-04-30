@@ -1556,6 +1556,40 @@ export class DocWorkerApi {
         });
       })
     );
+
+    // GET /api/docs/:docId/timings
+    // Checks if timing is on for the document.
+    this._app.get('/api/docs/:docId/timing', isOwner, withDoc(async (activeDoc, req, res) => {
+      if (!activeDoc.isTimingOn) {
+        res.json({status: 'disabled'});
+      } else {
+        const timing =  await activeDoc.getTimings();
+        const status = timing ? 'active' : 'pending';
+        res.json({status, timing});
+      }
+    }));
+
+    // POST /api/docs/:docId/timings/start
+    // Start a timing for the document.
+    this._app.post('/api/docs/:docId/timing/start', isOwner, withDoc(async (activeDoc, req, res) => {
+      if (activeDoc.isTimingOn) {
+        res.status(400).json({error:`Timing already started for ${activeDoc.docName}`});
+        return;
+      }
+      // isTimingOn flag is switched synchronously.
+      await activeDoc.startTiming();
+      res.sendStatus(200);
+    }));
+
+    // POST /api/docs/:docId/timings/stop
+    // Stop a timing for the document.
+    this._app.post('/api/docs/:docId/timing/stop', isOwner, withDoc(async (activeDoc, req, res) => {
+      if (!activeDoc.isTimingOn) {
+        res.status(400).json({error:`Timing not started for ${activeDoc.docName}`});
+        return;
+      }
+      res.json(await activeDoc.stopTiming());
+    }));
   }
 
   /**

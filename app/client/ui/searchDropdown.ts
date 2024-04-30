@@ -2,16 +2,17 @@
 // keyboard. Dropdown features a search input and reoders the list of
 // items to bring best matches at the top.
 
-import { Disposable, dom, DomElementMethod, IOptionFull, makeTestId, Observable, styled } from "grainjs";
-import { theme, vars } from 'app/client/ui2018/cssVars';
 import { ACIndexImpl, ACIndexOptions, ACItem, buildHighlightedDom, HighlightFunc,
          normalizeText } from "app/client/lib/ACIndex";
-import { menuDivider } from "app/client/ui2018/menus";
-import { icon } from "app/client/ui2018/icons";
-import { cssMenuItem, defaultMenuOptions, IOpenController, IPopupOptions, setPopupToFunc } from "popweasel";
-import { mergeWith } from "lodash";
-import { getOptionFull, SimpleList } from "../lib/simpleList";
 import { makeT } from 'app/client/lib/localization';
+import { getOptionFull, SimpleList } from "app/client/lib/simpleList";
+import { theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from "app/client/ui2018/icons";
+import { menuDivider } from "app/client/ui2018/menus";
+import { Disposable, dom, DomElementMethod, IOptionFull, makeTestId, Observable, styled } from "grainjs";
+import mergeWith from "lodash/mergeWith";
+import { cssMenuItem, defaultMenuOptions, IOpenController, IPopupOptions, setPopupToFunc } from "popweasel";
+
 
 const t = makeT('searchDropdown');
 

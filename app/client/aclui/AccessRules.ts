@@ -36,14 +36,13 @@ import {ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID} from 'a
 import {AclRuleProblem, AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {
-  FormulaProperties,
-  getFormulaProperties,
   RulePart,
   RuleSet,
   UserAttributeRule
 } from 'app/common/GranularAccessClause';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {isNonNullish, unwrap} from 'app/common/gutil';
+import {getPredicateFormulaProperties, PredicateFormulaProperties} from 'app/common/PredicateFormula';
 import {SchemaTypes} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {
@@ -496,7 +495,7 @@ export class AccessRules extends Disposable {
     removeItem(this._userAttrRules, userAttr);
   }
 
-  public async checkAclFormula(text: string): Promise<FormulaProperties> {
+  public async checkAclFormula(text: string): Promise<PredicateFormulaProperties> {
     if (text) {
       return this.gristDoc.docComm.checkAclFormula(text);
     }
@@ -1465,7 +1464,6 @@ class ObsUserAttributeRule extends Disposable {
         cssColumnGroup(
           cssCell1(
             aclFormulaEditor({
-              gristTheme: this._accessRules.gristDoc.currentTheme,
               initialValue: this._charId.get(),
               readOnly: false,
               setValue: (text) => this._setUserAttr(text),
@@ -1598,7 +1596,8 @@ class ObsRulePart extends Disposable {
   // If the formula failed validation, the error message to show. Blank if valid.
   private _formulaError = Observable.create(this, '');
 
-  private _formulaProperties = Observable.create<FormulaProperties>(this, getAclFormulaProperties(this._rulePart));
+  private _formulaProperties = Observable.create<PredicateFormulaProperties>(this,
+    getAclFormulaProperties(this._rulePart));
 
   // Error message if any validation failed.
   private _error: Computed<string>;
@@ -1618,7 +1617,7 @@ class ObsRulePart extends Disposable {
 
     this._error = Computed.create(this, (use) => {
       return use(this._formulaError) ||
-        this._warnInvalidColIds(use(this._formulaProperties).usedColIds) ||
+        this._warnInvalidColIds(use(this._formulaProperties).recColIds) ||
         ( !this._ruleSet.isLastCondition(use, this) &&
           use(this._aclFormula) === '' &&
           permissionSetToText(use(this._permissions)) !== '' ?
@@ -1690,7 +1689,6 @@ class ObsRulePart extends Disposable {
         cssCell2(
           wide ? cssCell4.cls('') : null,
           aclFormulaEditor({
-            gristTheme: this._ruleSet.accessRules.gristDoc.currentTheme,
             initialValue: this._aclFormula.get(),
             readOnly: this.isBuiltIn(),
             setValue: (value) => this._setAclFormula(value),
@@ -1913,9 +1911,9 @@ function getChangedStatus(value: boolean): RuleStatus {
   return value ? RuleStatus.ChangedValid : RuleStatus.Unchanged;
 }
 
-function getAclFormulaProperties(part?: RulePart): FormulaProperties {
+function getAclFormulaProperties(part?: RulePart): PredicateFormulaProperties {
   const aclFormulaParsed = part?.origRecord?.aclFormulaParsed;
-  return aclFormulaParsed ? getFormulaProperties(JSON.parse(String(aclFormulaParsed))) : {};
+  return aclFormulaParsed ? getPredicateFormulaProperties(JSON.parse(String(aclFormulaParsed))) : {};
 }
 
 // Return a rule set if it applies to one of the specified columns.

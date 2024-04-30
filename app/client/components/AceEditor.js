@@ -7,10 +7,10 @@ require('ace-builds/src-noconflict/theme-chrome');
 require('ace-builds/src-noconflict/theme-dracula');
 require('ace-builds/src-noconflict/ext-language_tools');
 var {setupAceEditorCompletions} = require('./AceEditorCompletions');
-var {getGristConfig} = require('../../common/urlUtils');
 var dom = require('../lib/dom');
 var dispose = require('../lib/dispose');
 var modelUtil = require('../models/modelUtil');
+var {gristThemeObs} = require('../ui2018/theme');
 
 /**
  * A class to help set up the ace editor with standard formatting and convenience functions
@@ -28,10 +28,9 @@ function AceEditor(options) {
   this.observable = options.observable || null;
   this.saveValueOnBlurEvent = !(options.saveValueOnBlurEvent === false);
   this.calcSize = options.calcSize || ((_elem, size) => size);
-  this.gristDoc = options.gristDoc || null;
-  this.column = options.column || null;
   this.editorState = options.editorState || null;
   this._readonly = options.readonly || false;
+  this._getSuggestions = options.getSuggestions || null;
 
   this.editor = null;
   this.editorDom = null;
@@ -185,19 +184,8 @@ AceEditor.prototype.setFontSize = function(pxVal) {
 AceEditor.prototype._setup = function() {
   // Standard editor setup
   this.editor = this.autoDisposeWith('destroy', ace.edit(this.editorDom));
-  if (this.gristDoc && this.column) {
-    const getSuggestions = (prefix) => {
-      const section = this.gristDoc.viewModel.activeSection();
-      // If section is disposed or is pointing to an empty row, don't try to autocomplete.
-      if (!section?.getRowId()) {
-        return [];
-      }
-      const tableId = section.table().tableId();
-      const columnId = this.column.colId();
-      const rowId = section.activeRowId();
-      return this.gristDoc.docComm.autocomplete(prefix, tableId, columnId, rowId);
-    };
-    setupAceEditorCompletions(this.editor, {getSuggestions});
+  if (this._getSuggestions) {
+    setupAceEditorCompletions(this.editor, {getSuggestions: this._getSuggestions});
   }
   this.editor.setOptions({
     enableLiveAutocompletion: true,   // use autocompletion without needing special activation.
@@ -205,13 +193,10 @@ AceEditor.prototype._setup = function() {
   this.session = this.editor.getSession();
   this.session.setMode('ace/mode/python');
 
-  const gristTheme = this.gristDoc?.currentTheme;
-  this._setAceTheme(gristTheme?.get());
-  if (!getGristConfig().enableCustomCss && gristTheme) {
-    this.autoDispose(gristTheme.addListener((theme) => {
-      this._setAceTheme(theme);
-    }));
-  }
+  this._setAceTheme(gristThemeObs().get());
+  this.autoDispose(gristThemeObs().addListener((newTheme) => {
+    this._setAceTheme(newTheme);
+  }));
 
   // Default line numbers to hidden
   this.editor.renderer.setShowGutter(false);
@@ -283,10 +268,9 @@ AceEditor.prototype._getContentHeight = function() {
   return Math.max(1, this.session.getScreenLength()) * this.editor.renderer.lineHeight;
 };
 
-AceEditor.prototype._setAceTheme = function(gristTheme) {
-  const {enableCustomCss} = getGristConfig();
-  const gristAppearance = gristTheme?.appearance;
-  const aceTheme = gristAppearance === 'dark' && !enableCustomCss ? 'dracula' : 'chrome';
+AceEditor.prototype._setAceTheme = function(newTheme) {
+  const {appearance} = newTheme;
+  const aceTheme = appearance === 'dark' ? 'dracula' : 'chrome';
   this.editor.setTheme(`ace/theme/${aceTheme}`);
 };
 

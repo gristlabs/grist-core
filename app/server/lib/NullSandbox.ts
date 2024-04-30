@@ -18,4 +18,8 @@ export class NullSandbox implements ISandbox {
   public async reportMemoryUsage() {
     throw new UnavailableSandboxMethodError('reportMemoryUsage is not available');
   }
+
+  public getFlavor() {
+    return 'null';
+  }
 }

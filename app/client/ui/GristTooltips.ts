@@ -1,5 +1,6 @@
 import * as commands from 'app/client/components/commands';
 import {makeT} from 'app/client/lib/localization';
+import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
@@ -39,7 +40,9 @@ export type Tooltip =
   | 'uuid'
   | 'lookups'
   | 'formulaColumn'
-  | 'accessRulesTableWide';
+  | 'accessRulesTableWide'
+  | 'setChoiceDropdownCondition'
+  | 'setRefDropdownCondition';
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
 
@@ -125,7 +128,29 @@ see or edit which parts of your document.')
     ...args,
   ),
   accessRulesTableWide: (...args: DomElementArg[]) => cssTooltipContent(
-    dom('div', t('These rules are applied after all column rules have been processed, if applicable.'))
+    dom('div', t('These rules are applied after all column rules have been processed, if applicable.')),
+    ...args,
+  ),
+  setChoiceDropdownCondition: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Filter displayed dropdown values with a condition.')
+    ),
+    dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
+      example: dom.create(buildHighlightedCode, 'choice not in $Categories', {}, {style: 'margin-top: 8px;'}),
+    })),
+    ...args,
+  ),
+  setRefDropdownCondition: (...args: DomElementArg[]) => cssTooltipContent(
+    dom('div',
+      t('Filter displayed dropdown values with a condition.')
+    ),
+    dom('div', {style: 'margin-top: 8px;'}, t('Example: {{example}}', {
+      example: dom.create(buildHighlightedCode, 'choice.Role == "Manager"', {}, {style: 'margin-top: 8px;'}),
+    })),
+    dom('div',
+      cssLink({href: commonUrls.helpFilteringReferenceChoices, target: '_blank'}, t('Learn more.')),
+    ),
+    ...args,
   ),
 };
 

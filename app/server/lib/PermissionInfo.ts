@@ -3,7 +3,8 @@ import { ALL_PERMISSION_PROPS, emptyPermissionSet,
          MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
          toMixed } from 'app/common/ACLPermissions';
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
-import { AclMatchInput, RuleSet, UserInfo } from 'app/common/GranularAccessClause';
+import { RuleSet, UserInfo } from 'app/common/GranularAccessClause';
+import { PredicateFormulaInput } from 'app/common/PredicateFormula';
 import { getSetMapValue } from 'app/common/gutil';
 import log from 'app/server/lib/log';
 import { mapValues } from 'lodash';
@@ -59,7 +60,7 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
 
   // Construct a RuleInfo for a particular input, which is a combination of user and
   // optionally a record.
-  constructor(protected _acls: ACLRuleCollection, protected _input: AclMatchInput) {}
+  constructor(protected _acls: ACLRuleCollection, protected _input: PredicateFormulaInput) {}
 
   public getColumnAspect(tableId: string, colId: string): MixedT {
     const ruleSet: RuleSet|undefined = this._acls.getColumnRuleSet(tableId, colId);
@@ -80,7 +81,7 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
   }
 
   public getUser(): UserInfo {
-    return this._input.user;
+    return this._input.user!;
   }
 
   protected abstract _processRule(ruleSet: RuleSet, defaultAccess?: () => MixedT): MixedT;
@@ -205,7 +206,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
  * included, the result may include permission values like 'allowSome', 'denySome', or 'mixed' (for
  * rules with memo).
  */
-function evaluateRule(ruleSet: RuleSet, input: AclMatchInput): PartialPermissionSet {
+function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPermissionSet {
   let pset: PartialPermissionSet = emptyPermissionSet();
   for (const rule of ruleSet.body) {
     try {
@@ -268,7 +269,7 @@ function evaluateRule(ruleSet: RuleSet, input: AclMatchInput): PartialPermission
  * If a rule has a memo, and passes, add that memo for all permissions it denies.
  * If a rule has a memo, and fails, add that memo for all permissions it allows.
  */
-function extractMemos(ruleSet: RuleSet, input: AclMatchInput): MemoSet {
+function extractMemos(ruleSet: RuleSet, input: PredicateFormulaInput): MemoSet {
   const pset = emptyMemoSet();
   for (const rule of ruleSet.body) {
     try {

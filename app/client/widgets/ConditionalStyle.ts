@@ -4,7 +4,8 @@ import {ColumnRec} from 'app/client/models/DocModel';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {RuleOwner} from 'app/client/models/RuleOwner';
 import {Style} from 'app/client/models/Styles';
-import {cssFieldFormula} from 'app/client/ui/FieldConfig';
+import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
+import {cssFieldFormula} from 'app/client/ui/RightPanelStyles';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
@@ -180,10 +181,11 @@ export class ConditionalStyle extends Disposable {
     column: ColumnRec,
     hasError: Observable<boolean>
   ) {
-    return cssFieldFormula(
+    return dom.create(buildHighlightedCode,
       formula,
-      { gristTheme: this._gristDoc.currentTheme, maxLines: 1 },
+      { maxLines: 1 },
       dom.cls('formula_field_sidepane'),
+      dom.cls(cssFieldFormula.className),
       dom.cls(cssErrorBorder.className, hasError),
       { tabIndex: '-1' },
       dom.on('focus', (_, refElem) => {
