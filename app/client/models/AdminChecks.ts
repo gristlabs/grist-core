@@ -1,5 +1,5 @@
 import { BootProbeIds, BootProbeInfo, BootProbeResult } from 'app/common/BootProbe';
-import { removeTrailingSlash } from 'app/common/gutil';
+import { InstallAPI } from 'app/common/InstallAPI';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Disposable, Observable, UseCBOwner } from 'grainjs';
 
@@ -19,7 +19,7 @@ export class AdminChecks {
   // Keep track of probe results we have received, by probe ID.
   private _results: Map<string, Observable<BootProbeResult>>;
 
-  constructor(private _parent: Disposable) {
+  constructor(private _parent: Disposable, private _installAPI: InstallAPI) {
     this.probes = Observable.create(_parent, []);
     this._results = new Map();
     this._requests = new Map();
@@ -32,18 +32,16 @@ export class AdminChecks {
     const config = getGristConfig();
     const errMessage = config.errMessage;
     if (!errMessage) {
-      // Probe tool URLs are relative to the current URL. Don't trust configuration,
-      // because it may be buggy if the user is here looking at the boot page
-      // to figure out some problem.
-      //
-      // We have been careful to make URLs available with appropriate
-      // middleware relative to both of the admin panel and the boot page.
-      const url = new URL(removeTrailingSlash(document.location.href));
-      url.pathname += '/probe';
-      const resp = await fetch(url.href);
-      const _probes = await resp.json();
-      this.probes.set(_probes.probes);
+      const _probes = await this._installAPI.getChecks().catch(() => undefined);
+      if (!this._parent.isDisposed()) {
+        // Currently, probes are forbidden if not admin.
+        // TODO: May want to relax this to allow some probes that help
+        // diagnose some initial auth problems.
+        this.probes.set(_probes ? _probes.probes : []);
+      }
+      return _probes;
     }
+    return [];
   }
 
   /**
@@ -59,7 +57,7 @@ export class AdminChecks {
     }
     let request = this._requests.get(id);
     if (!request) {
-      request = new AdminCheckRunner(id, this._results, this._parent);
+      request = new AdminCheckRunner(this._installAPI, id, this._results, this._parent);
       this._requests.set(id, request);
     }
     request.start();
@@ -93,15 +91,15 @@ export interface AdminCheckRequest {
  * Manage a single check.
  */
 export class AdminCheckRunner {
-  constructor(public id: string, public results: Map<string, Observable<BootProbeResult>>,
+  constructor(private _installAPI: InstallAPI,
+              public id: string,
+              public results: Map<string, Observable<BootProbeResult>>,
               public parent: Disposable) {
-    const url = new URL(removeTrailingSlash(document.location.href));
-    url.pathname = url.pathname + '/probe/' + id;
-    fetch(url.href).then(async resp => {
-      const _probes: BootProbeResult = await resp.json();
+    this._installAPI.runCheck(id).then(result => {
+      if (parent.isDisposed()) { return; }
       const ob = results.get(id);
       if (ob) {
-        ob.set(_probes);
+        ob.set(result);
       }
     }).catch(e => console.error(e));
   }
@@ -120,7 +118,7 @@ export class AdminCheckRunner {
  * but it can be useful to show extra details and tips in the
  * client.
  */
-const probeDetails: Record<string, ProbeDetails> = {
+export const probeDetails: Record<string, ProbeDetails> = {
   'boot-page': {
     info: `
 This boot page should not be too easy to access. Either turn
@@ -142,6 +140,17 @@ Requests arriving to Grist should have an accurate Host
 header. This is essential when GRIST_SERVE_SAME_ORIGIN
 is set.
 `,
+  },
+
+  'sandboxing': {
+    info: `
+Grist allows for very powerful formulas, using Python.
+We recommend setting the environment variable
+GRIST_SANDBOX_FLAVOR to gvisor if your hardware
+supports it (most will), to run formulas in each document
+within a sandbox isolated from other documents and isolated
+from the network.
+`
   },
 
   'system-user': {

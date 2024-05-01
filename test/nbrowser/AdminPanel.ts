@@ -31,7 +31,7 @@ describe('AdminPanel', function() {
     await server.restart(true);
   });
 
-  it('should not be shown to non-managers', async function() {
+  it('should show an explanation to non-managers', async function() {
     session = await gu.session().user('user2').personalSite.login();
     await session.loadDocMenu('/');
 
@@ -42,8 +42,9 @@ describe('AdminPanel', function() {
 
     // Try loading the URL directly.
     await driver.get(`${server.getHost()}/admin`);
-    assert.match(await driver.findWait('.test-error-header', 2000).getText(), /Access denied/);
-    assert.equal(await driver.find('.test-admin-panel').isPresent(), false);
+    await waitForAdminPanel();
+    assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
+    assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
   });
 
   it('should be shown to managers', async function() {
@@ -192,6 +193,21 @@ describe('AdminPanel', function() {
     // useful there yet.
   });
 
+  it('should show various self checks', async function() {
+    await driver.get(`${server.getHost()}/admin`);
+    await waitForAdminPanel();
+    assert.equal(await driver.find('.test-admin-panel-item-name-probe-reachable').isDisplayed(), true);
+    await gu.waitToPass(
+      async () => assert.match(await driver.find('.test-admin-panel-item-value-probe-reachable').getText(), /✅/),
+      3000,
+    );
+    assert.equal(await driver.find('.test-admin-panel-item-name-probe-system-user').isDisplayed(), true);
+    await gu.waitToPass(
+      async () => assert.match(await driver.find('.test-admin-panel-item-value-probe-system-user').getText(), /✅/),
+      3000,
+    );
+  });
+
   const upperCheckNow = () => driver.find('.test-admin-panel-updates-upper-check-now');
   const lowerCheckNow = () => driver.find('.test-admin-panel-updates-lower-check-now');
   const autoCheckToggle = () => driver.find('.test-admin-panel-updates-auto-check');
@@ -312,6 +328,33 @@ describe('AdminPanel', function() {
       currentVersion: await currentVersion(),
     });
     assert.isNotEmpty(fakeServer.payload.installationId);
+  });
+
+  it('should survive APP_HOME_URL misconfiguration', async function() {
+    process.env.APP_HOME_URL = 'http://misconfigured.invalid';
+    process.env.GRIST_BOOT_KEY = 'zig';
+    await server.restart(true);
+    await driver.get(`${server.getHost()}/admin`);
+    await waitForAdminPanel();
+  });
+
+  it('should honor GRIST_BOOT_KEY fallback', async function() {
+    await gu.removeLogin();
+    await driver.get(`${server.getHost()}/admin`);
+    await waitForAdminPanel();
+    assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
+    assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
+
+    process.env.GRIST_BOOT_KEY = 'zig';
+    await server.restart(true);
+    await driver.get(`${server.getHost()}/admin?boot=zig`);
+    await waitForAdminPanel();
+    assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
+    assert.notMatch(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
+    await driver.get(`${server.getHost()}/admin?boot=zig-wrong`);
+    await waitForAdminPanel();
+    assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
+    assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
   });
 });
 

@@ -25,7 +25,7 @@ export class BootProbes {
 
   public addEndpoints() {
     // Return a list of available probes.
-    this._app.use(`${this._base}/probe$`,
+    this._app.use(`${this._base}/probes$`,
                   ...this._middleware,
                   expressWrap(async (_, res) => {
       res.json({
@@ -36,7 +36,7 @@ export class BootProbes {
     }));
 
     // Return result of running an individual probe.
-    this._app.use(`${this._base}/probe/:probeId`,
+    this._app.use(`${this._base}/probes/:probeId`,
                   ...this._middleware,
                   expressWrap(async (req, res) => {
       const probe = this._probeById.get(req.params.probeId);
@@ -48,7 +48,7 @@ export class BootProbes {
     }));
 
     // Fall-back for errors.
-    this._app.use(`${this._base}/probe`, jsonErrorHandler);
+    this._app.use(`${this._base}/probes`, jsonErrorHandler);
   }
 
   private _addProbes() {
@@ -76,21 +76,27 @@ export interface Probe {
 
 const _homeUrlReachableProbe: Probe = {
   id: 'reachable',
-  name: 'Grist is reachable',
+  name: 'Is home page available at expected URL',
   apply: async (server, req) => {
     const url = server.getHomeInternalUrl();
+    const details: Record<string, any> = {
+      url,
+    };
     try {
       const resp = await fetch(url);
+      details.status = resp.status;
       if (resp.status !== 200) {
         throw new ApiError(await resp.text(), resp.status);
       }
       return {
         success: true,
+        details,
       };
     } catch (e) {
       return {
         success: false,
         details: {
+          ...details,
           error: String(e),
         },
         severity: 'fault',
@@ -101,13 +107,17 @@ const _homeUrlReachableProbe: Probe = {
 
 const _statusCheckProbe: Probe = {
   id: 'health-check',
-  name: 'Built-in Health check',
+  name: 'Is an internal health check passing',
   apply: async (server, req) => {
     const baseUrl = server.getHomeInternalUrl();
     const url = new URL(baseUrl);
     url.pathname = removeTrailingSlash(url.pathname) + '/status';
+    const details: Record<string, any> = {
+      url: url.href,
+    };
     try {
       const resp = await fetch(url);
+      details.status = resp.status;
       if (resp.status !== 200) {
         throw new Error(`Failed with status ${resp.status}`);
       }
@@ -117,11 +127,15 @@ const _statusCheckProbe: Probe = {
       }
       return {
         success: true,
+        details,
       };
     } catch (e) {
       return {
         success: false,
-        error: String(e),
+        details: {
+          ...details,
+          error: String(e),
+        },
         severity: 'fault',
       };
     }
@@ -130,10 +144,14 @@ const _statusCheckProbe: Probe = {
 
 const _userProbe: Probe = {
   id: 'system-user',
-  name: 'System user is sane',
+  name: 'Is the system user following best practice',
   apply: async () => {
+    const details = {
+      uid: process.getuid ? process.getuid() : 'unavailable',
+    };
     if (process.getuid && process.getuid() === 0) {
       return {
+        details,
         success: false,
         verdict: 'User appears to be root (UID 0)',
         severity: 'warning',
@@ -141,6 +159,7 @@ const _userProbe: Probe = {
     } else {
       return {
         success: true,
+        details,
       };
     }
   },
@@ -148,14 +167,20 @@ const _userProbe: Probe = {
 
 const _bootProbe: Probe = {
   id: 'boot-page',
-  name: 'Boot page exposure',
+  name: 'Is the boot page adequately protected',
   apply: async (server) => {
-    if (!server.hasBoot) {
-      return { success: true };
+    const bootKey = server.getBootKey;
+    const hasBoot = Boolean(bootKey);
+    const details: Record<string, any> = {
+      bootKeySet: hasBoot,
+    };
+    if (!hasBoot) {
+      return { success: true, details };
     }
-    const maybeSecureEnough = String(process.env.GRIST_BOOT_KEY).length > 10;
+    details.bootKeyLength = bootKey.length;
     return {
-      success: maybeSecureEnough,
+      success: bootKey.length > 10,
+      details,
       severity: 'hmm',
     };
   },
@@ -170,31 +195,37 @@ const _bootProbe: Probe = {
  */
 const _hostHeaderProbe: Probe = {
   id: 'host-header',
-  name: 'Host header is sane',
+  name: 'Does the host header look correct',
   apply: async (server, req) => {
     const host = req.header('host');
     const url = new URL(server.getHomeUrl(req));
+    const details = {
+      homeUrlHost: url.hostname,
+      headerHost: host,
+    };
     if (url.hostname === 'localhost') {
       return {
         done: true,
+        details,
       };
     }
     if (String(url.hostname).toLowerCase() !== String(host).toLowerCase()) {
       return {
         success: false,
+        details,
         severity: 'hmm',
       };
     }
     return {
       done: true,
+      details,
     };
   },
 };
 
-
 const _sandboxingProbe: Probe = {
   id: 'sandboxing',
-  name: 'Sandboxing is working',
+  name: 'Is document sandboxing effective',
   apply: async (server, req) => {
     const details = server.getSandboxInfo();
     return {
