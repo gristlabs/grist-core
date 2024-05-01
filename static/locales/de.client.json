@@ -1209,7 +1209,9 @@
         "Learn more": "Mehr erfahren",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Erstellen Sie einfache Formulare direkt in Grist und teilen Sie sie mit einem Klick mit unserem neuen Widget. {{learnMoreButton}}",
         "Forms are here!": "Die Formulare sind da!",
-        "These rules are applied after all column rules have been processed, if applicable.": "Diese Regeln werden angewendet, nachdem alle Spaltenregeln abgearbeitet wurden, falls zutreffend."
+        "These rules are applied after all column rules have been processed, if applicable.": "Diese Regeln werden angewendet, nachdem alle Spaltenregeln abgearbeitet wurden, falls zutreffend.",
+        "Example: {{example}}": "Beispiel: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Filtern angezeigte Dropdown-Werte mit einer Bedingung."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1563,5 +1565,28 @@
         "Checkbox": "Kontrollkästchen",
         "Field Format": "Feldformat",
         "Switch": "Schalter"
+    },
+    "ChoiceEditor": {
+        "No choices to select": "Keine Auswahlmöglichkeiten",
+        "Error in dropdown condition": "Fehler in Dropdown-Bedingung",
+        "No choices matching condition": "Keine Auswahlmöglichkeiten für die Bedingung"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Fehler in Dropdown-Bedingung",
+        "No choices matching condition": "Keine Auswahlmöglichkeiten für die Bedingung",
+        "No choices to select": "Keine Auswahlmöglichkeiten"
+    },
+    "DropdownConditionConfig": {
+        "Invalid columns: {{colIds}}": "Ungültige Spalten: {{colIds}}",
+        "Set dropdown condition": "Dropdown-Bedingung festlegen",
+        "Dropdown Condition": "Dropdown-Bedingung"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Fehler in Dropdown-Bedingung",
+        "No choices to select": "Keine Auswahlmöglichkeiten",
+        "No choices matching condition": "Keine Auswahlmöglichkeiten für die Bedingung"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Bedingung eingeben."
     }
 }

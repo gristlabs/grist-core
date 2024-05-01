@@ -1209,7 +1209,9 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}",
         "Forms are here!": "Os formulários chegaram!",
         "Learn more": "Saiba mais",
-        "These rules are applied after all column rules have been processed, if applicable.": "Estas regras são aplicadas após todas as regras da coluna terem sido processadas, se aplicável."
+        "These rules are applied after all column rules have been processed, if applicable.": "Estas regras são aplicadas após todas as regras da coluna terem sido processadas, se aplicável.",
+        "Example: {{example}}": "Exemplo: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Filtre os valores exibidos no menu suspenso com uma condição."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1468,7 +1470,16 @@
         "Field rules": "Regras de campo",
         "Required field": "Campo obrigatório",
         "Ascending": "Ascendente",
-        "Default": "Padrão"
+        "Default": "Padrão",
+        "Descending": "Descendente",
+        "Field Format": "Formato do campo",
+        "Field Rules": "Regras de campo",
+        "Horizontal": "Horizontal",
+        "Options Alignment": "Alinhamento de opções",
+        "Options Sort Order": "Opções Ordem de classificação",
+        "Radio": "Rádio",
+        "Select": "Selecione",
+        "Vertical": "Vertical"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Algumas colunas obrigatórias não estão mapeadas",
@@ -1492,7 +1503,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Formulário enviado",
-        "Thank you! Your response has been recorded.": "Obrigado! Sua resposta foi registrada."
+        "Thank you! Your response has been recorded.": "Obrigado! Sua resposta foi registrada.",
+        "Submit new response": "Enviar nova resposta"
     },
     "DateRangeOptions": {
         "Last 30 days": "Últimos 30 dias",
@@ -1527,5 +1539,25 @@
         "Support Grist": "Apoiar o Grist",
         "Telemetry": "Telemetria",
         "Version": "Versão"
+    },
+    "Field": {
+        "No choices configured": "Nenhuma opção configurada"
+    },
+    "CreateTeamModal": {
+        "Billing is not supported in grist-core": "O faturamento não é compatível com o grist-core",
+        "Cancel": "Cancelar",
+        "Choose a name and url for your team site": "Escolha um nome e uma url para o site da sua equipe",
+        "Create site": "Criar site",
+        "Domain name is invalid": "Nome do domínio é inválido",
+        "Domain name is required": "Nome de domínio é necessário",
+        "Go to your site": "Ir para o seu site",
+        "Team name": "Nome da equipe",
+        "Team name is required": "O Nome da equipe é obrigatório",
+        "Team site created": "Site da equipe criado",
+        "Team url": "URL da equipe",
+        "Work as a Team": "Trabalhe em equipe"
+    },
+    "Columns": {
+        "Remove Column": "Remover Coluna"
     }
 }
