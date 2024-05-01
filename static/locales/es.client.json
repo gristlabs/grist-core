@@ -1199,7 +1199,9 @@
         "Forms are here!": "¡Los formularios están aquí!",
         "Learn more": "Más información",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Cree formularios sencillos directamente en Grist y compártalos en un clic con nuestro nuevo widget. {{learnMoreButton}}",
-        "These rules are applied after all column rules have been processed, if applicable.": "Estas reglas se aplican después de que se hayan procesado todas las reglas de columna, si procede."
+        "These rules are applied after all column rules have been processed, if applicable.": "Estas reglas se aplican después de que se hayan procesado todas las reglas de columna, si procede.",
+        "Filter displayed dropdown values with a condition.": "Filtra los valores desplegables mostrados con una condición.",
+        "Example: {{example}}": "Ejemplo: {{example}}"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPCIÓN"
@@ -1553,5 +1555,28 @@
         "Checkbox": "Casilla de verificación",
         "Field Format": "Formato del campo",
         "Switch": "Cambiar"
+    },
+    "ChoiceEditor": {
+        "No choices matching condition": "No hay opciones que coincidan con la condición",
+        "No choices to select": "Sin opciones para seleccionar",
+        "Error in dropdown condition": "Error en la condición desplegable"
+    },
+    "ChoiceListEditor": {
+        "No choices matching condition": "No hay opciones que cumplan la condición",
+        "No choices to select": "Sin opciones para seleccionar",
+        "Error in dropdown condition": "Error en la condición desplegable"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Establecer condición desplegable",
+        "Dropdown Condition": "Condición desplegable",
+        "Invalid columns: {{colIds}}": "Columnas no válidas: {{colIds}}"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Error en la condición desplegable",
+        "No choices to select": "Sin opciones para seleccionar",
+        "No choices matching condition": "No hay opciones que coincidan con la condición"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Introduzca la condición."
     }
 }
