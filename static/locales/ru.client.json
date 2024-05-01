@@ -1145,7 +1145,9 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Создавайте простые формы прямо в Grist и делитесь ими одним щелчком мыши с помощью нашего нового виджета.. {{learnMoreButton}}",
         "Forms are here!": "Формы уже здесь!",
         "Learn more": "Узнать больше",
-        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо."
+        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо.",
+        "Example: {{example}}": "Пример: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Отфильтровать выпадающие значения по условиям."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1499,5 +1501,28 @@
         "Checkbox": "Флажок",
         "Field Format": "Формат поля",
         "Switch": "Тумблер"
+    },
+    "ChoiceEditor": {
+        "No choices to select": "Нет вариантов для выбора",
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка",
+        "No choices matching condition": "Нет вариантов, соответствующих условию"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка",
+        "No choices matching condition": "Нет вариантов, соответствующих условию",
+        "No choices to select": "Нет вариантов для выбора"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Установить условие выпадающего списка",
+        "Dropdown Condition": "Условие выпадающего списка",
+        "Invalid columns: {{colIds}}": "Неверные столбцы: {{colIds}}"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Введите условие."
+    },
+    "ReferenceUtils": {
+        "No choices matching condition": "Нет вариантов, соответствующих условию",
+        "No choices to select": "Нет вариантов для выбора",
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка"
     }
 }
