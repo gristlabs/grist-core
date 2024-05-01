@@ -739,7 +739,9 @@
         "Forms are here!": "Obrazci so tukaj!",
         "Learn more": "Nauči se več",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}",
-        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo."
+        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo.",
+        "Filter displayed dropdown values with a condition.": "Filtriraj prikazane vrednosti .",
+        "Example: {{example}}": "Primer: {{example}}"
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -848,7 +850,8 @@
         "Contribute": "Prispevajte",
         "Support Grist page": "Grist podpora",
         "Opted In": "Prijavljeno",
-        "Admin Panel": "Skrbniški panel"
+        "Admin Panel": "Skrbniški panel",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Hvala ti! Tvoje zaupanje in podporo zelo cenimo. Kadar koli se odjavi na {{link}} v uporabniškem meniju."
     },
     "HomeIntro": {
         "personal site": "osebna stran",
@@ -1267,13 +1270,20 @@
         "false": "napačno",
         "true": "pravilno",
         "Lines": "Ćrte",
-        "Field Format": "Oblika polja"
+        "Field Format": "Oblika polja",
+        "Multi line": "Več vrstic",
+        "Single line": "Ena vrstica"
     },
     "NumericTextBox": {
         "Decimals": "Decimalke",
         "Currency": "Valuta",
         "Default currency ({{defaultCurrency}})": "Privzeta valuta ({{defaultCurrency}})",
-        "Number Format": "Format številke"
+        "Number Format": "Format številke",
+        "Field Format": "Oblika polja",
+        "Spinner": "Spinner",
+        "Text": "Tekst",
+        "max": "maks",
+        "min": "min"
     },
     "Reference": {
         "CELL FORMAT": "FORMAT CELICE",
@@ -1394,7 +1404,18 @@
     },
     "FormConfig": {
         "Required field": "Obvezno polje",
-        "Field rules": "Pravila polj"
+        "Field rules": "Pravila polj",
+        "Descending": "Padajoče",
+        "Field Format": "Format polja",
+        "Field Rules": "Pravila polja",
+        "Horizontal": "Vodoraven",
+        "Options Alignment": "Poravnava možnosti",
+        "Options Sort Order": "Vrstni red Možnosti",
+        "Radio": "Radio",
+        "Select": "Izberi",
+        "Vertical": "Navpičen",
+        "Ascending": "Naraščajoče",
+        "Default": "Privzeto"
     },
     "CustomView": {
         "To use this widget, please map all non-optional columns from the creator panel on the right.": "Če želite uporabiti ta pripomoček, preslikajte vse neobvezne stolpce na plošči za ustvarjanje na desni.",
@@ -1418,7 +1439,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Obrazec oddan",
-        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen."
+        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen.",
+        "Submit new response": "Predloži nov odgovor"
     },
     "DateRangeOptions": {
         "Last 30 days": "Zadnjih 30 dni",
@@ -1453,5 +1475,36 @@
         "Telemetry": "Telemetrija",
         "Support Grist Labs on GitHub": "Podpri Grist Labs na GitHubu",
         "Version": "Verzija"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Napaka v spustnem meniju"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Napaka v spustnem meniju"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Prekliči",
+        "Billing is not supported in grist-core": "Zaračunavanje ni podprto v grist-core",
+        "Choose a name and url for your team site": "Izberi ime in url za spletno mesto tvoje ekipe",
+        "Create site": "Ustvari spletno mesto",
+        "Domain name is invalid": "Ime domene ni veljavno",
+        "Domain name is required": "Ime domene je obvezno",
+        "Go to your site": "Pojdi na svoje spletno mesto",
+        "Team name": "Ime ekipe",
+        "Team name is required": "Potrebno je ime ekipe",
+        "Team site created": "Spletno mesto ekipe je ustvarjeno",
+        "Team url": "URL ekipe",
+        "Work as a Team": "Delajte kot ekipa"
+    },
+    "Field": {
+        "No values in show column of referenced table": "Ni vrednosti v prikaznem stolpcu referenčne tabele"
+    },
+    "Toggle": {
+        "Field Format": "Format Polja",
+        "Switch": "Stikalo",
+        "Checkbox": "Potrditveno polje"
+    },
+    "Columns": {
+        "Remove Column": "Odstrani stolpec"
     }
 }
