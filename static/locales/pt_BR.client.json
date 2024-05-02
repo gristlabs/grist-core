@@ -1538,10 +1538,30 @@
         "Sponsor": "Patrocinador",
         "Support Grist": "Apoiar o Grist",
         "Telemetry": "Telemetria",
-        "Version": "Versão"
+        "Version": "Versão",
+        "Check now": "Verificar agora",
+        "Error": "Erro",
+        "Grist is up to date": "Grist está atualizado",
+        "Grist releases are at ": "Os lançamentos do Grist estão em ",
+        "Last checked {{time}}": "Última verificação {{time}}",
+        "Learn more.": "Saiba mais.",
+        "Newer version available": "Versão mais recente disponível",
+        "No information available": "Não há informações disponíveis",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Configurações da caixa de areia para o motor de dados",
+        "Sandboxing": "Caixa de areia",
+        "Security Settings": "Configurações de segurança",
+        "Updates": "Atualizações",
+        "unconfigured": "não configurado",
+        "unknown": "desconhecido",
+        "Auto-check when this page loads": "Verificar automaticamente quando esta página carregar",
+        "Checking for updates...": "Verificando atualizações...",
+        "Error checking for updates": "Erro ao verificar atualizações",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permite fórmulas muito poderosas, usando Python. Recomendamos definir a variável de ambiente GRIST_SANDBOX_FLAVOR para gvisor se o seu hardware o suporta (a maioria suportará), para executar fórmulas em cada documento dentro de uma caixa de areia isolada de outros documentos e isolada da rede."
     },
     "Field": {
-        "No choices configured": "Nenhuma opção configurada"
+        "No choices configured": "Nenhuma opção configurada",
+        "No values in show column of referenced table": "Nenhum valor na coluna de exibição da tabela referenciada"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "O faturamento não é compatível com o grist-core",
@@ -1559,5 +1579,33 @@
     },
     "Columns": {
         "Remove Column": "Remover Coluna"
+    },
+    "Toggle": {
+        "Field Format": "Formato do campo",
+        "Switch": "Interruptor",
+        "Checkbox": "Caixa de seleção"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Erro na condição do menu suspenso",
+        "No choices matching condition": "Nenhuma opção que corresponda à condição",
+        "No choices to select": "Não há opções para selecionar"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Erro na condição do menu suspenso",
+        "No choices matching condition": "Nenhuma opção que corresponda à condição",
+        "No choices to select": "Não há opções para selecionar"
+    },
+    "DropdownConditionConfig": {
+        "Invalid columns: {{colIds}}": "Colunas inválidas: {{colIds}}",
+        "Dropdown Condition": "Condição de menu suspenso",
+        "Set dropdown condition": "Definir condição do menu suspenso"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Digite a condição."
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Erro na condição do menu suspenso",
+        "No choices matching condition": "Nenhuma opção que corresponda à condição",
+        "No choices to select": "Não há opções para selecionar"
     }
 }
