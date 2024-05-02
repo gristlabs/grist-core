@@ -19,6 +19,7 @@ describe('DropdownConditionEditor', function () {
       await gu.getCell(1, 1).click();
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await driver.find('.test-field-set-dropdown-condition').click();
+      await gu.waitAppFocus(false);
       await gu.sendKeys('c');
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
@@ -29,7 +30,7 @@ describe('DropdownConditionEditor', function () {
           're\nc\n.Supervisor\n ',
         ]);
       });
-      await gu.sendKeys('hoice not in $');
+      await gu.sendKeysSlowly(['hoice not in $']);
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
         assert.deepEqual(completions, [
@@ -144,7 +145,8 @@ describe('DropdownConditionEditor', function () {
       await gu.getCell(2, 1).click();
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await driver.find('.test-field-set-dropdown-condition').click();
-      await gu.sendKeys('choice');
+      await gu.waitAppFocus(false);
+      await gu.sendKeysSlowly(['choice']);
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
         assert.deepEqual(completions, [

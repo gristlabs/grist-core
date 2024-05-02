@@ -595,7 +595,7 @@ describe('Importer2', function() {
 
       // Finish importing, and check that the destination tables have the correct data.
       await driver.find('.test-modal-confirm').click();
-      await gu.waitForServer();
+      await gu.waitForServer(10_000);
       assert.deepEqual(await gu.getPageNames(), [
         'Table1',
         'Table1',
