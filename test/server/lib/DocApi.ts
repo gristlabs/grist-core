@@ -173,12 +173,14 @@ describe('DocApi', function () {
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
           GRIST_DATA_DIR: dataDir,
-          APP_HOME_URL: await proxy.getServerUrl()
+          APP_HOME_URL: await proxy.getServerUrl(),
+          GRIST_ORG_IN_PATH: 'true',
+          GRIST_SINGLE_PORT: '0',
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
         docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
 
-        proxy.start(home, docs);
+        await proxy.start(home, docs);
 
         homeUrl = serverUrl = await proxy.getServerUrl();
         iterateOverAccountHeaders(account => {
@@ -3182,8 +3184,9 @@ function testDocApi() {
   it("GET /docs/{did1}/compare/{did2} tracks changes between docs", async function () {
     // Pass kiwi's headers as it contains both Authorization and Origin headers
     // if run behind a proxy, so we can ensure that the Origin header check is not made.
+    const userApiServerUrl = docs.proxiedServer ? serverUrl : undefined;
     const chimpyApi = home.makeUserApi(
-      ORG_NAME, 'chimpy', { serverUrl, headers: chimpy.headers as Record<string, string> }
+      ORG_NAME, 'chimpy', { serverUrl: userApiServerUrl, headers: chimpy.headers as Record<string, string> }
     );
     const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
     const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);

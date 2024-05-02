@@ -199,7 +199,12 @@ export class TestServer {
 
 // FIXME: found that TestProxyServer exist, what should I do? :'(
 export class TestServerProxy {
-  public static readonly HOSTNAME: string = 'grist-test-proxy.localhost';
+
+  // Use a different hostname for the proxy than the doc and home workers'
+  // so we can ensure that either we omit the Origin header (so the internal calls to home and doc workers
+  // are not considered as CORS requests), or otherwise we fail because the hostnames are different
+  // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
+  public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
 
   private _stopped: boolean = false;
   private _app = express();
@@ -210,18 +215,19 @@ export class TestServerProxy {
 
   public constructor() {
     this._address = new Promise(resolve => {
-      this._server = this._app.listen(0, TestServerProxy.HOSTNAME, () => {
+      this._server = this._app.listen(0, () => {
         resolve(this._server.address() as AddressInfo);
       });
     });
   }
 
-  public start(homeServer: TestServer, docServer: TestServer) {
+  public async start(homeServer: TestServer, docServer: TestServer) {
     this._app.all(['/dw/dw1', '/dw/dw1/*'], (oreq, ores) => this._getRequestHandlerFor(docServer));
     this._app.all('/*', this._getRequestHandlerFor(homeServer));
     // Forbid now the use of serverUrl property
     homeServer.disallowDirectAccess();
     docServer.disallowDirectAccess();
+    log.info('proxy server running on ', await this.getServerUrl());
   }
 
   public async getAddress() {
@@ -254,11 +260,11 @@ export class TestServerProxy {
         headers: oreq.headers,
       };
 
-      log.debug('[proxy] Requesting: ' + oreq.url);
+      log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
 
       const creq = http
       .request(options, pres => {
-        log.debug('[proxy] Received response for ' + pres.url);
+        log.debug('[proxy] Received response for ' + oreq.url);
 
         // set encoding, required?
         pres.setEncoding('utf8');
