@@ -199,7 +199,7 @@ export class TestServer {
 
 // FIXME: found that TestProxyServer exist, what should I do? :'(
 export class TestServerProxy {
-  public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
+  public static readonly HOSTNAME: string = 'grist-test-proxy.localhost';
 
   private _stopped: boolean = false;
   private _app = express();

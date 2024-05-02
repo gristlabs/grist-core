@@ -79,12 +79,7 @@ describe('DocApi', function () {
   before(async function () {
     oldEnv = new testUtils.EnvironmentSnapshot();
 
-    // Clear redis test database if redis is in use.
-    if (process.env.TEST_REDIS_URL) {
-      const cli = createClient(process.env.TEST_REDIS_URL);
-      await cli.flushdbAsync();
-      await cli.quitAsync();
-    }
+    await flushAllRedis();
 
     // Create the tmp dir removing any previous one
     await prepareFilesystemDirectoryForTests(tmpDir);
@@ -173,7 +168,7 @@ describe('DocApi', function () {
           }
         }
       }
-      setup('separated', async () => {
+      setup('behind-proxy', async () => {
         proxy = new TestServerProxy();
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
@@ -195,11 +190,12 @@ describe('DocApi', function () {
         hasHomeApi = true;
       });
 
-      after(() => {
+      after(async () => {
         proxy.stop();
         iterateOverAccountHeaders((account) => {
           return originalHeaders.get(account)!;
         });
+        await flushAllRedis();
       });
 
       testDocApi();
@@ -5284,6 +5280,7 @@ function setup(name: string, cb: () => Promise<void>) {
   before(async function () {
     suitename = name;
     dataDir = path.join(tmpDir, `${suitename}-data`);
+    await flushAllRedis();
     await fse.mkdirs(dataDir);
     await setupDataDir(dataDir);
     await cb();
@@ -5329,4 +5326,13 @@ async function setupDataDir(dir: string) {
 async function flushAuth() {
   await home.testingHooks.flushAuthorizerCache();
   await docs.testingHooks.flushAuthorizerCache();
+}
+
+async function flushAllRedis() {
+  // Clear redis test database if redis is in use.
+  if (process.env.TEST_REDIS_URL) {
+    const cli = createClient(process.env.TEST_REDIS_URL);
+    await cli.flushdbAsync();
+    await cli.quitAsync();
+  }
 }
