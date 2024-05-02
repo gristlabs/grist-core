@@ -2912,7 +2912,7 @@ function testDocApi() {
   });
 
   it("document is protected during upload-and-import sequence", async function () {
-    if (!process.env.TEST_REDIS_URL) {
+    if (!process.env.TEST_REDIS_URL || home.proxiedServer) {
       this.skip();
     }
     // Prepare an API for a different user.
@@ -5045,13 +5045,21 @@ function testDocApi() {
       delete chimpyConfig.headers!["X-Requested-With"];
       delete anonConfig.headers!["X-Requested-With"];
 
+      let allowedOrigin;
+
       // Target a more realistic Host than "localhost:port"
-      anonConfig.headers!.Host = chimpyConfig.headers!.Host = 'api.example.com';
+      // (if behind a proxy, we already benefit from a custom and realistic host).
+      if (!home.proxiedServer) {
+        anonConfig.headers!.Host = chimpyConfig.headers!.Host =
+          'api.example.com';
+        allowedOrigin = 'http://front.example.com';
+      } else {
+        allowedOrigin = serverUrl;
+      }
 
       const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
       const data = { records: [{ fields: {} }] };
 
-      const allowedOrigin = 'http://front.example.com';
       const forbiddenOrigin = 'http://evil.com';
 
       // Normal same origin requests
