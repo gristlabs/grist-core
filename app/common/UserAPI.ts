@@ -773,7 +773,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async getWorker(key: string): Promise<string> {
-    const json: PublicDocWorkerUrlInfo = (await this.requestJson(`${this._url}/api/worker/${key}`, {
+    const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
       credentials: 'include'
     })) as PublicDocWorkerUrlInfo;
@@ -1159,7 +1159,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 /**
  * Reprensents information to build public doc worker url.
  *
- * Structure that may contain either **exlusively**:
+ * Structure that may contain either **exclusively**:
  *  - a selfPrefix when no pool of doc worker exist.
  *  - a public doc worker url otherwise.
  */

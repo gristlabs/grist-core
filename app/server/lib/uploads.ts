@@ -21,8 +21,8 @@ import * as multiparty from 'multiparty';
 import fetch, {Response as FetchResponse} from 'node-fetch';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import { IDocWorkerMap } from './DocWorkerMap';
-import { getDocWorkerInfoOrSelfPrefix } from './DocWorkerUtils';
+import {IDocWorkerMap} from './DocWorkerMap';
+import {getDocWorkerInfoOrSelfPrefix} from './DocWorkerUtils';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle

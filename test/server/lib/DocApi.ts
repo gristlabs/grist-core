@@ -158,7 +158,7 @@ describe('DocApi', function () {
     describe("should work behind a proxy", async () => {
       let proxy: TestServerProxy;
 
-      const originalHeaders = new WeakMap<AxiosRequestConfig, AxiosRequestConfig<any>["headers"]>();
+      const originalHeaders = new WeakMap<AxiosRequestConfig, AxiosRequestConfig["headers"]>();
       function iterateOverAccountHeaders (
         cb: (account: AxiosRequestConfig) => AxiosRequestConfig<any>["headers"]
       ) {
