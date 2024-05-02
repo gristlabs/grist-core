@@ -4504,6 +4504,7 @@ function testDocApi() {
             id: first.webhookId,
             fields: {
               url: `${serving.url}/200`,
+              authorization: '',
               unsubscribeKey: first.unsubscribeKey,
               eventTypes: ['add', 'update'],
               enabled: true,
@@ -4522,6 +4523,7 @@ function testDocApi() {
             id: second.webhookId,
             fields: {
               url: `${serving.url}/404`,
+              authorization: '',
               unsubscribeKey: second.unsubscribeKey,
               eventTypes: ['add', 'update'],
               enabled: true,
@@ -4889,6 +4891,7 @@ function testDocApi() {
 
             const expectedFields = {
               url: `${serving.url}/foo`,
+              authorization: '',
               eventTypes: ['add'],
               isReadyColumn: 'B',
               tableId: 'Table1',
