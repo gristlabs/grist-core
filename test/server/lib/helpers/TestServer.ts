@@ -197,8 +197,7 @@ export class TestServer {
   }
 }
 
-// FIXME: found that TestProxyServer exist, what should I do? :'(
-export class TestServerProxy {
+export class TestServerReverseProxy {
 
   // Use a different hostname for the proxy than the doc and home workers'
   // so we can ensure that either we omit the Origin header (so the internal calls to home and doc workers
@@ -206,12 +205,11 @@ export class TestServerProxy {
   // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
   public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
 
-  private _stopped: boolean = false;
   private _app = express();
   private _server: http.Server;
   private _address: Promise<AddressInfo>;
 
-  public get stopped() { return this._stopped; }
+  public get stopped() { return !this._server.listening; }
 
   public constructor() {
     this._address = new Promise(resolve => {
@@ -236,15 +234,14 @@ export class TestServerProxy {
 
   public async getServerUrl() {
     const address = await this.getAddress();
-    return `http://${TestServerProxy.HOSTNAME}:${address.port}`;
+    return `http://${TestServerReverseProxy.HOSTNAME}:${address.port}`;
   }
 
   public stop() {
-    if (this._stopped) {
+    if (this.stopped) {
       return;
     }
     log.info("Stopping node TestServerProxy");
-    this._stopped = true;
     this._server.close();
   }
 

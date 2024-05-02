@@ -35,7 +35,7 @@ import {serveSomething, Serving} from 'test/server/customUtil';
 import {prepareDatabase} from 'test/server/lib/helpers/PrepareDatabase';
 import {prepareFilesystemDirectoryForTests} from 'test/server/lib/helpers/PrepareFilesystemDirectoryForTests';
 import {signal} from 'test/server/lib/helpers/Signal';
-import {TestServer, TestServerProxy} from 'test/server/lib/helpers/TestServer';
+import {TestServer, TestServerReverseProxy} from 'test/server/lib/helpers/TestServer';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
@@ -155,8 +155,8 @@ describe('DocApi', function () {
       testDocApi();
     });
 
-    describe("should work behind a proxy", async () => {
-      let proxy: TestServerProxy;
+    describe("should work behind a reverse-proxy", async () => {
+      let proxy: TestServerReverseProxy;
 
       const originalHeaders = new WeakMap<AxiosRequestConfig, AxiosRequestConfig["headers"]>();
       function iterateOverAccountHeaders (
@@ -169,7 +169,7 @@ describe('DocApi', function () {
         }
       }
       setup('behind-proxy', async () => {
-        proxy = new TestServerProxy();
+        proxy = new TestServerReverseProxy();
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
           GRIST_DATA_DIR: dataDir,
