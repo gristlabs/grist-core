@@ -248,7 +248,7 @@ Let's imagine that a user is granted the role of *Owner* for the "Org1" organisa
 
 The below schema illustrates both the inheritance of between the groups and the state of the database:
 
-![BDD state by default](./images/BDD-doc-inheritance-default.png)
+![BDD state by default](./images/BDD-doc-inheritance-default.svg) <!-- Use diagrams.net and import ./images/BDD.drawio to edit this image -->
 
 This inheritance can be changed through the Users management popup in the Contextual Menu for the Workspaces:
 
@@ -256,7 +256,7 @@ This inheritance can be changed through the Users management popup in the Contex
 
 If you change the inherit access to "View Only", here is what happens:
 
-![BDD state after inherit access has changed, the `group_groups.group_id` value has changed](./images/BDD-doc-inheritance-after-change.png)
+![BDD state after inherit access has changed, the `group_groups.group_id` value has changed](./images/BDD-doc-inheritance-after-change.svg) <!-- Use diagrams.net and import ./images/BDD.drawio to edit this image -->
 
 The Org1 owners now belongs to the "WS1 Viewers" group, and the user despite being *Owner* of "Org1" can only view the workspace WS1 and its documents because s/he only gets the Viewer role for this workspace. Regarding the database, `group_groups` which holds the group inheritance has been updated, so the parent group for `id_org1_owner_grp` is now `id_ws1_viewers_grp`.
 
