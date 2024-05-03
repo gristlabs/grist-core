@@ -5,16 +5,16 @@
 >
 > Also contributions are welcome! :heart:
 
-First of all, let's explicit two databases that Grist manages:
+Grist manages two databases:
 1. The Home Database;
 2. The Document Database (aka the grist document);
 
-The Home database is responsible for things related to the instance, like:
- - the users and the groups registered on the instance;
- - the billing;
- - the organisations (aka sites), the workspaces;
- - the documents metadata (id, name, workspace under which it is located...);
- - the rights (ACL) to access to organisations, workspaces and documents (the access to the content of the document is controlled by the document itself);
+The Home database is responsible for things related to the instance, such as:
+ - the users and the groups registered on the instance,
+ - the billing,
+ - the organisations (also called sites), the workspaces,
+ - the documents' metadata (such as ID, name, or workspace under which it is located);
+ - the access permissions (ACLs) to organisations, workspaces and documents (access to the content of the document is controlled by the document itself);
 
 A Grist Document is a Sqlite database which contains data like:
  - The tables, pages, views data;
@@ -24,7 +24,7 @@ A Grist Document is a Sqlite database which contains data like:
 
 ### Inspecting the Document
 
-A Grist Document (with the `.grist` extension) is actually a sqlite database. You may download a document like [this one](https://api.getgrist.com/o/templates/api/docs/keLK5sVeyfPkxyaXqijz2x/download?template=false&nohistory=false) and inspect its content using the `sqlite3` command:
+A Grist Document (with the `.grist` extension) is actually a SQLite database. You may download a document like [this one](https://api.getgrist.com/o/templates/api/docs/keLK5sVeyfPkxyaXqijz2x/download?template=false&nohistory=false) and inspect its content using the `sqlite3` command:
 
 ````
 $ sqlite3 Flashcards.grist
@@ -48,22 +48,22 @@ _grist_REPL_Hist                  _gristsys_Files
 _grist_Shares                     _gristsys_PluginData
 ````
 
-:warning: Be sure to work on a copy of a document if you inspect its content, otherwise you may loose data.
+:warning: If you want to ensure that you will not alter a document's contents, make a backup copy beforehand.
 
 ### The migrations
 
-The migrations are handled in the python sandbox in this code:
+The migrations are handled in the Python sandbox in this code:
 https://github.com/gristlabs/grist-core/blob/main/sandbox/grist/migrations.py
 
 For more information, please consult [the documentation for migrations](./migrations.md).
 
 ## The Home Database
 
-The home database may either be a sqlite or a postgresql database depending on how the Grist instance has been installed. You may check the `TYPEORM_*` env variables in the [README](https://github.com/gristlabs/grist-core/blob/main/README.md).
+The home database may either be a SQLite or a PostgreSQL database depending on how the Grist instance has been installed. For details, please refer to the `TYPEORM_*` env variables in the [README](https://github.com/gristlabs/grist-core/blob/main/README.md#database-variables).
 
-Unless otherwise configured, the home database is a sqlite file. In docker, it is stored at this location: `/persist/home.sqlite3`.
+Unless otherwise configured, the home database is a SQLite file. In the default Docker image, it is stored at this location: `/persist/home.sqlite3`.
 
-The schema below is the same (except minor differences in the column types) whatever the database type is.
+The schema below is the same (except for minor differences in the column types), regardless of what the database type is.
 
 ### The Schema
 
