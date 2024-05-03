@@ -1,11 +1,20 @@
 import { ApiError } from "app/common/ApiError";
 import { normalizeEmail } from 'app/common/emails';
+import { UserOrgPrefs } from "app/common/Prefs";
 import * as roles from 'app/common/roles';
-import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, PermissionDelta, PREVIEWER_EMAIL } from "app/common/UserAPI";
+import {
+  ANONYMOUS_USER_EMAIL,
+  EVERYONE_EMAIL,
+  PermissionDelta,
+  PREVIEWER_EMAIL,
+  UserProfile
+} from "app/common/UserAPI";
+import { Login } from "app/gen-server/entity/Login";
 import { User } from "app/gen-server/entity/User";
 import { appSettings } from "app/server/lib/AppSettings";
-import { Connection, EntityManager } from "typeorm";
+import { EntityManager } from "typeorm";
 import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "../HomeDBManager";
+import { Permissions } from "../Permissions";
 import { GetUserOptions, QueryResult } from "./Interfaces";
 
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
@@ -17,15 +26,88 @@ export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').
 // A list of emails we don't expect to see logins for.
 const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];
 
+// A specification of the users available during a request.  This can be a single
+// user, identified by a user id, or a collection of profiles (typically drawn from
+// the session).
+export type AvailableUsers = number | UserProfile[];
+
+const utils = {
+  // A type guard to check for single-user case.
+  isSingleUser: function (users: AvailableUsers): users is number {
+    return typeof users === 'number';
+  }
+};
+
 
 export class UsersManager {
+  public readonly utils = utils;
+  private _specialUserIds: {[name: string]: number} = {};  // id for anonymous user, previewer, etc
 
-  private _connection: Connection;
+  private get _connection () {
+    return this._homeDb.connection;
+  }
 
   public constructor(private readonly _homeDb: HomeDBManager) {}
 
-  public setConnection(connection: Connection) {
-    this._connection = connection;
+  public runInTransaction(transaction: EntityManager|undefined, op: (manager: EntityManager) => Promise<any>) {
+    return this._homeDb.runInTransaction(transaction, op);
+  }
+
+  public getSpecialUserId(key: string) {
+    return this._specialUserIds[key];
+  }
+
+  /**
+   * Get the anonymous user, as a constructed object rather than a database lookup.
+   */
+  public getAnonymousUser(): User {
+    const user = new User();
+    user.id = this.getAnonymousUserId();
+    user.name = "Anonymous";
+    user.isFirstTimeUser = false;
+    const login = new Login();
+    login.displayEmail = login.email = ANONYMOUS_USER_EMAIL;
+    user.logins = [login];
+    user.ref = '';
+    return user;
+  }
+
+  /**
+   *
+   * Get the id of the anonymous user.
+   *
+   */
+  public getAnonymousUserId(): number {
+    const id = this._specialUserIds[ANONYMOUS_USER_EMAIL];
+    if (!id) { throw new Error("Anonymous user not available"); }
+    return id;
+  }
+
+  /**
+   * Get the id of the thumbnail user.
+   */
+  public getPreviewerUserId(): number {
+    const id = this._specialUserIds[PREVIEWER_EMAIL];
+    if (!id) { throw new Error("Previewer user not available"); }
+    return id;
+  }
+
+  /**
+   * Get the id of the 'everyone' user.
+   */
+  public getEveryoneUserId(): number {
+    const id = this._specialUserIds[EVERYONE_EMAIL];
+    if (!id) { throw new Error("'everyone' user not available"); }
+    return id;
+  }
+
+  /**
+   * Get the id of the 'support' user.
+   */
+  public getSupportUserId(): number {
+    const id = this._specialUserIds[SUPPORT_EMAIL];
+    if (!id) { throw new Error("'support' user not available"); }
+    return id;
   }
 
   // Fetch user from login, creating the user if previously unseen, allowing one retry
@@ -75,7 +157,7 @@ export class UsersManager {
   public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
-    const userByLogin = await this._runInTransaction(transaction, async manager => {
+    const userByLogin = await this.runInTransaction(transaction, async manager => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
         .select('user')
@@ -151,7 +233,7 @@ export class UsersManager {
         // Add a personal organization for this user.
         // We don't add a personal org for anonymous/everyone/previewer "users" as it could
         // get a bit confusing.
-        const result = await this.addOrg(user, {name: "Personal"}, {
+        const result = await this._homeDb.addOrg(user, {name: "Personal"}, {
           setUserAsOwner: true,
           useNewPlan: true,
           product: PERSONAL_FREE_PLAN,
@@ -165,7 +247,7 @@ export class UsersManager {
         const userOrgPrefs: UserOrgPrefs = {showGristTour: true};
         const orgId = result.data;
         if (orgId) {
-          await this.updateOrg({userId: user.id}, orgId, {userOrgPrefs}, manager);
+          await this._homeDb.updateOrg({userId: user.id}, orgId, {userOrgPrefs}, manager);
         }
       }
       if (needUpdate) {
@@ -292,6 +374,76 @@ export class UsersManager {
     };
   }
 
+  public async initializeSpecialIds(): Promise<void> {
+    await this._maybeCreateSpecialUserId({
+      email: ANONYMOUS_USER_EMAIL,
+      name: "Anonymous"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: PREVIEWER_EMAIL,
+      name: "Preview"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: EVERYONE_EMAIL,
+      name: "Everyone"
+    });
+    await this._maybeCreateSpecialUserId({
+      email: SUPPORT_EMAIL,
+      name: "Support"
+    });
+  }
+
+  /**
+   * Check for anonymous user, either encoded directly as an id, or as a singular
+   * profile (this case arises during processing of the session/access/all endpoint
+   * whether we are checking for available orgs without committing yet to a particular
+   * choice of user).
+   */
+  public isAnonymousUser(users: AvailableUsers): boolean {
+    return utils.isSingleUser(users) ? users === this.getAnonymousUserId() :
+      users.length === 1 && normalizeEmail(users[0].email) === ANONYMOUS_USER_EMAIL;
+  }
+
+  /**
+   * Get ids of users to be excluded from member counts and emails.
+   */
+  public getExcludedUserIds(): number[] {
+    return [this.getSupportUserId(), this.getAnonymousUserId(), this.getEveryoneUserId()];
+  }
+
+  /**
+   * Returns a Promise for an array of User entites for the given userIds.
+   */
+  public async getUsers(userIds: number[], optManager?: EntityManager): Promise<User[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+    const manager = optManager || new EntityManager(this._connection);
+    const queryBuilder = manager.createQueryBuilder()
+      .select('users')
+      .from(User, 'users')
+      .where('users.id IN (:...userIds)', {userIds});
+    return await queryBuilder.getMany();
+  }
+
+  /**
+   *
+   * Get the id of a special user, creating that user if it is not already present.
+   *
+   */
+  private async _maybeCreateSpecialUserId(profile: UserProfile) {
+    let id = this._specialUserIds[profile.email];
+    if (!id) {
+      // get or create user - with retry, since there'll be a race to create the
+      // user if a bunch of servers start simultaneously and the user doesn't exist
+      // yet.
+      const user = await this.getUserByLoginWithRetry(profile.email, {profile});
+      if (user) { id = this._specialUserIds[profile.email] = user.id; }
+    }
+    if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
+    return id;
+  }
+
   // This deals with the problem posed by receiving a PermissionDelta specifying a
   // role for both alice@x and Alice@x.  We do not distinguish between such emails.
   // If there are multiple indistinguishabe emails, we preserve just one of them,
@@ -314,5 +466,4 @@ export class UsersManager {
     }
     delta.users = users;
   }
-
 }

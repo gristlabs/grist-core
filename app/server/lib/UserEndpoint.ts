@@ -1,5 +1,4 @@
 import { ApiError } from 'app/common/ApiError';
-import { User } from 'app/gen-server/entity/User';
 import { NextFunction, Request, Response, Router } from 'express';
 import { RequestWithLogin } from './Authorizer';
 
