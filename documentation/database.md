@@ -7,7 +7,7 @@
 
 Grist manages two databases:
 1. The Home Database;
-2. The Document Database (aka the grist document);
+2. The Document Database (also known as "the grist document");
 
 The Home database is responsible for things related to the instance, such as:
  - the users and the groups registered on the instance,
@@ -16,7 +16,7 @@ The Home database is responsible for things related to the instance, such as:
  - the documents' metadata (such as ID, name, or workspace under which it is located);
  - the access permissions (ACLs) to organisations, workspaces and documents (access to the content of the document is controlled by the document itself);
 
-A Grist Document is a Sqlite database which contains data like:
+A Grist Document contains data like:
  - The tables, pages, views data;
  - The ACL *inside* to access to all or part of tables (rows or columns);
 
@@ -24,7 +24,7 @@ A Grist Document is a Sqlite database which contains data like:
 
 ### Inspecting the Document
 
-A Grist Document (with the `.grist` extension) is actually a SQLite database. You may download a document like [this one](https://api.getgrist.com/o/templates/api/docs/keLK5sVeyfPkxyaXqijz2x/download?template=false&nohistory=false) and inspect its content using the `sqlite3` command:
+A Grist Document (with the `.grist` extension) is actually a SQLite database. You may download a document like [this one](https://api.getgrist.com/o/templates/api/docs/keLK5sVeyfPkxyaXqijz2x/download?template=false&nohistory=false) and inspect its content using a tool such as the `sqlite3` command:
 
 ````
 $ sqlite3 Flashcards.grist
@@ -153,6 +153,7 @@ Permissions to access either a document, workspace or an organisation.
 | doc_id | The document id associated to this ACL (if set, workspace_id and org_id are null) |
 | group_id | The group of users for which the ACL applies |
 
+<a name="acl-permissions"></a>
 The permissions are stored as an integer which is read in its binary form which allows to make bitwise operations:
 
 | Name | Value (binary) | Description |
@@ -205,7 +206,7 @@ The groups are entities that may contain either other groups and/or users.
 | id | The primary key   |
 | name   | The name (see the 5 types of groups below) |
 
-Only 5 types of groups exist, which corresponds actually to Roles (for the permission, please refer to the section detailing the `acl_rules` tables):
+Only 5 types of groups exist, which corresponds actually to Roles (for the permissions, please refer to the [ACL rules permissions details](#acl-permissions)):
  - `owners` (see the `OWNERS` permissions)
  - `editors` (see the `EDITORS` permissions)
  - `viewers` (see the `VIEWS` permissions)
@@ -243,7 +244,7 @@ We mentioned earlier that the groups currently holds the roles with the associat
 
 The database stores the inheritances of rights as described below.
 
-Let's imagine that a user is granted the role of *Owner* for the "Org1" organisation, s/he therefore belongs to the group "Org1 Owners" (aka `id_org1_owner_grp`) which also belongs to the "WS1 Owners" (aka `id_ws1_owner_grp`) by default. In other words, this user is by default owner of both the Org1 organization and of the WS1 workspace.
+Let's imagine that a user is granted the role of *Owner* for the "Org1" organisation, s/he therefore belongs to the group "Org1 Owners" (whose ID is `id_org1_owner_grp`) which also belongs to the "WS1 Owners" (whose ID is `id_ws1_owner_grp`) by default. In other words, this user is by default owner of both the Org1 organization and of the WS1 workspace.
 
 The below schema illustrates both the inheritance of between the groups and the state of the database:
 
