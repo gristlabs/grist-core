@@ -16,7 +16,7 @@ The Home database is responsible for things related to the instance, such as:
  - the documents' metadata (such as ID, name, or workspace under which it is located);
  - the access permissions (ACLs) to organisations, workspaces and documents (access to the content of the document is controlled by the document itself);
 
-A Grist Document contains data like:
+A Grist Document contains data such as:
  - The tables, pages, views data;
  - The ACL *inside* to access to all or part of tables (rows or columns);
 
