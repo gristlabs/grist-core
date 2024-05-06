@@ -1474,13 +1474,36 @@
         "Support Grist": "Podpora Gristu",
         "Telemetry": "Telemetrija",
         "Support Grist Labs on GitHub": "Podpri Grist Labs na GitHubu",
-        "Version": "Verzija"
+        "Version": "Verzija",
+        "Auto-check when this page loads": "Samodejno preveri, ko se ta stran naloži",
+        "Check now": "Preveri",
+        "Checking for updates...": "Iskanje posodobitev ...",
+        "Error": "Napaka",
+        "Error checking for updates": "Napaka pri preverjanju posodobitev",
+        "Grist is up to date": "Grist je posodobljen",
+        "Last checked {{time}}": "Nazadnje preverjeno {{time}}",
+        "Learn more.": "Nauči se več.",
+        "Newer version available": "Na voljo je novejša različica",
+        "No information available": "Podatki niso na voljo",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Nastavitve peskovnika za podatkovni mehanizem",
+        "Sandboxing": "Peskovnik",
+        "Security Settings": "Varnostne nastavitve",
+        "Updates": "Posodobitve",
+        "unconfigured": "nekonfigurirano",
+        "unknown": "neznano",
+        "Grist releases are at ": "Grist verzije so pri ",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist omogoča zelo zmogljive formule z uporabo Pythona. Priporočamo, da spremenljivko okolja GRIST_SANDBOX_FLAVOR nastavite na gvisor, če vaša strojna oprema to podpira (večina bo), da zaženete formule v vsakem dokumentu znotraj peskovnika, izoliranega od drugih dokumentov in izoliranega od omrežja."
     },
     "ChoiceEditor": {
-        "Error in dropdown condition": "Napaka v spustnem meniju"
+        "Error in dropdown condition": "Napaka v spustnem meniju",
+        "No choices matching condition": "Ni izbire, ki se ujema z pogojem",
+        "No choices to select": "Ni izbire"
     },
     "ChoiceListEditor": {
-        "Error in dropdown condition": "Napaka v spustnem meniju"
+        "Error in dropdown condition": "Napaka v spustnem meniju",
+        "No choices matching condition": "Ni izbire za dane pogoje",
+        "No choices to select": "Ni izbire"
     },
     "CreateTeamModal": {
         "Cancel": "Prekliči",
@@ -1497,7 +1520,8 @@
         "Work as a Team": "Delajte kot ekipa"
     },
     "Field": {
-        "No values in show column of referenced table": "Ni vrednosti v prikaznem stolpcu referenčne tabele"
+        "No values in show column of referenced table": "Ni vrednosti v prikaznem stolpcu referenčne tabele",
+        "No choices configured": "Ni konfiguriranih izbir"
     },
     "Toggle": {
         "Field Format": "Format Polja",
@@ -1506,5 +1530,18 @@
     },
     "Columns": {
         "Remove Column": "Odstrani stolpec"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Vnesi pogoj"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Napaka v spustnem pogoju",
+        "No choices to select": "Ni izbire",
+        "No choices matching condition": "Ni izbora, ki ustreza pogoju"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Nastqavi dropdown pogoj",
+        "Dropdown Condition": "Pogoj za spustni menu",
+        "Invalid columns: {{colIds}}": "Neveljavni stolpci: {{colIds}}"
     }
 }
