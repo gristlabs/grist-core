@@ -104,6 +104,10 @@ export class DocApiForwarder {
     url.pathname = removeTrailingSlash(docWorkerUrl.pathname) + url.pathname;
 
     const headers: {[key: string]: string} = {
+      // At this point, we have already checked and trusted the origin of the request.
+      // See FlexServer#addApiMiddleware(). So don't include the "Origin" header.
+      // Including this header also would break features like form submissions,
+      // as the "Host" header is not retrieved when calling getTransitiveHeaders().
       ...getTransitiveHeaders(req, { includeOrigin: false }),
       'Content-Type': req.get('Content-Type') || 'application/json',
     };
