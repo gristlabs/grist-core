@@ -87,7 +87,6 @@ export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
   // Note that the request origin is undefined for non-CORS requests.
   const origin = req.headers.origin;
   if (!origin) { return true; } // Not a CORS request.
-
   if (!allowHost(req, new URL(origin))) { return false; }
 
   if (resp) {

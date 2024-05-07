@@ -420,7 +420,7 @@ export async function fetchDoc(
   template: boolean
 ): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
-  const headers = getTransitiveHeaders(req, { includeOrigin: false }); // NO EFFECT
+  const headers = getTransitiveHeaders(req, { includeOrigin: false });
 
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.

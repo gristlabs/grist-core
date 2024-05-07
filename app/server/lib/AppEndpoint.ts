@@ -50,10 +50,8 @@ export function attachAppEndpoint(options: AttachOptions): void {
     sendAppPage(req, res, {path: 'apiconsole.html', status: 200, config: {}})));
 
   app.get('/api/worker/:docId([^/]+)/?*', expressWrap(async (req, res) => {
-    // FIXME: To the reviewers: I moved these two lines at the top of the express handler.
-    // Is it OK? Seems rather safe to me.
-    res.header("Access-Control-Allow-Credentials", "true");
     if (!trustOrigin(req, res)) { throw new Error('Unrecognized origin'); }
+    res.header("Access-Control-Allow-Credentials", "true");
 
     const {selfPrefix, docWorker} = await getDocWorkerInfoOrSelfPrefix(
       req.params.docId, docWorkerMap, gristServer.getTag()
