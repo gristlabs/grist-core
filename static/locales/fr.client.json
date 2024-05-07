@@ -1410,7 +1410,8 @@
         "Options Alignment": "Option d'alignement",
         "Options Sort Order": "Option d'ordonnancement",
         "Vertical": "Verticale",
-        "Radio": "Radio"
+        "Radio": "Radio",
+        "Select": "Sélectionner"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1481,7 +1482,7 @@
     "CreateTeamModal": {
         "Cancel": "Annuler",
         "Choose a name and url for your team site": "Choisissez un nom et une adresse URL pour votre espace d'équipe",
-        "Create site": "Créer",
+        "Create site": "Créer un site",
         "Domain name is invalid": "Le nom de domaine n'est pas valide",
         "Domain name is required": "Le nom de domaine est requis",
         "Go to your site": "Aller vers votre espace d'équipe",
@@ -1493,7 +1494,9 @@
         "Team name is required": "Le nom de l'espace d'équipe est requis"
     },
     "Toggle": {
-        "Field Format": "Format du champ"
+        "Field Format": "Format du champ",
+        "Checkbox": "Case à cocher",
+        "Switch": "Changer"
     },
     "Columns": {
         "Remove Column": "Supprimer la colonne"

@@ -182,12 +182,14 @@ describe('AdminPanel', function() {
     await waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel-item-sandboxing').isDisplayed(), true);
     await gu.waitToPass(
-      async () => assert.match(await driver.find('.test-admin-panel-item-value-sandboxing').getText(), /^unknown/),
+      // unknown for grist-saas, unconfigured for grist-core.
+      async () => assert.match(await driver.find('.test-admin-panel-item-value-sandboxing').getText(),
+                               /^((unknown)|(unconfigured))/),
       3000,
     );
     // It would be good to test other scenarios, but we are using
-    // a multi-server setup and the sandbox test isn't useful there
-    // yet.
+    // a multi-server setup on grist-saas and the sandbox test isn't
+    // useful there yet.
   });
 
   const upperCheckNow = () => driver.find('.test-admin-panel-updates-upper-check-now');

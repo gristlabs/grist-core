@@ -739,7 +739,9 @@
         "Forms are here!": "Obrazci so tukaj!",
         "Learn more": "Nauči se več",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Ustvari preproste obrazce neposredno v Gristu in jih deli z enim klikom z našim novim pripomočkom. {{learnMoreButton}}",
-        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo."
+        "These rules are applied after all column rules have been processed, if applicable.": "Ta pravila se uporabijo, ko so obdelana vsa pravila stolpcev, če so na voljo.",
+        "Filter displayed dropdown values with a condition.": "Filtriraj prikazane vrednosti .",
+        "Example: {{example}}": "Primer: {{example}}"
     },
     "UserManager": {
         "Anyone with link ": "Vsakdo s povezavo ",
@@ -848,7 +850,8 @@
         "Contribute": "Prispevajte",
         "Support Grist page": "Grist podpora",
         "Opted In": "Prijavljeno",
-        "Admin Panel": "Skrbniški panel"
+        "Admin Panel": "Skrbniški panel",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Hvala ti! Tvoje zaupanje in podporo zelo cenimo. Kadar koli se odjavi na {{link}} v uporabniškem meniju."
     },
     "HomeIntro": {
         "personal site": "osebna stran",
@@ -875,7 +878,8 @@
         "Welcome to Grist!": "Dobrodošli v Gristu!",
         "Visit our {{link}} to learn more about Grist.": "Obiščite našo spletno stran {{link}} da izveste več o Grisstu.",
         "Sign in": "Prijavi se",
-        "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi."
+        "To use Grist, please either sign up or sign in.": "Če želiš uporabljati Grist, se prijavi ali prvič prijavi.",
+        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Izvedi več v našem {{helpCenterLink}} ali poišči strokovnjaka prek našega {{sproutsProgram}}."
     },
     "WelcomeSitePicker": {
         "You have access to the following Grist sites.": "Imate dostop do naslednjih Grist spletnih mest .",
@@ -1264,13 +1268,22 @@
     },
     "NTextBox": {
         "false": "napačno",
-        "true": "pravilno"
+        "true": "pravilno",
+        "Lines": "Ćrte",
+        "Field Format": "Oblika polja",
+        "Multi line": "Več vrstic",
+        "Single line": "Ena vrstica"
     },
     "NumericTextBox": {
         "Decimals": "Decimalke",
         "Currency": "Valuta",
         "Default currency ({{defaultCurrency}})": "Privzeta valuta ({{defaultCurrency}})",
-        "Number Format": "Format številke"
+        "Number Format": "Format številke",
+        "Field Format": "Oblika polja",
+        "Spinner": "Spinner",
+        "Text": "Tekst",
+        "max": "maks",
+        "min": "min"
     },
     "Reference": {
         "CELL FORMAT": "FORMAT CELICE",
@@ -1391,7 +1404,18 @@
     },
     "FormConfig": {
         "Required field": "Obvezno polje",
-        "Field rules": "Pravila polj"
+        "Field rules": "Pravila polj",
+        "Descending": "Padajoče",
+        "Field Format": "Format polja",
+        "Field Rules": "Pravila polja",
+        "Horizontal": "Vodoraven",
+        "Options Alignment": "Poravnava možnosti",
+        "Options Sort Order": "Vrstni red Možnosti",
+        "Radio": "Radio",
+        "Select": "Izberi",
+        "Vertical": "Navpičen",
+        "Ascending": "Naraščajoče",
+        "Default": "Privzeto"
     },
     "CustomView": {
         "To use this widget, please map all non-optional columns from the creator panel on the right.": "Če želite uporabiti ta pripomoček, preslikajte vse neobvezne stolpce na plošči za ustvarjanje na desni.",
@@ -1415,7 +1439,8 @@
     },
     "FormSuccessPage": {
         "Form Submitted": "Obrazec oddan",
-        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen."
+        "Thank you! Your response has been recorded.": "Hvala ti! Tvoj odgovor je bil zabeležen.",
+        "Submit new response": "Predloži nov odgovor"
     },
     "DateRangeOptions": {
         "Last 30 days": "Zadnjih 30 dni",
@@ -1449,6 +1474,74 @@
         "Support Grist": "Podpora Gristu",
         "Telemetry": "Telemetrija",
         "Support Grist Labs on GitHub": "Podpri Grist Labs na GitHubu",
-        "Version": "Verzija"
+        "Version": "Verzija",
+        "Auto-check when this page loads": "Samodejno preveri, ko se ta stran naloži",
+        "Check now": "Preveri",
+        "Checking for updates...": "Iskanje posodobitev ...",
+        "Error": "Napaka",
+        "Error checking for updates": "Napaka pri preverjanju posodobitev",
+        "Grist is up to date": "Grist je posodobljen",
+        "Last checked {{time}}": "Nazadnje preverjeno {{time}}",
+        "Learn more.": "Nauči se več.",
+        "Newer version available": "Na voljo je novejša različica",
+        "No information available": "Podatki niso na voljo",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Nastavitve peskovnika za podatkovni mehanizem",
+        "Sandboxing": "Peskovnik",
+        "Security Settings": "Varnostne nastavitve",
+        "Updates": "Posodobitve",
+        "unconfigured": "nekonfigurirano",
+        "unknown": "neznano",
+        "Grist releases are at ": "Grist verzije so pri ",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist omogoča zelo zmogljive formule z uporabo Pythona. Priporočamo, da spremenljivko okolja GRIST_SANDBOX_FLAVOR nastavite na gvisor, če vaša strojna oprema to podpira (večina bo), da zaženete formule v vsakem dokumentu znotraj peskovnika, izoliranega od drugih dokumentov in izoliranega od omrežja."
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Napaka v spustnem meniju",
+        "No choices matching condition": "Ni izbire, ki se ujema z pogojem",
+        "No choices to select": "Ni izbire"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Napaka v spustnem meniju",
+        "No choices matching condition": "Ni izbire za dane pogoje",
+        "No choices to select": "Ni izbire"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Prekliči",
+        "Billing is not supported in grist-core": "Zaračunavanje ni podprto v grist-core",
+        "Choose a name and url for your team site": "Izberi ime in url za spletno mesto tvoje ekipe",
+        "Create site": "Ustvari spletno mesto",
+        "Domain name is invalid": "Ime domene ni veljavno",
+        "Domain name is required": "Ime domene je obvezno",
+        "Go to your site": "Pojdi na svoje spletno mesto",
+        "Team name": "Ime ekipe",
+        "Team name is required": "Potrebno je ime ekipe",
+        "Team site created": "Spletno mesto ekipe je ustvarjeno",
+        "Team url": "URL ekipe",
+        "Work as a Team": "Delajte kot ekipa"
+    },
+    "Field": {
+        "No values in show column of referenced table": "Ni vrednosti v prikaznem stolpcu referenčne tabele",
+        "No choices configured": "Ni konfiguriranih izbir"
+    },
+    "Toggle": {
+        "Field Format": "Format Polja",
+        "Switch": "Stikalo",
+        "Checkbox": "Potrditveno polje"
+    },
+    "Columns": {
+        "Remove Column": "Odstrani stolpec"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Vnesi pogoj"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Napaka v spustnem pogoju",
+        "No choices to select": "Ni izbire",
+        "No choices matching condition": "Ni izbora, ki ustreza pogoju"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Nastqavi dropdown pogoj",
+        "Dropdown Condition": "Pogoj za spustni menu",
+        "Invalid columns: {{colIds}}": "Neveljavni stolpci: {{colIds}}"
     }
 }

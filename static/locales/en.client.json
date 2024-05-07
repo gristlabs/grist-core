@@ -1488,7 +1488,26 @@
         "Support Grist": "Support Grist",
         "Support Grist Labs on GitHub": "Support Grist Labs on GitHub",
         "Telemetry": "Telemetry",
-        "Version": "Version"
+        "Version": "Version",
+        "Auto-check when this page loads": "Auto-check when this page loads",
+        "Check now": "Check now",
+        "Checking for updates...": "Checking for updates...",
+        "Error": "Error",
+        "Error checking for updates": "Error checking for updates",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.",
+        "Grist is up to date": "Grist is up to date",
+        "Grist releases are at ": "Grist releases are at ",
+        "Last checked {{time}}": "Last checked {{time}}",
+        "Learn more.": "Learn more.",
+        "Newer version available": "Newer version available",
+        "No information available": "No information available",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Sandbox settings for data engine",
+        "Sandboxing": "Sandboxing",
+        "Security Settings": "Security Settings",
+        "Updates": "Updates",
+        "unconfigured": "unconfigured",
+        "unknown": "unknown"
     },
     "Columns": {
         "Remove Column": "Remove Column"

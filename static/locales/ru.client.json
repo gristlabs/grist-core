@@ -1145,7 +1145,9 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Создавайте простые формы прямо в Grist и делитесь ими одним щелчком мыши с помощью нашего нового виджета.. {{learnMoreButton}}",
         "Forms are here!": "Формы уже здесь!",
         "Learn more": "Узнать больше",
-        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо."
+        "These rules are applied after all column rules have been processed, if applicable.": "Эти правила применяются после обработки всех правил столбцов, если это применимо.",
+        "Example: {{example}}": "Пример: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Отфильтровать выпадающие значения по условиям."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
@@ -1472,7 +1474,26 @@
         "Support Grist Labs on GitHub": "Поддержите Grist Labs на GitHub",
         "Version": "Версия",
         "Admin Panel": "Панель администратора",
-        "Telemetry": "Телеметрия"
+        "Telemetry": "Телеметрия",
+        "Check now": "Проверь сейчас",
+        "Checking for updates...": "Проверка обновлений...",
+        "Error": "Ошибка",
+        "Grist is up to date": "Grist актуален",
+        "Grist releases are at ": "Релизы Grist находятся в ",
+        "Last checked {{time}}": "Последняя проверка {{time}}",
+        "Learn more.": "Узнать больше.",
+        "No information available": "Информация отсутствует",
+        "Sandbox settings for data engine": "Настройки песочницы для механизма обработки данных",
+        "Sandboxing": "Песочница",
+        "Updates": "Обновления",
+        "unknown": "неизвестный",
+        "Auto-check when this page loads": "Автоматическая проверка при загрузке этой страницы",
+        "Error checking for updates": "Ошибка проверки обновлений",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist позволяет создавать очень мощные формулы с использованием Python.. Мы рекомендуем установить переменную среды GRIST_SANDBOX_FLAVOR к gvisor если ваше оборудование поддерживает это (большинство поддерживает), позволит запускать формулы в каждом документе в изолированной от других документов и сети программной среде.",
+        "Newer version available": "Доступна более новая версия",
+        "OK": "OK",
+        "unconfigured": "несконфигурированно",
+        "Security Settings": "Настройки безопасности"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -1499,5 +1520,28 @@
         "Checkbox": "Флажок",
         "Field Format": "Формат поля",
         "Switch": "Тумблер"
+    },
+    "ChoiceEditor": {
+        "No choices to select": "Нет вариантов для выбора",
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка",
+        "No choices matching condition": "Нет вариантов, соответствующих условию"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка",
+        "No choices matching condition": "Нет вариантов, соответствующих условию",
+        "No choices to select": "Нет вариантов для выбора"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Установить условие выпадающего списка",
+        "Dropdown Condition": "Условие выпадающего списка",
+        "Invalid columns: {{colIds}}": "Неверные столбцы: {{colIds}}"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Введите условие."
+    },
+    "ReferenceUtils": {
+        "No choices matching condition": "Нет вариантов, соответствующих условию",
+        "No choices to select": "Нет вариантов для выбора",
+        "Error in dropdown condition": "Ошибка в условиях выпадающего списка"
     }
 }
