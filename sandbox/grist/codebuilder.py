@@ -433,7 +433,7 @@ def parse_grist_names(builder):
       func = node.parent.func
       if isinstance(func, astroid.nodes.Attribute) and func.attrname in _lookup_method_names:
         obj = infer(func.expr)
-        if _is_table(obj):
+        if _is_table(obj) and node.arg is not None:   # Skip **kwargs, which have arg value of None
           start = atok.get_text_range(node)[0]
           end = start + len(node.arg)
           if code_text[start:end] == node.arg:
