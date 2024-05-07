@@ -42,14 +42,6 @@ import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
 import { getDatabase } from 'test/testUtils';
 
-const chimpy = configForUser('Chimpy');
-const kiwi = configForUser('Kiwi');
-const charon = configForUser('Charon');
-const nobody = configForUser('Anonymous');
-const support = configForUser('support');
-
-const accounts = {chimpy, kiwi, charon, nobody, support};
-
 // some doc ids
 const docIds: { [name: string]: string } = {
   ApiDataRecordsTest: 'sampledocid_7',
@@ -70,6 +62,18 @@ let hasHomeApi: boolean;
 let home: TestServer;
 let docs: TestServer;
 let userApi: UserAPIImpl;
+let extraHeadersForConfig = {};
+
+function makeConfig(username: string): AxiosRequestConfig {
+  const originalConfig = configForUser(username);
+  return {
+    ...originalConfig,
+    headers: {
+      ...originalConfig.headers,
+      ...extraHeadersForConfig
+    }
+  };
+}
 
 describe('DocApi', function () {
   this.timeout(30000);
@@ -133,6 +137,7 @@ describe('DocApi', function () {
     });
 
     it('should not allow anonymous users to create new docs', async () => {
+      const nobody = makeConfig('Anonymous');
       const resp = await axios.post(`${serverUrl}/api/docs`, null, nobody);
       assert.equal(resp.status, 403);
     });
@@ -158,16 +163,6 @@ describe('DocApi', function () {
     describe("should work behind a reverse-proxy", async () => {
       let proxy: TestServerReverseProxy;
 
-      const originalHeaders = new WeakMap<AxiosRequestConfig, AxiosRequestConfig["headers"]>();
-      function iterateOverAccountHeaders (
-        cb: (account: AxiosRequestConfig) => AxiosRequestConfig<any>["headers"]
-      ) {
-        for (const account of Object.values(accounts)) {
-          if (account.headers) {
-            account.headers = cb(account);
-          }
-        }
-      }
       setup('behind-proxy', async () => {
         proxy = new TestServerReverseProxy();
         const additionalEnvConfiguration = {
@@ -179,24 +174,19 @@ describe('DocApi', function () {
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
         docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
-
+        proxy.requireFromOutsideHeader();
         await proxy.start(home, docs);
 
         homeUrl = serverUrl = await proxy.getServerUrl();
-        iterateOverAccountHeaders(account => {
-          originalHeaders.set(account, account.headers);
-          const newHeaders = _.clone(account.headers)!;
-          newHeaders.Origin = serverUrl;
-          return newHeaders;
-        });
         hasHomeApi = true;
+        extraHeadersForConfig = {
+          Origin: serverUrl,
+          ...TestServerReverseProxy.FROM_OUTSIDE_HEADER,
+        };
       });
 
       after(async () => {
         proxy.stop();
-        iterateOverAccountHeaders((account) => {
-          return originalHeaders.get(account)!;
-        });
         await flushAllRedis();
       });
 
@@ -278,6 +268,17 @@ describe('DocApi', function () {
 
 // Contains the tests. This is where you want to add more test.
 function testDocApi() {
+  let chimpy: AxiosRequestConfig, kiwi: AxiosRequestConfig,
+    charon: AxiosRequestConfig, nobody: AxiosRequestConfig, support: AxiosRequestConfig;
+
+  before(function () {
+    chimpy = makeConfig('Chimpy');
+    kiwi = makeConfig('Kiwi');
+    charon = makeConfig('Charon');
+    nobody = makeConfig('Anonymous');
+    support = makeConfig('support');
+  });
+
   async function generateDocAndUrl(docName: string = "Dummy") {
     const wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
     const docId = await userApi.newDoc({name: docName}, wid);
@@ -1386,7 +1387,7 @@ function testDocApi() {
     it(`GET /docs/{did}/tables/{tid}/data supports sorts and limits in ${mode}`, async function () {
       function makeQuery(sort: string[] | null, limit: number | null) {
         const url = new URL(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`);
-        const config = configForUser('chimpy');
+        const config = makeConfig('chimpy');
         if (mode === 'url') {
           if (sort) {
             url.searchParams.append('sort', sort.join(','));
@@ -2858,7 +2859,7 @@ function testDocApi() {
   });
 
   it('POST /workspaces/{wid}/import handles empty filenames', async function () {
-    if (!process.env.TEST_REDIS_URL) {
+    if (!process.env.TEST_REDIS_URL || docs.proxiedServer) {
       this.skip();
     }
     const worker1 = await userApi.getWorkerAPI('import');
@@ -2866,7 +2867,7 @@ function testDocApi() {
     const fakeData1 = await testUtils.readFixtureDoc('Hello.grist');
     const uploadId1 = await worker1.upload(fakeData1, '.grist');
     const resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
-      configForUser('Chimpy'));
+      makeConfig('Chimpy'));
     assert.equal(resp.status, 200);
     assert.equal(resp.data.title, 'Untitled upload');
     assert.equal(typeof resp.data.id, 'string');
@@ -2932,18 +2933,18 @@ function testDocApi() {
     // Check that kiwi only has access to their own upload.
     let wid = (await kiwiApi.getOrgWorkspaces('current')).find((w) => w.name === 'Big')!.id;
     let resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
-      configForUser('Kiwi'));
+      makeConfig('Kiwi'));
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, {error: "access denied"});
 
     resp = await axios.post(`${worker2.url}/api/workspaces/${wid}/import`, {uploadId: uploadId2},
-      configForUser('Kiwi'));
+      makeConfig('Kiwi'));
     assert.equal(resp.status, 200);
 
     // Check that chimpy has access to their own upload.
     wid = (await userApi.getOrgWorkspaces('current')).find((w) => w.name === 'Private')!.id;
     resp = await axios.post(`${worker1.url}/api/workspaces/${wid}/import`, {uploadId: uploadId1},
-      configForUser('Chimpy'));
+      makeConfig('Chimpy'));
     assert.equal(resp.status, 200);
   });
 
@@ -3020,6 +3021,7 @@ function testDocApi() {
   });
 
   it('filters urlIds by org', async function () {
+    if (home.proxiedServer) { this.skip(); }
     // Make two documents with same urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1', urlId: 'urlid'}, ws1);
@@ -3052,6 +3054,7 @@ function testDocApi() {
 
   it('allows docId access to any document from merged org', async function () {
     // Make two documents
+    if (home.proxiedServer) { this.skip(); }
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdoc1'}, ws1);
     const nasaApi = new UserAPIImpl(`${homeUrl}/o/nasa`, {
@@ -5032,6 +5035,8 @@ function testDocApi() {
 
   describe("Allowed Origin", () => {
     it("should respond with correct CORS headers", async function () {
+      if (home.proxiedServer) { this.skip(); }
+
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'CorsTestDoc'}, wid);
       await userApi.updateDocPermissions(docId, {
@@ -5310,6 +5315,7 @@ function setup(name: string, cb: () => Promise<void>) {
     // stop all servers
     await home.stop();
     await docs.stop();
+    extraHeadersForConfig = {};
   });
 }
 

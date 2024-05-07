@@ -13,6 +13,7 @@ import fetch from "node-fetch";
 import {Writable} from "stream";
 import express from "express";
 import { AddressInfo } from "net";
+import { isAffirmative } from "app/common/gutil";
 
 /**
  * This starts a server in a separate process.
@@ -205,9 +206,12 @@ export class TestServerReverseProxy {
   // https://github.com/gristlabs/grist-core/blob/24b39c651b9590cc360cc91b587d3e1b301a9c63/app/server/lib/requestUtils.ts#L85-L98
   public static readonly HOSTNAME: string = 'grist-test-proxy.127.0.0.1.nip.io';
 
+  public static FROM_OUTSIDE_HEADER = {"X-FROM-OUTSIDE": true};
+
   private _app = express();
   private _server: http.Server;
   private _address: Promise<AddressInfo>;
+  private _requireFromOutsideHeader = false;
 
   public get stopped() { return !this._server.listening; }
 
@@ -217,6 +221,10 @@ export class TestServerReverseProxy {
         resolve(this._server.address() as AddressInfo);
       });
     });
+  }
+
+  public requireFromOutsideHeader() {
+    this._requireFromOutsideHeader = true;
   }
 
   public async start(homeServer: TestServer, docServer: TestServer) {
@@ -249,6 +257,11 @@ export class TestServerReverseProxy {
     const serverUrl = new URL(server.serverUrl);
 
     return (oreq: express.Request, ores: express.Response) => {
+      if (this._requireFromOutsideHeader && !isAffirmative(oreq.get("X-FROM-OUTSIDE"))) {
+        console.error('TestServerReverseProxy: called public URL from internal');
+        return ores.json({error: "TestServerProxy: called public URL from internal "}).status(403);
+      }
+
       const options = {
         host: serverUrl.hostname,
         port: serverUrl.port,
