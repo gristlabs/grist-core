@@ -157,11 +157,11 @@ describe('DropdownConditionEditor', function () {
           'choice\n.Supervisor\n '
         ]);
       });
-      await gu.sendKeys('.Role == "Supervisor" and $Role != "Supervisor"', Key.ENTER);
+      await gu.sendKeys('.Role == "Supervisor" and $Role != "Supervisor" and $id != 2', Key.ENTER);
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
-        'choice.Role == "Supervisor" and $Role != "Supervisor"\n'
+        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n'
       );
 
       // Check that autocomplete values are filtered.
@@ -171,6 +171,23 @@ describe('DropdownConditionEditor', function () {
         'Marie Ziyad',
       ]);
       await gu.sendKeys(Key.ESCAPE);
+
+      // Should be no options on row 2 because of $id != 2 part of condition.
+      await gu.getCell(2, 2).click();
+      await gu.sendKeys(Key.ENTER);
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      ]);
+      await gu.sendKeys(Key.ESCAPE);
+
+      // Row 3 should be like row 1.
+      await gu.getCell(2, 3).click();
+      await gu.sendKeys(Key.ENTER);
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+        'Pavan Madilyn',
+        'Marie Ziyad',
+      ]);
+      await gu.sendKeys(Key.ESCAPE);
+
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);
       assert.isEmpty(await driver.findAll('.test-autocomplete li', (el) => el.getText()));
@@ -187,7 +204,7 @@ describe('DropdownConditionEditor', function () {
       await gu.setType('Reference List', {apply: true});
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
-        'choice.Role == "Supervisor" and $Role != "Supervisor"\n'
+        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n'
       );
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);
