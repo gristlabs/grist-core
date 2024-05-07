@@ -193,8 +193,8 @@ export function attachAppEndpoint(options: AttachOptions): void {
       });
     }
 
-    // When no doc worker seed, we're in single server mode.
-    // Return null, to signify that the URL prefix serving the
+    // Without a public URL, we're in single server mode.
+    // Use a null workerPublicURL, to signify that the URL prefix serving the
     // current endpoint is the only one available.
     const publicUrl = docStatus?.docWorker?.publicUrl;
     const workerPublicUrl = publicUrl !== undefined ? customizeDocWorkerUrl(publicUrl, req) : null;
