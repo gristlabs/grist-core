@@ -6,7 +6,7 @@ import log from 'app/server/lib/log';
 import {adaptServerUrl} from 'app/server/lib/requestUtils';
 import * as express from 'express';
 import fetch, {Response as FetchResponse, RequestInit} from 'node-fetch';
-import { getAssignmentId } from './idUtils';
+import {getAssignmentId} from './idUtils';
 
 /**
  * This method transforms a doc worker's public url as needed based on the request.

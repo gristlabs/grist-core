@@ -1157,7 +1157,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 }
 
 /**
- * Reprensents information to build public doc worker url.
+ * Represents information to build public doc worker url.
  *
  * Structure that may contain either **exclusively**:
  *  - a selfPrefix when no pool of doc worker exist.
@@ -1191,7 +1191,7 @@ export function getUrlFromPrefix(homeUrl: string, prefix: string) {
  *                               (result of the call to /api/worker/:docId)
  */
 export function getPublicDocWorkerUrl(homeUrl: string, docWorkerInfo: PublicDocWorkerUrlInfo) {
-  return docWorkerInfo.selfPrefix ?
+  return docWorkerInfo.selfPrefix !== null ?
     getUrlFromPrefix(homeUrl, docWorkerInfo.selfPrefix) :
-    docWorkerInfo.docWorkerUrl!;
+    docWorkerInfo.docWorkerUrl;
 }

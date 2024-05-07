@@ -197,7 +197,7 @@ function hostMatchesUrl(host?: string, url?: string) {
  * @param {string?} host The host to check
  */
 function isOwnInternalUrlHost(host?: string) {
-  // Note: APP_HOME_INTERNAL_URL may also defined in doc worker as well as in Home worker
+  // Note: APP_HOME_INTERNAL_URL may also be defined in doc worker as well as in home worker
   if (process.env.APP_HOME_INTERNAL_URL && hostMatchesUrl(host, process.env.APP_HOME_INTERNAL_URL)) {
     return true;
   }
