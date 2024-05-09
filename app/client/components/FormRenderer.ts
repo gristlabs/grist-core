@@ -1,4 +1,5 @@
 import * as css from 'app/client/components/FormRendererCss';
+import {makeT} from 'app/client/lib/localization';
 import {FormField} from 'app/client/ui/FormAPI';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
@@ -10,6 +11,8 @@ import {marked} from 'marked';
 import {IPopupOptions, PopupControl} from 'popweasel';
 
 const testId = makeTestId('test-form-');
+
+const t = makeT('FormRenderer');
 
 /**
  * A node in a recursive, tree-like hierarchy comprising the layout of a form.
