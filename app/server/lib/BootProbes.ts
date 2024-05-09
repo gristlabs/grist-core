@@ -4,6 +4,7 @@ import { removeTrailingSlash } from 'app/common/gutil';
 import { expressWrap, jsonErrorHandler } from 'app/server/lib/expressWrap';
 import { GristServer } from 'app/server/lib/GristServer';
 import * as express from 'express';
+import WS from 'ws';
 import fetch from 'node-fetch';
 
 /**
@@ -59,6 +60,7 @@ export class BootProbes {
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
     this._probes.push(_authenticationProbe);
+    this._probes.push(_webSocketsProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -102,6 +104,37 @@ const _homeUrlReachableProbe: Probe = {
         severity: 'fault',
       };
     }
+  }
+};
+
+const _webSocketsProbe: Probe = {
+  id: 'websockets',
+  name: 'Can we open a websocket with the server',
+  apply: async (server, req) => {
+    return new Promise((resolve) => {
+      const url = new URL(server.getHomeUrl(req));
+      url.protocol = (url.protocol === 'https:') ? 'wss:' : 'ws:';
+      const ws = new WS.WebSocket(url.href);
+      const details: Record<string, any> = {
+        url,
+      };
+      ws.on('open', () => {
+        ws.send('Just nod if you can hear me.');
+        resolve({
+          success: true,
+          details,
+        });
+        ws.close();
+      });
+      ws.on('error', (ev) => {
+        details.error = ev.message;
+        resolve({
+          success: false,
+          details,
+        });
+        ws.close();
+      });
+    });
   }
 };
 
