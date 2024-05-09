@@ -176,7 +176,7 @@ export class OIDCConfig {
       const amr = tokenSet.claims().amr;
       if (this._forceMfa && (!amr || !amr.includes("mfa"))) {
         if (!amr) {
-          throw new Error('OIDCConfig: could not verify mfa status due to missing amr claim. Make sure your IDP returns it.');
+          throw new Error('OIDCConfig: could not verify mfa status due to missing amr claim.');
         } else if (!amr.includes("mfa")) {
           log.error(`OIDCConfig: multi-factor-authentication is not enabled for ${userInfo.email}.`);
           delete mreq.session.oidc;
@@ -184,7 +184,9 @@ export class OIDCConfig {
           // Convert absolute URL into relative, since it will be prefixed further down the line
           const targetURL = new URL(targetUrl as string);
           let targetUrlRelative = targetURL.pathname;
-          if (targetURL.searchParams.toString()) targetUrlRelative += "?" + targetURL.searchParams.toString();
+          if (targetURL.searchParams.toString()) {
+            targetUrlRelative += "?" + targetURL.searchParams.toString();
+          }
 
           res.redirect(`/login/error/mfa-not-enabled?next=${targetUrlRelative}`);
           return;
