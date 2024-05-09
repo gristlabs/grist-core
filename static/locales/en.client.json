@@ -888,7 +888,11 @@
         "An unknown error occurred.": "An unknown error occurred.",
         "Build your own form": "Build your own form",
         "Form not found": "Form not found",
-        "Powered by": "Powered by"
+        "Powered by": "Powered by",
+        "Multi-factor authentication required{{suffix}}": "Multi-factor authentication required{{suffix}}",
+        "Multi-factor-authentication is required for accessing this site, but it is not set up on your account. Please enable it and try again.": "Multi-factor-authentication is required for accessing this site, but it is not set up on your account. Please enable it and try again.",
+        "Set up Multi-factor authentication": "Set up Multi-factor authentication",
+        "Try again": "Try again"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
