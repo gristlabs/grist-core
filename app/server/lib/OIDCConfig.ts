@@ -69,6 +69,7 @@ export class OIDCConfig {
   private _endSessionEndpoint: string;
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
+  private _forceMfa: boolean;
 
   public constructor() {
   }
@@ -110,6 +111,11 @@ export class OIDCConfig {
 
     this._ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
       envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
+      defaultValue: false,
+    })!;
+
+    this._forceMfa = section.flag('forceMfa').readBool({
+      envVar: 'GRIST_OIDC_SP_FORCE_MFA',
       defaultValue: false,
     })!;
 
@@ -157,6 +163,15 @@ export class OIDCConfig {
 
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new Error(`OIDCConfig: email not verified for ${userInfo.email}`);
+      }
+
+      const amr = tokenSet.claims().amr;
+      if (this._forceMfa && (!amr || !amr.includes("mfa"))) {
+        if (!amr) {
+          throw new Error('OIDCConfig: could not verify mfa status due to missing amr claim. Make sure your IDP returns it.');
+        } else if (!amr.includes("mfa")) {
+          throw new Error(`OIDCConfig: multi-factor-authentication is not enabled for ${userInfo.email}.`);
+        }
       }
 
       const profile = this._makeUserProfileFromUserInfo(userInfo);
