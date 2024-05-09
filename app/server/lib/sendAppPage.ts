@@ -24,6 +24,7 @@ import * as handlebars from 'handlebars';
 import jsesc from 'jsesc';
 import * as path from 'path';
 import difference = require('lodash/difference');
+import * as process from "node:process";
 
 const translate = (req: express.Request, key: string, args?: any) => req.t(`sendAppPage.${key}`, args);
 
@@ -98,6 +99,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
+    mfaSettingsUrl: process.env.GRIST_OIDC_SP_MFA_SETTINGS_URL,
     ...extra,
   };
 }

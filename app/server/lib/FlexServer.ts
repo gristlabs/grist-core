@@ -1273,6 +1273,11 @@ export class FlexServer implements GristServer {
     this.app.get('/signed-out', expressWrap((req, resp) =>
       this._sendAppPage(req, resp, {path: 'error.html', status: 200, config: {errPage: 'signed-out'}})));
 
+    // Add a static "mfa-not-enabled" page. This is where logout typically lands when GRIST_OIDC_SP_FORCE_MFA is true
+    // but the user hasn't configured multi-factor authentication.
+    this.app.get('/login/error/mfa-not-enabled', expressWrap((req, resp) =>
+      this._sendAppPage(req, resp, {path: 'error.html', status: 401, config: {errPage: 'mfa-not-enabled'}})));
+
     const comment = await this._loginMiddleware.addEndpoints(this.app);
     this.info.push(['loginMiddlewareComment', comment]);
 
