@@ -35,6 +35,14 @@
  *    env GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
  *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
  *        Defaults to false.
+ *    env GRIST_OIDC_SP_FORCE_MFA
+ *        If set to "true", the user will be forced to have multi-factor authentication enabled. The state of MFA will
+ *        be determined by OIDC's amr claim: It must include "mfa". Make sure that the IDP returns the amr claim
+ *        correctly, otherwise authentication will fail.
+ *    env GRIST_OIDC_SP_MFA_SETTINGS_URL
+ *        This is needed when GRIST_OIDC_SP_FORCE_MFA is set to true. Enter the URL where the user will be able to
+ *        configure Multi-factor authentication on their account. This will be shown in the UI if the user does not have
+ *        MFA enabled.
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
