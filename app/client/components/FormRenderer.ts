@@ -168,7 +168,7 @@ class SubmitRenderer extends FormRenderer {
       css.error(dom.text(use => use(this.context.error) ?? '')),
       css.submitButtons(
         css.resetButton(
-          'Reset',
+          t('Reset'),
           dom.boolAttr('disabled', this.context.disabled),
           {type: 'button'},
           dom.on('click', () => {
@@ -185,7 +185,7 @@ class SubmitRenderer extends FormRenderer {
             dom.boolAttr('disabled', this.context.disabled),
             {
               type: 'submit',
-              value: this.context.rootLayoutNode.submitText || 'Submit',
+              value: this.context.rootLayoutNode.submitText || t('Submit'),
             },
             dom.on('click', () => validateRequiredLists()),
           )
@@ -448,7 +448,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
               }),
             )],
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
-            placeholder: 'Search',
+            placeholder: t('Search'),
             acOptions: {maxResults: 1000, keepOrder: true, showEmptyItems: true},
             popupOptions: {
               trigger: [
