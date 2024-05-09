@@ -182,7 +182,7 @@ export class OIDCConfig {
           delete mreq.session.oidc;
 
           // Convert absolute URL into relative, since it will be prefixed further down the line
-          let targetURL = new URL(targetUrl as string);
+          const targetURL = new URL(targetUrl as string);
           let targetUrlRelative = targetURL.pathname;
           if (targetURL.searchParams.toString()) targetUrlRelative += "?" + targetURL.searchParams.toString();
 
