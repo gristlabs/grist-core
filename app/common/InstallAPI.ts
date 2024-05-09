@@ -81,11 +81,11 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
     return this.requestJson(`${this._url}/api/install/updates`, {method: 'GET'});
   }
 
-  getChecks(): Promise<{probes: BootProbeInfo[]}> {
+  public getChecks(): Promise<{probes: BootProbeInfo[]}> {
     return this.requestJson(`${this._url}/api/probes`, {method: 'GET'});
   }
 
-  runCheck(id: string): Promise<BootProbeResult> {
+  public runCheck(id: string): Promise<BootProbeResult> {
     return this.requestJson(`${this._url}/api/probes/${id}`, {method: 'GET'});
   }
 
