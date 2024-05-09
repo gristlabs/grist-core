@@ -165,6 +165,15 @@ It is good practice not to run Grist as the root user.
 The main page of Grist should be available.
 `
   },
+
+  'websockets': {
+    // TODO: add a link to https://support.getgrist.com/self-managed/#how-do-i-run-grist-on-a-server
+    info: `
+Websocket connections need HTTP 1.1 and the ability to pass a few
+extra headers in order to work. Sometimes a reverse proxy can
+interfere with these requirements.
+`
+  },
 };
 
 /**

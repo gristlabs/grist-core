@@ -7,7 +7,8 @@ export type BootProbeIds =
     'host-header' |
     'sandboxing' |
     'system-user' |
-    'authentication'
+    'authentication' |
+    'websockets'
 ;
 
 export interface BootProbeResult {
