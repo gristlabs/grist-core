@@ -6,7 +6,7 @@ import path from "path";
 import * as fse from "fs-extra";
 import * as testUtils from "test/server/testUtils";
 import {UserAPIImpl} from "app/common/UserAPI";
-import {exitPromise} from "app/server/lib/serverUtils";
+import {exitPromise, getAvailablePort} from "app/server/lib/serverUtils";
 import log from "app/server/lib/log";
 import {delay} from "bluebird";
 import fetch from "node-fetch";
@@ -44,9 +44,9 @@ export class TestServer {
   }
   public get proxiedServer() { return this._proxiedServer; }
 
+  private _serverUrl: string;
   private _server: ChildProcess;
   private _exitPromise: Promise<number | string>;
-  private _serverUrl: string;
   private _proxiedServer: boolean = false;
 
   private readonly _defaultEnv;
@@ -56,9 +56,6 @@ export class TestServer {
       GRIST_INST_DIR: this.rootDir,
       GRIST_DATA_DIR: path.join(this.rootDir, "data"),
       GRIST_SERVERS: this._serverTypes,
-      // with port '0' no need to hard code a port number (we can use testing hooks to find out what
-      // port server is listening on).
-      GRIST_PORT: '0',
       GRIST_DISABLE_S3: 'true',
       REDIS_URL: process.env.TEST_REDIS_URL,
       GRIST_TRIGGER_WAIT_DELAY: '100',
@@ -80,10 +77,16 @@ export class TestServer {
       // Unix socket paths typically can't be longer than this. Who knew. Make the error obvious.
       throw new Error(`Path of testingSocket too long: ${this.testingSocket.length} (${this.testingSocket})`);
     }
-    const env = {
-      APP_HOME_URL: _homeUrl,
-      APP_HOME_INTERNAL_URL: _homeUrl,
+
+    const port = await getAvailablePort();
+    this._serverUrl = `http://localhost:${port}`;
+    const homeUrl = _homeUrl ?? (this._serverTypes.includes('home') ? this._serverUrl : undefined);
+
+    const env: NodeJS.ProcessEnv = {
+      APP_HOME_URL: homeUrl,
+      APP_HOME_INTERNAL_URL: homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
+      GRIST_PORT: String(port),
       ...this._defaultEnv,
       ...customEnv
     };
@@ -138,8 +141,6 @@ export class TestServer {
 
       // create testing hooks and get own port
       this.testingHooks = await connectTestingHooks(this.testingSocket);
-      const port: number = await this.testingHooks.getOwnPort();
-      this._serverUrl = `http://localhost:${port}`;
 
       // wait for check
       return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
@@ -249,17 +250,20 @@ export class TestServerReverseProxy {
     if (this.stopped) {
       return;
     }
-    log.info("Stopping node TestServerProxy");
+    log.info("Stopping node TestServerReverseProxy");
     this._server.close();
   }
 
+  // Inspired from: https://stackoverflow.com/a/10435819
   private _getRequestHandlerFor(server: TestServer) {
     const serverUrl = new URL(server.serverUrl);
 
     return (oreq: express.Request, ores: express.Response) => {
+      log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
+
       if (this._requireFromOutsideHeader && !isAffirmative(oreq.get("X-FROM-OUTSIDE"))) {
-        console.error('TestServerReverseProxy: called public URL from internal');
-        return ores.json({error: "TestServerProxy: called public URL from internal "}).status(403);
+        log.error('TestServerReverseProxy: called public URL from internal');
+        return ores.status(403).json({error: "TestServerReverseProxy: called public URL from internal "});
       }
 
       const options = {
@@ -269,8 +273,6 @@ export class TestServerReverseProxy {
         method: oreq.method,
         headers: oreq.headers,
       };
-
-      log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
 
       const creq = http
       .request(options, pres => {
@@ -299,7 +301,7 @@ export class TestServerReverseProxy {
       })
       .on('error', e => {
         // we got an error
-        console.log(e.message);
+        log.info('Error caught by TestServerReverseProxy: %s', e.message);
         try {
           // attempt to set error message and http status
           ores.writeHead(500);

@@ -1177,6 +1177,10 @@ export class DocWorkerApi {
           'Content-Type': 'application/json',
         }
       });
+      if (!ref.ok) {
+        res.status(ref.status).send(await ref.text());
+        return;
+      }
       const states2: DocState[] = (await ref.json()).states;
       const left = states[0];
       const right = states2[0];

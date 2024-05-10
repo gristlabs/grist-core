@@ -160,21 +160,23 @@ describe('DocApi', function () {
       testDocApi();
     });
 
-    describe("should work behind a reverse-proxy", async () => {
-      let proxy: TestServerReverseProxy;
-
-      setup('behind-proxy', async () => {
-        proxy = new TestServerReverseProxy();
+    describe('behind a reverse-proxy', function () {
+      async function setupServersWithProxy(suitename: string, overrideEnvConf?: NodeJS.ProcessEnv) {
+        const proxy = new TestServerReverseProxy();
         const additionalEnvConfiguration = {
           ALLOWED_WEBHOOK_DOMAINS: `example.com,localhost:${webhooksTestPort}`,
           GRIST_DATA_DIR: dataDir,
           APP_HOME_URL: await proxy.getServerUrl(),
           GRIST_ORG_IN_PATH: 'true',
           GRIST_SINGLE_PORT: '0',
+          ...overrideEnvConf
         };
-        home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
+        const home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
+        const docs = await TestServer.startServer(
+          'docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl
+        );
         proxy.requireFromOutsideHeader();
+
         await proxy.start(home, docs);
 
         homeUrl = serverUrl = await proxy.getServerUrl();
@@ -183,14 +185,68 @@ describe('DocApi', function () {
           Origin: serverUrl,
           ...TestServerReverseProxy.FROM_OUTSIDE_HEADER,
         };
-      });
 
-      after(async () => {
+        return {proxy, home, docs};
+      }
+
+      async function tearDown(proxy: TestServerReverseProxy, servers: TestServer[]) {
         proxy.stop();
+        for (const server of servers) {
+          await server.stop();
+        }
         await flushAllRedis();
+      }
+
+      let proxy: TestServerReverseProxy;
+
+      describe('should run usual DocApi test', function () {
+        setup('behind-proxy-testdocs', async () => {
+          ({proxy, home, docs} = await setupServersWithProxy(suitename));
+        });
+
+        after(() => tearDown(proxy, [home, docs]));
+
+        testDocApi();
       });
 
-      testDocApi();
+      async function testCompareDocs(proxy: TestServerReverseProxy, home: TestServer) {
+        const chimpy = makeConfig('chimpy');
+        const userApiServerUrl = await proxy.getServerUrl();
+        const chimpyApi = home.makeUserApi(
+          ORG_NAME, 'chimpy', { serverUrl: userApiServerUrl, headers: chimpy.headers as Record<string, string> }
+        );
+        const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
+        const docId1 = await chimpyApi.newDoc({name: 'testdoc1'}, ws1);
+        const docId2 = await chimpyApi.newDoc({name: 'testdoc2'}, ws1);
+        const doc1 = chimpyApi.getDocAPI(docId1);
+
+        return doc1.compareDoc(docId2);
+      }
+
+      describe('with APP_HOME_INTERNAL_URL', function () {
+        setup('behind-proxy-with-apphomeinternalurl', async () => {
+          // APP_HOME_INTERNAL_URL will be set by TestServer.
+          ({proxy, home, docs} = await setupServersWithProxy(suitename));
+        });
+        after(() => tearDown(proxy, [home, docs]));
+
+        it('should succeed to compare docs', async function () {
+          const res = await testCompareDocs(proxy, home);
+          assert.exists(res);
+        });
+      });
+
+      describe('without APP_HOME_INTERNAL_URL', function () {
+        setup('behind-proxy-without-apphomeinternalurl', async () => {
+          ({proxy, home, docs} = await setupServersWithProxy(suitename, {APP_HOME_INTERNAL_URL: ''}));
+        });
+        after(() => tearDown(proxy, [home, docs]));
+
+        it('should succeed to compare docs', async function () {
+          const promise = testCompareDocs(proxy, home);
+          await assert.isRejected(promise, /TestServerReverseProxy: called public URL/);
+        });
+      });
     });
 
     describe("should work directly with a docworker", async () => {
