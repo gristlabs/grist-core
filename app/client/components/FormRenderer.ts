@@ -1,4 +1,5 @@
 import * as css from 'app/client/components/FormRendererCss';
+import {makeT} from 'app/client/lib/localization';
 import {FormField} from 'app/client/ui/FormAPI';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
@@ -10,6 +11,8 @@ import {marked} from 'marked';
 import {IPopupOptions, PopupControl} from 'popweasel';
 
 const testId = makeTestId('test-form-');
+
+const t = makeT('FormRenderer');
 
 /**
  * A node in a recursive, tree-like hierarchy comprising the layout of a form.
@@ -165,7 +168,7 @@ class SubmitRenderer extends FormRenderer {
       css.error(dom.text(use => use(this.context.error) ?? '')),
       css.submitButtons(
         css.resetButton(
-          'Reset',
+          t('Reset'),
           dom.boolAttr('disabled', this.context.disabled),
           {type: 'button'},
           dom.on('click', () => {
@@ -182,7 +185,7 @@ class SubmitRenderer extends FormRenderer {
             dom.boolAttr('disabled', this.context.disabled),
             {
               type: 'submit',
-              value: this.context.rootLayoutNode.submitText || 'Submit',
+              value: this.context.rootLayoutNode.submitText || t('Submit'),
             },
             dom.on('click', () => validateRequiredLists()),
           )
@@ -356,7 +359,7 @@ class DateTimeRenderer extends TextRenderer {
   protected inputType = 'datetime-local';
 }
 
-export const SELECT_PLACEHOLDER = 'Select...';
+export const selectPlaceholder = () => t('Select...');
 
 class ChoiceRenderer extends BaseFieldRenderer  {
   protected value: Observable<string>;
@@ -417,7 +420,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
       this._selectElement = css.select(
         {name: this.name(), required: this.field.options.formRequired},
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
-        dom('option', {value: ''}, SELECT_PLACEHOLDER),
+        dom('option', {value: ''}, selectPlaceholder()),
         this._choices.map((choice) => dom('option',
           {value: choice},
           dom.prop('selected', use => use(this.value) === choice),
@@ -434,18 +437,18 @@ class ChoiceRenderer extends BaseFieldRenderer  {
       ),
       dom.maybe(use => !use(isXSmallScreenObs()), () =>
         css.searchSelect(
-          dom('div', dom.text(use => use(this.value) || SELECT_PLACEHOLDER)),
+          dom('div', dom.text(use => use(this.value) || selectPlaceholder())),
           dropdownWithSearch<string>({
             action: (value) => this.value.set(value),
             options: () => [
-              {label: SELECT_PLACEHOLDER, value: '', placeholder: true},
+              {label: selectPlaceholder(), value: '', placeholder: true},
               ...this._choices.map((choice) => ({
                 label: choice,
                 value: choice,
               }),
             )],
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
-            placeholder: 'Search',
+            placeholder: t('Search'),
             acOptions: {maxResults: 1000, keepOrder: true, showEmptyItems: true},
             popupOptions: {
               trigger: [
@@ -757,7 +760,7 @@ class RefRenderer extends BaseFieldRenderer {
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
         dom('option',
           {value: ''},
-          SELECT_PLACEHOLDER,
+          selectPlaceholder(),
           dom.prop('selected', use => use(this.value) === ''),
         ),
         this._choices.map((choice) => dom('option',
@@ -778,12 +781,12 @@ class RefRenderer extends BaseFieldRenderer {
         css.searchSelect(
           dom('div', dom.text(use => {
             const choice = this._choices.find((c) => String(c[0]) === use(this.value));
-            return String(choice?.[1] || SELECT_PLACEHOLDER);
+            return String(choice?.[1] || selectPlaceholder());
           })),
           dropdownWithSearch<string>({
             action: (value) => this.value.set(value),
             options: () => [
-              {label: SELECT_PLACEHOLDER, value: '', placeholder: true},
+              {label: selectPlaceholder(), value: '', placeholder: true},
               ...this._choices.map((choice) => ({
                 label: String(choice[1]),
                 value: String(choice[0]),
