@@ -88,6 +88,7 @@ export const commonUrls = {
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
   helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
+  helpAPI: 'https://support.getgrist.com/api',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   plans: "https://www.getgrist.com/pricing",
