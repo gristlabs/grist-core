@@ -86,17 +86,24 @@ export function createAccountDeletedPage(appModel: AppModel) {
  * Creates a page that show the user's account does not have multifactor authentication enabled, despite being needed.
  */
 export function createMfaNotEnabledErrorPage(appModel: AppModel) {
-  document.title = t("Multi-factor authentication required{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+  document.title = t("Multi-factor authentication required{{suffix}}", {
+    suffix: getPageTitleSuffix(getGristConfig())
+  });
 
   const searchParams = new URL(location.href).searchParams;
 
   return pagePanelsError(appModel, t("Multi-factor authentication required{{suffix}}", {suffix: ''}), [
-    cssErrorText(t("Multi-factor-authentication is required for accessing this site, but it is not set up on your account. Please enable it and try again.")),
+    cssErrorText(t("Multi-factor-authentication is required for accessing this site, but it is not set up on your \
+account. Please enable it and try again.")),
     cssButtonWrap(bigPrimaryButtonLink(
-      t("Set up Multi-factor authentication"), {href: getGristConfig().mfaSettingsUrl, target: '_blank'}, testId('error-setup-mfa')
+      t("Set up Multi-factor authentication"),
+      {href: getGristConfig().mfaSettingsUrl, target: '_blank'},
+      testId('error-setup-mfa')
     )),
     cssButtonWrap(bigBasicButtonLink(
-      t("Try again"), {href: getSignupUrl({ nextUrl: searchParams.get("next") || "" })}, testId('error-signin')
+      t("Try again"),
+      {href: getSignupUrl({ nextUrl: searchParams.get("next") || "" })},
+      testId('error-signin')
     ))
   ]);
 }
