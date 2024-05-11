@@ -98,7 +98,7 @@ export function createMfaNotEnabledErrorPage(appModel: AppModel) {
     cssButtonWrap(bigBasicButtonLink(
       t("Try again"), {href: getSignupUrl({ nextUrl: searchParams.get("next") || "" })}, testId('error-signin')
     ))
-  ])
+  ]);
 }
 
 /**
