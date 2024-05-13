@@ -824,6 +824,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.tableId = this.autoDispose(ko.pureComputed(() => this.table().tableId()));
   const rawSection = this.autoDispose(ko.pureComputed(() => this.table().rawViewSection()));
+  this.rulesList = modelUtil.savingComputed({
+    read: () => rawSection().rules(),
+    write: (setter, val) => setter(rawSection().rules, val)
+  });
   this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => rawSection().rules()));
   this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
   this.rulesStyles = modelUtil.savingComputed({

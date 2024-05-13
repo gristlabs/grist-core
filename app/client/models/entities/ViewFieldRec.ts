@@ -293,7 +293,10 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   });
 
   this.tableId = ko.pureComputed(() => this.column().table().tableId());
-  this.rulesList = ko.pureComputed(() => this._fieldOrColumn().rules());
+  this.rulesList = modelUtil.savingComputed({
+    read: () => this._fieldOrColumn().rules(),
+    write: (setter, val) => setter(this._fieldOrColumn().rules, val)
+  });
   this.rulesCols = refListRecords(docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules()));
   this.rulesColsIds = ko.pureComputed(() => this.rulesCols().map(c => c.colId()));
   this.rulesStyles = modelUtil.fieldWithDefault(

@@ -198,11 +198,10 @@ const cssControlLabel = styled('div', `
 
 // TODO: reuse them
 const cssDragRow = styled('div', `
-  display: flex !important;
+  display: flex;
   align-items: center;
   margin: 0 16px 0px 0px;
   margin-bottom: 2px;
-  cursor: grab;
 `);
 
 const cssFieldEntry = styled('div', `

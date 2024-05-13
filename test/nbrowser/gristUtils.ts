@@ -2349,6 +2349,10 @@ export function setFillColor(color: string) {
   return setColor(driver.find('.test-fill-input'), color);
 }
 
+export function getStyleRuleAt(nr: number) {
+  return driver.find(`.test-widget-style-conditional-rule-${nr}`);
+}
+
 export async function styleRulesCount() {
   const rules = await driver.findAll('.test-widget-style-conditional-rule');
   return rules.length;

@@ -1,3 +1,4 @@
+import * as kf from 'app/client/lib/koForm';
 import {makeT} from 'app/client/lib/localization';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ColumnRec} from 'app/client/models/DocModel';
@@ -10,22 +11,31 @@ import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
 import {ColorOption, colorSelect} from 'app/client/ui2018/ColorSelect';
 import {theme, vars} from 'app/client/ui2018/cssVars';
+import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {setupEditorCleanup} from 'app/client/widgets/FieldEditor';
 import {cssError, openFormulaEditor} from 'app/client/widgets/FormulaEditor';
 import {isRaisedException, isValidRuleValue} from 'app/common/gristTypes';
-import {RowRecord} from 'app/plugin/GristData';
+import {GristObjCode, RowRecord} from 'app/plugin/GristData';
+import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, Disposable, dom, DomContents, makeTestId, Observable, styled} from 'grainjs';
 import debounce = require('lodash/debounce');
 
 const testId = makeTestId('test-widget-style-');
 const t = makeT('ConditionalStyle');
 
+type ColumnRecAndIndex = [ColumnRec, number];
+
 export class ConditionalStyle extends Disposable {
   // Holds data from currently selected record (holds data only when this field has conditional styles).
   private _currentRecord: Computed<RowRecord | undefined>;
   // Helper field for refreshing current record data.
   private _dataChangeTrigger = Observable.create(this, 0);
+  // Rules columns with their respective rule index.
+  private _rulesColsWithIndex: Computed<ColumnRecAndIndex[]> = Computed.create(this, (use) => {
+    const rulesCols = use(this._ruleOwner.rulesCols);
+    return rulesCols.map((col, i) => [col, i]);
+  });
 
   constructor(
     private _label: string,
@@ -83,72 +93,17 @@ export class ConditionalStyle extends Disposable {
         dom.hide(use => use(this._ruleOwner.hasRules))
       ),
       dom.domComputedOwned(
-        use => use(this._ruleOwner.rulesCols),
+        use => use(this._rulesColsWithIndex),
         (owner, rules) =>
           cssRuleList(
             dom.show(use => rules.length > 0 && (!this._disabled || !use(this._disabled))),
-            ...rules.map((column, ruleIndex) => {
-              const textColor = this._buildStyleOption(owner, ruleIndex, 'textColor');
-              const fillColor = this._buildStyleOption(owner, ruleIndex, 'fillColor');
-              const fontBold = this._buildStyleOption(owner, ruleIndex, 'fontBold');
-              const fontItalic = this._buildStyleOption(owner, ruleIndex, 'fontItalic');
-              const fontUnderline = this._buildStyleOption(owner, ruleIndex, 'fontUnderline');
-              const fontStrikethrough = this._buildStyleOption(owner, ruleIndex, 'fontStrikethrough');
-              const save = async () => {
-                // This will save both options.
-                await this._ruleOwner.rulesStyles.save();
-              };
-              const currentValue = Computed.create(owner, use => {
-                const record = use(this._currentRecord);
-                if (!record) {
-                  return null;
-                }
-                const value = record[use(column.colId)];
-                return value ?? null;
-              });
-              const hasError = Computed.create(owner, use => {
-                return !isValidRuleValue(use(currentValue));
-              });
-              const errorMessage = Computed.create(owner, use => {
-                const value = use(currentValue);
-                return (!use(hasError) ? '' :
-                  isRaisedException(value) ? t('Error in style rule') :
-                    t('Rule must return True or False'));
-              });
-              return dom('div',
-                testId(`conditional-rule-${ruleIndex}`),
-                testId(`conditional-rule`), // for testing
-                cssLineLabel('IF...'),
-                cssColumnsRow(
-                  cssLeftColumn(
-                    this._buildRuleFormula(column.formula, column, hasError),
-                    cssRuleError(
-                      dom.text(errorMessage),
-                      dom.show(hasError),
-                      testId(`rule-error-${ruleIndex}`),
-                    ),
-                    colorSelect(
-                      {
-                        textColor: new ColorOption({color:textColor, allowsNone: true, noneText: 'default'}),
-                        fillColor: new ColorOption({color:fillColor, allowsNone: true, noneText: 'none'}),
-                        fontBold,
-                        fontItalic,
-                        fontUnderline,
-                        fontStrikethrough
-                      }, {
-                        onSave: save,
-                        placeholder: this._label || 'Conditional Style',
-                      }
-                    )
-                  ),
-                  cssRemoveButton(
-                    'Remove',
-                    testId(`remove-rule-${ruleIndex}`),
-                    dom.on('click', () => this._ruleOwner.removeRule(ruleIndex))
-                  )
-                )
-              );
-            })
+            kf.draggableList(rules, (rule: ColumnRecAndIndex) => this._buildRule(owner, rule), {
+              reorder: this._reorderRule.bind(this),
+              removeButton: false,
+              drag_indicator: cssDragger,
+              itemClass: cssDragRow.className,
+              handle: `.${cssDragger.className}`,
+            }),
           )
       ),
       cssRow(
@@ -160,6 +115,98 @@ export class ConditionalStyle extends Disposable {
         dom.show(use => use(this._ruleOwner.hasRules))
       ),
     ];
+  }
+
+  private _buildRule(owner: Disposable, rule: ColumnRecAndIndex) {
+    const [column, index] = rule;
+    const textColor = this._buildStyleOption(owner, index, 'textColor');
+    const fillColor = this._buildStyleOption(owner, index, 'fillColor');
+    const fontBold = this._buildStyleOption(owner, index, 'fontBold');
+    const fontItalic = this._buildStyleOption(owner, index, 'fontItalic');
+    const fontUnderline = this._buildStyleOption(owner, index, 'fontUnderline');
+    const fontStrikethrough = this._buildStyleOption(owner, index, 'fontStrikethrough');
+    const save = async () => {
+      // This will save both options.
+      await this._ruleOwner.rulesStyles.save();
+    };
+    const currentValue = Computed.create(owner, use => {
+      const record = use(this._currentRecord);
+      if (!record) {
+        return null;
+      }
+      const value = record[use(column.colId)];
+      return value ?? null;
+    });
+    const hasError = Computed.create(owner, use => {
+      return !isValidRuleValue(use(currentValue));
+    });
+    const errorMessage = Computed.create(owner, use => {
+      const value = use(currentValue);
+      return (!use(hasError) ? '' :
+        isRaisedException(value) ? t('Error in style rule') :
+          t('Rule must return True or False'));
+    });
+    return dom('div',
+      testId(`conditional-rule-${index}`),
+      testId(`conditional-rule`), // for testing
+      cssLineLabel(t('IF...')),
+      cssColumnsRow(
+        cssLeftColumn(
+          this._buildRuleFormula(column.formula, column, hasError),
+          cssRuleError(
+            dom.text(errorMessage),
+            dom.show(hasError),
+            testId(`rule-error-${index}`),
+          ),
+          colorSelect(
+            {
+              textColor: new ColorOption({color:textColor, allowsNone: true, noneText: 'default'}),
+              fillColor: new ColorOption({color:fillColor, allowsNone: true, noneText: 'none'}),
+              fontBold,
+              fontItalic,
+              fontUnderline,
+              fontStrikethrough
+            }, {
+              onSave: save,
+              placeholder: this._label || t('Conditional Style'),
+            }
+          )
+        ),
+        cssRemoveButton(
+          'Remove',
+          testId(`remove-rule-${index}`),
+          dom.on('click', () => this._ruleOwner.removeRule(index))
+        )
+      )
+    );
+  }
+
+  private async _reorderRule(rule: ColumnRecAndIndex, nextRule: ColumnRecAndIndex | null) {
+    const rulesList = decodeObject(this._ruleOwner.rulesList.peek());
+    if (!Array.isArray(rulesList) || rulesList.length === 0) {
+      throw new Error('No conditional style rules');
+    }
+
+    const ruleColRef = rule[0].id.peek();
+    const nextRuleColRef = nextRule?.[0].id.peek();
+    const rulesStyles = [...this._ruleOwner.rulesStyles.peek()];
+    const ruleColRefIndex = rulesList.indexOf(ruleColRef);
+
+    // Remove the rule.
+    rulesList.splice(ruleColRefIndex, 1);
+    const [ruleStyle] = rulesStyles.splice(ruleColRefIndex, 1);
+
+    // Insert the removed rule before the next rule.
+    const nextRuleColRefIndex = nextRuleColRef ? rulesList.indexOf(nextRuleColRef) : rulesList.length;
+    rulesList.splice(nextRuleColRefIndex, 0, ruleColRef);
+    rulesStyles.splice(nextRuleColRefIndex, 0, ruleStyle);
+
+    await this._gristDoc.docModel.docData.bundleActions("Reorder conditional rules", () =>
+      Promise.all([
+        this._ruleOwner.rulesList.setAndSave([GristObjCode.List, ...rulesList]),
+        this._ruleOwner.rulesStyles.setAndSave(rulesStyles),
+      ])
+    );
   }
 
   private _buildStyleOption<T extends keyof Style>(owner: Disposable, index: number, option: T) {
@@ -213,7 +260,7 @@ const cssIcon = styled(icon, `
 
 const cssLabel = styled('div', `
   text-transform: uppercase;
-  margin: 16px 16px 12px 16px;
+  margin: 16px 16px 12px 0px;
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
 `);
@@ -265,8 +312,7 @@ const cssRuleError = styled(cssError, `
 
 const cssColumnsRow = styled(cssRow, `
   align-items: flex-start;
-  margin-top: 0px;
-  margin-bottom: 0px;
+  margin: 0px 16px 0px 0px;
 `);
 
 const cssLeftColumn = styled('div', `
@@ -275,4 +321,14 @@ const cssLeftColumn = styled('div', `
   display: flex;
   flex-direction: column;
   gap: 4px;
+`);
+
+const cssDragRow = styled('div', `
+  display: flex;
+  align-items: center;
+  & > .kf_draggable_content {
+    margin: 4px 0;
+    flex: 1 1 0px;
+    min-width: 0px;
+  }
 `);
