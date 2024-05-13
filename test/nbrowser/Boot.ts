@@ -16,9 +16,12 @@ describe('Boot', function() {
   afterEach(() => gu.checkForErrors());
 
   async function hasPrompt() {
-    assert.include(
-      await driver.findContentWait('pre', /GRIST_BOOT_KEY/, 2000).getText(),
-      'GRIST_BOOT_KEY=secret');
+    // There is some glitchiness to when the text appears.
+    gu.waitToPass(async () => {
+      assert.include(
+        await driver.findContentWait('pre', /GRIST_BOOT_KEY/, 2000).getText(),
+        'GRIST_BOOT_KEY=secret');
+    }, 3000);
   }
 
   it('tells user about /admin', async function() {
