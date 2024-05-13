@@ -494,21 +494,21 @@ Please log in as an administrator.`),
       value: cssStatus(status),
       expandedContent: [
         cssCheckHeader(
-          'Results',
+          t('Results'),
           { style: 'margin-top: 0px; padding-top: 0px;' },
         ),
         result.verdict ? dom('pre', result.verdict) : null,
         (result.success === undefined) ? null :
             dom('p',
-                result.success ? 'Check succeeded.' : 'Check failed.'),
+                result.success ? t('Check succeeded.') : t('Check failed.')),
         (result.done !== true) ? null :
-            dom('p', 'No fault detected.'),
+            dom('p', t('No fault detected.')),
         (details?.info === undefined) ? null : [
-          cssCheckHeader('Notes'),
+          cssCheckHeader(t('Notes')),
           details.info,
         ],
         (result.details === undefined) ? null : [
-          cssCheckHeader('Details'),
+          cssCheckHeader(t('Details')),
           ...Object.entries(result.details).map(([key, val]) => {
             return dom(
               'div',
