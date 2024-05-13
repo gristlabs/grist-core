@@ -17,8 +17,8 @@ describe('Boot', function() {
 
   async function hasPrompt() {
     // There is some glitchiness to when the text appears.
-    gu.waitToPass(async () => {
-      await assert.include(
+    await gu.waitToPass(async () => {
+      assert.include(
         await driver.findContentWait('pre', /GRIST_BOOT_KEY/, 2000).getText(),
         'GRIST_BOOT_KEY=secret');
     }, 3000);
