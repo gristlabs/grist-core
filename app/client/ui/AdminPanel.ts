@@ -105,6 +105,13 @@ export class AdminPanel extends Disposable {
           value: this._buildSandboxingDisplay(owner),
           expandedContent: this._buildSandboxingNotice(),
         }),
+        dom.create(AdminSectionItem, {
+          id: 'authentication',
+          name: t('Authentication'),
+          description: t('Current authentication method'),
+          value: this._buildAuthenticationDisplay(owner),
+          expandedContent: undefined,
+        })
       ]),
 
       dom.create(AdminSection, t('Version'), [
@@ -154,6 +161,31 @@ isolated from other documents and isolated from the network.'),
         cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.'))
       ),
     ];
+  }
+
+  private _buildAuthenticationDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'authentication');
+        const result = req ? use(req.result) : undefined;
+        if (!result) {
+          return cssValueLabel(cssErrorText('unavailable'));
+        }
+
+        const { success, details } = result;
+        const loginSystemId = details?.loginSystemId;
+
+        if (!success || !loginSystemId) {
+          return cssValueLabel(cssErrorText('auth error'));
+        }
+
+        if (loginSystemId === 'no-logins') {
+          return cssValueLabel(cssDangerText('no auth required'));
+        }
+
+        return cssValueLabel(cssHappy(loginSystemId));
+      }
+    );
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -444,6 +476,10 @@ const cssGrayed = styled('span', `
 
 const cssErrorText = styled('span', `
   color: ${theme.errorText};
+`);
+
+export const cssDangerText = styled('div', `
+  color: ${theme.dangerText};
 `);
 
 const cssHappyText = styled('span', `

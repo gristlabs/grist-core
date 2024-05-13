@@ -66,6 +66,7 @@ export interface GristServer {
   getBundledWidgets(): ICustomWidget[];
   hasBoot(): boolean;
   getSandboxInfo(): SandboxInfo|undefined;
+  getInfo(key: string): any;
 }
 
 export interface GristLoginSystem {
@@ -157,6 +158,7 @@ export function createDummyGristServer(): GristServer {
     getBundledWidgets() { return []; },
     hasBoot() { return false; },
     getSandboxInfo() { return undefined; },
+    getInfo(key: string) { return undefined; }
   };
 }
 

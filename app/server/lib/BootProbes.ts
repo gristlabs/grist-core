@@ -58,6 +58,7 @@ export class BootProbes {
     this._probes.push(_bootProbe);
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
+    this._probes.push(_authenticationProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -199,6 +200,20 @@ const _sandboxingProbe: Probe = {
     return {
       success: details?.configured && details?.functional,
       details,
+    };
+  },
+};
+
+const _authenticationProbe: Probe = {
+  id: 'authentication',
+  name: 'Authentication system',
+  apply: async(server, req) => {
+    const loginSystemId = server.getInfo('loginMiddlewareComment');
+    return {
+      success: loginSystemId != undefined,
+      details: {
+        loginSystemId,
+      }
     };
   },
 };

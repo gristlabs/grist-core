@@ -1411,6 +1411,11 @@ export class FlexServer implements GristServer {
     return this._sandboxInfo;
   }
 
+  public getInfo(key: string): any {
+    const infoPair = this.info.find(([keyToCheck]) => key === keyToCheck);
+    return infoPair?.[1];
+  }
+
   public disableExternalStorage() {
     if (this.deps.has('doc')) {
       throw new Error('disableExternalStorage called too late');
