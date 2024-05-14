@@ -172,8 +172,10 @@ describe('DocApi', function () {
           ...overrideEnvConf
         };
         const home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        const docs = await TestServer.startServer(
-          'docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl
+        const docs = await TestServer.startServer('docs', tmpDir, suitename, {
+          ...additionalEnvConfiguration,
+          APP_DOC_URL: `${await proxy.getServerUrl()}/dw/dw1`,
+        }, home.serverUrl
         );
         proxy.requireFromOutsideHeader();
 
@@ -2915,7 +2917,7 @@ function testDocApi() {
   });
 
   it('POST /workspaces/{wid}/import handles empty filenames', async function () {
-    if (!process.env.TEST_REDIS_URL || docs.proxiedServer) {
+    if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
     const worker1 = await userApi.getWorkerAPI('import');
@@ -5356,7 +5358,10 @@ function setup(name: string, cb: () => Promise<void>) {
     await cb();
 
     // create TestDoc as an empty doc into Private workspace
-    userApi = api = home.makeUserApi(ORG_NAME);
+    userApi = api = home.makeUserApi(ORG_NAME, 'chimpy', {
+      headers: makeConfig('chimpy').headers as Record<string, string>,
+      serverUrl
+    });
     const wid = await getWorkspaceId(api, 'Private');
     docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
   });

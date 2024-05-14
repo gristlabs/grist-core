@@ -88,6 +88,9 @@ export class TestServer {
       APP_HOME_INTERNAL_URL: homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
       GRIST_PORT: String(port),
+      ...(this._serverTypes.includes('docs') ? {
+        APP_DOC_INTERNAL_URL: this._serverUrl,
+      }: {}),
       ...this._defaultEnv,
       ...customEnv
     };
@@ -258,7 +261,7 @@ export class TestServerReverseProxy {
   }
 
   public async start(homeServer: TestServer, docServer: TestServer) {
-    this._app.all(['/dw/dw1', '/dw/dw1/*'], (oreq, ores) => this._getRequestHandlerFor(docServer));
+    this._app.all(['/dw/dw1', '/dw/dw1/*'], this._getRequestHandlerFor(docServer));
     this._app.all('/*', this._getRequestHandlerFor(homeServer));
 
     // Forbid now the use of serverUrl property, so we don't allow the tests to
