@@ -74,7 +74,7 @@ import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import defaultsDeep = require('lodash/defaultsDeep');
 import { AvailableUsers, SUPPORT_EMAIL, UsersManager  } from './homedb/UserManager';
-import { GetUserOptions } from './homedb/Interfaces';
+import { GetUserOptions, NonGuestGroup } from './homedb/Interfaces';
 import { normalizeEmail } from 'app/common/emails';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
@@ -184,13 +184,6 @@ type AccessStyle = 'list' | 'open';
 // A Scope for documents, with mandatory urlId.
 export interface DocScope extends Scope {
   urlId: string;
-}
-
-type NonGuestGroup = Group & { name: roles.NonGuestRole };
-
-// Returns whether the given group is a valid non-guest group.
-function isNonGuestGroup(group: Group): group is NonGuestGroup {
-  return roles.isNonGuestRole(group.name);
 }
 
 export interface UserProfileChange {
@@ -954,7 +947,7 @@ export class HomeDBManager extends EventEmitter {
                        options?: {ignoreEveryoneShares?: boolean}): Promise<QueryResult<Organization[]>> {
     let queryBuilder = this._orgs()
       .leftJoinAndSelect('orgs.owner', 'users', 'orgs.owner_id = users.id');
-    if (this._usersManager.utils.isSingleUser(users)) {
+    if (UsersManager.isSingleUser(users)) {
       // When querying with a single user in mind, we keep our api promise
       // of returning their personal org first in the list.
       queryBuilder = queryBuilder
@@ -2038,9 +2031,9 @@ export class HomeDBManager extends EventEmitter {
       }
       this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const org: Organization = queryResult.data;
-      const groups = getNonGuestGroups(org);
+      const groups = UsersManager.getNonGuestGroups(org);
       if (userIdDelta) {
-        const membersBefore = getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
+        const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countBefore = removeRole(membersBefore).length;
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
@@ -2053,7 +2046,7 @@ export class HomeDBManager extends EventEmitter {
           }
         }
         // Emit an event if the number of org users is changing.
-        const membersAfter = getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
+        const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countAfter = removeRole(membersAfter).length;
         notifications.push(this._userChangeNotification(userId, org, countBefore, countAfter,
                                                         membersBefore, membersAfter));
@@ -2100,9 +2093,9 @@ export class HomeDBManager extends EventEmitter {
       this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const ws: Workspace = queryResult.data;
       // Get all the non-guest groups on the org.
-      const orgGroups = getNonGuestGroups(ws.org);
+      const orgGroups = UsersManager.getNonGuestGroups(ws.org);
       // Get all the non-guest groups to be updated by the delta.
-      const groups = getNonGuestGroups(ws);
+      const groups = UsersManager.getNonGuestGroups(ws);
       if ('maxInheritedRole' in delta) {
         // Honor the maxInheritedGroups delta setting.
         this._moveInheritedGroups(groups, orgGroups, delta.maxInheritedRole);
@@ -2113,14 +2106,16 @@ export class HomeDBManager extends EventEmitter {
           userIdDelta[userId] = roles.OWNER;
         }
       }
-      const membersBefore = this._withoutExcludedUsers(new Map(groups.map(grp => [grp.name, grp.memberUsers])));
+      const membersBefore = this._usersManager.withoutExcludedUsers(
+        new Map(groups.map(grp => [grp.name, grp.memberUsers]))
+      );
       if (userIdDelta) {
         // To check limits on shares, we track group members before and after call
         // to _updateUserPermissions.  Careful, that method mutates groups.
-        const nonOrgMembersBefore = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
-        const nonOrgMembersAfter = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
         const features = ws.org.billingAccount.getFeatures();
         const limit = features.maxSharesPerWorkspace;
         if (limit !== undefined) {
@@ -2153,9 +2148,9 @@ export class HomeDBManager extends EventEmitter {
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
       this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
       // Get all the non-guest doc groups to be updated by the delta.
-      const groups = getNonGuestGroups(doc);
+      const groups = UsersManager.getNonGuestGroups(doc);
       if ('maxInheritedRole' in delta) {
-        const wsGroups = getNonGuestGroups(doc.workspace);
+        const wsGroups = UsersManager.getNonGuestGroups(doc.workspace);
         // Honor the maxInheritedGroups delta setting.
         this._moveInheritedGroups(groups, wsGroups, delta.maxInheritedRole);
         if (delta.maxInheritedRole !== roles.OWNER) {
@@ -2170,11 +2165,11 @@ export class HomeDBManager extends EventEmitter {
         // To check limits on shares, we track group members before and after call
         // to _updateUserPermissions.  Careful, that method mutates groups.
         const org = doc.workspace.org;
-        const orgGroups = getNonGuestGroups(org);
-        const nonOrgMembersBefore = this._getUserDifference(groups, orgGroups);
+        const orgGroups = UsersManager.getNonGuestGroups(org);
+        const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
-        const nonOrgMembersAfter = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
         const features = org.billingAccount.getFeatures();
         this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter);
       }
@@ -2432,11 +2427,11 @@ export class HomeDBManager extends EventEmitter {
         // Check also that doc doesn't have too many shares.
         if (firstLevelUsers.length > 0) {
           const sourceOrg = doc.workspace.org;
-          const sourceOrgGroups = getNonGuestGroups(sourceOrg);
+          const sourceOrgGroups = UsersManager.getNonGuestGroups(sourceOrg);
           const destOrg = workspace.org;
-          const destOrgGroups = getNonGuestGroups(destOrg);
-          const nonOrgMembersBefore = this._getUserDifference(docGroups, sourceOrgGroups);
-          const nonOrgMembersAfter = this._getUserDifference(docGroups, destOrgGroups);
+          const destOrgGroups = UsersManager.getNonGuestGroups(destOrg);
+          const nonOrgMembersBefore = this._usersManager.getUserDifference(docGroups, sourceOrgGroups);
+          const nonOrgMembersAfter = this._usersManager.getUserDifference(docGroups, destOrgGroups);
           const features = destOrg.billingAccount.getFeatures();
           this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter, false);
         }
@@ -3122,7 +3117,7 @@ export class HomeDBManager extends EventEmitter {
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
       await this._setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
-                                this._filterEveryone(getResourceUsers(wsWithDocs?.docs || [])));
+                                this._usersManager.filterEveryone(getResourceUsers(wsWithDocs?.docs || [])));
     });
   }
 
@@ -3153,7 +3148,7 @@ export class HomeDBManager extends EventEmitter {
       }
       const orgGuestGroup = orgGroups[0]!;
       await this._setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
-                                this._filterEveryone(getResourceUsers(org.workspaces)));
+                                this._usersManager.filterEveryone(getResourceUsers(org.workspaces)));
     });
   }
 
@@ -3185,25 +3180,6 @@ export class HomeDBManager extends EventEmitter {
         .values(toAdd.map(id => ({user_id: id, group_id: groupId})))
         .execute();
     }
-  }
-
-  /**
-   * Don't add everyone@ as a guest, unless also sharing with anon@.
-   * This means that material shared with everyone@ doesn't become
-   * listable/discoverable by default.
-   *
-   * This is a HACK to allow existing example doc setup to continue to
-   * work. It could be removed if we are willing to share the entire
-   * support org with users.  E.g. move any material we don't want to
-   * share into a workspace that doesn't inherit ACLs.  TODO: remove
-   * this hack, or enhance it up as a way to support discoverability /
-   * listing.  It has the advantage of cloning well.
-   */
-  private _filterEveryone(users: User[]): User[] {
-    const everyone = this._usersManager.getEveryoneUserId();
-    const anon = this._usersManager.getAnonymousUserId();
-    if (users.find(u => u.id === anon)) { return users; }
-    return users.filter(u => u.id !== everyone);
   }
 
   /**
@@ -3298,7 +3274,7 @@ export class HomeDBManager extends EventEmitter {
 
     // If we happen to be the support user, don't treat our workspaces as anything
     // special, so we can work with them in the ordinary way.
-    if (this._usersManager.utils.isSingleUser(users) && users === supportId) { return qb.addSelect('false', alias); }
+    if (UsersManager.isSingleUser(users) && users === supportId) { return qb.addSelect('false', alias); }
 
     // Otherwise, treat workspaces owned by support as special.
     return qb.addSelect(`coalesce(${orgAlias}.owner_id = ${supportId}, false)`, alias);
@@ -3656,7 +3632,7 @@ export class HomeDBManager extends EventEmitter {
       .leftJoin('orgs.aclRules', 'acl_rules')
       .leftJoin('acl_rules.group', 'groups')
       .leftJoin('groups.memberUsers', 'members');
-    if (this._usersManager.utils.isSingleUser(users)) {
+    if (UsersManager.isSingleUser(users)) {
       // Add an exception for the previewer user, if present.
       const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
       if (users === previewerId) { return qb; }
@@ -4082,7 +4058,7 @@ export class HomeDBManager extends EventEmitter {
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
           q = q.andWhere(`(acl_rules.permissions & ${permissions}) = ${permissions}`).limit(1);
-        } else if (!this._usersManager.utils.isSingleUser(users)) {
+        } else if (!UsersManager.isSingleUser(users)) {
           q = q.addSelect('profiles.id');
           q = q.addSelect('profiles.display_email');
           q = q.addSelect('profiles.name');
@@ -4094,7 +4070,7 @@ export class HomeDBManager extends EventEmitter {
         }
         return q;
       };
-      if (this._usersManager.utils.isSingleUser(users)) {
+      if (UsersManager.isSingleUser(users)) {
         return getBasicPermissions(qb.subQuery());
       } else {
         return qb.subQuery()
@@ -4124,7 +4100,7 @@ export class HomeDBManager extends EventEmitter {
     qb = qb
       // filter for the specified user being a direct or indirect member of the acl_rule's group
       .where(new Brackets(cond => {
-        if (this._usersManager.utils.isSingleUser(users)) {
+        if (UsersManager.isSingleUser(users)) {
           // Users is an integer, so ok to insert into sql.  It we
           // didn't, we'd need to use distinct parameter names, since
           // we may include this code with different user ids in the
@@ -4169,7 +4145,7 @@ export class HomeDBManager extends EventEmitter {
         }
         return cond;
       }));
-    if (!this._usersManager.utils.isSingleUser(users)) {
+    if (!UsersManager.isSingleUser(users)) {
       // We need to join against a list of users.
       const emails = new Set(users.map(profile => normalizeEmail(profile.email)));
       if (emails.size > 0) {
@@ -4415,30 +4391,6 @@ export class HomeDBManager extends EventEmitter {
     return () => this.emit('addUser', userId, resource, userIdDelta, membersBefore);
   }
 
-  // Given two arrays of groups, returns a map of users present in the first array but
-  // not the second, where the map is broken down by user role.
-  // This method is used for checking limits on shares.
-  // Excluded users are removed from the results.
-  private _getUserDifference(groupsA: Group[], groupsB: Group[]): Map<roles.NonGuestRole, User[]> {
-    const subtractSet: Set<number> =
-      new Set(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
-    const result = new Map<roles.NonGuestRole, User[]>();
-    for (const group of groupsA) {
-      const name = group.name;
-      if (!roles.isNonGuestRole(name)) { continue; }
-      result.set(name, group.memberUsers.filter(user => !subtractSet.has(user.id)));
-    }
-    return this._withoutExcludedUsers(result);
-  }
-
-  private _withoutExcludedUsers(members: Map<roles.NonGuestRole, User[]>): Map<roles.NonGuestRole, User[]> {
-    const excludedUsers = this._usersManager.getExcludedUserIds();
-    for (const [role, users] of members.entries()) {
-      members.set(role, users.filter((user) => !excludedUsers.includes(user.id)));
-    }
-    return members;
-  }
-
   private _billingManagerNotification(userId: number, addUserId: number, orgs: Organization[]) {
     return () => {
       this.emit('addBillingManager', userId, addUserId, orgs);
@@ -4635,24 +4587,6 @@ function getFrom(queryBuilder: SelectQueryBuilder<any>): string {
 // Flatten a map of users per role into a simple list of users.
 export function removeRole(usersWithRoles: Map<roles.NonGuestRole, User[]>) {
   return flatten([...usersWithRoles.values()]);
-}
-
-function getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
-  return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(isNonGuestGroup);
-}
-
-// Returns a map of users indexed by their roles. Optionally excludes users whose ids are in
-// excludeUsers.
-function getUsersWithRole(groups: NonGuestGroup[], excludeUsers?: number[]): Map<roles.NonGuestRole, User[]> {
-  const members = new Map<roles.NonGuestRole, User[]>();
-  for (const group of groups) {
-    let users = group.memberUsers;
-    if (excludeUsers) {
-      users = users.filter((user) => !excludeUsers.includes(user.id));
-    }
-    members.set(group.name, users);
-  }
-  return members;
 }
 
 export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<DocAuthResult> {

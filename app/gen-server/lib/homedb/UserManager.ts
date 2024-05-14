@@ -9,13 +9,19 @@ import {
   PREVIEWER_EMAIL,
   UserProfile
 } from "app/common/UserAPI";
+import { AclRule } from "app/gen-server/entity/AclRule";
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
 import { Login } from "app/gen-server/entity/Login";
+import { Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
+import { Workspace } from "app/gen-server/entity/Workspace";
 import { appSettings } from "app/server/lib/AppSettings";
+import { flatten } from "lodash";
 import { EntityManager } from "typeorm";
 import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "../HomeDBManager";
 import { Permissions } from "../Permissions";
-import { GetUserOptions, QueryResult } from "./Interfaces";
+import { GetUserOptions, NonGuestGroup, QueryResult } from "./Interfaces";
 
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -31,16 +37,35 @@ const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL]
 // the session).
 export type AvailableUsers = number | UserProfile[];
 
-const utils = {
-  // A type guard to check for single-user case.
-  isSingleUser: function (users: AvailableUsers): users is number {
+export class UsersManager {
+  public static isSingleUser(users: AvailableUsers): users is number {
     return typeof users === 'number';
   }
-};
+
+  // Returns a map of users indexed by their roles. Optionally excludes users whose ids are in
+  // excludeUsers.
+  public static getUsersWithRole(groups: NonGuestGroup[], excludeUsers?: number[]): Map<roles.NonGuestRole, User[]> {
+    const members = new Map<roles.NonGuestRole, User[]>();
+    for (const group of groups) {
+      let users = group.memberUsers;
+      if (excludeUsers) {
+        users = users.filter((user) => !excludeUsers.includes(user.id));
+      }
+      members.set(group.name, users);
+    }
+    return members;
+  }
+
+  // Returns whether the given group is a valid non-guest group.
+  public static isNonGuestGroup(group: Group): group is NonGuestGroup {
+    return roles.isNonGuestRole(group.name);
+  }
 
 
-export class UsersManager {
-  public readonly utils = utils;
+  public static getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
+    return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(UsersManager.isNonGuestGroup);
+  }
+
   private _specialUserIds: {[name: string]: number} = {};  // id for anonymous user, previewer, etc
 
   private get _connection () {
@@ -400,7 +425,7 @@ export class UsersManager {
    * choice of user).
    */
   public isAnonymousUser(users: AvailableUsers): boolean {
-    return utils.isSingleUser(users) ? users === this.getAnonymousUserId() :
+    return UsersManager.isSingleUser(users) ? users === this.getAnonymousUserId() :
       users.length === 1 && normalizeEmail(users[0].email) === ANONYMOUS_USER_EMAIL;
   }
 
@@ -424,6 +449,50 @@ export class UsersManager {
       .from(User, 'users')
       .where('users.id IN (:...userIds)', {userIds});
     return await queryBuilder.getMany();
+  }
+
+  /**
+   * Don't add everyone@ as a guest, unless also sharing with anon@.
+   * This means that material shared with everyone@ doesn't become
+   * listable/discoverable by default.
+   *
+   * This is a HACK to allow existing example doc setup to continue to
+   * work. It could be removed if we are willing to share the entire
+   * support org with users.  E.g. move any material we don't want to
+   * share into a workspace that doesn't inherit ACLs.  TODO: remove
+   * this hack, or enhance it up as a way to support discoverability /
+   * listing.  It has the advantage of cloning well.
+   */
+  public filterEveryone(users: User[]): User[] {
+    const everyone = this.getEveryoneUserId();
+    const anon = this.getAnonymousUserId();
+    if (users.find(u => u.id === anon)) { return users; }
+    return users.filter(u => u.id !== everyone);
+  }
+
+
+  // Given two arrays of groups, returns a map of users present in the first array but
+  // not the second, where the map is broken down by user role.
+  // This method is used for checking limits on shares.
+  // Excluded users are removed from the results.
+  public getUserDifference(groupsA: Group[], groupsB: Group[]): Map<roles.NonGuestRole, User[]> {
+    const subtractSet: Set<number> =
+      new Set(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
+    const result = new Map<roles.NonGuestRole, User[]>();
+    for (const group of groupsA) {
+      const name = group.name;
+      if (!roles.isNonGuestRole(name)) { continue; }
+      result.set(name, group.memberUsers.filter(user => !subtractSet.has(user.id)));
+    }
+    return this.withoutExcludedUsers(result);
+  }
+
+  public withoutExcludedUsers(members: Map<roles.NonGuestRole, User[]>): Map<roles.NonGuestRole, User[]> {
+    const excludedUsers = this.getExcludedUserIds();
+    for (const [role, users] of members.entries()) {
+      members.set(role, users.filter((user) => !excludedUsers.includes(user.id)));
+    }
+    return members;
   }
 
   /**
