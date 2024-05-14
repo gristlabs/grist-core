@@ -83,7 +83,7 @@ async function makeUserApi(
     baseUrl?: string
   }
 ) {
-  return new UserAPIImpl(`${options?.baseUrl ?? serverUrl}/o/${org}`, {
+  return new UserAPIImpl(`${options?.baseUrl ?? homeUrl}/o/${org}`, {
     headers: options?.headers ?? makeConfig(username).headers as Record<string, string>,
     fetch: fetch as unknown as typeof globalThis.fetch,
     newFormData: () => new FormData() as any,
