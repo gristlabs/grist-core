@@ -5091,8 +5091,6 @@ function testDocApi() {
 
   describe("Allowed Origin", () => {
     it("should respond with correct CORS headers", async function () {
-      if (home.proxiedServer) { this.skip(); }
-
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({name: 'CorsTestDoc'}, wid);
       await userApi.updateDocPermissions(docId, {
@@ -5101,8 +5099,8 @@ function testDocApi() {
         }
       });
 
-      const chimpyConfig = configForUser("Chimpy");
-      const anonConfig = configForUser("Anonymous");
+      const chimpyConfig = makeConfig("Chimpy");
+      const anonConfig = makeConfig("Anonymous");
       delete chimpyConfig.headers!["X-Requested-With"];
       delete anonConfig.headers!["X-Requested-With"];
 
