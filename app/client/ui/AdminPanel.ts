@@ -110,7 +110,7 @@ export class AdminPanel extends Disposable {
           name: t('Authentication'),
           description: t('Current authentication method'),
           value: this._buildAuthenticationDisplay(owner),
-          expandedContent: undefined,
+          expandedContent: this._buildAuthenticationNotice(owner),
         })
       ]),
 
@@ -183,9 +183,15 @@ isolated from other documents and isolated from the network.'),
           return cssValueLabel(cssDangerText('no auth required'));
         }
 
-        return cssValueLabel(cssHappy(loginSystemId));
+        return cssValueLabel(cssHappyText(loginSystemId));
       }
     );
+  }
+
+  private _buildAuthenticationNotice(owner: IDisposableOwner) {
+    return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
+    We recommend enabling one of these if Grist is accessible over the network or being made available \
+    to multiple people.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
