@@ -71,7 +71,7 @@ describe('Webhooks-Proxy', function () {
       await cb();
 
       // create TestDoc as an empty doc into Private workspace
-      userApi = api = home.makeUserApi(ORG_NAME);
+      userApi = api = await home.makeUserApi(ORG_NAME);
       const wid = await getWorkspaceId(api, 'Private');
       docIds.TestDoc = await api.newDoc({name: 'TestDoc'}, wid);
     });
@@ -125,7 +125,7 @@ describe('Webhooks-Proxy', function () {
     describe("should work with a merged server", async () => {
       setupMockServers('merged', tmpDir, async () => {
         home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionaEnvConfiguration);
-        serverUrl = home.serverUrl;
+        serverUrl = await home.getServerUrl();
       });
       subTestCall();
     });
@@ -135,8 +135,9 @@ describe('Webhooks-Proxy', function () {
       describe("should work with a home server and a docworker", async () => {
         setupMockServers('separated', tmpDir, async () => {
           home = await TestServer.startServer('home', tmpDir, suitename, additionaEnvConfiguration);
-          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
-          serverUrl = home.serverUrl;
+          const homeUrl = await home.getServerUrl();
+          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, homeUrl);
+          serverUrl = homeUrl;
         });
         subTestCall();
       });
@@ -145,8 +146,9 @@ describe('Webhooks-Proxy', function () {
       describe("should work directly with a docworker", async () => {
         setupMockServers('docs', tmpDir, async () => {
           home = await TestServer.startServer('home', tmpDir, suitename, additionaEnvConfiguration);
-          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, home.serverUrl);
-          serverUrl = docs.serverUrl;
+          const homeUrl = await home.getServerUrl();
+          docs = await TestServer.startServer('docs', tmpDir, suitename, additionaEnvConfiguration, homeUrl);
+          serverUrl = await docs.getServerUrl();
         });
         subTestCall();
       });

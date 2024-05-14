@@ -48,8 +48,8 @@ describe('ManyFetches', function() {
       // Without this limit, there is no pressure on node to garbage-collect, so it may use more
       // memory than we expect, making the test less reliable.
       NODE_OPTIONS: '--max-old-space-size=210',
-    }, home.serverUrl);
-    userApi = home.makeUserApi(org, userName);
+    }, await home.getServerUrl());
+    userApi = await home.makeUserApi(org, userName);
   });
 
   afterEach(async function() {
@@ -222,13 +222,13 @@ describe('ManyFetches', function() {
   // function.
   async function prepareGristWSConnection(docId: string): Promise<() => GristWSConnection> {
     // Use cookies for access to stay as close as possible to regular operation.
-    const resp = await fetch(`${home.serverUrl}/test/session`);
+    const resp = await fetch(`${await home.getServerUrl()}/test/session`);
     const sid = cookie.parse(resp.headers.get('set-cookie'))[cookieName];
     if (!sid) { throw new Error('no session available'); }
     await home.testingHooks.setLoginSessionProfile(sid, {name: userName, email}, org);
 
     // Load the document html.
-    const pageUrl = `${home.serverUrl}/o/docs/doc/${docId}`;
+    const pageUrl = `${await home.getServerUrl()}/o/docs/doc/${docId}`;
     const headers = {Cookie: `${cookieName}=${sid}`};
     const doc = await fetch(pageUrl, {headers});
     const pageBody = await doc.text();

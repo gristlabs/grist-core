@@ -125,7 +125,7 @@ describe('DocApi', function () {
         GRIST_DATA_DIR: dataDir
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
-      homeUrl = serverUrl = home.serverUrl;
+      homeUrl = serverUrl = await home.getServerUrl();
       hasHomeApi = true;
     });
     testDocApi({webhooksTestPort});
@@ -139,7 +139,7 @@ describe('DocApi', function () {
         GRIST_ANON_PLAYGROUND: 'false'
       };
       home = docs = await TestServer.startServer('home,docs', tmpDir, suitename, additionalEnvConfiguration);
-      homeUrl = serverUrl = home.serverUrl;
+      homeUrl = serverUrl = await home.getServerUrl();
       hasHomeApi = true;
     });
 
@@ -160,8 +160,8 @@ describe('DocApi', function () {
         };
 
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
-        homeUrl = serverUrl = home.serverUrl;
+        homeUrl = serverUrl = await home.getServerUrl();
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, homeUrl);
         hasHomeApi = true;
       });
       testDocApi({webhooksTestPort});
@@ -182,8 +182,7 @@ describe('DocApi', function () {
         const docs = await TestServer.startServer('docs', tmpDir, suitename, {
           ...additionalEnvConfiguration,
           APP_DOC_URL: `${await proxy.getServerUrl()}/dw/dw1`,
-        }, home.serverUrl
-        );
+        }, await home.getServerUrl());
         proxy.requireFromOutsideHeader();
 
         await proxy.start(home, docs);
@@ -221,7 +220,7 @@ describe('DocApi', function () {
       async function testCompareDocs(proxy: TestServerReverseProxy, home: TestServer) {
         const chimpy = makeConfig('chimpy');
         const userApiServerUrl = await proxy.getServerUrl();
-        const chimpyApi = home.makeUserApi(
+        const chimpyApi = await home.makeUserApi(
           ORG_NAME, 'chimpy', { serverUrl: userApiServerUrl, headers: chimpy.headers as Record<string, string> }
         );
         const ws1 = (await chimpyApi.getOrgWorkspaces('current'))[0].id;
@@ -265,9 +264,9 @@ describe('DocApi', function () {
           GRIST_DATA_DIR: dataDir
         };
         home = await TestServer.startServer('home', tmpDir, suitename, additionalEnvConfiguration);
-        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, home.serverUrl);
-        homeUrl = home.serverUrl;
-        serverUrl = docs.serverUrl;
+        homeUrl = await home.getServerUrl();
+        docs = await TestServer.startServer('docs', tmpDir, suitename, additionalEnvConfiguration, homeUrl);
+        serverUrl = await docs.getServerUrl();
         hasHomeApi = false;
       });
       testDocApi({webhooksTestPort});
@@ -360,7 +359,7 @@ function testDocApi(settings: {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     // Make sure kiwi isn't allowed here.
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = await home.makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor for the org.
     await assert.isRejected(kiwiApi.getOrgAccess(ORG_NAME), /Forbidden/);
@@ -380,7 +379,7 @@ function testDocApi(settings: {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     await userApi.updateOrgPermissions(ORG_NAME, {users: {[kiwiEmail]: null}});
     // Make sure kiwi isn't allowed here.
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = await home.makeUserApi(ORG_NAME, 'kiwi');
     await assert.isRejected(kiwiApi.getWorkspaceAccess(ws1), /Forbidden/);
     // Add kiwi as an editor of this workspace.
     await userApi.updateWorkspacePermissions(ws1, {users: {[kiwiEmail]: 'editors'}});
@@ -399,7 +398,7 @@ function testDocApi(settings: {
   it("should allow only owners to remove a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testdeleteme1'}, ws1);
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = await home.makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't delete it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -415,7 +414,7 @@ function testDocApi(settings: {
   it("should allow only owners to rename a document", async () => {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({name: 'testrenameme1'}, ws1);
-    const kiwiApi = home.makeUserApi(ORG_NAME, 'kiwi');
+    const kiwiApi = await home.makeUserApi(ORG_NAME, 'kiwi');
 
     // Kiwi is editor of the document, so he can't rename it.
     await userApi.updateDocPermissions(doc1, {users: {'kiwi@getgrist.com': 'editors'}});
@@ -3470,7 +3469,7 @@ function testDocApi(settings: {
     if (docs.proxiedServer) {
       this.skip();
     }
-    const docWorkerUrl = docs.serverUrl;
+    const docWorkerUrl = await docs.getServerUrl();
     let resp = await axios.get(`${docWorkerUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 200);
     assert.containsAllKeys(resp.data, ['A', 'B', 'C']);
@@ -3782,7 +3781,7 @@ function testDocApi(settings: {
 
     it("limits daily API usage", async function () {
       // Make a new document in a test product with a low daily limit
-      const api = home.makeUserApi('testdailyapilimit');
+      const api = await home.makeUserApi('testdailyapilimit');
       const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
       const docId = await api.newDoc({name: 'TestDoc1'}, workspaceId);
       const max = testDailyApiLimitFeatures.baseMaxApiUnitsPerDocumentPerDay;
@@ -3810,7 +3809,7 @@ function testDocApi(settings: {
     it("limits daily API usage and sets the correct keys in redis", async function () {
       this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
-      const freeTeamApi = home.makeUserApi('freeteam');
+      const freeTeamApi = await home.makeUserApi('freeteam');
       const workspaceId = await getWorkspaceId(freeTeamApi, 'FreeTeamWs');
       const docId = await freeTeamApi.newDoc({name: 'TestDoc2'}, workspaceId);
       // Rather than making 5000 requests, set high counts directly for the current and next daily and hourly keys
@@ -5383,7 +5382,7 @@ function setup(name: string, cb: () => Promise<void>) {
     await cb();
 
     // create TestDoc as an empty doc into Private workspace
-    userApi = api = home.makeUserApi(ORG_NAME, 'chimpy', {
+    userApi = api = await home.makeUserApi(ORG_NAME, 'chimpy', {
       headers: makeConfig('chimpy').headers as Record<string, string>,
       serverUrl
     });

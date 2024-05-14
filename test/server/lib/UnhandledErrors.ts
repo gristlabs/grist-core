@@ -40,7 +40,7 @@ describe('UnhandledErrors', function() {
       const server = await TestServer.startServer('home', testDir, errType, undefined, undefined, {output});
 
       try {
-        assert.equal((await fetch(`${server.serverUrl}/status`)).status, 200);
+        assert.equal((await fetch(`${await server.getServerUrl()}/status`)).status, 200);
         serverLogLines.length  = 0;
 
         // Trigger an unhandled error, and check that the server logged it and attempted cleanup.
@@ -52,7 +52,7 @@ describe('UnhandledErrors', function() {
 
         // We expect the server to be dead now.
         // Error message depends a little on node version.
-        await assert.isRejected(fetch(`${server.serverUrl}/status`), /(request.*failed)|(ECONNREFUSED)/);
+        await assert.isRejected(fetch(`${await server.getServerUrl()}/status`), /(request.*failed)|(ECONNREFUSED)/);
 
       } finally {
         await server.stop();
