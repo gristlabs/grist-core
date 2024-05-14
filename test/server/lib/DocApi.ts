@@ -2990,7 +2990,7 @@ function testDocApi() {
       this.skip();
     }
     // Prepare an API for a different user.
-    const kiwiApi = await makeUserApi('Fish', 'kiwi')// upload something for Chimpy and something else for Kiwi.
+    const kiwiApi = await makeUserApi('Fish', 'kiwi'); // upload something for Chimpy and something else for Kiwi.
     const worker1 = await userApi.getWorkerAPI('import');
     const fakeData1 = await testUtils.readFixtureDoc('Hello.grist');
     const uploadId1 = await worker1.upload(fakeData1, 'upload.grist');
