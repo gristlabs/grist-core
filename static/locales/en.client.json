@@ -300,7 +300,34 @@
         "Ok": "OK",
         "Manage Webhooks": "Manage Webhooks",
         "Webhooks": "Webhooks",
-        "API Console": "API Console"
+        "API Console": "API Console",
+        "API URL copied to clipboard": "API URL copied to clipboard",
+        "API console": "API console",
+        "API documentation.": "API documentation.",
+        "Base doc URL: {{docApiUrl}}": "Base doc URL: {{docApiUrl}}",
+        "Coming soon": "Coming soon",
+        "Copy to clipboard": "Copy to clipboard",
+        "Currency": "Currency",
+        "Data Engine": "Data Engine",
+        "Default for DateTime columns": "Default for DateTime columns",
+        "Document ID": "Document ID",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}",
+        "Find slow formulas": "Find slow formulas",
+        "For currency columns": "For currency columns",
+        "For number and date formats": "For number and date formats",
+        "Formula times": "Formula times",
+        "Hard reset of data engine": "Hard reset of data engine",
+        "ID for API use": "ID for API use",
+        "Locale": "Locale",
+        "Manage webhooks": "Manage webhooks",
+        "Notify other services on doc changes": "Notify other services on doc changes",
+        "Python": "Python",
+        "Python version used": "Python version used",
+        "Reload": "Reload",
+        "Time Zone": "Time Zone",
+        "Try API calls from the browser": "Try API calls from the browser",
+        "python2 (legacy)": "python2 (legacy)",
+        "python3 (recommended)": "python3 (recommended)"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -567,7 +594,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
-        "Next": "Next"
+        "Next": "Next",
+        "Previous": "Previous"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Grist Video Tour",
@@ -921,7 +949,8 @@
         "Don't show tips": "Don't show tips",
         "Undo to restore": "Undo to restore",
         "Got it": "Got it",
-        "Don't show again": "Don't show again"
+        "Don't show again": "Don't show again",
+        "TIP": "TIP"
     },
     "pages": {
         "Duplicate Page": "Duplicate Page",
@@ -1543,5 +1572,11 @@
         "Error in dropdown condition": "Error in dropdown condition",
         "No choices matching condition": "No choices matching condition",
         "No choices to select": "No choices to select"
+    },
+    "FormRenderer": {
+        "Reset": "Reset",
+        "Search": "Search",
+        "Select...": "Select...",
+        "Submit": "Submit"
     }
 }
