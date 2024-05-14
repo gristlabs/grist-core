@@ -180,7 +180,7 @@ isolated from other documents and isolated from the network.'),
         }
 
         if (loginSystemId === 'no-logins') {
-          return cssValueLabel(cssDangerText('no auth required'));
+          return cssValueLabel(cssDangerText('no authentication'));
         }
 
         return cssValueLabel(cssHappyText(loginSystemId));
