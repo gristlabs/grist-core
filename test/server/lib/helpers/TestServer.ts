@@ -73,7 +73,7 @@ export class TestServer {
     return this._serverUrl;
   }
 
-  public async start(_homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
+  public async start(homeUrl?: string, customEnv?: NodeJS.ProcessEnv, options: {output?: Writable} = {}) {
     // put node logs into files with meaningful name that relate to the suite name and server type
     const fixedName = this._serverTypes.replace(/,/, '_');
     const nodeLogPath = path.join(this.rootDir, `${this._suiteName}-${fixedName}-node.log`);
@@ -88,16 +88,12 @@ export class TestServer {
 
     const serverUrl = await this.getServerUrl();
     const port = new URL(serverUrl).port;
-    const homeUrl = _homeUrl ?? (this._serverTypes.includes('home') ? serverUrl : undefined);
 
     const env: NodeJS.ProcessEnv = {
       APP_HOME_URL: homeUrl,
       APP_HOME_INTERNAL_URL: homeUrl,
       GRIST_TESTING_SOCKET: this.testingSocket,
       GRIST_PORT: port,
-      ...(this._serverTypes.includes('docs') ? {
-        APP_DOC_INTERNAL_URL: serverUrl,
-      }: {}),
       ...this._defaultEnv,
       ...customEnv
     };
@@ -167,19 +163,9 @@ export class TestServer {
   // Returns the promise for the ChildProcess's signal or exit code.
   public getExitPromise(): Promise<string|number> { return this._exitPromise; }
 
-  public async makeUserApi(
-    org: string,
-    user: string = 'chimpy',
-    {
-      headers = {Authorization: `Bearer api_key_for_${user}`},
-      serverUrl
-    }: {
-      headers?: Record<string, string>
-      serverUrl?: string,
-    } = { headers: undefined, serverUrl: undefined },
-  ): Promise<UserAPIImpl> {
-    return new UserAPIImpl(`${serverUrl ?? await this.getServerUrl()}/o/${org}`, {
-      headers,
+  public async makeUserApi(org: string, user: string = 'chimpy'): Promise<UserAPIImpl> {
+    return new UserAPIImpl(`${await this.getServerUrl()}/o/${org}`, {
+      headers: {Authorization: `Bearer api_key_for_${user}`},
       fetch: fetch as unknown as typeof globalThis.fetch,
       newFormData: () => new FormData() as any,
     });
