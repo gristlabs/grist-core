@@ -11,7 +11,6 @@ export const ClientJsonMemoryLimits = t.iface([], {
 });
 
 export const ITestingHooks = t.iface([], {
-  "getOwnPort": t.func("number"),
   "getPort": t.func("number"),
   "setLoginSessionProfile": t.func("void", t.param("gristSidCookie", "string"), t.param("profile", t.union("UserProfile", "null")), t.param("org", "string", true)),
   "setServerVersion": t.func("void", t.param("version", t.union("string", "null"))),

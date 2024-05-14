@@ -14,6 +14,7 @@ import {Writable} from "stream";
 import express from "express";
 import { AddressInfo } from "net";
 import { isAffirmative } from "app/common/gutil";
+import httpProxy from 'http-proxy';
 
 /**
  * This starts a server in a separate process.
@@ -174,6 +175,10 @@ export class TestServer {
     });
   }
 
+  /**
+   * Assuming that the server is behind a reverse-proxy (like TestServerReverseProxy),
+   * disallow access to the serverUrl to prevent the tests to join the server directly.
+   */
   public disallowDirectAccess() {
     this._proxiedServer = true;
   }
@@ -199,6 +204,20 @@ export class TestServer {
   }
 }
 
+/**
+ * Creates a reverse-proxy for a home and a doc worker.
+ *
+ * The workers are then disallowed to be joined directly, the tests are assumed to
+ * pass through this reverse-proxy.
+ *
+ * You may use it like follow:
+ * ```ts
+ * const proxy = new TestServerReverseProxy();
+ * // Create here a doc and a home workers with their env variables
+ * proxy.requireFromOutsideHeader(); // Optional
+ * await proxy.start(home, docs);
+ * ```
+ */
 export class TestServerReverseProxy {
 
   // Use a different hostname for the proxy than the doc and home workers'
@@ -210,20 +229,30 @@ export class TestServerReverseProxy {
   public static FROM_OUTSIDE_HEADER = {"X-FROM-OUTSIDE": true};
 
   private _app = express();
-  private _server: http.Server;
+  private _proxyServer: http.Server;
+  private _proxy: httpProxy = httpProxy.createProxy();
   private _address: Promise<AddressInfo>;
   private _requireFromOutsideHeader = false;
 
-  public get stopped() { return !this._server.listening; }
+  public get stopped() { return !this._proxyServer.listening; }
 
   public constructor() {
-    this._address = new Promise(resolve => {
-      this._server = this._app.listen(0, () => {
-        resolve(this._server.address() as AddressInfo);
+    this._proxyServer = this._app.listen(0);
+    this._address = new Promise((resolve) => {
+      this._proxyServer.once('listening', () => {
+        resolve(this._proxyServer.address() as AddressInfo);
       });
     });
   }
 
+  /**
+  * Require the reverse-proxy to be called from the outside world.
+  * This assumes that every requests to the proxy includes the header
+  * provided in TestServerReverseProxy.FROM_OUTSIDE_HEADER
+  *
+  * If a call is done by a worker (assuming they don't include that header),
+  * the proxy rejects with a FORBIDEN http status.
+  */
   public requireFromOutsideHeader() {
     this._requireFromOutsideHeader = true;
   }
@@ -231,9 +260,12 @@ export class TestServerReverseProxy {
   public async start(homeServer: TestServer, docServer: TestServer) {
     this._app.all(['/dw/dw1', '/dw/dw1/*'], (oreq, ores) => this._getRequestHandlerFor(docServer));
     this._app.all('/*', this._getRequestHandlerFor(homeServer));
-    // Forbid now the use of serverUrl property
+
+    // Forbid now the use of serverUrl property, so we don't allow the tests to
+    // call the workers directly
     homeServer.disallowDirectAccess();
     docServer.disallowDirectAccess();
+
     log.info('proxy server running on ', await this.getServerUrl());
   }
 
@@ -251,68 +283,23 @@ export class TestServerReverseProxy {
       return;
     }
     log.info("Stopping node TestServerReverseProxy");
-    this._server.close();
+    this._proxyServer.close();
+    this._proxy.close();
   }
 
-  // Inspired from: https://stackoverflow.com/a/10435819
   private _getRequestHandlerFor(server: TestServer) {
     const serverUrl = new URL(server.serverUrl);
 
     return (oreq: express.Request, ores: express.Response) => {
       log.debug(`[proxy] Requesting (method=${oreq.method}): ${new URL(oreq.url, serverUrl).href}`);
 
+      // See the requireFromOutsideHeader() method for the explanation
       if (this._requireFromOutsideHeader && !isAffirmative(oreq.get("X-FROM-OUTSIDE"))) {
         log.error('TestServerReverseProxy: called public URL from internal');
         return ores.status(403).json({error: "TestServerReverseProxy: called public URL from internal "});
       }
 
-      const options = {
-        host: serverUrl.hostname,
-        port: serverUrl.port,
-        path: oreq.url,
-        method: oreq.method,
-        headers: oreq.headers,
-      };
-
-      const creq = http
-      .request(options, pres => {
-        log.debug('[proxy] Received response for ' + oreq.url);
-
-        // set encoding, required?
-        pres.setEncoding('utf8');
-
-        // set http status code based on proxied response
-        ores.writeHead(pres.statusCode ?? 200, pres.statusMessage, pres.headers);
-
-        // wait for data
-        pres.on('data', chunk => {
-          ores.write(chunk);
-        });
-
-        pres.on('close', () => {
-          // closed, let's end client request as well
-          ores.end();
-        });
-
-        pres.on('end', () => {
-          // finished, let's finish client request as well
-          ores.end();
-        });
-      })
-      .on('error', e => {
-        // we got an error
-        log.info('Error caught by TestServerReverseProxy: %s', e.message);
-        try {
-          // attempt to set error message and http status
-          ores.writeHead(500);
-          ores.write(e.message);
-        } catch (e) {
-          // ignore
-        }
-        ores.end();
-      });
-
-      oreq.pipe(creq).on('end', () => creq.end());
+      this._proxy.web(oreq, ores, { target: serverUrl });
     };
   }
 }
