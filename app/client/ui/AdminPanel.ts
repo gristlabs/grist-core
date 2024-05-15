@@ -484,9 +484,7 @@ Please log in as an administrator.`),
                           result: BootProbeResult,
                           details: ProbeDetails|undefined) {
 
-    const status = (result.success !== undefined) ?
-        (result.success ? '✅' : '❗') : '―';
-
+    const status = this._encodeSuccess(result);
     return dom.create(AdminSectionItem, {
       id: `probe-${info.id}`,
       name: info.id,
@@ -520,6 +518,20 @@ Please log in as an administrator.`),
         ],
       ],
     });
+  }
+
+  /**
+   * Give an icon summarizing success or failure. Factor in the
+   * severity of the result for failures. This is crude, the
+   * visualization of the results can be elaborated in future.
+   */
+  private _encodeSuccess(result: BootProbeResult) {
+    if (result.success === undefined)  { return '―';  }
+    if (result.success)                { return '✅'; }
+    if (result.severity === 'warning') { return '❗';  }
+    if (result.severity === 'hmm') { return '?';  }
+    // remaining case is a fault.
+    return '❌';
   }
 }
 

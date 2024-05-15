@@ -1,3 +1,4 @@
+import { reportError } from 'app/client/models/errors';
 import { BootProbeIds, BootProbeInfo, BootProbeResult } from 'app/common/BootProbe';
 import { InstallAPI } from 'app/common/InstallAPI';
 import { getGristConfig } from 'app/common/urlUtils';
@@ -32,7 +33,7 @@ export class AdminChecks {
     const config = getGristConfig();
     const errMessage = config.errMessage;
     if (!errMessage) {
-      const _probes = await this._installAPI.getChecks().catch(() => undefined);
+      const _probes = await this._installAPI.getChecks().catch(reportError);
       if (!this._parent.isDisposed()) {
         // Currently, probes are forbidden if not admin.
         // TODO: May want to relax this to allow some probes that help

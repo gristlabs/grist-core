@@ -169,7 +169,7 @@ const _bootProbe: Probe = {
   id: 'boot-page',
   name: 'Is the boot page adequately protected',
   apply: async (server) => {
-    const bootKey = server.getBootKey;
+    const bootKey = server.getBootKey() || '';
     const hasBoot = Boolean(bootKey);
     const details: Record<string, any> = {
       bootKeySet: hasBoot,
@@ -178,10 +178,19 @@ const _bootProbe: Probe = {
       return { success: true, details };
     }
     details.bootKeyLength = bootKey.length;
+    if (bootKey.length < 10) {
+      return {
+        success: false,
+        verdict: 'Boot key length is shorter than 10.',
+        details,
+        severity: 'fault',
+      };
+    }
     return {
-      success: bootKey.length > 10,
+      success: false,
+      verdict: 'Boot key ideally should be removed after installation.',
       details,
-      severity: 'hmm',
+      severity: 'warning',
     };
   },
 };
