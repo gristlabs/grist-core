@@ -91,6 +91,7 @@ export const commonUrls = {
   helpAPI: 'https://support.getgrist.com/api',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
+  termsOfService: getTermsOfServiceUrl(),
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
@@ -689,6 +690,9 @@ export interface GristLoadConfig {
   // Url for support for the browser client to use.
   helpCenterUrl?: string;
 
+  // Url for terms of service for the browser client to use
+  termsOfServiceUrl?: string;
+
   // Url for free coaching call scheduling for the browser client to use.
   freeCoachingCallUrl?: string;
 
@@ -897,6 +901,15 @@ export function getHelpCenterUrl(): string {
     return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
     return process.env.GRIST_HELP_CENTER || defaultUrl;
+  }
+}
+
+export function getTermsOfServiceUrl(): string|undefined {
+  if(isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.termsOfServiceUrl || undefined;
+  } else {
+    return process.env.GRIST_TERMS_OF_SERVICE_URL || undefined;
   }
 }
 
