@@ -146,7 +146,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
-       (commonUrls.termsOfService ?
+        (commonUrls.termsOfService ?
           cssPageEntry(
             cssPageLink(cssPageIcon('Memo'), cssLinkText(t("Terms of service")),
               { href: commonUrls.termsOfService, target: '_blank' },
