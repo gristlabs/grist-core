@@ -535,9 +535,6 @@ Please log in as an administrator.`),
   }
 }
 
-//function maybeSwitchToggle(value: Observable<boolean|null>): DomContents {
-//  return toggle(value, dom.hide((use) => use(value) === null));
-//}
 
 // Ugh I'm not a front end person. h5 small-caps, sure why not.
 // Hopefully someone with taste will edit someday!
