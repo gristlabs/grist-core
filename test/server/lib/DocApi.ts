@@ -4961,6 +4961,8 @@ function testDocApi() {
 
           await check({isReadyColumn: null}, 200);
           await check({isReadyColumn: "bar"}, 404, `Column not found "bar"`);
+
+          await check({authorization: 'Bearer fake-token'}, 200);
         });
 
       });

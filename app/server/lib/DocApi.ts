@@ -936,7 +936,7 @@ export class DocWorkerApi {
 
         // update url and authorization header in homedb
         if (url || authorization) {
-          await this._dbManager.updateWebhookUrlAndAuth(webhookId, docId, url, authorization || undefined);
+          await this._dbManager.updateWebhookUrlAndAuth(webhookId, docId, url, authorization);
           activeDoc.triggers.webhookDeleted(webhookId); // clear cache
         }
 
