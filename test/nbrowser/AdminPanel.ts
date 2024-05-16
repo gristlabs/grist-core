@@ -196,9 +196,11 @@ describe('AdminPanel', function() {
   it('should show various self checks', async function() {
     await driver.get(`${server.getHost()}/admin`);
     await waitForAdminPanel();
-    assert.equal(await driver.find('.test-admin-panel-item-name-probe-reachable').isDisplayed(), true);
     await gu.waitToPass(
-      async () => assert.match(await driver.find('.test-admin-panel-item-value-probe-reachable').getText(), /✅/),
+      async () => {
+        assert.equal(await driver.find('.test-admin-panel-item-name-probe-reachable').isDisplayed(), true);
+        assert.match(await driver.find('.test-admin-panel-item-value-probe-reachable').getText(), /✅/);
+      },
       3000,
     );
     assert.equal(await driver.find('.test-admin-panel-item-name-probe-system-user').isDisplayed(), true);
