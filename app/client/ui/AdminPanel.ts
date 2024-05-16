@@ -99,12 +99,9 @@ export class AdminPanel extends Disposable {
    */
   private _buildMainContentForOthers(owner: MultiHolder) {
     return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
-      dom('p', `You do not have access to the administrator panel.
-Please log in as an administrator.`),
-      dom('p', `Or, as a fallback, you can set:`),
-      dom('pre', 'GRIST_BOOT_KEY=secret'),
-      dom('p', ` in the environment and visit: `),
-      dom('pre', `/admin?key=secret`)
+      dom('p', t(`You do not have access to the administrator panel.
+Please log in as an administrator.`)),
+      dom('p', t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`), {bootKey: dom('pre', 'GRIST_BOOT_KEY=secret'), url: dom('pre', `/admin?key=secret`)}),
     ]);
   }
 
