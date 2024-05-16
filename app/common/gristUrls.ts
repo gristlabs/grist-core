@@ -88,6 +88,7 @@ export const commonUrls = {
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
   helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
+  helpAPI: 'https://support.getgrist.com/api',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   plans: "https://www.getgrist.com/pricing",
@@ -185,10 +186,23 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
-function isDocInternalUrl(host: string) {
-  if (!process.env.APP_DOC_INTERNAL_URL) { return false; }
-  const internalUrl = new URL('/', process.env.APP_DOC_INTERNAL_URL);
-  return internalUrl.host === host;
+function hostMatchesUrl(host?: string, url?: string) {
+  return host !== undefined && url !== undefined && new URL(url).host === host;
+}
+
+/**
+ * Returns true if:
+ *  - the server is a home worker and the host matches APP_HOME_INTERNAL_URL;
+ *  - or the server is a doc worker and the host matches APP_DOC_INTERNAL_URL;
+ *
+ * @param {string?} host The host to check
+ */
+function isOwnInternalUrlHost(host?: string) {
+  // Note: APP_HOME_INTERNAL_URL may also be defined in doc worker as well as in home worker
+  if (process.env.APP_HOME_INTERNAL_URL && hostMatchesUrl(host, process.env.APP_HOME_INTERNAL_URL)) {
+    return true;
+  }
+  return Boolean(process.env.APP_DOC_INTERNAL_URL) && hostMatchesUrl(host, process.env.APP_DOC_INTERNAL_URL);
 }
 
 /**
@@ -208,7 +222,11 @@ export function getHostType(host: string, options: {
 
   const hostname = host.split(":")[0];
   if (!options.baseDomain) { return 'native'; }
-  if (hostname === 'localhost' || isDocInternalUrl(host) || hostname.endsWith(options.baseDomain)) {
+  if (
+    hostname === 'localhost' ||
+    isOwnInternalUrlHost(host) ||
+    hostname.endsWith(options.baseDomain)
+  ) {
     return 'native';
   }
   return 'custom';

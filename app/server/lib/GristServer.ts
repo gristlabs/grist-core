@@ -35,6 +35,7 @@ export interface GristServer {
   settings?: Readonly<Record<string, unknown>>;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
+  getHomeInternalUrl(relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
   getOwnUrl(): string;
   getOrgUrl(orgKey: string|number): Promise<string>;
@@ -127,6 +128,7 @@ export function createDummyGristServer(): GristServer {
     settings: {},
     getHost() { return 'localhost:4242'; },
     getHomeUrl() { return 'http://localhost:4242'; },
+    getHomeInternalUrl() { return 'http://localhost:4242'; },
     getHomeUrlByDocId() { return Promise.resolve('http://localhost:4242'); },
     getMergedOrgUrl() { return 'http://localhost:4242'; },
     getOwnUrl() { return 'http://localhost:4242'; },

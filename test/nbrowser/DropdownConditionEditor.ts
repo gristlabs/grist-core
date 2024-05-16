@@ -19,6 +19,7 @@ describe('DropdownConditionEditor', function () {
       await gu.getCell(1, 1).click();
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await driver.find('.test-field-set-dropdown-condition').click();
+      await gu.waitAppFocus(false);
       await gu.sendKeys('c');
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
@@ -29,7 +30,7 @@ describe('DropdownConditionEditor', function () {
           're\nc\n.Supervisor\n ',
         ]);
       });
-      await gu.sendKeys('hoice not in $');
+      await gu.sendKeysSlowly(['hoice not in $']);
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
         assert.deepEqual(completions, [
@@ -144,7 +145,8 @@ describe('DropdownConditionEditor', function () {
       await gu.getCell(2, 1).click();
       assert.isFalse(await driver.find('.test-field-dropdown-condition').isPresent());
       await driver.find('.test-field-set-dropdown-condition').click();
-      await gu.sendKeys('choice');
+      await gu.waitAppFocus(false);
+      await gu.sendKeysSlowly(['choice']);
       await gu.waitToPass(async () => {
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
         assert.deepEqual(completions, [
@@ -155,11 +157,11 @@ describe('DropdownConditionEditor', function () {
           'choice\n.Supervisor\n '
         ]);
       });
-      await gu.sendKeys('.Role == "Supervisor" and $Role != "Supervisor"', Key.ENTER);
+      await gu.sendKeys('.Role == "Supervisor" and $Role != "Supervisor" and $id != 2', Key.ENTER);
       await gu.waitForServer();
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
-        'choice.Role == "Supervisor" and $Role != "Supervisor"\n'
+        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n'
       );
 
       // Check that autocomplete values are filtered.
@@ -169,6 +171,23 @@ describe('DropdownConditionEditor', function () {
         'Marie Ziyad',
       ]);
       await gu.sendKeys(Key.ESCAPE);
+
+      // Should be no options on row 2 because of $id != 2 part of condition.
+      await gu.getCell(2, 2).click();
+      await gu.sendKeys(Key.ENTER);
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+      ]);
+      await gu.sendKeys(Key.ESCAPE);
+
+      // Row 3 should be like row 1.
+      await gu.getCell(2, 3).click();
+      await gu.sendKeys(Key.ENTER);
+      assert.deepEqual(await driver.findAll('.test-autocomplete li', (el) => el.getText()), [
+        'Pavan Madilyn',
+        'Marie Ziyad',
+      ]);
+      await gu.sendKeys(Key.ESCAPE);
+
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);
       assert.isEmpty(await driver.findAll('.test-autocomplete li', (el) => el.getText()));
@@ -185,7 +204,7 @@ describe('DropdownConditionEditor', function () {
       await gu.setType('Reference List', {apply: true});
       assert.equal(
         await driver.find('.test-field-dropdown-condition .ace_line').getAttribute('textContent'),
-        'choice.Role == "Supervisor" and $Role != "Supervisor"\n'
+        'choice.Role == "Supervisor" and $Role != "Supervisor" and $id != 2\n'
       );
       await gu.getCell(2, 4).click();
       await gu.sendKeys(Key.ENTER);

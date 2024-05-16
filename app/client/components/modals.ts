@@ -172,7 +172,7 @@ export function showTipPopup(
         cssBehavioralPromptHeader(
           cssHeaderIconAndText(
             icon('Idea'),
-            cssHeaderText('TIP'),
+            cssHeaderText(t('TIP')),
           ),
         ),
         cssBehavioralPromptBody(

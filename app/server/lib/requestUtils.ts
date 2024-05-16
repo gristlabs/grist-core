@@ -1,5 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
-import {DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail} from 'app/common/gristUrls';
+import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from 'app/common/gristUrls';
 import * as gutil from 'app/common/gutil';
 import {DocScope, QueryResult, Scope} from 'app/gen-server/lib/HomeDBManager';
 import {getUserId, RequestWithLogin} from 'app/server/lib/Authorizer';

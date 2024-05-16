@@ -1752,6 +1752,16 @@ export async function sendKeys(...keys: string[]) {
 }
 
 /**
+ * Send keys with a pause between each key.
+ */
+export async function sendKeysSlowly(keys: string[], delayMs = 40) {
+  for (const [i, key] of keys.entries()) {
+    await sendKeys(key);
+    if (i < keys.length - 1) { await driver.sleep(delayMs); }
+  }
+}
+
+/**
  * Clears active input/textarea.
  */
 export async function clearInput() {

@@ -1,7 +1,7 @@
 import {ApiError} from 'app/common/ApiError';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
-import {getDocWorkerUrl} from 'app/common/UserAPI';
+import {getUrlFromPrefix} from 'app/common/UserAPI';
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -21,6 +21,8 @@ import * as multiparty from 'multiparty';
 import fetch, {Response as FetchResponse} from 'node-fetch';
 import * as path from 'path';
 import * as tmp from 'tmp';
+import {IDocWorkerMap} from './DocWorkerMap';
+import {getDocWorkerInfoOrSelfPrefix} from './DocWorkerUtils';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle
@@ -39,7 +41,12 @@ export interface FormResult {
 /**
  * Adds an upload route to the given express app, listening for POST requests at UPLOAD_URL_PATH.
  */
-export function addUploadRoute(server: GristServer, expressApp: Application, ...handlers: RequestHandler[]): void {
+export function addUploadRoute(
+  server: GristServer,
+  expressApp: Application,
+  docWorkerMap: IDocWorkerMap,
+  ...handlers: RequestHandler[]
+): void {
 
   // When doing a cross-origin post, the browser will check for access with options prior to posting.
   // We need to reassure it that the request will be accepted before it will go ahead and post.
@@ -72,7 +79,7 @@ export function addUploadRoute(server: GristServer, expressApp: Application, ...
     if (!docId) { throw new Error('doc must be specified'); }
     const accessId = makeAccessId(req, getAuthorizedUserId(req));
     try {
-      const uploadResult: UploadResult = await fetchDoc(server, docId, req, accessId,
+      const uploadResult: UploadResult = await fetchDoc(server, docWorkerMap, docId, req, accessId,
                                                         req.query.template === '1');
       if (name) {
         globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
@@ -404,24 +411,21 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
  * Fetches a Grist doc potentially managed by a different doc worker.  Passes on credentials
  * supplied in the current request.
  */
-export async function fetchDoc(server: GristServer, docId: string, req: Request, accessId: string|null,
-                        template: boolean): Promise<UploadResult> {
+export async function fetchDoc(
+  server: GristServer,
+  docWorkerMap: IDocWorkerMap,
+  docId: string,
+  req: Request,
+  accessId: string|null,
+  template: boolean
+): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
-  const headers = getTransitiveHeaders(req);
-
-  // Passing the Origin header would serve no purpose here, as we are
-  // constructing an internal request to fetch from our own doc worker
-  // URL. Indeed, it may interfere, as it could incur a CORS check in
-  // `trustOrigin`, which we do not need.
-  delete headers.Origin;
+  const headers = getTransitiveHeaders(req, { includeOrigin: false });
 
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.
-  const homeUrl = server.getHomeUrl(req);
-  const fetchUrl = new URL(`/api/worker/${docId}`, homeUrl);
-  const response: FetchResponse = await Deps.fetch(fetchUrl.href, {headers});
-  await _checkForError(response);
-  const docWorkerUrl = getDocWorkerUrl(server.getOwnUrl(), await response.json());
+  const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());
+  const docWorkerUrl = docWorker ? docWorker.internalUrl : getUrlFromPrefix(server.getHomeInternalUrl(), selfPrefix);
   // Download the document, in full or as a template.
   const url = new URL(`api/docs/${docId}/download?template=${Number(template)}`,
                       docWorkerUrl.replace(/\/*$/, '/'));

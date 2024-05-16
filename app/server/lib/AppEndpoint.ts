@@ -9,17 +9,18 @@ import {ApiError} from 'app/common/ApiError';
 import {getSlugIfNeeded, parseUrlId, SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {LocalPlugin} from "app/common/plugin";
 import {TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME} from 'app/common/Telemetry';
-import {Document as APIDocument} from 'app/common/UserAPI';
+import {Document as APIDocument, PublicDocWorkerUrlInfo} from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
 import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
         RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
-import {customizeDocWorkerUrl, getWorker, useWorkerPool} from 'app/server/lib/DocWorkerUtils';
+import {
+  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getWorker, useWorkerPool
+} from 'app/server/lib/DocWorkerUtils';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {DocTemplate, GristServer} from 'app/server/lib/GristServer';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
-import {getAssignmentId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {addOrgToPathIfNeeded, pruneAPIResult, trustOrigin} from 'app/server/lib/requestUtils';
 import {ISendAppPageOptions} from 'app/server/lib/sendAppPage';
@@ -48,32 +49,18 @@ export function attachAppEndpoint(options: AttachOptions): void {
   app.get('/apiconsole', expressWrap(async (req, res) =>
     sendAppPage(req, res, {path: 'apiconsole.html', status: 200, config: {}})));
 
-  app.get('/api/worker/:assignmentId([^/]+)/?*', expressWrap(async (req, res) => {
-    if (!useWorkerPool()) {
-      // Let the client know there is not a separate pool of workers,
-      // so they should continue to use the same base URL for accessing
-      // documents. For consistency, return a prefix to add into that
-      // URL, as there would be for a pool of workers. It would be nice
-      // to go ahead and provide the full URL, but that requires making
-      // more assumptions about how Grist is configured.
-      // Alternatives could be: have the client to send their base URL
-      // in the request; or use headers commonly added by reverse proxies.
-      const selfPrefix =  "/dw/self/v/" + gristServer.getTag();
-      res.json({docWorkerUrl: null, selfPrefix});
-      return;
-    }
+  app.get('/api/worker/:docId([^/]+)/?*', expressWrap(async (req, res) => {
     if (!trustOrigin(req, res)) { throw new Error('Unrecognized origin'); }
     res.header("Access-Control-Allow-Credentials", "true");
 
-    if (!docWorkerMap) {
-      return res.status(500).json({error: 'no worker map'});
-    }
-    const assignmentId = getAssignmentId(docWorkerMap, req.params.assignmentId);
-    const {docStatus} = await getWorker(docWorkerMap, assignmentId, '/status');
-    if (!docStatus) {
-      return res.status(500).json({error: 'no worker'});
-    }
-    res.json({docWorkerUrl: customizeDocWorkerUrl(docStatus.docWorker.publicUrl, req)});
+    const {selfPrefix, docWorker} = await getDocWorkerInfoOrSelfPrefix(
+      req.params.docId, docWorkerMap, gristServer.getTag()
+    );
+    const info: PublicDocWorkerUrlInfo = selfPrefix ?
+      { docWorkerUrl: null, selfPrefix } :
+      { docWorkerUrl: customizeDocWorkerUrl(docWorker!.publicUrl, req), selfPrefix: null };
+
+    return res.json(info);
   }));
 
   // Handler for serving the document landing pages.  Expects the following parameters:
@@ -160,7 +147,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       // TODO docWorkerMain needs to serve app.html, perhaps with correct base-href already set.
       const headers = {
         Accept: 'application/json',
-        ...getTransitiveHeaders(req),
+        ...getTransitiveHeaders(req, { includeOrigin: true }),
       };
       const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, {headers});
       docStatus = workerInfo.docStatus;
@@ -206,10 +193,16 @@ export function attachAppEndpoint(options: AttachOptions): void {
       });
     }
 
+    // Without a public URL, we're in single server mode.
+    // Use a null workerPublicURL, to signify that the URL prefix serving the
+    // current endpoint is the only one available.
+    const publicUrl = docStatus?.docWorker?.publicUrl;
+    const workerPublicUrl = publicUrl !== undefined ? customizeDocWorkerUrl(publicUrl, req) : null;
+
     await sendAppPage(req, res, {path: "", content: body.page, tag: body.tag, status: 200,
                                  googleTagManager: 'anon', config: {
       assignmentId: docId,
-      getWorker: {[docId]: customizeDocWorkerUrl(docStatus?.docWorker?.publicUrl, req)},
+      getWorker: {[docId]: workerPublicUrl },
       getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
       plugins
     }});

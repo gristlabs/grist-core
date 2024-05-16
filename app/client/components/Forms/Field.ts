@@ -1,4 +1,4 @@
-import {FormLayoutNode, SELECT_PLACEHOLDER} from 'app/client/components/FormRenderer';
+import {FormLayoutNode, selectPlaceholder} from 'app/client/components/FormRenderer';
 import {buildEditor} from 'app/client/components/Forms/Editor';
 import {FormView} from 'app/client/components/Forms/FormView';
 import {BoxModel, ignoreClick} from 'app/client/components/Forms/Model';
@@ -406,7 +406,7 @@ class ChoiceModel extends Question {
       ignoreClick,
       dom.prop('name', use => use(use(this.field).colId)),
       dom('option',
-        SELECT_PLACEHOLDER,
+        selectPlaceholder(),
         {value: ''},
       ),
       dom.forEach(this.choices, (choice) => dom('option',
@@ -616,7 +616,7 @@ class RefModel extends RefListModel {
       ignoreClick,
       dom.prop('name', this.model.colId),
       dom('option',
-        SELECT_PLACEHOLDER,
+        selectPlaceholder(),
         {value: ''},
       ),
       dom.forEach(this.options, ({label, value}) => dom('option',
