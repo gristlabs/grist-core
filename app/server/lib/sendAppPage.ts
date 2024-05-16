@@ -4,6 +4,7 @@ import {
   getFreeCoachingCallUrl,
   getHelpCenterUrl,
   getPageTitleSuffix,
+  getTermsOfServiceUrl,
   GristLoadConfig,
   IFeature
 } from 'app/common/gristUrls';
@@ -62,6 +63,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     baseDomain,
     singleOrg: process.env.GRIST_SINGLE_ORG,
     helpCenterUrl: getHelpCenterUrl(),
+    termsOfServiceUrl: getTermsOfServiceUrl(),
     freeCoachingCallUrl: getFreeCoachingCallUrl(),
     contactSupportUrl: getContactSupportUrl(),
     pathOnly,
