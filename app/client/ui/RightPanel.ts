@@ -221,7 +221,6 @@ export class RightPanel extends Disposable {
   private _buildStandardHeader() {
     return dom.maybe(this._pageWidgetType, (type) => {
       const widgetInfo = getWidgetTypes(type);
-      // const widgetLabel = getWidgetTypesLabelTranslation(widgetInfo);
       const fieldInfo = getFieldType(type);
       return [
         cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetInfo.getLabel(),
