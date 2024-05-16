@@ -8,28 +8,25 @@ import {makeT} from 'app/client/lib/localization';
 const t = makeT('widgetTypesMap');
 
 export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
-  ['record', {label: 'Table', icon: 'TypeTable'}],
-  ['single', {label: 'Card', icon: 'TypeCard'}],
-  ['detail', {label: 'Card List', icon: 'TypeCardList'}],
-  ['chart', {label: 'Chart', icon: 'TypeChart'}],
-  ['form', {label: 'Form', icon: 'Board'}],
-  ['custom', {label: 'Custom', icon: 'TypeCustom'}],
-  ['custom.calendar', {label: 'Calendar', icon: 'TypeCalendar'}],
+  ['record', {name: 'Table', icon: 'TypeTable', getLabel: () => t('Table')}],
+  ['single', {name: 'Card', icon: 'TypeCard', getLabel: () => t('Card')}],
+  ['detail', {name: 'Card List', icon: 'TypeCardList', getLabel: () => t('Card List')}],
+  ['chart', {name: 'Chart', icon: 'TypeChart', getLabel: () => t('Chart')}],
+  ['form', {name: 'Form', icon: 'Board', getLabel: () => t('Form')}],
+  ['custom', {name: 'Custom', icon: 'TypeCustom', getLabel: () => t('Custom')}],
+  ['custom.calendar', {name: 'Calendar', icon: 'TypeCalendar', getLabel: () => t('Calendar')}],
 ]);
 
 // Widget type info.
 export interface IWidgetTypeInfo {
-  label: string;
+  name: string;
   icon: IconName;
+  getLabel: () => string;
 }
 
 // Returns the widget type info for sectionType, or the one for 'record' if sectionType is null.
 export function getWidgetTypes(sectionType: IWidgetType | null): IWidgetTypeInfo {
   return widgetTypesMap.get(sectionType || 'record') || widgetTypesMap.get('record')!;
-}
-
-export function getWidgetTypesLabelTranslation(widgetType: IWidgetTypeInfo) {
-  return t(widgetType.label);
 }
 
 export interface GetTelemetryWidgetTypeOptions {
@@ -53,7 +50,7 @@ export function getTelemetryWidgetTypeFromPageWidget(widget: IPageWidget) {
 }
 
 function getTelemetryWidgetType(type: IWidgetType, options: GetTelemetryWidgetTypeOptions = {}) {
-  let telemetryWidgetType: string | undefined = widgetTypesMap.get(type)?.label;
+  let telemetryWidgetType: string | undefined = widgetTypesMap.get(type)?.name;
   if (!telemetryWidgetType) { return undefined; }
 
   if (options.isNewTable) {

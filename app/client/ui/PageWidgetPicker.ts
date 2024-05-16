@@ -6,7 +6,7 @@ import {ColumnRec, TableRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {PERMITTED_CUSTOM_WIDGETS} from "app/client/models/features";
 import {linkId, NoLink} from 'app/client/ui/selectBy';
 import {overflowTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
-import {getWidgetTypes, getWidgetTypesLabelTranslation} from "app/client/ui/widgetTypesMap";
+import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {bigPrimaryButton} from "app/client/ui2018/buttons";
 import {theme, vars} from "app/client/ui2018/cssVars";
 import {icon} from "app/client/ui2018/icons";
@@ -205,8 +205,7 @@ export function buildPageWidgetPicker(
       // If savePromise throws an error, before or after timeout, we let the error propagate as it
       // should be handle by the caller.
       if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
-        const widgetInfo = getWidgetTypes(type);
-        const label = getWidgetTypesLabelTranslation(widgetInfo);
+        const label = getWidgetTypes(type).getLabel();
         await spinnerModal(t("Building {{- label}} widget", { label }), savePromise);
       }
     }
@@ -319,12 +318,11 @@ export class PageWidgetSelect extends Disposable {
           header(t("Select Widget")),
           sectionTypes.map((value) => {
             const widgetInfo = getWidgetTypes(value);
-            const tLabel = getWidgetTypesLabelTranslation(widgetInfo);
             const disabled = computed(this._value.table, (use, tid) => this._isTypeDisabled(value, tid));
             return cssEntry(
               dom.autoDispose(disabled),
               cssTypeIcon(widgetInfo.icon),
-              tLabel,
+              widgetInfo.getLabel(),
               dom.on('click', () => !disabled.get() && this._selectType(value)),
               cssEntry.cls('-selected', (use) => use(this._value.type) === value),
               cssEntry.cls('-disabled', disabled),

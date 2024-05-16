@@ -20,7 +20,7 @@ import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
 import {LinkConfig} from 'app/client/ui/selectBy';
-import {getWidgetTypes, getWidgetTypesLabelTranslation} from "app/client/ui/widgetTypesMap";
+import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
 import {UserAction} from 'app/common/DocActions';
@@ -461,7 +461,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
     const widgetTypeDesc = this.parentKey() !== 'record'
-      ? `${getWidgetTypesLabelTranslation(getWidgetTypes(this.parentKey.peek() as any))}`
+      ? `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}`
       : '';
     const table = this.table();
     return [
