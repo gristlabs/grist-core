@@ -41,6 +41,7 @@ import {ForkIndexes1678737195050 as ForkIndexes} from 'app/gen-server/migration/
 import {ActivationPrefs1682636695021 as ActivationPrefs} from 'app/gen-server/migration/1682636695021-ActivationPrefs';
 import {AssistantLimit1685343047786 as AssistantLimit} from 'app/gen-server/migration/1685343047786-AssistantLimit';
 import {Shares1701557445716 as Shares} from 'app/gen-server/migration/1701557445716-Shares';
+import {Billing1711557445716 as BillingFeatures} from 'app/gen-server/migration/1711557445716-Billing';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -49,7 +50,7 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     CustomerIndex, ExtraIndexes, OrgHost, DocRemovedAt, Prefs,
                     ExternalBilling, DocOptions, Secret, UserOptions, GracePeriodStart,
                     DocumentUsage, Activations, UserConnectId, UserUUID, UserUniqueRefUUID,
-                    Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares];
+                    Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {

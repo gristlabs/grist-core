@@ -1893,7 +1893,7 @@ export class DocWorkerApi {
     // or to be wrongly rejected after upgrading.
     const doc = (req as RequestWithLogin).docAuth!.cachedDoc!;
 
-    const max = doc.workspace.org.billingAccount?.product.features.baseMaxApiUnitsPerDocumentPerDay;
+    const max = doc.workspace.org.billingAccount?.getFeatures().baseMaxApiUnitsPerDocumentPerDay;
     if (!max) {
       // This doc has no associated product (happens to new unsaved docs)
       // or the product has no API limit. Allow the request through.

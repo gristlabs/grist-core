@@ -83,7 +83,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
     css.docMenu(
       attachAddNewTip(home),
 
-      dom.maybe(!home.app.currentFeatures.workspaces, () => [
+      dom.maybe(!home.app.currentFeatures?.workspaces, () => [
         css.docListHeader(t("This service is not available right now")),
         dom('span', t("(The organization needs a paid plan)")),
       ]),

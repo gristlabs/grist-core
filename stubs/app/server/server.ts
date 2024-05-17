@@ -90,7 +90,7 @@ async function setupDb() {
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        planType: TEAM_FREE_PLAN
+        product: TEAM_FREE_PLAN
       }));
     }
   }

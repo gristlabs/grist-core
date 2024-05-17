@@ -140,8 +140,8 @@ class SaveCopyModal extends Disposable {
     }
     // We won't have info about any other org except the one we are at.
     if (org.id === this._app.currentOrg?.id) {
-      const workspaces = this._app.currentOrg.billingAccount?.product.features.workspaces ?? true;
-      const numberAllowed = this._app.currentOrg.billingAccount?.product.features.maxWorkspacesPerOrg ?? 2;
+      const workspaces = this._app.currentFeatures?.workspaces ?? true;
+      const numberAllowed = this._app.currentFeatures?.maxWorkspacesPerOrg ?? 2;
       return workspaces && numberAllowed > 1;
     }
     return true;

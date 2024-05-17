@@ -117,7 +117,7 @@ export class AppHeader extends Disposable {
 
           // Show 'Organization Settings' when on a home page of a valid org.
           (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
-            menuItem(() => manageTeamUsersApp(this._appModel),
+            menuItem(() => manageTeamUsersApp({app: this._appModel}),
               'Manage Team', testId('orgmenu-manage-team'),
               dom.cls('disabled', !roles.canEditAccess(this._currentOrg.access))) :
             // Don't show on doc pages, or for personal orgs.

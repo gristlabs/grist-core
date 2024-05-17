@@ -10,6 +10,7 @@ import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager, UserChange} from 'app/gen-server/lib/HomeDBManager';
 import {TestServer} from 'test/gen-server/apiUtils';
+import {TEAM_FREE_PLAN} from 'app/common/Features';
 
 const assert = chai.assert;
 
@@ -920,6 +921,9 @@ describe('ApiServer', function() {
         status: null,
         externalId: null,
         externalOptions: null,
+        features: null,
+        stripePlanId: null,
+        paymentLink: null,
       },
     });
     assert.isNotNull(org.updatedAt);
@@ -2151,7 +2155,7 @@ describe('ApiServer', function() {
         'best-friends-squad', false);
       await dbManager.connection.query(
         'update billing_accounts set product_id = (select id from products where name = $1) where id = $2',
-        ['teamFree', prevAccount.id]
+        [TEAM_FREE_PLAN, prevAccount.id]
       );
 
       const resp = await axios.post(`${homeUrl}/api/orgs/${freeTeamOrgId}/workspaces`, {

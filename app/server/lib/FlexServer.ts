@@ -1092,7 +1092,7 @@ export class FlexServer implements GristServer {
           // If "welcomeNewUser" is ever added to billing pages, we'd need
           // to avoid a redirect loop.
 
-          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.product.features.vanityDomain) {
+          if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.getFeatures().vanityDomain) {
             const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
             return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
           }

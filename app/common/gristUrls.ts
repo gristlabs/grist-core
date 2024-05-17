@@ -134,8 +134,9 @@ export interface IGristUrlState {
   docTour?: boolean;
   manageUsers?: boolean;
   createTeam?: boolean;
+  upgradeTeam?: boolean;
   params?: {
-    billingPlan?: string;
+    billingPlan?: string; // priceId
     planType?: string;
     billingTask?: BillingTask;
     embed?: boolean;
@@ -358,6 +359,8 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     url.hash = 'manage-users';
   } else if (state.createTeam) {
     url.hash = 'create-team';
+  } else if (state.upgradeTeam) {
+    url.hash = 'upgrade-team';
   } else {
     url.hash = '';
   }
@@ -573,6 +576,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.docTour = hashMap.get('#') === 'repeat-doc-tour';
     state.manageUsers = hashMap.get('#') === 'manage-users';
     state.createTeam = hashMap.get('#') === 'create-team';
+    state.upgradeTeam = hashMap.get('#') === 'upgrade-team';
   }
   return state;
 }

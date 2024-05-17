@@ -175,8 +175,8 @@ export class HostedStorageManager implements IDocStorageManager {
           return path.join(dir, 'meta.json');
         },
         async docId => {
-          const product = await dbManager.getDocProduct(docId);
-          return product?.features.snapshotWindow;
+          const features = await dbManager.getDocFeatures(docId);
+          return features?.snapshotWindow;
         },
       );
 

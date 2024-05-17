@@ -176,7 +176,7 @@ export function addSiteCommand(program: commander.Command,
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        planType: 'teamFree'
+        product: 'teamFree'
       }));
     });
 }

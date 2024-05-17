@@ -5,7 +5,6 @@ import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
-import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
 import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {
@@ -41,6 +40,7 @@ import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
 import { getDatabase } from 'test/testUtils';
+import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
 
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('Kiwi');

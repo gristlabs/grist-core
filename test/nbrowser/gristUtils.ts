@@ -236,7 +236,7 @@ export async function getDocWorkerUrl(): Promise<string> {
 }
 
 export async function waitForUrl(pattern: RegExp|string, waitMs: number = 2000) {
-  await driver.wait(() => testCurrentUrl(pattern), waitMs);
+  await driver.wait(() => testCurrentUrl(pattern), waitMs, `waiting for url ${pattern}`);
 }
 
 
@@ -1821,6 +1821,34 @@ export async function editOrgAcls(): Promise<void> {
   await driver.findWait('.test-user-icon', 3000).click();
   await driver.findWait('.test-dm-org-access', 3000).click();
   await driver.findWait('.test-um-members', 3000);
+}
+
+export async function addUser(email: string|string[], role?: 'Owner'|'Viewer'|'Editor'): Promise<void> {
+  await driver.findWait('.test-user-icon', 5000).click();
+  await driver.find('.test-dm-org-access').click();
+  await driver.findWait('.test-um-members', 500);
+  const orgInput = await driver.find('.test-um-member-new input');
+
+  const emails = Array.isArray(email) ? email : [email];
+  for(const e of emails) {
+    await orgInput.sendKeys(e, Key.ENTER);
+    if (role && role !== 'Viewer') {
+      await driver.findContentWait('.test-um-member', e, 1000).find('.test-um-member-role').click();
+      await driver.findContent('.test-um-role-option', role ?? 'Viewer').click();
+    }
+  }
+  await driver.find('.test-um-confirm').click();
+  await driver.wait(async () => !await driver.find('.test-um-members').isPresent(), 500);
+}
+
+export async function removeUser(email: string): Promise<void> {
+  await driver.findWait('.test-user-icon', 5000).click();
+  await driver.find('.test-dm-org-access').click();
+  await driver.findWait('.test-um-members', 500);
+  const kiwiRow = await driver.findContent('.test-um-member', email);
+  await kiwiRow.find('.test-um-member-delete').click();
+  await driver.find('.test-um-confirm').click();
+  await driver.wait(async () => !await driver.find('.test-um-members').isPresent(), 500);
 }
 
 /**
@@ -3744,6 +3772,23 @@ export function findValue(selector: string, value: string|RegExp) {
     throw new Error(`No element found matching ${selector}, tested ${tested.join(', ')}`);
   };
   return new WebElementPromise(driver, inner());
+}
+
+export async function switchUser(email: string) {
+  await driver.findWait('.test-user-icon', 1000).click();
+  await driver.findContentWait('.test-usermenu-other-email', exactMatch(email), 1000).click();
+  await waitForServer();
+}
+
+/**
+ * Waits for the toast message with the given text to appear.
+ */
+export async function waitForAccessDenied() {
+  await waitToPass(async () => {
+    assert.equal(
+      await driver.findWait('.test-notifier-toast-message', 1000).getText(),
+      'access denied');
+  });
 }
 
 } // end of namespace gristUtils

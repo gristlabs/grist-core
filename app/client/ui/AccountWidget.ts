@@ -139,7 +139,7 @@ export class AccountWidget extends Disposable {
 
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && this._appModel.isTeamSite ?
-        menuItem(() => manageTeamUsers(currentOrg, user, this._appModel.api),
+        menuItem(() => manageTeamUsers({org: currentOrg, user, api: this._appModel.api}),
                  roles.canEditAccess(currentOrg.access) ? t("Manage Team") : t("Access Details"),
                  testId('dm-org-access')) :
         // Don't show on doc pages, or for personal orgs.

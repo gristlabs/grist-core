@@ -35,6 +35,7 @@ export class DocumentUsage extends Disposable {
   private readonly _currentDocUsage = this._docPageModel.currentDocUsage;
   private readonly _currentOrg = this._docPageModel.currentOrg;
   private readonly _currentProduct = this._docPageModel.currentProduct;
+  private readonly _currentFeatures = this._docPageModel.currentFeatures;
 
   // TODO: Update this whenever the rest of the UI is internationalized.
   private readonly _rowCountFormatter = new Intl.NumberFormat('en-US');
@@ -56,8 +57,8 @@ export class DocumentUsage extends Disposable {
   });
 
   private readonly _rowMetricOptions: Computed<MetricOptions> =
-    Computed.create(this, this._currentProduct, this._rowCount, (_use, product, rowCount) => {
-      const maxRows = product?.features.baseMaxRowsPerDocument;
+    Computed.create(this, this._currentFeatures, this._rowCount, (_use, features, rowCount) => {
+      const maxRows = features?.baseMaxRowsPerDocument;
       // Invalid row limits are currently treated as if they are undefined.
       const maxValue = maxRows && maxRows > 0 ? maxRows : undefined;
       return {
@@ -71,8 +72,8 @@ export class DocumentUsage extends Disposable {
     });
 
   private readonly _dataSizeMetricOptions: Computed<MetricOptions> =
-    Computed.create(this, this._currentProduct, this._dataSizeBytes, (_use, product, dataSize) => {
-      const maxSize = product?.features.baseMaxDataSizePerDocument;
+    Computed.create(this, this._currentFeatures, this._dataSizeBytes, (_use, features, dataSize) => {
+      const maxSize = features?.baseMaxDataSizePerDocument;
       // Invalid data size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
@@ -93,8 +94,8 @@ export class DocumentUsage extends Disposable {
     });
 
   private readonly _attachmentsSizeMetricOptions: Computed<MetricOptions> =
-    Computed.create(this, this._currentProduct, this._attachmentsSizeBytes, (_use, product, attachmentsSize) => {
-      const maxSize = product?.features.baseMaxAttachmentsBytesPerDocument;
+    Computed.create(this, this._currentFeatures, this._attachmentsSizeBytes, (_use, features, attachmentsSize) => {
+      const maxSize = features?.baseMaxAttachmentsBytesPerDocument;
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
@@ -156,11 +157,12 @@ export class DocumentUsage extends Disposable {
 
       const org = use(this._currentOrg);
       const product = use(this._currentProduct);
+      const features = use(this._currentFeatures);
       const status = use(this._dataLimitStatus);
       if (!org || !status) { return null; }
 
       return buildMessage([
-        buildLimitStatusMessage(status, product?.features, {
+        buildLimitStatusMessage(status, features, {
           disableRawDataLink: true
         }),
         (product && isFreePlan(product.name)
@@ -195,7 +197,7 @@ export class DocumentUsage extends Disposable {
 
 export function buildLimitStatusMessage(
   status: NonNullable<DataLimitStatus>,
-  features?: Features,
+  features?: Features|null,
   options: {
     disableRawDataLink?: boolean;
   } = {}

@@ -9,7 +9,7 @@ import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
         TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {OrgUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
+import {Features, Product} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
 import {encodeQueryParams} from 'app/common/gutil';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
@@ -75,8 +75,10 @@ export interface BillingAccount {
   id: number;
   individual: boolean;
   product: Product;
+  stripePlanId: string; // Stripe price id.
   isManager: boolean;
   inGoodStanding: boolean;
+  features: Features;
   externalOptions?: {
     invoiceId?: string;
   };

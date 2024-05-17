@@ -10,6 +10,7 @@ import {IModalControl, modal} from 'app/client/ui2018/modals';
 import {TEAM_PLAN} from 'app/common/Features';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {UserAPIImpl} from 'app/common/UserAPI';
+import {PlanSelection} from 'app/common/BillingAPI';
 import {
   Disposable, dom, DomArg, DomContents, DomElementArg, IDisposableOwner, input, makeTestId,
   Observable, styled
@@ -19,9 +20,9 @@ import { makeT } from '../lib/localization';
 const t = makeT('CreateTeamModal');
 const testId = makeTestId('test-create-team-');
 
-export function buildNewSiteModal(context: Disposable, options: {
-  planName: string,
-  selectedPlan?: string,
+export async function buildNewSiteModal(context: Disposable, options: {
+  appModel: AppModel,
+  plan?: PlanSelection,
   onCreate?: () => void
 }) {
   const { onCreate } = options;
@@ -78,7 +79,11 @@ class NewSiteModalContent extends Disposable {
   }
 }
 
-export function buildUpgradeModal(owner: Disposable, planName: string): void {
+export function buildUpgradeModal(owner: Disposable, options: {
+  appModel: AppModel,
+  pickPlan?: PlanSelection,
+  reason?: 'upgrade' | 'renew',
+}): Promise<void> {
   throw new UserError(t(`Billing is not supported in grist-core`));
 }
 
