@@ -72,7 +72,6 @@ import {
 import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
-import moment = require('moment-timezone');
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -214,7 +213,7 @@ function isNonGuestGroup(group: Group): group is NonGuestGroup {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
-  newConnection?: boolean;
+  lastConnectionAt?: Date;
 }
 
 // Identifies a request to access a document. This combination of values is also used for caching
@@ -616,13 +615,9 @@ export class HomeDBManager extends EventEmitter {
         // any automation for first logins
         if (!props.isFirstTimeUser) { isWelcomed = true; }
       }
-      if (props.newConnection === true) {
-        // set last connection to today (need date only, no time)
-        const today = moment().startOf('day');
-        if (today !== moment(user.lastConnectionAt).startOf('day')) {
-          user.lastConnectionAt = today.toDate();
-          needsSave = true;
-        }
+      if (props.lastConnectionAt && user.lastConnectionAt !== props.lastConnectionAt) {
+        user.lastConnectionAt = props.lastConnectionAt;
+        needsSave = true;
       }
       if (needsSave) {
         await user.save();

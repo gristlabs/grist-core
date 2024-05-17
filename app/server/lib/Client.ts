@@ -501,10 +501,6 @@ export class Client {
     const user = this._profile ? await this._fetchUser(dbManager) : dbManager.getAnonymousUser();
     this._user = user ? dbManager.makeFullUser(user) : undefined;
     this._firstLoginAt = user?.firstLoginAt || null;
-    if (this._user) {
-      // Send the information to the dbManager that the user has a new activity
-      await dbManager.updateUser(this._user.id, {newConnection: true});
-    }
   }
 
   private async _onMessage(message: string): Promise<void> {

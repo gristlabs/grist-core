@@ -23,6 +23,7 @@ import * as cookie from 'cookie';
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import {IncomingMessage} from 'http';
 import onHeaders from 'on-headers';
+import moment from 'moment-timezone';
 
 export interface RequestWithLogin extends Request {
   sessionID: string;
@@ -358,6 +359,10 @@ export async function addRequestUser(
           mreq.user = user;
           mreq.userId = user.id;
           mreq.userIsAuthorized = true;
+          const today = moment().startOf('day');
+          if (today !== moment(user.lastConnectionAt).startOf('day')) {
+            await dbManager.updateUser(mreq.userId, {lastConnectionAt: today.toDate()});
+          }
         }
       }
     }
