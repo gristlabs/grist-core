@@ -460,7 +460,9 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== 'record' ? `${getWidgetTypes(this.parentKey.peek() as any).label}` : '';
+    const widgetTypeDesc = this.parentKey() !== 'record'
+      ? `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}`
+      : '';
     const table = this.table();
     return [
       table.tableNameDef()?.toUpperCase(), // Due to ACL this can be null.
