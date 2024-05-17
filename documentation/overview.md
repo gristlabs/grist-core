@@ -88,7 +88,7 @@ export type RemoveTable = ['RemoveTable', string];
 export type RenameTable = ['RenameTable', string, string];
 ```
 
-Data actions take a numeric `rowId` (or a list of them, for “bulk” actions) and a set of values:
+Data actions take a string `tableId` and a numeric `rowId` (or a list of them, for “bulk” actions) and a set of values:
 
 ```
 export interface ColValues { [colId: string]: CellValue; }

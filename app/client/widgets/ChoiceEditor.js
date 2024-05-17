@@ -77,7 +77,7 @@ ChoiceEditor.prototype.getCellValue = function() {
   if (selectedItem) {
     return selectedItem.label;
   } else if (this.textInput.value.trim() === '') {
-    return null;
+    return '';
   } else {
     return TextEditor.prototype.getCellValue.call(this);
   }

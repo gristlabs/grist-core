@@ -10,12 +10,10 @@ import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
 import {createTopBarHome} from 'app/client/ui/TopBar';
-import {transition} from 'app/client/ui/transitions';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
 import {SandboxingBootProbeDetails} from 'app/common/BootProbe';
 import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
@@ -23,8 +21,9 @@ import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
 import {naturalCompare} from 'app/common/SortFunc';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
-import {Computed, Disposable, dom, DomContents, IDisposable,
+import {Computed, Disposable, dom, IDisposable,
         IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
+import {AdminSection, AdminSectionItem, HidableToggle} from 'app/client/ui/AdminPanelCss';
 
 
 const t = makeT('AdminPanel');
@@ -82,43 +81,48 @@ export class AdminPanel extends Disposable {
     return cssPageContainer(
       dom.cls('clipboard'),
       {tabIndex: "-1"},
-      cssSection(
-        cssSectionTitle(t('Support Grist')),
-        this._buildItem(owner, {
+      dom.create(AdminSection, t('Support Grist'), [
+        dom.create(AdminSectionItem, {
           id: 'telemetry',
           name: t('Telemetry'),
           description: t('Help us make Grist better'),
-          value: maybeSwitchToggle(this._supportGrist.getTelemetryOptInObservable()),
+          value: dom.create(HidableToggle, this._supportGrist.getTelemetryOptInObservable()),
           expandedContent: this._supportGrist.buildTelemetrySection(),
         }),
-        this._buildItem(owner, {
+        dom.create(AdminSectionItem, {
           id: 'sponsor',
           name: t('Sponsor'),
           description: t('Support Grist Labs on GitHub'),
           value: this._supportGrist.buildSponsorshipSmallButton(),
           expandedContent: this._supportGrist.buildSponsorshipSection(),
         }),
-      ),
-      cssSection(
-        cssSectionTitle(t('Security Settings')),
-        this._buildItem(owner, {
+      ]),
+      dom.create(AdminSection, t('Security Settings'), [
+        dom.create(AdminSectionItem, {
           id: 'sandboxing',
           name: t('Sandboxing'),
           description: t('Sandbox settings for data engine'),
           value: this._buildSandboxingDisplay(owner),
           expandedContent: this._buildSandboxingNotice(),
         }),
-      ),
-      cssSection(
-        cssSectionTitle(t('Version')),
-        this._buildItem(owner, {
+        dom.create(AdminSectionItem, {
+          id: 'authentication',
+          name: t('Authentication'),
+          description: t('Current authentication method'),
+          value: this._buildAuthenticationDisplay(owner),
+          expandedContent: this._buildAuthenticationNotice(owner),
+        })
+      ]),
+
+      dom.create(AdminSection, t('Version'), [
+        dom.create(AdminSectionItem, {
           id: 'version',
           name: t('Current'),
           description: t('Current version of Grist'),
           value: cssValueLabel(`Version ${version.version}`),
         }),
         this._buildUpdates(owner),
-      ),
+      ]),
       testId('admin-panel'),
     );
   }
@@ -137,9 +141,9 @@ export class AdminPanel extends Disposable {
         const configured = details.configured;
         return cssValueLabel(
           configured ?
-              (success ? cssHappy(t('OK') + `: ${flavor}`) :
-                  cssError(t('Error') + `: ${flavor}`)) :
-              cssError(t('unconfigured')));
+              (success ? cssHappyText(t('OK') + `: ${flavor}`) :
+                  cssErrorText(t('Error') + `: ${flavor}`)) :
+              cssErrorText(t('unconfigured')));
       }
     );
   }
@@ -159,47 +163,35 @@ isolated from other documents and isolated from the network.'),
     ];
   }
 
-  private _buildItem(owner: IDisposableOwner, options: {
-    id: string,
-    name: DomContents,
-    description: DomContents,
-    value: DomContents,
-    expandedContent?: DomContents,
-  }) {
-    const itemContent = [
-      cssItemName(options.name, testId(`admin-panel-item-name-${options.id}`)),
-      cssItemDescription(options.description),
-      cssItemValue(options.value,
-        testId(`admin-panel-item-value-${options.id}`),
-        dom.on('click', ev => ev.stopPropagation())),
-    ];
-    if (options.expandedContent) {
-      const isCollapsed = Observable.create(owner, true);
-      return cssItem(
-        cssItemShort(
-          dom.domComputed(isCollapsed, (c) => cssCollapseIcon(c ? 'Expand' : 'Collapse')),
-          itemContent,
-          cssItemShort.cls('-expandable'),
-          dom.on('click', () => isCollapsed.set(!isCollapsed.get())),
-        ),
-        cssExpandedContentWrap(
-          transition(isCollapsed, {
-            prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + 'px' : '0'; },
-            run(elem, close) { elem.style.maxHeight = close ? '0' : elem.scrollHeight + 'px'; },
-            finish(elem, close) { elem.style.maxHeight = close ? '0' : 'unset'; },
-          }),
-          cssExpandedContent(
-            options.expandedContent,
-          ),
-        ),
-        testId(`admin-panel-item-${options.id}`),
-      );
-    } else {
-      return cssItem(
-        cssItemShort(itemContent),
-        testId(`admin-panel-item-${options.id}`),
-      );
-    }
+  private _buildAuthenticationDisplay(owner: IDisposableOwner) {
+    return dom.domComputed(
+      use => {
+        const req = this._checks.requestCheckById(use, 'authentication');
+        const result = req ? use(req.result) : undefined;
+        if (!result) {
+          return cssValueLabel(cssErrorText('unavailable'));
+        }
+
+        const { success, details } = result;
+        const loginSystemId = details?.loginSystemId;
+
+        if (!success || !loginSystemId) {
+          return cssValueLabel(cssErrorText('auth error'));
+        }
+
+        if (loginSystemId === 'no-logins') {
+          return cssValueLabel(cssDangerText('no authentication'));
+        }
+
+        return cssValueLabel(cssHappyText(loginSystemId));
+      }
+    );
+  }
+
+  private _buildAuthenticationNotice(owner: IDisposableOwner) {
+    return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
+    We recommend enabling one of these if Grist is accessible over the network or being made available \
+    to multiple people.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -365,7 +357,7 @@ isolated from other documents and isolated from the network.'),
       }
     });
 
-    return this._buildItem(owner, {
+    return dom.create(AdminSectionItem, {
       id: 'updates',
       name: t('Updates'),
       description: dom('span', testId('admin-panel-updates-message'), dom.text(description)),
@@ -422,10 +414,6 @@ isolated from other documents and isolated from the network.'),
   }
 }
 
-function maybeSwitchToggle(value: Observable<boolean|null>): DomContents {
-  return toggle(value, dom.hide((use) => use(value) === null));
-}
-
 const cssPageContainer = styled('div', `
   overflow: auto;
   padding: 40px;
@@ -440,111 +428,12 @@ const cssPageContainer = styled('div', `
   }
 `);
 
-const cssSection = styled('div', `
-  padding: 24px;
-  max-width: 600px;
-  width: 100%;
-  margin: 16px auto;
-  border: 1px solid ${theme.widgetBorder};
-  border-radius: 4px;
 
-  @media ${mediaSmall} {
-    & {
-      width: auto;
-      padding: 12px;
-      margin: 8px;
-    }
-  }
-`);
-
-const cssSectionTitle = styled('div', `
-  height: 32px;
-  line-height: 32px;
-  margin-bottom: 16px;
-  font-size: ${vars.headerControlFontSize};
-  font-weight: ${vars.headerControlTextWeight};
-`);
-
-const cssItem = styled('div', `
-  margin-top: 8px;
-`);
-
-const cssItemShort = styled('div', `
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 8px;
-  margin: 0 -8px;
-  border-radius: 4px;
-  &-expandable {
-    cursor: pointer;
-  }
-  &-expandable:hover {
-    background-color: ${theme.lightHover};
-  }
-`);
-
-const cssItemName = styled('div', `
-  width: 112px;
-  font-weight: bold;
-  font-size: ${vars.largeFontSize};
-  &:first-child {
-    margin-left: 24px;
-  }
-  @media ${mediaSmall} {
-    & {
-      width: calc(100% - 28px);
-    }
-    &:first-child {
-      margin-left: 0;
-    }
-  }
-`);
-
-const cssItemDescription = styled('div', `
-  margin-right: auto;
-`);
-
-const cssItemValue = styled('div', `
-  flex: none;
-  margin: -16px;
-  padding: 16px;
-  cursor: auto;
-`);
-
-const cssCollapseIcon = styled(icon, `
-  width: 24px;
-  height: 24px;
-  margin-right: 4px;
-  margin-left: -4px;
-  --icon-color: ${theme.lightText};
-`);
-
-const cssExpandedContentWrap = styled('div', `
-  transition: max-height 0.3s ease-in-out;
-  overflow: hidden;
-  max-height: 0;
-`);
-
-const cssExpandedContent = styled('div', `
-  margin-left: 24px;
-  padding: 24px 0;
-  border-bottom: 1px solid ${theme.widgetBorder};
-  .${cssItem.className}:last-child & {
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-`);
-
-const cssValueLabel = styled('div', `
+export const cssValueLabel = styled('div', `
   padding: 4px 8px;
   color: ${theme.text};
   border: 1px solid ${theme.inputBorder};
   border-radius: ${vars.controlBorderRadius};
-  &-empty {
-    visibility: hidden;
-    content: " ";
-  }
 `);
 
 // A wrapper for the version details panel. Shows two columns.
@@ -591,10 +480,14 @@ const cssGrayed = styled('span', `
   color: ${theme.lightText};
 `);
 
-export const cssError = styled('div', `
+const cssErrorText = styled('span', `
   color: ${theme.errorText};
 `);
 
-export const cssHappy = styled('div', `
+export const cssDangerText = styled('div', `
+  color: ${theme.dangerText};
+`);
+
+const cssHappyText = styled('span', `
   color: ${theme.controlFg};
 `);

@@ -677,7 +677,10 @@ export function assertAccess(
  * Pull out headers to pass along to a proxied service.  Focused primarily on
  * authentication.
  */
-export function getTransitiveHeaders(req: Request): {[key: string]: string} {
+export function getTransitiveHeaders(
+  req: Request,
+  { includeOrigin }: { includeOrigin: boolean }
+): {[key: string]: string} {
   const Authorization = req.get('Authorization');
   const Cookie = req.get('Cookie');
   const PermitHeader = req.get('Permit');
@@ -685,13 +688,14 @@ export function getTransitiveHeaders(req: Request): {[key: string]: string} {
   const XRequestedWith = req.get('X-Requested-With');
   const Origin = req.get('Origin');  // Pass along the original Origin since it may
                                      // play a role in granular access control.
+
   const result: Record<string, string> = {
     ...(Authorization ? { Authorization } : undefined),
     ...(Cookie ? { Cookie } : undefined),
     ...(Organization ? { Organization } : undefined),
     ...(PermitHeader ? { Permit: PermitHeader } : undefined),
     ...(XRequestedWith ? { 'X-Requested-With': XRequestedWith } : undefined),
-    ...(Origin ? { Origin } : undefined),
+    ...((includeOrigin && Origin) ? { Origin } : undefined),
   };
   const extraHeader = process.env.GRIST_FORWARD_AUTH_HEADER;
   const extraHeaderValue = extraHeader && req.get(extraHeader);

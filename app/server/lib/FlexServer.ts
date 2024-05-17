@@ -296,6 +296,13 @@ export class FlexServer implements GristServer {
   }
 
   /**
+   * Same as getDefaultHomeUrl, but for internal use.
+   */
+  public getDefaultHomeInternalUrl(): string {
+    return process.env.APP_HOME_INTERNAL_URL || this.getDefaultHomeUrl();
+  }
+
+  /**
    * Get a url for the home server api, adapting it to match the base domain in the
    * requested url.  This adaptation is important for cookie-based authentication.
    *
@@ -310,13 +317,21 @@ export class FlexServer implements GristServer {
   }
 
   /**
+   * Same as getHomeUrl, but for requesting internally.
+   */
+  public getHomeInternalUrl(relPath: string = ''): string {
+    const homeUrl = new URL(relPath, this.getDefaultHomeInternalUrl());
+    return homeUrl.href;
+  }
+
+  /**
    * Get a home url that is appropriate for the given document.  For now, this
    * returns a default that works for all documents.  That could change in future,
    * specifically with custom domains (perhaps we might limit which docs can be accessed
    * based on domain).
    */
   public async getHomeUrlByDocId(docId: string, relPath: string = ''): Promise<string> {
-    return new URL(relPath, this.getDefaultHomeUrl()).href;
+    return new URL(relPath, this.getDefaultHomeInternalUrl()).href;
   }
 
   // Get the port number the server listens on.  This may be different from the port
@@ -1411,6 +1426,11 @@ export class FlexServer implements GristServer {
     return this._sandboxInfo;
   }
 
+  public getInfo(key: string): any {
+    const infoPair = this.info.find(([keyToCheck]) => key === keyToCheck);
+    return infoPair?.[1];
+  }
+
   public disableExternalStorage() {
     if (this.deps.has('doc')) {
       throw new Error('disableExternalStorage called too late');
@@ -1429,12 +1449,12 @@ export class FlexServer implements GristServer {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
 
-    const createDoom = async (req: express.Request) => {
+    const createDoom = async () => {
       const dbManager = this.getHomeDBManager();
       const permitStore = this.getPermitStore();
       const notifier = this.getNotifier();
       const loginSystem = await this.resolveLoginSystem();
-      const homeUrl = this.getHomeUrl(req).replace(/\/$/, '');
+      const homeUrl = this.getHomeInternalUrl().replace(/\/$/, '');
       return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
     };
 
@@ -1458,7 +1478,7 @@ export class FlexServer implements GristServer {
 
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
-        const doom = await createDoom(req);
+        const doom = await createDoom();
         await doom.deleteUser(userId);
         this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedAccount');
         return resp.status(200).json(true);
@@ -1491,7 +1511,7 @@ export class FlexServer implements GristServer {
         }
 
         // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
-        const doom = await createDoom(req);
+        const doom = await createDoom();
         await doom.deleteOrg(org.id);
 
         this.getTelemetry().logEvent(req as RequestWithLogin, 'deletedSite', {
@@ -1980,7 +2000,7 @@ export class FlexServer implements GristServer {
     // Add the handling for the /upload route. Most uploads are meant for a DocWorker: they are put
     // in temporary files, and the DocWorker needs to be on the same machine to have access to them.
     // This doesn't check for doc access permissions because the request isn't tied to a document.
-    addUploadRoute(this, this.app, this._trustOriginsMiddleware, ...basicMiddleware);
+    addUploadRoute(this, this.app, this._docWorkerMap, this._trustOriginsMiddleware, ...basicMiddleware);
 
     this.app.get('/attachment', ...docAccessMiddleware,
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
@@ -2418,10 +2438,10 @@ export class FlexServer implements GristServer {
     const workspace = workspaces.find(w => w.name === 'Home');
     if (!workspace) { throw new Error('Home workspace not found'); }
 
-    const copyDocUrl = this.getHomeUrl(req, '/api/docs');
+    const copyDocUrl = this.getHomeInternalUrl('/api/docs');
     const response = await fetch(copyDocUrl, {
       headers: {
-        ...getTransitiveHeaders(req),
+        ...getTransitiveHeaders(req, { includeOrigin: false }),
         'Content-Type': 'application/json',
       },
       method: 'POST',

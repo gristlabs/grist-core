@@ -51,7 +51,7 @@ export class DropdownConditionConfig extends Disposable {
 
     const {recColIds = [], choiceColIds = []} = properties;
     const columns = use(this._columns);
-    const validRecColIds = new Set(columns.map((({colId}) => use(colId))));
+    const validRecColIds = new Set(['id', ...columns.map((({colId}) => use(colId)))]);
     const invalidRecColIds = recColIds.filter(colId => !validRecColIds.has(colId));
     if (invalidRecColIds.length > 0) {
       return t('Invalid columns: {{colIds}}', {colIds: invalidRecColIds.join(', ')});

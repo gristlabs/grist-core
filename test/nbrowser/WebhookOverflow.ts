@@ -109,7 +109,7 @@ describe('WebhookOverflow', function () {
 
 async function openWebhookPageWithoutWaitForServer() {
   await openDocumentSettings();
-  const button = await driver.findContentWait('a', /Manage Webhooks/, 3000);
+  const button = await driver.findContentWait('a', /Manage Webhooks/i, 3000);
   await gu.scrollIntoView(button).click();
   await waitForWebhookPage();
 }

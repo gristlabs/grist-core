@@ -281,9 +281,9 @@ async function getField(rowNum: number, col: string) {
 }
 
 async function openWebhookPage() {
+  await gu.wipeToasts();
   await gu.openDocumentSettings();
-  const button = await driver.findContentWait('a', /Manage Webhooks/, 3000);
-  await gu.scrollIntoView(button).click();
+  await gu.scrollIntoView(driver.findContentWait('a', /Manage Webhooks/i, 3000)).click();
   await waitForWebhookPage();
 }
 

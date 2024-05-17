@@ -6,7 +6,8 @@ export type BootProbeIds =
     'reachable' |
     'host-header' |
     'sandboxing' |
-    'system-user'
+    'system-user' |
+    'authentication'
 ;
 
 export interface BootProbeResult {

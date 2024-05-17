@@ -308,7 +308,34 @@
         "Ok": "OK",
         "Webhooks": "Webhaken",
         "Manage Webhooks": "Webhaken verwalten",
-        "API Console": "API-Konsole"
+        "API Console": "API-Konsole",
+        "Coming soon": "Demnächst verfügbar",
+        "For number and date formats": "Für Zahlen- und Datumsformate",
+        "Formula times": "Formelzeiten",
+        "Locale": "Lokale",
+        "Time Zone": "Zeitzone",
+        "Find slow formulas": "Langsame Formeln finden",
+        "Manage webhooks": "Webhooks verwalten",
+        "For currency columns": "Für Währungsspalten",
+        "Notify other services on doc changes": "Benachrichtigen Sie andere Dienstleistungen bei doc Änderungen",
+        "Hard reset of data engine": "Hartes Zurücksetzen der Datenmaschine",
+        "Python": "Python",
+        "ID for API use": "ID für API-Verwendung",
+        "Python version used": "Verwendete Python-Version",
+        "Reload": "Neu laden",
+        "Try API calls from the browser": "Versuchen Sie API-Aufrufe über den Browser",
+        "python2 (legacy)": "python2 (veraltet)",
+        "python3 (recommended)": "python3 (empfohlen)",
+        "API URL copied to clipboard": "API-URL in die Zwischenablage kopiert",
+        "Base doc URL: {{docApiUrl}}": "URL des Basisdokuments: {{docApiUrl}}",
+        "API console": "API-Konsole",
+        "API documentation.": "API Dokumentation.",
+        "Copy to clipboard": "In die Zwischenablage kopieren",
+        "Currency": "Währung",
+        "Data Engine": "Datenmaschine",
+        "Default for DateTime columns": "Standard für DateTime-Spalten",
+        "Document ID": "Dokument-ID",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Dokument-ID, die bei Aufrufen der REST-API für {{docId}} zu verwenden ist. Siehe {{apiURL}}"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -607,7 +634,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Beenden",
-        "Next": "Weiter"
+        "Next": "Weiter",
+        "Previous": "Vorherige"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Grist Video Tour",
@@ -981,7 +1009,8 @@
         "Dismiss": "Ablehnen",
         "Don't ask again.": "Frag nicht mehr.",
         "Don't show again.": "Zeig nicht mehr.",
-        "Don't show tips": "Keine Tipps anzeigen"
+        "Don't show tips": "Keine Tipps anzeigen",
+        "TIP": "TIPP"
     },
     "pages": {
         "Duplicate Page": "Seite duplizieren",
@@ -1143,7 +1172,8 @@
         "min": "min.",
         "Text": "Text",
         "max": "max.",
-        "Field Format": "Feldformat"
+        "Field Format": "Feldformat",
+        "Spinner": "Spinner"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Es sollte unmöglich sein, einen einfachen Datenwert in eine Formelspalte zu speichern",
@@ -1208,7 +1238,9 @@
         "Learn more": "Mehr erfahren",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Erstellen Sie einfache Formulare direkt in Grist und teilen Sie sie mit einem Klick mit unserem neuen Widget. {{learnMoreButton}}",
         "Forms are here!": "Die Formulare sind da!",
-        "These rules are applied after all column rules have been processed, if applicable.": "Diese Regeln werden angewendet, nachdem alle Spaltenregeln abgearbeitet wurden, falls zutreffend."
+        "These rules are applied after all column rules have been processed, if applicable.": "Diese Regeln werden angewendet, nachdem alle Spaltenregeln abgearbeitet wurden, falls zutreffend.",
+        "Example: {{example}}": "Beispiel: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Filtern angezeigte Dropdown-Werte mit einer Bedingung."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -1250,7 +1282,13 @@
         "Sorry, not all fields can be edited.": "Leider können nicht alle Felder bearbeitet werden.",
         "Status": "Status",
         "URL": "URL",
-        "Table": "Tabelle"
+        "Table": "Tabelle",
+        "Columns to check when update (separated by ;)": "Bei der Aktualisierung zu prüfende Spalten (getrennt durch ;)",
+        "Ready Column": "Fertige Spalte",
+        "Removed webhook.": "Der Webhook wurde entfernt.",
+        "Webhook Id": "Webhook Id",
+        "Filter for changes in these columns (semicolon-separated ids)": "Filter für Änderungen in diesen Spalten (durch Semikolon getrennte IDs)",
+        "Cleared webhook queue.": "Webhook-Warteschlange geleert."
     },
     "FormulaAssistant": {
         "Ask the bot.": "Fragen Sie den Bot.",
@@ -1306,7 +1344,8 @@
         "Opt in to Telemetry": "Melden Sie sich für Telemetrie an",
         "Opted In": "Angemeldet",
         "Support Grist page": "Support Grist-Seite",
-        "Admin Panel": "Verwaltungsbereich"
+        "Admin Panel": "Verwaltungsbereich",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Wir danken Ihnen! Wir wissen Ihr Vertrauen und Ihre Unterstützung sehr zu schätzen. Sie können sich jederzeit unter {{link}} im Benutzermenü abmelden."
     },
     "SupportGristPage": {
         "GitHub Sponsors page": "GitHub-Sponsorenseite",
@@ -1472,8 +1511,8 @@
     "FormConfig": {
         "Field rules": "Feldregeln",
         "Required field": "Erforderliches Feld",
-        "Options Sort Order": "Sortierreihenfolge der Optionen",
-        "Options Alignment": "Ausrichtung der Optionen",
+        "Options Sort Order": "Optionen Sortierreihenfolge",
+        "Options Alignment": "Optionenausrichtung",
         "Select": "Auswählen",
         "Vertical": "Vertikal",
         "Ascending": "Aufsteigend",
@@ -1481,7 +1520,8 @@
         "Descending": "Absteigend",
         "Field Format": "Feldformat",
         "Field Rules": "Feldregeln",
-        "Horizontal": "Horizontal"
+        "Horizontal": "Horizontal",
+        "Radio": "Radio"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Einige erforderliche Spalten sind nicht zugeordnet",
@@ -1523,7 +1563,26 @@
         "Home": "Home",
         "Sponsor": "Sponsor",
         "Support Grist Labs on GitHub": "Unterstützen Sie Grist Labs auf GitHub",
-        "Version": "Version"
+        "Version": "Version",
+        "Auto-check when this page loads": "Automatische Überprüfung beim Laden dieser Seite",
+        "Checking for updates...": "Nach Updates suchen...",
+        "Error": "Fehler",
+        "Error checking for updates": "Fehler beim Updates prüfen",
+        "Grist is up to date": "Grist ist auf dem neuesten Stand",
+        "Grist releases are at ": "Grist-Veröffentlichungen sind unter ",
+        "Last checked {{time}}": "Zuletzt geprüft {{time}}",
+        "Learn more.": "Mehr erfahren.",
+        "Newer version available": "Neuere Version verfügbar",
+        "No information available": "Keine Informationen verfügbar",
+        "OK": "OK",
+        "Sandbox settings for data engine": "Sandbox-Einstellungen für Datenmotor",
+        "Sandboxing": "Sandboxen",
+        "Security Settings": "Sicherheitseinstellungen",
+        "Updates": "Aktualisierungen",
+        "unconfigured": "unkonfiguriert",
+        "unknown": "unbekannt",
+        "Check now": "Jetzt prüfen",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist ermöglicht sehr leistungsfähige Formeln, die Python verwenden. Wir empfehlen, die Umgebungsvariable GRIST_SANDBOX_FLAVOR auf gvisor zu setzen, wenn Ihre Hardware dies unterstützt (was bei den meisten der Fall ist), um Formeln in jedem Dokument innerhalb einer Sandbox auszuführen, die von anderen Dokumenten und vom Netzwerk isoliert ist."
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1534,17 +1593,54 @@
         "Create site": "Seite erstellen",
         "Domain name is required": "Domainname ist erforderlich",
         "Domain name is invalid": "Domainname ist ungültig",
-        "Work as a Team": "Als Team arbeiten"
+        "Work as a Team": "Als Team arbeiten",
+        "Choose a name and url for your team site": "Wählen Sie einen Namen und eine URL für Ihre Team-Site",
+        "Go to your site": "Gehen Sie zu Ihrer Website",
+        "Team name": "Teamname",
+        "Team name is required": "Teamname ist erforderlich",
+        "Team site created": "Teamseite erstellt",
+        "Team url": "Team url",
+        "Billing is not supported in grist-core": "Billing wird in grist-core nicht unterstützt"
     },
     "Columns": {
         "Remove Column": "Spalte entfernen"
     },
     "Field": {
-        "No choices configured": "Keine Auswahlmöglichkeiten konfiguriert"
+        "No choices configured": "Keine Auswahlmöglichkeiten konfiguriert",
+        "No values in show column of referenced table": "Keine Werte in der Spalte \"Anzeigen\" der referenzierten Tabelle"
     },
     "Toggle": {
         "Checkbox": "Kontrollkästchen",
         "Field Format": "Feldformat",
         "Switch": "Schalter"
+    },
+    "ChoiceEditor": {
+        "No choices to select": "Keine Auswahlmöglichkeiten",
+        "Error in dropdown condition": "Fehler in Dropdown-Bedingung",
+        "No choices matching condition": "Keine Auswahlmöglichkeiten für die Bedingung"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Fehler in Dropdown-Bedingung",
+        "No choices matching condition": "Keine Auswahlmöglichkeiten für die Bedingung",
+        "No choices to select": "Keine Auswahlmöglichkeiten"
+    },
+    "DropdownConditionConfig": {
+        "Invalid columns: {{colIds}}": "Ungültige Spalten: {{colIds}}",
+        "Set dropdown condition": "Dropdown-Bedingung festlegen",
+        "Dropdown Condition": "Dropdown-Bedingung"
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Fehler in Dropdown-Bedingung",
+        "No choices to select": "Keine Auswahlmöglichkeiten",
+        "No choices matching condition": "Keine Auswahlmöglichkeiten für die Bedingung"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Bedingung eingeben."
+    },
+    "FormRenderer": {
+        "Reset": "Zurücksetzen",
+        "Submit": "Einreichen",
+        "Search": "Suchen",
+        "Select...": "Wählen Sie..."
     }
 }

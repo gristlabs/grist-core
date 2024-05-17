@@ -397,7 +397,7 @@ export const cssButtonGroup = styled('div', `
 
 
 export const cssSmallLinkButton = styled(basicButtonLink, `
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   min-height: 26px;

@@ -314,8 +314,9 @@ describe("ViewLayoutCollapse", function() {
     await move(getDragElement(COMPANIES_CHART));
     await driver.sleep(100);
     await move(getDragElement(COMPANIES_CHART), {x : 200});
-    await driver.sleep(300);
-    assert.lengthOf(await driver.findAll(".layout_editor_drop_target.layout_hover"), 1);
+    await gu.waitToPass(async () => {
+      assert.lengthOf(await driver.findAll(".layout_editor_drop_target.layout_hover"), 1);
+    }, 1000);
 
     await driver.withActions(actions => actions.release());
     await driver.sleep(600);

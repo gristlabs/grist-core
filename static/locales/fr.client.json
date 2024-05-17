@@ -495,7 +495,8 @@
         "Workspace will be moved to Trash.": "Le dossier va être mis à la corbeille.",
         "Manage Users": "Gérer les utilisateurs",
         "Access Details": "Détails d'accès",
-        "Tutorial": "Tutoriel"
+        "Tutorial": "Tutoriel",
+        "Terms of service": "CGU"
     },
     "Importer": {
         "Update existing records": "Mettre à jour les enregistrements existants",
@@ -1146,7 +1147,9 @@
         "Learn more": "En savoir plus",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Créez des formulaires simples directement dans Grist et partagez-les en un clic avec notre nouveau widget. {{learnMoreButton}}",
         "Forms are here!": "Les formulaires sont là !",
-        "These rules are applied after all column rules have been processed, if applicable.": "Ces règles sont appliquées après le traitement de toutes les règles de la colonne, le cas échéant."
+        "These rules are applied after all column rules have been processed, if applicable.": "Ces règles sont appliquées après le traitement de toutes les règles de la colonne, le cas échéant.",
+        "Example: {{example}}": "Exemple : {{example}}",
+        "Filter displayed dropdown values with a condition.": "Filtrer les valeurs affichées dans la liste déroulante en fonction d'une condition."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1410,7 +1413,8 @@
         "Options Alignment": "Option d'alignement",
         "Options Sort Order": "Option d'ordonnancement",
         "Vertical": "Verticale",
-        "Radio": "Radio"
+        "Radio": "Radio",
+        "Select": "Sélectionner"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1472,7 +1476,24 @@
         "Admin Panel": "Panneau d'administration",
         "Sponsor": "Parrainage",
         "Support Grist": "Soutenir Grist",
-        "Version": "Version"
+        "Version": "Version",
+        "Check now": "Vérifier",
+        "Checking for updates...": "Vérifier les mises à jour...",
+        "Error": "Erreur",
+        "Error checking for updates": "Erreur lors de la vérification des mises à jour",
+        "Grist is up to date": "Grist est à jour",
+        "Last checked {{time}}": "Dernière vérification {{time}}",
+        "Learn more.": "En savoir plus.",
+        "No information available": "Aucune information disponible",
+        "OK": "OK",
+        "Security Settings": "Paramètres de sécurité",
+        "Grist releases are at ": "Les releases de Grist sont disponibles sur ",
+        "Newer version available": "Nouvelle version disponible",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permet d'utiliser des formules très puissantes, en utilisant Python. Nous recommandons de définir la variable d'environnement GRIST_SANDBOX_FLAVOR sur gvisor si votre machine le supporte (la plupart le supportent), afin d'exécuter des formules dans chaque document à l'intérieur d'une sandbox isolée des autres documents et du réseau.",
+        "Updates": "Mises à jour",
+        "unconfigured": "non configuré",
+        "unknown": "inconnu",
+        "Auto-check when this page loads": "Vérification automatique au chargement de cette page"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1481,7 +1502,7 @@
     "CreateTeamModal": {
         "Cancel": "Annuler",
         "Choose a name and url for your team site": "Choisissez un nom et une adresse URL pour votre espace d'équipe",
-        "Create site": "Créer",
+        "Create site": "Créer un site",
         "Domain name is invalid": "Le nom de domaine n'est pas valide",
         "Domain name is required": "Le nom de domaine est requis",
         "Go to your site": "Aller vers votre espace d'équipe",
@@ -1493,9 +1514,34 @@
         "Team name is required": "Le nom de l'espace d'équipe est requis"
     },
     "Toggle": {
-        "Field Format": "Format du champ"
+        "Field Format": "Format du champ",
+        "Checkbox": "Case à cocher",
+        "Switch": "Changer"
     },
     "Columns": {
         "Remove Column": "Supprimer la colonne"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Erreur dans la condition de la liste déroulante",
+        "No choices to select": "Aucun choix à sélectionner",
+        "No choices matching condition": "Aucun choix correspondant à la condition"
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Erreur dans la condition de la liste déroulante",
+        "No choices to select": "Aucun choix à sélectionner",
+        "No choices matching condition": "Aucun choix correspondant à la condition"
+    },
+    "DropdownConditionConfig": {
+        "Invalid columns: {{colIds}}": "Colonnes invalides : {{colIds}}",
+        "Set dropdown condition": "Définir la condition de la liste déroulante",
+        "Dropdown Condition": "Condition de la liste déroulante"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Saisir la condition."
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Erreur dans la condition de la liste déroulant",
+        "No choices matching condition": "Aucun choix correspondant à la condition",
+        "No choices to select": "Aucun choix à sélectionner"
     }
 }
