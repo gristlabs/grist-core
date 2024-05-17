@@ -111,7 +111,7 @@
         "Description": "Описание",
         "Key": "Ключ",
         "Memory Error": "Грешка в паметта",
-        "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users"
+        "Translators: please translate this only when your language is ready to be offered to users": ""
     },
     "AppHeader": {
         "Home Page": "Начална страница",
@@ -711,7 +711,7 @@
         "Unsaved": "Незапазени промени",
         "Access Details": "Данни за достъп",
         "Back to Current": "Обратно към текущите",
-        "Send to Google Drive": "Изпрати до Google Drive",
+        "Send to Google Drive": "Изпрати до Google Диск",
         "DOO Separated Values (.dsv)": "DOO разделени стойности (.dsv)",
         "Export as...": "Извеждане като...",
         "Microsoft Excel (.xlsx)": "Microsoft Excel (.xlsx)",
@@ -752,5 +752,192 @@
         "Empty values last": "Празните стойности са последни",
         "Natural sort": "Естествено подреждане",
         "Search Columns": "Колони за търсене"
+    },
+    "errorPages": {
+        "Account deleted{{suffix}}": "Потребителят е изтрит{{suffix}}",
+        "Sign up": "Регистрация",
+        "Your account has been deleted.": "Вашият потребител е изтрит.",
+        "An unknown error occurred.": "Възникна неизвестна грешка.",
+        "Build your own form": "Изградете свой собствен формуляр",
+        "Form not found": "Формулярът не е намерен",
+        "Powered by": "Задвижвано от",
+        "You are signed in as {{email}}. You can sign in with a different account, or ask an administrator for access.": "Вие сте влезли като {{email}}. Можете да влезете с друг потребител или поистайте достъп от администратора.",
+        "You do not have access to this organization's documents.": "Нямате достъп до документите на тази организация."
+    },
+    "menus": {
+        "* Workspaces are available on team plans. ": "* Работните пространства са достъпни в абонаментите с екип. ",
+        "Select fields": "Изберете полета",
+        "Upgrade now": "Надстройте сега",
+        "Any": "Всякакъв",
+        "Numeric": "Числов",
+        "Text": "Текст",
+        "Integer": "Целочислен",
+        "Toggle": "Превключващ",
+        "Date": "Дата",
+        "DateTime": "Дата и час",
+        "Choice": "Избор",
+        "Choice List": "Списък с избори",
+        "Reference": "Препратка",
+        "Reference List": "Списък с препратки",
+        "Attachment": "Причкачен файл",
+        "Search columns": "Колони за търсене"
+    },
+    "modals": {
+        "Undo to restore": "Отмени, за да възстановиш",
+        "Got it": "Разбрах",
+        "Don't show again": "Не показвай отново",
+        "TIP": "СЪВЕТ",
+        "Save": "Съхрани",
+        "Cancel": "Отказ",
+        "Ok": "Добре",
+        "Are you sure you want to delete these records?": "Сигурни ли сте, че искате да изтриете тези записи?",
+        "Are you sure you want to delete this record?": "Сигурни ли сте, че искате да изтриете този запис?",
+        "Delete": "Изтрий",
+        "Dismiss": "Отхвърли",
+        "Don't ask again.": "Не питай отново.",
+        "Don't show again.": "Не показвай отново.",
+        "Don't show tips": "Не показвай съвети"
+    },
+    "pages": {
+        "Duplicate Page": "Дублирай страница",
+        "Remove": "Премахни",
+        "Rename": "Преименувай",
+        "You do not have edit access to this document": "Нямате достъп за редактиране на този документ"
+    },
+    "search": {
+        "Find Previous ": "Намерете предишния ",
+        "Find Next ": "Намери следващия ",
+        "No results": "Няма резултати",
+        "Search in document": "Търсене в документа",
+        "Search": "Търсене"
+    },
+    "sendToDrive": {
+        "Sending file to Google Drive": "Файлът се изпраща до Google Диск"
+    },
+    "NTextBox": {
+        "false": "невярно",
+        "true": "вярно",
+        "Field Format": "Формат на полето",
+        "Lines": "Линии",
+        "Multi line": "Множество линии",
+        "Single line": "Една линия"
+    },
+    "ACLUsers": {
+        "Example Users": "Примерни потребители",
+        "View As": "Разгледай като",
+        "Users from table": "Потребители от таблица"
+    },
+    "TypeTransform": {
+        "Apply": "Приложи",
+        "Cancel": "Отказ",
+        "Preview": "Преглед",
+        "Revise": "Преразглеждане",
+        "Update formula (Shift+Enter)": "Актуализиране на формула (Shift+Enter)"
+    },
+    "CellStyle": {
+        "CELL STYLE": "СТИЛ НА КЛЕТКА",
+        "Cell Style": "Стил на клетка",
+        "Default cell style": "Стил на клетка по подразбиране",
+        "Mixed style": "Смесен стил",
+        "Open row styles": "Отвори стиловете на реда",
+        "Header Style": "Стил на заглавките",
+        "HEADER STYLE": "СТИЛ НА ЗАГЛАВКИТЕ",
+        "Default header style": "Стил на заглавките по подразбиране"
+    },
+    "ColumnEditor": {
+        "COLUMN DESCRIPTION": "ОПИСАНИЕ НА КОЛОНАТА",
+        "COLUMN LABEL": "ЕТИКЕТ НА КОЛОНАТА"
+    },
+    "ColumnInfo": {
+        "COLUMN DESCRIPTION": "ОПИСАНИЕ НА КОЛОНАТА",
+        "COLUMN ID: ": "ОБОЗНАЧЕНИЕ НА КОЛОНА: ",
+        "COLUMN LABEL": "ЕТИКЕТ НА КОЛОНАТА",
+        "Cancel": "Отказ",
+        "Save": "Съхрани"
+    },
+    "ConditionalStyle": {
+        "Add another rule": "Добави друго правило",
+        "Add conditional style": "Добавете условен стил",
+        "Error in style rule": "Грешка в правилото за стил",
+        "Row Style": "Стил на ред",
+        "Rule must return True or False": "Правилото трябва да връща вярно (True) или невярно (False)"
+    },
+    "DiscussionEditor": {
+        "Cancel": "Отказ",
+        "Edit": "Редактирай",
+        "Marked as resolved": "Означи като разрешен",
+        "Only current page": "Само текущата страница",
+        "Only my threads": "Само моите нишки",
+        "Open": "Отвори",
+        "Remove": "Премахни",
+        "Reply": "Отговори",
+        "Reply to a comment": "Отговори на коментар",
+        "Resolve": "Разреши",
+        "Save": "Съхрани",
+        "Show resolved comments": "Показване на разрешените коментари",
+        "Showing last {{nb}} comments": "Показани са последните {{nb}} коментара",
+        "Comment": "Коментирай",
+        "Started discussion": "Започната дискусия",
+        "Write a comment": "Напиши коментар"
+    },
+    "FieldBuilder": {
+        "Changing multiple column types": "Промяна на множество типове колони",
+        "DATA FROM TABLE": "ДАННИ ОТ ТАБЛИЦА",
+        "Mixed format": "Смесен формат",
+        "Mixed types": "Смесени типове",
+        "Revert field settings for {{colId}} to common": "Върнете {{colId}} към общи настройки на полето",
+        "Save field settings for {{colId}} as common": "Запазете настройките на полето {{colId}} като общи",
+        "Use separate field settings for {{colId}}": "Използвайте отделни настройки на полето {{colId}}",
+        "Changing column type": "Промяна на типа колона",
+        "Apply Formula to Data": "Приложи формула към данни",
+        "CELL FORMAT": "ФОРМАТ НА КЛЕТКАТА"
+    },
+    "FieldEditor": {
+        "It should be impossible to save a plain data value into a formula column": "Трябва да е невъзможно да се запише стойност на обикновени данни в колона с формула",
+        "Unable to finish saving edited cell": "Не може да завърши запазването на редактираната клетка"
+    },
+    "FormulaEditor": {
+        "Error in the cell": "Грешка в клетката",
+        "Expand Editor": "Разгънете редактора",
+        "use AI Assistant": "използвайте ИИ асистент",
+        "Column or field is required": "Колона или поле е задължително",
+        "Errors in all {{numErrors}} cells": "Грешки във всички {{numErrors}} клетки",
+        "Errors in {{numErrors}} of {{numCells}} cells": "Грешки в {{numErrors}} от {{numCells}} клетки",
+        "editingFormula is required": "editingFormula е задължително",
+        "Enter formula.": "Въведете формула.",
+        "Enter formula or {{button}}.": "Въведете формула или {{button}}."
+    },
+    "HyperLinkEditor": {
+        "[link label] url": "[етикет на връзката] URL"
+    },
+    "NumericTextBox": {
+        "Currency": "Валута",
+        "Decimals": "Десетици",
+        "Default currency ({{defaultCurrency}})": "Валута по подразбиране ({{defaultCurrency}})",
+        "Number Format": "Числов формат",
+        "Field Format": "Формат на полето",
+        "Spinner": "Врътче (при зареждане)",
+        "Text": "Текст",
+        "max": "макс",
+        "min": "мин"
+    },
+    "Reference": {
+        "CELL FORMAT": "ФОРМАТ НА КЛЕТКАТА",
+        "Row ID": "Обозначение на ред",
+        "SHOW COLUMN": "ПОКАЖИ КОЛОНА"
+    },
+    "WelcomeTour": {
+        "Add New": "Добави нов",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Разгледайте нашата {{templateLibrary}} и се вдъхновете, като откриете възможностите.",
+        "Building up": "Изграждане"
+    },
+    "ChoiceTextBox": {
+        "CHOICES": "ИЗБОР"
+    },
+    "CurrencyPicker": {
+        "Invalid currency": "Невалидна валута"
+    },
+    "EditorTooltip": {
+        "Convert column to formula": "Преобразувай колона във формула"
     }
 }
