@@ -296,7 +296,9 @@
         "Ok": "OK",
         "Manage Webhooks": "Gérer les points d’ancrage Web",
         "Webhooks": "Points d’ancrage Web",
-        "API Console": "Console de l'API"
+        "API Console": "Console de l'API",
+        "Reload": "Recharger",
+        "Python": "Python"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -565,7 +567,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Terminer",
-        "Next": "Suivant"
+        "Next": "Suivant",
+        "Previous": "Précédent"
     },
     "OpenVideoTour": {
         "YouTube video player": "Lecteur vidéo YouTube",
@@ -1543,5 +1546,20 @@
         "Error in dropdown condition": "Erreur dans la condition de la liste déroulant",
         "No choices matching condition": "Aucun choix correspondant à la condition",
         "No choices to select": "Aucun choix à sélectionner"
+    },
+    "FormRenderer": {
+        "Submit": "Soumettre",
+        "Select...": "Sélectionner...",
+        "Search": "Rechercher",
+        "Reset": "Réinitialiser"
+    },
+    "widgetTypesMap": {
+        "Table": "Table",
+        "Form": "Formulaire",
+        "Custom": "Personnalisée",
+        "Chart": "Graphique",
+        "Card List": "Liste de fiches",
+        "Card": "Fiche",
+        "Calendar": "Calendrier"
     }
 }
