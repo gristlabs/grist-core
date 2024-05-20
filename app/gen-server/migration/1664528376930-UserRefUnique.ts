@@ -1,4 +1,3 @@
-import {User} from 'app/gen-server/entity/User';
 import {makeId} from 'app/server/lib/idUtils';
 import {MigrationInterface, QueryRunner} from "typeorm";
 
@@ -8,13 +7,15 @@ export class UserRefUnique1664528376930 implements MigrationInterface {
     // the ref column unique.
 
     // Update users that don't have unique ref set.
-    const userList = await queryRunner.manager.createQueryBuilder()
-      .select("users")
-      .from(User, "users")
-      .where("ref is null")
-      .getMany();
-    userList.forEach(u => u.ref = makeId());
-    await queryRunner.manager.save(userList, {chunk: 300});
+    const userList = await queryRunner.query("SELECT * FROM users WHERE ref is null");
+    let transaction = "";
+    for (let i = 0; i < userList.length; i += 1) {
+      transaction += `UPDATE users SET ref = '${makeId()}' WHERE id = ${userList[i].id};`;
+      if (i % 300 === 0 || i === userList.length - 1) {
+        await queryRunner.query(transaction);
+        transaction = "";
+      }
+    }
 
     // Mark column as unique and non-nullable.
     const users = (await queryRunner.getTable('users'))!;

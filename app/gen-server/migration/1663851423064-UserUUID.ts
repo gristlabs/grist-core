@@ -1,4 +1,3 @@
-import {User} from 'app/gen-server/entity/User';
 import {makeId} from 'app/server/lib/idUtils';
 import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
 
@@ -15,12 +14,15 @@ export class UserUUID1663851423064 implements MigrationInterface {
 
     // Updating so many rows in a multiple queries is not ideal. We will send updates in chunks.
     // 300 seems to be a good number, for 24k rows we have 80 queries.
-    const userList = await queryRunner.manager.createQueryBuilder()
-      .select("users")
-      .from(User, "users")
-      .getMany();
-    userList.forEach(u => u.ref = makeId());
-    await queryRunner.manager.save(userList, { chunk: 300 });
+    const userList = await queryRunner.query("SELECT * FROM users;");
+    let transaction = "";
+    for (let i = 0; i < userList.length; i += 1) {
+      transaction += `UPDATE users SET ref = '${makeId()}' WHERE id = ${userList[i].id};`;
+      if (i % 300 === 0 || i === userList.length - 1) {
+        await queryRunner.query(transaction);
+        transaction = "";
+      }
+    }
 
     // We are not making this column unique yet, because it can fail
     // if there are some old workers still running, and any new user
