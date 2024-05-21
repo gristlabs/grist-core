@@ -111,7 +111,7 @@
         "Description": "Описание",
         "Key": "Ключ",
         "Memory Error": "Грешка в паметта",
-        "Translators: please translate this only when your language is ready to be offered to users": ""
+        "Translators: please translate this only when your language is ready to be offered to users": "Преводачи: моля, превеждайте това само когато вашият език е готов да бъде предложен на потребителите"
     },
     "AppHeader": {
         "Home Page": "Начална страница",
@@ -1381,7 +1381,8 @@
         "Maybe Later": "Може би по-късно",
         "Schedule Call": "Насрочете разговор",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Насрочете {{freeCoachingCall}} с член на нашия екип.",
-        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "По време на разговора ще отделим време, за да разберем нуждите ви и да адаптираме към вас. Можем да ви покажем основите на Grist или да започнем работа с вашите данни веднага, за да изградим таблата за управление, от които се нуждаете."
+        "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "По време на разговора ще отделим време, за да разберем нуждите ви и да адаптираме към вас. Можем да ви покажем основите на Grist или да започнем работа с вашите данни веднага, за да изградим таблата за управление, от които се нуждаете.",
+        "free coaching call": "безплатен разговор за напътстване"
     },
     "FormView": {
         "Link copied to clipboard": "Връзката е копирана в системния буфер",
@@ -1398,9 +1399,193 @@
         "Copy code": "Копирай кода",
         "Copy link": "Копирай връзката",
         "Embed this form": "Вграждане на този формуляр",
-        "Save your document to publish this form.": "Запазете документа си, за да публикувате този формуляр."
+        "Save your document to publish this form.": "Запазете документа си, за да публикувате този формуляр.",
+        "Share": "Сподели",
+        "Share this form": "Споделu този формуляр",
+        "View": "Виж"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Скрити полета"
+    },
+    "Editor": {
+        "Delete": "Изтрий"
+    },
+    "Menu": {
+        "Building blocks": "Изграждащи блокчета",
+        "Columns": "Колони",
+        "Copy": "Копирай",
+        "Cut": "Изрежи",
+        "Insert question above": "Вмъкнете въпроса по-горе",
+        "Insert question below": "Въведете въпроса по-долу",
+        "Paragraph": "Параграф",
+        "Paste": "Постави",
+        "Separator": "Разделител",
+        "Unmapped fields": "Несъпоставени полета",
+        "Header": "Заглавие"
+    },
+    "UnmappedFieldsConfig": {
+        "Clear": "Изчисти",
+        "Map fields": "Съпостави полета",
+        "Mapped": "Съпоставени",
+        "Select All": "Избери всички",
+        "Unmap fields": "Премахни съпоставияния на полета",
+        "Unmapped": "Несъпоставени"
+    },
+    "FormConfig": {
+        "Required field": "Задължително поле",
+        "Ascending": "Възходящ",
+        "Default": "По подразбиране",
+        "Descending": "Низходящ",
+        "Field Format": "Формат на полето",
+        "Field Rules": "Правила на полето",
+        "Horizontal": "Хоризонтален",
+        "Options Alignment": "Опции за подравняване",
+        "Options Sort Order": "Опции за посока на сортиране",
+        "Radio": "Радио бутон",
+        "Select": "Избери",
+        "Vertical": "Вертикален",
+        "Field rules": "Правила на полето"
+    },
+    "CustomView": {
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "За да използвате тази джаджа, съпоставете всички незадължителни колони от панела на създателя вдясно.",
+        "Some required columns aren't mapped": "Някои задължителни колони не са съпоставени"
+    },
+    "FormContainer": {
+        "Powered by": "Задвижвано от",
+        "Build your own form": "Изградете свой собствен формуляр"
+    },
+    "FormErrorPage": {
+        "Error": "Грешка"
+    },
+    "FormModel": {
+        "Oops! The form you're looking for doesn't exist.": "Опа! Търсеният от вас формуляр не съществува.",
+        "Oops! This form is no longer published.": "Опа! Този формуляр вече не е публикуван.",
+        "There was a problem loading the form.": "Има проблем със зареждането на формуляра.",
+        "You don't have access to this form.": "Нямате достъп до този формуляр."
+    },
+    "FormPage": {
+        "There was an error submitting your form. Please try again.": "Има грешка при подаването на формуляра. Моля, опитайте отново."
+    },
+    "FormSuccessPage": {
+        "Form Submitted": "Подаден формуляр",
+        "Thank you! Your response has been recorded.": "Благодаря ви! Вашият отговор е записан.",
+        "Submit new response": "Подаване на нов отговор"
+    },
+    "DateRangeOptions": {
+        "Last 30 days": "Последните 30 дни",
+        "Last 7 days": "Последните 7 дни",
+        "Last Week": "Миналата седмица",
+        "Next 7 days": "Следващите 7 дни",
+        "This week": "Тази седмица",
+        "This year": "Тази година",
+        "This month": "Този месец",
+        "Today": "Днес"
+    },
+    "MappedFieldsConfig": {
+        "Clear": "Изчисти",
+        "Mapped": "Съпоставени",
+        "Unmapped": "Несъпоставени",
+        "Map fields": "Съпостави полета",
+        "Select All": "Избери всички",
+        "Unmap fields": "Премахни съпоставияния на полета"
+    },
+    "Section": {
+        "Insert section above": "Вмъкнете раздел по-горе",
+        "Insert section below": "Вмъкнете раздел по-долу"
+    },
+    "CreateTeamModal": {
+        "Cancel": "Отказ",
+        "Choose a name and url for your team site": "Изберете име и URL адрес за сайта на вашия екип",
+        "Domain name is invalid": "Името на домейна е невалидно",
+        "Go to your site": "Отидете на вашия сайт",
+        "Team name": "Име на екипа",
+        "Team name is required": "Името на екипа е задължително",
+        "Work as a Team": "Работете в екип",
+        "Billing is not supported in grist-core": "Фактурирането не се поддържа в grist-core",
+        "Create site": "Създай сайт",
+        "Domain name is required": "Името на домейна е задължително",
+        "Team site created": "Създаване на сайт на екипа",
+        "Team url": "URL адрес на екипа"
+    },
+    "AdminPanel": {
+        "Admin Panel": "Административен панел",
+        "Current": "Текущ",
+        "Current version of Grist": "Текуща версия на Grist",
+        "Help us make Grist better": "Помогнете ни да направим Grist по-добър",
+        "Home": "Начало",
+        "Sponsor": "Спомоществовател",
+        "Support Grist": "Подкрепете Grist",
+        "Support Grist Labs on GitHub": "Подкрепете Grist Labs в GitHub",
+        "Telemetry": "Телеметрия",
+        "Auto-check when this page loads": "Автоматична проверка при зареждане на тази страница",
+        "Check now": "Проверете сега",
+        "Checking for updates...": "Проверяване за актуализации...",
+        "Error": "Грешка",
+        "Error checking for updates": "Грешка при проверка за актуализации",
+        "Grist is up to date": "Grist е актуален",
+        "Grist releases are at ": "Версиите на Grist са в ",
+        "Last checked {{time}}": "Последна проверка {{time}}",
+        "Learn more.": "Научете повече.",
+        "Newer version available": "Налична е по-нова версия",
+        "No information available": "Няма налична информация",
+        "OK": "Добре",
+        "Sandbox settings for data engine": "Настройки на пясъчника за двигателя за данни",
+        "Sandboxing": "Изолация (пясъчник)",
+        "Security Settings": "Настройки на сигурността",
+        "Updates": "Актуализации",
+        "unconfigured": "неконфигуриран",
+        "unknown": "неизвестен",
+        "Version": "Версия",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist поддържа много мощни формули, изпълнявайки ги с Python. Препоръчваме да зададете променливата на средата GRIST_SANDBOX_FLAVOR на gvisor, ако вашият хардуер го поддържа (повечето го), за да изпълнявате формули във всеки документ във пясъчник, изолирана от други документи и изолирана от мрежата."
+    },
+    "Columns": {
+        "Remove Column": "Премахни колона"
+    },
+    "Field": {
+        "No choices configured": "Няма конфигуриран избор",
+        "No values in show column of referenced table": "Няма стойности в колоната за показване на сочената таблица"
+    },
+    "Toggle": {
+        "Checkbox": "Поле за отметка",
+        "Field Format": "Формат на полето",
+        "Switch": "Превключвател"
+    },
+    "ChoiceEditor": {
+        "No choices matching condition": "Няма избор, който да отговаря на условието",
+        "No choices to select": "Няма възможности за избор",
+        "Error in dropdown condition": "Грешка в падащото условие"
+    },
+    "ChoiceListEditor": {
+        "No choices matching condition": "Няма избор, който да отговаря на условието",
+        "No choices to select": "Няма възможности за избор",
+        "Error in dropdown condition": "Грешка в падащото условие"
+    },
+    "DropdownConditionConfig": {
+        "Dropdown Condition": "Условие за падащо меню",
+        "Invalid columns: {{colIds}}": "Невалидни колони: {{colIds}}",
+        "Set dropdown condition": "Задаване на условие за падащо меню"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Въведете условие."
+    },
+    "ReferenceUtils": {
+        "Error in dropdown condition": "Грешка в падащото условие",
+        "No choices matching condition": "Няма избор, който да отговаря на условието",
+        "No choices to select": "Няма възможности за избор"
+    },
+    "FormRenderer": {
+        "Reset": "Нулирай",
+        "Search": "Търсене",
+        "Submit": "Подай",
+        "Select...": "Изберете..."
+    },
+    "widgetTypesMap": {
+        "Calendar": "Календар",
+        "Card": "Карта",
+        "Card List": "Списък на картите",
+        "Custom": "Собствен",
+        "Form": "Формуляр",
+        "Chart": "Графика",
+        "Table": "Таблица"
     }
 }
