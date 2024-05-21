@@ -1642,5 +1642,14 @@
         "Submit": "Einreichen",
         "Search": "Suchen",
         "Select...": "Wählen Sie..."
+    },
+    "widgetTypesMap": {
+        "Calendar": "Kalender",
+        "Card": "Karte",
+        "Card List": "Kartenliste",
+        "Form": "Formular",
+        "Table": "Tabelle",
+        "Chart": "Diagramm",
+        "Custom": "Benutzerdefiniert"
     }
 }
