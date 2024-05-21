@@ -1058,11 +1058,14 @@ GridView.prototype.getMousePosRow = function (yCoord) {
 
 /**
  *  Returns the row index of the row whose top offset is closest to and
- *  no greater than given y-position excluding addRows.
+ *  no greater than given y-position.
  *  param{yCoord}: The mouse y-position on the screen.
  **/
 GridView.prototype.currentMouseRow = function(yCoord) {
-  return Math.min(this.getMousePosRow(this.scrollTop() + yCoord), Math.max(0, this.getLastDataRowIndex()));
+  return Math.min(
+    this.getMousePosRow(this.scrollTop() + yCoord),
+    Math.max(0, this.getLastDataRowIndex() + 1)
+  );
 };
 
 /**
@@ -1501,8 +1504,7 @@ GridView.prototype.buildDom = function() {
           dom.on('mousedown', () => false),
           testId('row-menu-trigger'),
         ),
-        kd.toggleClass('selected', () =>
-          !row._isAddRow() && self.cellSelector.isRowSelected(row._index())),
+        kd.toggleClass('selected', () => self.cellSelector.isRowSelected(row._index())),
       ),
       dom('div.record',
         kd.toggleClass('record-add', row._isAddRow),
@@ -1557,8 +1559,7 @@ GridView.prototype.buildDom = function() {
           });
           var fieldBuilder = self.fieldBuilders.at(field._index());
           var isSelected = ko.computed(() => {
-            return !row._isAddRow() &&
-              !self.cellSelector.isCurrentSelectType(selector.NONE) &&
+            return !self.cellSelector.isCurrentSelectType(selector.NONE) &&
               ko.unwrap(self.isColSelected.at(field._index())) &&
               self.cellSelector.isRowSelected(row._index());
           });
