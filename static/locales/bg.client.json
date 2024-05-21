@@ -67,7 +67,7 @@
         "Accounts": "Потребители",
         "Add Account": "Добави потребител",
         "Document Settings": "Документни настройки",
-        "Manage Team": "Управлявай отбора",
+        "Manage Team": "Управлявай екипа",
         "Pricing": "Ценоразпис",
         "Profile Settings": "Настройки на профила",
         "Sign Out": "Изход",
@@ -116,7 +116,7 @@
     "AppHeader": {
         "Home Page": "Начална страница",
         "Legacy": "Вехто",
-        "Team Site": "Сайт на отбора",
+        "Team Site": "Сайт на екипа",
         "Grist Templates": "Grist образци",
         "Personal Site": "Личен сайт"
     },
@@ -733,7 +733,7 @@
         "Switch appearance automatically to match system": "Превключете външния вид автоматично, за да съответства на системните настройки"
     },
     "AppModel": {
-        "This team site is suspended. Documents can be read, but not modified.": "Сайтът на отбора е спрян. Документите могат да бъдат четени, но не и променяни."
+        "This team site is suspended. Documents can be read, but not modified.": "Сайтът на екипа е спрян. Документите могат да бъдат четени, но не и променяни."
     },
     "RecordLayout": {
         "Updating record layout.": "Обновяване на оформлението на записа."
