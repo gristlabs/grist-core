@@ -675,7 +675,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   //  with sharing.
   this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec|null) => {
     return (obj || []).filter((sortRef: Sort.ColSpec) => {
-      const colModel = docModel.columns.getRowModel(Sort.getColRef(sortRef));
+      const colModel = docModel.columns.getRowModel(Sort.getColRef(sortRef) as number /* HACK: for virtual tables */);
       return !colModel._isDeleted() && colModel.getRowId();
     });
   });

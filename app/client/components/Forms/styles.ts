@@ -1,6 +1,6 @@
 import {textarea} from 'app/client/ui/inputs';
 import {sanitizeHTML} from 'app/client/ui/sanitizeHTML';
-import {basicButton, basicButtonLink, textButton} from 'app/client/ui2018/buttons';
+import {basicButton, basicButtonLink, primaryButtonLink, textButton} from 'app/client/ui2018/buttons';
 import {cssLabel} from 'app/client/ui2018/checkbox';
 import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -403,7 +403,7 @@ export const cssSmallLinkButton = styled(basicButtonLink, `
   min-height: 26px;
 `);
 
-export const cssSmallButton = styled(basicButton, `
+const textSmallButton = `
   display: flex;
   align-items: center;
   gap: 4px;
@@ -423,7 +423,10 @@ export const cssSmallButton = styled(basicButton, `
     background-color: #B8791B;
     border: none;
   }
-`);
+`;
+
+export const cssSmallButton = styled(basicButton, textSmallButton);
+export const cssPrimarySmallLink = styled(primaryButtonLink, textSmallButton);
 
 export const cssMarkdownRendered = styled('div', `
   min-height: 1.5rem;

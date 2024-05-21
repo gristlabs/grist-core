@@ -1841,6 +1841,14 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
+  public async sendTimingsNotification() {
+    await this.docClients.broadcastDocMessage(null, 'docChatter', {
+      timing: {
+        status: this.isTimingOn ? 'active' : 'disabled'
+      },
+    });
+  }
+
   public logTelemetryEvent(
     docSession: OptDocSession | null,
     event: TelemetryEvent,
@@ -1883,6 +1891,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async startTiming(): Promise<void> {
+    await this.waitForInitialization();
+
     // Set the flag to indicate that timing is on.
     this.isTimingOn = true;
 
@@ -1896,9 +1906,12 @@ export class ActiveDoc extends EventEmitter {
 
     // Mark self as in timing mode, in case we get reloaded.
     this._docManager.restoreTimingOn(this.docName, true);
+    await this.sendTimingsNotification();
   }
 
   public async stopTiming(): Promise<FormulaTimingInfo[]> {
+    await this.waitForInitialization();
+
     // First call the data engine to stop timing, and gather results.
     const timingResults = await this._pyCall('stop_timing');
 
@@ -1906,10 +1919,14 @@ export class ActiveDoc extends EventEmitter {
     this.isTimingOn = false;
     this._docManager.restoreTimingOn(this.docName, false);
 
+    await this.sendTimingsNotification();
+
     return timingResults;
   }
 
   public async getTimings(): Promise<FormulaTimingInfo[]|void>  {
+    await this.waitForInitialization();
+
     if (this._modificationLock.isLocked()) {
       return;
     }

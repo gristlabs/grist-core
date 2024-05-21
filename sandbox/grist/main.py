@@ -172,7 +172,7 @@ def run(sandbox):
 
   @export
   def get_timings():
-    return eng._timing.get()
+    return eng._timing.get(False)
 
   export(parse_predicate_formula)
   export(eng.load_empty)

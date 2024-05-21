@@ -77,10 +77,10 @@ describe('NumericEditor', function() {
 
         // Set locale for the document.
         await gu.openDocumentSettings();
-        await driver.findWait('.test-locale-autocomplete', 500).click();
+        await driver.findWait('.test-settings-locale-autocomplete', 500).click();
         await driver.sendKeys(options.locale, Key.ENTER);
         await gu.waitForServer();
-        assert.equal(await driver.find('.test-locale-autocomplete input').value(), options.locale);
+        assert.equal(await driver.find('.test-settings-locale-autocomplete input').value(), options.locale);
         await gu.openPage('Table1');
       });
 

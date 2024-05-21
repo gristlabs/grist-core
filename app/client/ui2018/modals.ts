@@ -672,7 +672,7 @@ const cssModalBacker = styled('div', `
   }
 `);
 
-const cssSpinner = styled('div', `
+export const cssSpinner = styled('div', `
   display: flex;
   align-items: center;
   height: 80px;

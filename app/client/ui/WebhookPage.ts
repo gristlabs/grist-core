@@ -16,6 +16,7 @@ import {
   TableDataAction,
   UserAction
 } from 'app/common/DocActions';
+import {VirtualId} from 'app/common/SortSpec';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI} from 'app/common/UserAPI';
 import {GristObjCode, RowRecord} from 'app/plugin/GristData';
@@ -28,13 +29,15 @@ import without = require('lodash/without');
 
 const t = makeT('WebhookPage');
 
+const TABLE_COLUMN_ROW_ID = VirtualId();
+
 /**
  * A list of columns for a virtual table about webhooks.
  * The ids need to be strings.
  */
 const WEBHOOK_COLUMNS = [
   {
-    id: 'vt_webhook_fc1',
+    id: TABLE_COLUMN_ROW_ID,
     colId: 'tableId',
     type: 'Choice',
     label: t('Table'),
@@ -42,13 +45,13 @@ const WEBHOOK_COLUMNS = [
     // on the user tables in the document.
   },
   {
-    id: 'vt_webhook_fc2',
+    id: VirtualId(),
     colId: 'url',
     type: 'Text',
     label: t('URL'),
   },
   {
-    id: 'vt_webhook_fc3',
+    id: VirtualId(),
     colId: 'eventTypes',
     type: 'ChoiceList',
     label: t('Event Types'),
@@ -60,13 +63,13 @@ const WEBHOOK_COLUMNS = [
     }),
   },
   {
-    id: 'vt_webhook_fc10',
+    id: VirtualId(),
     colId: 'watchedColIdsText',
     type: 'Text',
     label: t('Filter for changes in these columns (semicolon-separated ids)'),
   },
   {
-    id: 'vt_webhook_fc4',
+    id: VirtualId(),
     colId: 'enabled',
     type: 'Bool',
     label: t('Enabled'),
@@ -75,31 +78,31 @@ const WEBHOOK_COLUMNS = [
     }),
   },
   {
-    id: 'vt_webhook_fc5',
+    id: VirtualId(),
     colId: 'isReadyColumn',
     type: 'Text',
     label: t('Ready Column'),
   },
   {
-    id: 'vt_webhook_fc6',
+    id: VirtualId(),
     colId: 'webhookId',
     type: 'Text',
     label: t('Webhook Id'),
   },
   {
-    id: 'vt_webhook_fc7',
+    id: VirtualId(),
     colId: 'name',
     type: 'Text',
     label: t('Name'),
   },
   {
-    id: 'vt_webhook_fc8',
+    id: VirtualId(),
     colId: 'memo',
     type: 'Text',
     label: t('Memo'),
   },
   {
-    id: 'vt_webhook_fc9',
+    id: VirtualId(),
     colId: 'status',
     type: 'Text',
     label: t('Status'),
@@ -264,7 +267,7 @@ class WebhookExternalTable implements IExternalTable {
     // Grist doesn't have a good way to handle contingent choices.
     const choices = editor.gristDoc.docModel.visibleTables.all().map(tableRec => tableRec.tableId());
     editor.gristDoc.docData.receiveAction([
-      'UpdateRecord', '_grist_Tables_column', 'vt_webhook_fc1' as any, {
+      'UpdateRecord', '_grist_Tables_column', TABLE_COLUMN_ROW_ID as any, {
         widgetOptions: JSON.stringify({
           widget: 'TextBox',
           alignment: 'left',

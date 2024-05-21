@@ -79,6 +79,7 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
   BaseView.call(this, gristDoc, viewSectionModel, { isPreview, 'addNewRow': true });
 
   this.viewSection = viewSectionModel;
+  this.isReadonly = this.gristDoc.isReadonly.get() || this.viewSection.isVirtual();
 
   //--------------------------------------------------
   // Observables local to this view
@@ -390,7 +391,7 @@ GridView.gridCommands = {
     if (!action) { return; }
     // if grist document is in readonly - simply change the value
     // without saving
-    if (this.gristDoc.isReadonly.get()) {
+    if (this.isReadonly) {
       this.viewSection.rawNumFrozen(action.numFrozen);
       return;
     }
@@ -1270,7 +1271,7 @@ GridView.prototype.buildDom = function() {
               const isEditingLabel = koUtil.withKoUtils(ko.pureComputed({
                 read: () => {
                   const goodIndex = () => editIndex() === field._index();
-                  const isReadonly = () => this.gristDoc.isReadonlyKo() || self.isPreview;
+                  const isReadonly = () => this.isReadonly || self.isPreview;
                   const isSummary = () => Boolean(field.column().disableEditData());
                   return goodIndex() && !isReadonly() && !isSummary();
                 },
@@ -1335,7 +1336,7 @@ GridView.prototype.buildDom = function() {
                 },
                 kd.style('width', field.widthPx),
                 kd.style('borderRightWidth', v.borderWidthPx),
-                viewCommon.makeResizable(field.width, {shouldSave: !this.gristDoc.isReadonly.get()}),
+                viewCommon.makeResizable(field.width, {shouldSave: !this.isReadonly}),
                 kd.toggleClass('selected', () => ko.unwrap(this.isColSelected.at(field._index()))),
                 dom.on('contextmenu', ev => {
                   // This is a little hack to position the menu the same way as with a click
@@ -1382,7 +1383,7 @@ GridView.prototype.buildDom = function() {
                 this._buildInsertColumnMenu({field}),
               );
             }),
-            this.isPreview ? null : kd.maybe(() => !this.gristDoc.isReadonlyKo(), () => (
+            this.isPreview ? null : kd.maybe(() => !this.isReadonly, () => (
               this._modField = dom('div.column_name.mod-add-column.field',
                 '+',
                 kd.style("width", PLUS_WIDTH + 'px'),
@@ -1933,7 +1934,7 @@ GridView.prototype._getColumnMenuOptions = function(copySelection) {
     numColumns: copySelection.fields.length,
     numFrozen: this.viewSection.numFrozen.peek(),
     disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
-    isReadonly: this.gristDoc.isReadonly.get() || this.isPreview,
+    isReadonly: this.isReadonly || this.isPreview,
     isRaw: this.viewSection.isRaw(),
     isFiltered: this.isFiltered(),
     isFormula: calcFieldsCondition(copySelection.fields, f => f.column.peek().isRealFormula.peek()),
@@ -1999,17 +2000,17 @@ GridView.prototype.cellContextMenu = function() {
 GridView.prototype._getCellContextMenuOptions = function() {
   return {
     disableInsert: Boolean(
-      this.gristDoc.isReadonly.get() ||
+      this.isReadonly ||
       this.viewSection.disableAddRemoveRows() ||
       this.tableModel.tableMetaRow.onDemand()
     ),
     disableDelete: Boolean(
-      this.gristDoc.isReadonly.get() ||
+      this.isReadonly ||
       this.viewSection.disableAddRemoveRows() ||
       this.getSelection().onlyAddRowSelected()
     ),
     disableMakeHeadersFromRow: Boolean(
-      this.gristDoc.isReadonly.get() ||
+      this.isReadonly ||
       this.getSelection().rowIds.length !== 1 ||
       this.getSelection().onlyAddRowSelected() ||
       this.viewSection.table().summarySourceTable() !== 0

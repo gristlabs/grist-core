@@ -22,6 +22,10 @@ export class ServerColumnGetters implements ColumnGetters, ColumnGettersByColId 
 
   public getColGetter(colSpec: Sort.ColSpec): ColumnGetter | null {
     const colRef = Sort.getColRef(colSpec);
+    if (typeof colRef !== 'number') {
+      // colRef might be string for virtual tables, but we don't support them here.
+      throw new Error(`Unsupported colRef type: ${typeof colRef}`);
+    }
     const colId = this._colIndices.get(colRef);
     if (colId === undefined) {
       return null;

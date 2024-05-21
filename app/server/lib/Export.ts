@@ -345,6 +345,10 @@ export async function doExportSection(
   sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
   sortSpec = sortSpec!.map((colSpec) => {
     const colRef = Sort.getColRef(colSpec);
+    if (typeof colRef !== 'number') {
+      // colRef might be string for virtual tables, but we don't support them here.
+      throw new Error(`Unsupported colRef type: ${typeof colRef}`);
+    }
     const col = metaColumns.getRecord(colRef);
     if (!col) {
       return 0;

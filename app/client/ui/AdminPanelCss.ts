@@ -120,7 +120,7 @@ const cssItemShort = styled('div', `
 `);
 
 const cssItemName = styled('div', `
-  width: 136px;
+  width: 150px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -148,6 +148,7 @@ const cssItemName = styled('div', `
 
 const cssItemDescription = styled('div', `
   margin-right: auto;
+  margin-bottom: -1px; /* aligns with the value */
 `);
 
 const cssItemValue = styled('div', `
@@ -173,7 +174,7 @@ const cssExpandedContentWrap = styled('div', `
 
 const cssExpandedContent = styled('div', `
   margin-left: 24px;
-  padding: 24px 0;
+  padding: 18px 0;
   border-bottom: 1px solid ${theme.widgetBorder};
   .${cssItem.className}:last-child & {
     padding-bottom: 0;

@@ -46,7 +46,7 @@ export const DEFAULT_CACHE_TTL = 10000;
 export const RECOVERY_CACHE_TTL = 30000; // 30 seconds
 
 // How long to remember the timing mode of a document.
-export const TIMING_ON_CACHE_TTL = 30000; // 30 seconds
+export const TIMING_ON_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 /**
  * DocManager keeps track of "active" Grist documents, i.e. those loaded
@@ -416,6 +416,7 @@ export class DocManager extends EventEmitter {
         recoveryMode: activeDoc.recoveryMode,
         userOverride,
         docUsage,
+        isTimingOn: activeDoc.isTimingOn,
       };
 
       if (!activeDoc.muted) {

@@ -1,5 +1,6 @@
 import {ActionSummary} from 'app/common/ActionSummary';
-import {ApplyUAResult, ForkResult, PermissionDataWithExtraUsers, QueryFilters} from 'app/common/ActiveDocAPI';
+import {ApplyUAResult, ForkResult, FormulaTimingInfo,
+        PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
 import {AssistanceRequest, AssistanceResponse} from 'app/common/AssistancePrompts';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
@@ -512,14 +513,18 @@ export interface DocAPI {
   getAssistance(params: AssistanceRequest): Promise<AssistanceResponse>;
   /**
    * Check if the document is currently in timing mode.
+   * Status is either
+   * - 'active' if timings are enabled.
+   * - 'pending' if timings are enabled but we can't get the data yet (as engine is blocked)
+   * - 'disabled' if timings are disabled.
    */
-  timing(): Promise<{status: boolean}>;
+  timing(): Promise<TimingStatus>;
   /**
    * Starts recording timing information for the document. Throws exception if timing is already
    * in progress or you don't have permission to start timing.
    */
   startTiming(): Promise<void>;
-  stopTiming(): Promise<void>;
+  stopTiming(): Promise<FormulaTimingInfo[]>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1134,7 +1139,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async timing(): Promise<{status: boolean}> {
+  public async timing(): Promise<TimingStatus> {
     return this.requestJson(`${this._url}/timing`);
   }
 
@@ -1142,8 +1147,8 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     await this.request(`${this._url}/timing/start`, {method: 'POST'});
   }
 
-  public async stopTiming(): Promise<void> {
-    await this.request(`${this._url}/timing/stop`, {method: 'POST'});
+  public async stopTiming(): Promise<FormulaTimingInfo[]> {
+    return await this.requestJson(`${this._url}/timing/stop`, {method: 'POST'});
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {

@@ -306,7 +306,7 @@ describe('Webhooks-Proxy', function () {
         await notFoundCalled.waitAndReset();
 
         // But the working endpoint won't be called more then once.
-        assert.isFalse(successCalled.called());
+        successCalled.assertNotCalled();
 
         //Cleanup all
         await Promise.all(cleanup.map(fn => fn())).finally(() => cleanup.length = 0);
