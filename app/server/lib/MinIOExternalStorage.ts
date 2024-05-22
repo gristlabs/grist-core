@@ -22,7 +22,7 @@ interface MinIOClient extends
     getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
     // The released v8.0.0 typing is outdated; copied over from commit 8633968.
     removeObjects(bucketName: string, objectsList: RemoveObjectsParam): Promise<RemoveObjectsResponse[]>
-  };
+  }
 
 type MinIOVersioningStatus = "" | {
   Status: "Enabled" | "Suspended",
