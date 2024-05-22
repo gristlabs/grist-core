@@ -5,20 +5,41 @@ import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 
-// The minio typings appear to be quite stale. Extend them here to avoid
-// lots of casts to any.
-type MinIOClient = minio.Client & {
-  statObject(bucket: string, key: string, options: {versionId?: string}): Promise<MinIOBucketItemStat>;
-  getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
-  listObjects(bucket: string, key: string, recursive: boolean,
-              options: {IncludeVersion?: boolean}): minio.BucketStream<minio.BucketItem>;
-  removeObjects(bucket: string, versions: Array<{name: string, versionId: string}>): Promise<void>;
-};
+// The minio v8.0.0 typings are sometimes incorrect. Here are some workarounds.
+interface MinIOClient extends
+  // Some of them are not directly extendable, must be omitted first and then redefined.
+  Omit<Omit<Omit<minio.Client,
+  "listObjects">,
+  "getBucketVersioning">,
+  "removeObjects">
+  {
+    // The official typing returns `Promise<Readable>`, dropping some useful metadata.
+    getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
+    // The official typing dropped "options" in their .d.ts file, but it is present in the underlying impl.
+    listObjects(bucket: string, key: string, recursive: boolean,
+      options: {IncludeVersion?: boolean}): minio.BucketStream<minio.BucketItem>;
+    // The official typing wrongly returns `void`.
+    getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
+    // The released v8.0.0 typing is outdated; copied over from commit 8633968.
+    removeObjects(bucketName: string, objectsList: RemoveObjectsParam): Promise<RemoveObjectsResponse[]>
+  };
 
-type MinIOBucketItemStat = minio.BucketItemStat & {
-  versionId?: string;
-  metaData?: Record<string, string>;
-};
+type MinIOVersioningStatus = "" | {
+  Status: "Enabled" | "Suspended",
+  ExcludeFolders: boolean,
+  ExcludedPrefixes: {Prefix: string}[]
+}
+
+type RemoveObjectsParam = string[] | { name: string, versionId?: string }[]
+
+type RemoveObjectsResponse = null | undefined | {
+  Error?: {
+    Code?: string
+    Message?: string
+    Key?: string
+    VersionId?: string
+  }
+}
 
 /**
  * An external store implemented using the MinIO client, which
@@ -38,7 +59,7 @@ export class MinIOExternalStorage implements ExternalStorage {
       region: string
     },
     private _batchSize?: number,
-    private _s3 = new minio.Client(options) as MinIOClient
+    private _s3 = new minio.Client(options) as unknown as MinIOClient
   ) {
   }
 
@@ -70,7 +91,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async upload(key: string, fname: string, metadata?: ObjMetadata) {
     const stream = fse.createReadStream(fname);
     const result = await this._s3.putObject(
-      this.bucket, key, stream,
+      this.bucket, key, stream, undefined,
       metadata ? {Metadata: toExternalMetadata(metadata)} : undefined
     );
     // Empirically VersionId is available in result for buckets with versioning enabled.
@@ -111,7 +132,7 @@ export class MinIOExternalStorage implements ExternalStorage {
 
   public async hasVersioning(): Promise<Boolean> {
     const versioning = await this._s3.getBucketVersioning(this.bucket);
-    return versioning && versioning.Status === 'Enabled';
+    return versioning != "" && versioning.Status === 'Enabled';
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
