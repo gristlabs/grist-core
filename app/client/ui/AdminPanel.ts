@@ -98,14 +98,15 @@ export class AdminPanel extends Disposable {
    * which could include a legit adminstrator if auth is misconfigured.
    */
   private _buildMainContentForOthers(owner: MultiHolder) {
+    const exampleKey = 'example-' + window.crypto.randomUUID();
     return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
       dom('p', t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
       dom(
         'p',
         t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
-          bootKey: dom('pre', 'GRIST_BOOT_KEY=secret'),
-          url: dom('pre', `/admin?key=secret`)
+          bootKey: dom('pre', `GRIST_BOOT_KEY=${exampleKey}`),
+          url: dom('pre', `/admin?boot-key=${exampleKey}`)
         }),
       ),
     ]);

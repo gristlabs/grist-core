@@ -349,11 +349,11 @@ describe('AdminPanel', function() {
 
     process.env.GRIST_BOOT_KEY = 'zig';
     await server.restart(true);
-    await driver.get(`${server.getHost()}/admin?boot=zig`);
+    await driver.get(`${server.getHost()}/admin?boot-key=zig`);
     await waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.notMatch(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
-    await driver.get(`${server.getHost()}/admin?boot=zig-wrong`);
+    await driver.get(`${server.getHost()}/admin?boot-key=zig-wrong`);
     await waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);

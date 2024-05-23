@@ -20,7 +20,7 @@ describe('Boot', function() {
     await gu.waitToPass(async () => {
       assert.include(
         await driver.findContentWait('pre', /GRIST_BOOT_KEY/, 2000).getText(),
-        'GRIST_BOOT_KEY=secret');
+        'GRIST_BOOT_KEY=example-');
     }, 3000);
   }
 
@@ -55,12 +55,12 @@ describe('Boot', function() {
     });
 
     it('gives prompt when key is wrong', async function() {
-      await driver.get(`${server.getHost()}/admin?boot=bilbo`);
+      await driver.get(`${server.getHost()}/admin?boot-key=bilbo`);
       await hasPrompt();
     });
 
     it('gives page when key is right', async function() {
-      await driver.get(`${server.getHost()}/admin?boot=lala`);
+      await driver.get(`${server.getHost()}/admin?boot-key=lala`);
       await driver.findContentWait('div', /Is home page available/, 2000);
     });
   });

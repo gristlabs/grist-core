@@ -560,7 +560,7 @@ export class FlexServer implements GristServer {
     this.app.get('/boot(/(:bootKey/?)?)?$', async (req, res) => {
       // Doing a good redirect is actually pretty subtle and we might
       // get it wrong, so just say /boot got moved.
-      res.send('The /boot/key page is now /admin?boot=key');
+      res.send('The /boot/KEY page is now /admin?boot-key=KEY');
     });
   }
 
