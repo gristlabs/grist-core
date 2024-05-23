@@ -179,7 +179,7 @@ Please log in as an administrator.`)),
       use => {
         const req = this._checks.requestCheckById(use, 'sandboxing');
         const result = req ? use(req.result) : undefined;
-        const success = result?.success;
+        const success = result?.status === 'success';
         const details = result?.details as SandboxingBootProbeDetails|undefined;
         if (!details) {
           return cssValueLabel(t('unknown'));
@@ -217,7 +217,8 @@ Please log in as an administrator.`)),
           return cssValueLabel(cssErrorText('unavailable'));
         }
 
-        const { success, details } = result;
+        const { status, details } = result;
+        const success = status === 'success';
         const loginSystemId = details?.loginSystemId;
 
         if (!success || !loginSystemId) {
@@ -500,10 +501,10 @@ Please log in as an administrator.`)),
           { style: 'margin-top: 0px; padding-top: 0px;' },
         ),
         result.verdict ? dom('pre', result.verdict) : null,
-        (result.success === undefined) ? null :
+        (result.status === 'none') ? null :
             dom('p',
-                result.success ? t('Check succeeded.') : t('Check failed.')),
-        (result.done !== true) ? null :
+                (result.status === 'success') ? t('Check succeeded.') : t('Check failed.')),
+        (result.status !== 'none') ? null :
             dom('p', t('No fault detected.')),
         (details?.info === undefined) ? null : [
           cssCheckHeader(t('Notes')),
@@ -530,12 +531,21 @@ Please log in as an administrator.`)),
    * visualization of the results can be elaborated in future.
    */
   private _encodeSuccess(result: BootProbeResult) {
-    if (result.success === undefined)  { return '―';  }
-    if (result.success)                { return '✅'; }
-    if (result.severity === 'warning') { return '❗';  }
-    if (result.severity === 'hmm') { return '?';  }
-    // remaining case is a fault.
-    return '❌';
+    switch (result.status) {
+      case 'success':
+        return '✅';
+      case 'fault':
+        return '❌';
+      case 'warning':
+        return '❗';
+      case 'hmm':
+        return '?';
+      case 'none':
+        return '―';
+      default:
+        // should not arrive here
+        return '??';
+    }
   }
 }
 

@@ -13,9 +13,12 @@ export type BootProbeIds =
 
 export interface BootProbeResult {
   verdict?: string;
-  success?: boolean;
-  done?: boolean;
-  severity?: 'fault' | 'warning' | 'hmm';
+  // Result of check.
+  // "success" is a positive outcome.
+  // "none" means no fault detected (but that the test is not exhaustive
+  // enough to claim "success").
+  // "fault" is a bad error, "warning" a ... warning, "hmm" almost a debug message.
+  status: 'success' | 'fault' | 'warning' | 'hmm' | 'none';
   details?: Record<string, any>;
 }
 

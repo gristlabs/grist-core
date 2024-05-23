@@ -53,7 +53,7 @@ export class AdminChecks {
     const {id} = probe;
     let result = this._results.get(id);
     if (!result) {
-      result = Observable.create(this._parent, {});
+      result = Observable.create(this._parent, {status: 'none'});
       this._results.set(id, result);
     }
     let request = this._requests.get(id);
@@ -108,7 +108,7 @@ export class AdminCheckRunner {
   public start() {
     let result = this.results.get(this.id);
     if (!result) {
-      result = Observable.create(this.parent, {});
+      result = Observable.create(this.parent, {status: 'none'});
       this.results.set(this.id, result);
     }
   }

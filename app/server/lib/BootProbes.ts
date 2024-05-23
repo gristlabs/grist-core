@@ -91,17 +91,16 @@ const _homeUrlReachableProbe: Probe = {
         throw new ApiError(await resp.text(), resp.status);
       }
       return {
-        success: true,
+        status: 'success',
         details,
       };
     } catch (e) {
       return {
-        success: false,
         details: {
           ...details,
           error: String(e),
         },
-        severity: 'fault',
+        status: 'fault',
       };
     }
   }
@@ -121,7 +120,7 @@ const _webSocketsProbe: Probe = {
       ws.on('open', () => {
         ws.send('Just nod if you can hear me.');
         resolve({
-          success: true,
+          status: 'success',
           details,
         });
         ws.close();
@@ -129,7 +128,7 @@ const _webSocketsProbe: Probe = {
       ws.on('error', (ev) => {
         details.error = ev.message;
         resolve({
-          success: false,
+          status: 'fault',
           details,
         });
         ws.close();
@@ -159,17 +158,16 @@ const _statusCheckProbe: Probe = {
         throw new Error(`Failed, page has unexpected content`);
       }
       return {
-        success: true,
+        status: 'success',
         details,
       };
     } catch (e) {
       return {
-        success: false,
         details: {
           ...details,
           error: String(e),
         },
-        severity: 'fault',
+        status: 'fault',
       };
     }
   },
@@ -185,13 +183,12 @@ const _userProbe: Probe = {
     if (process.getuid && process.getuid() === 0) {
       return {
         details,
-        success: false,
         verdict: 'User appears to be root (UID 0)',
-        severity: 'warning',
+        status: 'warning',
       };
     } else {
       return {
-        success: true,
+        status: 'success',
         details,
       };
     }
@@ -208,22 +205,20 @@ const _bootProbe: Probe = {
       bootKeySet: hasBoot,
     };
     if (!hasBoot) {
-      return { success: true, details };
+      return { status: 'success', details };
     }
     details.bootKeyLength = bootKey.length;
     if (bootKey.length < 10) {
       return {
-        success: false,
         verdict: 'Boot key length is shorter than 10.',
         details,
-        severity: 'fault',
+        status: 'fault',
       };
     }
     return {
-      success: false,
       verdict: 'Boot key ideally should be removed after installation.',
       details,
-      severity: 'warning',
+      status: 'warning',
     };
   },
 };
@@ -247,19 +242,18 @@ const _hostHeaderProbe: Probe = {
     };
     if (url.hostname === 'localhost') {
       return {
-        done: true,
+        status: 'none',
         details,
       };
     }
     if (String(url.hostname).toLowerCase() !== String(host).toLowerCase()) {
       return {
-        success: false,
         details,
-        severity: 'hmm',
+        status: 'hmm',
       };
     }
     return {
-      done: true,
+      status: 'none',
       details,
     };
   },
@@ -271,7 +265,7 @@ const _sandboxingProbe: Probe = {
   apply: async (server, req) => {
     const details = server.getSandboxInfo();
     return {
-      success: details?.configured && details?.functional,
+      status: (details?.configured && details?.functional) ? 'success' : 'fault',
       details,
     };
   },
@@ -283,7 +277,7 @@ const _authenticationProbe: Probe = {
   apply: async(server, req) => {
     const loginSystemId = server.getInfo('loginMiddlewareComment');
     return {
-      success: loginSystemId != undefined,
+      status: (loginSystemId != undefined) ? 'success' : 'fault',
       details: {
         loginSystemId,
       }
