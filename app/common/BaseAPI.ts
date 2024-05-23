@@ -68,7 +68,7 @@ export class BaseAPI {
     // TODO: should this be more selective?
     if (typeof window !== 'undefined' && window.location &&
         window.location.pathname.endsWith('/admin')) {
-      const bootKey = new URLSearchParams(window.location.search).get('boot-key')
+      const bootKey = new URLSearchParams(window.location.search).get('boot-key');
       if (bootKey) {
         this._headers['X-Boot-Key'] = bootKey;
       }
