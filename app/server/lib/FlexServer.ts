@@ -181,7 +181,6 @@ export class FlexServer implements GristServer {
   private _getLoginSystem?: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
-  private _probes: BootProbes;
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
 
@@ -558,27 +557,17 @@ export class FlexServer implements GristServer {
    */
   public addBootPage() {
     if (this._check('boot')) { return; }
-    const bootKey = appSettings.section('boot').flag('key').readString({
-      envVar: 'GRIST_BOOT_KEY'
-    });
-    const base = `/boot/${bootKey}`;
-    this._probes = new BootProbes(this.app, this, base);
-    // Respond to /boot, /boot/, /boot/KEY, /boot/KEY/ to give
-    // a helpful message even if user gets KEY wrong or omits it.
     this.app.get('/boot(/(:bootKey/?)?)?$', async (req, res) => {
-      const goodKey = bootKey && req.params.bootKey === bootKey;
-      return this._sendAppPage(req, res, {
-        path: 'boot.html', status: 200, config: goodKey ? {
-        } : {
-          errMessage: 'not-the-key',
-        }, tag: 'boot',
-      });
+      // Doing a good redirect is actually pretty subtle and we might
+      // get it wrong, so just say /boot got moved.
+      res.send('The /boot/KEY page is now /admin?boot-key=KEY');
     });
-    this._probes.addEndpoints();
   }
 
-  public hasBoot(): boolean {
-    return Boolean(this._probes);
+  public getBootKey(): string|undefined {
+    return appSettings.section('boot').flag('key').readString({
+      envVar: 'GRIST_BOOT_KEY'
+    });
   }
 
   public denyRequestsIfNotReady() {
@@ -1879,22 +1868,21 @@ export class FlexServer implements GristServer {
 
     const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-    const adminPageMiddleware = [
-      this._redirectToHostMiddleware,
-      this._userIdMiddleware,
-      this._redirectToLoginWithoutExceptionsMiddleware,
-      // In principle, it may be safe to show the Admin Panel to non-admins but let's protect it
-      // since it's intended for admins, and it's easier not to have to worry how it should behave
-      // for others.
-      requireInstallAdmin,
-    ];
-    this.app.get('/admin', ...adminPageMiddleware, expressWrap(async (req, resp) => {
+    // Admin endpoint needs to have very little middleware since each
+    // piece of middleware creates a new way to fail and leave the admin
+    // panel inaccessible. Generally the admin panel should report problems
+    // rather than failing entirely.
+    this.app.get('/admin', this._userIdMiddleware, expressWrap(async (req, resp) => {
       return this.sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
-    const probes = new BootProbes(this.app, this, '/admin', adminPageMiddleware);
+    const adminMiddleware = [
+      this._userIdMiddleware,
+      requireInstallAdmin,
+    ];
+    const probes = new BootProbes(this.app, this, '/api', adminMiddleware);
     probes.addEndpoints();
 
-    // Restrict this endpoint to install admins too, for the same reason as the /admin page.
+    // Restrict this endpoint to install admins
     this.app.get('/api/install/prefs', requireInstallAdmin, expressWrap(async (_req, resp) => {
       const activation = await this._activations.current();
 
@@ -1922,7 +1910,7 @@ export class FlexServer implements GristServer {
 
     // GET api/checkUpdates
     // Retrieves the latest version of the client from Grist SAAS endpoint.
-    this.app.get('/api/install/updates', adminPageMiddleware, expressWrap(async (req, res) => {
+    this.app.get('/api/install/updates', adminMiddleware, expressWrap(async (req, res) => {
       // Prepare data for the telemetry that endpoint might expect.
       const installationId = (await this.getActivations().current()).id;
       const deploymentType = this.getDeploymentType();

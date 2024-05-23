@@ -531,10 +531,52 @@ export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {
   return getOrgName(org);
 }
 
-export function getHomeUrl(): string {
+/**
+ * If we don't know what the home URL is, the top level of the site
+ * we are on may work. This should always work for single-server installs
+ * that don't encode organization information in domains. Even for other
+ * cases, this should be a good enough home URL for many purposes, it
+ * just may still have some organization information encoded in it from
+ * the domain that could influence results that might be supposed to be
+ * organization-neutral.
+ */
+export function getFallbackHomeUrl(): string {
   const {host, protocol} = window.location;
+  return `${protocol}//${host}`;
+}
+
+/**
+ * Get the official home URL sent to us from the back end.
+ */
+export function getConfiguredHomeUrl(): string {
   const gristConfig: any = (window as any).gristConfig;
-  return (gristConfig && gristConfig.homeUrl) || `${protocol}//${host}`;
+  return (gristConfig && gristConfig.homeUrl) || getFallbackHomeUrl();
+}
+
+/**
+ * Get the home URL, using fallback if on admin page rather
+ * than trusting back end configuration.
+ */
+export function getPreferredHomeUrl(): string|undefined {
+  const gristUrl = urlState().state.get();
+  if (gristUrl.adminPanel) {
+    // On the admin panel, we should not trust configuration much,
+    // since we want the user to be able to access it to diagnose
+    // problems with configuration. So we access the API via the
+    // site we happen to be on rather than anything configured on
+    // the back end. Couldn't we just always do this? Maybe!
+    // It could require adjustments for calls that are meant
+    // to be site-neutral if the domain has an org encoded in it.
+    // But that's a small price to pay. Grist Labs uses a setup
+    // where api calls go to a dedicated domain distinct from all
+    // other sites, but there's no particular advantage to it.
+    return getFallbackHomeUrl();
+  }
+  return getConfiguredHomeUrl();
+}
+
+export function getHomeUrl(): string {
+  return getPreferredHomeUrl() || getConfiguredHomeUrl();
 }
 
 export function newUserAPIImpl(): UserAPIImpl {

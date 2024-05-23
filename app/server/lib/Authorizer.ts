@@ -193,6 +193,24 @@ export async function addRequestUser(
     }
   }
 
+  // Check if we have a boot key. This is a fallback mechanism for an
+  // administrator to authenticate themselves by demonstrating access
+  // to the environment.
+  if (!authDone && mreq.headers && mreq.headers['x-boot-key']) {
+    const reqBootKey = String(mreq.headers['x-boot-key']);
+    const bootKey = options.gristServer.getBootKey();
+    if (!bootKey || bootKey !== reqBootKey) {
+      return res.status(401).send('Bad request: invalid Boot key');
+    }
+    const userId = dbManager.getSupportUserId();
+    const user = await dbManager.getUser(userId);
+    mreq.user = user;
+    mreq.userId = userId;
+    mreq.users = [dbManager.makeFullUser(user!)];
+    mreq.userIsAuthorized = true;
+    authDone = true;
+  }
+
   // Special permission header for internal housekeeping tasks
   if (!authDone && mreq.headers && mreq.headers.permit) {
     const permitKey = String(mreq.headers.permit);

@@ -1,4 +1,5 @@
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
+import {BootProbeInfo, BootProbeResult} from 'app/common/BootProbe';
 import {InstallPrefs} from 'app/common/Install';
 import {TelemetryLevel} from 'app/common/Telemetry';
 import {addCurrentOrgToPath} from 'app/common/urlUtils';
@@ -56,6 +57,8 @@ export interface InstallAPI {
    * Returns information about latest version of Grist
    */
   checkUpdates(): Promise<LatestVersion>;
+  getChecks(): Promise<{probes: BootProbeInfo[]}>;
+  runCheck(id: string): Promise<BootProbeResult>;
 }
 
 export class InstallAPIImpl extends BaseAPI implements InstallAPI {
@@ -76,6 +79,14 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
 
   public checkUpdates(): Promise<LatestVersion> {
     return this.requestJson(`${this._url}/api/install/updates`, {method: 'GET'});
+  }
+
+  public getChecks(): Promise<{probes: BootProbeInfo[]}> {
+    return this.requestJson(`${this._url}/api/probes`, {method: 'GET'});
+  }
+
+  public runCheck(id: string): Promise<BootProbeResult> {
+    return this.requestJson(`${this._url}/api/probes/${id}`, {method: 'GET'});
   }
 
   private get _url(): string {

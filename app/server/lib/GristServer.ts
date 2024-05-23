@@ -65,7 +65,7 @@ export interface GristServer {
   getPlugins(): LocalPlugin[];
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
-  hasBoot(): boolean;
+  getBootKey(): string|undefined;
   getSandboxInfo(): SandboxInfo|undefined;
   getInfo(key: string): any;
 }
@@ -158,7 +158,7 @@ export function createDummyGristServer(): GristServer {
     servesPlugins() { return false; },
     getPlugins() { return []; },
     getBundledWidgets() { return []; },
-    hasBoot() { return false; },
+    getBootKey() { return undefined; },
     getSandboxInfo() { return undefined; },
     getInfo(key: string) { return undefined; }
   };

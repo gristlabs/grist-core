@@ -61,6 +61,18 @@ export class BaseAPI {
       'X-Requested-With': 'XMLHttpRequest',
       ...options.headers
     };
+    // If we are in the client, and have a boot key query parameter,
+    // pass it on as a header to make it available for authentication.
+    // This is a fallback mechanism if auth is broken to access the
+    // admin panel.
+    // TODO: should this be more selective?
+    if (typeof window !== 'undefined' && window.location &&
+        window.location.pathname.endsWith('/admin')) {
+      const bootKey = new URLSearchParams(window.location.search).get('boot-key');
+      if (bootKey) {
+        this._headers['X-Boot-Key'] = bootKey;
+      }
+    }
     this._extraParameters = options.extraParameters;
   }
 
