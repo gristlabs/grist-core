@@ -497,7 +497,22 @@
         "Manage Webhooks": "Upravljanje spletnih kljuk",
         "Webhooks": "Spletne kljuke",
         "Engine (experimental {{span}} change at own risk):": "Pogon (eksperimentalno {{span}} spreminjanje na lastno odgovornost):",
-        "API Console": "API Konzola"
+        "API Console": "API Konzola",
+        "API console": "API konzola",
+        "API documentation.": "API dokumentacija.",
+        "Base doc URL: {{docApiUrl}}": "URL osnovnega dokumenta: {{docApiUrl}}",
+        "Coming soon": "Prihaja kmalu",
+        "Copy to clipboard": "Kopiraj v odložišče",
+        "Currency": "Valuta",
+        "Data Engine": "Podatkovna mašina",
+        "Document ID": "ID dokumenta",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID dokumenta, ki se uporabi vsakič, ko REST API  pokliče {{docId}}. Oglej si {{apiURL}}",
+        "Find slow formulas": "Poišči počasne formule",
+        "For currency columns": "Za valutne stolpce",
+        "For number and date formats": "Za format števila in datuma",
+        "Formula times": "Časi formule",
+        "API URL copied to clipboard": "URL API-ja kopiran v odložišče",
+        "Default for DateTime columns": "Privzeto za stolpce DateTime"
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",

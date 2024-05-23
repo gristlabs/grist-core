@@ -91,6 +91,7 @@ export const commonUrls = {
   helpAPI: 'https://support.getgrist.com/api',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
+  termsOfService: getTermsOfServiceUrl(),
   plans: "https://www.getgrist.com/pricing",
   sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
@@ -187,10 +188,23 @@ export interface OrgUrlInfo {
   orgInPath?: string;     // If /o/{orgInPath} should be used to access the requested org.
 }
 
-function isDocInternalUrl(host: string) {
-  if (!process.env.APP_DOC_INTERNAL_URL) { return false; }
-  const internalUrl = new URL('/', process.env.APP_DOC_INTERNAL_URL);
-  return internalUrl.host === host;
+function hostMatchesUrl(host?: string, url?: string) {
+  return host !== undefined && url !== undefined && new URL(url).host === host;
+}
+
+/**
+ * Returns true if:
+ *  - the server is a home worker and the host matches APP_HOME_INTERNAL_URL;
+ *  - or the server is a doc worker and the host matches APP_DOC_INTERNAL_URL;
+ *
+ * @param {string?} host The host to check
+ */
+function isOwnInternalUrlHost(host?: string) {
+  // Note: APP_HOME_INTERNAL_URL may also be defined in doc worker as well as in home worker
+  if (process.env.APP_HOME_INTERNAL_URL && hostMatchesUrl(host, process.env.APP_HOME_INTERNAL_URL)) {
+    return true;
+  }
+  return Boolean(process.env.APP_DOC_INTERNAL_URL) && hostMatchesUrl(host, process.env.APP_DOC_INTERNAL_URL);
 }
 
 /**
@@ -210,7 +224,11 @@ export function getHostType(host: string, options: {
 
   const hostname = host.split(":")[0];
   if (!options.baseDomain) { return 'native'; }
-  if (hostname === 'localhost' || isDocInternalUrl(host) || hostname.endsWith(options.baseDomain)) {
+  if (
+    hostname === 'localhost' ||
+    isOwnInternalUrlHost(host) ||
+    hostname.endsWith(options.baseDomain)
+  ) {
     return 'native';
   }
   return 'custom';
@@ -676,6 +694,9 @@ export interface GristLoadConfig {
   // Url for support for the browser client to use.
   helpCenterUrl?: string;
 
+  // Url for terms of service for the browser client to use
+  termsOfServiceUrl?: string;
+
   // Url for free coaching call scheduling for the browser client to use.
   freeCoachingCallUrl?: string;
 
@@ -884,6 +905,15 @@ export function getHelpCenterUrl(): string {
     return gristConfig && gristConfig.helpCenterUrl || defaultUrl;
   } else {
     return process.env.GRIST_HELP_CENTER || defaultUrl;
+  }
+}
+
+export function getTermsOfServiceUrl(): string|undefined {
+  if(isClient()) {
+    const gristConfig: GristLoadConfig = (window as any).gristConfig;
+    return gristConfig && gristConfig.termsOfServiceUrl || undefined;
+  } else {
+    return process.env.GRIST_TERMS_OF_SERVICE_URL || undefined;
   }
 }
 

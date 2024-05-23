@@ -7,7 +7,6 @@ export class TestProxyServer {
     const server = new TestProxyServer();
     await server._prepare(portNumber);
     return server;
-
   }
 
   private _proxyCallsCounter: number = 0;
@@ -38,7 +37,6 @@ export class TestProxyServer {
         }
         res.sendStatus(responseCode);
         res.end();
-        //next();
       });
     }, portNumber);
   }

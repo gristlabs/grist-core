@@ -124,6 +124,7 @@ const cssItemName = styled('div', `
   font-weight: bold;
   display: flex;
   align-items: center;
+  margin-right: 14px;
   font-size: ${vars.largeFontSize};
   padding-left: 24px;
   &-prefixed {

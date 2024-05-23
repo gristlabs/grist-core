@@ -308,7 +308,34 @@
         "API": "API",
         "Manage Webhooks": "Gerenciar ganchos web",
         "Webhooks": "Ganchos Web",
-        "API Console": "Consola API"
+        "API Console": "Consola API",
+        "API documentation.": "Documentação de API.",
+        "Currency": "Moeda",
+        "Data Engine": "Motor de dados",
+        "Find slow formulas": "Encontrar fórmulas lentas",
+        "For currency columns": "Para colunas de moeda",
+        "Hard reset of data engine": "Reinicialização total do motor de dados",
+        "Manage webhooks": "Gerenciar webhooks",
+        "Python": "Python",
+        "Python version used": "Versão Python usada",
+        "Try API calls from the browser": "Experimente chamadas de API do navegador",
+        "python2 (legacy)": "python2 (legado)",
+        "API URL copied to clipboard": "URL da API copiado para a área de transferência",
+        "Coming soon": "Em breve",
+        "API console": "Consola API",
+        "Base doc URL: {{docApiUrl}}": "URL do documento base: {{docApiUrl}}",
+        "Copy to clipboard": "Copiar para a área de transferência",
+        "Default for DateTime columns": "Padrão para colunas DataHorário",
+        "Document ID": "ID do documento",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID do documento a ser usado sempre que a API REST fizer uma chamada para {{docId}}. Veja {{apiURL}}",
+        "For number and date formats": "Para formatos de número e data",
+        "Formula times": "Tempos de fórmula",
+        "Locale": "Localização",
+        "ID for API use": "ID para uso da API",
+        "Notify other services on doc changes": "Notifique outros serviços em alterações doc",
+        "Reload": "Recarregar",
+        "Time Zone": "Fuso horário",
+        "python3 (recommended)": "python3 (recomendado)"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -607,7 +634,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Terminar",
-        "Next": "Próximo"
+        "Next": "Próximo",
+        "Previous": "Anterior"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Tour de Vídeo Grist",
@@ -981,7 +1009,8 @@
         "Got it": "Entendido",
         "Don't show again": "Não mostrar novamente",
         "Don't show again.": "Não mostrar novamente.",
-        "Don't show tips": "Não mostrar dicas"
+        "Don't show tips": "Não mostrar dicas",
+        "TIP": "DICA"
     },
     "pages": {
         "Duplicate Page": "Duplicar a Página",
@@ -1607,5 +1636,20 @@
         "Error in dropdown condition": "Erro na condição do menu suspenso",
         "No choices matching condition": "Nenhuma opção que corresponda à condição",
         "No choices to select": "Não há opções para selecionar"
+    },
+    "FormRenderer": {
+        "Reset": "Redefinir",
+        "Search": "Pesquisar",
+        "Select...": "Selecionar...",
+        "Submit": "Enviar"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Calendário",
+        "Card": "Cartão",
+        "Card List": "Lista de cartões",
+        "Chart": "Gráfico",
+        "Custom": "Personalizado",
+        "Table": "Tabela",
+        "Form": "Formulário"
     }
 }

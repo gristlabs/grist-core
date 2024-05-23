@@ -308,7 +308,34 @@
         "Ok": "OK",
         "Webhooks": "Webhaken",
         "Manage Webhooks": "Webhaken verwalten",
-        "API Console": "API-Konsole"
+        "API Console": "API-Konsole",
+        "Coming soon": "Demnächst verfügbar",
+        "For number and date formats": "Für Zahlen- und Datumsformate",
+        "Formula times": "Formelzeiten",
+        "Locale": "Lokale",
+        "Time Zone": "Zeitzone",
+        "Find slow formulas": "Langsame Formeln finden",
+        "Manage webhooks": "Webhooks verwalten",
+        "For currency columns": "Für Währungsspalten",
+        "Notify other services on doc changes": "Benachrichtigen Sie andere Dienstleistungen bei doc Änderungen",
+        "Hard reset of data engine": "Hartes Zurücksetzen der Datenmaschine",
+        "Python": "Python",
+        "ID for API use": "ID für API-Verwendung",
+        "Python version used": "Verwendete Python-Version",
+        "Reload": "Neu laden",
+        "Try API calls from the browser": "Versuchen Sie API-Aufrufe über den Browser",
+        "python2 (legacy)": "python2 (veraltet)",
+        "python3 (recommended)": "python3 (empfohlen)",
+        "API URL copied to clipboard": "API-URL in die Zwischenablage kopiert",
+        "Base doc URL: {{docApiUrl}}": "URL des Basisdokuments: {{docApiUrl}}",
+        "API console": "API-Konsole",
+        "API documentation.": "API Dokumentation.",
+        "Copy to clipboard": "In die Zwischenablage kopieren",
+        "Currency": "Währung",
+        "Data Engine": "Datenmaschine",
+        "Default for DateTime columns": "Standard für DateTime-Spalten",
+        "Document ID": "Dokument-ID",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Dokument-ID, die bei Aufrufen der REST-API für {{docId}} zu verwenden ist. Siehe {{apiURL}}"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -607,7 +634,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Beenden",
-        "Next": "Weiter"
+        "Next": "Weiter",
+        "Previous": "Vorherige"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Grist Video Tour",
@@ -981,7 +1009,8 @@
         "Dismiss": "Ablehnen",
         "Don't ask again.": "Frag nicht mehr.",
         "Don't show again.": "Zeig nicht mehr.",
-        "Don't show tips": "Keine Tipps anzeigen"
+        "Don't show tips": "Keine Tipps anzeigen",
+        "TIP": "TIPP"
     },
     "pages": {
         "Duplicate Page": "Seite duplizieren",
@@ -1607,5 +1636,20 @@
     },
     "DropdownConditionEditor": {
         "Enter condition.": "Bedingung eingeben."
+    },
+    "FormRenderer": {
+        "Reset": "Zurücksetzen",
+        "Submit": "Einreichen",
+        "Search": "Suchen",
+        "Select...": "Wählen Sie..."
+    },
+    "widgetTypesMap": {
+        "Calendar": "Kalender",
+        "Card": "Karte",
+        "Card List": "Kartenliste",
+        "Form": "Formular",
+        "Table": "Tabelle",
+        "Chart": "Diagramm",
+        "Custom": "Benutzerdefiniert"
     }
 }

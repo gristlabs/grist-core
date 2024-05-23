@@ -58,6 +58,7 @@ export class BootProbes {
     this._probes.push(_bootProbe);
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
+    this._probes.push(_authenticationProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -77,7 +78,7 @@ const _homeUrlReachableProbe: Probe = {
   id: 'reachable',
   name: 'Grist is reachable',
   apply: async (server, req) => {
-    const url = server.getHomeUrl(req);
+    const url = server.getHomeInternalUrl();
     try {
       const resp = await fetch(url);
       if (resp.status !== 200) {
@@ -102,7 +103,7 @@ const _statusCheckProbe: Probe = {
   id: 'health-check',
   name: 'Built-in Health check',
   apply: async (server, req) => {
-    const baseUrl = server.getHomeUrl(req);
+    const baseUrl = server.getHomeInternalUrl();
     const url = new URL(baseUrl);
     url.pathname = removeTrailingSlash(url.pathname) + '/status';
     try {
@@ -199,6 +200,20 @@ const _sandboxingProbe: Probe = {
     return {
       success: details?.configured && details?.functional,
       details,
+    };
+  },
+};
+
+const _authenticationProbe: Probe = {
+  id: 'authentication',
+  name: 'Authentication system',
+  apply: async(server, req) => {
+    const loginSystemId = server.getInfo('loginMiddlewareComment');
+    return {
+      success: loginSystemId != undefined,
+      details: {
+        loginSystemId,
+      }
     };
   },
 };

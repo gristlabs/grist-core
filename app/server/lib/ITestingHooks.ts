@@ -7,7 +7,6 @@ export interface ClientJsonMemoryLimits {
 }
 
 export interface ITestingHooks {
-  getOwnPort(): Promise<number>;
   getPort(): Promise<number>;
   setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void>;
   setServerVersion(version: string|null): Promise<void>;

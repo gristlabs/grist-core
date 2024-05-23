@@ -780,11 +780,11 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async getWorker(key: string): Promise<string> {
-    const json = await this.requestJson(`${this._url}/api/worker/${key}`, {
+    const json = (await this.requestJson(`${this._url}/api/worker/${key}`, {
       method: 'GET',
       credentials: 'include'
-    });
-    return getDocWorkerUrl(this._homeUrl, json);
+    })) as PublicDocWorkerUrlInfo;
+    return getPublicDocWorkerUrl(this._homeUrl, json);
   }
 
   public async getWorkerAPI(key: string): Promise<DocWorkerAPI> {
@@ -1164,6 +1164,27 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
 }
 
 /**
+ * Represents information to build public doc worker url.
+ *
+ * Structure that may contain either **exclusively**:
+ *  - a selfPrefix when no pool of doc worker exist.
+ *  - a public doc worker url otherwise.
+ */
+export type PublicDocWorkerUrlInfo = {
+  selfPrefix: string;
+  docWorkerUrl: null;
+} | {
+  selfPrefix: null;
+  docWorkerUrl: string;
+}
+
+export function getUrlFromPrefix(homeUrl: string, prefix: string) {
+  const url = new URL(homeUrl);
+  url.pathname = prefix + url.pathname;
+  return url.href;
+}
+
+/**
  * Get a docWorkerUrl from information returned from backend. When the backend
  * is fully configured, and there is a pool of workers, this is straightforward,
  * just return the docWorkerUrl reported by the backend. For single-instance
@@ -1171,19 +1192,13 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
  * use the homeUrl of the backend, with extra path prefix information
  * given by selfPrefix. At the time of writing, the selfPrefix contains a
  * doc-worker id, and a tag for the codebase (used in consistency checks).
+ *
+ * @param {string} homeUrl
+ * @param {string} docWorkerInfo The information to build the public doc worker url
+ *                               (result of the call to /api/worker/:docId)
  */
-export function getDocWorkerUrl(homeUrl: string, docWorkerInfo: {
-  docWorkerUrl: string|null,
-  selfPrefix?: string,
-}): string {
-  if (!docWorkerInfo.docWorkerUrl) {
-    if (!docWorkerInfo.selfPrefix) {
-      // This should never happen.
-      throw new Error('missing selfPrefix for docWorkerUrl');
-    }
-    const url = new URL(homeUrl);
-    url.pathname = docWorkerInfo.selfPrefix + url.pathname;
-    return url.href;
-  }
-  return docWorkerInfo.docWorkerUrl;
+export function getPublicDocWorkerUrl(homeUrl: string, docWorkerInfo: PublicDocWorkerUrlInfo) {
+  return docWorkerInfo.selfPrefix !== null ?
+    getUrlFromPrefix(homeUrl, docWorkerInfo.selfPrefix) :
+    docWorkerInfo.docWorkerUrl;
 }

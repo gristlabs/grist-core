@@ -250,7 +250,34 @@
         "API": "API",
         "Webhooks": "Ganchos Web",
         "Manage Webhooks": "Administrar los ganchos web",
-        "API Console": "Consola de la API"
+        "API Console": "Consola de la API",
+        "API URL copied to clipboard": "URL de API copiada en el portapapeles",
+        "API documentation.": "Documentación de la API.",
+        "Base doc URL: {{docApiUrl}}": "URL del doc base: {{docApiUrl}}",
+        "Currency": "Moneda",
+        "Data Engine": "Motor de datos",
+        "Formula times": "Tiempo de fórmula",
+        "Hard reset of data engine": "Reinicio completo del motor de datos",
+        "ID for API use": "ID para uso de API",
+        "Locale": "Configuración regional",
+        "API console": "Consola de la API",
+        "Coming soon": "Próximamente",
+        "Copy to clipboard": "Copiar al portapapeles",
+        "Default for DateTime columns": "Predeterminado para las columnas DateTime",
+        "Document ID": "ID del documento",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID de documento para usar cuando la API REST solicite {{docId}}. Véase {{apiURL}}",
+        "Find slow formulas": "Encontrar fórmulas lentas",
+        "For currency columns": "Para columnas de moneda",
+        "For number and date formats": "Para formatos de número y fecha",
+        "Manage webhooks": "Administrar los ganchos web",
+        "Python version used": "Versión Python utilizada",
+        "Time Zone": "Huso horario",
+        "Try API calls from the browser": "Pruebe las llamadas API desde el navegador",
+        "Reload": "Recargar",
+        "python2 (legacy)": "python2 (legado)",
+        "Notify other services on doc changes": "Notificar a otros servicios los cambios de documentos",
+        "Python": "Python",
+        "python3 (recommended)": "python3 (recomendado)"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -503,7 +530,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Finalizar",
-        "Next": "Siguiente"
+        "Next": "Siguiente",
+        "Previous": "Anterior"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Recorrido en video de Grist",
@@ -986,7 +1014,8 @@
         "Don't ask again.": "No preguntes de nuevo.",
         "Don't show again.": "No vuelvas a mostrarlo.",
         "Don't show again": "No volver a mostrar",
-        "Are you sure you want to delete these records?": "¿Seguro que quieres borrar estos registros?"
+        "Are you sure you want to delete these records?": "¿Seguro que quieres borrar estos registros?",
+        "TIP": "TIP"
     },
     "pages": {
         "Duplicate Page": "Duplicar página",
@@ -1597,5 +1626,20 @@
     },
     "DropdownConditionEditor": {
         "Enter condition.": "Introduzca la condición."
+    },
+    "FormRenderer": {
+        "Select...": "Seleccione...",
+        "Reset": "Restablecer",
+        "Search": "Búsqueda",
+        "Submit": "Enviar"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Calendario",
+        "Card": "Tarjeta",
+        "Card List": "Lista de tarjetas",
+        "Chart": "Gráfico",
+        "Custom": "Personalizado",
+        "Form": "Formulario",
+        "Table": "Tabla"
     }
 }

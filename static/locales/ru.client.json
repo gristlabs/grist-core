@@ -1315,7 +1315,7 @@
         "Opt out of Telemetry": "Отказаться от телеметрии",
         "Sponsor Grist Labs on GitHub": "Спонсор Grist Labs на GitHub",
         "This instance is opted in to telemetry. Only the site administrator has permission to change this.": "В этом экземпляре включена телеметрия. Только администратор сайта может изменить это.",
-        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в нашей {{link}}, никогда содержимое документов.",
+        "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Мы собираем только статистику использования, как описано в {{link}} и никогда не собираем содержимое документов.",
         "Sponsor": "Спонсор"
     },
     "buildViewSectionDom": {
