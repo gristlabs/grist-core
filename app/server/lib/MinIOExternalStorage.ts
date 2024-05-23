@@ -132,7 +132,7 @@ export class MinIOExternalStorage implements ExternalStorage {
 
   public async hasVersioning(): Promise<Boolean> {
     const versioning = await this._s3.getBucketVersioning(this.bucket);
-    return versioning != "" && versioning.Status === 'Enabled';
+    return versioning != "" && versioning && versioning.Status === 'Enabled';
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
