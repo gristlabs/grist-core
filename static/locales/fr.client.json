@@ -298,7 +298,20 @@
         "Webhooks": "Points d’ancrage Web",
         "API Console": "Console de l'API",
         "Reload": "Recharger",
-        "Python": "Python"
+        "Python": "Python",
+        "API URL copied to clipboard": "URL de l'API copié",
+        "API console": "Console de l'API",
+        "API documentation.": "Documentation de l'API.",
+        "Coming soon": "Prochainement",
+        "Copy to clipboard": "Copier dans le presse-papier",
+        "Currency": "Devise",
+        "Data Engine": "Moteur de données",
+        "Default for DateTime columns": "Valeur par défaut pour les colonnes Date et Heure",
+        "Document ID": "ID du Document",
+        "For currency columns": "Pour les colonnes de devises",
+        "Hard reset of data engine": "Réinitialisation du moteur de données",
+        "Locale": "Langue",
+        "For number and date formats": "Pour les colonnes de nombre et date"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
