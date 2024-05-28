@@ -2,7 +2,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewSectionHelper} from 'app/client/components/ViewLayout';
 import {makeT} from 'app/client/lib/localization';
 import {reportMessage, reportSuccess} from 'app/client/models/errors';
-import {IEdit, IExternalTable, VirtualTable} from 'app/client/models/VirtualTable';
+import {IEdit, IExternalTable, VirtualTableRegistration} from 'app/client/models/VirtualTable';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaSmall, testId} from 'app/client/ui2018/cssVars';
@@ -337,7 +337,7 @@ class WebhookExternalTable implements IExternalTable {
 export class WebhookPage extends DisposableWithEvents {
 
   public docApi = this.gristDoc.docPageModel.appModel.api.getDocAPI(this.gristDoc.docId());
-  public sharedTable: VirtualTable;
+  public sharedTable: VirtualTableRegistration;
   private _webhookExternalTable: WebhookExternalTable;
 
 
@@ -345,10 +345,9 @@ export class WebhookPage extends DisposableWithEvents {
     super();
     //this._webhooks = observableArray<WebhookSummary>();
     this._webhookExternalTable = new WebhookExternalTable(this.docApi);
-    const table = new VirtualTable(this, gristDoc, this._webhookExternalTable);
+    const table = this.autoDispose(new VirtualTableRegistration(gristDoc, this._webhookExternalTable));
     this.listenTo(gristDoc, 'webhooks', async () => {
       await table.lazySync();
-
     });
   }
 

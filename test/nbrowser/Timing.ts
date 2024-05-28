@@ -147,6 +147,25 @@ describe("Timing", function () {
     await driver.navigate().refresh();
     await gu.waitForUrl('/settings');
   });
+
+  it('clears virtual table when navigated away', async function() {
+    // Start timing and go to results.
+    await startTiming.click();
+    await modal.wait();
+    await optionReload.click();
+    await modalConfirm.click();
+
+    // Wait for the results page.
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.findContentWait('div', 'Formula timer', 1000).isDisplayed());
+      assert.equal(await gu.getCell(0, 1).getText(), 'Table1');
+    });
+
+    // Now go to the raw data page, and make sure we see only Table1.
+    await driver.find('.test-tools-raw').click();
+    await driver.findWait('.test-raw-data-list', 2000);
+    assert.deepEqual(await driver.findAll('.test-raw-data-table-id', e => e.getText()), ['Table1']);
+  });
 });
 
 const element = (testId: string) => ({

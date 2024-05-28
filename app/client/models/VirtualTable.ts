@@ -1,6 +1,5 @@
 import { reportError } from 'app/client/models/errors';
 import { GristDoc } from 'app/client/components/GristDoc';
-import { DocData } from 'app/client/models/DocData';
 import { TableData } from 'app/client/models/TableData';
 import { concatenateSummaries, summarizeStoredAndUndo } from 'app/common/ActionSummarizer';
 import { TableDelta } from 'app/common/ActionSummary';
@@ -8,7 +7,6 @@ import { ProcessedAction } from 'app/common/AlternateActions';
 import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
 import { DocAction, TableDataAction, UserAction } from 'app/common/DocActions';
 import { DocDataCache } from 'app/common/DocDataCache';
-import { ColTypeMap } from 'app/common/TableData';
 import { RowRecord } from 'app/plugin/GristData';
 import debounce = require('lodash/debounce');
 
@@ -43,6 +41,7 @@ export interface IEdit {
 export interface IExternalTable {
   name: string;  // the tableId of the virtual table (e.g. GristHidden_WebhookTable)
   initialActions: DocAction[];  // actions to create the table.
+  destroyActions?: DocAction[];  // actions to destroy the table (auto generated if not defined), pass [] to disable.
   fetchAll(): Promise<TableDataAction>;  // get initial state of the table.
   sync(editor: IEdit): Promise<void>;    // incorporate external changes.
   beforeEdit(editor: IEdit): Promise<void>;  // called prior to committing a change.
@@ -63,8 +62,24 @@ export class VirtualTableData extends TableData {
   public ext: IExternalTable;
   public cache: DocDataCache;
 
-  constructor(docData: DocData, tableId: string, tableData: TableDataAction|null, columnTypes: ColTypeMap) {
-    super(docData, tableId, tableData, columnTypes);
+  public override fetchData() {
+    return super.fetchData(async () => {
+      const data = await this.ext.fetchAll();
+      this.cache.docData.getTable(this.getName())?.loadData(data);
+      return data;
+    });
+  }
+
+  public override async sendTableActions(userActions: UserAction[]): Promise<any[]> {
+    const actions = await this._sendTableActionsCore(userActions,
+                                                     {isUser: true});
+    await this.ext.afterEdit(this._editor(actions));
+    return actions.map(action => action.retValues);
+  }
+
+  public override async sendTableAction(action: UserAction): Promise<any> {
+    const retValues = await this.sendTableActions([action]);
+    return retValues[0];
   }
 
   public setExt(_ext: IExternalTable) {
@@ -72,32 +87,12 @@ export class VirtualTableData extends TableData {
     this.cache = new DocDataCache(this.ext.initialActions);
   }
 
-  public get name() {
+  public getName() {
     return this.ext.name;
-  }
-
-  public fetchData() {
-    return super.fetchData(async () => {
-      const data = await this.ext.fetchAll();
-      this.cache.docData.getTable(this.name)?.loadData(data);
-      return data;
-    });
-  }
-
-  public async sendTableActions(userActions: UserAction[]): Promise<any[]> {
-    const actions = await this._sendTableActionsCore(userActions,
-                                                     {isUser: true});
-    await this.ext.afterEdit(this._editor(actions));
-    return actions.map(action => action.retValues);
   }
 
   public sync() {
     return this.ext.sync(this._editor());
-  }
-
-  public async sendTableAction(action: UserAction): Promise<any> {
-    const retValues = await this.sendTableActions([action]);
-    return retValues[0];
   }
 
   public async schemaChange() {
@@ -108,7 +103,7 @@ export class VirtualTableData extends TableData {
     const summary = concatenateSummaries(
       actions
         .map(action => summarizeStoredAndUndo(action.stored, action.undo)));
-    const delta = summary.tableDeltas[this.name];
+    const delta = summary.tableDeltas[this.getName()];
     return {
       actions,
       delta,
@@ -135,7 +130,7 @@ export class VirtualTableData extends TableData {
     }
     const actions = await this.cache.sendTableActions(userActions);
     if (isUser) {
-      const newTable = await this.cache.docData.requireTable(this.name);
+      const newTable = await this.cache.docData.requireTable(this.getName());
       try {
         await this.ext.beforeEdit({
           ...this._editor(actions),
@@ -155,7 +150,7 @@ export class VirtualTableData extends TableData {
         this.docData.receiveAction(docAction);
         this.cache.docData.receiveAction(docAction);
         if (isUser) {
-          const code = `ext-${this.name}-${_counterForUndoActions}`;
+          const code = `ext-${this.getName()}-${_counterForUndoActions}`;
           _counterForUndoActions++;
           this.gristDoc.getUndoStack().pushAction({
             actionNum: code,
@@ -197,46 +192,67 @@ export class VirtualTableData extends TableData {
  * one second after last call (or at most 2 seconds after the first
  * call).
  */
-export class VirtualTable {
-  public lazySync = debounce(this.sync, 1000, {
+export class VirtualTableRegistration extends DisposableWithEvents {
+  public lazySync = debounce(this._sync, 1000, {
     maxWait: 2000,
     trailing: true,
   });
-  public tableData: VirtualTableData;
+  private _tableData: VirtualTableData;
 
-  public constructor(private _owner: DisposableWithEvents,
-                     _gristDoc: GristDoc,
-                     _ext: IExternalTable) {
-    if (!_gristDoc.docModel.docData.getTable(_ext.name)) {
+  constructor(gristDoc: GristDoc, ext: IExternalTable) {
+    super();
+    if (!gristDoc.docModel.docData.getTable(ext.name)) {
 
-      // register the virtual table
-      _gristDoc.docModel.docData.registerVirtualTable(_ext.name, VirtualTableData);
+      // Register the virtual table
+      gristDoc.docModel.docData.registerVirtualTableFactory(ext.name, VirtualTableData);
 
       // then process initial actions
-      for (const action of _ext.initialActions) {
-        _gristDoc.docData.receiveAction(action);
+      for (const action of ext.initialActions) {
+        gristDoc.docData.receiveAction(action);
       }
-
       // pass in gristDoc and external interface
-      this.tableData = _gristDoc.docModel.docData.getTable(_ext.name)! as VirtualTableData;
+      this._tableData = gristDoc.docModel.docData.getTable(ext.name)! as VirtualTableData;
       //this.tableData.docApi = this.docApi;
-      this.tableData.gristDoc = _gristDoc;
-      this.tableData.setExt(_ext);
+      this._tableData.gristDoc = gristDoc;
+      this._tableData.setExt(ext);
 
       // subscribe to schema changes
-      this.tableData.schemaChange().catch(e => reportError(e));
-      _owner.listenTo(_gristDoc, 'schemaUpdateAction', () => this.tableData.schemaChange());
+      this._tableData.schemaChange().catch(e => reportError(e));
+      this.listenTo(gristDoc, 'schemaUpdateAction', () => this._tableData.schemaChange());
     } else {
-      this.tableData = _gristDoc.docModel.docData.getTable(_ext.name)! as VirtualTableData;
+      throw new Error(`Virtual table ${ext.name} already exists`);
     }
-    // debounce is typed as returning a promise, but doesn't appear to actually do so?
+    // debounce is typed as returning a promise, but doesn't appear to actually //do so?
     Promise.resolve(this.lazySync()).catch(e => reportError(e));
+
+    this.onDispose(() => {
+      const reverse = ext.destroyActions ?? generateDestroyActions(ext.initialActions);
+      reverse.forEach(action => gristDoc.docModel.docData.receiveAction(action));
+      gristDoc.docModel.docData.unregisterVirtualTableFactory(ext.name);
+    });
   }
 
-  public async sync() {
-    if (this._owner.isDisposed()) {
+  private async _sync() {
+    if (this.isDisposed()) {
       return;
     }
-    await this.tableData.sync();
+    await this._tableData.sync();
   }
+}
+
+/**
+ * This is a helper method that generates undo actions for actions that create a virtual
+ * table. It just removes everything using the ids in the initial actions. It tries to fail
+ * if actions are more complex than simple create table/columns actions.
+ */
+function generateDestroyActions(initialActions: DocAction[]): DocAction[] {
+  return initialActions.map(action => {
+    switch (action[0]) {
+      case 'AddTable': return ['RemoveTable', action[1]];
+      case 'AddColumn': return ['RemoveColumn', action[1]];
+      case 'AddRecord': return ['RemoveRecord', action[1], action[2]];
+      case 'BulkAddRecord': return ['BulkRemoveRecord', action[1], action[2]];
+      default: throw new Error(`Cannot generate destroy action for ${action[0]}`);
+    }
+  }).reverse() as unknown as DocAction[];
 }
