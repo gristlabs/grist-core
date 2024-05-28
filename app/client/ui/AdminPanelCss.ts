@@ -2,13 +2,13 @@ import {transition} from 'app/client/ui/transitions';
 import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {dom, DomContents, IDisposableOwner, Observable, styled} from 'grainjs';
+import {dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled} from 'grainjs';
 
 export function HidableToggle(owner: IDisposableOwner, value: Observable<boolean|null>) {
   return toggle(value, dom.hide((use) => use(value) === null));
 }
 
-export function AdminSection(owner: IDisposableOwner, title: DomContents, items: DomContents[]) {
+export function AdminSection(owner: IDisposableOwner, title: DomContents, items: DomElementArg[]) {
   return cssSection(
     cssSectionTitle(title),
     ...items,

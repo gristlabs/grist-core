@@ -2,7 +2,7 @@ import BaseView = require('app/client/components/BaseView');
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ViewSectionHelper} from 'app/client/components/ViewLayout';
 import {makeT} from 'app/client/lib/localization';
-import {IEdit, IExternalTable, VirtualTable} from 'app/client/models/VirtualTable';
+import {IEdit, IExternalTable, VirtualTableRegistration} from 'app/client/models/VirtualTable';
 import {urlState} from 'app/client/models/gristUrlState';
 import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {isNarrowScreenObs, mediaSmall} from 'app/client/ui2018/cssVars';
@@ -163,7 +163,7 @@ export class TimingPage extends DisposableWithEvents {
 
     // And wire up the UI.
     const ext = this.autoDispose(new TimingExternalTable(data));
-    new VirtualTable(this, this._gristDoc, ext);
+    this.autoDispose(new VirtualTableRegistration(this._gristDoc, ext));
     this._data.set(data);
   }
 }

@@ -109,6 +109,7 @@ Please log in as an administrator.`)),
           url: dom('pre', `/admin?boot-key=${exampleKey}`)
         }),
       ),
+      testId('admin-panel-error'),
     ]);
   }
 
