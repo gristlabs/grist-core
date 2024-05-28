@@ -2,8 +2,8 @@ import {buildHomeBanners} from 'app/client/components/Banners';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
+import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
-import {AdminChecks} from 'app/client/models/AdminChecks';
 import {urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
@@ -15,7 +15,7 @@ import {basicButton} from 'app/client/ui2018/buttons';
 import {toggle} from 'app/client/ui2018/checkbox';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
-import {SandboxingBootProbeDetails} from 'app/common/BootProbe';
+import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
 import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl, LatestVersion} from 'app/common/InstallAPI';
 import {naturalCompare} from 'app/common/SortFunc';
@@ -41,7 +41,7 @@ export class AdminPanel extends Disposable {
   constructor(private _appModel: AppModel) {
     super();
     document.title = getAdminPanelName() + getPageTitleSuffix(getGristConfig());
-    this._checks = new AdminChecks(this);
+    this._checks = new AdminChecks(this, this._installAPI);
   }
 
   public buildDom() {
@@ -78,9 +78,42 @@ export class AdminPanel extends Disposable {
   }
 
   private _buildMainContent(owner: MultiHolder) {
+    // If probes are available, show the panel as normal.
+    // Otherwise say it is unavailable, and describe a fallback
+    // mechanism for access.
     return cssPageContainer(
       dom.cls('clipboard'),
       {tabIndex: "-1"},
+      dom.maybe(this._checks.probes, probes => {
+        return probes.length > 0
+            ? this._buildMainContentForAdmin(owner)
+            : this._buildMainContentForOthers(owner);
+      }),
+      testId('admin-panel'),
+    );
+  }
+
+  /**
+   * Show something helpful to those without access to the panel,
+   * which could include a legit adminstrator if auth is misconfigured.
+   */
+  private _buildMainContentForOthers(owner: MultiHolder) {
+    const exampleKey = 'example-' + window.crypto.randomUUID();
+    return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
+      dom('p', t(`You do not have access to the administrator panel.
+Please log in as an administrator.`)),
+      dom(
+        'p',
+        t(`Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}`, {
+          bootKey: dom('pre', `GRIST_BOOT_KEY=${exampleKey}`),
+          url: dom('pre', `/admin?boot-key=${exampleKey}`)
+        }),
+      ),
+    ]);
+  }
+
+  private _buildMainContentForAdmin(owner: MultiHolder) {
+    return [
       dom.create(AdminSection, t('Support Grist'), [
         dom.create(AdminSectionItem, {
           id: 'telemetry',
@@ -113,7 +146,6 @@ export class AdminPanel extends Disposable {
           expandedContent: this._buildAuthenticationNotice(owner),
         })
       ]),
-
       dom.create(AdminSection, t('Version'), [
         dom.create(AdminSectionItem, {
           id: 'version',
@@ -123,8 +155,23 @@ export class AdminPanel extends Disposable {
         }),
         this._buildUpdates(owner),
       ]),
-      testId('admin-panel'),
-    );
+      dom.create(AdminSection, t('Self Checks'), [
+        this._buildProbeItems(owner, {
+          showRedundant: false,
+          showNovel: true,
+        }),
+        dom.create(AdminSectionItem, {
+          id: 'probe-other',
+          name: 'more...',
+          description: '',
+          value: '',
+          expandedContent: this._buildProbeItems(owner, {
+            showRedundant: true,
+            showNovel: false,
+          }),
+        }),
+      ]),
+    ];
   }
 
   private _buildSandboxingDisplay(owner: IDisposableOwner) {
@@ -132,7 +179,7 @@ export class AdminPanel extends Disposable {
       use => {
         const req = this._checks.requestCheckById(use, 'sandboxing');
         const result = req ? use(req.result) : undefined;
-        const success = result?.success;
+        const success = result?.status === 'success';
         const details = result?.details as SandboxingBootProbeDetails|undefined;
         if (!details) {
           return cssValueLabel(t('unknown'));
@@ -150,11 +197,9 @@ export class AdminPanel extends Disposable {
 
   private _buildSandboxingNotice() {
     return [
-      t('Grist allows for very powerful formulas, using Python. \
-We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor \
-if your hardware supports it (most will), \
-to run formulas in each document within a sandbox \
-isolated from other documents and isolated from the network.'),
+      // Use AdminChecks text for sandboxing, in order not to
+      // duplicate.
+      probeDetails['sandboxing'].info,
       dom(
         'div',
         {style: 'margin-top: 8px'},
@@ -172,7 +217,8 @@ isolated from other documents and isolated from the network.'),
           return cssValueLabel(cssErrorText('unavailable'));
         }
 
-        const { success, details } = result;
+        const { status, details } = result;
+        const success = status === 'success';
         const loginSystemId = details?.loginSystemId;
 
         if (!success || !loginSystemId) {
@@ -412,7 +458,111 @@ isolated from other documents and isolated from the network.'),
       )
     });
   }
+
+  /**
+   * Show the results of various checks. Of the checks, some are considered
+   * "redundant" (already covered elsewhere in the Admin Panel) and the
+   * remainder are "novel".
+   */
+  private _buildProbeItems(owner: MultiHolder, options: {
+    showRedundant: boolean,
+    showNovel: boolean,
+  }) {
+    return dom.domComputed(
+      use => [
+        ...use(this._checks.probes).map(probe => {
+          const isRedundant = probe.id === 'sandboxing';
+          const show = isRedundant ? options.showRedundant : options.showNovel;
+          if (!show) { return null; }
+          const req = this._checks.requestCheck(probe);
+          return this._buildProbeItem(owner, req.probe, use(req.result), req.details);
+        }),
+      ]
+    );
+  }
+
+  /**
+   * Show the result of an individual check.
+   */
+  private _buildProbeItem(owner: MultiHolder,
+                          info: BootProbeInfo,
+                          result: BootProbeResult,
+                          details: ProbeDetails|undefined) {
+
+    const status = this._encodeSuccess(result);
+    return dom.create(AdminSectionItem, {
+      id: `probe-${info.id}`,
+      name: info.id,
+      description: info.name,
+      value: cssStatus(status),
+      expandedContent: [
+        cssCheckHeader(
+          t('Results'),
+          { style: 'margin-top: 0px; padding-top: 0px;' },
+        ),
+        result.verdict ? dom('pre', result.verdict) : null,
+        (result.status === 'none') ? null :
+            dom('p',
+                (result.status === 'success') ? t('Check succeeded.') : t('Check failed.')),
+        (result.status !== 'none') ? null :
+            dom('p', t('No fault detected.')),
+        (details?.info === undefined) ? null : [
+          cssCheckHeader(t('Notes')),
+          details.info,
+        ],
+        (result.details === undefined) ? null : [
+          cssCheckHeader(t('Details')),
+          ...Object.entries(result.details).map(([key, val]) => {
+            return dom(
+              'div',
+              cssLabel(key),
+              dom('input', dom.prop(
+                'value',
+                typeof val === 'string' ? val : JSON.stringify(val))));
+          }),
+        ],
+      ],
+    });
+  }
+
+  /**
+   * Give an icon summarizing success or failure. Factor in the
+   * severity of the result for failures. This is crude, the
+   * visualization of the results can be elaborated in future.
+   */
+  private _encodeSuccess(result: BootProbeResult) {
+    switch (result.status) {
+      case 'success':
+        return '✅';
+      case 'fault':
+        return '❌';
+      case 'warning':
+        return '❗';
+      case 'hmm':
+        return '?';
+      case 'none':
+        return '―';
+      default:
+        // should not arrive here
+        return '??';
+    }
+  }
 }
+
+
+// Ugh I'm not a front end person. h5 small-caps, sure why not.
+// Hopefully someone with taste will edit someday!
+const cssCheckHeader = styled('h5', `
+  margin-bottom: 5px;
+  font-variant: small-caps;
+`);
+
+const cssStatus = styled('div', `
+  display: inline-block;
+  text-align: center;
+  width: 40px;
+  padding: 5px;
+`);
 
 const cssPageContainer = styled('div', `
   overflow: auto;
@@ -490,4 +640,11 @@ export const cssDangerText = styled('div', `
 
 const cssHappyText = styled('span', `
   color: ${theme.controlFg};
+`);
+
+export const cssLabel = styled('div', `
+  display: inline-block;
+  min-width: 100px;
+  text-align: right;
+  padding-right: 5px;
 `);

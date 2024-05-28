@@ -38,12 +38,13 @@
     },
     "DocHistory": {
         "Compare to Current": "Comparați cu documentul actual",
-        "Open Snapshot": "Deschideți Snapshot",
+        "Open Snapshot": "Deschideți instantaneu",
         "Snapshots are unavailable.": "Instantaneele nu sunt disponibile.",
         "Snapshots": "Instantanee",
         "Activity": "Activitate",
         "Compare to Previous": "Comparați cu precedentul",
-        "Beta": "Beta"
+        "Beta": "Beta",
+        "Only owners have access to snapshots for documents with access rules.": "Doar proprietarii au acces la instantanee pentru documentele cu reguli de acces."
     },
     "AccessRules": {
         "Permission to access the document in full when needed": "Permisiune de a accesa documentul în întregime atunci când este necesar",
@@ -204,7 +205,7 @@
         "Other Sites": "Alte spaţii",
         "Pinned Documents": "Documente fixate",
         "Featured": "Recomandat",
-        "Manage Users": "Gestionare Utilizatori",
+        "Manage Users": "Gestionare utilizatori",
         "To restore this document, restore the workspace first.": "Pentru a restaura acest document, mai întâi restaurați spațiul de lucru.",
         "You may delete a workspace forever once it has no documents in it.": "Puteți șterge pentru totdeauna un spațiu de lucru odată ce nu are documente în el.",
         "Trash": "Gunoi",
@@ -289,7 +290,7 @@
     },
     "HomeLeftPane": {
         "All Documents": "Toate documentele",
-        "Manage Users": "Gestionare Utilizatori",
+        "Manage Users": "Gestionare utilizatori",
         "Tutorial": "Tutorial",
         "Delete {{workspace}} and all included documents?": "Ștergeți {{workspace}} și toate documentele incluse?",
         "Create Empty Document": "Creați un document gol",
@@ -413,7 +414,15 @@
         "Insert column to the left": "Inserați coloana la stânga",
         "Sorted (#{{count}})_other": "Sortat (#{{count}})",
         "Detect duplicates in...": "Detectează duplicatele în...",
-        "Last updated at": "Ultima actualizare la"
+        "Last updated at": "Ultima actualizare la",
+        "Toggle": "Comută",
+        "Date": "Dată",
+        "Numeric": "Numeric",
+        "Text": "Text",
+        "Integer": "Întreg",
+        "Choice": "Alege",
+        "Reference": "Referinţă",
+        "Any": "Oricare"
     },
     "RightPanel": {
         "WIDGET TITLE": "TITLUL WIDGET-ULUI",
@@ -818,7 +827,20 @@
         "Engine (experimental {{span}} change at own risk):": "Motor (modificare experimentală de {{span}} pe propriul risc):",
         "Document Settings": "Setări document",
         "Locale:": "Limba:",
-        "This document's ID (for API use):": "ID-ul acestui document (pentru utilizarea API):"
+        "This document's ID (for API use):": "ID-ul acestui document (pentru utilizarea API):",
+        "API URL copied to clipboard": "API URL a fost copiat in clipboard",
+        "API documentation.": "Documentatia pentru API.",
+        "Coming soon": "În curând",
+        "Copy to clipboard": "Copiază în clipboard",
+        "Currency": "Monedă",
+        "Find slow formulas": "Găsiți formule lente",
+        "For currency columns": "Pentru coloanele valutare",
+        "Formula times": "Formule de timp",
+        "Notify other services on doc changes": "Notificați alte servicii cu privire la modificările documentului",
+        "Python": "Python",
+        "Python version used": "Versiunea Python folosită",
+        "Reload": "Reîncarcă",
+        "For number and date formats": "Pentru formatele de număr și dată"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "ID-ul coloanei a fost copiat în clipboard",
@@ -949,12 +971,12 @@
         "Compare to {{termToUse}}": "Comparați cu {{termToUse}}",
         "Download": "Descarcă",
         "Replace {{termToUse}}...": "Înlocuiți {{termToUse}}…",
-        "Duplicate Document": "Duplicare Document",
+        "Duplicate Document": "Duplicare document",
         "Original": "Original",
         "Back to Current": "Înapoi la curent",
         "Edit without affecting the original": "Editați fără a afecta originalul",
         "Work on a Copy": "Lucrați la o copie",
-        "Manage Users": "Gestionare Utilizatori",
+        "Manage Users": "Gestionare utilizatori",
         "Unsaved": "Nesalvat",
         "Save Document": "Salvați documentul",
         "Save Copy": "Salvare copie"
@@ -1065,12 +1087,12 @@
     "CellStyle": {
         "HEADER STYLE": "STIL ANTET",
         "Header Style": "Stil antet",
-        "Default header style": "Stilul de antet implicit",
-        "Mixed style": "Stilul mixt",
+        "Default header style": "Stil implicit pentru antet",
+        "Mixed style": "Stil mixt",
         "Default cell style": "Stilul de celulă implicit",
         "CELL STYLE": "STILUL CELULEI",
         "Cell Style": "Stilul Celulei",
-        "Open row styles": "Deschideți stilurile de rând"
+        "Open row styles": "Deschide stilurile pentru rând"
     },
     "ConditionalStyle": {
         "Rule must return True or False": "Regula trebuie să returneze Adevărat sau Fals",
@@ -1134,7 +1156,8 @@
     },
     "NTextBox": {
         "false": "fals",
-        "true": "adevărat"
+        "true": "adevărat",
+        "Lines": "Linii"
     },
     "FilterBar": {
         "Search Columns": "Căutați Coloane",
@@ -1176,7 +1199,7 @@
         "Click to insert": "Faceți clic pentru a insera"
     },
     "pages": {
-        "Duplicate Page": "Duplicare pagină",
+        "Duplicate Page": "Duplică pagina",
         "You do not have edit access to this document": "Nu aveți acces de editare la acest document",
         "Remove": "Elimină",
         "Rename": "Redenumiți"
@@ -1234,9 +1257,18 @@
         "Search all pages": "Căutați în toate paginile"
     },
     "modals": {
-        "Save": "Salvați",
+        "Save": "Salvează",
         "Cancel": "Anulare",
-        "Ok": "OK"
+        "Ok": "OK",
+        "Delete": "șterge",
+        "Are you sure you want to delete these records?": "Ești sigur că vrei să ștergi aceste înregistrări?",
+        "TIP": "SFAT",
+        "Don't show tips": "Nu mai arăta sfaturi",
+        "Are you sure you want to delete this record?": "Ești sigur că vrei să ștergi această înregistrare?",
+        "Don't ask again.": "Nu mai întreba.",
+        "Got it": "Am înțeles",
+        "Don't show again": "Nu mai afișa",
+        "Don't show again.": "Nu mai afișa."
     },
     "SiteSwitcher": {
         "Switch Sites": "Schimbați spaţiul",

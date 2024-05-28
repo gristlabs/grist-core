@@ -266,7 +266,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Zaključek",
-        "Next": "Naslednji"
+        "Next": "Naslednji",
+        "Previous": "Prejšenj"
     },
     "Pages": {
         "Delete": "Izbriši",
@@ -512,7 +513,19 @@
         "For number and date formats": "Za format števila in datuma",
         "Formula times": "Časi formule",
         "API URL copied to clipboard": "URL API-ja kopiran v odložišče",
-        "Default for DateTime columns": "Privzeto za stolpce DateTime"
+        "Default for DateTime columns": "Privzeto za stolpce DateTime",
+        "ID for API use": "ID za uporabo API-ja",
+        "Locale": "Lokalizacija",
+        "Hard reset of data engine": "Ponastavitev podatkovnega mehanizma",
+        "Manage webhooks": "Upravljanje webhookov",
+        "Notify other services on doc changes": "Obvesti druge storitve o spremembah dokumenta",
+        "Python": "Python",
+        "Python version used": "Uporabljena različica Pythona",
+        "Reload": "Ponovno naloži",
+        "Time Zone": "Časovni pas",
+        "Try API calls from the browser": "Poskusi klice API-ja iz brskalnika",
+        "python3 (recommended)": "python3 (priporočeno)",
+        "python2 (legacy)": "python2 (odsvetovano)"
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",
@@ -1350,7 +1363,8 @@
         "Got it": "Razumem",
         "Don't show again": "Ne pokaži več",
         "Are you sure you want to delete these records?": "Ali si prepričan, da želiš izbrisati te zapise?",
-        "Delete": "Briši"
+        "Delete": "Briši",
+        "TIP": "NAMIG"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Pošiljanje datoteke v Google Drive"
@@ -1558,5 +1572,20 @@
         "Set dropdown condition": "Nastqavi dropdown pogoj",
         "Dropdown Condition": "Pogoj za spustni menu",
         "Invalid columns: {{colIds}}": "Neveljavni stolpci: {{colIds}}"
+    },
+    "FormRenderer": {
+        "Search": "Poišči",
+        "Select...": "Izberi",
+        "Submit": "Predloži",
+        "Reset": "Ponastavi"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Koledar",
+        "Card": "Kartica",
+        "Card List": "Seznam kartic",
+        "Chart": "grafikon",
+        "Custom": "Po meri",
+        "Form": "Forma",
+        "Table": "Tabela"
     }
 }
