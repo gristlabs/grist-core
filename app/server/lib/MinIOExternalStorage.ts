@@ -5,20 +5,17 @@ import {IncomingMessage} from 'http';
 import * as fse from 'fs-extra';
 import * as minio from 'minio';
 
-// The minio v8.0.0 typings are sometimes incorrect. Here are some workarounds.
+// The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
   // Some of them are not directly extendable, must be omitted first and then redefined.
-  Omit<Omit<Omit<minio.Client,
-  "listObjects">,
-  "getBucketVersioning">,
-  "removeObjects">
+  Omit<minio.Client, "listObjects" | "getBucketVersioning" | "removeObjects">
   {
     // The official typing returns `Promise<Readable>`, dropping some useful metadata.
     getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
     // The official typing dropped "options" in their .d.ts file, but it is present in the underlying impl.
     listObjects(bucket: string, key: string, recursive: boolean,
       options: {IncludeVersion?: boolean}): minio.BucketStream<minio.BucketItem>;
-    // The official typing wrongly returns `void`.
+    // The released v8.0.0 wrongly returns `Promise<void>`; borrowed from PR #1297
     getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
     // The released v8.0.0 typing is outdated; copied over from commit 8633968.
     removeObjects(bucketName: string, objectsList: RemoveObjectsParam): Promise<RemoveObjectsResponse[]>
@@ -26,8 +23,9 @@ interface MinIOClient extends
 
 type MinIOVersioningStatus = "" | {
   Status: "Enabled" | "Suspended",
-  ExcludeFolders: boolean,
-  ExcludedPrefixes: {Prefix: string}[]
+  MFADelete?: string,
+  ExcludeFolders?: boolean,
+  ExcludedPrefixes?: {Prefix: string}[]
 }
 
 type RemoveObjectsParam = string[] | { name: string, versionId?: string }[]
@@ -132,7 +130,9 @@ export class MinIOExternalStorage implements ExternalStorage {
 
   public async hasVersioning(): Promise<Boolean> {
     const versioning = await this._s3.getBucketVersioning(this.bucket);
-    return versioning !== "" && versioning && versioning.Status === 'Enabled';
+    // getBucketVersioning() may return an empty string when versioning has never been enabled.
+    // This situation is not addressed in minio-js v8.0.0, but included in our workaround.
+    return versioning !== '' && versioning?.Status === 'Enabled';
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
