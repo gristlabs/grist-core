@@ -2,6 +2,8 @@ import {DatabaseType, QueryRunner, SelectQueryBuilder} from 'typeorm';
 import {RelationCountLoader} from 'typeorm/query-builder/relation-count/RelationCountLoader';
 import {RelationIdLoader} from 'typeorm/query-builder/relation-id/RelationIdLoader';
 import {RawSqlResultsToEntityTransformer} from "typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer";
+import {makeId} from 'app/server/lib/idUtils';
+import {chunk} from 'lodash';
 
 /**
  *
@@ -122,6 +124,37 @@ export function datetime(dbType: DatabaseType) {
       return "datetime";
     default:
       throw new Error(`now not implemented for ${dbType}`);
+  }
+}
+
+export function addParamToQuery(dbType: DatabaseType, index: number) {
+  switch (dbType) {
+    case 'postgres':
+      return `$${index}`;
+    case 'sqlite':
+      return `?`;
+    default:
+      throw new Error(`addParamToQuery not implemented for ${dbType}`);
+  }
+}
+
+export async function addRefToUserList(queryRunner: QueryRunner, userList: any[]){
+  const dbType = queryRunner.connection.driver.options.type;
+
+  // Updating so many rows in a multiple queries is not ideal. We will send updates in chunks.
+  // 300 seems to be a good number, for 24k rows we have 80 queries.
+  const userChunks = chunk(userList, 300);
+  for (const users of userChunks) {
+    await queryRunner.connection.transaction(async manager => {
+      const queries = users.map((user: any, _index: number, _array: any[]) => {
+        return manager.query(
+          `UPDATE users
+          SET ref = ${addParamToQuery(dbType, 1)}
+          WHERE id = ${addParamToQuery(dbType, 2)}`,
+          [makeId(), user.id]);
+      });
+      await Promise.all(queries);
+    });
   }
 }
 

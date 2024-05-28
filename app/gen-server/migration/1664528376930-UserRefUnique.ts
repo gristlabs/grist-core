@@ -1,5 +1,5 @@
-import {makeId} from 'app/server/lib/idUtils';
 import {MigrationInterface, QueryRunner} from "typeorm";
+import {addRefToUserList} from "../sqlUtils";
 
 export class UserRefUnique1664528376930 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -8,14 +8,7 @@ export class UserRefUnique1664528376930 implements MigrationInterface {
 
     // Update users that don't have unique ref set.
     const userList = await queryRunner.query("SELECT * FROM users WHERE ref is null");
-    let transaction = "";
-    for (let i = 0; i < userList.length; i += 1) {
-      transaction += `UPDATE users SET ref = '${makeId()}' WHERE id = ${userList[i].id};`;
-      if (i % 300 === 0 || i === userList.length - 1) {
-        await queryRunner.query(transaction);
-        transaction = "";
-      }
-    }
+    await addRefToUserList(queryRunner, userList);
 
     // Mark column as unique and non-nullable.
     const users = (await queryRunner.getTable('users'))!;

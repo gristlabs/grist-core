@@ -1,5 +1,6 @@
-import {makeId} from 'app/server/lib/idUtils';
+
 import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
+import {addRefToUserList} from "../sqlUtils";
 
 export class UserUUID1663851423064 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
@@ -12,17 +13,8 @@ export class UserUUID1663851423064 implements MigrationInterface {
       isUnique: false,
     }));
 
-    // Updating so many rows in a multiple queries is not ideal. We will send updates in chunks.
-    // 300 seems to be a good number, for 24k rows we have 80 queries.
     const userList = await queryRunner.query("SELECT * FROM users;");
-    let transaction = "";
-    for (let i = 0; i < userList.length; i += 1) {
-      transaction += `UPDATE users SET ref = '${makeId()}' WHERE id = ${userList[i].id};`;
-      if (i % 300 === 0 || i === userList.length - 1) {
-        await queryRunner.query(transaction);
-        transaction = "";
-      }
-    }
+    await addRefToUserList(queryRunner, userList);
 
     // We are not making this column unique yet, because it can fail
     // if there are some old workers still running, and any new user
