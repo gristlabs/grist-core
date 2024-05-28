@@ -311,7 +311,18 @@
         "For currency columns": "Pour les colonnes de devises",
         "Hard reset of data engine": "Réinitialisation du moteur de données",
         "Locale": "Langue",
-        "For number and date formats": "Pour les colonnes de nombre et date"
+        "For number and date formats": "Pour les colonnes de nombre et date",
+        "Base doc URL: {{docApiUrl}}": "URL de base pour ce document : {{docApiUrl}}",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID du document à utiliser lorsque l'API REST fait appel à {{docId}}. Voir {{apiURL}}",
+        "Python version used": "Version de Python utilisée",
+        "Notify other services on doc changes": "Informer d'autres services des changements du documents",
+        "Manage webhooks": "Gérer les points d'ancrage Web",
+        "ID for API use": "ID pour l'utilisation de l'API",
+        "Find slow formulas": "Trouver les formules lentes",
+        "python2 (legacy)": "python2 (encien)",
+        "Try API calls from the browser": "Essayer les appels API à partir du navigateur",
+        "Time Zone": "Fuseau horaire",
+        "python3 (recommended)": "python3 (recommandé)"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -1509,7 +1520,8 @@
         "Updates": "Mises à jour",
         "unconfigured": "non configuré",
         "unknown": "inconnu",
-        "Auto-check when this page loads": "Vérification automatique au chargement de cette page"
+        "Auto-check when this page loads": "Vérification automatique au chargement de cette page",
+        "Sandbox settings for data engine": "Paramètres de la Sandbox pour le moteur de données"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
