@@ -158,6 +158,6 @@ export function makeSimpleCreator(opts: {
     },
     getSqliteVariant: opts.getSqliteVariant,
     getSandboxVariants: opts.getSandboxVariants,
-    createInstallAdmin: opts.createInstallAdmin || (async () => new SimpleInstallAdmin()),
+    createInstallAdmin: opts.createInstallAdmin || (async (dbManager) => new SimpleInstallAdmin(dbManager)),
   };
 }

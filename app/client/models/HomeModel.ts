@@ -382,7 +382,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
 // Check if active product allows just a single workspace.
 function _isSingleWorkspaceMode(app: AppModel): boolean {
-  return app.currentFeatures.maxWorkspacesPerOrg === 1;
+  return app.currentFeatures?.maxWorkspacesPerOrg === 1;
 }
 
 // Returns a default view mode preference. We used to show 'list' for everyone. We now default to

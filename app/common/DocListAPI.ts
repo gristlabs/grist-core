@@ -74,6 +74,7 @@ export interface OpenLocalDocResult {
   clientId: string;  // the docFD is meaningful only in the context of this session
   doc: {[tableId: string]: TableDataAction};
   log: MinimalActionGroup[];
+  isTimingOn: boolean;
   recoveryMode?: boolean;
   userOverride?: UserOverride;
   docUsage?: FilteredDocUsageSummary;

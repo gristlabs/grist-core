@@ -1,0 +1,18 @@
+name: Add self-hosting issues to the self-hosting project
+
+on:
+  issues:
+    types:
+      - opened
+      - labeled
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1.0.1
+        with:
+          project-url: https://github.com/orgs/gristlabs/projects/2
+          github-token: ${{ secrets.SELF_HOSTED_PROJECT }}
+          labeled: self-hosting

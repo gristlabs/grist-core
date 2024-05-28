@@ -416,8 +416,8 @@ export function confirmModal(
  */
 export function promptModal(
   title: string,
-  onConfirm: (text: string) => Promise<unknown>,
-  btnText: string,
+  onConfirm: (text: string) => Promise<void>,
+  btnText?: string,
   initial?: string,
   placeholder?: string,
   onCancel?: () => void
@@ -429,7 +429,7 @@ export function promptModal(
     const options: ISaveModalOptions = {
       title,
       body: txtInput,
-      saveLabel: btnText,
+      saveLabel: btnText || t('Save'),
       saveFunc: () => {
         // Mark that confirm was invoked.
         confirmed = true;
@@ -672,7 +672,7 @@ const cssModalBacker = styled('div', `
   }
 `);
 
-const cssSpinner = styled('div', `
+export const cssSpinner = styled('div', `
   display: flex;
   align-items: center;
   height: 80px;

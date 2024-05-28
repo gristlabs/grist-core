@@ -1,4 +1,4 @@
-import { Sort } from 'app/common/SortSpec';
+import { Sort, VirtualId } from 'app/common/SortSpec';
 import { assert } from 'chai';
 
 const { flipSort: flipColDirection, parseSortColRefs, reorderSortRefs } = Sort;
@@ -76,11 +76,22 @@ describe('sortUtil', function () {
     assert.deepEqual(Sort.setColDirection('2:emptyLast', Sort.DESC), '-2:emptyLast');
   });
 
+  it('should create column expressions for virtual ids', function () {
+    assert.deepEqual(Sort.setColDirection(VirtualId('test'), Sort.DESC), `-${VirtualId('test')}`);
+    assert.deepEqual(Sort.setColDirection(VirtualId('test'), Sort.ASC), VirtualId('test'));
+    assert.deepEqual(Sort.setColDirection(`-${VirtualId('test')}`, Sort.ASC), VirtualId('test'));
+    assert.deepEqual(Sort.setColDirection(`-${VirtualId('test')}`, Sort.DESC), `-${VirtualId('test')}`);
+  });
+
   const empty = { emptyLast: false, orderByChoice: false, naturalSort: false };
 
   it('should parse details', function () {
     assert.deepEqual(Sort.specToDetails(2), { colRef: 2, direction: Sort.ASC });
     assert.deepEqual(Sort.specToDetails(-2), { colRef: 2, direction: Sort.DESC });
+
+    assert.deepEqual(Sort.specToDetails(VirtualId('test')), { colRef: VirtualId('test'), direction: Sort.ASC });
+    assert.deepEqual(Sort.specToDetails(`-${VirtualId('test')}`), { colRef: VirtualId('test'), direction: Sort.DESC });
+
     assert.deepEqual(Sort.specToDetails('-2:emptyLast'),
       { ...empty, colRef: 2, direction: Sort.DESC, emptyLast: true });
     assert.deepEqual(Sort.specToDetails('-2:emptyLast;orderByChoice'), {
@@ -93,6 +104,10 @@ describe('sortUtil', function () {
 
     assert.deepEqual(Sort.detailsToSpec({ colRef: 2, direction: Sort.ASC }), 2);
     assert.deepEqual(Sort.detailsToSpec({ colRef: 2, direction: Sort.DESC }), -2);
+
+    assert.deepEqual(Sort.detailsToSpec({ colRef: VirtualId('test'), direction: Sort.ASC }), VirtualId('test'));
+    assert.deepEqual(Sort.detailsToSpec({ colRef: VirtualId('test'), direction: Sort.DESC }), `-${VirtualId('test')}`);
+
     assert.deepEqual(Sort.detailsToSpec({ colRef: 2, direction: Sort.ASC, emptyLast: true }), '2:emptyLast');
     assert.deepEqual(Sort.detailsToSpec({ colRef: 2, direction: Sort.DESC, emptyLast: true }), '-2:emptyLast');
     assert.deepEqual(

@@ -38,7 +38,7 @@ import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSecti
 import {cssLabel} from 'app/client/ui/RightPanelStyles';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
-import {getTelemetryWidgetTypeFromVS, widgetTypesMap} from "app/client/ui/widgetTypesMap";
+import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -220,10 +220,10 @@ export class RightPanel extends Disposable {
 
   private _buildStandardHeader() {
     return dom.maybe(this._pageWidgetType, (type) => {
-      const widgetInfo = widgetTypesMap.get(type) || {label: 'Table', icon: 'TypeTable'};
+      const widgetInfo = getWidgetTypes(type);
       const fieldInfo = getFieldType(type);
       return [
-        cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetInfo.label,
+        cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetInfo.getLabel(),
           cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'pageWidget'),
           dom.on('click', () => this._topTab.set("pageWidget")),
           testId('right-tab-pagewidget')),

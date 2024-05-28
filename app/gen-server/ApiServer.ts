@@ -72,7 +72,7 @@ export function addOrg(
   userId: number,
   props: Partial<OrganizationProperties>,
   options?: {
-    planType?: string,
+    product?: string,
     billing?: BillingOptions,
   }
 ): Promise<number> {

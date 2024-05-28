@@ -436,6 +436,8 @@ exports.collapsible = function(contentFunc, isMountedCollapsed) {
  *                                        function on click.
  * @param {String}   options.axis         Determines if the list is displayed vertically 'y' or
  *                                        horizontally 'x'.
+ * @param {String}   options.handle       The handle of the draggable. Defaults to the element
+ *                                        itself.
  * @param {Boolean|Function} drag_indicator Include the drag indicator. Defaults to true. Accepts
  *                                          also a function that returns a dom element. In which
  *                                          case, it will be used to create the drag indicator.
@@ -473,13 +475,13 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
           // Fix for JQueryUI bug where mousedown on draggable elements fail to blur
           // active element. See: https://bugs.jqueryui.com/ticket/4261
           dom.on('mousedown', () => G.document.activeElement.blur()),
+          kd.toggleClass('kf_draggable--vertical', options.axis === 'y'),
           kd.cssClass(options.itemClass),
           (options.drag_indicator ?
            (typeof options.drag_indicator === 'boolean' ?
             dom('span.kf_drag_indicator.glyphicon.glyphicon-option-vertical') :
             options.drag_indicator()
            ) : null),
-          kd.style('display', options.axis === 'x' ? 'inline-block' : 'block'),
           kd.domData('model', item),
           kd.maybe(removeFunc !== undefined && options.removeButton, function() {
             return dom('span.drag_delete.glyphicon.glyphicon-remove',
@@ -502,7 +504,8 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
     axis: options.axis,
     tolerance: "pointer",
     forcePlaceholderSize: true,
-    placeholder: 'kf_draggable__placeholder--' + (options.axis === 'x' ? 'horizontal' : 'vertical')
+    placeholder: 'kf_draggable__placeholder--' + (options.axis === 'x' ? 'horizontal' : 'vertical'),
+    handle: options.handle,
   });
   if (reorderFunc === undefined) {
     G.$(list).sortable("option", {disabled: true});

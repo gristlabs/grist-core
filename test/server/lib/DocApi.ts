@@ -5,7 +5,6 @@ import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
 import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
-import {testDailyApiLimitFeatures} from 'app/gen-server/entity/Product';
 import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {
@@ -41,6 +40,7 @@ import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
 import { getDatabase } from 'test/testUtils';
+import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
 
 // some doc ids
 const docIds: { [name: string]: string } = {
@@ -4386,7 +4386,7 @@ function testDocApi() {
         await notFoundCalled.waitAndReset();
 
         // But the working endpoint won't be called more then once.
-        assert.isFalse(successCalled.called());
+        successCalled.assertNotCalled();
 
         // Trigger second event.
         await doc.addRows("Table1", {
@@ -4398,13 +4398,13 @@ function testDocApi() {
         assert.deepEqual(firstRow, 1);
 
         // But the working endpoint won't be called till we reset the queue.
-        assert.isFalse(successCalled.called());
+        successCalled.assertNotCalled();
 
         // Now reset the queue.
         await clearQueue(docId);
 
-        assert.isFalse(successCalled.called());
-        assert.isFalse(notFoundCalled.called());
+        successCalled.assertNotCalled();
+        notFoundCalled.assertNotCalled();
 
         // Prepare for new calls.
         successCalled.reset();
@@ -4422,7 +4422,7 @@ function testDocApi() {
         // And the situation will be the same, the working endpoint won't be called till we reset the queue, but
         // the error endpoint will be called with the third row multiple times.
         await notFoundCalled.waitAndReset();
-        assert.isFalse(successCalled.called());
+        successCalled.assertNotCalled();
 
         // Cleanup everything, we will now test request timeouts.
         await Promise.all(cleanup.map(fn => fn())).finally(() => cleanup.length = 0);
@@ -4444,7 +4444,7 @@ function testDocApi() {
         // Long will be started immediately.
         await longStarted.waitAndReset();
         // But it won't be finished.
-        assert.isFalse(longFinished.called());
+        longFinished.assertNotCalled();
         // It will be aborted.
         controller.abort();
         assert.deepEqual(await longFinished.waitAndReset(), [408, 4]);
@@ -4458,7 +4458,7 @@ function testDocApi() {
         // abort it till the end of this test.
         assert.deepEqual(await successCalled.waitAndReset(), 5);
         assert.deepEqual(await longStarted.waitAndReset(), 5);
-        assert.isFalse(longFinished.called());
+        longFinished.assertNotCalled();
 
         // Remember this controller for cleanup.
         const controller5 = controller;
@@ -4468,8 +4468,8 @@ function testDocApi() {
           B: [true],
         });
         // We are now completely stuck on the 5th row webhook.
-        assert.isFalse(successCalled.called());
-        assert.isFalse(longFinished.called());
+        successCalled.assertNotCalled();
+        longFinished.assertNotCalled();
         // Clear the queue, it will free webhooks requests, but it won't cancel long handler on the external server
         // so it is still waiting.
         assert.isTrue((await axios.delete(
@@ -4481,8 +4481,8 @@ function testDocApi() {
         assert.deepEqual(await longFinished.waitAndReset(), [408, 5]);
 
         // We won't be called for the 6th row at all, as it was stuck and the queue was purged.
-        assert.isFalse(successCalled.called());
-        assert.isFalse(longStarted.called());
+        successCalled.assertNotCalled();
+        longStarted.assertNotCalled();
 
         // Trigger next event.
         await doc.addRows("Table1", {
@@ -4493,7 +4493,7 @@ function testDocApi() {
         assert.deepEqual(await successCalled.waitAndReset(), 7);
         assert.deepEqual(await longStarted.waitAndReset(), 7);
         // But we are stuck again.
-        assert.isFalse(longFinished.called());
+        longFinished.assertNotCalled();
         // And we can abort current request from 7th row (6th row was skipped).
         controller.abort();
         assert.deepEqual(await longFinished.waitAndReset(), [408, 7]);
@@ -4536,7 +4536,7 @@ function testDocApi() {
         controller.abort();
         await longFinished.waitAndReset();
         // The second one is not called.
-        assert.isFalse(successCalled.called());
+        successCalled.assertNotCalled();
         // Triggering next event, we will get only calls to the probe (first webhook).
         await doc.addRows("Table1", {
           A: [2],
@@ -4563,14 +4563,12 @@ function testDocApi() {
           await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
             ['UpdateRecord', 'Table1', newRowIds[0], newValues],
           ], chimpy);
-          await delay(100);
         };
         const assertSuccessNotCalled = async () => {
-          assert.isFalse(successCalled.called());
+          successCalled.assertNotCalled();
           successCalled.reset();
         };
         const assertSuccessCalled = async () => {
-          assert.isTrue(successCalled.called());
           await successCalled.waitAndReset();
         };
 
@@ -4585,8 +4583,6 @@ function testDocApi() {
           B: [true],
           C: ['c1']
         });
-        await delay(100);
-        assert.isTrue(successCalled.called());
         await successCalled.waitAndReset();
         await modifyColumn({ C: 'c2' });
         await assertSuccessNotCalled();

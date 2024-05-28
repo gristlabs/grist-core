@@ -270,7 +270,7 @@ export class SortConfig extends Disposable {
 }
 
 const cssDragRow = styled('div', `
-  display: flex !important;
+  display: flex;
   align-items: center;
   margin: 0 16px 0px 0px;
   & > .kf_draggable_content {

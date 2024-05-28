@@ -64,8 +64,8 @@ describe('ApiSession', function() {
                                       'createdAt', 'updatedAt', 'host']);
     assert.deepEqual(resp.data.org.billingAccount,
                      { id: 1, individual: false, inGoodStanding: true, status: null,
-                       externalId: null, externalOptions: null,
-                       isManager: true, paid: false,
+                       externalId: null, externalOptions: null, paymentLink: null,
+                       isManager: true, paid: false, features: null, stripePlanId: null,
                        product: { id: 1, name: 'Free', features: {workspaces: true, vanityDomain: true} } });
 
     // Check that internally we have access to stripe ids.
@@ -74,7 +74,7 @@ describe('ApiSession', function() {
     assert.hasAllKeys(org2.data!.billingAccount,
                       ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
                        'stripeSubscriptionId', 'stripePlanId', 'product', 'paid', 'isManager',
-                       'externalId', 'externalOptions']);
+                       'externalId', 'externalOptions', 'features', 'paymentLink']);
   });
 
   it('GET /api/session/access/active returns orgErr when org is forbidden', async function() {

@@ -1578,5 +1578,14 @@
         "Search": "Search",
         "Select...": "Select...",
         "Submit": "Submit"
+    },
+    "widgetTypesMap": {
+        "Calendar": "Calendar",
+        "Card": "Card",
+        "Card List": "Card List",
+        "Chart": "Chart",
+        "Custom": "Custom",
+        "Form": "Form",
+        "Table": "Table"
     }
 }

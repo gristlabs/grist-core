@@ -19,7 +19,7 @@ import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, OpenDocOptions, UserOverride} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Product} from 'app/common/Features';
+import {Features, mergedFeatures, Product} from 'app/common/Features';
 import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
 import {getReconnectTimeout} from 'app/common/gutil';
 import {canEdit, isOwner} from 'app/common/roles';
@@ -61,6 +61,10 @@ export interface DocPageModel {
    * changes, or a doc usage message is received from the server.
    */
   currentProduct: Observable<Product|null>;
+  /**
+   * Current features of the product
+   */
+  currentFeatures: Observable<Features|null>;
 
   // This block is to satisfy previous interface, but usable as this.currentDoc.get().id, etc.
   currentDocId: Observable<string|undefined>;
@@ -116,6 +120,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
    * changes, or a doc usage message is received from the server.
    */
   public readonly currentProduct = Observable.create<Product|null>(this, null);
+  public readonly currentFeatures: Computed<Features|null>;
 
   public readonly currentUrlId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.urlId : undefined);
   public readonly currentDocId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.id : undefined);
@@ -168,6 +173,14 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   constructor(private _appObj: App, public readonly appModel: AppModel, private _api: UserAPI = appModel.api) {
     super();
+
+    this.currentFeatures = Computed.create(this, use => {
+      const product = use(this.currentProduct);
+      if (!product) { return null; }
+      const ba = use(this.currentOrg)?.billingAccount?.features ?? {};
+      const merged = mergedFeatures(product.features, ba);
+      return merged;
+    });
 
     this.autoDispose(subscribe(urlState().state, (use, state) => {
       const urlId = state.doc;

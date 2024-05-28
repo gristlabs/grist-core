@@ -49,6 +49,7 @@ import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
 import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
+import {TimingPage} from 'app/client/ui/TimingPage';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
 import {getTelemetryWidgetTypeFromPageWidget} from 'app/client/ui/widgetTypesMap';
@@ -196,6 +197,8 @@ export class GristDoc extends DisposableWithEvents {
     return this.docPageModel.appModel.api.getDocAPI(this.docPageModel.currentDocId.get()!);
   }
 
+  public isTimingOn = Observable.create(this, false);
+
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos | null = null;
@@ -228,6 +231,7 @@ export class GristDoc extends DisposableWithEvents {
   ) {
     super();
     console.log("RECEIVED DOC RESPONSE", openDocResponse);
+    this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = new DocModel(this.docData, this.docPageModel);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
@@ -635,6 +639,7 @@ export class GristDoc extends DisposableWithEvents {
           content === 'data' ? dom.create(RawDataPage, this) :
           content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'webhook' ? dom.create(WebhookPage, this) :
+          content === 'timing' ? dom.create(TimingPage, this) :
           content === 'GristDocTour' ? null :
           [
             dom.create((owner) => {
@@ -842,16 +847,20 @@ export class GristDoc extends DisposableWithEvents {
   }
 
   public onDocChatter(message: CommDocChatter) {
-    if (!this.docComm.isActionFromThisDoc(message) ||
-      !message.data.webhooks) {
+    if (!this.docComm.isActionFromThisDoc(message)) {
       return;
     }
-    if (message.data.webhooks.type == 'webhookOverflowError') {
-      this.trigger('webhookOverflowError',
-        t('New changes are temporarily suspended. Webhooks queue overflowed.' +
-          ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
-    } else {
-      this.trigger('webhooks', message.data.webhooks);
+
+    if (message.data.webhooks) {
+      if (message.data.webhooks.type == 'webhookOverflowError') {
+        this.trigger('webhookOverflowError',
+          t('New changes are temporarily suspended. Webhooks queue overflowed.' +
+            ' Please check webhooks settings, remove invalid webhooks, and clean the queue.'),);
+      } else {
+        this.trigger('webhooks', message.data.webhooks);
+      }
+    } else if (message.data.timing) {
+      this.isTimingOn.set(message.data.timing.status !== 'disabled');
     }
   }
 

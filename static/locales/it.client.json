@@ -699,7 +699,34 @@
         "Ok": "OK",
         "Manage Webhooks": "Gestisci web hook",
         "Webhooks": "Web hook",
-        "API Console": "Tavola delle API"
+        "API Console": "Tavola delle API",
+        "API console": "Console Api",
+        "Coming soon": "In arrivo",
+        "Copy to clipboard": "Copia negli appunti",
+        "Data Engine": "Motore dati",
+        "Default for DateTime columns": "Default per le colonne Data/Ora",
+        "Document ID": "ID documento",
+        "Find slow formulas": "Trova le formule lente",
+        "For currency columns": "Per le colonne di valuta",
+        "For number and date formats": "Per i formati di numeri e date",
+        "Formula times": "Tempi delle formule",
+        "Hard reset of data engine": "Reset forzato del motore dati",
+        "ID for API use": "ID per l'uso con le Api",
+        "Locale": "Locale",
+        "Manage webhooks": "Gestisci i webhooks",
+        "Notify other services on doc changes": "Notifica altri servizi dei cambiamenti nel documento",
+        "Python": "Python",
+        "Reload": "Ricarica",
+        "Time Zone": "Fuso orario",
+        "python2 (legacy)": "Python 2 (superato)",
+        "python3 (recommended)": "Python 3 (raccomandato)",
+        "API URL copied to clipboard": "Url della Api copiata negli appunti",
+        "API documentation.": "Documentazione Api.",
+        "Base doc URL: {{docApiUrl}}": "Url documento base: {{docApiUrl}}",
+        "Currency": "Valuta",
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID Documento da usare quando le Api REST chiedono {{docId}}. Vedi {{apiURL}}",
+        "Python version used": "Versione di Python in uso",
+        "Try API calls from the browser": "Prova le chiamate Api nel browser"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -860,7 +887,8 @@
     },
     "OnBoardingPopups": {
         "Finish": "Termina",
-        "Next": "Prossimo"
+        "Next": "Prossimo",
+        "Previous": "Precedente"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Video tour di Grist",
@@ -1041,7 +1069,8 @@
         "Dismiss": "Ignora",
         "Don't ask again.": "Non chiedere più.",
         "Don't show again.": "Non mostrare più.",
-        "Don't show tips": "Non mostrare i suggerimenti"
+        "Don't show tips": "Non mostrare i suggerimenti",
+        "TIP": "TIP"
     },
     "pages": {
         "Duplicate Page": "Duplica pagina",
@@ -1145,7 +1174,9 @@
         "These rules are applied after all column rules have been processed, if applicable.": "Queste regole sono applicate dopo che tutte le regole delle colonne sono state applicate, se possibile.",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Costruisci del semplici moduli e condividili rapidamente con il nostro nuovo widget. {{learnMoreButton}}",
         "Forms are here!": "Sono arrivati i moduli!",
-        "Learn more": "Approfondisci"
+        "Learn more": "Approfondisci",
+        "Example: {{example}}": "Esempio: {{example}}",
+        "Filter displayed dropdown values with a condition.": "Il filtro mostrava i valori nella tendina con una condizione."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIZIONE"
@@ -1416,7 +1447,26 @@
         "Sponsor": "Sponsor",
         "Current": "Attuale",
         "Telemetry": "Telemetria",
-        "Version": "Versione"
+        "Version": "Versione",
+        "Auto-check when this page loads": "Controlla automaticamente quando questa pagina è caricata",
+        "Grist is up to date": "Grist è aggiornato",
+        "Error checking for updates": "Errore nel controllo degli aggiornamenti",
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist supporta formule molto potenti, grazie a Python. Raccomandiamo di impostare la variabile d'ambiente GRIST_SANDBOX_FLAVOR a gvisor se il vostro hardware lo permette (in genere sì), così che le formule di un documento agiscano in una sandbox isolata dagli altri documenti e dalla rete.",
+        "Last checked {{time}}": "Ultimo controllo {{time}}",
+        "Learn more.": "Per saperne di più.",
+        "Newer version available": "Disponibile una versione più recente",
+        "No information available": "Nessuna informazione disponibile",
+        "OK": "OK",
+        "Sandboxing": "Uso della sandbox",
+        "Security Settings": "Impostazioni di sicurezza",
+        "Updates": "Aggiornamenti",
+        "unconfigured": "non configurato",
+        "unknown": "sconosciuto",
+        "Error": "Errore",
+        "Check now": "Controlla adesso",
+        "Checking for updates...": "Controllo gli aggiornamenti...",
+        "Grist releases are at ": "Le release di Grist sono a ",
+        "Sandbox settings for data engine": "Impostazione della sandbox per il motore dati"
     },
     "WelcomeCoachingCall": {
         "Maybe Later": "Forse più tardi",
@@ -1499,5 +1549,43 @@
     },
     "FormErrorPage": {
         "Error": "Errore"
+    },
+    "ChoiceEditor": {
+        "Error in dropdown condition": "Errore nella condizione della tendina",
+        "No choices matching condition": "Nessuna scelta soddisfa la condizione",
+        "No choices to select": "Nessuna scelta da selezionare"
+    },
+    "ReferenceUtils": {
+        "No choices to select": "Nessuna scelta da selezionare",
+        "Error in dropdown condition": "Errore nella condizione della tendina",
+        "No choices matching condition": "Nessuna scelta soddisfa la condizione"
+    },
+    "DropdownConditionConfig": {
+        "Set dropdown condition": "Imposta la condizione della tendina",
+        "Dropdown Condition": "Condizione della tendina",
+        "Invalid columns: {{colIds}}": "Colonne non valide: {{colIds}}"
+    },
+    "DropdownConditionEditor": {
+        "Enter condition.": "Inserisci la condizione."
+    },
+    "ChoiceListEditor": {
+        "Error in dropdown condition": "Errore nella condizione della tendina",
+        "No choices matching condition": "Nessuna scelta soddisfa la condizione",
+        "No choices to select": "Nessuna scelta da selezionare"
+    },
+    "FormRenderer": {
+        "Reset": "Reset",
+        "Search": "Cerca",
+        "Select...": "Seleziona...",
+        "Submit": "Invia"
+    },
+    "widgetTypesMap": {
+        "Card": "Scheda",
+        "Table": "Tabella",
+        "Calendar": "Calendario",
+        "Card List": "Lista di schede",
+        "Chart": "Grafico",
+        "Custom": "Personalizzato",
+        "Form": "Modulo"
     }
 }

@@ -4,7 +4,7 @@ import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {canAddOrgMembers, Features} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features, PERSONAL_FREE_PLAN} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -73,6 +73,7 @@ import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import moment from 'moment-timezone';
+import defaultsDeep = require('lodash/defaultsDeep');
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -265,16 +266,18 @@ interface CreateWorkspaceOptions {
 
 /**
  * Available options for creating a new org with a new billing account.
+ * It serves only as a way to remove all foreign keys from the entity.
  */
 export type BillingOptions = Partial<Pick<BillingAccount,
-  'product' |
   'stripeCustomerId' |
   'stripeSubscriptionId' |
   'stripePlanId' |
   'externalId' |
   'externalOptions' |
   'inGoodStanding' |
-  'status'
+  'status' |
+  'paymentLink' |
+  'features'
 >>;
 
 /**
@@ -754,7 +757,8 @@ export class HomeDBManager extends EventEmitter {
         // get a bit confusing.
         const result = await this.addOrg(user, {name: "Personal"}, {
           setUserAsOwner: true,
-          useNewPlan: true
+          useNewPlan: true,
+          product: PERSONAL_FREE_PLAN,
         }, manager);
         if (result.status !== 200) {
           throw new Error(result.errMessage);
@@ -814,22 +818,17 @@ export class HomeDBManager extends EventEmitter {
    * and orgs.acl_rules.group.memberUsers should be included.
    */
   public async getOrgMemberCount(org: string|number|Organization): Promise<number> {
-    if (!(org instanceof Organization)) {
-      const orgQuery = this._org(null, false, org, {
-        needRealOrg: true
-      })
-      // Join the org's ACL rules (with 1st level groups/users listed).
-        .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-        .leftJoinAndSelect('acl_rules.group', 'org_groups')
-        .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
-      const result = await orgQuery.getRawAndEntities();
-      if (result.entities.length === 0) {
-        // If the query for the org failed, return the failure result.
-        throw new ApiError('org not found', 404);
-      }
-      org = result.entities[0];
-    }
-    return getResourceUsers(org, this.defaultNonGuestGroupNames).length;
+    return (await this._getOrgMembers(org)).length;
+  }
+
+  /**
+   * Returns the number of billable users in the given org.
+   */
+  public async getOrgBillableMemberCount(org: string|number|Organization): Promise<number> {
+    return (await this._getOrgMembers(org))
+              .filter(u => !u.options?.isConsultant) // remove consultants.
+              .filter(u => !this.getExcludedUserIds().includes(u.id)) // remove support user and other
+              .length;
   }
 
   /**
@@ -898,11 +897,13 @@ export class HomeDBManager extends EventEmitter {
           id: 0,
           individual: true,
           product: {
-            name: 'anonymous',
+            name: ANONYMOUS_PLAN,
             features: personalFreeFeatures,
           },
+          stripePlanId: '',
           isManager: false,
           inGoodStanding: true,
+          features: {},
         },
         host: null
       };
@@ -1086,7 +1087,7 @@ export class HomeDBManager extends EventEmitter {
     orgQuery = this._addFeatures(orgQuery);
     const orgQueryResult = await verifyEntity(orgQuery);
     const org: Organization = this.unwrapQueryResult(orgQueryResult);
-    const productFeatures = org.billingAccount.product.features;
+    const productFeatures = org.billingAccount.getFeatures();
 
     // Grab all the non-removed documents in the org.
     let docsQuery = this._docs()
@@ -1279,7 +1280,7 @@ export class HomeDBManager extends EventEmitter {
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
-      const features = doc.workspace.org.billingAccount.product.features;
+      const features = doc.workspace.org.billingAccount.getFeatures();
       if (features.readOnlyDocs || this._restrictedMode) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
@@ -1405,14 +1406,14 @@ export class HomeDBManager extends EventEmitter {
    *   user's personal org will be used for all other orgs they create.  Set useNewPlan
    *   to force a distinct non-individual billing account to be used for this org.
    *   NOTE: Currently it is always a true - billing account is one to one with org.
-   * @param planType: if set, controls the type of plan used for the org. Only
+   * @param product: if set, controls the type of plan used for the org. Only
    *   meaningful for team sites currently.
    * @param billing: if set, controls the billing account settings for the org.
    */
   public async addOrg(user: User, props: Partial<OrganizationProperties>,
                       options: { setUserAsOwner: boolean,
                                  useNewPlan: boolean,
-                                 planType?: string,
+                                 product?: string, // Default to PERSONAL_FREE_PLAN or TEAM_FREE_PLAN env variable.
                                  billing?: BillingOptions},
                       transaction?: EntityManager): Promise<QueryResult<number>> {
     const notifications: Array<() => void> = [];
@@ -1440,20 +1441,21 @@ export class HomeDBManager extends EventEmitter {
       let billingAccount;
       if (options.useNewPlan) { // use separate billing account (currently yes)
         const productNames = getDefaultProductNames();
-        let productName = options.setUserAsOwner ? productNames.personal :
-          options.planType === productNames.teamFree ? productNames.teamFree : productNames.teamInitial;
-        // A bit fragile: this is called during creation of support@ user, before
-        // getSupportUserId() is available, but with setUserAsOwner of true.
-        if (!options.setUserAsOwner
-            && user.id === this.getSupportUserId()
-            && options.planType !== productNames.teamFree) {
-          // For teams created by support@getgrist.com, set the product to something
-          // good so payment not needed.  This is useful for testing.
-          productName = productNames.team;
-        }
+        const product =
+          // For personal site use personal product always (ignoring options.product)
+          options.setUserAsOwner ? productNames.personal :
+          // For team site use the product from options if given
+          options.product ? options.product :
+          // If we are support user, use team product
+          // A bit fragile: this is called during creation of support@ user, before
+          // getSupportUserId() is available, but with setUserAsOwner of true.
+          user.id === this.getSupportUserId() ? productNames.team :
+          // Otherwise use teamInitial product (a stub).
+          productNames.teamInitial;
+
         billingAccount = new BillingAccount();
         billingAccount.individual = options.setUserAsOwner;
-        const dbProduct = await manager.findOne(Product, {where: {name: productName}});
+        const dbProduct = await manager.findOne(Product, {where: {name: product}});
         if (!dbProduct) {
           throw new Error('Cannot find product for new organization');
         }
@@ -1466,16 +1468,21 @@ export class HomeDBManager extends EventEmitter {
         // Apply billing settings if requested, but not all of them.
         if (options.billing) {
           const billing = options.billing;
+          // If we have features but it is empty object, just remove it
+          if (billing.features && typeof billing.features === 'object' && Object.keys(billing.features).length === 0) {
+            delete billing.features;
+          }
           const allowedKeys: Array<keyof BillingOptions> = [
-            'product',
             'stripeCustomerId',
             'stripeSubscriptionId',
             'stripePlanId',
+            'features',
             // save will fail if externalId is a duplicate.
             'externalId',
             'externalOptions',
             'inGoodStanding',
-            'status'
+            'status',
+            'paymentLink'
           ];
           Object.keys(billing).forEach(key => {
             if (!allowedKeys.includes(key as any)) {
@@ -1727,7 +1734,7 @@ export class HomeDBManager extends EventEmitter {
         return queryResult;
       }
       const org: Organization = queryResult.data;
-      const features = org.billingAccount.product.features;
+      const features = org.billingAccount.getFeatures();
       if (features.maxWorkspacesPerOrg !== undefined) {
         // we need to count how many workspaces are in the current org, and if we
         // are already at or above the limit, then fail.
@@ -2137,7 +2144,7 @@ export class HomeDBManager extends EventEmitter {
       // of other information.
       const updated = pick(billingAccountCopy, 'inGoodStanding', 'status', 'stripeCustomerId',
                            'stripeSubscriptionId', 'stripePlanId', 'product', 'externalId',
-                           'externalOptions');
+                           'externalOptions', 'paymentLink');
       billingAccount.paid = undefined;  // workaround for a typeorm bug fixed upstream in
                                         // https://github.com/typeorm/typeorm/pull/4035
       await transaction.save(Object.assign(billingAccount, updated));
@@ -2319,7 +2326,7 @@ export class HomeDBManager extends EventEmitter {
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._getUserDifference(groups, orgGroups);
-        const features = ws.org.billingAccount.product.features;
+        const features = ws.org.billingAccount.getFeatures();
         const limit = features.maxSharesPerWorkspace;
         if (limit !== undefined) {
           this._restrictShares(null, limit, removeRole(nonOrgMembersBefore),
@@ -2373,7 +2380,7 @@ export class HomeDBManager extends EventEmitter {
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
         const nonOrgMembersAfter = this._getUserDifference(groups, orgGroups);
-        const features = org.billingAccount.product.features;
+        const features = org.billingAccount.getFeatures();
         this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter);
       }
       await manager.save(groups);
@@ -2635,7 +2642,7 @@ export class HomeDBManager extends EventEmitter {
           const destOrgGroups = getNonGuestGroups(destOrg);
           const nonOrgMembersBefore = this._getUserDifference(docGroups, sourceOrgGroups);
           const nonOrgMembersAfter = this._getUserDifference(docGroups, destOrgGroups);
-          const features = destOrg.billingAccount.product.features;
+          const features = destOrg.billingAccount.getFeatures();
           this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter, false);
         }
       }
@@ -2772,6 +2779,32 @@ export class HomeDBManager extends EventEmitter {
       .set({gracePeriodStart})
       .where({id: docId})
       .execute();
+  }
+
+  public async getProduct(name: string): Promise<Product | undefined> {
+    return await this._connection.createQueryBuilder()
+      .select('product')
+      .from(Product, 'product')
+      .where('name = :name', {name})
+      .getOne() || undefined;
+  }
+
+  public async getDocFeatures(docId: string): Promise<Features | undefined> {
+    const billingAccount = await this._connection.createQueryBuilder()
+      .select('account')
+      .from(BillingAccount, 'account')
+      .leftJoinAndSelect('account.product', 'product')
+      .leftJoinAndSelect('account.orgs', 'org')
+      .leftJoinAndSelect('org.workspaces', 'workspace')
+      .leftJoinAndSelect('workspace.docs', 'doc')
+      .where('doc.id = :docId', {docId})
+      .getOne() || undefined;
+
+    if (!billingAccount) {
+      return undefined;
+    }
+
+    return defaultsDeep(billingAccount.features, billingAccount.product.features);
   }
 
   public async getDocProduct(docId: string): Promise<Product | undefined> {
@@ -3017,11 +3050,11 @@ export class HomeDBManager extends EventEmitter {
       }
       let existing = org?.billingAccount?.limits?.[0];
       if (!existing) {
-        const product = org?.billingAccount?.product;
-        if (!product) {
+        const features = org?.billingAccount?.getFeatures();
+        if (!features) {
           throw new ApiError(`getLimit: no product found for org`, 500);
         }
-        if (product.features.baseMaxAssistantCalls === undefined) {
+        if (features.baseMaxAssistantCalls === undefined) {
           // If the product has no assistantLimit, then it is not billable yet, and we don't need to
           // track usage as it is basically unlimited.
           return null;
@@ -3029,7 +3062,7 @@ export class HomeDBManager extends EventEmitter {
         existing = new Limit();
         existing.billingAccountId = org.billingAccountId;
         existing.type = limitType;
-        existing.limit = product.features.baseMaxAssistantCalls ?? 0;
+        existing.limit = features.baseMaxAssistantCalls ?? 0;
         existing.usage = 0;
       }
       const limitLess = existing.limit === -1; // -1 means no limit, it is not possible to do in stripe.
@@ -3116,6 +3149,25 @@ export class HomeDBManager extends EventEmitter {
       .from(Share, 'shares')
       .where('shares.doc_id = :docId and shares.link_id = :linkId', {docId, linkId})
       .getOne();
+  }
+
+  private async _getOrgMembers(org: string|number|Organization) {
+    if (!(org instanceof Organization)) {
+      const orgQuery = this._org(null, false, org, {
+        needRealOrg: true
+      })
+      // Join the org's ACL rules (with 1st level groups/users listed).
+        .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
+        .leftJoinAndSelect('acl_rules.group', 'org_groups')
+        .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
+      const result = await orgQuery.getRawAndEntities();
+      if (result.entities.length === 0) {
+        // If the query for the org failed, return the failure result.
+        throw new ApiError('org not found', 404);
+      }
+      org = result.entities[0];
+    }
+    return getResourceUsers(org, this.defaultNonGuestGroupNames);
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -4202,7 +4254,7 @@ export class HomeDBManager extends EventEmitter {
     if (value.billingAccount) {
       // This is an organization with billing account information available.  Check limits.
       const org = value as Organization;
-      const features = org.billingAccount.product.features;
+      const features = org.billingAccount.getFeatures();
       if (!features.vanityDomain) {
         // Vanity domain not allowed for this org.
         options = {...options, suppressDomain: true};
@@ -4631,7 +4683,7 @@ export class HomeDBManager extends EventEmitter {
 
   // Throw an error if there's no room for adding another document.
   private async _checkRoomForAnotherDoc(workspace: Workspace, manager: EntityManager) {
-    const features = workspace.org.billingAccount.product.features;
+    const features = workspace.org.billingAccount.getFeatures();
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we
       // are already at or above the limit, then fail.

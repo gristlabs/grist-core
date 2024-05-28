@@ -2,7 +2,7 @@
  * This module export a component for editing some document settings consisting of the timezone,
  * (new settings to be added here ...).
  */
-import {cssSmallButton, cssSmallLinkButton} from 'app/client/components/Forms/styles';
+import {cssPrimarySmallLink, cssSmallButton, cssSmallLinkButton} from 'app/client/components/Forms/styles';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ACIndexImpl} from 'app/client/lib/ACIndex';
 import {ACSelectItem, buildACSelect} from 'app/client/lib/ACSelect';
@@ -14,21 +14,25 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {AdminSection, AdminSectionItem} from 'app/client/ui/AdminPanelCss';
 import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
-import {colors, mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
+import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
+import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
+import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {select} from 'app/client/ui2018/menus';
-import {confirmModal} from 'app/client/ui2018/modals';
+import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'app/client/ui2018/modals';
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
 import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
-import {propertyCompare} from 'app/common/gutil';
+import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
-import {Computed, Disposable, dom, fromKo, IDisposableOwner, styled} from 'grainjs';
+import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import * as moment from 'moment-timezone';
 
 const t = makeT('DocumentSettings');
+const testId = makeTestId('test-settings-');
 
 export class DocSettingsPage extends Disposable {
   private _docInfo = this._gristDoc.docInfo;
@@ -53,6 +57,7 @@ export class DocSettingsPage extends Disposable {
   public buildDom() {
     const canChangeEngine = getSupportedEngineChoices().length > 0;
     const docPageModel = this._gristDoc.docPageModel;
+    const isTimingOn = this._gristDoc.isTimingOn;
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -80,26 +85,43 @@ export class DocSettingsPage extends Disposable {
       ]),
 
       dom.create(AdminSection, t('Data Engine'), [
-        // dom.create(AdminSectionItem, {
-        //   id: 'timings',
-        //   name: t('Formula times'),
-        //   description: t('Find slow formulas'),
-        //   value: dom('div', t('Coming soon')),
-        //   expandedContent: dom('div', t(
-        //     'Once you start timing, Grist will measure the time it takes to evaluate each formula. ' +
-        //     'This allows diagnosing which formulas are responsible for slow performance when a ' +
-        //     'document is first open, or when a document responds to changes.'
-        //   )),
-        // }),
+        dom.create(AdminSectionItem, {
+          id: 'timings',
+          name: t('Formula timer'),
+          description: dom('div',
+            dom.maybe(isTimingOn, () => cssRedText(t('Timing is on') + '...')),
+            dom.maybe(not(isTimingOn), () => t('Find slow formulas')),
+            testId('timing-desc')
+          ),
+          value: dom.domComputed(isTimingOn, (timingOn) => {
+            if (timingOn) {
+              return dom('div', {style: 'display: flex; gap: 4px'},
+                cssPrimarySmallLink(
+                  t('Stop timing...'),
+                  urlState().setHref({docPage: 'timing'}),
+                  {target: '_blank'},
+                  testId('timing-stop')
+                )
+              );
+            } else {
+              return cssSmallButton(t('Start timing'),
+                dom.on('click', this._startTiming.bind(this)),
+                testId('timing-start')
+              );
+            }
+          }),
+          expandedContent: dom('div', t(
+            'Once you start timing, Grist will measure the time it takes to evaluate each formula. ' +
+            'This allows diagnosing which formulas are responsible for slow performance when a ' +
+            'document is first opened, or when a document responds to changes.'
+          )),
+        }),
 
         dom.create(AdminSectionItem, {
           id: 'reload',
           name: t('Reload'),
           description: t('Hard reset of data engine'),
-          value: cssSmallButton('Reload data engine', dom.on('click', async () => {
-            await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
-            document.location.reload();
-          }))
+          value: cssSmallButton(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
         }),
 
         canChangeEngine ? dom.create(AdminSectionItem, {
@@ -140,7 +162,7 @@ export class DocSettingsPage extends Disposable {
               cssWrap(t('Base doc URL: {{docApiUrl}}', {
                 docApiUrl: cssCopyLink(
                   {href: url},
-                  url,
+                  dom('span', url),
                   copyHandler(() => url, t("API URL copied to clipboard")),
                   hoverTooltip(t('Copy to clipboard'), {
                     key: TOOLTIP_KEY,
@@ -170,8 +192,96 @@ export class DocSettingsPage extends Disposable {
     );
   }
 
+  private async _reloadEngine(ask = true) {
+    const docPageModel = this._gristDoc.docPageModel;
+    const handler =  async () => {
+      await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+      document.location.reload();
+    };
+    if (!ask) {
+      return handler();
+    }
+    confirmModal(t('Reload data engine?'), t('Reload'), handler, {
+      explanation: t(
+        'This will perform a hard reload of the data engine. This ' +
+        'may help if the data engine is stuck in an infinite loop, is ' +
+        'indefinitely processing the latest change, or has crashed. ' +
+        'No data will be lost, except possibly currently pending actions.'
+      )
+    });
+  }
+
   private async _setEngine(val: EngineCode|undefined) {
     confirmModal(t('Save and Reload'), t('Ok'), () => this._doSetEngine(val));
+  }
+
+  private async _startTiming() {
+    const docPageModel = this._gristDoc.docPageModel;
+    modal((ctl, owner) => {
+      this.onDispose(() => ctl.close());
+      const selected = Observable.create<Option>(owner, Option.Adhoc);
+      const page = Observable.create<TimingModalPage>(owner, TimingModalPage.Start);
+
+      const startTiming = async () => {
+        if (selected.get() === Option.Reload) {
+          page.set(TimingModalPage.Spinner);
+          await this._gristDoc.docApi.startTiming();
+          await docPageModel.appModel.api.getDocAPI(docPageModel.currentDocId.get()!).forceReload();
+          ctl.close();
+          urlState().pushUrl({docPage: 'timing'}).catch(reportError);
+        } else {
+          await this._gristDoc.docApi.startTiming();
+          ctl.close();
+        }
+      };
+
+      const startPage = () => [
+        cssRadioCheckboxOptions(
+          dom.style('max-width', '400px'),
+          radioCheckboxOption(selected, Option.Adhoc, dom('div',
+            dom('div',
+              dom('strong', t('Start timing')),
+            ),
+            dom('div',
+              dom.style('margin-top', '8px'),
+              dom('span', t('You can make changes to the document, then stop timing to see the results.'))
+            ),
+            testId('timing-modal-option-adhoc'),
+          )),
+          radioCheckboxOption(selected, Option.Reload, dom('div',
+            dom('div',
+              dom('strong', t('Time reload')),
+            ),
+            dom('div',
+              dom.style('margin-top', '8px'),
+              dom('span', t('Force reload the document while timing formulas, and show the result.'))
+            ),
+            testId('timing-modal-option-reload'),
+          ))
+        ),
+        cssModalButtons(
+          bigPrimaryButton(t(`Start timing`),
+            dom.on('click', startTiming),
+            testId('timing-modal-confirm'),
+          ),
+          bigBasicButton(t('Cancel'), dom.on('click', () => ctl.close()), testId('timing-modal-cancel')),
+        )
+      ];
+
+      const spinnerPage = () => [
+        cssSpinner(
+          loadingSpinner(),
+          testId('timing-modal-spinner'),
+          dom.style('width', 'fit-content')
+        ),
+      ];
+
+      return [
+        cssModalTitle(t(`Formula timer`)),
+        dom.domComputed(page, (p) => p === TimingModalPage.Start ? startPage() : spinnerPage()),
+        testId('timing-modal'),
+      ];
+    });
   }
 
   private async _doSetEngine(val: EngineCode|undefined) {
@@ -182,6 +292,8 @@ export class DocSettingsPage extends Disposable {
     }
   }
 }
+
+
 
 function getApiConsoleLink(docPageModel: DocPageModel) {
   const url = new URL(location.href);
@@ -231,6 +343,7 @@ const cssContainer = styled('div', `
   position: relative;
   height: 100%;
   padding: 32px 64px 24px 64px;
+  color: ${theme.text};
   @media ${mediaSmall} {
     & {
       padding: 32px 24px 24px 24px;
@@ -333,6 +446,29 @@ function clickToSelect() {
   });
 }
 
+/**
+ * Enum for the different pages of the timing modal.
+ */
+enum TimingModalPage {
+  Start, // The initial page with options to start timing.
+  Spinner, // The page with a spinner while we are starting timing and reloading the document.
+}
+
+/**
+ * Enum for the different options in the timing modal.
+ */
+enum Option {
+  /**
+   * Start timing and immediately forces a reload of the document and waits for the
+   * document to be loaded, to show the results.
+   */
+  Reload,
+  /**
+   * Just starts the timing, without reloading the document.
+   */
+  Adhoc,
+}
+
 // A version that is not underlined, and on hover mouse pointer indicates that copy is available
 const cssCopyLink = styled(cssLink, `
   word-wrap: break-word;
@@ -363,4 +499,8 @@ const cssWrap = styled('p', `
   & * {
     word-break: break-all;
   }
+`);
+
+const cssRedText = styled('span', `
+  color: ${theme.errorText};
 `);
