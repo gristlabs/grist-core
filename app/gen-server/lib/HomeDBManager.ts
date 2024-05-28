@@ -1960,7 +1960,8 @@ export class HomeDBManager extends EventEmitter {
         throw new ApiError('Webhook with given id not found', 404);
       }
       const webhookSecret = JSON.parse(value);
-      // update url and authorization only if not undefined to fit to patch calls
+      // As we want to patch the webhookSecret object, only set the url and the authorization when they are defined.
+      // When the user wants to empty the value, we are expected to receive empty strings.
       if (url !== undefined) {
         webhookSecret.url = url;
       }
