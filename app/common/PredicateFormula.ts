@@ -10,7 +10,8 @@
  */
 import {CellValue, RowRecord} from 'app/common/DocActions';
 import {ErrorWithCode} from 'app/common/ErrorWithCode';
-import {InfoView, UserInfo} from 'app/common/GranularAccessClause';
+import {InfoView} from 'app/common/RecordView';
+import {UserInfo} from 'app/common/User';
 import {decodeObject} from 'app/plugin/objtypes';
 import constant = require('lodash/constant');
 
@@ -29,11 +30,6 @@ export interface PredicateFormulaInput {
   newRec?: InfoView;
   docId?: string;
   choice?: string|RowRecord|InfoView;
-}
-
-export class EmptyRecordView implements InfoView {
-  public get(_colId: string): CellValue { return null; }
-  public toJSON() { return {}; }
 }
 
 /**
@@ -102,7 +98,7 @@ export function compilePredicateFormula(
             break;
           }
           case 'dropdown-condition': {
-            validNames = ['rec', 'choice'];
+            validNames = ['rec', 'choice', 'user'];
             break;
           }
         }

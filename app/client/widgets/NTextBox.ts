@@ -1,4 +1,5 @@
 import { FormFieldRulesConfig } from 'app/client/components/Forms/FormConfig';
+import { GristDoc } from 'app/client/components/GristDoc';
 import { fromKoSave } from 'app/client/lib/fromKoSave';
 import { makeT } from 'app/client/lib/localization';
 import { DataRowModel } from 'app/client/models/DataRowModel';
@@ -32,7 +33,7 @@ export class NTextBox extends NewAbstractWidget {
     }));
   }
 
-  public buildConfigDom(): DomContents {
+  public buildConfigDom(_gristDoc: GristDoc): DomContents {
     const toggle = () => {
       const newValue = !this.field.config.wrap.peek();
       this.field.config.wrap.setAndSave(newValue).catch(reportError);

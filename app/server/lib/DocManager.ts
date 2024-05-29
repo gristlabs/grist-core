@@ -395,9 +395,10 @@ export class DocManager extends EventEmitter {
         }
       }
 
-      const [metaTables, recentActions, userOverride] = await Promise.all([
+      const [metaTables, recentActions, user, userOverride] = await Promise.all([
         activeDoc.fetchMetaTables(docSession),
         activeDoc.getRecentMinimalActions(docSession),
+        activeDoc.getUser(docSession),
         activeDoc.getUserOverride(docSession),
       ]);
 
@@ -414,6 +415,7 @@ export class DocManager extends EventEmitter {
         doc: metaTables,
         log: recentActions,
         recoveryMode: activeDoc.recoveryMode,
+        user: user.toUserInfo(),
         userOverride,
         docUsage,
         isTimingOn: activeDoc.isTimingOn,

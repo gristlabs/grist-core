@@ -1,13 +1,13 @@
+import {GristDoc} from 'app/client/components/GristDoc';
 import {ACIndex, ACResults} from 'app/client/lib/ACIndex';
 import {makeT} from 'app/client/lib/localization';
 import {ICellItem} from 'app/client/models/ColumnACIndexes';
 import {ColumnCache} from 'app/client/models/ColumnCache';
-import {DocData} from 'app/client/models/DocData';
 import {ColumnRec} from 'app/client/models/entities/ColumnRec';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {TableData} from 'app/client/models/TableData';
 import {getReferencedTableId, isRefListType} from 'app/common/gristTypes';
-import {EmptyRecordView} from 'app/common/PredicateFormula';
+import {EmptyRecordView} from 'app/common/RecordView';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {Disposable, dom, Observable} from 'grainjs';
 
@@ -26,9 +26,10 @@ export class ReferenceUtils extends Disposable {
   public readonly hasDropdownCondition = Boolean(this.field.dropdownCondition.peek()?.text);
 
   private readonly _columnCache: ColumnCache<ACIndex<ICellItem>>;
+  private readonly _docData = this._gristDoc.docData;
   private _dropdownConditionError = Observable.create<string | null>(this, null);
 
-  constructor(public readonly field: ViewFieldRec, private readonly _docData: DocData) {
+  constructor(public readonly field: ViewFieldRec, private readonly _gristDoc: GristDoc) {
     super();
 
     const colType = field.column().type();
@@ -38,7 +39,7 @@ export class ReferenceUtils extends Disposable {
     }
     this.refTableId = refTableId;
 
-    const tableData = _docData.getTable(refTableId);
+    const tableData = this._docData.getTable(refTableId);
     if (!tableData) {
       throw new Error("Invalid referenced table " + refTableId);
     }
@@ -131,12 +132,13 @@ export class ReferenceUtils extends Disposable {
     if (!table) { throw new Error(`Table ${tableId} not found`); }
 
     const {result: predicate} = dropdownConditionCompiled;
+    const user = this._gristDoc.docPageModel.user.get() ?? undefined;
     const rec = table.getRecord(rowId) || new EmptyRecordView();
     return (item: ICellItem) => {
       const choice = item.rowId === 'new' ? new EmptyRecordView() : this.tableData.getRecord(item.rowId);
       if (!choice) { throw new Error(`Reference ${item.rowId} not found`); }
 
-      return predicate({rec, choice});
+      return predicate({user, rec, choice});
     };
   }
 }

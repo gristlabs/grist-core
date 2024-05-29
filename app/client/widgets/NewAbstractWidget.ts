@@ -60,7 +60,7 @@ export abstract class NewAbstractWidget extends Disposable {
   /**
    * Builds the DOM showing configuration buttons and fields in the sidebar.
    */
-  public buildConfigDom(): DomContents {
+  public buildConfigDom(_gristDoc: GristDoc): DomContents {
     return null;
   }
 
@@ -68,7 +68,7 @@ export abstract class NewAbstractWidget extends Disposable {
    * Builds the transform prompt config DOM in the few cases where it is necessary.
    * Child classes need not override this function if they do not require transform config options.
    */
-  public buildTransformConfigDom(): DomContents {
+  public buildTransformConfigDom(_gristDoc: GristDoc): DomContents {
     return null;
   }
 

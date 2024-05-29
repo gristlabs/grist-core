@@ -2,6 +2,7 @@
  * See app/common/NumberFormat for description of options we support.
  */
 import {FormFieldRulesConfig} from 'app/client/components/Forms/FormConfig';
+import {GristDoc} from 'app/client/components/GristDoc';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {makeT} from 'app/client/lib/localization';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -39,7 +40,7 @@ export class NumericTextBox extends NTextBox {
     super(field);
   }
 
-  public buildConfigDom(): DomContents {
+  public buildConfigDom(gristDoc: GristDoc): DomContents {
     // Holder for all computeds created here. It gets disposed with the returned DOM element.
     const holder = new MultiHolder();
 
@@ -89,7 +90,7 @@ export class NumericTextBox extends NTextBox {
     const disabledStyle = cssButtonSelect.cls('-disabled', disabled);
 
     return [
-      super.buildConfigDom(),
+      super.buildConfigDom(gristDoc),
       cssLabel(t('Number Format')),
       cssRow(
         dom.autoDispose(holder),
