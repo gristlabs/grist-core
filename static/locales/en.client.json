@@ -118,7 +118,9 @@
         "Legacy": "Legacy",
         "Personal Site": "Personal Site",
         "Team Site": "Team Site",
-        "Grist Templates": "Grist Templates"
+        "Grist Templates": "Grist Templates",
+        "Billing Account": "Billing Account",
+        "Manage Team": "Manage Team"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -327,7 +329,17 @@
         "Time Zone": "Time Zone",
         "Try API calls from the browser": "Try API calls from the browser",
         "python2 (legacy)": "python2 (legacy)",
-        "python3 (recommended)": "python3 (recommended)"
+        "python3 (recommended)": "python3 (recommended)",
+        "Cancel": "Cancel",
+        "Force reload the document while timing formulas, and show the result.": "Force reload the document while timing formulas, and show the result.",
+        "Formula timer": "Formula timer",
+        "Reload data engine": "Reload data engine",
+        "Reload data engine?": "Reload data engine?",
+        "Start timing": "Start timing",
+        "Stop timing...": "Stop timing...",
+        "Time reload": "Time reload",
+        "Timing is on": "Timing is on",
+        "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results."
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
@@ -525,7 +537,8 @@
         "Trash": "Trash",
         "Workspace will be moved to Trash.": "Workspace will be moved to Trash.",
         "Workspaces": "Workspaces",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Terms of service"
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -1017,7 +1030,9 @@
         "Add conditional style": "Add conditional style",
         "Error in style rule": "Error in style rule",
         "Row Style": "Row Style",
-        "Rule must return True or False": "Rule must return True or False"
+        "Rule must return True or False": "Rule must return True or False",
+        "Conditional Style": "Conditional Style",
+        "IF...": "IF..."
     },
     "CurrencyPicker": {
         "Invalid currency": "Invalid currency"
@@ -1536,7 +1551,20 @@
         "Security Settings": "Security Settings",
         "Updates": "Updates",
         "unconfigured": "unconfigured",
-        "unknown": "unknown"
+        "unknown": "unknown",
+        "Administrator Panel Unavailable": "Administrator Panel Unavailable",
+        "Authentication": "Authentication",
+        "Check failed.": "Check failed.",
+        "Check succeeded.": "Check succeeded.",
+        "Current authentication method": "Current authentication method",
+        "Details": "Details",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.",
+        "No fault detected.": "No fault detected.",
+        "Notes": "Notes",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}",
+        "Results": "Results",
+        "Self Checks": "Self Checks",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator."
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1587,5 +1615,15 @@
         "Custom": "Custom",
         "Form": "Form",
         "Table": "Table"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Average Time (s)",
+        "Column ID": "Column ID",
+        "Formula timer": "Formula timer",
+        "Loading timing data. Don't close this tab.": "Loading timing data. Don't close this tab.",
+        "Max Time (s)": "Max Time (s)",
+        "Number of Calls": "Number of Calls",
+        "Table ID": "Table ID",
+        "Total Time (s)": "Total Time (s)"
     }
 }
