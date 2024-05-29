@@ -54,7 +54,7 @@ _.extend(DateTimeTextBox.prototype, DateTextBox.prototype);
  * Builds the config dom for the DateTime TextBox. If isTransformConfig is true,
  * builds only the necessary dom for the transform config menu.
  */
-DateTimeTextBox.prototype.buildConfigDom = function(isTransformConfig) {
+DateTimeTextBox.prototype.buildConfigDom = function(_gristDoc, isTransformConfig) {
   const disabled = ko.pureComputed(() => {
     return this.field.config.options.disabled('timeFormat')() || this.field.column().disableEditData();
   });
@@ -92,8 +92,8 @@ DateTimeTextBox.prototype.buildConfigDom = function(isTransformConfig) {
   );
 };
 
-DateTimeTextBox.prototype.buildTransformConfigDom = function() {
-  return this.buildConfigDom(true);
+DateTimeTextBox.prototype.buildTransformConfigDom = function(gristDoc) {
+  return this.buildConfigDom(gristDoc, true);
 };
 
 // clean up old koform styles

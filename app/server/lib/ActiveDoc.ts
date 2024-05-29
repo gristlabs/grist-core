@@ -443,6 +443,10 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.filterDocUsageSummary(docSession, this.getDocUsageSummary());
   }
 
+  public getUser(docSession: OptDocSession) {
+    return this._granularAccess.getUser(docSession);
+  }
+
   public async getUserOverride(docSession: OptDocSession) {
     return this._granularAccess.getUserOverride(docSession);
   }

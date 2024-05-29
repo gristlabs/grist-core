@@ -21,7 +21,7 @@ dispose.makeDisposable(AbstractWidget);
 /**
  * Builds the DOM showing configuration buttons and fields in the sidebar.
  */
-AbstractWidget.prototype.buildConfigDom = function() {
+AbstractWidget.prototype.buildConfigDom = function(_gristDoc) {
   throw new Error("Not Implemented");
 };
 
@@ -29,7 +29,7 @@ AbstractWidget.prototype.buildConfigDom = function() {
  * Builds the transform prompt config DOM in the few cases where it is necessary.
  * Child classes need not override this function if they do not require transform config options.
  */
-AbstractWidget.prototype.buildTransformConfigDom = function() {
+AbstractWidget.prototype.buildTransformConfigDom = function(_gristDoc) {
   return null;
 };
 

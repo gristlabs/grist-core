@@ -129,7 +129,7 @@ ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
 
   return buildDropdownConditionFilter({
     dropdownConditionCompiled: dropdownConditionCompiled.result,
-    docData: this.options.gristDoc.docData,
+    gristDoc: this.options.gristDoc,
     tableId: this.options.field.tableId(),
     rowId: this.options.rowId,
   });
