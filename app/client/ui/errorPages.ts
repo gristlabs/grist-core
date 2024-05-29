@@ -103,7 +103,7 @@ export function createSigninFailedPage(appModel: AppModel, message?: string) {
   document.title = t("Signin failed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
   return pagePanelsError(appModel, t("Signin failed{{suffix}}", {suffix: ''}), [
     cssErrorText(message ??
-      t("Failed to login.{{separator}}Please try again or contact the support.", {
+      t("Failed to login.{{separator}}Please try again or contact support.", {
         separator: dom('br')
     })),
     cssButtonWrap(bigPrimaryButtonLink(t("Login again"), testId('error-primary-btn'),

@@ -157,14 +157,6 @@ describe('OIDCConfig', () => {
           }
         },
         {
-          itMsg: 'should fulfill when the end_session_endpoint is not known ' +
-            'and GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true',
-          end_session_endpoint: undefined,
-          env: {
-            GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'true'
-          }
-        },
-        {
           itMsg: 'should fulfill when the end_session_endpoint is provided with GRIST_OIDC_IDP_END_SESSION_ENDPOINT',
           end_session_endpoint: undefined,
           env: {
@@ -225,7 +217,7 @@ describe('OIDCConfig', () => {
       assert.isFalse(config.supportsProtection("STATE"));
     });
 
-    it('if omitted, should defaults to "STATE,PKCE"', async function () {
+    it('if omitted, should default to "STATE,PKCE"', async function () {
       setEnvVars();
       const config = await OIDCConfigStubbed.buildWithStub();
       assert.isFalse(config.supportsProtection("NONCE"));
@@ -426,7 +418,8 @@ describe('OIDCConfig', () => {
         itMsg: 'should reject when the codeVerifier is missing from the session',
         session: {
           oidc: {
-            state: FAKE_STATE
+            state: FAKE_STATE,
+            GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'STATE,PKCE'
           }
         },
         expectedErrorMsg: /Login is stale/,
@@ -600,10 +593,6 @@ describe('OIDCConfig', () => {
         const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
           session,
-          query: {
-            state: FAKE_STATE,
-            codeVerifier: FAKE_CODE_VERIFIER,
-          }
         } as unknown as express.Request;
         clientStub.callbackParams.returns(fakeParams);
         const tokenSet = { id_token: 'id_token', ...ctx.tokenSet };
@@ -654,10 +643,6 @@ describe('OIDCConfig', () => {
       const config = await OIDCConfigStubbed.build(sendAppPageStub, clientStub.asClient());
       const req = {
         session: DEFAULT_SESSION,
-        query: {
-          state: FAKE_STATE,
-          codeVerifier: FAKE_CODE_VERIFIER,
-        }
       } as unknown as express.Request;
       clientStub.callbackParams.returns({state: FAKE_STATE});
 
