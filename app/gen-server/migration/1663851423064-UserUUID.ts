@@ -1,6 +1,6 @@
 
-import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
 import {addRefToUserList} from "app/gen-server/sqlUtils";
+import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
 
 export class UserUUID1663851423064 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {

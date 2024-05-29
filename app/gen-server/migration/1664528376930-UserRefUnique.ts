@@ -1,5 +1,5 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
 import {addRefToUserList} from "app/gen-server/sqlUtils";
+import {MigrationInterface, QueryRunner} from "typeorm";
 
 export class UserRefUnique1664528376930 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

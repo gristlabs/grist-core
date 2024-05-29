@@ -61,6 +61,7 @@ import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
 import {EventEmitter} from 'events';
 import {Request} from "express";
+import moment from 'moment-timezone';
 import {
   Brackets,
   Connection,
@@ -72,7 +73,6 @@ import {
 import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
-import moment from 'moment-timezone';
 import defaultsDeep = require('lodash/defaultsDeep');
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
