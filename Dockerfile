@@ -79,7 +79,7 @@ FROM node:18-buster-slim
 # Install pgrep for managing gvisor processes.
 RUN \
   apt-get update && \
-  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 procps && \
+  apt-get install -y --no-install-recommends libexpat1 libsqlite3-0 procps tini && \
   rm -rf /var/lib/apt/lists/*
 
 # Keep all storage user may want to persist in a distinct directory
@@ -151,4 +151,5 @@ ENV \
 
 EXPOSE 8484
 
+ENTRYPOINT ["/usr/bin/tini", "-s", "--"]
 CMD ["./sandbox/run.sh"]
