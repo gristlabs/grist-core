@@ -118,7 +118,9 @@
         "Legacy": "Legacy",
         "Personal Site": "Personal Site",
         "Team Site": "Team Site",
-        "Grist Templates": "Grist Templates"
+        "Grist Templates": "Grist Templates",
+        "Billing Account": "Billing Account",
+        "Manage Team": "Manage Team"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
