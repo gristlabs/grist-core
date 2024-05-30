@@ -78,9 +78,37 @@
         "Support Grist": "Podpora Grist",
         "Upgrade Plan": "Plán Inovácie",
         "Sign In": "Prihlásiť sa",
-        "Use This Template": "Použiť túto Šablónu"
+        "Use This Template": "Použiť túto Šablónu",
+        "Sign Up": "Prihlásiť sa"
     },
     "ViewAsDropdown": {
-        "View As": "Zobraziť Ako"
+        "View As": "Zobraziť Ako",
+        "Users from table": "Používatelia z tabuľky",
+        "Example Users": "Príklady používateľov"
+    },
+    "ActionLog": {
+        "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabuľka {{tableId}} bola následne odstránená v akcii #{{actionNum}}",
+        "Action Log failed to load": "Nepodarilo sa načítať denník akcií",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Stĺpec {{colId}} bol následne odstránený v akcii #{{action.actionNum}}",
+        "This row was subsequently removed in action {{action.actionNum}}": "Tento riadok bol následne odstránený v akcii {{action.actionNum}}",
+        "All tables": "Všetky tabuľky"
+    },
+    "ApiKey": {
+        "By generating an API key, you will be able to make API calls for your own account.": "Vygenerovaním kľúča API budete môcť uskutočňovať volania API pre svoj vlastný účet.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Tento kľúč API je možné použiť na prístup k vášmu účtu prostredníctvom rozhrania API. Nezdieľajte svoj API kľúč s nikým.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Chystáte sa odstrániť kľúč API. To spôsobí, že všetky budúce požiadavky používajúce tento kľúč API budú odmietnuté. Stále chcete odstrániť?",
+        "Click to show": "Kliknutím zobraziť",
+        "Create": "Vytvoriť",
+        "Remove": "Odobrať",
+        "Remove API Key": "Odobrať kľúč API",
+        "This API key can be used to access this account anonymously via the API.": "Tento kľúč API možno použiť na anonymný prístup k tomuto účtu prostredníctvom rozhrania API."
+    },
+    "AddNewButton": {
+        "Add New": "Pridať Nový"
+    },
+    "App": {
+        "Description": "Popis",
+        "Key": "Kľúč",
+        "Memory Error": "Chyba pamäte"
     }
 }
