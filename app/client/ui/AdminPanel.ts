@@ -237,8 +237,8 @@ Please log in as an administrator.`)),
 
   private _buildAuthenticationNotice(owner: IDisposableOwner) {
     return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
-    We recommend enabling one of these if Grist is accessible over the network or being made available \
-    to multiple people.');
+We recommend enabling one of these if Grist is accessible over the network or being made available \
+to multiple people.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
