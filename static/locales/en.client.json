@@ -1564,7 +1564,8 @@
         "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}",
         "Results": "Results",
         "Self Checks": "Self Checks",
-        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator."
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people."
     },
     "Columns": {
         "Remove Column": "Remove Column"
