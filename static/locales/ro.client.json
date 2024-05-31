@@ -455,7 +455,9 @@
         "SELECTOR FOR": "SELECTOR PENTRU",
         "Sort & Filter": "Sortare și filtrare",
         "Widget": "Widget",
-        "Reset form": "Resetare formular"
+        "Reset form": "Resetare formular",
+        "Enter text": "Introdu text",
+        "Configuration": "Configurare"
     },
     "FloatingPopup": {
         "Maximize": "Maximizați",
@@ -884,7 +886,8 @@
         "Help Center": "Centru de ajutor",
         "Opted In": "A optat pentru a participa",
         "Contribute": "Contribuie",
-        "Support Grist page": "Pagina Susține Grist"
+        "Support Grist page": "Pagina Susține Grist",
+        "Admin Panel": "Panou administrator"
     },
     "ValidationPanel": {
         "Update formula (Shift+Enter)": "Actualizați formula (Shift+Enter)",
@@ -1292,5 +1295,13 @@
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Câmpuri ascunse"
+    },
+    "AdminPanel": {
+        "Support Grist Labs on GitHub": "Sponsor Grist Labs pe GitHub",
+        "Telemetry": "Telemetry",
+        "Admin Panel": "Panou administrator",
+        "Home": "Acasă",
+        "Sponsor": "Sponsor",
+        "Support Grist": "Sponsor Grist"
     }
 }
