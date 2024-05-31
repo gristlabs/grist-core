@@ -114,7 +114,9 @@
         "Legacy": "Ancienne version",
         "Personal Site": "Espace personnel",
         "Team Site": "Espace d'équipe",
-        "Grist Templates": "Modèles Grist"
+        "Grist Templates": "Modèles Grist",
+        "Billing Account": "Compte de facturation",
+        "Manage Team": "Gestion de l'équipe"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Le site de cette équipe est suspendu. Les documents peuvent être lus, mais pas modifiés."
@@ -322,7 +324,18 @@
         "python2 (legacy)": "python2 (encien)",
         "Try API calls from the browser": "Essayer les appels API à partir du navigateur",
         "Time Zone": "Fuseau horaire",
-        "python3 (recommended)": "python3 (recommandé)"
+        "python3 (recommended)": "python3 (recommandé)",
+        "Start timing": "Début du chrono",
+        "Time reload": "Durée du rechargement",
+        "Stop timing...": "Arrêter le chrono...",
+        "Cancel": "Annuler",
+        "Reload data engine": "Recharger le moteur de données",
+        "Reload data engine?": "Recharger le moteur de données ?",
+        "Force reload the document while timing formulas, and show the result.": "Forcer le rechargement du document pendant le chronométrage des formules et afficher le résultat.",
+        "Formula timer": "Chronomètre de formule",
+        "Timing is on": "Le chronomètre tourne",
+        "You can make changes to the document, then stop timing to see the results.": "Vous pouvez apporter des modifications au document, puis arrêter le chronométrage pour voir les résultats.",
+        "Formula times": "Minuteur de formule"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -1064,7 +1077,9 @@
         "Add another rule": "Ajouter une autre règle",
         "Error in style rule": "Erreur dans la règle de style",
         "Row Style": "Style de ligne",
-        "Rule must return True or False": "La règle doit retourner Vrai ou Faux"
+        "Rule must return True or False": "La règle doit retourner Vrai ou Faux",
+        "Conditional Style": "Style conditionnel",
+        "IF...": "SI..."
     },
     "CurrencyPicker": {
         "Invalid currency": "Devise invalide"
@@ -1521,7 +1536,18 @@
         "unconfigured": "non configuré",
         "unknown": "inconnu",
         "Auto-check when this page loads": "Vérification automatique au chargement de cette page",
-        "Sandbox settings for data engine": "Paramètres de la Sandbox pour le moteur de données"
+        "Sandbox settings for data engine": "Paramètres de la Sandbox pour le moteur de données",
+        "Check failed.": "La vérification a échoué.",
+        "Check succeeded.": "Vérification réussie.",
+        "No fault detected.": "Aucun défaut n'a été détecté.",
+        "Notes": "Notes",
+        "Authentication": "Authentification",
+        "Administrator Panel Unavailable": "Panneau d'administration indisponible",
+        "Current authentication method": "Méthode actuelle d'authentification",
+        "Details": "Détails",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist permet de configurer différents types d'authentification, notamment SAML et OIDC. Nous recommandons d'activer l'un de ces types d'authentification si Grist est accessible via le réseau ou s'il est mis à la disposition de plusieurs personnes.",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Vous n'avez pas accès au panneau d'administrateur.\nVeuillez vous connecter en tant qu'administrateur.",
+        "Results": "Résultats"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1586,5 +1612,15 @@
         "Card List": "Liste de fiches",
         "Card": "Fiche",
         "Calendar": "Calendrier"
+    },
+    "TimingPage": {
+        "Max Time (s)": "Temps maximum (s)",
+        "Average Time (s)": "Temps moyen (s)",
+        "Column ID": "ID de la colonne",
+        "Loading timing data. Don't close this tab.": "Chargement des données de chronométrage. Ne pas fermer cet onglet.",
+        "Formula timer": "Chronomètre de formule",
+        "Number of Calls": "Nombre d'appels",
+        "Table ID": "ID de la table",
+        "Total Time (s)": "Temps total"
     }
 }
