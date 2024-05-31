@@ -102,7 +102,9 @@
         "Legacy": "Legado",
         "Personal Site": "Sitio Personal",
         "Team Site": "Sitio de Equipo",
-        "Grist Templates": "Plantillas Grist"
+        "Grist Templates": "Plantillas Grist",
+        "Manage Team": "Administrar equipo",
+        "Billing Account": "Cuenta de facturación"
     },
     "CellContextMenu": {
         "Clear cell": "Borrar celda",
@@ -277,7 +279,9 @@
         "python2 (legacy)": "python2 (legado)",
         "Notify other services on doc changes": "Notificar a otros servicios los cambios de documentos",
         "Python": "Python",
-        "python3 (recommended)": "python3 (recomendado)"
+        "python3 (recommended)": "python3 (recomendado)",
+        "Cancel": "Cancelar",
+        "Force reload the document while timing formulas, and show the result.": "Fuerza la recarga del documento mientras sincronizas las fórmulas y muestra el resultado."
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
