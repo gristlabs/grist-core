@@ -109,6 +109,94 @@
     "App": {
         "Description": "Popis",
         "Key": "Kľúč",
-        "Memory Error": "Chyba pamäte"
+        "Memory Error": "Chyba pamäte",
+        "Translators: please translate this only when your language is ready to be offered to users": "Prekladatelia: preložte to, prosím, len vtedy, keď je váš jazyk pripravený na poskytovanie používateľom"
+    },
+    "AppHeader": {
+        "Manage Team": "Riadiť Tím",
+        "Billing Account": "Fakturačný účet",
+        "Home Page": "Domovská stránka",
+        "Legacy": "Dedičstvo",
+        "Personal Site": "Osobná stránka",
+        "Team Site": "Tímová stránka",
+        "Grist Templates": "Grist Šablóny"
+    },
+    "CellContextMenu": {
+        "Delete {{count}} columns_one": "Odstrániť stĺpec",
+        "Delete {{count}} columns_other": "Odstrániť {{count}} stĺpcov",
+        "Delete {{count}} rows_other": "Odstrániť {{count}} riadkov",
+        "Duplicate rows_one": "Duplikovať riadok",
+        "Insert column to the right": "Vložiť stĺpec doprava",
+        "Reset {{count}} columns_one": "Resetovať stĺpec",
+        "Reset {{count}} columns_other": "Resetovanie {{count}} stĺpcov",
+        "Reset {{count}} entire columns_one": "Resetovať celý stĺpec",
+        "Comment": "Komentár",
+        "Reset {{count}} entire columns_other": "Resetovať {{count}} celé stĺpce",
+        "Cut": "Vystrihnúť",
+        "Duplicate rows_other": "Duplikovať riadky",
+        "Filter by this value": "Filtrovať podľa tejto hodnoty",
+        "Insert row": "Vložiť riadok",
+        "Insert row above": "Vložiť riadok vyššie",
+        "Insert row below": "Vložiť riadok nižšie",
+        "Insert column to the left": "Vložiť stĺpec doľava",
+        "Copy": "Kopírovať",
+        "Paste": "Vložiť",
+        "Clear cell": "Vymazať bunku",
+        "Clear values": "Vyčistiť hodnoty",
+        "Copy anchor link": "Kopírovať odkaz na kotvu",
+        "Delete {{count}} rows_one": "Odstrániť riadok"
+    },
+    "ChartView": {
+        "Create separate series for each value of the selected column.": "Vytvoriť samostatné série pre každú hodnotu vybratého stĺpca.",
+        "Pick a column": "Vybrať stĺpec",
+        "Toggle chart aggregation": "Prepnúť združovanie grafu",
+        "selected new group data columns": "vybrať nové stĺpce skupiny dát"
+    },
+    "ColumnFilterMenu": {
+        "All Shown": "Všetko zobrazené",
+        "Filter by Range": "Filtrovať podľa rozsahu",
+        "No matching values": "Žiadne zodpovedajúce hodnoty",
+        "Max": "Max",
+        "Start": "Štart",
+        "End": "Koniec",
+        "Other Matching": "Iné zhodné",
+        "Other Non-Matching": "Iné nezhodné",
+        "Other Values": "Iné hodnoty",
+        "Future Values": "Budúce hodnoty",
+        "Others": "Iné",
+        "None": "Žiadne",
+        "Min": "Min",
+        "Search": "Vyhľadať",
+        "Search values": "Hľadať hodnoty",
+        "All": "Všetko",
+        "All Except": "Všetko Okrem"
+    },
+    "CustomSectionConfig": {
+        " (optional)": " (voliteľné)",
+        "Add": "Pridať",
+        "Enter Custom URL": "Zadať vlastnú adresu URL",
+        "Full document access": "Úplný prístup k dokumentu",
+        "Learn more about custom widgets": "Prečítať si viac o vlastných widgetoch",
+        "Open configuration": "Otvoriť konfiguráciu",
+        "Pick a {{columnType}} column": "Vybrať stĺpec {{columnType}}",
+        "Select Custom Widget": "Vybrať Vlastný Widget",
+        "Pick a column": "Vybrať stĺpec",
+        "Read selected table": "Prečítať vybranú tabuľku",
+        "Widget does not require any permissions.": "Widget nevyžaduje žiadne povolenia.",
+        "Widget needs to {{read}} the current table.": "Widget vyžaduje {{read}} aktuálnu tabuľku.",
+        "Widget needs {{fullAccess}} to this document.": "Widget vyžaduje {{fullAccess}} k tomuto dokumentu.",
+        "No document access": "Bez prístupu k dokumentu"
+    },
+    "AppModel": {
+        "This team site is suspended. Documents can be read, but not modified.": "Táto tímová stránka je pozastavená. Dokumenty je možné čítať, ale nie upravovať."
+    },
+    "CodeEditorPanel": {
+        "Access denied": "Prístup zamietnutý",
+        "Code View is available only when you have full document access.": "Zobrazenie kódu je dostupné iba vtedy, keď máte úplný prístup k dokumentu."
+    },
+    "ColorSelect": {
+        "Apply": "Použiť",
+        "Cancel": "Zrušiť",
+        "Default cell style": "Predvolený štýl bunky"
     }
 }
