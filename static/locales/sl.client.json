@@ -262,7 +262,8 @@
         "Access Details": "Podrobnosti o dostopu",
         "Workspaces": "Delovni prostori",
         "Workspace will be moved to Trash.": "Delovni prostor se bo premaknil v koš.",
-        "Examples & Templates": "Predloge"
+        "Examples & Templates": "Predloge",
+        "Terms of service": "Pogoji storitve"
     },
     "OnBoardingPopups": {
         "Finish": "Zaključek",
@@ -357,7 +358,9 @@
         "Personal Site": "Osebna stran",
         "Team Site": "Spletna stran ekipe",
         "Grist Templates": "Grist predloge",
-        "Legacy": "Zapuščina"
+        "Legacy": "Zapuščina",
+        "Billing Account": "Račun za obračunavanje",
+        "Manage Team": "Upravljanje ekipe"
     },
     "ChartView": {
         "Pick a column": "Izberite stolpec",
@@ -525,7 +528,17 @@
         "Time Zone": "Časovni pas",
         "Try API calls from the browser": "Poskusi klice API-ja iz brskalnika",
         "python3 (recommended)": "python3 (priporočeno)",
-        "python2 (legacy)": "python2 (odsvetovano)"
+        "python2 (legacy)": "python2 (odsvetovano)",
+        "Formula timer": "Časovnik formule",
+        "Reload data engine": "Ponovno naloži podatkovni mehanizem",
+        "Reload data engine?": "Ponovno naložiti podatkovni mehanizem?",
+        "Start timing": "Začni meriti čas",
+        "Stop timing...": "Ustavi merjenje časa ...",
+        "Time reload": "Ponovno nalaganje časa",
+        "Cancel": "Prekliči",
+        "Force reload the document while timing formulas, and show the result.": "Prisilno znova naloži dokument med časovnimi formulami in prikaži rezultat.",
+        "Timing is on": "Merjenje časa je vklopljeno",
+        "You can make changes to the document, then stop timing to see the results.": "Dokument lahko spremeniš in nato ustaviš merjenje časa, da vidiš rezultat."
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",
@@ -1289,7 +1302,9 @@
         "Row Style": "Slog vrstice",
         "Add another rule": "Dodaj dodatno pravilo",
         "Add conditional style": "Dodaj pogojni slog",
-        "Error in style rule": "Napaka v slogovnem pravilu"
+        "Error in style rule": "Napaka v slogovnem pravilu",
+        "IF...": "ČE ...",
+        "Conditional Style": "Pogojni slog"
     },
     "EditorTooltip": {
         "Convert column to formula": "Pretvori stolpec v formulo"
@@ -1522,7 +1537,20 @@
         "unconfigured": "nekonfigurirano",
         "unknown": "neznano",
         "Grist releases are at ": "Grist verzije so pri ",
-        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist omogoča zelo zmogljive formule z uporabo Pythona. Priporočamo, da spremenljivko okolja GRIST_SANDBOX_FLAVOR nastavite na gvisor, če vaša strojna oprema to podpira (večina bo), da zaženete formule v vsakem dokumentu znotraj peskovnika, izoliranega od drugih dokumentov in izoliranega od omrežja."
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist omogoča zelo zmogljive formule z uporabo Pythona. Priporočamo, da spremenljivko okolja GRIST_SANDBOX_FLAVOR nastavite na gvisor, če vaša strojna oprema to podpira (večina bo), da zaženete formule v vsakem dokumentu znotraj peskovnika, izoliranega od drugih dokumentov in izoliranega od omrežja.",
+        "Authentication": "Preverjanje pristnosti",
+        "Check succeeded.": "Preverjanje uspelo.",
+        "Current authentication method": "Trenutna metoda preverjanja pristnosti",
+        "Details": "Podrobnosti",
+        "No fault detected.": "Ni zaznane napake.",
+        "Notes": "Opombe",
+        "Check failed.": "Preverjanje ni uspelo.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist omogoča konfiguracijo različnih vrst avtentikacije, vključno s SAML in OIDC. Priporočamo, da omogočiš enega od teh, če je Grist dostopen prek omrežja ali je na voljo več osebam.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Lahko pa kot nadomestno možnost nastavite: {{bootKey}} v okolju in obiščete: {{url}}",
+        "Results": "Rezultati",
+        "Self Checks": "Samopregledi",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nimaš dostopa do skrbniške plošče.\nPrijavi se kot skrbnik.",
+        "Administrator Panel Unavailable": "Skrbniška plošča ni na voljo"
     },
     "ChoiceEditor": {
         "Error in dropdown condition": "Napaka v spustnem meniju",
@@ -1587,5 +1615,15 @@
         "Custom": "Po meri",
         "Form": "Forma",
         "Table": "Tabela"
+    },
+    "TimingPage": {
+        "Loading timing data. Don't close this tab.": "Nalaganje časovnih podatkov. Ne zapri tega zavihka.",
+        "Max Time (s)": "Največji čas (i)",
+        "Number of Calls": "Število klicev",
+        "Table ID": "ID tabele",
+        "Total Time (s)": "Skupni čas",
+        "Average Time (s)": "Povprečni čas (i)",
+        "Column ID": "ID stolpca",
+        "Formula timer": "Časovnik formule"
     }
 }
