@@ -1550,7 +1550,8 @@
         "Results": "Rezultati",
         "Self Checks": "Samopregledi",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Nimaš dostopa do skrbniške plošče.\nPrijavi se kot skrbnik.",
-        "Administrator Panel Unavailable": "Skrbniška plošča ni na voljo"
+        "Administrator Panel Unavailable": "Skrbniška plošča ni na voljo",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist omogoča konfiguracijo različnih vrst avtentikacije, vključno s SAML in OIDC. Priporočamo, da omogočiš enega od teh, če je Grist dostopen prek omrežja ali je na voljo več osebam."
     },
     "ChoiceEditor": {
         "Error in dropdown condition": "Napaka v spustnem meniju",
