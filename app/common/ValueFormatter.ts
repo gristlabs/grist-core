@@ -122,7 +122,7 @@ export class NumericFormatter extends BaseFormatter {
   }
 
   public _formatPlain(value: number): string {
-    return this._numFormat.format(value);
+    return String(value)
   }
 
   public _formatParens(value: number): string {
