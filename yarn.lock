@@ -964,13 +964,6 @@
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.2.tgz#93e25bf9ee75fe0fd80b594bc4feb0e862111b5a"
   integrity sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
 
-"@types/minio@7.0.15":
-  version "7.0.15"
-  resolved "https://registry.yarnpkg.com/@types/minio/-/minio-7.0.15.tgz#6fbf2e17aeae172cbf181ea52b1faa05a601ce42"
-  integrity sha512-1VR05lWJDuxkn/C7d87MPAJs0p+onKnkUN3nyQ0xrrtaziZQmONy/nxXRaAVWheEyIb6sl0TTi77I/GAQDN5Lw==
-  dependencies:
-    "@types/node" "*"
-
 "@types/mocha@10.0.1":
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-10.0.1.tgz#2f4f65bb08bc368ac39c96da7b2f09140b26851b"
@@ -2165,6 +2158,11 @@ buffer-crc32@^0.2.1, buffer-crc32@^0.2.13:
   version "0.2.13"
   resolved "https://registry.yarnpkg.com/buffer-crc32/-/buffer-crc32-0.2.13.tgz#0d333e3f00eac50aa1454abd30ef8c2a5d9a7242"
   integrity sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==
+
+buffer-crc32@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/buffer-crc32/-/buffer-crc32-1.0.0.tgz#a10993b9055081d55304bd9feb4a072de179f405"
+  integrity sha512-Db1SbgBS/fg/392AblrMJk97KggmvYhr4pB5ZIMTWtaivCPMWLkmb7m21cJvpvgK+J3nsU2CmmixNBZx4vFj/w==
 
 buffer-equal-constant-time@1.0.1:
   version "1.0.1"
@@ -3673,6 +3671,11 @@ eventemitter3@^4.0.0:
   resolved "https://registry.npmjs.org/eventemitter3/-/eventemitter3-4.0.7.tgz"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
 
+eventemitter3@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-5.0.1.tgz#53f5ffd0a492ac800721bb42c66b841de96423c4"
+  integrity sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==
+
 events@^1.1.1, events@~1.1.0:
   version "1.1.1"
   resolved "https://registry.npmjs.org/events/-/events-1.1.1.tgz"
@@ -5136,11 +5139,6 @@ json-stable-stringify@~0.0.0:
   dependencies:
     jsonify "~0.0.0"
 
-json-stream@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/json-stream/-/json-stream-1.0.0.tgz#1a3854e28d2bbeeab31cc7ddf683d2ddc5652708"
-  integrity sha512-H/ZGY0nIAg3QcOwE1QN/rK/Fa7gJn7Ii5obwp6zyPO4xiPNwpIMjqy2gwjBEGqzkF/vSWEIBQCBuN19hYiL6Qg==
-
 json5@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/json5/-/json5-1.0.2.tgz#63d98d60f21b313b77c4d6da18bfa69d80e1d593"
@@ -5674,24 +5672,24 @@ minimist@^1.1.0, minimist@^1.2.0, minimist@^1.2.5:
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.8.tgz#c1a464e7693302e082a075cee0c057741ac4772c"
   integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
 
-minio@7.1.3:
-  version "7.1.3"
-  resolved "https://registry.yarnpkg.com/minio/-/minio-7.1.3.tgz#86dc95f3671045d6956920db757bb63f25bf20ee"
-  integrity sha512-xPrLjWkTT5E7H7VnzOjF//xBp9I40jYB4aWhb2xTFopXXfw+Wo82DDWngdUju7Doy3Wk7R8C4LAgwhLHHnf0wA==
+minio@8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/minio/-/minio-8.0.0.tgz#c712bace51232e20c30568ca160a41a5ac1d13ce"
+  integrity sha512-GkM/lk+Gzwd4fAQvLlB+cy3NV3PRADe0tNXnH9JD5BmdAHKIp+5vypptbjdkU85xWBIQsa2xK35GpXjmYXBBYA==
   dependencies:
     async "^3.2.4"
     block-stream2 "^2.1.0"
     browser-or-node "^2.1.1"
-    buffer-crc32 "^0.2.13"
+    buffer-crc32 "^1.0.0"
+    eventemitter3 "^5.0.1"
     fast-xml-parser "^4.2.2"
     ipaddr.js "^2.0.1"
-    json-stream "^1.0.0"
     lodash "^4.17.21"
     mime-types "^2.1.35"
     query-string "^7.1.3"
+    stream-json "^1.8.0"
     through2 "^4.0.2"
     web-encoding "^1.1.5"
-    xml "^1.0.1"
     xml2js "^0.5.0"
 
 minipass-collect@^1.0.2:
@@ -7491,6 +7489,11 @@ stream-browserify@^2.0.0:
     inherits "~2.0.1"
     readable-stream "^2.0.2"
 
+stream-chain@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/stream-chain/-/stream-chain-2.2.5.tgz#b30967e8f14ee033c5b9a19bbe8a2cba90ba0d09"
+  integrity sha512-1TJmBx6aSWqZ4tx7aTpBDXK0/e2hhcNSTV8+CbFJtDjbb+I1mZ8lHit0Grw9GRT+6JbIrrDd8esncgBi8aBXGA==
+
 stream-combiner2@^1.1.1:
   version "1.1.1"
   resolved "https://registry.npmjs.org/stream-combiner2/-/stream-combiner2-1.1.1.tgz"
@@ -7516,6 +7519,13 @@ stream-http@^2.0.0:
     readable-stream "^2.3.6"
     to-arraybuffer "^1.0.0"
     xtend "^4.0.0"
+
+stream-json@^1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/stream-json/-/stream-json-1.8.0.tgz#53f486b2e3b4496c506131f8d7260ba42def151c"
+  integrity sha512-HZfXngYHUAr1exT4fxlbc1IOce1RYxp2ldeaf97LYCOPSoOqY/1Psp7iGvpb+6JIOgkra9zDYnPX01hGAHzEPw==
+  dependencies:
+    stream-chain "^2.2.5"
 
 stream-splicer@^2.0.0:
   version "2.0.1"
@@ -8631,11 +8641,6 @@ xml2js@^0.5.0:
   dependencies:
     sax ">=0.6.0"
     xmlbuilder "~11.0.0"
-
-xml@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/xml/-/xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
-  integrity sha512-huCv9IH9Tcf95zuYCsQraZtWnJvBtLVE0QHMOs8bWyZAFZNDcYjsPq1nEx8jKA9y+Beo9v+7OBPRisQTjinQMw==
 
 xmlbuilder2@^2.4.0:
   version "2.4.1"
