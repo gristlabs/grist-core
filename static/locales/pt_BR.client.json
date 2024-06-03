@@ -114,7 +114,9 @@
         "Legacy": "Legado",
         "Personal Site": "Site pessoal",
         "Team Site": "Site da Equipe",
-        "Grist Templates": "Modelos de Grist"
+        "Grist Templates": "Modelos de Grist",
+        "Billing Account": "Conta de faturamento",
+        "Manage Team": "Gerenciar Equipe"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Este site da equipe está suspenso. Os documentos podem ser lidos, mas não modificados."
@@ -335,7 +337,17 @@
         "Notify other services on doc changes": "Notifique outros serviços em alterações doc",
         "Reload": "Recarregar",
         "Time Zone": "Fuso horário",
-        "python3 (recommended)": "python3 (recomendado)"
+        "python3 (recommended)": "python3 (recomendado)",
+        "Time reload": "Recarga de tempo",
+        "Timing is on": "O tempo está ligado",
+        "You can make changes to the document, then stop timing to see the results.": "Você pode fazer alterações no documento e, em seguida, interromper a cronometragem para ver os resultados.",
+        "Cancel": "Cancelar",
+        "Force reload the document while timing formulas, and show the result.": "Forçar o recarregamento do documento durante a cronometragem das fórmulas e mostrar o resultado.",
+        "Formula timer": "Temporizador de Fórmula",
+        "Reload data engine": "Recarregar o motor de dados",
+        "Reload data engine?": "Recarregar o motor de dados?",
+        "Start timing": "Iniciar cronometragem",
+        "Stop timing...": "Pare de cronometrar..."
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -557,7 +569,8 @@
         "Trash": "Lixeira",
         "Workspace will be moved to Trash.": "A Área de Trabalho será movida pra Lixeira.",
         "Workspaces": "Áreas de Trabalho",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Termos de serviço"
     },
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
@@ -1083,7 +1096,9 @@
         "Rule must return True or False": "A regra deve retornar Verdadeiro ou Falso",
         "Error in style rule": "Erro na regra de estilo",
         "Add another rule": "Adicionar outra regra",
-        "Add conditional style": "Adicionar estilo condicional"
+        "Add conditional style": "Adicionar estilo condicional",
+        "Conditional Style": "Estilo condicional",
+        "IF...": "SE..."
     },
     "CurrencyPicker": {
         "Invalid currency": "Moeda inválida"
@@ -1586,7 +1601,21 @@
         "Auto-check when this page loads": "Verificar automaticamente quando esta página carregar",
         "Checking for updates...": "Verificando atualizações...",
         "Error checking for updates": "Erro ao verificar atualizações",
-        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permite fórmulas muito poderosas, usando Python. Recomendamos definir a variável de ambiente GRIST_SANDBOX_FLAVOR para gvisor se o seu hardware o suporta (a maioria suportará), para executar fórmulas em cada documento dentro de uma caixa de areia isolada de outros documentos e isolada da rede."
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permite fórmulas muito poderosas, usando Python. Recomendamos definir a variável de ambiente GRIST_SANDBOX_FLAVOR para gvisor se o seu hardware o suporta (a maioria suportará), para executar fórmulas em cada documento dentro de uma caixa de areia isolada de outros documentos e isolada da rede.",
+        "Details": "Detalhes",
+        "No fault detected.": "Nenhuma falha detectada.",
+        "Notes": "Notas",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Ou, como alternativa, você pode definir: {{bootKey}} no ambiente e visitar: {{url}}",
+        "Results": "Resultados",
+        "Self Checks": "Autoverificações",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Você não tem acesso ao painel do administrador.\nFaça login como administrador.",
+        "Administrator Panel Unavailable": "Painel do administrador indisponível",
+        "Check succeeded.": "A verificação foi bem-sucedida.",
+        "Authentication": "Autenticação",
+        "Check failed.": "A verificação falhou.",
+        "Current authentication method": "Método de autenticação atual",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC.     Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "O Grist permite a configuração de diferentes tipos de autenticação, incluindo SAML e OIDC. Recomendamos ativar um desses tipos se o Grist for acessível pela rede ou estiver sendo disponibilizado para várias pessoas."
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -1651,5 +1680,15 @@
         "Custom": "Personalizado",
         "Table": "Tabela",
         "Form": "Formulário"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Tempo(s) médio(s)",
+        "Max Time (s)": "Tempo(s) máximo(s)",
+        "Total Time (s)": "Tempo(s) total(s)",
+        "Formula timer": "Temporizador de Fórmula",
+        "Column ID": "ID da Coluna",
+        "Loading timing data. Don't close this tab.": "Carregando dados de tempo. Não feche essa guia.",
+        "Number of Calls": "Número de chamadas",
+        "Table ID": "ID da tabela"
     }
 }
