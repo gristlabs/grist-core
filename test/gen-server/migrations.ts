@@ -116,6 +116,22 @@ describe('migrations', function() {
     // be doing something.
   });
 
+  it('can migrate UserUUID and UserUniqueRefUUID with user in table', async function() {
+    this.timeout(60000);
+    const runner = home.connection.createQueryRunner();
+    for (const migration of migrations) {
+      if (migration === UserUUID) {
+        // Create 400 users to test the chunk (each chunk is 300 users)
+        for (let i = 0; i < 400; i++) {
+          await runner.query(`INSERT INTO users (id, name, is_first_time_user) VALUES (${i}, 'name${i}', true)`);
+        }
+      }
+
+      await (new migration()).up(runner);
+    }
+    await addSeedData(home.connection);
+  });
+
   it('can correctly switch display_email column to non-null with data', async function() {
     this.timeout(60000);
     const sqlite = home.connection.driver.options.type === 'sqlite';

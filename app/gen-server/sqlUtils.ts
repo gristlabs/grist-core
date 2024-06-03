@@ -127,17 +127,6 @@ export function datetime(dbType: DatabaseType) {
   }
 }
 
-export function addParamToQuery(dbType: DatabaseType, index: number) {
-  switch (dbType) {
-    case 'postgres':
-      return `$${index}`;
-    case 'sqlite':
-      return `?`;
-    default:
-      throw new Error(`addParamToQuery not implemented for ${dbType}`);
-  }
-}
-
 export async function addRefToUserList(queryRunner: QueryRunner, userList: any[]){
   const dbType = queryRunner.connection.driver.options.type;
 
@@ -147,11 +136,14 @@ export async function addRefToUserList(queryRunner: QueryRunner, userList: any[]
   for (const users of userChunks) {
     await queryRunner.connection.transaction(async manager => {
       const queries = users.map((user: any, _index: number, _array: any[]) => {
-        return manager.query(
-          `UPDATE users
-          SET ref = ${addParamToQuery(dbType, 1)}
-          WHERE id = ${addParamToQuery(dbType, 2)}`,
-          [makeId(), user.id]);
+        switch (dbType) {
+          case 'postgres':
+            return manager.query(`UPDATE users SET ref = $1 WHERE id = $2`, [makeId(), user.id]);
+          case 'sqlite':
+            return manager.query(`UPDATE users SET ref = ? WHERE id = ?`, [makeId(), user.id]);
+          default:
+            throw new Error(`addParamToQuery not implemented for ${dbType}`);
+        }
       });
       await Promise.all(queries);
     });
