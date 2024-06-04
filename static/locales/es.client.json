@@ -282,7 +282,14 @@
         "python3 (recommended)": "python3 (recomendado)",
         "Cancel": "Cancelar",
         "Force reload the document while timing formulas, and show the result.": "Fuerza la recarga del documento mientras sincronizas las fórmulas y muestra el resultado.",
-        "Formula timer": "Temporizador de formulas"
+        "Formula timer": "Temporizador de formulas",
+        "Time reload": "Duración de la recarga",
+        "Timing is on": "El tiempo está activado",
+        "Start timing": "Iniciar cronometraje",
+        "Reload data engine": "Recargar el motor de datos",
+        "Reload data engine?": "¿Recargar motor de datos?",
+        "You can make changes to the document, then stop timing to see the results.": "Puede realizar cambios en el documento y luego detener el cronometraje para ver los resultados.",
+        "Stop timing...": "Dejando de cronometrar..."
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -478,7 +485,8 @@
         "Trash": "Papelera",
         "Workspace will be moved to Trash.": "El espacio de trabajo se moverá a la papelera.",
         "Workspaces": "Espacios de trabajo",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Términos del servicio"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de ayuda"
@@ -1167,7 +1175,9 @@
         "Error in style rule": "Error en la regla de estilo",
         "Rule must return True or False": "La regla debe regresar Verdadera o Falsa",
         "Add conditional style": "Añadir estilo condicional",
-        "Row Style": "Estilo de fila"
+        "Row Style": "Estilo de fila",
+        "IF...": "SI...",
+        "Conditional Style": "Estilo condicional"
     },
     "Reference": {
         "SHOW COLUMN": "MOSTRAR COLUMNA",
@@ -1581,7 +1591,21 @@
         "OK": "De acuerdo",
         "Sandbox settings for data engine": "Configuración del entorno de pruebas para el motor de datos",
         "unconfigured": "desconfigurado",
-        "Learn more.": "Más información."
+        "Learn more.": "Más información.",
+        "Authentication": "Autentificación",
+        "Check succeeded.": "Verificación exitosa.",
+        "Notes": "Notas",
+        "Administrator Panel Unavailable": "Panel de administrador no disponible",
+        "Check failed.": "La verificación falló.",
+        "Current authentication method": "Método de autenticación actual",
+        "Details": "Detalles",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist permite configurar diferentes tipos de autenticación, incluidos SAML y OIDC.     Recomendamos habilitar uno de estos si se puede acceder a Grist a través de la red o si está disponible     a varias personas.",
+        "No fault detected.": "No se detectó ningún error.",
+        "Results": "Resultados",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "O, como alternativa, puedes configurar: {{bootKey}} en el entorno y visita: {{url}}",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "No tienes acceso al panel de administrador.\nInicia sesión como administrador.",
+        "Self Checks": "Controles automáticos",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist permite configurar diferentes tipos de autenticación, incluidos SAML y OIDC. Recomendamos habilitar uno de estos si se puede acceder a Grist a través de la red o si está disponible para varias personas."
     },
     "CreateTeamModal": {
         "Cancel": "Cancelar",
@@ -1646,5 +1670,15 @@
         "Custom": "Personalizado",
         "Form": "Formulario",
         "Table": "Tabla"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Tiempo promedio (s)",
+        "Formula timer": "Temporizador de formulas",
+        "Loading timing data. Don't close this tab.": "Cargando datos del cronometraje. No cierres esta pestaña.",
+        "Number of Calls": "Número de llamadas",
+        "Table ID": "ID de la tabla",
+        "Total Time (s)": "Tiempo total (s)",
+        "Column ID": "ID de la columna",
+        "Max Time (s)": "Tiempo máximo (s)"
     }
 }
