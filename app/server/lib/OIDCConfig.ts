@@ -174,7 +174,7 @@ export class OIDCConfig {
       }
 
       const amr = tokenSet.claims().amr;
-      if (this._forceMfa && (!amr || !amr.includes("mfa"))) {
+      if (this._forceMfa) {
         if (!amr) {
           throw new Error('OIDCConfig: could not verify mfa status due to missing amr claim.');
         } else if (!amr.includes("mfa")) {
