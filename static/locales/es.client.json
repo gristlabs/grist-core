@@ -281,7 +281,8 @@
         "Python": "Python",
         "python3 (recommended)": "python3 (recomendado)",
         "Cancel": "Cancelar",
-        "Force reload the document while timing formulas, and show the result.": "Fuerza la recarga del documento mientras sincronizas las fórmulas y muestra el resultado."
+        "Force reload the document while timing formulas, and show the result.": "Fuerza la recarga del documento mientras sincronizas las fórmulas y muestra el resultado.",
+        "Formula timer": "Temporizador de formulas"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
