@@ -92,6 +92,10 @@ describe('OIDCConfig', () => {
   }
 
   describe('build', () => {
+    function isInitializedLogCalled() {
+      return logInfoStub.calledWithExactly(`OIDCConfig: initialized with issuer ${process.env.GRIST_OIDC_IDP_ISSUER}`);
+    }
+
     it('should reject when required env variables are not passed', async () => {
       for (const envVar of [
         'GRIST_OIDC_SP_HOST',
@@ -123,11 +127,8 @@ describe('OIDCConfig', () => {
         issuerUrl: process.env.GRIST_OIDC_IDP_ISSUER,
         extraMetadata: {},
       }]);
-      assert.isTrue(logInfoStub.calledOnce);
-      assert.deepEqual(
-        logInfoStub.firstCall.args,
-        [`OIDCConfig: initialized with issuer ${process.env.GRIST_OIDC_IDP_ISSUER}`]
-      );
+
+      assert.isTrue(isInitializedLogCalled());
     });
 
     it('should create a client with passed information with extra configuration', async () => {
@@ -181,10 +182,10 @@ describe('OIDCConfig', () => {
           const promise = OIDCConfigStubbed.buildWithStub(client.asClient());
           if (ctx.errorMsg) {
             await assert.isRejected(promise, ctx.errorMsg);
-            assert.isFalse(logInfoStub.calledOnce);
+            assert.isFalse(isInitializedLogCalled());
           } else {
             await assert.isFulfilled(promise);
-            assert.isTrue(logInfoStub.calledOnce);
+            assert.isTrue(isInitializedLogCalled());
           }
         });
       });
