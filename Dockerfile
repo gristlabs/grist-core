@@ -35,6 +35,12 @@ COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
 RUN yarn run build:prod
 
+# Prepare material for optional pyodide sandbox
+COPY sandbox/pyodide /grist/sandbox/pyodide
+COPY sandbox/requirements3.txt /grist/sandbox/requirements3.txt
+RUN \
+  cd /grist/sandbox/pyodide && make setup
+
 ################################################################################
 ## Python collection stage
 ################################################################################
@@ -107,6 +113,9 @@ ADD bower_components /grist/bower_components
 ADD sandbox /grist/sandbox
 ADD plugins /grist/plugins
 ADD static /grist/static
+
+# Make optional pyodide sandbox available
+COPY --from=builder /grist/sandbox/pyodide /grist/sandbox/pyodide
 
 # Finalize static directory
 RUN \
