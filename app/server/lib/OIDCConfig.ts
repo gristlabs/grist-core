@@ -231,7 +231,7 @@ export class OIDCConfig {
       if (Object.prototype.hasOwnProperty.call(err, 'response')) {
         log.error(`Response received: ${err.response?.body ?? err.response}`);
       }
-      // Delete the session data even if the login failed.
+      // Delete entirely the session data when the login failed.
       // This way, we prevent several login attempts.
       //
       // Also session deletion must be done before sending the response.
