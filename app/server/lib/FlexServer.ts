@@ -1123,6 +1123,7 @@ export class FlexServer implements GristServer {
         welcomeNewUser
       ],
       formMiddleware: [
+        this._userIdMiddleware,
         forcedLoginMiddleware,
       ],
       forceLogin: this._redirectToLoginUnconditionally,
