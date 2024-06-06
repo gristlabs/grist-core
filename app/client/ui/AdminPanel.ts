@@ -98,7 +98,7 @@ export class AdminPanel extends Disposable {
    * which could include a legit adminstrator if auth is misconfigured.
    */
   private _buildMainContentForOthers(owner: MultiHolder) {
-    const exampleKey = 'example-' + window.crypto.randomUUID();
+    const exampleKey = _longCodeForExample();
     return dom.create(AdminSection, t('Administrator Panel Unavailable'), [
       dom('p', t(`You do not have access to the administrator panel.
 Please log in as an administrator.`)),
@@ -649,3 +649,19 @@ export const cssLabel = styled('div', `
   text-align: right;
   padding-right: 5px;
 `);
+
+
+/**
+ * Make a long code to use in the example, so that if people copy
+ * and paste it lazily, they end up decently secure, or at least a
+ * lot more secure than a key like "REPLACE_WITH_YOUR_SECRET"
+ */
+function _longCodeForExample() {
+  // Crypto in insecure contexts doesn't have randomUUID
+  if (window.isSecureContext) {
+    return 'example-a' + window.crypto.randomUUID();
+  }
+  return 'example-b' + 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, () => {
+    return Math.floor(Math.random() * 16).toString(16);
+  });
+}
