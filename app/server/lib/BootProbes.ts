@@ -118,7 +118,7 @@ const _webSocketsProbe: Probe = {
         url,
       };
       ws.on('open', () => {
-        ws.send('Just nod if you can hear me.');
+        ws.send('{"msg": "Just nod if you can hear me."}');
         resolve({
           status: 'success',
           details,
