@@ -311,7 +311,9 @@ describe("ViewLayoutCollapse", function() {
 
     // Move back and drop.
     await gu.getSection(COMPANIES_CHART).getRect();
-    await move(getDragElement(COMPANIES_CHART));
+    await move(getDragElement(COMPANIES_CHART), {x : 50});
+    await driver.sleep(100);
+    await move(getDragElement(COMPANIES_CHART), {x : 100});
     await driver.sleep(100);
     await move(getDragElement(COMPANIES_CHART), {x : 200});
     await gu.waitToPass(async () => {
