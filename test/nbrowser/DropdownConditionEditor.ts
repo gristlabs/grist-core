@@ -30,7 +30,6 @@ describe('DropdownConditionEditor', function () {
           're\nc\n.Supervisor\n ',
         ]);
       });
-      await gu.sendKeysSlowly(['hoice not in $']);
       await gu.sendKeysSlowly(['hoice not in ']);
       // Attempts to reduce test flakiness by delaying input of $. Not guaranteed to do anything.
       await driver.sleep(100);
