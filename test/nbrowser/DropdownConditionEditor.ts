@@ -66,8 +66,13 @@ describe('DropdownConditionEditor', function () {
           'user.A\nc\ncess\n ',
         ]);
       });
-      await gu.sendKeysSlowly(['hoice not in $']);
+      await gu.sendKeysSlowly(['hoice not in ']);
+      // Attempts to reduce test flakiness by delaying input of $. Not guaranteed to do anything.
+      await driver.sleep(100);
+      await gu.sendKeys('$');
       await gu.waitToPass(async () => {
+        // This test is sometimes flaky here. It will consistently return the wrong value, usually an array of
+        // empty strings. The running theory is it's an issue in Ace editor.
         const completions = await driver.findAll('.ace_autocomplete .ace_line', el => el.getText());
         assert.deepEqual(completions, [
           '$\nName\n ',
