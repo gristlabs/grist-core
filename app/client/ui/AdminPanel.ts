@@ -661,7 +661,7 @@ function _longCodeForExample() {
   if (window.isSecureContext) {
     return 'example-a' + window.crypto.randomUUID();
   }
-  return 'example-b' + 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, () => {
+  return 'example-b' + 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/x/g, () => {
     return Math.floor(Math.random() * 16).toString(16);
   });
 }
