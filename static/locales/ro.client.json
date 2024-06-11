@@ -245,7 +245,8 @@
         "Home Page": "Pagina principală",
         "Team Site": "Spaţiul echipei",
         "Legacy": "Versiune veche",
-        "Grist Templates": "Șabloane Grist"
+        "Grist Templates": "Șabloane Grist",
+        "Manage Team": "Gestionează echipa"
     },
     "ViewAsDropdown": {
         "View As": "Vizualizare ca",
@@ -842,7 +843,12 @@
         "Python": "Python",
         "Python version used": "Versiunea Python folosită",
         "Reload": "Reîncarcă",
-        "For number and date formats": "Pentru formatele de număr și dată"
+        "For number and date formats": "Pentru formatele de număr și dată",
+        "Cancel": "Anulează",
+        "Start timing": "Începe cronometrarea",
+        "Manage webhooks": "Gestionează ancore Web",
+        "Stop timing...": "Oprește cronometrarea...",
+        "python3 (recommended)": "python3 (recomandat)"
     },
     "ColumnTitle": {
         "Column ID copied to clipboard": "ID-ul coloanei a fost copiat în clipboard",

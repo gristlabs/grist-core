@@ -114,7 +114,9 @@
         "Legacy": "Hinterlassenschaft",
         "Personal Site": "Persönliche Seite",
         "Team Site": "Teamseite",
-        "Grist Templates": "Grist Vorlagen"
+        "Grist Templates": "Grist Vorlagen",
+        "Billing Account": "Abrechnungskonto",
+        "Manage Team": "Team verwalten"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Diese Teamseite ist gesperrt. Die Dokumente können gelesen, aber nicht geändert werden."
@@ -335,7 +337,17 @@
         "Data Engine": "Datenmaschine",
         "Default for DateTime columns": "Standard für DateTime-Spalten",
         "Document ID": "Dokument-ID",
-        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Dokument-ID, die bei Aufrufen der REST-API für {{docId}} zu verwenden ist. Siehe {{apiURL}}"
+        "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Dokument-ID, die bei Aufrufen der REST-API für {{docId}} zu verwenden ist. Siehe {{apiURL}}",
+        "Reload data engine": "Datenmaschine neu laden",
+        "Reload data engine?": "Datenmaschine neu laden?",
+        "Start timing": "Startzeitpunkt",
+        "Stop timing...": "Stoppt die Zeitmessung...",
+        "Time reload": "Zeit nachladen",
+        "Force reload the document while timing formulas, and show the result.": "Erzwingen Sie das Neuladen des Dokuments während der Zeitmessung von Formeln, und zeigen Sie das Ergebnis an.",
+        "Formula timer": "Formel Timer",
+        "Cancel": "Abbrechen",
+        "Timing is on": "Das Timing läuft",
+        "You can make changes to the document, then stop timing to see the results.": "Sie können Änderungen an dem Dokument vornehmen und dann die Zeitmessung stoppen, um die Ergebnisse zu sehen."
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
@@ -557,7 +569,8 @@
         "Trash": "Papierkorb",
         "Workspace will be moved to Trash.": "Der Arbeitsbereich wird in den Papierkorb verschoben.",
         "Workspaces": "Arbeitsbereiche",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Nutzungsbedingungen"
     },
     "Importer": {
         "Merge rows that match these fields:": "Zeilen zusammenführen, die mit diesen Feldern übereinstimmen:",
@@ -1099,7 +1112,9 @@
         "Error in style rule": "Fehler in der Stilregel",
         "Rule must return True or False": "Regel muss wahr oder falsch zurückgeben",
         "Add another rule": "Eine weitere Regel hinzufügen",
-        "Row Style": "Zeilenstil"
+        "Row Style": "Zeilenstil",
+        "IF...": "WENN...",
+        "Conditional Style": "Bedingter Stil"
     },
     "CurrencyPicker": {
         "Invalid currency": "Ungültige Währung"
@@ -1582,7 +1597,21 @@
         "unconfigured": "unkonfiguriert",
         "unknown": "unbekannt",
         "Check now": "Jetzt prüfen",
-        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist ermöglicht sehr leistungsfähige Formeln, die Python verwenden. Wir empfehlen, die Umgebungsvariable GRIST_SANDBOX_FLAVOR auf gvisor zu setzen, wenn Ihre Hardware dies unterstützt (was bei den meisten der Fall ist), um Formeln in jedem Dokument innerhalb einer Sandbox auszuführen, die von anderen Dokumenten und vom Netzwerk isoliert ist."
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist ermöglicht sehr leistungsfähige Formeln, die Python verwenden. Wir empfehlen, die Umgebungsvariable GRIST_SANDBOX_FLAVOR auf gvisor zu setzen, wenn Ihre Hardware dies unterstützt (was bei den meisten der Fall ist), um Formeln in jedem Dokument innerhalb einer Sandbox auszuführen, die von anderen Dokumenten und vom Netzwerk isoliert ist.",
+        "Results": "Ergebnisse",
+        "Self Checks": "Selbstkontrolle",
+        "Check failed.": "Prüfung fehlgeschlagen.",
+        "Administrator Panel Unavailable": "Administrator-Panel Nicht verfügbar",
+        "Authentication": "Authentifizierung",
+        "Check succeeded.": "Prüfung gelungen.",
+        "Notes": "Anmerkungen",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Sie haben keinen Zugriff auf das Administrator-Panel.\nBitte melden Sie sich als Administrator an.",
+        "Current authentication method": "Aktuelle Authentifizierungsmethode",
+        "Details": "Details",
+        "No fault detected.": "Kein Fehler erkannt.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "In Grist können verschiedene Arten der Authentifizierung konfiguriert werden, darunter SAML und OIDC.     Wir empfehlen, eine davon zu aktivieren, wenn Grist über das Netzwerk zugänglich ist oder mehreren Personen zur Verfügung gestellt wird.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "Als Ausweichmöglichkeit können Sie auch {{bootKey}} in der Umgebung einstellen und {{url}} besuchen",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "In Grist können verschiedene Arten der Authentifizierung konfiguriert werden, darunter SAML und OIDC. Wir empfehlen, eine davon zu aktivieren, wenn Grist über das Netzwerk zugänglich ist oder mehreren Personen zur Verfügung gestellt wird."
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1651,5 +1680,15 @@
         "Table": "Tabelle",
         "Chart": "Diagramm",
         "Custom": "Benutzerdefiniert"
+    },
+    "TimingPage": {
+        "Max Time (s)": "Max Zeit(en)",
+        "Number of Calls": "Anzahl der Anrufe",
+        "Table ID": "Tabelle ID",
+        "Total Time (s)": "Gesamtzeit(en)",
+        "Formula timer": "Formel Timer",
+        "Average Time (s)": "Durchschnittliche Zeit(en)",
+        "Loading timing data. Don't close this tab.": "Zeitpunktsdaten laden. Schließen Sie diese Registerkarte nicht.",
+        "Column ID": "Spalte ID"
     }
 }
