@@ -14,6 +14,7 @@ import depend
 import gencode
 from acl_formula import parse_acl_formulas
 from dropdown_condition import parse_dropdown_conditions
+import dropdown_condition
 import actions
 import column
 import sort_specs
@@ -719,6 +720,8 @@ class UserActions(object):
             raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
     make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
+
+    dropdown_condition.perform_dropdown_condition_renames(self, renames)
 
     rename_summary_tables = set()
     for c, values in update_pairs:
