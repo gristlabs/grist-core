@@ -334,6 +334,17 @@ export class Telemetry implements ITelemetry {
     try {
       this._numPendingForwardEventRequests += 1;
       const {category: eventCategory} = TelemetryContracts[event];
+
+      if (metadata) {
+        if ('installationId' in metadata ||
+            'eventSource' in metadata ||
+            'eventName' in metadata ||
+            'eventCategory' in metadata)
+        {
+          throw new Error('metadata contains reserved keys');
+        }
+      }
+
       await this._doForwardEvent(JSON.stringify({
         event,
         metadata: {

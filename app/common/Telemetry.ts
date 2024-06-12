@@ -1746,7 +1746,7 @@ export const TelemetryContracts: TelemetryContracts = {
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
-      installationId: {
+      deploymentId: {
         description: 'The installation id of the client.',
         dataType: 'string',
       },
