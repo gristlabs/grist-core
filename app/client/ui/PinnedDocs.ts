@@ -1,5 +1,6 @@
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import {DocPageModel} from 'app/client/models/DocPageModel';
 import {HomeModel} from 'app/client/models/HomeModel';
 import {makeDocOptionsMenu, makeRemovedDocOptionsMenu} from 'app/client/ui/DocMenu';
 import {transientInput} from 'app/client/ui/transientInput';
@@ -18,18 +19,18 @@ const testId = makeTestId('test-dm-');
  *
  * Used only by DocMenu.
  */
-export function createPinnedDocs(home: HomeModel, docs: Observable<Document[]>, isExample = false) {
+export function createPinnedDocs(home: HomeModel, page: DocPageModel, docs: Observable<Document[]>, isExample = false) {
   return pinnedDocList(
-    dom.forEach(docs, doc => buildPinnedDoc(home, doc, doc.workspace, isExample)),
+    dom.forEach(docs, doc => buildPinnedDoc(home, page, doc, doc.workspace, isExample)),
     testId('pinned-doc-list'),
   );
 }
 
 /**
  * Build a single doc card with a preview and name. A misnomer because it's now used not only for
- * pinned docs, but also for the thumnbails (aka "icons") view mode.
+ * pinned docs, but also for the thumbnails (aka "icons") view mode.
  */
-export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Workspace, isExample = false): HTMLElement {
+export function buildPinnedDoc(home: HomeModel, page: DocPageModel, doc: Document, workspace: Workspace, isExample = false): HTMLElement {
   const renaming = observable<Document|null>(null);
   const isRenamingDoc = computed((use) => use(renaming) === doc);
   return pinnedDocWrapper(
@@ -82,7 +83,7 @@ export function buildPinnedDoc(home: HomeModel, doc: Document, workspace: Worksp
         pinnedDocOptions(icon('Dots'), testId('pinned-doc-options')),
       ] :
       pinnedDocOptions(icon('Dots'),
-        menu(() => makeDocOptionsMenu(home, doc, renaming),
+        menu(() => makeDocOptionsMenu(home, page, doc, renaming),
           {placement: 'bottom-start'}),
         // Clicks on the menu trigger shouldn't follow the link that it's contained in.
         dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),

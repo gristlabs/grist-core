@@ -6,12 +6,14 @@
 import {loadUserManager} from 'app/client/lib/imports';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {reportError} from 'app/client/models/AppModel';
-import {docUrl, urlState} from 'app/client/models/gristUrlState';
+import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {DocPageModel} from 'app/client/models/DocPageModel';
 import {HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {attachAddNewTip} from 'app/client/ui/AddNewTip';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro, buildWorkspaceIntro} from 'app/client/ui/HomeIntro';
+import {makeCopy} from 'app/client/ui/MakeCopyMenu';
 import {buildUpgradeButton} from 'app/client/ui/ProductUpgrades';
 import {buildTutorialCard} from 'app/client/ui/TutorialCard';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
@@ -49,13 +51,13 @@ const testId = makeTestId('test-dm-');
  * Usage:
  *    dom('div', createDocMenu(homeModel))
  */
-export function createDocMenu(home: HomeModel): DomElementArg[] {
+export function createDocMenu(home: HomeModel, page: DocPageModel): DomElementArg[] {
   return [
     attachWelcomePopups(home),
     dom.domComputed(home.loading, loading => (
       loading === 'slow' ? css.spinner(loadingSpinner()) :
       loading ? null :
-      dom.create(createLoadedDocMenu, home)
+        dom.create(createLoadedDocMenu, home, page)
     ))
   ];
 }
@@ -71,7 +73,7 @@ function attachWelcomePopups(home: HomeModel): (el: Element) => void {
   };
 }
 
-function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
+function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel, pageModel: DocPageModel) {
   const flashDocId = observable<string|null>(null);
   const upgradeButton = buildUpgradeButton(owner, home.app);
   return css.docList( /* vbox */
@@ -112,7 +114,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
             // removes all pinned docs when on trash page.
             dom.maybe((use) => use(home.currentWSPinnedDocs).length > 0, () => [
               css.docListHeader(css.pinnedDocsIcon('PinBig'), t("Pinned Documents")),
-              createPinnedDocs(home, home.currentWSPinnedDocs),
+              createPinnedDocs(home, pageModel, home.currentWSPinnedDocs),
             ]),
 
             // Build the featured templates dom if on the Examples & Templates page.
@@ -122,7 +124,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                 t("Featured"),
                 testId('featured-templates-header')
               ),
-              createPinnedDocs(home, home.featuredTemplates, true),
+              createPinnedDocs(home, pageModel, home.featuredTemplates, true),
             ]),
 
             dom.maybe(home.available, () => [
@@ -146,8 +148,8 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                 (page === 'all') ?
                   dom('div',
                     showIntro ? buildHomeIntro(home) : null,
-                    buildAllDocsBlock(home, home.workspaces, showIntro, flashDocId, viewSettings),
-                    shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, viewSettings) : null,
+                    buildAllDocsBlock(home, pageModel, home.workspaces, showIntro, flashDocId, viewSettings),
+                    shouldShowTemplates(home, showIntro) ? buildAllDocsTemplates(home, pageModel, viewSettings) : null,
                   ) :
                 (page === 'trash') ?
                   dom('div',
@@ -155,15 +157,15 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                     dom.maybe((use) => use(home.trashWorkspaces).length === 0, () =>
                       css.docBlock(t("Trash is empty."))
                     ),
-                    buildAllDocsBlock(home, home.trashWorkspaces, false, flashDocId, viewSettings),
+                    buildAllDocsBlock(home, pageModel, home.trashWorkspaces, false, flashDocId, viewSettings),
                   ) :
                 (page === 'templates') ?
                   dom('div',
-                    buildAllTemplates(home, home.templateWorkspaces, viewSettings)
+                    buildAllTemplates(home, pageModel, home.templateWorkspaces, viewSettings)
                   ) :
                   workspace && !workspace.isSupportWorkspace && workspace.docs?.length ?
                     css.docBlock(
-                      buildWorkspaceDocBlock(home, workspace, flashDocId, viewSettings),
+                      buildWorkspaceDocBlock(home, pageModel, workspace, flashDocId, viewSettings),
                       testId('doc-block')
                     ) :
                   workspace && !workspace.isSupportWorkspace && workspace.docs?.length === 0 ?
@@ -188,7 +190,7 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
 }
 
 function buildAllDocsBlock(
-  home: HomeModel, workspaces: Observable<Workspace[]>,
+  home: HomeModel, page: DocPageModel, workspaces: Observable<Workspace[]>,
   showIntro: boolean, flashDocId: Observable<string|null>, viewSettings: ViewSettings,
 ) {
   return dom.forEach(workspaces, (ws) => {
@@ -220,7 +222,7 @@ function buildAllDocsBlock(
 
         testId('ws-header'),
       ),
-      buildWorkspaceDocBlock(home, ws, flashDocId, viewSettings),
+      buildWorkspaceDocBlock(home, page, ws, flashDocId, viewSettings),
       testId('doc-block')
     );
   });
@@ -232,7 +234,7 @@ function buildAllDocsBlock(
  *
  * If there are no featured templates, builds nothing.
  */
-function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
+function buildAllDocsTemplates(home: HomeModel, page: DocPageModel, viewSettings: ViewSettings) {
   return dom.domComputed(home.featuredTemplates, templates => {
     if (templates.length === 0) { return null; }
 
@@ -251,7 +253,7 @@ function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
         createVideoTourTextButton(),
       ),
       dom.maybe((use) => !use(hideTemplatesObs), () => [
-        buildTemplateDocs(home, templates, viewSettings),
+        buildTemplateDocs(home, page, templates, viewSettings),
         bigBasicButton(
           t("Discover More Templates"),
           urlState().setLinkUrl({homePage: 'templates'}),
@@ -273,7 +275,7 @@ function buildAllDocsTemplates(home: HomeModel, viewSettings: ViewSettings) {
  *
  * Used on the Examples & Templates below the featured templates.
  */
-function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Workspace[]>, viewSettings: ViewSettings) {
+function buildAllTemplates(home: HomeModel, page: DocPageModel, templateWorkspaces: Observable<Workspace[]>, viewSettings: ViewSettings) {
   return dom.forEach(templateWorkspaces, workspace => {
     return css.templatesDocBlock(
       css.templateBlockHeader(
@@ -283,7 +285,7 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
         ),
         testId('templates-header'),
       ),
-      buildTemplateDocs(home, workspace.docs, viewSettings),
+      buildTemplateDocs(home, page, workspace.docs, viewSettings),
       css.docBlock.cls((use) => '-' + use(viewSettings.currentView)),
       testId('templates'),
     );
@@ -371,7 +373,7 @@ function buildPrefs(
 }
 
 
-function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocId: Observable<string|null>,
+function buildWorkspaceDocBlock(home: HomeModel, page: DocPageModel, workspace: Workspace, flashDocId: Observable<string|null>,
                                 viewSettings: ViewSettings) {
   const renaming = observable<Document|null>(null);
 
@@ -385,7 +387,7 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
     return dom.forEach(docs, doc => {
       if (view === 'icons') {
         return dom.update(
-          buildPinnedDoc(home, doc, workspace),
+          buildPinnedDoc(home, page, doc, workspace),
           testId('doc'),
         );
       }
@@ -420,7 +422,7 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
               css.docMenuTrigger(icon('Dots'), testId('doc-options')),
             ] :
             css.docMenuTrigger(icon('Dots'),
-              menu(() => makeDocOptionsMenu(home, doc, renaming),
+              menu(() => makeDocOptionsMenu(home, page, doc, renaming),
                 {placement: 'bottom-start', parentSelectorToMark: '.' + css.docRowWrapper.className}),
               // Clicks on the menu trigger shouldn't follow the link that it's contained in.
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
@@ -478,7 +480,7 @@ async function doRename(home: HomeModel, doc: Document, val: string, flashDocId:
 //  losing the doc that was e.g. just renamed.
 
 // Exported because also used by the PinnedDocs component.
-export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Observable<Document|null>) {
+export function makeDocOptionsMenu(home: HomeModel, page: DocPageModel, doc: Document, renaming: Observable<Document|null>) {
   const org = home.app.currentOrg;
   const orgAccess: roles.Role|null = org ? org.access : null;
 
@@ -528,6 +530,16 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document, renaming: Obs
       doc.isPinned ? t("Unpin Document"): t("Pin Document"),
       dom.cls('disabled', !roles.canEdit(orgAccess)),
       testId('pin-doc')
+    ),
+    menuItem(() => {
+        const {appModel} = page;
+        if (!appModel.currentValidUser) {
+          page.clearUnsavedChanges();
+          window.location.href = getLoginOrSignupUrl({srcDocId: urlState().state.get().doc});
+          return;
+        }
+        return makeCopy({pageModel: page, doc, modalTitle: t("Duplicate Document")});
+      }, t("Duplicate Document")
     ),
     menuItem(manageUsers, roles.canEditAccess(doc.access) ? t("Manage Users"): t("Access Details"),
       testId('doc-access')

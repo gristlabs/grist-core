@@ -2,6 +2,7 @@ import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {theme} from 'app/client/ui2018/cssVars';
 import {Document, Workspace} from 'app/common/UserAPI';
 import {dom, makeTestId, styled} from 'grainjs';
+import {DocPageModel} from 'app/client/models/DocPageModel';
 import {HomeModel, ViewSettings} from 'app/client/models/HomeModel';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildPinnedDoc} from 'app/client/ui/PinnedDocs';
@@ -12,7 +13,7 @@ const testId = makeTestId('test-dm-');
 /**
  * Builds all `templateDocs` according to the specified `viewSettings`.
  */
- export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], viewSettings: ViewSettings) {
+export function buildTemplateDocs(home: HomeModel, page: DocPageModel, templateDocs: Document[], viewSettings: ViewSettings) {
   const {currentView, currentSort} = viewSettings;
   return dom.domComputed((use) => [use(currentView), use(currentSort)] as const, (opts) => {
     const [view, sort] = opts;
@@ -21,7 +22,7 @@ const testId = makeTestId('test-dm-');
     if (sort === 'date') {
       sortedDocs = sortBy(templateDocs, (d) => d.removedAt || d.updatedAt).reverse();
     }
-    return cssTemplateDocs(dom.forEach(sortedDocs, d => buildTemplateDoc(home, d, d.workspace, view)));
+    return cssTemplateDocs(dom.forEach(sortedDocs, d => buildTemplateDoc(home, page, d, d.workspace, view)));
   });
 }
 
@@ -34,9 +35,9 @@ const testId = makeTestId('test-dm-');
  * If `view` is set to 'icons', the template will be rendered
  * as a clickable tile that includes a title, image and description.
  */
-function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, view: 'list'|'icons') {
+function buildTemplateDoc(home: HomeModel, page: DocPageModel, doc: Document, workspace: Workspace, view: 'list'|'icons') {
   if (view === 'icons') {
-    return buildPinnedDoc(home, doc, workspace, true);
+    return buildPinnedDoc(home, page, doc, workspace, true);
   } else {
     return css.docRowWrapper(
       cssDocRowLink(
