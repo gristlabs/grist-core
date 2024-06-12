@@ -31,6 +31,7 @@ import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import * as moment from 'moment-timezone';
+import {DocumentType} from 'app/common/UserAPI';
 
 const t = makeT('DocumentSettings');
 const testId = makeTestId('test-settings-');
@@ -41,6 +42,7 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  // private _type: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('type');
   private _engine: Computed<EngineCode|undefined> = Computed.create(this, (
     use => use(this._docInfo.documentSettingsJson.prop('engine'))
   ))
@@ -194,6 +196,14 @@ export class DocSettingsPage extends Disposable {
           value: cssSmallLinkButton(t('Manage webhooks'), urlState().setLinkUrl({docPage: 'webhook'})),
         }),
       ]),
+      dom.create(AdminSection, t('Document conversion'), [
+        dom.create(AdminSectionItem, {
+          id: 'document-type',
+          name: t('Document type'),
+          description: t('Convert the document'),
+          value: dom.create(buildTypeSelect, docPageModel.type, docPageModel.currentDocId.get()),
+        }),
+      ]),
     );
   }
 
@@ -298,7 +308,15 @@ export class DocSettingsPage extends Disposable {
   }
 }
 
-
+function persistType(type: string|null, docId: string|undefined){
+  docId = docId?.split("~")[0];
+  return fetch(`/o/docs/api/docs/${docId}`,
+    { method:'PATCH',
+      headers: {"Content-Type": "application/json"},
+      credentials: 'include',
+      body:JSON.stringify({type})
+    }).catch((err)=>{ console.log(err); });
+}
 
 function getApiConsoleLink(docPageModel: DocPageModel) {
   const url = new URL(location.href);
@@ -341,6 +359,45 @@ function buildLocaleSelect(
     },
     testId("locale-autocomplete")
   );
+}
+
+type DocumentTypeItem = ACSelectItem & {type?: string};
+
+function buildTypeSelect(
+  owner: IDisposableOwner,
+  type: Observable<DocumentType|null>,
+  id: string|undefined,
+) {
+  const typeList: DocumentTypeItem[] = [{
+    label: t('Regular'),
+    type: ''
+  }, {
+    label: t('Template'),
+    type: 'template'
+  },
+  {
+    label: t('Tutorial'),
+    type: 'tutorial'
+  }].map((el) => ({
+    ...el,
+    value: el.label,
+    cleanText: el.label.trim().toLowerCase()
+  }));
+  const typeObs = Computed.create(owner, use => {
+    const typeCode = use(type)??"";
+    const typeName = typeList.find(ty => ty.type === typeCode)?.label || typeCode;
+    return typeName;
+  });
+  const acIndex = new ACIndexImpl<DocumentTypeItem>(typeList, {maxResults: 200, keepOrder: true});
+  return buildACSelect(owner, {
+    acIndex, valueObs: typeObs,
+    save(_value, item: DocumentTypeItem | undefined) {
+      if (!item) { throw new Error("Invalid DocumentType"); }
+      persistType(item.type!, id)
+        .then(()=>window.location.reload())
+        .catch(err=>console.log(err));
+    }
+  });
 }
 
 const cssContainer = styled('div', `

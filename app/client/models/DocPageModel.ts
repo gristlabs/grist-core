@@ -29,6 +29,7 @@ import {Holder, Observable, subscribe} from 'grainjs';
 import {Computed, Disposable, dom, DomArg, DomElementArg} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
+import {DocumentType} from 'app/common/UserAPI';
 
 // tslint:disable:no-console
 
@@ -87,7 +88,7 @@ export interface DocPageModel {
   isTutorialTrunk: Observable<boolean>;
   isTutorialFork: Observable<boolean>;
   isTemplate: Observable<boolean>;
-
+  type: Observable<DocumentType|null>;
   importSources: ImportSource[];
 
   undoState: Observable<IUndoState|null>;          // See UndoStack for details.
@@ -147,6 +148,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     (use, doc) => doc ? doc.isTutorialFork : false);
   public readonly isTemplate = Computed.create(this, this.currentDoc,
     (use, doc) => doc ? doc.isTemplate : false);
+  public readonly type = Computed.create(this, this.currentDoc,
+    (use, doc) => doc?.type?? null);
 
   public readonly importSources: ImportSource[] = [];
 
@@ -499,7 +502,8 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const isFork = Boolean(idParts.forkId || idParts.snapshotId);
   const isBareFork = isFork && idParts.trunkId === NEW_DOCUMENT_CODE;
   const isSnapshot = Boolean(idParts.snapshotId);
-  const isTutorial = doc.type === 'tutorial';
+  const type = doc.type;
+  const isTutorial = type === 'tutorial';
   const isTutorialTrunk = isTutorial && !isFork && mode !== 'default';
   const isTutorialFork = isTutorial && isFork;
 
@@ -511,7 +515,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
       // mode. Since the document's 'openMode' has no effect, don't bother trying
       // to set it here, as it'll potentially be confusing for other code reading it.
       openMode = 'default';
-    } else if (!isFork && doc.type === 'template') {
+    } else if (!isFork && type === 'template') {
       // Templates should always open in fork mode by default.
       openMode = 'fork';
     } else {
@@ -521,7 +525,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   }
 
   const isPreFork = openMode === 'fork';
-  const isTemplate = doc.type === 'template' && (isFork || isPreFork);
+  const isTemplate = type === 'template' && (isFork || isPreFork);
   const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
   return {
     ...doc,
@@ -534,6 +538,7 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
     isSnapshot,
     isTutorialTrunk,
     isTutorialFork,
+    type,
     isTemplate,
     isReadonly: !isEditable,
     idParts,
