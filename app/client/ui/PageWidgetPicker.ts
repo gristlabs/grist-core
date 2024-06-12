@@ -99,21 +99,36 @@ const testId = makeTestId('test-wselect-');
 
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
-function getCompatibleTypes(tableId: TableRef, isNewPage: boolean|undefined): IWidgetType[] {
+function getCompatibleTypes(tableId: TableRef, isNewPage: boolean|undefined, summarize: boolean): IWidgetType[] {
+  let compatibleTypes: Array<IWidgetType> = [];
   if (tableId !== 'New Table') {
-    return ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
+    compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
-    return ['record', 'form'];
+    compatibleTypes =['record', 'form'];
   } else {
     // The type 'chart' makes little sense when creating a new table.
-    return ['record', 'single', 'detail', 'form'];
+    compatibleTypes = ['record', 'single', 'detail', 'form'];
   }
+  if (summarize) {
+    return compatibleTypes.filter((el)=> !['form'].includes(el));
+  }
+  return compatibleTypes;
+}
+
+// The Picker disables some choices that do not make much sense.
+// This function return a boolean telling if summary can be used with this type.
+function isSummaryCompatible(tableId: IWidgetType): boolean{
+  const incompatibleTypes: Array<IWidgetType> = ['form'];
+  if (incompatibleTypes.indexOf(tableId) > -1){
+    return false;
+  }
+  return true;
 }
 
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
-function isValidSelection(table: TableRef, type: IWidgetType, isNewPage: boolean|undefined) {
-  return table !== null && getCompatibleTypes(table, isNewPage).includes(type);
+function isValidSelection(table: TableRef, type: IWidgetType, isNewPage: boolean|undefined, summarize: boolean) {
+  return table !== null && getCompatibleTypes(table, isNewPage, summarize).includes(type);
 }
 
 export type ISaveFunc = (val: IPageWidget) => Promise<any>;
@@ -213,7 +228,7 @@ export function buildPageWidgetPicker(
 
   // whether the current selection is valid
   function isValid() {
-    return isValidSelection(value.table.get(), value.type.get(), options.isNewPage);
+    return isValidSelection(value.table.get(), value.type.get(), options.isNewPage, value.summarize.get());
   }
 
   // Summarizing a table causes the 'Group By' panel to expand on the right. To prevent it from
@@ -299,7 +314,7 @@ export class PageWidgetSelect extends Disposable {
     null;
 
   private _isNewTableDisabled = Computed.create(this, this._value.type, (use, type) => !isValidSelection(
-    'New Table', type, this._options.isNewPage));
+    'New Table', type, this._options.isNewPage, use(this._value.summarize)));
 
   constructor(
     private _value: IWidgetValueObs,
@@ -318,7 +333,9 @@ export class PageWidgetSelect extends Disposable {
           header(t("Select Widget")),
           sectionTypes.map((value) => {
             const widgetInfo = getWidgetTypes(value);
-            const disabled = computed(this._value.table, (use, tid) => this._isTypeDisabled(value, tid));
+            const disabled = computed(this._value.table,
+              (use, tid) => this._isTypeDisabled(value, tid, use(this._value.summarize))
+            );
             return cssEntry(
               dom.autoDispose(disabled),
               cssTypeIcon(widgetInfo.icon),
@@ -355,11 +372,12 @@ export class PageWidgetSelect extends Disposable {
                        cssEntry.cls('-selected', (use) => use(this._value.table) === table.id()),
                        testId('table-label')
               ),
-              cssPivot(
-                cssBigIcon('Pivot'),
-                cssEntry.cls('-selected', (use) => use(this._value.summarize) && use(this._value.table) === table.id()),
-                dom.on('click', (ev, el) => this._selectPivot(table.id(), el as HTMLElement)),
-                testId('pivot'),
+                cssPivot(
+                  cssBigIcon('Pivot'),
+                  cssEntry.cls('-selected', (use) => use(this._value.summarize) && use(this._value.table) === table.id()),
+                  cssEntry.cls('-disabled', (use) => !isSummaryCompatible(use(this._value.type))),
+                  dom.on('click', (ev, el) => this._selectPivot(table.id(), el as HTMLElement)),
+                  testId('pivot'),
               ),
               testId('table'),
             )
@@ -410,7 +428,7 @@ export class PageWidgetSelect extends Disposable {
             // there are no changes.
             this._options.buttonLabel || t("Add to Page"),
             dom.prop('disabled', (use) => !isValidSelection(
-              use(this._value.table), use(this._value.type), this._options.isNewPage)
+              use(this._value.table), use(this._value.type), this._options.isNewPage, use(this._value.summarize))
             ),
             dom.on('click', () => this._onSave().catch(reportError)),
             testId('addBtn'),
@@ -431,6 +449,9 @@ export class PageWidgetSelect extends Disposable {
 
   private _selectType(type: IWidgetType) {
     this._value.type.set(type);
+    if (!isSummaryCompatible(type)) {
+      this._closeSummarizePanel();
+    }
   }
 
   private _selectTable(tid: TableRef) {
@@ -464,11 +485,11 @@ export class PageWidgetSelect extends Disposable {
     this._value.columns.set(newIds);
   }
 
-  private _isTypeDisabled(type: IWidgetType, table: TableRef) {
+  private _isTypeDisabled(type: IWidgetType, table: TableRef, isSummaryOn: boolean) {
     if (table === null) {
       return false;
     }
-    return !getCompatibleTypes(table, this._options.isNewPage).includes(type);
+    return !getCompatibleTypes(table, this._options.isNewPage, isSummaryOn).includes(type);
   }
 
 }
@@ -535,6 +556,7 @@ const cssEntry = styled('div', `
   &-disabled {
     color: ${theme.widgetPickerItemDisabledBg};
     cursor: default;
+    pointer-events: none;
   }
   &-disabled&-selected {
     background-color: inherit;
@@ -578,6 +600,10 @@ const cssBigIcon = styled(icon, `
   width: 24px;
   height: 24px;
   background-color: ${theme.widgetPickerSummaryIcon};
+  .${cssEntry.className}-disabled > & {
+    opacity: 0.25;
+    filter: saturate(0);
+  }
 `);
 
 const cssFooter = styled('div', `
