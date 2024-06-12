@@ -69,8 +69,9 @@ const SHORT_CLICK_IN_MS = 500;
 
 // size of the plus width ()
 const PLUS_WIDTH = 40;
-// size of the row number field (we assume 4rem)
-const ROW_NUMBER_WIDTH = 52;
+// size of the row number field (we assume 4rem
+const ROW_NUMBER_WIDTH_REM = 4;
+const ROW_NUMBER_WIDTH_PX = 3.25 * ROW_NUMBER_WIDTH_REM; // 52px
 
 /**
  * GridView component implements the view of a grid of cells.
@@ -179,14 +180,14 @@ function GridView(gristDoc, viewSectionModel, isPreview = false) {
     const revealWidth = lastField ? lastField.widthDef() : 0;
     // calculate the offset: start from zero, then move all left to hide frozen columns,
     // then to right to fill whole width, then to left to reveal last column and plus button
-    const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() - revealWidth - PLUS_WIDTH;
+    const initialOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH_PX + this.width() - revealWidth - PLUS_WIDTH;
     // Final check - we actually don't want to have
     // the split (between frozen and normal columns) be moved left too far,
     // it should stop at the middle of the available grid space (whole width - row number width).
     // This can happen when last column is too wide, and we are not able to show it in a full width.
     // To calculate the middle point: hide all frozen columns (by moving them maximum to the left)
     // and then move them to right by half width of the section.
-    const middleOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH + this.width() / 2;
+    const middleOffset = -this.frozenWidth() - ROW_NUMBER_WIDTH_PX + this.width() / 2;
     // final offset is the bigger number of those two (offsets are negative - so take
     // the number that is closer to 0)
     const offset = Math.floor(Math.max(initialOffset, middleOffset));
@@ -1220,7 +1221,7 @@ GridView.prototype.buildDom = function() {
     // the content of the scrolled columns will be visible to the user (as there is blank space there).
     // This line fills the gap. NOTE that we are using number here instead of a boolean.
     dom('div.gridview_left_border', kd.show(this.numFrozen),
-      kd.style("left", ROW_NUMBER_WIDTH + 'px')
+      kd.style("left", ROW_NUMBER_WIDTH_REM + 'rem')
     ),
     // left shadow that will be visible on top of frozen columns
     dom('div.scroll_shadow_frozen', kd.show(this.frozenShadow)),
@@ -1465,7 +1466,6 @@ GridView.prototype.buildDom = function() {
 
       // rowid dom
       dom('div.gridview_data_row_num',
-        kd.style("width", ROW_NUMBER_WIDTH + 'px'),
         dom('div.gridview_data_row_info',
           kd.toggleClass('linked_dst', () => {
             const myRowId = row.id();
