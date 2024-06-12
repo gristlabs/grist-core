@@ -185,7 +185,9 @@
         "Widget does not require any permissions.": "Widget nevyžaduje žiadne povolenia.",
         "Widget needs to {{read}} the current table.": "Widget vyžaduje {{read}} aktuálnu tabuľku.",
         "Widget needs {{fullAccess}} to this document.": "Widget vyžaduje {{fullAccess}} k tomuto dokumentu.",
-        "No document access": "Bez prístupu k dokumentu"
+        "No document access": "Bez prístupu k dokumentu",
+        "Clear selection": "Vyčistiť výber",
+        "No {{columnType}} columns in table.": "V tabuľke nie sú žiadne stĺpce {{columnType}}."
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Táto tímová stránka je pozastavená. Dokumenty je možné čítať, ale nie upravovať."
@@ -198,5 +200,25 @@
         "Apply": "Použiť",
         "Cancel": "Zrušiť",
         "Default cell style": "Predvolený štýl bunky"
+    },
+    "DataTables": {
+        "Delete {{formattedTableName}} data, and remove it from all pages?": "Odstrániť údaje {{formattedTableName}} a odobrať ich zo všetkých stránok?",
+        "Duplicate Table": "Duplikovať Tabuľku",
+        "Raw Data Tables": "Tbuľky s nespracovanými údajmi",
+        "Table ID copied to clipboard": "ID tabuľky bolo skopírované do schránky",
+        "Record Card": "Karta Záznamu",
+        "Edit Record Card": "Úprava Karty Záznamu",
+        "Click to copy": "Kliknutím skopírovať",
+        "You do not have edit access to this document": "Nemáte prístup k úprave tohto dokumentu",
+        "Record Card Disabled": "Zakázaná Karta Záznamu",
+        "Rename Table": "Premenovať tabuľku",
+        "{{action}} Record Card": "{{action}} Kartu Záznamu",
+        "Remove Table": "Odstrániť tabuľku"
+    },
+    "DocHistory": {
+        "Activity": "Aktivita",
+        "Beta": "Beta",
+        "Compare to Previous": "Porovnať s Predchádzajúcim",
+        "Compare to Current": "Porovnať s Aktuálnym"
     }
 }
