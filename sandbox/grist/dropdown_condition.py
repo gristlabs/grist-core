@@ -100,32 +100,3 @@ def parse_dropdown_condition(widget_options_json):
     return json.dumps(widget_options)
   except (TypeError, ValueError):
     return widget_options_json
-
-
-def parse_dropdown_condition_grist_entities(dc_formula):
-  """
-  Parse the dropdown condition formula collecting any entities that may be subject to renaming.
-  Returns a NamedEntity list.
-  See also: parse_acl_grist_entities
-  """
-  try:
-    atok = asttokens.ASTTokens(dc_formula, tree=ast.parse(dc_formula, mode='eval'))
-    converter = _EntityCollector()
-    converter.visit(atok.tree)
-    return converter.entities
-  except SyntaxError as err:
-    return []
-
-class _EntityCollector(TreeConverter):
-  def __init__(self):
-    self.entities = []
-
-  def visit_Attribute(self, node):
-    parent = self.visit(node.value)
-
-    if parent == ["Name", "choice"]:
-      self.entities.append(NamedEntity("choiceAttr", node.last_token.startpos, node.attr, None))
-    elif parent == ["Name", "rec"]:
-      self.entities.append(NamedEntity("recCol", node.last_token.startpos, node.attr, None))
-
-    return ["Attr", parent, node.attr]

@@ -65,39 +65,47 @@ named_constants = {
 }
 
 
-def parse_grist_entities(formula, collector):
-  """
-  Parse the given predicate formula collecting any entities that may be subject to renaming.
-  Returns a NamedEntity list.
-  """
-  try:
-    atok = asttokens.ASTTokens(formula, tree=ast.parse(formula, mode='eval'))
-    collector.visit(atok.tree)
-    return collector.entities
-  except SyntaxError as err:
-    return []
-
-
 def process_renames(formula, collector, renamer):
 
-  dollar_replacer = get_dollar_replacer(formula)
+  """
+  Given a predicate formula, a collector and a renamer, rename all references in the formula
+  that the renamer wants to rename. This is used to automatically update references in an ACL
+  or dropdown condition formula when a column it refers to has been renamed.
 
+  The collector should be a subclass of TreeConverter that collects related NamedEntity's and
+  stores them in the field "entities". See acl._ACLEntityCollector for an example.
+
+  The renamer should be a function taking a NamedEntity as its only argument. It should return 
+  a new name for this NamedEntity when it wants to rename this entity, or None otherwise.
+  """
   patches = []
-  for subject in parse_grist_entities(dollar_replacer.get_text(), collector):
+  # "$" can be used to refer to "rec." in Grist formulas, but it is not valid Python.
+  # We need to replace it with "rec." before parsing the formula, and restore it back after
+  # the surgery.
+  # Keep the dollar replacer object, so that later we know how to restore properly.
+  dollar_replacer = get_dollar_replacer(formula)
+  formula_nodollar = dollar_replacer.get_text()
+  try:
+    atok = asttokens.ASTTokens(formula_nodollar, tree=ast.parse(formula_nodollar, mode='eval'))
+    collector.visit(atok.tree)
+  except SyntaxError:
+    # Don't do anything to a syntactically wrong formula.
+    return formula
+
+  for subject in collector.entities:
     new_name = renamer(subject)
     if new_name is not None:
       patches.append(textbuilder.make_patch(
         dollar_replacer.get_text(), subject.start_pos, subject.start_pos + len(subject.name), new_name))
 
-  # Replace the column reference with the new name.
-  new_dc_formula = textbuilder.Replacer(dollar_replacer, patches)
-  new_dc_formula_text = new_dc_formula.get_text()
+  new_formula = textbuilder.Replacer(dollar_replacer, patches)
+  new_formula_text = new_formula.get_text()
 
   # Find all "rec." in the processed formula.
   rec_occurrences = []
   cursor = 0
   while True:
-    next_occurrence = new_dc_formula_text.find("rec.", cursor)
+    next_occurrence = new_formula_text.find("rec.", cursor)
     if next_occurrence == -1:
       break
     cursor = next_occurrence + 4 # "rec." has 4 characters
@@ -106,12 +114,12 @@ def process_renames(formula, collector, renamer):
   patches = []
   # Map all "rec." back to the original formula to check if it was a "$".
   for rec_occurrence in rec_occurrences:
-    oldpos = new_dc_formula.map_back_offset(rec_occurrence)
+    oldpos = new_formula.map_back_offset(rec_occurrence)
     if formula[oldpos] == "$":
       # Replace the "rec." back to "$".
-      patches.append(textbuilder.make_patch(new_dc_formula_text, rec_occurrence, rec_occurrence+4, "$"))
+      patches.append(textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence+4, "$"))
 
-  return textbuilder.Replacer(textbuilder.Text(new_dc_formula_text), patches).get_text()
+  return textbuilder.Replacer(textbuilder.Text(new_formula_text), patches).get_text()
 
 
 class TreeConverter(ast.NodeVisitor):

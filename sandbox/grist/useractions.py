@@ -633,7 +633,7 @@ class UserActions(object):
       if 'type' in values:
         self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
 
-    make_acl_updates = acl.prepare_acl_table_renames(self._docmodel, self, table_renames)
+    make_acl_updates = acl.prepare_acl_table_renames(self, table_renames)
 
     # Collect all the table renames, and do the actual schema actions to apply them.
     for tbl, values in update_pairs:
@@ -689,12 +689,18 @@ class UserActions(object):
                if has_diff_value(values, 'colId', c.colId)}
 
     if renames:
+      # When a column rename has occurred, we need to update the corresponding references in
+      # formula, ACL rules and dropdown conditions.
+
       # Build up a dictionary mapping col_ref of each affected formula to the new formula text.
       formula_updates = self._prepare_formula_renames(renames)
 
       # For any affected columns, include the formula into the update.
       for col_rec, new_formula in sorted(six.iteritems(formula_updates)):
         col_updates.setdefault(col_rec, {}).setdefault('formula', new_formula)
+
+      acl.perform_acl_rule_renames(self, renames)
+      dropdown_condition.perform_dropdown_condition_renames(self, renames)
 
     update_pairs = col_updates.items()
 
@@ -719,10 +725,6 @@ class UserActions(object):
           if not allowed_summary_change(key, value, expected):
             raise ValueError("Cannot modify summary group-by column '%s'" % col.colId)
 
-    make_acl_updates = acl.prepare_acl_col_renames(self._docmodel, self, renames)
-
-    dropdown_condition.perform_dropdown_condition_renames(self, renames)
-
     rename_summary_tables = set()
     for c, values in update_pairs:
       # Trigger ModifyColumn and RenameColumn as necessary
@@ -744,8 +746,6 @@ class UserActions(object):
     for table_id in rebuild_summary_tables:
       table = self._engine.tables[table_id]
       self._engine._update_table_model(table, table.user_table)
-
-    make_acl_updates()
 
     for table in rename_summary_tables:
       groupby_col_ids = [c.colId for c in table.columns if c.summarySourceCol]
