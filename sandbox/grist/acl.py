@@ -2,13 +2,15 @@
 # It now retains only the minimum needed to keep new documents openable by old code,
 # and to produce the ActionBundles expected by other code.
 
+import ast
+import asttokens
 import json
 import logging
 
-from acl_formula import parse_acl_grist_entities
-from predicate_formula import parse_predicate_formula_json
 import action_obj
 import textbuilder
+import predicate_formula
+from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +32,40 @@ class Permissions(object):
 # should be shared with all collaborators of the document.
 ALL = '#ALL'
 ALL_SET = frozenset([ALL])
+
+
+def parse_acl_formulas(col_values):
+  """
+  Populates `aclFormulaParsed` by parsing `aclFormula` for all `col_values`.
+  """
+  if 'aclFormula' not in col_values:
+    return
+
+  col_values['aclFormulaParsed'] = [parse_predicate_formula_json(v)
+                                    for v
+                                    in col_values['aclFormula']]
+
+
+class _ACLEntityCollector(TreeConverter):
+  def __init__(self):
+    self.entities = []    # NamedEntity list
+
+  def visit_Attribute(self, node):
+    parent = self.visit(node.value)
+
+    # We recognize a couple of specific patterns for entities that may be affected by renames.
+    if parent == ['Name', 'rec'] or parent == ['Name', 'newRec']:
+      # rec.COL refers to the column from the table that the rule is on.
+      self.entities.append(NamedEntity('recCol', node.last_token.startpos, node.attr, None))
+    if parent == ['Name', 'user']:
+      # user.ATTR is a user attribute.
+      self.entities.append(NamedEntity('userAttr', node.last_token.startpos, node.attr, None))
+    elif parent[0] == 'Attr' and parent[1] == ['Name', 'user']:
+      # user.ATTR.COL is a column from the lookup table of the UserAttribute ATTR.
+      self.entities.append(
+          NamedEntity('userAttrCol', node.last_token.startpos, node.attr, parent[2]))
+
+    return ["Attr", parent, node.attr]
 
 
 def acl_read_split(action_group):
@@ -109,29 +145,27 @@ def prepare_acl_col_renames(docmodel, useractions, col_renames_dict):
 
   # Go through again checking if anything in ACL formulas is affected by the rename.
   for rule_rec in docmodel.aclRules.all:
-    if rule_rec.aclFormula:
-      formula = rule_rec.aclFormula
-      patches = []
 
-      for entity in parse_acl_grist_entities(rule_rec.aclFormula):
-        if entity.type == 'recCol':
-          table_id = docmodel.aclResources.table.get_record(int(rule_rec.resource)).tableId
-        elif entity.type == 'userAttrCol':
-          table_id = user_attr_tables.get(entity.extra)
-        else:
-          continue
-        col_id = entity.name
-        new_col_id = col_renames_dict.get((table_id, col_id))
-        if not new_col_id:
-          continue
-        patch = textbuilder.make_patch(
-            formula, entity.start_pos, entity.start_pos + len(entity.name), new_col_id)
-        patches.append(patch)
+    if not rule_rec.aclFormula:
+      continue
+    formula = rule_rec.aclFormula
 
-      replacer = textbuilder.Replacer(textbuilder.Text(formula), patches)
-      txt = replacer.get_text()
-      rule_updates.append((rule_rec, {'aclFormula': txt,
-                                      'aclFormulaParsed': parse_predicate_formula_json(txt)}))
+    def renamer(subject):
+      if subject.type == 'recCol':
+        table_id = docmodel.aclResources.table.get_record(int(rule_rec.resource)).tableId
+      elif subject.type == 'userAttrCol':
+        table_id = user_attr_tables.get(entity.extra)
+      else:
+        return None
+      col_id = subject.name
+      new_col_id = col_renames_dict.get((table_id, col_id))
+      if not new_col_id:
+        return None
+      return new_col_id
+
+    new_acl_formula = predicate_formula.process_renames(formula, _ACLEntityCollector(), renamer)
+    rule_updates.append((rule_rec, {'aclFormula': new_acl_formula,
+                                    'aclFormulaParsed': parse_predicate_formula_json(new_acl_formula)}))
 
   def do_renames():
     useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)

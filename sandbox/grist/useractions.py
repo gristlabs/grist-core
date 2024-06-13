@@ -12,7 +12,7 @@ from six.moves import xrange
 import acl
 import depend
 import gencode
-from acl_formula import parse_acl_formulas
+from acl import parse_acl_formulas
 from dropdown_condition import parse_dropdown_conditions
 import dropdown_condition
 import actions
