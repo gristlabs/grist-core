@@ -13,7 +13,8 @@ const testId = makeTestId('test-dm-');
 /**
  * Builds all `templateDocs` according to the specified `viewSettings`.
  */
-export function buildTemplateDocs(home: HomeModel, page: DocPageModel, templateDocs: Document[], viewSettings: ViewSettings) {
+export function buildTemplateDocs(home: HomeModel, page: DocPageModel, templateDocs: Document[],
+                                  viewSettings: ViewSettings) {
   const {currentView, currentSort} = viewSettings;
   return dom.domComputed((use) => [use(currentView), use(currentSort)] as const, (opts) => {
     const [view, sort] = opts;
@@ -35,7 +36,8 @@ export function buildTemplateDocs(home: HomeModel, page: DocPageModel, templateD
  * If `view` is set to 'icons', the template will be rendered
  * as a clickable tile that includes a title, image and description.
  */
-function buildTemplateDoc(home: HomeModel, page: DocPageModel, doc: Document, workspace: Workspace, view: 'list'|'icons') {
+function buildTemplateDoc(home: HomeModel, page: DocPageModel, doc: Document, workspace: Workspace,
+                          view: 'list'|'icons') {
   if (view === 'icons') {
     return buildPinnedDoc(home, page, doc, workspace, true);
   } else {

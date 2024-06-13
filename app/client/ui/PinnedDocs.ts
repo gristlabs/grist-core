@@ -30,7 +30,8 @@ export function createPinnedDocs(home: HomeModel, page: DocPageModel, docs: Obse
  * Build a single doc card with a preview and name. A misnomer because it's now used not only for
  * pinned docs, but also for the thumbnails (aka "icons") view mode.
  */
-export function buildPinnedDoc(home: HomeModel, page: DocPageModel, doc: Document, workspace: Workspace, isExample = false): HTMLElement {
+export function buildPinnedDoc(home: HomeModel, page: DocPageModel, doc: Document, workspace: Workspace,
+                               isExample = false): HTMLElement {
   const renaming = observable<Document|null>(null);
   const isRenamingDoc = computed((use) => use(renaming) === doc);
   return pinnedDocWrapper(

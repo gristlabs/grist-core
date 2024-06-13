@@ -275,7 +275,8 @@ function buildAllDocsTemplates(home: HomeModel, page: DocPageModel, viewSettings
  *
  * Used on the Examples & Templates below the featured templates.
  */
-function buildAllTemplates(home: HomeModel, page: DocPageModel, templateWorkspaces: Observable<Workspace[]>, viewSettings: ViewSettings) {
+function buildAllTemplates(home: HomeModel, page: DocPageModel, templateWorkspaces: Observable<Workspace[]>,
+                           viewSettings: ViewSettings) {
   return dom.forEach(templateWorkspaces, workspace => {
     return css.templatesDocBlock(
       css.templateBlockHeader(
@@ -373,8 +374,8 @@ function buildPrefs(
 }
 
 
-function buildWorkspaceDocBlock(home: HomeModel, page: DocPageModel, workspace: Workspace, flashDocId: Observable<string|null>,
-                                viewSettings: ViewSettings) {
+function buildWorkspaceDocBlock(home: HomeModel, page: DocPageModel, workspace: Workspace,
+                                flashDocId: Observable<string|null>, viewSettings: ViewSettings) {
   const renaming = observable<Document|null>(null);
 
   function renderDocs(sort: 'date'|'name', view: "list"|"icons") {
@@ -480,7 +481,8 @@ async function doRename(home: HomeModel, doc: Document, val: string, flashDocId:
 //  losing the doc that was e.g. just renamed.
 
 // Exported because also used by the PinnedDocs component.
-export function makeDocOptionsMenu(home: HomeModel, page: DocPageModel, doc: Document, renaming: Observable<Document|null>) {
+export function makeDocOptionsMenu(home: HomeModel, page: DocPageModel, doc: Document,
+                                   renaming: Observable<Document|null>) {
   const org = home.app.currentOrg;
   const orgAccess: roles.Role|null = org ? org.access : null;
 
