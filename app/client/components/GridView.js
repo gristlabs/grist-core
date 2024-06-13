@@ -69,9 +69,9 @@ const SHORT_CLICK_IN_MS = 500;
 
 // size of the plus width ()
 const PLUS_WIDTH = 40;
-// size of the row number field (we assume 4rem
+// size of the row number field (we assume 4rem)
 const ROW_NUMBER_WIDTH_REM = 4;
-const ROW_NUMBER_WIDTH_PX = 3.25 * ROW_NUMBER_WIDTH_REM; // 52px
+const ROW_NUMBER_WIDTH_PX = 3.25 * ROW_NUMBER_WIDTH_REM; // 52px when no text zoom is applied
 
 /**
  * GridView component implements the view of a grid of cells.
