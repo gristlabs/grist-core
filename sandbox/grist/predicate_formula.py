@@ -3,10 +3,11 @@ import io
 import json
 import tokenize
 from collections import namedtuple
-
+import ast
+import asttokens
+import textbuilder
 import six
-
-from codebuilder import replace_dollar_attrs
+from codebuilder import get_dollar_replacer
 
 # Entities encountered in predicate formulas, which may get renamed.
 #   type : 'recCol'|'userAttr'|'userAttrCol',
@@ -38,7 +39,7 @@ def parse_predicate_formula(formula):
   if isinstance(formula, six.binary_type):
     formula = formula.decode('utf8')
   try:
-    formula = replace_dollar_attrs(formula)
+    formula = get_dollar_replacer(formula).get_text()
     tree = ast.parse(formula, mode='eval')
     result = TreeConverter().visit(tree)
     for part in tokenize.generate_tokens(io.StringIO(formula).readline):
@@ -62,6 +63,56 @@ named_constants = {
   'False': False,
   'None': None,
 }
+
+
+def parse_grist_entities(formula, collector):
+  """
+  Parse the given predicate formula collecting any entities that may be subject to renaming.
+  Returns a NamedEntity list.
+  """
+  try:
+    atok = asttokens.ASTTokens(formula, tree=ast.parse(formula, mode='eval'))
+    collector.visit(atok.tree)
+    return collector.entities
+  except SyntaxError as err:
+    return []
+
+
+def process_renames(formula, collector, renamer):
+
+  dollar_replacer = get_dollar_replacer(formula)
+
+  patches = []
+  for subject in parse_grist_entities(dollar_replacer.get_text(), collector):
+    new_name = renamer(subject)
+    if new_name is not None:
+      patches.append(textbuilder.make_patch(
+        dollar_replacer.get_text(), subject.start_pos, subject.start_pos + len(subject.name), new_name))
+
+  # Replace the column reference with the new name.
+  new_dc_formula = textbuilder.Replacer(dollar_replacer, patches)
+  new_dc_formula_text = new_dc_formula.get_text()
+
+  # Find all "rec." in the processed formula.
+  rec_occurrences = []
+  cursor = 0
+  while True:
+    next_occurrence = new_dc_formula_text.find("rec.", cursor)
+    if next_occurrence == -1:
+      break
+    cursor = next_occurrence + 4 # "rec." has 4 characters
+    rec_occurrences.append(next_occurrence)
+
+  patches = []
+  # Map all "rec." back to the original formula to check if it was a "$".
+  for rec_occurrence in rec_occurrences:
+    oldpos = new_dc_formula.map_back_offset(rec_occurrence)
+    if formula[oldpos] == "$":
+      # Replace the "rec." back to "$".
+      patches.append(textbuilder.make_patch(new_dc_formula_text, rec_occurrence, rec_occurrence+4, "$"))
+
+  return textbuilder.Replacer(textbuilder.Text(new_dc_formula_text), patches).get_text()
+
 
 class TreeConverter(ast.NodeVisitor):
   # AST nodes are documented here: https://docs.python.org/2/library/ast.html#abstract-grammar

@@ -5,8 +5,23 @@ import logging
 import textbuilder
 
 from predicate_formula import NamedEntity, parse_predicate_formula_json, TreeConverter
+import predicate_formula
 
 log = logging.getLogger(__name__)
+
+class _DCEntityCollector(TreeConverter):
+  def __init__(self):
+    self.entities = []
+
+  def visit_Attribute(self, node):
+    parent = self.visit(node.value)
+
+    if parent == ["Name", "choice"]:
+      self.entities.append(NamedEntity("choiceAttr", node.last_token.startpos, node.attr, None))
+    elif parent == ["Name", "rec"]:
+      self.entities.append(NamedEntity("recCol", node.last_token.startpos, node.attr, None))
+
+    return ["Attr", parent, node.attr]
 
 
 def perform_dropdown_condition_renames(useractions, renames):
@@ -23,31 +38,30 @@ def perform_dropdown_condition_renames(useractions, renames):
     # Find all columns in the document that has dropdown conditions.
     try:
       widget_options = json.loads(col.widgetOptions)
-      dropdown_condition = widget_options["dropdownCondition"]["text"]
+      dc_formula = widget_options["dropdownCondition"]["text"]
     except:
       continue
-    # Find out what table this column refers to.
-    table_id = col.type.lstrip("Ref:")
 
-    # Parse the formula to find out all attributes that could be subject to rename.
-    for subject in parse_dropdown_condition_grist_entities(dropdown_condition):
-      # Only process attributes that represent a renamed column.
+    # Find out what table this column refers to and belongs to.
+    ref_table_id = col.type.lstrip("Ref:")
+    self_table_id = col.parentId.tableId
+
+    def renamer(subject):
+      table_id = ref_table_id if subject.type == "choiceAttr" else self_table_id
       if (table_id, subject.name) in renames:
-        old_name = subject.name
-        new_name = renames[(table_id, subject.name)]
-        patches.append(textbuilder.make_patch(
-            dropdown_condition, subject.start_pos, subject.start_pos + len(old_name), new_name))
-
-    # Replace the column reference with the new name.
-    new_dropdown_condition = textbuilder.Replacer(textbuilder.Text(dropdown_condition), patches).get_text()
+        return renames[(table_id, subject.name)]
+      else:
+        return None
+      
+    new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 
     # Parse the new dropdown condition formula.
-    widget_options["dropdownCondition"] = {"text": new_dropdown_condition,
-                                           "parsed": parse_predicate_formula_json(new_dropdown_condition)}
+    widget_options["dropdownCondition"] = {"text": new_dc_formula,
+                                           "parsed": parse_predicate_formula_json(new_dc_formula)}
     updates.append((col, {"widgetOptions": json.dumps(widget_options)}))
 
-    # Update the dropdown condition in the database.
-    useractions.doBulkUpdateFromPairs('_grist_Tables_column', updates)
+  # Update the dropdown condition in the database.
+  useractions.doBulkUpdateFromPairs('_grist_Tables_column', updates)
 
 
 def parse_dropdown_conditions(col_values):
@@ -110,6 +124,8 @@ class _EntityCollector(TreeConverter):
     parent = self.visit(node.value)
 
     if parent == ["Name", "choice"]:
-      self.entities.append(NamedEntity(None, node.last_token.startpos, node.attr, None))
+      self.entities.append(NamedEntity("choiceAttr", node.last_token.startpos, node.attr, None))
+    elif parent == ["Name", "rec"]:
+      self.entities.append(NamedEntity("recCol", node.last_token.startpos, node.attr, None))
 
     return ["Attr", parent, node.attr]
