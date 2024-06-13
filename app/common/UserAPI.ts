@@ -387,6 +387,7 @@ export interface UserAPI {
   updateWorkspacePermissions(workspaceId: number, delta: PermissionDelta): Promise<void>;
   updateDocPermissions(docId: string, delta: PermissionDelta): Promise<void>;
   getOrgAccess(orgId: number|string): Promise<PermissionData>;
+  getUsers(): Promise<UserAccessData[]>;
   getWorkspaceAccess(workspaceId: number): Promise<PermissionData>;
   getDocAccess(docId: string): Promise<PermissionData>;
   pinDoc(docId: string): Promise<void>;
@@ -718,6 +719,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async getOrgAccess(orgId: number|string): Promise<PermissionData> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/access`, { method: 'GET' });
+  }
+
+  public async getUsers(): Promise<UserAccessData[]> {
+    return this.requestJson(`${this._url}/api/users`, { method: 'GET' });
   }
 
   public async getWorkspaceAccess(workspaceId: number): Promise<PermissionData> {

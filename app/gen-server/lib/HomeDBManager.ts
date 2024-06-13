@@ -2390,6 +2390,37 @@ export class HomeDBManager extends EventEmitter {
     return result;
   }
 
+  // Returns a UserAccessData for all users
+  public async getUsers(): Promise<QueryResult<UserAccessData[]>> {
+    const users: UserAccessData[] = [];
+    const query = this._connection.manager.createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .leftJoinAndSelect('user.logins', 'logins')
+      .leftJoinAndSelect('user.personalOrg', 'personalOrg');
+    const res = await query.getMany();
+
+    if (!res) {
+      throw new ApiError('Cannot get users', 500);
+    }
+
+    for (const user of res) {
+      const fullUser = this.makeFullUser(user);
+
+      if (![...NON_LOGIN_EMAILS, SUPPORT_EMAIL].includes(fullUser.email)) {
+        users.push({
+          ...fullUser,
+          access: null
+        });
+      }
+    }
+
+    return {
+      status: 200,
+      data: users
+    };
+  }
+
   // Returns UserAccessData for all users with any permissions on the org.
   public async getOrgAccess(scope: Scope, orgKey: string|number): Promise<QueryResult<PermissionData>> {
     const queryResult = await this._getOrgWithACLRules(scope, orgKey);
@@ -3978,6 +4009,10 @@ export class HomeDBManager extends EventEmitter {
 
   private _wherePlainOrg<T extends WhereExpression>(qb: T, org: string|number): T {
     if (typeof org === 'number') {
+      if (org < 0) {
+        return qb;
+      }
+
       return qb.andWhere('orgs.id = :org', {org});
     }
     if (org.startsWith(`docs-${this._idPrefix}`)) {
@@ -4915,12 +4950,12 @@ export class HomeDBManager extends EventEmitter {
       .leftJoinAndSelect('org_member_users.logins', 'user_logins');
   }
 
-  private _getOrgWithACLRules(scope: Scope, org: number|string) {
+  private _getOrgWithACLRules(scope: Scope, org: number|string, options: { skipPermissionCheck?: boolean } = {} ) {
     const orgQuery = this._buildOrgWithACLRulesQuery(scope, org, {
       markPermissions: Permissions.VIEW,
       allowSpecialPermit: true,
     });
-    return verifyEntity(orgQuery);
+    return verifyEntity(orgQuery, options);
   }
 
 }
