@@ -24,10 +24,10 @@ export async function buildNewSiteModal(context: Disposable, options: {
   appModel: AppModel,
   plan?: PlanSelection,
   onCreate?: () => void
-}) {
+}): Promise<void> {
   const { onCreate } = options;
 
-  return showModal(
+  showModal(
     context,
     (_owner: Disposable, ctrl: IModalControl) => dom.create(NewSiteModalContent, ctrl, onCreate),
     dom.cls(cssModalIndex.className),
@@ -87,12 +87,12 @@ export function buildUpgradeModal(owner: Disposable, options: {
   throw new UserError(t(`Billing is not supported in grist-core`));
 }
 
-export interface UpgradeButton  {
+export interface IUpgradeButton {
   showUpgradeCard(...args: DomArg<HTMLElement>[]): DomContents;
   showUpgradeButton(...args: DomArg<HTMLElement>[]): DomContents;
 }
 
-export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): UpgradeButton {
+export function buildUpgradeButton(owner: IDisposableOwner, app: AppModel): IUpgradeButton {
   return {
     showUpgradeCard: () => null,
     showUpgradeButton: () => null,
