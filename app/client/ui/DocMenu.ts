@@ -137,7 +137,10 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                         hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
                     ) :
                     page === 'trash' ? t("Trash") :
-                    workspace && [css.docHeaderIcon('Folder'), workspaceName(home.app, workspace)]
+                    workspace && [css.docHeaderIcon('Folder',
+                        css.docHeaderIcon.cls(workspace.shareType ? `-${workspace.shareType}` : '')
+                      ),
+                        workspaceName(home.app, workspace)]
                   ),
                   testId('doc-header'),
                 )
@@ -201,7 +204,9 @@ function buildAllDocsBlock(
     return css.docBlock(
       css.docBlockHeaderLink(
         css.wsLeft(
-          css.docHeaderIcon('Folder'),
+          css.docHeaderIcon('Folder',
+            css.docHeaderIcon.cls(ws.shareType ? `-${ws.shareType}` : '')
+          ),
           workspaceName(home.app, ws),
         ),
 
@@ -278,7 +283,9 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
     return css.templatesDocBlock(
       css.templateBlockHeader(
         css.wsLeft(
-          css.docHeaderIcon('Folder'),
+          css.docHeaderIcon('Folder',
+            css.docHeaderIcon.cls(workspace.shareType ? `-${workspace.shareType}` : '')
+          ),
           workspace.name,
         ),
         testId('templates-header'),
@@ -403,7 +410,9 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           css.docLeft(
             css.docName(doc.name, testId('doc-name')),
             css.docPinIcon('PinSmall', dom.show(doc.isPinned)),
-            doc.public ? css.docPublicIcon('Public', testId('public')) : null,
+            doc.public ? css.docPublicIcon('Public',
+              css.docPublicIcon.cls(doc.shareType ? `-${doc.shareType}` : ''),
+              testId('public')) : null,
           ),
           css.docRowUpdatedAt(
             (doc.removedAt ?

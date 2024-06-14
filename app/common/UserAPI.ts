@@ -116,6 +116,7 @@ export interface Workspace extends WorkspaceProperties {
   org: Organization;
   orgDomain?: string;
   access: roles.Role;
+  shareType?: string;
   owner?: FullUser;  // Set when workspaces are in the "docs" pseudo-organization,
                      // assembled from multiple personal organizations.
                      // Not set when workspaces are all from the same organization.
@@ -158,6 +159,7 @@ export interface Document extends DocumentProperties {
   id: string;
   workspace: Workspace;
   access: roles.Role;
+  shareType?: string;
   trunkAccess?: roles.Role|null;
   forks?: Fork[];
 }
