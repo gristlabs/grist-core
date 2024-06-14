@@ -87,7 +87,6 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import { checkPermissionToUserEndpoint, userRoute } from './UserEndpoint';
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -1134,13 +1133,6 @@ export class FlexServer implements GristServer {
       plugins : (await this._addPluginManager()).getPlugins(),
       gristServer: this,
     });
-
-    this.app.use('/users/',
-      this._userIdMiddleware,
-      forcedLoginMiddleware,
-      checkPermissionToUserEndpoint,
-      userRoute,
-    );
   }
 
   /**
