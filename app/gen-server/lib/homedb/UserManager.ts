@@ -12,12 +12,9 @@ import {
   UserProfile
 } from "app/common/UserAPI";
 import { AclRule } from "app/gen-server/entity/AclRule";
-import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { Login } from "app/gen-server/entity/Login";
-import { Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
-import { Workspace } from "app/gen-server/entity/Workspace";
 import { appSettings } from "app/server/lib/AppSettings";
 import { flatten } from "lodash";
 import { EntityManager } from "typeorm";
@@ -40,6 +37,12 @@ const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL]
 // the session).
 export type AvailableUsers = number | UserProfile[];
 
+/**
+ * Class responsible for Users Management.
+ *
+ * It's only meant to be used by HomeDBManager. If you want to use one of its (instance or static) methods,
+ * please make an indirection which passes through HomeDBManager.
+ */
 export class UsersManager {
   public static isSingleUser(users: AvailableUsers): users is number {
     return typeof users === 'number';
@@ -63,27 +66,6 @@ export class UsersManager {
     return userList;
   }
 
-  // Returns a map of userIds to the user's strongest default role on the given resource.
-  // The resource's aclRules, groups, and memberUsers must be populated.
-  public static getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
-    // Add the users to a map to ensure uniqueness. (A user may be present in
-    // more than one group)
-    const userMap: {[userId: string]: T} = {};
-    (res.aclRules as AclRule[]).forEach((aclRule: AclRule) => {
-      const role = aclRule.group.name as T;
-      if (allowRoles.includes(role)) {
-        // Map the users to remove sensitive information from the result and
-        // to add the group names.
-        aclRule.group.memberUsers.forEach((u: User) => {
-          // If the user is already present in another group, use the more
-          // powerful role name.
-          userMap[u.id] = userMap[u.id] ? roles.getStrongestRole(userMap[u.id], role) : role;
-        });
-      }
-    });
-    return userMap;
-  }
-
   // Returns a map of users indexed by their roles. Optionally excludes users whose ids are in
   // excludeUsers.
   public static getUsersWithRole(groups: NonGuestGroup[], excludeUsers?: number[]): Map<roles.NonGuestRole, User[]> {
@@ -96,15 +78,6 @@ export class UsersManager {
       members.set(group.name, users);
     }
     return members;
-  }
-
-  // Returns whether the given group is a valid non-guest group.
-  public static isNonGuestGroup(group: Group): group is NonGuestGroup {
-    return roles.isNonGuestRole(group.name);
-  }
-
-  public static getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
-    return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(UsersManager.isNonGuestGroup);
   }
 
   private _specialUserIds: {[name: string]: number} = {};  // id for anonymous user, previewer, etc

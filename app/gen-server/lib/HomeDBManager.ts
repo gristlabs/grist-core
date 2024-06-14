@@ -1909,7 +1909,7 @@ export class HomeDBManager extends EventEmitter {
       }
       this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const org: Organization = queryResult.data;
-      const groups = UsersManager.getNonGuestGroups(org);
+      const groups = getNonGuestGroups(org);
       if (userIdDelta) {
         const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countBefore = removeRole(membersBefore).length;
@@ -1971,9 +1971,9 @@ export class HomeDBManager extends EventEmitter {
       this._failIfPowerfulAndChangingSelf(analysis, queryResult);
       const ws: Workspace = queryResult.data;
       // Get all the non-guest groups on the org.
-      const orgGroups = UsersManager.getNonGuestGroups(ws.org);
+      const orgGroups = getNonGuestGroups(ws.org);
       // Get all the non-guest groups to be updated by the delta.
-      const groups = UsersManager.getNonGuestGroups(ws);
+      const groups = getNonGuestGroups(ws);
       if ('maxInheritedRole' in delta) {
         // Honor the maxInheritedGroups delta setting.
         this._moveInheritedGroups(groups, orgGroups, delta.maxInheritedRole);
@@ -2026,9 +2026,9 @@ export class HomeDBManager extends EventEmitter {
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
       this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
       // Get all the non-guest doc groups to be updated by the delta.
-      const groups = UsersManager.getNonGuestGroups(doc);
+      const groups = getNonGuestGroups(doc);
       if ('maxInheritedRole' in delta) {
-        const wsGroups = UsersManager.getNonGuestGroups(doc.workspace);
+        const wsGroups = getNonGuestGroups(doc.workspace);
         // Honor the maxInheritedGroups delta setting.
         this._moveInheritedGroups(groups, wsGroups, delta.maxInheritedRole);
         if (delta.maxInheritedRole !== roles.OWNER) {
@@ -2043,7 +2043,7 @@ export class HomeDBManager extends EventEmitter {
         // To check limits on shares, we track group members before and after call
         // to _updateUserPermissions.  Careful, that method mutates groups.
         const org = doc.workspace.org;
-        const orgGroups = UsersManager.getNonGuestGroups(org);
+        const orgGroups = getNonGuestGroups(org);
         const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
@@ -2072,7 +2072,7 @@ export class HomeDBManager extends EventEmitter {
       return queryResult;
     }
     const org: Organization = queryResult.data;
-    const userRoleMap = UsersManager.getMemberUserRoles(org, this.defaultGroupNames);
+    const userRoleMap = getMemberUserRoles(org, this.defaultGroupNames);
     const users = UsersManager.getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
       const access = userRoleMap[u.id];
       return {
@@ -2121,13 +2121,13 @@ export class HomeDBManager extends EventEmitter {
       return queryFailure;
     }
 
-    const wsMap = UsersManager.getMemberUserRoles(workspace, this.defaultCommonGroupNames);
+    const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
 
     // Also fetch the organization ACLs so we can determine inherited rights.
 
     // The orgMap gives the org access inherited by each user.
-    const orgMap = UsersManager.getMemberUserRoles(org, this.defaultBasicGroupNames);
-    const orgMapWithMembership = UsersManager.getMemberUserRoles(org, this.defaultGroupNames);
+    const orgMap = getMemberUserRoles(org, this.defaultBasicGroupNames);
+    const orgMapWithMembership = getMemberUserRoles(org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
 
     const users: UserAccessData[] = UsersManager.getResourceUsers([workspace, org]).map(u => {
@@ -2179,15 +2179,15 @@ export class HomeDBManager extends EventEmitter {
     const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
 
     const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
-    const docMap = UsersManager.getMemberUserRoles(doc, this.defaultCommonGroupNames);
+    const docMap = getMemberUserRoles(doc, this.defaultCommonGroupNames);
     // The wsMap gives the ws access inherited by each user.
-    const wsMap = UsersManager.getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
+    const wsMap = getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
     // The orgMap gives the org access inherited by each user.
-    const orgMap = UsersManager.getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
+    const orgMap = getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     // The orgMapWithMembership gives the full access to the org for each user, including
     // the "members" level, which grants no default inheritable access but allows the user
     // to be added freely to workspaces and documents.
-    const orgMapWithMembership = UsersManager.getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
+    const orgMapWithMembership = getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
     const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
     let users: UserAccessData[] = UsersManager.getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
@@ -2305,9 +2305,9 @@ export class HomeDBManager extends EventEmitter {
         // Check also that doc doesn't have too many shares.
         if (firstLevelUsers.length > 0) {
           const sourceOrg = doc.workspace.org;
-          const sourceOrgGroups = UsersManager.getNonGuestGroups(sourceOrg);
+          const sourceOrgGroups = getNonGuestGroups(sourceOrg);
           const destOrg = workspace.org;
-          const destOrgGroups = UsersManager.getNonGuestGroups(destOrg);
+          const destOrgGroups = getNonGuestGroups(destOrg);
           const nonOrgMembersBefore = this._usersManager.getUserDifference(docGroups, sourceOrgGroups);
           const nonOrgMembersAfter = this._usersManager.getUserDifference(docGroups, destOrgGroups);
           const features = destOrg.billingAccount.getFeatures();
@@ -4395,6 +4395,27 @@ async function verifyEntity(
   };
 }
 
+// Returns a map of userIds to the user's strongest default role on the given resource.
+// The resource's aclRules, groups, and memberUsers must be populated.
+function getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
+  // Add the users to a map to ensure uniqueness. (A user may be present in
+  // more than one group)
+  const userMap: {[userId: string]: T} = {};
+  (res.aclRules as AclRule[]).forEach((aclRule: AclRule) => {
+    const role = aclRule.group.name as T;
+    if (allowRoles.includes(role)) {
+      // Map the users to remove sensitive information from the result and
+      // to add the group names.
+      aclRule.group.memberUsers.forEach((u: User) => {
+        // If the user is already present in another group, use the more
+        // powerful role name.
+        userMap[u.id] = userMap[u.id] ? roles.getStrongestRole(userMap[u.id], role) : role;
+      });
+    }
+  });
+  return userMap;
+}
+
 // Extract a human-readable name for the type of entity being selected.
 function getFrom(queryBuilder: SelectQueryBuilder<any>): string {
   const alias = queryBuilder.expressionMap.mainAlias;
@@ -4424,4 +4445,13 @@ export function getDocAuthKeyFromScope(scope: Scope): DocAuthKey {
   const {urlId, userId, org} = scope;
   if (!urlId) { throw new Error('document required'); }
   return {urlId, userId, org};
+}
+
+// Returns whether the given group is a valid non-guest group.
+function isNonGuestGroup(group: Group): group is NonGuestGroup {
+  return roles.isNonGuestRole(group.name);
+}
+
+function getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
+  return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(isNonGuestGroup);
 }
