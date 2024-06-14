@@ -5,8 +5,10 @@ import * as roles from 'app/common/roles';
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
+  FullUser,
   PermissionDelta,
   PREVIEWER_EMAIL,
+  UserOptions,
   UserProfile
 } from "app/common/UserAPI";
 import { AclRule } from "app/gen-server/entity/AclRule";
@@ -21,7 +23,8 @@ import { flatten } from "lodash";
 import { EntityManager } from "typeorm";
 import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "../HomeDBManager";
 import { Permissions } from "../Permissions";
-import { GetUserOptions, NonGuestGroup, QueryResult } from "./Interfaces";
+import { GetUserOptions, NonGuestGroup, QueryResult, Resource, UserProfileChange } from "./Interfaces";
+import { PERSONAL_FREE_PLAN } from "app/common/Features";
 
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -40,6 +43,45 @@ export type AvailableUsers = number | UserProfile[];
 export class UsersManager {
   public static isSingleUser(users: AvailableUsers): users is number {
     return typeof users === 'number';
+  }
+
+  // Returns all first-level memberUsers in the resources. Requires all resources' aclRules, groups
+  // and memberUsers to be populated.
+  // If optRoles is provided, only checks membership in resource groups with the given roles.
+  public static getResourceUsers(res: Resource|Resource[], optRoles?: string[]): User[] {
+    res = Array.isArray(res) ? res : [res];
+    const users: {[uid: string]: User} = {};
+    let resAcls: AclRule[] = flatten(res.map(_res => _res.aclRules as AclRule[]));
+    if (optRoles) {
+      resAcls = resAcls.filter(_acl => optRoles.includes(_acl.group.name));
+    }
+    resAcls.forEach((aclRule: AclRule) => {
+      aclRule.group.memberUsers.forEach((u: User) => users[u.id] = u);
+    });
+    const userList = Object.keys(users).map(uid => users[uid]);
+    userList.sort((a, b) => a.id - b.id);
+    return userList;
+  }
+
+  // Returns a map of userIds to the user's strongest default role on the given resource.
+  // The resource's aclRules, groups, and memberUsers must be populated.
+  public static getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
+    // Add the users to a map to ensure uniqueness. (A user may be present in
+    // more than one group)
+    const userMap: {[userId: string]: T} = {};
+    (res.aclRules as AclRule[]).forEach((aclRule: AclRule) => {
+      const role = aclRule.group.name as T;
+      if (allowRoles.includes(role)) {
+        // Map the users to remove sensitive information from the result and
+        // to add the group names.
+        aclRule.group.memberUsers.forEach((u: User) => {
+          // If the user is already present in another group, use the more
+          // powerful role name.
+          userMap[u.id] = userMap[u.id] ? roles.getStrongestRole(userMap[u.id], role) : role;
+        });
+      }
+    });
+    return userMap;
   }
 
   // Returns a map of users indexed by their roles. Optionally excludes users whose ids are in
@@ -61,7 +103,6 @@ export class UsersManager {
     return roles.isNonGuestRole(group.name);
   }
 
-
   public static getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
     return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(UsersManager.isNonGuestGroup);
   }
@@ -80,21 +121,6 @@ export class UsersManager {
 
   public getSpecialUserId(key: string) {
     return this._specialUserIds[key];
-  }
-
-  /**
-   * Get the anonymous user, as a constructed object rather than a database lookup.
-   */
-  public getAnonymousUser(): User {
-    const user = new User();
-    user.id = this.getAnonymousUserId();
-    user.name = "Anonymous";
-    user.isFirstTimeUser = false;
-    const login = new Login();
-    login.displayEmail = login.email = ANONYMOUS_USER_EMAIL;
-    user.logins = [login];
-    user.ref = '';
-    return user;
   }
 
   /**
@@ -134,6 +160,178 @@ export class UsersManager {
     if (!id) { throw new Error("'support' user not available"); }
     return id;
   }
+
+  public async getUserByKey(apiKey: string): Promise<User|undefined> {
+    // Include logins relation for Authorization convenience.
+    return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+  }
+
+  public async getUserByRef(ref: string): Promise<User|undefined> {
+    return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
+  }
+
+
+  public async getUser(
+    userId: number,
+    options: {includePrefs?: boolean} = {}
+  ): Promise<User|undefined> {
+    const {includePrefs} = options;
+    const relations = ["logins"];
+    if (includePrefs) { relations.push("prefs"); }
+    return await User.findOne({where: {id: userId}, relations}) || undefined;
+  }
+
+  public async getFullUser(userId: number): Promise<FullUser> {
+    const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
+    if (!user) { throw new ApiError("unable to find user", 400); }
+    return this.makeFullUser(user);
+  }
+
+  /**
+   * Convert a user record into the format specified in api.
+   */
+  public makeFullUser(user: User): FullUser {
+    if (!user.logins?.[0]?.displayEmail) {
+      throw new ApiError("unable to find mandatory user email", 400);
+    }
+    const displayEmail = user.logins[0].displayEmail;
+    const loginEmail = user.loginEmail;
+    const result: FullUser = {
+      id: user.id,
+      email: displayEmail,
+      // Only include loginEmail when it's different, to avoid overhead when FullUser is sent
+      // around, and also to avoid updating too many tests.
+      loginEmail: loginEmail !== displayEmail ? loginEmail : undefined,
+      name: user.name,
+      picture: user.picture,
+      ref: user.ref,
+      locale: user.options?.locale,
+      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
+    };
+    if (this.getAnonymousUserId() === user.id) {
+      result.anonymous = true;
+    }
+    if (this.getSupportUserId() === user.id) {
+      result.isSupport = true;
+    }
+    return result;
+  }
+
+  /**
+   * Ensures that user with external id exists and updates its profile and email if necessary.
+   *
+   * @param profile External profile
+   */
+  public async ensureExternalUser(profile: UserProfile) {
+    await this._connection.transaction(async manager => {
+      // First find user by the connectId from the profile
+      const existing = await manager.findOne(User, {
+        where: {connectId: profile.connectId || undefined},
+        relations: ["logins"],
+      });
+
+      // If a user does not exist, create it with data from the external profile.
+      if (!existing) {
+        const newUser = await this.getUserByLoginWithRetry(profile.email, {
+          profile,
+          manager
+        });
+        if (!newUser) {
+          throw new ApiError("Unable to create user", 500);
+        }
+        // No need to survey this user.
+        newUser.isFirstTimeUser = false;
+        await newUser.save();
+      } else {
+        // Else update profile and login information from external profile.
+        let updated = false;
+        let login: Login = existing.logins[0]!;
+        const properEmail = normalizeEmail(profile.email);
+
+        if (properEmail !== existing.loginEmail) {
+          login = login ?? new Login();
+          login.email = properEmail;
+          login.displayEmail = profile.email;
+          existing.logins.splice(0, 1, login);
+          login.user = existing;
+          updated = true;
+        }
+
+        if (profile?.name && profile?.name !== existing.name) {
+          existing.name = profile.name;
+          updated = true;
+        }
+
+        if (profile?.picture && profile?.picture !== existing.picture) {
+          existing.picture = profile.picture;
+          updated = true;
+        }
+
+        if (updated) {
+          await manager.save([existing, login]);
+        }
+      }
+    });
+  }
+
+  public async updateUser(userId: number, props: UserProfileChange) {
+    let isWelcomed: boolean = false;
+    let user: User|null = null;
+    await this._connection.transaction(async manager => {
+      user = await manager.findOne(User, {relations: ['logins'],
+                                          where: {id: userId}});
+      let needsSave = false;
+      if (!user) { throw new ApiError("unable to find user", 400); }
+      if (props.name && props.name !== user.name) {
+        user.name = props.name;
+        needsSave = true;
+      }
+      if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
+        user.isFirstTimeUser = props.isFirstTimeUser;
+        needsSave = true;
+        // If we are turning off the isFirstTimeUser flag, then right
+        // after this transaction commits is a great time to trigger
+        // any automation for first logins
+        if (!props.isFirstTimeUser) { isWelcomed = true; }
+      }
+      if (needsSave) {
+        await user.save();
+      }
+    });
+    return { user, isWelcomed };
+  }
+
+  public async updateUserName(userId: number, name: string) {
+    const user = await User.findOne({where: {id: userId}});
+    if (!user) { throw new ApiError("unable to find user", 400); }
+    user.name = name;
+    await user.save();
+  }
+
+  public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
+    const user = await User.findOne({where: {id: userId}});
+    if (!user) { throw new ApiError("unable to find user", 400); }
+
+    const newOptions = {...(user.options ?? {}), ...props};
+    user.options = newOptions;
+    await user.save();
+  }
+
+  /**
+   * Get the anonymous user, as a constructed object rather than a database lookup.
+   */
+  public getAnonymousUser(): User {
+    const user = new User();
+    user.id = this.getAnonymousUserId();
+    user.name = "Anonymous";
+    user.isFirstTimeUser = false;
+    const login = new Login();
+    login.displayEmail = login.email = ANONYMOUS_USER_EMAIL;
+    user.logins = [login];
+    user.ref = '';
+    return user;
+  }
+
 
   // Fetch user from login, creating the user if previously unseen, allowing one retry
   // for an email key conflict failure.  This is in case our transaction conflicts with a peer
@@ -298,7 +496,6 @@ export class UsersManager {
   public async deleteUser(scope: Scope, userIdToDelete: number,
                           name?: string): Promise<QueryResult<void>> {
     const userIdDeleting = scope.userId;
-    // FIXME: should be handled by the call point
     if (userIdDeleting !== userIdToDelete) {
       throw new ApiError('not permitted to delete this user', 403);
     }
@@ -494,6 +691,46 @@ export class UsersManager {
     }
     return members;
   }
+
+  /**
+   *
+   * Take a list of user profiles coming from the client's session, correlate
+   * them with Users and Logins in the database, and construct full profiles
+   * with user ids, standardized display emails, pictures, and anonymous flags.
+   *
+   */
+  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
+    if (profiles.length === 0) { return []; }
+    const qb = this._connection.createQueryBuilder()
+      .select('logins')
+      .from(Login, 'logins')
+      .leftJoinAndSelect('logins.user', 'user')
+      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
+    const completedProfiles: {[email: string]: FullUser} = {};
+    for (const login of await qb.getMany()) {
+      completedProfiles[login.email] = {
+        id: login.user.id,
+        email: login.displayEmail,
+        name: login.user.name,
+        picture: login.user.picture,
+        anonymous: login.user.id === this.getAnonymousUserId(),
+        locale: login.user.options?.locale
+      };
+    }
+    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
+      .filter(profile => profile);
+  }
+
+  // For the moment only the support user can add both everyone@ and anon@ to a
+  // resource, since that allows spam.  TODO: enhance or remove.
+  public checkUserChangeAllowed(userId: number, groups: Group[]) {
+    if (userId === this.getSupportUserId()) { return; }
+    const ids = new Set(flatten(groups.map(g => g.memberUsers)).map(u => u.id));
+    if (ids.has(this.getEveryoneUserId()) && ids.has(this.getAnonymousUserId())) {
+      throw new Error('this user cannot share with everyone and anonymous');
+    }
+  }
+
 
   /**
    *

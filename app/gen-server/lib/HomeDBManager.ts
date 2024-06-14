@@ -5,7 +5,7 @@ import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
-import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
+import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import * as roles from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
@@ -31,7 +31,6 @@ import {BillingAccount} from "app/gen-server/entity/BillingAccount";
 import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
-import {Login} from "app/gen-server/entity/Login";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
 import {Pref} from "app/gen-server/entity/Pref";
 import {getDefaultProductNames, personalFreeFeatures, Product} from "app/gen-server/entity/Product";
@@ -74,7 +73,7 @@ import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import defaultsDeep = require('lodash/defaultsDeep');
 import {AvailableUsers, SUPPORT_EMAIL, UsersManager} from './homedb/UserManager';
-import {GetUserOptions, NonGuestGroup} from './homedb/Interfaces';
+import {GetUserOptions, NonGuestGroup, Resource, UserProfileChange} from './homedb/Interfaces';
 import {normalizeEmail} from 'app/common/emails';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
@@ -110,8 +109,6 @@ const listPublicSites = appSettings.section('access').flag('listPublicSites').re
 // A TTL in milliseconds for caching the result of looking up access level for a doc,
 // which is a burden under heavy traffic.
 const DOC_AUTH_CACHE_TTL = 5000;
-
-type Resource = Organization|Workspace|Document;
 
 export interface QueryResult<T> {
   status: number;
@@ -184,11 +181,6 @@ type AccessStyle = 'list' | 'open';
 // A Scope for documents, with mandatory urlId.
 export interface DocScope extends Scope {
   urlId: string;
-}
-
-export interface UserProfileChange {
-  name?: string;
-  isFirstTimeUser?: boolean;
 }
 
 // Identifies a request to access a document. This combination of values is also used for caching
@@ -440,160 +432,48 @@ export class HomeDBManager extends EventEmitter {
   }
 
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
-    // Include logins relation for Authorization convenience.
-    return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+    return this._usersManager.getUserByKey(apiKey);
   }
 
   public async getUserByRef(ref: string): Promise<User|undefined> {
-    return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
+    return this._usersManager.getUserByRef(ref);
   }
 
-  public async getUser(
-    userId: number,
-    options: {includePrefs?: boolean} = {}
-  ): Promise<User|undefined> {
-    const {includePrefs} = options;
-    const relations = ["logins"];
-    if (includePrefs) { relations.push("prefs"); }
-    return await User.findOne({where: {id: userId}, relations}) || undefined;
+  public async getUser(userId: number, options: {includePrefs?: boolean} = {}) {
+    return this._usersManager.getUser(userId, options);
   }
 
-  public async getFullUser(userId: number): Promise<FullUser> {
-    const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-    return this.makeFullUser(user);
+  public async getFullUser(userId: number) {
+    return this._usersManager.getFullUser(userId);
   }
 
   /**
-   * Convert a user record into the format specified in api.
+   * @see UsersManager.prototype.makeFullUser
    */
-  public makeFullUser(user: User): FullUser {
-    if (!user.logins?.[0]?.displayEmail) {
-      throw new ApiError("unable to find mandatory user email", 400);
-    }
-    const displayEmail = user.logins[0].displayEmail;
-    const loginEmail = user.loginEmail;
-    const result: FullUser = {
-      id: user.id,
-      email: displayEmail,
-      // Only include loginEmail when it's different, to avoid overhead when FullUser is sent
-      // around, and also to avoid updating too many tests.
-      loginEmail: loginEmail !== displayEmail ? loginEmail : undefined,
-      name: user.name,
-      picture: user.picture,
-      ref: user.ref,
-      locale: user.options?.locale,
-      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
-    };
-    if (this._usersManager.getAnonymousUserId() === user.id) {
-      result.anonymous = true;
-    }
-    if (this._usersManager.getSupportUserId() === user.id) {
-      result.isSupport = true;
-    }
-    return result;
+  public makeFullUser(user: User) {
+    return this._usersManager.makeFullUser(user);
   }
 
   /**
-   * Ensures that user with external id exists and updates its profile and email if necessary.
-   *
-   * @param profile External profile
+   * @see UsersManager.prototype.ensureExternalUser
    */
   public async ensureExternalUser(profile: UserProfile) {
-    await this._connection.transaction(async manager => {
-      // First find user by the connectId from the profile
-      const existing = await manager.findOne(User, {
-        where: {connectId: profile.connectId || undefined},
-        relations: ["logins"],
-      });
-
-      // If a user does not exist, create it with data from the external profile.
-      if (!existing) {
-        const newUser = await this.getUserByLoginWithRetry(profile.email, {
-          profile,
-          manager
-        });
-        if (!newUser) {
-          throw new ApiError("Unable to create user", 500);
-        }
-        // No need to survey this user.
-        newUser.isFirstTimeUser = false;
-        await newUser.save();
-      } else {
-        // Else update profile and login information from external profile.
-        let updated = false;
-        let login: Login = existing.logins[0]!;
-        const properEmail = normalizeEmail(profile.email);
-
-        if (properEmail !== existing.loginEmail) {
-          login = login ?? new Login();
-          login.email = properEmail;
-          login.displayEmail = profile.email;
-          existing.logins.splice(0, 1, login);
-          login.user = existing;
-          updated = true;
-        }
-
-        if (profile?.name && profile?.name !== existing.name) {
-          existing.name = profile.name;
-          updated = true;
-        }
-
-        if (profile?.picture && profile?.picture !== existing.picture) {
-          existing.picture = profile.picture;
-          updated = true;
-        }
-
-        if (updated) {
-          await manager.save([existing, login]);
-        }
-      }
-    });
+    return this._usersManager.ensureExternalUser(profile);
   }
 
-  public async updateUser(userId: number, props: UserProfileChange): Promise<void> {
-    let isWelcomed: boolean = false;
-    let user: User|null = null;
-    await this._connection.transaction(async manager => {
-      user = await manager.findOne(User, {relations: ['logins'],
-                                          where: {id: userId}});
-      let needsSave = false;
-      if (!user) { throw new ApiError("unable to find user", 400); }
-      if (props.name && props.name !== user.name) {
-        user.name = props.name;
-        needsSave = true;
-      }
-      if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
-        user.isFirstTimeUser = props.isFirstTimeUser;
-        needsSave = true;
-        // If we are turning off the isFirstTimeUser flag, then right
-        // after this transaction commits is a great time to trigger
-        // any automation for first logins
-        if (!props.isFirstTimeUser) { isWelcomed = true; }
-      }
-      if (needsSave) {
-        await user.save();
-      }
-    });
+  public async updateUser(userId: number, props: UserProfileChange) {
+    const { user, isWelcomed } = await this._usersManager.updateUser(userId, props);
     if (user && isWelcomed) {
       this.emit('firstLogin', this.makeFullUser(user));
     }
   }
 
   public async updateUserName(userId: number, name: string) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-    user.name = name;
-    await user.save();
+    return this._usersManager.updateUserName(userId, name);
   }
 
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-
-    const newOptions = {...(user.options ?? {}), ...props};
-    user.options = newOptions;
-    await user.save();
+    return this._usersManager.updateUserOptions(userId, props);
   }
 
   /**
@@ -650,8 +530,6 @@ export class HomeDBManager extends EventEmitter {
               .filter(u => !this._usersManager.getExcludedUserIds().includes(u.id)) // remove support user and other
               .length;
   }
-
-  public async createUser() { }
 
   /**
    * @see UsersManager.prototype.deleteUser
@@ -2194,8 +2072,8 @@ export class HomeDBManager extends EventEmitter {
       return queryResult;
     }
     const org: Organization = queryResult.data;
-    const userRoleMap = getMemberUserRoles(org, this.defaultGroupNames);
-    const users = getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
+    const userRoleMap = UsersManager.getMemberUserRoles(org, this.defaultGroupNames);
+    const users = UsersManager.getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
       const access = userRoleMap[u.id];
       return {
         ...this.makeFullUser(u),
@@ -2243,16 +2121,16 @@ export class HomeDBManager extends EventEmitter {
       return queryFailure;
     }
 
-    const wsMap = getMemberUserRoles(workspace, this.defaultCommonGroupNames);
+    const wsMap = UsersManager.getMemberUserRoles(workspace, this.defaultCommonGroupNames);
 
     // Also fetch the organization ACLs so we can determine inherited rights.
 
     // The orgMap gives the org access inherited by each user.
-    const orgMap = getMemberUserRoles(org, this.defaultBasicGroupNames);
-    const orgMapWithMembership = getMemberUserRoles(org, this.defaultGroupNames);
+    const orgMap = UsersManager.getMemberUserRoles(org, this.defaultBasicGroupNames);
+    const orgMapWithMembership = UsersManager.getMemberUserRoles(org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
 
-    const users: UserAccessData[] = getResourceUsers([workspace, org]).map(u => {
+    const users: UserAccessData[] = UsersManager.getResourceUsers([workspace, org]).map(u => {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
@@ -2301,18 +2179,18 @@ export class HomeDBManager extends EventEmitter {
     const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
 
     const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
-    const docMap = getMemberUserRoles(doc, this.defaultCommonGroupNames);
+    const docMap = UsersManager.getMemberUserRoles(doc, this.defaultCommonGroupNames);
     // The wsMap gives the ws access inherited by each user.
-    const wsMap = getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
+    const wsMap = UsersManager.getMemberUserRoles(doc.workspace, this.defaultBasicGroupNames);
     // The orgMap gives the org access inherited by each user.
-    const orgMap = getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
+    const orgMap = UsersManager.getMemberUserRoles(doc.workspace.org, this.defaultBasicGroupNames);
     // The orgMapWithMembership gives the full access to the org for each user, including
     // the "members" level, which grants no default inheritable access but allows the user
     // to be added freely to workspaces and documents.
-    const orgMapWithMembership = getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
+    const orgMapWithMembership = UsersManager.getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
     const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
-    let users: UserAccessData[] = getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
+    let users: UserAccessData[] = UsersManager.getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
       // Merge the strongest roles from the resource and parent resources. Note that the parent
       // resource access levels must be tempered by the maxInheritedRole values of their children.
       const inheritFromOrg = roles.getWeakestRole(orgMap[u.id] || null, wsMaxInheritedRole);
@@ -2419,7 +2297,7 @@ export class HomeDBManager extends EventEmitter {
       }
       const workspace: Workspace = wsQueryResult.data;
       // Collect all first-level users of the doc being moved.
-      const firstLevelUsers = getResourceUsers(doc);
+      const firstLevelUsers = UsersManager.getResourceUsers(doc);
       const docGroups = doc.aclRules.map(rule => rule.group);
       if (doc.workspace.org.id !== workspace.org.id) {
         // Doc is going to a new org.  Check that there is room for it there.
@@ -2630,32 +2508,10 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
-   *
-   * Take a list of user profiles coming from the client's session, correlate
-   * them with Users and Logins in the database, and construct full profiles
-   * with user ids, standardized display emails, pictures, and anonymous flags.
-   *
+   * @see UsersManager.prototype.completeProfiles
    */
-  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
-    if (profiles.length === 0) { return []; }
-    const qb = this._connection.createQueryBuilder()
-      .select('logins')
-      .from(Login, 'logins')
-      .leftJoinAndSelect('logins.user', 'user')
-      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
-    const completedProfiles: {[email: string]: FullUser} = {};
-    for (const login of await qb.getMany()) {
-      completedProfiles[login.email] = {
-        id: login.user.id,
-        email: login.displayEmail,
-        name: login.user.name,
-        picture: login.user.picture,
-        anonymous: login.user.id === this._usersManager.getAnonymousUserId(),
-        locale: login.user.options?.locale
-      };
-    }
-    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
-      .filter(profile => profile);
+  public async completeProfiles(profiles: UserProfile[]) {
+    return this._usersManager.completeProfiles(profiles);
   }
 
   /**
@@ -2930,7 +2786,7 @@ export class HomeDBManager extends EventEmitter {
       }
       org = result.entities[0];
     }
-    return getResourceUsers(org, this.defaultNonGuestGroupNames);
+    return UsersManager.getResourceUsers(org, this.defaultNonGuestGroupNames);
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -3118,7 +2974,10 @@ export class HomeDBManager extends EventEmitter {
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
       await this._setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
-                                this._usersManager.filterEveryone(getResourceUsers(wsWithDocs?.docs || [])));
+                                this._usersManager.filterEveryone(
+                                   UsersManager.getResourceUsers(wsWithDocs?.docs || [])
+                                )
+      );
     });
   }
 
@@ -3149,7 +3008,7 @@ export class HomeDBManager extends EventEmitter {
       }
       const orgGuestGroup = orgGroups[0]!;
       await this._setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
-                                this._usersManager.filterEveryone(getResourceUsers(org.workspaces)));
+                                this._usersManager.filterEveryone(UsersManager.getResourceUsers(org.workspaces)));
     });
   }
 
@@ -4312,11 +4171,7 @@ export class HomeDBManager extends EventEmitter {
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam.  TODO: enhance or remove.
   private _checkUserChangeAllowed(userId: number, groups: Group[]) {
-    if (userId === this._usersManager.getSupportUserId()) { return; }
-    const ids = new Set(flatten(groups.map(g => g.memberUsers)).map(u => u.id));
-    if (ids.has(this._usersManager.getEveryoneUserId()) && ids.has(this._usersManager.getAnonymousUserId())) {
-      throw new Error('this user cannot share with everyone and anonymous');
-    }
+    return this._usersManager.checkUserChangeAllowed(userId, groups);
   }
 
   // Fetch a Document with all access information loaded.  Make sure the user has the
@@ -4538,45 +4393,6 @@ async function verifyEntity(
     status: 200,
     data: results.entities[0]
   };
-}
-
-// Returns all first-level memberUsers in the resources. Requires all resources' aclRules, groups
-// and memberUsers to be populated.
-// If optRoles is provided, only checks membership in resource groups with the given roles.
-function getResourceUsers(res: Resource|Resource[], optRoles?: string[]): User[] {
-  res = Array.isArray(res) ? res : [res];
-  const users: {[uid: string]: User} = {};
-  let resAcls: AclRule[] = flatten(res.map(_res => _res.aclRules as AclRule[]));
-  if (optRoles) {
-    resAcls = resAcls.filter(_acl => optRoles.includes(_acl.group.name));
-  }
-  resAcls.forEach((aclRule: AclRule) => {
-    aclRule.group.memberUsers.forEach((u: User) => users[u.id] = u);
-  });
-  const userList = Object.keys(users).map(uid => users[uid]);
-  userList.sort((a, b) => a.id - b.id);
-  return userList;
-}
-
-// Returns a map of userIds to the user's strongest default role on the given resource.
-// The resource's aclRules, groups, and memberUsers must be populated.
-function getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
-  // Add the users to a map to ensure uniqueness. (A user may be present in
-  // more than one group)
-  const userMap: {[userId: string]: T} = {};
-  (res.aclRules as AclRule[]).forEach((aclRule: AclRule) => {
-    const role = aclRule.group.name as T;
-    if (allowRoles.includes(role)) {
-      // Map the users to remove sensitive information from the result and
-      // to add the group names.
-      aclRule.group.memberUsers.forEach((u: User) => {
-        // If the user is already present in another group, use the more
-        // powerful role name.
-        userMap[u.id] = userMap[u.id] ? roles.getStrongestRole(userMap[u.id], role) : role;
-      });
-    }
-  });
-  return userMap;
 }
 
 // Extract a human-readable name for the type of entity being selected.
