@@ -72,7 +72,7 @@ import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import defaultsDeep = require('lodash/defaultsDeep');
-import {AvailableUsers, SUPPORT_EMAIL, UsersManager} from './homedb/UserManager';
+import {AvailableUsers, SUPPORT_EMAIL, UsersManager} from './homedb/UsersManager';
 import {GetUserOptions, NonGuestGroup, Resource, UserProfileChange} from './homedb/Interfaces';
 import {normalizeEmail} from 'app/common/emails';
 
