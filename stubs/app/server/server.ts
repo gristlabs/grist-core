@@ -7,7 +7,6 @@
 import {commonUrls} from 'app/common/gristUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/HomeDBManager';
-import {TEAM_FREE_PLAN} from 'app/common/Features';
 
 const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
 
@@ -90,7 +89,6 @@ async function setupDb() {
       }, {
         setUserAsOwner: false,
         useNewPlan: true,
-        product: TEAM_FREE_PLAN
       }));
     }
   }
