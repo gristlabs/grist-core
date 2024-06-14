@@ -20,8 +20,11 @@ import { flatten } from "lodash";
 import { EntityManager } from "typeorm";
 import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "../HomeDBManager";
 import { Permissions } from "../Permissions";
-import { GetUserOptions, NonGuestGroup, QueryResult, Resource, UserProfileChange } from "./Interfaces";
+import {
+  AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
+} from "./Interfaces";
 import { PERSONAL_FREE_PLAN } from "app/common/Features";
+import { Pref } from "app/gen-server/entity/Pref";
 
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -31,11 +34,6 @@ export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').
 
 // A list of emails we don't expect to see logins for.
 const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];
-
-// A specification of the users available during a request.  This can be a single
-// user, identified by a user id, or a collection of profiles (typically drawn from
-// the session).
-export type AvailableUsers = number | UserProfile[];
 
 /**
  * Class responsible for Users Management.
@@ -86,11 +84,26 @@ export class UsersManager {
     return this._homeDb.connection;
   }
 
-  public constructor(private readonly _homeDb: HomeDBManager) {}
+  public constructor(
+    private readonly _homeDb: HomeDBManager,
+    private _runInTransaction: RunInTransaction
+  ) {}
 
-  public runInTransaction(transaction: EntityManager|undefined, op: (manager: EntityManager) => Promise<any>) {
-    return this._homeDb.runInTransaction(transaction, op);
+  /**
+   * Clear all user preferences associated with the given email addresses.
+   * For use in tests.
+   */
+  public async testClearUserPrefs(emails: string[]) {
+    return await this._connection.transaction(async manager => {
+      for (const email of emails) {
+        const user = await this.getUserByLogin(email, {manager});
+        if (user) {
+          await manager.delete(Pref, {userId: user.id});
+        }
+      }
+    });
   }
+
 
   public getSpecialUserId(key: string) {
     return this._specialUserIds[key];
@@ -353,7 +366,7 @@ export class UsersManager {
   public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
-    const userByLogin = await this.runInTransaction(transaction, async manager => {
+    const userByLogin = await this._runInTransaction(transaction, async manager => {
       let needUpdate = false;
       const userQuery = manager.createQueryBuilder()
         .select('user')
@@ -522,7 +535,6 @@ export class UsersManager {
     if (hasInherit) {
       // Verify maxInheritedRole
       const role = delta.maxInheritedRole;
-      // FIXME: below group names should be in UsersManager
       const validRoles = new Set(this._homeDb.defaultBasicGroupNames);
       if (role && !validRoles.has(role)) {
         throw new ApiError(`Invalid maxInheritedRole ${role}`, 400);
@@ -532,7 +544,6 @@ export class UsersManager {
       // Verify roles
       const deltaRoles = Object.keys(delta.users).map(_userId => delta.users![_userId]);
       // Cannot set role "members" on workspace/doc.
-      // FIXME: below group names should be in UsersManager
       const validRoles = new Set(isOrg ? this._homeDb.defaultNonGuestGroupNames : this._homeDb.defaultBasicGroupNames);
       for (const role of deltaRoles) {
         if (role && !validRoles.has(role)) {

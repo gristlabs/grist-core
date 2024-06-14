@@ -24,6 +24,17 @@ export interface UserProfileChange {
   isFirstTimeUser?: boolean;
 }
 
+// A specification of the users available during a request.  This can be a single
+// user, identified by a user id, or a collection of profiles (typically drawn from
+// the session).
+export type AvailableUsers = number | UserProfile[];
+
+
 export type NonGuestGroup = Group & { name: roles.NonGuestRole };
 
 export type Resource = Organization|Workspace|Document;
+
+export type RunInTransaction = (
+  transaction: EntityManager|undefined,
+  op: ((manager: EntityManager) => Promise<any>)
+) => Promise<any>;

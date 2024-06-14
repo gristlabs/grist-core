@@ -72,8 +72,8 @@ import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import defaultsDeep = require('lodash/defaultsDeep');
-import {AvailableUsers, SUPPORT_EMAIL, UsersManager} from './homedb/UsersManager';
-import {GetUserOptions, NonGuestGroup, Resource, UserProfileChange} from './homedb/Interfaces';
+import {SUPPORT_EMAIL, UsersManager} from './homedb/UsersManager';
+import {AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange} from './homedb/Interfaces';
 import {normalizeEmail} from 'app/common/emails';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
@@ -245,7 +245,7 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * encapsulating the typeorm logic.
  */
 export class HomeDBManager extends EventEmitter {
-  private _usersManager = new UsersManager(this);
+  private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
   private _connection: Connection;
   private _dbType: DatabaseType;
   private _exampleWorkspaceId: number;
@@ -417,18 +417,11 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
-   * Clear all user preferences associated with the given email addresses.
    * For use in tests.
+   * @see UsersManager.prototype.testClearUserPrefs
    */
   public async testClearUserPrefs(emails: string[]) {
-    return await this._connection.transaction(async manager => {
-      for (const email of emails) {
-        const user = await this.getUserByLogin(email, {manager});
-        if (user) {
-          await manager.delete(Pref, {userId: user.id});
-        }
-      }
-    });
+    return this._usersManager.testClearUserPrefs(emails);
   }
 
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
@@ -646,7 +639,7 @@ export class HomeDBManager extends EventEmitter {
    * Gets all information about a billing account, without permission check.
    */
   public getFullBillingAccount(billingAccountId: number, transaction?: EntityManager): Promise<BillingAccount> {
-    return this.runInTransaction(transaction, async tr => {
+    return this._runInTransaction(transaction, async tr => {
       let qb = tr.createQueryBuilder()
         .select('billing_accounts')
         .from(BillingAccount, 'billing_accounts')
@@ -1091,7 +1084,7 @@ export class HomeDBManager extends EventEmitter {
         errMessage: 'Bad request: name required'
       };
     }
-    const orgResult = await this.runInTransaction(transaction, async manager => {
+    const orgResult = await this._runInTransaction(transaction, async manager => {
       if (domain) {
         try {
           checkSubdomainValidity(domain);
@@ -1267,7 +1260,7 @@ export class HomeDBManager extends EventEmitter {
     }
 
     // TODO: Unsetting a domain will likely have to be supported; also possibly prefs.
-    return await this.runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions,
@@ -1324,7 +1317,7 @@ export class HomeDBManager extends EventEmitter {
   // status 200 on success.
   public async deleteOrg(scope: Scope, orgKey: string|number,
                          transaction?: EntityManager): Promise<QueryResult<number>> {
-    return await this.runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
         markPermissions: Permissions.REMOVE,
@@ -1632,7 +1625,7 @@ export class HomeDBManager extends EventEmitter {
   // Update the webhook url in the webhook's corresponding secret (note: the webhook identifier is
   // its secret identifier).
   public async updateWebhookUrl(id: string, docId: string, url: string, outerManager?: EntityManager) {
-    return await this.runInTransaction(outerManager, async manager => {
+    return await this._runInTransaction(outerManager, async manager => {
       const value = await this.getSecret(id, docId, manager);
       if (!value) {
         throw new ApiError('Webhook with given id not found', 404);
@@ -1680,7 +1673,7 @@ export class HomeDBManager extends EventEmitter {
     transaction?: EntityManager
   ): Promise<QueryResult<number>> {
     const markPermissions = Permissions.SCHEMA_EDIT;
-    return await this.runInTransaction(transaction, async (manager) => {
+    return await this._runInTransaction(transaction, async (manager) => {
       const {forkId} = parseUrlId(scope.urlId);
       let query: SelectQueryBuilder<Document>;
       if (forkId) {
@@ -2757,19 +2750,6 @@ export class HomeDBManager extends EventEmitter {
       .getOne();
   }
 
-  /**
-   * Run an operation in an existing transaction if available, otherwise create
-   * a new transaction for it.
-   *
-   * @param transaction: the manager of an existing transaction, or undefined.
-   * @param op: the operation to run in a transaction.
-   */
-  public runInTransaction(transaction: EntityManager|undefined,
-                            op: (manager: EntityManager) => Promise<any>): Promise<any> {
-    if (transaction) { return op(transaction); }
-    return this._connection.transaction(op);
-  }
-
   private async _getOrgMembers(org: string|number|Organization) {
     if (!(org instanceof Organization)) {
       const orgQuery = this._org(null, false, org, {
@@ -2951,7 +2931,7 @@ export class HomeDBManager extends EventEmitter {
    * Updates the workspace guests with any first-level users of docs inside the workspace.
    */
   private async _repairWorkspaceGuests(scope: Scope, wsId: number, transaction?: EntityManager): Promise<void> {
-    return await this.runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       // Get guest group for workspace.
       const wsQuery = this._workspace(scope, wsId, {manager})
       .leftJoinAndSelect('workspaces.aclRules', 'acl_rules')
@@ -2987,7 +2967,7 @@ export class HomeDBManager extends EventEmitter {
    * _repairWorkspaceGuests.
    */
   private async _repairOrgGuests(scope: Scope, orgKey: string|number, transaction?: EntityManager): Promise<void> {
-    return await this.runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {manager})
       .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'groups')
@@ -3051,7 +3031,7 @@ export class HomeDBManager extends EventEmitter {
     transaction?: EntityManager
   ): Promise<Workspace> {
     if (!props.name) { throw new ApiError('Bad request: name required', 400); }
-    return await this.runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
       // Create a new workspace.
       const workspace = new Workspace();
       workspace.checkProperties(props);
@@ -3254,6 +3234,19 @@ export class HomeDBManager extends EventEmitter {
       }
       topGroups[groupName].memberUsers.push(user);
     });
+  }
+
+  /**
+   * Run an operation in an existing transaction if available, otherwise create
+   * a new transaction for it.
+   *
+   * @param transaction: the manager of an existing transaction, or undefined.
+   * @param op: the operation to run in a transaction.
+   */
+  private _runInTransaction(transaction: EntityManager|undefined,
+                            op: (manager: EntityManager) => Promise<any>): Promise<any> {
+    if (transaction) { return op(transaction); }
+    return this._connection.transaction(op);
   }
 
   /**
@@ -4179,7 +4172,7 @@ export class HomeDBManager extends EventEmitter {
   // feature information loaded also.
   private async _loadDocAccess(scope: DocScope, markPermissions: Permissions,
                                transaction?: EntityManager): Promise<Document> {
-    return await this.runInTransaction(transaction, async manager => {
+    return await this._runInTransaction(transaction, async manager => {
 
       const docQuery = this._doc(scope, {manager, markPermissions})
       // Join the doc's ACL rules and groups/users so we can edit them.
