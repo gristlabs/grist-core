@@ -31,7 +31,7 @@ export function maybeAddSiteSwitcherSection(appModel: AppModel) {
  * @param currentOrg Selected site
  */
 function setFirstSelectedItem(orgs: MutableObsArray<Organization>, currentOrg: Organization | null) {
-  if (currentOrg != null) {
+  if (currentOrg !== null) {
     const currentOrgIndex = orgs.get().findIndex((org) => org.id === currentOrg.id);
 
     if (currentOrgIndex > 0) {

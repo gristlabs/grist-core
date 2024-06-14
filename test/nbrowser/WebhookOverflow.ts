@@ -122,10 +122,6 @@ async function waitForWebhookPage() {
 
 export async function openAccountMenu() {
   await driver.findWait('.test-dm-account', 1000).click();
-  // Since the AccountWidget loads orgs and the user data asynchronously, the menu
-  // can expand itself causing the click to land on a wrong button.
-  await driver.findWait('.test-site-switcher-org', 1000);
-  await driver.sleep(250);  // There's still some jitter (scroll-bar? other user accounts?)
 }
 
 export async function openDocumentSettings() {
