@@ -3,8 +3,7 @@ import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
-import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features, PERSONAL_FREE_PLAN} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -73,9 +72,9 @@ import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import defaultsDeep = require('lodash/defaultsDeep');
-import { AvailableUsers, SUPPORT_EMAIL, UsersManager  } from './homedb/UserManager';
-import { GetUserOptions, NonGuestGroup } from './homedb/Interfaces';
-import { normalizeEmail } from 'app/common/emails';
+import {AvailableUsers, SUPPORT_EMAIL, UsersManager} from './homedb/UserManager';
+import {GetUserOptions, NonGuestGroup} from './homedb/Interfaces';
+import {normalizeEmail} from 'app/common/emails';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -647,7 +646,7 @@ export class HomeDBManager extends EventEmitter {
   public async getOrgBillableMemberCount(org: string|number|Organization): Promise<number> {
     return (await this._getOrgMembers(org))
               .filter(u => !u.options?.isConsultant) // remove consultants.
-              .filter(u => !this.getExcludedUserIds().includes(u.id)) // remove support user and other
+              .filter(u => !this._usersManager.getExcludedUserIds().includes(u.id)) // remove support user and other
               .length;
   }
 
@@ -2901,6 +2900,19 @@ export class HomeDBManager extends EventEmitter {
       .getOne();
   }
 
+  /**
+   * Run an operation in an existing transaction if available, otherwise create
+   * a new transaction for it.
+   *
+   * @param transaction: the manager of an existing transaction, or undefined.
+   * @param op: the operation to run in a transaction.
+   */
+  public runInTransaction(transaction: EntityManager|undefined,
+                            op: (manager: EntityManager) => Promise<any>): Promise<any> {
+    if (transaction) { return op(transaction); }
+    return this._connection.transaction(op);
+  }
+
   private async _getOrgMembers(org: string|number|Organization) {
     if (!(org instanceof Organization)) {
       const orgQuery = this._org(null, false, org, {
@@ -2918,18 +2930,6 @@ export class HomeDBManager extends EventEmitter {
       org = result.entities[0];
     }
     return getResourceUsers(org, this.defaultNonGuestGroupNames);
-
-  /**
-   * Run an operation in an existing transaction if available, otherwise create
-   * a new transaction for it.
-   *
-   * @param transaction: the manager of an existing transaction, or undefined.
-   * @param op: the operation to run in a transaction.
-   */
-  public runInTransaction(transaction: EntityManager|undefined,
-                            op: (manager: EntityManager) => Promise<any>): Promise<any> {
-    if (transaction) { return op(transaction); }
-    return this._connection.transaction(op);
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
