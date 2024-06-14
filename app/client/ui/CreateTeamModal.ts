@@ -136,7 +136,9 @@ function buildTeamPage({
       }
       await create();
     } finally {
-      disabled.set(false);
+      if (!disabled.isDisposed()) {
+        disabled.set(false);
+      }
     }
   }
   const clickOnEnter = dom.onKeyPress({

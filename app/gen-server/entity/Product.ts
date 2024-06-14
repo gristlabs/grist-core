@@ -147,12 +147,11 @@ export const PRODUCTS: IProduct[] = [
  */
 export function getDefaultProductNames() {
   const defaultProduct = process.env.GRIST_DEFAULT_PRODUCT;
-  const personalFreePlan = PERSONAL_FREE_PLAN;
   return {
     // Personal site start off on a functional plan.
-    personal: defaultProduct || personalFreePlan,
+    personal: defaultProduct || PERSONAL_FREE_PLAN,
      // Team site starts off on a limited plan, requiring subscription.
-    teamInitial: defaultProduct || 'stub',
+    teamInitial: defaultProduct || STUB_PLAN,
     // Team site that has been 'turned off'.
     teamCancel: 'suspended',
     // Functional team site.
