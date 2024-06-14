@@ -122,6 +122,9 @@ RUN \
   mv /grist/static-built/* /grist/static && \
   rmdir /grist/static-built
 
+# To ensure non-root users can run grist, 'other' users need read access (and execute on directories)
+RUN chmod -R o+rX /grist
+
 # Add a user to allow de-escalating from root on startup
 RUN useradd -ms /bin/bash grist
 ENV GRIST_DOCKER_USER=grist\
