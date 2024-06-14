@@ -410,9 +410,9 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           css.docLeft(
             css.docName(doc.name, testId('doc-name')),
             css.docPinIcon('PinSmall', dom.show(doc.isPinned)),
-            doc.public ? css.docPublicIcon('Public',
+            css.docPublicIcon('Public',
               css.docPublicIcon.cls(doc.shareType ? `-${doc.shareType}` : ''),
-              testId('public')) : null,
+              testId('public'))
           ),
           css.docRowUpdatedAt(
             (doc.removedAt ?
