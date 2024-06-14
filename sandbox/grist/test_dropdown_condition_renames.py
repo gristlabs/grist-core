@@ -14,8 +14,8 @@ class TestDCRenames(test_engine.EngineTestCase):
     self.load_sample(testsamples.sample_students)
 
     self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
-      # Column #12 is "address" in table "Schools". We add a dropdown condition formula to it.
-      ["UpdateRecord", "_grist_Tables_column", 12, {
+      # Add a dropdown condition formula to Schools.address (column #12).
+      ["ModifyColumn", "Schools", "address", {
         "widgetOptions": json.dumps({
           "dropdownCondition": {
             "text": "'New' in choice.city and $name == rec.name",
@@ -30,7 +30,7 @@ class TestDCRenames(test_engine.EngineTestCase):
       [12,    "Ref:Address",  json.dumps({
         "dropdownCondition": {
           "text": "'New' in choice.city and $name == rec.name",
-          # The UpdateRecord user action should trigger an auto parse.
+          # The ModifyColumn user action should trigger an auto parse.
           # "parsed" is stored as dumped JSON, so we need to explicitly dump it here as well.
           "parsed": json.dumps(["And", ["In", ["Const", "New"], ["Attr", ["Name", "choice"], "city"]],
                                 ["Eq", ["Attr", ["Name", "rec"], "name"], ["Attr", ["Name", "rec"], "name"]]])
