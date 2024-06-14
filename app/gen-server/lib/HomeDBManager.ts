@@ -65,6 +65,7 @@ import {
   Connection,
   DatabaseType,
   EntityManager,
+  ObjectLiteral,
   SelectQueryBuilder,
   WhereExpression
 } from "typeorm";
@@ -3245,7 +3246,7 @@ export class HomeDBManager extends EventEmitter {
    * Adds any calculated fields related to billing accounts - currently just
    * products.paid.
    */
-  private _addBillingAccountCalculatedFields<T>(qb: SelectQueryBuilder<T>) {
+  private _addBillingAccountCalculatedFields<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>) {
     // We need to sum up whether the account is paid or not, so that UI can provide
     // a "billing" vs "upgrade" link.  For the moment, we just check if there is
     // a subscription id.  TODO: make sure this is correct in case of free plans.
@@ -3256,14 +3257,14 @@ export class HomeDBManager extends EventEmitter {
   /**
    * Makes sure that product features for orgs are available in query result.
    */
-  private _addFeatures<T>(qb: SelectQueryBuilder<T>, orgAlias: string = 'orgs') {
+  private _addFeatures<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>, orgAlias: string = 'orgs') {
     qb = qb.leftJoinAndSelect(`${orgAlias}.billingAccount`, 'billing_accounts');
     qb = qb.leftJoinAndSelect('billing_accounts.product', 'products');
     // orgAlias.billingAccount.product.features should now be available
     return qb;
   }
 
-  private _addIsSupportWorkspace<T>(users: AvailableUsers, qb: SelectQueryBuilder<T>,
+  private _addIsSupportWorkspace<T extends ObjectLiteral>(users: AvailableUsers, qb: SelectQueryBuilder<T>,
                                     orgAlias: string, workspaceAlias: string) {
     const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
 
@@ -3283,7 +3284,7 @@ export class HomeDBManager extends EventEmitter {
   /**
    * Makes sure that doc forks are available in query result.
    */
-  private _addForks<T>(userId: number, qb: SelectQueryBuilder<T>) {
+  private _addForks<T extends ObjectLiteral>(userId: number, qb: SelectQueryBuilder<T>) {
     return qb.leftJoin('docs.forks', 'forks', 'forks.created_by = :forkUserId')
       .setParameter('forkUserId', userId)
       .addSelect([
@@ -4179,7 +4180,7 @@ export class HomeDBManager extends EventEmitter {
   // Apply limits to the query.  Results should be limited to a specific org
   // if request is from a branded webpage; results should be limited to a
   // specific user or set of users.
-  private _applyLimit<T>(qb: SelectQueryBuilder<T>, limit: Scope,
+  private _applyLimit<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>, limit: Scope,
                          resources: Array<'docs'|'workspaces'|'orgs'>,
                          accessStyle: AccessStyle): SelectQueryBuilder<T> {
     if (limit.org) {
