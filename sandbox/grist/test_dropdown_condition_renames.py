@@ -70,19 +70,9 @@ class TestDCRenames(test_engine.EngineTestCase):
       })]
     ])
 
-  def apply_user_action_ignore_syntax_error(self, user_action_repr):
-    try:
-      self.apply_user_action(user_action_repr)
-    except ValueError as e:
-      if str(e) == "Unsupported syntax at 1:1":
-        pass
-      else:
-        raise e
-      raise e
-
   def test_referred_column_renames(self):
     # Rename the column "city" in table "Address" to "area". Schools.address refers to it.
-    self.apply_user_action_ignore_syntax_error(["RenameColumn", "Address", "city", "area"])
+    self.apply_user_action(["RenameColumn", "Address", "city", "area"])
     # Now choice.city should become choice.area. This should also be reflected in the parsed formula.
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
@@ -98,7 +88,7 @@ class TestDCRenames(test_engine.EngineTestCase):
   def test_record_column_renames(self):
     # Rename the column "name" in table "Schools" to "identifier". Schools.address refers to it in two ways -
     # the dollar sign and "rec.".
-    self.apply_user_action_ignore_syntax_error(["RenameColumn", "Schools", "name", "identifier"])
+    self.apply_user_action(["RenameColumn", "Schools", "name", "identifier"])
     # Now "$name" should become "$identifier" while "rec.name" should become "rec.identifier".
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
@@ -113,8 +103,8 @@ class TestDCRenames(test_engine.EngineTestCase):
 
   def test_multiple_renames(self):
     # Put all renames together.
-    self.apply_user_action_ignore_syntax_error(["RenameColumn", "Address", "city", "area"])
-    self.apply_user_action_ignore_syntax_error(["RenameColumn", "Schools", "name", "identifier"])
+    self.apply_user_action(["RenameColumn", "Address", "city", "area"])
+    self.apply_user_action(["RenameColumn", "Schools", "name", "identifier"])
     self.assertTableData("_grist_Tables_column", cols="subset", rows="subset", data=[
       ["id", "parentId", "colId", "widgetOptions"],
       [12, 2, "address", json.dumps({

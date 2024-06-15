@@ -55,9 +55,15 @@ def perform_dropdown_condition_renames(useractions, renames):
       
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 
-    # Parse the new dropdown condition formula.
-    widget_options["dropdownCondition"] = {"text": new_dc_formula,
-                                           "parsed": parse_predicate_formula_json(new_dc_formula)}
+    widget_options["dropdownCondition"] = {"text": new_dc_formula}
+    try:
+      # Parse the new dropdown condition formula if it is syntactically correct.
+      widget_options["dropdownCondition"]["parsed"] = parse_predicate_formula_json(new_dc_formula)
+    except SyntaxError:
+      pass
+    except ValueError as e:
+      if not str(e).startswith("Unsupported syntax"):
+        raise e
     updates.append((col, {"widgetOptions": json.dumps(widget_options)}))
 
   # Update the dropdown condition in the database.

@@ -47,9 +47,9 @@ def parse_predicate_formula(formula):
         result = ['Comment', result, part[1][1:].strip()]
         break
     return result
-  except SyntaxError as err:
+  except SyntaxError as e:
     # In case of an error, include line and offset.
-    raise SyntaxError("%s on line %s col %s" % (err.args[0], err.lineno, err.offset))
+    raise SyntaxError("%s on line %s col %s" % (e.args[0], e.lineno, e.offset))
 
 def parse_predicate_formula_json(formula):
   """
@@ -91,6 +91,9 @@ def process_renames(formula, collector, renamer):
   except SyntaxError:
     # Don't do anything to a syntactically wrong formula.
     return formula
+  except ValueError as e:
+    if str(e).startswith("Unsupported syntax"):
+      return formula
 
   for subject in collector.entities:
     new_name = renamer(subject)
