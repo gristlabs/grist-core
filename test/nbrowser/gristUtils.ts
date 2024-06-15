@@ -37,6 +37,7 @@ import * as testUtils from 'test/server/testUtils';
 import type { AssertionError } from 'assert';
 import axios from 'axios';
 import { lock } from 'proper-lockfile';
+import { test } from '@playwright/test';
 
 // tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
@@ -1989,6 +1990,33 @@ export function shareSupportWorkspaceForSuite() {
   });
 }
 
+export function shareSupportWorkspaceForSuitePlaywright() {
+  let api: UserAPIImpl|undefined;
+  let wss: Workspace[]|undefined;
+
+  test.beforeAll(async function() {
+    // test/gen-server/seed.ts creates a support user with a personal org and an "Examples &
+    // Templates" workspace, but doesn't share it (to avoid impacting the many existing tests).
+    // Share that workspace with @everyone and @anon, and clean up after this suite.
+    await addSupportUserIfPossible();
+    api = createHomeApi('Support', 'docs');  // this uses an api key, so no need to log in.
+    wss = await api.getOrgWorkspaces('current');
+    await api.updateWorkspacePermissions(wss[0].id, {users: {
+      'everyone@getgrist.com': 'viewers',
+      'anon@getgrist.com': 'viewers',
+    }});
+  });
+
+  test.afterAll(async function() {
+    if (api && wss) {
+      await api.updateWorkspacePermissions(wss[0].id, {users: {
+        'everyone@getgrist.com': null,
+        'anon@getgrist.com': null,
+      }});
+    }
+  });
+}
+
 export async function clearTestState() {
   await driver.executeScript("window.testGrist = {}");
 }
@@ -2681,6 +2709,16 @@ export function addSamplesForSuite() {
   });
 
   after(async function() {
+    await removeTemplatesOrg();
+  });
+}
+
+export function addSamplesForSuitePlaywright() {
+  test.beforeAll(async function() {
+    await addSamples();
+  });
+
+  test.afterAll(async function() {
     await removeTemplatesOrg();
   });
 }
