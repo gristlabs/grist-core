@@ -79,7 +79,7 @@ export class UsersManager {
     return members;
   }
 
-  private _specialUserIds: {[name: string]: number} = {};  // id for anonymous user, previewer, etc
+  private _specialUserIds: {[name: string]: number} = {}; // id for anonymous user, previewer, etc
 
   private get _connection () {
     return this._homeDb.connection;
@@ -318,8 +318,8 @@ export class UsersManager {
   }
 
   // Fetch user from login, creating the user if previously unseen, allowing one retry
-  // for an email key conflict failure.  This is in case our transaction conflicts with a peer
-  // doing the same thing.  This is quite likely if the first page visited by a previously
+  // for an email key conflict failure. This is in case our transaction conflicts with a peer
+  // doing the same thing. This is quite likely if the first page visited by a previously
   // unseen user fires off multiple api calls.
   public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
     try {
@@ -354,7 +354,7 @@ export class UsersManager {
 
   /**
    *
-   * Fetches a user record based on an email address.  If a user record already
+   * Fetches a user record based on an email address. If a user record already
    * exists linked to the email address supplied, that is the record returned.
    * Otherwise a fresh record is created, linked to the supplied email address.
    * The supplied `options` are used when creating a fresh record, or updating
@@ -389,8 +389,8 @@ export class UsersManager {
 
       // Check that user and login records are up to date.
       if (!user.name) {
-        // Set the user's name if our provider knows it.  Otherwise use their username
-        // from email, for lack of something better.  If we don't have a profile at this
+        // Set the user's name if our provider knows it. Otherwise use their username
+        // from email, for lack of something better. If we don't have a profile at this
         // time, then leave the name blank in the hopes of learning it when the user logs in.
         user.name = (profile && (profile.name || email.split('@')[0])) || '';
         needUpdate = true;
@@ -422,7 +422,7 @@ export class UsersManager {
       if (!login.displayEmail) {
         // Save some kind of display email if we don't have anything at all for it yet.
         // This could be coming from how someone wrote it in a UserManager dialog, for
-        // instance.  It will get overwritten when the user logs in if the provider's
+        // instance. It will get overwritten when the user logs in if the provider's
         // version is different.
         login.displayEmail = email;
         needUpdate = true;
@@ -468,10 +468,10 @@ export class UsersManager {
   }
 
   /**
-   * Deletes a user from the database.  For the moment, the only person with the right
+   * Deletes a user from the database. For the moment, the only person with the right
    * to delete a user is the user themselves.
-   * Users have logins, a personal org, and entries in the group_users table.  All are
-   * removed together in a transaction.  All material in the personal org will be lost.
+   * Users have logins, a personal org, and entries in the group_users table. All are
+   * removed together in a transaction. All material in the personal org will be lost.
    *
    * @param scope: request scope, including the id of the user initiating this action
    * @param userIdToDelete: the id of the user to delete from the database
@@ -523,8 +523,8 @@ export class UsersManager {
     }
     this._mergeIndistinguishableEmails(delta);
     const hasInherit = 'maxInheritedRole' in delta;
-    const hasUsers = delta.users;  // allow zero actual changes; useful to reduce special
-                                   // cases in scripts
+    const hasUsers = delta.users; // allow zero actual changes; useful to reduce special
+                                  // cases in scripts
     if ((isOrg && (hasInherit || !hasUsers)) || (!isOrg && !hasInherit && !hasUsers)) {
       throw new ApiError('Bad request: invalid permission delta', 400);
     }
@@ -637,10 +637,10 @@ export class UsersManager {
    *
    * This is a HACK to allow existing example doc setup to continue to
    * work. It could be removed if we are willing to share the entire
-   * support org with users.  E.g. move any material we don't want to
-   * share into a workspace that doesn't inherit ACLs.  TODO: remove
+   * support org with users. E.g. move any material we don't want to
+   * share into a workspace that doesn't inherit ACLs. TODO: remove
    * this hack, or enhance it up as a way to support discoverability /
-   * listing.  It has the advantage of cloning well.
+   * listing. It has the advantage of cloning well.
    */
   public filterEveryone(users: User[]): User[] {
     const everyone = this.getEveryoneUserId();
@@ -703,7 +703,7 @@ export class UsersManager {
   }
 
   // For the moment only the support user can add both everyone@ and anon@ to a
-  // resource, since that allows spam.  TODO: enhance or remove.
+  // resource, since that allows spam. TODO: enhance or remove.
   public checkUserChangeAllowed(userId: number, groups: Group[]) {
     if (userId === this.getSupportUserId()) { return; }
     const ids = new Set(flatten(groups.map(g => g.memberUsers)).map(u => u.id));
@@ -731,14 +731,14 @@ export class UsersManager {
   }
 
   // This deals with the problem posed by receiving a PermissionDelta specifying a
-  // role for both alice@x and Alice@x.  We do not distinguish between such emails.
+  // role for both alice@x and Alice@x. We do not distinguish between such emails.
   // If there are multiple indistinguishabe emails, we preserve just one of them,
-  // assigning it the most powerful permission specified.  The email variant perserved
+  // assigning it the most powerful permission specified. The email variant perserved
   // is the earliest alphabetically.
   private _mergeIndistinguishableEmails(delta: PermissionDelta) {
     if (!delta.users) { return; }
     // We normalize emails for comparison, but track how they were capitalized
-    // in order to preserve it.  This is worth doing since for the common case
+    // in order to preserve it. This is worth doing since for the common case
     // of a user being added to a resource prior to ever logging in, their
     // displayEmail will be seeded from this value.
     const displayEmails: {[email: string]: string} = {};
