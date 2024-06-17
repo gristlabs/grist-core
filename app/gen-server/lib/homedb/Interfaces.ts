@@ -1,11 +1,11 @@
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { UserOptions } from "app/common/UserAPI";
 import { Group } from "app/gen-server/entity/Group";
-import { EntityManager } from "typeorm";
 import * as roles from 'app/common/roles';
 import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { Document } from "app/gen-server/entity/Document";
+import { EntityManager } from "typeorm";
 
 export interface QueryResult<T> {
   status: number;
@@ -28,7 +28,6 @@ export interface UserProfileChange {
 // user, identified by a user id, or a collection of profiles (typically drawn from
 // the session).
 export type AvailableUsers = number | UserProfile[];
-
 
 export type NonGuestGroup = Group & { name: roles.NonGuestRole };
 

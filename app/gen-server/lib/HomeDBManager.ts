@@ -57,6 +57,11 @@ import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
+import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
+import {
+  AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange
+} from 'app/gen-server/lib/homedb/Interfaces';
+import {normalizeEmail} from 'app/common/emails';
 import {EventEmitter} from 'events';
 import {Request} from "express";
 import {
@@ -72,9 +77,6 @@ import uuidv4 from "uuid/v4";
 import flatten = require('lodash/flatten');
 import pick = require('lodash/pick');
 import defaultsDeep = require('lodash/defaultsDeep');
-import {SUPPORT_EMAIL, UsersManager} from './homedb/UsersManager';
-import {AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange} from './homedb/Interfaces';
-import {normalizeEmail} from 'app/common/emails';
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -256,7 +258,6 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
-
 
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
@@ -804,7 +805,6 @@ export class HomeDBManager extends EventEmitter {
     const role = roles.getStrongestRole(...options.map(option => option.access));
     return options.find(option => option.access === role) || null;
   }
-
 
   /**
    * Returns a SelectQueryBuilder which gives an array of orgs already filtered by
@@ -2802,7 +2802,6 @@ export class HomeDBManager extends EventEmitter {
     });
     return result;
   }
-
 
   private _org(scope: Scope|null, includeSupport: boolean, org: string|number|null,
                options: QueryOptions = {}): SelectQueryBuilder<Organization> {

@@ -16,15 +16,16 @@ import { Group } from "app/gen-server/entity/Group";
 import { Login } from "app/gen-server/entity/Login";
 import { User } from "app/gen-server/entity/User";
 import { appSettings } from "app/server/lib/AppSettings";
-import { flatten } from "lodash";
-import { EntityManager } from "typeorm";
-import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "../HomeDBManager";
-import { Permissions } from "../Permissions";
+import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "app/gen-server/lib/HomeDBManager";
+import { Permissions } from "app/gen-server/lib/Permissions";
 import {
   AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
-} from "./Interfaces";
+} from "app/gen-server/lib/homedb/Interfaces";
 import { PERSONAL_FREE_PLAN } from "app/common/Features";
 import { Pref } from "app/gen-server/entity/Pref";
+
+import { flatten } from "lodash";
+import { EntityManager } from "typeorm";
 
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -104,7 +105,6 @@ export class UsersManager {
     });
   }
 
-
   public getSpecialUserId(key: string) {
     return this._specialUserIds[key];
   }
@@ -155,7 +155,6 @@ export class UsersManager {
   public async getUserByRef(ref: string): Promise<User|undefined> {
     return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
   }
-
 
   public async getUser(
     userId: number,
@@ -317,7 +316,6 @@ export class UsersManager {
     user.ref = '';
     return user;
   }
-
 
   // Fetch user from login, creating the user if previously unseen, allowing one retry
   // for an email key conflict failure.  This is in case our transaction conflicts with a peer
@@ -651,7 +649,6 @@ export class UsersManager {
     return users.filter(u => u.id !== everyone);
   }
 
-
   // Given two arrays of groups, returns a map of users present in the first array but
   // not the second, where the map is broken down by user role.
   // This method is used for checking limits on shares.
@@ -714,7 +711,6 @@ export class UsersManager {
       throw new Error('this user cannot share with everyone and anonymous');
     }
   }
-
 
   /**
    *
