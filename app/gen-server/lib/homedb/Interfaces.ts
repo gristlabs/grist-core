@@ -1,10 +1,11 @@
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { UserOptions } from "app/common/UserAPI";
-import { Group } from "app/gen-server/entity/Group";
 import * as roles from 'app/common/roles';
+import { Document } from "app/gen-server/entity/Document";
+import { Group } from "app/gen-server/entity/Group";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Workspace } from "app/gen-server/entity/Workspace";
-import { Document } from "app/gen-server/entity/Document";
+
 import { EntityManager } from "typeorm";
 
 export interface QueryResult<T> {

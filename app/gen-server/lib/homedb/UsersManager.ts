@@ -1,6 +1,7 @@
-import { ApiError } from "app/common/ApiError";
+import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
-import { UserOrgPrefs } from "app/common/Prefs";
+import { PERSONAL_FREE_PLAN } from 'app/common/Features';
+import { UserOrgPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {
   ANONYMOUS_USER_EMAIL,
@@ -10,22 +11,21 @@ import {
   PREVIEWER_EMAIL,
   UserOptions,
   UserProfile
-} from "app/common/UserAPI";
-import { AclRule } from "app/gen-server/entity/AclRule";
-import { Group } from "app/gen-server/entity/Group";
-import { Login } from "app/gen-server/entity/Login";
-import { User } from "app/gen-server/entity/User";
-import { appSettings } from "app/server/lib/AppSettings";
-import { HomeDBManager, PermissionDeltaAnalysis, Scope } from "app/gen-server/lib/HomeDBManager";
-import { Permissions } from "app/gen-server/lib/Permissions";
+} from 'app/common/UserAPI';
+import { AclRule } from 'app/gen-server/entity/AclRule';
+import { Group } from 'app/gen-server/entity/Group';
+import { Login } from 'app/gen-server/entity/Login';
+import { User } from 'app/gen-server/entity/User';
+import { appSettings } from 'app/server/lib/AppSettings';
+import { HomeDBManager, PermissionDeltaAnalysis, Scope } from 'app/gen-server/lib/HomeDBManager';
 import {
   AvailableUsers, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
-} from "app/gen-server/lib/homedb/Interfaces";
-import { PERSONAL_FREE_PLAN } from "app/common/Features";
-import { Pref } from "app/gen-server/entity/Pref";
+} from 'app/gen-server/lib/homedb/Interfaces';
+import { Permissions } from 'app/gen-server/lib/Permissions';
+import { Pref } from 'app/gen-server/entity/Pref';
 
-import { flatten } from "lodash";
-import { EntityManager } from "typeorm";
+import flatten from 'lodash/flatten';
+import { EntityManager } from 'typeorm';
 
 // A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({

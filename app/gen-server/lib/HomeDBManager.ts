@@ -3,6 +3,7 @@ import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
+import {normalizeEmail} from 'app/common/emails';
 import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
@@ -39,6 +40,10 @@ import {Share} from "app/gen-server/entity/Share";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {Limit} from 'app/gen-server/entity/Limit';
+import {
+  AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange
+} from 'app/gen-server/lib/homedb/Interfaces';
+import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
@@ -57,13 +62,10 @@ import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
-import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
-import {
-  AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange
-} from 'app/gen-server/lib/homedb/Interfaces';
-import {normalizeEmail} from 'app/common/emails';
+
 import {EventEmitter} from 'events';
 import {Request} from "express";
+import {defaultsDeep, flatten, pick} from 'lodash';
 import {
   Brackets,
   Connection,
@@ -74,9 +76,6 @@ import {
   WhereExpression
 } from "typeorm";
 import uuidv4 from "uuid/v4";
-import flatten = require('lodash/flatten');
-import pick = require('lodash/pick');
-import defaultsDeep = require('lodash/defaultsDeep');
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
