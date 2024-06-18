@@ -339,7 +339,9 @@
         "Stop timing...": "Stop timing...",
         "Time reload": "Time reload",
         "Timing is on": "Timing is on",
-        "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results."
+        "You can make changes to the document, then stop timing to see the results.": "You can make changes to the document, then stop timing to see the results.",
+        "Only available to document editors": "Only available to document editors",
+        "Only available to document owners": "Only available to document owners"
     },
     "DocumentUsage": {
         "Attachments Size": "Size of Attachments",
