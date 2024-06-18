@@ -28,6 +28,7 @@ import {EngineCode} from 'app/common/DocumentSettings';
 import {commonUrls, GristLoadConfig} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
+import {isOwner, isOwnerOrEditor} from 'app/common/roles';
 import {Computed, Disposable, dom, fromKo, IDisposableOwner, makeTestId, Observable, styled} from 'grainjs';
 import * as moment from 'moment-timezone';
 
@@ -58,6 +59,8 @@ export class DocSettingsPage extends Disposable {
     const canChangeEngine = getSupportedEngineChoices().length > 0;
     const docPageModel = this._gristDoc.docPageModel;
     const isTimingOn = this._gristDoc.isTimingOn;
+    const isDocOwner = isOwner(docPageModel.currentDoc.get());
+    const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
 
     return cssContainer(
       dom.create(AdminSection, t('Document Settings'), [
@@ -115,6 +118,7 @@ export class DocSettingsPage extends Disposable {
             'This allows diagnosing which formulas are responsible for slow performance when a ' +
             'document is first opened, or when a document responds to changes.'
           )),
+          disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
 
         dom.create(AdminSectionItem, {
@@ -122,6 +126,7 @@ export class DocSettingsPage extends Disposable {
           name: t('Reload'),
           description: t('Hard reset of data engine'),
           value: cssSmallButton(t('Reload data engine'), dom.on('click', this._reloadEngine.bind(this, true))),
+          disabled: isDocEditor ? false : t('Only available to document editors'),
         }),
 
         canChangeEngine ? dom.create(AdminSectionItem, {
