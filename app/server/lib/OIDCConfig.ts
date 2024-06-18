@@ -345,6 +345,8 @@ export class OIDCConfig {
       defaultValue: 'PKCE,STATE',
     })!.split(',');
     if (enabledProtections[0] === 'UNPROTECTED') {
+      log.warn("You chose to enable OIDC connection with no protection, you are exposed to vulnerabilities." +
+        " Please never do that in production.");
       return [];
     }
     return EnabledProtections.checkAll(enabledProtections);

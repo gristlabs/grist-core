@@ -60,6 +60,7 @@ describe('OIDCConfig', () => {
   let sandbox: Sinon.SinonSandbox;
   let logInfoStub: Sinon.SinonStub;
   let logErrorStub: Sinon.SinonStub;
+  let logWarnStub: Sinon.SinonStub;
   let logDebugStub: Sinon.SinonStub;
 
   before(() => {
@@ -71,6 +72,7 @@ describe('OIDCConfig', () => {
     logInfoStub = sandbox.stub(log, 'info');
     logErrorStub = sandbox.stub(log, 'error');
     logDebugStub = sandbox.stub(log, 'debug');
+    logWarnStub = sandbox.stub(log, 'warn');
   });
 
   afterEach(() => {
@@ -230,6 +232,8 @@ describe('OIDCConfig', () => {
       assert.isFalse(config.supportsProtection("NONCE"));
       assert.isFalse(config.supportsProtection("PKCE"));
       assert.isFalse(config.supportsProtection("STATE"));
+      assert.equal(logWarnStub.callCount, 1, 'a warning should be raised');
+      assert.match(logWarnStub.firstCall.args[0], /with no protection/);
     });
 
     it('if omitted, should default to "STATE,PKCE"', async function () {
