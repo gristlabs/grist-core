@@ -35,6 +35,9 @@ export const ANONYMOUS_USER_EMAIL = 'anon@getgrist.com';
 // Nominal email address of a user who, if you share with them, everyone gets access.
 export const EVERYONE_EMAIL = 'everyone@getgrist.com';
 
+// Nominal email address of a user who can view anything (for thumbnails).
+export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
+
 // A special 'docId' that means to create a new document.
 export const NEW_DOCUMENT_CODE = 'new';
 
