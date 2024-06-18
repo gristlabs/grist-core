@@ -193,11 +193,18 @@ describe('OIDCConfig', () => {
   });
 
   describe('GRIST_OIDC_IDP_ENABLED_PROTECTIONS', () => {
-    it('should throw when GRIST_OIDC_IDP_ENABLED_PROTECTIONS contains unsupported values', async () => {
+    async function checkRejection(promise: Promise<OIDCConfig>, actualValue: string) {
+      return assert.isRejected(
+        promise,
+        `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: "${actualValue}". ` +
+          'Expected at least one of these values: "STATE,NONCE,PKCE"');
+    }
+
+    it('should reject when GRIST_OIDC_IDP_ENABLED_PROTECTIONS contains unsupported values', async () => {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'STATE,NONCE,PKCE,invalid';
       const promise = OIDCConfig.build(NOOPED_SEND_APP_PAGE);
-      await assert.isRejected(promise, 'OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: invalid');
+      await checkRejection(promise, 'invalid');
     });
 
     it('should successfully change the supported protections', async function () {
@@ -209,9 +216,16 @@ describe('OIDCConfig', () => {
       assert.isFalse(config.supportsProtection("STATE"));
     });
 
-    it('should successfully accept an empty string', async function () {
+    it('should reject when set to an empty string', async function () {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = '';
+      const promise = OIDCConfigStubbed.buildWithStub();
+      await checkRejection(promise, '');
+    });
+
+    it('should accept to be set to "UNPROTECTED"', async function () {
+      setEnvVars();
+      process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'UNPROTECTED';
       const config = await OIDCConfigStubbed.buildWithStub();
       assert.isFalse(config.supportsProtection("NONCE"));
       assert.isFalse(config.supportsProtection("PKCE"));
@@ -414,10 +428,10 @@ describe('OIDCConfig', () => {
         expectedErrorMsg: /Login or logout failed to complete/,
       },
       {
-        itMsg: 'should resolve when the state is missing and its check has been disabled',
+        itMsg: 'should resolve when the state is missing and its check has been disabled (UNPROTECTED)',
         session: DEFAULT_SESSION,
         env: {
-          GRIST_OIDC_IDP_ENABLED_PROTECTIONS: '',
+          GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'UNPROTECTED',
         },
       },
       {

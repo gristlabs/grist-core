@@ -70,14 +70,20 @@ import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
 import { SessionObj } from './BrowserSession';
 import { SendAppPage } from './sendAppPage';
+import { StringUnion } from 'app/common/StringUnion';
 
-enum ENABLED_PROTECTIONS {
-  NONCE,
-  PKCE,
-  STATE,
-}
+const EnabledProtections = StringUnion(
+  "STATE",
+  "NONCE",
+  "PKCE",
+);
+EnabledProtections.setErrMessageBuilder(
+  (actual, _, expectedAsArray: string[]) =>
+    `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${actual}.`+
+    ` Expected at least one of these values: "${expectedAsArray.join(",")}"`
+);
 
-type EnabledProtectionsString = keyof typeof ENABLED_PROTECTIONS;
+type EnabledProtectionsString = typeof EnabledProtections.type;
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -338,15 +344,10 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
       defaultValue: 'PKCE,STATE',
     })!.split(',');
-    if (enabledProtections.length === 1 && enabledProtections[0] === '') {
+    if (enabledProtections[0] === 'UNPROTECTED') {
       return [];
     }
-    for (const protection of enabledProtections) {
-      if (!ENABLED_PROTECTIONS.hasOwnProperty(protection as EnabledProtectionsString)) {
-        throw new Error(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${protection}`);
-      }
-    }
-    return enabledProtections as EnabledProtectionsString[];
+    return EnabledProtections.checkAll(enabledProtections);
   }
 
   private async _retrieveChecksFromSession(mreq: RequestWithLogin):

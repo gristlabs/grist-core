@@ -24,17 +24,26 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return valueSet.has(value);
   };
 
+  let buildErrMessage = (actual: string, expected: string, _: string[]) => {
+    return `Value '${actual}' is not assignable to type '${expected}'.`;
+  };
   const check = (value: string): UnionType => {
     if (!guard(value)) {
       const actual = JSON.stringify(value);
       const expected = values.map(s => JSON.stringify(s)).join(' | ');
-      throw new TypeError(`Value '${actual}' is not assignable to type '${expected}'.`);
+      throw new TypeError(buildErrMessage(actual, expected, values));
     }
     return value;
   };
 
   const checkAll = (arr: string[]): UnionType[] => {
     return arr.map(check);
+  };
+
+  const setErrMessageBuilder = (
+    newBuildErrMessage: (actual: string, expected: string, expectedAsArray: string[]) => string
+  ) => {
+    buildErrMessage = newBuildErrMessage;
   };
 
   /**
@@ -44,6 +53,6 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
     return value != null && guard(value) ? value : undefined;
   };
 
-  const unionNamespace = {guard, check, parse, values, checkAll};
+  const unionNamespace = {guard, check, parse, values, checkAll, setErrMessageBuilder};
   return Object.freeze(unionNamespace as typeof unionNamespace & {type: UnionType});
 };
