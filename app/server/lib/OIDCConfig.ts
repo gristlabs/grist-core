@@ -68,7 +68,6 @@ import log from 'app/server/lib/log';
 import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
-import _ from 'lodash';
 import { SessionObj } from './BrowserSession';
 import { SendAppPage } from './sendAppPage';
 
@@ -83,12 +82,18 @@ type EnabledProtectionsString = keyof typeof ENABLED_PROTECTIONS;
 const CALLBACK_URL = '/oauth2/callback';
 
 function formatTokenForLogs(token: TokenSet) {
-  return _.chain(token)
-    .omitBy(_.isFunction)
-    .mapValues((value, key) => {
-      const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'].includes(key);
-      return showValueInClear ? value : 'REDACTED';
-    }).value();
+  const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'];
+  const originalEntries = Object.entries(token);
+
+  return Object.fromEntries(
+    originalEntries.flatMap(([key, value]: [string, any]) => {
+      if (typeof value === 'function') {
+        return []; // Discard functions for logs
+      }
+      const newValue = showValueInClear.includes(key) ? value : 'REDACTED';
+      return [[key, newValue]];
+    })
+  );
 }
 
 const DEFAULT_USER_FRIENDLY_MESSAGE =
@@ -293,14 +298,14 @@ export class OIDCConfig {
   }
 
   private _forgeProtectionParamsForAuthUrl(protections: { codeVerifier?: string, state?: string, nonce?: string }) {
-    return _.omitBy({
+    return {
       state: protections.state,
       nonce: protections.nonce,
       code_challenge: protections.codeVerifier ?
         generators.codeChallenge(protections.codeVerifier) :
         undefined,
       code_challenge_method: protections.codeVerifier ? 'S256' : undefined,
-    }, _.isUndefined);
+    };
   }
 
   private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
@@ -321,7 +326,11 @@ export class OIDCConfig {
 
     mreq.session.oidc = oidcInfo;
 
-    return _.pick(oidcInfo, ['codeVerifier', 'state', 'nonce']);
+    return {
+      codeVerifier: oidcInfo.codeVerifier,
+      state: oidcInfo.state,
+      nonce: oidcInfo.nonce,
+    };
   }
 
   private _buildEnabledProtections(section: AppSettings): EnabledProtectionsString[] {
@@ -355,7 +364,7 @@ export class OIDCConfig {
     const nonce = mreq.session.oidc?.nonce;
     if (!nonce && this.supportsProtection('NONCE')) { throw new Error('Login is stale'); }
 
-    return _.omitBy({ code_verifier: codeVerifier, state, nonce }, _.isUndefined);
+    return { code_verifier: codeVerifier, state, nonce };
   }
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {

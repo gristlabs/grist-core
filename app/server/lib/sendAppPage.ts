@@ -139,7 +139,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
     const config = makeGristConfig({
       homeUrl: !isSingleUserMode() ? server.getHomeUrl(req) : null,
       extra: options.config,
-      baseDomain: baseDomain,
+      baseDomain,
       req,
       server,
     });

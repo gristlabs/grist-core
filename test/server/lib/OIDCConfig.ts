@@ -35,7 +35,7 @@ class ClientStub {
   public static FAKE_REDIRECT_URL = 'FAKE_REDIRECT_URL';
   public authorizationUrl = Sinon.stub().returns(ClientStub.FAKE_REDIRECT_URL);
   public callbackParams = Sinon.stub().returns(undefined);
-  public callback = Sinon.stub().returns(undefined);
+  public callback = Sinon.stub().returns({});
   public userinfo = Sinon.stub().returns(undefined);
   public endSessionUrl = Sinon.stub().returns(undefined);
   public issuer: {
@@ -250,6 +250,7 @@ describe('OIDCConfig', () => {
           code_challenge: FAKE_CODE_CHALLENGE,
           code_challenge_method: 'S256',
           state: FAKE_STATE,
+          nonce: undefined,
         }],
         expectedSession: {
           oidc: {
@@ -270,6 +271,7 @@ describe('OIDCConfig', () => {
           code_challenge: FAKE_CODE_CHALLENGE,
           code_challenge_method: 'S256',
           state: FAKE_STATE,
+          nonce: undefined,
         }],
         expectedSession: {
           oidc: {
@@ -311,6 +313,8 @@ describe('OIDCConfig', () => {
           acr_values: undefined,
           state: FAKE_STATE,
           nonce: FAKE_NONCE,
+          code_challenge: undefined,
+          code_challenge_method: undefined,
         }],
         expectedSession: {
           oidc: {
@@ -356,7 +360,8 @@ describe('OIDCConfig', () => {
     } as SessionObj;
     const DEFAULT_EXPECTED_CALLBACK_CHECKS = {
       state: FAKE_STATE,
-      code_verifier: FAKE_CODE_VERIFIER
+      code_verifier: FAKE_CODE_VERIFIER,
+      nonce: undefined
     };
     let fakeRes: {
       status: Sinon.SinonStub;
@@ -430,7 +435,7 @@ describe('OIDCConfig', () => {
         session: {
           oidc: {
             state: FAKE_STATE,
-            nonce: FAKE_NONCE
+            nonce: FAKE_NONCE,
           }
         },
         env: {
@@ -438,7 +443,8 @@ describe('OIDCConfig', () => {
         },
         expectedCbChecks: {
           state: FAKE_STATE,
-          nonce: FAKE_NONCE
+          nonce: FAKE_NONCE,
+          code_verifier: undefined,
         },
       },
       {
@@ -462,6 +468,7 @@ describe('OIDCConfig', () => {
         expectedCbChecks: {
           state: FAKE_STATE,
           nonce: FAKE_NONCE,
+          code_verifier: undefined,
         },
       },
       {
@@ -657,7 +664,7 @@ describe('OIDCConfig', () => {
         fakeRes as unknown as express.Response
       );
 
-      assert.isTrue(logErrorStub.calledTwice);
+      assert.equal(logErrorStub.callCount, 2, 'logErrorStub show be called twice');
       assert.include(logErrorStub.firstCall.args[0], err.message);
       assert.include(logErrorStub.secondCall.args[0], err.response.body);
       assert.isTrue(sendAppPageStub.calledOnce, "An error should have been sent");
