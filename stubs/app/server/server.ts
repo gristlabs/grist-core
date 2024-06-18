@@ -139,8 +139,7 @@ export async function main() {
 
   await fixSiteProducts({
     deploymentType: server.getDeploymentType(),
-    db: server.getHomeDBManager(),
-    dry: true
+    db: server.getHomeDBManager()
   });
 
   return server;
