@@ -483,10 +483,9 @@ async function forEachWithBreaks<T>(logText: string, items: T[], callback: (item
  */
 export async function fixSiteProducts(options: {
   deploymentType: string,
-  db: HomeDBManager,
-  dry?: boolean,
+  db: HomeDBManager
 }) {
-  const {deploymentType, dry, db} = options;
+  const {deploymentType, db} = options;
 
   const hasDefaultProduct = () => Boolean(process.env.GRIST_DEFAULT_PRODUCT);
   const defaultProductIsFree = () => process.env.GRIST_DEFAULT_PRODUCT === 'Free';
@@ -502,10 +501,8 @@ export async function fixSiteProducts(options: {
   }
 
   // Find all billing accounts on teamFree product and change them to the Free.
-
   return await db.connection.transaction(async (t) => {
     const freeProduct = await t.findOne(Product, {where: {name: 'Free'}});
-
     const freeTeamProduct = await t.findOne(Product, {where: {name: 'teamFree'}});
 
     if (!freeTeamProduct) {
@@ -518,24 +515,11 @@ export async function fixSiteProducts(options: {
       return false;
     }
 
-    if (dry) {
-      await t.createQueryBuilder()
-        .select('ba')
-        .from(BillingAccount, 'ba')
-        .where('ba.product = :productId', {productId: freeTeamProduct.id})
-        .getMany()
-        .then((accounts) => {
-          accounts.forEach(a => {
-            console.log(`Would change account ${a.id} from ${a.product.id} to ${freeProduct.id}`);
-          });
-        });
-    } else {
-      await t.createQueryBuilder()
-          .update(BillingAccount)
-          .set({product: freeProduct.id})
-          .where({product: freeTeamProduct.id})
-          .execute();
-    }
+    await t.createQueryBuilder()
+        .update(BillingAccount)
+        .set({product: freeProduct.id})
+        .where({product: freeTeamProduct.id})
+        .execute();
 
     return true;
   });
