@@ -142,7 +142,7 @@ export async function addRefToUserList(queryRunner: QueryRunner, userList: any[]
           case 'sqlite':
             return manager.query(`UPDATE users SET ref = ? WHERE id = ?`, [makeId(), user.id]);
           default:
-            throw new Error(`addParamToQuery not implemented for ${dbType}`);
+            throw new Error(`addRefToUserList not implemented for ${dbType}`);
         }
       });
       await Promise.all(queries);
