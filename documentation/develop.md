@@ -124,8 +124,8 @@ You may run the tests using one of these commands:
 
 Also some options that may interest you:
  - `GREP_TESTS="pattern"` in order to filter the tests to run, for example: `GREP_TESTS="Boot" yarn test:nbrowser`
- - `NODE_SERVER_OPTIONS="node options"` in order to pass options to the server being tested,
-   for example: `NODE_SERVER_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser` 
+ - `SERVER_NODE_OPTIONS="node options"` in order to pass options to the server being tested,
+   for example: `SERVER_NODE_OPTIONS="--inspect --inspect-brk" GREP_TESTS="Boot" yarn test:nbrowser` 
    to run the tests with the debugger (you should close the debugger each time the node process should stop)
 
 ## Develop widgets
