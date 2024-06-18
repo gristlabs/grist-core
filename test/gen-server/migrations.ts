@@ -44,6 +44,7 @@ import {Shares1701557445716 as Shares} from 'app/gen-server/migration/1701557445
 import {Billing1711557445716 as BillingFeatures} from 'app/gen-server/migration/1711557445716-Billing';
 import {UserLastConnection1713186031023
         as UserLastConnection} from 'app/gen-server/migration/1713186031023-UserLastConnection';
+import { User } from "app/gen-server/entity/User";
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -119,16 +120,27 @@ describe('migrations', function() {
   it('can migrate UserUUID and UserUniqueRefUUID with user in table', async function() {
     this.timeout(60000);
     const runner = home.connection.createQueryRunner();
+
+    // Create 400 users to test the chunk (each chunk is 300 users)
+    const nbUsersToCreate = 400;
     for (const migration of migrations) {
       if (migration === UserUUID) {
-        // Create 400 users to test the chunk (each chunk is 300 users)
-        for (let i = 0; i < 400; i++) {
+        for (let i = 0; i < nbUsersToCreate; i++) {
           await runner.query(`INSERT INTO users (id, name, is_first_time_user) VALUES (${i}, 'name${i}', true)`);
         }
       }
 
       await (new migration()).up(runner);
     }
+
+    // Check that all refs are unique
+    const userList = await runner.manager.createQueryBuilder()
+      .select("users")
+      .from(User, "users")
+      .getMany();
+    const setOfUserRefs = new Set(userList.map(u => u.ref));
+    assert.equal(nbUsersToCreate, userList.length);
+    assert.equal(setOfUserRefs.size, userList.length);
     await addSeedData(home.connection);
   });
 
