@@ -3,6 +3,9 @@
   "files": [],
   "include": [],
   "references": [
+    { "path": "./app" },
+    { "path": "./stubs/app" },
+    { "path": "./test" },
     { "path": "./ext/app" }
   ],
 }
