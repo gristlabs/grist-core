@@ -113,7 +113,6 @@ ADD bower_components /grist/bower_components
 ADD sandbox /grist/sandbox
 ADD plugins /grist/plugins
 ADD static /grist/static
-ADD docker-runner.mjs /grist/docker-runner.mjs
 
 # Make optional pyodide sandbox available
 COPY --from=builder /grist/sandbox/pyodide /grist/sandbox/pyodide
