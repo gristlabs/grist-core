@@ -1,4 +1,5 @@
 import {makeId} from 'app/server/lib/idUtils';
+import {chunk} from 'lodash';
 import {MigrationInterface, QueryRunner} from "typeorm";
 
 export class UserRefUnique1664528376930 implements MigrationInterface {
@@ -10,9 +11,19 @@ export class UserRefUnique1664528376930 implements MigrationInterface {
     const userList = await queryRunner.manager.createQueryBuilder()
     .select(["users.id", "users.ref"])
     .from("users", "users")
+    .where("users.ref is null")
     .getMany();
     userList.forEach(u => u.ref = makeId());
-    await queryRunner.manager.save(userList, { chunk: 300 });
+
+    const userChunks = chunk(userList, 300);
+    for (const users of userChunks) {
+      await queryRunner.connection.transaction(async manager => {
+        const queries = users.map((user: any, _index: number, _array: any[]) => {
+          return queryRunner.manager.update("users", user.id, user);
+        });
+        await Promise.all(queries);
+      });
+    }
 
     // Mark column as unique and non-nullable.
     const users = (await queryRunner.getTable('users'))!;

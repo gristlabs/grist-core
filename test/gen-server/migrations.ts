@@ -44,7 +44,6 @@ import {Shares1701557445716 as Shares} from 'app/gen-server/migration/1701557445
 import {Billing1711557445716 as BillingFeatures} from 'app/gen-server/migration/1711557445716-Billing';
 import {UserLastConnection1713186031023
         as UserLastConnection} from 'app/gen-server/migration/1713186031023-UserLastConnection';
-import { User } from "app/gen-server/entity/User";
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -135,8 +134,8 @@ describe('migrations', function() {
 
     // Check that all refs are unique
     const userList = await runner.manager.createQueryBuilder()
-      .select("users")
-      .from(User, "users")
+      .select(["users.id", "users.ref"])
+      .from("users", "users")
       .getMany();
     const setOfUserRefs = new Set(userList.map(u => u.ref));
     assert.equal(nbUsersToCreate, userList.length);

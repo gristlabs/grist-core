@@ -1,5 +1,6 @@
 
 import {makeId} from 'app/server/lib/idUtils';
+import {chunk} from 'lodash';
 import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
 
 export class UserUUID1663851423064 implements MigrationInterface {
@@ -20,7 +21,16 @@ export class UserUUID1663851423064 implements MigrationInterface {
       .from("users", "users")
       .getMany();
     userList.forEach(u => u.ref = makeId());
-    await queryRunner.manager.save(userList, { chunk: 300 });
+
+    const userChunks = chunk(userList, 300);
+    for (const users of userChunks) {
+      await queryRunner.connection.transaction(async manager => {
+        const queries = users.map((user: any, _index: number, _array: any[]) => {
+          return queryRunner.manager.update("users", user.id, user);
+        });
+        await Promise.all(queries);
+      });
+    }
 
     // We are not making this column unique yet, because it can fail
     // if there are some old workers still running, and any new user
