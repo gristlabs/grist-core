@@ -62,28 +62,109 @@
 
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
-import { Client, ClientMetadata, generators, Issuer, TokenSet, UserinfoResponse } from 'openid-client';
+import {
+  Client, ClientMetadata, generators, Issuer, TokenSet, UserinfoResponse
+} from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { AppSettings, appSettings } from './AppSettings';
 import { RequestWithLogin } from './Authorizer';
 import { UserProfile } from 'app/common/LoginSessionAPI';
-import { SessionObj } from './BrowserSession';
 import { SendAppPage } from './sendAppPage';
 import { StringUnion } from 'app/common/StringUnion';
 
-const EnabledProtections = StringUnion(
+const EnabledProtection = StringUnion(
   "STATE",
   "NONCE",
   "PKCE",
 );
-EnabledProtections.setErrMessageBuilder(
+EnabledProtection.setErrMessageBuilder(
   (actual, _, expectedAsArray: string[]) =>
     `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${actual}.`+
     ` Expected at least one of these values: "${expectedAsArray.join(",")}"`
 );
 
-type EnabledProtectionsString = typeof EnabledProtections.type;
+type EnabledProtectionString = typeof EnabledProtection.type;
+type ProtectionPropertyName = 'nonce' | 'state' | 'codeVerifier';
+
+type CheckProtectionPropertyNames = 'nonce' | 'state' | 'code_verifier';
+const CALLBACK_CHECK_BY_PROTECTION_PROPERTY_NAME: Record<ProtectionPropertyName, CheckProtectionPropertyNames> = {
+  nonce: 'nonce',
+  state: 'state',
+  'codeVerifier': 'code_verifier'
+};
+
+class SingleProtection {
+  constructor(
+    public readonly propertyName: ProtectionPropertyName,
+    public readonly errMsgIfOmitted: string,
+  ) {}
+
+  public get callbackCheckPropName() {
+    return CALLBACK_CHECK_BY_PROTECTION_PROPERTY_NAME[this.propertyName];
+  }
+
+  public generate() {
+    // 'nonce', 'state' and 'codeVerifier' have a method dedicated in `generators`.
+    const generatorMethod = this.propertyName;
+    return generators[generatorMethod]();
+  }
+
+  public assertExistsInSession(sessionInfo: Record<string, string>) {
+    if (!sessionInfo[this.propertyName]) {
+      throw new Error(this.errMsgIfOmitted);
+    }
+  }
+}
+
+class ProtectionsManager {
+  private _protections: SingleProtection[] = [];
+  constructor(private _enabledProtections: Set<EnabledProtectionString>) {
+    if (this._enabledProtections.has('STATE')) {
+      this._protections.push(new SingleProtection('state', 'Login or logout failed to complete'));
+    }
+    if (this._enabledProtections.has('NONCE')) {
+      this._protections.push(new SingleProtection('nonce', 'Login is stale'));
+    }
+    if (this._enabledProtections.has('PKCE')) {
+      this._protections.push(new SingleProtection('codeVerifier', 'Login is stale'));
+    }
+  }
+
+  public generate() {
+    const obj: Partial<Record<ProtectionPropertyName, string>> = {};
+    for (const singleProtection of this._protections) {
+      obj[singleProtection.propertyName] = singleProtection.generate();
+    }
+    return obj;
+  }
+
+  public forgeProtectionParamsForAuthUrl(protections: Partial<Record<ProtectionPropertyName, string>>) {
+    return {
+      state: protections.state,
+      nonce: protections.nonce,
+      code_challenge: protections.codeVerifier ?
+        generators.codeChallenge(protections.codeVerifier) :
+        undefined,
+      code_challenge_method: protections.codeVerifier ? 'S256' : undefined,
+    };
+  }
+
+  public asObjForCallback(sessionInfo: Record<string, any>) {
+    const protectionPropertiesFromSession: Partial<Record<CheckProtectionPropertyNames, string>> = {};
+    for (const singleProtection of this._protections) {
+      singleProtection.assertExistsInSession(sessionInfo);
+      const valueFromSession = sessionInfo[singleProtection.propertyName];
+      protectionPropertiesFromSession[singleProtection.callbackCheckPropName] = valueFromSession;
+    }
+    return protectionPropertiesFromSession;
+  }
+
+  public supportsProtection(protection: EnabledProtectionString) {
+    return this._enabledProtections.has(protection);
+  }
+}
+
 
 const CALLBACK_URL = '/oauth2/callback';
 
@@ -102,11 +183,8 @@ function formatTokenForLogs(token: TokenSet) {
   );
 }
 
-const DEFAULT_USER_FRIENDLY_MESSAGE =
-  "Something went wrong while logging, please try again or contact your administrator if the problem persists";
-
 class ErrorWithUserFriendlyMessage extends Error {
-  constructor(errMessage: string, public readonly userFriendlyMessage: string = DEFAULT_USER_FRIENDLY_MESSAGE) {
+  constructor(errMessage: string, public readonly userFriendlyMessage: string) {
     super(errMessage);
   }
 }
@@ -128,7 +206,7 @@ export class OIDCConfig {
   private _endSessionEndpoint: string;
   private _skipEndSessionEndpoint: boolean;
   private _ignoreEmailVerified: boolean;
-  private _enabledProtections: EnabledProtectionsString[] = [];
+  private _protectionManager: ProtectionsManager;
   private _acrValues?: string;
 
   protected constructor(
@@ -181,10 +259,11 @@ export class OIDCConfig {
 
     const extraMetadata: Partial<ClientMetadata> = JSON.parse(section.flag('extraClientMetadata').readString({
       envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
-      defaultValue: '{}'
-    })!);
+    })! || '{}');
 
-    this._enabledProtections = this._buildEnabledProtections(section);
+    const enabledProtections = this._buildEnabledProtections(section);
+    this._protectionManager = new ProtectionsManager(enabledProtections);
+
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
 
@@ -204,12 +283,14 @@ export class OIDCConfig {
   public async handleCallback(sessions: Sessions, req: express.Request, res: express.Response): Promise<void> {
     const mreq = req as RequestWithLogin;
     try {
+      if (!mreq.session) { throw new Error('no session available'); }
       const params = this._client.callbackParams(req);
-      const { targetUrl } = mreq.session?.oidc ?? {};
-      const checks = await this._retrieveChecksFromSession(mreq);
+      const { targetUrl } = mreq.session.oidc ?? {};
 
-      // The callback function will compare the state present in the params and the one we retrieved from the session.
-      // If they don't match, it will throw an error.
+      const checks = this._protectionManager.asObjForCallback(mreq.session.oidc ?? {});
+
+      // The callback function will compare the protections present in the params and the ones we retrieved
+      // from the session. If they don't match, it will throw an error.
       const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
       log.debug("Got tokenSet: %o", formatTokenForLogs(tokenSet));
 
@@ -234,7 +315,6 @@ export class OIDCConfig {
 
       mreq.session.oidc = {
         idToken: tokenSet.id_token, // keep idToken for logout
-        state: mreq.session.oidc?.state, // also keep state for logout
       };
       res.redirect(targetUrl ?? '/');
     } catch (err) {
@@ -259,12 +339,13 @@ export class OIDCConfig {
   }
 
   public async getLoginRedirectUrl(req: express.Request, targetUrl: URL): Promise<string> {
-    const protections = await this._generateAndStoreConnectionInfo(req, targetUrl.href);
+    const protections = this._protectionManager.generate();
+    await this._storeConnectionInfo(req, targetUrl.href, protections);
 
     const authUrl = this._client.authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
       acr_values: this._acrValues ?? undefined,
-      ...this._forgeProtectionParamsForAuthUrl(protections),
+      ...this._protectionManager.forgeProtectionParamsForAuthUrl(protections),
     });
     return authUrl;
   }
@@ -281,13 +362,12 @@ export class OIDCConfig {
     }
     return this._client.endSessionUrl({
       post_logout_redirect_uri: redirectUrl.href,
-      state: mreq.session.oidc?.state,
       id_token_hint: mreq.session.oidc?.idToken,
     });
   }
 
-  public supportsProtection(protection: EnabledProtectionsString) {
-    return this._enabledProtections.includes(protection);
+  public supportsProtection(protection: EnabledProtectionString) {
+    return this._protectionManager.supportsProtection(protection);
   }
 
   protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
@@ -303,43 +383,23 @@ export class OIDCConfig {
     });
   }
 
-  private _forgeProtectionParamsForAuthUrl(protections: { codeVerifier?: string, state?: string, nonce?: string }) {
-    return {
-      state: protections.state,
-      nonce: protections.nonce,
-      code_challenge: protections.codeVerifier ?
-        generators.codeChallenge(protections.codeVerifier) :
-        undefined,
-      code_challenge_method: protections.codeVerifier ? 'S256' : undefined,
-    };
-  }
-
-  private async _generateAndStoreConnectionInfo(req: express.Request, targetUrl: string) {
+  private async _storeConnectionInfo(
+    req: express.Request,
+    targetUrl: string,
+    protections: Partial<Record<ProtectionPropertyName, string>>
+  ) {
     const mreq = req as RequestWithLogin;
     if (!mreq.session) { throw new Error('no session available'); }
-    const oidcInfo: SessionObj['oidc'] = {
-      targetUrl
-    };
-    if (this.supportsProtection('PKCE')) {
-      oidcInfo.codeVerifier = generators.codeVerifier();
-    }
-    if (this.supportsProtection('STATE')) {
-      oidcInfo.state = generators.state();
-    }
-    if (this.supportsProtection('NONCE')) {
-      oidcInfo.nonce = generators.nonce();
-    }
 
-    mreq.session.oidc = oidcInfo;
-
-    return {
-      codeVerifier: oidcInfo.codeVerifier,
-      state: oidcInfo.state,
-      nonce: oidcInfo.nonce,
+    mreq.session.oidc = {
+      targetUrl,
+      ...protections
     };
+
+    return protections;
   }
 
-  private _buildEnabledProtections(section: AppSettings): EnabledProtectionsString[] {
+  private _buildEnabledProtections(section: AppSettings): Set<EnabledProtectionString> {
     const enabledProtections = section.flag('enabledProtections').readString({
       envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
       defaultValue: 'PKCE,STATE',
@@ -347,27 +407,9 @@ export class OIDCConfig {
     if (enabledProtections[0] === 'UNPROTECTED') {
       log.warn("You chose to enable OIDC connection with no protection, you are exposed to vulnerabilities." +
         " Please never do that in production.");
-      return [];
+      return new Set();
     }
-    return EnabledProtections.checkAll(enabledProtections);
-  }
-
-  private async _retrieveChecksFromSession(mreq: RequestWithLogin):
-    Promise<{ code_verifier?: string, state?: string, nonce?: string }> {
-    if (!mreq.session) { throw new Error('no session available'); }
-
-    const state = mreq.session.oidc?.state;
-    if (!state && this.supportsProtection('STATE')) {
-      throw new Error('Login or logout failed to complete');
-    }
-
-    const codeVerifier = mreq.session.oidc?.codeVerifier;
-    if (!codeVerifier && this.supportsProtection('PKCE')) { throw new Error('Login is stale'); }
-
-    const nonce = mreq.session.oidc?.nonce;
-    if (!nonce && this.supportsProtection('NONCE')) { throw new Error('Login is stale'); }
-
-    return { code_verifier: codeVerifier, state, nonce };
+    return new Set(EnabledProtection.checkAll(enabledProtections));
   }
 
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {

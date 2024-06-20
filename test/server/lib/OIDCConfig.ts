@@ -201,7 +201,6 @@ describe('OIDCConfig', () => {
         `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: "${actualValue}". ` +
           'Expected at least one of these values: "STATE,NONCE,PKCE"');
     }
-
     it('should reject when GRIST_OIDC_IDP_ENABLED_PROTECTIONS contains unsupported values', async () => {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'STATE,NONCE,PKCE,invalid';
@@ -379,7 +378,6 @@ describe('OIDCConfig', () => {
     const DEFAULT_EXPECTED_CALLBACK_CHECKS = {
       state: FAKE_STATE,
       code_verifier: FAKE_CODE_VERIFIER,
-      nonce: undefined
     };
     let fakeRes: {
       status: Sinon.SinonStub;
@@ -437,6 +435,7 @@ describe('OIDCConfig', () => {
         env: {
           GRIST_OIDC_IDP_ENABLED_PROTECTIONS: 'UNPROTECTED',
         },
+        expectedCbChecks: {},
       },
       {
         itMsg: 'should reject when the codeVerifier is missing from the session',
@@ -462,7 +461,6 @@ describe('OIDCConfig', () => {
         expectedCbChecks: {
           state: FAKE_STATE,
           nonce: FAKE_NONCE,
-          code_verifier: undefined,
         },
       },
       {
@@ -478,6 +476,7 @@ describe('OIDCConfig', () => {
           oidc: {
             state: FAKE_STATE,
             nonce: FAKE_NONCE,
+            code_verifier: undefined,
           },
         },
         env: {
@@ -486,7 +485,6 @@ describe('OIDCConfig', () => {
         expectedCbChecks: {
           state: FAKE_STATE,
           nonce: FAKE_NONCE,
-          code_verifier: undefined,
         },
       },
       {
@@ -652,7 +650,6 @@ describe('OIDCConfig', () => {
           ]);
           assert.deepEqual(session, {
             oidc: {
-              state: FAKE_STATE,
               idToken: tokenSet.id_token,
             }
           }, 'oidc info should only keep state and id_token in the session and for the logout');
@@ -696,7 +693,6 @@ describe('OIDCConfig', () => {
     const FAKE_SESSION = {
       oidc: {
         idToken: 'id_token',
-        state: 'state',
       }
     } as SessionObj;
 
@@ -719,7 +715,6 @@ describe('OIDCConfig', () => {
         expectedLogoutParams: {
           post_logout_redirect_uri: REDIRECT_URL.href,
           id_token_hint: FAKE_SESSION.oidc!.idToken,
-          state: FAKE_SESSION.oidc!.state,
         }
       }
     ].forEach(ctx => {
