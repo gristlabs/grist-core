@@ -8,7 +8,8 @@ export type BootProbeIds =
     'sandboxing' |
     'system-user' |
     'authentication' |
-    'websockets'
+    'websockets' |
+    'session-secret'
 ;
 
 export interface BootProbeResult {
