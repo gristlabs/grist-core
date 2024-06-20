@@ -17,13 +17,13 @@ let server: FlexServer;
 let dbManager: HomeDBManager;
 
 async function activateServer(home: FlexServer, docManager: DocManager) {
-  await home.loadConfig();
+  await home.loadLoginSystem();
   await home.initHomeDBManager();
   home.addHosts();
   home.addDocWorkerMap();
   home.addAccessMiddleware();
   dbManager = home.getHomeDBManager();
-  await home.loadConfig();
+  await home.loadLoginSystem();
   home.addSessions();
   home.addHealthCheck();
   docManager.testSetHomeDbManager(dbManager);

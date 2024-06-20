@@ -8,6 +8,7 @@
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
 import {GristLoginSystem} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
+import { getGlobalConfig } from "./lib/config";
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
 // environment variable.
@@ -94,7 +95,7 @@ export async function main(port: number, serverTypes: ServerType[],
 
   if (options.logToConsole !== false) { server.addLogging(); }
   if (options.externalStorage === false) { server.disableExternalStorage(); }
-  await server.loadConfig();
+  await server.loadLoginSystem();
 
   if (includeDocs) {
     // It is important that /dw and /v prefixes are accepted (if present) by health check
@@ -195,15 +196,18 @@ export async function main(port: number, serverTypes: ServerType[],
 
 export async function startMain() {
   try {
+    const config = await getGlobalConfig();
+
     const serverTypes = parseServerTypes(process.env.GRIST_SERVERS);
 
     // No defaults for a port, since this server can serve very different purposes.
     if (!process.env.GRIST_PORT) {
       throw new Error("GRIST_PORT must be specified");
     }
+
     const port = parseInt(process.env.GRIST_PORT, 10);
 
-    const server = await main(port, serverTypes);
+    const server = await main(port, serverTypes, { settings: config });
 
     const opt = process.argv[2];
     if (opt === '--testingHooks') {

@@ -63,3 +63,10 @@ export function getAppRootFor(appRoot: string, subdirectory: string): string {
 export function getAppPathTo(appRoot: string, subdirectory: string): string {
   return path.resolve(getAppRootFor(appRoot, subdirectory), subdirectory);
 }
+
+/**
+ * Returns the instance root. Defaults to appRoot, unless overridden by GRIST_INST_DIR.
+ */
+export function getInstanceRoot() {
+  return path.resolve(process.env.GRIST_INST_DIR || getAppRoot());
+}
