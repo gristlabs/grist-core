@@ -1,5 +1,3 @@
-import {makeId} from 'app/server/lib/idUtils';
-import {chunk} from 'lodash';
 import {DatabaseType, QueryRunner, SelectQueryBuilder} from 'typeorm';
 import {RelationCountLoader} from 'typeorm/query-builder/relation-count/RelationCountLoader';
 import {RelationIdLoader} from 'typeorm/query-builder/relation-id/RelationIdLoader';
@@ -124,29 +122,6 @@ export function datetime(dbType: DatabaseType) {
       return "datetime";
     default:
       throw new Error(`now not implemented for ${dbType}`);
-  }
-}
-
-export async function addRefToUserList(queryRunner: QueryRunner, userList: any[]){
-  const dbType = queryRunner.connection.driver.options.type;
-
-  // Updating so many rows in a multiple queries is not ideal. We will send updates in chunks.
-  // 300 seems to be a good number, for 24k rows we have 80 queries.
-  const userChunks = chunk(userList, 300);
-  for (const users of userChunks) {
-    await queryRunner.connection.transaction(async manager => {
-      const queries = users.map((user: any, _index: number, _array: any[]) => {
-        switch (dbType) {
-          case 'postgres':
-            return manager.query(`UPDATE users SET ref = $1 WHERE id = $2`, [makeId(), user.id]);
-          case 'sqlite':
-            return manager.query(`UPDATE users SET ref = ? WHERE id = ?`, [makeId(), user.id]);
-          default:
-            throw new Error(`addRefToUserList not implemented for ${dbType}`);
-        }
-      });
-      await Promise.all(queries);
-    });
   }
 }
 

@@ -1,4 +1,4 @@
-import {addRefToUserList} from "app/gen-server/sqlUtils";
+import {makeId} from 'app/server/lib/idUtils';
 import {MigrationInterface, QueryRunner} from "typeorm";
 
 export class UserRefUnique1664528376930 implements MigrationInterface {
@@ -7,8 +7,12 @@ export class UserRefUnique1664528376930 implements MigrationInterface {
     // the ref column unique.
 
     // Update users that don't have unique ref set.
-    const userList = await queryRunner.query("SELECT * FROM users WHERE ref is null");
-    await addRefToUserList(queryRunner, userList);
+    const userList = await queryRunner.manager.createQueryBuilder()
+    .select(["users.id", "users.ref"])
+    .from("users", "users")
+    .getMany();
+    userList.forEach(u => u.ref = makeId());
+    await queryRunner.manager.save(userList, { chunk: 300 });
 
     // Mark column as unique and non-nullable.
     const users = (await queryRunner.getTable('users'))!;
