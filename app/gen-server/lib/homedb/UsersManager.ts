@@ -434,7 +434,7 @@ export class UsersManager {
         needUpdate = true;
       }
       const today = moment().startOf('day');
-      if (today !== moment(user.lastConnectionAt).startOf('day')) {
+      if (!user.lastConnectionAt || !today.isSame(moment(user.lastConnectionAt).startOf('day'))) {
         user.lastConnectionAt = today.toDate();
         needUpdate = true;
       }
