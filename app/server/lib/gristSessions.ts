@@ -6,6 +6,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
+import * as crypto from 'crypto';
 import * as express from 'express';
 import assignIn = require('lodash/assignIn');
 import * as path from 'path';
