@@ -26,10 +26,14 @@ jobs:
         python-version: [3.9]
         node-version: [18.x]
         image:
+          # We build two images, `grist-oss` and `grist`.
+          # See https://github.com/gristlabs/grist-core?tab=readme-ov-file#available-docker-images
           - name: "grist-oss"
             repo: "grist-core"
           - name: "grist"
             repo: "grist-ee"
+          # For now, we build it twice, with `grist-ee` being a
+          # backwards-compatible synoym for `grist`.
           - name: "grist-ee"
             repo: "grist-ee"
     steps:
