@@ -83,7 +83,8 @@ If you just want a quick demo of Grist:
   * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
   * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-desktop](https://github.com/gristlabs/grist-desktop).
 
-To get `grist-core` running on your computer with [Docker](https://www.docker.com/get-started), do:
+To get the default version of `grist-core` running on your computer
+with [Docker](https://www.docker.com/get-started), do:
 
 ```sh
 docker pull gristlabs/grist
@@ -116,6 +117,22 @@ environments.
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
+
+## Available Docker images
+
+The default Docker image is `gristlabs/grist`. This contains all of
+the standard Grist functionality, as well as extra source-available
+code for enterprise customers taken from the the
+[grist-ee](https://github.com/gristlabs/grist-ee) repository. This
+extra code is not under a free or open source license. By default,
+however, the code from the `grist-ee` repository is completely inert and
+inactive. This code becomes active only when an administrator enables
+it by setting either `GRIST_ACTIVATION` or `GRIST_ACTIVATION_FILE`.
+
+If you would rather use an image that contains exclusively free and
+open source code, the `gristlabs/grist-oss` Docker image is available
+for this purpose. It is by default functionally equivalent to the
+`gristlabs/grist` image.
 
 ## The administrator panel
 
