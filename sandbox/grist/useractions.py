@@ -396,7 +396,7 @@ class UserActions(object):
 
     # Whenever we add new rows, remember the mapping from any negative row_ids to their final
     # values. This allows the negative_row_ids to be used as Reference values in subsequent
-    # actions in the same bundle.
+    # actions in the same bundle, and in UpdateRecord/RemoveRecord actions.
     self._engine.out_actions.summary.update_new_rows_map(table_id, row_ids, filled_row_ids)
 
     # Convert entered values to the correct types.
@@ -447,6 +447,9 @@ class UserActions(object):
   # ----------------------------------------
 
   def doBulkUpdateRecord(self, table_id, row_ids, columns):
+    # Replace negative ids that may refer to rows just added to this table in this bundle.
+    row_ids = self._engine.out_actions.summary.translate_new_row_ids(table_id, row_ids)
+
     # Convert passed-in values to the column's correct types (or alttext, or errors) and trim any
     # unchanged values.
     action, extra_actions = self._engine.convert_action_values(
@@ -1073,6 +1076,9 @@ class UserActions(object):
     table = self._engine.tables[table_id]
     assert all(isinstance(r, (int, table.Record)) for r in row_ids_or_records)
     row_ids = [int(r) for r in row_ids_or_records]
+
+    # Replace negative ids that may refer to rows just added to this table in this bundle.
+    row_ids = self._engine.out_actions.summary.translate_new_row_ids(table_id, row_ids)
 
     self._do_doc_action(actions.BulkRemoveRecord(table_id, row_ids))
 
