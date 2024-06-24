@@ -79,7 +79,7 @@ class FileConfig<FileContents> {
   }
 }
 
-export function createFileConfigValue<FileContents, Key extends keyof FileContents>(
+export function createFileConfigValue<FileContents, Key extends keyof FileContents, MappedType>(
   fileConfig: FileConfig<FileContents>,
   key: Key,
 ): IWritableConfigValue<FileContents[Key]> {

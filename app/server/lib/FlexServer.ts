@@ -87,7 +87,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import {IGristConfig} from "./config";
+import { IGristCoreConfig } from "./configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -108,7 +108,7 @@ export interface FlexServerOptions {
   pluginUrl?: string;
 
   // Global grist config options
-  settings?: IGristConfig;
+  settings?: IGristCoreConfig;
 }
 
 const noop: express.RequestHandler = (req, res, next) => next();
@@ -126,7 +126,7 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings?: IGristConfig;
+  public settings?: IGristCoreConfig;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
