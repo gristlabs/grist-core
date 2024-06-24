@@ -347,7 +347,9 @@
         "Formula timer": "Formel Timer",
         "Cancel": "Abbrechen",
         "Timing is on": "Das Timing läuft",
-        "You can make changes to the document, then stop timing to see the results.": "Sie können Änderungen an dem Dokument vornehmen und dann die Zeitmessung stoppen, um die Ergebnisse zu sehen."
+        "You can make changes to the document, then stop timing to see the results.": "Sie können Änderungen an dem Dokument vornehmen und dann die Zeitmessung stoppen, um die Ergebnisse zu sehen.",
+        "Only available to document editors": "Nur für Redakteure von Dokumenten verfügbar",
+        "Only available to document owners": "Nur für Eigentümer von Dokumenten verfügbar"
     },
     "DocumentUsage": {
         "Attachments Size": "Größe der Anhänge",
