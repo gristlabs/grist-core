@@ -79,7 +79,7 @@ export class TestServer {
       throw new Error(`Path of testingSocket too long: ${this.testingSocket.length} (${this.testingSocket})`);
     }
 
-    const port = await getAvailablePort();
+    const port = await getAvailablePort(Number(process.env.GET_AVAILABLE_PORT_START || '8000'));
     this._serverUrl = `http://localhost:${port}`;
     const homeUrl = _homeUrl ?? (this._serverTypes.includes('home') ? this._serverUrl : undefined);
 
