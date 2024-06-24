@@ -71,6 +71,8 @@ export async function main(port: number, serverTypes: ServerType[],
   const includeStatic = serverTypes.includes("static");
   const includeApp = serverTypes.includes("app");
 
+  options.settings ??= await getGlobalConfig();
+
   const server = new FlexServer(port, `server(${serverTypes.join(",")})`, options);
 
   // We need to know early on whether we will be serving plugins or not.
@@ -196,7 +198,6 @@ export async function main(port: number, serverTypes: ServerType[],
 
 export async function startMain() {
   try {
-    const config = await getGlobalConfig();
 
     const serverTypes = parseServerTypes(process.env.GRIST_SERVERS);
 
@@ -207,7 +208,7 @@ export async function startMain() {
 
     const port = parseInt(process.env.GRIST_PORT, 10);
 
-    const server = await main(port, serverTypes, { settings: config });
+    const server = await main(port, serverTypes);
 
     const opt = process.argv[2];
     if (opt === '--testingHooks') {
