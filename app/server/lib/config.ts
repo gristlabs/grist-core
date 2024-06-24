@@ -1,33 +1,36 @@
-import path from "path";
 import * as fse from "fs-extra";
-import log from "./log";
-import { getInstanceRoot } from "./places";
-
-export type Edition = string;
 
 /**
- * The contents of the grist core config file.
+ * Readonly config value - no write access.
  */
-export interface IGristCoreConfigFileContents {
-  edition: Edition
-}
-
-/**
- * Global config values accessible from anywhere in core.
- */
-export interface IGristCoreConfig {
-  edition: IWritableConfigValue<Edition>;
-}
-
-interface IReadableConfigValue<T> {
+export interface IReadableConfigValue<T> {
   get(): T;
 }
 
-interface IWritableConfigValue<T> extends IReadableConfigValue<T> {
+/**
+ * Writeable config value. Write behaviour is asynchronous and defined by the implementation.
+ */
+export interface IWritableConfigValue<T> extends IReadableConfigValue<T> {
   set(value: T): Promise<void>;
 }
 
-type Validator<T> = (value: any) => T | null;
+type FileContentsValidator<T> = (value: any) => T | null;
+
+export class MissingConfigFileError extends Error {
+  public name: string = "MissingConfigFileError";
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class ConfigValidationError extends Error {
+  public name: string = "ConfigValidationError";
+
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 /**
  * Provides type safe access to an underlying JSON file.
@@ -35,22 +38,28 @@ type Validator<T> = (value: any) => T | null;
  * Multiple FileConfigs for the same file shouldn't be used, as they risk going out of sync.
  */
 class FileConfig<FileContents> {
+  /**
+   * Creates a new type-safe FileConfig, by loading and checking the contents of the file with `validator`.
+   * @param configPath - Path to load.
+   * @param validator - Validates the contents are in the correct format, and converts to the correct type.
+   *  Should throw an error or return null if not vallid.
+   */
   public static async create<CreateConfigFileContents>(
     configPath: string,
-    validator: Validator<CreateConfigFileContents>
-  ): Promise<FileConfig<CreateConfigFileContents> | null> {
-    try {
-      if (!await fse.pathExists(configPath)) {
-        log.info(`Could not load config because ${configPath} missing`);
-        return null;
-      }
-
-      // TODO - Typecheck this and return new file config
-      return JSON.parse(await fse.readFile(configPath, 'utf8'));
-    } catch(error) {
-      log.error(`Could not load config due to error when loading from ${configPath}: ${error.message}`);
-      return null;
+    validator: FileContentsValidator<CreateConfigFileContents>
+  ): Promise<FileConfig<CreateConfigFileContents>> {
+    if (!await fse.pathExists(configPath)) {
+      throw new MissingConfigFileError(`Could not load config because ${configPath} missing`);
     }
+
+    const rawFileContents = JSON.parse(await fse.readFile(configPath, 'utf8'));
+    const fileContents = validator(rawFileContents);
+
+    if (!fileContents) {
+      throw new ConfigValidationError(`Config at ${configPath} failed validation - check the format?`);
+    }
+
+    return new FileConfig<CreateConfigFileContents>(configPath, fileContents);
   }
 
   constructor(private _filePath: string, private _rawConfig: FileContents) {
@@ -65,61 +74,34 @@ class FileConfig<FileContents> {
     await this.persistToDisk();
   }
 
-  public getReadableValue<Key extends keyof FileContents>(key: Key): IReadableConfigValue<FileContents[Key]> {
-    return this.getWritableValue(key);
-  }
-
-  public getWritableValue<Key extends keyof FileContents>(key: Key): IWritableConfigValue<FileContents[Key]> {
-    return  {
-      get: () => this.get(key),
-      set: async (value: FileContents[Key]) => {
-        await this.set(key, value);
-      }
-    };
-  }
-
   public async persistToDisk(): Promise<void> {
     await fse.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2));
   }
 }
 
+export function createFileConfigValue<FileContents, Key extends keyof FileContents>(
+  fileConfig: FileConfig<FileContents>,
+  key: Key,
+): IWritableConfigValue<FileContents[Key]> {
+  return {
+    get: () => fileConfig.get(key),
+    set: async (value: FileContents[Key]) => { return fileConfig.set(key, value); }
+  };
+}
 
-async function createFileBackedConfig<FileContentsType, ConfigType>(
+export function createMemoryConfigValue<T>(initialValue: T): IWritableConfigValue<T> {
+  let _value = initialValue;
+  return {
+    get: () => _value,
+    set: async (newValue: T) => { _value = newValue; },
+  };
+}
+
+export async function createFileBackedConfig<FileContentsType, ConfigType>(
   configPath: string,
-  validator: Validator<FileContentsType>,
+  validator: FileContentsValidator<FileContentsType>,
   configConverter: (fileConfig: FileConfig<FileContentsType>) => ConfigType,
-): Promise<ConfigType | null> {
+): Promise<ConfigType> {
   const fileConfig = await FileConfig.create<FileContentsType>(configPath, validator);
-  // TODO - Catch errors and abort
-  if (!fileConfig) {
-    return null;
-  }
-
   return configConverter(fileConfig);
-}
-
-async function loadGristCoreConfig(configPath: string): Promise<IGristCoreConfig | null> {
-  return createFileBackedConfig(
-    configPath,
-    // TODO - Typecheck
-    (obj) => obj as IGristCoreConfigFileContents,
-    (fileConfig) => ({
-      edition: fileConfig.getWritableValue('edition'),
-    })
-  );
-}
-
-
-const globalConfigPath: string = path.join(getInstanceRoot(), 'config.json');
-let cachedGlobalConfig: IGristCoreConfig | undefined = undefined;
-
-/**
- * Retrieves the cached grist config, or loads it from the default global path.
- */
-export async function getGlobalConfig(): Promise<IGristCoreConfig> {
-  if (!cachedGlobalConfig) {
-    cachedGlobalConfig = await loadGristCoreConfig(globalConfigPath);
-  }
-
-  return cachedGlobalConfig;
 }
