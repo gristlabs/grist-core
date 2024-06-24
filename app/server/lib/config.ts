@@ -42,17 +42,19 @@ class FileConfig<FileContents> {
    * Creates a new type-safe FileConfig, by loading and checking the contents of the file with `validator`.
    * @param configPath - Path to load.
    * @param validator - Validates the contents are in the correct format, and converts to the correct type.
-   *  Should throw an error or return null if not vallid.
+   *  Should throw an error or return null if not valid.
    */
   public static async create<CreateConfigFileContents>(
     configPath: string,
     validator: FileContentsValidator<CreateConfigFileContents>
   ): Promise<FileConfig<CreateConfigFileContents>> {
-    if (!await fse.pathExists(configPath)) {
-      throw new MissingConfigFileError(`Could not load config because ${configPath} missing`);
+    // Start with empty object, as it can be upgraded to a full config.
+    let rawFileContents: any = {};
+
+    if (await fse.pathExists(configPath)) {
+      rawFileContents = JSON.parse(await fse.readFile(configPath, 'utf8'));
     }
 
-    const rawFileContents = JSON.parse(await fse.readFile(configPath, 'utf8'));
     const fileContents = validator(rawFileContents);
 
     if (!fileContents) {
