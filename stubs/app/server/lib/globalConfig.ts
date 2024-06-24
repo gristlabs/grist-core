@@ -1,6 +1,10 @@
 import path from "path";
 import { getInstanceRoot } from "app/server/lib/places";
-import { IGristCoreConfig } from "app/server/lib/configCore";
+import {
+  IGristCoreConfig,
+  loadGristCoreConfigFile
+} from "app/server/lib/configCore";
+import log from "app/server/lib/log";
 
 const globalConfigPath: string = path.join(getInstanceRoot(), 'config.json');
 let cachedGlobalConfig: IGristCoreConfig | undefined = undefined;
@@ -10,7 +14,8 @@ let cachedGlobalConfig: IGristCoreConfig | undefined = undefined;
  */
 export async function getGlobalConfig(): Promise<IGristCoreConfig> {
   if (!cachedGlobalConfig) {
-    cachedGlobalConfig = await loadGristCoreConfig(globalConfigPath);
+    log.info(`Loading config file from ${globalConfigPath}`);
+    cachedGlobalConfig = await loadGristCoreConfigFile(globalConfigPath);
   }
 
   return cachedGlobalConfig;
