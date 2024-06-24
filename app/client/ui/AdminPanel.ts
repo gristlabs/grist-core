@@ -264,10 +264,9 @@ to multiple people.');
   }
 
   private _buildSessionSecretNotice(owner: IDisposableOwner) {
-    return t('As an optional security feature, Grist signs user session cookies with a secret key. \
-This key can be set via the environment variable GRIST_SESSION_SECRET. If it is not configured, Grist \
-uses a hard-coded default. Since Grist uses 256-bit cryptographically random session IDs, this should \
-not be considered a vulnerability. It is nevertheless recommended to set your own session secret.');
+    return t('Grist signs user session cookies with a secret key. Please set this key via the environment variable \
+GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
+in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.');
   }
 
   private _buildUpdates(owner: MultiHolder) {
