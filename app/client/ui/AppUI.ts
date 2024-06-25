@@ -82,7 +82,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
     } else if (pageType === 'admin') {
       return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel)));
     } else if (pageType === 'activation') {
-      return domAsync(loadActivationPage().then(ap => dom.create(ap.ActivationPage, appModel)));
+      return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
     } else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }

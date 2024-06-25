@@ -152,4 +152,4 @@ ENV \
 EXPOSE 8484
 
 ENTRYPOINT ["/usr/bin/tini", "-s", "--"]
-CMD ["./sandbox/run.sh"]
+CMD ["node", "./sandbox/supervisor.mjs"]

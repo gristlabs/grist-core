@@ -289,7 +289,9 @@
         "Reload data engine": "Recargar el motor de datos",
         "Reload data engine?": "¿Recargar motor de datos?",
         "You can make changes to the document, then stop timing to see the results.": "Puede realizar cambios en el documento y luego detener el cronometraje para ver los resultados.",
-        "Stop timing...": "Dejando de cronometrar..."
+        "Stop timing...": "Dejando de cronometrar...",
+        "Only available to document editors": "Sólo disponible para editores de documentos",
+        "Only available to document owners": "Solo disponible para los propietarios de documentos"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",

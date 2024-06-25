@@ -347,7 +347,9 @@
         "Reload data engine": "Recarregar o motor de dados",
         "Reload data engine?": "Recarregar o motor de dados?",
         "Start timing": "Iniciar cronometragem",
-        "Stop timing...": "Pare de cronometrar..."
+        "Stop timing...": "Pare de cronometrar...",
+        "Only available to document editors": "Disponível apenas para editores de documentos",
+        "Only available to document owners": "Disponível apenas para proprietários de documentos"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",

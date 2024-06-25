@@ -130,6 +130,7 @@ Check out this repository: https://github.com/gristlabs/grist-widget#readme
 
 Some documentation to help you starting developing:
  - [Overview of Grist Components](./overview.md)
+ - [The database](./database.md)
  - [GrainJS & Grist Front-End Libraries](./grainjs.md)
  - [GrainJS Documentation](https://github.com/gristlabs/grainjs/) (The library used to build the DOM)
  - [The user support documentation](https://support.getgrist.com/)

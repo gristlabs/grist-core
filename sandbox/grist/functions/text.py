@@ -647,6 +647,18 @@ def T(value):
           six.text_type(value) if isinstance(value, AltText) else u"")
 
 def TASTEME(food):
+  """
+  For any given piece of text, decides if it is tasty or not.
+
+  This is not serious. It appeared as an Easter egg, and is kept as such. It is in fact a puzzle
+  to figure out the underlying simple rule. It has been surprisingly rarely cracked, even after
+  reading the source code, which is freely available and may entertain Python fans.
+
+  >>> TASTEME('Banana')
+  True
+  >>> TASTEME('Garlic')
+  False
+  """
   chews = re.findall(r'\b[A-Z]+\b', food.upper())
   claw = slice(2, None)
   spit = lambda chow: chow[claw]
@@ -657,9 +669,9 @@ def TASTEME(food):
 @unimplemented
 def TEXT(number, format_type):    # pylint: disable=unused-argument
   """
-  Converts a number into text according to a specified format. It is not yet implemented in 
+  Converts a number into text according to a specified format. It is not yet implemented in
   Grist. You can use the similar Python functions str() to convert numbers into strings, and
-  optionally format() to specify the number format. 
+  optionally format() to specify the number format.
   """
   raise NotImplementedError()
 
@@ -681,7 +693,7 @@ def TRIM(text):
 
 def UPPER(text):
   """
-  Converts a specified string to uppercase. Same as `text.lower()`.
+  Converts a specified string to uppercase. Same as `text.upper()`.
 
   >>> UPPER("e. e. cummings")
   'E. E. CUMMINGS'
