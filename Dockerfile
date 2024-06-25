@@ -129,7 +129,7 @@ RUN \
 
 # Add a user to allow de-escalating from root on startup
 RUN useradd -ms /bin/bash grist
-ENV GRIST_DOCKER_USER=grist\
+ENV GRIST_DOCKER_USER=grist \
     GRIST_DOCKER_GROUP=grist
 WORKDIR /grist
 
