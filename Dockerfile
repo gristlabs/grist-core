@@ -123,7 +123,9 @@ RUN \
   rmdir /grist/static-built
 
 # To ensure non-root users can run grist, 'other' users need read access (and execute on directories)
-RUN chmod -R o+rX /grist
+# This should be the case by default when copying files in.
+# Only uncomment this if running into permissions issues, as it takes a long time to execute on some systems.
+# RUN chmod -R o+rX /grist
 
 # Add a user to allow de-escalating from root on startup
 RUN useradd -ms /bin/bash grist
