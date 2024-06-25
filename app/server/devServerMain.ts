@@ -69,7 +69,6 @@ export async function main() {
 
   // In V1, we no longer create a config.json file automatically if it is missing.
   // It is convenient to do that in the dev and test environment.
-  // I don't believe this is actively used.
   const appRoot = path.dirname(path.dirname(__dirname));
   const instDir = process.env.GRIST_INST_DIR || appRoot;
   if (process.env.GRIST_INST_DIR) {

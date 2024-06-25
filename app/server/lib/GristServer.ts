@@ -25,7 +25,7 @@ import { Sessions } from 'app/server/lib/Sessions';
 import { ITelemetry } from 'app/server/lib/Telemetry';
 import * as express from 'express';
 import { IncomingMessage } from 'http';
-import { loadGristCoreConfig, IGristCoreConfig } from "./configCore";
+import { IGristCoreConfig, loadGristCoreConfig } from "./configCore";
 
 /**
  * Basic information about a Grist server.  Accessible in many

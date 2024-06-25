@@ -32,7 +32,10 @@ export class ConfigValidationError extends Error {
   }
 }
 
-type ConfigAccessors<ValueType> = { get: () => ValueType, set?: (value: ValueType) => Promise<void> };
+interface ConfigAccessors<ValueType> {
+  get: () => ValueType,
+  set?: (value: ValueType) => Promise<void>
+}
 
 /**
  * Provides type safe access to an underlying JSON file.
