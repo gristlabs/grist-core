@@ -779,7 +779,7 @@ export class FlexServer implements GristServer {
   // Set up the main express middleware used.  For a single user setup, without logins,
   // all this middleware is currently a no-op.
   public addAccessMiddleware() {
-    if (this._check('middleware', 'map', 'login', isSingleUserMode() ? null : 'hosts')) { return; }
+    if (this._check('middleware', 'map', 'loginMiddleware', isSingleUserMode() ? null : 'hosts')) { return; }
 
     if (!isSingleUserMode()) {
       const skipSession = appSettings.section('login').flag('skipSession').readBool({
@@ -943,7 +943,7 @@ export class FlexServer implements GristServer {
   }
 
   public addSessions() {
-    if (this._check('sessions', 'login')) { return; }
+    if (this._check('sessions', 'loginMiddleware')) { return; }
     this.addTagChecker();
     this.addOrg();
 
@@ -1141,7 +1141,7 @@ export class FlexServer implements GristServer {
   }
 
   public async addLoginMiddleware() {
-    if (this._check('login')) { return; }
+    if (this._check('loginMiddleware')) { return; }
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
@@ -1157,7 +1157,7 @@ export class FlexServer implements GristServer {
   }
 
   public addComm() {
-    if (this._check('comm', 'start', 'homedb', 'login')) { return; }
+    if (this._check('comm', 'start', 'homedb', 'loginMiddleware')) { return; }
     this._comm = new Comm(this.server, {
       settings: {},
       sessions: this._sessions,
