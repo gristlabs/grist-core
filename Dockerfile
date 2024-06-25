@@ -161,4 +161,4 @@ ENV \
 EXPOSE 8484
 
 ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
-CMD ["./sandbox/run.sh"]
+CMD ["node", "./sandbox/supervisor.mjs"]

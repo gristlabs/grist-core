@@ -3,12 +3,12 @@
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
 * `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server.
-* [`grist-electron`](https://github.com/gristlabs/grist-electron) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
+* [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
 The `grist-core` repo is the heart of Grist, including the hosted services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 and Grist's main developer. The French government agency [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) 🇫🇷 has also made significant contributions to the codebase.
 
-The `grist-core`, `grist-electron`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
+The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
 
 > Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
 
@@ -35,7 +35,7 @@ Here are some specific feature highlights of Grist:
     - Enables [backups](https://support.getgrist.com/exports/#backing-up-an-entire-document) that you can confidently restore in full.
     - Great for moving between different hosts.
   * Can be displayed on a static website with [`grist-static`](https://github.com/gristlabs/grist-static) – no special server needed.
-  * A self-contained desktop app for viewing and editing locally: [`grist-electron`](https://github.com/gristlabs/grist-electron).
+  * A self-contained desktop app for viewing and editing locally: [`grist-desktop`](https://github.com/gristlabs/grist-desktop).
   * Convenient editing and formatting features.
     - Choices and [choice lists](https://support.getgrist.com/col-types/#choice-list-columns), for adding colorful tags to records.
     - [References](https://support.getgrist.com/col-refs/#creating-a-new-reference-list-column) and reference lists, for cross-referencing records in other tables.
@@ -81,7 +81,7 @@ If you just want a quick demo of Grist:
 
   * You can try Grist out at the hosted service run by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com) (no registration needed).
   * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
-  * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-electron](https://github.com/gristlabs/grist-electron).
+  * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-desktop](https://github.com/gristlabs/grist-desktop).
 
 To get `grist-core` running on your computer with [Docker](https://www.docker.com/get-started), do:
 
@@ -117,22 +117,24 @@ You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) handbook.
 
-## Activating the boot page for diagnosing problems
+## The administrator panel
 
-You can turn on a special "boot page" to inspect the status of your
-installation. Just visit `/boot` on your Grist server for instructions.
-Since it is useful for the boot page to be available even when authentication
-isn't set up, you can give it a special access key by setting `GRIST_BOOT_KEY`.
+You can turn on a special admininistrator panel to inspect the status
+of your installation. Just visit `/admin` on your Grist server for
+instructions. Since it is useful for the admin panel to be
+available even when authentication isn't set up, you can give it a
+special access key by setting `GRIST_BOOT_KEY`.
 
 ```
 docker run -p 8484:8484 -e GRIST_BOOT_KEY=secret -it gristlabs/grist
 ```
 
-The boot page should then be available at `/boot/<GRIST_BOOT_KEY>`. We are
-starting to collect probes for common problems there. If you hit a problem that
-isn't covered, it would be great if you could add a probe for it in
+The boot page should then be available at
+`/admin?boot-key=<GRIST_BOOT_KEY>`. We are collecting probes for
+common problems there. If you hit a problem that isn't covered, it
+would be great if you could add a probe for it in
 [BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts).
-Or file an issue so someone else can add it, we're just getting start with this.
+You may instead file an issue so someone else can add it.
 
 ## Building from source
 

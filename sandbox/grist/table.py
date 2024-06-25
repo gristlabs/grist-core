@@ -68,13 +68,17 @@ class UserTable(object):
     any expression,
     most commonly a field in the current row (e.g. `$SomeField`) or a constant (e.g. a quoted string
     like `"Some Value"`) (examples below).
-    If `sort_by=field` is given, sort the results by that field.
+
+    You may set the optional `sort_by` parameter to the column ID by which to sort multiple matching
+    results, to determine which of them is returned. You can prefix the column ID with "-" to
+    reverse the order.
 
     For example:
     ```
     People.lookupRecords(Email=$Work_Email)
     People.lookupRecords(First_Name="George", Last_Name="Washington")
     People.lookupRecords(Last_Name="Johnson", sort_by="First_Name")
+    Orders.lookupRecords(Customer=$id, sort_by="-OrderDate")
     ```
 
     See [RecordSet](#recordset) for useful properties offered by the returned object.
@@ -82,6 +86,8 @@ class UserTable(object):
     See [CONTAINS](#contains) for an example utilizing `UserTable.lookupRecords` to find records
     where a field of a list type (such as `Choice List` or `Reference List`) contains the given
     value.
+
+    Learn more about [lookupRecords](references-lookups.md#lookuprecords).
     """
     return self.table.lookup_records(**field_value_pairs)
 
@@ -92,14 +98,21 @@ class UserTable(object):
     Returns a [Record](#record) matching the given field=value arguments. The value may be any
     expression,
     most commonly a field in the current row (e.g. `$SomeField`) or a constant (e.g. a quoted string
-    like `"Some Value"`). If multiple records match, returns one of them. If none match, returns the
-    special empty record.
+    like `"Some Value"`). If multiple records are found, the first match is returned.
+
+    You may set the optional `sort_by` parameter to the column ID by which to sort multiple matching
+    results, to determine which of them is returned. You can prefix the column ID with "-" to
+    reverse the order.
 
     For example:
     ```
     People.lookupOne(First_Name="Lewis", Last_Name="Carroll")
     People.lookupOne(Email=$Work_Email)
+    Tickets.lookupOne(Person=$id, sort_by="Date")   # Find the first ticket for the person
+    Tickets.lookupOne(Person=$id, sort_by="-Date")  # Find the last ticket for the person
     ```
+
+    Learn more about [lookupOne](references-lookups.md#lookupone).
     """
     return self.table.lookup_one_record(**field_value_pairs)
 

@@ -86,7 +86,7 @@ export class UpdateManager {
 
       // This is the most interesting part for us, to track installation ids and match them
       // with the version of the client. Won't be send without telemetry opt in.
-      const installationId = optStringParam(
+      const deploymentId = optStringParam(
         payload("installationId"),
         "installationId"
       );
@@ -104,8 +104,8 @@ export class UpdateManager {
         .getTelemetry()
         .logEvent(req as RequestWithLogin, "checkedUpdateAPI", {
           full: {
-            installationId,
-            deploymentType,
+            deploymentId,
+            deploymentType
           },
         });
 

@@ -4,11 +4,10 @@ import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {getDataLimitStatus} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features, PERSONAL_FREE_PLAN} from 'app/common/Features';
+import {ANONYMOUS_PLAN, canAddOrgMembers, Features} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
-import {FullUser, UserProfile} from 'app/common/LoginSessionAPI';
+import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
-import {UserOrgPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {StringUnion} from 'app/common/StringUnion';
 import {
@@ -22,9 +21,10 @@ import {
   Organization as OrgInfo,
   PermissionData,
   PermissionDelta,
+  PREVIEWER_EMAIL,
   UserAccessData,
   UserOptions,
-  WorkspaceProperties
+  WorkspaceProperties,
 } from "app/common/UserAPI";
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from "app/gen-server/entity/AclRule";
 import {Alias} from "app/gen-server/entity/Alias";
@@ -32,7 +32,6 @@ import {BillingAccount} from "app/gen-server/entity/BillingAccount";
 import {BillingAccountManager} from "app/gen-server/entity/BillingAccountManager";
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
-import {Login} from "app/gen-server/entity/Login";
 import {AccessOption, AccessOptionWithRole, Organization} from "app/gen-server/entity/Organization";
 import {Pref} from "app/gen-server/entity/Pref";
 import {getDefaultProductNames, personalFreeFeatures, Product} from "app/gen-server/entity/Product";
@@ -41,6 +40,10 @@ import {Share} from "app/gen-server/entity/Share";
 import {User} from "app/gen-server/entity/User";
 import {Workspace} from "app/gen-server/entity/Workspace";
 import {Limit} from 'app/gen-server/entity/Limit';
+import {
+  AvailableUsers, GetUserOptions, NonGuestGroup, Resource, UserProfileChange
+} from 'app/gen-server/lib/homedb/Interfaces';
+import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from "app/gen-server/lib/scrubUserFromOrg";
 import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
@@ -59,20 +62,20 @@ import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {getScope} from 'app/server/lib/requestUtils';
 import {WebHookSecret} from "app/server/lib/Triggers";
+
 import {EventEmitter} from 'events';
 import {Request} from "express";
+import {defaultsDeep, flatten, pick} from 'lodash';
 import {
   Brackets,
   Connection,
   DatabaseType,
   EntityManager,
+  ObjectLiteral,
   SelectQueryBuilder,
   WhereExpression
 } from "typeorm";
 import uuidv4 from "uuid/v4";
-import flatten = require('lodash/flatten');
-import pick = require('lodash/pick');
-import defaultsDeep = require('lodash/defaultsDeep');
 
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
@@ -80,6 +83,7 @@ import defaultsDeep = require('lodash/defaultsDeep');
 // fixed.  See https://github.com/typeorm/typeorm/issues/1884#issuecomment-380767213
 applyPatch();
 
+export { SUPPORT_EMAIL };
 export const NotifierEvents = StringUnion(
   'addUser',
   'userChange',
@@ -92,18 +96,6 @@ export const NotifierEvents = StringUnion(
 );
 
 export type NotifierEvent = typeof NotifierEvents.type;
-
-// Nominal email address of a user who can view anything (for thumbnails).
-export const PREVIEWER_EMAIL = 'thumbnail@getgrist.com';
-
-// A special user allowed to add/remove the EVERYONE_EMAIL to/from a resource.
-export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
-  envVar: 'GRIST_SUPPORT_EMAIL',
-  defaultValue: 'support@getgrist.com',
-});
-
-// A list of emails we don't expect to see logins for.
-const NON_LOGIN_EMAILS = [PREVIEWER_EMAIL, EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];
 
 // Name of a special workspace with examples in it.
 export const EXAMPLE_WORKSPACE_NAME = 'Examples & Templates';
@@ -118,8 +110,6 @@ const listPublicSites = appSettings.section('access').flag('listPublicSites').re
 // A TTL in milliseconds for caching the result of looking up access level for a doc,
 // which is a burden under heavy traffic.
 const DOC_AUTH_CACHE_TTL = 5000;
-
-type Resource = Organization|Workspace|Document;
 
 export interface QueryResult<T> {
   status: number;
@@ -171,16 +161,6 @@ export interface UserChange {
   membersAfter: Map<roles.NonGuestRole, User[]>;
 }
 
-// A specification of the users available during a request.  This can be a single
-// user, identified by a user id, or a collection of profiles (typically drawn from
-// the session).
-type AvailableUsers = number | UserProfile[];
-
-// A type guard to check for single-user case.
-function isSingleUser(users: AvailableUsers): users is number {
-  return typeof users === 'number';
-}
-
 // The context in which a query is being made.  Includes what we know
 // about the user, and for requests made from pages, the active organization.
 export interface Scope {
@@ -204,18 +184,6 @@ export interface DocScope extends Scope {
   urlId: string;
 }
 
-type NonGuestGroup = Group & { name: roles.NonGuestRole };
-
-// Returns whether the given group is a valid non-guest group.
-function isNonGuestGroup(group: Group): group is NonGuestGroup {
-  return roles.isNonGuestRole(group.name);
-}
-
-export interface UserProfileChange {
-  name?: string;
-  isFirstTimeUser?: boolean;
-}
-
 // Identifies a request to access a document. This combination of values is also used for caching
 // DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
 export interface DocAuthKey {
@@ -233,12 +201,6 @@ export interface DocAuthResult {
                               // to removed documents for some purposes. Null on error.
   error?: ApiError;
   cachedDoc?: Document;       // For cases where stale info is ok.
-}
-
-interface GetUserOptions {
-  manager?: EntityManager;
-  profile?: UserProfile;
-  userOptions?: UserOptions;
 }
 
 // Represent a DocAuthKey as a string.  The format is "<urlId>:<org> <userId>".
@@ -284,9 +246,9 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * encapsulating the typeorm logic.
  */
 export class HomeDBManager extends EventEmitter {
+  private _usersManager = new UsersManager(this, this._runInTransaction.bind(this));
   private _connection: Connection;
   private _dbType: DatabaseType;
-  private _specialUserIds: {[name: string]: number} = {};  // id for anonymous user, previewer, etc
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
   private _idPrefix: string = "";  // Place this before ids in subdomains, used in routing to
@@ -295,7 +257,6 @@ export class HomeDBManager extends EventEmitter {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   // In restricted mode, documents should be read-only.
   private _restrictedMode: boolean = false;
-
 
   /**
    * Five aclRules, each with one group (with the names 'owners', 'editors', 'viewers',
@@ -393,23 +354,8 @@ export class HomeDBManager extends EventEmitter {
   // make sure special users and workspaces are available
   public async initializeSpecialIds(options?: {
     skipWorkspaces?: boolean  // if set, skip setting example workspace.
-  }): Promise<void> {
-    await this._getSpecialUserId({
-      email: ANONYMOUS_USER_EMAIL,
-      name: "Anonymous"
-    });
-    await this._getSpecialUserId({
-      email: PREVIEWER_EMAIL,
-      name: "Preview"
-    });
-    await this._getSpecialUserId({
-      email: EVERYONE_EMAIL,
-      name: "Everyone"
-    });
-    await this._getSpecialUserId({
-      email: SUPPORT_EMAIL,
-      name: "Support"
-    });
+  }) {
+    await this._usersManager.initializeSpecialIds();
 
     if (!options?.skipWorkspaces) {
       // Find the example workspace.  If there isn't one named just right, take the first workspace
@@ -420,7 +366,7 @@ export class HomeDBManager extends EventEmitter {
       // anonymous users.
       const supportWorkspaces = await this._workspaces()
         .leftJoinAndSelect('workspaces.org', 'orgs')
-        .where('orgs.owner_id = :userId', { userId: this.getSupportUserId() })
+        .where('orgs.owner_id = :userId', { userId: this._usersManager.getSupportUserId() })
         .orderBy('workspaces.created_at')
         .getMany();
       const exampleWorkspace = supportWorkspaces.find(ws => ws.name === EXAMPLE_WORKSPACE_NAME) || supportWorkspaces[0];
@@ -471,325 +417,78 @@ export class HomeDBManager extends EventEmitter {
   }
 
   /**
-   * Clear all user preferences associated with the given email addresses.
    * For use in tests.
+   * @see UsersManager.prototype.testClearUserPrefs
    */
   public async testClearUserPrefs(emails: string[]) {
-    return await this._connection.transaction(async manager => {
-      for (const email of emails) {
-        const user = await this.getUserByLogin(email, {manager});
-        if (user) {
-          await manager.delete(Pref, {userId: user.id});
-        }
-      }
-    });
+    return this._usersManager.testClearUserPrefs(emails);
   }
 
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
-    // Include logins relation for Authorization convenience.
-    return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
+    return this._usersManager.getUserByKey(apiKey);
   }
 
   public async getUserByRef(ref: string): Promise<User|undefined> {
-    return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
+    return this._usersManager.getUserByRef(ref);
   }
 
-  public async getUser(
-    userId: number,
-    options: {includePrefs?: boolean} = {}
-  ): Promise<User|undefined> {
-    const {includePrefs} = options;
-    const relations = ["logins"];
-    if (includePrefs) { relations.push("prefs"); }
-    return await User.findOne({where: {id: userId}, relations}) || undefined;
+  public async getUser(userId: number, options: {includePrefs?: boolean} = {}) {
+    return this._usersManager.getUser(userId, options);
   }
 
-  public async getFullUser(userId: number): Promise<FullUser> {
-    const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-    return this.makeFullUser(user);
+  public async getFullUser(userId: number) {
+    return this._usersManager.getFullUser(userId);
   }
 
   /**
-   * Convert a user record into the format specified in api.
+   * @see UsersManager.prototype.makeFullUser
    */
-  public makeFullUser(user: User): FullUser {
-    if (!user.logins?.[0]?.displayEmail) {
-      throw new ApiError("unable to find mandatory user email", 400);
-    }
-    const displayEmail = user.logins[0].displayEmail;
-    const loginEmail = user.loginEmail;
-    const result: FullUser = {
-      id: user.id,
-      email: displayEmail,
-      // Only include loginEmail when it's different, to avoid overhead when FullUser is sent
-      // around, and also to avoid updating too many tests.
-      loginEmail: loginEmail !== displayEmail ? loginEmail : undefined,
-      name: user.name,
-      picture: user.picture,
-      ref: user.ref,
-      locale: user.options?.locale,
-      prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
-    };
-    if (this.getAnonymousUserId() === user.id) {
-      result.anonymous = true;
-    }
-    if (this.getSupportUserId() === user.id) {
-      result.isSupport = true;
-    }
-    return result;
+  public makeFullUser(user: User) {
+    return this._usersManager.makeFullUser(user);
   }
 
   /**
-   * Ensures that user with external id exists and updates its profile and email if necessary.
-   *
-   * @param profile External profile
+   * @see UsersManager.prototype.ensureExternalUser
    */
   public async ensureExternalUser(profile: UserProfile) {
-    await this._connection.transaction(async manager => {
-      // First find user by the connectId from the profile
-      const existing = await manager.findOne(User, {
-        where: {connectId: profile.connectId || undefined},
-        relations: ["logins"],
-      });
-
-      // If a user does not exist, create it with data from the external profile.
-      if (!existing) {
-        const newUser = await this.getUserByLoginWithRetry(profile.email, {
-          profile,
-          manager
-        });
-        if (!newUser) {
-          throw new ApiError("Unable to create user", 500);
-        }
-        // No need to survey this user.
-        newUser.isFirstTimeUser = false;
-        await newUser.save();
-      } else {
-        // Else update profile and login information from external profile.
-        let updated = false;
-        let login: Login = existing.logins[0]!;
-        const properEmail = normalizeEmail(profile.email);
-
-        if (properEmail !== existing.loginEmail) {
-          login = login ?? new Login();
-          login.email = properEmail;
-          login.displayEmail = profile.email;
-          existing.logins.splice(0, 1, login);
-          login.user = existing;
-          updated = true;
-        }
-
-        if (profile?.name && profile?.name !== existing.name) {
-          existing.name = profile.name;
-          updated = true;
-        }
-
-        if (profile?.picture && profile?.picture !== existing.picture) {
-          existing.picture = profile.picture;
-          updated = true;
-        }
-
-        if (updated) {
-          await manager.save([existing, login]);
-        }
-      }
-    });
+    return this._usersManager.ensureExternalUser(profile);
   }
 
-  public async updateUser(userId: number, props: UserProfileChange): Promise<void> {
-    let isWelcomed: boolean = false;
-    let user: User|null = null;
-    await this._connection.transaction(async manager => {
-      user = await manager.findOne(User, {relations: ['logins'],
-                                          where: {id: userId}});
-      let needsSave = false;
-      if (!user) { throw new ApiError("unable to find user", 400); }
-      if (props.name && props.name !== user.name) {
-        user.name = props.name;
-        needsSave = true;
-      }
-      if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
-        user.isFirstTimeUser = props.isFirstTimeUser;
-        needsSave = true;
-        // If we are turning off the isFirstTimeUser flag, then right
-        // after this transaction commits is a great time to trigger
-        // any automation for first logins
-        if (!props.isFirstTimeUser) { isWelcomed = true; }
-      }
-      if (needsSave) {
-        await user.save();
-      }
-    });
+  public async updateUser(userId: number, props: UserProfileChange) {
+    const { user, isWelcomed } = await this._usersManager.updateUser(userId, props);
     if (user && isWelcomed) {
       this.emit('firstLogin', this.makeFullUser(user));
     }
   }
 
   public async updateUserName(userId: number, name: string) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-    user.name = name;
-    await user.save();
+    return this._usersManager.updateUserName(userId, name);
   }
 
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {
-    const user = await User.findOne({where: {id: userId}});
-    if (!user) { throw new ApiError("unable to find user", 400); }
-
-    const newOptions = {...(user.options ?? {}), ...props};
-    user.options = newOptions;
-    await user.save();
-  }
-
-  // Fetch user from login, creating the user if previously unseen, allowing one retry
-  // for an email key conflict failure.  This is in case our transaction conflicts with a peer
-  // doing the same thing.  This is quite likely if the first page visited by a previously
-  // unseen user fires off multiple api calls.
-  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
-    try {
-      return await this.getUserByLogin(email, options);
-    } catch (e) {
-      if (e.name === 'QueryFailedError' && e.detail &&
-          e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
-        // This is a postgres-specific error message. This problem cannot arise in sqlite,
-        // because we have to serialize sqlite transactions in any case to get around a typeorm
-        // limitation.
-        return await this.getUserByLogin(email, options);
-      }
-      throw e;
-    }
+    return this._usersManager.updateUserOptions(userId, props);
   }
 
   /**
-   *
-   * Fetches a user record based on an email address.  If a user record already
-   * exists linked to the email address supplied, that is the record returned.
-   * Otherwise a fresh record is created, linked to the supplied email address.
-   * The supplied `options` are used when creating a fresh record, or updating
-   * unset/outdated fields of an existing record.
-   *
+   * @see UsersManager.prototype.getUserByLoginWithRetry
+   */
+  public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
+    return this._usersManager.getUserByLoginWithRetry(email, options);
+  }
+
+  /**
+   * @see UsersManager.prototype.getUserByLogin
    */
   public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User|undefined> {
-    const {manager: transaction, profile, userOptions} = options;
-    const normalizedEmail = normalizeEmail(email);
-    const userByLogin = await this._runInTransaction(transaction, async manager => {
-      let needUpdate = false;
-      const userQuery = manager.createQueryBuilder()
-        .select('user')
-        .from(User, 'user')
-        .leftJoinAndSelect('user.logins', 'logins')
-        .leftJoinAndSelect('user.personalOrg', 'personalOrg')
-        .where('email = :email', {email: normalizedEmail});
-      let user = await userQuery.getOne();
-      let login: Login;
-      if (!user) {
-        user = new User();
-        // Special users do not have first time user set so that they don't get redirected to the
-        // welcome page.
-        user.isFirstTimeUser = !NON_LOGIN_EMAILS.includes(normalizedEmail);
-        login = new Login();
-        login.email = normalizedEmail;
-        login.user = user;
-        needUpdate = true;
-      } else {
-        login = user.logins[0];
-      }
-
-      // Check that user and login records are up to date.
-      if (!user.name) {
-        // Set the user's name if our provider knows it.  Otherwise use their username
-        // from email, for lack of something better.  If we don't have a profile at this
-        // time, then leave the name blank in the hopes of learning it when the user logs in.
-        user.name = (profile && (profile.name || email.split('@')[0])) || '';
-        needUpdate = true;
-      }
-      if (profile && !user.firstLoginAt) {
-        // set first login time to now (remove milliseconds for compatibility with other
-        // timestamps in db set by typeorm, and since second level precision is fine)
-        const nowish = new Date();
-        nowish.setMilliseconds(0);
-        user.firstLoginAt = nowish;
-        needUpdate = true;
-      }
-      if (!user.picture && profile && profile.picture) {
-        // Set the user's profile picture if our provider knows it.
-        user.picture = profile.picture;
-        needUpdate = true;
-      }
-      if (profile && profile.email && profile.email !== login.displayEmail) {
-        // Use provider's version of email address for display.
-        login.displayEmail = profile.email;
-        needUpdate = true;
-      }
-
-      if (profile?.connectId && profile?.connectId !== user.connectId) {
-        user.connectId = profile.connectId;
-        needUpdate = true;
-      }
-
-      if (!login.displayEmail) {
-        // Save some kind of display email if we don't have anything at all for it yet.
-        // This could be coming from how someone wrote it in a UserManager dialog, for
-        // instance.  It will get overwritten when the user logs in if the provider's
-        // version is different.
-        login.displayEmail = email;
-        needUpdate = true;
-      }
-      if (!user.options?.authSubject && userOptions?.authSubject) {
-        // Link subject from password-based authentication provider if not previously linked.
-        user.options = {...(user.options ?? {}), authSubject: userOptions.authSubject};
-        needUpdate = true;
-      }
-      if (needUpdate) {
-        login.user = user;
-        await manager.save([user, login]);
-      }
-      if (!user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email)) {
-        // Add a personal organization for this user.
-        // We don't add a personal org for anonymous/everyone/previewer "users" as it could
-        // get a bit confusing.
-        const result = await this.addOrg(user, {name: "Personal"}, {
-          setUserAsOwner: true,
-          useNewPlan: true,
-          product: PERSONAL_FREE_PLAN,
-        }, manager);
-        if (result.status !== 200) {
-          throw new Error(result.errMessage);
-        }
-        needUpdate = true;
-
-        // We just created a personal org; set userOrgPrefs that should apply for new users only.
-        const userOrgPrefs: UserOrgPrefs = {showGristTour: true};
-        const orgId = result.data;
-        if (orgId) {
-          await this.updateOrg({userId: user.id}, orgId, {userOrgPrefs}, manager);
-        }
-      }
-      if (needUpdate) {
-        // We changed the db - reload user in order to give consistent results.
-        // In principle this could be optimized, but this is simpler to maintain.
-        user = await userQuery.getOne();
-      }
-      return user;
-    });
-    return userByLogin;
+    return this._usersManager.getUserByLogin(email, options);
   }
 
   /**
+   * @see UsersManager.prototype.getExistingUserByLogin
    * Find a user by email. Don't create the user if it doesn't already exist.
    */
-  public async getExistingUserByLogin(
-    email: string,
-    manager?: EntityManager
-  ): Promise<User|undefined> {
-    const normalizedEmail = normalizeEmail(email);
-    return await (manager || this._connection).createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .leftJoinAndSelect('user.logins', 'logins')
-      .where('email = :email', {email: normalizedEmail})
-      .getOne() || undefined;
+  public async getExistingUserByLogin(email: string, manager?: EntityManager): Promise<User|undefined> {
+    return this._usersManager.getExistingUserByLogin(email, manager);
   }
 
   /**
@@ -821,50 +520,16 @@ export class HomeDBManager extends EventEmitter {
   public async getOrgBillableMemberCount(org: string|number|Organization): Promise<number> {
     return (await this._getOrgMembers(org))
               .filter(u => !u.options?.isConsultant) // remove consultants.
-              .filter(u => !this.getExcludedUserIds().includes(u.id)) // remove support user and other
+              .filter(u => !this._usersManager.getExcludedUserIds().includes(u.id)) // remove support user and other
               .length;
   }
 
   /**
-   * Deletes a user from the database.  For the moment, the only person with the right
-   * to delete a user is the user themselves.
-   * Users have logins, a personal org, and entries in the group_users table.  All are
-   * removed together in a transaction.  All material in the personal org will be lost.
-   *
-   * @param scope: request scope, including the id of the user initiating this action
-   * @param userIdToDelete: the id of the user to delete from the database
-   * @param name: optional cross-check, delete only if user name matches this
+   * @see UsersManager.prototype.deleteUser
    */
   public async deleteUser(scope: Scope, userIdToDelete: number,
                           name?: string): Promise<QueryResult<void>> {
-    const userIdDeleting = scope.userId;
-    if (userIdDeleting !== userIdToDelete) {
-      throw new ApiError('not permitted to delete this user', 403);
-    }
-    await this._connection.transaction(async manager => {
-      const user = await manager.findOne(User, {where: {id: userIdToDelete},
-                                                relations: ["logins", "personalOrg", "prefs"]});
-      if (!user) { throw new ApiError('user not found', 404); }
-      if (name) {
-        if (user.name !== name) {
-          throw new ApiError(`user name did not match ('${name}' vs '${user.name}')`, 400);
-        }
-      }
-      if (user.personalOrg) { await this.deleteOrg(scope, user.personalOrg.id, manager); }
-      await manager.remove([...user.logins]);
-      // We don't have a GroupUser entity, and adding one tickles lots of TypeOrm quirkiness,
-      // so use a plain query to delete entries in the group_users table.
-      await manager.createQueryBuilder()
-        .delete()
-        .from('group_users')
-        .where('user_id = :userId', {userId: userIdToDelete})
-        .execute();
-
-      await manager.delete(User, userIdToDelete);
-    });
-    return {
-      status: 200
-    };
+    return this._usersManager.deleteUser(scope, userIdToDelete, name);
   }
 
   /**
@@ -878,14 +543,14 @@ export class HomeDBManager extends EventEmitter {
     // Anonymous access to the merged org is a special case.  We return an
     // empty organization, not backed by the database, and which can contain
     // nothing but the example documents always added to the merged org.
-    if (this.isMergedOrg(orgKey) && userId === this.getAnonymousUserId()) {
+    if (this.isMergedOrg(orgKey) && userId === this._usersManager.getAnonymousUserId()) {
       const anonOrg: OrgInfo = {
         id: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         domain: this.mergedOrgDomain(),
         name: 'Anonymous',
-        owner: this.makeFullUser(this.getAnonymousUser()),
+        owner: this.makeFullUser(this._usersManager.getAnonymousUser()),
         access: 'viewers',
         billingAccount: {
           id: 0,
@@ -910,7 +575,7 @@ export class HomeDBManager extends EventEmitter {
     qb = this._addBillingAccount(qb, scope.userId);
     let effectiveUserId = scope.userId;
     if (scope.specialPermit && scope.specialPermit.org === orgKey) {
-      effectiveUserId = this.getPreviewerUserId();
+      effectiveUserId = this._usersManager.getPreviewerUserId();
     }
     qb = this._withAccess(qb, effectiveUserId, 'orgs');
     qb = qb.leftJoinAndSelect('orgs.owner', 'owner');
@@ -954,7 +619,7 @@ export class HomeDBManager extends EventEmitter {
                                  includeOrgsAndManagers: boolean,
                                  transaction?: EntityManager): Promise<BillingAccount> {
     const org = this.unwrapQueryResult(await this.getOrg(scope, orgKey, transaction));
-    if (!org.billingAccount.isManager && scope.userId !== this.getPreviewerUserId() &&
+    if (!org.billingAccount.isManager && scope.userId !== this._usersManager.getPreviewerUserId() &&
       // The special permit (used for the support user) allows access to the billing account.
       scope.specialPermit?.org !== orgKey) {
       throw new ApiError('User does not have access to billing account', 401);
@@ -1017,7 +682,7 @@ export class HomeDBManager extends EventEmitter {
     const query = this._orgWorkspaces(scope, orgKey, options);
     // Allow an empty result for the merged org for the anonymous user.  The anonymous user
     // has no home org or workspace.  For all other sitations, expect at least one workspace.
-    const emptyAllowed = this.isMergedOrg(orgKey) && scope.userId === this.getAnonymousUserId();
+    const emptyAllowed = this.isMergedOrg(orgKey) && scope.userId === this._usersManager.getAnonymousUserId();
     const result = await this._verifyAclPermissions(query, { scope, emptyAllowed });
     // Return the workspaces, not the org(s).
     if (result.status === 200) {
@@ -1140,7 +805,6 @@ export class HomeDBManager extends EventEmitter {
     return options.find(option => option.access === role) || null;
   }
 
-
   /**
    * Returns a SelectQueryBuilder which gives an array of orgs already filtered by
    * the given user' (or users') access.
@@ -1153,7 +817,7 @@ export class HomeDBManager extends EventEmitter {
                        options?: {ignoreEveryoneShares?: boolean}): Promise<QueryResult<Organization[]>> {
     let queryBuilder = this._orgs()
       .leftJoinAndSelect('orgs.owner', 'users', 'orgs.owner_id = users.id');
-    if (isSingleUser(users)) {
+    if (UsersManager.isSingleUser(users)) {
       // When querying with a single user in mind, we keep our api promise
       // of returning their personal org first in the list.
       queryBuilder = queryBuilder
@@ -1166,7 +830,7 @@ export class HomeDBManager extends EventEmitter {
     queryBuilder = this._withAccess(queryBuilder, users, 'orgs');
     // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
     queryBuilder = this._filterByOrgGroups(queryBuilder, users, domain, options);
-    if (this._isAnonymousUser(users) && !listPublicSites) {
+    if (this._usersManager.isAnonymousUser(users) && !listPublicSites) {
       // The anonymous user is a special case.  It may have access to potentially
       // many orgs, but listing them all would be kind of a misfeature.  but reporting
       // nothing would complicate the client.  We compromise, and report at most
@@ -1227,7 +891,7 @@ export class HomeDBManager extends EventEmitter {
         // TODO: look up the document properly, perhaps delegating
         // to the regular path through this method.
         workspace: this.unwrapQueryResult<Workspace>(
-          await this.getWorkspace({userId: this.getSupportUserId()},
+          await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
                                    this._exampleWorkspaceId)),
         aliases: [],
         access: 'editors',  // a share may have view/edit access,
@@ -1242,7 +906,7 @@ export class HomeDBManager extends EventEmitter {
       // We imagine current user owning trunk if there is no embedded userId, or
       // the embedded userId matches the current user.
       const access = (forkUserId === undefined || forkUserId === userId) ? 'owners' :
-        (userId === this.getPreviewerUserId() ? 'viewers' : null);
+        (userId === this._usersManager.getPreviewerUserId() ? 'viewers' : null);
       if (!access) { throw new ApiError("access denied", 403); }
       doc = {
         name: 'Untitled',
@@ -1252,7 +916,7 @@ export class HomeDBManager extends EventEmitter {
         isPinned: false,
         urlId: null,
         workspace: this.unwrapQueryResult<Workspace>(
-          await this.getWorkspace({userId: this.getSupportUserId()},
+          await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
                                    this._exampleWorkspaceId)),
         aliases: [],
         access
@@ -1265,7 +929,7 @@ export class HomeDBManager extends EventEmitter {
       // work.
       let qb = this._doc({...key, showAll: true}, {manager: transaction})
         .leftJoinAndSelect('orgs.owner', 'org_users');
-      if (userId !== this.getAnonymousUserId()) {
+      if (userId !== this._usersManager.getAnonymousUserId()) {
         qb = this._addForks(userId, qb);
       }
       qb = this._addIsSupportWorkspace(userId, qb, 'orgs', 'workspaces');
@@ -1324,7 +988,7 @@ export class HomeDBManager extends EventEmitter {
   public async getRawDocById(docId: string, transaction?: EntityManager) {
     return await this.getDoc({
       urlId: docId,
-      userId: this.getPreviewerUserId(),
+      userId: this._usersManager.getPreviewerUserId(),
       showAll: true
     }, transaction);
   }
@@ -1443,7 +1107,7 @@ export class HomeDBManager extends EventEmitter {
           // If we are support user, use team product
           // A bit fragile: this is called during creation of support@ user, before
           // getSupportUserId() is available, but with setUserAsOwner of true.
-          user.id === this.getSupportUserId() ? productNames.team :
+          user.id === this._usersManager.getSupportUserId() ? productNames.team :
           // Otherwise use teamInitial product (a stub).
           productNames.teamInitial;
 
@@ -2171,7 +1835,7 @@ export class HomeDBManager extends EventEmitter {
       }
       // Get the ids of users to update.
       const billingAccountId = billingAccount.id;
-      const analysis = await this._verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
+      const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, permissionDelta, true, transaction);
       this._failIfPowerfulAndChangingSelf(analysis);
       const {userIdDelta} = analysis;
       if (!userIdDelta) { throw new ApiError('No userIdDelta', 500); }
@@ -2217,7 +1881,7 @@ export class HomeDBManager extends EventEmitter {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
-      const analysis = await this._verifyAndLookupDeltaEmails(userId, delta, true, manager);
+      const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
       const {userIdDelta} = analysis;
       let orgQuery = this.org(scope, orgKey, {
         manager,
@@ -2239,7 +1903,7 @@ export class HomeDBManager extends EventEmitter {
       const org: Organization = queryResult.data;
       const groups = getNonGuestGroups(org);
       if (userIdDelta) {
-        const membersBefore = getUsersWithRole(groups, this.getExcludedUserIds());
+        const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countBefore = removeRole(membersBefore).length;
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
@@ -2252,7 +1916,7 @@ export class HomeDBManager extends EventEmitter {
           }
         }
         // Emit an event if the number of org users is changing.
-        const membersAfter = getUsersWithRole(groups, this.getExcludedUserIds());
+        const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countAfter = removeRole(membersAfter).length;
         notifications.push(this._userChangeNotification(userId, org, countBefore, countAfter,
                                                         membersBefore, membersAfter));
@@ -2274,7 +1938,7 @@ export class HomeDBManager extends EventEmitter {
     const {userId} = scope;
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
-      const analysis = await this._verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       let {userIdDelta} = analysis;
       let wsQuery = this._workspace(scope, wsId, {
         manager,
@@ -2312,14 +1976,16 @@ export class HomeDBManager extends EventEmitter {
           userIdDelta[userId] = roles.OWNER;
         }
       }
-      const membersBefore = this._withoutExcludedUsers(new Map(groups.map(grp => [grp.name, grp.memberUsers])));
+      const membersBefore = this._usersManager.withoutExcludedUsers(
+        new Map(groups.map(grp => [grp.name, grp.memberUsers]))
+      );
       if (userIdDelta) {
         // To check limits on shares, we track group members before and after call
         // to _updateUserPermissions.  Careful, that method mutates groups.
-        const nonOrgMembersBefore = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
-        const nonOrgMembersAfter = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
         const features = ws.org.billingAccount.getFeatures();
         const limit = features.maxSharesPerWorkspace;
         if (limit !== undefined) {
@@ -2347,7 +2013,7 @@ export class HomeDBManager extends EventEmitter {
     const notifications: Array<() => void> = [];
     const result = await this._connection.transaction(async manager => {
       const {userId} = scope;
-      const analysis = await this._verifyAndLookupDeltaEmails(userId, delta, false, manager);
+      const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       let {userIdDelta} = analysis;
       const doc = await this._loadDocAccess(scope, analysis.permissionThreshold, manager);
       this._failIfPowerfulAndChangingSelf(analysis, {data: doc, status: 200});
@@ -2370,10 +2036,10 @@ export class HomeDBManager extends EventEmitter {
         // to _updateUserPermissions.  Careful, that method mutates groups.
         const org = doc.workspace.org;
         const orgGroups = getNonGuestGroups(org);
-        const nonOrgMembersBefore = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersBefore = this._usersManager.getUserDifference(groups, orgGroups);
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
-        const nonOrgMembersAfter = this._getUserDifference(groups, orgGroups);
+        const nonOrgMembersAfter = this._usersManager.getUserDifference(groups, orgGroups);
         const features = org.billingAccount.getFeatures();
         this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter);
       }
@@ -2399,7 +2065,7 @@ export class HomeDBManager extends EventEmitter {
     }
     const org: Organization = queryResult.data;
     const userRoleMap = getMemberUserRoles(org, this.defaultGroupNames);
-    const users = getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
+    const users = UsersManager.getResourceUsers(org).filter(u => userRoleMap[u.id]).map(u => {
       const access = userRoleMap[u.id];
       return {
         ...this.makeFullUser(u),
@@ -2456,7 +2122,7 @@ export class HomeDBManager extends EventEmitter {
     const orgMapWithMembership = getMemberUserRoles(org, this.defaultGroupNames);
     // Iterate through the org since all users will be in the org.
 
-    const users: UserAccessData[] = getResourceUsers([workspace, org]).map(u => {
+    const users: UserAccessData[] = UsersManager.getResourceUsers([workspace, org]).map(u => {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
@@ -2516,7 +2182,7 @@ export class HomeDBManager extends EventEmitter {
     const orgMapWithMembership = getMemberUserRoles(doc.workspace.org, this.defaultGroupNames);
     const wsMaxInheritedRole = this._getMaxInheritedRole(doc.workspace);
     // Iterate through the org since all users will be in the org.
-    let users: UserAccessData[] = getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
+    let users: UserAccessData[] = UsersManager.getResourceUsers([doc, doc.workspace, doc.workspace.org]).map(u => {
       // Merge the strongest roles from the resource and parent resources. Note that the parent
       // resource access levels must be tempered by the maxInheritedRole values of their children.
       const inheritFromOrg = roles.getWeakestRole(orgMap[u.id] || null, wsMaxInheritedRole);
@@ -2529,7 +2195,7 @@ export class HomeDBManager extends EventEmitter {
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg)
         ),
         isMember: orgAccess && orgAccess !== 'guests',
-        isSupport: u.id === this.getSupportUserId() ? true : undefined,
+        isSupport: u.id === this._usersManager.getSupportUserId() ? true : undefined,
       };
     });
     let maxInheritedRole = this._getMaxInheritedRole(doc);
@@ -2623,7 +2289,7 @@ export class HomeDBManager extends EventEmitter {
       }
       const workspace: Workspace = wsQueryResult.data;
       // Collect all first-level users of the doc being moved.
-      const firstLevelUsers = getResourceUsers(doc);
+      const firstLevelUsers = UsersManager.getResourceUsers(doc);
       const docGroups = doc.aclRules.map(rule => rule.group);
       if (doc.workspace.org.id !== workspace.org.id) {
         // Doc is going to a new org.  Check that there is room for it there.
@@ -2634,8 +2300,8 @@ export class HomeDBManager extends EventEmitter {
           const sourceOrgGroups = getNonGuestGroups(sourceOrg);
           const destOrg = workspace.org;
           const destOrgGroups = getNonGuestGroups(destOrg);
-          const nonOrgMembersBefore = this._getUserDifference(docGroups, sourceOrgGroups);
-          const nonOrgMembersAfter = this._getUserDifference(docGroups, destOrgGroups);
+          const nonOrgMembersBefore = this._usersManager.getUserDifference(docGroups, sourceOrgGroups);
+          const nonOrgMembersAfter = this._usersManager.getUserDifference(docGroups, destOrgGroups);
           const features = destOrg.billingAccount.getFeatures();
           this._restrictAllDocShares(features, nonOrgMembersBefore, nonOrgMembersAfter, false);
         }
@@ -2813,93 +2479,31 @@ export class HomeDBManager extends EventEmitter {
       .getOne() || undefined;
   }
 
-  /**
-   * Get the anonymous user, as a constructed object rather than a database lookup.
-   */
-  public getAnonymousUser(): User {
-    const user = new User();
-    user.id = this.getAnonymousUserId();
-    user.name = "Anonymous";
-    user.isFirstTimeUser = false;
-    const login = new Login();
-    login.displayEmail = login.email = ANONYMOUS_USER_EMAIL;
-    user.logins = [login];
-    user.ref = '';
-    return user;
+  public getAnonymousUser() {
+    return this._usersManager.getAnonymousUser();
+  }
+
+  public getAnonymousUserId() {
+    return this._usersManager.getAnonymousUserId();
+  }
+
+  public getPreviewerUserId() {
+    return this._usersManager.getPreviewerUserId();
+  }
+
+  public getEveryoneUserId() {
+    return this._usersManager.getEveryoneUserId();
+  }
+
+  public getSupportUserId() {
+    return this._usersManager.getSupportUserId();
   }
 
   /**
-   *
-   * Get the id of the anonymous user.
-   *
+   * @see UsersManager.prototype.completeProfiles
    */
-  public getAnonymousUserId(): number {
-    const id = this._specialUserIds[ANONYMOUS_USER_EMAIL];
-    if (!id) { throw new Error("Anonymous user not available"); }
-    return id;
-  }
-
-  /**
-   * Get the id of the thumbnail user.
-   */
-  public getPreviewerUserId(): number {
-    const id = this._specialUserIds[PREVIEWER_EMAIL];
-    if (!id) { throw new Error("Previewer user not available"); }
-    return id;
-  }
-
-  /**
-   * Get the id of the 'everyone' user.
-   */
-  public getEveryoneUserId(): number {
-    const id = this._specialUserIds[EVERYONE_EMAIL];
-    if (!id) { throw new Error("'everyone' user not available"); }
-    return id;
-  }
-
-  /**
-   * Get the id of the 'support' user.
-   */
-  public getSupportUserId(): number {
-    const id = this._specialUserIds[SUPPORT_EMAIL];
-    if (!id) { throw new Error("'support' user not available"); }
-    return id;
-  }
-
-  /**
-   * Get ids of users to be excluded from member counts and emails.
-   */
-  public getExcludedUserIds(): number[] {
-    return [this.getSupportUserId(), this.getAnonymousUserId(), this.getEveryoneUserId()];
-  }
-
-  /**
-   *
-   * Take a list of user profiles coming from the client's session, correlate
-   * them with Users and Logins in the database, and construct full profiles
-   * with user ids, standardized display emails, pictures, and anonymous flags.
-   *
-   */
-  public async completeProfiles(profiles: UserProfile[]): Promise<FullUser[]> {
-    if (profiles.length === 0) { return []; }
-    const qb = this._connection.createQueryBuilder()
-      .select('logins')
-      .from(Login, 'logins')
-      .leftJoinAndSelect('logins.user', 'user')
-      .where('logins.email in (:...emails)', {emails: profiles.map(profile => normalizeEmail(profile.email))});
-    const completedProfiles: {[email: string]: FullUser} = {};
-    for (const login of await qb.getMany()) {
-      completedProfiles[login.email] = {
-        id: login.user.id,
-        email: login.displayEmail,
-        name: login.user.name,
-        picture: login.user.picture,
-        anonymous: login.user.id === this.getAnonymousUserId(),
-        locale: login.user.options?.locale
-      };
-    }
-    return profiles.map(profile => completedProfiles[normalizeEmail(profile.email)])
-      .filter(profile => profile);
+  public async completeProfiles(profiles: UserProfile[]) {
+    return this._usersManager.completeProfiles(profiles);
   }
 
   /**
@@ -3161,7 +2765,7 @@ export class HomeDBManager extends EventEmitter {
       }
       org = result.entities[0];
     }
-    return getResourceUsers(org, this.defaultNonGuestGroupNames);
+    return UsersManager.getResourceUsers(org, this.defaultNonGuestGroupNames);
   }
 
   private async _getOrCreateLimit(accountId: number, limitType: LimitType, force: boolean): Promise<Limit|null> {
@@ -3198,7 +2802,6 @@ export class HomeDBManager extends EventEmitter {
     return result;
   }
 
-
   private _org(scope: Scope|null, includeSupport: boolean, org: string|number|null,
                options: QueryOptions = {}): SelectQueryBuilder<Organization> {
     let query = this._orgs(options.manager);
@@ -3218,7 +2821,7 @@ export class HomeDBManager extends EventEmitter {
       // TODO If the specialPermit is used across the network, requests could refer to orgs in
       // different ways (number vs string), causing this comparison to fail.
       if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.org === org) {
-        effectiveUserId = this.getPreviewerUserId();
+        effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
       // Compute whether we have access to the doc
@@ -3238,7 +2841,7 @@ export class HomeDBManager extends EventEmitter {
   private _orgWorkspaces(scope: Scope, org: string|number|null,
                          options: QueryOptions = {}): SelectQueryBuilder<Organization> {
     const {userId} = scope;
-    const supportId = this._specialUserIds[SUPPORT_EMAIL];
+    const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
     let query = this.org(scope, org, options)
       .leftJoinAndSelect('orgs.workspaces', 'workspaces')
       .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
@@ -3257,7 +2860,7 @@ export class HomeDBManager extends EventEmitter {
       .addOrderBy('docs.created_at')
       .leftJoinAndSelect('orgs.owner', 'org_users');
 
-    if (userId !== this.getAnonymousUserId()) {
+    if (userId !== this._usersManager.getAnonymousUserId()) {
       query = this._addForks(userId, query);
     }
 
@@ -3268,7 +2871,7 @@ export class HomeDBManager extends EventEmitter {
       // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
       query = this._filterByOrgGroups(query, userId, null);
       // The anonymous user is a special case; include only examples from support user.
-      if (userId === this.getAnonymousUserId()) {
+      if (userId === this._usersManager.getAnonymousUserId()) {
         query = query.andWhere('orgs.owner_id = :supportId', { supportId });
       }
     }
@@ -3292,7 +2895,7 @@ export class HomeDBManager extends EventEmitter {
       .where('docs.urlId = :urlId', {urlId});  // Place restriction on active urlIds only.
                                                // Older urlIds are best-effort, and subject to
                                                // reuse (currently).
-    if (org.ownerId === this.getSupportUserId()) {
+    if (org.ownerId === this._usersManager.getSupportUserId()) {
       // This is the support user.  Some of their documents end up as examples on team sites.
       // so urlIds need to be checked globally, which corresponds to placing no extra where
       // clause here.
@@ -3349,7 +2952,10 @@ export class HomeDBManager extends EventEmitter {
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
       await this._setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
-                                this._filterEveryone(getResourceUsers(wsWithDocs?.docs || [])));
+                                this._usersManager.filterEveryone(
+                                   UsersManager.getResourceUsers(wsWithDocs?.docs || [])
+                                )
+      );
     });
   }
 
@@ -3380,7 +2986,7 @@ export class HomeDBManager extends EventEmitter {
       }
       const orgGuestGroup = orgGroups[0]!;
       await this._setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
-                                this._filterEveryone(getResourceUsers(org.workspaces)));
+                                this._usersManager.filterEveryone(UsersManager.getResourceUsers(org.workspaces)));
     });
   }
 
@@ -3412,25 +3018,6 @@ export class HomeDBManager extends EventEmitter {
         .values(toAdd.map(id => ({user_id: id, group_id: groupId})))
         .execute();
     }
-  }
-
-  /**
-   * Don't add everyone@ as a guest, unless also sharing with anon@.
-   * This means that material shared with everyone@ doesn't become
-   * listable/discoverable by default.
-   *
-   * This is a HACK to allow existing example doc setup to continue to
-   * work. It could be removed if we are willing to share the entire
-   * support org with users.  E.g. move any material we don't want to
-   * share into a workspace that doesn't inherit ACLs.  TODO: remove
-   * this hack, or enhance it up as a way to support discoverability /
-   * listing.  It has the advantage of cloning well.
-   */
-  private _filterEveryone(users: User[]): User[] {
-    const everyone = this.getEveryoneUserId();
-    const anon = this.getAnonymousUserId();
-    if (users.find(u => u.id === anon)) { return users; }
-    return users.filter(u => u.id !== everyone);
   }
 
   /**
@@ -3496,7 +3083,7 @@ export class HomeDBManager extends EventEmitter {
    * Adds any calculated fields related to billing accounts - currently just
    * products.paid.
    */
-  private _addBillingAccountCalculatedFields<T>(qb: SelectQueryBuilder<T>) {
+  private _addBillingAccountCalculatedFields<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>) {
     // We need to sum up whether the account is paid or not, so that UI can provide
     // a "billing" vs "upgrade" link.  For the moment, we just check if there is
     // a subscription id.  TODO: make sure this is correct in case of free plans.
@@ -3507,16 +3094,16 @@ export class HomeDBManager extends EventEmitter {
   /**
    * Makes sure that product features for orgs are available in query result.
    */
-  private _addFeatures<T>(qb: SelectQueryBuilder<T>, orgAlias: string = 'orgs') {
+  private _addFeatures<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>, orgAlias: string = 'orgs') {
     qb = qb.leftJoinAndSelect(`${orgAlias}.billingAccount`, 'billing_accounts');
     qb = qb.leftJoinAndSelect('billing_accounts.product', 'products');
     // orgAlias.billingAccount.product.features should now be available
     return qb;
   }
 
-  private _addIsSupportWorkspace<T>(users: AvailableUsers, qb: SelectQueryBuilder<T>,
+  private _addIsSupportWorkspace<T extends ObjectLiteral>(users: AvailableUsers, qb: SelectQueryBuilder<T>,
                                     orgAlias: string, workspaceAlias: string) {
-    const supportId = this._specialUserIds[SUPPORT_EMAIL];
+    const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
 
     // We'll be selecting a boolean and naming it as *_support.  This matches the
     // SQL name `support` of a column in the Workspace entity whose javascript
@@ -3525,7 +3112,7 @@ export class HomeDBManager extends EventEmitter {
 
     // If we happen to be the support user, don't treat our workspaces as anything
     // special, so we can work with them in the ordinary way.
-    if (isSingleUser(users) && users === supportId) { return qb.addSelect('false', alias); }
+    if (UsersManager.isSingleUser(users) && users === supportId) { return qb.addSelect('false', alias); }
 
     // Otherwise, treat workspaces owned by support as special.
     return qb.addSelect(`coalesce(${orgAlias}.owner_id = ${supportId}, false)`, alias);
@@ -3534,7 +3121,7 @@ export class HomeDBManager extends EventEmitter {
   /**
    * Makes sure that doc forks are available in query result.
    */
-  private _addForks<T>(userId: number, qb: SelectQueryBuilder<T>) {
+  private _addForks<T extends ObjectLiteral>(userId: number, qb: SelectQueryBuilder<T>) {
     return qb.leftJoin('docs.forks', 'forks', 'forks.created_by = :forkUserId')
       .setParameter('forkUserId', userId)
       .addSelect([
@@ -3544,24 +3131,6 @@ export class HomeDBManager extends EventEmitter {
         'forks.updatedAt',
         'forks.options'
       ]);
-  }
-
-  /**
-   *
-   * Get the id of a special user, creating that user if it is not already present.
-   *
-   */
-  private async _getSpecialUserId(profile: UserProfile) {
-    let id = this._specialUserIds[profile.email];
-    if (!id) {
-      // get or create user - with retry, since there'll be a race to create the
-      // user if a bunch of servers start simultaneously and the user doesn't exist
-      // yet.
-      const user = await this.getUserByLoginWithRetry(profile.email, {profile});
-      if (user) { id = this._specialUserIds[profile.email] = user.id; }
-    }
-    if (!id) { throw new Error(`Could not find or create user ${profile.email}`); }
-    return id;
   }
 
   /**
@@ -3578,7 +3147,7 @@ export class HomeDBManager extends EventEmitter {
                          ids: {userId: number, forkUserId?: number},
                          res: {access: roles.Role|null}) {
     if (doc.type === 'tutorial') {
-      if (ids.userId === this.getPreviewerUserId()) {
+      if (ids.userId === this._usersManager.getPreviewerUserId()) {
         res.access = 'viewers';
       } else if (ids.forkUserId && ids.forkUserId === ids.userId) {
         res.access = 'owners';
@@ -3599,99 +3168,6 @@ export class HomeDBManager extends EventEmitter {
       }
     }
   }
-
-  // This deals with the problem posed by receiving a PermissionDelta specifying a
-  // role for both alice@x and Alice@x.  We do not distinguish between such emails.
-  // If there are multiple indistinguishabe emails, we preserve just one of them,
-  // assigning it the most powerful permission specified.  The email variant perserved
-  // is the earliest alphabetically.
-  private _mergeIndistinguishableEmails(delta: PermissionDelta) {
-    if (!delta.users) { return; }
-    // We normalize emails for comparison, but track how they were capitalized
-    // in order to preserve it.  This is worth doing since for the common case
-    // of a user being added to a resource prior to ever logging in, their
-    // displayEmail will be seeded from this value.
-    const displayEmails: {[email: string]: string} = {};
-    // This will be our output.
-    const users: {[email: string]: roles.NonGuestRole|null} = {};
-    for (const displayEmail of Object.keys(delta.users).sort()) {
-      const email = normalizeEmail(displayEmail);
-      const role = delta.users[displayEmail];
-      const key = displayEmails[email] = displayEmails[email] || displayEmail;
-      users[key] = users[key] ? roles.getStrongestRole(users[key], role) : role;
-    }
-    delta.users = users;
-  }
-
-  // Looks up the emails in the permission delta and adds them to the users map in
-  // the delta object.
-  // Returns a QueryResult based on the validity of the passed in PermissionDelta object.
-  private async _verifyAndLookupDeltaEmails(
-    userId: number,
-    delta: PermissionDelta,
-    isOrg: boolean = false,
-    transaction?: EntityManager
-  ): Promise<PermissionDeltaAnalysis> {
-    if (!delta) {
-      throw new ApiError('Bad request: missing permission delta', 400);
-    }
-    this._mergeIndistinguishableEmails(delta);
-    const hasInherit = 'maxInheritedRole' in delta;
-    const hasUsers = delta.users;  // allow zero actual changes; useful to reduce special
-                                   // cases in scripts
-    if ((isOrg && (hasInherit || !hasUsers)) || (!isOrg && !hasInherit && !hasUsers)) {
-      throw new ApiError('Bad request: invalid permission delta', 400);
-    }
-    // Lookup the email access changes and move them to the users object.
-    const userIdMap: {[userId: string]: roles.NonGuestRole|null} = {};
-    if (hasInherit) {
-      // Verify maxInheritedRole
-      const role = delta.maxInheritedRole;
-      const validRoles = new Set(this.defaultBasicGroupNames);
-      if (role && !validRoles.has(role)) {
-        throw new ApiError(`Invalid maxInheritedRole ${role}`, 400);
-      }
-    }
-    if (delta.users) {
-      // Verify roles
-      const deltaRoles = Object.keys(delta.users).map(_userId => delta.users![_userId]);
-      // Cannot set role "members" on workspace/doc.
-      const validRoles = new Set(isOrg ? this.defaultNonGuestGroupNames : this.defaultBasicGroupNames);
-      for (const role of deltaRoles) {
-        if (role && !validRoles.has(role)) {
-          throw new ApiError(`Invalid user role ${role}`, 400);
-        }
-      }
-      // Lookup emails
-      const emailMap = delta.users;
-      const emails = Object.keys(emailMap);
-      const emailUsers = await Promise.all(
-        emails.map(async email => await this.getUserByLogin(email, {manager: transaction}))
-      );
-      emails.forEach((email, i) => {
-        const userIdAffected = emailUsers[i]!.id;
-        // Org-level sharing with everyone would allow serious spamming - forbid it.
-        if (emailMap[email] !== null &&                    // allow removing anything
-            userId !== this.getSupportUserId() &&          // allow support user latitude
-            userIdAffected === this.getEveryoneUserId() &&
-            isOrg) {
-            throw new ApiError('This user cannot share with everyone at top level', 403);
-        }
-        userIdMap[userIdAffected] = emailMap[email];
-      });
-    }
-    const userIdDelta = delta.users ? userIdMap : null;
-    const userIds = Object.keys(userIdDelta || {});
-    const removingSelf = userIds.length === 1 && userIds[0] === String(userId) &&
-      delta.maxInheritedRole === undefined && userIdDelta?.[userId] === null;
-    const permissionThreshold = removingSelf ? Permissions.VIEW : Permissions.ACL_EDIT;
-    return {
-      userIdDelta,
-      permissionThreshold,
-      affectsSelf: userId in userIdMap,
-    };
-  }
-
   /**
    * A helper to throw an error if a user with ACL_EDIT permission attempts
    * to change their own access rights. The user permissions are expected to
@@ -3726,7 +3202,7 @@ export class HomeDBManager extends EventEmitter {
     // Get the user objects which map to non-null values in the userDelta.
     const userIds = Object.keys(userDelta).filter(userId => userDelta[userId])
       .map(userIdStr => parseInt(userIdStr, 10));
-    const users = await this._getUsers(userIds, manager);
+    const users = await this._usersManager.getUsers(userIds, manager);
 
     // Add unaffected users to the delta so that we have a record of where they are.
     groups.forEach(grp => {
@@ -3769,21 +3245,6 @@ export class HomeDBManager extends EventEmitter {
                             op: (manager: EntityManager) => Promise<any>): Promise<any> {
     if (transaction) { return op(transaction); }
     return this._connection.transaction(op);
-  }
-
-  /**
-   * Returns a Promise for an array of User entites for the given userIds.
-   */
-  private async _getUsers(userIds: number[], optManager?: EntityManager): Promise<User[]> {
-    if (userIds.length === 0) {
-      return [];
-    }
-    const manager = optManager || new EntityManager(this._connection);
-    const queryBuilder = manager.createQueryBuilder()
-      .select('users')
-      .from(User, 'users')
-      .where('users.id IN (:...userIds)', {userIds});
-    return await queryBuilder.getMany();
   }
 
   /**
@@ -3848,7 +3309,7 @@ export class HomeDBManager extends EventEmitter {
       let threshold = options.markPermissions;
       if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.docId) {
         query = query.andWhere('docs.id = :docId', {docId: scope.specialPermit.docId});
-        effectiveUserId = this.getPreviewerUserId();
+        effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
       // Compute whether we have access to the doc
@@ -3882,7 +3343,7 @@ export class HomeDBManager extends EventEmitter {
     } else {
       query = query
         .setParameter('forkUserId', scope.userId)
-        .setParameter('forkAnonId', this.getAnonymousUserId())
+        .setParameter('forkAnonId', this._usersManager.getAnonymousUserId())
         .addSelect(
           // Access to forks is currently limited to the users that created them, with
           // the exception of anonymous users, who have no access to their forks.
@@ -3935,7 +3396,7 @@ export class HomeDBManager extends EventEmitter {
       let threshold = options.markPermissions;
       if (options.allowSpecialPermit && scope.specialPermit &&
           scope.specialPermit.workspaceId === wsId) {
-        effectiveUserId = this.getPreviewerUserId();
+        effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
       // Compute whether we have access to the ws
@@ -3968,7 +3429,7 @@ export class HomeDBManager extends EventEmitter {
     // Always include the org of the support@ user, which contains the Samples workspace,
     // which we always show. (For isMergedOrg case, it's already included.)
     if (includeSupport) {
-      const supportId = this._specialUserIds[SUPPORT_EMAIL];
+      const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
       return qb.andWhere(new Brackets((q) =>
         this._wherePlainOrg(q, org).orWhere('orgs.owner_id = :supportId', {supportId})));
     } else {
@@ -4022,11 +3483,11 @@ export class HomeDBManager extends EventEmitter {
       .leftJoin('orgs.aclRules', 'acl_rules')
       .leftJoin('acl_rules.group', 'groups')
       .leftJoin('groups.memberUsers', 'members');
-    if (isSingleUser(users)) {
+    if (UsersManager.isSingleUser(users)) {
       // Add an exception for the previewer user, if present.
-      const previewerId = this._specialUserIds[PREVIEWER_EMAIL];
+      const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
       if (users === previewerId) { return qb; }
-      const everyoneId = this._specialUserIds[EVERYONE_EMAIL];
+      const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
       if (options?.ignoreEveryoneShares) {
         return qb.where('members.id = :userId', {userId: users});
       }
@@ -4281,7 +3742,7 @@ export class HomeDBManager extends EventEmitter {
           throw new ApiError('Cannot find unique login for user', 500);
         }
         value.email = logins[0].displayEmail;
-        value.anonymous = (logins[0].userId === this.getAnonymousUserId());
+        value.anonymous = (logins[0].userId === this._usersManager.getAnonymousUserId());
         continue;
       }
       if (key === 'managers') {
@@ -4395,8 +3856,8 @@ export class HomeDBManager extends EventEmitter {
         if (permissions !== null) {
           q = q.select('acl_rules.permissions');
         } else {
-          const everyoneId = this._specialUserIds[EVERYONE_EMAIL];
-          const anonId = this._specialUserIds[ANONYMOUS_USER_EMAIL];
+          const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
+          const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
           // Overall permissions are the bitwise-or of all individual
           // permissions from ACL rules.  We also include
           // Permissions.PUBLIC if any of the ACL rules are for the
@@ -4448,7 +3909,7 @@ export class HomeDBManager extends EventEmitter {
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
           q = q.andWhere(`(acl_rules.permissions & ${permissions}) = ${permissions}`).limit(1);
-        } else if (!isSingleUser(users)) {
+        } else if (!UsersManager.isSingleUser(users)) {
           q = q.addSelect('profiles.id');
           q = q.addSelect('profiles.display_email');
           q = q.addSelect('profiles.name');
@@ -4460,7 +3921,7 @@ export class HomeDBManager extends EventEmitter {
         }
         return q;
       };
-      if (isSingleUser(users)) {
+      if (UsersManager.isSingleUser(users)) {
         return getBasicPermissions(qb.subQuery());
       } else {
         return qb.subQuery()
@@ -4490,7 +3951,7 @@ export class HomeDBManager extends EventEmitter {
     qb = qb
       // filter for the specified user being a direct or indirect member of the acl_rule's group
       .where(new Brackets(cond => {
-        if (isSingleUser(users)) {
+        if (UsersManager.isSingleUser(users)) {
           // Users is an integer, so ok to insert into sql.  It we
           // didn't, we'd need to use distinct parameter names, since
           // we may include this code with different user ids in the
@@ -4500,7 +3961,7 @@ export class HomeDBManager extends EventEmitter {
           cond = cond.orWhere(`gu2.user_id = ${users}`);
           cond = cond.orWhere(`gu3.user_id = ${users}`);
           // Support the special "everyone" user.
-          const everyoneId = this._specialUserIds[EVERYONE_EMAIL];
+          const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
           if (everyoneId === undefined) {
             throw new Error("Special user id for EVERYONE_EMAIL not found");
           }
@@ -4511,7 +3972,7 @@ export class HomeDBManager extends EventEmitter {
           if (accessStyle === 'list') {
             // Support also the special anonymous user.  Currently, by convention, sharing a
             // resource with anonymous should make it listable.
-            const anonId = this._specialUserIds[ANONYMOUS_USER_EMAIL];
+            const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
             if (anonId === undefined) {
               throw new Error("Special user id for ANONYMOUS_USER_EMAIL not found");
             }
@@ -4521,7 +3982,7 @@ export class HomeDBManager extends EventEmitter {
             cond = cond.orWhere(`gu3.user_id = ${anonId}`);
           }
           // Add an exception for the previewer user, if present.
-          const previewerId = this._specialUserIds[PREVIEWER_EMAIL];
+          const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
           if (users === previewerId) {
             // All acl_rules granting view access are available to previewer user.
             cond = cond.orWhere('acl_rules.permissions = :permission',
@@ -4535,7 +3996,7 @@ export class HomeDBManager extends EventEmitter {
         }
         return cond;
       }));
-    if (!isSingleUser(users)) {
+    if (!UsersManager.isSingleUser(users)) {
       // We need to join against a list of users.
       const emails = new Set(users.map(profile => normalizeEmail(profile.email)));
       if (emails.size > 0) {
@@ -4569,7 +4030,7 @@ export class HomeDBManager extends EventEmitter {
   // Apply limits to the query.  Results should be limited to a specific org
   // if request is from a branded webpage; results should be limited to a
   // specific user or set of users.
-  private _applyLimit<T>(qb: SelectQueryBuilder<T>, limit: Scope,
+  private _applyLimit<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>, limit: Scope,
                          resources: Array<'docs'|'workspaces'|'orgs'>,
                          accessStyle: AccessStyle): SelectQueryBuilder<T> {
     if (limit.org) {
@@ -4681,7 +4142,7 @@ export class HomeDBManager extends EventEmitter {
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we
       // are already at or above the limit, then fail.
-      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({userId: this.getPreviewerUserId()},
+      const wss = this.unwrapQueryResult(await this.getOrgWorkspaces({userId: this._usersManager.getPreviewerUserId()},
                                                                      workspace.org.id,
                                                                      {manager}));
       const count = wss.map(ws => ws.docs.length).reduce((a, b) => a + b, 0);
@@ -4701,11 +4162,7 @@ export class HomeDBManager extends EventEmitter {
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam.  TODO: enhance or remove.
   private _checkUserChangeAllowed(userId: number, groups: Group[]) {
-    if (userId === this.getSupportUserId()) { return; }
-    const ids = new Set(flatten(groups.map(g => g.memberUsers)).map(u => u.id));
-    if (ids.has(this.getEveryoneUserId()) && ids.has(this.getAnonymousUserId())) {
-      throw new Error('this user cannot share with everyone and anonymous');
-    }
+    return this._usersManager.checkUserChangeAllowed(userId, groups);
   }
 
   // Fetch a Document with all access information loaded.  Make sure the user has the
@@ -4781,30 +4238,6 @@ export class HomeDBManager extends EventEmitter {
     return () => this.emit('addUser', userId, resource, userIdDelta, membersBefore);
   }
 
-  // Given two arrays of groups, returns a map of users present in the first array but
-  // not the second, where the map is broken down by user role.
-  // This method is used for checking limits on shares.
-  // Excluded users are removed from the results.
-  private _getUserDifference(groupsA: Group[], groupsB: Group[]): Map<roles.NonGuestRole, User[]> {
-    const subtractSet: Set<number> =
-      new Set(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
-    const result = new Map<roles.NonGuestRole, User[]>();
-    for (const group of groupsA) {
-      const name = group.name;
-      if (!roles.isNonGuestRole(name)) { continue; }
-      result.set(name, group.memberUsers.filter(user => !subtractSet.has(user.id)));
-    }
-    return this._withoutExcludedUsers(result);
-  }
-
-  private _withoutExcludedUsers(members: Map<roles.NonGuestRole, User[]>): Map<roles.NonGuestRole, User[]> {
-    const excludedUsers = this.getExcludedUserIds();
-    for (const [role, users] of members.entries()) {
-      members.set(role, users.filter((user) => !excludedUsers.includes(user.id)));
-    }
-    return members;
-  }
-
   private _billingManagerNotification(userId: number, addUserId: number, orgs: Organization[]) {
     return () => {
       this.emit('addBillingManager', userId, addUserId, orgs);
@@ -4815,17 +4248,6 @@ export class HomeDBManager extends EventEmitter {
     return () => {
       this.emit('teamCreator', userId);
     };
-  }
-
-  /**
-   * Check for anonymous user, either encoded directly as an id, or as a singular
-   * profile (this case arises during processing of the session/access/all endpoint
-   * whether we are checking for available orgs without committing yet to a particular
-   * choice of user).
-   */
-  private _isAnonymousUser(users: AvailableUsers): boolean {
-    return isSingleUser(users) ? users === this.getAnonymousUserId() :
-      users.length === 1 && normalizeEmail(users[0].email) === ANONYMOUS_USER_EMAIL;
   }
 
   // Set Workspace.removedAt to null (undeletion) or to a datetime (soft deletion)
@@ -4869,12 +4291,12 @@ export class HomeDBManager extends EventEmitter {
     maxInheritedRole: roles.BasicRole|null,
     docId?: string
   ): {personal: true, public: boolean}|undefined {
-    if (scope.userId === this.getPreviewerUserId()) { return; }
+    if (scope.userId === this._usersManager.getPreviewerUserId()) { return; }
 
     // If we have special access to the resource, don't filter user information.
     if (scope.specialPermit?.docId === docId && docId) { return; }
 
-    const thisUser = this.getAnonymousUserId() === scope.userId
+    const thisUser = this._usersManager.getAnonymousUserId() === scope.userId
       ? null
       : users.find(user => user.id === scope.userId);
     const realAccess = thisUser ? getRealAccess(thisUser, { maxInheritedRole, users }) : null;
@@ -4964,24 +4386,6 @@ async function verifyEntity(
   };
 }
 
-// Returns all first-level memberUsers in the resources. Requires all resources' aclRules, groups
-// and memberUsers to be populated.
-// If optRoles is provided, only checks membership in resource groups with the given roles.
-function getResourceUsers(res: Resource|Resource[], optRoles?: string[]): User[] {
-  res = Array.isArray(res) ? res : [res];
-  const users: {[uid: string]: User} = {};
-  let resAcls: AclRule[] = flatten(res.map(_res => _res.aclRules as AclRule[]));
-  if (optRoles) {
-    resAcls = resAcls.filter(_acl => optRoles.includes(_acl.group.name));
-  }
-  resAcls.forEach((aclRule: AclRule) => {
-    aclRule.group.memberUsers.forEach((u: User) => users[u.id] = u);
-  });
-  const userList = Object.keys(users).map(uid => users[uid]);
-  userList.sort((a, b) => a.id - b.id);
-  return userList;
-}
-
 // Returns a map of userIds to the user's strongest default role on the given resource.
 // The resource's aclRules, groups, and memberUsers must be populated.
 function getMemberUserRoles<T extends roles.Role>(res: Resource, allowRoles: T[]): {[userId: string]: T} {
@@ -5014,24 +4418,6 @@ export function removeRole(usersWithRoles: Map<roles.NonGuestRole, User[]>) {
   return flatten([...usersWithRoles.values()]);
 }
 
-function getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
-  return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(isNonGuestGroup);
-}
-
-// Returns a map of users indexed by their roles. Optionally excludes users whose ids are in
-// excludeUsers.
-function getUsersWithRole(groups: NonGuestGroup[], excludeUsers?: number[]): Map<roles.NonGuestRole, User[]> {
-  const members = new Map<roles.NonGuestRole, User[]>();
-  for (const group of groups) {
-    let users = group.memberUsers;
-    if (excludeUsers) {
-      users = users.filter((user) => !excludeUsers.includes(user.id));
-    }
-    members.set(group.name, users);
-  }
-  return members;
-}
-
 export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<DocAuthResult> {
   try {
     const doc = await docPromise;
@@ -5050,4 +4436,13 @@ export function getDocAuthKeyFromScope(scope: Scope): DocAuthKey {
   const {urlId, userId, org} = scope;
   if (!urlId) { throw new Error('document required'); }
   return {urlId, userId, org};
+}
+
+// Returns whether the given group is a valid non-guest group.
+function isNonGuestGroup(group: Group): group is NonGuestGroup {
+  return roles.isNonGuestRole(group.name);
+}
+
+function getNonGuestGroups(entity: Organization|Workspace|Document): NonGuestGroup[] {
+  return (entity.aclRules as AclRule[]).map(aclRule => aclRule.group).filter(isNonGuestGroup);
 }
