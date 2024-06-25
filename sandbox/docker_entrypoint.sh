@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # Runs the command provided as arguments, but attempts to configure permissions first.
 
 important_read_dirs=("/grist" "/persist")
-important_write_dirs=("/persist")
+write_dir="/persist"
 current_user_id=$(id -u)
 
 # We want to avoid running Grist as root if possible.
@@ -13,14 +13,13 @@ if [[ $current_user_id == 0 ]]; then
   target_user=${GRIST_DOCKER_USER:-grist}
   target_group=${GRIST_DOCKER_GROUP:-grist}
 
-  for dir in "${important_write_dirs[@]}"; do
-    # Make sure the target user owns everything that Grist needs write access to.
-    find "$dir" ! -user "$target_user" -exec chown "$target_user" "{}" +
-  done
+  # Make sure the target user owns everything that Grist needs write access to.
+  find $write_dir ! -user "$target_user" -exec chown "$target_user" "{}" +
 
   # Restart as the target user, replacing the current process (replacement is needed for security).
   # Alternative tools to setpriv are: chroot, gosu.
-  exec setpriv --reuid "$target_user" --regid "$target_group" --init-groups /usr/bin/env bash "$BASH_SOURCE" "$@"
+  # Need to use `exec` to close the parent shell, to avoid vulnerabilities: https://github.com/tianon/gosu/issues/37
+  exec setpriv --reuid "$target_user" --regid "$target_group" --init-groups /usr/bin/env bash "$0" "$@"
 fi
 
 # Validate that this user has access to the top level of each important directory.
