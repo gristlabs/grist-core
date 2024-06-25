@@ -1,5 +1,10 @@
-import { createFileBackedConfig, createFileConfigValue, createMemoryConfigValue, IWritableConfigValue } from "./config";
-import { convertToCoreFileContents } from "./configCoreFileFormats";
+import {
+  createConfigValue,
+  FileConfig,
+  fileConfigAccessorFactory,
+  IWritableConfigValue
+} from "./config";
+import { convertToCoreFileContents, IGristCoreConfigFileLatest } from "./configCoreFileFormats";
 
 export type Edition = "core" | "enterprise";
 
@@ -10,18 +15,14 @@ export interface IGristCoreConfig {
   edition: IWritableConfigValue<Edition>;
 }
 
-export async function loadGristCoreConfigFile(configPath: string): Promise<IGristCoreConfig> {
-  return createFileBackedConfig(
-    configPath,
-    convertToCoreFileContents,
-    (fileConfig) => ({
-      edition: createFileConfigValue(fileConfig, 'edition')
-    })
-  );
+export async function loadGristCoreConfigFile(configPath?: string): Promise<IGristCoreConfig> {
+  const fileConfig = configPath ? await FileConfig.create(configPath, convertToCoreFileContents) : undefined;
+  return loadGristCoreConfig(fileConfig);
 }
 
-export function createDefaultGristCoreConfigInMemory(): IGristCoreConfig {
+export function loadGristCoreConfig(fileConfig?: FileConfig<IGristCoreConfigFileLatest>): IGristCoreConfig {
+  const fileConfigValue = fileConfigAccessorFactory(fileConfig);
   return {
-    edition: createMemoryConfigValue("core"),
+    edition: createConfigValue("core", fileConfigValue("edition"))
   };
 }

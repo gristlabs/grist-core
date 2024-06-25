@@ -30,6 +30,7 @@ export const checkers = createCheckers(configCoreTI) as
 
 function upgradeV0toV1(config: IGristCoreConfigFileV0): IGristCoreConfigFileV1 {
   return {
+    ...config,
     version: "1",
     edition: "core",
   };

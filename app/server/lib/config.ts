@@ -32,12 +32,14 @@ export class ConfigValidationError extends Error {
   }
 }
 
+type ConfigAccessors<ValueType> = { get: () => ValueType, set?: (value: ValueType) => Promise<void> };
+
 /**
  * Provides type safe access to an underlying JSON file.
  *
  * Multiple FileConfigs for the same file shouldn't be used, as they risk going out of sync.
  */
-class FileConfig<FileContents> {
+export class FileConfig<FileContents> {
   /**
    * Creates a new type-safe FileConfig, by loading and checking the contents of the file with `validator`.
    * @param configPath - Path to load.
@@ -81,29 +83,42 @@ class FileConfig<FileContents> {
   }
 }
 
-export function createFileConfigValue<FileContents, Key extends keyof FileContents, MappedType>(
-  fileConfig: FileConfig<FileContents>,
-  key: Key,
-): IWritableConfigValue<FileContents[Key]> {
-  return {
+/**
+ * Creates a function for creating accessors for a given key.
+ * Propagates undefined values, so if no file config is available, accessors are undefined.
+ * @param fileConfig - Config to load/save values to.
+ */
+export function fileConfigAccessorFactory<FileContents>(
+  fileConfig?: FileConfig<FileContents>
+): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined
+{
+  if (!fileConfig) { return (key) => undefined; }
+  return (key) => ({
     get: () => fileConfig.get(key),
-    set: async (value: FileContents[Key]) => { return fileConfig.set(key, value); }
-  };
+    set: (value) => fileConfig.set(key, value)
+  });
 }
 
-export function createMemoryConfigValue<T>(initialValue: T): IWritableConfigValue<T> {
-  let _value = initialValue;
+/**
+ * Creates a config value optionally backed by persistent storage.
+ * Can be used as an in-memory value without persistent storage.
+ * @param defaultValue - Value to use if no persistent value is available.
+ * @param persistence - Accessors for saving/loading persistent value.
+ */
+export function createConfigValue<ValueType>(
+  defaultValue: ValueType,
+  persistence?: ConfigAccessors<ValueType>,
+): IWritableConfigValue<ValueType> {
+  let inMemoryValue = (persistence && persistence.get()) ?? defaultValue;
   return {
-    get: () => _value,
-    set: async (newValue: T) => { _value = newValue; },
+    get() {
+      return inMemoryValue;
+    },
+    async set(value: ValueType) {
+      if (persistence && persistence.set) {
+        await persistence.set(value);
+      }
+      inMemoryValue = value;
+    }
   };
-}
-
-export async function createFileBackedConfig<FileContentsType, ConfigType>(
-  configPath: string,
-  validator: FileContentsValidator<FileContentsType>,
-  configConverter: (fileConfig: FileConfig<FileContentsType>) => ConfigType,
-): Promise<ConfigType> {
-  const fileConfig = await FileConfig.create<FileContentsType>(configPath, validator);
-  return configConverter(fileConfig);
 }
