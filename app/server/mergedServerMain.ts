@@ -97,7 +97,7 @@ export async function main(port: number, serverTypes: ServerType[],
 
   if (options.logToConsole !== false) { server.addLogging(); }
   if (options.externalStorage === false) { server.disableExternalStorage(); }
-  await server.loadLoginSystem();
+  await server.addLoginMiddleware();
 
   if (includeDocs) {
     // It is important that /dw and /v prefixes are accepted (if present) by health check

@@ -605,7 +605,7 @@ export async function createServer(port: number, initDb = createInitialDb): Prom
   await flexServer.start();
   await flexServer.initHomeDBManager();
   flexServer.addDocWorkerMap();
-  await flexServer.loadLoginSystem();
+  await flexServer.addLoginMiddleware();
   flexServer.addHosts();
   flexServer.addAccessMiddleware();
   flexServer.addApiMiddleware();

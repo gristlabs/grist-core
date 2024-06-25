@@ -1140,7 +1140,7 @@ export class FlexServer implements GristServer {
     });
   }
 
-  public async loadLoginSystem() {
+  public async addLoginMiddleware() {
     if (this._check('login')) { return; }
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
@@ -1299,7 +1299,7 @@ export class FlexServer implements GristServer {
       null : 'homedb', 'api-mw', 'map', 'telemetry');
     // add handlers for cleanup, if we are in charge of the doc manager.
     if (!this._docManager) { this.addCleanup(); }
-    await this.loadLoginSystem();
+    await this.addLoginMiddleware();
     this.addComm();
 
     await this.create.configure?.();
