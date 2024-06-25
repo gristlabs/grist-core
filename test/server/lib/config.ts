@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { FileConfig, Deps, createConfigValue, ConfigAccessors } from "app/server/lib/config";
+import { ConfigAccessors, createConfigValue, Deps, FileConfig } from "app/server/lib/config";
 
 interface TestFileContents {
   myNum?: number
@@ -23,6 +23,7 @@ describe('FileConfig', () => {
       fakeFile.contents = newContents;
       return Promise.resolve();
     }));
+
     return fakeFile;
   };
 
