@@ -137,9 +137,12 @@ function createLoadedDocMenu(owner: IDisposableOwner, home: HomeModel) {
                         hasFeaturedTemplates ? t("More Examples and Templates") : t("Examples and Templates")
                     ) :
                     page === 'trash' ? t("Trash") :
-                    workspace && [css.docHeaderIcon('Folder',
-                        css.docHeaderIcon.cls(workspace.shareType ? `-${workspace.shareType}` : '')
-                      ),
+                      workspace && [css.docHeaderIcon(workspace.shareType === 'public'
+                          ? 'FolderPublic'
+                          : workspace.shareType === 'shared'
+                            ? 'FolderShared'
+                            : 'FolderPrivate',
+                        css.docHeaderIcon.cls(`-${workspace.shareType}`)),
                         workspaceName(home.app, workspace)]
                   ),
                   testId('doc-header'),
@@ -204,8 +207,12 @@ function buildAllDocsBlock(
     return css.docBlock(
       css.docBlockHeaderLink(
         css.wsLeft(
-          css.docHeaderIcon('Folder',
-            css.docHeaderIcon.cls(ws.shareType ? `-${ws.shareType}` : '')
+          css.docHeaderIcon(ws.shareType === 'public'
+              ? 'FolderPublic'
+              : ws.shareType === 'shared'
+                ? 'FolderShared'
+                : 'FolderPrivate',
+            css.docHeaderIcon.cls(`-${ws.shareType}`)
           ),
           workspaceName(home.app, ws),
         ),
@@ -283,8 +290,12 @@ function buildAllTemplates(home: HomeModel, templateWorkspaces: Observable<Works
     return css.templatesDocBlock(
       css.templateBlockHeader(
         css.wsLeft(
-          css.docHeaderIcon('Folder',
-            css.docHeaderIcon.cls(workspace.shareType ? `-${workspace.shareType}` : '')
+          css.docHeaderIcon(workspace.shareType === 'public'
+              ? 'FolderPublic'
+              : workspace.shareType === 'shared'
+                ? 'FolderShared'
+                : 'FolderPrivate',
+            css.docHeaderIcon.cls(`-${workspace.shareType}`)
           ),
           workspace.name,
         ),
@@ -410,8 +421,11 @@ function buildWorkspaceDocBlock(home: HomeModel, workspace: Workspace, flashDocI
           css.docLeft(
             css.docName(doc.name, testId('doc-name')),
             css.docPinIcon('PinSmall', dom.show(doc.isPinned)),
-            css.docPublicIcon('Public',
-              css.docPublicIcon.cls(doc.shareType ? `-${doc.shareType}` : ''),
+            css.docPublicIcon(doc.shareType === 'public'
+                ? 'FilePublic' : doc.shareType === 'shared'
+                  ? 'FileShared'
+                  : 'FilePrivate',
+              css.docPublicIcon.cls(`-${doc.shareType}`),
               testId('public'))
           ),
           css.docRowUpdatedAt(

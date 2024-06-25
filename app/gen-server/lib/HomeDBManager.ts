@@ -1040,10 +1040,10 @@ export class HomeDBManager extends EventEmitter {
           if (permissionDataUsers?.length > 1) {
             ws.shareType = permissionDataUsers.find((user) => user.email === EVERYONE_EMAIL
               || user.email === ANONYMOUS_USER_EMAIL)
-              ? 'everyone'
+              ? 'public'
               : permissionDataUsers.find((user) => user.id !== scope.userId)
-                ? 'others'
-                : '';
+                ? 'shared'
+                : 'private';
 
             for(const doc of ws.docs) {
               const permissionDataUsersDoc = this.unwrapQueryResult(
@@ -1053,10 +1053,10 @@ export class HomeDBManager extends EventEmitter {
               if (permissionDataUsersDoc && permissionDataUsersDoc.length > 1) {
                 doc.shareType = permissionDataUsersDoc.find((user) => user.email === EVERYONE_EMAIL
                   || user.email === ANONYMOUS_USER_EMAIL)
-                  ? 'everyone'
+                  ? 'public'
                   : permissionDataUsersDoc.find((user) => user.id !== scope.userId)
-                    ? 'others'
-                    : '';
+                    ? 'shared'
+                    : 'private';
               }
             }
           }

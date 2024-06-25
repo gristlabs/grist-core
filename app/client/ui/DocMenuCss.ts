@@ -123,10 +123,10 @@ export const docHeaderIcon = styled(icon, `
   margin-right: 8px;
   margin-top: -3px;
   --icon-color: ${theme.lightText};
-  &-everyone {
+  &-public {
     --icon-color: ${colors.lightGreen};
   }
-  &-others {
+  &-shared {
     --icon-color: ${colors.warning};
   }
 `);
@@ -234,10 +234,10 @@ export const docPublicIcon = styled(icon, `
   flex: none;
   margin-left: auto;
   --icon-color: ${theme.lightText};
-  &-everyone {
+  &-public {
     --icon-color: ${colors.lightGreen};
   }
-  &-others {
+  &-shared {
     --icon-color: ${colors.warning};
   }
 `);

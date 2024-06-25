@@ -156,10 +156,10 @@ export const cssPageIcon = styled(icon, `
   flex: none;
   margin-right: var(--page-icon-margin, 8px);
   --icon-color: ${theme.lightText};
-  &-everyone {
+  &-public {
     --icon-color: ${colors.lightGreen};
   }
-  &-others {
+  &-shared {
     --icon-color: ${colors.warning};
   }
   .${cssTools.className}-collapsed & {
