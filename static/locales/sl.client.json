@@ -538,7 +538,9 @@
         "Cancel": "Prekliči",
         "Force reload the document while timing formulas, and show the result.": "Prisilno znova naloži dokument med časovnimi formulami in prikaži rezultat.",
         "Timing is on": "Merjenje časa je vklopljeno",
-        "You can make changes to the document, then stop timing to see the results.": "Dokument lahko spremeniš in nato ustaviš merjenje časa, da vidiš rezultat."
+        "You can make changes to the document, then stop timing to see the results.": "Dokument lahko spremeniš in nato ustaviš merjenje časa, da vidiš rezultat.",
+        "Only available to document editors": "Na voljo samo urednikom dokumentov",
+        "Only available to document owners": "Na voljo samo lastnikom dokumentov"
     },
     "GridOptions": {
         "Horizontal Gridlines": "Vodoravne linije",
