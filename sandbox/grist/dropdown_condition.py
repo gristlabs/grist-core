@@ -39,7 +39,7 @@ def perform_dropdown_condition_renames(useractions, renames):
     try:
       widget_options = json.loads(col.widgetOptions)
       dc_formula = widget_options["dropdownCondition"]["text"]
-    except:
+    except (json.JSONDecodeError, KeyError):
       continue
 
     # Find out what table this column refers to and belongs to.
@@ -48,10 +48,7 @@ def perform_dropdown_condition_renames(useractions, renames):
 
     def renamer(subject):
       table_id = ref_table_id if subject.type == "choiceAttr" else self_table_id
-      if (table_id, subject.name) in renames:
-        return renames[(table_id, subject.name)]
-      else:
-        return None
+      return renames.get((table_id, subject.name))
       
     new_dc_formula = predicate_formula.process_renames(dc_formula, _DCEntityCollector(), renamer)
 

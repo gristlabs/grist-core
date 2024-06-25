@@ -57,7 +57,7 @@ class _ACLEntityCollector(TreeConverter):
     if parent == ['Name', 'rec'] or parent == ['Name', 'newRec']:
       # rec.COL refers to the column from the table that the rule is on.
       self.entities.append(NamedEntity('recCol', node.last_token.startpos, node.attr, None))
-    if parent == ['Name', 'user']:
+    elif parent == ['Name', 'user']:
       # user.ATTR is a user attribute.
       self.entities.append(NamedEntity('userAttr', node.last_token.startpos, node.attr, None))
     elif parent[0] == 'Attr' and parent[1] == ['Name', 'user']:
@@ -158,10 +158,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
       else:
         return None
       col_id = subject.name
-      new_col_id = col_renames_dict.get((table_id, col_id))
-      if not new_col_id:
-        return None
-      return new_col_id
+      return col_renames_dict.get((table_id, col_id))
 
     new_acl_formula = predicate_formula.process_renames(formula, _ACLEntityCollector(), renamer)
     new_rule_record = {"aclFormula": new_acl_formula}
@@ -171,7 +168,7 @@ def perform_acl_rule_renames(useractions, col_renames_dict):
       pass
     except ValueError as e:
       if not str(e).startswith("Unsupported syntax"):
-        raise e
+        raise
     rule_updates.append((rule_rec, new_rule_record)) 
 
   useractions.doBulkUpdateFromPairs('_grist_ACLResources', resource_updates)

@@ -8,6 +8,7 @@ import asttokens
 import textbuilder
 import six
 from codebuilder import get_dollar_replacer
+import re
 
 # Entities encountered in predicate formulas, which may get renamed.
 #   type : 'recCol'|'userAttr'|'userAttrCol',
@@ -105,22 +106,15 @@ def process_renames(formula, collector, renamer):
   new_formula_text = new_formula.get_text()
 
   # Find all "rec." in the processed formula.
-  rec_occurrences = []
-  cursor = 0
-  while True:
-    next_occurrence = new_formula_text.find("rec.", cursor)
-    if next_occurrence == -1:
-      break
-    cursor = next_occurrence + 4 # "rec." has 4 characters
-    rec_occurrences.append(next_occurrence)
+  rec_occurrences = (m.start() for m in re.finditer(r"rec\.", new_formula_text))
 
-  patches = []
-  # Map all "rec." back to the original formula to check if it was a "$".
-  for rec_occurrence in rec_occurrences:
-    oldpos = new_formula.map_back_offset(rec_occurrence)
-    if formula[oldpos] == "$":
-      # Replace the "rec." back to "$".
-      patches.append(textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence+4, "$"))
+  # Replace "rec." expanded from "$" back.
+  patches = (
+    textbuilder.make_patch(new_formula_text, rec_occurrence, rec_occurrence+4, "$")
+    for rec_occurrence in rec_occurrences
+    # Map all "rec." back to the original formula to check if it was a "$".
+    if formula[new_formula.map_back_offset(rec_occurrence)] == "$"
+  )
 
   return textbuilder.Replacer(textbuilder.Text(new_formula_text), patches).get_text()
 
