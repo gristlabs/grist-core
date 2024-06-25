@@ -8,7 +8,7 @@
 import {FlexServer, FlexServerOptions} from 'app/server/lib/FlexServer';
 import {GristLoginSystem} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
-import { getGlobalConfig } from "app/server/lib/globalConfig";
+import {getGlobalConfig} from "app/server/lib/globalConfig";
 
 // Allowed server types. We'll start one or a combination based on the value of GRIST_SERVERS
 // environment variable.

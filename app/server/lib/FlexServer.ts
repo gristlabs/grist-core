@@ -87,7 +87,7 @@ import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import * as serveStatic from "serve-static";
-import { IGristCoreConfig } from "./configCore";
+import {IGristCoreConfig} from "./configCore";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
