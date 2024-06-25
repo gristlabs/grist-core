@@ -6,10 +6,10 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
+import * as crypto from 'crypto';
 import * as express from 'express';
 import assignIn = require('lodash/assignIn');
 import * as path from 'path';
-import * as shortUUID from "short-uuid";
 
 
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
@@ -118,7 +118,10 @@ export function initGristSessions(instanceRoot: string, server: GristServer) {
   // cookie could be stolen (with some effort) by the custom domain's owner, we limit the damage
   // by only honoring custom-domain cookies for requests to that domain.
   const generateId = (req: RequestWithOrg) => {
-    const uid = shortUUID.generate();
+    // Generate 256 bits of cryptographically random data to use as the session ID.
+    // This ensures security against brute-force session hijacking even without signing the session ID.
+    const randomNumbers = crypto.getRandomValues(new Uint8Array(32));
+    const uid = Buffer.from(randomNumbers).toString("hex");
     return req.isCustomHost ? `c-${uid}@${req.org}@${req.get('host')}` : `g-${uid}`;
   };
   const sessionSecret = server.create.sessionSecret();
