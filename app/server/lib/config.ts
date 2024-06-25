@@ -1,5 +1,12 @@
 import * as fse from "fs-extra";
 
+// Export dependencies for stubbing in tests.
+export const Deps = {
+  readFile: fse.readFile,
+  writeFile: fse.writeFile,
+  pathExists: fse.pathExists,
+};
+
 /**
  * Readonly config value - no write access.
  */
@@ -32,7 +39,7 @@ export class ConfigValidationError extends Error {
   }
 }
 
-interface ConfigAccessors<ValueType> {
+export interface ConfigAccessors<ValueType> {
   get: () => ValueType,
   set?: (value: ValueType) => Promise<void>
 }
@@ -56,8 +63,8 @@ export class FileConfig<FileContents> {
     // Start with empty object, as it can be upgraded to a full config.
     let rawFileContents: any = {};
 
-    if (await fse.pathExists(configPath)) {
-      rawFileContents = JSON.parse(await fse.readFile(configPath, 'utf8'));
+    if (await Deps.pathExists(configPath)) {
+      rawFileContents = JSON.parse(await Deps.readFile(configPath, 'utf8'));
     }
 
     const fileContents = validator(rawFileContents);
@@ -82,7 +89,7 @@ export class FileConfig<FileContents> {
   }
 
   public async persistToDisk(): Promise<void> {
-    await fse.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2));
+    await Deps.writeFile(this._filePath, JSON.stringify(this._rawConfig, null, 2));
   }
 }
 
