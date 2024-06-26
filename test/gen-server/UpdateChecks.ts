@@ -5,10 +5,12 @@ import * as sinon from 'sinon';
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 import { Defer, serveSomething, Serving } from "test/server/customUtil";
+import { Telemetry } from 'app/server/lib/Telemetry';
 import { Deps } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { delay } from "app/common/delay";
 import { LatestVersion } from 'app/common/InstallAPI';
+import { TelemetryEvent, TelemetryMetadataByLevel } from 'app/common/Telemetry';
 
 const assert = chai.assert;
 
@@ -21,16 +23,19 @@ const stop = async () => {
 
 let homeUrl: string;
 let dockerHub: Serving & { signal: () => Defer };
+let sandbox: sinon.SinonSandbox;
+const logMessages: [TelemetryEvent, TelemetryMetadataByLevel?][] = [];
 
 const chimpy = configForUser("Chimpy");
+const headers = {
+  headers: {'Content-Type': 'application/json'}
+};
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.
 describe("UpdateChecks", function () {
   testUtils.setTmpLogLevel("error");
 
   this.timeout("20s");
-
-  const sandbox = sinon.createSandbox();
 
   before(async function () {
     testUtils.EnvironmentSnapshot.push();
@@ -41,11 +46,19 @@ describe("UpdateChecks", function () {
     Object.assign(process.env, {
       GRIST_TEST_SERVER_DEPLOYMENT_TYPE: "saas",
     });
+    sandbox = sinon.createSandbox();
     sandbox.stub(Deps, "REQUEST_TIMEOUT").value(300);
     sandbox.stub(Deps, "RETRY_TIMEOUT").value(400);
     sandbox.stub(Deps, "GOOD_RESULT_TTL").value(500);
     sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
+    sandbox.stub(Telemetry.prototype, 'logEvent').callsFake((_, name, meta) => {
+      if (name !== 'checkedUpdateAPI') {
+        return Promise.resolve();
+      }
+      logMessages.push([name, meta]);
+      return Promise.resolve();
+    });
 
     await startInProcess(this);
   });
@@ -69,7 +82,7 @@ describe("UpdateChecks", function () {
     assert.equal(result.latestVersion, "10");
 
     // Also works in post method.
-    const resp2 = await axios.post(`${homeUrl}/api/version`);
+    const resp2 = await axios.post(`${homeUrl}/api/version`, {}, headers);
     assert.equal(resp2.status, 200);
     assert.deepEqual(resp2.data, result);
   });
@@ -196,6 +209,27 @@ describe("UpdateChecks", function () {
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 500);
     assert.match(resp.data.error, /timeout/);
+  });
+
+  it("logs deploymentId and deploymentType", async function () {
+    logMessages.length = 0;
+    setEndpoint(dockerHub.url + "/tags");
+    const installationId = "randomInstallationId";
+    const deploymentType = "test";
+    const resp = await axios.post(`${homeUrl}/api/version`, {
+      installationId,
+      deploymentType
+    }, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(logMessages.length, 1);
+    const [name, meta] = logMessages[0];
+    assert.equal(name, "checkedUpdateAPI");
+    assert.deepEqual(meta, {
+      full: {
+        deploymentId: installationId,
+        deploymentType,
+      },
+    });
   });
 });
 

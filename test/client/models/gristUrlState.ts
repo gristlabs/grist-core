@@ -1,4 +1,3 @@
-import * as log from 'app/client/lib/log';
 import {HistWindow, UrlState} from 'app/client/lib/UrlState';
 import {getLoginUrl, UrlStateImpl} from 'app/client/models/gristUrlState';
 import {IGristUrlState} from 'app/common/gristUrls';
@@ -42,7 +41,6 @@ describe('gristUrlState', function() {
     // These grainjs browserGlobals are needed for using dom() in tests.
     const jsdomDoc = new JSDOM("<!doctype html><html><body></body></html>");
     pushGlobals(jsdomDoc.window);
-    sandbox.stub(log, 'debug');
   });
 
   afterEach(function() {

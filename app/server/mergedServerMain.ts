@@ -106,7 +106,6 @@ export async function main(port: number, serverTypes: ServerType[],
   server.addHealthCheck();
   if (includeHome || includeApp) {
     server.addBootPage();
-    server.addUpdatesCheck();
   }
   server.denyRequestsIfNotReady();
 
@@ -148,6 +147,7 @@ export async function main(port: number, serverTypes: ServerType[],
         server.addDocApiForwarder();
       }
       server.addJsonSupport();
+      server.addUpdatesCheck();
       await server.addLandingPages();
       // todo: add support for home api to standalone app
       server.addHomeApi();
