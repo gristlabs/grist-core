@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       latest_branch:
-        description: Branch from which to create the latest Docker image (default: latest_candidate)
+        description: "Branch from which to create the latest Docker image (default: latest_candidate)"
         type: string
         required: true
         default_value: latest_candidate
