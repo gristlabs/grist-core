@@ -107,6 +107,16 @@ jobs:
           cache-to: type=gha,mode=max
           build-contexts: ${{ matrix.image.name != 'grist-oss' && 'ext=ext' || '' }}
 
+  update_latest_branch:
+    name: Update latest branch
+    runs-on: ubuntu-latest
+    needs: push_to_registry
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.latest_branch }}
+
       - name: Update latest branch
         uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
         with:
