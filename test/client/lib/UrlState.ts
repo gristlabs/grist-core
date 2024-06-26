@@ -1,14 +1,11 @@
-import * as log from 'app/client/lib/log';
 import {HistWindow, UrlState} from 'app/client/lib/UrlState';
 import {assert} from 'chai';
 import {dom} from 'grainjs';
 import {popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
 import {JSDOM} from 'jsdom';
 import fromPairs = require('lodash/fromPairs');
-import * as sinon from 'sinon';
 
 describe('UrlState', function() {
-  const sandbox = sinon.createSandbox();
   let mockWindow: HistWindow;
 
   function pushState(state: any, title: any, href: string) {
@@ -26,12 +23,10 @@ describe('UrlState', function() {
     // These grainjs browserGlobals are needed for using dom() in tests.
     const jsdomDoc = new JSDOM("<!doctype html><html><body></body></html>");
     pushGlobals(jsdomDoc.window);
-    sandbox.stub(log, 'debug');
   });
 
   afterEach(function() {
     popGlobals();
-    sandbox.restore();
   });
 
   interface State {
