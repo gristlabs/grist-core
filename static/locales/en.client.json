@@ -1568,7 +1568,10 @@
         "Results": "Results",
         "Self Checks": "Self Checks",
         "You do not have access to the administrator panel.\nPlease log in as an administrator.": "You do not have access to the administrator panel.\nPlease log in as an administrator.",
-        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people."
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
+        "Key to sign sessions with": "Key to sign sessions with",
+        "Session Secret": "Session Secret"
     },
     "Columns": {
         "Remove Column": "Remove Column"
