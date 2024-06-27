@@ -33,7 +33,7 @@ jobs:
           - name: "grist"
             repo: "grist-ee"
           # For now, we build it twice, with `grist-ee` being a
-          # backwards-compatible synoym for `grist`.
+          # backwards-compatible synonym for `grist`.
           - name: "grist-ee"
             repo: "grist-ee"
     steps:
@@ -88,7 +88,7 @@ jobs:
           yarn run build:prod
 
       - name: Run tests
-        run: TEST_IMAGE=${{ github.repository_owner }}/${{ matrix.image.name }} VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
+        run: TEST_IMAGE=${{ github.repository_owner }}/${{ matrix.image.name }}:experimental VERBOSE=1 DEBUG=1 MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:docker
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v1 
