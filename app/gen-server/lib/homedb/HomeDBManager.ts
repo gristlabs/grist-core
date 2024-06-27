@@ -2501,14 +2501,14 @@ export class HomeDBManager extends EventEmitter {
   public async getDocApiKey(docId: string): Promise<Share | undefined> {
     return await this._connection.createQueryBuilder()
       .select('key')
-      .from(Share,'shares')
+      .from(Share, 'shares')
       .where('docId = :docId', {docId})
       .getOne() || undefined;
   }
 
   public async createDocApiKey(docId: string, share: ShareInfo) {
     const key = makeId();
-    const apiKey_options = {...JSON.parse(share.options), "apikey": true}
+    const apiKey_options = {...JSON.parse(share.options), "apikey": true};
     return await this._connection.createQueryBuilder()
       .insert()
       .setParameter('options', share.options)

@@ -19,10 +19,10 @@ import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/ch
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {docListHeader} from 'app/client/ui/DocMenuCss';
+//import {docListHeader} from 'app/client/ui/DocMenuCss';
 import {DocApiKey} from 'app/client/ui/DocApiKey';
-import {primaryButtonLink} from 'app/client/ui2018/buttons';
-import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
+//import {primaryButtonLink} from 'app/client/ui2018/buttons';
+import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {select} from 'app/client/ui2018/menus';
 import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'app/client/ui2018/modals';
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';

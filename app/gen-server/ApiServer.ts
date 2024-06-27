@@ -332,17 +332,17 @@ export class ApiServer {
 
     // POST /api/docs/:docId/apiKey
     this._app.post('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
-      res.status(201).json('Created api key')
+      res.status(201).json('Created api key');
     }));
 
     // PUT /api/docs/:docId/apiKey
     this._app.put('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
-      res.status(200).json('UPDATED api key')
+      res.status(200).json('UPDATED api key');
     }));
 
     // DELETE /api/docs/:docId/apiKey
     this._app.delete('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
-      res.status(200).json('delete api key')
+      res.status(200).json('delete api key');
     }));
 
     // PATCH /api/orgs/:oid/access
