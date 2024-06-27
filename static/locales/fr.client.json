@@ -520,7 +520,7 @@
         "Visit our {{link}} to learn more about Grist.": "Visitez notre {{link}} pour en savoir plus sur Grist.",
         "Sign in": "Connexion",
         "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Pour en savoir plus, consultez notre {{helpCenterLink}}, ou trouvez un expert via notre {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Pour en savoir plus, consultez notre {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "All Documents": "Tous les documents",

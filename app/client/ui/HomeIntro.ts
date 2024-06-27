@@ -83,7 +83,6 @@ function makeViewerTeamSiteIntro(homeModel: HomeModel) {
 }
 
 function makeTeamSiteIntro(homeModel: HomeModel) {
-  const sproutsProgram = cssLink({href: commonUrls.sproutsProgram, target: '_blank'}, t("Sprouts Program"));
   return [
     css.docListHeader(
       t("Welcome to {{- orgName}}", {orgName: homeModel.app.currentOrgName}),
@@ -94,8 +93,8 @@ function makeTeamSiteIntro(homeModel: HomeModel) {
     (!isFeatureEnabled('helpCenter') ? null :
       cssIntroLine(
         t(
-          'Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.',
-          {helpCenterLink: helpCenterLink(), sproutsProgram}
+          'Learn more in our {{helpCenterLink}}.',
+          {helpCenterLink: helpCenterLink()}
         ),
         testId('welcome-text')
       )
