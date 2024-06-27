@@ -324,6 +324,27 @@ export class ApiServer {
       return sendOkReply(req, res);
     }));
 
+    // GET /api/docs/:docId/apiKey
+    this._app.get('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
+      const apiKey = this._dbManager.getDocApiKey(req.params.docId);
+      res.status(200).json(`${apiKey}`);
+    }));
+
+    // POST /api/docs/:docId/apiKey
+    this._app.post('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
+      res.status(201).json('Created api key')
+    }));
+
+    // PUT /api/docs/:docId/apiKey
+    this._app.put('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
+      res.status(200).json('UPDATED api key')
+    }));
+
+    // DELETE /api/docs/:docId/apiKey
+    this._app.delete('/api/docs/:docId/apiKey', expressWrap(async (req, res) => {
+      res.status(200).json('delete api key')
+    }));
+
     // PATCH /api/orgs/:oid/access
     // Update the specified org acl rules.
     this._app.patch('/api/orgs/:oid/access', expressWrap(async (req, res) => {

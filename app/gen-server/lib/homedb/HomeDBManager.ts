@@ -2497,6 +2497,49 @@ export class HomeDBManager extends EventEmitter {
       .getOne() || undefined;
   }
 
+  // TODO filter by linkId
+  public async getDocApiKey(docId: string): Promise<Share | undefined> {
+    return await this._connection.createQueryBuilder()
+      .select('key')
+      .from(Share,'shares')
+      .where('docId = :docId', {docId})
+      .getOne() || undefined;
+  }
+
+  public async createDocApiKey(docId: string, share: ShareInfo) {
+    const key = makeId();
+    const apiKey_options = {...JSON.parse(share.options), "apikey": true}
+    return await this._connection.createQueryBuilder()
+      .insert()
+      .setParameter('options', share.options)
+      .into(Share)
+      .values({
+        linkId: share.linkId,
+        docId,
+        options: apiKey_options,
+        key,
+      })
+      .execute();
+  }
+
+  // TODO test if exists docapikey yet
+  public async updateDocApiKey(docId: string, apiKey: string) {
+    return await this._connection.createQueryBuilder()
+      .update(Share)
+      .set({key: apiKey})
+      .where('docId = :docId', {docId})
+      .execute() || undefined;
+  }
+
+  public async deleteDocApiKey(docId: string, apiKey: string) {
+    return await this.connection.createQueryBuilder()
+      .delete()
+      .from('shares')
+      .where('docId = :docId', {docId})
+      .where('key = :apiKey', {apiKey})
+      .execute() || undefined;
+  }
+
   public getAnonymousUser() {
     return this._usersManager.getAnonymousUser();
   }
