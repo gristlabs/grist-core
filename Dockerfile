@@ -122,6 +122,15 @@ RUN \
   mv /grist/static-built/* /grist/static && \
   rmdir /grist/static-built
 
+# To ensure non-root users can run grist, 'other' users need read access (and execute on directories)
+# This should be the case by default when copying files in.
+# Only uncomment this if running into permissions issues, as it takes a long time to execute on some systems.
+# RUN chmod -R o+rX /grist
+
+# Add a user to allow de-escalating from root on startup
+RUN useradd -ms /bin/bash grist
+ENV GRIST_DOCKER_USER=grist \
+    GRIST_DOCKER_GROUP=grist
 WORKDIR /grist
 
 # Set some default environment variables to give a setup that works out of the box when
@@ -151,5 +160,5 @@ ENV \
 
 EXPOSE 8484
 
-ENTRYPOINT ["/usr/bin/tini", "-s", "--"]
+ENTRYPOINT ["./sandbox/docker_entrypoint.sh"]
 CMD ["node", "./sandbox/supervisor.mjs"]
