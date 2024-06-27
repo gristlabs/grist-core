@@ -499,7 +499,7 @@
         "Sign in": "Вписване",
         "To use Grist, please either sign up or sign in.": "За да използвате Grist, моля, регистрирайте се или се впишете.",
         "Visit our {{link}} to learn more about Grist.": "Посетете {{link}}, за да научите повече за Grist.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Научете повече в нашия {{helpCenterLink}} или намерете експерт чрез нашата {{sproutsProgram}}.",
+        "Learn more in our {{helpCenterLink}}.": "Научете повече в нашия {{helpCenterLink}}.",
         "Get started by creating your first Grist document.": "Започнете, като създадете първия си Grist документ.",
         "Get started by exploring templates, or creating your first Grist document.": "Започнете, като проучите образците или създадете първия си Grist документ.",
         "Invite Team Members": "Поканете членове на екипа",

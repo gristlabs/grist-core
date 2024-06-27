@@ -555,7 +555,7 @@
         "Visit our {{link}} to learn more about Grist.": "Visite nosso site {{link}} para saber mais sobre o Grist.",
         "Sign in": "Entrar",
         "To use Grist, please either sign up or sign in.": "Para usar o Grist, inscreva-se ou faça login.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Saiba mais em nosso {{helpCenterLink}}, ou encontre um especialista através do nosso {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Saiba mais em nosso {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Access Details": "Detalhes de Acesso",

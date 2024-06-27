@@ -93,7 +93,6 @@ export const commonUrls = {
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
   plans: "https://www.getgrist.com/pricing",
-  sproutsProgram: "https://www.getgrist.com/sprouts-program",
   contact: "https://www.getgrist.com/contact",
   templates: 'https://www.getgrist.com/templates',
   community: 'https://community.getgrist.com',

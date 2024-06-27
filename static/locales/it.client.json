@@ -25,7 +25,7 @@
         "Visit our {{link}} to learn more about Grist.": "Vai a {{link}} per saperne di più su Grist.",
         "Sign in": "Accedi",
         "To use Grist, please either sign up or sign in.": "Per usare Grist, iscriviti o accedi.",
-        "Learn more in our {{helpCenterLink}}, or find an expert via our {{sproutsProgram}}.": "Approfondisci nel nostro {{helpCenterLink}}, o trova un esperto con il nostro {{sproutsProgram}}."
+        "Learn more in our {{helpCenterLink}}.": "Approfondisci nel nostro {{helpCenterLink}}."
     },
     "HomeLeftPane": {
         "Manage Users": "Gestisci gli utenti",
