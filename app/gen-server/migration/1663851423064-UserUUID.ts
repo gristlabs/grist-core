@@ -1,4 +1,3 @@
-
 import {makeId} from 'app/server/lib/idUtils';
 import {chunk} from 'lodash';
 import {MigrationInterface, QueryRunner, TableColumn} from "typeorm";
