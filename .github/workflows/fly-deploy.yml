@@ -42,8 +42,13 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
+      - name: Extract artifacts
+        id: extract_artifacts
+        run: |
+          unzip docker-image.zip
+          echo "PR_NUMBER=$(cat ./pr-number.txt)" >> $GITHUB_OUTPUT
       - name: Load Docker image
-        run: unzip docker-image.zip && docker load --input grist-core.tar
+        run: docker load --input grist-core.tar
       - name: Deploy to fly.io
         id: fly_deploy
         run: |
@@ -55,7 +60,7 @@ jobs:
         with:
           script: |
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: ${{ steps.extract_artifacts.outputs.PR_NUMBER }},
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `Deployed as ${{ steps.fly_deploy.outputs.DEPLOY_URL }} (until ${{ steps.fly_deploy.outputs.EXPIRES }})`
