@@ -41,7 +41,8 @@
         "Trash": "Cestino",
         "Workspace will be moved to Trash.": "Lo spazio di lavoro sarà spostato nel cestino.",
         "Workspaces": "Spazi di lavoro",
-        "Tutorial": "Tutorial"
+        "Tutorial": "Tutorial",
+        "Terms of service": "Condizioni di servizio"
     },
     "MakeCopyMenu": {
         "However, it appears to be already identical.": "Tuttavia, sembra essere già identico.",
@@ -549,7 +550,9 @@
         "Legacy": "Vecchia versione",
         "Personal Site": "Sito personale",
         "Team Site": "Sito del team",
-        "Grist Templates": "Template di Grist"
+        "Grist Templates": "Template di Grist",
+        "Billing Account": "Dati di fatturazione",
+        "Manage Team": "Gestisci il team"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Creare serie separate per ciascun valore delle colonne selezionate.",
@@ -726,7 +729,19 @@
         "Currency": "Valuta",
         "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "ID Documento da usare quando le Api REST chiedono {{docId}}. Vedi {{apiURL}}",
         "Python version used": "Versione di Python in uso",
-        "Try API calls from the browser": "Prova le chiamate Api nel browser"
+        "Try API calls from the browser": "Prova le chiamate Api nel browser",
+        "Stop timing...": "Ferma cronometro...",
+        "Timing is on": "Cronometro attivo",
+        "You can make changes to the document, then stop timing to see the results.": "Puoi fare modifiche al documento, quindi fermare il cronometro e vedere il risultato.",
+        "Cancel": "Annulla",
+        "Reload data engine?": "Ricarica il motore dati?",
+        "Force reload the document while timing formulas, and show the result.": "Ricarica il documenti cronometrando le formule, e mostra il risultato.",
+        "Formula timer": "Cronometro per le formule",
+        "Reload data engine": "Ricarica il motore dati",
+        "Start timing": "Avvia cronometro",
+        "Time reload": "Ricarica tempo",
+        "Only available to document editors": "Disponibile solo per gli editor del documento",
+        "Only available to document owners": "Disponibile solo per i proprietari del documento"
     },
     "DocumentUsage": {
         "Data Size": "Dimensione dei dati",
@@ -1106,7 +1121,9 @@
         "Add conditional style": "Aggiungi stile condizionale",
         "Error in style rule": "Errore nella regola di stile",
         "Row Style": "Stile riga",
-        "Rule must return True or False": "La regola deve restituire Vero o Falso"
+        "Rule must return True or False": "La regola deve restituire Vero o Falso",
+        "Conditional Style": "Stile condizionale",
+        "IF...": "SE..."
     },
     "CurrencyPicker": {
         "Invalid currency": "Valuta non valida"
@@ -1466,7 +1483,22 @@
         "Check now": "Controlla adesso",
         "Checking for updates...": "Controllo gli aggiornamenti...",
         "Grist releases are at ": "Le release di Grist sono a ",
-        "Sandbox settings for data engine": "Impostazione della sandbox per il motore dati"
+        "Sandbox settings for data engine": "Impostazione della sandbox per il motore dati",
+        "Current authentication method": "Metodo di autenticazione attuale",
+        "No fault detected.": "Nessun problema rilevato.",
+        "Or, as a fallback, you can set: {{bootKey}} in the environment and visit: {{url}}": "O, come fallback, puoi impostare: {{bootKey}} nell'ambiente, e visitare: {{url}}",
+        "Results": "Risultati",
+        "Self Checks": "Auto-diagnostica",
+        "You do not have access to the administrator panel.\nPlease log in as an administrator.": "Non hai accesso al pannello di amministrazione.\nAccedi come amministratore.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC. We recommend enabling one of these if Grist is accessible over the network or being made available to multiple people.": "Grist consente di configurare diversi tipi di autenticazione, compresi SAML e OIDC. Raccomandiamo di attivarne uno, se Grist è dispobile in rete, o raggiungibile da più persone.",
+        "Details": "Dettagli",
+        "Notes": "Note",
+        "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist firma i cookie della sessione con una chiave segreta. Impostare questa chiave con la variabile d'ambiente GRIST_SESSION_SECRET. Se questa non è definita, Grist usa un default non modificabile. Potremmo rimuovere questo avviso in futuro, perché gli ID di sessione generati a partire dalla versione 1.1.16 sono intrinsecamente sicuri dal punto di vista crittografico.",
+        "Administrator Panel Unavailable": "Pannello di amministrazione non disponibile",
+        "Authentication": "Autenticazione",
+        "Check failed.": "Controllo fallito.",
+        "Check succeeded.": "Controllo riuscito.",
+        "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist consente di configurare diversi tipi di autenticazione, compresi SAML e OIDC.     Raccomandiamo di attivarne uno, se Grist è dispobile in rete, o raggiungibile      da più persone."
     },
     "WelcomeCoachingCall": {
         "Maybe Later": "Forse più tardi",
@@ -1587,5 +1619,15 @@
         "Chart": "Grafico",
         "Custom": "Personalizzato",
         "Form": "Modulo"
+    },
+    "TimingPage": {
+        "Average Time (s)": "Media tempi (sec)",
+        "Total Time (s)": "Tempo totale (sec)",
+        "Loading timing data. Don't close this tab.": "Caricamento dei dati cronometrici. Non chiudere questa scheda.",
+        "Max Time (s)": "Tempo massimo (sec)",
+        "Number of Calls": "Numero di chiamate",
+        "Table ID": "ID Tabella",
+        "Column ID": "ID colonna",
+        "Formula timer": "Cronometro formule"
     }
 }
