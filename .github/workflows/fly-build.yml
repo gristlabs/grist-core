@@ -12,14 +12,10 @@ jobs:
     name: Build Docker image
     runs-on: ubuntu-latest
     # Build when the 'preview' label is added, or when PR is updated with this label present.
-    if: |
-          github.event_name == 'pull_request' && (
-            github.event.action == 'labeled' ||
-            github.event.action == 'opened' ||
-            github.event.action == 'synchronize' ||
-            github.event.action == 'reopened'
-          ) &&
-          contains(github.event.pull_request.labels.*.name, 'preview')
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'preview'))
     steps:
       - uses: actions/checkout@v4
       - name: Build and export Docker image
@@ -29,13 +25,13 @@ jobs:
           docker image save grist-core:preview -o grist-core.tar
       - name: Save PR information
         run: |
-          echo ${{ github.event.number }} > ./pr-number.txt
-          echo ${{ github.event.pull_request.head.repo.full_name }} | sed "s;/;_;g" > ./pr-source.txt
+          echo PR_NUMBER=${{ github.event.number }} >> ./pr-info.txt
+          echo PR_SOURCE=${{ github.event.pull_request.head.repo.full_name }} | sed "s;/;-;g" >> ./pr-info.txt
+          echo PR_SHASUM=${{ github.sha }} >> ./pr-info.txt
       - uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: |
             ./grist-core.tar
-            ./pr-number.txt
-            ./pr-source.txt
+            ./pr-info.txt
           if-no-files-found: "error"

@@ -42,8 +42,7 @@ jobs:
         id: extract_artifacts
         run: |
           unzip docker-image.zip
-          echo "PR_NUMBER=$(cat ./pr-number.txt)" >> $GITHUB_OUTPUT
-          echo "PR_SOURCE=$(cat ./pr-source.txt)" >> $GITHUB_OUTPUT
+          echo cat ./pr-info.txt >> $GITHUB_OUTPUT
       - name: Load Docker image
         run: docker load --input grist-core.tar
       - name: Deploy to fly.io
@@ -63,5 +62,5 @@ jobs:
               issue_number: ${{ steps.extract_artifacts.outputs.PR_NUMBER }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `Deployed as ${{ steps.fly_deploy.outputs.DEPLOY_URL }} (until ${{ steps.fly_deploy.outputs.EXPIRES }})`
+              body: `Deployed commit \`${{ steps.extract_artifacts.outputs.PR_SHASUM }}\` as ${{ steps.fly_deploy.outputs.DEPLOY_URL }} (until ${{ steps.fly_deploy.outputs.EXPIRES }})`
             })
