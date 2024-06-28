@@ -23,6 +23,10 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.2.72
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
       - name: Destroy fly.io app
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
