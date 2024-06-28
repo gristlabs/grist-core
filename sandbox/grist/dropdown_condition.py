@@ -43,7 +43,14 @@ def perform_dropdown_condition_renames(useractions, renames):
       continue
 
     # Find out what table this column refers to and belongs to.
-    ref_table_id = col.type.lstrip("Ref:")
+    if col.type.startswith("Ref:") :
+      ref_table_id = col.type[4:] 
+    elif col.type.startswith("RefList:"):
+      ref_table_id = col.type[8:] 
+    else:
+      # Unexpected situation. A column with dropdown condition should be of type reference
+      # or reference list. We leave this problematic column untouched.
+      continue
     self_table_id = col.parentId.tableId
 
     def renamer(subject):
