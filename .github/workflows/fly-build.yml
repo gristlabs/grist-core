@@ -27,7 +27,7 @@ jobs:
         run: |
           echo PR_NUMBER=${{ github.event.number }} >> ./pr-info.txt
           echo PR_SOURCE=${{ github.event.pull_request.head.repo.full_name }}-${{ github.event.pull_request.head.ref }} >> ./pr-info.txt
-          echo PR_SHASUM=$(git rev-parse HEAD) >> ./pr-info.txt
+          echo PR_SHASUM=${{ github.event.pull_request.head.sha }} >> ./pr-info.txt
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
