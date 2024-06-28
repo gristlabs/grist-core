@@ -7,10 +7,6 @@ on:
   # Allows running this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-
 jobs:
   destroy:
     name: Remove app from fly.io
@@ -28,5 +24,8 @@ jobs:
         with:
           version: 0.2.72
       - name: Destroy fly.io app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          BRANCH_NAME: ${{ github.event.pull_request_target.base_ref }}
         id: fly_destroy
         run: node buildtools/fly-deploy.js destroy
