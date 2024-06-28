@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     # Build when the 'preview' label is added, or when PR is updated with this label present.
     if: |
-          github.repository_owner == 'gristlabs' &&
           github.event_name == 'pull_request' && (
             github.event.action == 'labeled' ||
             github.event.action == 'opened' ||
