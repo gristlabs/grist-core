@@ -2,7 +2,7 @@ name: fly.io Destroy
 on:
   pull_request_target:
     branches: [ main ]
-    types: [labeled, unlabeled, closed, opened, synchronize, reopened]
+    types: [unlabeled, closed]
 
   # Allows running this workflow manually from the Actions tab
   workflow_dispatch:

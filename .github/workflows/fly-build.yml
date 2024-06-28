@@ -2,7 +2,7 @@ name: fly.io Build
 on:
   pull_request:
     branches: [ main ]
-    types: [labeled, unlabeled, closed, opened, synchronize, reopened]
+    types: [labeled, opened, synchronize, reopened]
 
   # Allows running this workflow manually from the Actions tab
   workflow_dispatch:
