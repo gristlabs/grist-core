@@ -23,15 +23,11 @@ jobs:
         run: >
           docker build -t grist-core:preview . &&
           docker image save grist-core:preview -o grist-core.tar
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
       - name: Save PR information
         run: |
           echo PR_NUMBER=${{ github.event.number }} >> ./pr-info.txt
-          echo PR_SOURCE=${{ github.event.pull_request.head.repo.full_name }} | sed "s;/;-;g" >> ./pr-info.txt
-          echo PR_SHASUM=${{ github.sha }} >> ./pr-info.txt
+          echo PR_SOURCE=${{ github.event.pull_request.head.label }} >> ./pr-info.txt
+          echo PR_SHASUM=$(git rev-parse HEAD) >> ./pr-info.txt
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

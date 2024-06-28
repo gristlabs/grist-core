@@ -30,6 +30,7 @@ jobs:
       - name: Destroy fly.io app
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          BRANCH_NAME: ${{ github.event.pull_request_target.base_ref }}
+          BRANCH_NAME: ${{ github.event.pull_request.base_ref }}
+          BRANCH_NAME: ${{ steps.extract_artifacts.outputs.PR_SOURCE }}-${{ github.head_ref || github.ref_name }}
         id: fly_destroy
         run: node buildtools/fly-deploy.js destroy
