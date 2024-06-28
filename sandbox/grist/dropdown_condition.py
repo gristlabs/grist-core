@@ -26,16 +26,16 @@ class _DCEntityCollector(TreeConverter):
 
 def perform_dropdown_condition_renames(useractions, renames):
   """
-  Given a dict of column renames of the form {(table_id, col_id): new_col_id}, applys updates
+  Given a dict of column renames of the form {(table_id, col_id): new_col_id}, applies updates
   to the affected dropdown condition formulas.
   """
   updates = []
 
-  for col in useractions._engine.docmodel.columns.all:
+  for col in useractions._docmodel.columns.all:
 
     patches = []
 
-    # Find all columns in the document that has dropdown conditions.
+    # Find all columns in the document that have dropdown conditions.
     try:
       widget_options = json.loads(col.widgetOptions)
       dc_formula = widget_options["dropdownCondition"]["text"]
