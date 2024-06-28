@@ -1,7 +1,6 @@
 const util = require('util');
 const childProcess = require('child_process');
 const fs = require('fs/promises');
-const {existsSync} = require('fs');
 
 const exec = util.promisify(childProcess.exec);
 
@@ -20,10 +19,6 @@ async function main() {
   switch (process.argv[2]) {
     case "deploy": {
       const appRoot = process.argv[3] || ".";
-      if (!existsSync(`${appRoot}/Dockerfile`)) {
-        console.log(`Dockerfile not found in appRoot of ${appRoot}`);
-        process.exit(1);
-      }
       const name = getAppName();
       const volName = getVolumeName();
       if (!await appExists(name)) {
@@ -37,7 +32,7 @@ async function main() {
         }
       }
       await prepConfig(name, appRoot, volName);
-      await appDeploy(name, appRoot);
+      await appDeploy(name);
       break;
     }
     case "destroy": {
@@ -74,8 +69,17 @@ const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true
 const appCreate = (name) => runAction(`flyctl launch --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
-const appDeploy = (name, appRoot) => runAction(`flyctl deploy ${appRoot} --remote-only --region=ewr --vm-memory 1024`,
-  {shell: true, stdio: 'inherit'});
+const appDeploy = async (name) => {
+  let tag = `registry.fly.io/${name}:latest`;
+  await runAction("flyctl auth docker")
+    .then(runAction(`docker image tag grist-core:preview ${tag}`))
+    .then(runAction(`docker push ${tag}`))
+    .then(runAction(`flyctl deploy --region=ewr --vm-memory 1024 --app ${name} --image ${tag}`))
+    .catch((e) => {
+      console.log(`Error occurred when deploying: ${e}`);
+      process.exit(1);
+    });
+};
 
 async function appDestroy(name) {
   await runAction(`flyctl apps destroy ${name} -y`);

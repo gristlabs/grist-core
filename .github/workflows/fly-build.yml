@@ -1,4 +1,4 @@
-name: Fly.io Build
+name: fly.io Build
 on:
   pull_request:
     branches: [ main ]
@@ -7,13 +7,9 @@ on:
   # Allows running this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-
 jobs:
   build:
-    name: Build docker image
+    name: Build Docker image
     runs-on: ubuntu-latest
     # Build when the 'preview' label is added, or when PR is updated with this label present.
     if: |
@@ -28,7 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: docker-build
-        run: docker build -t grist-core . && docker image save grist-core -o grist-core.tar
+        run: >
+          docker build -t grist-core:preview . &&
+          docker image save grist-core:preview -o grist-core.tar
       - uses: actions/upload-artifact@v4
         with:
           name: docker-image

@@ -1,0 +1,63 @@
+name: fly.io Deploy
+on:
+  workflow_run:
+    workflows: ["fly.io Build"]
+    types:
+      - completed
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.1.89
+      - name: Download artifact
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{ github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "docker-image"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
+      - name: Unzip artifact
+        run: unzip docker-image.zip
+      - name: Load Docker image
+        run: docker load --input grist-core.tar
+      - name: Deploy to fly.io
+        id: fly_deploy
+        run: |
+          node buildtools/fly-deploy.js deploy
+          flyctl config -c ./fly.toml env | awk '/APP_HOME_URL/{print "DEPLOY_URL=" $2}' >> $GITHUB_OUTPUT
+          flyctl config -c ./fly.toml env | awk '/FLY_DEPLOY_EXPIRATION/{print "EXPIRES=" $2}' >> $GITHUB_OUTPUT
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployed as ${{ steps.fly_deploy.outputs.DEPLOY_URL }} (until ${{ steps.fly_deploy.outputs.EXPIRES }})`
+            })
