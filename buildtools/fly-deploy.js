@@ -67,6 +67,8 @@ function getDockerTag(name) {
 }
 
 const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true).catch(() => false);
+// We do not deploy at the create stage, since the Docker image isn't ready yet.
+// Assigning --image prevents flyctl from making inferences based on the codebase and provisioning unnecessary postgres/redis instances.
 const appCreate = (name) => runAction(`flyctl launch --no-deploy --auto-confirm --image ${getDockerTag(name)} --name ${name} -r ewr -o ${org}`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
@@ -74,7 +76,7 @@ const appDeploy = async (name) => {
   await runAction("flyctl auth docker")
     .then(() => runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`))
     .then(() => runAction(`docker push ${getDockerTag(name)}`))
-    .then(() => runAction(`flyctl deploy --vm-memory 1024 --app ${name} --image ${getDockerTag(name)}`))
+    .then(() => runAction(`flyctl deploy --app ${name} --image ${getDockerTag(name)}`))
     .catch((e) => {
       console.log(`Error occurred when deploying: ${e}`);
       process.exit(1);

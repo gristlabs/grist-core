@@ -28,7 +28,8 @@ jobs:
           echo PR_NUMBER=${{ github.event.number }} >> ./pr-info.txt
           echo PR_SOURCE=${{ github.event.pull_request.head.repo.full_name }} | sed "s;/;-;g" >> ./pr-info.txt
           echo PR_SHASUM=${{ github.sha }} >> ./pr-info.txt
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: |

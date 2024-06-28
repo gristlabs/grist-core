@@ -14,7 +14,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
-      - name: Setup flyctl
+      - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.2.72
@@ -38,11 +38,11 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
-      - name: Extract artifacts
+      - name: Extract artifact
         id: extract_artifacts
         run: |
           unzip docker-image.zip
-          echo cat ./pr-info.txt >> $GITHUB_OUTPUT
+          cat ./pr-info.txt >> $GITHUB_OUTPUT
       - name: Load Docker image
         run: docker load --input grist-core.tar
       - name: Deploy to fly.io

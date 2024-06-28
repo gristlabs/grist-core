@@ -23,8 +23,10 @@ jobs:
       (github.event.action == 'unlabeled' && github.event.label.name == 'preview')))
     steps:
       - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.2.72
-      - id: fly_destroy
+      - name: Destroy fly.io app
+        id: fly_destroy
         run: node buildtools/fly-deploy.js destroy
