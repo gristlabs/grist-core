@@ -1,0 +1,36 @@
+name: Fly.io Build
+on:
+  pull_request:
+    branches: [ main ]
+    types: [labeled, unlabeled, closed, opened, synchronize, reopened]
+
+  # Allows running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  build:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    # Build when the 'preview' label is added, or when PR is updated with this label present.
+    if: |
+          github.repository_owner == 'gristlabs' &&
+          github.event_name == 'pull_request' && (
+            github.event.action == 'labeled' ||
+            github.event.action == 'opened' ||
+            github.event.action == 'synchronize' ||
+            github.event.action == 'reopened'
+          ) &&
+          contains(github.event.pull_request.labels.*.name, 'preview')
+    steps:
+      - uses: actions/checkout@v4
+      - id: docker-build
+        run: docker build -t grist-core . && docker image save grist-core -o grist-core.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: grist-core.tar
+          if-no-files-found: "error"

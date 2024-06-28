@@ -17,39 +17,45 @@ const getBranchName = () => {
 };
 
 async function main() {
-  if (process.argv[2] === 'deploy') {
-    const appRoot = process.argv[3] || ".";
-    if (!existsSync(`${appRoot}/Dockerfile`)) {
-      console.log(`Dockerfile not found in appRoot of ${appRoot}`);
-      process.exit(1);
-    }
-
-    const name = getAppName();
-    const volName = getVolumeName();
-    if (!await appExists(name)) {
-      await appCreate(name);
-      await volCreate(name, volName);
-    } else {
-      // Check if volume exists, and create it if not. This is needed because there was an API
-      // change in flyctl (mandatory -y flag) and some apps were created without a volume.
-      if (!(await volList(name)).length) {
-        await volCreate(name, volName);
+  switch (process.argv[2]) {
+    case "deploy": {
+      const appRoot = process.argv[3] || ".";
+      if (!existsSync(`${appRoot}/Dockerfile`)) {
+        console.log(`Dockerfile not found in appRoot of ${appRoot}`);
+        process.exit(1);
       }
+      const name = getAppName();
+      const volName = getVolumeName();
+      if (!await appExists(name)) {
+        await appCreate(name);
+        await volCreate(name, volName);
+      } else {
+        // Check if volume exists, and create it if not. This is needed because there was an API
+        // change in flyctl (mandatory -y flag) and some apps were created without a volume.
+        if (!(await volList(name)).length) {
+          await volCreate(name, volName);
+        }
+      }
+      await prepConfig(name, appRoot, volName);
+      await appDeploy(name, appRoot);
+      break;
     }
-    await prepConfig(name, appRoot, volName);
-    await appDeploy(name, appRoot);
-  } else if (process.argv[2] === 'destroy') {
-    const name = getAppName();
-    if (await appExists(name)) {
-      await appDestroy(name);
+    case "destroy": {
+      const name = getAppName();
+      if (await appExists(name)) {
+        await appDestroy(name);
+      }
+      break;
     }
-  } else if (process.argv[2] === 'clean') {
-    const staleApps = await findStaleApps();
-    for (const appName of staleApps) {
-      await appDestroy(appName);
+    case "clean": {
+      const staleApps = await findStaleApps();
+      for (const appName of staleApps) {
+        await appDestroy(appName);
+      }
+      break;
     }
-  } else {
-    console.log(`Usage:
+    default: {
+      console.log(`Usage:
   deploy [appRoot]:
             create (if needed) and deploy fly app grist-{BRANCH_NAME}.
             appRoot may specify the working directory that contains the Dockerfile to build.
@@ -59,7 +65,8 @@ async function main() {
 
   DRYRUN=1 in environment will show what would be done
 `);
-    process.exit(1);
+      process.exit(1);
+    }
   }
 }
 

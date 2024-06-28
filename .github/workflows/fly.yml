@@ -54,7 +54,7 @@ jobs:
           github.repository_owner == 'gristlabs' &&
           github.event_name == 'pull_request' &&
           (github.event.action == 'closed' ||
-           (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
+          (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
