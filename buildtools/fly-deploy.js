@@ -18,7 +18,6 @@ const getBranchName = () => {
 async function main() {
   switch (process.argv[2]) {
     case "deploy": {
-      const appRoot = process.argv[3] || ".";
       const name = getAppName();
       const volName = getVolumeName();
       if (!await appExists(name)) {
@@ -31,7 +30,7 @@ async function main() {
           await volCreate(name, volName);
         }
       }
-      await prepConfig(name, appRoot, volName);
+      await prepConfig(name, volName);
       await appDeploy(name);
       break;
     }
@@ -51,9 +50,7 @@ async function main() {
     }
     default: {
       console.log(`Usage:
-  deploy [appRoot]:
-            create (if needed) and deploy fly app grist-{BRANCH_NAME}.
-            appRoot may specify the working directory that contains the Dockerfile to build.
+  deploy:   create (if needed) and deploy fly app grist-{BRANCH_NAME}.
   destroy:  destroy fly app grist-{BRANCH_NAME}
   clean:    destroy all grist-* fly apps whose time has come
             (according to FLY_DEPLOY_EXPIRATION env var set at deploy time)
@@ -66,15 +63,15 @@ async function main() {
 }
 
 const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true).catch(() => false);
-const appCreate = (name) => runAction(`flyctl launch --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
+const appCreate = (name) => runAction(`flyctl launch --no-deploy --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
 const appDeploy = async (name) => {
   let tag = `registry.fly.io/${name}:latest`;
   await runAction("flyctl auth docker")
-    .then(runAction(`docker image tag grist-core:preview ${tag}`))
-    .then(runAction(`docker push ${tag}`))
-    .then(runAction(`flyctl deploy --region=ewr --vm-memory 1024 --app ${name} --image ${tag}`))
+    .then(() => runAction(`docker image tag grist-core:preview ${tag}`))
+    .then(() => runAction(`docker push ${tag}`))
+    .then(() => runAction(`flyctl deploy --vm-memory 1024 --app ${name} --image ${tag}`))
     .catch((e) => {
       console.log(`Error occurred when deploying: ${e}`);
       process.exit(1);
@@ -85,9 +82,9 @@ async function appDestroy(name) {
   await runAction(`flyctl apps destroy ${name} -y`);
 }
 
-async function prepConfig(name, appRoot, volName) {
-  const configPath = `${appRoot}/fly.toml`;
-  const configTemplatePath = `${appRoot}/buildtools/fly-template.toml`;
+async function prepConfig(name, volName) {
+  const configPath = "./fly.toml";
+  const configTemplatePath = "./buildtools/fly-template.toml";
   const template = await fs.readFile(configTemplatePath, {encoding: 'utf8'});
 
   // Calculate the time when we can destroy the app, used by findStaleApps.
