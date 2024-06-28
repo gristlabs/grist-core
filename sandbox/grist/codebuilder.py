@@ -134,8 +134,9 @@ def make_formula_body(formula, default_value, assoc_value=None):
 
 def get_dollar_replacer(formula):
   """
-  Translates formula "$" expression into rec. expression. This is extracted from the
-  make_formula_body function.
+  Returns a textbuilder.Replacer that would replace all dollar signs ("$") in the given
+  formula with "rec.". The Replacer tracks extra info we can later use to restore the
+  dollar signs back. To get the processed text, call .get_text() on the Replacer.
   """
   formula_builder_text = textbuilder.Text(formula)
   tmp_patches = textbuilder.make_regexp_patches(formula, DOLLAR_REGEX, 'DOLLAR')
