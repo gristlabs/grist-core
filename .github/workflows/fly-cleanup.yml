@@ -19,5 +19,5 @@ jobs:
         - uses: actions/checkout@v3
         - uses: superfly/flyctl-actions/setup-flyctl@master
           with:
-            version: 0.2.73
+            version: 0.2.72
         - run: node buildtools/fly-deploy.js clean

@@ -21,11 +21,9 @@ jobs:
       - name: Setup flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
-          version: 0.1.89
+          version: 0.2.72
       - name: Download artifact
         uses: actions/github-script@v7
-        # env:
-        #   GITHUB_TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -44,10 +42,8 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/docker-image.zip', Buffer.from(download.data));
-      - name: Unzip artifact
-        run: unzip docker-image.zip
       - name: Load Docker image
-        run: docker load --input grist-core.tar
+        run: unzip docker-image.zip && docker load --input grist-core.tar
       - name: Deploy to fly.io
         id: fly_deploy
         run: |
