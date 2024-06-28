@@ -22,7 +22,8 @@ jobs:
           contains(github.event.pull_request.labels.*.name, 'preview')
     steps:
       - uses: actions/checkout@v4
-      - id: docker-build
+      - name: Build and export Docker image
+        id: docker-build
         run: >
           docker build -t grist-core:preview . &&
           docker image save grist-core:preview -o grist-core.tar
