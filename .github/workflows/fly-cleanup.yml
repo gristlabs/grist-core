@@ -1,4 +1,4 @@
-name: Fly Cleanup
+name: fly.io Cleanup
 on:
   schedule:
     # Once a day, clean up jobs marked as expired

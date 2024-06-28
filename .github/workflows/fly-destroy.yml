@@ -1,0 +1,30 @@
+name: fly.io Destroy
+on:
+  pull_request_target:
+    branches: [ main ]
+    types: [labeled, unlabeled, closed, opened, synchronize, reopened]
+
+  # Allows running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  destroy:
+    name: Remove app from fly.io
+    runs-on: ubuntu-latest
+    # Remove the deployment when 'preview' label is removed, or the PR is closed.
+    if: |
+          github.repository_owner == 'gristlabs' &&
+          github.event_name == 'pull_request' &&
+          (github.event.action == 'closed' ||
+          (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.1.89
+      - id: fly_destroy
+        run: node buildtools/fly-deploy.js destroy
