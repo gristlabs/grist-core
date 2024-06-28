@@ -27,13 +27,15 @@ jobs:
         run: >
           docker build -t grist-core:preview . &&
           docker image save grist-core:preview -o grist-core.tar
-      - name: 
+      - name: Save PR information
         run: |
           echo ${{ github.event.number }} > ./pr-number.txt
+          echo ${{ github.event.pull_request.head.repo.full_name }} | sed "s;/;_;g" > ./pr-source.txt
       - uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: |
             ./grist-core.tar
             ./pr-number.txt
+            ./pr-source.txt
           if-no-files-found: "error"

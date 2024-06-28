@@ -5,10 +5,6 @@ on:
     types:
       - completed
 
-env:
-  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-
 jobs:
   deploy:
     name: Deploy app to fly.io
@@ -47,10 +43,14 @@ jobs:
         run: |
           unzip docker-image.zip
           echo "PR_NUMBER=$(cat ./pr-number.txt)" >> $GITHUB_OUTPUT
+          echo "PR_SOURCE=$(cat ./pr-source.txt)" >> $GITHUB_OUTPUT
       - name: Load Docker image
         run: docker load --input grist-core.tar
       - name: Deploy to fly.io
         id: fly_deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          BRANCH_NAME: ${{ steps.extract_artifacts.outputs.PR_SOURCE }}-${{ github.head_ref || github.ref_name }}
         run: |
           node buildtools/fly-deploy.js deploy
           flyctl config -c ./fly.toml env | awk '/APP_HOME_URL/{print "DEPLOY_URL=" $2}' >> $GITHUB_OUTPUT

@@ -62,16 +62,19 @@ async function main() {
   }
 }
 
+function getDockerTag(name) {
+  return `registry.fly.io/${name}:latest`;
+}
+
 const appExists = (name) => runFetch(`flyctl status -a ${name}`).then(() => true).catch(() => false);
-const appCreate = (name) => runAction(`flyctl launch --no-deploy --auto-confirm --name ${name} -r ewr -o ${org} --vm-memory 1024`);
+const appCreate = (name) => runAction(`flyctl launch --no-deploy --auto-confirm --image ${getDockerTag(name)} --name ${name} -r ewr -o ${org}`);
 const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r ewr -y -a ${name}`);
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
 const appDeploy = async (name) => {
-  let tag = `registry.fly.io/${name}:latest`;
   await runAction("flyctl auth docker")
-    .then(() => runAction(`docker image tag grist-core:preview ${tag}`))
-    .then(() => runAction(`docker push ${tag}`))
-    .then(() => runAction(`flyctl deploy --vm-memory 1024 --app ${name} --image ${tag}`))
+    .then(() => runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`))
+    .then(() => runAction(`docker push ${getDockerTag(name)}`))
+    .then(() => runAction(`flyctl deploy --vm-memory 1024 --app ${name} --image ${getDockerTag(name)}`))
     .catch((e) => {
       console.log(`Error occurred when deploying: ${e}`);
       process.exit(1);
