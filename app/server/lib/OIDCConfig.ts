@@ -47,7 +47,8 @@
  *        A JSON object with extra client metadata to pass to openid-client. Optional.
  *        Be aware that setting this object may override any other values passed to the openid client.
  *        More info: https://github.com/panva/node-openid-client/tree/main/docs#new-clientmetadata-jwks-options
- *
+ *    env GRIST_OIDC_HTTP_TIMEOUT
+ *        The timeout in milliseconds for HTTP requests to the IdP. Defaults to 3500.
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -66,7 +67,7 @@
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
 import {
-  Client, ClientMetadata, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
+  Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
 } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
@@ -137,6 +138,12 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
       censor: true,
     });
+    const httpTimeout = section.flag('httpTimeout').readInt({
+      envVar: 'GRIST_OIDC_HTTP_TIMEOUT',
+      // Default value matching that of node-openid-client
+      // See https://github.com/panva/node-openid-client/blob/main/docs/README.md#customizing-http-requests for more details.
+      defaultValue: 3500,
+    });
     this._namePropertyKey = section.flag('namePropertyKey').readString({
       envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
     });
@@ -175,6 +182,9 @@ export class OIDCConfig {
     this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
     await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
 
+    custom.setHttpOptionsDefaults({
+      timeout: httpTimeout,
+    });
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
       !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
