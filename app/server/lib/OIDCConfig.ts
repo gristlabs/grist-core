@@ -35,6 +35,8 @@
  *    env GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
  *        If set to "true", the user will be allowed to login even if the email is not verified by the IDP.
  *        Defaults to false.
+ *    env GRIST_OIDC_HTTP_TIMEOUT
+ *        The timeout in milliseconds for HTTP requests to the IdP. Defaults to 3500.
  *
  * This version of OIDCConfig has been tested with Keycloak OIDC IdP following the instructions
  * at:
@@ -52,7 +54,7 @@
 
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
-import { Client, generators, Issuer, UserinfoResponse } from 'openid-client';
+import { Client, generators, custom, Issuer, UserinfoResponse } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { appSettings } from './AppSettings';
@@ -89,6 +91,10 @@ export class OIDCConfig {
       envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
       censor: true,
     });
+    const httpTimeout = section.flag('httpTimeout').readInt({
+      envVar: 'GRIST_OIDC_HTTP_TIMEOUT',
+      defaultValue: 3500,
+    });
     this._namePropertyKey = section.flag('namePropertyKey').readString({
       envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
     });
@@ -120,6 +126,9 @@ export class OIDCConfig {
       client_secret: clientSecret,
       redirect_uris: [ this._redirectUrl ],
       response_types: [ 'code' ],
+    });
+    custom.setHttpOptionsDefaults({
+      timeout: httpTimeout,
     });
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
         !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
