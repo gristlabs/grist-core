@@ -54,7 +54,7 @@
 
 import * as express from 'express';
 import { GristLoginSystem, GristServer } from './GristServer';
-import { Client, generators, custom, Issuer, UserinfoResponse } from 'openid-client';
+import { Client, custom, generators, Issuer, UserinfoResponse } from 'openid-client';
 import { Sessions } from './Sessions';
 import log from 'app/server/lib/log';
 import { appSettings } from './AppSettings';
